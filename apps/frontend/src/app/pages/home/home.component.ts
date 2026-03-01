@@ -181,7 +181,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       </header>
 
       <main class="home-main">
-        <p class="home-hero">Live-Quiz, Q&A und Abstimmung – mit wenigen Klicks</p>
+        <p class="home-hero">Fragen, quizzen, abstimmen – gemeinsam und live</p>
 
         <div class="home-hero-icons" aria-hidden="true">
           <div class="home-hero-icon"><mat-icon>quiz</mat-icon></div>
@@ -191,7 +191,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
           <div class="home-hero-icon"><mat-icon>how_to_vote</mat-icon></div>
         </div>
 
-        <p class="home-trust-badges">100 % DSGVO-konform · Open Source · kostenlos</p>
+        <p class="home-trust-badges">Kostenlos · DSGVO-konform · Open Source</p>
 
         @if (showOnboarding()) {
           <div class="home-onboarding">
@@ -219,14 +219,14 @@ import { ThemePresetService } from '../../services/theme-preset.service';
           <mat-card-header>
             <mat-card-subtitle>
               <mat-icon class="home-card__icon">group</mat-icon>
-              Teilnehmer/in
+              Mitmachen
             </mat-card-subtitle>
-            <mat-card-title class="home-card__title">Beitreten</mat-card-title>
+            <mat-card-title class="home-card__title">Dabei sein</mat-card-title>
           </mat-card-header>
 
           <mat-card-content class="l-stack l-stack--sm">
             @if (recentSessionCodes().length > 0) {
-              <p class="home-recent-label">Zuletzt beigetreten</p>
+              <p class="home-recent-label">Letzte Sessions</p>
               <div class="home-recent-codes">
                 @for (code of recentSessionCodes(); track code) {
                   <button matButton="outlined" class="home-recent-code" (click)="joinSessionByCode(code)">
@@ -270,7 +270,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
               @if (sessionCode().length > 0) {
                 <span class="home-code-counter">{{ sessionCode().length }}/6</span>
               }
-              <span class="home-code-help">Großbuchstaben & Zahlen</span>
+              <span class="home-code-help">6 Zeichen, z.B. ABC123</span>
             </div>
           </mat-card-content>
 
@@ -278,7 +278,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
             @if (isJoining()) {
               <button matButton="filled" class="home-cta" disabled aria-label="Session beitreten">
                 <mat-icon class="home-cta__icon home-spin">sync</mat-icon>
-                Beitreten…
+                Verbinde…
               </button>
             } @else {
               <button
@@ -287,10 +287,10 @@ import { ThemePresetService } from '../../services/theme-preset.service';
                 [class.home-cta--ready]="ctaReady()"
                 (click)="joinSession()"
                 [disabled]="!isValidSessionCode()"
-                aria-label="Session beitreten"
+                aria-label="Teilnehmen"
               >
                 <mat-icon class="home-cta__icon">login</mat-icon>
-                Beitreten
+                Los geht's
               </button>
             }
             @if (joinError()) {
@@ -303,14 +303,14 @@ import { ThemePresetService } from '../../services/theme-preset.service';
           <mat-card-header>
             <mat-card-subtitle>
               <mat-icon class="home-card__icon">school</mat-icon>
-              Lehrperson
+              Veranstalten
             </mat-card-subtitle>
-            <mat-card-title class="home-card__title">Erstellen</mat-card-title>
+            <mat-card-title class="home-card__title">Quiz starten</mat-card-title>
           </mat-card-header>
 
           <mat-card-content>
             <div class="home-card__meta">
-              <p class="home-card__copy">Starten Sie eine Quiz-Session oder Q&amp;A-Runde.</p>
+              <p class="home-card__copy">Quiz, Q&amp;A oder Umfrage in Sekunden aufsetzen.</p>
               <a
                 matButton
                 class="home-help-btn"
@@ -327,16 +327,16 @@ import { ThemePresetService } from '../../services/theme-preset.service';
           <mat-card-actions class="l-stack l-stack--sm">
             <a matButton="filled" routerLink="/quiz" class="home-cta" (mouseenter)="preloadQuiz()">
               <mat-icon class="home-cta__icon">add_circle</mat-icon>
-              Session erstellen
+              Neues Quiz starten
             </a>
             <div class="home-cta-row">
               <a matButton="tonal" routerLink="/quiz" class="home-cta home-cta--secondary" (mouseenter)="preloadQuiz()">
                 <mat-icon class="home-cta__icon">quiz</mat-icon>
-                Quiz auswählen
+                Aus Bibliothek
               </a>
               <a matButton="tonal" routerLink="/quiz" class="home-cta home-cta--secondary" (mouseenter)="preloadQuiz()">
                 <mat-icon class="home-cta__icon">question_answer</mat-icon>
-                Q&amp;A
+                Fragerunde
               </a>
             </div>
           </mat-card-actions>
@@ -355,7 +355,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
             <div class="home-subcard__links l-stack l-stack--sm">
               <a matButton routerLink="/quiz" class="home-subcard__link" (mouseenter)="preloadQuiz()">
                 <mat-icon class="home-subcard__link-icon">menu_book</mat-icon>
-                Quizzes ansehen
+                Quizzes entdecken
               </a>
               <div class="home-subcard__demo-row">
                 <a matButton routerLink="/quiz" class="home-subcard__demo-btn" (mouseenter)="preloadQuiz()">
@@ -365,7 +365,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
                 <span class="home-subcard__demo-sep">oder</span>
                 <a matButton [routerLink]="['/session', demoSessionCode]" class="home-subcard__demo-btn">
                   <mat-icon class="home-subcard__link-icon">group_add</mat-icon>
-                  Beitreten
+                  Demo beitreten
                 </a>
               </div>
             </div>
@@ -381,11 +381,11 @@ import { ThemePresetService } from '../../services/theme-preset.service';
           </mat-card-header>
           <mat-card-content>
             @if (apiStatus()) {
-              <p class="home-subcard__body">Server erreichbar</p>
+              <p class="home-subcard__body">Verbunden</p>
             } @else {
-              <p class="home-subcard__body">Server nicht erreichbar</p>
+              <p class="home-subcard__body">Keine Verbindung</p>
               <button matButton="outlined" class="home-retry-btn" (click)="retryConnection()" [disabled]="apiRetrying()">
-                {{ apiRetrying() ? 'Verbinde…' : 'Erneut verbinden' }}
+                {{ apiRetrying() ? 'Verbinde…' : 'Nochmal versuchen' }}
               </button>
             }
             <app-server-status-widget />
@@ -1145,7 +1145,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isJoining()) return;
     const code = this.sessionCode().trim().toUpperCase();
     if (!/^[A-Z0-9]{6}$/.test(code)) {
-      this.joinError.set('Bitte einen gültigen 6-stelligen Code eingeben.');
+      this.joinError.set('Bitte den 6-stelligen Code eingeben.');
       this.triggerShake();
       this.sessionCodeInput?.nativeElement.focus();
       return;
