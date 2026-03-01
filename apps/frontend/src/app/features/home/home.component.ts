@@ -995,7 +995,7 @@ class PresetToastHostDirective {
         }
         .home-card:hover {
           transform: translateY(-6px) scale(1.02);
-          box-shadow: var(--mat-sys-level3), var(--app-shadow-card-playful);
+          box-shadow: var(--mat-sys-level3), var(--app-shadow-card-playful), 0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
         }
       }
     }
@@ -1034,9 +1034,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   controlsMenuOpen = signal(false);
   presetToastVisible = signal(false);
   presetSnackbarVisible = signal(false);
+  /** Einmalig beim ersten Wechsel auf Spielerisch: Snackbar-Text „Jetzt mit mehr Schwung!“ */
+  firstTimePlayfulMessage = signal(false);
 
   presetSnackbarIcon = computed(() => this.themePreset.preset() === 'serious' ? 'school' : 'celebration');
-  presetSnackbarLabel = computed(() => this.themePreset.preset() === 'serious' ? 'Preset: Seriös' : 'Preset: Spielerisch');
+  presetSnackbarLabel = computed(() => {
+    if (this.firstTimePlayfulMessage() && this.themePreset.preset() === 'spielerisch') {
+      return 'Jetzt mit mehr Schwung!';
+    }
+    return this.themePreset.preset() === 'serious' ? 'Preset: Seriös' : 'Preset: Spielerisch';
+  });
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
   readonly demoSessionCode = 'DEMO01';
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
@@ -1146,14 +1153,27 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (closeMenu) this.closeControlsMenu();
   }
 
+  private static readonly STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
+
   private showPresetSnackbar(): void {
+    const isPlayful = this.themePreset.preset() === 'spielerisch';
+    const firstTime = isPlatformBrowser(this.platformId) && isPlayful && !localStorage.getItem(HomeComponent.STORAGE_PLAYFUL_WELCOMED);
+    this.firstTimePlayfulMessage.set(firstTime);
+    if (firstTime && isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(HomeComponent.STORAGE_PLAYFUL_WELCOMED, '1');
+    }
     this.presetSnackbarVisible.set(true);
     if (this.snackbarTimer) clearTimeout(this.snackbarTimer);
-    this.snackbarTimer = setTimeout(() => this.presetSnackbarVisible.set(false), 5000);
+    const duration = firstTime ? 6000 : 5000;
+    this.snackbarTimer = setTimeout(() => {
+      this.presetSnackbarVisible.set(false);
+      this.firstTimePlayfulMessage.set(false);
+    }, duration);
   }
 
   dismissSnackbar(): void {
     this.presetSnackbarVisible.set(false);
+    this.firstTimePlayfulMessage.set(false);
     if (this.snackbarTimer) { clearTimeout(this.snackbarTimer); this.snackbarTimer = null; }
   }
 
