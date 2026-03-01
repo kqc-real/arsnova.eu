@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, 
 import { Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
@@ -26,6 +26,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     MatCardTitle,
     MatFormField,
     MatLabel,
+    MatSuffix,
     MatInput,
     MatButtonToggle,
     MatButtonToggleGroup,
@@ -233,7 +234,6 @@ import { ThemePresetService } from '../../services/theme-preset.service';
                 }
               </div>
             }
-            <p class="home-code-help">Großbuchstaben und Zahlen, 6 Zeichen</p>
 
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="home-code-field">
               <mat-label>Session-Code</mat-label>
@@ -241,14 +241,23 @@ import { ThemePresetService } from '../../services/theme-preset.service';
                 #sessionCodeInput
                 matInput
                 maxlength="6"
+                placeholder="Z.B. ABC123"
                 [value]="sessionCode()"
                 (input)="onSessionCodeInput($event)"
                 (keydown.enter)="joinSession()"
+                (focus)="codeInputFocused.set(true)"
+                (blur)="codeInputFocused.set(false)"
                 autocapitalize="characters"
                 autocomplete="off"
                 spellcheck="false"
               />
+              @if (sessionCode().length > 0) {
+                <span matTextSuffix class="home-code-counter">{{ sessionCode().length }}/6</span>
+              }
             </mat-form-field>
+            @if (codeInputFocused() || sessionCode().length > 0) {
+              <p class="home-code-help">Großbuchstaben und Zahlen, 6 Zeichen</p>
+            }
           </mat-card-content>
 
           <mat-card-actions class="l-stack l-stack--sm">
@@ -305,14 +314,16 @@ import { ThemePresetService } from '../../services/theme-preset.service';
               <mat-icon class="home-cta__icon">add_circle</mat-icon>
               Session erstellen
             </a>
-            <a matButton routerLink="/quiz" class="home-cta" (mouseenter)="preloadQuiz()">
-              <mat-icon class="home-cta__icon">quiz</mat-icon>
-              Quiz auswählen
-            </a>
-            <a matButton routerLink="/quiz" class="home-cta" (mouseenter)="preloadQuiz()">
-              <mat-icon class="home-cta__icon">question_answer</mat-icon>
-              Q&amp;A
-            </a>
+            <div class="home-cta-row">
+              <a matButton="tonal" routerLink="/quiz" class="home-cta home-cta--secondary" (mouseenter)="preloadQuiz()">
+                <mat-icon class="home-cta__icon">quiz</mat-icon>
+                Quiz auswählen
+              </a>
+              <a matButton="tonal" routerLink="/quiz" class="home-cta home-cta--secondary" (mouseenter)="preloadQuiz()">
+                <mat-icon class="home-cta__icon">question_answer</mat-icon>
+                Q&amp;A
+              </a>
+            </div>
           </mat-card-actions>
         </mat-card>
       </main>
@@ -677,11 +688,21 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     mat-card-actions.l-stack { display: flex; flex-direction: column; gap: 0.5rem; }
     .home-cta { width: 100%; }
 
+    .home-cta-row {
+      display: flex;
+      gap: 0.5rem;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .home-cta-row .home-cta--secondary { flex: 1 1 0; min-width: 0; width: auto; }
+
     @media (min-width: 600px) {
       mat-card-actions.l-stack { flex-direction: row; flex-wrap: wrap; }
       .home-cta { width: auto; flex: 1 1 0; }
       .home-card--create mat-card-actions { flex-direction: column; }
-      .home-card--create mat-card-actions .home-cta { width: 100%; flex: none; }
+      .home-card--create mat-card-actions > .home-cta { width: 100%; flex: none; }
+      .home-card--create .home-cta-row .home-cta--secondary { flex: 1 1 0; width: auto; }
     }
 
     .home-recent-label {
@@ -699,16 +720,22 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       border: none;
     }
 
-    .home-code-help { margin: 0; font: var(--mat-sys-body-small); color: var(--mat-sys-on-surface-variant); }
+    .home-code-help {
+      margin: 0;
+      font: var(--mat-sys-body-small);
+      color: var(--mat-sys-on-surface-variant);
+      animation: home-fade-in 0.15s ease-out;
+    }
+
     .home-code-field { width: 100%; margin-top: 0.75rem; }
 
     .home-code-field input {
-      text-align: left;
+      text-align: center;
       text-transform: uppercase;
-      letter-spacing: 0.25em;
+      letter-spacing: 0.35em;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-weight: 600;
-      font-size: 1.1rem;
+      font-weight: 700;
+      font-size: 1.35rem;
       caret-color: var(--mat-sys-primary);
     }
 
@@ -717,10 +744,22 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       letter-spacing: normal;
       font-weight: normal;
+      font-size: 1rem;
+    }
+
+    .home-code-counter {
+      font: var(--mat-sys-label-small);
+      color: var(--mat-sys-on-surface-variant);
+      letter-spacing: normal;
     }
 
     @media (min-width: 600px) {
-      .home-code-field input { font-size: 1.2rem; letter-spacing: 0.35em; }
+      .home-code-field input { font-size: 1.5rem; letter-spacing: 0.4em; }
+    }
+
+    @keyframes home-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .home-error { margin: 0; color: var(--mat-sys-error); font: var(--mat-sys-body-small); }
@@ -788,6 +827,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   apiRetrying = signal(false);
   redisStatus = signal<string | null>(null);
   sessionCode = signal('');
+  codeInputFocused = signal(false);
   recentSessionCodes = signal<string[]>([]);
   joinError = signal<string | null>(null);
   isJoining = signal(false);
