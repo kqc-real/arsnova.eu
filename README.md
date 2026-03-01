@@ -95,7 +95,37 @@ Die App ist nun unter `http://localhost:4200` (Frontend) erreichbar; auf der Sta
 
 **Reload / Deployment:** Damit Reload auf Unterseiten (z. B. `/legal/imprint`) nicht zu einer leeren Seite führt, muss der Server bei allen Client-Routen `index.html` ausliefern (SPA-Fallback). Beim lokalen `ng serve` ist das Standard. Für Production: Bei Vercel wird `apps/frontend/vercel.json` genutzt; bei Nginx/Apache/anderen Hosts eine Rewrite-Regel auf `index.html` setzen.
 
-### 4. Tests ausführen
+### 4. Production-ähnlich lokal (optional)
+
+Für einen **lokal production-ähnlichen** Lauf (optimierter Build, ein Prozess liefert alles aus, Gzip, Pre-Render):
+
+```bash
+npm run build:prod    # Backend + Frontend für Production bauen
+npm run start:prod    # Port 3000 freigeben (falls nötig), Backend starten
+```
+
+Die App ist dann unter **http://localhost:3000** erreichbar (Backend liefert das gebaute Frontend aus). Bei belegtem Port zuerst `npm run free-port-3000`, danach `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **http://localhost:3010**. Details (Gzip, Pre-Render, Fallbacks) siehe [docs/cursor-context.md](./docs/cursor-context.md) Abschnitt 18.1.
+
+### 5. Screenshots für die PWA-Manifest (optional)
+
+Die PWA-Manifest-Datei referenziert zwei Screenshots (Desktop 1280×720, Mobile 390×844). Um sie neu zu erzeugen, muss die App unter einer URL laufen; das Skript wartet auf die gerenderte Startseite (nicht auf eine Verzeichnisliste).
+
+**Option A – mit Backend (empfohlen):** Nach Production-Build das Backend starten und das Skript gegen Port 3000 laufen lassen:
+
+```bash
+npm run build:prod -w @arsnova/frontend
+npm run start:prod
+# In anderem Terminal, aus Repo-Root:
+cd apps/frontend && SCREENSHOT_URL=http://localhost:3000 npm run screenshots
+```
+
+**Option B – mit Dev-Server:** Frontend mit `npm run dev:frontend` starten, dann (in anderem Terminal) aus `apps/frontend`: `npm run screenshots`. Default-URL ist dann `http://localhost:4200`.
+
+**Option C – nur Static-Serve:** Nach `npm run build:prod -w @arsnova/frontend` erzeugt das Skript beim ersten Aufruf automatisch `dist/browser/index.html` aus `index.csr.html`, damit `npx serve dist/browser -p 4210 -s` die App ausliefert (ohne diese Datei würde `/` eine Verzeichnisliste zeigen). Danach Serve starten und Screenshots mit `SCREENSHOT_URL=http://localhost:4210 npm run screenshots` erzeugen.
+
+Die PNGs landen in `apps/frontend/src/assets/icons/` (`screenshot-wide.png`, `screenshot-narrow.png`).
+
+### 6. Tests ausführen
 
 Alle Tests (Backend + Frontend) auf einen Schlag:
 

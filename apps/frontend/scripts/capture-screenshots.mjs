@@ -1,17 +1,23 @@
 #!/usr/bin/env node
 /**
  * Erzeugt Screenshots der aktuellen Startseite für die PWA-Manifest.
- * Voraussetzung: App läuft unter http://localhost:4200 (ng serve)
- * oder: npm run build && npx serve dist/browser -p 4200 -s
  *
- * Run: node apps/frontend/scripts/capture-screenshots.mjs
+ * Voraussetzung: Die App wird unter der angegebenen URL ausgeliefert (nicht nur eine Verzeichnisliste).
+ * - Dev:  ng serve  →  SCREENSHOT_URL nicht nötig (Default: http://localhost:4200)
+ * - Prod: npm run start:prod  →  SCREENSHOT_URL=http://localhost:3000 npm run screenshots
+ * - Oder: Nach Build index.csr.html nach index.html kopieren, dann  npx serve dist/browser -p 4210 -s
+ *        und  SCREENSHOT_URL=http://localhost:4210 npm run screenshots
+ *
+ * Run: npm run screenshots  (aus apps/frontend) oder  node apps/frontend/scripts/capture-screenshots.mjs
  */
 import { chromium, webkit } from 'playwright';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { copyFileSync, existsSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const iconsDir = join(__dirname, '..', 'src', 'assets', 'icons');
+const distBrowser = join(__dirname, '..', 'dist', 'browser');
 const BASE_URL = process.env.SCREENSHOT_URL || 'http://localhost:4200';
 
 async function waitForServer(url, maxAttempts = 30) {
@@ -28,10 +34,18 @@ async function waitForServer(url, maxAttempts = 30) {
 }
 
 async function main() {
+  // Bei Production-Build: index.html für / erzeugen, damit "npx serve dist/browser" die App ausliefert (nicht Verzeichnisliste)
+  const csrPath = join(distBrowser, 'index.csr.html');
+  const indexPath = join(distBrowser, 'index.html');
+  if (existsSync(csrPath) && !existsSync(indexPath)) {
+    copyFileSync(csrPath, indexPath);
+    console.log('dist/browser/index.html aus index.csr.html erzeugt (für Static-Serve).');
+  }
+
   console.log(`Warte auf ${BASE_URL}…`);
   const ready = await waitForServer(BASE_URL);
   if (!ready) {
-    console.error('App nicht erreichbar. Starte zuerst: ng serve');
+    console.error('App nicht erreichbar. Starte z. B.: ng serve  oder  npm run start:prod  (dann SCREENSHOT_URL=http://localhost:3000).');
     process.exit(1);
   }
 
@@ -48,6 +62,13 @@ async function main() {
 
   const page = await context.newPage();
 
+  // Warten bis die echte Home-Ansicht da ist (nicht nur LCP-Shell / Verzeichnisliste)
+  const waitForHome = async () => {
+    await page.waitForSelector('app-home', { state: 'attached', timeout: 25_000 });
+    await page.waitForSelector('.home-header', { state: 'visible', timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(800);
+  };
+
   // Dark Mode + Spielerisch-Preset für Screenshots (nach Load setzen)
   const applyScreenshotTheme = () =>
     page.evaluate(() => {
@@ -57,9 +78,23 @@ async function main() {
 
   // Desktop: 1280x720
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+  const isDirListing = await page.evaluate(() =>
+    document.title?.includes('Index of') || document.body?.innerText?.includes('Index of') || false
+  );
+  if (isDirListing) {
+    await browser.close();
+    console.error(
+      'Die URL liefert eine Verzeichnisliste statt der App. ' +
+        'Nutze den Backend-Server (npm run start:prod, dann SCREENSHOT_URL=http://localhost:3000) ' +
+        'oder nach Build index.csr.html nach dist/browser/index.html kopieren und serve neu starten.'
+    );
+    process.exit(1);
+  }
+  await waitForHome();
+  await page.waitForTimeout(600); // Lazy-Chunks / Icons nachladen
   await applyScreenshotTheme();
-  await page.waitForTimeout(800); // Kurz warten für Animationen/Render
+  await page.waitForTimeout(400);
   await page.screenshot({
     path: join(iconsDir, 'screenshot-wide.png'),
     fullPage: false,
@@ -68,9 +103,11 @@ async function main() {
 
   // Mobile: 390x844
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+  await waitForHome();
+  await page.waitForTimeout(600);
   await applyScreenshotTheme();
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(400);
   await page.screenshot({
     path: join(iconsDir, 'screenshot-narrow.png'),
     fullPage: false,
