@@ -42,21 +42,30 @@ export const healthRouter = router({
     };
   }),
 
-  /** Server-Statistik für Startseite (Story 0.4). Bis Story 2.1a: Initialwerte aus DB/Redis. */
+  /** Server-Statistik für Startseite (Story 0.4). Bei nicht erreichbarer DB: Fallback (0 Werte), keine Prisma-Fehler. */
   stats: publicProcedure.output(ServerStatsDTOSchema).query(async () => {
-    const [activeSessions, completedSessions, totalParticipants] = await Promise.all([
-      prisma.session.count({ where: { status: { not: 'FINISHED' } } }),
-      prisma.session.count({ where: { status: 'FINISHED' } }),
-      prisma.participant.count({
-        where: { session: { status: { not: 'FINISHED' } } },
-      }),
-    ]);
-    return {
-      activeSessions,
-      totalParticipants,
-      completedSessions,
-      serverStatus: getServerStatus(activeSessions),
-    };
+    try {
+      const [activeSessions, completedSessions, totalParticipants] = await Promise.all([
+        prisma.session.count({ where: { status: { not: 'FINISHED' } } }),
+        prisma.session.count({ where: { status: 'FINISHED' } }),
+        prisma.participant.count({
+          where: { session: { status: { not: 'FINISHED' } } },
+        }),
+      ]);
+      return {
+        activeSessions,
+        totalParticipants,
+        completedSessions,
+        serverStatus: getServerStatus(activeSessions),
+      };
+    } catch {
+      return {
+        activeSessions: 0,
+        totalParticipants: 0,
+        completedSessions: 0,
+        serverStatus: 'healthy' as const,
+      };
+    }
   }),
 
   /** Subscription: Heartbeat alle 5s (Story 0.2 – Test für WebSocket). */

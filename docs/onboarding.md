@@ -51,6 +51,17 @@ npm run dev:frontend   # → http://localhost:4200 (Angular)
 
 **Funktioniert alles?** Öffne `http://localhost:4200` im Browser. Du solltest die Startseite mit dem **Server-Status-Widget** sehen (Epic 0.4: „X Quiz live · Y Teilnehmer · Z Quizzes durchgeführt" und grün/gelb/roter Status-Indikator). Backend-Health (inkl. Redis) und tRPC laufen auf Port 3000; WebSocket auf 3001, Yjs auf 3002.
 
+### Production-ähnlich lokal (Build + ein Server)
+
+Willst du **lokal einen production-ähnlichen** Lauf (optimierter Build, ein Prozess liefert alles aus):
+
+```bash
+npm run build:prod    # Backend + Frontend für Production bauen
+npm run start:prod    # Port 3000 freigeben, Backend starten (liefert Frontend aus)
+```
+
+Im Browser **http://localhost:3000** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **http://localhost:3010**. Details (Gzip, Pre-Render, Fallbacks) siehe **docs/cursor-context.md** Abschnitt 18.1.
+
 ---
 
 ## 2. Projektstruktur (Monorepo)

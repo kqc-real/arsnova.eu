@@ -19,6 +19,11 @@
   </head>
   <body>
     <noscript>Bitte aktivieren Sie JavaScript, um arsnova.click zu nutzen.</noscript>
-    <app-root></app-root>
+    <app-root>
+      <!-- LCP-Shell: sofort sichtbar, reduziert Render-Delay bis Angular bootstrapped (Trace: LCP breakdown). -->
+      <div class="app-shell" aria-hidden="true" style="position:sticky;top:0;z-index:10;margin-bottom:1.25rem;border-radius:28px;background:var(--mat-sys-surface-container,#efedf0);padding:1rem;box-shadow:0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14);">
+        <h1 style="margin:0;font:400 1.75rem/2.25rem system-ui;color:var(--mat-sys-on-surface,#1a1b1f);">arsnova.click</h1>
+      </div>
+    </app-root>
   </body>
 </html>

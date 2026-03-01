@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
-    "screenshots": "node scripts/capture-screenshots.mjs"
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "serve:ssr:frontend": "node dist/server/server.mjs"
   },
   "dependencies": {
     "@angular/animations": "^21.2.0",
@@ -25,11 +26,14 @@
     "@angular/forms": "^21.2.0",
     "@angular/material": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
-    "@angular/router": "^21.2.0",
     "@angular/platform-browser-dynamic": "^21.2.0",
+    "@angular/platform-server": "^21.2.0",
+    "@angular/router": "^21.2.0",
     "@angular/service-worker": "^21.2.0",
+    "@angular/ssr": "^21.2.0",
     "@arsnova/shared-types": "*",
     "@trpc/client": "^10.45.0",
+    "express": "^5.1.0",
     "katex": "^0.16.32",
     "marked": "^17.0.3",
     "material-icons": "^1.13.14",
@@ -37,21 +41,22 @@
     "tslib": "^2.7.0",
     "y-indexeddb": "^9.0.12",
     "y-websocket": "^3.0.0",
-    "yjs": "^14.0.0-16",
-    "zone.js": "~0.15.0"
+    "yjs": "^14.0.0-16"
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "2.4.0-beta.1",
+    "@analogjs/vitest-angular": "2.4.0-beta.1",
     "@angular/build": "^21.2.0",
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
+    "@types/express": "^5.0.1",
     "@types/katex": "^0.16.8",
     "@types/marked": "^5.0.2",
+    "@types/node": "^20.17.19",
     "autoprefixer": "^10.4.0",
+    "jsdom": "^26.1.0",
     "playwright": "^1.49.0",
     "postcss": "^8.4.0",
-    "@analogjs/vite-plugin-angular": "2.4.0-beta.1",
-    "@analogjs/vitest-angular": "2.4.0-beta.1",
-    "jsdom": "^26.1.0",
     "sharp-ico": "^0.1.5",
     "typescript": "~5.9.0",
     "vitest": "^4.0.18"

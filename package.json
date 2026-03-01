@@ -27,7 +27,10 @@
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "build:prod": "npm run build -w @arsnova/backend && npm run build:prod -w @arsnova/frontend",
+    "free-port-3000": "node scripts/free-port-3000.mjs",
+    "start:prod": "node scripts/start-backend-prod.mjs"
   },
   "devDependencies": {
     "@angular/animations": "^21.2.0",
@@ -38,6 +41,8 @@
     "@angular/compiler-cli": "^21.2.0",
     "@angular/core": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@angular/service-worker": "^21.2.0",
     "@eslint/js": "^10.0.1",
     "astro": "^4.16.0",
     "concurrently": "^9.0.0",

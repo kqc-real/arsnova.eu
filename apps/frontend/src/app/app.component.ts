@@ -1,4 +1,5 @@
-import { Component, HostListener, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -175,11 +176,13 @@ export class AppComponent implements OnInit {
   readonly year = new Date().getFullYear();
   isOnline = signal(true);
 
+  private readonly platformId = inject(PLATFORM_ID);
+
   constructor(private readonly themePreset: ThemePresetService) {}
 
   ngOnInit(): void {
     void this.themePreset; // Nur injizieren, damit Theme/Preset beim App-Start aus localStorage angewendet werden
-    this.isOnline.set(navigator.onLine);
+    if (isPlatformBrowser(this.platformId)) this.isOnline.set(navigator.onLine);
   }
 
   @HostListener('window:online')
@@ -193,6 +196,7 @@ export class AppComponent implements OnInit {
   }
 
   retryOnline(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     if (navigator.onLine) {
       this.isOnline.set(true);
     } else {

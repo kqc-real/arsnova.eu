@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 const STORAGE_THEME = 'home-theme';
 const STORAGE_PRESET = 'home-preset';
@@ -11,11 +12,14 @@ export class ThemePresetService {
   readonly theme = signal<ThemeValue>('dark');
   readonly preset = signal<PresetValue>('spielerisch');
 
+  private readonly platformId = inject(PLATFORM_ID);
+
   constructor() {
     this.initFromStorage();
   }
 
   private initFromStorage(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     const storedTheme = localStorage.getItem(STORAGE_THEME);
     if (storedTheme === 'system' || storedTheme === 'dark' || storedTheme === 'light') {
       this.theme.set(storedTheme);
@@ -34,17 +38,18 @@ export class ThemePresetService {
 
   setTheme(value: ThemeValue): void {
     this.theme.set(value);
-    localStorage.setItem(STORAGE_THEME, value);
+    if (isPlatformBrowser(this.platformId)) localStorage.setItem(STORAGE_THEME, value);
     this.applyTheme();
   }
 
   setPreset(value: PresetValue): void {
     this.preset.set(value);
-    localStorage.setItem(STORAGE_PRESET, value);
+    if (isPlatformBrowser(this.platformId)) localStorage.setItem(STORAGE_PRESET, value);
     this.applyPreset();
   }
 
   private applyTheme(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     const root = document.documentElement;
     root.classList.remove('dark', 'light');
     const selected = this.theme();
@@ -56,6 +61,7 @@ export class ThemePresetService {
   }
 
   private applyPreset(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     const root = document.documentElement;
     root.classList.toggle('preset-playful', this.preset() === 'spielerisch');
   }

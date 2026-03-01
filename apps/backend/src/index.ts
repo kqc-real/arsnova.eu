@@ -4,6 +4,7 @@
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import compression from 'compression';
 import express from 'express';
 import cors from 'cors';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
@@ -22,6 +23,7 @@ getRedis();
 
 const app = express();
 const isProduction = process.env['NODE_ENV'] === 'production';
+app.use(compression());
 app.use(cors(isProduction ? {} : { origin: 'http://localhost:4200' }));
 app.use(
   '/trpc',
@@ -31,14 +33,20 @@ app.use(
   }),
 );
 
-// In Production: Angular-Build als statische Dateien ausliefern (Docker)
-const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+// In Production: Angular-Build als statische Dateien ausliefern (Docker / lokaler Prod-Build)
+const frontendDistBase = path.resolve(__dirname, '../../frontend/dist');
+const frontendDist = fs.existsSync(path.join(frontendDistBase, 'browser'))
+  ? path.join(frontendDistBase, 'browser')
+  : frontendDistBase;
 if (fs.existsSync(frontendDist)) {
   app.use(express.static(frontendDist));
   app.get('*', (_req, res, next) => {
     const indexPath = path.join(frontendDist, 'index.html');
+    const csrPath = path.join(frontendDist, 'index.csr.html');
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
+    } else if (fs.existsSync(csrPath)) {
+      res.sendFile(csrPath);
     } else {
       next();
     }

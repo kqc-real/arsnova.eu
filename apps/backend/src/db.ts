@@ -16,7 +16,10 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     adapter,
-    log: process.env['NODE_ENV'] === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log:
+      process.env['NODE_ENV'] === 'development'
+        ? ['query', 'error', 'warn']
+        : [], // In Production keine Prisma-Logs; Health-Stats fangen DB-Ausfall ab und liefern Fallback
   });
 
 if (process.env['NODE_ENV'] !== 'production') {

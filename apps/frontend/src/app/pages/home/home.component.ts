@@ -1,4 +1,18 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ComponentRef,
+  Directive,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewContainerRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
@@ -7,8 +21,13 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
 import { trpc } from '../../trpc.client';
 import { ServerStatusWidgetComponent } from '../../components/server-status-widget/server-status-widget.component';
-import { PresetToastComponent } from '../../components/preset-toast/preset-toast.component';
 import { ThemePresetService } from '../../services/theme-preset.service';
+
+/** Host-Anchor für dynamisch geladenes PresetToast (eigener Chunk, bessere Mobile-Performance). */
+@Directive({ selector: '[presetToastHost]', standalone: true })
+class PresetToastHostDirective {
+  constructor(public vcRef: ViewContainerRef) {}
+}
 
 @Component({
   selector: 'app-home',
@@ -29,13 +48,11 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     MatMenuTrigger,
     MatIcon,
     ServerStatusWidgetComponent,
-    PresetToastComponent,
+    PresetToastHostDirective,
   ],
   template: `
     <div class="l-page">
-      @if (presetToastVisible()) {
-        <app-preset-toast (closed)="closePresetToast()" />
-      }
+      <ng-container presetToastHost></ng-container>
 
       @if (presetSnackbarVisible()) {
         <div class="home-snackbar" role="status">
@@ -248,7 +265,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
                   class="home-code-segment"
                   [class.home-code-segment--active]="codeInputFocused() && sessionCode().length === slot"
                   [class.home-code-segment--filled]="sessionCode().length > slot"
-                >{{ sessionCode()[slot] ?? '' }}</span>
+                >{{ sessionCode()[slot] }}</span>
               }
               <input
                 #sessionCodeInput
@@ -387,7 +404,11 @@ import { ThemePresetService } from '../../services/theme-preset.service';
                 {{ apiRetrying() ? 'Verbinde…' : 'Nochmal versuchen' }}
               </button>
             }
-            <app-server-status-widget />
+            @defer (on viewport) {
+              <app-server-status-widget />
+            } @placeholder {
+              <div class="home-status-placeholder" aria-hidden="true"><span></span></div>
+            }
           </mat-card-content>
         </mat-card>
       </section>
@@ -929,6 +950,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     .home-subcard__link-icon { margin-right: 0.35rem; }
     .home-subcard--status mat-card-content { margin-top: 0.75rem; }
     .home-subcard--status .home-subcard__body { margin-bottom: 0.5rem; }
+    .home-status-placeholder { min-height: 2.5rem; display: block; }
 
     :host-context(html.preset-playful) {
       .home-header {
@@ -969,6 +991,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('homeHeader') private readonly homeHeader?: ElementRef<HTMLElement>;
   @ViewChild('controlsToggleBtn') private readonly controlsToggleBtn?: ElementRef<HTMLButtonElement>;
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
+  @ViewChild(PresetToastHostDirective) private presetToastHost?: PresetToastHostDirective;
+
+  private presetToastRef: ComponentRef<unknown> | null = null;
 
   apiStatus = signal<string | null>(null);
   apiRetrying = signal(false);
@@ -1006,17 +1031,26 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 100);
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     const storedLang = localStorage.getItem('home-language');
     if (storedLang && ['de', 'en', 'fr', 'it', 'es'].includes(storedLang)) {
       this.language.set(storedLang as 'de' | 'en' | 'fr' | 'it' | 'es');
     }
     this.loadRecentSessionCodes();
-    await this.checkApiConnection();
+    // Health-Check nach First Paint, damit API-Anfrage den kritischen Lade-Pfad nicht blockiert
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => this.checkApiConnection(), { timeout: 2000 });
+    } else {
+      setTimeout(() => this.checkApiConnection(), 0);
+    }
   }
 
   ngOnDestroy(): void {
     if (this.snackbarTimer) clearTimeout(this.snackbarTimer);
+    if (this.presetToastRef) {
+      this.presetToastRef.destroy();
+      this.presetToastRef = null;
+    }
   }
 
   async checkApiConnection(): Promise<void> {
@@ -1102,11 +1136,28 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   openPresetCustomize(): void {
     this.dismissSnackbar();
     this.presetToastVisible.set(true);
+    setTimeout(() => this.loadPresetToast(), 0);
   }
 
   closePresetToast(): void {
+    if (this.presetToastRef) {
+      this.presetToastRef.destroy();
+      this.presetToastRef = null;
+    }
     this.presetToastVisible.set(false);
     setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 0);
+  }
+
+  private loadPresetToast(): void {
+    if (this.presetToastRef || !this.presetToastHost) return;
+    import('../../components/preset-toast/preset-toast.component').then((m) => {
+      if (!this.presetToastHost || this.presetToastRef) return;
+      const ref = this.presetToastHost.vcRef.createComponent(m.PresetToastComponent);
+      (ref.instance as { closed: { subscribe: (fn: () => void) => void } }).closed.subscribe(() =>
+        this.closePresetToast(),
+      );
+      this.presetToastRef = ref;
+    });
   }
 
   focusCodeInput(): void {
@@ -1141,6 +1192,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscapePressed(): void {
+    if (this.presetToastVisible()) {
+      this.closePresetToast();
+      return;
+    }
     if (this.controlsMenuOpen()) {
       this.closeControlsMenu(true);
     }

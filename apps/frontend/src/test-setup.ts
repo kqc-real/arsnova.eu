@@ -1,10 +1,6 @@
-import '@analogjs/vitest-angular/setup-zone';
-
-import { TestBed } from '@angular/core/testing';
-import {
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting,
-} from '@angular/platform-browser-dynamic/testing';
+import '@angular/compiler';
+import '@analogjs/vitest-angular/setup-snapshots';
+import { setupTestBed } from '@analogjs/vitest-angular/setup-testbed';
 
 // jsdom cannot parse Angular Material's generated CSS and logs noisy
 // "Could not parse CSS stylesheet" errors. Patch stderr to suppress them.
@@ -14,4 +10,4 @@ process.stderr.write = ((chunk: unknown, ...rest: unknown[]) => {
   return (_origStderrWrite as (...a: unknown[]) => boolean)(chunk, ...rest);
 }) as typeof process.stderr.write;
 
-TestBed.initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
+setupTestBed({ zoneless: true });
