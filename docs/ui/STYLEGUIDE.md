@@ -75,6 +75,7 @@ Tokenbasierte Card-Flaeche:
 - **Karten:** Zusaetzlicher Schatten mit Primary-Anteil (`--app-shadow-card-playful`). Nur die ersten beiden Karten (Beitreten, Erstellen) haben Hover: leichtes Anheben + Scale aus der Mitte, nur bei `prefers-reduced-motion: no-preference`.
 - **Haupt-CTA:** Der gefuellte Button erhaelt im Spielerisch-Modus einen dezenten Glow (`--app-shadow-cta-glow`).
 - **Header:** Gradient, dezenter Primary-Rahmen, `--app-shadow-accent`.
+- **Wow-Effekt (nur bei prefers-reduced-motion: no-preference):** Brand-Icon dezentes „Atmen“ (Scale 1 → 1.05 → 1, 2.5 s); Hero-Icons (quiz, forum, how_to_vote) sanftes Twinkeln (Opacity/Brightness), gestaffelt (animation-delay), 2.2 s.
 - Alle Werte tokenbasiert in `styles.scss` (html.preset-playful) und Home-Komponente.
 
 ## Startseite: Buttons, Snackbar und Toast

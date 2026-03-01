@@ -961,6 +961,19 @@ class PresetToastHostDirective {
         box-shadow: var(--app-shadow-accent);
       }
       .home-brand__icon { border-radius: 0.5rem; overflow: visible; }
+      @media (prefers-reduced-motion: no-preference) {
+        .home-brand__icon {
+          transform-origin: center center;
+          animation: home-playful-brand-pulse 2s ease-in-out infinite;
+        }
+        .home-hero-icon {
+          transform-origin: center center;
+          animation: home-playful-hero-twinkle 2s ease-in-out infinite;
+        }
+        .home-hero-icon:nth-child(1) { animation-delay: 0s; }
+        .home-hero-icon:nth-child(3) { animation-delay: 0.35s; }
+        .home-hero-icon:nth-child(5) { animation-delay: 0.7s; }
+      }
       .home-card__icon, .home-preset-icon--playful, .home-subcard__link-icon { color: var(--mat-sys-primary); }
       a[matButton="outlined"] .home-cta__icon { color: var(--mat-sys-primary); }
       .home-preset-icon--playful { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; }

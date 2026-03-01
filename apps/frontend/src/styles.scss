@@ -164,6 +164,18 @@ body {
   color: var(--mat-sys-on-surface);
 }
 
+// Keyframes für Preset Spielerisch (Startseite) – global, damit Animationen sicher laufen
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes home-playful-brand-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  @keyframes home-playful-hero-twinkle {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+}
+
 // prefers-reduced-motion – Backlog DoD, Story 6.5
 @media (prefers-reduced-motion: reduce) {
   *,
