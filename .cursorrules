@@ -17,6 +17,15 @@ Du bist der Lead-Architekt. Wir arbeiten in einem **npm Workspaces Monorepo**.
 - **Security:** "Zero-Knowledge"-Prinzip. Wende IMMER das DTO-Pattern an (`Data-Stripping`).
 - **Data:** Redis für Realtime-Sync, Yjs für Quiz-Inhalte.
 
+## 🎨 UX & Design-Regeln (Startseite)
+1. **Wording:** Nutzenorientiert, aktivierend, rollenunabhaengig. Verben statt Nomen in CTAs. Siehe `docs/ui/STYLEGUIDE.md` Abschnitt "Wording-Konventionen".
+2. **Session-Code-Eingabe:** 6 Segment-Boxen mit transparentem Overlay-Input. KEIN `mat-form-field` fuer den Session-Code. Details siehe STYLEGUIDE.
+3. **Micro-Interactions:** Alle Animationen (Pulse, Shake, Glow) MUESSEN in `@media (prefers-reduced-motion: no-preference)` stehen.
+4. **Snackbar statt Modal** fuer schnelle Bestaetigungen (z. B. Preset-Wechsel). Modals nur fuer Detail-Konfiguration.
+5. **Button-Hierarchie:** Max. 1 gefuellter CTA pro Karte. Sekundaere Aktionen als `tonal`-Buttons in `home-cta-row`.
+6. **Conditional Chips:** Abhaengige Optionen (z. B. "Teams zuweisen") nur anzeigen wenn die Eltern-Option aktiv ist (`isOptionVisible`-Pattern).
+7. **Status-Dot:** In Brand-SVG integriert, nicht als separates HTML-Element.
+
 ## 📋 Arbeitsweise in Cursor
 - **AGENT.md** gilt als ergänzende KI-Leitplanken: Baby-Steps, Backend-oder-Frontend zuerst, kein `BehaviorSubject` für UI-State, Styling (Material 3, kein Tailwind), Integrationstest vor Story-Fertigstellung. Bei Unklarheiten oder fehlendem Kontext: User bitten, `@AGENT.md` zu laden.
 - Nutze `@Codebase` bzw. das **Backlog** (`Backlog.md` im Repo-Root), um vor Story-Start die Akzeptanzkriterien und DoD zu prüfen.

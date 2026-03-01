@@ -93,7 +93,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 ## 9. Frontend-Routen und Komponenten (Überblick)
 
 - **Routen:** / (Home), /quiz (Quiz-Verwaltung), /session/:code (Dozent-Steuerung), /session/:code/present (Beamer), /session/:code/vote (Student), /legal (Impressum, Datenschutz).
-- **Home:** HomePageComponent, ServerStatusWidget, JoinInputComponent.
+- **Home:** HomePageComponent (inkl. Segment-Code-Input, Snackbar, Onboarding-Banner, Hero-Icons, Status-Dot im Brand-SVG), PresetToastComponent.
 - **Quiz:** QuizListComponent, QuizEditorComponent, QuizConfigComponent, QuestionEditorComponent, AnswerEditorComponent, QuizPreviewComponent, ImportExportComponent.
 - **Session (Dozent):** LobbyComponent, QuizControlComponent, BeamerViewComponent, QaModeratorComponent, BonusTokenListComponent; Beamer: ResultChartComponent, WordcloudComponent, RatingHistogramComponent, LeaderboardComponent, EmojiOverlayComponent, QrCodeComponent, CountdownComponent.
 - **Student:** NicknameSelectComponent, VotingViewComponent, AnswerButtonsComponent, McToggleButtonsComponent, RatingScaleComponent, FreetextInputComponent, ScorecardComponent, BonusTokenDisplay, MotivationMessageComponent, EmojiBarComponent, QaStudentComponent, CountdownComponent.
@@ -122,7 +122,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 
 - Code kompiliert (tsc --noEmit Backend, Frontend, shared-types); kein `any`; alle tRPC-Ein-/Ausgaben über Zod aus shared-types; DTO-Pattern eingehalten; isCorrect nie in ACTIVE an Studenten.
 - Tests: mind. ein Unit-Test pro tRPC-Mutation/Query; automatisierter Test für QuestionStudentDTO ohne isCorrect in ACTIVE und für QuestionRevealedDTO mit isCorrect in RESULTS.
-- Frontend: nur Standalone + Signals, @if/@for, Mobile-First, Touch-Targets ≥44px, Tastatur, Dark/Light, reduced-motion, Lighthouse A11y ≥90.
+- Frontend: nur Standalone + Signals, @if/@for, Mobile-First, Touch-Targets >=44px, Tastatur, Dark/Light, reduced-motion, Lighthouse A11y >=90. Micro-Interactions immer in `@media (prefers-reduced-motion: no-preference)`. UX-Patterns (Segment-Input, Snackbar, Conditional Chips) siehe `docs/ui/STYLEGUIDE.md`.
 - Barrierefreiheit: semantisches HTML, aria-label/aria-live, Farbunabhängigkeit (Icons/Text für Richtig/Falsch).
 - Datenschutz: keine unnötigen personenbezogenen Daten; Session-Daten nach Ende/24h bereinigt; Anonymer Modus wie spezifiziert.
 - Dokumentation: JSDoc für neue tRPC-Endpunkte; bei Architektur-Änderungen ADR in docs/architecture/decisions/; Prisma, Zod und Backlog synchron.
@@ -145,7 +145,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 - **Schema:** prisma/schema.prisma; libs/shared-types/src/schemas.ts (Zod, DTOs).
 - **Router:** apps/backend/src/routers/index.ts, apps/backend/src/routers/*.ts.
 - **Diagramme:** docs/diagrams/diagrams.md (detailliert), docs/diagrams/architecture-overview.md (Übersicht).
-- **Regeln:** .cursorrules (Pfade, Monorepo, Stack); AGENT.md (Arbeitsweise, Baby-Steps, Tests).
+- **Regeln:** .cursorrules (Pfade, Monorepo, Stack, UX-Design-Regeln); AGENT.md (Arbeitsweise, Baby-Steps, Tests, Design-Leitplanken).
 
 Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (neue Epics, neuer Session-Status, neuer Router) einmalig diesen Kontext aktualisieren, damit Context Caching weiterhin den gleichen stabilen Prefix nutzen kann.
 
