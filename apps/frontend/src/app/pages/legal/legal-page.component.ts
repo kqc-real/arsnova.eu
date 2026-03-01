@@ -12,7 +12,7 @@ import { Subject, takeUntil } from 'rxjs';
   imports: [RouterLink, MatButton, MatIcon],
   template: `
     <div class="legal-page l-page">
-      <a matButton routerLink="/" class="legal-back">
+      <a matButton routerLink="/" class="legal-back" aria-label="Zurück zur Startseite">
         <mat-icon>arrow_back</mat-icon>
         Startseite
       </a>
@@ -182,7 +182,7 @@ export class LegalPageComponent implements OnInit, OnDestroy {
           });
         },
         error: () => {
-          this.error.set('Inhalt konnte nicht geladen werden.');
+          this.error.set('Seite konnte nicht geladen werden.');
           this.loading.set(false);
         },
       });

@@ -23,7 +23,7 @@ import type { SessionInfoDTO } from '@arsnova/shared-types';
 
       @if (loading()) {
         <div class="session-page__state">
-          <p class="session-page__muted-text">Session wird geladen…</p>
+          <p class="session-page__muted-text">Wird geladen…</p>
         </div>
       } @else if (error()) {
         <mat-card class="session-page__error-card">
@@ -41,7 +41,7 @@ import type { SessionInfoDTO } from '@arsnova/shared-types';
         @if (session(); as s) {
           <mat-card appearance="outlined" class="session-card">
             <mat-card-header class="session-card__header">
-              <mat-card-subtitle>Session-Code</mat-card-subtitle>
+              <mat-card-subtitle>Code</mat-card-subtitle>
               <mat-card-title class="session-card__code">{{ s.code }}</mat-card-title>
             </mat-card-header>
 
@@ -52,10 +52,10 @@ import type { SessionInfoDTO } from '@arsnova/shared-types';
                 @if (s.quizName) {
                   <p><span class="session-card__label">Quiz:</span> {{ s.quizName }}</p>
                 }
-                <p><span class="session-card__label">Teilnehmende:</span> {{ s.participantCount }}</p>
+                <p><span class="session-card__label">Teilnehmer:</span> {{ s.participantCount }}</p>
               </div>
               <p class="session-card__hint">
-                Lobby, Steuerung und Abstimmung werden in Epic 2 + 3 implementiert.
+                Lobby und Steuerung werden hier angezeigt.
               </p>
             </mat-card-content>
           </mat-card>
@@ -135,7 +135,7 @@ export class SessionComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const code = this.route.snapshot.paramMap.get('code') ?? '';
     if (code.length !== 6) {
-      this.error.set('Ungültiger Session-Code.');
+      this.error.set('Ungültiger Code.');
       this.loading.set(false);
       return;
     }
@@ -145,7 +145,7 @@ export class SessionComponent implements OnInit {
       const session = await trpc.session.getInfo.query({ code: code.toUpperCase() });
       this.session.set(session);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Session nicht gefunden. Code prüfen oder neu eingeben.';
+      const msg = e instanceof Error ? e.message : 'Nicht gefunden. Code prüfen oder neu eingeben.';
       this.error.set(msg);
     } finally {
       this.loading.set(false);

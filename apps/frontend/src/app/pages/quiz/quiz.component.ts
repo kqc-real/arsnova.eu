@@ -27,14 +27,14 @@ import { MatIcon } from '@angular/material/icon';
       <mat-card appearance="outlined" class="quiz-empty-state">
         <mat-card-content class="quiz-empty-state__content">
           <p class="quiz-empty-state__text">
-            Noch keine Quizzes vorhanden.
+            Noch keine Quizzes.
           </p>
           <button matButton="filled" aria-label="Neues Quiz erstellen">
             <mat-icon>add_circle</mat-icon>
             Neues Quiz erstellen
           </button>
           <p class="quiz-empty-state__hint">
-            Story 1.1 – Wird in Epic 1 implementiert.
+            Hier Quizzes anlegen und verwalten.
           </p>
         </mat-card-content>
       </mat-card>

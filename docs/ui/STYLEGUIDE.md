@@ -134,6 +134,14 @@ Tokenbasierte Card-Flaeche:
 - **Label fuer vorgegebene Namen:** "Altersgruppe:" (Select fuer Nobelpreistraeger, Kindergarten, Grundschule, etc.). Aria-Label: "Altersgruppe waehlen".
 - **Schliessen-Button:** aria-label "Einstellungen schliessen".
 
+## Seitenuebergreifend: UX und Wording
+- **Zurueck-Links:** Immer "Startseite" mit Icon arrow_back, `aria-label="Zurueck zur Startseite"`.
+- **Ladezustaende:** Kurz "Wird geladen…" (ohne "Session" oder Kontext, wenn der Kontext schon klar ist).
+- **Fehlermeldungen:** Nutzerorientiert, kein Technik-Jargon. "Ungueltiger Code." statt "Ungueltiger Session-Code."; "Nicht gefunden. Code pruefen oder neu eingeben."; "Seite konnte nicht geladen werden." statt "Inhalt konnte nicht geladen werden.".
+- **Platzhalter-Hinweise:** Keine Story-/Epic-Referenzen in der UI. Stattdessen kurze nutzerorientierte Hinweise (z. B. "Hier Quizzes anlegen und verwalten.", "Lobby und Steuerung werden hier angezeigt.").
+- **Footer-Badges:** Reihenfolge wie auf der Startseite: "Kostenlos · 100 % DSGVO-konform · Open Source".
+- **Wiederholungs-Buttons:** Einheitlich "Nochmal versuchen" (Retry/Reconnect), mit `aria-label` wo noetig (z. B. "Verbindung erneut pruefen").
+
 ## Nicht erlaubt
 - Tailwind-Klassen im Repository.
 - Direkte Ueberschreibung interner Material-Klassen.
