@@ -109,6 +109,20 @@ Tokenbasierte Card-Flaeche:
 - **Hilfetext Session-Code:** "6 Zeichen, z. B. ABC123" -- kurz, konkret, kontextneutral.
 - **Server-Status:** "Verbunden" / "Keine Verbindung" (statt "Server erreichbar/nicht erreichbar"). "Nochmal versuchen" (statt "Erneut verbinden").
 
+## Preset-Toast (Modal): Design
+- **Backdrop:** Gedimmt (`color-mix` on-surface 32 %) + leichter `backdrop-filter: blur(4px)`. Klick schliesst. Einblend-Animation (0.2 s) nur bei `prefers-reduced-motion: no-preference`.
+- **Modal:** Zentriert, Einblend-Animation scale(0.96) → 1 + fade (0.25 s). Sticky-Header mit Trennlinie, damit Titel und „Stil wechseln“ beim Scrollen sichtbar bleiben.
+- **Header-Akzent:** 4 px linke Randlinie; bei Preset Spielerisch in Primary-Farbe. Titelicone in Container (surface-container-high bzw. bei Spielerisch Primary-Tint 18 %).
+- **Stil wechseln:** Als Pill-Button (corner-full, Outline, swap_horiz-Icon), nicht als Text-Link. Hover: Primary-Border und -Text.
+- **Kategorien:** Jede Kategorie als eigene Karte (surface-container-low, Border, border-radius medium), klare Labels (title-small, font-weight 600).
+- **Chips:** Leichter Active-State (scale 0.98) bei `:active`, nur wenn reduced-motion aus.
+- **Spielerisch-Variant:** Modal mit `--app-corner-playful`, Primary-getoenter Border und dezentem Glow-Schatten.
+
+## Preset-Snackbar (Startseite): Design
+- **Form:** Pill (corner-full), inverse-surface-Farben, dezenter Rand und Schatten. Bottom mit `max(1.5rem, env(safe-area-inset-bottom))` fuer Notch-Geraete.
+- **Icon:** In rundem Container (inverse-on-surface 22 %), nicht nackt neben Text.
+- **Animation:** Einblendung translateY + scale(0.96) → 1, nur bei `prefers-reduced-motion: no-preference`.
+
 ## Preset-Toast: Wording
 - **Titel:** Nur "Seriös" / "Spielerisch" (ohne "Preset:").
 - **Hinweise:** Nutzenorientiert, keine reine Feature-Liste. Serioes: "Anonym, ohne Wettbewerb – Fokus auf Inhalte." Spielerisch: "Mit Rangliste, Sounds und Anfeuerung – fuer mehr Motivation."
@@ -116,7 +130,7 @@ Tokenbasierte Card-Flaeche:
 - **Subtitle:** "Tippen zum An- oder Ausschalten. Mit „Speichern“ uebernehmen." (kurz, handlungsorientiert).
 - **Kategorien:** "Spiel & Auswertung", "Teilnahme & Namen", "Ablauf & Zeit", "Team", "Ton & Musik". Kein Anglizismus "Nicknames".
 - **Optionen:** Aussagekraeftige Labels (z. B. "Teams automatisch oder manuell zuweisen", "Hintergrundmusik in der Lobby", "Zeitlimit pro Frage"). Kein redundanter Zusatz "(Countdown)".
-- **Namensmodus:** "Vorgegebene Namen", "Eigener Name", "Anonym" (statt "Nicks", "Eigen").
+- **Namensmodus:** "Nicks", "Eigen", "Anonym" (kurz halten, damit auf kleinen Screens kein horizontales Scrollen noetig ist).
 - **Label fuer vorgegebene Namen:** "Altersgruppe:" (Select fuer Nobelpreistraeger, Kindergarten, Grundschule, etc.). Aria-Label: "Altersgruppe waehlen".
 - **Schliessen-Button:** aria-label "Einstellungen schliessen".
 

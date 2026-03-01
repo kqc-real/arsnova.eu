@@ -39,7 +39,9 @@ import { ThemePresetService } from '../../services/theme-preset.service';
 
       @if (presetSnackbarVisible()) {
         <div class="home-snackbar" role="status">
-          <mat-icon class="home-snackbar__icon">{{ presetSnackbarIcon() }}</mat-icon>
+          <span class="home-snackbar__icon-wrap">
+            <mat-icon class="home-snackbar__icon">{{ presetSnackbarIcon() }}</mat-icon>
+          </span>
           <span class="home-snackbar__text">{{ presetSnackbarLabel() }}</span>
           <button type="button" class="home-snackbar__action" (click)="openPresetCustomize()">Anpassen</button>
           <button type="button" class="home-snackbar__close" (click)="dismissSnackbar()" aria-label="Schließen">
@@ -602,21 +604,37 @@ import { ThemePresetService } from '../../services/theme-preset.service';
 
     .home-snackbar {
       position: fixed;
-      bottom: 1.5rem;
+      bottom: max(1.5rem, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       z-index: 60;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      border-radius: var(--mat-sys-corner-medium);
+      gap: 0.75rem;
+      border-radius: var(--mat-sys-corner-full);
       background: var(--mat-sys-inverse-surface);
       color: var(--mat-sys-inverse-on-surface);
-      padding: 0.5rem 0.5rem 0.5rem 1rem;
-      box-shadow: var(--mat-sys-level3);
+      padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+      box-shadow: var(--mat-sys-level3), 0 4px 20px color-mix(in srgb, var(--mat-sys-on-surface) 18%, transparent);
       font: var(--mat-sys-body-medium);
       white-space: nowrap;
-      animation: home-snackbar-in 0.2s ease-out;
+      border: 1px solid color-mix(in srgb, var(--mat-sys-inverse-on-surface) 15%, transparent);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .home-snackbar {
+        animation: home-snackbar-in 0.25s cubic-bezier(0.2, 0, 0, 1);
+      }
+    }
+
+    .home-snackbar__icon-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: var(--mat-sys-corner-full);
+      background: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 22%, transparent);
     }
 
     .home-snackbar__icon {
@@ -662,8 +680,14 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     }
 
     @keyframes home-snackbar-in {
-      from { opacity: 0; transform: translateX(-50%) translateY(0.5rem); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(0.75rem) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
     }
 
     .home-main { display: grid; gap: 1rem; }

@@ -49,8 +49,8 @@ export const TEAM_COUNT_OPTIONS = [2, 3, 4, 5, 6, 7, 8].map((n) => ({ value: n, 
 export type NameMode = 'nicknameTheme' | 'allowCustomNicknames' | 'anonymousMode';
 
 export const NAME_MODE_OPTIONS: { value: NameMode; label: string; icon: string }[] = [
-  { value: 'nicknameTheme', label: 'Vorgegebene Namen', icon: 'theater_comedy' },
-  { value: 'allowCustomNicknames', label: 'Eigener Name', icon: 'edit' },
+  { value: 'nicknameTheme', label: 'Nicks', icon: 'theater_comedy' },
+  { value: 'allowCustomNicknames', label: 'Eigen', icon: 'edit' },
   { value: 'anonymousMode', label: 'Anonym', icon: 'visibility_off' },
 ];
 
@@ -94,17 +94,21 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
   ],
   template: `
     <div class="preset-toast-backdrop" (click)="closed.emit()">
-      <div class="preset-toast" (click)="$event.stopPropagation()">
+      <div class="preset-toast" [class.preset-toast--playful]="themePreset.preset() === 'spielerisch'" (click)="$event.stopPropagation()">
       <div class="preset-toast__scroll">
         <div class="preset-toast__head">
+          <div class="preset-toast__head-accent"></div>
           <div class="preset-toast__head-text">
             <p class="preset-toast__title">
-              <mat-icon class="preset-toast__title-icon">{{ toastIcon() }}</mat-icon>
+              <span class="preset-toast__title-icon-wrap">
+                <mat-icon class="preset-toast__title-icon">{{ toastIcon() }}</mat-icon>
+              </span>
               {{ toastTitle() }}
             </p>
             <p class="preset-toast__preset-hint">{{ toastHint() }}</p>
             <button type="button" class="preset-toast__switch-preset" (click)="switchPreset()">
-              Stil wechseln zu {{ themePreset.preset() === 'serious' ? 'Spielerisch' : 'Seriös' }}
+              <mat-icon class="preset-toast__switch-icon">swap_horiz</mat-icon>
+              Zu {{ themePreset.preset() === 'serious' ? 'Spielerisch' : 'Seriös' }} wechseln
             </button>
           </div>
           <button matIconButton type="button" class="preset-toast__close" aria-label="Einstellungen schließen" (click)="closed.emit()">
@@ -214,7 +218,33 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
       position: fixed;
       inset: 0;
       z-index: 70;
-      background: transparent;
+      background: color-mix(in srgb, var(--mat-sys-on-surface) 32%, transparent);
+      backdrop-filter: blur(4px);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .preset-toast-backdrop {
+        animation: preset-toast-backdrop-in 0.2s ease-out;
+      }
+      .preset-toast {
+        animation: preset-toast-in 0.25s cubic-bezier(0.2, 0, 0, 1);
+      }
+    }
+
+    @keyframes preset-toast-backdrop-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes preset-toast-in {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
     }
 
     .preset-toast {
@@ -232,7 +262,7 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
       border-radius: var(--mat-sys-corner-large);
       border: 1px solid var(--mat-sys-outline-variant);
       background: var(--mat-sys-surface-container);
-      padding: 0.75rem;
+      padding: 0;
       box-shadow: var(--mat-sys-level3);
     }
 
@@ -241,13 +271,36 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
       min-height: 0;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
+      padding: 0 1rem 1rem;
     }
 
     .preset-toast__head {
+      position: sticky;
+      top: 0;
+      z-index: 1;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 0.5rem;
+      padding: 1rem 1rem 0.75rem;
+      margin: 0 -1rem 0;
+      padding-left: 1rem;
+      background: var(--mat-sys-surface-container);
+      border-bottom: 1px solid var(--mat-sys-outline-variant);
+    }
+
+    .preset-toast__head-accent {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--mat-sys-outline-variant);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .preset-toast--playful .preset-toast__head-accent {
+      background: var(--mat-sys-primary);
     }
 
     .preset-toast__head-text {
@@ -260,36 +313,62 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
       font: var(--mat-sys-title-large);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+    }
+
+    .preset-toast__title-icon-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: var(--mat-sys-corner-medium);
+      background: var(--mat-sys-surface-container-high);
+    }
+
+    .preset-toast--playful .preset-toast__title-icon-wrap {
+      background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+      color: var(--mat-sys-primary);
     }
 
     .preset-toast__title-icon {
       flex-shrink: 0;
-      width: 1.75rem;
-      height: 1.75rem;
-      font-size: 1.75rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      font-size: 1.5rem;
     }
 
     .preset-toast__preset-hint {
-      margin: 0.25rem 0 0 0;
+      margin: 0.35rem 0 0 0;
       font: var(--mat-sys-body-small);
       color: var(--mat-sys-on-surface-variant);
     }
 
     .preset-toast__switch-preset {
-      margin-top: 0.5rem;
-      padding: 0;
-      border: none;
-      background: none;
-      font: var(--mat-sys-body-small);
+      margin-top: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--mat-sys-outline-variant);
+      border-radius: var(--mat-sys-corner-full);
+      background: var(--mat-sys-surface-container-low);
+      font: var(--mat-sys-label-medium);
       color: var(--mat-sys-on-surface);
-      text-decoration: underline;
-      text-underline-offset: 2px;
       cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
 
     .preset-toast__switch-preset:hover {
+      background: var(--mat-sys-surface-container);
+      border-color: var(--mat-sys-primary);
       color: var(--mat-sys-primary);
+    }
+
+    .preset-toast__switch-icon {
+      width: 1.125rem;
+      height: 1.125rem;
+      font-size: 1.125rem;
     }
 
     .preset-toast__close {
@@ -299,32 +378,32 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
 
     .preset-toast__subtitle,
     .preset-toast__hint {
-      margin: 1.25rem 0 0;
+      margin: 1rem 0 0;
       font: var(--mat-sys-body-small);
       color: var(--mat-sys-on-surface-variant);
     }
 
     .preset-toast__categories {
-      margin-top: 1.25rem;
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
     }
 
     .preset-toast__category {
-      margin-top: 0.75rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--mat-sys-outline-variant);
+      padding: 0.75rem 1rem;
+      border-radius: var(--mat-sys-corner-medium);
+      background: var(--mat-sys-surface-container-low);
+      border: 1px solid var(--mat-sys-outline-variant);
       text-align: center;
     }
 
-    .preset-toast__category:first-child {
-      margin-top: 0;
-      padding-top: 0;
-      border-top: none;
-    }
-
     .preset-toast__category-label {
-      margin: 0 0 0.35rem 0;
+      margin: 0 0 0.5rem 0;
       font: var(--mat-sys-title-small);
+      font-weight: 600;
       color: var(--mat-sys-on-surface-variant);
+      letter-spacing: 0.02em;
     }
 
     .preset-toast__name-mode {
@@ -348,6 +427,13 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
 
     .preset-toast__chips mat-chip {
       cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .preset-toast__chips mat-chip:active {
+        transform: scale(0.98);
+      }
     }
 
     .preset-toast__nickname-theme {
@@ -405,18 +491,20 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
 
     .preset-toast__actions {
       flex-shrink: 0;
-      margin-top: 1rem;
-      padding-top: 0.5rem;
+      padding: 1rem 1rem 1rem;
       border-top: 1px solid var(--mat-sys-outline-variant);
+      background: var(--mat-sys-surface-container);
       display: flex;
       justify-content: flex-end;
-      gap: 0.5rem;
+      align-items: center;
+      gap: 0.75rem;
     }
 
     :host-context(html.preset-playful) {
       .preset-toast {
-        border-radius: 1.5rem;
-        border-color: var(--mat-sys-primary);
+        border-radius: var(--app-corner-playful, 1.5rem);
+        border-color: color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
+        box-shadow: var(--mat-sys-level3), 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
       }
     }
   `],
