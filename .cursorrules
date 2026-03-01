@@ -4,7 +4,7 @@ Du bist der Lead-Architekt. Wir arbeiten in einem **npm Workspaces Monorepo**.
 
 ## 📁 Projekt-Struktur & Pfade
 - **Backend:** `apps/backend/` (Node.js, tRPC Server, Prisma)
-- **Frontend:** `apps/frontend/` (Angular 17+, Signals)
+- **Frontend:** `apps/frontend/` (Angular 17+, Signals). App unter `src/app/`: **core/** (ws-urls, trpc.client, theme-preset), **shared/** (wiederverwendbare UI), **features/** (home, quiz, session, legal, help).
 - **Shared Types:** `libs/shared-types/` (Zod Schemas, Interfaces)
 
 ## 🛡️ Monorepo-Regeln (Strikt!)

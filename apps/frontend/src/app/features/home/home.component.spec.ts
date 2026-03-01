@@ -7,10 +7,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HomeComponent } from './home.component';
-import { PresetToastComponent } from '../../components/preset-toast/preset-toast.component';
+import { PresetToastComponent } from '../../shared/preset-toast/preset-toast.component';
 import type { NicknameTheme } from '@arsnova/shared-types';
 
-vi.mock('../../../trpc.client', () => ({
+vi.mock('../../core/trpc.client', () => ({
   trpc: {
     health: {
       check: { query: vi.fn().mockResolvedValue({ status: 'ok', redis: 'ok', timestamp: new Date().toISOString(), version: '0.1.0' }) },

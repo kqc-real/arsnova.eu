@@ -8,7 +8,7 @@ import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { NicknameThemeEnum, type NicknameTheme } from '@arsnova/shared-types';
-import { ThemePresetService } from '../../services/theme-preset.service';
+import { ThemePresetService } from '../../core/theme-preset.service';
 
 const PRESET_OPTIONS_STORAGE_PREFIX = 'home-preset-options-';
 

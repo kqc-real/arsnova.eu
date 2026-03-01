@@ -360,7 +360,7 @@ Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32` erzeugen
 
 ### 6.3 WebSocket-URLs im Frontend
 
-Die App nutzt die zentrale Konfiguration **`apps/frontend/src/app/config/ws-urls.ts`**:
+Die App nutzt die zentrale Konfiguration **`apps/frontend/src/app/core/ws-urls.ts`**:
 - **`getTrpcWsUrl()`** – wird vom tRPC-Client verwendet; in Produktion (HTTPS oder Host ≠ localhost) automatisch `wss://<domain>/trpc-ws`.
 - **`getYjsWsUrl()`** – für Yjs Multi-Device-Sync (Story 1.6); in Produktion `wss://<domain>/yjs-ws`.
 

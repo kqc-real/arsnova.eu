@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { ThemePresetService } from './services/theme-preset.service';
+import { ThemePresetService } from './core/theme-preset.service';
 
 @Component({
   selector: 'app-root',

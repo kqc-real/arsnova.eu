@@ -16,4 +16,8 @@ export default defineConfig({
       '@arsnova/shared-types': path.resolve(__dirname, '../../libs/shared-types/src/index.ts'),
     },
   },
+  optimizeDeps: {
+    // dist/ enthält gebaute HTML mit <script src="main.js"> – nicht als Modul auflösen
+    exclude: ['main.js'],
+  },
 });

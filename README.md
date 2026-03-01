@@ -43,8 +43,8 @@ arsnova-click-v3/
 ├── prisma/
 │   └── schema.prisma        # 🗄️ Die Single Source of Truth (Datenbank)
 ├── apps/
-│   ├── frontend/            # Das Angular-Projekt
-│   └── backend/             # Das Node.js-Projekt
+│   ├── frontend/            # Angular (core/, shared/, features/ – Angular-Style-Struktur)
+│   └── backend/             # Das Node.js-Projekt (Express, tRPC)
 └── libs/
     └── shared-types/        # Geteilte Typen (tRPC Router, DTOs)
 ```
@@ -74,6 +74,8 @@ Kopiere die Environment-Datei und starte die Docker-Container (Postgres & Redis,
 cp .env.example .env
 docker compose up -d
 # → Startet PostgreSQL (5432) und Redis (6379); optional: App-Container (3000, 3001, 3002)
+# Für reine Lokalentwicklung (npm run dev) ohne Port-Konflikt: nur redis + postgres starten:
+#   docker compose up -d redis postgres
 ```
 
 Pushe das Datenbankschema und generiere den Prisma-Client:

@@ -92,13 +92,15 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 
 ## 9. Frontend-Routen und Komponenten (Überblick)
 
+- **App-Verzeichnis (Angular-konform):** `apps/frontend/src/app/` ist nach Feature-Bereichen organisiert: **core/** (App-weite Singletons: ws-urls, trpc.client, theme-preset.service), **shared/** (wiederverwendbare UI: preset-toast, server-status-widget), **features/** (pro Route/Feature: home, quiz, session, legal, help). Keine typbasierten Ordner wie `components/` oder `services/` (Angular Style Guide).
 - **Routen:** / (Home), /quiz (Quiz-Verwaltung), /session/:code (Dozent-Steuerung), /session/:code/present (Beamer), /session/:code/vote (Student), /legal (Impressum, Datenschutz).
-- **Home:** HomePageComponent (inkl. Segment-Code-Input, Snackbar, Onboarding-Banner, Hero-Icons, Status-Dot im Brand-SVG), PresetToastComponent.
+- **Home:** HomePageComponent in features/home (inkl. Segment-Code-Input, Snackbar, Onboarding-Banner, Hero-Icons, Status-Dot im Brand-SVG), PresetToastComponent in shared.
 - **Quiz:** QuizListComponent, QuizEditorComponent, QuizConfigComponent, QuestionEditorComponent, AnswerEditorComponent, QuizPreviewComponent, ImportExportComponent.
 - **Session (Dozent):** LobbyComponent, QuizControlComponent, BeamerViewComponent, QaModeratorComponent, BonusTokenListComponent; Beamer: ResultChartComponent, WordcloudComponent, RatingHistogramComponent, LeaderboardComponent, EmojiOverlayComponent, QrCodeComponent, CountdownComponent.
 - **Student:** NicknameSelectComponent, VotingViewComponent, AnswerButtonsComponent, McToggleButtonsComponent, RatingScaleComponent, FreetextInputComponent, ScorecardComponent, BonusTokenDisplay, MotivationMessageComponent, EmojiBarComponent, QaStudentComponent, CountdownComponent.
-- **Shared:** HeaderComponent, FooterComponent, ThemeSwitcherComponent, LanguageSwitcherComponent, CountdownComponent, MarkdownKatexComponent, ConfirmDialogComponent.
-- **Services:** trpcClient (httpBatchLink, wsLink), YjsService, ThemeService, I18nService.
+- **Shared:** PresetToastComponent, ServerStatusWidgetComponent; (geplant: HeaderComponent, FooterComponent, ThemeSwitcherComponent, CountdownComponent, MarkdownKatexComponent, ConfirmDialogComponent).
+- **Core:** trpc (core/trpc.client: im Browser wsLink+httpBatchLink, bei SSR nur httpBatchLink), ThemePresetService (core/theme-preset.service), ws-urls (core/ws-urls); (geplant: YjsService, Guards, Interceptors).
+- **SSR/Prerender:** HttpClient mit `withFetch()`; localStorage/requestIdleCallback nur in Komponenten mit `isPlatformBrowser(PLATFORM_ID)` (z. B. HomeComponent); tRPC-WebSocket nur im Browser.
 
 ---
 
@@ -157,7 +159,7 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 - **Zod-Schemas:** Suffix Schema (CreateSessionInputSchema, QuestionStudentDTOSchema); exportierte Typen mit z.infer oder explizit (SessionInfoDTO, QuestionPreviewDTO).
 - **Prisma:** Modelle Singular (Quiz, Question, Session, Participant, Vote); Enums PascalCase; Felder camelCase.
 - **Angular:** Komponenten Suffix Component; Services Suffix Service; Dateien kebab-case (quiz-control.component.ts); Signale und computed mit aussagekräftigen Namen, keine generischen state/subject-Namen.
-- **Dateien:** Backend-Router unter apps/backend/src/routers/, Services unter apps/backend/src/services/; Frontend-Komponenten unter apps/frontend/src/app/ mit Feature-Struktur (home, quiz, session, vote, legal, shared).
+- **Dateien:** Backend-Router unter apps/backend/src/routers/, Services unter apps/backend/src/services/; Frontend unter apps/frontend/src/app/ mit core/, shared/, features/ (home, quiz, session, legal, help).
 
 ---
 

@@ -37,7 +37,7 @@ Im README den Satz ergänzen, z. B.: *„… wird niemals **dauerhaft** auf eine
 }
 ```
 
-**Code (trpc.client.ts):**
+**Code (core/trpc.client.ts):**
 ```ts
 import type { AppRouter } from '@arsnova/api';
 ```
@@ -176,8 +176,8 @@ Kein Handlungsbedarf. Bei Umsetzung von Story 2.1a wird Prisma eingebunden.
 export const routes: Routes = [];
 ```
 
-**Code (`trpc.client.ts`):**  
-Nur `httpBatchLink`, kein `wsLink`.
+**Code (`core/trpc.client.ts`):**  
+Im Browser: `splitLink` mit `wsLink` + `httpBatchLink`; bei SSR/Prerender nur `httpBatchLink` (WebSocket in Node nicht verfügbar).
 
 **Diagramme / Handbook:**  
 Beschreiben Routen (`/quiz`, `/session/:code`, `/legal`, …) und WebSocket-Subscriptions via `wsLink`.

@@ -9,19 +9,21 @@ import {
   OnInit,
   ViewChild,
   ViewContainerRef,
+  PLATFORM_ID,
   computed,
   inject,
   signal,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
-import { trpc } from '../../trpc.client';
-import { ServerStatusWidgetComponent } from '../../components/server-status-widget/server-status-widget.component';
-import { ThemePresetService } from '../../services/theme-preset.service';
+import { trpc } from '../../core/trpc.client';
+import { ServerStatusWidgetComponent } from '../../shared/server-status-widget/server-status-widget.component';
+import { ThemePresetService } from '../../core/theme-preset.service';
 
 /** Host-Anchor für dynamisch geladenes PresetToast (eigener Chunk, bessere Mobile-Performance). */
 @Directive({ selector: '[presetToastHost]', standalone: true })
@@ -1007,6 +1009,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   isJoining = signal(false);
 
   readonly themePreset = inject(ThemePresetService);
+  private readonly platformId = inject(PLATFORM_ID);
   readonly supportedLanguages = [
     { code: 'de' as const, label: 'Deutsch' },
     { code: 'en' as const, label: 'English' },
@@ -1032,16 +1035,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const storedLang = localStorage.getItem('home-language');
-    if (storedLang && ['de', 'en', 'fr', 'it', 'es'].includes(storedLang)) {
-      this.language.set(storedLang as 'de' | 'en' | 'fr' | 'it' | 'es');
+    if (isPlatformBrowser(this.platformId)) {
+      const storedLang = localStorage.getItem('home-language');
+      if (storedLang && ['de', 'en', 'fr', 'it', 'es'].includes(storedLang)) {
+        this.language.set(storedLang as 'de' | 'en' | 'fr' | 'it' | 'es');
+      }
+      this.loadRecentSessionCodes();
     }
-    this.loadRecentSessionCodes();
     // Health-Check nach First Paint, damit API-Anfrage den kritischen Lade-Pfad nicht blockiert
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(() => this.checkApiConnection(), { timeout: 2000 });
-    } else {
-      setTimeout(() => this.checkApiConnection(), 0);
+    if (isPlatformBrowser(this.platformId)) {
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => this.checkApiConnection(), { timeout: 2000 });
+      } else {
+        setTimeout(() => this.checkApiConnection(), 0);
+      }
     }
   }
 
@@ -1070,6 +1077,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadRecentSessionCodes(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     try {
       const raw = localStorage.getItem('home-recent-sessions');
       const codes = raw ? (JSON.parse(raw) as string[]) : [];
@@ -1083,6 +1091,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private addToRecentSessionCodes(code: string): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     const normalized = code.trim().toUpperCase();
     if (!/^[A-Z0-9]{6}$/.test(normalized)) return;
     const current = this.recentSessionCodes();
@@ -1099,7 +1108,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setLanguage(code: 'de' | 'en' | 'fr' | 'it' | 'es'): void {
     this.language.set(code);
-    localStorage.setItem('home-language', code);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('home-language', code);
+    }
     setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 0);
   }
 
@@ -1150,7 +1161,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private loadPresetToast(): void {
     if (this.presetToastRef || !this.presetToastHost) return;
-    import('../../components/preset-toast/preset-toast.component').then((m) => {
+    import('../../shared/preset-toast/preset-toast.component').then((m) => {
       if (!this.presetToastHost || this.presetToastRef) return;
       const ref = this.presetToastHost.vcRef.createComponent(m.PresetToastComponent);
       (ref.instance as { closed: { subscribe: (fn: () => void) => void } }).closed.subscribe(() =>

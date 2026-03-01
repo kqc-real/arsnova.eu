@@ -4,7 +4,7 @@
  */
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
-import { trpc } from '../../trpc.client';
+import { trpc } from '../../core/trpc.client';
 import type { ServerStatsDTO } from '@arsnova/shared-types';
 
 @Component({

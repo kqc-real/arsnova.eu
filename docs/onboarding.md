@@ -80,12 +80,17 @@ arsnova-click-v3/
 │   │           ├── health.ts # health.check, health.stats, health.ping
 │   │           ├── session.ts# session.create, getInfo, join, getExportData
 │   │           └── vote.ts   # vote.submit (mit Rate-Limit)
-│   └── frontend/             # Angular 19 Single-Page-App
+│   └── frontend/             # Angular 19 Single-Page-App (Angular-Style: core/shared/features)
 │       └── src/app/
 │           ├── app.component.ts   # Root-Komponente
-│           ├── app.routes.ts      # Routing-Konfiguration
-│           ├── app.config.ts      # Angular-App-Konfiguration
-│           └── trpc.client.ts     # tRPC-Client (Verbindung zum Backend)
+│           ├── app.routes.ts     # Routing-Konfiguration
+│           ├── app.config.ts     # Angular-App-Konfiguration (mit withFetch für SSR)
+│           ├── core/             # App-weite Singletons
+│           │   ├── ws-urls.ts    # WebSocket-URLs (tRPC, Yjs)
+│           │   ├── trpc.client.ts# tRPC-Client (HTTP + WebSocket im Browser; SSR nur HTTP)
+│           │   └── theme-preset.service.ts
+│           ├── shared/           # Wiederverwendbare UI (preset-toast, server-status-widget)
+│           └── features/         # Pro Route/Feature: home, quiz, session, legal, help
 ├── libs/
 │   └── shared-types/         # Geteilte Zod-Schemas und TypeScript-Typen
 │       └── src/

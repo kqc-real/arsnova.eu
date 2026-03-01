@@ -3,7 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
-import { trpc } from '../../trpc.client';
+import { trpc } from '../../core/trpc.client';
 import type { SessionInfoDTO } from '@arsnova/shared-types';
 
 /**
