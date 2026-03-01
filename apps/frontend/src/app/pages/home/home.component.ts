@@ -240,6 +240,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
               class="home-code-segments"
               [class.home-code-segments--focused]="codeInputFocused()"
               [class.home-code-segments--valid]="isValidSessionCode()"
+              [class.home-code-segments--shake]="codeShaking()"
               (click)="focusCodeInput()"
             >
               @for (slot of codeSlots; track slot) {
@@ -283,6 +284,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
               <button
                 matButton="filled"
                 class="home-cta"
+                [class.home-cta--ready]="ctaReady()"
                 (click)="joinSession()"
                 [disabled]="!isValidSessionCode()"
                 aria-label="Session beitreten"
@@ -353,20 +355,17 @@ import { ThemePresetService } from '../../services/theme-preset.service';
             <div class="home-subcard__links l-stack l-stack--sm">
               <a matButton routerLink="/quiz" class="home-subcard__link" (mouseenter)="preloadQuiz()">
                 <mat-icon class="home-subcard__link-icon">menu_book</mat-icon>
-                Bibliothek öffnen
+                Quizzes ansehen
               </a>
-              <a matButton routerLink="/quiz" class="home-subcard__link" (mouseenter)="preloadQuiz()">
-                <mat-icon class="home-subcard__link-icon">content_copy</mat-icon>
-                Neues Quiz aus Vorlage
-              </a>
-              <div class="home-subcard__demo l-stack l-stack--sm">
+              <div class="home-subcard__demo-row">
                 <a matButton routerLink="/quiz" class="home-subcard__demo-btn" (mouseenter)="preloadQuiz()">
                   <mat-icon class="home-subcard__link-icon">play_circle</mat-icon>
                   Demo starten
                 </a>
+                <span class="home-subcard__demo-sep">oder</span>
                 <a matButton [routerLink]="['/session', demoSessionCode]" class="home-subcard__demo-btn">
                   <mat-icon class="home-subcard__link-icon">group_add</mat-icon>
-                  Demo beitreten
+                  Beitreten
                 </a>
               </div>
             </div>
@@ -784,9 +783,22 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
     }
 
+    .home-code-segments--focused .home-code-segment {
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
+    }
+
     .home-code-segments--valid .home-code-segment--filled {
       border-color: var(--app-color-success-fg, #4caf50);
       background: color-mix(in srgb, var(--app-color-success-fg, #4caf50) 8%, transparent);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--app-color-success-fg, #4caf50) 20%, transparent);
+    }
+
+    .home-code-segments--shake {
+      animation: home-shake 0.4s ease;
+    }
+
+    .home-code-segments--shake .home-code-segment {
+      border-color: var(--mat-sys-error);
     }
 
     .home-code-segments__input {
@@ -830,8 +842,28 @@ import { ThemePresetService } from '../../services/theme-preset.service';
 
     .home-error { margin: 0; color: var(--mat-sys-error); font: var(--mat-sys-body-small); }
 
+    .home-cta--ready {
+      animation: home-cta-pulse 0.35s ease;
+    }
+
     .home-spin { animation: home-spin 1s linear infinite; }
     @keyframes home-spin { to { transform: rotate(360deg); } }
+
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes home-shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-6px); }
+        40% { transform: translateX(5px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(2px); }
+      }
+
+      @keyframes home-cta-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.04); }
+        100% { transform: scale(1); }
+      }
+    }
 
     .home-grid mat-card { box-shadow: var(--mat-sys-level2); }
     .home-grid { margin-top: 1rem; display: grid; gap: 0.75rem; }
@@ -841,7 +873,18 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     .home-retry-btn { margin-top: 0.5rem; }
     .home-subcard__body { margin: 0; font: var(--mat-sys-body-small); color: var(--mat-sys-on-surface-variant); }
     .home-subcard__links { margin-top: 0.5rem; }
-    .home-subcard__demo { margin-top: 0; padding-top: 0; }
+    .home-subcard__demo-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .home-subcard__demo-sep {
+      font: var(--mat-sys-label-small);
+      color: var(--mat-sys-on-surface-variant);
+    }
+
     .home-subcard__demo-btn { justify-content: flex-start; }
     .home-subcard__link { justify-content: flex-start; }
     .home-subcard__link-icon { margin-right: 0.35rem; }
@@ -897,6 +940,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   redisStatus = signal<string | null>(null);
   sessionCode = signal('');
   codeInputFocused = signal(false);
+  codeShaking = signal(false);
+  ctaReady = signal(false);
   recentSessionCodes = signal<string[]>([]);
   joinError = signal<string | null>(null);
   isJoining = signal(false);
@@ -1033,6 +1078,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sessionCodeInput?.nativeElement.focus();
   }
 
+  private triggerShake(): void {
+    this.codeShaking.set(true);
+    setTimeout(() => this.codeShaking.set(false), 400);
+  }
+
+  private triggerCtaPulse(): void {
+    this.ctaReady.set(false);
+    requestAnimationFrame(() => this.ctaReady.set(true));
+    setTimeout(() => this.ctaReady.set(false), 350);
+  }
+
   toggleControlsMenu(): void {
     this.controlsMenuOpen.set(!this.controlsMenuOpen());
   }
@@ -1076,9 +1132,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSessionCodeInput(event: Event): void {
     const target = event.target as HTMLInputElement;
+    const prev = this.sessionCode();
     const normalized = target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
     this.sessionCode.set(normalized);
     this.joinError.set(null);
+    if (normalized.length === 6 && prev.length < 6) {
+      this.triggerCtaPulse();
+    }
   }
 
   async joinSession(): Promise<void> {
@@ -1086,6 +1146,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const code = this.sessionCode().trim().toUpperCase();
     if (!/^[A-Z0-9]{6}$/.test(code)) {
       this.joinError.set('Bitte einen gültigen 6-stelligen Code eingeben.');
+      this.triggerShake();
       this.sessionCodeInput?.nativeElement.focus();
       return;
     }
