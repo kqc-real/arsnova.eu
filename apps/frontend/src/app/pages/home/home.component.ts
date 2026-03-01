@@ -184,6 +184,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
 
       <main class="home-main">
         <p class="home-hero">Fragen, quizzen, abstimmen – gemeinsam und live</p>
+        <p class="home-hero-usp">Angepasst an deine Zielgruppe – von Kindergarten bis Oberstufe, seriös oder spielerisch.</p>
 
         <div class="home-hero-icons" aria-hidden="true">
           <div class="home-hero-icon"><mat-icon>quiz</mat-icon></div>
@@ -315,10 +316,9 @@ import { ThemePresetService } from '../../services/theme-preset.service';
               <p class="home-card__copy">Quiz, Q&amp;A oder Umfrage in Sekunden aufsetzen.</p>
               <a
                 matButton
+                routerLink="/help"
                 class="home-help-btn"
-                href="https://github.com/arsnova-dev/arsnova-click-v3/blob/main/docs/onboarding.md"
-                target="_blank"
-                rel="noopener noreferrer"
+                aria-label="Hilfe öffnen"
               >
                 <mat-icon>help</mat-icon>
                 Hilfe
@@ -495,10 +495,20 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     .home-preset-toggle--full mat-button-toggle { flex: 1; }
 
     .home-hero {
-      margin: 0 0 0.5rem;
+      margin: 0 0 0.25rem;
       font: var(--mat-sys-headline-medium);
       color: var(--mat-sys-on-surface);
       text-align: center;
+    }
+
+    .home-hero-usp {
+      margin: 0 0 0.75rem;
+      font: var(--mat-sys-body-large);
+      color: var(--mat-sys-primary);
+      text-align: center;
+      font-weight: 500;
+      max-width: 28rem;
+      margin-inline: auto;
     }
 
     .home-hero-icons {
@@ -694,7 +704,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
 
     @media (min-width: 600px) {
       .home-main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .home-hero, .home-hero-icons, .home-trust-badges, .home-onboarding { grid-column: 1 / -1; }
+      .home-hero, .home-hero-usp, .home-hero-icons, .home-trust-badges, .home-onboarding { grid-column: 1 / -1; }
     }
 
     .home-card { padding: 0.25rem; box-shadow: var(--mat-sys-level2); }

@@ -17,6 +17,11 @@ export const routes: Routes = [
       import('./pages/session/session.component').then((m) => m.SessionComponent),
   },
   {
+    path: 'help',
+    loadComponent: () =>
+      import('./pages/help/help.component').then((m) => m.HelpComponent),
+  },
+  {
     path: 'legal/:slug',
     loadComponent: () =>
       import('./pages/legal/legal-page.component').then((m) => m.LegalPageComponent),

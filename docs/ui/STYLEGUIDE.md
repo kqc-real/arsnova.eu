@@ -92,6 +92,7 @@ Tokenbasierte Card-Flaeche:
 
 ## Startseite: Hero und Onboarding
 - **Hero-Text:** Nutzenversprechen, kein Feature-Listing. Verben statt Nomen.
+- **Alleinstellungsmerkmal (USP):** Direkt unter dem Hero eine Zeile zur Zielgruppenauswahl – z. B. „Angepasst an deine Zielgruppe – von Kindergarten bis Oberstufe, serioes oder spielerisch.“ In Primary-Farbe, body-large, zentriert. Hebt das Differenzierungsmerkmal gegenueber One-size-fits-all-Tools hervor.
 - **Icon-Cluster:** 3 Icons (quiz, forum, how_to_vote) in primary-getoenten Kreisen, verbunden durch Dots. `aria-hidden="true"` da dekorativ.
 - **Trust-Badges:** Staerkstes Argument zuerst (Kostenlos > DSGVO-konform > Open Source).
 - **Onboarding-Banner (Erstbesucher):** 3-Schritt-Visual (Quiz erstellen > Code teilen > Live spielen) mit Icons in Primary-Kreisen und Chevron-Pfeilen. Nur bei erstem Besuch (`localStorage: home-visited`), schliessbar. `grid-column: 1 / -1` auf Desktop.
@@ -103,7 +104,8 @@ Tokenbasierte Card-Flaeche:
 ## Startseite: Mobile-Hierarchie
 - Auf Mobile (`< 600 px`) erhaelt die Mitmachen-Karte einen **3 px Primary-Top-Border** als visuellen Akzent, um sie als primaere Aktion hervorzuheben.
 
-## Startseite: Wording-Konventionen
+## Wording: Anrede
+- **Duzen:** In der gesamten App (Hilfe, Hinweise, Buttons, Fehlermeldungen) wird die Nutzerin/der Nutzer mit **Du** angesprochen – einheitlich fuer alle Rollen (Veranstaltende und Teilnehmende). Entspricht dem Vorgehen vieler Lern- und Umfrage-Apps (z. B. Mentimeter, Kahoot!, Slido). Formelles "Sie" nur in rechtlichen Texten (Impressum, Datenschutz), wo ueblich.
 - **Rollenbezeichnungen:** "Mitmachen" (statt "Teilnehmer/in"), "Veranstalten" (statt "Lehrperson"). Aktivierend, rollenunabhaengig.
 - **CTAs:** Handlungsauffordernd mit klarem Nutzen: "Los geht's" (statt "Beitreten"), "Neues Quiz starten" (statt "Session erstellen"), "Aus Bibliothek" (statt "Quiz auswaehlen"), "Fragerunde" (statt "Q&A").
 - **Hilfetext Session-Code:** "6 Zeichen, z. B. ABC123" -- kurz, konkret, kontextneutral.
