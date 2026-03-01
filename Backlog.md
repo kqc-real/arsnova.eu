@@ -57,7 +57,7 @@
 | 4    | 4.3   | WebSocket Reconnection                        | 🟡   | ⬜ Offen  |
 | 4    | 4.4   | Ergebnis-Visualisierung                       | 🔴   | ⬜ Offen  |
 | 4    | 4.5   | Freitext-Auswertung                           | 🟡   | ⬜ Offen  |
-| 4    | 4.6   | Bonus-Token für Top-Platzierungen             | 🟡   | ⬜ Offen  |
+| 4    | 4.6   | Bonus-Code für Top-Platzierungen               | 🟡   | ⬜ Offen  |
 | 4    | 4.7   | Ergebnis-Export für Dozenten (anonym)         | 🟡   | ⬜ Offen  |
 | 5    | 5.1   | Sound-Effekte                                 | 🟡   | ⬜ Offen  |
 | 5    | 5.3   | Hintergrundmusik                              | 🟢   | ⬜ Offen  |
@@ -311,7 +311,8 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - **teamCount** — Anzahl Teams bei Team-Modus (2–8, nur bei teamMode=true).
       - **teamAssignment** — Zuweisung zu Teams: automatisch oder manuell (Story 7.1) (Auswahl).
       - **backgroundMusic** — Hintergrundmusik in Lobby/Countdown (Story 5.3): Track-Name oder aus (optional).
-      - **bonusTokenCount** — Anzahl Top-Plätze mit Bonus-Token (1–50, null = deaktiviert) (Story 4.6).
+      - **bonusTokenCount** — Anzahl Top-Plätze mit Bonus-Code (1–50, null = deaktiviert) (Story 4.6). In der UI: „Bonus-Code für Top-Plätze“.
+    - **Preset-Optionen-Chips (UI):** Der Zustand jeder Option (an/aus) wird in der Preset-Toast-UI farblich hervorgehoben: „an“ in Grün (Ampel), „aus“ in Rot — bessere Scanbarkeit ohne Abhängigkeit von der Chip-Highlight-Farbe allein.
     - Presets sind auch beim Bearbeiten (Story 1.10) verfügbar.
 - **Story 1.12 (SC-Schnellformate):** 🟡 Als Dozent möchte ich beim Erstellen einer Single-Choice-Frage aus vorkonfigurierten Antwortformaten wählen können, damit ich häufig benötigte Formate mit einem Klick einfügen kann.
   - **Akzeptanzkriterien:**
@@ -367,9 +368,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Klick auf einen Begriff hebt ihn hervor oder filtert die zugehörigen Antworten in einer Liste (Toggle); Tooltip zeigt exakte Anzahl.
     - Word-Cloud aktualisiert sich live bei eingehenden Votes (Echtzeit, konsistent mit Story 4.5).
     - **Export:** Dozent kann pro Frage oder für die gesamte Session exportieren:
-      - **CSV:** Alle Freitext-Antworten (aggregiert: Text, Anzahl), ohne Nicknames; optional Bonus-Token-Liste (Story 4.6) in separatem Export.
+      - **CSV:** Alle Freitext-Antworten (aggregiert: Text, Anzahl), ohne Nicknames; optional Bonus-Code-Liste (Story 4.6) in separatem Export.
       - **Bild/PNG (optional):** Screenshot der Word-Cloud oder der Ergebnis-Visualisierung für eine Frage.
-    - Export ist nur für den Dozenten zugänglich (kein Studenten-Zugriff); Daten nur aggregiert bzw. pseudonym (Token-Liste), DSGVO-konform.
+    - Export ist nur für den Dozenten zugänglich (kein Studenten-Zugriff); Daten nur aggregiert bzw. pseudonym (Bonus-Code-Liste), DSGVO-konform.
     - Abhängigkeiten: Story 4.5 (Freitext-Auswertung), Story 2.5 (Beamer), Story 4.4 (Ergebnis-Visualisierung).
 - **Story 1.15 (Preset-Konfiguration exportieren & importieren):** 🟢 Als Dozent möchte ich meine Preset-Konfiguration (Seriös/Spielerisch inkl. aller Optionen) als Datei exportieren und auf einem anderen Gerät/Browser importieren können, damit ich meine Einstellungen geräteübergreifend nutzen kann — ohne Account und ohne serverseitige Speicherung.
   - **Motivation:** Presets werden im `localStorage` des Browsers gespeichert und sind damit an ein Gerät/einen Browser gebunden. Für Dozenten, die zwischen Laptop und Tablet wechseln, geht die individuelle Konfiguration verloren. Diese Story bietet eine einfache, Zero-Knowledge-konforme Lösung.
@@ -568,46 +569,47 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Bei ≥ 10 eindeutigen Antworten wird eine Wordcloud als alternative Darstellung angeboten.
     - Der Dozent kann einzelne Antworten auf dem Beamer hervorheben (Klick → vergrößerte Anzeige).
     - Datenschutz: Freitext-Antworten werden **nicht** mit Nicknames verknüpft dargestellt (anonyme Auswertung, konsistent mit DSGVO-Prinzip der Datensparsamkeit).
-- **Story 4.6 (Bonus-Token für Top-Platzierungen):** 🟡 Als Dozent möchte ich den besten Studenten im Leaderboard ein individuelles Bonus-Token ausstellen können, das diese per E-Mail zur Einlösung von Bonuspunkten oder Anerkennung durch die Lehrperson einreichen, damit herausragende Leistungen belohnt werden — ohne die Anonymität der restlichen Teilnehmer zu gefährden.
+- **Story 4.6 (Bonus-Code für Top-Platzierungen):** 🟡 Als Dozent möchte ich den besten Studenten im Leaderboard einen individuellen Bonus-Code ausstellen können, den diese per E-Mail zur Einlösung von Bonuspunkten oder Anerkennung durch die Lehrperson einreichen, damit herausragende Leistungen belohnt werden — ohne die Anonymität der restlichen Teilnehmer zu gefährden.
+  - **Hinweis Wording:** In der gesamten UI wird „Bonus-Code“ bzw. „Code“ verwendet (nicht „Token“); technisch bleibt das Datenmodell `BonusToken`/`bonusTokenCount` unverändert.
   - **Akzeptanzkriterien:**
-    - In der Quiz-Konfiguration (Story 1.4) gibt es ein neues optionales Feld `**bonusTokenCount`** (`Int?, 1–50, default: null`). Wenn gesetzt, erhalten die Top X im finalen Leaderboard automatisch ein Token.
-    - **Token-Generierung (serverseitig):**
-      - Beim Beenden der Session (`session.end`) werden für die Top X Plätze kryptografisch sichere, einmalige Token generiert (`crypto.randomUUID()` oder `nanoid`, 12 Zeichen, z. B. `BNS-A3F7-K2M9`).
-      - Jedes Token wird als `BonusToken`-Datensatz in PostgreSQL gespeichert mit: `token`, `sessionId`, `participantId`, `nickname` (Snapshot), `quizName` (Snapshot), `totalScore`, `rank`, `generatedAt`.
-      - Token sind nach Generierung unveränderlich (kein Update, keine Regeneration).
+    - In der Quiz-Konfiguration (Story 1.4) gibt es ein neues optionales Feld `**bonusTokenCount`** (`Int?, 1–50, default: null`). Wenn gesetzt, erhalten die Top X im finalen Leaderboard automatisch einen Code.
+    - **Code-Generierung (serverseitig):**
+      - Beim Beenden der Session (`session.end`) werden für die Top X Plätze kryptografisch sichere, einmalige Codes generiert (`crypto.randomUUID()` oder `nanoid`, 12 Zeichen, z. B. `BNS-A3F7-K2M9`).
+      - Jeder Code wird als `BonusToken`-Datensatz in PostgreSQL gespeichert mit: `token`, `sessionId`, `participantId`, `nickname` (Snapshot), `quizName` (Snapshot), `totalScore`, `rank`, `generatedAt`.
+      - Codes sind nach Generierung unveränderlich (kein Update, keine Regeneration).
     - **Studenten-Ansicht:**
-      - Die Top-X-Studenten sehen auf ihrer finalen Scorecard (Story 5.6) zusätzlich einen hervorgehobenen Bereich: **„🎓 Dein Bonus-Token: `BNS-A3F7-K2M9`"**.
-      - Ein „Kopieren"-Button kopiert das Token in die Zwischenablage (`navigator.clipboard.writeText`).
-      - Ein erklärender Hinweis: *„Sende dieses Token per E-Mail an deinen Dozenten, um Bonuspunkte zu erhalten. Deine Anonymität bleibt gewahrt, solange du das Token nicht einreichst."*
-      - Das Token wird **nur** dem jeweiligen Studenten angezeigt (individuell per tRPC-Subscription `session.onPersonalResult`, kein Broadcast).
-      - Studenten, die nicht in den Top X sind, sehen keinen Token-Bereich.
-    - **Dozenten-Ansicht (Token-Verwaltung):**
-      - Nach Beendigung der Session kann der Dozent über einen neuen tRPC-Query `**session.getBonusTokens({ sessionId })`** die vollständige Token-Liste abrufen.
-      - Die Liste enthält pro Eintrag: Token-Code, Pseudonym (Nickname), Quiz-Name, erreichte Punkte, Ranking-Platz, Datum.
+      - Die Top-X-Studenten sehen auf ihrer finalen Scorecard (Story 5.6) zusätzlich einen hervorgehobenen Bereich: **„🎓 Dein Bonus-Code: `BNS-A3F7-K2M9`"**.
+      - Ein „Kopieren"-Button kopiert den Code in die Zwischenablage (`navigator.clipboard.writeText`).
+      - Ein erklärender Hinweis: *„Sende diesen Code per E-Mail an deinen Dozenten, um Bonuspunkte zu erhalten. Deine Anonymität bleibt gewahrt, solange du den Code nicht einreichst."*
+      - Der Code wird **nur** dem jeweiligen Studenten angezeigt (individuell per tRPC-Subscription `session.onPersonalResult`, kein Broadcast).
+      - Studenten, die nicht in den Top X sind, sehen keinen Bonus-Code-Bereich.
+    - **Dozenten-Ansicht (Bonus-Code-Liste):**
+      - Nach Beendigung der Session kann der Dozent über einen neuen tRPC-Query `**session.getBonusTokens({ sessionId })`** die vollständige Liste der ausgegebenen Codes abrufen.
+      - Die Liste enthält pro Eintrag: Code, Pseudonym (Nickname), Quiz-Name, erreichte Punkte, Ranking-Platz, Datum.
       - Die Liste ist als Tabelle dargestellt und kann als **CSV exportiert** werden (clientseitiger Download).
       - Der Dozent sieht **keine** echten Namen oder E-Mail-Adressen — nur Pseudonyme.
     - **Verifizierungs-Workflow (außerhalb der App):**
-      - Studenten senden ihr Token per E-Mail an den Dozenten.
-      - Der Dozent gleicht das Token mit der CSV-/Tabellenliste ab und schreibt anhand der Absender-Mailadresse Bonuspunkte gut.
+      - Studenten senden ihren Code per E-Mail an den Dozenten.
+      - Der Dozent gleicht den Code mit der CSV-/Tabellenliste ab und schreibt anhand der Absender-Mailadresse Bonuspunkte gut.
       - Die App selbst speichert keine E-Mail-Adressen (DSGVO-konform, Prinzip der Datensparsamkeit).
     - **Anonymitätsgarantie:**
-      - Die Zuordnung Token → reale Person ist **nur** möglich, wenn der Student sein Token freiwillig per E-Mail einreicht.
+      - Die Zuordnung Code → reale Person ist **nur** möglich, wenn der Student seinen Code freiwillig per E-Mail einreicht.
       - Studenten, die nicht einreichen, bleiben vollständig anonym — auch gegenüber dem Dozenten.
-      - Im anonymen Modus (Story 3.6) werden Tokens dennoch generiert (Pseudonym = „Teilnehmer #7"), da die Einreichung per E-Mail die freiwillige De-Anonymisierung darstellt.
+      - Im anonymen Modus (Story 3.6) werden Codes dennoch generiert (Pseudonym = „Teilnehmer #7"), da die Einreichung per E-Mail die freiwillige De-Anonymisierung darstellt.
     - **Gültigkeit & Cleanup:**
-      - Bonus-Tokens bleiben 90 Tage in der Datenbank gespeichert, danach werden sie automatisch gelöscht (Erweiterung von Story 4.2).
-      - Tokens sind nicht übertragbar — der Dozent prüft den Absender der E-Mail eigenverantwortlich.
+      - Bonus-Codes (BonusToken-Datensätze) bleiben 90 Tage in der Datenbank gespeichert, danach werden sie automatisch gelöscht (Erweiterung von Story 4.2).
+      - Codes sind nicht übertragbar — der Dozent prüft den Absender der E-Mail eigenverantwortlich.
     - **Abhängigkeiten:** Story 4.1 (Leaderboard), Story 5.6 (Persönliche Scorecard).
 - **Story 4.7 (Ergebnis-Export für Dozenten – anonym):** 🟡 Als Dozent möchte ich nach Ende einer Session die Auswertung anonym als Datei (CSV/PDF) herunterladen können, damit ich die Ergebnisse für Nachbereitung, Lehrevaluation oder Akkreditierung nutzen kann — ohne personenbezogene Daten.
   - **Akzeptanzkriterien:**
     - Nach Beendigung der Session (Status `FINISHED`) steht in der Dozenten-Ansicht ein Button **„Ergebnis exportieren“** zur Verfügung.
     - **CSV-Export (mindestens):** Enthält pro Zeile aggregierte Daten, z. B.: Session-ID, Quiz-Name, Datum, pro Frage: Fragentext (Kurz), Fragentyp, Anzahl Teilnehmer, Verteilung der Antworten (Anzahl pro Option bzw. bei Freitext: aggregierte Begriffe/Häufigkeiten), Durchschnittspunktzahl pro Frage, keine Nicknames und keine personenbezogenen Daten.
     - Optional: **PDF-Export** mit gleichen Inhalten in lesbarer Form (z. B. Deckblatt, pro Frage eine Seite mit Balkendiagramm-Beschreibung oder Word-Cloud-Text).
-    - Bonus-Token-Liste (Story 4.6) kann in den Export einbezogen werden (Token-Code, Rang, Punkte, Pseudonym) — entspricht der bereits in Story 4.6 beschriebenen CSV-Funktion; kein Widerspruch zur Anonymität, da Zuordnung nur über freiwillige E-Mail-Einreichung.
+    - Bonus-Code-Liste (Story 4.6) kann in den Export einbezogen werden (Code, Rang, Punkte, Pseudonym) — entspricht der bereits in Story 4.6 beschriebenen CSV-Funktion; kein Widerspruch zur Anonymität, da Zuordnung nur über freiwillige E-Mail-Einreichung.
     - Export erfolgt clientseitig (Generierung im Browser) oder über einen tRPC-Query, der nur aggregierte/anonymisierte Daten zurückgibt; keine Speicherung der Export-Datei auf dem Server.
     - **tRPC & Schemas (bei serverseitiger Variante):** Query `session.getExportData` mit `GetExportDataInputSchema` (sessionId); Rückgabe `SessionExportDTO` (sessionId, sessionCode, quizName, finishedAt, participantCount, questions[], bonusTokens?). Siehe `libs/shared-types/src/schemas.ts` (SessionExportDTOSchema, QuestionExportEntrySchema, OptionDistributionEntrySchema, FreetextAggregateEntrySchema).
     - DSGVO: Export enthält ausschließlich anonymisierte bzw. aggregierte Daten; Hinweis in der UI: „Export für Dokumentation und Evaluation – keine personenbezogenen Daten“.
-    - Abhängigkeiten: Story 4.1 (Leaderboard), Story 4.4 (Ergebnis-Visualisierung), Story 4.5 (Freitext-Auswertung), Story 4.6 (Bonus-Token-Liste).
+    - Abhängigkeiten: Story 4.1 (Leaderboard), Story 4.4 (Ergebnis-Visualisierung), Story 4.5 (Freitext-Auswertung), Story 4.6 (Bonus-Code-Liste).
 
 ---
 
@@ -728,7 +730,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 - **Story 6.5 (Barrierefreiheit / Accessibility):** 🔴 Als Nutzer mit Einschränkungen möchte ich die App vollständig per Tastatur, Screenreader und assistive Technologien bedienen können.
   - **Akzeptanzkriterien:**
     - **Tastaturnavigation:** Alle interaktiven Elemente (Buttons, Inputs, Antwortoptionen, Dropdown-Menüs) sind per `Tab`-Taste erreichbar und per `Enter`/`Space` aktivierbar.
-    - **Fokus-Management:** Ein sichtbarer Fokusring (`focus-visible`) ist auf allen interaktiven Elementen vorhanden. Nach Seitenwechsel oder Modal-Öffnung wird der Fokus programmatisch auf das erste relevante Element gesetzt.
+    - **Fokus-Management:** Ein sichtbarer Fokusring (`focus-visible`) ist auf allen interaktiven Elementen vorhanden. Nach Seitenwechsel, Modal-Öffnung oder Theme-/Sprachumschaltung auf der Startseite wird der Fokus programmatisch auf das erste relevante Element (z. B. Session-Code-Eingabe) gesetzt.
     - **Screenreader-Support:** Alle Bilder haben `alt`-Texte, alle Icons haben `aria-label`. Dynamische Statusänderungen (Countdown, Teilnehmerzahl, Antwort-Feedback) werden über `aria-live`-Regionen kommuniziert.
     - **Semantisches HTML:** Überschriften-Hierarchie (`h1`–`h6`) ist korrekt. Formulare nutzen `<label>`-Elemente mit `for`-Attribut. Listen nutzen `<ul>`/`<ol>`.
     - **ARIA-Rollen:** Custom-Komponenten (Theme-Switcher, Sprachwähler, Quiz-Steuerung) verwenden korrekte ARIA-Rollen (`role="tablist"`, `role="dialog"`, etc.).
