@@ -6,14 +6,20 @@
 [![Tech Stack: Prisma](https://img.shields.io/badge/ORM-Prisma-2D3748.svg?style=flat-square&logo=prisma)](https://www.prisma.io/)
 [![Documentation: ADRs](https://img.shields.io/badge/Docs-ADRs%20(DaC)-007A8A.svg?style=flat-square)](./docs/architecture/)
 
-> **Ein modernes, 100 % DSGVO-konformes Audience-Response-System.**
-> Entwickelt im Rahmen des Hochschul-Moduls "Software Engineering & Vibe Coding".
+> **Fragen, quizzen, abstimmen – gemeinsam und live.**  
+> Ein modernes, kostenloses und 100 % DSGVO-konformes Audience-Response-System – ohne Anmeldung, Open Source. Entwickelt im Rahmen des Hochschul-Moduls „Software Engineering & Vibe Coding“.
 
 ## 📖 Über das Projekt
 
-**arsnova.click V3** ist die architektonische Neuerfindung einer etablierten Hörsaal-Quiz-App (ähnlich wie Kahoot! oder Mentimeter).
+**arsnova.click V3** ist die architektonische Neuerfindung einer etablierten Hörsaal-Quiz-App (Live-Quiz, Q&amp;A, Abstimmungen). Sie richtet sich an Lehrpersonen und Teilnehmende von der Kita bis zur Hochschule.
 
-Der absolute USP (Unique Selling Proposition) dieses Systems ist die **"Zero-Knowledge"-Infrastruktur**: Dozenten müssen keine Accounts anlegen. Das geistige Eigentum (die Quizfragen) wird niemals **dauerhaft** auf einem zentralen Server gespeichert, sondern lebt **Local-First** im Browser des Erstellers. Beim Start einer Live-Session wird eine temporäre Kopie an den Server übertragen, die nur für die Dauer der Sitzung existiert. Der Server fungiert lediglich als "dummer", extrem schneller Relay-Knotenpunkt für die Live-Abstimmungen der Studierenden im Hörsaal.
+### Alleinstellungsmerkmale
+
+* **Zielgruppenauswahl:** Die Lehrperson wählt beim Start der Session den Stil (**Seriös** oder **Spielerisch**) und kann Optionen anpassen (Rangliste, Sound, Lesephase, Team-Modus, Nicknames, Timer). So passt sich die Session der Zielgruppe an – von Kindergarten bis Oberstufe. Teilnehmende können den Stil nicht ändern.
+* **Bonus-Option für die Besten:** Top-Platzierte erhalten einen **einlösbaren Code**, den sie bei der Quizleitung einlösen können (z. B. für Bonuspunkte oder Anerkennung). Die App dient nicht als autorisiertes Prüfungsinstrument; die Einlösung liegt bei der Lehrperson.
+* **Zero-Knowledge / Local-First:** Keine Accounts nötig. Quiz-Inhalte werden lokal im Browser des Erstellers gespeichert; beim Start einer Live-Session wird nur temporär eine Kopie an den Server übertragen. Nach Ende der Session werden die Daten bereinigt. Der Server ist reiner Relay für Echtzeit-Abstimmungen.
+
+Weitere Details zu Ablauf, Presets und Datenschutz stehen in der **Hilfe-Seite** der App (`/help`) sowie im [Backlog](./Backlog.md).
 
 ## 🏗️ Der Technologie-Stack
 
