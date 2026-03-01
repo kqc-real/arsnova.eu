@@ -746,6 +746,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       gap: 0.5rem;
       width: 100%;
       min-width: 0;
+      margin-top: 1rem;
     }
 
     .home-cta-row .home-cta--secondary { flex: 1 1 0; min-width: 0; width: auto; }
