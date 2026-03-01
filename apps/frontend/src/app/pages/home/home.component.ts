@@ -917,7 +917,14 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       color: var(--mat-sys-on-surface-variant);
     }
 
-    .home-subcard__demo-btn { justify-content: flex-start; }
+    .home-subcard__demo-btn {
+      justify-content: flex-start;
+      white-space: nowrap;
+    }
+
+    @media (min-width: 600px) {
+      .home-subcard__demo-row { flex-wrap: nowrap; }
+    }
     .home-subcard__link { justify-content: flex-start; }
     .home-subcard__link-icon { margin-right: 0.35rem; }
     .home-subcard--status mat-card-content { margin-top: 0.75rem; }
