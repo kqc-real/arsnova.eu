@@ -133,6 +133,7 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
               }
               <mat-chip-set class="preset-toast__chips">
                 @for (opt of group.options; track opt.id) {
+                  @if (isOptionVisible(opt.id)) {
                   <mat-chip
                     [highlighted]="optionEffective(opt.id)"
                     (click)="toggleOption(opt.id)"
@@ -147,6 +148,7 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
                     <mat-icon class="preset-toast__chip-icon">{{ opt.icon }}</mat-icon>
                     {{ opt.label }} {{ optionEffective(opt.id) ? 'an' : 'aus' }}
                   </mat-chip>
+                  }
                 }
               </mat-chip-set>
               @if (group.categoryId === 'participation' && nameMode() === 'nicknameTheme') {
@@ -484,6 +486,11 @@ export class PresetToastComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPreset(this.themePreset.preset());
+  }
+
+  isOptionVisible(id: string): boolean {
+    const parent = PresetToastComponent.OPTION_REQUIRES_PARENT_ON[id];
+    return parent ? !!this.optionState()[parent] : true;
   }
 
   isOptionDisabled(id: string): boolean {

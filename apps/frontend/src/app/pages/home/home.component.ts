@@ -244,7 +244,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
 
           <mat-card-content>
             <div class="home-card__meta">
-              <p class="home-card__copy">Starten Sie eine Quiz-Session oder Q&amp;A-Runde – mit wenigen Klicks.</p>
+              <p class="home-card__copy">Starten Sie eine Quiz-Session oder Q&amp;A-Runde.</p>
               <a
                 matButton
                 class="home-help-btn"
