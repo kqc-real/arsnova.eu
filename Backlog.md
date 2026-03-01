@@ -59,6 +59,7 @@
 | 4    | 4.5   | Freitext-Auswertung                           | 🟡   | ⬜ Offen  |
 | 4    | 4.6   | Bonus-Code für Top-Platzierungen               | 🟡   | ⬜ Offen  |
 | 4    | 4.7   | Ergebnis-Export für Dozenten (anonym)         | 🟡   | ⬜ Offen  |
+| 4    | 4.8   | Session-Bewertung durch Teilnehmende          | 🟡   | ⬜ Offen  |
 | 5    | 5.1   | Sound-Effekte                                 | 🟡   | ⬜ Offen  |
 | 5    | 5.3   | Hintergrundmusik                              | 🟢   | ⬜ Offen  |
 | 5    | 5.4   | Belohnungseffekte                             | 🟡   | ⬜ Offen  |
@@ -80,7 +81,7 @@
 
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 23 · 🟡 Should: 24 · 🟢 Could: 14 = **61 Storys gesamt**
+> **Statistik:** 🔴 Must: 23 · 🟡 Should: 25 · 🟢 Could: 14 = **62 Storys gesamt**
 
 ---
 
@@ -610,6 +611,16 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **tRPC & Schemas (bei serverseitiger Variante):** Query `session.getExportData` mit `GetExportDataInputSchema` (sessionId); Rückgabe `SessionExportDTO` (sessionId, sessionCode, quizName, finishedAt, participantCount, questions[], bonusTokens?). Siehe `libs/shared-types/src/schemas.ts` (SessionExportDTOSchema, QuestionExportEntrySchema, OptionDistributionEntrySchema, FreetextAggregateEntrySchema).
     - DSGVO: Export enthält ausschließlich anonymisierte bzw. aggregierte Daten; Hinweis in der UI: „Export für Dokumentation und Evaluation – keine personenbezogenen Daten“.
     - Abhängigkeiten: Story 4.1 (Leaderboard), Story 4.4 (Ergebnis-Visualisierung), Story 4.5 (Freitext-Auswertung), Story 4.6 (Bonus-Code-Liste).
+- **Story 4.8 (Session-Bewertung durch Teilnehmende):** 🟡 Als Teilnehmende möchte ich am Ende einer Session das Quiz bewerten können (z. B. Qualität der Fragen, hat mir gefallen, sollen wir solche Quizze regelmäßig machen?), damit Dozent und alle Beteiligten ein gemeinsames Stimmungsbild sehen.
+  - **Akzeptanzkriterien:**
+    - Nach Beendigung der Session (Status `FINISHED`) können Teilnehmende auf ihrem Gerät eine **kurze Bewertung** abgeben (einmalig pro Person pro Session).
+    - **Aufforderung zur Teilnahme:** Auf dem Teilnehmenden-Gerät erscheint eine deutliche Einladung, das Quiz zu bewerten und sich an der Umfrage zu beteiligen (z. B. „Deine Meinung zählt — bewerte das Quiz“ bzw. „Beteilige dich an der Umfrage“). Auf der Beamer-Ansicht kann der Dozent optional einen ähnlichen Aufruf anzeigen (z. B. „Jetzt abstimmen: Wie hat euch das Quiz gefallen?“), um die Beteiligung zu steigern.
+    - **Bewertung per Sterne oder aufsteigende Emojis:** Die Bewertung erfolgt über **Sterne** (z. B. 1–5 Sterne) oder **aufsteigende Emojis** (z. B. 😞 → 🙂 → 😊), nicht über lange Skalen oder viele Einzelfragen. Mindestens: „Wie hat dir das Quiz gefallen?“ (Sterne/Emojis); optional „Qualität der Fragen?“ und „Sollen wir solche Quizze regelmäßig durchführen?“ (ebenfalls Sterne/Emojis). **Keine Freitext-Box** — nur vordefinierte Sterne/Emojis (vermindert Missbrauch).
+    - Die **aggregierte Auswertung** (Durchschnitte, Verteilungen) ist **für alle sichtbar**: Dozent sieht sie in der Steuerungs- und Beamer-Ansicht, Teilnehmende sehen sie auf ihrem Gerät (z. B. nach Abgabe oder auf Knopfdruck „Ergebnis anzeigen“). Keine personenbezogene Zuordnung — nur Summen und Häufigkeiten.
+    - Im Preset **Spielerisch** kann die Session-Bewertung prominent angeboten werden (z. B. direkt nach „Quiz beendet“); im Preset **Seriös** optional oder dezenter (z. B. Link „Feedback geben“).
+    - **Datenmodell:** Neue Entität oder Erweiterung (z. B. `SessionFeedback` mit sessionId, participantId optional anonym, Bewertungsitems, aggregierte Auswertung serverseitig berechnet). Speicherung nur bis zum Session-Cleanup (Story 4.2); Export in Story 4.7 kann Session-Bewertung anonym mit einbeziehen.
+    - **tRPC:** Mutation zum Abgeben der Bewertung (z. B. `session.submitSessionFeedback`); Query oder Subscription für aggregierte Bewertung (z. B. `session.getSessionFeedbackSummary`), für Dozent und Teilnehmende gleichermaßen abrufbar.
+    - Abhängigkeiten: Story 4.2 (Session-Ende/Cleanup), Story 4.4 (Ergebnis-Visualisierung für Darstellung der Auswertung).
 
 ---
 
