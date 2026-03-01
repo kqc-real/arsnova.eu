@@ -2,8 +2,6 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, 
 import { Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
-import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
@@ -24,10 +22,6 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     MatCardHeader,
     MatCardSubtitle,
     MatCardTitle,
-    MatFormField,
-    MatLabel,
-    MatSuffix,
-    MatInput,
     MatButtonToggle,
     MatButtonToggleGroup,
     MatMenu,
@@ -57,7 +51,14 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       <header #homeHeader class="home-header" role="banner">
         <div class="home-header__row">
           <div class="home-brand">
-            <svg class="home-brand__icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <svg
+              class="home-brand__icon"
+              [class.home-brand__icon--ok]="apiStatus()"
+              viewBox="0 0 32 32"
+              xmlns="http://www.w3.org/2000/svg"
+              [attr.aria-label]="apiStatus() ? 'Server erreichbar' : 'Server nicht erreichbar'"
+              role="status"
+            >
               <defs>
                 <linearGradient id="brand-fg" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stop-color="var(--mat-sys-primary)" />
@@ -66,7 +67,7 @@ import { ThemePresetService } from '../../services/theme-preset.service';
               </defs>
               <rect width="32" height="32" rx="6" fill="url(#brand-fg)" />
               <rect x="2" y="2" width="28" height="28" rx="5" fill="var(--mat-sys-surface)" />
-              <circle cx="24" cy="22" r="4" fill="var(--mat-sys-primary)" />
+              <circle class="home-brand__status-circle" cx="24" cy="22" r="4" />
             </svg>
             <h1 class="home-brand__title">arsnova.click</h1>
           </div>
@@ -235,13 +236,24 @@ import { ThemePresetService } from '../../services/theme-preset.service';
               </div>
             }
 
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="home-code-field">
-              <mat-label>Session-Code</mat-label>
+            <div
+              class="home-code-segments"
+              [class.home-code-segments--focused]="codeInputFocused()"
+              [class.home-code-segments--valid]="isValidSessionCode()"
+              (click)="focusCodeInput()"
+            >
+              @for (slot of codeSlots; track slot) {
+                <span
+                  class="home-code-segment"
+                  [class.home-code-segment--active]="codeInputFocused() && sessionCode().length === slot"
+                  [class.home-code-segment--filled]="sessionCode().length > slot"
+                >{{ sessionCode()[slot] ?? '' }}</span>
+              }
               <input
                 #sessionCodeInput
-                matInput
+                class="home-code-segments__input"
+                type="text"
                 maxlength="6"
-                placeholder="Z.B. ABC123"
                 [value]="sessionCode()"
                 (input)="onSessionCodeInput($event)"
                 (keydown.enter)="joinSession()"
@@ -250,14 +262,15 @@ import { ThemePresetService } from '../../services/theme-preset.service';
                 autocapitalize="characters"
                 autocomplete="off"
                 spellcheck="false"
+                aria-label="Session-Code, 6 Zeichen"
               />
+            </div>
+            <div class="home-code-meta">
               @if (sessionCode().length > 0) {
-                <span matTextSuffix class="home-code-counter">{{ sessionCode().length }}/6</span>
+                <span class="home-code-counter">{{ sessionCode().length }}/6</span>
               }
-            </mat-form-field>
-            @if (codeInputFocused() || sessionCode().length > 0) {
-              <p class="home-code-help">Großbuchstaben und Zahlen, 6 Zeichen</p>
-            }
+              <span class="home-code-help">Großbuchstaben & Zahlen</span>
+            </div>
           </mat-card-content>
 
           <mat-card-actions class="l-stack l-stack--sm">
@@ -421,6 +434,15 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
+    }
+
+    .home-brand__status-circle {
+      fill: var(--mat-sys-error);
+      transition: fill 0.3s;
+    }
+
+    .home-brand__icon--ok .home-brand__status-circle {
+      fill: var(--app-status-healthy, #4caf50);
     }
 
     .home-brand__icon {
@@ -653,6 +675,12 @@ import { ThemePresetService } from '../../services/theme-preset.service';
     }
 
     .home-card { padding: 0.25rem; box-shadow: var(--mat-sys-level2); }
+
+    @media (max-width: 599px) {
+      .home-card#participant-entry {
+        border-top: 3px solid var(--mat-sys-primary);
+      }
+    }
     .home-card--create mat-card-content { padding-top: 0; padding-bottom: 0.5rem; }
     .home-card--create .home-card__meta { gap: 0.5rem; }
     .home-card--create .home-card__copy { margin: 0; }
@@ -720,46 +748,84 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       border: none;
     }
 
-    .home-code-help {
-      margin: 0;
-      font: var(--mat-sys-body-small);
-      color: var(--mat-sys-on-surface-variant);
-      animation: home-fade-in 0.15s ease-out;
+    .home-code-segments {
+      position: relative;
+      display: flex;
+      gap: 0.375rem;
+      justify-content: center;
+      cursor: text;
+      margin-top: 0.5rem;
     }
 
-    .home-code-field { width: 100%; margin-top: 0.75rem; }
-
-    .home-code-field input {
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 0.35em;
+    .home-code-segment {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 3rem;
+      border-radius: var(--mat-sys-corner-medium);
+      border: 2px solid var(--mat-sys-outline-variant);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-weight: 700;
       font-size: 1.35rem;
-      caret-color: var(--mat-sys-primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--mat-sys-on-surface);
+      background: var(--mat-sys-surface);
+      transition: border-color 0.15s, background 0.15s;
     }
 
-    .home-code-field input::placeholder {
-      text-transform: none;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      letter-spacing: normal;
-      font-weight: normal;
+    .home-code-segment--active {
+      border-color: var(--mat-sys-primary);
+      animation: home-segment-pulse 1s ease-in-out infinite;
+    }
+
+    .home-code-segment--filled {
+      border-color: var(--mat-sys-primary);
+      background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+    }
+
+    .home-code-segments--valid .home-code-segment--filled {
+      border-color: var(--app-color-success-fg, #4caf50);
+      background: color-mix(in srgb, var(--app-color-success-fg, #4caf50) 8%, transparent);
+    }
+
+    .home-code-segments__input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
       font-size: 1rem;
+      cursor: text;
+    }
+
+    @keyframes home-segment-pulse {
+      0%, 100% { border-color: var(--mat-sys-primary); }
+      50% { border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, transparent); }
+    }
+
+    .home-code-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.25rem;
     }
 
     .home-code-counter {
       font: var(--mat-sys-label-small);
       color: var(--mat-sys-on-surface-variant);
-      letter-spacing: normal;
+    }
+
+    .home-code-help {
+      margin: 0;
+      font: var(--mat-sys-label-small);
+      color: var(--mat-sys-on-surface-variant);
+      margin-left: auto;
     }
 
     @media (min-width: 600px) {
-      .home-code-field input { font-size: 1.5rem; letter-spacing: 0.4em; }
-    }
-
-    @keyframes home-fade-in {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      .home-code-segments { gap: 0.5rem; }
+      .home-code-segment { width: 3rem; height: 3.5rem; font-size: 1.5rem; }
     }
 
     .home-error { margin: 0; color: var(--mat-sys-error); font: var(--mat-sys-body-small); }
@@ -798,6 +864,9 @@ import { ThemePresetService } from '../../services/theme-preset.service';
       }
       .home-onboarding {
         background: color-mix(in srgb, var(--mat-sys-tertiary-container) 30%, var(--mat-sys-surface));
+        border-color: color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
+      }
+      .home-code-segment {
         border-color: color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
       }
       .home-card--create mat-card-actions .home-cta:first-child { box-shadow: var(--mat-sys-level1), var(--app-shadow-cta-glow); }
@@ -850,6 +919,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   presetSnackbarLabel = computed(() => this.themePreset.preset() === 'serious' ? 'Preset: Seriös' : 'Preset: Spielerisch');
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
   readonly demoSessionCode = 'DEMO01';
+  readonly codeSlots = [0, 1, 2, 3, 4, 5];
 
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -957,6 +1027,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   dismissOnboarding(): void {
     this.showOnboarding.set(false);
     localStorage.setItem('home-visited', '1');
+  }
+
+  focusCodeInput(): void {
+    this.sessionCodeInput?.nativeElement.focus();
   }
 
   toggleControlsMenu(): void {
