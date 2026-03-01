@@ -408,7 +408,7 @@ describe('PresetToastComponent', () => {
       comp.themePreset.setPreset('serious');
       comp.ngOnInit();
 
-      expect(comp.toastTitle()).toBe('Preset: Seriös');
+      expect(comp.toastTitle()).toBe('Seriös');
       expect(comp.toastIcon()).toBe('school');
     });
 
@@ -417,7 +417,7 @@ describe('PresetToastComponent', () => {
       comp.themePreset.setPreset('spielerisch');
       comp.ngOnInit();
 
-      expect(comp.toastTitle()).toBe('Preset: Spielerisch');
+      expect(comp.toastTitle()).toBe('Spielerisch');
       expect(comp.toastIcon()).toBe('celebration');
     });
   });
@@ -431,7 +431,7 @@ describe('PresetToastComponent', () => {
       comp.switchPreset();
 
       expect(comp.themePreset.preset()).toBe('spielerisch');
-      expect(comp.toastTitle()).toBe('Preset: Spielerisch');
+      expect(comp.toastTitle()).toBe('Spielerisch');
     });
 
     it('wechselt von spielerisch zu serious', () => {
@@ -442,7 +442,7 @@ describe('PresetToastComponent', () => {
       comp.switchPreset();
 
       expect(comp.themePreset.preset()).toBe('serious');
-      expect(comp.toastTitle()).toBe('Preset: Seriös');
+      expect(comp.toastTitle()).toBe('Seriös');
     });
   });
 
@@ -657,10 +657,10 @@ describe('HomeComponent', () => {
   });
 
   describe('Preset-Toast Integration', () => {
-    it('setPreset macht Toast sichtbar', () => {
+    it('setPreset macht Snackbar sichtbar', () => {
       const comp = createComponent();
       comp.setPreset('spielerisch');
-      expect(comp.presetToastVisible()).toBe(true);
+      expect(comp.presetSnackbarVisible()).toBe(true);
     });
 
     it('presetToastVisible ist initial false', () => {
