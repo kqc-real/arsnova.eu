@@ -1,7 +1,7 @@
 /**
  * Unit-Tests für PresetToastComponent (Preset-Optionen, localStorage, UI-State).
  */
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { PresetToastComponent } from './preset-toast.component';
 import type { NicknameTheme } from '@arsnova/shared-types';
