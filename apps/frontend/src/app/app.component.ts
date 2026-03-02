@@ -237,8 +237,17 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async reloadWithUpdate(): Promise<void> {
-    if (!this.swUpdate?.isEnabled) return;
-    await this.swUpdate.activateUpdate();
+    if (!this.swUpdate?.isEnabled) {
+      window.location.reload();
+      return;
+    }
+    try {
+      await this.swUpdate.activateUpdate();
+      // Kurz warten, damit der neue Service Worker die Kontrolle übernimmt.
+      await new Promise<void>((resolve) => setTimeout(resolve, 100));
+    } catch {
+      // Bei Fehler trotzdem neu laden (z. B. kein Update mehr pending).
+    }
     window.location.reload();
   }
 

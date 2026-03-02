@@ -72,18 +72,27 @@ Kopiere die Environment-Datei und starte die Docker-Container (Postgres & Redis,
 
 ```bash
 cp .env.example .env
-docker compose up -d
-# → Startet PostgreSQL (5432) und Redis (6379); optional: App-Container (3000, 3001, 3002)
-# Für reine Lokalentwicklung (npm run dev) ohne Port-Konflikt: nur redis + postgres starten:
+npm run docker:up
+# → Startet PostgreSQL (5432) und Redis (6379). Für reine Lokalentwicklung nur Redis + Postgres:
 #   docker compose up -d redis postgres
 ```
 
 Pushe das Datenbankschema und generiere den Prisma-Client:
 
 ```bash
-npx prisma db push
-npx prisma generate
+npm run prisma:push
+npm run prisma:generate
 ```
+
+Baue einmalig die geteilten Typen (wird von Backend und Frontend benötigt):
+
+```bash
+npm run build -w @arsnova/shared-types
+```
+
+Ohne diesen Schritt startet das Backend beim ersten `npm run dev` ggf. nicht (fehlendes `dist/` in `libs/shared-types`). Nach Änderungen in `libs/shared-types` diesen Befehl erneut ausführen. Die Root-Skripte `npm run build` und `npm run build:prod` bauen die Bibliothek automatisch zuerst.
+
+**Kurzfassung vor dem ersten Start:** `install` → `.env` + `docker:up` → `prisma:push` → `prisma:generate` → `build -w @arsnova/shared-types` → `npm run dev`
 
 ### 3. Server starten
 
@@ -95,20 +104,27 @@ npm run dev
 
 Die App ist nun unter `http://localhost:4200` (Frontend) erreichbar; auf der Startseite erscheint das **Server-Status-Widget** (Epic 0.4: aktive Sessions, Teilnehmer, completed Sessions, Status-Indikator). Die tRPC-API läuft auf `http://localhost:3000`; WebSocket-Subscriptions auf Port 3001, Yjs-Sync auf Port 3002.
 
+**Ports belegt?** Wenn `npm run dev` mit `EADDRINUSE` (Port 3000) oder „Port 4200 is already in use“ abbricht, sind die Dev-Ports noch von einem früheren Lauf belegt. Ports freigeben und erneut starten:
+
+```bash
+npm run free-dev-ports
+npm run dev
+```
+
 **Hinweis NG0751:** Beim Dev-Start kann die Meldung erscheinen, dass `@defer`-Blöcke mit HMR eager geladen werden. Das ist erwartbar; im Production-Build wird das Server-Status-Widget weiterhin lazy geladen. Zum Testen ohne diese Meldung: `npm run dev:frontend -- --configuration=no-hmr` (dann ohne Hot-Reload).
 
 **Reload / Deployment:** Damit Reload auf Unterseiten (z. B. `/legal/imprint`) nicht zu einer leeren Seite führt, muss der Server bei allen Client-Routen `index.html` ausliefern (SPA-Fallback). Beim lokalen `ng serve` ist das Standard. Für Production: Bei Vercel wird `apps/frontend/vercel.json` genutzt; bei Nginx/Apache/anderen Hosts eine Rewrite-Regel auf `index.html` setzen.
 
 ### 4. Production-ähnlich lokal (optional)
 
-Für einen **lokal production-ähnlichen** Lauf (optimierter Build, ein Prozess liefert alles aus, Gzip, Pre-Render):
+Für einen **lokal production-ähnlichen** Lauf (optimierter Build, ein Prozess liefert alles aus, Gzip, Pre-Render) sollten Postgres und Redis laufen (wie in Schritt 2, z. B. `docker compose up -d redis postgres`).
 
 ```bash
-npm run build:prod    # Backend + Frontend für Production bauen
-npm run start:prod    # Port 3000 freigeben (falls nötig), Backend starten
+npm run build:prod    # shared-types + Backend + Frontend (Production) bauen
+npm run start:prod    # Backend starten (gibt Port 3000 ggf. automatisch frei)
 ```
 
-Die App ist dann unter **http://localhost:3000** erreichbar (Backend liefert das gebaute Frontend aus). Bei belegtem Port zuerst `npm run free-port-3000`, danach `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **http://localhost:3010**. Details (Gzip, Pre-Render, Fallbacks) siehe [docs/cursor-context.md](./docs/cursor-context.md) Abschnitt 18.1.
+Die App ist dann unter **http://localhost:3000** erreichbar (Backend liefert das gebaute Frontend aus). Bei hartnäckig belegtem Port vorher: `npm run free-port-3000`. Anderen Port nutzen: `PORT=3010 npm run start:prod` → dann **http://localhost:3010**. Details (Gzip, Pre-Render, Fallbacks) siehe [docs/cursor-context.md](./docs/cursor-context.md) Abschnitt 18.1.
 
 ### 5. Screenshots für die PWA-Manifest (optional)
 
@@ -184,18 +200,23 @@ Nachdem die App lokal läuft, empfiehlt sich diese Lesereihenfolge:
 
 ## 🔄 Zurücksetzen auf einen bekannten Zustand
 
-Falls etwas schiefgeht oder du komplett neu anfangen möchtest, kannst du auf einen der folgenden Git-Tags zurücksetzen:
+**Nur Port-Konflikte (EADDRINUSE / „Port already in use“):** Vor erneutem `npm run dev` die Dev-Ports freigeben: `npm run free-dev-ports`, danach `npm run dev`.
+
+Falls etwas schiefgeht oder du komplett neu anfangen möchtest, setze auf den **neuesten Tag** (oder einen älteren) zurück:
 
 | Tag | Beschreibung |
 |-----|--------------|
-| **`v0-baseline`** | Sauberer Startzustand (Projekt-Skeleton: Health-Check, CI/CD, Prisma-Schema, Zod-Schemas, Dokumentation) |
-| **`v0-epic0`** | Epic 0 abgeschlossen (Redis, tRPC WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD, alle 0.1–0.6 umgesetzt) |
+| **`v0.4.0`** | Neuester Stand (empfohlen) |
+| **`v0.3.0`** | Älterer Release |
+| **`v0-epic0`** | Epic 0 abgeschlossen (Redis, tRPC WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD) |
+| **`v0-baseline`** | Nur Skeleton (Health-Check, CI/CD, Prisma-Schema, Zod-Schemas) |
 
 ```bash
-# Alle lokalen Änderungen verwerfen und auf gewünschten Stand setzen
-git reset --hard v0-epic0   # Stand nach Epic 0 (empfohlen)
-# oder
-git reset --hard v0-baseline   # Nur Skeleton (vor Epic 0)
+# Neuesten Tag (nach Versionsnummer) ermitteln und darauf zurücksetzen:
+git fetch --tags
+LATEST_TAG=$(git tag -l --sort=-version:refname | head -1)
+git reset --hard "$LATEST_TAG"
+# oder fest einen Tag wählen, z. B.: git reset --hard v0.4.0
 npm install
 ```
 

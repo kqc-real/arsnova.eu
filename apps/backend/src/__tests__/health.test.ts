@@ -30,7 +30,7 @@ describe('health.check', () => {
   it('gibt status "ok" zurück wenn Redis erreichbar ist', async () => {
     vi.mocked(pingRedis).mockResolvedValue(true);
 
-    const result = await caller.check();
+    const result = await caller.check(undefined);
 
     expect(result.status).toBe('ok');
     expect(result.redis).toBe('ok');
@@ -41,7 +41,7 @@ describe('health.check', () => {
   it('gibt redis "unavailable" zurück wenn Redis nicht erreichbar ist', async () => {
     vi.mocked(pingRedis).mockResolvedValue(false);
 
-    const result = await caller.check();
+    const result = await caller.check(undefined);
 
     expect(result.status).toBe('ok');
     expect(result.redis).toBe('unavailable');
@@ -57,7 +57,7 @@ describe('health.stats', () => {
     vi.mocked(prisma.session.count).mockResolvedValue(0);
     vi.mocked(prisma.participant.count).mockResolvedValue(0);
 
-    const result = await caller.stats();
+    const result = await caller.stats(undefined);
 
     expect(result.activeSessions).toBe(0);
     expect(result.totalParticipants).toBe(0);
@@ -71,7 +71,7 @@ describe('health.stats', () => {
       .mockResolvedValueOnce(5);   // completedSessions (FINISHED)
     vi.mocked(prisma.participant.count).mockResolvedValue(42);
 
-    const result = await caller.stats();
+    const result = await caller.stats(undefined);
 
     expect(result.activeSessions).toBe(10);
     expect(result.totalParticipants).toBe(42);
@@ -85,7 +85,7 @@ describe('health.stats', () => {
       .mockResolvedValueOnce(50);
     vi.mocked(prisma.participant.count).mockResolvedValue(500);
 
-    const result = await caller.stats();
+    const result = await caller.stats(undefined);
 
     expect(result.activeSessions).toBe(100);
     expect(result.serverStatus).toBe('busy');
@@ -97,7 +97,7 @@ describe('health.stats', () => {
       .mockResolvedValueOnce(1000);
     vi.mocked(prisma.participant.count).mockResolvedValue(3000);
 
-    const result = await caller.stats();
+    const result = await caller.stats(undefined);
 
     expect(result.activeSessions).toBe(250);
     expect(result.serverStatus).toBe('overloaded');
@@ -107,7 +107,7 @@ describe('health.stats', () => {
     vi.mocked(prisma.session.count).mockResolvedValue(0);
     vi.mocked(prisma.participant.count).mockResolvedValue(0);
 
-    const result = await caller.stats();
+    const result = await caller.stats(undefined);
 
     const keys = Object.keys(result);
     expect(keys).toEqual(

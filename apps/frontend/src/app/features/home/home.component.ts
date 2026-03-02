@@ -209,7 +209,7 @@ class PresetToastHostDirective {
 
       <main class="home-main">
         <p class="home-hero">Quizzen, abstimmen, gemeinsam und live</p>
-        <p class="home-hero-usp">Kita bis Uni – Seriös oder Spielerisch</p>
+        <p class="home-hero-usp">Kita bis Uni – Seriös bis Spielerisch</p>
         @if (themePreset.preset() === 'spielerisch') {
           <p class="home-hero-usp home-hero-usp--secondary">Bonus für die Besten</p>
         }

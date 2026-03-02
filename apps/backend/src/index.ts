@@ -39,6 +39,13 @@ const frontendDist = fs.existsSync(path.join(frontendDistBase, 'browser'))
   ? path.join(frontendDistBase, 'browser')
   : frontendDistBase;
 if (fs.existsSync(frontendDist)) {
+  // PWA-Update: ngsw.json und index.html nicht cachen, damit der Service Worker neue Versionen erkennt.
+  app.use((req, res, next) => {
+    if (req.path === '/ngsw.json' || req.path === '/index.html') {
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+    next();
+  });
   app.use(express.static(frontendDist));
   app.get('*', (_req, res, next) => {
     const indexPath = path.join(frontendDist, 'index.html');

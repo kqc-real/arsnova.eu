@@ -47,7 +47,7 @@ export const voteRouter = router({
           responseTimeMs: input.responseTimeMs ?? null,
           score: 0, // Story 4.1: Berechnung in Session-Logik oder separatem Job
           selectedAnswers: answerIds.length
-            ? { create: answerIds.map((answerOptionId) => ({ answerOptionId })) }
+            ? { create: answerIds.map((answerOptionId: string) => ({ answerOptionId })) }
             : undefined,
         },
       });

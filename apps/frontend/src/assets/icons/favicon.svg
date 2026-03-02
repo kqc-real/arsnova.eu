@@ -1,11 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <defs>
-    <linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0ea5e9"/>
-      <stop offset="100 %" stop-color="#6366f1"/>
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="6" fill="url(#fg)"/>
-  <rect x="2" y="2" width="28" height="28" rx="5" fill="#0f172a"/>
-  <circle cx="24" cy="22" r="4" fill="#0ea5e9"/>
+  <!-- EU-Flaggen-Favicon: blaues Quadrat, 5-zackiger EU-Stern (Mittelpunkt auf Diagonale, eine Zacke 12 Uhr) -->
+  <rect width="32" height="32" fill="#003399"/>
+  <polygon
+    points="24,20 23,22.62 20.2,22.76 22.38,24.53 21.65,27.24 24,25.7 26.35,27.24 25.62,24.53 27.8,22.76 25,22.62"
+    fill="#FFCC00"
+  />
 </svg>
