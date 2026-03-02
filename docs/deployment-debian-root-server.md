@@ -63,7 +63,37 @@ sudo apt update && sudo apt full-upgrade -y
 
 ### 2.2 Benutzer und SSH härten
 
-**Kein Root-Login per SSH** – öffne die SSH-Konfiguration:
+**Dedizierten User für Deployment anlegen** (z. B. `deploy`):
+
+```bash
+sudo adduser deploy
+sudo usermod -aG docker deploy   # nach Docker-Installation
+sudo usermod -aG sudo deploy    # optional, für Admin-Aufgaben
+```
+
+**SSH-Schlüsselpaar erstellen (auf deinem Mac):**
+
+Wir empfehlen **Ed25519** – schneller, kürzer und sicherer als RSA.
+
+```bash
+ssh-keygen -t ed25519 -C "deploy@arsnova.eu"
+```
+
+Du wirst nach einem Speicherort gefragt (Standard: `~/.ssh/id_ed25519`) und optional nach einer Passphrase (empfohlen). Danach den **öffentlichen Schlüssel** auf den Server kopieren:
+
+```bash
+ssh-copy-id -i ~/.ssh/id_ed25519.pub deploy@<server-ip>
+```
+
+**Testen:** Verbinde dich in einer neuen Terminal-Session per Key:
+
+```bash
+ssh deploy@<server-ip>
+```
+
+Wenn das funktioniert (kein Passwort nötig), erst **dann** SSH härten.
+
+**SSH härten** – öffne die SSH-Konfiguration **auf dem Server**:
 
 ```bash
 sudo micro /etc/ssh/sshd_config
@@ -76,16 +106,6 @@ PermitRootLogin no
 PasswordAuthentication no
 PubkeyAuthentication yes
 ```
-
-**Dedizierten User für Deployment anlegen** (z. B. `deploy`):
-
-```bash
-sudo adduser deploy
-sudo usermod -aG docker deploy   # nach Docker-Installation
-sudo usermod -aG sudo deploy    # optional, für Admin-Aufgaben
-```
-
-SSH-Keys verwenden (z. B. `ssh-copy-id deploy@<server-ip>`).
 
 **Wichtig:** Nach jeder Änderung an `/etc/ssh/sshd_config` muss der SSH-Dienst neu gestartet werden:
 
