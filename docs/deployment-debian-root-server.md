@@ -26,6 +26,8 @@ sudo mv micro /usr/local/bin/
 | Einfügen     | Ctrl+V   |
 | Rückgängig   | Ctrl+Z   |
 
+> **⚠️ Achtung Mac-User:** Viele Terminal-Apps (macOS Terminal, iTerm2) fangen **Ctrl+Q** ab und schließen das Fenster/die SSH-Verbindung, bevor `micro` den Shortcut empfängt. Workaround: Vor dem ersten `micro`-Start einmal `stty start undef stop undef` ausführen (oder in `~/.zshrc` eintragen). In **iTerm2** alternativ unter Preferences → Keys den Ctrl+Q-Shortcut deaktivieren.
+
 > **Tipp:** Falls micro nicht verfügbar ist, ist `nano` auf Debian vorinstalliert und ebenfalls einsteigerfreundlich (Shortcuts stehen unten im Editor).
 
 Im Rest dieser Anleitung verwenden wir `micro` zum Bearbeiten von Dateien – du kannst jederzeit `nano` oder einen anderen Editor deiner Wahl verwenden.
@@ -516,7 +518,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d --bui
 **Prisma-Migrationen:**
 
 ```bash
-docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml --env-file .env.production exec app npx prisma migrate deploy
 ```
 
 **Health prüfen:**
