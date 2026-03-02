@@ -4,6 +4,34 @@ Vorschlag für das Deployment auf einem externen Linux-Root-Server (Debian) nach
 
 ---
 
+## 0. Editor-Empfehlung: micro
+
+Auf dem Server wirst du Konfigurationsdateien bearbeiten (Nginx, SSH, Docker Compose …). Wir empfehlen **[micro](https://micro-editor.github.io/)** – einen modernen Terminal-Editor, der sich wie ein normaler GUI-Editor anfühlt. Besonders für Mac-User ideal, weil die gewohnten Tastenkürzel funktionieren.
+
+### Installation (immer aktuellste Version)
+
+```bash
+curl https://getmic.ro | bash
+sudo mv micro /usr/local/bin/
+```
+
+### Die wichtigsten Shortcuts
+
+| Aktion       | Shortcut |
+|--------------|----------|
+| Speichern    | Ctrl+S   |
+| Beenden      | Ctrl+Q   |
+| Suchen       | Ctrl+F   |
+| Kopieren     | Ctrl+C   |
+| Einfügen     | Ctrl+V   |
+| Rückgängig   | Ctrl+Z   |
+
+> **Tipp:** Falls micro nicht verfügbar ist, ist `nano` auf Debian vorinstalliert und ebenfalls einsteigerfreundlich (Shortcuts stehen unten im Editor).
+
+Im Rest dieser Anleitung verwenden wir `micro` zum Bearbeiten von Dateien – du kannst jederzeit `nano` oder einen anderen Editor deiner Wahl verwenden.
+
+---
+
 ## 1. Übersicht
 
 | Komponente        | Technologie              | Rolle                                      |
@@ -35,24 +63,37 @@ sudo apt update && sudo apt full-upgrade -y
 
 ### 2.2 Benutzer und SSH härten
 
-- **Kein Root-Login per SSH:**
+**Kein Root-Login per SSH** – öffne die SSH-Konfiguration:
 
-  ```bash
-  # In /etc/ssh/sshd_config:
-  PermitRootLogin no
-  PasswordAuthentication no
-  PubkeyAuthentication yes
-  ```
+```bash
+sudo micro /etc/ssh/sshd_config
+```
 
-- Dedizierten User für Deployment anlegen (z. B. `deploy`):
+Setze folgende Werte (oder ergänze sie am Ende):
 
-  ```bash
-  sudo adduser deploy
-  sudo usermod -aG docker deploy   # nach Docker-Installation
-  sudo usermod -aG sudo deploy    # optional, für Admin-Aufgaben
-  ```
+```text
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+```
 
-- SSH-Keys verwenden; `sshd` neu starten nach Änderungen.
+**Dedizierten User für Deployment anlegen** (z. B. `deploy`):
+
+```bash
+sudo adduser deploy
+sudo usermod -aG docker deploy   # nach Docker-Installation
+sudo usermod -aG sudo deploy    # optional, für Admin-Aufgaben
+```
+
+SSH-Keys verwenden (z. B. `ssh-copy-id deploy@<server-ip>`).
+
+**Wichtig:** Nach jeder Änderung an `/etc/ssh/sshd_config` muss der SSH-Dienst neu gestartet werden:
+
+```bash
+sudo systemctl restart sshd
+```
+
+> **Tipp:** Teste den SSH-Zugang vorher in einer **zweiten, offenen SSH-Session**, bevor du die erste schließt. Falls die Konfiguration fehlerhaft ist, kannst du über die zweite Session korrigieren, ohne dich auszusperren.
 
 ### 2.3 Firewall (UFW)
 
@@ -123,62 +164,137 @@ Docker Compose V2 ist bei neueren Docker-Installationen enthalten (`docker compo
 sudo apt install -y nginx
 ```
 
-### 4.2 Konfiguration für arsnova.eu
+### 4.2 Schritt 1 – Nginx nur mit HTTP starten (für Certbot)
 
-Ersetze `arsnova.eu` durch deine Domain (falls abweichend). Nginx leitet HTTP/HTTPS und WebSockets an die Docker-Container weiter (localhost-Ports).
+> **Warum zwei Schritte?** Nginx kann nicht starten, wenn in der Konfiguration SSL-Zertifikatspfade stehen, die noch nicht existieren. Deshalb konfigurieren wir Nginx **zuerst nur für Port 80** (HTTP). Darüber kann Certbot dann die Zertifikate beantragen. Erst **danach** (Abschnitt 5.3) ergänzen wir die vollständige HTTPS-Konfiguration.
 
-**Datei:** `/etc/nginx/sites-available/arsnova-click`
+Ersetze `arsnova.eu` durch deine Domain (falls abweichend).
+
+**Datei erstellen:** `/etc/nginx/sites-available/arsnova-click`
 
 ```nginx
-# Upstreams für App-Container (Docker-Compose-Netzwerk oder localhost)
-upstream app_http {
-    server 127.0.0.1:3000;
-}
-upstream app_ws_trpc {
-    server 127.0.0.1:3001;
-}
-upstream app_ws_yjs {
-    server 127.0.0.1:3002;
-}
-
-# HTTP → HTTPS Redirect
+# Schritt 1: Nur HTTP – damit Certbot das Zertifikat erstellen kann.
+# Den HTTPS-Block fügen wir NACH dem Certbot-Lauf hinzu (siehe Abschnitt 5.3).
 server {
     listen 80;
     listen [::]:80;
     server_name arsnova.eu www.arsnova.eu;
-    location / {
-        return 301 https://$host$request_uri;
-    }
-    # Certbot ACME-Challenge (für Erneuerung)
+
+    # Certbot braucht diesen Pfad, um die Domain zu verifizieren
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
         allow all;
     }
+
+    # Alles andere → HTTPS (funktioniert erst nach Zertifikatserstellung)
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+```
+
+### 4.3 Site aktivieren und testen
+
+```bash
+sudo ln -s /etc/nginx/sites-available/arsnova-click /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Wenn `nginx -t` „syntax is ok" meldet, ist alles bereit für Certbot.
+
+---
+
+## 5. Let's Encrypt – TLS-Zertifikat (Certbot)
+
+### 5.1 Certbot installieren
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+```
+
+### 5.2 Zertifikat beantragen
+
+**Voraussetzung:** Die Domain muss per DNS (A- und ggf. AAAA-Eintrag) bereits auf die Server-IP zeigen. Das lässt sich z. B. prüfen mit:
+
+```bash
+dig arsnova.eu +short    # sollte eure Server-IP zeigen
+```
+
+Dann Certbot starten:
+
+```bash
+sudo mkdir -p /var/www/certbot
+sudo certbot --nginx -d arsnova.eu -d www.arsnova.eu
+```
+
+**Was passiert dabei?** Certbot erledigt automatisch drei Dinge:
+1. Er verifiziert die Domain über den laufenden HTTP-Server (Port 80).
+2. Er erstellt die Zertifikatsdateien unter `/etc/letsencrypt/live/arsnova.eu/`.
+3. Er erweitert die Nginx-Konfiguration um einen HTTPS-Block (Port 443) mit den SSL-Pfaden.
+
+Nach dem Lauf steht in `/etc/nginx/sites-available/arsnova-click` bereits ein funktionsfähiger HTTPS-Block.
+
+### 5.3 Schritt 2 – Finale Nginx-Konfiguration (HTTPS + App-Proxy)
+
+Jetzt ergänzen wir die Nginx-Konfiguration um die **Upstreams** (Weiterleitung an die Docker-Container), **Security-Header** und **WebSocket-Proxy-Regeln**.
+
+Öffne `/etc/nginx/sites-available/arsnova-click` und ersetze den gesamten Inhalt durch die vollständige Konfiguration unten.
+
+> **Wichtig:** Die `ssl_certificate`-Pfade unten (`/etc/letsencrypt/live/arsnova.eu/...`) sollten mit euren übereinstimmen. Kurz prüfen mit: `ls /etc/letsencrypt/live/`
+
+```nginx
+# Upstreams: Weiterleitung an die Docker-Container auf localhost
+upstream app_http {
+    server 127.0.0.1:3000;   # HTTP (tRPC + Angular-Frontend)
+}
+upstream app_ws_trpc {
+    server 127.0.0.1:3001;   # WebSocket (tRPC-Subscriptions)
+}
+upstream app_ws_yjs {
+    server 127.0.0.1:3002;   # WebSocket (Yjs Quiz-Sync)
 }
 
-# HTTPS + WebSockets
+# HTTP → HTTPS Redirect (alle Anfragen auf Port 80 → verschlüsselt auf 443)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name arsnova.eu www.arsnova.eu;
+
+    # Certbot braucht diesen Pfad für die Zertifikatserneuerung
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        allow all;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS – verschlüsselter Zugang + WebSocket-Proxy
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
     server_name arsnova.eu www.arsnova.eu;
 
-    # Let's Encrypt (Certbot setzt diese Zeilen)
+    # TLS-Zertifikate (von Certbot in Schritt 5.2 generiert)
     ssl_certificate     /etc/letsencrypt/live/arsnova.eu/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/arsnova.eu/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    # Security Headers
+    # Security Headers – schützen vor gängigen Angriffen
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
 
     # Logs
     access_log /var/log/nginx/arsnova_click_access.log;
     error_log  /var/log/nginx/arsnova_click_error.log;
 
-    # API + tRPC + statisches Frontend
+    # API + tRPC + statisches Frontend → App-Container auf Port 3000
     location / {
         proxy_pass http://app_http;
         proxy_http_version 1.1;
@@ -188,7 +304,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # tRPC WebSocket (Subscriptions) – trailing slash streift /trpc-ws, Backend erhält /
+    # tRPC WebSocket (Echtzeit-Subscriptions) → Port 3001
     location /trpc-ws {
         proxy_pass http://app_ws_trpc/;
         proxy_http_version 1.1;
@@ -200,7 +316,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Yjs WebSocket (Quiz-Sync)
+    # Yjs WebSocket (Quiz-Sync zwischen Geräten) → Port 3002
     location /yjs-ws {
         proxy_pass http://app_ws_yjs/;
         proxy_http_version 1.1;
@@ -211,57 +327,37 @@ server {
 }
 ```
 
-**Frontend-Anpassung:** Das Frontend muss in Produktion die WebSocket-URLs auf **Sub-Pfade** umstellen (nicht mehr `ws://host:3001` / `ws://host:3002`), z. B.:
-
-- tRPC-Subscriptions: `wss://arsnova.eu/trpc-ws`
-- Yjs: `wss://arsnova.eu/yjs-ws`
-
-Dazu entweder Environment-basierte Konfiguration (z. B. `environment.ts` oder Build-Env) oder eine zentrale API-URL-Konfiguration nutzen.
-
-### 4.3 Site aktivieren
+Konfiguration testen und aktivieren:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/arsnova-click /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
----
+> **Falls `nginx -t` einen Fehler zeigt:** Prüfe, ob die SSL-Pfade existieren (`ls /etc/letsencrypt/live/arsnova.eu/`). Falls nicht, hat Certbot das Zertifikat noch nicht erstellt – zurück zu Abschnitt 5.2.
 
-## 5. Let's Encrypt (Certbot)
+**Frontend-Anpassung:** Das Frontend erkennt automatisch, ob es in Produktion läuft (HTTPS), und nutzt dann die WebSocket-Pfade `wss://<domain>/trpc-ws` und `wss://<domain>/yjs-ws` (konfiguriert in `apps/frontend/src/app/core/ws-urls.ts`). Keine manuelle Anpassung nötig.
 
-### 5.1 Certbot installieren
-
-```bash
-sudo apt install -y certbot python3-certbot-nginx
-```
-
-### 5.2 Zertifikat beantragen
-
-**Erster Lauf:** Nginx-Konfiguration zunächst nur mit dem **HTTP-**Server-Block (Port 80, inkl. `location /.well-known/acme-challenge/`) aktivieren. Den HTTPS-Block (Port 443) vor dem ersten Certbot-Lauf auskommentieren oder weglassen, da die Zertifikatspfade noch nicht existieren. Nach `certbot --nginx` ergänzt Certbot den HTTPS-Block inkl. `ssl_certificate`-Zeilen; dann die vollständige Konfiguration (wie in Abschnitt 4.2) einpflegen und Nginx neu laden.
-
-Domain muss per DNS (A/AAAA) bereits auf die Server-IP zeigen. Dann:
-
-```bash
-sudo mkdir -p /var/www/certbot
-sudo certbot --nginx -d arsnova.eu -d www.arsnova.eu
-```
-
-Certbot passt die Nginx-Konfiguration an und setzt die `ssl_certificate`-Zeilen.
-
-### 5.3 Automatische Erneuerung
+### 5.4 Automatische Erneuerung
 
 ```bash
 sudo systemctl enable certbot.timer
 sudo systemctl start certbot.timer
 ```
 
-Optional nach Erneuerung Nginx neu laden (Certbot macht das oft bereits):
+Optional nach Erneuerung Nginx neu laden (Certbot macht das oft bereits). Erstelle ein kleines Hook-Skript:
 
 ```bash
-# In /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+sudo micro /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+```
+
+Inhalt:
+
+```bash
 #!/bin/sh
 systemctl reload nginx
 ```
+
+Ausführbar machen:
 
 ```bash
 sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
@@ -306,6 +402,11 @@ services:
     command: redis-server --save 60 1 --loglevel warning
     networks:
       - app
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   app:
     build:
@@ -314,6 +415,9 @@ services:
     container_name: arsnova-v3-app
     restart: always
     ports:
+      # Nur auf localhost binden! Nginx leitet von außen weiter.
+      # Ohne "127.0.0.1:" wären die Ports direkt aus dem Internet erreichbar
+      # (Docker umgeht UFW-Regeln – das ist ein häufiger Fehler).
       - "127.0.0.1:3000:3000"
       - "127.0.0.1:3001:3001"
       - "127.0.0.1:3002:3002"
@@ -332,6 +436,12 @@ services:
         condition: service_healthy
     networks:
       - app
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/trpc/health.check"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
 
 networks:
   app:
@@ -346,7 +456,7 @@ volumes:
 
 **Datei:** `.env.production` (nicht ins Git, nur auf dem Server):
 
-```bash
+```dotenv
 POSTGRES_USER=arsnova_user
 POSTGRES_PASSWORD=<starkes-geheimes-Passwort>
 POSTGRES_DB=arsnova_v3
@@ -372,24 +482,28 @@ Lokale Entwicklung (localhost) verwendet weiterhin die Ports 3001 und 3002. Kein
 
 1. **Code auf den Server:** z. B. `git clone` in `/home/deploy/arsnova.eu` oder CI/CD-Artefakt.
 2. **Secrets:** `.env.production` anlegen (siehe 6.2).
-3. **Build & Start:**
+3. **Build & Start** (siehe Befehl unten).
+4. **Prisma-Migrationen** ausführen (einmalig bzw. bei Schema-Änderungen).
+5. **Health prüfen.**
 
-   ```bash
-   cd /home/deploy/arsnova.eu
-   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
-   ```
+**Build & Start:**
 
-4. **Prisma-Migrationen** (einmalig bzw. bei Schema-Änderungen):
+```bash
+cd /home/deploy/arsnova.eu
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+```
 
-   ```bash
-   docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
-   ```
+**Prisma-Migrationen:**
 
-5. **Health prüfen:**
+```bash
+docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
+```
 
-   ```bash
-   curl -s https://arsnova.eu/trpc/health.check
-   ```
+**Health prüfen:**
+
+```bash
+curl -s https://arsnova.eu/trpc/health.check
+```
 
 ---
 
@@ -397,7 +511,7 @@ Lokale Entwicklung (localhost) verwendet weiterhin die Ports 3001 und 3002. Kein
 
 - [ ] UFW aktiv, nur 22, 80, 443 offen
 - [ ] SSH: kein Root-Login, nur Key-Auth
-- [ ] Nginx: TLS 1.2/1.3, HSTS, Security-Headers
+- [ ] Nginx: TLS 1.2/1.3, HSTS, Security-Headers (Referrer-Policy, Permissions-Policy)
 - [ ] Let's Encrypt Zertifikat installiert, Timer für Erneuerung aktiv
 - [ ] Docker: App-Ports nur auf 127.0.0.1 gebunden
 - [ ] Starke Passwörter und JWT_SECRET, keine Defaults aus .env.example
@@ -484,7 +598,7 @@ Wenn ihr bei Hetzner startet und noch keinen Server habt:
 
 1. **Server anlegen:** Hetzner Cloud oder Root – Image **Debian 12** (oder 13). (Optional: Cloud Firewall anlegen mit Regeln für 22, 80, 443.)
 2. **Zugang:** Per SSH mit Root (oder angelegtem User); sofort SSH-Keys einrichten, Root-Login/Passwort-Login deaktivieren (Abschnitt 2.2).
-3. **Reihenfolge:** System aktualisieren (2.1) → User `deploy` anlegen (2.2) → UFW: 22, 80, 443 erlauben, dann aktivieren (2.3) → Docker (3) → Nginx (4) → Certbot (5) → Repo klonen, `.env.production` anlegen (6.2) → einmalig `docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build` und Prisma migrate (7). Danach CI/CD-Secrets setzen und `DEPLOY_ENABLED=true` (10.3).
+3. **Reihenfolge:** System aktualisieren (2.1) → User `deploy` anlegen (2.2) → UFW: 22, 80, 443 erlauben, dann aktivieren (2.3) → Docker (3) → Nginx nur mit HTTP starten (4.2) → Certbot Zertifikat beantragen (5.2) → finale Nginx-Config (5.3) → Repo klonen, `.env.production` anlegen (6.2) → einmalig `docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build` und Prisma migrate (7). Danach CI/CD-Secrets setzen und `DEPLOY_ENABLED=true` (10.3).
 
 **Vereinfachung mit Hetzner:** Es gibt keine speziellen Hetzner-Pakete für diese App – der Stack (Debian + Docker + Nginx + Certbot) ist Standard. Die Hetzner Cloud Firewall ist optional und kann UFW ergänzen oder (wenn gewünscht) ersetzen; UFW auf dem System bleibt für viele Setups die einfachste Option.
 
