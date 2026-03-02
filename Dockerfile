@@ -47,8 +47,9 @@ COPY apps/backend/package.json apps/backend/
 
 RUN npm ci --omit=dev
 
-# Copy Prisma schema + generated client
+# Copy Prisma schema, config + generated client
 COPY prisma/ prisma/
+COPY prisma.config.ts tsconfig.json ./
 COPY --from=builder /app/node_modules/.prisma node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma node_modules/@prisma
 
