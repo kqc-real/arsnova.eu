@@ -37,7 +37,7 @@ import { Subscription } from 'rxjs';
       <footer class="app-footer" role="contentinfo">
         <div class="app-footer__inner">
           <div class="app-footer__row">
-            <span class="app-footer__copy">© {{ year }} arsnova.click</span>
+            <span class="app-footer__copy">© {{ year }} arsnova.eu</span>
             <div class="app-footer__links">
               <a matButton routerLink="/legal/imprint">
                 <mat-icon class="app-footer__icon">business</mat-icon>

@@ -98,9 +98,9 @@ Tokenbasierte Card-Flaeche:
 - **Trust-Badges:** Staerkstes Argument zuerst (Kostenlos > DSGVO-konform > Open Source).
 - **Kein Onboarding-Banner:** Nach den Hero-Erweiterungen (USPs, Bonus-Option, ggf. Preset-Toggle) wird kein zusaetzliches 3-Schritt-Banner mehr angezeigt. Die Karten (Mitmachen/Veranstalten) und die Hilfe-Seite erklaeren den Ablauf.
 
-## Startseite: Status-Indikator
-- Der **Status-Dot** ist in das Brand-Icon (SVG) integriert: Ein Circle unten rechts faerbt sich dynamisch (rot = `--mat-sys-error`, gruen = `--app-status-healthy`). `role="status"` + dynamisches `aria-label` auf dem SVG.
-- Die **Status-Card** im Grid bleibt fuer detaillierte Infos erhalten.
+## Startseite: Brand und Status
+- **Brand-Icon:** EU-Blau als Hintergrund (stilistische Anlehnung, kein offizielles EU-Emblem). Im Logo: EU-gelber Stern (arsnova-stern-eu, Pentagramm wie EU-Flagge, eine Spitze oben), Farbe `--app-eu-yellow`; Logo-Stern-Farbe wird nicht themenabhaengig geaendert. Im Titel „arsnova★eu“ derselbe Stern als Inline-SVG (gleiche Form, x-Hoehe, Grundlinie), im Light-Theme dunkleres Gold (#b38600) fuer Lesbarkeit auf hellem Grund. Farben: `--app-eu-blue` (#002395), `--app-eu-yellow` (#ffcc00).
+- **Status nur auf der Karte:** Kein Status-Punkt im Header; der Server-Status wird ausschliesslich in der **Status-Card** im Grid angezeigt (detaillierte Infos, z. B. „Quiz live“, „Verbunden“).
 
 ## Startseite: Mobile-Hierarchie
 - Auf Mobile (`< 600 px`) erhaelt die Mitmachen-Karte einen **3 px Primary-Top-Border** als visuellen Akzent, um sie als primaere Aktion hervorzuheben.

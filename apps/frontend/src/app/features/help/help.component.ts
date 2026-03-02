@@ -22,7 +22,7 @@ import { MatIcon } from '@angular/material/icon';
           Hilfe
         </h1>
         <p class="help-lead">
-          arsnova.click ist eine Plattform für Live-Quiz, Abstimmungen und Q&amp;A-Runden, ohne Anmeldung direkt im Browser.
+          arsnova.eu ist eine Plattform für Live-Quiz, Abstimmungen und Q&amp;A-Runden, ohne Anmeldung direkt im Browser.
         </p>
 
         <section class="help-section">
@@ -80,7 +80,7 @@ import { MatIcon } from '@angular/material/icon';
 
         <section class="help-section">
           <h2>Datenschutz und Technik</h2>
-          <p>arsnova.click ist kostenlos, Open Source und DSGVO-orientiert. Quiz-Inhalte werden lokal im Browser gespeichert (Local-First); Session-Daten werden nach Ende der Session bereinigt. Keine Anmeldung nötig.</p>
+          <p>arsnova.eu ist kostenlos, Open Source und DSGVO-orientiert. Quiz-Inhalte werden lokal im Browser gespeichert (Local-First); Session-Daten werden nach Ende der Session bereinigt. Keine Anmeldung nötig.</p>
         </section>
       </article>
     </div>

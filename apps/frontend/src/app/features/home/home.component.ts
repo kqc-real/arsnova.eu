@@ -74,23 +74,27 @@ class PresetToastHostDirective {
           <div class="home-brand">
             <svg
               class="home-brand__icon"
-              [class.home-brand__icon--ok]="apiStatus()"
               viewBox="0 0 32 32"
+              preserveAspectRatio="xMidYMid meet"
               xmlns="http://www.w3.org/2000/svg"
-              [attr.aria-label]="apiStatus() ? 'Server erreichbar' : 'Server nicht erreichbar'"
-              role="status"
+              aria-hidden="true"
             >
               <defs>
-                <linearGradient id="brand-fg" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="var(--mat-sys-primary)" />
-                  <stop offset="100%" stop-color="var(--mat-sys-tertiary)" />
+                <linearGradient id="brand-eu-bg" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="var(--app-eu-blue)" />
+                  <stop offset="100%" stop-color="var(--app-eu-blue-dark)" />
                 </linearGradient>
               </defs>
-              <rect width="32" height="32" rx="6" fill="url(#brand-fg)" />
-              <rect x="2" y="2" width="28" height="28" rx="5" fill="var(--mat-sys-surface)" />
-              <circle class="home-brand__status-circle" cx="24" cy="22" r="4" />
+              <rect width="32" height="32" rx="6" fill="url(#brand-eu-bg)" />
+              <rect x="2" y="2" width="28" height="28" rx="5" fill="var(--app-eu-blue)" />
+              <!-- EU-Stern (arsnova-stern-eu): sauber in der Ecke, etwas größer, 1 Spitze oben -->
+              <path
+                class="home-brand__star"
+                d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"
+                fill="var(--app-eu-yellow)"
+              />
             </svg>
-            <h1 class="home-brand__title">arsnova.click</h1>
+            <h1 class="home-brand__title">arsnova<svg class="home-brand__title-star" viewBox="18 18 11 9.05" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="var(--app-eu-yellow)" d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"/></svg>eu</h1>
           </div>
 
           <button
@@ -186,9 +190,11 @@ class PresetToastHostDirective {
               </mat-button-toggle>
             </mat-button-toggle-group>
 
-            <button matIconButton [matMenuTriggerFor]="langMenuMobile" aria-label="Sprache" class="home-icon-btn">
-              <mat-icon>language</mat-icon>
-            </button>
+            <div class="home-controls-mobile__lang-row">
+              <button matIconButton [matMenuTriggerFor]="langMenuMobile" aria-label="Sprache" class="home-icon-btn">
+                <mat-icon>language</mat-icon>
+              </button>
+            </div>
             <mat-menu #langMenuMobile="matMenu">
               @for (lang of supportedLanguages; track lang.code) {
                 <button mat-menu-item (click)="setLanguage(lang.code); closeControlsMenu()">
@@ -454,23 +460,27 @@ class PresetToastHostDirective {
     }
 
     .home-brand {
+      --app-eu-blue: #002395;
+      --app-eu-blue-dark: #001a75;
+      --app-eu-yellow: #ffcc00;
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    .home-brand__status-circle {
-      fill: var(--mat-sys-error);
-      transition: fill 0.3s;
+    .home-brand__star {
+      /* Einziger Stern (Anlehnung EU), kein offizielles Emblem */
     }
 
-    .home-brand__icon--ok .home-brand__status-circle {
-      fill: var(--app-status-healthy, #4caf50);
+    /* Light-Theme: Stern im Titel dunkleres Gold für Lesbarkeit auf hellem Grund; Logo-Stern unverändert */
+    :host-context(html.light) .home-brand__title-star path {
+      fill: #b38600;
     }
 
     .home-brand__icon {
       width: 1.75rem;
       height: 1.75rem;
+      flex-shrink: 0;
       border-radius: var(--mat-sys-corner-small);
     }
 
@@ -480,6 +490,14 @@ class PresetToastHostDirective {
       line-height: 1.25;
       font-weight: 500;
       font-family: inherit;
+    }
+
+    .home-brand__title-star {
+      display: inline-block;
+      height: 0.52em;
+      width: auto;
+      vertical-align: baseline;
+      margin-inline: 0.05em;
     }
 
     .mobile-only { display: inline-flex; }
@@ -511,6 +529,12 @@ class PresetToastHostDirective {
       border-top: 1px solid var(--mat-sys-outline-variant);
       padding-top: 1rem;
       align-items: flex-end;
+    }
+
+    .home-controls-mobile__lang-row {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
     }
 
     .home-preset-toggle--full { width: 100%; }
