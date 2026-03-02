@@ -11,8 +11,8 @@ export interface Props {
 const { title, description, canonical, noindex = false } = Astro.props;
 /** Base path für Links (z. B. /arsnova-click-v3/ bei GitHub Pages) */
 const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
-const site = 'https://arsnova.click';
-const fullTitle = title === 'Start' ? 'arsnova.click – Live-Quiz & Abstimmung. 100 % DSGVO. Kostenlos.' : `${title} · arsnova.click`;
+const site = 'https://arsnova.eu';
+const fullTitle = title === 'Start' ? 'arsnova.eu – Live-Quiz & Abstimmung. 100 % DSGVO. Kostenlos.' : `${title} · arsnova.eu`;
 const url = canonical ? new URL(canonical, site).href : site;
 const ogImage = new URL('/og.png', site).href;
 ---
@@ -36,7 +36,7 @@ const ogImage = new URL('/og.png', site).href;
     <meta property="og:url" content={url} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:locale" content="de_DE" />
-    <meta property="og:site_name" content="arsnova.click" />
+    <meta property="og:site_name" content="arsnova.eu" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -50,7 +50,7 @@ const ogImage = new URL('/og.png', site).href;
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
-      name: 'arsnova.click',
+      name: 'arsnova.eu',
       description: 'Kostenlose, DSGVO-konforme Live-Quiz- und Abstimmungsplattform für Hochschulen. Kein Account nötig, Local-First, Self-Hosted.',
       url: site,
       applicationCategory: 'EducationalApplication',
@@ -65,7 +65,7 @@ const ogImage = new URL('/og.png', site).href;
         <div class="flex items-center justify-between gap-4">
           <a href={base} class="inline-flex items-center gap-2 font-display text-xl font-bold tracking-tight text-white">
             <img src={`${base}favicon.svg`} alt="" class="h-7 w-7 shrink-0" width="28" height="28" />
-            arsnova<span class="text-brand-400">.click</span>
+            arsnova.eu
           </a>
           <!-- Desktop: Links in einer Zeile -->
           <div class="hidden items-center gap-6 md:flex">
@@ -138,7 +138,7 @@ const ogImage = new URL('/og.png', site).href;
     <footer class="border-t border-slate-700 bg-slate-900">
       <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p class="text-sm text-slate-500">© {new Date().getFullYear()} arsnova.click · Open Source · MIT</p>
+          <p class="text-sm text-slate-500">© {new Date().getFullYear()} arsnova.eu · Open Source · MIT</p>
           <div class="flex gap-6">
             <a href={`${base}impressum/`} class="text-sm text-slate-500 hover:text-slate-300">Impressum</a>
             <a href={`${base}datenschutz/`} class="text-sm text-slate-500 hover:text-slate-300">Datenschutz</a>

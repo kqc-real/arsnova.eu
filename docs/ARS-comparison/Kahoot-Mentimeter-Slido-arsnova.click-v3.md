@@ -1,6 +1,6 @@
 ## 📊 Vergleich mit den Marktführern
 
-**arsnova.click V3** ist die **erste echte europäische, 100 % DSGVO-konforme und kostenlose Alternative** zu den US-Anbietern.
+**arsnova.eu** ist die **erste echte europäische, 100 % DSGVO-konforme und kostenlose Alternative** zu den US-Anbietern.
 
 **Legende**  
 ✅ = voll umgesetzt  
@@ -8,7 +8,7 @@
 ❌ = nicht verfügbar  
 **Fett** = klarer USP von arsnova.click
 
-| Bereich                  | Feature                                      | Kahoot!     | Mentimeter   | Slido        | **arsnova.click V3**                  |
+| Bereich                  | Feature                                      | Kahoot!     | Mentimeter   | Slido        | **arsnova.eu**                  |
 |--------------------------|----------------------------------------------|-------------|--------------|--------------|---------------------------------------|
 | **Kosten & Zugang**      | Vollständig kostenlos & open-source          | ❌          | ❌           | ❌           | **✅**                                 |
 |                          | Kein Dozenten-Account nötig                  | ❌          | ❌           | ❌           | **✅ Zero-Account**                    |
@@ -30,7 +30,7 @@
 |                          | Anonymer Export für Nachbereitung/Evaluation | 🟡          | ✅           | ✅           | **🟡** (Story 4.7)                     |
 
 **Fazit:**  
-**arsnova.click V3** gewinnt klar bei **Datenschutz**, **Kosten**, **Hochschul-Tauglichkeit** (KaTeX, Local-First, Bonus-Tokens) und **Offenheit**.  
+**arsnova.eu** gewinnt klar bei **Datenschutz**, **Kosten**, **Hochschul-Tauglichkeit** (KaTeX, Local-First, Bonus-Tokens) und **Offenheit**.  
 Mit der geplanten Word-Cloud (1.14) und Slide-Import schließt es die letzten visuellen Lücken und wird 2026 zur ersten Wahl an deutschen Hochschulen.
 
 ---

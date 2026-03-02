@@ -1,4 +1,4 @@
-# Design-Audit: arsnova.click V3 Frontend
+# Design-Audit: arsnova.eu Frontend
 
 **Datum:** 2026-02-25  
 **Basis:** ADR 0005, STYLEGUIDE.md, TOKENS.md, PR-CHECKLIST-UI.md

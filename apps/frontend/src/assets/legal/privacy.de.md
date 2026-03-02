@@ -13,7 +13,7 @@ E-Mail: [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org)
 
 ## 2. Geltungsbereich
 
-Diese Datenschutzerklärung gilt für die Website **https://arsnova.click** (Informations- und Marketingseite) sowie – soweit dort darauf verwiesen wird – für die Nutzung der Anwendung arsnova.click (Live-Quiz & Abstimmung). Bei Self-Hosting der Anwendung kann der Verantwortliche ein anderer sein (Ihre Institution); dann gelten die dort bereitgestellten Datenschutzhinweise.
+Diese Datenschutzerklärung gilt für die Website **https://arsnova.eu** (Informations- und Marketingseite) sowie – soweit dort darauf verwiesen wird – für die Nutzung der Anwendung arsnova.eu (Live-Quiz & Abstimmung). Bei Self-Hosting der Anwendung kann der Verantwortliche ein anderer sein (Ihre Institution); dann gelten die dort bereitgestellten Datenschutzhinweise.
 
 ## 3. Daten beim Besuch dieser Website
 
@@ -27,7 +27,7 @@ Auf dieser Website werden Links zu externen Diensten gesetzt (z. B. GitHub). B
 
 ## 5. Hosting
 
-Website und Anwendung können bei Diensteanbietern (Hosting-Providern) gehostet werden. Dabei können Zugriffsdaten (z. B. IP-Adresse, Zugriffszeit) auf Servern der Anbieter anfallen. Wird in Drittländern (z. B. USA) gehostet, kann eine Übermittlung dorthin erfolgen; dann werden geeignete Garantien (z. B. Standardvertragsklauseln nach Art. 46 DSGVO) vereinbart. Die Informations- und Marketingseite wird ggf. bei GitHub Pages betrieben; Informationen: [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). Die Anwendung arsnova.click kann auf anderem Wege (z. B. eigener Server, EU-Standort) betrieben werden – der konkrete Anbieter und Speicherort ergeben sich aus dem jeweiligen Angebot.
+Website und Anwendung können bei Diensteanbietern (Hosting-Providern) gehostet werden. Dabei können Zugriffsdaten (z. B. IP-Adresse, Zugriffszeit) auf Servern der Anbieter anfallen. Wird in Drittländern (z. B. USA) gehostet, kann eine Übermittlung dorthin erfolgen; dann werden geeignete Garantien (z. B. Standardvertragsklauseln nach Art. 46 DSGVO) vereinbart. Die Informations- und Marketingseite wird ggf. bei GitHub Pages betrieben; Informationen: [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). Die Anwendung arsnova.eu kann auf anderem Wege (z. B. eigener Server, EU-Standort) betrieben werden – der konkrete Anbieter und Speicherort ergeben sich aus dem jeweiligen Angebot.
 
 ## 6. Ihre Rechte
 
@@ -47,9 +47,9 @@ Für Auskünfte und die Ausübung Ihrer Rechte wenden Sie sich bitte an: [klaus.
 
 Die Bereitstellung personenbezogener Daten ist weder gesetzlich noch vertraglich vorgeschrieben für den reinen Besuch dieser Informationswebsite. Ohne Ihre Angaben können wir Ihnen jedoch die Website anzeigen und technisch ausliefern; eine Kontaktaufnahme per E-Mail setzt die Angabe einer E-Mail-Adresse voraus.
 
-## 8. Hinweis zur Anwendung arsnova.click
+## 8. Hinweis zur Anwendung arsnova.eu
 
-Die Anwendung arsnova.click (Live-Quiz, Q&A, Abstimmungen) ist datenschutzfreundlich konzipiert:
+Die Anwendung arsnova.eu (Live-Quiz, Q&A, Abstimmungen) ist datenschutzfreundlich konzipiert:
 
 - **Local-First:** Quiz-Inhalte (Fragen, Antworten) werden im Browser des Erstellers lokal gespeichert (IndexedDB/Yjs). Eine dauerhafte serverseitige Speicherung von Quiz-Inhalten erfolgt nicht; beim Start einer Live-Session werden die Daten nur temporär für die Dauer der Session an den Server übertragen.
 - **Speicherung im Browser:** Die Anwendung nutzt Local Storage bzw. IndexedDB für Quiz-Daten, Einstellungen und zuletzt genutzte Session-Codes. Es werden keine Cookies für Tracking oder Analyse gesetzt.

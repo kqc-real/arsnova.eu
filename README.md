@@ -1,4 +1,4 @@
-# 🚀 arsnova.click V3 (Vibe Coding Edition)
+# 🚀 arsnova.eu (Vibe Coding Edition)
 
 [![CI](https://github.com/kqc-real/arsnova-click-v3/actions/workflows/ci.yml/badge.svg)](https://github.com/kqc-real/arsnova-click-v3/actions/workflows/ci.yml)
 [![Tech Stack: Angular](https://img.shields.io/badge/Frontend-Angular%2017%2B-DD0031.svg?style=flat-square&logo=angular)](https://angular.dev/)
@@ -11,7 +11,7 @@
 
 ## 📖 Über das Projekt
 
-**arsnova.click V3** ist die architektonische Neuerfindung einer etablierten Hörsaal-Quiz-App (Live-Quiz, Q&amp;A, Abstimmungen). Sie richtet sich an Lehrpersonen und Teilnehmende von der Kita bis zur Hochschule.
+**arsnova.eu** ist die architektonische Neuerfindung einer etablierten Hörsaal-Quiz-App (Live-Quiz, Q&amp;A, Abstimmungen). Sie richtet sich an Lehrpersonen und Teilnehmende von der Kita bis zur Hochschule.
 
 ### Alleinstellungsmerkmale
 

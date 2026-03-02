@@ -1,4 +1,4 @@
-# 📋 Product Backlog: arsnova.click V3 (Core Features MVP)
+# 📋 Product Backlog: arsnova.eu (Core Features MVP)
 
 > **Priorisierung:** 🔴 Must · 🟡 Should · 🟢 Could
 >

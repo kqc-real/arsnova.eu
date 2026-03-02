@@ -1,6 +1,6 @@
-# arsnova.click – Landing
+# arsnova.eu – Landing
 
-Marketing- und Informationsseite für arsnova.click V3. Astro + Tailwind, SEO-optimiert, für GitHub Pages oder beliebigen Static Host.
+Marketing- und Informationsseite für arsnova.eu. Astro + Tailwind, SEO-optimiert, für GitHub Pages oder beliebigen Static Host.
 
 ## Entwicklung
 
@@ -23,7 +23,7 @@ Output: `apps/landing/dist/`
 
 1. **Repo-Einstellung:** Settings → Pages → Build and deployment → Source: **GitHub Actions**.
 2. Beim Push auf `main` (bei Änderungen in `apps/landing/`) baut das Workflow `.github/workflows/deploy-landing.yml` die Landing und deployt sie.
-3. Optional: Eigene Domain unter Pages → Custom domain eintragen (z. B. `arsnova.click`).
+3. Optional: Eigene Domain unter Pages → Custom domain eintragen (z. B. `arsnova.eu`).
 
 **Hinweis:** Du brauchst Schreibrechte auf das Repo und die Berechtigung, Pages auf „GitHub Actions“ umzustellen. Der Workflow selbst liegt im Repo; nach dem Push und nach Aktivierung von Pages läuft alles automatisch.
 

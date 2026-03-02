@@ -29,6 +29,6 @@ export const legal = {
 } as const;
 
 export const site = {
-  name: 'arsnova.click',
-  url: 'https://arsnova.click',
+  name: 'arsnova.eu',
+  url: 'https://arsnova.eu',
 } as const;

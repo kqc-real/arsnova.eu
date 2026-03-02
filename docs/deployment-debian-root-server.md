@@ -1,4 +1,4 @@
-# Deployment: arsnova.click V3 auf Debian Root-Server
+# Deployment: arsnova.eu auf Debian Root-Server
 
 Vorschlag für das Deployment auf einem externen Linux-Root-Server (Debian) nach aktuellem Stand der Technik: Let's Encrypt, Firewall, gehärteter Server. **Bei Hetzner** (Cloud oder Root) gelten die gleichen Schritte; Besonderheiten und Vereinfachungen sind in Abschnitt 2.7 und Abschnitt 11 beschrieben.
 
@@ -615,7 +615,7 @@ Der Cluster ist also **deutlich teurer** und lohnt sich vor allem bei Anforderun
 | **Cluster (LB + VMs)** | Mittel | 16–25 €/Monat | Horizontal (mehr App-Server) | Höher (mehrere App-Instanzen) |
 | **Cloud-native (K8s + Managed DB)** | Hoch | 30–80+ €/Monat | Horizontal + automatisch möglich | Hoch (K8s + Managed Services) |
 
-Für **arsnova.click V3** in der Erstphase reicht der **Ein-Server**; Cluster oder cloud-native lohnen sich, wenn Last oder Anforderungen an Verfügbarkeit und Skalierung wachsen.
+Für **arsnova.eu** in der Erstphase reicht der **Ein-Server**; Cluster oder cloud-native lohnen sich, wenn Last oder Anforderungen an Verfügbarkeit und Skalierung wachsen.
 
 ---
 

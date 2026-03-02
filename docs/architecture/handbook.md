@@ -1,4 +1,4 @@
-# 🏛️ Architektur-Handbuch: arsnova.click V3
+# 🏛️ Architektur-Handbuch: arsnova.eu
 
 **Zuletzt aktualisiert:** 2026-02-23  
 **Rolle:** Living Documentation (Documentation as Code)  
@@ -6,7 +6,7 @@
 **Epic 0 (Infrastruktur) abgeschlossen:** Redis (Docker + Health-Check), tRPC WebSocket (Subscriptions), Yjs WebSocket-Provider, Server-Status (health.stats, Widget), Rate-Limiting (Redis Sliding-Window), CI/CD (GitHub Actions).
 
 ## 1. Einleitung & Philosophie
-Dieses Handbuch beschreibt die Softwarearchitektur von **arsnova.click V3**. Wir folgen dem Prinzip der **"Living Documentation"**. Dieses Dokument und alle dazugehörigen Architekturentscheidungen (ADRs) leben direkt im Git-Repository. Sie entwickeln sich parallel zum Code weiter. 
+Dieses Handbuch beschreibt die Softwarearchitektur von **arsnova.eu**. Wir folgen dem Prinzip der **"Living Documentation"**. Dieses Dokument und alle dazugehörigen Architekturentscheidungen (ADRs) leben direkt im Git-Repository. Sie entwickeln sich parallel zum Code weiter. 
 
 Das Hauptziel dieses Systems ist es, ein hochperformantes Audience-Response-System (Quiz-App für Hörsäle) zu schaffen, dessen absoluter **USP (Unique Selling Proposition)** die **100 %ige DSGVO-Konformität** ist. Das System operiert serverseitig als "Zero-Knowledge"-Infrastruktur bezüglich der geistigen Eigentümer (Fragen) der Dozenten.
 

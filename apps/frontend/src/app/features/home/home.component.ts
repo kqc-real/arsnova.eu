@@ -94,7 +94,7 @@ class PresetToastHostDirective {
                 fill="var(--app-eu-yellow)"
               />
             </svg>
-            <h1 class="home-brand__title">arsnova<svg class="home-brand__title-star" viewBox="18 18 11 9.05" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="var(--app-eu-yellow)" d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"/></svg>eu</h1>
+            <h1 class="home-brand__title">arsnova.eu</h1>
           </div>
 
           <button
@@ -472,11 +472,6 @@ class PresetToastHostDirective {
       /* Einziger Stern (Anlehnung EU), kein offizielles Emblem */
     }
 
-    /* Light-Theme: Stern im Titel dunkleres Gold für Lesbarkeit auf hellem Grund; Logo-Stern unverändert */
-    :host-context(html.light) .home-brand__title-star path {
-      fill: #b38600;
-    }
-
     .home-brand__icon {
       width: 1.75rem;
       height: 1.75rem;
@@ -490,14 +485,6 @@ class PresetToastHostDirective {
       line-height: 1.25;
       font-weight: 500;
       font-family: inherit;
-    }
-
-    .home-brand__title-star {
-      display: inline-block;
-      height: 0.52em;
-      width: auto;
-      vertical-align: baseline;
-      margin-inline: 0.05em;
     }
 
     .mobile-only { display: inline-flex; }

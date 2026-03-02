@@ -1,7 +1,7 @@
 # Token-Konventionen (Angular Material 3)
 
 ## Ziel
-Dieses Dokument beschreibt, wie Tokens in arsnova.click v3 definiert, genutzt und erweitert werden.
+Dieses Dokument beschreibt, wie Tokens in arsnova.eu definiert, genutzt und erweitert werden.
 Es verhindert Design-Drift und sichert eine konsistente Material-3-Umsetzung.
 
 ## Token-Ebenen

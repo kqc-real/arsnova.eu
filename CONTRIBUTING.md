@@ -1,4 +1,4 @@
-# Mitwirken an arsnova.click V3 (Handover an Studis / Vibe Coding)
+# Mitwirken an arsnova.eu (Handover an Studis / Vibe Coding)
 
 Dieses Projekt wird im **Vibe-Coding-Modus** weiterentwickelt: Ihr übernehmt die Architektur- und Produktrolle, die KI (Cursor, Copilot, o. Ä.) unterstützt bei der Umsetzung. Damit die Übergabe reibungslos läuft, hier die wichtigsten Schritte.
 

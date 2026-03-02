@@ -1,4 +1,4 @@
-# Diagramme: arsnova.click V3
+# Diagramme: arsnova.eu
 
 Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.  
 **Stand:** 2026-02-23 · **Epic 0 (Infrastruktur) abgeschlossen:** Redis, tRPC WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD.

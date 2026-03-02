@@ -3,7 +3,10 @@ import { defineConfig } from 'vitest/config';
 import angular from '@analogjs/vite-plugin-angular';
 import path from 'path';
 
+const projectRoot = path.resolve(__dirname);
+
 export default defineConfig({
+  root: projectRoot,
   plugins: [angular()],
   test: {
     globals: true,
@@ -13,11 +16,16 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@arsnova/shared-types': path.resolve(__dirname, '../../libs/shared-types/src/index.ts'),
+      '@arsnova/shared-types': path.resolve(projectRoot, '../../libs/shared-types/src/index.ts'),
     },
   },
   optimizeDeps: {
-    // dist/ enthält gebaute HTML mit <script src="main.js"> – nicht als Modul auflösen
+    // Gebaute Chunks (main.js, main-*.js) nicht als Modul auflösen
     exclude: ['main.js'],
+  },
+  server: {
+    fs: {
+      allow: [projectRoot, path.resolve(projectRoot, '../..')],
+    },
   },
 });

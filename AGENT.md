@@ -1,4 +1,4 @@
-# 🤖 AGENT.md - arsnova.click V3 (Vibe Coding Guidelines)
+# 🤖 AGENT.md - arsnova.eu (Vibe Coding Guidelines)
 
 **Hallo KI-Assistent!** Dieses Dokument **ergänzt** die [.cursorrules](.cursorrules) (Projektstruktur, Monorepo-Regeln, Stack, DTO-Pattern). Cursor lädt .cursorrules automatisch; dieses Dokument beschreibt **Arbeitsweise und Qualität**.
 

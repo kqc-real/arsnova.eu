@@ -1,6 +1,6 @@
-# 🎓 Onboarding: arsnova.click V3
+# 🎓 Onboarding: arsnova.eu
 
-Willkommen im Entwickler-Team von **arsnova.click V3**! Dieses Dokument hilft dir als Informatikstudierende/r, das Projekt zu verstehen, die Entwicklungsumgebung aufzusetzen und produktiv mitzuarbeiten.
+Willkommen im Entwickler-Team von **arsnova.eu**! Dieses Dokument hilft dir als Informatikstudierende/r, das Projekt zu verstehen, die Entwicklungsumgebung aufzusetzen und produktiv mitzuarbeiten.
 
 ---
 
@@ -323,4 +323,4 @@ npm install
 
 ---
 
-Viel Erfolg bei der Entwicklung von arsnova.click V3! 🚀 Bei Fragen: Schau zuerst in die [Pflichtlektüre](#8-pflichtlektüre), dann frag im Team.
+Viel Erfolg bei der Entwicklung von arsnova.eu! 🚀 Bei Fragen: Schau zuerst in die [Pflichtlektüre](#8-pflichtlektüre), dann frag im Team.

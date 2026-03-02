@@ -6,7 +6,7 @@ const base = process.env.BASE_PATH || '/';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://arsnova.click',
+  site: 'https://arsnova.eu',
   base,
   integrations: [tailwind()],
   output: 'static',

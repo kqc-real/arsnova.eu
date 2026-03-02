@@ -1,7 +1,7 @@
 # UI Styleguide (Angular Material 3)
 
 ## Ziel und Geltungsbereich
-Dieser Styleguide definiert verbindliche UI-Regeln fuer `apps/frontend` von arsnova.click v3.
+Dieser Styleguide definiert verbindliche UI-Regeln fuer `apps/frontend` von arsnova.eu.
 Ergaenzend zur ADR `docs/architecture/decisions/0005-use-angular-material-design.md` beschreibt er die operative Umsetzung im Alltag.
 
 ## Grundsaetze
@@ -99,7 +99,7 @@ Tokenbasierte Card-Flaeche:
 - **Kein Onboarding-Banner:** Nach den Hero-Erweiterungen (USPs, Bonus-Option, ggf. Preset-Toggle) wird kein zusaetzliches 3-Schritt-Banner mehr angezeigt. Die Karten (Mitmachen/Veranstalten) und die Hilfe-Seite erklaeren den Ablauf.
 
 ## Startseite: Brand und Status
-- **Brand-Icon:** EU-Blau als Hintergrund (stilistische Anlehnung, kein offizielles EU-Emblem). Im Logo: EU-gelber Stern (arsnova-stern-eu, Pentagramm wie EU-Flagge, eine Spitze oben), Farbe `--app-eu-yellow`; Logo-Stern-Farbe wird nicht themenabhaengig geaendert. Im Titel „arsnova★eu“ derselbe Stern als Inline-SVG (gleiche Form, x-Hoehe, Grundlinie), im Light-Theme dunkleres Gold (#b38600) fuer Lesbarkeit auf hellem Grund. Farben: `--app-eu-blue` (#002395), `--app-eu-yellow` (#ffcc00).
+- **Brand-Icon:** EU-Blau als Hintergrund (stilistische Anlehnung, kein offizielles EU-Emblem). Im Logo: EU-gelber Stern (arsnova-stern-eu, Pentagramm wie EU-Flagge, eine Spitze oben), Farbe `--app-eu-yellow`; Logo-Stern-Farbe wird nicht themenabhaengig geaendert. Im Titel nur „arsnova.eu“ mit normalem Punkt (kein Stern im Wortmarken-Text). Farben: `--app-eu-blue` (#002395), `--app-eu-yellow` (#ffcc00).
 - **Status nur auf der Karte:** Kein Status-Punkt im Header; der Server-Status wird ausschliesslich in der **Status-Card** im Grid angezeigt (detaillierte Infos, z. B. „Quiz live“, „Verbunden“).
 
 ## Startseite: Mobile-Hierarchie

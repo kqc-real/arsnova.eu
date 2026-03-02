@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://arsnova.click/sitemap.xml
+Sitemap: https://arsnova.eu/sitemap.xml

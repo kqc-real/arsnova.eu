@@ -6,7 +6,7 @@
 
 ## Kontext
 
-Das Kernprinzip von arsnova.click V3 ist die **"Zero-Knowledge"-Infrastruktur**: Die **Quiz-Bibliothek** der Dozenten (geistiges Eigentum) wird nicht als dauerhafte Kopie auf einem zentralen Server gespeichert. Dozenten sollen ohne Account arbeiten können; ihre Quiz-Sammlung lebt primär lokal im Browser. Beim **Start einer Live-Session** wird eine **Kopie** des gewählten Quiz an den Server übermittelt (Story 2.1a), damit Abstimmungen und Präsentation laufen können – diese Kopie dient nur der laufenden Session.
+Das Kernprinzip von arsnova.eu ist die **"Zero-Knowledge"-Infrastruktur**: Die **Quiz-Bibliothek** der Dozenten (geistiges Eigentum) wird nicht als dauerhafte Kopie auf einem zentralen Server gespeichert. Dozenten sollen ohne Account arbeiten können; ihre Quiz-Sammlung lebt primär lokal im Browser. Beim **Start einer Live-Session** wird eine **Kopie** des gewählten Quiz an den Server übermittelt (Story 2.1a), damit Abstimmungen und Präsentation laufen können – diese Kopie dient nur der laufenden Session.
 
 ## Entscheidung
 

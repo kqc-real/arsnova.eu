@@ -1,7 +1,7 @@
 # UI-Dokumentation Einstieg
 
 ## Zweck
-Verbindliche UI-Standards für arsnova.click v3 (Angular Material 3). Startpunkt für alle UI-Änderungen.
+Verbindliche UI-Standards für arsnova.eu (Angular Material 3). Startpunkt für alle UI-Änderungen.
 
 ## Reihenfolge für die Arbeit
 1. ADR: `docs/architecture/decisions/0005-use-angular-material-design.md`

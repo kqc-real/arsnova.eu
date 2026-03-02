@@ -1,6 +1,6 @@
 # Synergie beider Kurse: SQM trägt Qualitätsverantwortung
 
-> Ein Produkt (arsnova.click V3), zwei Kurse arbeiten parallel: Kurs 1 entwickelt, Kurs 2 (Softwarequalitätsmanagement) ist **für die Qualität des Projekts verantwortlich** und arbeitet mit.
+> Ein Produkt (arsnova.eu), zwei Kurse arbeiten parallel: Kurs 1 entwickelt, Kurs 2 (Softwarequalitätsmanagement) ist **für die Qualität des Projekts verantwortlich** und arbeitet mit.
 
 ---
 
@@ -29,7 +29,7 @@
 - **Datenschutz (DSGVO):** Prüfung auf Einhaltung der DoD-Datenschutz-Kriterien (Datensparsamkeit, Session-Bereinigung nach 24 h, anonymer Modus).
 - **UI/UX-Tests (Lautes Denken):** Usability-Tests nach der Methode „Lautes Denken“ (Think Aloud): Testpersonen nutzen die Anwendung und verbalisieren dabei ihre Gedanken; SQM plant, durchführt und wertet die Tests aus und leitet Verbesserungen ab.
 - **Test der Nutzbarkeit mit KI-Readern (Online-Reader):** Prüfung, ob die App mit **KI-gestützten Readern** auf der Webseite (z. B. in den Browser integrierte oder als Erweiterung genutzte KI-Lese-/Vorlese-Assistenten) gut nutzbar ist; SQM testet kritische Flows (Beitritt, Abstimmung, Ergebnis) und dokumentiert Verbesserungsbedarf für die Lesbarkeit und Bedienbarkeit durch solche KI-Reader.
-- **User-Nutzungsanleitung mit Guidde:** Erstellung und Pflege der nutzerorientierten Anleitung (Dozenten- und Teilnehmer-Perspektive) mit [Guidde](https://www.guidde.com/) – geführte, visuelle Tutorials/Guides für arsnova.click V3.
+- **User-Nutzungsanleitung mit Guidde:** Erstellung und Pflege der nutzerorientierten Anleitung (Dozenten- und Teilnehmer-Perspektive) mit [Guidde](https://www.guidde.com/) – geführte, visuelle Tutorials/Guides für arsnova.eu.
 - **Prozesse:** Wie laufen PRs, wer prüft was, wann ist eine Story „qualitätsseitig abgenommen“? SQM gestaltet den Ablauf mit.
 
 ### 2.2 Wie Entwicklung und SQM zusammenspielen
@@ -62,7 +62,7 @@ Konkrete Ansatzpunkte:
 
 | Aspekt | Inhalt |
 |--------|--------|
-| **Synergie** | Ein Produkt (arsnova.click V3). Kurs 1 entwickelt, Kurs 2 (SQM) trägt die **Qualitätsverantwortung** und arbeitet **parallel** mit. |
+| **Synergie** | Ein Produkt (arsnova.eu). Kurs 1 entwickelt, Kurs 2 (SQM) trägt die **Qualitätsverantwortung** und arbeitet **parallel** mit. |
 | **SQM-Rolle** | Teststrategie, E2E-, Last- und Performancetests, Reviews, DoD, Metriken/Audits, Sicherheit, Datenschutz (DSGVO), **UI/UX (Lautes Denken)**, **KI-Reader-Nutzbarkeit**, **Nutzungsanleitung mit Guidde**, Prozesse – am gleichen Repo und Backlog. |
 | **Agentische KI** | Gemeinsamer Kontext für beide; Entwicklung nutzt KI für Implementierung, SQM für Review, DoD-Check, Tests und Checklisten (inkl. mehrstufige Agent-Nutzung). |
 

@@ -1,4 +1,4 @@
-# Projekt-Kontext: arsnova.click V3 (Stable Reference for AI)
+# Projekt-Kontext: arsnova.eu (Stable Reference for AI)
 
 Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konventionen und Backlog. Es wird für Context Caching (Claude Opus 4.6) als stabiler Prefix genutzt. Nur bei größeren Architektur- oder Backlog-Änderungen anpassen.
 
@@ -6,7 +6,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 
 ## 1. Identität und Rolle
 
-- **Projekt:** arsnova.click V3 – interaktive Quiz- und Abstimmungsplattform (Live-Sessions, Dozent/Student-Rollen).
+- **Projekt:** arsnova.eu – interaktive Quiz- und Abstimmungsplattform (Live-Sessions, Dozent/Student-Rollen).
 - **KI-Rolle:** Lead-Architekt / Senior Full-Stack; Entscheidungen an Monorepo-Regeln und Backlog ausrichten.
 - **Artefakte:** Backlog.md (Storys, DoD), Prisma-Schema, Zod-Schemas in libs/shared-types, Diagramme in docs/diagrams/.
 
