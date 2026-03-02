@@ -370,12 +370,12 @@ Lokale Entwicklung (localhost) verwendet weiterhin die Ports 3001 und 3002. Kein
 
 ## 7. Deployment-Ablauf
 
-1. **Code auf den Server:** z. B. `git clone` in `/home/deploy/arsnova-click-v3` oder CI/CD-Artefakt.
+1. **Code auf den Server:** z. B. `git clone` in `/home/deploy/arsnova.eu` oder CI/CD-Artefakt.
 2. **Secrets:** `.env.production` anlegen (siehe 6.2).
 3. **Build & Start:**
 
    ```bash
-   cd /home/deploy/arsnova-click-v3
+   cd /home/deploy/arsnova.eu
    docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
    ```
 
@@ -433,7 +433,7 @@ Deployments laufen automatisch, **nur wenn alle CI-Jobs erfolgreich sind** (Buil
 
 ### 10.2 Server-Voraussetzung
 
-- Repo auf dem Server geklont (z. B. `/home/deploy/arsnova-click-v3`).
+- Repo auf dem Server geklont (z. B. `/home/deploy/arsnova.eu`).
 - Datei `.env.production` im Repo-Verzeichnis (siehe Abschnitt 6.2).
 - SSH-Zugang für den User `deploy` (oder gewählten User) mit **Private Key**; der zugehörige **Public Key** liegt in `~/.ssh/authorized_keys` des Servers.
 - Der User muss ohne Passwort `docker` und `git` ausführen können (User in Gruppe `docker`, Key-Auth für Git falls nötig).
@@ -449,7 +449,7 @@ Deployments laufen automatisch, **nur wenn alle CI-Jobs erfolgreich sind** (Buil
 | Secret | `DEPLOY_HOST` | Ja (wenn Deploy) | Hostname oder IP des Servers (z. B. `arsnova.click` oder `123.45.67.89`). |
 | Secret | `DEPLOY_USER` | Ja (wenn Deploy) | SSH-User (z. B. `deploy`). |
 | Secret | `DEPLOY_SSH_PORT` | Nein | SSH-Port, falls nicht 22 (z. B. `2222`). |
-| **Variable** | `DEPLOY_DIR` | Nein | Pfad zum Repo auf dem Server. Standard: `/home/deploy/arsnova-click-v3`. |
+| **Variable** | `DEPLOY_DIR` | Nein | Pfad zum Repo auf dem Server. Standard: `/home/deploy/arsnova.eu`. |
 
 **Hinweis:** Unter **Variables** (nicht Secrets) `DEPLOY_DIR` setzen, wenn das Repo woanders liegt.
 
@@ -471,7 +471,7 @@ Dann wird nur bei Push auf `deploy` deployt; Merge von `main` → `deploy` löst
 Ohne CI (z. B. Hotfix oder bei ausgefallener CI):
 
 ```bash
-cd /home/deploy/arsnova-click-v3   # oder $DEPLOY_DIR
+cd /home/deploy/arsnova.eu   # oder $DEPLOY_DIR
 git fetch origin && git checkout main && git pull
 ./scripts/deploy.sh
 ```

@@ -19,8 +19,8 @@ Willkommen im Entwickler-Team von **arsnova.eu**! Dieses Dokument hilft dir als 
 
 ```bash
 # 1. Repository klonen
-git clone https://github.com/kqc-real/arsnova-click-v3.git
-cd arsnova-click-v3
+git clone https://github.com/kqc-real/arsnova.eu.git
+cd arsnova.eu
 
 # 2. Umgebungsvariablen anlegen
 cp .env.example .env
@@ -69,7 +69,7 @@ Im Browser **http://localhost:3000** öffnen. Bei belegtem Port zuerst `npm run 
 Das Projekt nutzt **npm Workspaces**, um Backend, Frontend und geteilte Typen in einem Repository zu verwalten. Änderungen an `@arsnova/shared-types` wirken sich sofort auf Backend und Frontend aus.
 
 ```
-arsnova-click-v3/
+arsnova.eu/
 ├── apps/
 │   ├── backend/              # Node.js + tRPC API-Server
 │   │   └── src/

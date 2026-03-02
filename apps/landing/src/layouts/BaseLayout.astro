@@ -9,7 +9,7 @@ export interface Props {
 }
 
 const { title, description, canonical, noindex = false } = Astro.props;
-/** Base path für Links (z. B. /arsnova-click-v3/ bei GitHub Pages) */
+/** Base path für Links (z. B. /arsnova.eu/ bei GitHub Pages) */
 const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
 const site = 'https://arsnova.eu';
 const fullTitle = title === 'Start' ? 'arsnova.eu – Live-Quiz & Abstimmung. 100 % DSGVO. Kostenlos.' : `${title} · arsnova.eu`;

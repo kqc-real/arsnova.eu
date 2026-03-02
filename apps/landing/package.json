@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "export PUBLIC_GITHUB_REPO=${PUBLIC_GITHUB_REPO:-$(node scripts/get-github-repo.mjs 2>/dev/null || echo 'kqc-real/arsnova-click-v3')} && astro build",
+    "build": "export PUBLIC_GITHUB_REPO=${PUBLIC_GITHUB_REPO:-$(node scripts/get-github-repo.mjs 2>/dev/null || echo 'kqc-real/arsnova.eu')} && astro build",
     "preview": "astro preview"
   },
   "dependencies": {

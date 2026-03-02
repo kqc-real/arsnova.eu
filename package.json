@@ -1,5 +1,5 @@
 {
-  "name": "arsnova-click-v3",
+  "name": "arsnova-eu",
   "version": "0.1.0",
   "private": true,
   "description": "Ein modernes, 100 % DSGVO-konformes Audience-Response-System",
@@ -18,7 +18,7 @@
     "dev:frontend": "npm run start -w @arsnova/frontend",
     "dev:landing": "npm run dev -w @arsnova/landing",
     "build": "npm run build -w @arsnova/backend && npm run build -w @arsnova/frontend",
-    "build:landing": "(cd apps/landing && export NODE_PATH=\"$(cd ../.. && pwd)/node_modules\" && export PUBLIC_GITHUB_REPO=\"${PUBLIC_GITHUB_REPO:-$(node scripts/get-github-repo.mjs 2>/dev/null || echo 'kqc-real/arsnova-click-v3')}\" && node ../../node_modules/astro/astro.js build)",
+    "build:landing": "(cd apps/landing && export NODE_PATH=\"$(cd ../.. && pwd)/node_modules\" && export PUBLIC_GITHUB_REPO=\"${PUBLIC_GITHUB_REPO:-$(node scripts/get-github-repo.mjs 2>/dev/null || echo 'kqc-real/arsnova.eu')}\" && node ../../node_modules/astro/astro.js build)",
     "test": "npm run test -w @arsnova/backend && npm run test -w @arsnova/frontend",
     "lint": "eslint libs/ apps/ --no-warn-ignored",
     "format": "prettier --write \"**/*.{ts,js,json,html,css,scss,md}\"",
