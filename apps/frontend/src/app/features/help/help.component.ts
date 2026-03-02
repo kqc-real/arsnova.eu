@@ -22,7 +22,7 @@ import { MatIcon } from '@angular/material/icon';
           Hilfe
         </h1>
         <p class="help-lead">
-          arsnova.eu ist eine Plattform für Live-Quiz, Abstimmungen und Q&amp;A-Runden, ohne Anmeldung direkt im Browser.
+          arsnova.eu ist eine Plattform für Live-Quiz, Abstimmungen und Fragerunden, ohne Anmeldung direkt im Browser.
         </p>
 
         <section class="help-section">
@@ -42,7 +42,7 @@ import { MatIcon } from '@angular/material/icon';
             <li><strong>Lobby:</strong> Du siehst, wer beigetreten ist; optional kannst du einen QR-Code zum Beitritt anzeigen.</li>
             <li><strong>Beamer-Ansicht:</strong> Für die Projektion im Raum mit großer Darstellung von Frage, Antworten, Countdown und Ergebnissen.</li>
             <li><strong>Steuerung:</strong> Mit „Nächste Frage“ blendest du die Frage ein. Optional zuerst nur den Text (Lesephase), dann „Antworten freigeben“, danach können alle abstimmen. Anschließend „Ergebnis zeigen“.</li>
-            <li><strong>Einstellungen:</strong> Beim Start legst du den Stil („Seriös“ oder „Spielerisch“) und die Optionen fest (Rangliste, Sound, Lesephase, Team-Modus, Nicknames, Timer usw.). Das gilt für die ganze Session; Teilnehmende können nichts daran ändern.</li>
+            <li><strong>Einstellungen:</strong> Beim Start legst du den Stil („Seriös“ oder „Spielerisch“) und die Optionen fest (Rangliste, Sound, Lesephase, Team-Modus, Namen, Timer usw.). Das gilt für die ganze Session; Teilnehmende können nichts daran ändern.</li>
           </ul>
         </section>
 
@@ -72,7 +72,7 @@ import { MatIcon } from '@angular/material/icon';
           <ul>
             <li><strong>Bonus-Option:</strong> Top-Platzierte erhalten einen einlösbaren Code (z. B. für Bonuspunkte oder Anerkennung bei dir). Du kannst die Code-Liste einsehen und abgleichen; die Einlösung liegt bei dir. Personenbezogene Daten werden dabei nicht gespeichert.</li>
             <li><strong>Team-Modus:</strong> Teilnehmende spielen in Teams; es gibt ein Team-Leaderboard.</li>
-            <li><strong>Q&amp;A-Runde:</strong> Statt eines Quiz kannst du eine Fragerunde starten. Teilnehmende reichen Fragen ein und können sie hochvoten, du moderierst und beantwortest.</li>
+            <li><strong>Fragerunde:</strong> Statt eines Quiz kannst du eine Fragerunde starten. Teilnehmende reichen Fragen ein und können sie bewerten, du moderierst und beantwortest.</li>
             <li><strong>Gamification:</strong> Sound-Effekte, Belohnungseffekte für die Top-Plätze, Motivationsmeldungen, Emoji-Reaktionen.</li>
             <li><strong>Fragentypen:</strong> Multiple Choice, Single Choice, Freitext, Umfrage, Bewertungsskala, pro Frage optional mit Timer und Lesephase.</li>
           </ul>
