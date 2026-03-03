@@ -26,9 +26,23 @@ sudo mv micro /usr/local/bin/
 | Einfügen     | Ctrl+V   |
 | Rückgängig   | Ctrl+Z   |
 
-> **⚠️ Achtung Mac-User:** Viele Terminal-Apps (macOS Terminal, iTerm2) fangen **Ctrl+Q** ab und schließen das Fenster/die SSH-Verbindung, bevor `micro` den Shortcut empfängt. Workaround: Vor dem ersten `micro`-Start einmal `stty start undef stop undef` ausführen (oder in `~/.zshrc` eintragen). In **iTerm2** alternativ unter Preferences → Keys den Ctrl+Q-Shortcut deaktivieren.
+> **⚠️ Achtung Mac-User / VS Code Terminal:** Viele Terminal-Apps (macOS Terminal, iTerm2, und die integrierte VS Code Terminal-Instanz) fangen **Ctrl+Q** ab und schließen das Terminal-Fenster bzw. die SSH-Verbindung, bevor `micro` den Shortcut empfängt. Optionen:
+>
+>- Kurzfristig: Vor dem ersten `micro`-Start einmal `stty start undef stop undef` ausführen (oder in `~/.zshrc` eintragen):
+>
+>```bash
+>echo 'stty start undef stop undef' >> ~/.zshrc
+>```
+>
+>- In VS Code: Preferences → Keyboard Shortcuts (JSON) und diese Zeile einfügen, um `Ctrl+Q` zu deaktivieren:
+>
+>```json
+>{ "key": "ctrl+q", "command": "-workbench.action.quit" }
+>```
+>
+>- Alternativ immer `Ctrl+S` zum Speichern, dann `Ctrl+Q` nur verwenden, wenn du sicher bist, dass der Terminal-Host das nicht abfängt.
 
-> **Tipp:** Falls micro nicht verfügbar ist, ist `nano` auf Debian vorinstalliert und ebenfalls einsteigerfreundlich (Shortcuts stehen unten im Editor).
+>**Tipp:** Falls `micro` nicht verfügbar ist oder du Konflikte vermeiden willst, verwende `nano` (Speichern: `Ctrl+O`, Beenden: `Ctrl+X`).
 
 Im Rest dieser Anleitung verwenden wir `micro` zum Bearbeiten von Dateien – du kannst jederzeit `nano` oder einen anderen Editor deiner Wahl verwenden.
 
