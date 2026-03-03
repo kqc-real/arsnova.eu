@@ -290,6 +290,95 @@ upstream app_ws_yjs {
     server 127.0.0.1:3002;   # WebSocket (Yjs Quiz-Sync)
 }
 
+
+> **Vollständiges Beispiel**
+>
+> Die nachfolgende Konfiguration entspricht der kompletten
+> `/etc/nginx/sites-available/arsnova-click`-Datei, wie sie auf einem
+> Produktionsserver liegt. Du kannst sie 1:1 übernehmen und nur den
+> `server_name`/`ssl_certificate`-Pfad anpassen.
+>
+> ```nginx
+> # Upstreams (wie oben) …
+> upstream app_http {
+>     server 127.0.0.1:3000;
+> }
+> upstream app_ws_trpc {
+>     server 127.0.0.1:3001;
+> }
+> upstream app_ws_yjs {
+>     server 127.0.0.1:3002;
+> }
+>
+> # HTTP → HTTPS Redirect
+> server {
+>     listen 80;
+>     listen [::]:80;
+>     server_name click.arsnova.eu;
+>
+>     location /.well-known/acme-challenge/ {
+>         root /var/www/certbot;
+>         allow all;
+>     }
+>
+>     location / {
+>         return 301 https://$host$request_uri;
+>     }
+> }
+>
+> # HTTPS – verschlüsselter Zugang + WebSocket-Proxy
+> server {
+>     listen 443 ssl http2;
+>     listen [::]:443 ssl http2;
+>     server_name click.arsnova.eu;
+>
+>     ssl_certificate     /etc/letsencrypt/live/click.arsnova.eu/fullchain.pem;
+>     ssl_certificate_key /etc/letsencrypt/live/click.arsnova.eu/privkey.pem;
+>     include /etc/letsencrypt/options-ssl-nginx.conf;
+>     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+>
+>     # Security Headers … (unchanged) …
+>
+>     access_log /var/log/nginx/arsnova_click_access.log;
+>     error_log  /var/log/nginx/arsnova_click_error.log;
+>
+>     location / {
+>         proxy_pass http://app_http;
+>         proxy_http_version 1.1;
+>         proxy_set_header Host $host;
+>         proxy_set_header X-Real-IP $remote_addr;
+>         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+>         proxy_set_header X-Forwarded-Proto $scheme;
+>     }
+>
+>     location /trpc-ws {
+>         proxy_pass http://app_ws_trpc/;
+>         proxy_http_version 1.1;
+>         proxy_set_header Upgrade $http_upgrade;
+>         proxy_set_header Connection "upgrade";
+>         proxy_set_header Host $host;
+>         proxy_set_header X-Real-IP $remote_addr;
+>         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+>         proxy_set_header X-Forwarded-Proto $scheme;
+>     }
+>
+>     location /yjs-ws {
+>         proxy_pass http://app_ws_yjs/;
+>         proxy_http_version 1.1;
+>         proxy_set_header Upgrade $http_upgrade;
+>         proxy_set_header Connection "upgrade";
+>         proxy_set_header Host $host;
+>         proxy_set_header X-Real-IP $remote_addr;
+>         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+>         proxy_set_header X-Forwarded-Proto $scheme;
+>         proxy_read_timeout 86400;
+>     }
+> }
+> ```
+>
+> Die vorherige Anleitung erklärt Schritt für Schritt, wie du diese Datei
+> erstellst; falls du manuelle Anpassungen brauchst, findest du sie dort.
+>
 # HTTP → HTTPS Redirect (alle Anfragen auf Port 80 → verschlüsselt auf 443)
 server {
     listen 80;
