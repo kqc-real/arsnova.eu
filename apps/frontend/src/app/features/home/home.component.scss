@@ -376,6 +376,23 @@ mat-card-actions.l-stack { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .home-recent-codes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem; }
 
+.home-recent-code-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  .home-recent-code { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .home-recent-code-remove {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-left: -1px;
+    border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
+    border-left: none;
+    border-radius: 0 var(--mat-sys-corner-small) var(--mat-sys-corner-small) 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
 .home-recent-code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-weight: 600;

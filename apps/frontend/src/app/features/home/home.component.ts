@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { trpc } from '../../core/trpc.client';
@@ -21,6 +21,7 @@ import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.ser
     MatCardSubtitle,
     MatCardTitle,
     MatIcon,
+    MatIconButton,
     ServerStatusWidgetComponent,
   ],
   templateUrl: './home.component.html',
@@ -109,6 +110,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const current = this.recentSessionCodes();
     const filtered = current.filter((c) => c !== normalized);
     const updated = [normalized, ...filtered].slice(0, 3);
+    this.recentSessionCodes.set(updated);
+    localStorage.setItem('home-recent-sessions', JSON.stringify(updated));
+  }
+
+  removeRecentSessionCode(code: string): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const updated = this.recentSessionCodes().filter((c) => c !== code);
     this.recentSessionCodes.set(updated);
     localStorage.setItem('home-recent-sessions', JSON.stringify(updated));
   }
