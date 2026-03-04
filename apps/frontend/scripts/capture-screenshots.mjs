@@ -65,7 +65,7 @@ async function main() {
   // Warten bis die echte Home-Ansicht da ist (nicht nur LCP-Shell / Verzeichnisliste)
   const waitForHome = async () => {
     await page.waitForSelector('app-home', { state: 'attached', timeout: 25_000 });
-    await page.waitForSelector('.home-header', { state: 'visible', timeout: 10_000 }).catch(() => {});
+    await page.waitForSelector('.top-toolbar', { state: 'visible', timeout: 10_000 }).catch(() => {});
     await page.waitForTimeout(800);
   };
 

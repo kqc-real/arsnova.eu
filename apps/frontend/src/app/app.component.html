@@ -18,7 +18,30 @@
     </div>
   }
   <a href="#main-content" class="app-skip-link">Zum Inhalt springen</a>
-  <main id="main-content" class="app-main" role="main">
+
+  <ng-container presetToastHost></ng-container>
+
+  @if (presetSnackbarVisible()) {
+    <div class="app-preset-snackbar" role="status">
+      <span class="app-preset-snackbar__icon-wrap">
+        <mat-icon class="app-preset-snackbar__icon">{{ presetSnackbarIcon() }}</mat-icon>
+      </span>
+      <span class="app-preset-snackbar__text">{{ presetSnackbarLabel() }}</span>
+      <button type="button" class="app-preset-snackbar__action" (click)="openPresetCustomize()">Anpassen</button>
+      <button type="button" class="app-preset-snackbar__close" (click)="dismissPresetSnackbar()" aria-label="Schließen">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
+
+  <app-top-toolbar
+    (presetChanged)="onPresetChanged()"
+    [scrolled]="hasScrolled()"
+    [hideOnScroll]="true"
+    [toolbarHidden]="toolbarHidden()"
+  />
+
+  <main id="main-content" class="app-main app-main--toolbar-fixed" role="main">
     <router-outlet />
   </main>
   <footer class="app-footer" role="contentinfo">

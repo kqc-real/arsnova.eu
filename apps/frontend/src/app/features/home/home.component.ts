@@ -1,68 +1,35 @@
-import {
-  AfterViewInit,
-  Component,
-  ComponentRef,
-  Directive,
-  ElementRef,
-  HostListener,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-  ViewContainerRef,
-  PLATFORM_ID,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
 import { trpc } from '../../core/trpc.client';
 import { ServerStatusWidgetComponent } from '../../shared/server-status-widget/server-status-widget.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
-
-/** Host-Anchor für dynamisch geladenes PresetToast (eigener Chunk, bessere Mobile-Performance). */
-@Directive({ selector: '[presetToastHost]', standalone: true })
-class PresetToastHostDirective {
-  readonly vcRef = inject(ViewContainerRef);
-}
+import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 
 @Component({
   selector: 'app-home',
   imports: [
     RouterLink,
     MatButton,
-    MatIconButton,
     MatCard,
     MatCardActions,
     MatCardContent,
     MatCardHeader,
     MatCardSubtitle,
     MatCardTitle,
-    MatButtonToggle,
-    MatButtonToggleGroup,
-    MatMenu,
-    MatMenuItem,
-    MatMenuTrigger,
     MatIcon,
     ServerStatusWidgetComponent,
-    PresetToastHostDirective,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
-  @ViewChild('homeHeader') private readonly homeHeader?: ElementRef<HTMLElement>;
-  @ViewChild('controlsToggleBtn') private readonly controlsToggleBtn?: ElementRef<HTMLButtonElement>;
+  private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
-  @ViewChild(PresetToastHostDirective) private presetToastHost?: PresetToastHostDirective;
-
-  private presetToastRef: ComponentRef<unknown> | null = null;
 
   apiStatus = signal<string | null>(null);
   apiRetrying = signal(false);
@@ -77,43 +44,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly themePreset = inject(ThemePresetService);
   private readonly platformId = inject(PLATFORM_ID);
-  readonly supportedLanguages = [
-    { code: 'de' as const, label: 'Deutsch' },
-    { code: 'en' as const, label: 'English' },
-    { code: 'fr' as const, label: 'Français' },
-    { code: 'it' as const, label: 'Italiano' },
-    { code: 'es' as const, label: 'Español' },
-  ];
-  language = signal<'de' | 'en' | 'fr' | 'it' | 'es'>('de');
-  controlsMenuOpen = signal(false);
-  presetToastVisible = signal(false);
-  presetSnackbarVisible = signal(false);
-  /** Einmalig beim ersten Wechsel auf Spielerisch: Snackbar-Text „Jetzt mit mehr Schwung!“ */
-  firstTimePlayfulMessage = signal(false);
 
-  presetSnackbarIcon = computed(() => this.themePreset.preset() === 'serious' ? 'school' : 'celebration');
-  presetSnackbarLabel = computed(() => {
-    if (this.firstTimePlayfulMessage() && this.themePreset.preset() === 'spielerisch') {
-      return 'Jetzt mit mehr Schwung!';
-    }
-    return this.themePreset.preset() === 'serious' ? 'Preset: Seriös' : 'Preset: Spielerisch';
-  });
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
   readonly demoSessionCode = 'DEMO01';
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
 
-  private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
-
   ngAfterViewInit(): void {
+    this.focusService.registerInput(this.sessionCodeInput);
     setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 100);
+  }
+
+  ngOnDestroy(): void {
+    this.focusService.registerInput(undefined);
   }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      const storedLang = localStorage.getItem('home-language');
-      if (storedLang && ['de', 'en', 'fr', 'it', 'es'].includes(storedLang)) {
-        this.language.set(storedLang as 'de' | 'en' | 'fr' | 'it' | 'es');
-      }
       this.loadRecentSessionCodes();
     }
     // Health-Check nach First Paint, damit API-Anfrage den kritischen Lade-Pfad nicht blockiert
@@ -123,14 +69,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         setTimeout(() => this.checkApiConnection(), 0);
       }
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (this.snackbarTimer) clearTimeout(this.snackbarTimer);
-    if (this.presetToastRef) {
-      this.presetToastRef.destroy();
-      this.presetToastRef = null;
     }
   }
 
@@ -180,95 +118,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.joinSession();
   }
 
-  setLanguage(code: 'de' | 'en' | 'fr' | 'it' | 'es'): void {
-    this.language.set(code);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('home-language', code);
-    }
-    setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 0);
-  }
-
-  onThemeChange(value: 'system' | 'dark' | 'light'): void {
-    this.themePreset.setTheme(value);
-    this.closeControlsMenu();
-    setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 0);
-  }
-
-  setPreset(value: string | null, closeMenu = false): void {
-    const nextPreset = value === 'serious' || value === 'spielerisch' ? value : null;
-    if (nextPreset) {
-      if (this.themePreset.preset() !== nextPreset) {
-        this.themePreset.setPreset(nextPreset);
-      }
-      this.blurSessionCodeInput();
-      this.showPresetSnackbar();
-    }
-    if (closeMenu) this.closeControlsMenu();
-  }
-
-  private static readonly STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
-
-  private showPresetSnackbar(): void {
-    this.blurSessionCodeInput();
-    const isPlayful = this.themePreset.preset() === 'spielerisch';
-    const firstTime = isPlatformBrowser(this.platformId) && isPlayful && !localStorage.getItem(HomeComponent.STORAGE_PLAYFUL_WELCOMED);
-    this.firstTimePlayfulMessage.set(firstTime);
-    if (firstTime && isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(HomeComponent.STORAGE_PLAYFUL_WELCOMED, '1');
-    }
-    this.presetSnackbarVisible.set(true);
-    if (this.snackbarTimer) clearTimeout(this.snackbarTimer);
-    const duration = firstTime ? 6000 : 5000;
-    this.snackbarTimer = setTimeout(() => {
-      this.presetSnackbarVisible.set(false);
-      this.firstTimePlayfulMessage.set(false);
-      setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 0);
-    }, duration);
-  }
-
-  /** @param refocusInput true = Fokus nach Schließen auf Code-Input setzen (Standard). Bei Aufruf aus openPresetCustomize false. */
-  dismissSnackbar(refocusInput = true): void {
-    this.presetSnackbarVisible.set(false);
-    this.firstTimePlayfulMessage.set(false);
-    if (this.snackbarTimer) { clearTimeout(this.snackbarTimer); this.snackbarTimer = null; }
-    if (refocusInput) setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 0);
-  }
-
-  openPresetCustomize(): void {
-    this.blurSessionCodeInput();
-    this.dismissSnackbar(false);
-    this.presetToastVisible.set(true);
-    setTimeout(() => this.loadPresetToast(), 0);
-  }
-
-  closePresetToast(): void {
-    if (this.presetToastRef) {
-      this.presetToastRef.destroy();
-      this.presetToastRef = null;
-    }
-    this.presetToastVisible.set(false);
-    setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 0);
-  }
-
-  private loadPresetToast(): void {
-    if (this.presetToastRef || !this.presetToastHost) return;
-    import('../../shared/preset-toast/preset-toast.component').then((m) => {
-      if (!this.presetToastHost || this.presetToastRef) return;
-      const ref = this.presetToastHost.vcRef.createComponent(m.PresetToastComponent);
-      (ref.instance as { closed: { subscribe: (fn: () => void) => void } }).closed.subscribe(() =>
-        this.closePresetToast(),
-      );
-      this.presetToastRef = ref;
-    });
-  }
-
   focusCodeInput(): void {
     this.sessionCodeInput?.nativeElement.focus();
-  }
-
-  /** Blur des Code-Inputs, damit auf Mobile die virtuelle Tastatur schließt und Snackbar/Toast sichtbar bleiben. */
-  private blurSessionCodeInput(): void {
-    this.sessionCodeInput?.nativeElement.blur();
   }
 
   private triggerShake(): void {
@@ -282,30 +133,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => this.ctaReady.set(false), 350);
   }
 
-  toggleControlsMenu(): void {
-    this.controlsMenuOpen.set(!this.controlsMenuOpen());
-  }
-
   preloadQuiz(): void {
     import('../quiz/quiz.component').then(() => {});
-  }
-
-  closeControlsMenu(restoreFocus = false): void {
-    this.controlsMenuOpen.set(false);
-    if (restoreFocus) {
-      setTimeout(() => this.controlsToggleBtn?.nativeElement.focus(), 0);
-    }
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscapePressed(): void {
-    if (this.presetToastVisible()) {
-      this.closePresetToast();
-      return;
-    }
-    if (this.controlsMenuOpen()) {
-      this.closeControlsMenu(true);
-    }
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -313,17 +142,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       event.preventDefault();
       if (this.isValidSessionCode()) this.joinSession();
-    }
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.controlsMenuOpen()) return;
-    const target = event.target as Node | null;
-    if (!target) return;
-    const insideHeader = this.homeHeader?.nativeElement.contains(target) ?? false;
-    if (!insideHeader) {
-      this.closeControlsMenu();
     }
   }
 

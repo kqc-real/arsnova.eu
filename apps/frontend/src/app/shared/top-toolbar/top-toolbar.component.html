@@ -1,0 +1,142 @@
+<header
+  class="top-toolbar"
+  [class.top-toolbar--scrolled]="scrolled"
+  [class.top-toolbar--fixed]="hideOnScroll"
+  [class.top-toolbar--hidden]="hideOnScroll && toolbarHidden"
+  role="banner"
+>
+  <div class="top-toolbar__row">
+    <a routerLink="/" class="top-toolbar__brand" aria-label="arsnova.eu Startseite">
+      <svg
+        class="top-toolbar__brand-icon"
+        viewBox="0 0 32 32"
+        preserveAspectRatio="xMidYMid meet"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="toolbar-brand-eu-bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="var(--app-eu-blue)" />
+            <stop offset="100%" stop-color="var(--app-eu-blue-dark)" />
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="6" fill="url(#toolbar-brand-eu-bg)" />
+        <rect x="2" y="2" width="28" height="28" rx="5" fill="var(--app-eu-blue)" />
+        <path
+          class="top-toolbar__brand-star"
+          d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"
+          fill="var(--app-eu-yellow)"
+        />
+      </svg>
+      <span class="top-toolbar__brand-title">arsnova.eu</span>
+    </a>
+
+    <button
+      type="button"
+      matIconButton
+      class="top-toolbar__menu-btn mobile-only"
+      [attr.aria-expanded]="controlsMenuOpen() ? 'true' : 'false'"
+      aria-controls="top-toolbar-mobile"
+      aria-label="Einstellungen öffnen"
+      (click)="toggleControlsMenu()"
+    >
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <div class="top-toolbar__controls desktop-only">
+      <mat-button-toggle-group
+        [value]="themePreset.preset()"
+        appearance="standard"
+        aria-label="Preset auswählen"
+        class="top-toolbar__toggles"
+      >
+        <mat-button-toggle value="serious" (click)="setPreset('serious')">
+          <mat-icon>school</mat-icon> Seriös
+        </mat-button-toggle>
+        <mat-button-toggle value="spielerisch" (click)="setPreset('spielerisch')">
+          <mat-icon class="top-toolbar__preset-icon-playful">celebration</mat-icon> Spielerisch
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <mat-button-toggle-group
+        [value]="themePreset.theme()"
+        (change)="onThemeChange($event.value)"
+        appearance="standard"
+        aria-label="Theme"
+        class="top-toolbar__toggles"
+      >
+        <mat-button-toggle value="system" aria-label="System">
+          <mat-icon>contrast</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="dark" aria-label="Dark">
+          <mat-icon>dark_mode</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="light" aria-label="Light">
+          <mat-icon>light_mode</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <button matIconButton [matMenuTriggerFor]="langMenu" aria-label="Sprache" class="top-toolbar__icon-btn">
+        <mat-icon>language</mat-icon>
+      </button>
+      <mat-menu #langMenu="matMenu">
+        @for (lang of supportedLanguages; track lang.code) {
+          <button mat-menu-item (click)="setLanguage(lang.code)">
+            <mat-icon matMenuItemIcon>language</mat-icon>
+            {{ lang.label }}
+          </button>
+        }
+      </mat-menu>
+    </div>
+  </div>
+
+  @if (controlsMenuOpen()) {
+    <div id="top-toolbar-mobile" class="top-toolbar__mobile l-stack l-stack--sm">
+      <mat-button-toggle-group
+        [value]="themePreset.preset()"
+        appearance="standard"
+        aria-label="Preset auswählen"
+        class="top-toolbar__toggles top-toolbar__toggles--full"
+      >
+        <mat-button-toggle value="serious" (click)="setPreset('serious', true)">
+          <mat-icon>school</mat-icon> Seriös
+        </mat-button-toggle>
+        <mat-button-toggle value="spielerisch" (click)="setPreset('spielerisch', true)">
+          <mat-icon class="top-toolbar__preset-icon-playful">celebration</mat-icon> Spielerisch
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <mat-button-toggle-group
+        [value]="themePreset.theme()"
+        (change)="onThemeChange($event.value)"
+        appearance="standard"
+        aria-label="Theme"
+        class="top-toolbar__toggles top-toolbar__toggles--full"
+      >
+        <mat-button-toggle value="system" aria-label="System">
+          <mat-icon>contrast</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="dark" aria-label="Dark">
+          <mat-icon>dark_mode</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="light" aria-label="Light">
+          <mat-icon>light_mode</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <div class="top-toolbar__mobile-lang">
+        <button matIconButton [matMenuTriggerFor]="langMenuMobile" aria-label="Sprache" class="top-toolbar__icon-btn">
+          <mat-icon>language</mat-icon>
+        </button>
+      </div>
+      <mat-menu #langMenuMobile="matMenu">
+        @for (lang of supportedLanguages; track lang.code) {
+          <button mat-menu-item (click)="setLanguage(lang.code)">
+            <mat-icon matMenuItemIcon>language</mat-icon>
+            {{ lang.label }}
+          </button>
+        }
+      </mat-menu>
+    </div>
+  }
+</header>

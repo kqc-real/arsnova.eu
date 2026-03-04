@@ -105,6 +105,15 @@ Tokenbasierte Card-Flaeche:
 ## Startseite: Mobile-Hierarchie
 - Auf Mobile (`< 600 px`) erhaelt die Mitmachen-Karte einen **3 px Primary-Top-Border** als visuellen Akzent, um sie als primaere Aktion hervorzuheben.
 
+## Top-Toolbar und Scroll-Verhalten (seitenuebergreifend)
+- **Inhalt:** Logo (Link zur Startseite), Preset-Umschalter (Serioes/Spielerisch), Theme-Umschalter (System/Dark/Light), Sprachauswahl. Die Toolbar erscheint auf **allen** Seiten (Startseite, Quiz, Session, Help, Legal).
+- **Position:** Die Toolbar ist **fixiert** (position: fixed), damit Hide-on-Scroll funktioniert. Der Hauptinhalt (`main`) erhaelt `padding-top: 3.5rem`, damit nichts unter der Toolbar verschwindet.
+- **Hide-on-Scroll (UX-Empfehlung):** Entsprechend Material Design und UX-Research (Hybrid-Pattern) gilt auf **allen** Seiten: Beim **Runterscrollen** (ab ca. 80 px) wird die Toolbar ausgeblendet (transform translateY(-100%)), beim **Hochscrollen** erscheint sie wieder. So bleibt mehr Platz fuer Inhalt beim Lesen, die Navigation ist beim Hochscrollen sofort wieder da. Animation der Ein-/Ausblendung nur bei `prefers-reduced-motion: no-preference`.
+- **Scroll-Elevation:** Sobald gescrollt wurde (scrollY > 0), erhaelt die Toolbar einen staerkeren Schatten (`--mat-sys-level2`) zur Abhebung vom Inhalt (Material/Apple-konform).
+- **Mobile:** Kompakte Hoehe (min-height 48 px, reduziertes Padding 0.5 rem / 0.75 rem), damit die Toolbar wenig Platz wegnimmt.
+- **Bei Navigation:** Beim Seitenwechsel (NavigationEnd) wird die Toolbar wieder eingeblendet (sichtbar beim Landen auf einer neuen Seite).
+- **Fokus-Steuerung:** Beim Anzeigen der Preset-Snackbar oder des Preset-Toasts wird das fokussierte Eingabefeld (z. B. Session-Code auf der Startseite) geblurt, damit die virtuelle Tastatur auf Mobile schliesst und Snackbar/Toast nicht ueberdeckt. Beim Schliessen wird optional wieder fokussiert (PresetSnackbarFocusService). Startseite registriert den Session-Code-Input; Toolbar ruft nach Sprach-/Theme-Wechsel refocusInput auf.
+
 ## Wording: Anrede und Typografie
 - **Gedankenstriche:** In der UI sparsam einsetzen – wirken schnell akademisch oder schwer. Stattdessen Komma, Doppelpunkt oder Punkt (z. B. „Kita bis Uni …“ statt „… Zielgruppe – von …“).
 - **Duzen:** In der gesamten App (Hilfe, Hinweise, Buttons, Fehlermeldungen) wird die Nutzerin/der Nutzer mit **Du** angesprochen – einheitlich fuer alle Rollen (Veranstaltende und Teilnehmende). Entspricht dem Vorgehen vieler Lern- und Umfrage-Apps (z. B. Mentimeter, Kahoot!, Slido). Formelles "Sie" nur in rechtlichen Texten (Impressum, Datenschutz), wo ueblich.
@@ -116,7 +125,7 @@ Tokenbasierte Card-Flaeche:
 ## Preset-Toast (Modal): Design
 - **Backdrop:** Gedimmt (`color-mix` on-surface 32 %) + leichter `backdrop-filter: blur(4px)`. Klick schliesst. Einblend-Animation (0.2 s) nur bei `prefers-reduced-motion: no-preference`.
 - **Modal:** Zentriert, Einblend-Animation scale(0.96) → 1 + fade (0.25 s). Sticky-Header mit Trennlinie, damit Titel und „Stil wechseln“ beim Scrollen sichtbar bleiben.
-- **Header-Akzent:** 4 px linke Randlinie; bei Preset Spielerisch in Primary-Farbe. Titelicone in Container (surface-container-high bzw. bei Spielerisch Primary-Tint 18 %).
+- **Header:** Kein linker Balken im Toast-Header. Titelicone in Container (surface-container-high bzw. bei Spielerisch Primary-Tint 18 %).
 - **Stil wechseln:** Als Pill-Button (corner-full, Outline, swap_horiz-Icon), nicht als Text-Link. Hover: Primary-Border und -Text.
 - **Kategorien:** Jede Kategorie als eigene Karte (surface-container-low, Border, border-radius medium), klare Labels (title-small, font-weight 600).
 - **Chips:** Leichter Active-State (scale 0.98) bei `:active`, nur wenn reduced-motion aus.

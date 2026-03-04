@@ -1,0 +1,164 @@
+/* Standard: sticky; mit --fixed (position: fixed) für Hide-on-Scroll auf allen Seiten. */
+.top-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-bottom: 1.25rem;
+  border-radius: var(--mat-sys-corner-extra-large);
+  background: var(--mat-sys-surface-container);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--mat-sys-level1);
+  font-size: 0.875rem;
+  transition: box-shadow 0.2s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .top-toolbar--fixed {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+}
+
+/* Stärkerer Schatten nach Scroll (Elevation, Material/Apple-konform). */
+.top-toolbar--scrolled {
+  box-shadow: var(--mat-sys-level2);
+}
+
+/* Fixiert für Hide-on-Scroll (Runterscrollen = ausblenden, Hochscrollen = einblenden). */
+.top-toolbar--fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  margin-bottom: 0;
+}
+
+.top-toolbar--fixed.top-toolbar--hidden {
+  transform: translateY(-100%);
+}
+
+@media (max-width: 599px) {
+  .top-toolbar {
+    min-height: 48px;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+.top-toolbar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (min-width: 600px) {
+  .top-toolbar__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  .top-toolbar__brand {
+    justify-self: start;
+  }
+  .top-toolbar__controls {
+    grid-column: 2 / -1;
+    display: flex;
+    justify-content: space-evenly;
+    justify-self: stretch;
+  }
+}
+
+.top-toolbar__brand {
+  --app-eu-blue: #002395;
+  --app-eu-blue-dark: #001a75;
+  --app-eu-yellow: #ffcc00;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.top-toolbar__brand-star {
+  /* EU-Stern-Anlehnung */
+}
+
+.top-toolbar__brand-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: var(--mat-sys-corner-small);
+}
+
+.top-toolbar__brand-title {
+  font-size: 1.375rem;
+  line-height: 1.25;
+  font-weight: 500;
+  font-family: inherit;
+  margin: 0;
+}
+
+.mobile-only {
+  display: inline-flex;
+}
+.desktop-only {
+  display: none;
+}
+@media (max-width: 599px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+@media (min-width: 600px) {
+  .mobile-only {
+    display: none;
+  }
+  .desktop-only {
+    display: inline-flex;
+  }
+}
+
+.top-toolbar__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.top-toolbar__toggles {
+  border: none;
+  background: transparent;
+
+  .mat-button-toggle {
+    border: none !important;
+    background: transparent;
+  }
+  .mat-button-toggle-checked {
+    border: none !important;
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+  }
+  .mat-button-toggle-checked .mat-icon {
+    color: var(--mat-sys-primary);
+  }
+}
+.top-toolbar__toggles--full {
+  width: 100%;
+
+  .mat-button-toggle {
+    flex: 1;
+  }
+}
+
+.top-toolbar__preset-icon-playful {
+  /* Spielerisch-Icon */
+}
+
+.top-toolbar__mobile {
+  margin-top: 1rem;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding-top: 1rem;
+  align-items: flex-end;
+}
+
+.top-toolbar__mobile-lang {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}

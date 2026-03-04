@@ -109,16 +109,6 @@
   vertical-align: bottom !important;
 }
 
-.preset-toast__head-accent {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--mat-sys-outline-variant);
-  border-radius: 0 2px 2px 0;
-}
-
 .preset-toast__head-text {
   flex: 1;
   min-width: 0;
