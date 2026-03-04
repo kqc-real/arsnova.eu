@@ -4,24 +4,11 @@
       <mat-icon class="quiz-page__title-icon">quiz</mat-icon>
       Meine Quizzes
     </h1>
-    <a matButton routerLink="/" aria-label="Zurück zur Startseite">
+    <a mat-button routerLink="/" aria-label="Zurück zur Startseite">
       <mat-icon>arrow_back</mat-icon>
       Startseite
     </a>
   </div>
 
-  <mat-card appearance="outlined" class="quiz-empty-state">
-    <mat-card-content class="quiz-empty-state__content">
-      <p class="quiz-empty-state__text">
-        Noch keine Quizzes.
-      </p>
-      <button matButton="filled" aria-label="Neues Quiz erstellen">
-        <mat-icon>add_circle</mat-icon>
-        Neues Quiz erstellen
-      </button>
-      <p class="quiz-empty-state__hint">
-        Hier Quizzes anlegen und verwalten.
-      </p>
-    </mat-card-content>
-  </mat-card>
+  <router-outlet />
 </div>

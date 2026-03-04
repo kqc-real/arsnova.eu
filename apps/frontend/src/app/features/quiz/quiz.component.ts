@@ -1,17 +1,15 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 
 /**
- * Quiz-Verwaltungsseite (Epic 1).
- * Platzhalter – wird mit Story 1.1 (Quiz erstellen) implementiert.
+ * Quiz-Shell (Epic 1). Child-Routes: Liste, new, :id, :id/preview, sync/:docId.
  */
 @Component({
   selector: 'app-quiz',
-  imports: [RouterLink, MatButton, MatCard, MatCardContent, MatIcon],
+  imports: [RouterLink, RouterOutlet, MatButton, MatIcon],
   templateUrl: './quiz.component.html',
-  styleUrls: ['./quiz.component.scss'],
+  styleUrl: './quiz.component.scss',
 })
 export class QuizComponent {}

@@ -177,7 +177,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isJoining.set(true);
     this.addToRecentSessionCodes(code);
     try {
-      await this.router.navigate(['/session', code]);
+      await this.router.navigate(['/join', code]);
     } finally {
       this.isJoining.set(false);
     }

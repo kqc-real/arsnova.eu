@@ -1,0 +1,13 @@
+@if (isPreviewActive()) {
+  <router-outlet />
+} @else {
+  <mat-card appearance="outlined" class="quiz-placeholder">
+    <mat-card-content>
+      <p class="quiz-placeholder__text">Quiz bearbeiten (ID: {{ id }}) – Story 1.2a–1.4, 1.7, 1.10–1.12</p>
+      <a mat-button routerLink=".." aria-label="Zurück zur Quiz-Liste">
+        <mat-icon>arrow_back</mat-icon>
+        Zurück
+      </a>
+    </mat-card-content>
+  </mat-card>
+}

@@ -24,15 +24,24 @@ export class LegalPageComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   content = signal<SafeHtml | null>(null);
 
+  private getSlug(): string {
+    return (this.route.snapshot.data['slug'] ?? this.route.snapshot.paramMap.get('slug') ?? '') as string;
+  }
+
   ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((paramMap) => {
-      const slug = paramMap.get('slug') ?? '';
+    this.route.data.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      const slug = this.getSlug();
       this.loading.set(true);
       this.error.set(null);
       this.content.set(null);
 
       if (slug !== 'imprint' && slug !== 'privacy') {
         this.error.set('Seite nicht gefunden.');
+        this.loading.set(false);
+        return;
+      }
+
+      if (typeof document === 'undefined') {
         this.loading.set(false);
         return;
       }

@@ -1,0 +1,37 @@
+.session-card {
+  margin-top: 1rem;
+}
+
+.session-card__header {
+  text-align: center;
+}
+
+.session-card__code {
+  color: var(--mat-sys-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.session-card__meta {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface);
+}
+
+.session-card__label {
+  font-weight: 600;
+}
+
+.session-card__hint {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.session-placeholder__text {
+  margin: 0 0 1rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
