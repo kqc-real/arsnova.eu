@@ -226,7 +226,7 @@ export class PresetToastComponent implements OnInit {
     this.toastHint.set(
       preset === 'serious'
         ? 'Anonym, ohne Wettbewerb, Fokus auf Inhalte.'
-        : 'Mit Rangliste, Sounds und Anfeuerung, für mehr Motivation.'
+        : 'Mit Rangliste, Sounds, Anfeuerung und Countdown auf allen Handys – für mehr Motivation.'
     );
 
     let state: PresetOptionState;

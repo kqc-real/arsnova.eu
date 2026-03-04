@@ -2,12 +2,22 @@
   <div class="preset-toast" [class.preset-toast--playful]="themePreset.preset() === 'spielerisch'" (click)="$event.stopPropagation()">
   <div class="preset-toast__scroll">
     <div class="preset-toast__head">
-      <div class="preset-toast__head-accent"></div>
+      @if (themePreset.preset() === 'spielerisch') {
+        <img
+          src="assets/images/countdown-fingers.gif"
+          alt="Countdown 5 bis 0 mit Handzeichen"
+          class="preset-toast__head-countdown"
+        />
+      } @else {
+        <div class="preset-toast__head-accent"></div>
+      }
       <div class="preset-toast__head-text">
         <p class="preset-toast__title">
-          <span class="preset-toast__title-icon-wrap">
-            <mat-icon class="preset-toast__title-icon">{{ toastIcon() }}</mat-icon>
-          </span>
+          @if (themePreset.preset() !== 'spielerisch') {
+            <span class="preset-toast__title-icon-wrap">
+              <mat-icon class="preset-toast__title-icon">{{ toastIcon() }}</mat-icon>
+            </span>
+          }
           {{ toastTitle() }}
         </p>
         <p class="preset-toast__preset-hint">{{ toastHint() }}</p>
