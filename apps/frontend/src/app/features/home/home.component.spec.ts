@@ -108,7 +108,7 @@ describe('HomeComponent', () => {
       expect(comp.joinError()).toBeTruthy();
     });
 
-    it('navigiert zu /session/:code bei gültigem Code', async () => {
+    it('navigiert zu /join/:code bei gültigem Code', async () => {
       const comp = createComponent();
       const router = TestBed.inject(Router);
       const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -116,7 +116,7 @@ describe('HomeComponent', () => {
       comp.sessionCode.set('TEST01');
       await comp.joinSession();
 
-      expect(navSpy).toHaveBeenCalledWith(['/session', 'TEST01']);
+      expect(navSpy).toHaveBeenCalledWith(['/join', 'TEST01']);
     });
 
     it('speichert Code in recentSessionCodes', async () => {
