@@ -10,6 +10,7 @@ import {
   ViewContainerRef,
   computed,
   inject,
+  isDevMode,
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
@@ -24,6 +25,14 @@ import { Subscription } from 'rxjs';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
+const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
+const PWA_INSTALL_DISMISSED_DAYS = 7;
+
+/** Browser-Event für „App installieren“ (PWA). */
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 @Directive({ selector: '[presetToastHost]', standalone: true })
 class PresetToastHostDirective {
@@ -44,9 +53,14 @@ export class AppComponent implements OnInit, OnDestroy {
   presetToastVisible = signal(false);
   /** Einmalig beim ersten Wechsel auf Spielerisch: Snackbar-Text „Jetzt mit mehr Schwung!“ */
   firstTimePlayfulMessage = signal(false);
+  /** PWA installierbar (beforeinstallprompt) – Snackbar-Hinweis v. a. für Mobile sichtbar. */
+  installSnackbarVisible = signal(false);
   @ViewChild(PresetToastHostDirective) private presetToastHost?: PresetToastHostDirective;
   private presetToastRef: ComponentRef<unknown> | null = null;
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
+  private deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
+  private beforeInstallPromptListener = (e: Event): void => this.onBeforeInstallPrompt(e as BeforeInstallPromptEvent);
+  private appInstalledListener = (): void => this.onAppInstalled();
 
   readonly themePreset = inject(ThemePresetService);
   private readonly platformId = inject(PLATFORM_ID);
@@ -77,6 +91,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       this.isOnline.set(navigator.onLine);
       this.checkForUpdates();
+      this.setupPwaInstallPrompt();
       this.routerSub = this.router.events
         .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
         .subscribe(() => this.toolbarHidden.set(false));
@@ -87,6 +102,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.versionSub?.unsubscribe();
     this.routerSub?.unsubscribe();
     if (this.snackbarTimer) clearTimeout(this.snackbarTimer);
+    if (isPlatformBrowser(this.platformId)) {
+      window.removeEventListener('beforeinstallprompt', this.beforeInstallPromptListener);
+      window.removeEventListener('appinstalled', this.appInstalledListener);
+      if (isDevMode()) {
+        window.removeEventListener('pwa-install-test', this.pwaInstallTestListener);
+        delete (window as unknown as { __triggerPwaInstallHint?: () => void }).__triggerPwaInstallHint;
+      }
+    }
   }
 
   @HostListener('window:scroll')
@@ -107,6 +130,79 @@ export class AppComponent implements OnInit, OnDestroy {
     this.versionSub = this.swUpdate.versionUpdates.subscribe((evt) => {
       if (evt.type === 'VERSION_READY') this.updateAvailable.set(true);
     });
+  }
+
+  private setupPwaInstallPrompt(): void {
+    if (this.isStandalone()) return;
+    if (this.wasInstallDismissedRecently()) return;
+    window.addEventListener('beforeinstallprompt', this.beforeInstallPromptListener);
+    window.addEventListener('appinstalled', this.appInstalledListener);
+    if (isDevMode()) {
+      window.addEventListener('pwa-install-test', this.pwaInstallTestListener);
+      /** In DevTools-Konsole ausführen: window.__triggerPwaInstallHint() – zeigt die PWA-Install-Snackbar zum Testen. */
+      (window as unknown as { __triggerPwaInstallHint?: () => void }).__triggerPwaInstallHint =
+        () => window.dispatchEvent(new CustomEvent('pwa-install-test'));
+    }
+  }
+
+  private readonly pwaInstallTestListener = (): void => {
+    const mock: BeforeInstallPromptEvent = {
+      prompt: () => Promise.resolve(),
+      userChoice: Promise.resolve({ outcome: 'dismissed' as const }),
+    } as BeforeInstallPromptEvent;
+    this.deferredInstallPrompt = mock;
+    this.installSnackbarVisible.set(true);
+  };
+
+  private isStandalone(): boolean {
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as { standalone?: boolean }).standalone === true
+    );
+  }
+
+  private wasInstallDismissedRecently(): boolean {
+    try {
+      const raw = localStorage.getItem(STORAGE_PWA_INSTALL_DISMISSED);
+      if (!raw) return false;
+      const t = Number(raw);
+      if (Number.isNaN(t)) return false;
+      return Date.now() - t < PWA_INSTALL_DISMISSED_DAYS * 24 * 60 * 60 * 1000;
+    } catch {
+      return false;
+    }
+  }
+
+  private onBeforeInstallPrompt(e: BeforeInstallPromptEvent): void {
+    e.preventDefault();
+    this.deferredInstallPrompt = e;
+    this.installSnackbarVisible.set(true);
+  }
+
+  private onAppInstalled(): void {
+    this.deferredInstallPrompt = null;
+    this.installSnackbarVisible.set(false);
+  }
+
+  dismissInstallSnackbar(): void {
+    this.installSnackbarVisible.set(false);
+    try {
+      localStorage.setItem(STORAGE_PWA_INSTALL_DISMISSED, String(Date.now()));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async triggerInstall(): Promise<void> {
+    if (!this.deferredInstallPrompt) return;
+    try {
+      await this.deferredInstallPrompt.prompt();
+      const { outcome } = await this.deferredInstallPrompt.userChoice;
+      if (outcome === 'accepted') this.onAppInstalled();
+      else this.dismissInstallSnackbar();
+    } catch {
+      this.dismissInstallSnackbar();
+    }
   }
 
   async reloadWithUpdate(): Promise<void> {

@@ -33,6 +33,18 @@
       </button>
     </div>
   }
+  @if (installSnackbarVisible()) {
+    <div class="app-install-snackbar" role="status">
+      <span class="app-install-snackbar__icon-wrap">
+        <mat-icon class="app-install-snackbar__icon">get_app</mat-icon>
+      </span>
+      <span class="app-install-snackbar__text">App installieren und schneller starten</span>
+      <button type="button" class="app-install-snackbar__action" (click)="triggerInstall()">Installieren</button>
+      <button type="button" class="app-install-snackbar__close" (click)="dismissInstallSnackbar()" aria-label="Schließen">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
 
   <app-top-toolbar
     (presetChanged)="onPresetChanged()"
