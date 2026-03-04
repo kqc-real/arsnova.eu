@@ -3,11 +3,13 @@
   <div class="preset-toast__scroll">
     <div class="preset-toast__head">
       @if (themePreset.preset() === 'spielerisch') {
-        <img
-          src="assets/images/countdown-fingers.gif"
-          alt="Countdown 5 bis 0 mit Handzeichen"
-          class="preset-toast__head-countdown"
-        />
+        <span class="preset-toast__head-countdown-wrap">
+          <img
+            src="assets/images/countdown-fingers.gif"
+            alt="Countdown 5 bis 0 mit Handzeichen"
+            class="preset-toast__head-countdown"
+          />
+        </span>
       } @else {
         <div class="preset-toast__head-accent"></div>
       }
