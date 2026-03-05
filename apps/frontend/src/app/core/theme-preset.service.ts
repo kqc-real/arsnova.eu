@@ -10,7 +10,8 @@ export type PresetValue = 'serious' | 'spielerisch';
 
 @Injectable({ providedIn: 'root' })
 export class ThemePresetService {
-  readonly theme = signal<ThemeValue>('dark');
+  /** System als Default: folgt der OS-Einstellung (Apple/UX-Best-Practice), Fallback-Verhalten bei fehlender Preference bleibt light. */
+  readonly theme = signal<ThemeValue>('system');
   readonly preset = signal<PresetValue>('spielerisch');
 
   /** Wird bei jedem setPreset() ausgelöst, damit die App z. B. die Preset-Snackbar anzeigen kann (Toolbar + Hero-Toggle). */

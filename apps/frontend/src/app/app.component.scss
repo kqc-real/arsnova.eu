@@ -9,9 +9,19 @@
   flex: 1;
 }
 
-/* Platz für fixierte Toolbar (Hide-on-Scroll auf allen Seiten). */
+/* Platz für fixierte Toolbar (Top-Inset 0.5rem/0.75rem/1rem + Toolbar-Höhe). */
 .app-main--toolbar-fixed {
-  padding-top: 3.5rem;
+  padding-top: 4rem;
+}
+@media (min-width: 600px) {
+  .app-main--toolbar-fixed {
+    padding-top: 4.5rem;
+  }
+}
+@media (min-width: 840px) {
+  .app-main--toolbar-fixed {
+    padding-top: 5rem;
+  }
 }
 
 .app-skip-link {
