@@ -9,6 +9,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **Projekt:** arsnova.eu – interaktive Quiz- und Abstimmungsplattform (Live-Sessions, Dozent/Student-Rollen).
 - **KI-Rolle:** Lead-Architekt / Senior Full-Stack; Entscheidungen an Monorepo-Regeln und Backlog ausrichten.
 - **Artefakte:** Backlog.md (Storys, DoD), Prisma-Schema, Zod-Schemas in libs/shared-types, Diagramme in docs/diagrams/.
+- **Hintergrund (ARSnova-Ökosystem):** Dieses Repo ist eine moderne Neuimplementierung im Geiste von arsnova.click (THM) und der ARSnova-Tradition (Zero-Knowledge, Gamification, Bonus-Code, Didaktik). Genealogie, Didaktik und technische Grundlagen: **docs/background-arsnova-ecosystem.md**; vollständige Publikationsanalyse: **docs/deep-research-arsnova.click/ARSnova-Recherche.pdf**.
 
 ---
 
@@ -143,6 +144,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 ## 13. Wichtige Dateien für Kontext
 
 - **Backlog:** Backlog.md (Repo-Root) – vor Story-Start prüfen.
+- **Hintergrund / Ökosystem:** docs/background-arsnova-ecosystem.md (Kurzüberblick ARSnova-Familie, Bezug zu diesem Repo); docs/deep-research-arsnova.click/ARSnova-Recherche.pdf (Deep Research zu arsnova.click, Genealogie, Publikationen).
 - **Mitwirken / Handover:** CONTRIBUTING.md – Einstieg für Studis (Setup, Story-Wahl, DoD vor PR, Branch/PR); bei Fragen zu Workflow oder „wie starte ich?“ darauf verweisen.
 - **Schema:** prisma/schema.prisma; libs/shared-types/src/schemas.ts (Zod, DTOs).
 - **Router:** apps/backend/src/routers/index.ts, apps/backend/src/routers/*.ts.

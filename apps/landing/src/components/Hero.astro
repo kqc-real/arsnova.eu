@@ -6,18 +6,21 @@ const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BA
 <section class="relative overflow-hidden bg-slate-900 px-4 py-20 sm:px-6 sm:py-28 lg:py-36" aria-labelledby="hero-heading">
   <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(14,165,233,0.25),transparent)]" aria-hidden="true" />
   <div class="relative mx-auto max-w-4xl text-center">
-    <p class="mb-4 text-sm font-semibold uppercase tracking-wider text-brand-400">Die europäische Alternative</p>
+    <p class="mb-4 text-sm font-semibold uppercase tracking-wider text-brand-400">Die führende europäische Alternative zu Kahoot & Mentimeter</p>
     <h1 id="hero-heading" class="font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
       Quizzen, abstimmen.<br />
       <span class="text-brand-400">Gemeinsam und live.</span>
     </h1>
     <p class="mx-auto mt-6 max-w-2xl text-lg text-slate-300 sm:text-xl">
-      Kostenlos · 100 % DSGVO-konform · Open Source. Kein Account, keine Abos. Quiz-Inhalte bleiben bei dir. Local-First, Self-Hosted oder sofort loslegen. Kita bis Uni, Seriös bis Spielerisch.
+      Kostenlos · 100 % DSGVO-konform · Open Source. Kein Account, keine Abos. Quiz-Inhalte bleiben bei dir – Local-First, Self-Hosted. Kita bis Uni, Seriös bis Spielerisch. Die erste Wahl für Hochschulen und Bildung.
     </p>
     <div class="mt-10 flex flex-wrap items-center justify-center gap-4" id="start">
       <a href={APP_URL_V3} class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-slate-900">
         <img src={`${base}favicon.svg`} alt="" class="h-5 w-5 shrink-0" width="20" height="20" />
         Jetzt testen (Beta)
+      </a>
+      <a href={`${base}#vertrauen`} class="inline-flex items-center rounded-xl border border-slate-600 bg-slate-800/50 px-6 py-3.5 text-base font-semibold text-white backdrop-blur transition hover:border-slate-500 hover:bg-slate-800">
+        Bewertungen aus Forschung & Praxis
       </a>
       <a href={`${base}#vergleich`} class="inline-flex items-center rounded-xl border border-slate-600 bg-slate-800/50 px-6 py-3.5 text-base font-semibold text-white backdrop-blur transition hover:border-slate-500 hover:bg-slate-800">
         Mit Kahoot & Mentimeter vergleichen
@@ -28,6 +31,7 @@ const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BA
       <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" /> Bonus-Code für Top-Plätze</li>
       <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" /> Local-First · Kein Account</li>
       <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" /> KaTeX & Markdown · Lesephase</li>
+      <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" /> KI-Quiz ohne Datenpreisgabe</li>
       <li class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" /> Self-Hosted · WCAG 2.1 AA</li>
     </ul>
   </div>

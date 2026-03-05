@@ -12,7 +12,7 @@ const { title, description, canonical, noindex = false } = Astro.props;
 /** Base path für Links (z. B. /arsnova.eu/ bei GitHub Pages) */
 const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
 const site = 'https://arsnova.eu';
-const fullTitle = title === 'Start' ? 'arsnova.eu – Live-Quiz & Abstimmung. 100 % DSGVO. Kostenlos.' : `${title} · arsnova.eu`;
+const fullTitle = title === 'Start' ? 'arsnova.eu – Führende Alternative zu Kahoot & Mentimeter. Live-Quiz, 100 % DSGVO, kostenlos.' : `${title} · arsnova.eu`;
 const url = canonical ? new URL(canonical, site).href : site;
 const ogImage = new URL('/og.png', site).href;
 ---
@@ -51,12 +51,12 @@ const ogImage = new URL('/og.png', site).href;
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'arsnova.eu',
-      description: 'Kostenlose, DSGVO-konforme Live-Quiz- und Abstimmungsplattform Kita bis Uni. Kein Account nötig, Local-First, Self-Hosted.',
+      description: 'Führende europäische Alternative zu Kahoot & Mentimeter. Kostenlos, DSGVO-konform, Local-First, kein Account. Stil Seriös/Spielerisch, Bonus-Code, KaTeX, Lesephase, KI-Quiz ohne Datenpreisgabe. Open Source, Self-Hosted, WCAG 2.1 AA.',
       url: site,
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'Web',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-      featureList: ['Live-Quiz', 'Abstimmungen', 'DSGVO-konform', 'Local-First', 'Self-Hosted', 'KaTeX', 'Lesephase', 'WCAG 2.1 AA'],
+      featureList: ['Live-Quiz', 'Abstimmungen', 'DSGVO-konform', 'Local-First', 'Self-Hosted', 'KaTeX', 'Lesephase', 'KI-Quiz Zero-Knowledge', 'WCAG 2.1 AA', 'Bonus-Code für Top-Plätze'],
     })} />
   </head>
   <body class="min-h-screen overflow-x-hidden bg-slate-900 text-slate-100 font-sans antialiased">
@@ -70,6 +70,7 @@ const ogImage = new URL('/og.png', site).href;
           <!-- Desktop: Links in einer Zeile -->
           <div class="hidden items-center gap-6 md:flex">
             <a href={`${base}#features`} class="text-sm font-medium text-slate-400 hover:text-white">Features</a>
+            <a href={`${base}#vertrauen`} class="text-sm font-medium text-slate-400 hover:text-white">Bewertungen</a>
             <a href={`${base}#vergleich`} class="text-sm font-medium text-slate-400 hover:text-white">Vergleich</a>
             <a href={GITHUB_URL} class="text-sm font-medium text-slate-400 hover:text-white" target="_blank" rel="noopener noreferrer">GitHub</a>
             <a href={`${base}#start`} class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500">Jetzt starten</a>
@@ -95,6 +96,7 @@ const ogImage = new URL('/og.png', site).href;
         <!-- Mobile: ausklappbares Menü -->
         <div id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 md:hidden" role="menu">
           <a href={`${base}#features`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Features</a>
+          <a href={`${base}#vertrauen`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Bewertungen</a>
           <a href={`${base}#vergleich`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Vergleich</a>
           <a href={GITHUB_URL} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" target="_blank" rel="noopener noreferrer" role="menuitem">GitHub</a>
           <a href={`${base}#start`} class="mt-2 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-brand-500" role="menuitem">Jetzt starten</a>

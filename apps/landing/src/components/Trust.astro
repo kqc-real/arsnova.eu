@@ -1,0 +1,70 @@
+---
+import { GITHUB_URL } from '@/config/github';
+/**
+ * Vertrauens- und Bewertungs-Sektion.
+ * Aussagen aus der Deep Research zu arsnova.click (docs/deep-research-arsnova.click/ARSnova-Recherche.pdf):
+ * - Wissenschaftliche Validierung (DeLFI, EDULEARN, Springer, fnm-austria)
+ * - Technische Bewertung (Privacy-by-Design, EdTech-Community)
+ * - Nutzung an Hochschulen, Praxis-Transfer
+ */
+const researchPdfUrl = `${GITHUB_URL}/blob/main/docs/deep-research-arsnova.click/ARSnova-Recherche.pdf`;
+const items = [
+  {
+    quote: 'Bei der Realisierung wurde konsequent ein datenschutzkonformer Weg beschritten: Es werden keine personenbezogenen Daten auf dem Server gehalten.',
+    source: 'DeLFI 2017 (e-Learning Fachtagung Informatik)',
+    tag: 'Wissenschaft',
+  },
+  {
+    quote: 'UX-Evaluation „Kahoot! vs. arsnova.click“ – empirische Validierung des Designs.',
+    source: 'Forum neue Medien in der Lehre Austria (fnm-austria)',
+    tag: 'Studie',
+  },
+  {
+    quote: 'Technische Meisterleistung im Bereich Privacy-by-Design … von höchstem Wert für die deutsche und europäische EdTech-Community.',
+    source: 'Analyse der technischen Veröffentlichungen (Code & Architektur)',
+    tag: 'Architektur',
+  },
+  {
+    quote: 'Breite Akzeptanz und Nutzung an zahlreichen Hochschulen.',
+    source: 'FU Berlin, Ruhr-Universität Bochum, Uni Hamburg, Uni Halle u. a.',
+    tag: 'Hochschulen',
+  },
+  {
+    quote: 'Das Tool ist in der Praxis angekommen, wird kritisch reflektiert und hat eine Nutzerbasis, die ihr Wissen multipliziert – das Endziel jedes erfolgreichen Wissenstransfers.',
+    source: 'Synthese der didaktischen Veröffentlichungen (Grey Literature)',
+    tag: 'Praxis',
+  },
+  {
+    quote: 'Alle vier Quadranten eines modernen und vorbildlichen akademischen F&E-Projekts: Wissenschaftliche Validierung, Nachwuchsförderung, technische Innovation, didaktischer Transfer.',
+    source: 'Zusammenfassende Bewertung der Publikationslandschaft',
+    tag: 'Forschung',
+  },
+];
+---
+
+<section id="vertrauen" class="border-b border-slate-700 bg-slate-800/50 px-4 py-16 sm:px-6 sm:py-24" aria-labelledby="trust-heading">
+  <div class="mx-auto max-w-6xl">
+    <h2 id="trust-heading" class="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Bewährt durch Forschung und Praxis</h2>
+    <p class="mt-3 max-w-2xl text-lg text-slate-400">
+      arsnova.eu steht in der Tradition des ARSnova-Projekts (THM, seit 2012). Die Vorgänger arsnova.click und ARSnova wurden in Peer-Review-Publikationen (DeLFI, EDULEARN, Springer), UX-Studien und an Hochschulen bewertet und genutzt. Auszüge aus der Analyse der Veröffentlichungen:
+    </p>
+
+    <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {items.map((item) => (
+        <li class="flex flex-col rounded-2xl border border-slate-600 bg-slate-800/80 p-5 transition hover:border-brand-500/40">
+          <span class="mb-2 inline-flex w-fit rounded-full bg-brand-500/20 px-2.5 py-0.5 text-xs font-medium text-brand-400">{item.tag}</span>
+          <blockquote class="flex-1 text-sm leading-relaxed text-slate-300">
+            „{item.quote}“
+          </blockquote>
+          <cite class="mt-3 text-xs not-italic text-slate-500">
+            — {item.source}
+          </cite>
+        </li>
+      ))}
+    </ul>
+
+    <p class="mt-6 text-sm text-slate-500">
+      Quelle: <em>Analyse der Veröffentlichungen zu arsnova.click</em> (Deep Research, Kontext ARSnova-Ökosystem). Vollständige Referenzen: <a href={researchPdfUrl} class="text-brand-400 hover:text-brand-300 hover:underline" target="_blank" rel="noopener noreferrer">ARSnova-Recherche.pdf</a> im Repo.
+    </p>
+  </div>
+</section>

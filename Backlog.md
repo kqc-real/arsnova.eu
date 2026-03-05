@@ -32,6 +32,8 @@
 | 1    | 1.7   | Markdown & KaTeX                              | 🔴   | ⬜ Offen  |
 | 1    | 1.8   | Quiz exportieren                              | 🟡   | ⬜ Offen  |
 | 1    | 1.9   | Quiz importieren                              | 🟡   | ⬜ Offen  |
+| 1    | 1.9a  | KI-gestützter Quiz-Import (Zod-Validierung)   | 🟡   | ⬜ Offen  |
+| 1    | 1.9b  | KI-Systemprompt (kontextbasiert, schema-getreu)| 🟡   | ⬜ Offen  |
 | 1    | 1.10  | Quiz bearbeiten & löschen                     | 🔴   | ⬜ Offen  |
 | 1    | 1.11  | Quiz-Presets                                  | 🟡   | ⬜ Offen  |
 | 1    | 1.12  | SC-Schnellformate                             | 🟡   | ⬜ Offen  |
@@ -85,7 +87,7 @@
 
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 23 · 🟡 Should: 29 · 🟢 Could: 14 = **66 Storys gesamt**
+> **Statistik:** 🔴 Must: 23 · 🟡 Should: 31 · 🟢 Could: 14 = **68 Storys gesamt**
 
 ---
 
@@ -285,6 +287,24 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Das importierte Quiz erhält eine neue ID (kein Überschreiben bestehender Quizzes).
     - Das Quiz wird nach dem Import sofort in der lokalen Quiz-Liste angezeigt (Yjs/IndexedDB).
     - Der Import erfolgt rein clientseitig (kein Server-Roundtrip).
+- **Story 1.9a (KI-gestützter Quiz-Import mit Zod-Validierung):** 🟡 Als Dozent möchte ich die vom LLM generierte Quiz-JSON (aus dem Workflow von Story 1.9b) in arsnova.eu importieren können, wobei strikte Zod-Validierung sicherstellt, dass fehlerhafte oder halluzinierte KI-Antworten die App nicht zum Absturz bringen.
+  - **Akzeptanzkriterien:**
+    - **Import-UI:** Es gibt einen Dialog **„KI-JSON importieren“**, in den der Dozent die Antwort des LLMs per Copy & Paste einfügen oder als `.json`-Datei hochladen kann. Ein Zugang zu diesem Dialog ist dort vorhanden, wo auch der KI-Prompt angeboten wird (Story 1.9b).
+    - **Strikte Zod-Validierung (Kern-Kriterium):**
+      - Das eingefügte JSON wird **nicht** blind mit `JSON.parse()` als `any` in den State übernommen.
+      - Es muss durch ein definiertes Zod-Schema (z. B. `quizImportSchema` aus `libs/shared-types/src/schemas.ts`) laufen (mittels `schema.safeParse()`).
+      - Die Validierung prüft rekursiv, ob alle Pflichtfelder vorhanden sind (z. B. korrekter `QuestionType` aus dem Enum, Vorhandensein des `isCorrect`-Flags bei den Antworten).
+    - **Fehlerbehandlung (Graceful Degradation):** Wenn die KI das Format verfehlt hat (Zod wirft einen Fehler), stürzt die App nicht ab. Stattdessen liest das Frontend den `ZodError` aus und zeigt dem Dozenten eine verständliche Fehlermeldung an (z. B. „Fehler im Import: Bei Frage 2 fehlt das Feld ‚isCorrect‘“).
+    - **Yjs-Integration:** Nur wenn `safeParse().success` wahr ist, wird das typsichere Objekt in ein lokales Yjs-CRDT-Dokument transformiert, in der IndexedDB gespeichert und dem Dashboard des Dozenten hinzugefügt.
+  - **Abhängigkeiten:** Story 1.9 (Quiz importieren, gleiches Import-Schema/Wiederverwendung), Story 1.5 (Local-First/Yjs). Das Zod-Schema für den KI-Import kann das gleiche wie für den regulären Import sein oder eine explizite Variante `quizImportSchema` in `libs/shared-types`.
+- **Story 1.9b (KI-Systemprompt – kontextbasiert, schema-getreu):** 🟡 Als Dozent möchte ich einen KI-Systemprompt an der **Stelle in der UI kopieren** können, an der ich bereits meine **Vorgaben** (Preset, Zielgruppe/Nickname-Auswahl, Schwierigkeitsgrad, ggf. weitere Optionen) durchgeklickt habe, damit das LLM ein schema-konformes Quiz genau nach meinen Einstellungen erzeugen kann – inkl. Anleitung für Kontext-Upload (RAG) bei Präsentation/Skript.
+  - **Akzeptanzkriterien:**
+    - **Platzierung:** Der **„KI-Prompt generieren“**-Button (bzw. Zugang zum Kopieren des Prompts) wird **dort angeboten, wo der Dozent bereits Preset-Optionen, Zielgruppe (Nickname-Theme), Schwierigkeitsgrad und ggf. weitere Quiz-Vorgaben** gewählt hat (z. B. auf der Startseite nach Auswahl des Presets und der Optionen, oder in einem dedizierten „Quiz per KI vorbereiten“-Schritt). Nicht auf einer leeren Seite ohne Kontext.
+    - **Kontext-Einbindung:** Der kopierte Prompt enthält die **aktuell gewählten Werte** (Preset: Seriös/Spielerisch, Zielgruppe z. B. Kita/Oberstufe, Standard-Schwierigkeit EASY/MEDIUM/HARD), sodass das LLM das Quiz passend zu diesen Vorgaben generiert. Die Werte werden aus dem gleichen State/Model gespeist wie die übrigen Preset-Optionen (Story 1.11, Home-Optionen).
+    - **Schema-Treue:** Der Prompt-Text (Template bzw. konstante Vorlage in `@arsnova/shared-types` oder Frontend, wartbar) beschreibt **exakt** das von `quizImportSchema` erwartete JSON-Format: erforderliche Felder, erlaubte Enums (`QuestionType`, etc.), `isCorrect` bei Antwortoptionen, Struktur für Fragen und Optionen. Das Ziel ist, dass typische LLM-Ausgaben nach Feintuning **ohne Nachbearbeitung** die Zod-Validierung (Story 1.9a) bestehen.
+    - **RAG-Anleitung:** Der Prompt weist den Dozenten an, bei Bedarf **Lehrmaterial (Präsentation, Skript, PDF)** per Kontext-Upload (Datei/URL) im Chatbot bereitzustellen, und das LLM an, das Quiz **aus diesem Kontext** zu erzeugen – so ist ein präsentations-/skriptbasiertes Quiz (wie bei Mentimeter) abgedeckt, ohne Upload zu arsnova.eu.
+    - **Wartbarkeit:** Der Prompt-Inhalt ist als **eigenes, versionierbares Artefakt** (z. B. Template-String, Markdown-Datei oder Eintrag in i18n) gepflegt, sodass Iterationen für bessere Schema-Konformität (Feintuning) ohne Änderung der Import-Logik (1.9a) möglich sind.
+  - **Abhängigkeiten:** Story 1.11 (Preset & Optionen), damit Preset/Zielgruppe/Optionen in der UI verfügbar sind; Story 1.9a (Import) kann parallel oder danach umgesetzt werden – der Prompt wird von 1.9a nur genutzt (Copy), nicht implementiert.
 - **Story 1.10 (Quiz bearbeiten & löschen):** 🔴 Als Dozent möchte ich ein bestehendes Quiz umbenennen, bearbeiten und löschen können, damit ich meine Quiz-Sammlung pflegen kann.
   - **Akzeptanzkriterien:**
     - In der Quiz-Liste gibt es pro Quiz ein Kontextmenü (⋮) mit Optionen: „Bearbeiten", „Duplizieren", „Löschen".
