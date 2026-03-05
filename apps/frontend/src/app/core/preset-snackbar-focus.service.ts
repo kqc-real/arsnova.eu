@@ -27,11 +27,15 @@ export class PresetSnackbarFocusService {
     }
   }
 
-  /** Fokus auf das registrierte Input setzen (z. B. nach Snackbar-Dismiss auf der Home-Seite). */
+  /**
+   * Fokus auf das registrierte Input setzen (z. B. nach Snackbar-Dismiss oder Theme-Wechsel).
+   * Kurze Verzögerung, damit nach Theme-/Preset-Umschaltung DOM/CSS fertig sind und der Fokus hält.
+   */
   refocusInput(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     if (this.inputRef?.nativeElement) {
-      setTimeout(() => this.inputRef!.nativeElement.focus(), 0);
+      const el = this.inputRef.nativeElement;
+      setTimeout(() => el.focus(), 100);
     }
   }
 }
