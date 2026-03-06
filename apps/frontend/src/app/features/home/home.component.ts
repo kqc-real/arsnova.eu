@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -53,13 +53,42 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly demoSessionCode = 'DEMO01';
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
 
+  /** Globaler Keydown-Handler (Capture): Ctrl/Cmd+Enter und Leertaste als Submit für den Session-Code. */
+  private keydownListener = (e: KeyboardEvent): void => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (this.isValidSessionCode()) this.joinSession();
+      return;
+    }
+    if (e.key !== ' ' && e.code !== 'Space') return;
+    if (!this.isValidSessionCode() || this.isJoining()) return;
+    const active = document.activeElement;
+    if (active === this.sessionCodeInput?.nativeElement) {
+      e.preventDefault();
+      this.joinSession();
+      return;
+    }
+    const cta = document.getElementById('participant-entry')
+      ?.querySelector<HTMLElement>('.home-cta:not([disabled])');
+    if (cta?.contains(active)) {
+      e.preventDefault();
+      this.joinSession();
+    }
+  };
+
   ngAfterViewInit(): void {
     this.focusService.registerInput(this.sessionCodeInput);
     setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 100);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('keydown', this.keydownListener, true);
+    }
   }
 
   ngOnDestroy(): void {
     this.focusService.registerInput(undefined);
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('keydown', this.keydownListener, true);
+    }
   }
 
   ngOnInit(): void {
@@ -146,14 +175,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   preloadQuiz(): void {
     import('../quiz/quiz.component').then(() => {});
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent): void {
-    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-      event.preventDefault();
-      if (this.isValidSessionCode()) this.joinSession();
-    }
   }
 
   onSessionCodeInput(event: Event): void {
