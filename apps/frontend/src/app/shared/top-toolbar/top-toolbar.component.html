@@ -31,16 +31,16 @@
       </svg>
       <span class="top-toolbar__brand-title">arsnova.eu</span>
     </a>
-      <a
-        routerLink="/"
-        routerLinkActive="top-toolbar__home-link--active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="top-toolbar__home-link"
-        matTooltip="Zur Startseite"
-        aria-label="Zur Startseite"
-      >
-        <mat-icon>home</mat-icon>
-      </a>
+      @if (showHomeLink()) {
+        <a
+          routerLink="/"
+          class="top-toolbar__home-link"
+          matTooltip="Zur Startseite"
+          aria-label="Zur Startseite"
+        >
+          <mat-icon>home</mat-icon>
+        </a>
+      }
     </div>
 
     <button

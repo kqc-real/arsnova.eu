@@ -1,6 +1,8 @@
 import { Component, Input, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
@@ -16,7 +18,6 @@ const STORAGE_LANG = 'home-language';
   standalone: true,
   imports: [
     RouterLink,
-    RouterLinkActive,
     MatIconButton,
     MatButtonToggle,
     MatButtonToggleGroup,
@@ -33,6 +34,11 @@ export class TopToolbarComponent {
   readonly themePreset = inject(ThemePresetService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly focusService = inject(PresetSnackbarFocusService);
+  private readonly router = inject(Router);
+  readonly showHomeLink = toSignal(
+    this.router.events.pipe(map(() => this.router.url !== '/')),
+    { initialValue: false },
+  );
 
   readonly supportedLanguages = [
     { code: 'de' as const, label: 'Deutsch' },
