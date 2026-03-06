@@ -31,7 +31,7 @@ export const PRESET_OPTION_IDS = [
   { id: 'defaultTimer', label: 'Zeitlimit pro Frage', icon: 'timer', categoryId: 'flow' as CategoryId },
   { id: 'readingPhaseEnabled', label: 'Zuerst lesen, dann antworten', icon: 'menu_book', categoryId: 'flow' as CategoryId },
   { id: 'teamMode', label: 'In Teams spielen', icon: 'groups', categoryId: 'team' as CategoryId },
-  { id: 'teamAssignment', label: 'Teams automatisch oder manuell zuweisen', icon: 'shuffle', categoryId: 'team' as CategoryId },
+  { id: 'teamAssignment', label: 'Automatisch oder manuell zuweisen', icon: 'shuffle', categoryId: 'team' as CategoryId },
   { id: 'enableSoundEffects', label: 'Sounds bei Aktionen', icon: 'volume_up', categoryId: 'audio' as CategoryId },
   { id: 'backgroundMusic', label: 'Hintergrundmusik in der Lobby', icon: 'music_note', categoryId: 'audio' as CategoryId },
 ] as const;
