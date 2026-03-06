@@ -52,6 +52,13 @@ Regeln:
 - Keine Utility-Klassen-Flut; stattdessen wiederverwendbare Pattern-Klassen/Mixins.
 - Layout und Component-Skin trennen (Struktur vs. visuelle Semantik).
 
+### Layout-Vorgabe fuer Inhaltseiten (alle ausser Startseite)
+- **Root-Container:** Jede Seite (Quiz, Session, Legal, Help, Join, Admin usw.) nutzt als aeusseren Container eine der globalen Layout-Klassen aus `styles.scss`.
+- **`.l-page`:** Max-width 56 rem, zentriert, Padding 1,5 rem / 1 rem (responsive 1,5 rem / 2 rem). Fluchtlinie und Innenabstand wie auf der Startseite.
+- **`.l-section`:** Max-width 42 rem, zentriert; optional in Kombination mit `.l-page` fuer schmalere Lesebreite (z. B. Quiz-Shell, Session, Admin).
+- **Empfehlung:** Einheitlich `<div class="l-page l-section">` als Root der Feature-Komponente (oder `class="<feature>-page l-page"` wie Legal/Help, wenn zusaetzliche Feature-Styles noetig sind). So bleibt Abstand zur Toolbar (via `.app-main > * > .l-page:first-child`) und Innenabstand konsistent.
+- **Startseite:** Bleibt Sonderfall mit eigenem Grid/Hero; nutzt `.l-page` ohne `.l-section`.
+
 ## Accessibility und Interaktion
 - Kontrast und Lesbarkeit muessen in Light und Dark erfuellt sein.
 - Fokuszustand muss klar sichtbar sein (bei Bedarf `mat.strong-focus-indicators()`).
