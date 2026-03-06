@@ -53,14 +53,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly demoSessionCode = 'DEMO01';
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
 
-  /** Globaler Keydown-Handler (Capture): Ctrl/Cmd+Enter und Leertaste als Submit für den Session-Code. */
-  private keydownListener = (e: KeyboardEvent): void => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      if (this.isValidSessionCode()) this.joinSession();
-      return;
-    }
-    if (e.key !== ' ' && e.code !== 'Space') return;
+  /** Leertaste schon in keydown verarbeitet → keyup nicht erneut auslösen (vermeidet Doppel-Submit, nutzt keyup für virtuelle Tastatur). */
+  private spaceHandledInKeydown = false;
+
+  private static isSpaceKey(e: KeyboardEvent): boolean {
+    return e.key === ' ' || e.code === 'Space' || e.keyCode === 32;
+  }
+
+  private trySubmitWithSpace(e: KeyboardEvent): void {
     if (!this.isValidSessionCode() || this.isJoining()) return;
     const active = document.activeElement;
     if (active === this.sessionCodeInput?.nativeElement) {
@@ -74,6 +74,28 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       e.preventDefault();
       this.joinSession();
     }
+  }
+
+  /** Keydown (Capture): Ctrl/Cmd+Enter, Leertaste. */
+  private keydownListener = (e: KeyboardEvent): void => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (this.isValidSessionCode()) this.joinSession();
+      return;
+    }
+    if (!HomeComponent.isSpaceKey(e)) return;
+    this.spaceHandledInKeydown = true;
+    this.trySubmitWithSpace(e);
+  };
+
+  /** Keyup (Capture): Leertaste-Fallback für virtuelle Tastaturen (feuern oft nur keyup). */
+  private keyupListener = (e: KeyboardEvent): void => {
+    if (!HomeComponent.isSpaceKey(e)) return;
+    if (this.spaceHandledInKeydown) {
+      this.spaceHandledInKeydown = false;
+      return;
+    }
+    this.trySubmitWithSpace(e);
   };
 
   ngAfterViewInit(): void {
@@ -81,6 +103,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 100);
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', this.keydownListener, true);
+      document.addEventListener('keyup', this.keyupListener, true);
     }
   }
 
@@ -88,6 +111,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.focusService.registerInput(undefined);
     if (typeof document !== 'undefined') {
       document.removeEventListener('keydown', this.keydownListener, true);
+      document.removeEventListener('keyup', this.keyupListener, true);
     }
   }
 
