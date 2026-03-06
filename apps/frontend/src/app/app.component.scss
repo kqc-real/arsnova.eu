@@ -205,7 +205,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .app-preset-snackbar {
-    animation: app-preset-snackbar-in 0.25s cubic-bezier(0.2, 0, 0, 1);
+    animation: app-preset-snackbar-in 0.6s cubic-bezier(0.2, 0, 0, 1);
   }
 }
 
@@ -264,7 +264,7 @@
 @keyframes app-preset-snackbar-in {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(0.75rem) scale(0.96);
+    transform: translateX(-50%) translateY(1.5rem) scale(0.96);
   }
   to {
     opacity: 1;
@@ -294,7 +294,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .app-install-snackbar {
-    animation: app-preset-snackbar-in 0.25s cubic-bezier(0.2, 0, 0, 1);
+    animation: app-preset-snackbar-in 0.6s cubic-bezier(0.2, 0, 0, 1);
   }
 }
 
