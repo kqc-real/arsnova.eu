@@ -28,6 +28,11 @@
 .app-main > * {
   margin-top: 1rem;
 }
+/* Kein Doppelabstand, wenn Route mit .l-page/.l-section startet (Abstand liegt dann auf dem inneren Container). */
+.app-main > *:has(> .l-page:first-child),
+.app-main > *:has(> .l-section:first-child) {
+  margin-top: 0;
+}
 @media (min-width: 600px) {
   .app-main > * {
     margin-top: 1.25rem;

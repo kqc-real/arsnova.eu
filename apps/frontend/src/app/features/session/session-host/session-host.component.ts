@@ -1,8 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MatButton } from '@angular/material/button';
+import { ActivatedRoute } from '@angular/router';
 import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
 import { trpc } from '../../../core/trpc.client';
 import type { SessionInfoDTO } from '@arsnova/shared-types';
 
@@ -14,14 +12,11 @@ import type { SessionInfoDTO } from '@arsnova/shared-types';
   selector: 'app-session-host',
   standalone: true,
   imports: [
-    RouterLink,
-    MatButton,
     MatCard,
     MatCardContent,
     MatCardHeader,
     MatCardSubtitle,
     MatCardTitle,
-    MatIcon,
   ],
   templateUrl: './session-host.component.html',
   styleUrl: './session-host.component.scss',

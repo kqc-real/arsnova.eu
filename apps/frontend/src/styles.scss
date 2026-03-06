@@ -250,6 +250,28 @@ body {
   margin-inline: auto;
 }
 
+/* Abstand Toolbar → erstes Inhaltselement: wenn Route mit .l-page/.l-section startet (z. B. Quiz), global, da außerhalb App-Encapsulation. */
+.app-main > *:has(> .l-page:first-child),
+.app-main > *:has(> .l-section:first-child) {
+  margin-top: 0;
+}
+.app-main > * > .l-page:first-child,
+.app-main > * > .l-section:first-child {
+  margin-top: 1rem;
+}
+@media (min-width: 600px) {
+  .app-main > * > .l-page:first-child,
+  .app-main > * > .l-section:first-child {
+    margin-top: 1.25rem;
+  }
+}
+@media (min-width: 840px) {
+  .app-main > * > .l-page:first-child,
+  .app-main > * > .l-section:first-child {
+    margin-top: 1.5rem;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // 5) Utility: Screen-reader only
 // ---------------------------------------------------------------------------

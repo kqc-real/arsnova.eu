@@ -1,8 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MatButton } from '@angular/material/button';
+import { ActivatedRoute } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
 
 /**
  * Teilnehmer-Einstieg (QR/Link). Nach Nickname/anon → Redirect auf session/:code/vote.
@@ -11,7 +9,7 @@ import { MatIcon } from '@angular/material/icon';
 @Component({
   selector: 'app-join',
   standalone: true,
-  imports: [RouterLink, MatButton, MatCard, MatCardContent, MatIcon],
+  imports: [MatCard, MatCardContent],
   templateUrl: './join.component.html',
   styleUrl: './join.component.scss',
 })

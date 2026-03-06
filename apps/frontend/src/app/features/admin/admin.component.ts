@@ -1,8 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
 
 /**
  * Admin-Dashboard (Epic 9). Ohne gültige Admin-Auth nur Login/Platzhalter.
@@ -11,7 +8,7 @@ import { MatIcon } from '@angular/material/icon';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [RouterLink, MatButton, MatCard, MatCardContent, MatIcon],
+  imports: [MatCard, MatCardContent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
 })

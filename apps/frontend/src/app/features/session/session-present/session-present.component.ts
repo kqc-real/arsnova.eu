@@ -1,8 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
 
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
@@ -11,7 +8,7 @@ import { MatIcon } from '@angular/material/icon';
 @Component({
   selector: 'app-session-present',
   standalone: true,
-  imports: [RouterLink, MatButton, MatCard, MatCardContent, MatIcon],
+  imports: [MatCard, MatCardContent],
   templateUrl: './session-present.component.html',
   styleUrl: './session-present.component.scss',
 })

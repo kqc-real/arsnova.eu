@@ -1,15 +1,13 @@
 import { Component, inject, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { MatButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
 import { marked } from 'marked';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-legal-page',
-  imports: [RouterLink, MatButton, MatIcon],
+  imports: [],
   templateUrl: './legal-page.component.html',
   styleUrls: ['./legal-page.component.scss'],
 })

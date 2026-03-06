@@ -1,8 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
 
 /**
  * Teilnehmer-Abstimmung (Epic 3).
@@ -11,7 +8,7 @@ import { MatIcon } from '@angular/material/icon';
 @Component({
   selector: 'app-session-vote',
   standalone: true,
-  imports: [RouterLink, MatButton, MatCard, MatCardContent, MatIcon],
+  imports: [MatCard, MatCardContent],
   templateUrl: './session-vote.component.html',
   styleUrl: './session-vote.component.scss',
 })

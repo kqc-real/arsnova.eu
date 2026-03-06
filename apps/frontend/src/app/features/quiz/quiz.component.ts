@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { MatButton } from '@angular/material/button';
+import { RouterOutlet } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 
 /**
@@ -8,7 +7,7 @@ import { MatIcon } from '@angular/material/icon';
  */
 @Component({
   selector: 'app-quiz',
-  imports: [RouterLink, RouterOutlet, MatButton, MatIcon],
+  imports: [RouterOutlet, MatIcon],
   templateUrl: './quiz.component.html',
   styleUrl: './quiz.component.scss',
 })
