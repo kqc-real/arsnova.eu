@@ -165,6 +165,14 @@ body {
   hyphens: auto;
 }
 
+// Tap & Focus: Kein weißer Rand/Blitz im Dark Mode (Tap-Highlight + Fallback Outline-Farbe)
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+*:focus {
+  outline-color: var(--mat-sys-primary);
+}
+
 // Keyframes für Preset Spielerisch (Startseite) – global, damit Animationen sicher laufen
 @media (prefers-reduced-motion: no-preference) {
   @keyframes home-playful-brand-pulse {
