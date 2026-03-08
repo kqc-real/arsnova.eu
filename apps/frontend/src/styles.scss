@@ -128,6 +128,32 @@ html.preset-playful {
   --app-shadow-cta-glow: 0 0 20px color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
   --app-corner-playful: 1.5rem;
 
+  /* Light-Theme: stärkerer Verlauf (M3-Container sind sonst sehr dezent) */
+  @media (prefers-color-scheme: light) {
+    &:not(.dark) {
+      --app-bg-root: linear-gradient(
+        145deg,
+        var(--mat-sys-surface-container-lowest) 0%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 12%, var(--mat-sys-surface-container-low)) 18%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 22%, var(--mat-sys-tertiary-container)) 42%,
+        color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-primary-container)) 58%,
+        color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-low)) 82%,
+        var(--mat-sys-surface-container) 100%
+      );
+    }
+  }
+  &.light {
+    --app-bg-root: linear-gradient(
+      145deg,
+      var(--mat-sys-surface-container-lowest) 0%,
+      color-mix(in srgb, var(--mat-sys-tertiary) 12%, var(--mat-sys-surface-container-low)) 18%,
+      color-mix(in srgb, var(--mat-sys-tertiary) 22%, var(--mat-sys-tertiary-container)) 42%,
+      color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-primary-container)) 58%,
+      color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-low)) 82%,
+      var(--mat-sys-surface-container) 100%
+    );
+  }
+
   .app-footer {
     background: linear-gradient(
       180deg,
