@@ -28,11 +28,11 @@
 }
 
 .server-status__icon--status {
-  color: var(--mat-sys-outline);
+  color: var(--mat-sys-outline-variant);
 }
 
 .server-status__icon--healthy {
-  color: var(--mat-sys-outline);
+  color: var(--mat-sys-outline-variant);
 }
 
 .server-status__icon--busy {
@@ -44,7 +44,7 @@
 }
 
 .server-status__icon--unknown {
-  color: var(--mat-sys-outline);
+  color: var(--mat-sys-outline-variant);
 }
 
 .server-status__dot {
@@ -52,7 +52,7 @@
   height: 0.875rem;
   border-radius: var(--mat-sys-corner-full);
   flex-shrink: 0;
-  background: var(--mat-sys-outline);
+  background: var(--mat-sys-outline-variant);
 }
 
 .server-status__dot--healthy {
@@ -68,7 +68,7 @@
 }
 
 .server-status__dot--unknown {
-  background: var(--mat-sys-outline);
+  background: var(--mat-sys-outline-variant);
 }
 
 .server-status__text {
@@ -78,7 +78,7 @@
 }
 
 .server-status__text--muted {
-  color: var(--mat-sys-outline);
+  color: var(--mat-sys-outline-variant);
 }
 
 .server-status__highlight {

@@ -32,8 +32,8 @@ Abgleich mit dem [Material Design 3 Color System](https://m3.material.io/styles/
 - **Empfehlung:** Für dekorative/neutrale Status-Indikatoren und dezenten Text eher **outline-variant** verwenden, damit „outline“ für echte Grenzen (z. B. Eingabefelder) reserviert bleibt.
 
 **Datei:** `apps/frontend/src/app/shared/server-status-widget/server-status-widget.component.scss`  
-- Zeilen 31, 35, 47, 81: `color: var(--mat-sys-outline)` → optional auf `--mat-sys-outline-variant` umstellen.  
-- Zeilen 55, 71: `background: var(--mat-sys-outline)` für neutrale Dots → optional `--mat-sys-outline-variant`.
+- ~~Zeilen 31, 35, 47, 81: `color: var(--mat-sys-outline)`~~ → **umgesetzt:** `--mat-sys-outline-variant`.  
+- ~~Zeilen 55, 71: `background: var(--mat-sys-outline)` für neutrale Dots~~ → **umgesetzt:** `--mat-sys-outline-variant`.
 
 ### 2.2 Warning-Hintergrund: surface-variant
 
