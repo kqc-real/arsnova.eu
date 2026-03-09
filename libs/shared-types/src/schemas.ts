@@ -284,6 +284,28 @@ export const JoinSessionOutputSchema = SessionInfoDTOSchema.extend({
 });
 export type JoinSessionOutput = z.infer<typeof JoinSessionOutputSchema>;
 
+/** Input: Live-Freitextdaten der aktuell aktiven Frage per Session-Code abrufen. */
+export const GetLiveFreetextInputSchema = z.object({
+  code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
+});
+export type GetLiveFreetextInput = z.infer<typeof GetLiveFreetextInputSchema>;
+
+/** DTO: Live-Freitextdaten für Word-Cloud (Story 1.14). */
+export const LiveFreetextDTOSchema = z.object({
+  sessionId: z.uuid(),
+  questionId: z.uuid().nullable(),
+  questionOrder: z.number().nullable(),
+  questionType: QuestionTypeEnum.nullable(),
+  questionText: z.string().nullable(),
+  responses: z.array(z.string()),
+  updatedAt: z.string(), // ISO-8601
+});
+export type LiveFreetextDTO = z.infer<typeof LiveFreetextDTOSchema>;
+
+/** DTO: Quiz-IDs mit aktuell laufender Session (Story 1.10). */
+export const ActiveQuizIdsDTOSchema = z.array(z.uuid());
+export type ActiveQuizIdsDTO = z.infer<typeof ActiveQuizIdsDTOSchema>;
+
 /** DTO: Teilnehmer-Info */
 export const ParticipantDTOSchema = z.object({
   id: z.uuid(),
@@ -422,6 +444,13 @@ export const QuizExportSchema = z.object({
 });
 export type QuizExport = z.infer<typeof QuizExportSchema>;
 
+/**
+ * Alias für Import-Validierung (Story 1.9a).
+ * Import und Export nutzen bewusst dasselbe JSON-Format.
+ */
+export const QuizImportSchema = QuizExportSchema;
+export type QuizImport = z.infer<typeof QuizImportSchema>;
+
 // ---------------------------------------------------------------------------
 // Rating-Ergebnis (Story 1.2c)
 // ---------------------------------------------------------------------------
@@ -489,6 +518,23 @@ export const FreetextAggregateEntrySchema = z.object({
   count: z.number(),
 });
 export type FreetextAggregateEntry = z.infer<typeof FreetextAggregateEntrySchema>;
+
+/** Aggregierte Session-Freitextdaten für Export (Story 1.14). */
+export const FreetextSessionExportEntrySchema = z.object({
+  questionId: z.uuid(),
+  questionOrder: z.number(),
+  questionText: z.string(),
+  aggregates: z.array(FreetextAggregateEntrySchema),
+});
+export type FreetextSessionExportEntry = z.infer<typeof FreetextSessionExportEntrySchema>;
+
+export const FreetextSessionExportDTOSchema = z.object({
+  sessionId: z.uuid(),
+  sessionCode: z.string(),
+  exportedAt: z.string(),
+  entries: z.array(FreetextSessionExportEntrySchema),
+});
+export type FreetextSessionExportDTO = z.infer<typeof FreetextSessionExportDTOSchema>;
 
 /** Ein Eintrag pro Frage im Session-Export (aggregiert, keine Nicknames) */
 export const QuestionExportEntrySchema = z.object({
@@ -590,3 +636,37 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
     readingPhaseEnabled: true,    // Story 2.6: Frage zuerst lesen
   },
 };
+
+// ---------------------------------------------------------------------------
+// Preset-Export / Import (Story 1.15)
+// ---------------------------------------------------------------------------
+
+/** Aktuelle Export-Schema-Version für Preset-Dateien */
+export const PRESET_EXPORT_VERSION = 1;
+
+export const NameModeEnum = z.enum([
+  'nicknameTheme',
+  'allowCustomNicknames',
+  'anonymousMode',
+]);
+export type NameMode = z.infer<typeof NameModeEnum>;
+
+export const PresetStorageEntrySchema = z.object({
+  options: z.record(z.string(), z.boolean()),
+  nameMode: NameModeEnum,
+  nicknameThemeValue: NicknameThemeEnum,
+  teamCountValue: z.number().int().min(2).max(8),
+});
+export type PresetStorageEntry = z.infer<typeof PresetStorageEntrySchema>;
+
+export const PresetConfigExportSchema = z.object({
+  presetExportVersion: z.number().int().min(1),
+  exportedAt: z.string(), // ISO-8601
+  activePreset: z.enum(['serious', 'spielerisch']),
+  theme: z.enum(['system', 'dark', 'light']),
+  presets: z.object({
+    serious: PresetStorageEntrySchema,
+    spielerisch: PresetStorageEntrySchema,
+  }),
+});
+export type PresetConfigExport = z.infer<typeof PresetConfigExportSchema>;

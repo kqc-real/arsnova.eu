@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Component, computed, inject, OnInit, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -7,10 +8,22 @@ import { MatOption } from '@angular/material/core';
 import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
-import { NicknameThemeEnum, type NicknameTheme } from '@arsnova/shared-types';
+import {
+  NicknameThemeEnum,
+  PRESET_EXPORT_VERSION,
+  PresetConfigExportSchema,
+  PresetStorageEntrySchema,
+  type NameMode as PresetNameMode,
+  type NicknameTheme,
+  type PresetConfigExport,
+  type PresetStorageEntry,
+} from '@arsnova/shared-types';
 import { ThemePresetService } from '../../core/theme-preset.service';
 
 const PRESET_OPTIONS_STORAGE_PREFIX = 'home-preset-options-';
+const PRESET_UPDATED_EVENT = 'arsnova:preset-updated';
+const HOME_THEME_STORAGE_KEY = 'home-theme';
+const HOME_PRESET_STORAGE_KEY = 'home-preset';
 
 const PRESET_CATEGORIES = [
   { id: 'gamification', label: 'Spiel & Auswertung', order: 0 },
@@ -46,7 +59,7 @@ export const NICKNAME_THEME_OPTIONS: { value: NicknameTheme; label: string; icon
 
 export const TEAM_COUNT_OPTIONS = [2, 3, 4, 5, 6, 7, 8].map((n) => ({ value: n, label: `${n} Teams` }));
 
-export type NameMode = 'nicknameTheme' | 'allowCustomNicknames' | 'anonymousMode';
+export type NameMode = PresetNameMode;
 
 export const NAME_MODE_OPTIONS: { value: NameMode; label: string; icon: string }[] = [
   { value: 'nicknameTheme', label: 'Nicks', icon: 'theater_comedy' },
@@ -96,6 +109,7 @@ export function getPresetDefaults(preset: 'serious' | 'spielerisch'): PresetOpti
   styleUrls: ['./preset-toast.component.scss'],
 })
 export class PresetToastComponent implements OnInit {
+  private readonly document = inject(DOCUMENT);
   readonly themePreset = inject(ThemePresetService);
   readonly closed = output<void>();
 
@@ -112,6 +126,7 @@ export class PresetToastComponent implements OnInit {
   toastTitle = signal('');
   toastIcon = signal('school');
   toastHint = signal('');
+  importExportStatus = signal<string | null>(null);
 
   selectedNicknameTheme = computed(() => {
     const val = this.nicknameThemeValue();
@@ -209,9 +224,90 @@ export class PresetToastComponent implements OnInit {
       };
       const key = PRESET_OPTIONS_STORAGE_PREFIX + this.themePreset.preset();
       localStorage.setItem(key, JSON.stringify(payload));
+      globalThis.dispatchEvent(new Event(PRESET_UPDATED_EVENT));
     } catch { /* quota or unavailable */ }
     this.themePreset.setPreset(this.themePreset.preset());
     this.closed.emit();
+  }
+
+  exportPresets(): void {
+    this.importExportStatus.set(null);
+    try {
+      const payload: PresetConfigExport = {
+        presetExportVersion: PRESET_EXPORT_VERSION,
+        exportedAt: new Date().toISOString(),
+        activePreset: this.themePreset.preset(),
+        theme: this.themePreset.theme(),
+        presets: {
+          serious: this.readStoredPreset('serious'),
+          spielerisch: this.readStoredPreset('spielerisch'),
+        },
+      };
+      const parsed = PresetConfigExportSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new Error(parsed.error.issues[0]?.message ?? 'Ungültige Preset-Exportdaten.');
+      }
+
+      const blob = new Blob([JSON.stringify(parsed.data, null, 2)], {
+        type: 'application/json',
+      });
+      const date = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const anchor = this.document.createElement('a');
+      anchor.href = url;
+      anchor.download = `arsnova-presets_${date}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      this.importExportStatus.set('Preset-Konfiguration exportiert.');
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Preset-Konfiguration konnte nicht exportiert werden.';
+      this.importExportStatus.set(message);
+    }
+  }
+
+  async onImportFileSelected(event: Event): Promise<void> {
+    this.importExportStatus.set(null);
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (!file) return;
+
+    try {
+      const raw = await file.text();
+      const parsedJson = JSON.parse(raw) as unknown;
+      const parsed = PresetConfigExportSchema.safeParse(parsedJson);
+      if (!parsed.success) {
+        const message = parsed.error.issues[0]?.message ?? 'Ungültige Preset-Importdatei.';
+        throw new Error(message);
+      }
+
+      localStorage.setItem(
+        PRESET_OPTIONS_STORAGE_PREFIX + 'serious',
+        JSON.stringify(parsed.data.presets.serious),
+      );
+      localStorage.setItem(
+        PRESET_OPTIONS_STORAGE_PREFIX + 'spielerisch',
+        JSON.stringify(parsed.data.presets.spielerisch),
+      );
+      localStorage.setItem(HOME_THEME_STORAGE_KEY, parsed.data.theme);
+      localStorage.setItem(HOME_PRESET_STORAGE_KEY, parsed.data.activePreset);
+      globalThis.dispatchEvent(new Event(PRESET_UPDATED_EVENT));
+
+      this.themePreset.setTheme(parsed.data.theme);
+      this.themePreset.setPreset(parsed.data.activePreset);
+      this.loadPreset(this.themePreset.preset());
+      this.importExportStatus.set('Preset-Konfiguration importiert.');
+      target.value = '';
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Preset-Konfiguration konnte nicht importiert werden.';
+      this.importExportStatus.set(message);
+      target.value = '';
+    }
   }
 
   switchPreset(): void {
@@ -229,7 +325,15 @@ export class PresetToastComponent implements OnInit {
         : 'Mit Rangliste, Sounds, Anfeuerung und Countdown auf allen Handys – für mehr Motivation.'
     );
 
-    let state: PresetOptionState;
+    const data = this.readStoredPreset(preset);
+    this.optionState.set(data.options);
+    this.nameMode.set(data.nameMode);
+    this.nicknameThemeValue.set(data.nicknameThemeValue);
+    this.teamCountValue.set(data.teamCountValue);
+  }
+
+  private readStoredPreset(preset: 'serious' | 'spielerisch'): PresetStorageEntry {
+    let state: PresetOptionState = getPresetDefaults(preset);
     let nm: NameMode = preset === 'serious' ? 'anonymousMode' : 'nicknameTheme';
     let themeVal: NicknameTheme = 'NOBEL_LAUREATES';
     let teamCount = 2;
@@ -237,38 +341,34 @@ export class PresetToastComponent implements OnInit {
     try {
       const key = PRESET_OPTIONS_STORAGE_PREFIX + preset;
       const raw = localStorage.getItem(key);
-      const parsed = raw ? (JSON.parse(raw) as { options?: PresetOptionState; nameMode?: string; nicknameThemeValue?: string; teamCountValue?: number }) : null;
-      if (parsed && typeof parsed === 'object' && parsed.options && typeof parsed.options === 'object') {
+      const parsed = raw ? JSON.parse(raw) : null;
+      const parsedEntry = PresetStorageEntrySchema.safeParse(parsed);
+      if (parsedEntry.success) {
         const defaults = getPresetDefaults(preset);
         state = { ...defaults };
         for (const o of PRESET_OPTION_IDS) {
-          if (o.id in parsed.options && typeof (parsed.options as Record<string, unknown>)[o.id] === 'boolean') {
-            state[o.id] = (parsed.options as Record<string, boolean>)[o.id];
+          const value = parsedEntry.data.options[o.id];
+          if (typeof value === 'boolean') {
+            state[o.id] = value;
           }
         }
-        if (parsed.nameMode && ['anonymousMode', 'allowCustomNicknames', 'nicknameTheme'].includes(parsed.nameMode)) {
-          nm = parsed.nameMode as NameMode;
-        }
-        if (parsed.nicknameThemeValue && NicknameThemeEnum.safeParse(parsed.nicknameThemeValue).success) {
-          themeVal = parsed.nicknameThemeValue as NicknameTheme;
-        }
-        if (typeof parsed.teamCountValue === 'number' && parsed.teamCountValue >= 2 && parsed.teamCountValue <= 8) {
-          teamCount = parsed.teamCountValue;
-        }
-      } else {
-        state = getPresetDefaults(preset);
+        nm = parsedEntry.data.nameMode;
+        themeVal = parsedEntry.data.nicknameThemeValue;
+        teamCount = parsedEntry.data.teamCountValue;
       }
     } catch {
-      state = getPresetDefaults(preset);
+      // fallback defaults
     }
 
     if (state['teamMode'] === false) {
       state['teamAssignment'] = false;
     }
 
-    this.optionState.set(state);
-    this.nameMode.set(nm);
-    this.nicknameThemeValue.set(themeVal);
-    this.teamCountValue.set(teamCount);
+    return {
+      options: state,
+      nameMode: nm,
+      nicknameThemeValue: themeVal,
+      teamCountValue: teamCount,
+    };
   }
 }

@@ -120,11 +120,29 @@
     </div>
   </div>
   <div class="preset-toast__actions">
+    <input
+      #presetImportInput
+      type="file"
+      accept=".json,application/json"
+      hidden
+      (change)="onImportFileSelected($event)"
+    />
+    <button mat-button type="button" (click)="exportPresets()">
+      <mat-icon>download</mat-icon>
+      Exportieren
+    </button>
+    <button mat-button type="button" (click)="presetImportInput.click()">
+      <mat-icon>upload</mat-icon>
+      Importieren
+    </button>
     <button mat-button type="button" (click)="resetOptions()">Zurücksetzen</button>
     <button mat-flat-button type="button" color="primary" (click)="saveAndClose()">
       <mat-icon>save</mat-icon>
       Speichern
     </button>
   </div>
+  @if (importExportStatus()) {
+    <p class="preset-toast__import-export-status" role="status">{{ importExportStatus() }}</p>
+  }
   </div>
 </div>

@@ -313,9 +313,16 @@
   border-top: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container);
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
   gap: 0.75rem;
+}
+
+.preset-toast__import-export-status {
+  margin: 0 1rem 1rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
 }
 
 :host-context(html.preset-playful) {
