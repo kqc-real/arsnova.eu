@@ -211,6 +211,11 @@
   line-height: 1.55;
 }
 
+:host ::ng-deep .quiz-edit-question__text p,
+:host ::ng-deep .quiz-edit-question__answer-text p {
+  margin: 0.45rem 0;
+}
+
 :host ::ng-deep .quiz-edit-form__preview-content p,
 :host ::ng-deep .quiz-edit-form__preview-answers p {
   margin: 0.55rem 0;
@@ -247,7 +252,6 @@
 
 .quiz-edit-question__text {
   margin: 0.65rem 0 0.75rem;
-  white-space: pre-wrap;
   line-height: 1.55;
 }
 
@@ -262,6 +266,12 @@
   align-items: flex-start;
   gap: 0.35rem;
   line-height: 1.5;
+}
+
+.quiz-edit-question__answer-text {
+  display: block;
+  min-width: 0;
+  line-height: 1.55;
 }
 
 .quiz-edit-question__correct-icon {

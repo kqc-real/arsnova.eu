@@ -464,7 +464,7 @@
                 Frage {{ question.order + 1 }} · {{ questionTypeLabel(question.type) }} ·
                 {{ difficultyLabel(question.difficulty) }}
               </p>
-              <p class="quiz-edit-question__text">{{ question.text }}</p>
+              <div class="quiz-edit-question__text" [innerHTML]="renderMarkdown(question.text)"></div>
 
               @if (question.type === 'FREETEXT') {
                 <p class="quiz-edit-question__text">Teilnehmende geben eigene Freitext-Antworten ein.</p>
@@ -479,7 +479,7 @@
                 <ol class="quiz-edit-question__answers">
                   @for (answer of question.answers; track answer.id) {
                     <li>
-                      <span>{{ answer.text }}</span>
+                      <span class="quiz-edit-question__answer-text" [innerHTML]="renderMarkdown(answer.text)"></span>
                       @if (answer.isCorrect && questionTypeHasCorrectAnswers(question.type)) {
                         <mat-icon class="quiz-edit-question__correct-icon" aria-hidden="true">check_circle</mat-icon>
                       }

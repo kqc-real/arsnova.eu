@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizEditComponent } from './quiz-edit.component';
@@ -35,6 +36,7 @@ describe('QuizEditComponent', () => {
   };
 
   const mockStore = {
+    syncRoomId: signal('test-sync-room'),
     getQuizById: vi.fn((id: string) => (id === QUIZ_ID ? quiz : null)),
     addQuestion: vi.fn(),
     updateQuestion: vi.fn(),
@@ -317,5 +319,47 @@ describe('QuizEditComponent', () => {
       description: 'Neue Beschreibung',
     });
     expect(component.metadataSaved()).toBe(true);
+  });
+
+  it('rendert Markdown und KaTeX in der Fragenliste', () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Formel: $a^2+b^2=c^2$',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        order: 0,
+        answers: [
+          {
+            id: '1f013086-724d-4c5f-8354-53b3dcda4f27',
+            text: '**Korrekte** Antwort',
+            isCorrect: true,
+          },
+          {
+            id: 'f38fcd4b-f1ca-4188-8e22-f80244e8a3d0',
+            text: 'Distraktor',
+            isCorrect: false,
+          },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const questionKatex = fixture.nativeElement.querySelector(
+      '.quiz-edit-list .quiz-edit-question__text .katex',
+    ) as HTMLElement | null;
+    const answerStrong = fixture.nativeElement.querySelector(
+      '.quiz-edit-list .quiz-edit-question__answer-text strong',
+    ) as HTMLElement | null;
+
+    expect(questionKatex).not.toBeNull();
+    expect(answerStrong).not.toBeNull();
+    expect(answerStrong?.textContent).toContain('Korrekte');
   });
 });

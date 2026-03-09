@@ -340,6 +340,11 @@ export class QuizEditComponent implements OnDestroy {
     return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
   }
 
+  renderMarkdown(value: string | null | undefined): SafeHtml {
+    const source = value ?? '';
+    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(source).html);
+  }
+
   addAnswer(): void {
     if (!this.canAddAnswer()) return;
     this.answersArray.push(this.createAnswerGroup(false));
