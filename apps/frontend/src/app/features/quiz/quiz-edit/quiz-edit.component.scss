@@ -2,6 +2,18 @@
   line-height: 1.5;
 }
 
+:host ::ng-deep .quiz-edit .mat-mdc-card-header {
+  padding-bottom: 0.4rem;
+}
+
+:host ::ng-deep .quiz-edit .mat-mdc-card-title {
+  line-height: 1.35;
+}
+
+:host ::ng-deep .quiz-edit .mat-mdc-card-subtitle {
+  line-height: 1.5;
+}
+
 .quiz-edit__description {
   margin: 0.1rem 0 0;
   font: var(--mat-sys-body-medium);
@@ -165,12 +177,20 @@
 }
 
 :host ::ng-deep .quiz-edit-form .mat-mdc-form-field-subscript-wrapper {
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
+  min-height: 2.4rem;
 }
 
 :host ::ng-deep .quiz-edit-form .mat-mdc-form-field-hint-wrapper,
 :host ::ng-deep .quiz-edit-form .mat-mdc-form-field-error-wrapper {
   line-height: 1.4;
+  hyphens: none;
+  overflow-wrap: break-word;
+}
+
+:host ::ng-deep .quiz-edit-form .mat-mdc-form-field-hint,
+:host ::ng-deep .quiz-edit-form .mat-mdc-form-field-error {
+  hyphens: none;
 }
 
 :host ::ng-deep .quiz-edit-form textarea[matinput] {
@@ -262,5 +282,11 @@
 
   .quiz-edit__meta-actions {
     justify-content: flex-end;
+  }
+}
+
+@media (max-width: 960px) {
+  .quiz-edit-form__grid {
+    grid-template-columns: 1fr;
   }
 }
