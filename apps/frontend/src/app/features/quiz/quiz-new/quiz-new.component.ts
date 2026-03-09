@@ -67,7 +67,7 @@ export class QuizNewComponent {
   ];
 
   readonly nicknameThemeOptions: Array<{ value: NicknameTheme; label: string }> = [
-    { value: 'NOBEL_LAUREATES', label: 'Nobelpreisträger' },
+    { value: 'NOBEL_LAUREATES', label: 'Nobelpreisträger:innen' },
     { value: 'KINDERGARTEN', label: 'Kita' },
     { value: 'PRIMARY_SCHOOL', label: 'Grundschule' },
     { value: 'MIDDLE_SCHOOL', label: 'Mittelstufe' },
@@ -85,6 +85,7 @@ export class QuizNewComponent {
   readonly submitError = signal<string | null>(null);
   readonly submitted = signal(false);
   readonly promptStatus = signal<string | null>(null);
+  readonly showSettings = signal(false);
   readonly showAiImport = signal(false);
   readonly aiJsonInput = signal('');
   readonly aiImportStatus = signal<string | null>(null);
@@ -163,9 +164,9 @@ export class QuizNewComponent {
         throw new Error('Clipboard API nicht verfügbar.');
       }
       await clipboard.writeText(prompt);
-      this.promptStatus.set('KI-Prompt wurde in die Zwischenablage kopiert.');
+      this.promptStatus.set('KI-Prompt kopiert.');
     } catch {
-      this.promptStatus.set('Kopieren nicht möglich. Bitte Browser-Berechtigung prüfen.');
+      this.promptStatus.set('Kopieren nicht möglich. Prüfe die Browser-Berechtigung.');
     }
   }
 
@@ -197,7 +198,7 @@ export class QuizNewComponent {
   async importAiJson(): Promise<void> {
     const raw = this.aiJsonInput().trim();
     if (!raw) {
-      this.aiImportError.set('Bitte KI-JSON einfügen.');
+      this.aiImportError.set('Füge zuerst das KI-JSON ein.');
       return;
     }
     await this.importAiPayload(raw);
@@ -248,12 +249,12 @@ export class QuizNewComponent {
     try {
       const payload = JSON.parse(raw) as unknown;
       const imported = this.quizStore.importQuiz(payload);
-      this.aiImportStatus.set(`KI-Quiz „${imported.name}“ wurde importiert.`);
+      this.aiImportStatus.set(`KI-Quiz „${imported.name}“ importiert.`);
       this.aiJsonInput.set('');
       this.showAiImport.set(false);
       await this.router.navigate(['/quiz', imported.id]);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'KI-JSON konnte nicht importiert werden.';
+      const message = error instanceof Error ? error.message : 'KI-Import fehlgeschlagen.';
       this.aiImportError.set(message);
     }
   }
@@ -274,14 +275,14 @@ export class QuizNewComponent {
 
     this.isSaving.set(true);
     try {
-      this.quizStore.createQuiz({
+      const created = this.quizStore.createQuiz({
         name: this.nameControl.value,
         description: this.descriptionControl.value,
         settings: this.readSettingsFromForm(),
       });
-      await this.router.navigate(['/quiz']);
+      await this.router.navigate(['/quiz', created.id]);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Quiz konnte nicht erstellt werden.';
+      const message = error instanceof Error ? error.message : 'Erstellen fehlgeschlagen.';
       this.submitError.set(message);
     } finally {
       this.isSaving.set(false);

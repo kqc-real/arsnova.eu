@@ -1,15 +1,15 @@
 <mat-card appearance="outlined" class="quiz-sync-card">
   <mat-card-content class="quiz-sync__content">
-    <p class="quiz-sync__title">Quiz teilen</p>
+    <h2 class="quiz-sync__title">Geräte synchronisieren</h2>
     <p class="quiz-sync__text">
-      Öffne auf dem zweiten Gerät den Quiz-Bereich und gib dort diesen Sync-Code ein.
+      Öffne auf dem zweiten Gerät den Quiz-Bereich und gib dort diesen Code ein.
     </p>
     <div class="quiz-sync__code-box" aria-label="Sync-Code">
-      <p class="quiz-sync__code-label">Sync-Code</p>
+      <p class="quiz-sync__code-label">Dein Sync-Code</p>
       <p class="quiz-sync__code-value">{{ syncCode() }}</p>
     </div>
     <p class="quiz-sync__text">
-      Verbindungsstatus:
+      Status:
       <strong
         class="quiz-sync__state"
         [class.quiz-sync__state--ok]="syncConnectionState() === 'connected'"
@@ -20,11 +20,11 @@
     <div class="quiz-sync__actions">
       <button mat-button type="button" (click)="copySyncCode()">
         <mat-icon>pin</mat-icon>
-        Sync-Code kopieren
+        Code kopieren
       </button>
       <button mat-button type="button" (click)="copySyncLink()">
         <mat-icon>link</mat-icon>
-        Sync-Link kopieren
+        Link kopieren
       </button>
     </div>
     <details class="quiz-sync__details">

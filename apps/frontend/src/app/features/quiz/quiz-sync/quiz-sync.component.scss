@@ -25,21 +25,27 @@
 .quiz-sync__code-box {
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-medium);
-  padding: 1rem 1.1rem;
+  padding: 1.25rem 1.25rem;
+  background: var(--mat-sys-surface-container-low);
+  text-align: center;
 }
 
 .quiz-sync__code-label {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.5rem;
   color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
+  font: var(--mat-sys-label-medium);
   line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .quiz-sync__code-value {
   margin: 0;
   font: var(--mat-sys-headline-small);
   line-height: 1.2;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
+  font-family: monospace, system-ui;
+  color: var(--mat-sys-primary);
 }
 
 .quiz-sync__link {

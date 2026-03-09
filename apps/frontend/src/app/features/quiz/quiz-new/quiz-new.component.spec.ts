@@ -21,7 +21,7 @@ describe('QuizNewComponent', () => {
     });
   });
 
-  it('erstellt ein Quiz und navigiert zur Liste', async () => {
+  it('erstellt ein Quiz und navigiert zum Editor', async () => {
     const fixture = TestBed.createComponent(QuizNewComponent);
     const component = fixture.componentInstance;
     const router = TestBed.inject(Router);
@@ -77,7 +77,7 @@ describe('QuizNewComponent', () => {
         readingPhaseEnabled: false,
       },
     });
-    expect(navigateSpy).toHaveBeenCalledWith(['/quiz']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/quiz', '928f0bb8-bfd8-442b-9f2e-a7544628a92f']);
   });
 
   it('erstellt kein Quiz bei ungültigem Formular', async () => {
@@ -134,7 +134,7 @@ describe('QuizNewComponent', () => {
     component.updateAiJsonInput('   ');
     await component.importAiJson();
 
-    expect(component.aiImportError()).toBe('Bitte KI-JSON einfügen.');
+    expect(component.aiImportError()).toBe('Füge zuerst das KI-JSON ein.');
     expect(mockStore.importQuiz).not.toHaveBeenCalled();
   });
 });

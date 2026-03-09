@@ -564,6 +564,22 @@ mat-card-actions.l-stack { display: flex; flex-direction: column; gap: 0.5rem; }
 }
 .home-subcard__link { justify-content: flex-start; }
 .home-subcard__link-icon { margin-right: 0.35rem; }
+
+.home-subcard__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: var(--mat-sys-corner-full);
+  font: var(--mat-sys-label-small);
+  font-weight: 600;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  margin-left: 0.35rem;
+}
+
 .home-subcard--status mat-card-content { margin-top: 0.75rem; }
 .home-subcard--status .home-subcard__body { margin-bottom: 0.5rem; }
 .home-status-placeholder { min-height: 2.5rem; display: block; }

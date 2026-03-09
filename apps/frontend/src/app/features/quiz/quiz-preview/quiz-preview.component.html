@@ -7,16 +7,32 @@
       <mat-card-content>
         @if (quizData.description) {
           <p class="quiz-preview__description">{{ quizData.description }}</p>
-        } @else {
-          <p class="quiz-preview__description quiz-preview__description--muted">Keine Beschreibung.</p>
         }
 
         @if (questions().length > 0) {
-          <p class="quiz-preview__meta">Frage {{ currentIndex() + 1 }} / {{ questions().length }}</p>
+          <p class="quiz-preview__meta">Frage {{ currentIndex() + 1 }} von {{ questions().length }}</p>
           <mat-progress-bar mode="determinate" [value]="progressValue()"></mat-progress-bar>
-          <p class="quiz-preview__hint">
-            Tastenkürzel: →/N, ←/P, Home, End, 1–9, Esc
-          </p>
+          <nav class="quiz-preview__dots" aria-label="Frage wählen">
+            @for (q of questions(); track q.id; let i = $index) {
+              <button
+                class="quiz-preview__dot"
+                [class.quiz-preview__dot--active]="i === currentIndex()"
+                [class.quiz-preview__dot--warn]="hasWarningAtIndex(i)"
+                type="button"
+                (click)="goToQuestion(i)"
+                [attr.aria-label]="'Frage ' + (i + 1)"
+                [attr.aria-current]="i === currentIndex() ? 'step' : null"
+              ></button>
+            }
+          </nav>
+          <div class="quiz-preview__shortcuts" aria-label="Tastenkürzel">
+            <kbd>←</kbd><kbd>→</kbd>
+            <span class="quiz-preview__shortcut-label">Navigation</span>
+            <kbd>E</kbd>
+            <span class="quiz-preview__shortcut-label">Bearbeiten</span>
+            <kbd>Esc</kbd>
+            <span class="quiz-preview__shortcut-label">Zurück</span>
+          </div>
         } @else {
           <p class="quiz-preview__meta">Fragen: 0</p>
         }
@@ -24,9 +40,15 @@
     </mat-card>
 
     @if (questions().length === 0) {
-      <mat-card appearance="outlined">
-        <mat-card-content>
-          <p class="quiz-preview__empty">Noch keine Fragen vorhanden.</p>
+      <mat-card appearance="outlined" class="quiz-preview__empty-card">
+        <mat-card-content class="quiz-preview__empty-content">
+          <mat-icon class="quiz-preview__empty-icon">quiz</mat-icon>
+          <p class="quiz-preview__empty-title">Keine Fragen vorhanden</p>
+          <p class="quiz-preview__empty-hint">Füge zuerst Fragen im Editor hinzu, um die Vorschau zu nutzen.</p>
+          <a mat-button [routerLink]="['../']">
+            <mat-icon>edit</mat-icon>
+            Zum Editor
+          </a>
         </mat-card-content>
       </mat-card>
     } @else if (currentQuestion(); as question) {
@@ -47,9 +69,9 @@
             <button mat-button type="button" (click)="inlineEditMode() ? finishInlineEditMode() : enterInlineEditMode()">
               <mat-icon>edit</mat-icon>
               @if (inlineEditMode()) {
-                Bearbeitung beenden
+                Fertig
               } @else {
-                Inline-Bearbeitung
+                Direkt bearbeiten
               }
             </button>
             @if (inlineEditMode()) {
@@ -75,7 +97,7 @@
             ></div>
           }
           @if (question.type === 'FREETEXT') {
-            <p class="quiz-preview-question__text">Teilnehmende geben eigene Freitext-Antworten ein.</p>
+            <p class="quiz-preview-question__text quiz-preview-question__text--hint">Freitext-Antwort</p>
           } @else if (question.type === 'RATING') {
             <div class="quiz-preview-question__rating">
               <p class="quiz-preview-question__rating-meta">
@@ -144,7 +166,7 @@
     <mat-card appearance="outlined" class="quiz-preview__validation">
       <mat-card-content>
         @if (validationWarnings().length === 0) {
-          <p class="quiz-preview__valid" role="status">Alle Fragen gültig - bereit zum Live-Schalten.</p>
+          <p class="quiz-preview__valid" role="status">Alle Fragen gültig – bereit zum Starten.</p>
         } @else {
           <p class="quiz-preview__invalid-title">Validierungshinweise</p>
           <div class="quiz-preview__invalid-list">
@@ -158,37 +180,38 @@
       </mat-card-content>
     </mat-card>
 
-    <div class="quiz-preview__actions">
-      <button mat-button type="button" (click)="previousQuestion()" [disabled]="currentIndex() === 0">
-        <mat-icon>chevron_left</mat-icon>
-        Vorherige
-      </button>
-      <button
-        mat-button
-        type="button"
-        (click)="nextQuestion()"
-        [disabled]="currentIndex() >= questions().length - 1"
-      >
-        Nächste
-        <mat-icon>chevron_right</mat-icon>
-      </button>
-    </div>
-
-    <div class="quiz-preview__actions">
-      <a mat-button [routerLink]="['../']" aria-label="Zurück zum Editor">
-        <mat-icon>edit</mat-icon>
-        Zurück zum Editor
-      </a>
-      <a mat-button [routerLink]="['../../']" aria-label="Zurück zur Quiz-Liste">
-        <mat-icon>arrow_back</mat-icon>
-        Zurück zur Liste
-      </a>
-    </div>
+    <nav class="quiz-preview__nav" aria-label="Fragen-Navigation">
+      <div class="quiz-preview__nav-paging">
+        <button mat-button type="button" (click)="previousQuestion()" [disabled]="currentIndex() === 0">
+          <mat-icon>chevron_left</mat-icon>
+          Vorherige
+        </button>
+        <button
+          mat-button
+          type="button"
+          (click)="nextQuestion()"
+          [disabled]="currentIndex() >= questions().length - 1"
+        >
+          Nächste
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+      <div class="quiz-preview__nav-links">
+        <a mat-button [routerLink]="['../']" aria-label="Zurück zum Editor">
+          <mat-icon>edit</mat-icon>
+          Editor
+        </a>
+        <a mat-button [routerLink]="['../../']" aria-label="Zurück zur Quiz-Liste">
+          <mat-icon>arrow_back</mat-icon>
+          Liste
+        </a>
+      </div>
+    </nav>
   </section>
 } @else {
   <mat-card appearance="outlined">
     <mat-card-content>
-      <p class="quiz-preview__empty">Quiz nicht gefunden.</p>
+      <p class="quiz-preview__empty">Nicht gefunden.</p>
       <a mat-button [routerLink]="['../../']" aria-label="Zurück zur Quiz-Liste">
         <mat-icon>arrow_back</mat-icon>
         Zurück zur Liste

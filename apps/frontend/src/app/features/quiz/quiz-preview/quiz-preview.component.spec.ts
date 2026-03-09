@@ -104,7 +104,7 @@ describe('QuizPreviewComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Rating');
+    expect(text).toContain('Bewertung');
     expect(text).toContain('Skala 1–5');
     expect(text).toContain('Niedrig');
     expect(text).toContain('Hoch');

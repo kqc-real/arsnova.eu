@@ -340,6 +340,7 @@ describe('QuizEditComponent', () => {
   it('fokussiert bei ungültigen Einstellungen das erste Fehlerfeld', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
+    component.showSettings.set(true);
     fixture.detectChanges();
     const timerInput = fixture.nativeElement.querySelector(
       '.quiz-edit__settings-card input[formcontrolname="defaultTimer"]',
@@ -373,7 +374,7 @@ describe('QuizEditComponent', () => {
     component.addQuestion();
 
     expect(mockStore.addQuestion).not.toHaveBeenCalled();
-    expect(component.submitError()).toBe('Bei Single Choice muss genau eine Antwort korrekt sein.');
+    expect(component.submitError()).toBe('Wähle genau eine richtige Antwort aus.');
     expect(focusSpy).toHaveBeenCalled();
   });
 

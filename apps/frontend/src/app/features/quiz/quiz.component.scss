@@ -1,18 +1,3 @@
-/* Abstand zur Top-Toolbar (wie auf der Startseite). */
-:host > .l-page.l-section {
-  margin-top: 1rem;
-}
-@media (min-width: 600px) {
-  :host > .l-page.l-section {
-    margin-top: 1.25rem;
-  }
-}
-@media (min-width: 840px) {
-  :host > .l-page.l-section {
-    margin-top: 1.5rem;
-  }
-}
-
 .quiz-page__header {
   margin-bottom: 1.5rem;
   display: flex;

@@ -148,19 +148,31 @@
           </mat-card-content>
 
           <mat-card-actions class="l-stack l-stack--sm">
-            <a matButton="filled" routerLink="/quiz" class="home-cta" (mouseenter)="preloadQuiz()">
+            <a matButton="filled" routerLink="/quiz/new" class="home-cta" (mouseenter)="preloadQuiz()">
               <mat-icon class="home-cta__icon">add_circle</mat-icon>
               Neues Quiz starten
             </a>
             <div class="home-cta-row">
-              <a matButton="tonal" routerLink="/quiz" class="home-cta home-cta--secondary" (mouseenter)="preloadQuiz()">
+              <a
+                matButton="tonal"
+                routerLink="/quiz"
+                class="home-cta home-cta--secondary"
+                (mouseenter)="preloadQuiz()"
+                [matBadge]="quizCount()"
+                [matBadgeHidden]="quizCount() === 0"
+              >
                 <mat-icon class="home-cta__icon">quiz</mat-icon>
                 Aus Bibliothek
               </a>
-              <a matButton="tonal" routerLink="/quiz" class="home-cta home-cta--secondary" (mouseenter)="preloadQuiz()">
+              <button
+                matButton="tonal"
+                class="home-cta home-cta--secondary"
+                disabled
+                matTooltip="Fragerunden kommen bald"
+              >
                 <mat-icon class="home-cta__icon">question_answer</mat-icon>
                 Fragerunde
-              </a>
+              </button>
             </div>
           </mat-card-actions>
         </mat-card>
@@ -178,16 +190,19 @@
             <div class="home-subcard__links l-stack l-stack--sm">
               <a matButton routerLink="/quiz" class="home-subcard__link" (mouseenter)="preloadQuiz()">
                 <mat-icon class="home-subcard__link-icon">menu_book</mat-icon>
-                Quizzes entdecken
+                Meine Quizzes
+                @if (quizCount() > 0) {
+                  <span class="home-subcard__badge">{{ quizCount() }}</span>
+                }
               </a>
               <div class="home-subcard__demo-row">
-                <a matButton routerLink="/quiz" class="home-subcard__demo-btn" (mouseenter)="preloadQuiz()">
+                <a matButton [routerLink]="['/quiz', demoQuizId, 'preview']" class="home-subcard__demo-btn" (mouseenter)="preloadQuiz()">
                   <mat-icon class="home-subcard__link-icon">play_circle</mat-icon>
-                  Demo starten
+                  Demo ansehen
                 </a>
-                <a matButton [routerLink]="['/session', demoSessionCode]" class="home-subcard__demo-btn">
-                  <mat-icon class="home-subcard__link-icon">group_add</mat-icon>
-                  Demo beitreten
+                <a matButton [routerLink]="['/quiz', demoQuizId]" class="home-subcard__demo-btn" (mouseenter)="preloadQuiz()">
+                  <mat-icon class="home-subcard__link-icon">edit</mat-icon>
+                  Demo bearbeiten
                 </a>
               </div>
             </div>

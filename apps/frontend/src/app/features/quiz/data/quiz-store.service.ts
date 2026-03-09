@@ -23,6 +23,7 @@ import {
   type TeamAssignment,
 } from '@arsnova/shared-types';
 import { getYjsWsUrl } from '../../../core/ws-urls';
+import demoQuizPayload from '../../../../../../../docs/examples/quiz-import/quiz-demo-showcase.json';
 
 export type SupportedQuestionType =
   | 'MULTIPLE_CHOICE'
@@ -284,6 +285,8 @@ const UUID_PATTERN =
 const DEFAULT_QUIZ_SETTINGS: QuizSettings = parseQuizSettings({});
 type SyncConnectionState = 'connected' | 'connecting' | 'disconnected';
 
+export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
+
 @Injectable({ providedIn: 'root' })
 export class QuizStoreService {
   private readonly platformId = inject(PLATFORM_ID);
@@ -319,6 +322,10 @@ export class QuizStoreService {
     if (isPlatformBrowser(this.platformId)) {
       globalThis.addEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
     }
+  }
+
+  getDemoQuizId(): string | null {
+    return this.getQuizById(DEMO_QUIZ_ID) ? DEMO_QUIZ_ID : null;
   }
 
   createQuiz(input: CreateQuizDocumentInput): QuizDocument {
@@ -499,7 +506,7 @@ export class QuizStoreService {
     return parsed.data;
   }
 
-  importQuiz(payload: unknown): QuizDocument {
+  importQuiz(payload: unknown, overrideId?: string): QuizDocument {
     const parsed = QuizImportSchema.safeParse(payload);
     if (!parsed.success) {
       const issue = parsed.error.issues[0];
@@ -511,7 +518,7 @@ export class QuizStoreService {
 
     const now = new Date().toISOString();
     const imported: QuizDocument = {
-      id: generateUuid(),
+      id: overrideId ?? generateUuid(),
       name: parsed.data.quiz.name,
       description: normalizeDescription(parsed.data.quiz.description) ?? null,
       createdAt: now,
@@ -656,6 +663,30 @@ export class QuizStoreService {
     return updatedQuestion;
   }
 
+  reorderQuestions(quizId: string, previousIndex: number, currentIndex: number): void {
+    const document = this.getQuizById(quizId);
+    if (!document) {
+      throw new Error('Quiz nicht gefunden.');
+    }
+    if (previousIndex === currentIndex) return;
+
+    const updatedAt = new Date().toISOString();
+    this.quizDocuments.update((current) =>
+      current.map((quiz) => {
+        if (quiz.id !== quizId) return quiz;
+        const questions = [...quiz.questions];
+        const [moved] = questions.splice(previousIndex, 1);
+        questions.splice(currentIndex, 0, moved);
+        return {
+          ...quiz,
+          updatedAt,
+          questions: questions.map((q, i) => ({ ...q, order: i })),
+        };
+      }),
+    );
+    this.persistToStorage();
+  }
+
   deleteQuestion(quizId: string, questionId: string): void {
     const document = this.getQuizById(quizId);
     if (!document) {
@@ -682,6 +713,16 @@ export class QuizStoreService {
 
   getQuizById(id: string): QuizDocument | null {
     return this.quizDocuments().find((quiz) => quiz.id === id) ?? null;
+  }
+
+  ensureDemoQuiz(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (this.quizDocuments().some((q) => q.id === DEMO_QUIZ_ID)) return;
+    try {
+      this.importQuiz(demoQuizPayload, DEMO_QUIZ_ID);
+    } catch (e) {
+      console.error('[DemoQuiz] Seeding failed:', e);
+    }
   }
 
   activateSyncRoom(roomId: string): void {

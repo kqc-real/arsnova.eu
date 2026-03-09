@@ -1,0 +1,171 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-03-09T12:00:00.000Z",
+  "quiz": {
+    "name": "arsnova.eu – Feature-Showcase",
+    "description": "Interaktives Demo-Quiz mit allen Frageformaten, Markdown, KaTeX-Formeln und Rich-Text. Perfekt zum Ausprobieren.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": true,
+    "defaultTimer": 60,
+    "enableSoundEffects": true,
+    "enableRewardEffects": true,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "NOBEL_LAUREATES",
+    "bonusTokenCount": 3,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Integralrechnung\n\nBerechne das bestimmte Integral:\n\n$$\\int_0^{\\pi} \\sin^2(x)\\,\\mathrm{d}x$$\n\n> **Tipp:** Verwende die Identität $\\sin^2(x) = \\frac{1 - \\cos(2x)}{2}$.",
+        "type": "SINGLE_CHOICE",
+        "timer": 90,
+        "difficulty": "HARD",
+        "order": 0,
+        "answers": [
+          { "text": "$\\dfrac{\\pi}{2}$", "isCorrect": true },
+          { "text": "$\\pi$", "isCorrect": false },
+          { "text": "$\\dfrac{\\pi}{4}$", "isCorrect": false },
+          { "text": "$2\\pi$", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Lineare Algebra\n\nGegeben sei die Matrix\n\n$$A = \\begin{pmatrix} 2 & 1 \\\\ 0 & 3 \\end{pmatrix}$$\n\nWelche Aussagen sind **korrekt**?\n\n*Mehrere Antworten möglich.*",
+        "type": "MULTIPLE_CHOICE",
+        "timer": 60,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          { "text": "Die Eigenwerte sind $\\lambda_1 = 2$ und $\\lambda_2 = 3$.", "isCorrect": true },
+          { "text": "$\\det(A) = 6$", "isCorrect": true },
+          { "text": "$A$ ist symmetrisch.", "isCorrect": false },
+          { "text": "Die Spur von $A$ ist $\\operatorname{tr}(A) = 5$.", "isCorrect": true },
+          { "text": "$A$ ist singulär.", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Quantenmechanik\n\nDie zeitunabhängige **Schrödinger-Gleichung** lautet:\n\n$$\\hat{H}\\,|\\psi\\rangle = E\\,|\\psi\\rangle$$\n\nmit dem Hamilton-Operator\n\n$$\\hat{H} = -\\frac{\\hbar^2}{2m}\\nabla^2 + V(\\mathbf{r})$$\n\nWelches Potential $V(\\mathbf{r})$ beschreibt den **harmonischen Oszillator** in einer Dimension?",
+        "type": "SINGLE_CHOICE",
+        "timer": 45,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": [
+          { "text": "$V(x) = \\frac{1}{2} m\\omega^2 x^2$", "isCorrect": true },
+          { "text": "$V(x) = -\\frac{e^2}{4\\pi\\varepsilon_0 r}$", "isCorrect": false },
+          { "text": "$V(x) = V_0\\,\\Theta(a - |x|)$", "isCorrect": false },
+          { "text": "$V(x) = mgx$", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Statistik & Wahrscheinlichkeit\n\nBeim **Satz von Bayes** gilt:\n\n$$P(A \\mid B) = \\frac{P(B \\mid A) \\cdot P(A)}{P(B)}$$\n\nEin medizinischer Test hat:\n- **Sensitivität:** $P(+|\\text{krank}) = 0{,}99$\n- **Spezifität:** $P(-|\\text{gesund}) = 0{,}95$\n- **Prävalenz:** $P(\\text{krank}) = 0{,}01$\n\nWie hoch ist $P(\\text{krank}|+)$ (gerundet)?",
+        "type": "SINGLE_CHOICE",
+        "timer": 120,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          { "text": "$\\approx 16{,}7\\%$", "isCorrect": true },
+          { "text": "$\\approx 99\\%$", "isCorrect": false },
+          { "text": "$\\approx 50\\%$", "isCorrect": false },
+          { "text": "$\\approx 4{,}8\\%$", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Thermodynamik\n\nWelche Aussagen zur **Entropie** $S$ sind korrekt?\n\n$$S = k_\\mathrm{B} \\ln \\Omega$$\n\nwobei $\\Omega$ die Anzahl der Mikrozustände ist.\n\n*Wähle alle richtigen Antworten.*",
+        "type": "MULTIPLE_CHOICE",
+        "timer": 60,
+        "difficulty": "MEDIUM",
+        "order": 4,
+        "answers": [
+          { "text": "$S$ ist eine **extensive** Zustandsgröße.", "isCorrect": true },
+          { "text": "Im thermischen Gleichgewicht ist $S$ maximal (abgeschlossenes System).", "isCorrect": true },
+          { "text": "$S$ kann in einem abgeschlossenen System spontan abnehmen.", "isCorrect": false },
+          { "text": "Die Einheit von $S$ ist $\\mathrm{J/K}$.", "isCorrect": true }
+        ]
+      },
+      {
+        "text": "### Umfrage: Lernmethoden\n\nWelche **Lernstrategie** nutzt du am häufigsten für mathematische Fächer?",
+        "type": "SURVEY",
+        "timer": 30,
+        "difficulty": "EASY",
+        "order": 5,
+        "answers": [
+          { "text": "Übungsaufgaben durchrechnen", "isCorrect": false },
+          { "text": "Vorlesungsskript zusammenfassen", "isCorrect": false },
+          { "text": "Lerngruppe / gemeinsam rechnen", "isCorrect": false },
+          { "text": "Video-Tutorials (YouTube, Khan Academy)", "isCorrect": false },
+          { "text": "Karteikarten / Spaced Repetition", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Informatik: Komplexitätstheorie\n\nOrdne die Laufzeiten der Größe nach — welche wächst am **langsamsten**?\n\n| Algorithmus | Laufzeit |\n|---|---|\n| Binäre Suche | $O(\\log n)$ |\n| Mergesort | $O(n \\log n)$ |\n| Brute-Force TSP | $O(n!)$ |\n| Matrixmultiplikation | $O(n^3)$ |",
+        "type": "SINGLE_CHOICE",
+        "timer": 45,
+        "difficulty": "EASY",
+        "order": 6,
+        "answers": [
+          { "text": "$O(\\log n)$ — Binäre Suche", "isCorrect": true },
+          { "text": "$O(n \\log n)$ — Mergesort", "isCorrect": false },
+          { "text": "$O(n^3)$ — Matrixmultiplikation", "isCorrect": false },
+          { "text": "$O(n!)$ — Brute-Force TSP", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Elektrotechnik\n\nGegeben ist ein Schwingkreis mit:\n\n$$\\omega_0 = \\frac{1}{\\sqrt{LC}}$$\n\nmit $L = 10\\,\\mathrm{mH}$ und $C = 100\\,\\mathrm{nF}$.\n\nBerechne die **Resonanzfrequenz** $f_0 = \\frac{\\omega_0}{2\\pi}$.",
+        "type": "FREETEXT",
+        "timer": 90,
+        "difficulty": "HARD",
+        "order": 7,
+        "answers": []
+      },
+      {
+        "text": "### Selbsteinschätzung: Fourier-Analysis\n\nDie **Fourier-Reihe** einer periodischen Funktion $f(x)$ lautet:\n\n$$f(x) = \\frac{a_0}{2} + \\sum_{n=1}^{\\infty} \\left[ a_n \\cos\\left(\\frac{2\\pi n x}{T}\\right) + b_n \\sin\\left(\\frac{2\\pi n x}{T}\\right) \\right]$$\n\nWie sicher fühlst du dich bei der Berechnung der Koeffizienten $a_n$ und $b_n$?",
+        "type": "RATING",
+        "timer": 20,
+        "difficulty": "MEDIUM",
+        "order": 8,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Brauche Nachhilfe",
+        "ratingLabelMax": "Kann es erklären"
+      },
+      {
+        "text": "### Chemie: Redox-Reaktionen\n\nWelche Teilreaktionen gehören zur Elektrolyse von Wasser?\n\n- **Anode** (Oxidation)\n- **Kathode** (Reduktion)\n\n*Wähle alle korrekten Aussagen.*",
+        "type": "MULTIPLE_CHOICE",
+        "timer": 60,
+        "difficulty": "MEDIUM",
+        "order": 9,
+        "answers": [
+          { "text": "Anode: $2\\,\\mathrm{H_2O} \\to \\mathrm{O_2} + 4\\,\\mathrm{H^+} + 4\\,e^-$", "isCorrect": true },
+          { "text": "Kathode: $2\\,\\mathrm{H^+} + 2\\,e^- \\to \\mathrm{H_2}$", "isCorrect": true },
+          { "text": "An der Anode entsteht Wasserstoff.", "isCorrect": false },
+          { "text": "Die Gesamtreaktion: $2\\,\\mathrm{H_2O} \\to 2\\,\\mathrm{H_2} + \\mathrm{O_2}$", "isCorrect": true }
+        ]
+      },
+      {
+        "text": "### Reflexion\n\nWas war für dich die **überraschendste Erkenntnis** in diesem Quiz?\n\nDu kannst *Markdown* nutzen:\n- `Code-Snippets`\n- **Fettschrift**\n- $\\LaTeX$-Formeln",
+        "type": "FREETEXT",
+        "timer": 60,
+        "difficulty": "EASY",
+        "order": 10,
+        "answers": []
+      },
+      {
+        "text": "### Gesamtbewertung\n\nWie bewertest du dieses **Demo-Quiz** insgesamt?\n\nBerücksichtige:\n1. Schwierigkeitsgrad\n2. Abwechslung der Formate\n3. Qualität der Formeln",
+        "type": "RATING",
+        "timer": 20,
+        "difficulty": "EASY",
+        "order": 11,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 10,
+        "ratingLabelMin": "Verbesserungswürdig",
+        "ratingLabelMax": "Hervorragend"
+      }
+    ]
+  }
+}

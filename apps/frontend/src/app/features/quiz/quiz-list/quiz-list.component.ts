@@ -71,28 +71,28 @@ export class QuizListComponent implements OnInit {
     this.actionError.set(null);
     try {
       const duplicate = this.quizStore.duplicateQuiz(quizId);
-      this.actionInfo.set(`Quiz „${duplicate.name}“ wurde dupliziert.`);
+      this.actionInfo.set(`„${duplicate.name}“ wurde dupliziert.`);
     } catch (error) {
-      this.actionError.set(error instanceof Error ? error.message : 'Quiz konnte nicht dupliziert werden.');
+      this.actionError.set(error instanceof Error ? error.message : 'Duplizieren fehlgeschlagen.');
     }
   }
 
   deleteQuiz(quizId: string, quizName: string): void {
     this.actionError.set(null);
     if (this.isQuizLive(quizId)) {
-      this.actionInfo.set(`Quiz „${quizName}“ ist live und kann aktuell nicht gelöscht werden.`);
+      this.actionInfo.set(`„${quizName}“ ist gerade live und kann nicht gelöscht werden.`);
       return;
     }
     const confirmed = globalThis.confirm(
-      `Quiz „${quizName}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
+      `„${quizName}“ wirklich löschen? Das lässt sich nicht rückgängig machen.`,
     );
     if (!confirmed) return;
 
     try {
       this.quizStore.deleteQuiz(quizId);
-      this.actionInfo.set(`Quiz „${quizName}“ wurde gelöscht.`);
+      this.actionInfo.set(`„${quizName}“ wurde gelöscht.`);
     } catch (error) {
-      this.actionError.set(error instanceof Error ? error.message : 'Quiz konnte nicht gelöscht werden.');
+      this.actionError.set(error instanceof Error ? error.message : 'Löschen fehlgeschlagen.');
     }
   }
 
@@ -109,9 +109,9 @@ export class QuizListComponent implements OnInit {
       anchor.download = filename;
       anchor.click();
       URL.revokeObjectURL(url);
-      this.actionInfo.set(`Quiz „${quiz.quiz.name}“ wurde exportiert.`);
+      this.actionInfo.set(`„${quiz.quiz.name}“ wurde exportiert.`);
     } catch (error) {
-      this.actionError.set(error instanceof Error ? error.message : 'Quiz konnte nicht exportiert werden.');
+      this.actionError.set(error instanceof Error ? error.message : 'Export fehlgeschlagen.');
     }
   }
 
@@ -125,7 +125,7 @@ export class QuizListComponent implements OnInit {
       const raw = await file.text();
       const parsed = JSON.parse(raw) as unknown;
       const imported = this.quizStore.importQuiz(parsed);
-      this.actionInfo.set(`Quiz „${imported.name}“ wurde importiert.`);
+      this.actionInfo.set(`„${imported.name}“ wurde importiert.`);
       target.value = '';
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Import fehlgeschlagen.';
@@ -140,18 +140,18 @@ export class QuizListComponent implements OnInit {
 
     const raw = this.aiJsonInput().trim();
     if (!raw) {
-      this.actionError.set('Bitte KI-JSON einfügen.');
+      this.actionError.set('Füge zuerst das KI-JSON ein.');
       return;
     }
 
     try {
       const parsed = JSON.parse(raw) as unknown;
       const imported = this.quizStore.importQuiz(parsed);
-      this.actionInfo.set(`KI-Quiz „${imported.name}“ wurde importiert.`);
+      this.actionInfo.set(`KI-„${imported.name}“ wurde importiert.`);
       this.aiJsonInput.set('');
       this.showAiImport.set(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'KI-JSON konnte nicht importiert werden.';
+      const message = error instanceof Error ? error.message : 'KI-Import fehlgeschlagen.';
       this.actionError.set(message);
     }
   }

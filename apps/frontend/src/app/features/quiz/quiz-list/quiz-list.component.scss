@@ -1,20 +1,36 @@
 .quiz-empty-state__content {
   text-align: center;
-  padding: clamp(2rem, 5vw, 3rem) 1rem;
+  padding: clamp(2.5rem, 6vw, 4rem) 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quiz-empty-state__icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: var(--mat-sys-primary);
+  opacity: 0.6;
+  margin-bottom: 0.5rem;
 }
 
 .quiz-empty-state__text {
-  margin: 0 0 1rem;
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+  line-height: 1.4;
+}
+
+.quiz-empty-state__hint {
+  margin: 0;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-medium);
   line-height: 1.5;
 }
 
-.quiz-empty-state__hint {
-  margin: 1rem 0 0;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
-  line-height: 1.45;
+.quiz-empty-state__cta {
+  margin-top: 0.75rem;
 }
 
 .quiz-list__actions {
@@ -103,9 +119,66 @@
 
 .quiz-list-item__meta {
   margin: 0.7rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
   line-height: 1.45;
+  flex-wrap: wrap;
+}
+
+.quiz-list-item__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  border-radius: var(--mat-sys-corner-full);
+  font: var(--mat-sys-label-small);
+  font-weight: 600;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.quiz-list-item__badge--empty {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.quiz-list-item__meta-text--warn {
+  color: var(--mat-sys-error);
+}
+
+.quiz-list-item__meta-sep {
+  color: var(--mat-sys-outline);
+}
+
+.quiz-list-item {
+  position: relative;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--mat-sys-outline);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--mat-sys-shadow) 12%, transparent);
+  }
+
+  &:has(.quiz-list-item__link:focus-visible) {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+.quiz-list-item__link {
+  display: contents;
+  text-decoration: none;
+  color: inherit;
+
+  &:focus-visible {
+    outline: none;
+  }
 }
 
 .quiz-list-item__actions {
@@ -114,6 +187,8 @@
   gap: 0.35rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+  position: relative;
+  z-index: 1;
 }
 
 .quiz-list-item__menu-trigger,

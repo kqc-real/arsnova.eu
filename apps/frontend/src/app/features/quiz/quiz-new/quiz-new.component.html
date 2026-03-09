@@ -1,6 +1,6 @@
 <mat-card appearance="outlined" class="quiz-form-card">
   <mat-card-header class="quiz-form-card__header">
-    <mat-card-title>Neues Quiz</mat-card-title>
+    <mat-card-title>Quiz erstellen</mat-card-title>
   </mat-card-header>
 
   <mat-card-content>
@@ -21,10 +21,10 @@
         />
         <mat-hint align="end">{{ nameControl.value.length }}/200</mat-hint>
         @if (nameControl.hasError('required') && (nameControl.touched || submitted())) {
-          <mat-error>Name ist erforderlich.</mat-error>
+          <mat-error>Gib deinem Quiz einen Namen.</mat-error>
         }
         @if (nameControl.hasError('maxlength') && (nameControl.touched || submitted())) {
-          <mat-error>Name darf maximal 200 Zeichen haben.</mat-error>
+          <mat-error>Der Name darf maximal 200 Zeichen lang sein.</mat-error>
         }
       </mat-form-field>
 
@@ -33,198 +33,221 @@
         <textarea
           matInput
           formControlName="description"
-          rows="4"
+          rows="3"
           maxlength="1000"
           aria-label="Quiz-Beschreibung"
         ></textarea>
         <mat-hint align="end">{{ descriptionControl.value.length }}/1000</mat-hint>
         @if (descriptionControl.hasError('maxlength') && (descriptionControl.touched || submitted())) {
-          <mat-error>Beschreibung darf maximal 1000 Zeichen haben.</mat-error>
+          <mat-error>Die Beschreibung darf maximal 1000 Zeichen lang sein.</mat-error>
         }
       </mat-form-field>
 
-      <mat-card appearance="outlined">
-        <mat-card-header class="quiz-form-card__header">
-          <mat-card-title>Quiz-Einstellungen</mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="l-stack l-stack--sm">
-          <div class="quiz-form__preset-actions">
-            @for (preset of presetOptions; track preset.value) {
-              <button mat-button type="button" (click)="applyPreset(preset.value)">
-                {{ preset.label }}-Preset
+      <div class="quiz-form__settings-toggle">
+        <button mat-button type="button" (click)="showSettings.set(!showSettings())">
+          <mat-icon>{{ showSettings() ? 'expand_less' : 'tune' }}</mat-icon>
+          @if (showSettings()) {
+            Einstellungen ausblenden
+          } @else {
+            Einstellungen anpassen
+          }
+        </button>
+        <span class="quiz-form__preset-chip">{{ presetBadgeLabel() }}</span>
+      </div>
+
+      @if (showSettings()) {
+        <mat-card appearance="outlined">
+          <mat-card-content class="l-stack l-stack--sm">
+            <div class="quiz-form__preset-actions">
+              @for (preset of presetOptions; track preset.value) {
+                <button mat-button type="button" (click)="applyPreset(preset.value)">
+                  {{ preset.label }} anwenden
+                </button>
+              }
+              <button mat-button type="button" (click)="copyKiPrompt()">
+                <mat-icon>smart_toy</mat-icon>
+                KI-Prompt kopieren
               </button>
-            }
-            <button mat-button type="button" (click)="copyKiPrompt()">
-              <mat-icon>smart_toy</mat-icon>
-              KI-Prompt kopieren
-            </button>
-            <button mat-button type="button" (click)="toggleAiImport()">
-              <mat-icon>upload_file</mat-icon>
-              KI-JSON importieren
-            </button>
-            <p class="quiz-form__preset-badge">
-              Aktueller Preset-Status: <strong>{{ presetBadgeLabel() }}</strong>
-            </p>
-            @if (promptStatus()) {
-              <p class="quiz-form__preset-badge" role="status">{{ promptStatus() }}</p>
-            }
-          </div>
-
-          @if (aiImportStatus()) {
-            <p class="quiz-form__preset-badge" role="status">{{ aiImportStatus() }}</p>
-          }
-          @if (aiImportError()) {
-            <p class="quiz-form__error" role="alert">{{ aiImportError() }}</p>
-          }
-
-          @if (showAiImport()) {
-            <div class="quiz-form__ai-import l-stack l-stack--xs">
-              <p class="quiz-form__ai-hint">
-                KI-JSON einfügen oder als Datei laden. Vor dem Import prüfen wir den Inhalt automatisch.
-              </p>
-              <mat-form-field appearance="outline">
-                <mat-label>KI-JSON</mat-label>
-                <textarea
-                  #aiJsonTextarea
-                  matInput
-                  rows="8"
-                  [value]="aiJsonInput()"
-                  (input)="updateAiJsonInput(aiJsonTextarea.value)"
-                ></textarea>
-              </mat-form-field>
-              <div class="quiz-form__ai-actions">
-                <button mat-button type="button" (click)="aiImportFileInput.click()">
-                  <mat-icon>description</mat-icon>
-                  JSON-Datei wählen
-                </button>
-                <button mat-button type="button" (click)="toggleAiImport()">Abbrechen</button>
-                <button matButton="filled" type="button" (click)="importAiJson()">
-                  Import starten
-                </button>
-              </div>
-              <input
-                #aiImportFileInput
-                type="file"
-                accept=".json,application/json"
-                hidden
-                (change)="onAiImportFileSelected($event)"
-              />
+              <button mat-button type="button" (click)="toggleAiImport()">
+                <mat-icon>upload_file</mat-icon>
+                KI-Quiz importieren
+              </button>
+              @if (promptStatus()) {
+                <p class="quiz-form__preset-badge" role="status">{{ promptStatus() }}</p>
+              }
             </div>
-          }
 
-          <mat-checkbox formControlName="showLeaderboard">Leaderboard anzeigen</mat-checkbox>
-          <mat-checkbox formControlName="allowCustomNicknames">
-            Eigene Nicknames erlauben
-          </mat-checkbox>
-          <mat-checkbox formControlName="enableSoundEffects">Soundeffekte aktivieren</mat-checkbox>
-          <mat-checkbox formControlName="enableRewardEffects">
-            Belohnungseffekte aktivieren
-          </mat-checkbox>
-          <mat-checkbox formControlName="enableMotivationMessages">
-            Motivationsmeldungen aktivieren
-          </mat-checkbox>
-          <mat-checkbox formControlName="enableEmojiReactions">
-            Emoji-Reaktionen aktivieren
-          </mat-checkbox>
-          <mat-checkbox formControlName="anonymousMode">Anonymer Modus</mat-checkbox>
-          <mat-checkbox formControlName="readingPhaseEnabled">
-            Lesephase vor Antworten aktivieren
-          </mat-checkbox>
-          <mat-checkbox formControlName="teamMode">Team-Modus aktivieren</mat-checkbox>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Standard-Timer in Sekunden (optional)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="defaultTimer"
-              min="5"
-              max="300"
-              aria-label="Standard-Timer"
-            />
-            <mat-hint>Leer lassen, um keinen globalen Timer zu setzen.</mat-hint>
-            @if (
-              defaultTimerControl.hasError('min') &&
-              (defaultTimerControl.touched || submitted())
-            ) {
-              <mat-error>Der Standard-Timer muss mindestens 5 Sekunden betragen.</mat-error>
+            @if (aiImportStatus()) {
+              <p class="quiz-form__preset-badge" role="status">{{ aiImportStatus() }}</p>
             }
-            @if (
-              defaultTimerControl.hasError('max') &&
-              (defaultTimerControl.touched || submitted())
-            ) {
-              <mat-error>Der Standard-Timer darf höchstens 300 Sekunden betragen.</mat-error>
+            @if (aiImportError()) {
+              <p class="quiz-form__error" role="alert">{{ aiImportError() }}</p>
             }
-          </mat-form-field>
 
-          @if (isTeamModeEnabled()) {
-            <div class="quiz-form__grid">
-              <mat-form-field appearance="outline">
-                <mat-label>Anzahl Teams</mat-label>
+            @if (showAiImport()) {
+              <div class="quiz-form__ai-import l-stack l-stack--xs">
+                <p class="quiz-form__ai-hint">
+                  Füge das JSON aus deiner KI ein oder lade es als Datei. Wir prüfen den Inhalt vor dem Import.
+                </p>
+                <mat-form-field appearance="outline">
+                  <mat-label>KI-JSON einfügen</mat-label>
+                  <textarea
+                    #aiJsonTextarea
+                    matInput
+                    rows="8"
+                    [value]="aiJsonInput()"
+                    (input)="updateAiJsonInput(aiJsonTextarea.value)"
+                  ></textarea>
+                </mat-form-field>
+                <div class="quiz-form__ai-actions">
+                  <button mat-button type="button" (click)="aiImportFileInput.click()">
+                    <mat-icon>description</mat-icon>
+                    Datei wählen
+                  </button>
+                  <button mat-button type="button" (click)="toggleAiImport()">Abbrechen</button>
+                  <button matButton="filled" type="button" (click)="importAiJson()">
+                    Importieren
+                  </button>
+                </div>
                 <input
-                  matInput
-                  type="number"
-                  formControlName="teamCount"
-                  min="2"
-                  max="8"
-                  aria-label="Anzahl Teams"
+                  #aiImportFileInput
+                  type="file"
+                  accept=".json,application/json"
+                  hidden
+                  (change)="onAiImportFileSelected($event)"
                 />
-                @if (teamCountControl.hasError('min')) {
-                  <mat-error>Mindestens 2 Teams erforderlich.</mat-error>
-                }
-                @if (teamCountControl.hasError('max')) {
-                  <mat-error>Maximal 8 Teams erlaubt.</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Team-Zuweisung</mat-label>
-                <mat-select formControlName="teamAssignment" aria-label="Team-Zuweisung">
-                  <mat-option value="AUTO">Automatisch</mat-option>
-                  <mat-option value="MANUAL">Manuell</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-          }
-
-          <mat-form-field appearance="outline">
-            <mat-label>Nickname-Thema</mat-label>
-            <mat-select formControlName="nicknameTheme" aria-label="Nickname-Thema">
-              @for (theme of nicknameThemeOptions; track theme.value) {
-                <mat-option [value]="theme.value">{{ theme.label }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Hintergrundmusik</mat-label>
-            <mat-select formControlName="backgroundMusic" aria-label="Hintergrundmusik">
-              @for (music of backgroundMusicOptions; track music.value) {
-                <mat-option [value]="music.value">{{ music.label }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Bonus-Codes für Top-Plätze (optional)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="bonusTokenCount"
-              min="1"
-              max="50"
-              aria-label="Bonus-Code Anzahl"
-            />
-            <mat-hint>Leer lassen, um Bonus-Codes zu deaktivieren.</mat-hint>
-            @if (bonusTokenCountControl.hasError('min')) {
-              <mat-error>Mindestens 1 Bonus-Code erforderlich.</mat-error>
+              </div>
             }
-            @if (bonusTokenCountControl.hasError('max')) {
-              <mat-error>Maximal 50 Bonus-Codes erlaubt.</mat-error>
+
+            <fieldset class="quiz-form__fieldset">
+              <legend class="quiz-form__legend">Spiel &amp; Auswertung</legend>
+              <mat-checkbox formControlName="showLeaderboard">Rangliste anzeigen</mat-checkbox>
+              <mat-checkbox formControlName="enableRewardEffects">
+                Belohnungen zeigen
+              </mat-checkbox>
+              <mat-checkbox formControlName="enableMotivationMessages">
+                Anfeuerung einblenden
+              </mat-checkbox>
+              <mat-checkbox formControlName="enableEmojiReactions">
+                Emojis erlauben
+              </mat-checkbox>
+            </fieldset>
+
+            <fieldset class="quiz-form__fieldset">
+              <legend class="quiz-form__legend">Teilnahme &amp; Namen</legend>
+              <mat-checkbox formControlName="allowCustomNicknames">
+                Eigene Nicks erlauben
+              </mat-checkbox>
+              <mat-checkbox formControlName="anonymousMode">Anonym teilnehmen</mat-checkbox>
+            </fieldset>
+
+            <fieldset class="quiz-form__fieldset">
+              <legend class="quiz-form__legend">Ablauf &amp; Zeit</legend>
+              <mat-checkbox formControlName="readingPhaseEnabled">
+                Lesephase vor dem Antworten
+              </mat-checkbox>
+              <mat-checkbox formControlName="teamMode">Im Team spielen</mat-checkbox>
+            </fieldset>
+
+            <fieldset class="quiz-form__fieldset">
+              <legend class="quiz-form__legend">Ton &amp; Musik</legend>
+              <mat-checkbox formControlName="enableSoundEffects">Sounds abspielen</mat-checkbox>
+            </fieldset>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Zeitlimit pro Frage in Sekunden (optional)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="defaultTimer"
+                min="5"
+                max="300"
+                aria-label="Zeitlimit pro Frage"
+              />
+              <mat-hint>Ohne Wert gibt es kein Zeitlimit.</mat-hint>
+              @if (
+                defaultTimerControl.hasError('min') &&
+                (defaultTimerControl.touched || submitted())
+              ) {
+                <mat-error>Mindestens 5 Sekunden.</mat-error>
+              }
+              @if (
+                defaultTimerControl.hasError('max') &&
+                (defaultTimerControl.touched || submitted())
+              ) {
+                <mat-error>Höchstens 300 Sekunden.</mat-error>
+              }
+            </mat-form-field>
+
+            @if (isTeamModeEnabled()) {
+              <div class="quiz-form__grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Anzahl Teams</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="teamCount"
+                    min="2"
+                    max="8"
+                    aria-label="Anzahl Teams"
+                  />
+                  @if (teamCountControl.hasError('min')) {
+                    <mat-error>Mindestens 2 Teams.</mat-error>
+                  }
+                  @if (teamCountControl.hasError('max')) {
+                    <mat-error>Höchstens 8 Teams.</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Teams zuweisen</mat-label>
+                  <mat-select formControlName="teamAssignment" aria-label="Teams zuweisen">
+                    <mat-option value="AUTO">Automatisch</mat-option>
+                    <mat-option value="MANUAL">Manuell</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
             }
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Altersgruppe für Namen</mat-label>
+              <mat-select formControlName="nicknameTheme" aria-label="Altersgruppe wählen">
+                @for (theme of nicknameThemeOptions; track theme.value) {
+                  <mat-option [value]="theme.value">{{ theme.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Hintergrundmusik</mat-label>
+              <mat-select formControlName="backgroundMusic" aria-label="Hintergrundmusik wählen">
+                @for (music of backgroundMusicOptions; track music.value) {
+                  <mat-option [value]="music.value">{{ music.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Bonus-Codes für Top-Plätze (optional)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="bonusTokenCount"
+                min="1"
+                max="50"
+                aria-label="Anzahl Bonus-Codes"
+              />
+              <mat-hint>Ohne Wert werden keine Bonus-Codes vergeben.</mat-hint>
+              @if (bonusTokenCountControl.hasError('min')) {
+                <mat-error>Mindestens 1 Bonus-Code.</mat-error>
+              }
+              @if (bonusTokenCountControl.hasError('max')) {
+                <mat-error>Höchstens 50 Bonus-Codes.</mat-error>
+              }
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+      }
 
       @if (submitError()) {
         <p class="quiz-form__error" role="alert">{{ submitError() }}</p>
@@ -237,7 +260,7 @@
         </a>
         <button matButton="filled" type="submit" [disabled]="isSaving()">
           @if (isSaving()) {
-            Speichern…
+            Wird erstellt…
           } @else {
             Quiz erstellen
           }

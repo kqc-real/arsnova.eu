@@ -1,19 +1,23 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { MatBadge } from '@angular/material/badge';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { trpc } from '../../core/trpc.client';
 import { ServerStatusWidgetComponent } from '../../shared/server-status-widget/server-status-widget.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
+import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 
 @Component({
   selector: 'app-home',
   imports: [
     RouterLink,
+    MatBadge,
     MatButton,
     MatButtonToggle,
     MatButtonToggleGroup,
@@ -25,6 +29,7 @@ import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.ser
     MatCardTitle,
     MatIcon,
     MatIconButton,
+    MatTooltip,
     ServerStatusWidgetComponent,
   ],
   templateUrl: './home.component.html',
@@ -47,10 +52,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   isJoining = signal(false);
 
   readonly themePreset = inject(ThemePresetService);
+  private readonly quizStore = inject(QuizStoreService);
+  readonly quizCount = computed(() => this.quizStore.quizzes().filter(q => q.id !== DEMO_QUIZ_ID).length);
   private readonly platformId = inject(PLATFORM_ID);
 
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
   readonly demoSessionCode = 'DEMO01';
+  readonly demoQuizId = DEMO_QUIZ_ID;
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
 
   /** Leertaste schon in keydown verarbeitet → keyup nicht erneut auslösen (vermeidet Doppel-Submit, nutzt keyup für virtuelle Tastatur). */

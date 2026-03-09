@@ -2,10 +2,14 @@
   <router-outlet />
 } @else if (quiz(); as quizData) {
   <section class="quiz-edit l-stack l-stack--sm">
+    <header class="quiz-edit__page-header">
+      <h1 class="quiz-edit__page-title">{{ quizData.name || 'Neues Quiz' }}</h1>
+      <p class="quiz-edit__page-meta">{{ questions().length }} {{ questions().length === 1 ? 'Frage' : 'Fragen' }}</p>
+    </header>
+
     <mat-card appearance="outlined" class="quiz-edit__meta-card">
       <mat-card-header class="quiz-edit__card-header">
-        <mat-card-subtitle class="quiz-edit__card-subtitle">Quiz</mat-card-subtitle>
-        <mat-card-title class="quiz-edit__card-title">Metadaten</mat-card-title>
+        <mat-card-title class="quiz-edit__card-title">Titel &amp; Beschreibung</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <form
@@ -19,10 +23,10 @@
             <input matInput formControlName="name" maxlength="200" />
             <mat-hint align="end">{{ metadataForm.controls.name.value.length }}/200</mat-hint>
             @if (metadataForm.controls.name.hasError('required')) {
-              <mat-error>Name ist erforderlich.</mat-error>
+              <mat-error>Gib deinem Quiz einen Namen.</mat-error>
             }
             @if (metadataForm.controls.name.hasError('maxlength')) {
-              <mat-error>Name darf maximal 200 Zeichen haben.</mat-error>
+              <mat-error>Der Name darf maximal 200 Zeichen lang sein.</mat-error>
             }
           </mat-form-field>
           <mat-form-field appearance="outline">
@@ -30,27 +34,26 @@
             <textarea matInput formControlName="description" rows="3" maxlength="1000"></textarea>
             <mat-hint align="end">{{ metadataForm.controls.description.value.length }}/1000</mat-hint>
             @if (metadataForm.controls.description.hasError('maxlength')) {
-              <mat-error>Beschreibung darf maximal 1000 Zeichen haben.</mat-error>
+              <mat-error>Die Beschreibung darf maximal 1000 Zeichen lang sein.</mat-error>
             }
           </mat-form-field>
           @if (metadataSubmitError()) {
             <p class="quiz-edit-form__error" role="alert">{{ metadataSubmitError() }}</p>
           }
           @if (metadataSaved()) {
-            <p class="quiz-edit-form__editing-hint" role="status">Metadaten gespeichert.</p>
+            <p class="quiz-edit-form__editing-hint" role="status">Gespeichert.</p>
           }
           <mat-card-actions class="quiz-edit-form__actions">
-            <button matButton="filled" type="submit">Metadaten speichern</button>
+            <button matButton="filled" type="submit">Speichern</button>
           </mat-card-actions>
         </form>
-        <p class="quiz-edit__meta">Fragen: {{ questions().length }}</p>
       </mat-card-content>
       <mat-card-actions class="quiz-edit__meta-actions">
-        <a mat-button [routerLink]="['/quiz/sync', syncRoomId()]" aria-label="Sync-Raum öffnen">
+        <a mat-button [routerLink]="['/quiz/sync', syncRoomId()]" aria-label="Geräte synchronisieren">
           <mat-icon>devices</mat-icon>
-          Sync-Raum
+          Synchronisieren
         </a>
-        <a mat-button routerLink="preview" aria-label="Quiz-Vorschau öffnen">
+        <a mat-button routerLink="preview" aria-label="Vorschau öffnen">
           <mat-icon>visibility</mat-icon>
           Vorschau
         </a>
@@ -61,78 +64,103 @@
       </mat-card-actions>
     </mat-card>
 
-    <mat-card appearance="outlined" class="quiz-edit__settings-card">
-      <mat-card-header class="quiz-edit__card-header">
-        <mat-card-title class="quiz-edit__card-title">Sitzungs-Konfiguration</mat-card-title>
-        <mat-card-subtitle class="quiz-edit__card-subtitle">Globale Einstellungen für dein Quiz</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <form
-          #settingsFormElement
-          class="quiz-edit-form l-stack l-stack--sm"
-          [formGroup]="settingsForm"
-          (ngSubmit)="saveSettings()"
-        >
-          <div class="quiz-edit-form__preset-actions">
-            @for (preset of presetOptions; track preset.value) {
-              <button mat-button type="button" (click)="applySettingsPreset(preset.value)">
-                {{ preset.label }}-Preset
-              </button>
-            }
-            <p class="quiz-edit-form__preset-badge">
-              Aktueller Preset-Status: <strong>{{ settingsPresetLabel() }}</strong>
-            </p>
-          </div>
+    <div class="quiz-edit__settings-toggle">
+      <button mat-button type="button" (click)="showSettings.set(!showSettings())">
+        <mat-icon>{{ showSettings() ? 'expand_less' : 'tune' }}</mat-icon>
+        @if (showSettings()) {
+          Einstellungen ausblenden
+        } @else {
+          Einstellungen anpassen
+        }
+      </button>
+      <span class="quiz-edit__preset-chip">{{ settingsPresetLabel() }}</span>
+    </div>
 
-          <mat-checkbox formControlName="showLeaderboard">Leaderboard anzeigen</mat-checkbox>
-          <mat-checkbox formControlName="allowCustomNicknames">
-            Eigene Nicknames erlauben
-          </mat-checkbox>
-          <mat-checkbox formControlName="enableSoundEffects">Soundeffekte aktivieren</mat-checkbox>
-          <mat-checkbox formControlName="enableRewardEffects">
-            Belohnungseffekte aktivieren
-          </mat-checkbox>
-          <mat-checkbox formControlName="enableMotivationMessages">
-            Motivationsmeldungen aktivieren
-          </mat-checkbox>
-          <mat-checkbox formControlName="enableEmojiReactions">
-            Emoji-Reaktionen aktivieren
-          </mat-checkbox>
-          <mat-checkbox formControlName="anonymousMode">Anonymer Modus</mat-checkbox>
-          <mat-checkbox formControlName="readingPhaseEnabled">
-            Lesephase vor Antworten aktivieren
-          </mat-checkbox>
-          <mat-checkbox formControlName="teamMode">Team-Modus aktivieren</mat-checkbox>
+    @if (showSettings()) {
+      <mat-card appearance="outlined" class="quiz-edit__settings-card">
+        <mat-card-header class="quiz-edit__card-header">
+          <mat-card-title class="quiz-edit__card-title">Einstellungen</mat-card-title>
+          <mat-card-subtitle class="quiz-edit__card-subtitle">Gelten für alle Fragen in diesem Quiz</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <form
+            #settingsFormElement
+            class="quiz-edit-form l-stack l-stack--sm"
+            [formGroup]="settingsForm"
+            (ngSubmit)="saveSettings()"
+          >
+            <div class="quiz-edit-form__preset-actions">
+              @for (preset of presetOptions; track preset.value) {
+                <button mat-button type="button" (click)="applySettingsPreset(preset.value)">
+                  {{ preset.label }} anwenden
+                </button>
+              }
+            </div>
+
+          <fieldset class="quiz-edit-form__fieldset">
+            <legend class="quiz-edit-form__legend">Spiel &amp; Auswertung</legend>
+            <mat-checkbox formControlName="showLeaderboard">Rangliste anzeigen</mat-checkbox>
+            <mat-checkbox formControlName="enableRewardEffects">
+              Belohnungen zeigen
+            </mat-checkbox>
+            <mat-checkbox formControlName="enableMotivationMessages">
+              Anfeuerung einblenden
+            </mat-checkbox>
+            <mat-checkbox formControlName="enableEmojiReactions">
+              Emojis erlauben
+            </mat-checkbox>
+          </fieldset>
+
+          <fieldset class="quiz-edit-form__fieldset">
+            <legend class="quiz-edit-form__legend">Teilnahme &amp; Namen</legend>
+            <mat-checkbox formControlName="allowCustomNicknames">
+              Eigene Nicks erlauben
+            </mat-checkbox>
+            <mat-checkbox formControlName="anonymousMode">Anonym teilnehmen</mat-checkbox>
+          </fieldset>
+
+          <fieldset class="quiz-edit-form__fieldset">
+            <legend class="quiz-edit-form__legend">Ablauf &amp; Zeit</legend>
+            <mat-checkbox formControlName="readingPhaseEnabled">
+              Lesephase vor dem Antworten
+            </mat-checkbox>
+            <mat-checkbox formControlName="teamMode">Im Team spielen</mat-checkbox>
+          </fieldset>
+
+          <fieldset class="quiz-edit-form__fieldset">
+            <legend class="quiz-edit-form__legend">Ton &amp; Musik</legend>
+            <mat-checkbox formControlName="enableSoundEffects">Sounds abspielen</mat-checkbox>
+          </fieldset>
 
           <div class="quiz-edit-form__grid">
             <mat-form-field appearance="outline">
-              <mat-label>Standard-Timer in Sekunden (optional)</mat-label>
+              <mat-label>Zeitlimit pro Frage in Sekunden (optional)</mat-label>
               <input
                 matInput
                 type="number"
                 formControlName="defaultTimer"
                 min="5"
                 max="300"
-                aria-label="Standard-Timer"
+                aria-label="Zeitlimit pro Frage"
               />
-              <mat-hint>Leer lassen, wenn kein globaler Timer gesetzt werden soll.</mat-hint>
+              <mat-hint>Ohne Wert gibt es kein Zeitlimit.</mat-hint>
               @if (
                 settingsTimerControl.hasError('min') &&
                 (settingsTimerControl.touched || settingsTimerControl.dirty)
               ) {
-                <mat-error>Der Standard-Timer muss mindestens 5 Sekunden betragen.</mat-error>
+                <mat-error>Mindestens 5 Sekunden.</mat-error>
               }
               @if (
                 settingsTimerControl.hasError('max') &&
                 (settingsTimerControl.touched || settingsTimerControl.dirty)
               ) {
-                <mat-error>Der Standard-Timer darf höchstens 300 Sekunden betragen.</mat-error>
+                <mat-error>Höchstens 300 Sekunden.</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Nickname-Thema</mat-label>
-              <mat-select formControlName="nicknameTheme" aria-label="Nickname-Thema">
+              <mat-label>Altersgruppe für Namen</mat-label>
+              <mat-select formControlName="nicknameTheme" aria-label="Altersgruppe wählen">
                 @for (theme of nicknameThemeOptions; track theme.value) {
                   <mat-option [value]="theme.value">{{ theme.label }}</mat-option>
                 }
@@ -153,16 +181,16 @@
                   aria-label="Anzahl Teams"
                 />
                 @if (teamCountControl.hasError('min')) {
-                  <mat-error>Mindestens 2 Teams erforderlich.</mat-error>
+                  <mat-error>Mindestens 2 Teams.</mat-error>
                 }
                 @if (teamCountControl.hasError('max')) {
-                  <mat-error>Maximal 8 Teams erlaubt.</mat-error>
+                  <mat-error>Höchstens 8 Teams.</mat-error>
                 }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-label>Team-Zuweisung</mat-label>
-                <mat-select formControlName="teamAssignment" aria-label="Team-Zuweisung">
+                <mat-label>Teams zuweisen</mat-label>
+                <mat-select formControlName="teamAssignment" aria-label="Teams zuweisen">
                   <mat-option value="AUTO">Automatisch</mat-option>
                   <mat-option value="MANUAL">Manuell</mat-option>
                 </mat-select>
@@ -172,7 +200,7 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Hintergrundmusik</mat-label>
-            <mat-select formControlName="backgroundMusic" aria-label="Hintergrundmusik">
+            <mat-select formControlName="backgroundMusic" aria-label="Hintergrundmusik wählen">
               @for (music of backgroundMusicOptions; track music.value) {
                 <mat-option [value]="music.value">{{ music.label }}</mat-option>
               }
@@ -187,14 +215,14 @@
               formControlName="bonusTokenCount"
               min="1"
               max="50"
-              aria-label="Bonus-Code Anzahl"
+              aria-label="Anzahl Bonus-Codes"
             />
-            <mat-hint>Leer lassen, um Bonus-Codes zu deaktivieren.</mat-hint>
+            <mat-hint>Ohne Wert werden keine Bonus-Codes vergeben.</mat-hint>
             @if (bonusTokenCountControl.hasError('min')) {
-              <mat-error>Mindestens 1 Bonus-Code erforderlich.</mat-error>
+              <mat-error>Mindestens 1 Bonus-Code.</mat-error>
             }
             @if (bonusTokenCountControl.hasError('max')) {
-              <mat-error>Maximal 50 Bonus-Codes erlaubt.</mat-error>
+              <mat-error>Höchstens 50 Bonus-Codes.</mat-error>
             }
           </mat-form-field>
 
@@ -202,15 +230,16 @@
             <p class="quiz-edit-form__error" role="alert">{{ settingsSubmitError() }}</p>
           }
           @if (settingsSaved()) {
-            <p class="quiz-edit-form__editing-hint" role="status">Einstellungen gespeichert.</p>
+            <p class="quiz-edit-form__editing-hint" role="status">Einstellungen übernommen.</p>
           }
 
           <mat-card-actions class="quiz-edit-form__actions">
-            <button matButton="filled" type="submit">Einstellungen speichern</button>
+            <button matButton="filled" type="submit">Übernehmen</button>
           </mat-card-actions>
-        </form>
-      </mat-card-content>
-    </mat-card>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    }
 
     <mat-card appearance="outlined" class="quiz-edit__form-card">
       <mat-card-header class="quiz-edit__form-header">
@@ -218,11 +247,11 @@
           @if (isEditing()) {
             Frage bearbeiten
           } @else {
-            Frage hinzufügen
+            Neue Frage
           }
         </mat-card-title>
         <mat-card-subtitle class="quiz-edit__form-subtitle">
-          MC/SC mit Korrektmarkierung, Umfrage ohne Korrektmarkierung, Freitext ohne Optionen
+          Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX verwenden.
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -235,7 +264,7 @@
         >
           @if (isEditing()) {
             <p class="quiz-edit-form__editing-hint">
-              Bearbeitungsmodus aktiv. Speichern aktualisiert die ausgewählte Frage.
+              Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren", um die Änderungen zu speichern.
             </p>
           }
 
@@ -247,24 +276,24 @@
               rows="4"
               maxlength="2000"
               (input)="onLivePreviewInput()"
-              aria-label="Fragetext"
+              aria-label="Fragetext eingeben"
             ></textarea>
             <mat-hint align="end">{{ textControl.value.length }}/2000</mat-hint>
             <mat-hint>
-              Markdown und KaTeX werden live gerendert.
+              Markdown und KaTeX werden in der Vorschau unten gerendert.
             </mat-hint>
             @if (textControl.hasError('required') && (textControl.touched || submitted())) {
-              <mat-error>Fragetext ist erforderlich.</mat-error>
+              <mat-error>Gib einen Fragetext ein.</mat-error>
             }
             @if (textControl.hasError('maxlength') && (textControl.touched || submitted())) {
-              <mat-error>Fragetext darf maximal 2000 Zeichen haben.</mat-error>
+              <mat-error>Der Fragetext darf maximal 2000 Zeichen lang sein.</mat-error>
             }
           </mat-form-field>
 
           <div class="quiz-edit-form__grid">
             <mat-form-field appearance="outline">
               <mat-label>Fragetyp</mat-label>
-              <mat-select formControlName="type" (selectionChange)="onTypeChanged()" aria-label="Fragetyp">
+              <mat-select formControlName="type" (selectionChange)="onTypeChanged()" aria-label="Fragetyp wählen">
                 @for (option of questionTypeOptions; track option.value) {
                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
                 }
@@ -273,7 +302,7 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Schwierigkeit</mat-label>
-              <mat-select formControlName="difficulty" aria-label="Schwierigkeitsgrad">
+              <mat-select formControlName="difficulty" aria-label="Schwierigkeit wählen">
                 @for (option of difficultyOptions; track option.value) {
                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
                 }
@@ -287,13 +316,13 @@
               <mat-select
                 [value]="null"
                 (selectionChange)="applyScFormat($event.value)"
-                aria-label="Single-Choice-Schnellformat"
+                aria-label="Schnellformat wählen"
               >
                 @for (format of scFormatOptions; track format.value) {
                   <mat-option [value]="format.value">{{ format.label }}</mat-option>
                 }
               </mat-select>
-              <mat-hint>Ersetzt bestehende Optionen (mit Bestätigung).</mat-hint>
+              <mat-hint>Überschreibt vorhandene Antworten.</mat-hint>
             </mat-form-field>
           }
 
@@ -301,7 +330,7 @@
             <div class="quiz-edit-form__grid">
               <mat-form-field appearance="outline">
                 <mat-label>Skala</mat-label>
-                <mat-select formControlName="ratingMax" aria-label="Rating-Skala">
+                <mat-select formControlName="ratingMax" aria-label="Bewertungsskala wählen">
                   <mat-option [value]="5">1 bis 5</mat-option>
                   <mat-option [value]="10">1 bis 10</mat-option>
                 </mat-select>
@@ -328,7 +357,7 @@
                         mat-icon-button
                         type="button"
                         (click)="setSingleCorrect(i)"
-                        [attr.aria-label]="'Antwort ' + (i + 1) + ' als korrekt markieren'"
+                        [attr.aria-label]="'Antwort ' + (i + 1) + ' als richtig markieren'"
                       >
                         <mat-icon>
                           {{ isAnswerCorrect(i) ? 'radio_button_checked' : 'radio_button_unchecked' }}
@@ -338,12 +367,12 @@
                       <mat-checkbox
                         [checked]="isAnswerCorrect(i)"
                         (change)="toggleMultipleCorrect(i, $event.checked)"
-                        [attr.aria-label]="'Antwort ' + (i + 1) + ' korrekt'"
+                        [attr.aria-label]="'Antwort ' + (i + 1) + ' richtig'"
                       >
-                        Korrekt
+                        Richtig
                       </mat-checkbox>
                     } @else {
-                      <span class="quiz-edit-answer__survey-hint">Umfrageoption</span>
+                      <span class="quiz-edit-answer__survey-hint">Option</span>
                     }
                   </div>
 
@@ -354,20 +383,20 @@
                       formControlName="text"
                       maxlength="500"
                       (input)="onLivePreviewInput()"
-                      aria-label="Antwortoption"
+                      aria-label="Antworttext eingeben"
                     />
                     <mat-hint align="end">{{ answerTextControl(i).value.length }}/500</mat-hint>
                     @if (
                       answerTextControl(i).hasError('required') &&
                       (answerTextControl(i).touched || submitted())
                     ) {
-                      <mat-error>Antworttext ist erforderlich.</mat-error>
+                      <mat-error>Gib einen Antworttext ein.</mat-error>
                     }
                     @if (
                       answerTextControl(i).hasError('maxlength') &&
                       (answerTextControl(i).touched || submitted())
                     ) {
-                      <mat-error>Antworttext darf maximal 500 Zeichen haben.</mat-error>
+                      <mat-error>Maximal 500 Zeichen.</mat-error>
                     }
                   </mat-form-field>
 
@@ -388,23 +417,23 @@
             <div class="quiz-edit-form__answer-actions">
               <button mat-button type="button" (click)="addAnswer()" [disabled]="!canAddAnswer()">
                 <mat-icon>add</mat-icon>
-                Antwortoption hinzufügen
+                Weitere Antwort
               </button>
             </div>
           } @else {
             <p class="quiz-edit-form__editing-hint">
-              Freitext- und Rating-Fragen haben keine vordefinierten Antwortoptionen.
+              Hier antworten Teilnehmende frei – keine vorgegebenen Antworten nötig.
             </p>
           }
 
           <mat-card appearance="outlined" class="quiz-edit-form__preview">
             <mat-card-header class="quiz-edit__card-header">
-              <mat-card-title class="quiz-edit__card-title">Markdown &amp; KaTeX Live-Preview</mat-card-title>
+              <mat-card-title class="quiz-edit__card-title">Live-Vorschau</mat-card-title>
             </mat-card-header>
             <mat-card-content class="l-stack l-stack--xs">
               @if (previewKatexError()) {
                 <p class="quiz-edit-form__error" role="alert">
-                  KaTeX-Hinweis: {{ previewKatexError() }}
+                  Formelfehler: {{ previewKatexError() }}
                 </p>
               }
               <div class="quiz-edit-form__preview-block">
@@ -413,7 +442,7 @@
               </div>
               @if (answerPreviewHtml().length > 0) {
                 <div class="quiz-edit-form__preview-block">
-                  <p class="quiz-edit-form__preview-label">Antwortoptionen</p>
+                  <p class="quiz-edit-form__preview-label">Antworten</p>
                   <ol class="quiz-edit-form__preview-answers">
                     @for (answerHtml of answerPreviewHtml(); track $index) {
                       <li [innerHTML]="answerHtml"></li>
@@ -432,7 +461,7 @@
             @if (isEditing()) {
               <button mat-button type="button" (click)="cancelEditing()">
                 <mat-icon>close</mat-icon>
-                Bearbeiten abbrechen
+                Abbrechen
               </button>
             }
             <button matButton="filled" type="submit">
@@ -444,9 +473,9 @@
                 }
               </mat-icon>
               @if (isEditing()) {
-                Änderungen speichern
+                Aktualisieren
               } @else {
-                Frage speichern
+                Hinzufügen
               }
             </button>
           </mat-card-actions>
@@ -455,63 +484,86 @@
     </mat-card>
 
     <section class="quiz-edit-list l-stack l-stack--sm" aria-label="Fragenliste">
-      <h2 class="quiz-edit-list__title">Fragen im Quiz</h2>
+      <div class="quiz-edit-list__header">
+        <h2 class="quiz-edit-list__title">Fragen im Quiz</h2>
+        @if (questionAddedFeedback()) {
+          <span class="quiz-edit-list__feedback" role="status">Hinzugefügt</span>
+        }
+      </div>
 
       @if (questions().length === 0) {
-        <mat-card appearance="outlined">
-          <mat-card-content>
-            <p class="quiz-edit-list__empty">Noch keine Fragen vorhanden.</p>
+        <mat-card appearance="outlined" class="quiz-edit-list__empty-card">
+          <mat-card-content class="quiz-edit-list__empty-content">
+            <mat-icon class="quiz-edit-list__empty-icon">quiz</mat-icon>
+            <p class="quiz-edit-list__empty-title">Noch keine Fragen</p>
+            <p class="quiz-edit-list__empty-hint">
+              Füge oben deine erste Frage hinzu, um loszulegen.
+            </p>
           </mat-card-content>
         </mat-card>
       } @else {
-        @for (question of questions(); track question.id) {
-          <mat-card
-            appearance="outlined"
-            class="quiz-edit-question"
-            [class.quiz-edit-question--editing]="editingQuestionId() === question.id"
-          >
-            <mat-card-content>
-              <p class="quiz-edit-question__meta">
-                Frage {{ question.order + 1 }} · {{ questionTypeLabel(question.type) }} ·
-                {{ difficultyLabel(question.difficulty) }}
-              </p>
-              <div class="quiz-edit-question__text" [innerHTML]="renderMarkdown(question.text)"></div>
+        <div cdkDropList class="quiz-edit-list__drop-zone" (cdkDropListDropped)="onQuestionDrop($event)">
+          @for (question of questions(); track question.id) {
+            <mat-card
+              cdkDrag
+              appearance="outlined"
+              class="quiz-edit-question"
+              [class.quiz-edit-question--editing]="editingQuestionId() === question.id"
+            >
+              <div class="quiz-edit-question__placeholder" *cdkDragPlaceholder></div>
+              <mat-card-content class="quiz-edit-question__content">
+                <button
+                  cdkDragHandle
+                  class="quiz-edit-question__drag-handle"
+                  type="button"
+                  aria-label="Frage verschieben"
+                >
+                  <mat-icon>drag_indicator</mat-icon>
+                </button>
+                <div class="quiz-edit-question__body">
+                  <p class="quiz-edit-question__meta">
+                    Frage {{ question.order + 1 }} · {{ questionTypeLabel(question.type) }} ·
+                    {{ difficultyLabel(question.difficulty) }}
+                  </p>
+                  <div class="quiz-edit-question__text" [innerHTML]="renderMarkdown(question.text)"></div>
 
-              @if (question.type === 'FREETEXT') {
-                <p class="quiz-edit-question__text">Teilnehmende geben eigene Freitext-Antworten ein.</p>
-              } @else if (question.type === 'RATING') {
-                <p class="quiz-edit-question__text">
-                  Bewertungsskala {{ question.ratingMin ?? 1 }}–{{ question.ratingMax ?? 5 }}
-                  @if (question.ratingLabelMin || question.ratingLabelMax) {
-                    · {{ question.ratingLabelMin || 'Min' }} / {{ question.ratingLabelMax || 'Max' }}
-                  }
-                </p>
-              } @else {
-                <ol class="quiz-edit-question__answers">
-                  @for (answer of question.answers; track answer.id) {
-                    <li>
-                      <span class="quiz-edit-question__answer-text" [innerHTML]="renderMarkdown(answer.text)"></span>
-                      @if (answer.isCorrect && questionTypeHasCorrectAnswers(question.type)) {
-                        <mat-icon class="quiz-edit-question__correct-icon" aria-hidden="true">check_circle</mat-icon>
+                  @if (question.type === 'FREETEXT') {
+                    <p class="quiz-edit-question__text quiz-edit-question__text--hint">Freitext-Antwort</p>
+                  } @else if (question.type === 'RATING') {
+                    <p class="quiz-edit-question__text quiz-edit-question__text--hint">
+                      Skala {{ question.ratingMin ?? 1 }}–{{ question.ratingMax ?? 5 }}
+                      @if (question.ratingLabelMin || question.ratingLabelMax) {
+                        · {{ question.ratingLabelMin || 'Min' }} / {{ question.ratingLabelMax || 'Max' }}
                       }
-                    </li>
+                    </p>
+                  } @else {
+                    <ol class="quiz-edit-question__answers">
+                      @for (answer of question.answers; track answer.id) {
+                        <li>
+                          <span class="quiz-edit-question__answer-text" [innerHTML]="renderMarkdown(answer.text)"></span>
+                          @if (answer.isCorrect && questionTypeHasCorrectAnswers(question.type)) {
+                            <mat-icon class="quiz-edit-question__correct-icon" aria-hidden="true">check_circle</mat-icon>
+                          }
+                        </li>
+                      }
+                    </ol>
                   }
-                </ol>
-              }
 
-              <div class="quiz-edit-question__actions">
-                <button mat-button type="button" (click)="editQuestion(question.id)">
-                  <mat-icon>edit</mat-icon>
-                  Bearbeiten
-                </button>
-                <button mat-button type="button" (click)="deleteQuestion(question.id)">
-                  <mat-icon>delete</mat-icon>
-                  Löschen
-                </button>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        }
+                  <div class="quiz-edit-question__actions">
+                    <button mat-button type="button" (click)="editQuestion(question.id)">
+                      <mat-icon>edit</mat-icon>
+                      Bearbeiten
+                    </button>
+                    <button mat-button type="button" (click)="deleteQuestion(question.id)">
+                      <mat-icon>delete</mat-icon>
+                      Löschen
+                    </button>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
       }
     </section>
   </section>
@@ -521,7 +573,7 @@
       <p class="quiz-edit__not-found-text">Quiz nicht gefunden.</p>
       <a mat-button routerLink=".." aria-label="Zurück zur Quiz-Liste">
         <mat-icon>arrow_back</mat-icon>
-        Zurück zur Liste
+        Zur Liste
       </a>
     </mat-card-content>
   </mat-card>

@@ -45,8 +45,8 @@ describe('QuizListComponent', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Noch keine Quizzes.');
-    expect(fixture.nativeElement.textContent).toContain('Importieren');
+    expect(fixture.nativeElement.textContent).toContain('Deine Quiz-Bibliothek ist noch leer.');
+    expect(fixture.nativeElement.textContent).toContain('Erstes Quiz erstellen');
   });
 
   it('zeigt gespeicherte Quizzes in der Liste', () => {
@@ -67,7 +67,9 @@ describe('QuizListComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Datenbanken');
     expect(text).toContain('SQL Grundlagen');
-    expect(text).toContain('Bearbeiten');
+    const link = fixture.nativeElement.querySelector('.quiz-list-item__link') as HTMLAnchorElement;
+    expect(link).toBeTruthy();
+    expect(link.getAttribute('aria-label')).toContain('Datenbanken');
   });
 
   it('markiert Quizzes mit aktiver Session als live', async () => {

@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Component, ElementRef, OnDestroy, ViewChild, computed, inject, signal } from '@angular/core';
 import {
   FormArray,
@@ -8,6 +9,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink, RouterOutlet } from '@angular/router';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDropList } from '@angular/cdk/drag-drop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
@@ -34,6 +36,7 @@ import {
   type TeamAssignment,
 } from '@arsnova/shared-types';
 import {
+  DEMO_QUIZ_ID,
   QuizStoreService,
   type AddQuizQuestionInput,
   type QuizSettings,
@@ -109,11 +112,16 @@ type QuizMetadataFormGroup = FormGroup<{
     MatLabel,
     MatOption,
     MatSelect,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
+    CdkDragPlaceholder,
   ],
   templateUrl: './quiz-edit.component.html',
   styleUrl: './quiz-edit.component.scss',
 })
 export class QuizEditComponent implements OnDestroy {
+  private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly sanitizer = inject(DomSanitizer);
@@ -123,6 +131,7 @@ export class QuizEditComponent implements OnDestroy {
   readonly submitError = signal<string | null>(null);
   readonly submitted = signal(false);
   readonly editingQuestionId = signal<string | null>(null);
+  readonly showSettings = signal(false);
   readonly settingsSubmitError = signal<string | null>(null);
   readonly settingsSaved = signal(false);
   readonly metadataSubmitError = signal<string | null>(null);
@@ -130,7 +139,9 @@ export class QuizEditComponent implements OnDestroy {
   readonly questionPreviewHtml = signal<SafeHtml | null>(null);
   readonly answerPreviewHtml = signal<SafeHtml[]>([]);
   readonly previewKatexError = signal<string | null>(null);
+  readonly questionAddedFeedback = signal(false);
   private previewTimer: ReturnType<typeof setTimeout> | null = null;
+  private feedbackTimer: ReturnType<typeof setTimeout> | null = null;
   @ViewChild('metadataFormElement') private metadataFormElement?: ElementRef<HTMLFormElement>;
   @ViewChild('settingsFormElement') private settingsFormElement?: ElementRef<HTMLFormElement>;
   @ViewChild('questionFormElement') private questionFormElement?: ElementRef<HTMLFormElement>;
@@ -140,7 +151,7 @@ export class QuizEditComponent implements OnDestroy {
     { value: 'MULTIPLE_CHOICE', label: 'Multiple Choice' },
     { value: 'FREETEXT', label: 'Freitext' },
     { value: 'SURVEY', label: 'Umfrage' },
-    { value: 'RATING', label: 'Rating (1–5 / 1–10)' },
+    { value: 'RATING', label: 'Bewertung (1–5 / 1–10)' },
   ];
 
   readonly presetOptions: Array<{ value: QuizPreset; label: string }> = [
@@ -156,13 +167,13 @@ export class QuizEditComponent implements OnDestroy {
   }));
 
   readonly difficultyOptions: Array<{ value: Difficulty; label: string }> = [
-    { value: 'EASY', label: 'Easy' },
-    { value: 'MEDIUM', label: 'Medium' },
-    { value: 'HARD', label: 'Hard' },
+    { value: 'EASY', label: 'Leicht' },
+    { value: 'MEDIUM', label: 'Mittel' },
+    { value: 'HARD', label: 'Schwer' },
   ];
 
   readonly nicknameThemeOptions: Array<{ value: NicknameTheme; label: string }> = [
-    { value: 'NOBEL_LAUREATES', label: 'Nobelpreisträger' },
+    { value: 'NOBEL_LAUREATES', label: 'Nobelpreisträger:innen' },
     { value: 'KINDERGARTEN', label: 'Kita' },
     { value: 'PRIMARY_SCHOOL', label: 'Grundschule' },
     { value: 'MIDDLE_SCHOOL', label: 'Mittelstufe' },
@@ -232,6 +243,9 @@ export class QuizEditComponent implements OnDestroy {
   });
 
   constructor() {
+    if (this.id === DEMO_QUIZ_ID) {
+      this.quizStore.ensureDemoQuiz();
+    }
     const quiz = this.quiz();
     if (quiz) {
       this.patchMetadataForm(quiz.name, quiz.description);
@@ -241,9 +255,14 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (!this.previewTimer) return;
-    clearTimeout(this.previewTimer);
-    this.previewTimer = null;
+    if (this.previewTimer) {
+      clearTimeout(this.previewTimer);
+      this.previewTimer = null;
+    }
+    if (this.feedbackTimer) {
+      clearTimeout(this.feedbackTimer);
+      this.feedbackTimer = null;
+    }
   }
 
   get textControl(): FormControl<string> {
@@ -426,11 +445,11 @@ export class QuizEditComponent implements OnDestroy {
     ).length;
 
     if (this.typeControl.value === 'SINGLE_CHOICE' && correctCount !== 1) {
-      return 'Bei Single Choice muss genau eine Antwort korrekt sein.';
+      return 'Wähle genau eine richtige Antwort aus.';
     }
 
     if (this.typeControl.value === 'MULTIPLE_CHOICE' && correctCount < 1) {
-      return 'Bei Multiple Choice muss mindestens eine Antwort korrekt sein.';
+      return 'Wähle mindestens eine richtige Antwort aus.';
     }
 
     return null;
@@ -479,13 +498,14 @@ export class QuizEditComponent implements OnDestroy {
         this.editingQuestionId.set(null);
       } else {
         this.quizStore.addQuestion(this.id, questionInput);
+        this.showQuestionAddedFeedback();
       }
       this.resetQuestionForm();
       this.submitted.set(false);
       this.scheduleLivePreview();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Frage konnte nicht gespeichert werden.';
+        error instanceof Error ? error.message : 'Speichern fehlgeschlagen.';
       this.submitError.set(message);
     }
   }
@@ -508,7 +528,7 @@ export class QuizEditComponent implements OnDestroy {
       const message =
         error instanceof Error
           ? error.message
-          : 'Quiz-Einstellungen konnten nicht gespeichert werden.';
+          : 'Einstellungen konnten nicht gespeichert werden.';
       this.settingsSubmitError.set(message);
     }
   }
@@ -534,7 +554,7 @@ export class QuizEditComponent implements OnDestroy {
       const message =
         error instanceof Error
           ? error.message
-          : 'Quiz-Metadaten konnten nicht gespeichert werden.';
+          : 'Titel konnte nicht gespeichert werden.';
       this.metadataSubmitError.set(message);
     }
   }
@@ -558,6 +578,13 @@ export class QuizEditComponent implements OnDestroy {
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.scheduleLivePreview();
+
+    requestAnimationFrame(() => {
+      this.questionFormElement?.nativeElement?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
   }
 
   cancelEditing(): void {
@@ -574,9 +601,37 @@ export class QuizEditComponent implements OnDestroy {
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Frage konnte nicht gelöscht werden.';
+        error instanceof Error ? error.message : 'Löschen fehlgeschlagen.';
       this.submitError.set(message);
     }
+  }
+
+  onQuestionDrop(event: CdkDragDrop<unknown>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    try {
+      this.quizStore.reorderQuestions(this.id, event.previousIndex, event.currentIndex);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Verschieben fehlgeschlagen.';
+      this.submitError.set(message);
+    }
+  }
+
+  private showQuestionAddedFeedback(): void {
+    this.questionAddedFeedback.set(true);
+    if (this.feedbackTimer) clearTimeout(this.feedbackTimer);
+    this.feedbackTimer = setTimeout(() => {
+      this.questionAddedFeedback.set(false);
+      this.feedbackTimer = null;
+    }, 3000);
+
+    requestAnimationFrame(() => {
+      const list = this.document.querySelector('.quiz-edit-list');
+      if (!list) return;
+      const cards = list.querySelectorAll('.quiz-edit-question');
+      const lastCard = cards[cards.length - 1];
+      lastCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   }
 
   private createAnswerGroup(isCorrect: boolean, text: string = ''): AnswerFormGroup {

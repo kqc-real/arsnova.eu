@@ -7,6 +7,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import type { Difficulty } from '@arsnova/shared-types';
 import {
+  DEMO_QUIZ_ID,
   QuizStoreService,
   type AddQuizQuestionInput,
   type QuizQuestion,
@@ -71,18 +72,18 @@ export class QuizPreviewComponent implements OnDestroy {
             question.type === 'SURVEY') &&
           question.answers.length < 2
         ) {
-          return { index, message: `Frage ${index + 1}: Weniger als 2 Antwortoptionen` };
+          return { index, message: `Frage ${index + 1}: weniger als 2 Antworten` };
         }
         if (question.type === 'SINGLE_CHOICE') {
           const count = question.answers.filter((answer) => answer.isCorrect).length;
           if (count !== 1) {
-            return { index, message: `Frage ${index + 1}: Keine eindeutige korrekte Antwort markiert` };
+            return { index, message: `Frage ${index + 1}: keine richtige Antwort gewählt` };
           }
         }
         if (question.type === 'MULTIPLE_CHOICE') {
           const count = question.answers.filter((answer) => answer.isCorrect).length;
           if (count < 1) {
-            return { index, message: `Frage ${index + 1}: Keine korrekte Antwort markiert` };
+            return { index, message: `Frage ${index + 1}: keine richtige Antwort gewählt` };
           }
         }
         return null;
@@ -91,6 +92,9 @@ export class QuizPreviewComponent implements OnDestroy {
   );
 
   constructor() {
+    if (this.id === DEMO_QUIZ_ID) {
+      this.quizStore.ensureDemoQuiz();
+    }
     effect(() => {
       const total = this.questions().length;
       const index = this.currentIndex();
@@ -292,12 +296,16 @@ export class QuizPreviewComponent implements OnDestroy {
     }
   }
 
+  hasWarningAtIndex(index: number): boolean {
+    return this.validationWarnings().some((w) => w.index === index);
+  }
+
   questionTypeLabel(type: SupportedQuestionType): string {
     if (type === 'SINGLE_CHOICE') return 'Single Choice';
     if (type === 'MULTIPLE_CHOICE') return 'Multiple Choice';
     if (type === 'FREETEXT') return 'Freitext';
     if (type === 'SURVEY') return 'Umfrage';
-    if (type === 'RATING') return 'Rating';
+    if (type === 'RATING') return 'Bewertung';
     return type;
   }
 
@@ -306,9 +314,9 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   difficultyLabel(value: Difficulty): string {
-    if (value === 'EASY') return 'Easy';
-    if (value === 'HARD') return 'Hard';
-    return 'Medium';
+    if (value === 'EASY') return 'Leicht';
+    if (value === 'HARD') return 'Schwer';
+    return 'Mittel';
   }
 
   renderMarkdown(value: string): SafeHtml {
