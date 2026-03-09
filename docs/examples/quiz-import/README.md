@@ -13,6 +13,9 @@ Sie entsprechen dem `QuizImportSchema` aus `@arsnova/shared-types`.
 - `quiz-word-cloud-komplett.json` – vollständiges `FREETEXT`-Szenario für Word-Cloud-Bewertung
 - `quiz-mixed-realistisch.json` – gemischtes Quiz mit allen Formaten
 - `quiz-unterrichtsfeedback-kompakt.json` – kurzes Praxis-Feedback-Quiz
+- `word-cloud-responses-komplex.txt` – großer synthetischer Antwortsatz (2.800 Antworten)
+- `word-cloud-komplex.svg` – bereits gerenderte, sehr komplexe Word-Cloud aus dem Datensatz
+- `word-cloud-komplex-top20.csv` – Top-20 Woerter mit Haeufigkeiten
 
 Alle Quizzes enthalten realistische Fragestämme mit **Markdown** und **KaTeX** (`$...$`, `$$...$$`).
 
