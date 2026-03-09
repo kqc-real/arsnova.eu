@@ -1,6 +1,6 @@
 <mat-card appearance="outlined" class="quiz-sync-card">
   <mat-card-content>
-    <p class="quiz-sync__title">Quiz-Sync aktivieren</p>
+    <p class="quiz-sync__title">Quiz-Synchronisierung</p>
     <p class="quiz-sync__text">Sync-ID: <strong>{{ docId }}</strong></p>
     <p class="quiz-sync__text">Sync-Code: <strong>{{ syncCode() }}</strong></p>
     <p class="quiz-sync__text">Aktiver Raum: <strong>{{ activeSyncRoomId() }}</strong></p>
@@ -10,7 +10,7 @@
       @if (syncConnectionState() === 'connected') {
         <strong class="quiz-sync__state quiz-sync__state--ok">verbunden</strong>
       } @else if (syncConnectionState() === 'connecting') {
-        <strong class="quiz-sync__state">verbinde…</strong>
+        <strong class="quiz-sync__state">wird verbunden…</strong>
       } @else {
         <strong class="quiz-sync__state">lokal (offline)</strong>
       }

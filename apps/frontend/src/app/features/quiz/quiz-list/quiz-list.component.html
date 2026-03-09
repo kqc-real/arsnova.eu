@@ -33,7 +33,7 @@
       <mat-card-content class="l-stack l-stack--xs">
         <h2 class="quiz-list__ai-title">KI-JSON importieren</h2>
         <p class="quiz-list__ai-hint">
-          JSON aus dem LLM einfügen. Der Import wird strikt gegen das Schema validiert.
+          JSON aus der KI einfügen. Der Import wird strikt gegen das Schema validiert.
         </p>
         <mat-form-field appearance="outline">
           <mat-label>KI-JSON</mat-label>
@@ -105,7 +105,7 @@
                 </a>
                 <a mat-menu-item [routerLink]="[quiz.id, 'preview']">
                   <mat-icon>visibility</mat-icon>
-                  Preview
+                  Vorschau
                 </a>
                 <button mat-menu-item type="button" (click)="exportQuiz(quiz.id)">
                   <mat-icon>download</mat-icon>

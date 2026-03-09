@@ -1,12 +1,14 @@
 .quiz-sync__title {
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.8rem;
   font: var(--mat-sys-title-medium);
+  line-height: 1.35;
 }
 
 .quiz-sync__text {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.5rem;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-medium);
+  line-height: 1.5;
 }
 
 .quiz-sync__link {
@@ -22,20 +24,22 @@
 }
 
 .quiz-sync__error {
-  margin: 0.5rem 0 1rem;
+  margin: 0.65rem 0 1rem;
   color: var(--mat-sys-error);
   font: var(--mat-sys-body-small);
+  line-height: 1.45;
 }
 
 .quiz-sync__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0.35rem 0 0.25rem;
+  gap: 0.5rem;
+  margin: 0.55rem 0 0.35rem;
 }
 
 .quiz-sync__hint {
-  margin: 0.25rem 0 0.35rem;
+  margin: 0.35rem 0 0.45rem;
   color: var(--mat-sys-tertiary);
   font: var(--mat-sys-body-small);
+  line-height: 1.45;
 }
