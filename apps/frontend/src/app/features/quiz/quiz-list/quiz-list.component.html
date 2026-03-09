@@ -29,13 +29,13 @@
   }
 
   @if (showAiImport()) {
-    <mat-card appearance="outlined">
-      <mat-card-content class="l-stack l-stack--xs">
+    <mat-card appearance="outlined" class="quiz-list__ai-card">
+      <mat-card-content class="quiz-list__ai-content l-stack l-stack--xs">
         <h2 class="quiz-list__ai-title">KI-JSON importieren</h2>
         <p class="quiz-list__ai-hint">
           JSON aus der KI einfügen. Der Import wird strikt gegen das Schema validiert.
         </p>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="quiz-list__ai-field">
           <mat-label>KI-JSON</mat-label>
           <textarea
             #aiJsonTextarea

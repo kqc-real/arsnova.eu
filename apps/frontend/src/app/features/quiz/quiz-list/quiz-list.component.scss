@@ -40,16 +40,37 @@
 }
 
 .quiz-list__ai-title {
-  margin: 0 0 0.1rem;
+  margin: 0;
   font: var(--mat-sys-title-medium);
   line-height: 1.35;
 }
 
 .quiz-list__ai-hint {
-  margin: 0.05rem 0 0.1rem;
+  margin: 0.1rem 0 0.2rem;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
-  line-height: 1.45;
+  line-height: 1.5;
+}
+
+.quiz-list__ai-card {
+  max-width: 100%;
+}
+
+.quiz-list__ai-content {
+  row-gap: 0.65rem;
+}
+
+.quiz-list__ai-field {
+  width: 100%;
+  margin: 0.15rem 0 0.35rem;
+}
+
+:host ::ng-deep .quiz-list__ai-field .mat-mdc-form-field-infix {
+  min-height: 11rem;
+}
+
+:host ::ng-deep .quiz-list__ai-field textarea[matinput] {
+  line-height: 1.55;
 }
 
 .quiz-list__ai-actions {
@@ -57,6 +78,7 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.65rem;
+  margin-top: 0.15rem;
 }
 
 .quiz-list-item__content {
