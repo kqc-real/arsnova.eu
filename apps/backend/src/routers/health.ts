@@ -8,7 +8,7 @@ import {
   HealthPingEventSchema,
   ServerStatsDTOSchema,
 } from '@arsnova/shared-types';
-import { pingRedis } from '../redis';
+import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
 
 const SERVER_STATUS_THRESHOLDS = {
@@ -46,17 +46,19 @@ export const healthRouter = router({
   /** Server-Statistik für Startseite (Story 0.4). Bei nicht erreichbarer DB: Fallback (0 Werte), keine Prisma-Fehler. */
   stats: publicProcedure.output(ServerStatsDTOSchema).query(async () => {
     try {
-      const [activeSessions, completedSessions, totalParticipants] = await Promise.all([
+      const [activeSessions, completedSessions, totalParticipants, blitzKeys] = await Promise.all([
         prisma.session.count({ where: { status: { not: 'FINISHED' } } }),
         prisma.session.count({ where: { status: 'FINISHED' } }),
         prisma.participant.count({
           where: { session: { status: { not: 'FINISHED' } } },
         }),
+        getRedis().keys('qf:*').then((keys) => keys.filter((k) => !k.includes(':voters:'))),
       ]);
       return {
         activeSessions,
         totalParticipants,
         completedSessions,
+        activeBlitzRounds: blitzKeys.length,
         serverStatus: getServerStatus(activeSessions),
       };
     } catch {
@@ -64,6 +66,7 @@ export const healthRouter = router({
         activeSessions: 0,
         totalParticipants: 0,
         completedSessions: 0,
+        activeBlitzRounds: 0,
         serverStatus: 'healthy' as const,
       };
     }

@@ -6,7 +6,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../redis', () => ({
   pingRedis: vi.fn(),
-  getRedis: vi.fn(() => ({})),
+  getRedis: vi.fn(() => ({
+    keys: vi.fn().mockResolvedValue([]),
+  })),
 }));
 
 vi.mock('../db', () => ({
@@ -111,7 +113,7 @@ describe('health.stats', () => {
 
     const keys = Object.keys(result);
     expect(keys).toEqual(
-      expect.arrayContaining(['activeSessions', 'totalParticipants', 'completedSessions', 'serverStatus']),
+      expect.arrayContaining(['activeSessions', 'totalParticipants', 'completedSessions', 'activeBlitzRounds', 'serverStatus']),
     );
     expect(keys).not.toContain('participants');
     expect(keys).not.toContain('nicknames');

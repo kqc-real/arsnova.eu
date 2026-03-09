@@ -391,9 +391,10 @@ export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 
 /** DTO: Server-Auslastung für die Startseite (Story 0.4) */
 export const ServerStatsDTOSchema = z.object({
-  activeSessions: z.number(),      // Anzahl laufender Quiz-Sessions (Status != FINISHED)
-  totalParticipants: z.number(),   // Summe aller Teilnehmer in aktiven Sessions
-  completedSessions: z.number(),   // Anzahl bisher durchgeführter Quizzes (Status == FINISHED)
+  activeSessions: z.number(),
+  totalParticipants: z.number(),
+  completedSessions: z.number(),
+  activeBlitzRounds: z.number(),
   serverStatus: z.enum(['healthy', 'busy', 'overloaded']),
 });
 

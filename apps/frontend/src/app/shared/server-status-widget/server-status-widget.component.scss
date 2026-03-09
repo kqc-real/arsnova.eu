@@ -9,6 +9,7 @@
 .server-status__header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font: var(--mat-sys-label-large);
 }
@@ -79,6 +80,27 @@
 
 .server-status__text--muted {
   color: var(--mat-sys-outline-variant);
+}
+
+.server-status__stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  font: var(--mat-sys-body-medium);
+}
+
+.server-status__stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.server-status__stat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .server-status__highlight {

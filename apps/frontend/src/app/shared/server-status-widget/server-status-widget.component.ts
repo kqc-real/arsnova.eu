@@ -21,7 +21,7 @@ export class ServerStatusWidgetComponent implements OnInit, OnDestroy {
     const s = this.stats();
     if (!s) return 'Server-Status wird geladen';
     const statusText = s.serverStatus === 'healthy' ? 'gesund' : s.serverStatus === 'busy' ? 'ausgelastet' : 'überlastet';
-    return `Server-Status: ${statusText}. ${s.activeSessions} Quiz live, ${s.totalParticipants} Teilnehmende, ${s.completedSessions} Quizzes durchgeführt.`;
+    return `Server-Status: ${statusText}. ${s.activeSessions} Quiz live, ${s.activeBlitzRounds} Blitz-Runden, ${s.totalParticipants} Teilnehmende, ${s.completedSessions} Quizzes durchgeführt.`;
   }
 
   statusColor(): 'green' | 'yellow' | 'red' | 'gray' {

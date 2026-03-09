@@ -21,12 +21,14 @@
       [class.server-status__dot--unknown]="statusColor() === 'gray'"
       aria-hidden="true"
     ></span>
-    Server-Status
+    Gerade aktiv
   </div>
   @if (stats(); as s) {
-    <p class="server-status__text">
-      <strong class="server-status__highlight">{{ s.activeSessions }} Quiz live</strong>
-      · {{ s.totalParticipants }} Teilnehmende · {{ s.completedSessions }} durchgeführt
+    <p class="server-status__text server-status__stats">
+      <span class="server-status__stat server-status__highlight"><mat-icon class="server-status__stat-icon" aria-hidden="true">play_circle</mat-icon> {{ s.activeSessions }}</span>
+      <span class="server-status__stat"><mat-icon class="server-status__stat-icon" aria-hidden="true">bolt</mat-icon> {{ s.activeBlitzRounds }}</span>
+      <span class="server-status__stat"><mat-icon class="server-status__stat-icon" aria-hidden="true">group</mat-icon> {{ s.totalParticipants }}</span>
+      <span class="server-status__stat"><mat-icon class="server-status__stat-icon" aria-hidden="true">check_circle</mat-icon> {{ s.completedSessions }}</span>
     </p>
   } @else {
     <div class="server-status__skeleton" aria-hidden="true">
