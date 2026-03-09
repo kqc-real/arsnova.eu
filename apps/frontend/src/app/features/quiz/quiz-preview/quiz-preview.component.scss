@@ -195,32 +195,34 @@
   gap: 0.2rem;
 }
 
-.quiz-preview-question--slide-left {
-  animation: preview-slide-left 150ms ease-out;
-}
-
-.quiz-preview-question--slide-right {
-  animation: preview-slide-right 150ms ease-out;
-}
-
-@keyframes preview-slide-left {
-  from {
-    transform: translateX(18px);
-    opacity: 0.9;
+@media (prefers-reduced-motion: no-preference) {
+  .quiz-preview-question--slide-left {
+    animation: preview-slide-left 150ms ease-out;
   }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
 
-@keyframes preview-slide-right {
-  from {
-    transform: translateX(-18px);
-    opacity: 0.9;
+  .quiz-preview-question--slide-right {
+    animation: preview-slide-right 150ms ease-out;
   }
-  to {
-    transform: translateX(0);
-    opacity: 1;
+
+  @keyframes preview-slide-left {
+    from {
+      transform: translateX(18px);
+      opacity: 0.9;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes preview-slide-right {
+    from {
+      transform: translateX(-18px);
+      opacity: 0.9;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
   }
 }
