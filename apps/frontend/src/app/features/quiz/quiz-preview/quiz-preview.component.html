@@ -1,9 +1,190 @@
-<mat-card appearance="outlined" class="quiz-placeholder">
-  <mat-card-content>
-    <p class="quiz-placeholder__text">Quiz-Preview (Quiz-ID: {{ id }}) – Story 1.13</p>
-    <a mat-button [routerLink]="['../../']" aria-label="Zurück zur Quiz-Liste">
-      <mat-icon>arrow_back</mat-icon>
-      Zurück
-    </a>
-  </mat-card-content>
-</mat-card>
+@if (quiz(); as quizData) {
+  <section class="quiz-preview l-stack l-stack--sm">
+    <mat-card appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Preview: {{ quizData.name }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (quizData.description) {
+          <p class="quiz-preview__description">{{ quizData.description }}</p>
+        } @else {
+          <p class="quiz-preview__description quiz-preview__description--muted">Keine Beschreibung.</p>
+        }
+
+        @if (questions().length > 0) {
+          <p class="quiz-preview__meta">Frage {{ currentIndex() + 1 }} / {{ questions().length }}</p>
+          <mat-progress-bar mode="determinate" [value]="progressValue()"></mat-progress-bar>
+          <p class="quiz-preview__hint">
+            Hotkeys: →/N, ←/P, Home, End, 1–9, Esc
+          </p>
+        } @else {
+          <p class="quiz-preview__meta">Fragen: 0</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    @if (questions().length === 0) {
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <p class="quiz-preview__empty">Noch keine Fragen vorhanden.</p>
+        </mat-card-content>
+      </mat-card>
+    } @else if (currentQuestion(); as question) {
+      <mat-card
+        appearance="outlined"
+        class="quiz-preview-question"
+        [class.quiz-preview-question--slide-left]="swipeDirection() === 'left'"
+        [class.quiz-preview-question--slide-right]="swipeDirection() === 'right'"
+        (touchstart)="onTouchStart($event)"
+        (touchend)="onTouchEnd($event)"
+      >
+        <mat-card-content>
+          <div class="quiz-preview-question__header">
+            <span class="quiz-preview-question__badge">{{ questionTypeLabel(question.type) }}</span>
+            <span class="quiz-preview-question__badge quiz-preview-question__badge--difficulty">
+              {{ difficultyLabel(question.difficulty) }}
+            </span>
+            <button mat-button type="button" (click)="inlineEditMode() ? finishInlineEditMode() : enterInlineEditMode()">
+              <mat-icon>edit</mat-icon>
+              @if (inlineEditMode()) {
+                Bearbeitung beenden
+              } @else {
+                Inline-Bearbeitung
+              }
+            </button>
+            @if (inlineEditMode()) {
+              <button mat-button type="button" (click)="cancelInlineEditMode()">
+                <mat-icon>close</mat-icon>
+                Abbrechen
+              </button>
+            }
+          </div>
+          @if (inlineEditMode()) {
+            <textarea
+              class="quiz-preview-question__input"
+              [value]="questionDraftText()"
+              (input)="onQuestionDraftChanged($any($event.target).value)"
+              rows="3"
+            ></textarea>
+          } @else {
+            <div
+              class="quiz-preview-question__text"
+              [innerHTML]="renderMarkdown(question.text)"
+              (click)="enterInlineEditMode()"
+            ></div>
+          }
+          @if (question.type === 'FREETEXT') {
+            <p class="quiz-preview-question__text">Teilnehmende geben eigene Freitext-Antworten ein.</p>
+          } @else if (question.type === 'RATING') {
+            <div class="quiz-preview-question__rating">
+              <p class="quiz-preview-question__rating-meta">
+                Skala {{ question.ratingMin ?? 1 }}–{{ question.ratingMax ?? 5 }}
+              </p>
+              <div class="quiz-preview-question__rating-scale" aria-hidden="true">
+                @for (
+                  value of ratingScaleValues(question.ratingMin ?? 1, question.ratingMax ?? 5);
+                  track value
+                ) {
+                  <span class="quiz-preview-question__rating-point">{{ value }}</span>
+                }
+              </div>
+              @if (question.ratingLabelMin || question.ratingLabelMax) {
+                <p class="quiz-preview-question__rating-labels">
+                  <span [innerHTML]="renderMarkdown(question.ratingLabelMin || 'Min')"></span>
+                  <span [innerHTML]="renderMarkdown(question.ratingLabelMax || 'Max')"></span>
+                </p>
+              }
+            </div>
+          } @else {
+            <ol class="quiz-preview-question__answers">
+              @for (answer of question.answers; track answer.id; let i = $index) {
+                <li>
+                  @if (inlineEditMode()) {
+                    <input
+                      class="quiz-preview-question__answer-input"
+                      [value]="answerDraftTexts()[i] ?? answer.text"
+                      (input)="onAnswerDraftChanged(i, $any($event.target).value)"
+                    />
+                  } @else {
+                    <span [innerHTML]="renderMarkdown(answer.text)" (click)="enterInlineEditMode()"></span>
+                  }
+                  @if (questionTypeHasCorrectAnswers(question.type)) {
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="quiz-preview-question__correct-toggle"
+                      (click)="toggleCorrectAnswer(i)"
+                      [attr.aria-label]="'Korrekt-Status für Antwort ' + (i + 1) + ' ändern'"
+                    >
+                      <mat-icon class="quiz-preview-question__correct">
+                        @if (question.type === 'SINGLE_CHOICE') {
+                          {{ answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked' }}
+                        } @else {
+                          {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
+                        }
+                      </mat-icon>
+                    </button>
+                  }
+                </li>
+              }
+            </ol>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <mat-card appearance="outlined" class="quiz-preview__validation">
+      <mat-card-content>
+        @if (validationWarnings().length === 0) {
+          <p class="quiz-preview__valid" role="status">Alle Fragen valide - bereit zum Live-Schalten.</p>
+        } @else {
+          <p class="quiz-preview__invalid-title">Validierungshinweise</p>
+          <div class="quiz-preview__invalid-list">
+            @for (warning of validationWarnings(); track warning.message) {
+              <button mat-button type="button" (click)="goToQuestion(warning.index)">
+                {{ warning.message }}
+              </button>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <div class="quiz-preview__actions">
+      <button mat-button type="button" (click)="previousQuestion()" [disabled]="currentIndex() === 0">
+        <mat-icon>chevron_left</mat-icon>
+        Vorherige
+      </button>
+      <button
+        mat-button
+        type="button"
+        (click)="nextQuestion()"
+        [disabled]="currentIndex() >= questions().length - 1"
+      >
+        Nächste
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+    <div class="quiz-preview__actions">
+      <a mat-button [routerLink]="['../']" aria-label="Zurück zum Editor">
+        <mat-icon>edit</mat-icon>
+        Zurück zum Editor
+      </a>
+      <a mat-button [routerLink]="['../../']" aria-label="Zurück zur Quiz-Liste">
+        <mat-icon>arrow_back</mat-icon>
+        Zurück zur Liste
+      </a>
+    </div>
+  </section>
+} @else {
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <p class="quiz-preview__empty">Quiz nicht gefunden.</p>
+      <a mat-button [routerLink]="['../../']" aria-label="Zurück zur Quiz-Liste">
+        <mat-icon>arrow_back</mat-icon>
+        Zurück zur Liste
+      </a>
+    </mat-card-content>
+  </mat-card>
+}
