@@ -85,7 +85,7 @@ describe('QuizNewComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
     const nameInput = fixture.nativeElement.querySelector(
-      'input[formcontrolname=\"name\"]',
+      'input[formcontrolname="name"]',
     ) as HTMLInputElement;
     const focusSpy = vi.spyOn(nameInput, 'focus');
 

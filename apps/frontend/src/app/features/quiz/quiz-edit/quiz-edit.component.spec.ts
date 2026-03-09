@@ -326,7 +326,7 @@ describe('QuizEditComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
     const nameInput = fixture.nativeElement.querySelector(
-      '.quiz-edit__meta-card input[formcontrolname=\"name\"]',
+      '.quiz-edit__meta-card input[formcontrolname="name"]',
     ) as HTMLInputElement;
     const focusSpy = vi.spyOn(nameInput, 'focus');
 
@@ -342,7 +342,7 @@ describe('QuizEditComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
     const timerInput = fixture.nativeElement.querySelector(
-      '.quiz-edit__settings-card input[formcontrolname=\"defaultTimer\"]',
+      '.quiz-edit__settings-card input[formcontrolname="defaultTimer"]',
     ) as HTMLInputElement;
     const focusSpy = vi.spyOn(timerInput, 'focus');
 
