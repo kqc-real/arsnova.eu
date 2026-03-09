@@ -102,7 +102,7 @@
                   @if (inlineEditMode()) {
                     <input
                       class="quiz-preview-question__answer-input"
-                      [value]="answerDraftTexts()[i] ?? answer.text"
+                      [value]="answerDraftTexts()[i]"
                       (input)="onAnswerDraftChanged(i, $any($event.target).value)"
                     />
                   } @else {

@@ -74,7 +74,11 @@
           @if (group.categoryId === 'participation' && nameMode() === 'nicknameTheme') {
             <div class="preset-toast__nickname-theme">
               <span class="preset-toast__nickname-theme-label">Altersgruppe:</span>
-              <mat-form-field appearance="outline" class="preset-toast__nickname-theme-select">
+              <mat-form-field
+                appearance="outline"
+                class="preset-toast__nickname-theme-select"
+                subscriptSizing="dynamic"
+              >
                 <mat-select
                   [(ngModel)]="nicknameThemeSelectValue"
                   aria-label="Altersgruppe wählen"
@@ -96,7 +100,11 @@
           @if (group.categoryId === 'team' && optionEffective('teamMode')) {
             <div class="preset-toast__nickname-theme">
               <span class="preset-toast__nickname-theme-label">Anzahl Teams:</span>
-              <mat-form-field appearance="outline" class="preset-toast__nickname-theme-select">
+              <mat-form-field
+                appearance="outline"
+                class="preset-toast__nickname-theme-select"
+                subscriptSizing="dynamic"
+              >
                 <mat-select
                   [(ngModel)]="teamCountSelectValue"
                   aria-label="Anzahl Teams wählen"

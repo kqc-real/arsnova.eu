@@ -226,10 +226,10 @@
 
 .preset-toast__chips {
   margin-top: 0.25rem;
-}
-
-:host ::ng-deep .preset-toast__chips .mdc-evolution-chip-set__chips {
+  display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
 .preset-toast__chips mat-chip {
@@ -259,20 +259,6 @@
 .preset-toast__nickname-theme-select {
   flex: 1;
   max-width: 13.5rem;
-}
-
-.preset-toast__nickname-theme-select .mat-mdc-form-field-subscript-wrapper {
-  display: none;
-}
-
-.preset-toast__nickname-theme-select .mat-mdc-select-trigger {
-  display: flex;
-  align-items: center;
-}
-
-.preset-toast__nickname-theme-select .mat-mdc-select-value {
-  overflow: visible;
-  text-overflow: unset;
 }
 
 .preset-toast__option-icon {

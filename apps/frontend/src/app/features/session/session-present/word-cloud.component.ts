@@ -69,7 +69,9 @@ export class WordCloudComponent {
       return;
     }
 
-    ctx.fillStyle = '#ffffff';
+    const surfaceColor = this.readCssColor('--mat-sys-surface', 'white');
+    const primaryColor = this.readCssColor('--mat-sys-primary', 'black');
+    ctx.fillStyle = surfaceColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     let x = 48;
@@ -85,7 +87,7 @@ export class WordCloudComponent {
       }
       if (y > canvas.height - 32) break;
 
-      ctx.fillStyle = '#0b7285';
+      ctx.fillStyle = primaryColor;
       ctx.fillText(text, x, y);
       x += textWidth + 24;
     }
@@ -110,5 +112,14 @@ export class WordCloudComponent {
     anchor.download = filename;
     anchor.click();
     URL.revokeObjectURL(url);
+  }
+
+  private readCssColor(variableName: string, fallback: string): string {
+    const root = this.document.documentElement;
+    const value = this.document.defaultView
+      ?.getComputedStyle(root)
+      .getPropertyValue(variableName)
+      .trim();
+    return value && value.length > 0 ? value : fallback;
   }
 }

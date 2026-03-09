@@ -86,10 +86,6 @@
   justify-content: flex-end;
 }
 
-.quiz-list-item__menu-disabled {
-  opacity: 0.5;
-}
-
 @media (min-width: 700px) {
   .quiz-list-item__content {
     flex-direction: row;
