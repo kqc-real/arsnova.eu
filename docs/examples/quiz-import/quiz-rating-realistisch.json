@@ -1,0 +1,85 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-03-09T12:20:00.000Z",
+  "quiz": {
+    "name": "Laborpraktikum - Rating-Check",
+    "description": "Skalenfragen zur Selbsteinschätzung und Kursqualität mit KaTeX-Bezug.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": 25,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": true,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Theorieverständnis\nWie sicher fühlst du dich bei der Anwendung von\n\n$$U=R\\cdot I$$\n\nauf neue Aufgaben?",
+        "type": "RATING",
+        "timer": 25,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "gar nicht sicher",
+        "ratingLabelMax": "sehr sicher"
+      },
+      {
+        "text": "### Messpraxis\nBewerte, wie gut die **Schritt-für-Schritt-Anleitung** im Praktikum war.",
+        "type": "RATING",
+        "timer": 25,
+        "difficulty": "EASY",
+        "order": 1,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "sehr unklar",
+        "ratingLabelMax": "sehr klar"
+      },
+      {
+        "text": "### Datenanalyse\nWie gut konntest du die Unsicherheit\n\n$$u_c=\\sqrt{u_1^2+u_2^2}$$\n\ninterpretieren?",
+        "type": "RATING",
+        "timer": 30,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "überhaupt nicht",
+        "ratingLabelMax": "sehr gut"
+      },
+      {
+        "text": "### Arbeitsbelastung\nWie angemessen war der Aufwand in dieser Woche?",
+        "type": "RATING",
+        "timer": 20,
+        "difficulty": "EASY",
+        "order": 3,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "viel zu hoch",
+        "ratingLabelMax": "sehr angemessen"
+      },
+      {
+        "text": "### Gesamtbewertung\nWie hilfreich war die heutige Sitzung insgesamt?",
+        "type": "RATING",
+        "timer": 20,
+        "difficulty": "EASY",
+        "order": 4,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 10,
+        "ratingLabelMin": "nicht hilfreich",
+        "ratingLabelMax": "extrem hilfreich"
+      }
+    ]
+  }
+}

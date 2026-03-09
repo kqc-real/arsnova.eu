@@ -1,0 +1,90 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-03-09T12:00:00.000Z",
+  "quiz": {
+    "name": "Physik 1 - Verständnischeck (Single Choice)",
+    "description": "Kurzquiz zur Vorlesung mit Fokus auf Grundlagen. Enthält Markdown und KaTeX.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": true,
+    "defaultTimer": 45,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Ableitungen im Überblick\nFür $f(x)=\\sin(x)$ gilt:\n\n$$\\frac{d}{dx}\\sin(x)=\\cos(x)$$\n\nWelche Aussage ist **richtig**?",
+        "type": "SINGLE_CHOICE",
+        "timer": 40,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          { "text": "Die Ableitung ist $\\cos(x)$.", "isCorrect": true },
+          { "text": "Die Ableitung ist $-\\cos(x)$.", "isCorrect": false },
+          { "text": "Die Ableitung ist $\\sin(x)$.", "isCorrect": false },
+          { "text": "Die Ableitung ist $-\\sin(x)$.", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Kinetische Energie\nIn den Notizen steht:\n\n$$E_\\mathrm{kin}=\\frac{1}{2}mv^2$$\n\nWas passiert mit $E_\\mathrm{kin}$, wenn sich die Geschwindigkeit $v$ **verdoppelt** (Masse konstant)?",
+        "type": "SINGLE_CHOICE",
+        "timer": 50,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": [
+          { "text": "Sie verdoppelt sich.", "isCorrect": false },
+          { "text": "Sie vervierfacht sich.", "isCorrect": true },
+          { "text": "Sie halbiert sich.", "isCorrect": false },
+          { "text": "Sie bleibt unverändert.", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Wahrscheinlichkeit\nEine faire Münze wird zweimal geworfen.\n\nGesucht ist $P(\\text{genau ein Kopf})$.\n\n> Tipp: Nutze die Ergebnisse $\\u007bKK, KZ, ZK, ZZ\\}$.",
+        "type": "SINGLE_CHOICE",
+        "timer": 45,
+        "difficulty": "EASY",
+        "order": 2,
+        "answers": [
+          { "text": "$\\frac{1}{4}$", "isCorrect": false },
+          { "text": "$\\frac{1}{2}$", "isCorrect": true },
+          { "text": "$\\frac{3}{4}$", "isCorrect": false },
+          { "text": "$1$", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Exponentieller Zerfall\nEin Medikament folgt näherungsweise\n\n$$c(t)=c_0\\cdot e^{-kt}$$\n\nWelche Eigenschaft trifft bei $k>0$ zu?",
+        "type": "SINGLE_CHOICE",
+        "timer": 55,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "answers": [
+          { "text": "Die Konzentration steigt mit der Zeit.", "isCorrect": false },
+          { "text": "Die Konzentration bleibt konstant.", "isCorrect": false },
+          { "text": "Die Konzentration fällt monoton.", "isCorrect": true },
+          { "text": "Die Konzentration wird periodisch.", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Determinante einer 2x2-Matrix\nFür\n\n$$A=\\begin{pmatrix}a & b\\\\ c & d\\end{pmatrix}$$\n\nist die Determinante definiert als:",
+        "type": "SINGLE_CHOICE",
+        "timer": 60,
+        "difficulty": "HARD",
+        "order": 4,
+        "answers": [
+          { "text": "$ad-bc$", "isCorrect": true },
+          { "text": "$ab-cd$", "isCorrect": false },
+          { "text": "$ac-bd$", "isCorrect": false },
+          { "text": "$a+b+c+d$", "isCorrect": false }
+        ]
+      }
+    ]
+  }
+}

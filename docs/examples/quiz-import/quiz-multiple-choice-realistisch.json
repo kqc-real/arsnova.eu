@@ -1,0 +1,77 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-03-09T12:05:00.000Z",
+  "quiz": {
+    "name": "Statistik kompakt - Konzepte (Multiple Choice)",
+    "description": "Mehrfachauswahl mit typischen Prüfungsfallen. Formeln via KaTeX.",
+    "showLeaderboard": true,
+    "allowCustomNicknames": true,
+    "defaultTimer": 60,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": false,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Normalverteilung\nGegeben sei $X \\sim \\mathcal{N}(\\mu,\\sigma^2)$.\n\nWelche Aussagen sind **korrekt**?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": 70,
+        "difficulty": "MEDIUM",
+        "order": 0,
+        "answers": [
+          { "text": "Der Erwartungswert ist $\\mu$.", "isCorrect": true },
+          { "text": "Die Varianz ist $\\sigma^2$.", "isCorrect": true },
+          { "text": "Die Dichte ist für alle $x$ negativ.", "isCorrect": false },
+          { "text": "Bei einer Normalverteilung gilt immer Median = Mittelwert.", "isCorrect": true }
+        ]
+      },
+      {
+        "text": "### Vektorräume\nFür Vektoren $u,v,w$ und Skalar $\\lambda$ in einem Vektorraum gelten Axiome.\n\nMarkiere alle gültigen Rechenregeln.",
+        "type": "MULTIPLE_CHOICE",
+        "timer": 75,
+        "difficulty": "HARD",
+        "order": 1,
+        "answers": [
+          { "text": "$u+v=v+u$", "isCorrect": true },
+          { "text": "$\\lambda(u+v)=\\lambda u+\\lambda v$", "isCorrect": true },
+          { "text": "$u+(v+w)=(u+v)+w$", "isCorrect": true },
+          { "text": "$u+v=0 \\Rightarrow u=v=0$", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Integralverständnis\nDas bestimmte Integral\n\n$$\\int_a^b f(x)\\,dx$$\n\nkann je nach Vorzeichen von $f$ interpretiert werden als ...",
+        "type": "MULTIPLE_CHOICE",
+        "timer": 65,
+        "difficulty": "MEDIUM",
+        "order": 2,
+        "answers": [
+          { "text": "orientierter Flächeninhalt zwischen Graph und x-Achse", "isCorrect": true },
+          { "text": "rein geometrischer Flächeninhalt ohne Vorzeichen in jedem Fall", "isCorrect": false },
+          { "text": "Netto-Änderung einer Größe mit Änderungsrate $f(x)$", "isCorrect": true },
+          { "text": "immer identisch mit $f(b)-f(a)$ ohne Stammfunktion", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Bayes-Regel\nFür Ereignisse $A$ und $B$ mit $P(B)>0$ gilt:\n\n$$P(A\\mid B)=\\frac{P(B\\mid A)\\,P(A)}{P(B)}$$\n\nWelche Aussagen sind korrekt?",
+        "type": "MULTIPLE_CHOICE",
+        "timer": 80,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          { "text": "Wenn $P(B)$ sehr klein ist, kann $P(A\\mid B)$ trotzdem groß sein.", "isCorrect": true },
+          { "text": "Ohne Kenntnis von $P(B)$ ist die Formel nicht vollständig auswertbar.", "isCorrect": true },
+          { "text": "$P(A\\mid B)=P(A)$ gilt immer.", "isCorrect": false },
+          { "text": "Die Bayes-Regel verbindet Vorwissen $P(A)$ mit neuer Evidenz $B$.", "isCorrect": true }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-03-09T12:15:00.000Z",
+  "quiz": {
+    "name": "Mathe-Brückenkurs - Freitext-Reflexion",
+    "description": "Offene Fragen für Verständnis und Transfer. Enthält Markdown-Struktur und KaTeX.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": 90,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": true,
+    "enableEmojiReactions": true,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Eigenes Erklären\nErkläre in **2-3 Sätzen**, warum bei\n\n$$f(x)=x^2$$\n\ndie Ableitung $f'(x)=2x$ ist.",
+        "type": "FREETEXT",
+        "timer": 120,
+        "difficulty": "MEDIUM",
+        "order": 0,
+        "answers": []
+      },
+      {
+        "text": "### Fehlerdiagnose\nEine Kommilitonin schreibt:\n\n> $\\sqrt{a+b}=\\sqrt{a}+\\sqrt{b}$\n\nBeschreibe kurz, **warum** das im Allgemeinen falsch ist, und nenne ein Gegenbeispiel.",
+        "type": "FREETEXT",
+        "timer": 120,
+        "difficulty": "MEDIUM",
+        "order": 1,
+        "answers": []
+      },
+      {
+        "text": "### Transferaufgabe\nWie würdest du die Formel\n\n$$P(A\\mid B)=\\frac{P(B\\mid A)P(A)}{P(B)}$$\n\nin einem realen Kontext (z. B. Medizin, Spamfilter) erklären?",
+        "type": "FREETEXT",
+        "timer": 150,
+        "difficulty": "HARD",
+        "order": 2,
+        "answers": []
+      },
+      {
+        "text": "### Lernstrategie\nNenne **zwei konkrete Maßnahmen**, mit denen du dich bis zur nächsten Sitzung sicherer bei Integralen wie\n\n$$\\int_0^1 (3x^2+2x)\\,dx$$\n\nfühlst.",
+        "type": "FREETEXT",
+        "timer": 120,
+        "difficulty": "EASY",
+        "order": 3,
+        "answers": []
+      },
+      {
+        "text": "### Muddiest Point\nWas war heute der schwierigste Punkt?\n\n- Begriff\n- Rechenschritt\n- Interpretation\n\nBitte so konkret wie möglich.",
+        "type": "FREETEXT",
+        "timer": 90,
+        "difficulty": "EASY",
+        "order": 4,
+        "answers": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "exportVersion": 1,
+  "exportedAt": "2026-03-09T12:10:00.000Z",
+  "quiz": {
+    "name": "Lehrveranstaltungsfeedback - Umfrage",
+    "description": "Didaktisches Feedback ohne richtig/falsch. Markdown + KaTeX in Fragestämmen.",
+    "showLeaderboard": false,
+    "allowCustomNicknames": false,
+    "defaultTimer": 30,
+    "enableSoundEffects": false,
+    "enableRewardEffects": false,
+    "enableMotivationMessages": false,
+    "enableEmojiReactions": true,
+    "anonymousMode": true,
+    "teamMode": false,
+    "teamCount": null,
+    "teamAssignment": "AUTO",
+    "backgroundMusic": null,
+    "nicknameTheme": "HIGH_SCHOOL",
+    "bonusTokenCount": null,
+    "readingPhaseEnabled": true,
+    "questions": [
+      {
+        "text": "### Tempo der Vorlesung\nIch konnte den Herleitungen (z. B. $\\sigma=\\sqrt{\\mathrm{Var}(X)}$) gut folgen.",
+        "type": "SURVEY",
+        "timer": 30,
+        "difficulty": "EASY",
+        "order": 0,
+        "answers": [
+          { "text": "Stimme voll zu", "isCorrect": false },
+          { "text": "Stimme eher zu", "isCorrect": false },
+          { "text": "Teils/teils", "isCorrect": false },
+          { "text": "Stimme eher nicht zu", "isCorrect": false },
+          { "text": "Stimme gar nicht zu", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Verständlichkeit der Beispiele\nDie Beispiele zu\n\n$$\\int_a^b f(x)\\,dx$$\n\nwaren praxisnah und verständlich.",
+        "type": "SURVEY",
+        "timer": 30,
+        "difficulty": "EASY",
+        "order": 1,
+        "answers": [
+          { "text": "Stimme voll zu", "isCorrect": false },
+          { "text": "Stimme eher zu", "isCorrect": false },
+          { "text": "Teils/teils", "isCorrect": false },
+          { "text": "Stimme eher nicht zu", "isCorrect": false },
+          { "text": "Stimme gar nicht zu", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Aktivierung\nDie Kombination aus **Kurz-Input**, *Peer-Diskussion* und Quizfragen hat mein Lernen unterstützt.",
+        "type": "SURVEY",
+        "timer": 30,
+        "difficulty": "EASY",
+        "order": 2,
+        "answers": [
+          { "text": "Stimme voll zu", "isCorrect": false },
+          { "text": "Stimme eher zu", "isCorrect": false },
+          { "text": "Teils/teils", "isCorrect": false },
+          { "text": "Stimme eher nicht zu", "isCorrect": false },
+          { "text": "Stimme gar nicht zu", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Klausurvorbereitung\nNach der Sitzung fühle ich mich sicherer bei Aufgaben wie\n\n$$P(A\\mid B)=\\frac{P(B\\mid A)P(A)}{P(B)}$$",
+        "type": "SURVEY",
+        "timer": 30,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "answers": [
+          { "text": "Stimme voll zu", "isCorrect": false },
+          { "text": "Stimme eher zu", "isCorrect": false },
+          { "text": "Teils/teils", "isCorrect": false },
+          { "text": "Stimme eher nicht zu", "isCorrect": false },
+          { "text": "Stimme gar nicht zu", "isCorrect": false }
+        ]
+      },
+      {
+        "text": "### Gesamtzufriedenheit\nIch würde dieses Format für zukünftige Termine wieder nutzen.",
+        "type": "SURVEY",
+        "timer": 30,
+        "difficulty": "EASY",
+        "order": 4,
+        "answers": [
+          { "text": "Ja, auf jeden Fall", "isCorrect": false },
+          { "text": "Eher ja", "isCorrect": false },
+          { "text": "Unentschieden", "isCorrect": false },
+          { "text": "Eher nein", "isCorrect": false },
+          { "text": "Nein", "isCorrect": false }
+        ]
+      }
+    ]
+  }
+}
