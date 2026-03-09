@@ -118,6 +118,14 @@
   justify-content: flex-end;
 }
 
+.quiz-list-item__menu-trigger,
+.quiz-list-item__menu-trigger:hover,
+.quiz-list-item__menu-trigger:focus-visible,
+.quiz-list-item__menu-trigger:active {
+  background-color: transparent;
+  box-shadow: none;
+}
+
 @media (min-width: 700px) {
   .quiz-list-item__content {
     flex-direction: row;
