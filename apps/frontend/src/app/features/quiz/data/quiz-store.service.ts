@@ -23,7 +23,7 @@ import {
   type TeamAssignment,
 } from '@arsnova/shared-types';
 import { getYjsWsUrl } from '../../../core/ws-urls';
-import demoQuizPayload from '../../../../../../../docs/examples/quiz-import/quiz-demo-showcase.json';
+import demoQuizPayload from '../../../../assets/demo/quiz-demo-showcase.json';
 
 export type SupportedQuestionType =
   | 'MULTIPLE_CHOICE'
