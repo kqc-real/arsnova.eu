@@ -1,0 +1,60 @@
+<div class="feedback-vote l-page">
+  @if (error(); as err) {
+    <mat-card appearance="outlined" class="feedback-vote__card">
+      <mat-card-content>
+        <mat-icon class="feedback-vote__status-icon">error_outline</mat-icon>
+        <p>{{ err }}</p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (voted()) {
+    <mat-card appearance="outlined" class="feedback-vote__card">
+      <mat-card-content class="feedback-vote__done">
+        <mat-icon class="feedback-vote__status-icon feedback-vote__status-icon--success">check_circle</mat-icon>
+        <p class="feedback-vote__done-text">Danke für dein Feedback!</p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (loading()) {
+    <p class="feedback-vote__loading">Laden…</p>
+  } @else if (feedbackType() === 'MOOD') {
+    <div class="feedback-vote__options feedback-vote__options--mood">
+      @for (option of moodOptions; track option.value) {
+        <button
+          class="feedback-vote__mood-btn"
+          type="button"
+          (click)="vote(option.value)"
+          [attr.aria-label]="option.label"
+        >
+          <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
+          <span class="feedback-vote__mood-label">{{ option.label }}</span>
+        </button>
+      }
+    </div>
+  } @else if (feedbackType() === 'YESNO') {
+    <div class="feedback-vote__options feedback-vote__options--mood">
+      @for (option of yesnoOptions; track option.value) {
+        <button
+          class="feedback-vote__mood-btn"
+          type="button"
+          (click)="vote(option.value)"
+          [attr.aria-label]="option.label"
+        >
+          <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
+          <span class="feedback-vote__mood-label">{{ option.label }}</span>
+        </button>
+      }
+    </div>
+  } @else if (feedbackType() === 'ABCD') {
+    <div class="feedback-vote__options feedback-vote__options--abcd">
+      @for (option of abcdOptions; track option.value) {
+        <button
+          matButton="filled"
+          class="feedback-vote__abcd-btn"
+          type="button"
+          (click)="vote(option.value)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+  }
+</div>

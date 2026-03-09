@@ -150,7 +150,7 @@
           <mat-card-actions class="l-stack l-stack--sm">
             <a matButton="filled" routerLink="/quiz/new" class="home-cta" (mouseenter)="preloadQuiz()">
               <mat-icon class="home-cta__icon">add_circle</mat-icon>
-              Neues Quiz starten
+              Neues Quiz erstellen
             </a>
             <div class="home-cta-row">
               <a
@@ -162,8 +162,7 @@
                 [matBadgeHidden]="quizCount() === 0"
               >
                 <mat-icon class="home-cta__icon">quiz</mat-icon>
-                Aus Bibliothek
-              </a>
+                Meine Quizze              </a>
               <button
                 matButton="tonal"
                 class="home-cta home-cta--secondary"
@@ -179,42 +178,43 @@
       </main>
 
       <section class="home-grid">
-        <mat-card appearance="raised">
+        <mat-card appearance="raised" class="home-card">
           <mat-card-header>
-            <mat-card-title>
-              <mat-icon class="home-card__icon">library_books</mat-icon>
-              Quiz-Bibliothek
-            </mat-card-title>
+            <mat-card-subtitle>
+              <mat-icon class="home-card__icon">bolt</mat-icon>
+              Abstimmen
+            </mat-card-subtitle>
+            <mat-card-title class="home-card__title">Blitz-Feedback</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <div class="home-subcard__links l-stack l-stack--sm">
-              <a matButton routerLink="/quiz" class="home-subcard__link" (mouseenter)="preloadQuiz()">
-                <mat-icon class="home-subcard__link-icon">menu_book</mat-icon>
-                Meine Quizzes
-                @if (quizCount() > 0) {
-                  <span class="home-subcard__badge">{{ quizCount() }}</span>
-                }
-              </a>
-              <div class="home-subcard__demo-row">
-                <a matButton [routerLink]="['/quiz', demoQuizId, 'preview']" class="home-subcard__demo-btn" (mouseenter)="preloadQuiz()">
-                  <mat-icon class="home-subcard__link-icon">play_circle</mat-icon>
-                  Demo ansehen
-                </a>
-                <a matButton [routerLink]="['/quiz', demoQuizId]" class="home-subcard__demo-btn" (mouseenter)="preloadQuiz()">
-                  <mat-icon class="home-subcard__link-icon">edit</mat-icon>
-                  Demo bearbeiten
-                </a>
-              </div>
+            <div class="home-feedback-row">
+              <button class="home-feedback-btn" type="button" (click)="startQuickFeedback('MOOD')" aria-label="Stimmungsbild starten">
+                <span class="home-feedback-btn__icon">😊</span>
+                <span class="home-feedback-btn__icon">😐</span>
+                <span class="home-feedback-btn__icon">😟</span>
+              </button>
+              <button class="home-feedback-btn" type="button" (click)="startQuickFeedback('YESNO')" aria-label="Ja/Nein-Voting starten">
+                <span class="home-feedback-btn__icon">👍</span>
+                <span class="home-feedback-btn__icon">👎</span>
+                <span class="home-feedback-btn__icon">🤷</span>
+              </button>
+              <button class="home-feedback-btn" type="button" (click)="startQuickFeedback('ABCD')" aria-label="ABCD-Voting starten">
+                <span class="home-feedback-btn__letter">A</span>
+                <span class="home-feedback-btn__letter">B</span>
+                <span class="home-feedback-btn__letter">C</span>
+                <span class="home-feedback-btn__letter">D</span>
+              </button>
             </div>
           </mat-card-content>
         </mat-card>
 
-        <mat-card appearance="raised" class="home-subcard--status">
+        <mat-card appearance="raised" class="home-card home-subcard--status">
           <mat-card-header>
-            <mat-card-title>
+            <mat-card-subtitle>
               <mat-icon class="home-card__icon">sensors</mat-icon>
-              Status
-            </mat-card-title>
+              Server
+            </mat-card-subtitle>
+            <mat-card-title class="home-card__title">Status</mat-card-title>
           </mat-card-header>
           <mat-card-content>
             @if (apiStatus()) {

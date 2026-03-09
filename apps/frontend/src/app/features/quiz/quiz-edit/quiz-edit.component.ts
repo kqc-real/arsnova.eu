@@ -131,6 +131,7 @@ export class QuizEditComponent implements OnDestroy {
   readonly submitError = signal<string | null>(null);
   readonly submitted = signal(false);
   readonly editingQuestionId = signal<string | null>(null);
+  readonly expandedQuestionIds = signal<Set<string>>(new Set());
   readonly showSettings = signal(false);
   readonly settingsSubmitError = signal<string | null>(null);
   readonly settingsSaved = signal(false);
@@ -557,6 +558,31 @@ export class QuizEditComponent implements OnDestroy {
           : 'Titel konnte nicht gespeichert werden.';
       this.metadataSubmitError.set(message);
     }
+  }
+
+  toggleQuestionExpanded(questionId: string): void {
+    this.expandedQuestionIds.update((ids) => {
+      const next = new Set(ids);
+      if (next.has(questionId)) {
+        next.delete(questionId);
+      } else {
+        next.add(questionId);
+      }
+      return next;
+    });
+  }
+
+  isQuestionExpanded(questionId: string): boolean {
+    return this.expandedQuestionIds().has(questionId);
+  }
+
+  ratingSteps(min: number, max: number): number[] {
+    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  }
+
+  firstLine(text: string): string {
+    const line = text.split('\n').find((l) => l.trim().length > 0) ?? text;
+    return line.replace(/^#{1,6}\s+/, '').trim();
   }
 
   editQuestion(questionId: string): void {

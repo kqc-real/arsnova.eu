@@ -209,6 +209,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     import('../quiz/quiz.component').then(() => {});
   }
 
+  async startQuickFeedback(type: 'MOOD' | 'ABCD' | 'YESNO'): Promise<void> {
+    try {
+      const result = await trpc.quickFeedback.create.mutate({ type });
+      await this.router.navigate(['/feedback', result.sessionCode]);
+    } catch {
+      this.apiStatus.set(null);
+    }
+  }
+
   onSessionCodeInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const prev = this.sessionCode();

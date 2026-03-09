@@ -521,44 +521,69 @@
                   <mat-icon>drag_indicator</mat-icon>
                 </button>
                 <div class="quiz-edit-question__body">
-                  <p class="quiz-edit-question__meta">
-                    Frage {{ question.order + 1 }} · {{ questionTypeLabel(question.type) }} ·
-                    {{ difficultyLabel(question.difficulty) }}
-                  </p>
-                  <div class="quiz-edit-question__text" [innerHTML]="renderMarkdown(question.text)"></div>
-
-                  @if (question.type === 'FREETEXT') {
-                    <p class="quiz-edit-question__text quiz-edit-question__text--hint">Freitext-Antwort</p>
-                  } @else if (question.type === 'RATING') {
-                    <p class="quiz-edit-question__text quiz-edit-question__text--hint">
-                      Skala {{ question.ratingMin ?? 1 }}–{{ question.ratingMax ?? 5 }}
-                      @if (question.ratingLabelMin || question.ratingLabelMax) {
-                        · {{ question.ratingLabelMin || 'Min' }} / {{ question.ratingLabelMax || 'Max' }}
-                      }
+                  <div class="quiz-edit-question__header">
+                    <p class="quiz-edit-question__meta">
+                      Frage {{ question.order + 1 }} · {{ questionTypeLabel(question.type) }} ·
+                      {{ difficultyLabel(question.difficulty) }}
                     </p>
-                  } @else {
-                    <ol class="quiz-edit-question__answers">
-                      @for (answer of question.answers; track answer.id) {
-                        <li>
-                          <span class="quiz-edit-question__answer-text" [innerHTML]="renderMarkdown(answer.text)"></span>
-                          @if (answer.isCorrect && questionTypeHasCorrectAnswers(question.type)) {
-                            <mat-icon class="quiz-edit-question__correct-icon" aria-hidden="true">check_circle</mat-icon>
-                          }
-                        </li>
-                      }
-                    </ol>
-                  }
-
-                  <div class="quiz-edit-question__actions">
-                    <button mat-button type="button" (click)="editQuestion(question.id)">
-                      <mat-icon>edit</mat-icon>
-                      Bearbeiten
-                    </button>
-                    <button mat-button type="button" (click)="deleteQuestion(question.id)">
-                      <mat-icon>delete</mat-icon>
-                      Löschen
+                    <button
+                      class="quiz-edit-question__expand-btn"
+                      type="button"
+                      (click)="toggleQuestionExpanded(question.id)"
+                      [attr.aria-expanded]="isQuestionExpanded(question.id)"
+                      [attr.aria-label]="isQuestionExpanded(question.id) ? 'Frage zuklappen' : 'Frage aufklappen'"
+                    >
+                      <mat-icon>{{ isQuestionExpanded(question.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
                     </button>
                   </div>
+
+                  @if (isQuestionExpanded(question.id)) {
+                    <div class="quiz-edit-question__text" [innerHTML]="renderMarkdown(question.text)"></div>
+
+                    @if (question.type === 'FREETEXT') {
+                      <p class="quiz-edit-question__text quiz-edit-question__text--hint">Freitext-Antwort</p>
+                    } @else if (question.type === 'RATING') {
+                      <div class="quiz-edit-question__rating">
+                        @for (step of ratingSteps(question.ratingMin ?? 1, question.ratingMax ?? 5); track step; let first = $first; let last = $last) {
+                          <div class="quiz-edit-question__rating-cell">
+                            <span class="quiz-edit-question__rating-step">{{ step }}</span>
+                            @if (first && question.ratingLabelMin) {
+                              <span class="quiz-edit-question__rating-label">{{ question.ratingLabelMin }}</span>
+                            }
+                            @if (last && question.ratingLabelMax) {
+                              <span class="quiz-edit-question__rating-label">{{ question.ratingLabelMax }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <ul class="quiz-edit-question__answers">
+                        @for (answer of question.answers; track answer.id) {
+                          <li>
+                            @if (questionTypeHasCorrectAnswers(question.type)) {
+                              <mat-icon class="quiz-edit-question__answer-icon" [class.quiz-edit-question__answer-icon--correct]="answer.isCorrect" aria-hidden="true">
+                                {{ question.type === 'SINGLE_CHOICE' ? (answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked') : (answer.isCorrect ? 'check_box' : 'check_box_outline_blank') }}
+                              </mat-icon>
+                            }
+                            <span class="quiz-edit-question__answer-text" [innerHTML]="renderMarkdown(answer.text)"></span>
+                          </li>
+                        }
+                      </ul>
+                    }
+
+                    <div class="quiz-edit-question__actions">
+                      <button mat-button type="button" (click)="editQuestion(question.id)">
+                        <mat-icon>edit</mat-icon>
+                        Bearbeiten
+                      </button>
+                      <button mat-button type="button" (click)="deleteQuestion(question.id)">
+                        <mat-icon>delete</mat-icon>
+                        Löschen
+                      </button>
+                    </div>
+                  } @else {
+                    <p class="quiz-edit-question__summary">{{ firstLine(question.text) }}</p>
+                  }
                 </div>
               </mat-card-content>
             </mat-card>

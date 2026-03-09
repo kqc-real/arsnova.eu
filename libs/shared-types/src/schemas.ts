@@ -685,3 +685,43 @@ export const PresetConfigExportSchema = z.object({
   }),
 });
 export type PresetConfigExport = z.infer<typeof PresetConfigExportSchema>;
+
+// ---------------------------------------------------------------------------
+// Quick-Feedback (One-Shot-Feedback)
+// ---------------------------------------------------------------------------
+
+export const QuickFeedbackTypeEnum = z.enum(['MOOD', 'ABCD', 'YESNO']);
+export type QuickFeedbackType = z.infer<typeof QuickFeedbackTypeEnum>;
+
+export const MoodValueEnum = z.enum(['POSITIVE', 'NEUTRAL', 'NEGATIVE']);
+export type MoodValue = z.infer<typeof MoodValueEnum>;
+
+export const AbcdValueEnum = z.enum(['A', 'B', 'C', 'D']);
+export type AbcdValue = z.infer<typeof AbcdValueEnum>;
+
+export const YesNoValueEnum = z.enum(['YES', 'NO', 'MAYBE']);
+export type YesNoValue = z.infer<typeof YesNoValueEnum>;
+
+export const CreateQuickFeedbackInputSchema = z.object({
+  type: QuickFeedbackTypeEnum,
+});
+export type CreateQuickFeedbackInput = z.infer<typeof CreateQuickFeedbackInputSchema>;
+
+export const CreateQuickFeedbackOutputSchema = z.object({
+  feedbackId: z.string(),
+  sessionCode: z.string(),
+});
+export type CreateQuickFeedbackOutput = z.infer<typeof CreateQuickFeedbackOutputSchema>;
+
+export const QuickFeedbackVoteInputSchema = z.object({
+  sessionCode: z.string(),
+  value: z.string(),
+});
+export type QuickFeedbackVoteInput = z.infer<typeof QuickFeedbackVoteInputSchema>;
+
+export const QuickFeedbackResultSchema = z.object({
+  type: QuickFeedbackTypeEnum,
+  totalVotes: z.number(),
+  distribution: z.record(z.string(), z.number()),
+});
+export type QuickFeedbackResult = z.infer<typeof QuickFeedbackResultSchema>;

@@ -1,0 +1,37 @@
+@if (error(); as err) {
+  <mat-card appearance="outlined" class="feedback-host__error">
+    <mat-card-content>
+      <p>{{ err }}</p>
+    </mat-card-content>
+  </mat-card>
+} @else if (result(); as data) {
+  <div class="feedback-host l-page">
+    <section class="feedback-host__join">
+      @if (qrDataUrl()) {
+        <img [src]="qrDataUrl()" alt="QR-Code zum Beitreten" class="feedback-host__qr" />
+      }
+      <p class="feedback-host__code">{{ code }}</p>
+      <p class="feedback-host__url">{{ joinUrl }}</p>
+    </section>
+
+    <section class="feedback-host__results">
+      <h2 class="feedback-host__title">{{ feedbackTitle(data.type) }}</h2>
+      <p class="feedback-host__votes">{{ data.totalVotes }} {{ data.totalVotes === 1 ? 'Stimme' : 'Stimmen' }}</p>
+
+      <div class="feedback-host__bars">
+        @for (entry of data.distribution | keyvalue; track entry.key) {
+          <div class="feedback-host__bar-row">
+            <span class="feedback-host__bar-label">{{ displayLabel(entry.key, data.type) }}</span>
+            <div class="feedback-host__bar-track">
+              <div
+                class="feedback-host__bar-fill"
+                [style.width.%]="barWidth(entry.value)"
+              ></div>
+            </div>
+            <span class="feedback-host__bar-count">{{ entry.value }} ({{ percentage(entry.value) }}%)</span>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+}

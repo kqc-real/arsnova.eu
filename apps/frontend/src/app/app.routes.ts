@@ -82,6 +82,20 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'feedback/:code',
+    loadComponent: () =>
+      import('./features/feedback/feedback-host.component').then(
+        (m) => m.FeedbackHostComponent
+      ),
+  },
+  {
+    path: 'feedback/:code/vote',
+    loadComponent: () =>
+      import('./features/feedback/feedback-vote.component').then(
+        (m) => m.FeedbackVoteComponent
+      ),
+  },
+  {
     path: 'join/:code',
     loadComponent: () =>
       import('./features/join/join.component').then((m) => m.JoinComponent),

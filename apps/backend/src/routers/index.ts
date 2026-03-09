@@ -2,6 +2,7 @@ import { router } from '../trpc';
 import { healthRouter } from './health';
 import { sessionRouter } from './session';
 import { voteRouter } from './vote';
+import { quickFeedbackRouter } from './quickFeedback';
 
 /**
  * Der zentrale App-Router.
@@ -12,6 +13,7 @@ export const appRouter = router({
   health: healthRouter,
   session: sessionRouter,
   vote: voteRouter,
+  quickFeedback: quickFeedbackRouter,
 });
 
 /** Der exportierte Typ für den tRPC-Client im Frontend */

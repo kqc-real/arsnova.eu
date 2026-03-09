@@ -408,6 +408,12 @@ describe('QuizEditComponent', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     fixture.detectChanges();
 
+    const expandBtn = fixture.nativeElement.querySelector(
+      '.quiz-edit-question__expand-btn',
+    ) as HTMLButtonElement;
+    expandBtn.click();
+    fixture.detectChanges();
+
     const questionKatex = fixture.nativeElement.querySelector(
       '.quiz-edit-list .quiz-edit-question__text .katex',
     ) as HTMLElement | null;
