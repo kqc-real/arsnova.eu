@@ -1,14 +1,140 @@
-<mat-card appearance="outlined" class="quiz-empty-state">
-  <mat-card-content class="quiz-empty-state__content">
-    <p class="quiz-empty-state__text">
-      Noch keine Quizzes.
-    </p>
+<section class="quiz-list-page l-stack l-stack--sm">
+  <div class="quiz-list__actions">
+    <button mat-button type="button" (click)="toggleAiImport()">
+      <mat-icon>psychology</mat-icon>
+      KI-JSON importieren
+    </button>
+    <button mat-button type="button" (click)="importFileInput.click()">
+      <mat-icon>upload_file</mat-icon>
+      Importieren
+    </button>
     <a matButton="filled" routerLink="new" aria-label="Neues Quiz erstellen">
       <mat-icon>add_circle</mat-icon>
       Neues Quiz erstellen
     </a>
-    <p class="quiz-empty-state__hint">
-      Hier Quizzes anlegen und verwalten (Story 1.1, 1.8–1.10).
-    </p>
-  </mat-card-content>
-</mat-card>
+    <input
+      #importFileInput
+      type="file"
+      accept=".json,application/json"
+      hidden
+      (change)="onImportFileSelected($event)"
+    />
+  </div>
+
+  @if (actionInfo()) {
+    <p class="quiz-list__info" role="status">{{ actionInfo() }}</p>
+  }
+  @if (actionError()) {
+    <p class="quiz-list__error" role="alert">{{ actionError() }}</p>
+  }
+
+  @if (showAiImport()) {
+    <mat-card appearance="outlined">
+      <mat-card-content class="l-stack l-stack--xs">
+        <h2 class="quiz-list__ai-title">KI-JSON importieren</h2>
+        <p class="quiz-list__ai-hint">
+          JSON aus dem LLM einfügen. Der Import wird strikt gegen das Schema validiert.
+        </p>
+        <mat-form-field appearance="outline">
+          <mat-label>KI-JSON</mat-label>
+          <textarea
+            matInput
+            rows="8"
+            [value]="aiJsonInput()"
+            (input)="updateAiJsonInput($any($event.target).value)"
+          ></textarea>
+        </mat-form-field>
+        <div class="quiz-list__ai-actions">
+          <button mat-button type="button" (click)="toggleAiImport()">Abbrechen</button>
+          <button matButton="filled" type="button" (click)="importAiJson()">
+            Import starten
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (quizzes().length === 0) {
+    <mat-card appearance="outlined" class="quiz-empty-state">
+      <mat-card-content class="quiz-empty-state__content">
+        <p class="quiz-empty-state__text">
+          Noch keine Quizzes.
+        </p>
+        <p class="quiz-empty-state__hint">
+          Hier Quizzes anlegen und verwalten (Story 1.1, 1.8–1.10).
+        </p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="quiz-list__items l-stack l-stack--sm">
+      @for (quiz of quizzes(); track quiz.id) {
+        <mat-card appearance="outlined" class="quiz-list-item">
+          <mat-card-content class="quiz-list-item__content">
+            <div class="quiz-list-item__main">
+              <h2 class="quiz-list-item__title">{{ quiz.name }}</h2>
+              @if (quiz.description) {
+                <p class="quiz-list-item__description">{{ quiz.description }}</p>
+              } @else {
+                <p class="quiz-list-item__description quiz-list-item__description--muted">
+                  Keine Beschreibung.
+                </p>
+              }
+              <p class="quiz-list-item__meta">
+                {{ quiz.questionCount }} Frage(n) · zuletzt geändert: {{ quiz.updatedAt | date: 'short' }}
+              </p>
+            </div>
+
+            <div class="quiz-list-item__actions">
+              <a matButton="outlined" [routerLink]="quiz.id" [attr.aria-label]="'Quiz ' + quiz.name + ' bearbeiten'">
+                <mat-icon>edit</mat-icon>
+                Bearbeiten
+              </a>
+              <button
+                mat-icon-button
+                type="button"
+                [matMenuTriggerFor]="quizMenu"
+                [attr.aria-label]="'Aktionen für Quiz ' + quiz.name"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #quizMenu="matMenu">
+                <a mat-menu-item [routerLink]="quiz.id">
+                  <mat-icon>edit</mat-icon>
+                  Bearbeiten
+                </a>
+                <a mat-menu-item [routerLink]="[quiz.id, 'preview']">
+                  <mat-icon>visibility</mat-icon>
+                  Preview
+                </a>
+                <button mat-menu-item type="button" (click)="exportQuiz(quiz.id)">
+                  <mat-icon>download</mat-icon>
+                  Exportieren
+                </button>
+                <button mat-menu-item type="button" (click)="duplicateQuiz(quiz.id)">
+                  <mat-icon>content_copy</mat-icon>
+                  Duplizieren
+                </button>
+                <button
+                  mat-menu-item
+                  type="button"
+                  (click)="deleteQuiz(quiz.id, quiz.name)"
+                  [class.quiz-list-item__menu-disabled]="isQuizLive(quiz.id)"
+                  [matTooltip]="
+                    isQuizLive(quiz.id)
+                      ? 'Quiz hat eine aktive Live-Session und kann nicht gelöscht werden.'
+                      : ''
+                  "
+                  [matTooltipDisabled]="!isQuizLive(quiz.id)"
+                  [attr.aria-disabled]="isQuizLive(quiz.id)"
+                >
+                  <mat-icon>delete</mat-icon>
+                  Löschen
+                </button>
+              </mat-menu>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
