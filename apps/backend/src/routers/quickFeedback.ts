@@ -48,6 +48,10 @@ function validValues(type: QuickFeedbackType): readonly string[] {
   }
 }
 
+function emptyDistribution(type: QuickFeedbackType): Record<string, number> {
+  return Object.fromEntries(validValues(type).map((v) => [v, 0]));
+}
+
 export const quickFeedbackRouter = router({
   create: publicProcedure
     .input(CreateQuickFeedbackInputSchema)
@@ -61,8 +65,9 @@ export const quickFeedbackRouter = router({
         type: input.type,
         theme: input.theme,
         preset: input.preset,
+        locked: false,
         totalVotes: 0,
-        distribution: Object.fromEntries(validValues(input.type).map((v) => [v, 0])),
+        distribution: emptyDistribution(input.type),
       };
 
       await redis.set(key, JSON.stringify(initial), 'EX', FEEDBACK_TTL_SECONDS);
@@ -88,6 +93,49 @@ export const quickFeedbackRouter = router({
       return { ok: true };
     }),
 
+  reset: publicProcedure
+    .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .mutation(async ({ input }) => {
+      const redis = getRedis();
+      const code = input.sessionCode.toUpperCase();
+      const key = feedbackKey(code);
+      const raw = await redis.get(key);
+
+      if (!raw) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Feedback-Runde nicht gefunden oder abgelaufen.' });
+      }
+
+      const result = JSON.parse(raw) as QuickFeedbackResult;
+      result.totalVotes = 0;
+      result.locked = false;
+      result.distribution = emptyDistribution(result.type);
+
+      const multi = redis.multi();
+      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      multi.del(votersKey(code));
+      await multi.exec();
+
+      return { ok: true };
+    }),
+
+  toggleLock: publicProcedure
+    .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .mutation(async ({ input }) => {
+      const redis = getRedis();
+      const key = feedbackKey(input.sessionCode.toUpperCase());
+      const raw = await redis.get(key);
+
+      if (!raw) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Feedback-Runde nicht gefunden oder abgelaufen.' });
+      }
+
+      const result = JSON.parse(raw) as QuickFeedbackResult;
+      result.locked = !result.locked;
+
+      await redis.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      return { locked: result.locked };
+    }),
+
   vote: publicProcedure
     .input(QuickFeedbackVoteInputSchema)
     .mutation(async ({ input }) => {
@@ -100,13 +148,17 @@ export const quickFeedbackRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Feedback-Runde nicht gefunden oder abgelaufen.' });
       }
 
+      const result = JSON.parse(raw) as QuickFeedbackResult;
+      if (result.locked) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Abstimmung ist geschlossen.' });
+      }
+
       const vKey = votersKey(code);
       const alreadyVoted = await redis.sismember(vKey, input.voterId);
       if (alreadyVoted) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Du hast bereits abgestimmt.' });
       }
 
-      const result = JSON.parse(raw) as QuickFeedbackResult;
       const allowed = validValues(result.type);
 
       if (!allowed.includes(input.value)) {
@@ -116,9 +168,12 @@ export const quickFeedbackRouter = router({
       result.distribution[input.value] = (result.distribution[input.value] ?? 0) + 1;
       result.totalVotes += 1;
 
-      await redis.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-      await redis.sadd(vKey, input.voterId);
-      await redis.expire(vKey, FEEDBACK_TTL_SECONDS);
+      const multi = redis.multi();
+      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      multi.sadd(vKey, input.voterId);
+      multi.expire(vKey, FEEDBACK_TTL_SECONDS);
+      await multi.exec();
+
       return { ok: true };
     }),
 

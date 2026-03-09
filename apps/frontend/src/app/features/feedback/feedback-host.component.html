@@ -1,37 +1,73 @@
 @if (error(); as err) {
-  <mat-card appearance="outlined" class="feedback-host__error">
+  <mat-card appearance="outlined" class="feedback-host__error" role="alert">
     <mat-card-content>
+      <mat-icon>error_outline</mat-icon>
       <p>{{ err }}</p>
     </mat-card-content>
   </mat-card>
 } @else if (result(); as data) {
-  <div class="feedback-host l-page">
+  <div class="feedback-host">
     <section class="feedback-host__join">
       @if (qrDataUrl()) {
         <img [src]="qrDataUrl()" alt="QR-Code zum Beitreten" class="feedback-host__qr" />
       }
       <p class="feedback-host__code">{{ code }}</p>
       <p class="feedback-host__url">{{ joinUrl }}</p>
+      <div class="feedback-host__actions">
+        <button mat-button type="button" (click)="toggleLock()" [attr.aria-label]="locked() ? 'Abstimmung fortsetzen' : 'Abstimmung einfrieren'">
+          <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
+          {{ locked() ? 'Fortsetzen' : 'Stopp' }}
+        </button>
+        <button mat-button type="button" (click)="copyLink()" aria-label="Beitrittslink kopieren">
+          <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+          {{ copied() ? 'Kopiert' : 'Link kopieren' }}
+        </button>
+        <button mat-button type="button" (click)="resetRound()" [disabled]="resetting()" aria-label="Ergebnisse zurücksetzen">
+          <mat-icon>restart_alt</mat-icon>
+          Zurücksetzen
+        </button>
+        <button mat-button type="button" (click)="newRound()" aria-label="Neue Runde starten">
+          <mat-icon>add</mat-icon>
+          Neue Runde
+        </button>
+      </div>
     </section>
 
     <section class="feedback-host__results">
       <h2 class="feedback-host__title">{{ feedbackTitle(data.type) }}</h2>
-      <p class="feedback-host__votes">{{ data.totalVotes }} {{ data.totalVotes === 1 ? 'Stimme' : 'Stimmen' }}</p>
+      <p class="feedback-host__votes" aria-live="polite" aria-atomic="true">{{ data.totalVotes }} {{ data.totalVotes === 1 ? 'Stimme' : 'Stimmen' }}</p>
 
-      <div class="feedback-host__bars">
-        @for (entry of data.distribution | keyvalue; track entry.key) {
-          <div class="feedback-host__bar-row">
-            <span class="feedback-host__bar-label">{{ displayLabel(entry.key, data.type) }}</span>
-            <div class="feedback-host__bar-track">
+      <div class="feedback-host__bars" role="list" [attr.aria-label]="'Ergebnisse: ' + feedbackTitle(data.type)">
+        @for (entry of orderedEntries(); track entry.key) {
+          <div
+            class="feedback-host__bar-row"
+            role="listitem"
+            [attr.aria-label]="displayLabel(entry.key, data.type) + ': ' + entry.value + ' (' + percentage(entry.key) + ' %)'"
+          >
+            <span class="feedback-host__bar-label" aria-hidden="true">{{ displayLabel(entry.key, data.type) }}</span>
+            <div
+              class="feedback-host__bar-track"
+              role="progressbar"
+              [attr.aria-valuenow]="entry.value"
+              [attr.aria-valuemin]="0"
+              [attr.aria-valuemax]="data.totalVotes || 1"
+              [attr.aria-label]="displayLabel(entry.key, data.type)"
+            >
               <div
                 class="feedback-host__bar-fill"
+                [class.feedback-host__bar-fill--leading]="entry.value > 0 && entry.value === maxVotes()"
                 [style.width.%]="barWidth(entry.value)"
               ></div>
             </div>
-            <span class="feedback-host__bar-count">{{ entry.value }} ({{ percentage(entry.value) }}%)</span>
+            <span class="feedback-host__bar-count" aria-hidden="true">{{ entry.value }} ({{ percentage(entry.key) }} %)</span>
           </div>
         }
       </div>
     </section>
+  </div>
+} @else {
+  <div class="feedback-host__loading">
+    <mat-icon>hourglass_empty</mat-icon>
+    <p>Verbinde…</p>
   </div>
 }

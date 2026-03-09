@@ -630,6 +630,12 @@ mat-card-actions.l-stack { display: flex; flex-direction: column; gap: 0.5rem; }
   }
 }
 
+.home-feedback-error {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-error);
+  margin: 0 0 0.5rem;
+}
+
 .home-feedback-row {
   display: flex;
   flex-wrap: wrap;

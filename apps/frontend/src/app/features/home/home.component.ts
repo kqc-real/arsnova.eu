@@ -209,7 +209,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     import('../quiz/quiz.component').then(() => {});
   }
 
+  feedbackError = signal<string | null>(null);
+
   async startQuickFeedback(type: 'MOOD' | 'ABCD' | 'YESNO'): Promise<void> {
+    this.feedbackError.set(null);
     try {
       const result = await trpc.quickFeedback.create.mutate({
         type,
@@ -218,7 +221,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       await this.router.navigate(['/feedback', result.sessionCode]);
     } catch {
-      this.apiStatus.set(null);
+      this.feedbackError.set('Feedback konnte nicht gestartet werden. Ist der Server erreichbar?');
     }
   }
 

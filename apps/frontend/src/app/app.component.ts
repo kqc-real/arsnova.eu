@@ -75,7 +75,9 @@ export class AppComponent implements OnInit, OnDestroy {
   hasScrolled = signal(false);
   /** Toolbar beim Runterscrollen ausblenden, beim Hochscrollen einblenden (UX-Empfehlung, alle Seiten). */
   toolbarHidden = signal(false);
-  isFeedbackRoute = signal(false);
+  isFeedbackRoute = signal(
+    typeof window !== 'undefined' && window.location.pathname.startsWith('/feedback/')
+  );
   private lastScrollY = 0;
   private static readonly HIDE_SCROLL_THRESHOLD_PX = 80;
 

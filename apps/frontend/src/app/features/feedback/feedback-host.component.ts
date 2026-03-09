@@ -1,9 +1,11 @@
-import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
-import { KeyValuePipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
+import { feedbackDisplayLabel, feedbackTitle, MOOD_OPTIONS, YESNO_OPTIONS, ABCD_OPTIONS } from './feedback.config';
 import type { QuickFeedbackResult } from '@arsnova/shared-types';
 import type { Unsubscribable } from '@trpc/server/observable';
 import QRCode from 'qrcode';
@@ -11,19 +13,23 @@ import QRCode from 'qrcode';
 @Component({
   selector: 'app-feedback-host',
   standalone: true,
-  imports: [KeyValuePipe, MatCard, MatCardContent],
+  imports: [MatCard, MatCardContent, MatButton, MatIcon],
   templateUrl: './feedback-host.component.html',
   styleUrl: './feedback-host.component.scss',
 })
 export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly themePreset = inject(ThemePresetService);
   private subscription: Unsubscribable | null = null;
 
-  readonly code = this.route.snapshot.paramMap.get('code') ?? '';
+  readonly code = (this.route.snapshot.paramMap.get('code') ?? '').toUpperCase();
   readonly result = signal<QuickFeedbackResult | null>(null);
   readonly qrDataUrl = signal<string>('');
   readonly error = signal<string | null>(null);
+  readonly copied = signal(false);
+  readonly resetting = signal(false);
+  readonly locked = signal(false);
 
   constructor() {
     effect(() => {
@@ -60,6 +66,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       {
         onData: (data) => {
           this.result.set(data);
+          this.locked.set(data.locked);
           this.error.set(null);
         },
         onError: () => {
@@ -74,9 +81,94 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       const url = await QRCode.toDataURL(this.joinUrl, { width: 280, margin: 2 });
       this.qrDataUrl.set(url);
     } catch {
-      // QR code generation is best-effort
+      // best-effort
     }
   }
+
+  async copyLink(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.joinUrl);
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch {
+      // Clipboard not available
+    }
+  }
+
+  async toggleLock(): Promise<void> {
+    try {
+      const res = await trpc.quickFeedback.toggleLock.mutate({ sessionCode: this.code });
+      this.locked.set(res.locked);
+    } catch {
+      // best-effort
+    }
+  }
+
+  async resetRound(): Promise<void> {
+    if (this.resetting()) return;
+    this.resetting.set(true);
+    try {
+      await trpc.quickFeedback.reset.mutate({ sessionCode: this.code });
+    } catch {
+      // best-effort
+    } finally {
+      this.resetting.set(false);
+    }
+  }
+
+  async newRound(): Promise<void> {
+    const type = this.result()?.type;
+    if (!type) return;
+    try {
+      const res = await trpc.quickFeedback.create.mutate({
+        type: type as 'MOOD' | 'ABCD' | 'YESNO',
+        theme: this.themePreset.theme(),
+        preset: this.themePreset.preset(),
+      });
+      await this.router.navigateByUrl('/', { skipLocationChange: true });
+      await this.router.navigate(['/feedback', res.sessionCode]);
+    } catch {
+      // best-effort
+    }
+  }
+
+  readonly orderedEntries = computed(() => {
+    const data = this.result();
+    if (!data) return [];
+    const orderMap: Record<string, string[]> = {
+      MOOD: MOOD_OPTIONS.map((o) => o.value),
+      YESNO: YESNO_OPTIONS.map((o) => o.value),
+      ABCD: ABCD_OPTIONS.map((o) => o.value),
+    };
+    const order = orderMap[data.type] ?? Object.keys(data.distribution);
+    return order.map((key) => ({ key, value: data.distribution[key] ?? 0 }));
+  });
+
+  /** Largest-Remainder auf 1 Dezimalstelle (×1000): Summe ist immer exakt 100,0 %. */
+  readonly percentages = computed<Record<string, string>>(() => {
+    const data = this.result();
+    if (!data || data.totalVotes === 0) {
+      return Object.fromEntries(Object.keys(data?.distribution ?? {}).map((k) => [k, '0']));
+    }
+    const entries = Object.entries(data.distribution);
+    const total = data.totalVotes;
+    const target = 1000;
+    const raw = entries.map(([key, count]) => {
+      const exact = (count / total) * target;
+      return { key, floor: Math.floor(exact), remainder: exact - Math.floor(exact) };
+    });
+    let assigned = raw.reduce((s, r) => s + r.floor, 0);
+    const sorted = [...raw].sort((a, b) => b.remainder - a.remainder);
+    for (const entry of sorted) {
+      if (assigned >= target) break;
+      entry.floor += 1;
+      assigned += 1;
+    }
+    return Object.fromEntries(raw.map((r) => {
+      const val = r.floor / 10;
+      return [r.key, val % 1 === 0 ? String(val) : val.toFixed(1).replace('.', ',')];
+    }));
+  });
 
   maxVotes(): number {
     const dist = this.result()?.distribution;
@@ -84,10 +176,8 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     return Math.max(1, ...Object.values(dist));
   }
 
-  percentage(count: number): number {
-    const total = this.result()?.totalVotes ?? 0;
-    if (total === 0) return 0;
-    return Math.round((count / total) * 100);
+  percentage(key: string): string {
+    return this.percentages()[key] ?? '0';
   }
 
   barWidth(count: number): number {
@@ -96,29 +186,10 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   displayLabel(key: string, type: string): string {
-    if (type === 'MOOD') {
-      switch (key) {
-        case 'POSITIVE': return '😊';
-        case 'NEUTRAL': return '😐';
-        case 'NEGATIVE': return '😟';
-      }
-    }
-    if (type === 'YESNO') {
-      switch (key) {
-        case 'YES': return '👍';
-        case 'NO': return '👎';
-        case 'MAYBE': return '🤷';
-      }
-    }
-    return key;
+    return feedbackDisplayLabel(key, type);
   }
 
   feedbackTitle(type: string): string {
-    switch (type) {
-      case 'MOOD': return 'Stimmungsbild';
-      case 'YESNO': return 'Ja / Nein / Vielleicht';
-      case 'ABCD': return 'ABCD-Voting';
-      default: return 'Feedback';
-    }
+    return feedbackTitle(type);
   }
 }

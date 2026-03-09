@@ -736,6 +736,7 @@ export const QuickFeedbackResultSchema = z.object({
   type: QuickFeedbackTypeEnum,
   theme: QuickFeedbackThemeEnum,
   preset: QuickFeedbackPresetEnum,
+  locked: z.boolean(),
   totalVotes: z.number(),
   distribution: z.record(z.string(), z.number()),
 });

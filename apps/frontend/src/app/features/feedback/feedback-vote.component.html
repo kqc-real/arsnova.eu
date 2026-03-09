@@ -1,6 +1,6 @@
 <div class="feedback-vote">
   @if (error(); as err) {
-    <mat-card appearance="outlined" class="feedback-vote__card">
+    <mat-card appearance="outlined" class="feedback-vote__card" role="alert">
       <mat-card-content>
         <mat-icon class="feedback-vote__status-icon">error_outline</mat-icon>
         <p>{{ err }}</p>
@@ -15,44 +15,55 @@
     </mat-card>
   } @else if (loading()) {
     <p class="feedback-vote__loading">Laden…</p>
-  } @else if (feedbackType() === 'MOOD') {
-    <div class="feedback-vote__options feedback-vote__options--mood">
-      @for (option of moodOptions; track option.value) {
-        <button
-          class="feedback-vote__mood-btn"
-          type="button"
-          (click)="vote(option.value)"
-          [attr.aria-label]="option.label"
-        >
-          <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
-        </button>
-      }
-    </div>
-  } @else if (feedbackType() === 'YESNO') {
-    <div class="feedback-vote__options feedback-vote__options--mood">
-      @for (option of yesnoOptions; track option.value) {
-        <button
-          class="feedback-vote__mood-btn"
-          type="button"
-          (click)="vote(option.value)"
-          [attr.aria-label]="option.label"
-        >
-          <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
-        </button>
-      }
-    </div>
-  } @else if (feedbackType() === 'ABCD') {
-    <div class="feedback-vote__options feedback-vote__options--abcd">
-      @for (option of abcdOptions; track option.value) {
-        <button
-          matButton="filled"
-          class="feedback-vote__abcd-btn"
-          type="button"
-          (click)="vote(option.value)"
-        >
-          {{ option.label }}
-        </button>
-      }
-    </div>
+  } @else if (locked()) {
+    <mat-card appearance="outlined" class="feedback-vote__card">
+      <mat-card-content class="feedback-vote__done">
+        <mat-icon class="feedback-vote__status-icon">lock</mat-icon>
+        <p class="feedback-vote__done-text">Abstimmung ist pausiert.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <h1 class="feedback-vote__heading">{{ headingText() }}</h1>
+    @if (feedbackType() === 'MOOD') {
+      <div class="feedback-vote__options feedback-vote__options--mood" role="group" aria-label="Stimmung wählen">
+        @for (option of moodOptions; track option.value) {
+          <button
+            class="feedback-vote__mood-btn"
+            type="button"
+            (click)="vote(option.value)"
+            [attr.aria-label]="option.label"
+          >
+            <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
+          </button>
+        }
+      </div>
+    } @else if (feedbackType() === 'YESNO') {
+      <div class="feedback-vote__options feedback-vote__options--mood" role="group" aria-label="Abstimmung wählen">
+        @for (option of yesnoOptions; track option.value) {
+          <button
+            class="feedback-vote__mood-btn"
+            type="button"
+            (click)="vote(option.value)"
+            [attr.aria-label]="option.label"
+          >
+            <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
+          </button>
+        }
+      </div>
+    } @else if (feedbackType() === 'ABCD') {
+      <div class="feedback-vote__options feedback-vote__options--abcd" role="group" aria-label="Antwort wählen">
+        @for (option of abcdOptions; track option.value) {
+          <button
+            mat-fab
+            class="feedback-vote__abcd-btn"
+            type="button"
+            (click)="vote(option.value)"
+            [attr.aria-label]="option.label"
+          >
+            {{ option.value }}
+          </button>
+        }
+      </div>
+    }
   }
 </div>

@@ -187,6 +187,9 @@
             <mat-card-title class="home-card__title">Blitz-Feedback</mat-card-title>
           </mat-card-header>
           <mat-card-content>
+            @if (feedbackError(); as fbErr) {
+              <p class="home-feedback-error" role="alert">{{ fbErr }}</p>
+            }
             <div class="home-feedback-row">
               <button class="home-feedback-btn" type="button" (click)="startQuickFeedback('MOOD')" aria-label="Stimmungsbild starten">
                 <span class="home-feedback-btn__icon">😊</span>
