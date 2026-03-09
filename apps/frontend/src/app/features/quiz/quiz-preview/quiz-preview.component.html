@@ -106,12 +106,9 @@
                   "
                 >
                   @if (questionTypeHasCorrectAnswers(question.type)) {
-                    <button
-                      mat-icon-button
-                      type="button"
+                    <span
                       class="quiz-preview-question__correct-toggle"
-                      (click)="toggleCorrectAnswer(i)"
-                      [attr.aria-label]="'Korrekt-Status für Antwort ' + (i + 1) + ' ändern'"
+                      aria-hidden="true"
                     >
                       <mat-icon class="quiz-preview-question__correct">
                         @if (question.type === 'SINGLE_CHOICE') {
@@ -120,7 +117,7 @@
                           {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
                         }
                       </mat-icon>
-                    </button>
+                    </span>
                   }
                   @if (inlineEditMode()) {
                     <input

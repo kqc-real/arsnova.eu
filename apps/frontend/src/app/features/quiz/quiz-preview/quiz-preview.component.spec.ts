@@ -167,6 +167,7 @@ describe('QuizPreviewComponent', () => {
     expect(firstAnswerRow?.firstElementChild?.classList.contains('quiz-preview-question__correct-toggle')).toBe(
       true,
     );
+    expect(firstAnswerRow?.firstElementChild?.tagName).toBe('SPAN');
   });
 
   it('schaltet mit Hotkey E die Inline-Bearbeitung um', () => {
