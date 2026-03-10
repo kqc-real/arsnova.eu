@@ -1,6 +1,6 @@
-<section class="session-host" [class.session-host--lobby]="session()?.status === 'LOBBY'">
+<section class="session-host" [class.session-host--lobby]="effectiveStatus() === 'LOBBY'">
   @if (session(); as s) {
-    @if (s.status === 'LOBBY') {
+    @if (effectiveStatus() === 'LOBBY') {
       <!-- Lobby: Code, QR (Story 2.1b), Beitritts-URL, Teilnehmerzahl. -->
       <div class="session-lobby">
         <p class="session-lobby__label" aria-hidden="true">Session-Code</p>
@@ -28,43 +28,123 @@
         @if (s.quizName) {
           <p class="session-lobby__quiz-name">{{ s.quizName }}</p>
         }
+        <div class="session-lobby__actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="controlPending()"
+            (click)="nextQuestion()"
+          >
+            Nächste Frage
+          </button>
+        </div>
       </div>
     } @else {
-      <!-- Keine Lobby: Steuerungs-Ansicht mit Meta und Aktionen -->
-      <mat-card appearance="outlined" class="session-card">
-        <mat-card-header class="session-card__header">
-          <mat-card-subtitle>Code</mat-card-subtitle>
-          <mat-card-title class="session-card__code">{{ s.code }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="session-card__meta l-stack l-stack--sm">
-            <p><span class="session-card__label">Status:</span> {{ s.status }}</p>
-            <p><span class="session-card__label">Typ:</span> {{ s.type }}</p>
+      <!-- Keine Lobby: Beamer-tauglich (Dozenten-Laptop = Projektion). l-page l-section. -->
+      <div class="session-host__run l-page l-section">
+        <!-- Minimal für Projektion: nur Code + Teilnehmerzahl; Rest in Dozenten-Info (eingeklappt) -->
+        <header class="session-host__meta">
+          <span class="session-host__meta-code" aria-label="Session-Code {{ s.code }}">{{ s.code }}</span>
+          <span class="session-host__meta-participants">{{ s.participantCount }} Teilnehmende</span>
+          <details class="session-host__meta-details">
+            <summary class="session-host__meta-details-summary">Dozenten-Info</summary>
+            <span class="session-host__meta-status">{{ effectiveStatus() ?? s.status }}</span>
             @if (s.quizName) {
-              <p><span class="session-card__label">Quiz:</span> {{ s.quizName }}</p>
+              <span class="session-host__meta-quiz">{{ s.quizName }}</span>
             }
-            <p><span class="session-card__label">Teilnehmende:</span> {{ s.participantCount }}</p>
+          </details>
+        </header>
+
+        @if (effectiveStatus() === 'FINISHED') {
+          <div class="session-host__finished">
+            <p class="session-host__finished-text" role="status">Session beendet.</p>
           </div>
-        </mat-card-content>
-      </mat-card>
-      <mat-card appearance="outlined" class="session-placeholder">
-        <mat-card-content>
-          <p class="session-placeholder__text">{{ wordCloudInfo() }}</p>
-          @if (currentQuestionLabel()) {
-            <p class="session-placeholder__question">{{ currentQuestionLabel() }}</p>
+        } @else {
+          <!-- Aktuelle Frage prominent -->
+          @if (currentQuestionForHost(); as q) {
+            <mat-card appearance="outlined" class="session-host__question-card">
+              <mat-card-header>
+                <mat-card-subtitle>Frage {{ q.order + 1 }}</mat-card-subtitle>
+                <mat-card-title class="session-host__question-title">
+                  <span class="session-host__question-title-inner" [innerHTML]="renderMarkdown(q.text)"></span>
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                @if (q.answers.length > 0) {
+                  <ul class="session-host__answers" role="list">
+                    @for (a of q.answers; track a.id) {
+                      <li
+                        class="session-host__answer"
+                        [class.session-host__answer--correct]="effectiveStatus() === 'RESULTS' && a.isCorrect"
+                      >
+                        <span class="session-host__answer-text session-host__rich-text" [innerHTML]="renderMarkdown(a.text)"></span>
+                        @if (effectiveStatus() === 'RESULTS' && a.isCorrect) {
+                          <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                        }
+                      </li>
+                    }
+                  </ul>
+                }
+              </mat-card-content>
+            </mat-card>
+          } @else {
+            <p class="session-host__no-question">Keine Frage aktiv. Mit „Nächste Frage“ starten.</p>
           }
-          <div class="session-host__actions">
-            <button mat-button type="button" (click)="exportFreetextSessionCsv()">
-              <mat-icon>download</mat-icon>
-              Freitext-Session als CSV exportieren
-            </button>
+
+          <!-- Steuerungs-Buttons (primär) -->
+          <div class="session-host__steering">
+            @if (effectiveStatus() === 'QUESTION_OPEN') {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="controlPending()"
+                (click)="revealAnswers()"
+              >
+                Antworten freigeben
+              </button>
+            }
+            @if (effectiveStatus() === 'ACTIVE') {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="controlPending()"
+                (click)="revealResults()"
+              >
+                Ergebnis zeigen
+              </button>
+            }
+            @if (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="controlPending()"
+                (click)="nextQuestion()"
+              >
+                Nächste Frage
+              </button>
+            }
           </div>
-          @if (exportStatus()) {
-            <p class="session-placeholder__text" role="status">{{ exportStatus() }}</p>
-          }
-        </mat-card-content>
-      </mat-card>
-      <app-word-cloud [responses]="freetextResponses()" />
+
+          <!-- Weitere Aktionen (eingeklappt) -->
+          <details class="session-host__extra">
+            <summary>Export &amp; Freitext</summary>
+            <div class="session-host__extra-content">
+              <button mat-button type="button" (click)="exportFreetextSessionCsv()">
+                <mat-icon>download</mat-icon>
+                Freitext-Session als CSV exportieren
+              </button>
+              @if (exportStatus()) {
+                <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
+              }
+              <app-word-cloud [responses]="freetextResponses()" />
+            </div>
+          </details>
+        }
+      </div>
     }
   } @else {
     <mat-card appearance="outlined" class="session-placeholder">

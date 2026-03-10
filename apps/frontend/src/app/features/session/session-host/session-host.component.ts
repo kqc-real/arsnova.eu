@@ -1,13 +1,20 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import QRCode from 'qrcode';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { trpc } from '../../../core/trpc.client';
-import type { SessionInfoDTO, SessionParticipantsPayload } from '@arsnova/shared-types';
+import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import type {
+  HostCurrentQuestionDTO,
+  SessionInfoDTO,
+  SessionParticipantsPayload,
+  SessionStatusUpdate,
+} from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 
 /**
@@ -34,15 +41,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   session = signal<SessionInfoDTO | null>(null);
   /** Lobby: Live-Teilnehmerliste (Story 2.2). */
   readonly participantsPayload = signal<SessionParticipantsPayload | null>(null);
+  /** Live-Status für Steuerung (Story 2.3). */
+  readonly statusUpdate = signal<SessionStatusUpdate | null>(null);
+  readonly controlPending = signal(false);
   private participantSub: Unsubscribable | null = null;
+  private statusSub: Unsubscribable | null = null;
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
+  private readonly sanitizer = inject(DomSanitizer);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
   readonly freetextResponses = signal<string[]>([]);
   readonly wordCloudInfo = signal('Warte auf Live-Freitextdaten …');
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly exportStatus = signal<string | null>(null);
+  /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
+  readonly currentQuestionForHost = signal<HostCurrentQuestionDTO | null>(null);
 
   /** Für Lobby: volle Beitritts-URL (präsentierbar, Story 2.1b QR-Code). */
   get joinUrl(): string {
@@ -66,8 +80,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     await this.generateQrCode();
     await this.refreshLiveFreetext();
+    await this.refreshCurrentQuestionForHost();
     this.pollTimer = setInterval(() => {
       void this.refreshLiveFreetext();
+      void this.refreshCurrentQuestionForHost();
     }, 2000);
 
     if (this.code.length === 6) {
@@ -78,12 +94,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           onError: () => {},
         },
       );
+      this.statusSub = trpc.session.onStatusChanged.subscribe(
+        { code: this.code.toUpperCase() },
+        {
+          onData: (data) => this.statusUpdate.set(data),
+          onError: () => {},
+        },
+      );
     }
   }
 
   ngOnDestroy(): void {
     this.participantSub?.unsubscribe();
     this.participantSub = null;
+    this.statusSub?.unsubscribe();
+    this.statusSub = null;
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
@@ -126,6 +151,69 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qrDataUrl.set(url);
     } catch {
       // best-effort
+    }
+  }
+
+  /** Effektiver Status (Subscription oder Initial getInfo). */
+  effectiveStatus(): SessionInfoDTO['status'] | null {
+    const su = this.statusUpdate();
+    const s = this.session();
+    return su?.status ?? s?.status ?? null;
+  }
+
+  effectiveCurrentQuestion(): number | null {
+    const su = this.statusUpdate();
+    return su?.currentQuestion ?? null;
+  }
+
+  /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
+  renderMarkdown(value: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+  }
+
+  async nextQuestion(): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    this.controlPending.set(true);
+    try {
+      const result = await trpc.session.nextQuestion.mutate({ code: this.code.toUpperCase() });
+      this.statusUpdate.set(result);
+      await this.refreshCurrentQuestionForHost();
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
+  async revealAnswers(): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    this.controlPending.set(true);
+    try {
+      const result = await trpc.session.revealAnswers.mutate({ code: this.code.toUpperCase() });
+      this.statusUpdate.set(result);
+      await this.refreshCurrentQuestionForHost();
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
+  async revealResults(): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    this.controlPending.set(true);
+    try {
+      const result = await trpc.session.revealResults.mutate({ code: this.code.toUpperCase() });
+      this.statusUpdate.set(result);
+      await this.refreshCurrentQuestionForHost();
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
+  private async refreshCurrentQuestionForHost(): Promise<void> {
+    if (!this.code || this.code.length !== 6) return;
+    try {
+      const q = await trpc.session.getCurrentQuestionForHost.query({ code: this.code.toUpperCase() });
+      this.currentQuestionForHost.set(q);
+    } catch {
+      this.currentQuestionForHost.set(null);
     }
   }
 

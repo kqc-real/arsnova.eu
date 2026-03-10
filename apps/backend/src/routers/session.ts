@@ -16,6 +16,8 @@ import {
   SessionInfoDTOSchema,
   SessionExportDTOSchema,
   SessionParticipantsPayloadSchema,
+  SessionStatusUpdateSchema,
+  HostCurrentQuestionDTOSchema,
   type SessionExportDTO,
   type QuestionExportEntry,
   type QuestionType,
@@ -176,6 +178,178 @@ export const sessionRouter = router({
         }
         await new Promise((r) => setTimeout(r, 2000));
       }
+    }),
+
+  /** Subscription: Status-Wechsel (Story 2.3). Pollt alle 2s und pusht bei Änderung. */
+  onStatusChanged: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .subscription(async function* ({ input }) {
+      const code = input.code.toUpperCase();
+      let lastJson = '';
+      while (true) {
+        const session = await prisma.session.findUnique({
+          where: { code },
+          select: { status: true, currentQuestion: true },
+        });
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        }
+        const payload = {
+          status: session.status,
+          currentQuestion: session.currentQuestion,
+        };
+        const json = JSON.stringify(payload);
+        if (json !== lastJson) {
+          lastJson = json;
+          yield payload;
+        }
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }),
+
+  /** Nächste Frage öffnen (Story 2.3). LOBBY/PAUSED/RESULTS → QUESTION_OPEN oder ACTIVE; bei Lesephase aus: direkt ACTIVE. */
+  nextQuestion: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        include: {
+          quiz: {
+            select: {
+              readingPhaseEnabled: true,
+              questions: { orderBy: { order: 'asc' }, select: { id: true } },
+            },
+          },
+        },
+      });
+      if (!session?.quiz) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session oder Quiz nicht gefunden.' });
+      }
+      const questionCount = session.quiz.questions.length;
+      if (questionCount === 0) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quiz hat keine Fragen.' });
+      }
+      const allowedFrom = ['LOBBY', 'PAUSED', 'RESULTS'];
+      if (!allowedFrom.includes(session.status)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Nächste Frage nur aus Status LOBBY, PAUSED oder RESULTS. Aktuell: ${session.status}.`,
+        });
+      }
+
+      const currentIdx = session.currentQuestion ?? -1;
+      const nextIdx = currentIdx + 1;
+
+      if (nextIdx >= questionCount) {
+        await prisma.session.update({
+          where: { id: session.id },
+          data: { status: 'FINISHED', currentQuestion: null },
+        });
+        return { status: 'FINISHED' as const, currentQuestion: null };
+      }
+
+      const readingPhase = session.quiz.readingPhaseEnabled;
+      const newStatus = readingPhase ? ('QUESTION_OPEN' as const) : ('ACTIVE' as const);
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { status: newStatus, currentQuestion: nextIdx },
+      });
+      return { status: newStatus, currentQuestion: nextIdx };
+    }),
+
+  /** Antwortoptionen freigeben – Lesephase beenden (Story 2.3). Nur bei QUESTION_OPEN. */
+  revealAnswers: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: { id: true, status: true, currentQuestion: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.status !== 'QUESTION_OPEN') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Antworten freigeben nur im Status QUESTION_OPEN (Lesephase).',
+        });
+      }
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { status: 'ACTIVE' },
+      });
+      return {
+        status: 'ACTIVE' as const,
+        currentQuestion: session.currentQuestion,
+      };
+    }),
+
+  /** Ergebnis anzeigen (Story 2.3). Nur bei ACTIVE. */
+  revealResults: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: { id: true, status: true, currentQuestion: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.status !== 'ACTIVE') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Ergebnis anzeigen nur im Status ACTIVE.',
+        });
+      }
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { status: 'RESULTS' },
+      });
+      return {
+        status: 'RESULTS' as const,
+        currentQuestion: session.currentQuestion,
+      };
+    }),
+
+  /** Aktuelle Frage für Host-Ansicht (Story 2.3): Text + Antwortoptionen inkl. isCorrect. */
+  getCurrentQuestionForHost: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(HostCurrentQuestionDTOSchema.nullable())
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        include: {
+          quiz: {
+            select: {
+              questions: {
+                orderBy: { order: 'asc' },
+                select: {
+                  id: true,
+                  order: true,
+                  text: true,
+                  type: true,
+                  answers: { select: { id: true, text: true, isCorrect: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+      if (!session?.quiz) return null;
+      const idx = session.currentQuestion;
+      if (idx === null || idx === undefined) return null;
+      const questions = session.quiz.questions;
+      const question = questions[idx] ?? null;
+      if (!question) return null;
+      return {
+        order: question.order,
+        text: question.text,
+        type: question.type as 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'FREETEXT' | 'RATING',
+        answers: question.answers.map((a) => ({ id: a.id, text: a.text, isCorrect: a.isCorrect })),
+      };
     }),
 
   /** Quiz-IDs mit laufender Session (Story 1.10: Löschsperre in Quiz-Liste). */

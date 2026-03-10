@@ -109,51 +109,170 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-// ---------------------------------------------------------------------------
-// Steuerungs-Ansicht (nicht Lobby): Freitext/Word-Cloud nur hier sinnvoll
-// ---------------------------------------------------------------------------
-.session-card {
-  margin-top: 1rem;
+.session-lobby__actions {
+  margin-top: 1.5rem;
 }
 
-.session-card__header {
+// ---------------------------------------------------------------------------
+// Steuerungs-Ansicht (nicht Lobby): Frage zentral, klare Hierarchie
+// ---------------------------------------------------------------------------
+.session-host__run {
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+}
+
+.session-host__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-host__meta-code {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--mat-sys-primary);
+  letter-spacing: 0.08em;
+}
+
+.session-host__meta-participants {
+  margin-right: auto;
+}
+
+.session-host__meta-details {
+  display: inline-block;
+  list-style: none;
+
+  &[open] .session-host__meta-details-summary {
+    margin-bottom: 0.25rem;
+  }
+}
+
+.session-host__meta-details-summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.85;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.session-host__meta-status {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  margin-right: 0.75rem;
+}
+
+.session-host__meta-quiz {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-host__finished {
+  margin: 2rem 0;
   text-align: center;
 }
 
-.session-card__code {
-  color: var(--mat-sys-primary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
-  font-weight: 700;
-  letter-spacing: 0.18em;
-}
-
-.session-card__meta {
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface);
-}
-
-.session-card__label {
-  font-weight: 600;
-}
-
-.session-placeholder__text {
-  margin: 0 0 1rem;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
-}
-
-.session-placeholder__question {
+.session-host__finished-text {
   margin: 0;
-  font: var(--mat-sys-title-small);
+  font: var(--mat-sys-headline-small);
+  color: var(--mat-sys-on-surface-variant);
 }
 
-.session-host__actions {
+.session-host__question-card {
+  margin: 0 0 1.5rem;
+}
+
+.session-host__question-title {
+  font: var(--mat-sys-headline-small);
+  line-height: 1.35;
+  margin: 0;
+
+  .session-host__question-title-inner {
+    display: block;
+  }
+}
+
+.session-host__answers {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.session-host__answer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--mat-sys-corner-extra-small, 4px);
+  background: var(--mat-sys-surface-container-low);
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface);
+  border: 1px solid transparent;
+}
+
+.session-host__answer--correct {
+  background: var(--app-color-success-bg);
+  color: var(--app-color-success-fg);
+  border-color: var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+}
+
+.session-host__answer-text {
+  flex: 1;
+}
+
+.session-host__answer-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  opacity: 0.9;
+}
+
+.session-host__no-question {
+  margin: 1.5rem 0;
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-host__steering {
+  margin: 1.5rem 0;
+}
+
+.session-host__extra {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-host__extra summary {
+  cursor: pointer;
+  font-weight: 500;
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.session-host__extra-content {
   margin-top: 0.75rem;
 }
 
-.session-host__meta-text {
-  margin: 0;
+.session-host__export-status {
+  margin: 0.5rem 0 0;
   font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
 }

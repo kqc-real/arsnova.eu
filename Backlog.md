@@ -445,17 +445,18 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Ein automatisierter Test verifiziert, dass das ausgehende JSON im Status `ACTIVE` kein `isCorrect` enthält.
     - Ein separater Test bestätigt, dass `isCorrect` im Status `RESULTS` korrekt mitgesendet wird.
     - Code-Review-Checkliste dokumentiert die Stripping-Regel.
-- **Story 2.5 (Beamer-Ansicht / Presenter-Mode):** 🔴 Als Dozent möchte ich eine dedizierte Beamer-Ansicht haben, die für die Projektion im Hörsaal optimiert ist.
+- **Story 2.5 (Beamer-Ansicht = Host-Ansicht):** 🔴 Als Dozent sehe ich genau das auf dem Beamer, was auf meinem Laptop angezeigt wird (gespiegelt). Es gibt keinen zweiten Bildschirmausgang – die **Host-Ansicht ist die Beamer-Ansicht**.
+  - **Kontext:** Sobald der Dozent die Live-Session startet, spielt sich alles in diesem einen View ab (/session/:code/host). Der Beamer darf nichts verraten, was der Dozent nicht freigegeben hat (z. B. korrekte Antworten erst nach Klick auf „Ergebnis zeigen“).
   - **Akzeptanzkriterien:**
-    - Eigene Angular-Route `/session/:code/present` — erreichbar über einen „Beamer öffnen"-Button in der Dozenten-Steuerung.
-    - Die Ansicht ist auf Vollbild (`lg`+) optimiert: große Schrift (≥ 24px Basis), hoher Kontrast, kein Header/Footer.
-    - **Lobby-Phase:** Zeigt Session-Code, QR-Code (Story 2.1b) und Live-Teilnehmerliste mit Animation bei Neuzugang.
-    - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Zeigt nur den Fragenstamm (großformatig, zentriert). Antwortoptionen, Countdown und Abstimmungsbalken sind ausgeblendet. Ein dezenter Hinweis „Warte auf Freigabe…" wird angezeigt.
-    - **Frage-Phase (`ACTIVE`):** Zeigt Fragenstamm, Antwortoptionen (ohne `isCorrect`-Markierung), Countdown (Kreisdiagramm, Story 3.5) und Live-Abstimmungsbalken (Anzahl eingegangener Votes).
-    - **Ergebnis-Phase (`RESULTS`):** Zeigt Ergebnis-Visualisierung (Story 4.4) und optional Leaderboard-Zwischenstand (Top 5).
-    - **End-Phase (`FINISHED`):** Zeigt finales Leaderboard (Story 4.1) und Belohnungseffekte (Story 5.4).
-    - Die Ansicht reagiert auf alle Session-Statuswechsel via tRPC-Subscription (kein manuelles Refresh).
-    - Dozent kann per Tastendruck (`F11` oder Button) in den Browser-Vollbildmodus wechseln.
+    - Die Host-Ansicht ist die einzige Projektions-Ansicht; keine separate „Beamer-Route“ erforderlich (Route `/session/:code/present` optional, z. B. gleicher Inhalt für Vollbild-Tab).
+    - Beamer-tauglich: große Schrift wo nötig (≥ 24px Basis für Fragentext), hoher Kontrast, Fokus auf Inhalt (Lobby: Code, QR, Teilnehmer; Frage: Stamm + Optionen; Steuerung: ein klarer Button).
+    - **Nichts verraten:** Korrekte Antworten (grün/Häkchen) werden in der Host-Ansicht erst im Status `RESULTS` angezeigt (bereits umgesetzt).
+    - **Lobby-Phase:** Session-Code, QR-Code (2.1b), Live-Teilnehmerliste (2.2).
+    - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Nur Fragenstamm (großformatig); Antwortoptionen ausgeblendet; Hinweis „Warte auf Freigabe…“ (Story 2.6).
+    - **Frage-Phase (`ACTIVE`):** Fragenstamm, Antwortoptionen ohne Lösungsmarkierung, Countdown (Story 3.5), Live-Abstimmungsbalken.
+    - **Ergebnis-Phase (`RESULTS`):** Ergebnis-Visualisierung (Story 4.4), optional Leaderboard-Zwischenstand.
+    - **End-Phase (`FINISHED`):** finales Leaderboard (Story 4.1), Belohnungseffekte (Story 5.4).
+    - Statuswechsel via tRPC-Subscription; Dozent kann F11 für Browser-Vollbild nutzen.
 - **Story 2.6 (Zwei-Phasen-Frageanzeige / Lesephase):** 🟡 Als Dozent möchte ich, dass beim Freigeben einer Frage zunächst nur der Fragenstamm angezeigt wird (Lesephase), damit die Studierenden die Frage in Ruhe und vollständig lesen können, bevor die Antwortoptionen erscheinen und der Countdown beginnt.
   - **Didaktische Begründung:** In klassischen Quiz-Apps erscheinen Frage und Antworten gleichzeitig. Studierende springen dann oft direkt zu den Antworten, ohne die Frage gründlich zu lesen — insbesondere bei komplexen Fragen mit Formeln oder längeren Texten. Die Zwei-Phasen-Anzeige fördert **kognitives Processing** und reduziert impulsives Raten.
   - **Akzeptanzkriterien:**

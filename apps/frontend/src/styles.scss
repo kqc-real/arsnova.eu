@@ -401,3 +401,41 @@ html {
   padding-left: 0.7rem;
   border-left: 3px solid var(--mat-sys-outline-variant);
 }
+
+/* Session-Host: Markdown/KaTeX in Frage und Antworten (gleiche Typo wie Quiz-Vorschau) */
+.session-host__question-title-inner p,
+.session-host__rich-text p {
+  margin: 0.45rem 0;
+}
+
+.session-host__question-title-inner h1,
+.session-host__question-title-inner h2,
+.session-host__question-title-inner h3,
+.session-host__question-title-inner h4,
+.session-host__rich-text h1,
+.session-host__rich-text h2,
+.session-host__rich-text h3,
+.session-host__rich-text h4 {
+  margin: 0.9rem 0 0.5rem;
+  line-height: 1.35;
+}
+
+.session-host__question-title-inner ul,
+.session-host__question-title-inner ol,
+.session-host__rich-text ul,
+.session-host__rich-text ol {
+  margin: 0.55rem 0 0.6rem;
+  padding-left: 1.35rem;
+}
+
+.session-host__question-title-inner li,
+.session-host__rich-text li {
+  margin: 0.2rem 0;
+}
+
+.session-host__question-title-inner blockquote,
+.session-host__rich-text blockquote {
+  margin: 0.7rem 0;
+  padding-left: 0.7rem;
+  border-left: 3px solid var(--mat-sys-outline-variant);
+}

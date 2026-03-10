@@ -184,6 +184,26 @@ export const GetSessionInfoInputSchema = z.object({
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
 
+/** Output: Status-Update nach nextQuestion / revealAnswers / revealResults (Story 2.3). */
+export const SessionStatusUpdateSchema = z.object({
+  status: SessionStatusEnum,
+  currentQuestion: z.number().int().min(0).nullable(),
+});
+export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
+
+/** DTO: Aktuelle Frage für Host-Ansicht (Story 2.3) – Text + Antwortoptionen inkl. isCorrect. */
+export const HostCurrentQuestionDTOSchema = z.object({
+  order: z.number().int().min(0),
+  text: z.string(),
+  type: QuestionTypeEnum,
+  answers: z.array(z.object({
+    id: z.uuid(),
+    text: z.string(),
+    isCorrect: z.boolean(),
+  })),
+});
+export type HostCurrentQuestionDTO = z.infer<typeof HostCurrentQuestionDTOSchema>;
+
 /** Input: Einer Session beitreten (Story 3.1) */
 export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
