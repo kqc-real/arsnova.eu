@@ -194,6 +194,12 @@
   margin: 0 0 1.5rem;
 }
 
+.session-host__reading-hint {
+  margin: 1rem 0 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .session-host__question-title {
   font: var(--mat-sys-headline-small);
   line-height: 1.35;
@@ -208,6 +214,21 @@
   margin: 1rem 0 0;
   padding: 0;
   list-style: none;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: session-host-answers-in 200ms ease-out;
+  }
+}
+
+@keyframes session-host-answers-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .session-host__answer {

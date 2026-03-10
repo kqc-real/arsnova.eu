@@ -71,7 +71,10 @@
                 </mat-card-title>
               </mat-card-header>
               <mat-card-content>
-                @if (q.answers.length > 0) {
+                @if (effectiveStatus() === 'QUESTION_OPEN') {
+                  <!-- Lesephase (Story 2.6): nur Fragenstamm, keine Antwortoptionen -->
+                  <p class="session-host__reading-hint" role="status" aria-live="polite">Gleich geht's los…</p>
+                } @else if (q.answers.length > 0) {
                   <ul class="session-host__answers" role="list">
                     @for (a of q.answers; track a.id) {
                       <li
