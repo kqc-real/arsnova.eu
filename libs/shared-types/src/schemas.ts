@@ -220,11 +220,14 @@ export type SubmitVoteOutput = z.infer<typeof SubmitVoteOutputSchema>;
 /**
  * DTO: Antwort-Option OHNE isCorrect (Story 2.4 / Security).
  * WIRD an Studenten gesendet – enthält bewusst kein `isCorrect`!
+ * .strict() sorgt dafür, dass Payloads mit isCorrect die Validierung fehlschlagen (nicht nur strippen).
  */
-export const AnswerOptionStudentDTOSchema = z.object({
-  id: z.uuid(),
-  text: z.string(),
-});
+export const AnswerOptionStudentDTOSchema = z
+  .object({
+    id: z.uuid(),
+    text: z.string(),
+  })
+  .strict();
 export type AnswerOptionStudentDTO = z.infer<typeof AnswerOptionStudentDTOSchema>;
 
 /**
