@@ -10,6 +10,7 @@ const { prismaMock, checkVoteRateMock } = vi.hoisted(() => ({
     },
     vote: {
       create: vi.fn(),
+      findUnique: vi.fn(),
     },
   },
   checkVoteRateMock: vi.fn(),
@@ -39,6 +40,7 @@ describe('vote.submit', () => {
       sessionId: 'session-1',
       session: { status: 'ACTIVE', quizId: 'quiz-1' },
     });
+    prismaMock.vote.findUnique.mockResolvedValue(null);
     prismaMock.vote.create.mockResolvedValue({ id: '11111111-1111-4111-8111-111111111119' });
   });
 

@@ -102,7 +102,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!q || !this.isActive()) return false;
     const pc = 'participantCount' in q ? (q as { participantCount?: number }).participantCount : undefined;
     const tv = 'totalVotes' in q ? (q as { totalVotes?: number }).totalVotes : undefined;
-    if (pc == null || tv == null || pc <= 0) return false;
+    if (pc === null || pc === undefined || tv === null || tv === undefined || pc <= 0) return false;
     return tv >= pc;
   });
 

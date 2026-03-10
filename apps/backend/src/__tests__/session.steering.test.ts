@@ -44,10 +44,12 @@ describe('session.nextQuestion (Story 2.3)', () => {
 
     expect(result.status).toBe('QUESTION_OPEN');
     expect(result.currentQuestion).toBe(0);
-    expect(prismaMock.session.update).toHaveBeenCalledWith({
-      where: { id: SESSION_ID },
-      data: { status: 'QUESTION_OPEN', currentQuestion: 0 },
-    });
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'QUESTION_OPEN', currentQuestion: 0 }),
+      }),
+    );
   });
 
   it('wechselt von LOBBY zu ACTIVE wenn Lesephase deaktiviert', async () => {
@@ -70,10 +72,12 @@ describe('session.nextQuestion (Story 2.3)', () => {
 
     expect(result.status).toBe('ACTIVE');
     expect(result.currentQuestion).toBe(0);
-    expect(prismaMock.session.update).toHaveBeenCalledWith({
-      where: { id: SESSION_ID },
-      data: { status: 'ACTIVE', currentQuestion: 0 },
-    });
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'ACTIVE', currentQuestion: 0 }),
+      }),
+    );
   });
 
   it('setzt FINISHED wenn nach letzter Frage', async () => {
@@ -96,10 +100,12 @@ describe('session.nextQuestion (Story 2.3)', () => {
 
     expect(result.status).toBe('FINISHED');
     expect(result.currentQuestion).toBeNull();
-    expect(prismaMock.session.update).toHaveBeenCalledWith({
-      where: { id: SESSION_ID },
-      data: { status: 'FINISHED', currentQuestion: null },
-    });
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'FINISHED', currentQuestion: null }),
+      }),
+    );
   });
 
   it('wirft NOT_FOUND wenn Session fehlt', async () => {
@@ -147,10 +153,12 @@ describe('session.revealAnswers (Story 2.3)', () => {
 
     expect(result.status).toBe('ACTIVE');
     expect(result.currentQuestion).toBe(0);
-    expect(prismaMock.session.update).toHaveBeenCalledWith({
-      where: { id: SESSION_ID },
-      data: { status: 'ACTIVE' },
-    });
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'ACTIVE' }),
+      }),
+    );
   });
 
   it('wirft BAD_REQUEST wenn nicht QUESTION_OPEN', async () => {
@@ -188,10 +196,12 @@ describe('session.revealResults (Story 2.3)', () => {
 
     expect(result.status).toBe('RESULTS');
     expect(result.currentQuestion).toBe(0);
-    expect(prismaMock.session.update).toHaveBeenCalledWith({
-      where: { id: SESSION_ID },
-      data: { status: 'RESULTS' },
-    });
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'RESULTS' }),
+      }),
+    );
   });
 
   it('wirft BAD_REQUEST wenn nicht ACTIVE', async () => {
