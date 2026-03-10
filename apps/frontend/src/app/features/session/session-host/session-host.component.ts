@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import QRCode from 'qrcode';
 import { trpc } from '../../../core/trpc.client';
 import type { SessionInfoDTO } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
@@ -39,6 +40,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly exportStatus = signal<string | null>(null);
 
+  /** Für Lobby: volle Beitritts-URL (präsentierbar, Story 2.1b QR-Code). */
+  get joinUrl(): string {
+    const origin = typeof this.document?.defaultView?.location?.origin === 'string'
+      ? this.document.defaultView.location.origin
+      : '';
+    return origin ? `${origin}/join/${this.code}` : `/join/${this.code}`;
+  }
+
+  /** QR-Code als Data-URL für joinUrl (Beamer-tauglich, Story 2.1b). */
+  readonly qrDataUrl = signal<string>('');
+
   async ngOnInit(): Promise<void> {
     if (this.code.length !== 6) return;
     try {
@@ -48,6 +60,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.session.set(null);
     }
 
+    await this.generateQrCode();
     await this.refreshLiveFreetext();
     this.pollTimer = setInterval(() => {
       void this.refreshLiveFreetext();
@@ -88,6 +101,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.exportStatus.set('Session-CSV exportiert.');
     } catch {
       this.exportStatus.set('Session-CSV konnte nicht exportiert werden.');
+    }
+  }
+
+  private async generateQrCode(): Promise<void> {
+    try {
+      const url = await QRCode.toDataURL(this.joinUrl, { width: 320, margin: 2 });
+      this.qrDataUrl.set(url);
+    } catch {
+      // best-effort
     }
   }
 

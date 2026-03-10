@@ -1,5 +1,6 @@
 import { router } from '../trpc';
 import { healthRouter } from './health';
+import { quizRouter } from './quiz';
 import { sessionRouter } from './session';
 import { voteRouter } from './vote';
 import { quickFeedbackRouter } from './quickFeedback';
@@ -11,6 +12,7 @@ import { quickFeedbackRouter } from './quickFeedback';
  */
 export const appRouter = router({
   health: healthRouter,
+  quiz: quizRouter,
   session: sessionRouter,
   vote: voteRouter,
   quickFeedback: quickFeedbackRouter,

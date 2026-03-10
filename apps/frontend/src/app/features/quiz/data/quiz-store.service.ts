@@ -16,10 +16,12 @@ import {
   DifficultyEnum,
   QuizImportSchema,
   QuizExportSchema,
+  QuizUploadInputSchema,
   QUIZ_EXPORT_VERSION,
   type Difficulty,
   type NicknameTheme,
   type QuizExport,
+  type QuizUploadInput,
   type TeamAssignment,
 } from '@arsnova/shared-types';
 import { getYjsWsUrl } from '../../../core/ws-urls';
@@ -501,6 +503,58 @@ export class QuizStoreService {
     const parsed = QuizExportSchema.safeParse(exportPayload);
     if (!parsed.success) {
       const message = parsed.error.issues[0]?.message ?? 'Quiz konnte nicht exportiert werden.';
+      throw new Error(message);
+    }
+    return parsed.data;
+  }
+
+  /**
+   * Erzeugt das Upload-Payload für quiz.upload (Story 2.1a – Live schalten).
+   * Validiert gegen QuizUploadInputSchema; wirft bei ungültigen Daten.
+   */
+  getUploadPayload(quizId: string): QuizUploadInput {
+    const document = this.getQuizById(quizId);
+    if (!document) {
+      throw new Error('Quiz nicht gefunden.');
+    }
+    if (document.questions.length === 0) {
+      throw new Error('Quiz muss mindestens eine Frage enthalten.');
+    }
+
+    const payload: QuizUploadInput = {
+      name: document.name,
+      ...(document.description ? { description: document.description } : {}),
+      showLeaderboard: document.settings.showLeaderboard,
+      allowCustomNicknames: document.settings.allowCustomNicknames,
+      defaultTimer: document.settings.defaultTimer,
+      enableSoundEffects: document.settings.enableSoundEffects,
+      enableRewardEffects: document.settings.enableRewardEffects,
+      enableMotivationMessages: document.settings.enableMotivationMessages,
+      enableEmojiReactions: document.settings.enableEmojiReactions,
+      anonymousMode: document.settings.anonymousMode,
+      teamMode: document.settings.teamMode,
+      teamCount: document.settings.teamCount ?? undefined,
+      teamAssignment: document.settings.teamAssignment,
+      backgroundMusic: document.settings.backgroundMusic ?? undefined,
+      nicknameTheme: document.settings.nicknameTheme,
+      bonusTokenCount: document.settings.bonusTokenCount ?? undefined,
+      readingPhaseEnabled: document.settings.readingPhaseEnabled,
+      questions: document.questions.map((q) => ({
+        text: q.text,
+        type: q.type,
+        difficulty: q.difficulty,
+        order: q.order,
+        answers: q.answers.map((a) => ({ text: a.text, isCorrect: a.isCorrect })),
+        ratingMin: q.ratingMin ?? undefined,
+        ratingMax: q.ratingMax ?? undefined,
+        ratingLabelMin: q.ratingLabelMin ?? undefined,
+        ratingLabelMax: q.ratingLabelMax ?? undefined,
+      })),
+    };
+
+    const parsed = QuizUploadInputSchema.safeParse(payload);
+    if (!parsed.success) {
+      const message = parsed.error.issues[0]?.message ?? 'Ungültige Quiz-Daten für Live-Start.';
       throw new Error(message);
     }
     return parsed.data;

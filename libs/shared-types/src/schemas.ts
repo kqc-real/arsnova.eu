@@ -150,6 +150,12 @@ export const QuizUploadInputSchema = z.object({
 });
 export type QuizUploadInput = z.infer<typeof QuizUploadInputSchema>;
 
+/** Output: Antwort auf quiz.upload (Story 2.1a). */
+export const QuizUploadOutputSchema = z.object({
+  quizId: z.string().uuid(),
+});
+export type QuizUploadOutput = z.infer<typeof QuizUploadOutputSchema>;
+
 // ---------------------------------------------------------------------------
 // Session-Schemas (Story 2.1–2.3)
 // ---------------------------------------------------------------------------

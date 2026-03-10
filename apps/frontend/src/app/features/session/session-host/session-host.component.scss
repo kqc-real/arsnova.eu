@@ -2,6 +2,96 @@
   width: 100%;
 }
 
+// ---------------------------------------------------------------------------
+// Lobby: präsentationsfähig (Beamer/Shared Screen)
+// ---------------------------------------------------------------------------
+.session-host--lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem 1.5rem;
+}
+
+.session-lobby {
+  text-align: center;
+  width: 100%;
+  max-width: 36rem;
+}
+
+.session-lobby__label {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.session-lobby__code {
+  margin: 0 0 1.5rem;
+  color: var(--mat-sys-primary);
+  font-family: ui-monospace, 'SF Mono', 'Consolas', monospace;
+  font-size: clamp(2.5rem, 12vw, 5rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  line-height: 1.1;
+}
+
+.session-lobby__qr {
+  margin: 0 0 1.5rem;
+
+  img {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.session-lobby__join-hint {
+  margin: 0 0 0.25rem;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-lobby__join-url {
+  margin: 0 0 1.5rem;
+  font: var(--mat-sys-title-medium);
+  word-break: break-all;
+
+  a {
+    color: var(--mat-sys-primary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.session-lobby__participants {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-headline-small);
+  color: var(--mat-sys-on-surface);
+}
+
+.session-lobby__participants-count {
+  display: inline-block;
+  min-width: 2ch;
+  font-weight: 700;
+  color: var(--mat-sys-primary);
+}
+
+.session-lobby__quiz-name {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// ---------------------------------------------------------------------------
+// Steuerungs-Ansicht (nicht Lobby): Freitext/Word-Cloud nur hier sinnvoll
+// ---------------------------------------------------------------------------
 .session-card {
   margin-top: 1rem;
 }
@@ -27,13 +117,6 @@
   font-weight: 600;
 }
 
-.session-card__hint {
-  margin: 1.5rem 0 0;
-  text-align: center;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
-}
-
 .session-placeholder__text {
   margin: 0 0 1rem;
   color: var(--mat-sys-on-surface-variant);
@@ -47,4 +130,10 @@
 
 .session-host__actions {
   margin-top: 0.75rem;
+}
+
+.session-host__meta-text {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
 }

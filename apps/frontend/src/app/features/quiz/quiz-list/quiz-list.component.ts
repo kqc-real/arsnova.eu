@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { DOCUMENT } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -42,12 +42,15 @@ import { buildKiQuizSystemPrompt } from '../../../shared/ki-quiz-prompt';
 export class QuizListComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
   private readonly quizStore = inject(QuizStoreService);
+  private readonly router = inject(Router);
   readonly quizzes = this.quizStore.quizzes;
   readonly actionInfo = signal<string | null>(null);
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizIds = signal<Set<string>>(new Set());
   readonly showAiImport = signal(false);
   readonly aiJsonInput = signal('');
+  /** Wird true, während quiz.upload + session.create laufen (Story 2.1a). */
+  readonly liveStartPending = signal(false);
 
   async ngOnInit(): Promise<void> {
     try {
@@ -174,6 +177,37 @@ export class QuizListComponent implements OnInit {
 
   isQuizLive(quizId: string): boolean {
     return this.activeLiveQuizIds().has(quizId);
+  }
+
+  /**
+   * Quiz live schalten (Story 2.1a): Upload + Session erstellen, dann zur Host-Ansicht.
+   */
+  async startLiveSession(quizId: string): Promise<void> {
+    this.actionError.set(null);
+    this.actionInfo.set(null);
+    this.liveStartPending.set(true);
+    try {
+      const payload = this.quizStore.getUploadPayload(quizId);
+      const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
+      const result = await trpc.session.create.mutate({
+        quizId: uploadedQuizId,
+        type: 'QUIZ',
+      });
+      this.actionInfo.set(`Session ${result.code} gestartet.`);
+      await this.router.navigate(['/session', result.code]);
+    } catch (error) {
+      const msg =
+        error && typeof error === 'object' && 'message' in error
+          ? String((error as { message: string }).message)
+          : 'Live-Start fehlgeschlagen.';
+      if (msg.includes('TOO_MANY_REQUESTS') || msg.includes('Sessions pro Stunde')) {
+        this.actionError.set('Zu viele Sessions – bitte später erneut versuchen.');
+      } else {
+        this.actionError.set(msg);
+      }
+    } finally {
+      this.liveStartPending.set(false);
+    }
   }
 
   private buildExportFilename(quizName: string): string {

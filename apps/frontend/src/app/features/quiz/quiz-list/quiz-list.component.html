@@ -114,6 +114,16 @@
                 <mat-icon>more_vert</mat-icon>
               </button>
               <mat-menu #quizMenu="matMenu">
+                <button
+                  mat-menu-item
+                  type="button"
+                  [disabled]="quiz.questionCount === 0 || liveStartPending()"
+                  [matTooltip]="quiz.questionCount === 0 ? 'Mindestens eine Frage erforderlich.' : null"
+                  (click)="startLiveSession(quiz.id)"
+                >
+                  <mat-icon>play_circle</mat-icon>
+                  Live schalten
+                </button>
                 <a mat-menu-item [routerLink]="[quiz.id, 'preview']">
                   <mat-icon>visibility</mat-icon>
                   Vorschau
