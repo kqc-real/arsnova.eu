@@ -142,6 +142,7 @@ describe('session.revealAnswers (Story 2.3)', () => {
       id: SESSION_ID,
       status: 'QUESTION_OPEN',
       currentQuestion: 0,
+      currentRound: 1,
     });
     prismaMock.session.update.mockResolvedValue({
       id: SESSION_ID,
@@ -166,6 +167,7 @@ describe('session.revealAnswers (Story 2.3)', () => {
       id: SESSION_ID,
       status: 'ACTIVE',
       currentQuestion: 0,
+      currentRound: 1,
     });
 
     await expect(caller.revealAnswers({ code: CODE })).rejects.toMatchObject({
@@ -185,6 +187,7 @@ describe('session.revealResults (Story 2.3)', () => {
       id: SESSION_ID,
       status: 'ACTIVE',
       currentQuestion: 0,
+      currentRound: 1,
     });
     prismaMock.session.update.mockResolvedValue({
       id: SESSION_ID,
@@ -209,6 +212,7 @@ describe('session.revealResults (Story 2.3)', () => {
       id: SESSION_ID,
       status: 'RESULTS',
       currentQuestion: 0,
+      currentRound: 1,
     });
 
     await expect(caller.revealResults({ code: CODE })).rejects.toMatchObject({

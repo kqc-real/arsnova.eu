@@ -1,4 +1,5 @@
 <div class="feedback-vote">
+  <p class="feedback-vote__session-code" aria-label="Session-Code {{ code }}">{{ code }}</p>
   @if (error(); as err) {
     <mat-card appearance="outlined" class="feedback-vote__card" role="alert">
       <mat-card-content>
@@ -15,6 +16,15 @@
     </mat-card>
   } @else if (loading()) {
     <p class="feedback-vote__loading">Laden…</p>
+  } @else if (discussion()) {
+    <div class="feedback-vote__discussion" role="status" aria-live="polite">
+      <div class="feedback-vote__discussion-ring">
+        <mat-icon class="feedback-vote__discussion-icon">groups</mat-icon>
+      </div>
+      <p class="feedback-vote__discussion-text">Diskutiert mit eurem Nachbarn!</p>
+      <p class="feedback-vote__discussion-hint">Hat dein Nachbar die gleiche Meinung? Überzeugt euch gegenseitig.</p>
+      <p class="feedback-vote__discussion-next">Zweite Abstimmung folgt gleich…</p>
+    </div>
   } @else if (locked()) {
     <mat-card appearance="outlined" class="feedback-vote__card">
       <mat-card-content class="feedback-vote__done">
@@ -23,7 +33,17 @@
       </mat-card-content>
     </mat-card>
   } @else {
-    <h1 class="feedback-vote__heading">{{ headingText() }}</h1>
+    <h1 class="feedback-vote__heading">
+      {{ headingText() }}
+      @if (currentRound() === 2) {
+        <span class="feedback-vote__round-badge">2. Runde</span>
+      }
+    </h1>
+    @if (currentRound() === 2 && !voted()) {
+      <p class="feedback-vote__round2-hint" role="status" aria-live="polite">
+        Hat die Diskussion deine Meinung geändert?
+      </p>
+    }
     @if (feedbackType() === 'MOOD') {
       <div class="feedback-vote__options feedback-vote__options--mood" role="group" aria-label="Stimmung wählen">
         @for (option of moodOptions; track option.value) {

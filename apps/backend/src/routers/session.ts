@@ -27,6 +27,9 @@ import {
   type OptionDistributionEntry,
   type FreetextAggregateEntry,
   type BonusTokenEntryDTO,
+  type RoundComparisonDTO,
+  type RoundDistributionEntry,
+  type VoterMigrationEntry,
   UpdateSessionPresetInputSchema,
 } from '@arsnova/shared-types';
 import { publicProcedure, router, getClientIp } from '../trpc';
@@ -79,6 +82,123 @@ async function ensureUniqueSessionCode(): Promise<string> {
     if (!existing) return code;
   }
   throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Konnte keinen freien Session-Code erzeugen.' });
+}
+
+async function buildRoundComparison(
+  sessionId: string,
+  questionId: string,
+  answers: Array<{ id: string; text: string; isCorrect: boolean }>,
+): Promise<RoundComparisonDTO> {
+  const correctIds = new Set(answers.filter((a) => a.isCorrect).map((a) => a.id));
+
+  type VoteWithAnswers = { participantId: string; selectedAnswers: { answerOptionId: string }[] };
+
+  const buildDistribution = async (round: number): Promise<{ total: number; dist: RoundDistributionEntry[]; correctCount: number; votes: VoteWithAnswers[] }> => {
+    const votes = await prisma.vote.findMany({
+      where: { sessionId, questionId, round },
+      include: { selectedAnswers: true },
+    });
+    const total = votes.length;
+    const counts = new Map<string, number>();
+    for (const v of votes) {
+      for (const sa of v.selectedAnswers) {
+        counts.set(sa.answerOptionId, (counts.get(sa.answerOptionId) ?? 0) + 1);
+      }
+    }
+    const dist: RoundDistributionEntry[] = answers.map((a) => ({
+      id: a.id,
+      text: a.text,
+      isCorrect: a.isCorrect,
+      voteCount: counts.get(a.id) ?? 0,
+      votePercentage: total > 0 ? Math.round(((counts.get(a.id) ?? 0) / total) * 100) : 0,
+    }));
+    const correctCount = correctIds.size > 0
+      ? votes.filter((v) => {
+          const selected = new Set(v.selectedAnswers.map((sa) => sa.answerOptionId));
+          if (selected.size !== correctIds.size) return false;
+          for (const id of correctIds) { if (!selected.has(id)) return false; }
+          return true;
+        }).length
+      : 0;
+    return { total, dist, correctCount, votes };
+  };
+
+  const r1 = await buildDistribution(1);
+  const r2 = await buildDistribution(2);
+
+  const isCorrectVote = (v: VoteWithAnswers): boolean => {
+    if (correctIds.size === 0) return false;
+    const sel = new Set(v.selectedAnswers.map((sa) => sa.answerOptionId));
+    if (sel.size !== correctIds.size) return false;
+    for (const id of correctIds) { if (!sel.has(id)) return false; }
+    return true;
+  };
+
+  const answerKey = (v: VoteWithAnswers): string =>
+    v.selectedAnswers.map((sa) => sa.answerOptionId).sort().join(',');
+
+  const r1ByParticipant = new Map(r1.votes.map((v) => [v.participantId, v]));
+  const r2ByParticipant = new Map(r2.votes.map((v) => [v.participantId, v]));
+
+  const answerTextById = new Map(answers.map((a) => [a.id, a.text]));
+
+  const primaryAnswer = (v: VoteWithAnswers): string =>
+    v.selectedAnswers.length > 0 ? v.selectedAnswers[0]!.answerOptionId : '';
+
+  let bothRoundsCount = 0;
+  let changedCount = 0;
+  let wrongToCorrectCount = 0;
+  let correctToWrongCount = 0;
+
+  const migrationCounts = new Map<string, number>();
+
+  for (const [pid, v1] of r1ByParticipant) {
+    const v2 = r2ByParticipant.get(pid);
+    if (!v2) continue;
+    bothRoundsCount++;
+    if (answerKey(v1) !== answerKey(v2)) {
+      changedCount++;
+      const wasCorrect = isCorrectVote(v1);
+      const nowCorrect = isCorrectVote(v2);
+      if (!wasCorrect && nowCorrect) wrongToCorrectCount++;
+      if (wasCorrect && !nowCorrect) correctToWrongCount++;
+
+      const fromId = primaryAnswer(v1);
+      const toId = primaryAnswer(v2);
+      if (fromId && toId) {
+        const mKey = `${fromId}|${toId}`;
+        migrationCounts.set(mKey, (migrationCounts.get(mKey) ?? 0) + 1);
+      }
+    }
+  }
+
+  const migrations: VoterMigrationEntry[] = [];
+  for (const [mKey, count] of migrationCounts) {
+    const [fromId, toId] = mKey.split('|');
+    const fromText = answerTextById.get(fromId!) ?? fromId!;
+    const toText = answerTextById.get(toId!) ?? toId!;
+    migrations.push({ from: fromText, to: toText, count });
+  }
+  migrations.sort((a, b) => b.count - a.count);
+
+  return {
+    round1Total: r1.total,
+    round2Total: r2.total,
+    round1Distribution: r1.dist,
+    round2Distribution: r2.dist,
+    round1CorrectCount: r1.correctCount,
+    round2CorrectCount: r2.correctCount,
+    opinionShift: bothRoundsCount > 0
+      ? {
+          bothRoundsCount,
+          changedCount,
+          changedPercentage: Math.round((changedCount / bothRoundsCount) * 100),
+          wrongToCorrectCount: correctIds.size > 0 ? wrongToCorrectCount : undefined,
+          correctToWrongCount: correctIds.size > 0 ? correctToWrongCount : undefined,
+          migrations: migrations.length > 0 ? migrations : undefined,
+        }
+      : undefined,
+  };
 }
 
 export const sessionRouter = router({
@@ -255,6 +375,7 @@ export const sessionRouter = router({
           select: {
             status: true,
             currentQuestion: true,
+            currentRound: true,
             statusChangedAt: true,
             quiz: {
               select: {
@@ -271,9 +392,10 @@ export const sessionRouter = router({
         const currentTimer = isActive && session.currentQuestion !== null
           ? session.quiz?.questions[session.currentQuestion]?.timer ?? null
           : null;
-        const payload: { status: string; currentQuestion: number | null; activeAt?: string; timer?: number | null; preset?: string } = {
+        const payload: { status: string; currentQuestion: number | null; activeAt?: string; timer?: number | null; preset?: string; currentRound?: number } = {
           status: session.status,
           currentQuestion: session.currentQuestion,
+          currentRound: session.currentRound,
           preset: (session.quiz?.preset as 'PLAYFUL' | 'SERIOUS') || undefined,
           ...(isActive && {
             activeAt: session.statusChangedAt.toISOString(),
@@ -312,11 +434,11 @@ export const sessionRouter = router({
       if (questionCount === 0) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quiz hat keine Fragen.' });
       }
-      const allowedFrom = ['LOBBY', 'PAUSED', 'RESULTS'];
+      const allowedFrom = ['LOBBY', 'PAUSED', 'RESULTS', 'DISCUSSION'];
       if (!allowedFrom.includes(session.status)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: `Nächste Frage nur aus Status LOBBY, PAUSED oder RESULTS. Aktuell: ${session.status}.`,
+          message: `Nächste Frage nur aus Status LOBBY, PAUSED, RESULTS oder DISCUSSION. Aktuell: ${session.status}.`,
         });
       }
 
@@ -326,20 +448,21 @@ export const sessionRouter = router({
       if (nextIdx >= questionCount) {
         await prisma.session.update({
           where: { id: session.id },
-          data: { status: 'FINISHED', currentQuestion: null, statusChangedAt: new Date() },
+          data: { status: 'FINISHED', currentQuestion: null, currentRound: 1, statusChangedAt: new Date() },
         });
-        return { status: 'FINISHED' as const, currentQuestion: null };
+        return { status: 'FINISHED' as const, currentQuestion: null, currentRound: 1 };
       }
 
       const readingPhase = session.quiz.readingPhaseEnabled;
       const newStatus = readingPhase ? ('QUESTION_OPEN' as const) : ('ACTIVE' as const);
       await prisma.session.update({
         where: { id: session.id },
-        data: { status: newStatus, currentQuestion: nextIdx, statusChangedAt: new Date() },
+        data: { status: newStatus, currentQuestion: nextIdx, currentRound: 1, statusChangedAt: new Date() },
       });
       return {
         status: newStatus,
         currentQuestion: nextIdx,
+        currentRound: 1,
         ...(newStatus === 'ACTIVE' && { activeAt: new Date().toISOString() }),
       };
     }),
@@ -351,7 +474,7 @@ export const sessionRouter = router({
     .mutation(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        select: { id: true, status: true, currentQuestion: true },
+        select: { id: true, status: true, currentQuestion: true, currentRound: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -369,6 +492,7 @@ export const sessionRouter = router({
       return {
         status: 'ACTIVE' as const,
         currentQuestion: session.currentQuestion,
+        currentRound: session.currentRound,
         activeAt: new Date().toISOString(),
       };
     }),
@@ -380,7 +504,7 @@ export const sessionRouter = router({
     .mutation(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        select: { id: true, status: true, currentQuestion: true },
+        select: { id: true, status: true, currentQuestion: true, currentRound: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -398,6 +522,63 @@ export const sessionRouter = router({
       return {
         status: 'RESULTS' as const,
         currentQuestion: session.currentQuestion,
+        currentRound: session.currentRound,
+      };
+    }),
+
+  /** Diskussionsphase starten (Story 2.7 Peer Instruction). Nur bei ACTIVE (Runde 1). */
+  startDiscussion: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: { id: true, status: true, currentQuestion: true, currentRound: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.status !== 'ACTIVE') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diskussionsphase nur aus Status ACTIVE.' });
+      }
+      if (session.currentRound !== 1) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diskussionsphase nur nach Runde 1.' });
+      }
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { status: 'DISCUSSION', statusChangedAt: new Date() },
+      });
+      return {
+        status: 'DISCUSSION' as const,
+        currentQuestion: session.currentQuestion,
+        currentRound: 1,
+      };
+    }),
+
+  /** Zweite Abstimmungsrunde starten (Story 2.7 Peer Instruction). Nur bei DISCUSSION. */
+  startSecondRound: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: { id: true, status: true, currentQuestion: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.status !== 'DISCUSSION') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Zweite Runde nur aus Status DISCUSSION.' });
+      }
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { status: 'ACTIVE', currentRound: 2, statusChangedAt: new Date() },
+      });
+      return {
+        status: 'ACTIVE' as const,
+        currentQuestion: session.currentQuestion,
+        currentRound: 2,
+        activeAt: new Date().toISOString(),
       };
     }),
 
@@ -447,16 +628,22 @@ export const sessionRouter = router({
         ratingMax: question.ratingMax ?? null,
         ratingLabelMin: question.ratingLabelMin ?? null,
         ratingLabelMax: question.ratingLabelMax ?? null,
+        currentRound: session.currentRound,
       };
 
+      if (session.status === 'DISCUSSION') {
+        return base;
+      }
+
       if (session.status === 'RESULTS' || session.status === 'ACTIVE') {
-        const votes = await prisma.vote.findMany({
-          where: { sessionId: session.id, questionId: question.id },
+        const currentRound = session.currentRound;
+        const votesForCurrentRound = await prisma.vote.findMany({
+          where: { sessionId: session.id, questionId: question.id, round: currentRound },
           include: { selectedAnswers: true },
         });
 
         if (question.type === 'RATING') {
-          const values = votes.map((v) => v.ratingValue).filter((v): v is number => v !== null && v !== undefined);
+          const values = votesForCurrentRound.map((v) => v.ratingValue).filter((v): v is number => v !== null && v !== undefined);
           const count = values.length;
           const avg = count > 0 ? Math.round((values.reduce((s, v) => s + v, 0) / count) * 10) / 10 : null;
           const dist: Record<string, number> = {};
@@ -468,15 +655,15 @@ export const sessionRouter = router({
         }
 
         if (question.type === 'FREETEXT') {
-          const texts = votes
+          const texts = votesForCurrentRound
             .map((v) => v.freeText?.trim())
             .filter((t): t is string => !!t);
-          return { ...base, freeTextResponses: texts, totalVotes: votes.length };
+          return { ...base, freeTextResponses: texts, totalVotes: votesForCurrentRound.length };
         }
 
-        const totalVotes = votes.length;
+        const totalVotes = votesForCurrentRound.length;
         const answerVoteCounts = new Map<string, number>();
-        for (const v of votes) {
+        for (const v of votesForCurrentRound) {
           for (const sa of v.selectedAnswers) {
             answerVoteCounts.set(sa.answerOptionId, (answerVoteCounts.get(sa.answerOptionId) ?? 0) + 1);
           }
@@ -486,7 +673,7 @@ export const sessionRouter = router({
           question.answers.filter((a) => a.isCorrect).map((a) => a.id),
         );
         const correctVoterCount = correctIds.size > 0
-          ? votes.filter((v) => {
+          ? votesForCurrentRound.filter((v) => {
               const selected = new Set(v.selectedAnswers.map((sa) => sa.answerOptionId));
               if (selected.size !== correctIds.size) return false;
               for (const id of correctIds) { if (!selected.has(id)) return false; }
@@ -494,17 +681,25 @@ export const sessionRouter = router({
             }).length
           : undefined;
 
+        const voteDistribution = question.answers.map((a) => ({
+          id: a.id,
+          text: a.text,
+          isCorrect: a.isCorrect,
+          voteCount: answerVoteCounts.get(a.id) ?? 0,
+          votePercentage: totalVotes > 0 ? Math.round(((answerVoteCounts.get(a.id) ?? 0) / totalVotes) * 100) : 0,
+        }));
+
+        let roundComparison: RoundComparisonDTO | undefined;
+        if (session.status === 'RESULTS' && currentRound === 2) {
+          roundComparison = await buildRoundComparison(session.id, question.id, question.answers);
+        }
+
         return {
           ...base,
           totalVotes,
           correctVoterCount,
-          voteDistribution: question.answers.map((a) => ({
-            id: a.id,
-            text: a.text,
-            isCorrect: a.isCorrect,
-            voteCount: answerVoteCounts.get(a.id) ?? 0,
-            votePercentage: totalVotes > 0 ? Math.round(((answerVoteCounts.get(a.id) ?? 0) / totalVotes) * 100) : 0,
-          })),
+          voteDistribution,
+          roundComparison,
         };
       }
 
@@ -553,9 +748,23 @@ export const sessionRouter = router({
         });
       }
 
+      if (session.status === 'DISCUSSION') {
+        return QuestionPreviewDTOSchema.parse({
+          id: question.id,
+          text: question.text,
+          type: question.type,
+          difficulty: question.difficulty,
+          order: question.order,
+          ratingMin: question.ratingMin ?? null,
+          ratingMax: question.ratingMax ?? null,
+          ratingLabelMin: question.ratingLabelMin ?? null,
+          ratingLabelMax: question.ratingLabelMax ?? null,
+        });
+      }
+
       if (session.status === 'ACTIVE') {
         const voteCount = await prisma.vote.count({
-          where: { sessionId: session.id, questionId: question.id },
+          where: { sessionId: session.id, questionId: question.id, round: session.currentRound },
         });
         const participantCount = session._count.participants;
         return QuestionStudentDTOSchema.parse({
@@ -573,6 +782,7 @@ export const sessionRouter = router({
           ratingLabelMax: question.ratingLabelMax ?? null,
           participantCount,
           totalVotes: voteCount,
+          currentRound: session.currentRound,
         });
       }
 

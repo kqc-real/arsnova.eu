@@ -15,10 +15,28 @@
       <p class="feedback-host__code">{{ code }}</p>
       <p class="feedback-host__url">{{ joinUrl }}</p>
       <div class="feedback-host__actions">
-        <button mat-button type="button" (click)="toggleLock()" [attr.aria-label]="locked() ? 'Abstimmung fortsetzen' : 'Abstimmung einfrieren'">
-          <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
-          {{ locked() ? 'Fortsetzen' : 'Stopp' }}
-        </button>
+        @if (isDiscussion()) {
+          <button mat-button type="button" (click)="startSecondRound()" aria-label="Zweite Abstimmung starten">
+            <mat-icon>replay</mat-icon>
+            Zweite Abstimmung
+          </button>
+        } @else if (!isRound2()) {
+          <button mat-button type="button" (click)="toggleLock()" [attr.aria-label]="locked() ? 'Abstimmung fortsetzen' : 'Abstimmung einfrieren'">
+            <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
+            {{ locked() ? 'Fortsetzen' : 'Stopp' }}
+          </button>
+          @if (data.totalVotes > 0) {
+            <button mat-button type="button" (click)="startDiscussion()" aria-label="Diskussionsphase starten">
+              <mat-icon>groups</mat-icon>
+              Diskussionsphase
+            </button>
+          }
+        } @else {
+          <button mat-button type="button" (click)="toggleLock()" [attr.aria-label]="locked() ? 'Abstimmung fortsetzen' : 'Abstimmung einfrieren'">
+            <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
+            {{ locked() ? 'Fortsetzen' : 'Stopp' }}
+          </button>
+        }
         <button mat-button type="button" (click)="copyLink()" aria-label="Beitrittslink kopieren">
           <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
           {{ copied() ? 'Kopiert' : 'Link kopieren' }}
@@ -36,34 +54,97 @@
 
     <section class="feedback-host__results">
       <h2 class="feedback-host__title">{{ feedbackTitle(data.type) }}</h2>
-      <p class="feedback-host__votes" aria-live="polite" aria-atomic="true">{{ data.totalVotes }} {{ data.totalVotes === 1 ? 'Stimme' : 'Stimmen' }}</p>
 
-      <div class="feedback-host__bars" role="list" [attr.aria-label]="'Ergebnisse: ' + feedbackTitle(data.type)">
-        @for (entry of orderedEntries(); track entry.key) {
-          <div
-            class="feedback-host__bar-row"
-            role="listitem"
-            [attr.aria-label]="displayLabel(entry.key, data.type) + ': ' + entry.value + ' (' + percentage(entry.key) + ' %)'"
-          >
-            <span class="feedback-host__bar-label" aria-hidden="true">{{ displayLabel(entry.key, data.type) }}</span>
-            <div
-              class="feedback-host__bar-track"
-              role="progressbar"
-              [attr.aria-valuenow]="entry.value"
-              [attr.aria-valuemin]="0"
-              [attr.aria-valuemax]="data.totalVotes || 1"
-              [attr.aria-label]="displayLabel(entry.key, data.type)"
-            >
-              <div
-                class="feedback-host__bar-fill"
-                [class.feedback-host__bar-fill--leading]="entry.value > 0 && entry.value === maxVotes()"
-                [style.width.%]="barWidth(entry.value)"
-              ></div>
-            </div>
-            <span class="feedback-host__bar-count" aria-hidden="true">{{ entry.value }} ({{ percentage(entry.key) }} %)</span>
+      @if (isDiscussion()) {
+        <div class="feedback-host__discussion" role="status" aria-live="polite">
+          <mat-icon class="feedback-host__discussion-icon">groups</mat-icon>
+          <p class="feedback-host__discussion-text">Diskutiert mit eurem Nachbarn!</p>
+          <p class="feedback-host__discussion-hint">Runde 1: {{ data.round1Total ?? 0 }} Stimmen erfasst. Zweite Abstimmung folgt.</p>
+        </div>
+      } @else if (hasComparison()) {
+        <!-- Vorher/Nachher-Vergleich (Story 2.7) -->
+        <div class="feedback-host__comparison">
+          <div class="feedback-host__comparison-header">
+            <span class="feedback-host__comparison-label feedback-host__comparison-label--r1">Runde 1 ({{ data.round1Total }} Stimmen)</span>
+            <span class="feedback-host__comparison-label feedback-host__comparison-label--r2">Runde 2 ({{ data.totalVotes }} Stimmen)</span>
           </div>
-        }
-      </div>
+          <div class="feedback-host__comparison-bars" role="list">
+            @for (entry of orderedEntries(); track entry.key) {
+              <div class="feedback-host__comparison-row" role="listitem">
+                <span class="feedback-host__bar-label" aria-hidden="true">{{ displayLabel(entry.key, data.type) }}</span>
+                <div class="feedback-host__comparison-tracks">
+                  <div class="feedback-host__comparison-track">
+                    <span class="feedback-host__comparison-round-tag feedback-host__comparison-round-tag--r1">R1</span>
+                    <div class="feedback-host__bar-track">
+                      <div class="feedback-host__bar-fill feedback-host__bar-fill--r1" [style.width.%]="round1Percentage(entry.key)"></div>
+                    </div>
+                    <span class="feedback-host__comparison-pct feedback-host__comparison-pct--r1">{{ round1Percentage(entry.key) }}&nbsp;%</span>
+                  </div>
+                  <div class="feedback-host__comparison-track">
+                    <span class="feedback-host__comparison-round-tag feedback-host__comparison-round-tag--r2">R2</span>
+                    <div class="feedback-host__bar-track">
+                      <div class="feedback-host__bar-fill feedback-host__bar-fill--r2" [style.width.%]="round2Percentage(entry.key)"></div>
+                    </div>
+                    <span class="feedback-host__comparison-pct feedback-host__comparison-pct--r2">{{ round2Percentage(entry.key) }}&nbsp;%</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+          @if (data.opinionShift; as shift) {
+            <div class="feedback-host__opinion-shift" role="status">
+              <mat-icon>swap_horiz</mat-icon>
+              <span>
+                {{ shift.changedCount }} von {{ shift.bothRoundsCount }} ({{ shift.changedPercentage }}&nbsp;%) änderten ihre Meinung
+              </span>
+              @if (shift.migrations && shift.migrations.length > 0) {
+                <ul class="feedback-host__migrations" role="list">
+                  @for (m of shift.migrations; track m.from + m.to) {
+                    <li class="feedback-host__migration-item">
+                      <span class="feedback-host__migration-count">{{ m.count }}×</span>
+                      <span class="feedback-host__migration-from">{{ displayLabel(m.from, data.type) }}</span>
+                      <mat-icon class="feedback-host__migration-arrow">east</mat-icon>
+                      <span class="feedback-host__migration-to">{{ displayLabel(m.to, data.type) }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="feedback-host__votes" aria-live="polite" aria-atomic="true">
+          @if (isRound2()) { <span class="feedback-host__round-tag">2. Runde</span> }
+          {{ data.totalVotes }} {{ data.totalVotes === 1 ? 'Stimme' : 'Stimmen' }}
+        </p>
+
+        <div class="feedback-host__bars" role="list" [attr.aria-label]="'Ergebnisse: ' + feedbackTitle(data.type)">
+          @for (entry of orderedEntries(); track entry.key) {
+            <div
+              class="feedback-host__bar-row"
+              role="listitem"
+              [attr.aria-label]="displayLabel(entry.key, data.type) + ': ' + entry.value + ' (' + percentage(entry.key) + ' %)'"
+            >
+              <span class="feedback-host__bar-label" aria-hidden="true">{{ displayLabel(entry.key, data.type) }}</span>
+              <div
+                class="feedback-host__bar-track"
+                role="progressbar"
+                [attr.aria-valuenow]="entry.value"
+                [attr.aria-valuemin]="0"
+                [attr.aria-valuemax]="data.totalVotes || 1"
+                [attr.aria-label]="displayLabel(entry.key, data.type)"
+              >
+                <div
+                  class="feedback-host__bar-fill"
+                  [class.feedback-host__bar-fill--leading]="entry.value > 0 && entry.value === maxVotes()"
+                  [style.width.%]="barWidth(entry.value)"
+                ></div>
+              </div>
+              <span class="feedback-host__bar-count" aria-hidden="true">{{ entry.value }} ({{ percentage(entry.key) }} %)</span>
+            </div>
+          }
+        </div>
+      }
     </section>
     </div>
   </div>

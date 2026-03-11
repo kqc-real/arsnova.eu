@@ -75,8 +75,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  readonly currentRound = signal(1);
+
   readonly isActive = computed(() => this.status() === 'ACTIVE');
   readonly isQuestionOpen = computed(() => this.status() === 'QUESTION_OPEN');
+  readonly isDiscussion = computed(() => this.status() === 'DISCUSSION');
   readonly isResults = computed(() => this.status() === 'RESULTS');
   readonly isLobby = computed(() => this.status() === 'LOBBY');
   readonly isFinished = computed(() => this.status() === 'FINISHED');
@@ -165,10 +168,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.statusSub = trpc.session.onStatusChanged.subscribe(
       { code: this.code },
       {
-        onData: (data: { status: string; currentQuestion: number | null; activeAt?: string; timer?: number | null; preset?: string }) => {
+        onData: (data: { status: string; currentQuestion: number | null; activeAt?: string; timer?: number | null; preset?: string; currentRound?: number }) => {
+          const prevRound = this.currentRound();
+          const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
+          this.currentRound.set(newRound);
           if (data.preset === 'PLAYFUL' || data.preset === 'SERIOUS') {
             this.themePreset.setPreset(data.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
+          }
+          if (data.status === 'ACTIVE' && newRound === 2 && prevRound === 1) {
+            this.voteSent.set(false);
+            this.selectedAnswerIds.set(new Set());
+            this.voteError.set(null);
+            this.freeTextValue.set('');
+            this.ratingValue.set(null);
+            this.motivationMessage.set(null);
+            this.timeoutMessage.set(null);
           }
           if (data.status === 'ACTIVE' && data.activeAt && data.timer && data.timer > 0) {
             const deadline = new Date(data.activeAt).getTime() + data.timer * 1000;
@@ -238,6 +253,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       const newId = q && 'id' in q ? q.id : null;
       const prevHadTimer = prev && 'timer' in prev && prev.timer;
       const newHasTimer = q && 'timer' in q && q.timer;
+
+      const qRound = q && 'currentRound' in q ? (q as { currentRound?: number }).currentRound : undefined;
+      if (qRound && qRound !== this.currentRound()) {
+        this.currentRound.set(qRound);
+      }
 
       if (newId !== prevId) {
         this.selectedAnswerIds.set(new Set());
@@ -331,6 +351,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         answerIds: answerIds.length > 0 ? answerIds : undefined,
         freeText: freeText || undefined,
         ratingValue: rating,
+        round: this.currentRound(),
       });
       this.voteSent.set(true);
       try { navigator.vibrate?.(10); } catch { /* unsupported */ }

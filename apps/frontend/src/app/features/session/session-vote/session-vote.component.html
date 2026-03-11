@@ -1,4 +1,5 @@
 <div class="vote-page">
+  <p class="vote-session-code" aria-label="Session-Code {{ code }}">{{ code }}</p>
   @if (isLobby()) {
     <div class="vote-lobby">
       <mat-icon class="vote-lobby__icon">hourglass_empty</mat-icon>
@@ -20,11 +21,36 @@
         </p>
       </div>
     }
-  } @else if (isActive() || isResults()) {
+  } @else if (isDiscussion()) {
     @if (currentQuestion(); as q) {
       <div class="vote-question">
+        <p class="vote-question__label">Frage {{ q.order + 1 }}</p>
+        <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
+      </div>
+      <div class="vote-discussion" role="status" aria-live="polite">
+        <div class="vote-discussion__icon-ring">
+          <mat-icon class="vote-discussion__icon">groups</mat-icon>
+        </div>
+        <p class="vote-discussion__text">Diskutiert mit eurem Nachbarn!</p>
+        <p class="vote-discussion__hint">Hat dein Nachbar die gleiche Antwort? Überzeugt euch gegenseitig.</p>
+        <p class="vote-discussion__next">Zweite Abstimmung folgt gleich…</p>
+      </div>
+    }
+  } @else if (isActive() || isResults()) {
+    @if (currentQuestion(); as q) {
+      <div class="vote-question" [class.vote-question--round2]="currentRound() === 2">
+        @if (currentRound() === 2 && isActive() && !voteSent()) {
+          <p class="vote-round2-banner" role="status" aria-live="polite">
+            2. Runde – hat die Diskussion deine Meinung geändert?
+          </p>
+        }
         <div class="vote-question__header">
-          <p class="vote-question__label">Frage {{ q.order + 1 }}</p>
+          <p class="vote-question__label">
+            Frage {{ q.order + 1 }}
+            @if (currentRound() === 2) {
+              <span class="vote-question__round-badge">2. Runde</span>
+            }
+          </p>
           @if (allHaveVoted() && isActive()) {
             <span class="vote-all-voted" role="status">
               <mat-icon>how_to_vote</mat-icon>

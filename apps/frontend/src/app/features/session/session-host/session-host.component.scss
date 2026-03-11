@@ -668,3 +668,296 @@
     background: var(--mat-sys-secondary);
   }
 }
+
+// Story 2.7: Diskussionsphase
+.session-host__discussion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.session-host__discussion-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: var(--mat-sys-primary);
+}
+
+.session-host__discussion-text {
+  font: var(--mat-sys-headline-medium);
+  color: var(--mat-sys-on-surface);
+}
+
+.session-host__discussion-hint {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Story 2.7: Vorher/Nachher-Vergleich (Peer Instruction)
+// Farbschema: R1 = warm (orange), R2 = kühl (primary/blau) – auf Beamer kontrastreich
+$round1-color: #ef6c00;
+$round2-color: var(--mat-sys-primary, #1565c0);
+
+.session-host__round-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-host__round-comparison-header {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.session-host__round-comparison-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font: var(--mat-sys-label-large);
+  padding: 0.3rem 0.9rem;
+  border-radius: 1rem;
+
+  &::before {
+    content: '';
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &--r1 {
+    background: color-mix(in srgb, #{$round1-color} 12%, transparent);
+    color: #{$round1-color};
+    &::before { background: #{$round1-color}; }
+  }
+
+  &--r2 {
+    background: color-mix(in srgb, #{$round2-color} 15%, transparent);
+    color: #{$round2-color};
+    &::before { background: #{$round2-color}; }
+  }
+}
+
+.session-host__round-comparison-correct {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font: var(--mat-sys-body-medium);
+  font-weight: 600;
+  color: var(--arsnova-bar-correct, #43a047);
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.session-host__round-comparison-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-host__round-comparison-item {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+
+  &--correct {
+    border-color: var(--arsnova-bar-correct, #43a047);
+    border-width: 2px;
+  }
+}
+
+.session-host__round-comparison-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.session-host__round-comparison-text {
+  flex: 1;
+  font: var(--mat-sys-body-large);
+}
+
+.session-host__round-comparison-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.session-host__round-comparison-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.session-host__round-comparison-bar-label {
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+  width: 1.5rem;
+  text-align: center;
+
+  &--r1 { color: #{$round1-color}; }
+  &--r2 { color: #{$round2-color}; }
+}
+
+.session-host__round-comparison-bar-track {
+  flex: 1;
+  height: 1.25rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 0.625rem;
+  overflow: hidden;
+}
+
+.session-host__round-comparison-bar-fill {
+  height: 100%;
+  border-radius: 0.625rem;
+  min-width: 2px;
+
+  &--r1 {
+    background: #{$round1-color};
+  }
+
+  &--r2 {
+    background: #{$round2-color};
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .session-host__round-comparison-bar-fill {
+    transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+.session-host__round-comparison-bar-pct {
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+  width: 3.5rem;
+  text-align: right;
+
+  &--r1 { color: #{$round1-color}; }
+  &--r2 { color: #{$round2-color}; }
+}
+
+// Meinungswechsel-Zusammenfassung
+.session-host__opinion-shift {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  margin-top: 0.25rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
+  font: var(--mat-sys-body-medium);
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+
+  > mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--mat-sys-primary);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: opinion-shift-enter 600ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+}
+
+.session-host__opinion-shift-detail {
+  display: flex;
+  gap: 1rem;
+  font: var(--mat-sys-label-large);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: opinion-shift-detail-enter 500ms 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+}
+
+.session-host__opinion-shift-gain {
+  color: var(--arsnova-bar-correct, #2e7d32);
+  font-weight: 600;
+}
+
+.session-host__opinion-shift-loss {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@keyframes opinion-shift-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes opinion-shift-detail-enter {
+  0% { opacity: 0; transform: translateX(8px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.session-host__migrations {
+  width: 100%;
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.session-host__migration-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: opinion-shift-detail-enter 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+}
+
+.session-host__migration-count {
+  font-weight: 700;
+  color: var(--mat-sys-primary);
+  min-width: 2rem;
+  text-align: right;
+}
+
+.session-host__migration-from,
+.session-host__migration-to {
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-host__migration-arrow {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--mat-sys-outline);
+  flex-shrink: 0;
+}

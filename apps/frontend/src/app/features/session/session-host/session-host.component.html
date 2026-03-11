@@ -93,6 +93,15 @@
                   <p class="session-host__reading-hint" role="status" aria-live="polite">Gleich geht's los…</p>
                 </mat-card-content>
               }
+              @if (effectiveStatus() === 'DISCUSSION') {
+                <mat-card-content>
+                  <div class="session-host__discussion" role="status" aria-live="polite">
+                    <mat-icon class="session-host__discussion-icon">groups</mat-icon>
+                    <p class="session-host__discussion-text">Diskutiert mit eurem Nachbarn!</p>
+                    <p class="session-host__discussion-hint">Zweite Abstimmung folgt gleich.</p>
+                  </div>
+                </mat-card-content>
+              }
             </mat-card>
 
             <!-- Karte 2: Ergebnis (schmaler, zentriert) -->
@@ -141,6 +150,82 @@
                         </ul>
                       } @else {
                         <p class="session-host__freetext-waiting">{{ allHaveVoted() ? 'Die Ergebnisse liegen vor.' : (countdownEnded() ? 'Zeit abgelaufen.' : 'Warte auf Antworten…') }}</p>
+                      }
+                    </div>
+                  } @else if (q.roundComparison && effectiveStatus() === 'RESULTS') {
+                    <!-- Peer Instruction: Vorher/Nachher-Vergleich (Story 2.7) -->
+                    <div class="session-host__round-comparison" role="img" aria-label="Vorher/Nachher-Vergleich Peer Instruction">
+                      <div class="session-host__round-comparison-header">
+                        <span class="session-host__round-comparison-label session-host__round-comparison-label--r1">Runde 1 ({{ q.roundComparison.round1Total }} Stimmen)</span>
+                        <span class="session-host__round-comparison-label session-host__round-comparison-label--r2">Runde 2 ({{ q.roundComparison.round2Total }} Stimmen)</span>
+                      </div>
+                      @if (q.roundComparison.round1CorrectCount !== null && q.roundComparison.round1CorrectCount !== undefined && q.type !== 'SURVEY') {
+                        <p class="session-host__round-comparison-correct">
+                          <mat-icon>check_circle</mat-icon>
+                          Richtig: {{ q.roundComparison.round1CorrectCount }} → {{ q.roundComparison.round2CorrectCount }}
+                          @if (q.roundComparison.round1Total > 0 && q.roundComparison.round2Total > 0) {
+                            ({{ Math.round(q.roundComparison.round1CorrectCount / q.roundComparison.round1Total * 100) }}&nbsp;% → {{ Math.round((q.roundComparison.round2CorrectCount ?? 0) / q.roundComparison.round2Total * 100) }}&nbsp;%)
+                          }
+                        </p>
+                      }
+                      <ul class="session-host__round-comparison-list" role="list">
+                        @for (a of q.roundComparison.round1Distribution; track a.id; let i = $index) {
+                          @let r2 = q.roundComparison!.round2Distribution[i];
+                          <li class="session-host__round-comparison-item" [class.session-host__round-comparison-item--correct]="a.isCorrect && q.type !== 'SURVEY'">
+                            <div class="session-host__round-comparison-option">
+                              <span class="session-host__answer-badge session-host__answer-badge--small" [style.background-color]="getColor(i)">
+                                <span class="session-host__answer-badge-shape">{{ getShape(i) }}</span>
+                                <span class="session-host__answer-badge-letter">{{ getLetter(i) }}</span>
+                              </span>
+                              <span class="session-host__round-comparison-text session-host__rich-text" [innerHTML]="renderMarkdown(a.text)"></span>
+                              @if (a.isCorrect && q.type !== 'SURVEY') {
+                                <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                              }
+                            </div>
+                            <div class="session-host__round-comparison-bars">
+                              <div class="session-host__round-comparison-bar">
+                                <span class="session-host__round-comparison-bar-label session-host__round-comparison-bar-label--r1">R1</span>
+                                <div class="session-host__round-comparison-bar-track">
+                                  <div class="session-host__round-comparison-bar-fill session-host__round-comparison-bar-fill--r1" [style.width.%]="a.votePercentage"></div>
+                                </div>
+                                <span class="session-host__round-comparison-bar-pct session-host__round-comparison-bar-pct--r1">{{ a.votePercentage }}&nbsp;%</span>
+                              </div>
+                              <div class="session-host__round-comparison-bar">
+                                <span class="session-host__round-comparison-bar-label session-host__round-comparison-bar-label--r2">R2</span>
+                                <div class="session-host__round-comparison-bar-track">
+                                  <div class="session-host__round-comparison-bar-fill session-host__round-comparison-bar-fill--r2" [style.width.%]="r2?.votePercentage ?? 0"></div>
+                                </div>
+                                <span class="session-host__round-comparison-bar-pct session-host__round-comparison-bar-pct--r2">{{ r2?.votePercentage ?? 0 }}&nbsp;%</span>
+                              </div>
+                            </div>
+                          </li>
+                        }
+                      </ul>
+                      @if (q.roundComparison!.opinionShift; as shift) {
+                        <div class="session-host__opinion-shift" role="status">
+                          <mat-icon>swap_horiz</mat-icon>
+                          <span>
+                            {{ shift.changedCount }} von {{ shift.bothRoundsCount }} ({{ shift.changedPercentage }}&nbsp;%) änderten ihre Meinung
+                          </span>
+                          @if (shift.wrongToCorrectCount !== null && shift.wrongToCorrectCount !== undefined && q.type !== 'SURVEY') {
+                            <span class="session-host__opinion-shift-detail">
+                              <span class="session-host__opinion-shift-gain">↑ {{ shift.wrongToCorrectCount }} falsch → richtig</span>
+                              <span class="session-host__opinion-shift-loss">↓ {{ shift.correctToWrongCount ?? 0 }} richtig → falsch</span>
+                            </span>
+                          }
+                          @if (shift.migrations && shift.migrations.length > 0) {
+                            <ul class="session-host__migrations" role="list">
+                              @for (m of shift.migrations; track m.from + m.to) {
+                                <li class="session-host__migration-item">
+                                  <span class="session-host__migration-count">{{ m.count }}×</span>
+                                  <span class="session-host__migration-from">{{ m.from }}</span>
+                                  <mat-icon class="session-host__migration-arrow">east</mat-icon>
+                                  <span class="session-host__migration-to">{{ m.to }}</span>
+                                </li>
+                              }
+                            </ul>
+                          }
+                        </div>
                       }
                     </div>
                   } @else if (q.voteDistribution && q.voteDistribution.length > 0 && effectiveStatus() === 'RESULTS') {
@@ -229,6 +314,37 @@
                 (click)="revealResults()"
               >
                 Ergebnis zeigen
+              </button>
+              @if (currentQuestionForHost()?.currentRound === 1 && (currentQuestionForHost()?.totalVotes ?? 0) > 0) {
+                <button
+                  mat-tonal-button
+                  type="button"
+                  [disabled]="controlPending()"
+                  (click)="startDiscussion()"
+                >
+                  <mat-icon>groups</mat-icon>
+                  Diskussionsphase
+                </button>
+              }
+            }
+            @if (effectiveStatus() === 'DISCUSSION') {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="controlPending()"
+                (click)="startSecondRound()"
+              >
+                <mat-icon>replay</mat-icon>
+                Zweite Abstimmung
+              </button>
+              <button
+                mat-tonal-button
+                type="button"
+                [disabled]="controlPending()"
+                (click)="nextQuestion()"
+              >
+                Überspringen
               </button>
             }
             @if (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') {

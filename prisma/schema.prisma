@@ -76,6 +76,7 @@ model Session {
   title           String?                          // Story 8.1: Titel für Q&A-Runden
   moderationMode  Boolean       @default(false)   // Story 8.4: Q&A-Fragen vorab moderieren
   currentQuestion Int?                             // Index der aktuell aktiven Frage (0-basiert)
+  currentRound    Int              @default(1)     // Story 2.7: Peer Instruction – aktuelle Abstimmungsrunde (1 oder 2)
   quizId          String?                          // null bei Q&A-Sessions
   quiz            Quiz?         @relation(fields: [quizId], references: [id], onDelete: Cascade)
   participants    Participant[]
@@ -132,9 +133,10 @@ model Vote {
   score          Int          @default(0) // Berechnete Punkte (Schwierigkeit × Zeitbonus)
   streakCount    Int          @default(0) // Story 5.5: Aktuelle Antwort-Serie (0 = kein Streak)
   streakBonus    Float        @default(1.0) // Story 5.5: Angewandter Streak-Multiplikator
+  round          Int          @default(1) // Story 2.7: Peer Instruction – Runde (1 oder 2)
   votedAt        DateTime     @default(now())
 
-  @@unique([sessionId, participantId, questionId]) // Nur eine Stimme pro Frage
+  @@unique([sessionId, participantId, questionId, round]) // Nur eine Stimme pro Frage pro Runde
 }
 
 // Zuordnung Vote ↔ ausgewählte Antwortoptionen (n:m für MC-Mehrfachauswahl)
@@ -170,6 +172,7 @@ enum SessionStatus {
   ACTIVE         // Antwortoptionen sichtbar, Countdown läuft
   PAUSED         // Zwischen Fragen
   RESULTS        // Ergebnisse werden angezeigt
+  DISCUSSION     // Story 2.7: Peer Instruction – Diskussionsphase zwischen Runde 1 und 2
   FINISHED       // Session beendet
 }
 

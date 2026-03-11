@@ -40,14 +40,14 @@
 | 1    | 1.13  | Quiz-Preview & Schnellkorrektur               | 🟡   | ✅ Fertig |
 | 1    | 1.14  | Word Cloud (interaktiv + Export)              | 🟡   | ✅ Fertig |
 | 1    | 1.15  | Preset-Konfiguration exportieren & importieren | 🟢   | ✅ Fertig |
-| 2    | 2.1a  | Session-ID & Quiz-Upload                      | 🔴   | ⬜ Offen  |
-| 2    | 2.1b  | QR-Code                                       | 🟢   | ⬜ Offen  |
-| 2    | 2.2   | Lobby-Ansicht                                 | 🔴   | ⬜ Offen  |
-| 2    | 2.3   | Präsentations-Steuerung                       | 🔴   | ⬜ Offen  |
-| 2    | 2.4   | Security / Data-Stripping                     | 🔴   | ⬜ Offen  |
-| 2    | 2.5   | Beamer-Ansicht / Presenter-Mode               | 🔴   | ⬜ Offen  |
-| 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)          | 🟡   | ⬜ Offen  |
-| 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher) | 🟡   | ⬜ Offen  |
+| 2    | 2.1a  | Session-ID & Quiz-Upload                      | 🔴   | ✅ Fertig |
+| 2    | 2.1b  | QR-Code                                       | 🟢   | ✅ Fertig |
+| 2    | 2.2   | Lobby-Ansicht                                 | 🔴   | ✅ Fertig |
+| 2    | 2.3   | Präsentations-Steuerung                       | 🔴   | ✅ Fertig |
+| 2    | 2.4   | Security / Data-Stripping                     | 🔴   | ✅ Fertig |
+| 2    | 2.5   | Beamer-Ansicht / Presenter-Mode               | 🔴   | ✅ Fertig |
+| 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)          | 🟡   | ✅ Fertig |
+| 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher) | 🟡   | ✅ Fertig |
 | 3    | 3.1   | Beitreten                                     | 🔴   | ✅ Fertig |
 | 3    | 3.2   | Nicknames                                     | 🟡   | ✅ Fertig |
 | 3    | 3.3a  | Frage empfangen                               | 🔴   | ✅ Fertig |
@@ -416,6 +416,8 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 2: Live-Sitzung & Lobby (Rolle: Dozent)
 
+> **Verifizierung (Commit-Historie):** Storys 2.1a–2.7 als ✅ Fertig markiert. Epic 2 ist vollständig abgeschlossen.
+
 - **Story 2.1a (Session-ID generieren & Quiz-Upload):** 🔴 Als Dozent möchte ich ein Quiz live schalten können, wodurch eine 6-stellige Session-ID generiert wird und die Quizdaten an den Server übertragen werden.
   - **Akzeptanzkriterien:**
     - tRPC-Mutation `session.create` erstellt eine Session mit eindeutigem 6-stelligem Code.
@@ -481,7 +483,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Security:** Während `QUESTION_OPEN` werden weder `isCorrect` noch die Antwortoptionen an Studenten gesendet — das DTO-Stripping (Story 2.4) greift bereits in dieser Phase.
     - **Barrierefreiheit:** Der Übergang von Phase 1 zu Phase 2 wird via `aria-live="polite"` angekündigt, damit Screenreader-Nutzer den Wechsel mitbekommen.
   - **Abhängigkeiten:** Story 2.3 (Steuerung), Story 2.4 (Security), Story 2.5 (Beamer), Story 3.3a (Frage empfangen), Story 3.5 (Countdown).
-- **Story 2.7 (Peer Instruction – zweite Abstimmung, Vorher/Nachher):** 🟡 Als Dozent möchte ich die Methode **Peer Instruction** (Eric Mazur) umsetzen können: **Zwei Abstimmrunden** mit Zwischendiskussion, wobei die erste Runde für die Dauer der Session gespeichert und mit der zweiten Runde verglichen wird, damit der Lernerfolg durch Peer-Diskussion sichtbar wird.
+- **Story 2.7 (Peer Instruction – zweite Abstimmung, Vorher/Nachher):** ✅ Fertig – Als Dozent möchte ich die Methode **Peer Instruction** (Eric Mazur) umsetzen können: **Zwei Abstimmrunden** mit Zwischendiskussion, wobei die erste Runde für die Dauer der Session gespeichert und mit der zweiten Runde verglichen wird, damit der Lernerfolg durch Peer-Diskussion sichtbar wird.
   - **Hintergrund (Peer Instruction):** Konzeptfrage bzw. Abstimmungsthema stellen → **erste Abstimmung** (individuell) → kurze **Peer-Diskussion** (Sitznachbarn überzeugen) → **zweite Abstimmung** (revidierte Antwort) → Auflösung. Die Vergleichsanzeige Vorher/Nachher macht den Effekt der Diskussion deutlich.
   - **Zwei Anwendungsfälle:** (1) **Blitz-Feedback:** Peer Instruction erfolgt mit **zwei Blitz-Feedback-Runden** desselben Typs (z. B. Stimmungsbild, ja/nein/vielleicht oder ABCD): erste Runde starten → Ergebnis nicht auflösen, Hinweis „Diskutiert mit eurem Nachbarn“ → zweite Runde (gleicher Code/Session) → Vorher/Nachher-Anzeige. (2) **Quiz:** Optional bei MC/SC-Fragen zwei Abstimmrunden pro Frage mit Diskussionsphase dazwischen (wie unten).
   - **Akzeptanzkriterien:**

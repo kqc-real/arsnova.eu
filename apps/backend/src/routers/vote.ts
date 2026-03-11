@@ -148,6 +148,7 @@ export const voteRouter = router({
         });
       }
 
+      const round = input.round ?? 1;
       const score = calculateVoteScore({
         type: questionType,
         difficulty: question.difficulty as Difficulty,
@@ -158,10 +159,11 @@ export const voteRouter = router({
       });
       const existing = await prisma.vote.findUnique({
         where: {
-          sessionId_participantId_questionId: {
+          sessionId_participantId_questionId_round: {
             sessionId: input.sessionId,
             participantId: input.participantId,
             questionId: input.questionId,
+            round,
           },
         },
         select: { id: true },
@@ -179,6 +181,7 @@ export const voteRouter = router({
           ratingValue: input.ratingValue ?? null,
           responseTimeMs: input.responseTimeMs ?? null,
           score,
+          round,
           selectedAnswers: answerIds.length
             ? { create: answerIds.map((answerOptionId: string) => ({ answerOptionId })) }
             : undefined,

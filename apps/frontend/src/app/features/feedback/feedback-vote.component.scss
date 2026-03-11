@@ -6,6 +6,17 @@
   min-height: 100vh;
   min-height: 100dvh;
   padding: 3rem 1.5rem;
+  position: relative;
+}
+
+.feedback-vote__session-code {
+  margin: 0 0 3rem;
+  padding: 0;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--mat-sys-primary);
 }
 
 .feedback-vote__heading {
@@ -102,4 +113,97 @@
   font-size: 2.25rem;
   font-weight: 700;
   border-radius: var(--mat-sys-corner-large);
+}
+
+// Diskussionsphase (Peer Instruction)
+.feedback-vote__discussion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: fb-vote-fade-in 400ms ease-out;
+  }
+}
+
+.feedback-vote__discussion-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  border: 2px solid color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: fb-discussion-pulse 2s ease-in-out infinite;
+  }
+}
+
+.feedback-vote__discussion-icon {
+  font-size: 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--mat-sys-primary);
+}
+
+.feedback-vote__discussion-text {
+  font: var(--mat-sys-headline-small);
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+  margin: 0;
+}
+
+.feedback-vote__discussion-hint {
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface);
+  max-width: 28rem;
+  margin: 0;
+}
+
+.feedback-vote__discussion-next {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+  margin: 0.25rem 0 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fb-discussion-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.06); opacity: 0.85; }
+  }
+}
+
+@keyframes fb-vote-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// Runde-2-Hinweis
+.feedback-vote__round2-hint {
+  margin: -0.75rem 0 1.5rem;
+  padding: 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: fb-vote-fade-in 400ms ease-out;
+  }
+}
+
+.feedback-vote__round-badge {
+  display: inline-flex;
+  font: var(--mat-sys-label-small);
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  margin-left: 0.5rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
+  color: var(--mat-sys-primary);
+  vertical-align: middle;
 }

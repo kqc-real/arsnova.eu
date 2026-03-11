@@ -104,6 +104,52 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  readonly isDiscussion = computed(() => !!this.result()?.discussion);
+  readonly isRound2 = computed(() => (this.result()?.currentRound ?? 1) === 2);
+  readonly hasComparison = computed(() => !!this.result()?.round1Distribution && this.isRound2());
+
+  readonly round1Entries = computed(() => {
+    const data = this.result();
+    if (!data?.round1Distribution) return [];
+    const orderMap: Record<string, string[]> = {
+      MOOD: MOOD_OPTIONS.map((o) => o.value),
+      YESNO: YESNO_OPTIONS.map((o) => o.value),
+      ABCD: ABCD_OPTIONS.map((o) => o.value),
+    };
+    const order = orderMap[data.type] ?? Object.keys(data.round1Distribution);
+    return order.map((key) => ({ key, value: data.round1Distribution![key] ?? 0 }));
+  });
+
+  round1Percentage(key: string): string {
+    const data = this.result();
+    if (!data?.round1Distribution || !data.round1Total) return '0';
+    const count = data.round1Distribution[key] ?? 0;
+    return data.round1Total > 0 ? String(Math.round((count / data.round1Total) * 100)) : '0';
+  }
+
+  round2Percentage(key: string): string {
+    const data = this.result();
+    if (!data || data.totalVotes === 0) return '0';
+    const count = data.distribution[key] ?? 0;
+    return data.totalVotes > 0 ? String(Math.round((count / data.totalVotes) * 100)) : '0';
+  }
+
+  async startDiscussion(): Promise<void> {
+    try {
+      await trpc.quickFeedback.startDiscussion.mutate({ sessionCode: this.code });
+    } catch {
+      // best-effort
+    }
+  }
+
+  async startSecondRound(): Promise<void> {
+    try {
+      await trpc.quickFeedback.startSecondRound.mutate({ sessionCode: this.code });
+    } catch {
+      // best-effort
+    }
+  }
+
   async resetRound(): Promise<void> {
     if (this.resetting()) return;
     this.resetting.set(true);

@@ -53,6 +53,8 @@ export class FeedbackVoteComponent implements OnDestroy {
   readonly feedbackType = signal<'MOOD' | 'ABCD' | 'YESNO' | null>(null);
   readonly loading = signal(true);
   readonly locked = signal(false);
+  readonly discussion = signal(false);
+  readonly currentRound = signal(1);
 
   readonly headingText = computed(() => {
     const type = this.feedbackType();
@@ -92,7 +94,16 @@ export class FeedbackVoteComponent implements OnDestroy {
     try {
       const result = await trpc.quickFeedback.results.query({ sessionCode: this.code });
       this.locked.set(result.locked);
+      this.discussion.set(!!result.discussion);
       this.applyStyle(result.theme, result.preset);
+
+      const newRound = result.currentRound ?? 1;
+      if (newRound === 2 && this.currentRound() === 1) {
+        this.voted.set(false);
+        try { localStorage.removeItem(votedStorageKey(this.code)); } catch { /* private browsing */ }
+      }
+      this.currentRound.set(newRound);
+
       if (result.totalVotes === 0 && this.voted()) {
         this.voted.set(false);
         try { localStorage.removeItem(votedStorageKey(this.code)); } catch { /* private browsing */ }

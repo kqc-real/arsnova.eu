@@ -321,6 +321,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  async startDiscussion(): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    this.controlPending.set(true);
+    try {
+      this.stopCountdown();
+      this.countdownSeconds.set(null);
+      const result = await trpc.session.startDiscussion.mutate({ code: this.code.toUpperCase() });
+      this.statusUpdate.set(result);
+      await this.refreshCurrentQuestionForHost();
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
+  async startSecondRound(): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    this.controlPending.set(true);
+    try {
+      const result = await trpc.session.startSecondRound.mutate({ code: this.code.toUpperCase() });
+      this.statusUpdate.set(result);
+      await this.refreshCurrentQuestionForHost();
+      this.startCountdown(this.currentQuestionForHost()?.timer, result.activeAt);
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
   private async refreshCurrentQuestionForHost(): Promise<void> {
     if (!this.code || this.code.length !== 6) return;
     try {

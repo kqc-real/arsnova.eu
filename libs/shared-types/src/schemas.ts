@@ -19,6 +19,7 @@ export const SessionStatusEnum = z.enum([
   'ACTIVE',
   'PAUSED',
   'RESULTS',
+  'DISCUSSION',
   'FINISHED',
 ]);
 export type SessionStatus = z.infer<typeof SessionStatusEnum>;
@@ -200,8 +201,51 @@ export const SessionStatusUpdateSchema = z.object({
   /** Server-Zeitstempel bei Wechsel zu ACTIVE (ISO-8601). Für Countdown-Synchronisation (Story 3.5). */
   activeAt: z.string().optional(),
   preset: QuizPresetEnum.optional(),
+  /** Aktuelle Runde bei Peer Instruction (Story 2.7), 1 oder 2. */
+  currentRound: z.number().int().min(1).max(2).optional(),
 });
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
+
+/** DTO: Stimmenverteilung einer Runde pro Antwortoption (Story 2.7 Peer Instruction). */
+export const RoundDistributionEntrySchema = z.object({
+  id: z.uuid(),
+  text: z.string(),
+  isCorrect: z.boolean(),
+  voteCount: z.number().int(),
+  votePercentage: z.number().int(),
+});
+export type RoundDistributionEntry = z.infer<typeof RoundDistributionEntrySchema>;
+
+/** DTO: Einzelne Wählerwanderung (von Option X nach Option Y). */
+export const VoterMigrationEntrySchema = z.object({
+  from: z.string(),
+  to: z.string(),
+  count: z.number().int(),
+});
+export type VoterMigrationEntry = z.infer<typeof VoterMigrationEntrySchema>;
+
+/** DTO: Meinungswechsel-Metriken bei Peer Instruction (Story 2.7). */
+export const OpinionShiftSchema = z.object({
+  bothRoundsCount: z.number().int(),
+  changedCount: z.number().int(),
+  changedPercentage: z.number().int(),
+  wrongToCorrectCount: z.number().int().optional(),
+  correctToWrongCount: z.number().int().optional(),
+  migrations: z.array(VoterMigrationEntrySchema).optional(),
+});
+export type OpinionShift = z.infer<typeof OpinionShiftSchema>;
+
+/** DTO: Vorher/Nachher-Vergleich bei Peer Instruction (Story 2.7). */
+export const RoundComparisonDTOSchema = z.object({
+  round1Total: z.number().int(),
+  round2Total: z.number().int(),
+  round1Distribution: z.array(RoundDistributionEntrySchema),
+  round2Distribution: z.array(RoundDistributionEntrySchema),
+  round1CorrectCount: z.number().int().optional(),
+  round2CorrectCount: z.number().int().optional(),
+  opinionShift: OpinionShiftSchema.optional(),
+});
+export type RoundComparisonDTO = z.infer<typeof RoundComparisonDTOSchema>;
 
 /** DTO: Aktuelle Frage für Host-Ansicht (Story 2.3, 3.5) – Text + Antwortoptionen inkl. isCorrect + Timer. */
 export const HostCurrentQuestionDTOSchema = z.object({
@@ -231,6 +275,8 @@ export const HostCurrentQuestionDTOSchema = z.object({
   })).optional(),
   totalVotes: z.number().int().optional(),
   correctVoterCount: z.number().int().optional(),
+  currentRound: z.number().int().min(1).max(2).optional(),
+  roundComparison: RoundComparisonDTOSchema.optional(),
 });
 export type HostCurrentQuestionDTO = z.infer<typeof HostCurrentQuestionDTOSchema>;
 
@@ -254,6 +300,7 @@ export const SubmitVoteInputSchema = z.object({
   freeText: z.string().max(500).optional(),
   ratingValue: z.number().int().min(0).max(10).optional(), // Nur bei RATING
   responseTimeMs: z.number().int().min(0).optional(), // Antwortzeit in ms
+  round: z.number().int().min(1).max(2).optional().default(1), // Story 2.7: Peer Instruction Runde
 });
 export type SubmitVoteInput = z.infer<typeof SubmitVoteInputSchema>;
 
@@ -322,6 +369,7 @@ export const QuestionStudentDTOSchema = z.object({
   ratingLabelMax: z.string().nullable().optional(),
   participantCount: z.number().int().min(0).optional(),
   totalVotes: z.number().int().min(0).optional(),
+  currentRound: z.number().int().min(1).max(2).optional(),
 });
 export type QuestionStudentDTO = z.infer<typeof QuestionStudentDTOSchema>;
 
@@ -825,5 +873,10 @@ export const QuickFeedbackResultSchema = z.object({
   locked: z.boolean(),
   totalVotes: z.number(),
   distribution: z.record(z.string(), z.number()),
+  currentRound: z.number().int().min(1).max(2).optional(),
+  discussion: z.boolean().optional(),
+  round1Distribution: z.record(z.string(), z.number()).optional(),
+  round1Total: z.number().int().optional(),
+  opinionShift: OpinionShiftSchema.optional(),
 });
 export type QuickFeedbackResult = z.infer<typeof QuickFeedbackResultSchema>;
