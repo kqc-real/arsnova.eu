@@ -533,7 +533,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
 /** Markdown/KaTeX für CSV-Export in lesbaren Fließtext umwandeln. */
 function stripMarkdownToPlainText(s: string): string {
-  let t = s
+  const t = s
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/__(.+?)__/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
