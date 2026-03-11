@@ -8,7 +8,8 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:finished-demo": "tsx scripts/seed-finished-demo.ts"
   },
   "dependencies": {
     "@arsnova/shared-types": "*",

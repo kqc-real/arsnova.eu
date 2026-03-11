@@ -432,11 +432,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         let details = '';
         if (q.optionDistribution) {
           details = q.optionDistribution
-            .map((o) => `${o.text}: ${o.count} (${o.percentage}%)${o.isCorrect ? ' ✓' : ''}`)
+            .map((o) => `${stripMarkdownToPlainText(o.text)}: ${o.count} (${o.percentage}%)${o.isCorrect ? ' ✓' : ''}`)
             .join(' | ');
         } else if (q.freetextAggregates) {
           details = q.freetextAggregates
-            .map((f) => `${f.text}: ${f.count}`)
+            .map((f) => `${stripMarkdownToPlainText(f.text)}: ${f.count}`)
             .join(' | ');
         } else if (q.ratingDistribution) {
           details = Object.entries(q.ratingDistribution)
@@ -448,7 +448,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         rows.push(
           [
             q.questionOrder + 1,
-            escapeCsv(q.questionTextShort),
+            escapeCsv(stripMarkdownToPlainText(q.questionTextShort)),
             q.type,
             q.participantCount,
             q.averageScore ?? '',
@@ -529,6 +529,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.wordCloudInfo.set('Live-Freitextdaten konnten nicht geladen werden.');
     }
   }
+}
+
+/** Markdown/KaTeX für CSV-Export in lesbaren Fließtext umwandeln. */
+function stripMarkdownToPlainText(s: string): string {
+  let t = s
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/\$\$[\s\S]*?\$\$/g, ' ')
+    .replace(/\$[^$\n]+\$/g, ' ')
+    .replace(/\\\[[\s\S]*?\\\]/g, ' ')
+    .replace(/\\\([\s\S]*?\\\)/g, ' ')
+    .replace(/^#+\s*/gm, '')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return t;
 }
 
 function escapeCsv(value: string): string {

@@ -9,7 +9,14 @@
     <mat-card appearance="outlined" class="join-card join-card--error">
       <mat-card-content>
         <p class="join-card__text" role="alert">{{ error() }}</p>
-        <p class="join-card__hint">Prüfe den Code (6 Zeichen) oder scanne den QR-Code erneut.</p>
+        @if (error() === 'Diese Session ist bereits beendet.') {
+          <a [routerLink]="['/session', code, 'host']" mat-button class="join-card__host-link">
+            <mat-icon>admin_panel_settings</mat-icon>
+            Als Dozent anzeigen
+          </a>
+        } @else {
+          <p class="join-card__hint">Prüfe den Code (6 Zeichen) oder scanne den QR-Code erneut.</p>
+        }
       </mat-card-content>
     </mat-card>
   } @else if (session(); as s) {

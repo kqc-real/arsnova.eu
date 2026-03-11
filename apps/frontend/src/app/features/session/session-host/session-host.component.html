@@ -57,36 +57,38 @@
         </header>
 
         @if (effectiveStatus() === 'FINISHED') {
-          <div class="session-host__finished">
-            <mat-icon class="session-host__finished-icon">verified</mat-icon>
-            <p class="session-host__finished-text" role="status">Session beendet</p>
-            <p class="session-host__finished-sub">Alle Ergebnisse sind gespeichert.</p>
-            <div class="session-host__export-actions">
-              <button matButton="tonal"
-                type="button"
-                (click)="exportSessionResultsCsv()"
-                [disabled]="exportExporting()"
-                [attr.aria-busy]="exportExporting()"
-                aria-label="Ergebnis als CSV exportieren">
-                <mat-icon>download</mat-icon>
-                Ergebnis exportieren
-              </button>
-              @if (exportExporting()) {
-                <p class="session-host__export-hint" role="status">Wird exportiert…</p>
-              }
-              @if (exportStatus(); as status) {
-                <p class="session-host__export-hint" role="status">{{ status }}</p>
-              }
-              <p class="session-host__export-dsgvo">Export für Dokumentation und Evaluation – keine personenbezogenen Daten.</p>
-            </div>
-          </div>
+          <div class="session-host__results">
+            <header class="session-host__finished">
+              <mat-icon class="session-host__finished-icon" aria-hidden="true">verified</mat-icon>
+              <h1 class="session-host__finished-text" id="session-finished-heading">Session beendet</h1>
+              <p class="session-host__finished-sub">Alle Ergebnisse sind gespeichert.</p>
+              <div class="session-host__export-actions">
+                <button matButton="tonal"
+                  type="button"
+                  (click)="exportSessionResultsCsv()"
+                  [disabled]="exportExporting()"
+                  [attr.aria-busy]="exportExporting()"
+                  aria-label="Ergebnis als CSV exportieren">
+                  <mat-icon>download</mat-icon>
+                  Ergebnis exportieren
+                </button>
+                @if (exportExporting()) {
+                  <p class="session-host__export-hint" role="status">Wird exportiert…</p>
+                }
+                @if (exportStatus(); as status) {
+                  <p class="session-host__export-hint" role="status">{{ status }}</p>
+                }
+                <p class="session-host__export-dsgvo">Export für Dokumentation und Evaluation – keine personenbezogenen Daten.</p>
+              </div>
+            </header>
 
           @if (leaderboard().length > 0) {
-            <div class="session-host__leaderboard">
-              <h2 class="session-host__leaderboard-title">
-                <mat-icon>leaderboard</mat-icon>
+            <section class="session-host__leaderboard-card" aria-labelledby="leaderboard-heading">
+              <h2 class="session-host__leaderboard-title" id="leaderboard-heading">
+                <mat-icon aria-hidden="true">leaderboard</mat-icon>
                 Leaderboard
               </h2>
+              <div class="session-host__leaderboard-wrap">
               <table class="session-host__leaderboard-table" role="table">
                 <thead>
                   <tr>
@@ -112,13 +114,14 @@
                   }
                 </tbody>
               </table>
-            </div>
+              </div>
+            </section>
           }
 
           @if (bonusTokens().length > 0) {
-            <div class="session-host__bonus-tokens">
-              <h2 class="session-host__bonus-tokens-title">
-                <mat-icon>card_giftcard</mat-icon>
+            <section class="session-host__bonus-card" aria-labelledby="bonus-heading">
+              <h2 class="session-host__bonus-tokens-title" id="bonus-heading">
+                <mat-icon aria-hidden="true">card_giftcard</mat-icon>
                 Bonus-Codes
               </h2>
               <table class="session-host__bonus-tokens-table" role="table">
@@ -141,17 +144,17 @@
                   }
                 </tbody>
               </table>
-              <button mat-tonal-button class="session-host__bonus-export-btn" (click)="exportBonusTokensCsv()">
+              <button matButton="tonal" type="button" class="session-host__bonus-export-btn" (click)="exportBonusTokensCsv()">
                 <mat-icon>download</mat-icon>
                 CSV exportieren
               </button>
-            </div>
+            </section>
           }
 
           @if (feedbackSummary(); as fb) {
-            <div class="session-host__feedback-summary">
-              <h2 class="session-host__feedback-summary-title">
-                <mat-icon>rate_review</mat-icon>
+            <section class="session-host__feedback-card" aria-labelledby="feedback-heading">
+              <h2 class="session-host__feedback-summary-title" id="feedback-heading">
+                <mat-icon aria-hidden="true">rate_review</mat-icon>
                 Session-Bewertung
               </h2>
               <p class="session-host__feedback-avg">Ø {{ fb.overallAverage | number:'1.1-1' }} ★</p>
@@ -164,8 +167,9 @@
                   Regelmäßig? {{ fb.wouldRepeatYes }}× Ja · {{ fb.wouldRepeatNo }}× Nein
                 </p>
               }
-            </div>
+            </section>
           }
+          </div>
         } @else {
           @if (showFingerCountdown()) {
             <div class="session-host__finger-countdown">

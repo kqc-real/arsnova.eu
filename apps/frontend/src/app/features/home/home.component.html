@@ -119,6 +119,12 @@
             }
             @if (joinError()) {
               <p class="home-error" role="alert">{{ joinError() }}</p>
+              @if (joinError() === 'Diese Session ist bereits beendet.' && sessionCode().length === 6) {
+                <a [routerLink]="['/session', sessionCode().toUpperCase(), 'host']" mat-button class="home-error-link">
+                  <mat-icon>admin_panel_settings</mat-icon>
+                  Als Dozent anzeigen
+                </a>
+              }
             }
           </mat-card-actions>
         </mat-card>

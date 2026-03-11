@@ -42,6 +42,13 @@
     color: var(--mat-sys-on-surface-variant);
   }
 
+  &__host-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+  }
+
   &--error .join-card__text {
     color: var(--mat-sys-error);
   }

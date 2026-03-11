@@ -537,6 +537,13 @@ mat-card-actions.l-stack { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .home-error { margin: 0; color: var(--mat-sys-error); font: var(--mat-sys-body-small); }
 
+.home-error-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
 .home-cta--ready {
   animation: home-cta-pulse 0.35s ease;
 }
