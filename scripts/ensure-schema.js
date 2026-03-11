@@ -5,6 +5,16 @@
  */
 const { PrismaClient } = require('@prisma/client');
 
+function createPrisma() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL nicht gesetzt');
+  try {
+    return new PrismaClient({ datasourceUrl: url });
+  } catch {
+    return new PrismaClient({ datasources: { db: { url } } });
+  }
+}
+
 const statements = [
   // Story 2.7: Peer Instruction
   `ALTER TYPE "SessionStatus" ADD VALUE IF NOT EXISTS 'DISCUSSION' AFTER 'RESULTS'`,
@@ -62,7 +72,7 @@ const statements = [
 ];
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = createPrisma();
   let ok = 0;
   let skipped = 0;
   let failed = 0;
