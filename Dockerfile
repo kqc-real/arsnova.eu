@@ -63,6 +63,11 @@ COPY --from=builder /app/libs/shared-types/package.json libs/shared-types/packag
 # Copy Angular build output (served by Express as static files)
 COPY --from=builder /app/apps/frontend/dist/browser apps/frontend/dist
 
+# Entrypoint: Migrationen vor Start anwenden (funktioniert ohne Server-Zugriff)
+COPY scripts/docker-entrypoint.sh /app/scripts/docker-entrypoint.sh
+RUN chmod +x /app/scripts/docker-entrypoint.sh
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- http://localhost:3000/trpc/health.check || exit 1

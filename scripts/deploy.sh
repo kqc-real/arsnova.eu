@@ -20,9 +20,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 echo ">>> Docker Compose: Build & Start (Produktion)"
+echo ">>> (Prisma-Migrationen laufen automatisch im Container-Entrypoint.)"
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --build
-
-echo ">>> Prisma: Migrationen anwenden"
-docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T app npx prisma migrate deploy
 
 echo ">>> Deploy abgeschlossen."
