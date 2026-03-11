@@ -587,7 +587,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 4: Auswertung & Aufräumen (System & Dozent)
 
-- **Story 4.1 (Leaderboard mit Punktesystem):** 🟡 Als Dozent möchte ich am Ende des Quizzes ein differenziertes Ranking sehen, das Schwierigkeit und Antwortgeschwindigkeit berücksichtigt.
+- **Story 4.1 (Leaderboard mit Punktesystem):** ✅ Als Dozent möchte ich am Ende des Quizzes ein differenziertes Ranking sehen, das Schwierigkeit und Antwortgeschwindigkeit berücksichtigt.
   - **Akzeptanzkriterien:**
     - Leaderboard zeigt Rang, Nickname, Gesamtpunkte und Anzahl richtiger Antworten.
     - **Punkteformel:** `score = difficultyMultiplier × timeBonus`
@@ -599,17 +599,17 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Sortierung: Höchste Gesamtpunktzahl zuerst; bei Gleichstand entscheidet die kürzere Gesamtantwortzeit.
     - Wird nur angezeigt, wenn `showLeaderboard=true` konfiguriert ist.
     - Nach jeder Frage kann optional ein Zwischenstand (Top 5) eingeblendet werden.
-- **Story 4.2 (Server aufräumen):** 🔴 Als System möchte ich, dass die flüchtigen Abstimmungsdaten (Redis) vom Server gelöscht werden, sobald der Dozent die Live-Session beendet.
+- **Story 4.2 (Server aufräumen):** ✅ Als System möchte ich, dass die flüchtigen Abstimmungsdaten (Redis) vom Server gelöscht werden, sobald der Dozent die Live-Session beendet.
   - **Akzeptanzkriterien:**
     - `session.end`-Mutation setzt Status auf `FINISHED` und löscht Redis-Keys.
     - Votes bleiben in PostgreSQL für spätere Leaderboard-Auswertung erhalten.
     - Automatisches Cleanup nach 24h für nicht beendete Sessions.
-- **Story 4.3 (WebSocket Reconnection):** 🟡 Als System möchte ich, dass abgebrochene WebSocket-Verbindungen automatisch wiederhergestellt werden.
+- **Story 4.3 (WebSocket Reconnection):** ✅ Als System möchte ich, dass abgebrochene WebSocket-Verbindungen automatisch wiederhergestellt werden.
   - **Akzeptanzkriterien:**
     - Frontend erkennt Verbindungsabbruch und zeigt Hinweis an.
     - Automatischer Reconnect-Versuch (Exponential Backoff).
     - Nach Reconnect wird der aktuelle Session-Zustand synchronisiert.
-- **Story 4.4 (Ergebnis-Visualisierung):** 🔴 Als Dozent möchte ich die Abstimmungsergebnisse nach jeder Frage als anschauliche Grafik auf dem Beamer sehen.
+- **Story 4.4 (Ergebnis-Visualisierung):** ✅ Als Dozent möchte ich die Abstimmungsergebnisse nach jeder Frage als anschauliche Grafik auf dem Beamer sehen.
   - **Akzeptanzkriterien:**
     - **MC/SC-Fragen:** Horizontales Balkendiagramm — ein Balken pro Antwortoption, Länge proportional zur Anzahl Votes, absolute Zahl + Prozentwert als Label.
     - Korrekte Antworten werden nach Auflösung grün hervorgehoben, falsche rot (+ Icons ✓/✗ für Farbunabhängigkeit, Story 6.5).
@@ -618,7 +618,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Animation: Balken wachsen von 0 auf Endwert (300 ms ease-out). Bei `prefers-reduced-motion` wird die Animation übersprungen.
     - Diagramm skaliert responsive (Mobile: vertikal gestapelt, Beamer: horizontal).
     - Wird sowohl in der Beamer-Ansicht (Story 2.5) als auch auf den Studenten-Geräten angezeigt.
-- **Story 4.5 (Freitext-Auswertung):** 🟡 Als Dozent möchte ich die eingegangenen Freitext-Antworten gebündelt einsehen können, um offene Fragen auszuwerten.
+- **Story 4.5 (Freitext-Auswertung):** ✅ Als Dozent möchte ich die eingegangenen Freitext-Antworten gebündelt einsehen können, um offene Fragen auszuwerten.
   - **Akzeptanzkriterien:**
     - Alle Freitext-Antworten werden in einer sortierbaren Liste angezeigt (alphabetisch / nach Häufigkeit).
     - Identische oder sehr ähnliche Antworten werden gruppiert mit Anzahl-Badge.
