@@ -1,6 +1,6 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { MatButton, MatFabButton } from '@angular/material/button';
+import { MatFabButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { trpc } from '../../core/trpc.client';
@@ -37,7 +37,7 @@ function hasAlreadyVoted(code: string): boolean {
 @Component({
   selector: 'app-feedback-vote',
   standalone: true,
-  imports: [MatButton, MatFabButton, MatCard, MatCardContent, MatIcon],
+  imports: [MatFabButton, MatCard, MatCardContent, MatIcon],
   templateUrl: './feedback-vote.component.html',
   styleUrl: './feedback-vote.component.scss',
 })

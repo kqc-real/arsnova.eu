@@ -46,7 +46,7 @@ export function calculateVoteScore(input: CalculateVoteScoreInput): number {
 
   const multiplier = DIFFICULTY_MULTIPLIER[input.difficulty];
 
-  if (input.timerDurationMs && input.timerDurationMs > 0 && input.responseTimeMs != null) {
+  if (input.timerDurationMs && input.timerDurationMs > 0 && input.responseTimeMs !== null && input.responseTimeMs !== undefined) {
     const timeFraction = Math.max(0, 1 - input.responseTimeMs / input.timerDurationMs);
     return Math.round(multiplier * MAX_BASE_POINTS * timeFraction);
   }

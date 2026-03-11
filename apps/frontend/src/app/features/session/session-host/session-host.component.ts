@@ -68,6 +68,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly wordCloudInfo = signal('Warte auf Live-Freitextdaten …');
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly exportStatus = signal<string | null>(null);
+  readonly exportExporting = signal(false);
   readonly leaderboard = signal<LeaderboardEntryDTO[]>([]);
   readonly leaderboardLoading = signal(false);
   readonly bonusTokens = signal<BonusTokenEntryDTO[]>([]);
@@ -418,8 +419,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async exportSessionResultsCsv(): Promise<void> {
     const sid = this.session()?.id;
-    if (!sid) return;
+    if (!sid || this.exportExporting()) return;
     this.exportStatus.set(null);
+    this.exportExporting.set(true);
     try {
       const data = await trpc.session.getExportData.query({ sessionId: sid });
       const rows: string[] = [
@@ -440,7 +442,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           details = Object.entries(q.ratingDistribution)
             .map(([k, v]) => `${k}★: ${v}`)
             .join(' | ');
-          if (q.ratingAverage != null) details += ` (Ø ${q.ratingAverage})`;
+          if (q.ratingAverage !== null && q.ratingAverage !== undefined) details += ` (Ø ${q.ratingAverage})`;
         }
 
         rows.push(
@@ -475,6 +477,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.exportStatus.set('Ergebnis-CSV exportiert.');
     } catch {
       this.exportStatus.set('Export fehlgeschlagen.');
+    } finally {
+      this.exportExporting.set(false);
     }
   }
 

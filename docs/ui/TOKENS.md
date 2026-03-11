@@ -32,6 +32,7 @@ Aktuell definierte App-Tokens:
   --app-color-info-fg: var(--mat-sys-on-tertiary-container);
   --app-color-warning-bg: var(--mat-sys-surface-variant);
   --app-color-warning-fg: var(--mat-sys-on-surface-variant);
+  --app-rating-star: light-dark(#f59e0b, #fbbf24);  // Sterne/Rating (Story 4.8)
   --app-status-healthy: light-dark(#16a34a, #4ade80);  // Semantisch gruen (Status-Punkt)
 
   // Preset-abhaengige Tokens

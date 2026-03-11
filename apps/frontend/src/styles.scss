@@ -111,6 +111,8 @@ html {
   --app-color-info-fg: var(--mat-sys-on-tertiary-container);
   --app-color-warning-bg: var(--mat-sys-surface-variant);
   --app-color-warning-fg: var(--mat-sys-on-surface-variant);
+  /** Sterne/Rating (Story 4.8) – semantisch amber, unabhängig von Primary-Palette */
+  --app-rating-star: light-dark(#f59e0b, #fbbf24);
 
   --app-bg-root: var(--mat-sys-surface);
   --app-shadow-accent: none;

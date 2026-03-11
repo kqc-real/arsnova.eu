@@ -1222,7 +1222,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 .session-host__feedback-avg {
   font-size: 2rem;
   font-weight: 700;
-  color: #f59e0b;
+  color: var(--app-rating-star);
   margin: 0;
 }
 

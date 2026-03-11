@@ -31,16 +31,18 @@
     }
 
     @if (!feedbackSubmitted()) {
-      <div class="vote-feedback">
+      <div class="vote-feedback" [class.vote-feedback--playful]="isPlayfulPreset()" [class.vote-feedback--serious]="!isPlayfulPreset()">
         <p class="vote-feedback__title">Deine Meinung zählt</p>
 
         <p class="vote-feedback__label">Wie hat dir das Quiz gefallen?</p>
         <div class="vote-feedback__stars" role="radiogroup" aria-label="Gesamtbewertung">
           @for (s of feedbackStars(); track s) {
             <button class="vote-feedback__star"
+              type="button"
               [class.vote-feedback__star--active]="s <= feedbackOverall()"
+              [attr.aria-pressed]="s <= feedbackOverall()"
               (click)="setFeedbackOverall(s)"
-              [attr.aria-label]="s + ' Stern' + (s > 1 ? 'e' : '')">
+              [attr.aria-label]="s + ' von 5 Sternen'">
               {{ s <= feedbackOverall() ? '★' : '☆' }}
             </button>
           }
@@ -50,24 +52,30 @@
         <div class="vote-feedback__stars" role="radiogroup" aria-label="Fragenqualität">
           @for (s of feedbackStars(); track s) {
             <button class="vote-feedback__star"
+              type="button"
               [class.vote-feedback__star--active]="s <= feedbackQuality()"
+              [attr.aria-pressed]="s <= feedbackQuality()"
               (click)="setFeedbackQuality(s)"
-              [attr.aria-label]="s + ' Stern' + (s > 1 ? 'e' : '')">
+              [attr.aria-label]="s + ' von 5 Sternen'">
               {{ s <= feedbackQuality() ? '★' : '☆' }}
             </button>
           }
         </div>
 
         <p class="vote-feedback__label">Regelmäßig solche Quizze?</p>
-        <div class="vote-feedback__repeat">
-          <button mat-tonal-button
+        <div class="vote-feedback__repeat" role="group" aria-label="Regelmäßig solche Quizze?">
+          <button mat-tonal-button type="button"
             [class.vote-feedback__repeat--active]="feedbackRepeat() === true"
-            (click)="setFeedbackRepeat(true)">
+            [attr.aria-pressed]="feedbackRepeat() === true"
+            (click)="setFeedbackRepeat(true)"
+            aria-label="Ja, regelmäßig">
             <mat-icon>thumb_up</mat-icon> Ja
           </button>
-          <button mat-tonal-button
+          <button mat-tonal-button type="button"
             [class.vote-feedback__repeat--active]="feedbackRepeat() === false"
-            (click)="setFeedbackRepeat(false)">
+            [attr.aria-pressed]="feedbackRepeat() === false"
+            (click)="setFeedbackRepeat(false)"
+            aria-label="Nein">
             <mat-icon>thumb_down</mat-icon> Nein
           </button>
         </div>

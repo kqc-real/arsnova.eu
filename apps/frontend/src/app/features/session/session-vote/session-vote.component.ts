@@ -116,6 +116,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return this.isActive() && s !== null && s >= 0 && s <= 5 && this.themePreset.preset() === 'spielerisch';
   });
 
+  readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
+
   readonly timerExpired = computed(() => {
     const s = this.countdownSeconds();
     return s !== null && s <= 0;
@@ -435,8 +437,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.feedbackSubmitted.set(true);
       this.snackBar.open('Danke für dein Feedback!', '', { duration: 2000 });
       void this.loadFeedbackSummary();
-    } catch {
-      this.snackBar.open('Feedback konnte nicht gesendet werden.', '', { duration: 2000 });
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'message' in err
+        ? (err as { message: string }).message
+        : '';
+      if (msg.includes('bereits bewertet')) {
+        this.feedbackSubmitted.set(true);
+        void this.loadFeedbackSummary();
+      } else {
+        this.snackBar.open('Feedback konnte nicht gesendet werden.', '', { duration: 2000 });
+      }
     } finally {
       this.feedbackSubmitting.set(false);
     }

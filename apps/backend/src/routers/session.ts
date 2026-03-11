@@ -1576,7 +1576,7 @@ export const sessionRouter = router({
         overallDist[key] = (overallDist[key] ?? 0) + 1;
         overallSum += f.overallRating;
 
-        if (f.questionQualityRating != null) {
+        if (f.questionQualityRating !== null && f.questionQualityRating !== undefined) {
           const qqKey = String(f.questionQualityRating);
           qqDist[qqKey] = (qqDist[qqKey] ?? 0) + 1;
           qqSum += f.questionQualityRating;

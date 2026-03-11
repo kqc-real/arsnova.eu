@@ -62,12 +62,20 @@
             <p class="session-host__finished-text" role="status">Session beendet</p>
             <p class="session-host__finished-sub">Alle Ergebnisse sind gespeichert.</p>
             <div class="session-host__export-actions">
-              <button mat-tonal-button (click)="exportSessionResultsCsv()">
+              <button matButton="tonal"
+                type="button"
+                (click)="exportSessionResultsCsv()"
+                [disabled]="exportExporting()"
+                [attr.aria-busy]="exportExporting()"
+                aria-label="Ergebnis als CSV exportieren">
                 <mat-icon>download</mat-icon>
                 Ergebnis exportieren
               </button>
+              @if (exportExporting()) {
+                <p class="session-host__export-hint" role="status">Wird exportiert…</p>
+              }
               @if (exportStatus(); as status) {
-                <p class="session-host__export-hint">{{ status }}</p>
+                <p class="session-host__export-hint" role="status">{{ status }}</p>
               }
               <p class="session-host__export-dsgvo">Export für Dokumentation und Evaluation – keine personenbezogenen Daten.</p>
             </div>
