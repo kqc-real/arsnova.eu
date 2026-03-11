@@ -31,11 +31,11 @@ docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
 echo ""
 echo ">>> Schritt 3: Warte auf Healthcheck …"
 sleep 5
-if docker compose -f "$COMPOSE_FILE" ps --format json | grep -q '"Health":"healthy"'; then
+if docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps --format json | grep -q '"Health":"healthy"'; then
   echo ">>> App ist healthy."
 else
   echo ">>> App startet noch – Container-Logs prüfen:"
-  echo ">>>   docker compose -f $COMPOSE_FILE logs app --tail 50"
+  echo ">>>   docker compose -f $COMPOSE_FILE --env-file $ENV_FILE logs app --tail 50"
 fi
 
 echo ""
