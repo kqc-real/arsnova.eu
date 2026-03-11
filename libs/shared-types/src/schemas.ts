@@ -476,6 +476,7 @@ export type LeaderboardEntryDTO = z.infer<typeof LeaderboardEntryDTOSchema>;
 /** DTO: Persönliche Scorecard nach jeder Frage (Story 5.6) */
 export const PersonalScorecardDTOSchema = z.object({
   questionOrder: z.number(),         // Frage-Nr. (1-basiert)
+  totalQuestions: z.number(),        // Gesamtanzahl Fragen im Quiz
   wasCorrect: z.boolean().nullable(), // null bei SURVEY/FREETEXT
   correctAnswerIds: z.array(z.uuid()).optional(), // Korrekte Antwort-IDs (bei Falsch)
   questionScore: z.number(),         // Punkte für diese Frage (inkl. Streak)

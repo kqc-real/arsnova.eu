@@ -359,9 +359,33 @@
   color: var(--mat-sys-primary);
 }
 
-.vote-scorecard__hint {
-  margin: 0 1.25rem 0.75rem;
+.vote-scorecard__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 1.25rem 0.5rem;
   font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.4;
+}
+
+.vote-scorecard__progress {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+}
+
+.vote-scorecard__progress-badge {
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--mat-sys-corner-extra-small, 4px);
+  background: var(--mat-sys-surface-container-high);
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.vote-scorecard__hint {
+  margin-inline-start: auto;
   color: var(--mat-sys-on-surface-variant);
 }
 

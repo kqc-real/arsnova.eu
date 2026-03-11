@@ -1405,8 +1405,10 @@ export const sessionRouter = router({
         ? previousRank - currentRank
         : 0;
 
+      const totalQuestions = session.quiz.questions.length;
       return {
         questionOrder: input.questionIndex + 1,
+        totalQuestions,
         wasCorrect,
         correctAnswerIds: wasCorrect === false ? correctIds : undefined,
         questionScore,

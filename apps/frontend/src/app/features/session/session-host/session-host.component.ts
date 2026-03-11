@@ -204,6 +204,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.generateQrCode();
     await this.refreshLiveFreetext();
     await this.refreshCurrentQuestionForHost();
+    this.sound.stopMusic();
     this.pollTimer = setInterval(() => {
       void this.refreshLiveFreetext();
       void this.refreshCurrentQuestionForHost();
@@ -330,7 +331,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const remaining = Math.max(0, Math.round((deadline - Date.now()) / 1000));
       this.countdownSeconds.set(remaining);
       if (remaining > 0 && remaining <= 5 && this.session()?.enableSoundEffects) {
-        void this.sound.play('countdownTick');
+        if (remaining === 1) {
+          void this.sound.play('countdownEnd');
+        } else {
+          void this.sound.play('countdownTick');
+        }
       }
       if (remaining <= 0) {
         this.stopCountdown();
@@ -353,28 +358,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Imperatives Musik-Sync: startet/stoppt Hintergrundmusik.
-   * Wird vom Poll-Timer alle 2s aufgerufen – komplett unabhängig
-   * von Angular Effects. Liest Signals direkt.
+   * Stoppt Hintergrundmusik (Hintergrundmusik im Host deaktiviert).
+   * Wird vom Poll-Timer alle 2s und beim Init aufgerufen.
    */
-  private musicStartPending = false;
-
   private syncMusic(): void {
-    const status = this.effectiveStatus();
-    const track = this.session()?.backgroundMusic;
-    const allVoted = this.allHaveVoted();
-    const shouldPlay = !!track
-      && !allVoted
-      && (status === 'LOBBY' || status === 'ACTIVE' || status === 'QUESTION_OPEN');
-
-    if (shouldPlay && !this.sound.musicPlaying() && !this.musicStartPending) {
-      this.musicStartPending = true;
-      this.sound.playMusic(track as import('../../../core/sound.service').MusicTrack)
-        .finally(() => { this.musicStartPending = false; });
-    } else if (!shouldPlay) {
-      this.musicStartPending = false;
-      this.sound.stopMusic();
-    }
+    this.sound.stopMusic();
   }
 
   async exportFreetextSessionCsv(): Promise<void> {

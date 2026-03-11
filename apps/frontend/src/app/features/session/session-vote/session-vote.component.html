@@ -197,7 +197,13 @@
             <mat-icon class="vote-scorecard__heading-icon" aria-hidden="true">person</mat-icon>
             Dein Ergebnis
           </h2>
-          <p class="vote-scorecard__hint" id="scorecard-hint">Nur du siehst diese Anzeige – nicht der Dozent.</p>
+          <p class="vote-scorecard__meta" aria-live="polite">
+            <span class="vote-scorecard__progress">{{ sc.questionOrder }}/{{ sc.totalQuestions }}</span>
+            @if (sc.questionOrder >= sc.totalQuestions) {
+              <span class="vote-scorecard__progress-badge">Letzte Frage</span>
+            }
+            <span class="vote-scorecard__hint" id="scorecard-hint">Nur für dich sichtbar.</span>
+          </p>
           <div class="vote-scorecard__inner"
             [class.vote-scorecard--rank1]="sc.currentRank === 1"
             [class.vote-scorecard--rank2]="sc.currentRank === 2"
