@@ -63,8 +63,8 @@ COPY --from=builder /app/libs/shared-types/package.json libs/shared-types/packag
 # Copy Angular build output (served by Express as static files)
 COPY --from=builder /app/apps/frontend/dist/browser apps/frontend/dist
 
-# Entrypoint: Migrationen vor Start anwenden (funktioniert ohne Server-Zugriff)
-COPY scripts/docker-entrypoint.sh /app/scripts/docker-entrypoint.sh
+# Entrypoint + Schema-Sicherung: vor App-Start fehlende Spalten anlegen
+COPY scripts/docker-entrypoint.sh scripts/ensure-schema.js /app/scripts/
 RUN chmod +x /app/scripts/docker-entrypoint.sh
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 
