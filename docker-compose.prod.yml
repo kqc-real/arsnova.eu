@@ -67,8 +67,8 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/trpc/health.check"]
       interval: 30s
-      timeout: 5s
-      start_period: 15s
+      timeout: 10s
+      start_period: 45s
       retries: 3
 
 networks:

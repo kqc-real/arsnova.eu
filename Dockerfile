@@ -69,7 +69,7 @@ RUN chmod +x /app/scripts/docker-entrypoint.sh
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3000/trpc/health.check || exit 1
 
 EXPOSE 3000
