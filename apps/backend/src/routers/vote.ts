@@ -149,6 +149,13 @@ export const voteRouter = router({
       }
 
       const round = input.round ?? 1;
+
+      const quiz = await prisma.quiz.findUnique({
+        where: { id: participant.session.quizId ?? '' },
+        select: { defaultTimer: true },
+      });
+      const timerSeconds = question.timer ?? quiz?.defaultTimer ?? null;
+
       const score = calculateVoteScore({
         type: questionType,
         difficulty: question.difficulty as Difficulty,
@@ -156,6 +163,8 @@ export const voteRouter = router({
         correctAnswerIds: question.answers
           .filter((answer) => answer.isCorrect)
           .map((answer) => answer.id),
+        responseTimeMs: input.responseTimeMs ?? null,
+        timerDurationMs: timerSeconds ? timerSeconds * 1000 : null,
       });
       const existing = await prisma.vote.findUnique({
         where: {

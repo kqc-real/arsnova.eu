@@ -1,6 +1,7 @@
 /**
- * Session-Router (Story 2.1a, 3.1, 4.6, 4.7, 0.5).
+ * Session-Router (Story 2.1a, 3.1, 4.1, 4.2, 4.6, 4.7, 0.5).
  */
+import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import {
   CreateSessionInputSchema,
@@ -21,17 +22,20 @@ import {
   QuestionStudentDTOSchema,
   QuestionPreviewDTOSchema,
   QuestionRevealedDTOSchema,
+  LeaderboardEntryDTOSchema,
   type SessionExportDTO,
   type QuestionExportEntry,
   type QuestionType,
   type OptionDistributionEntry,
   type FreetextAggregateEntry,
   type BonusTokenEntryDTO,
+  type LeaderboardEntryDTO,
   type RoundComparisonDTO,
   type RoundDistributionEntry,
   type VoterMigrationEntry,
   UpdateSessionPresetInputSchema,
 } from '@arsnova/shared-types';
+import { questionCountsTowardsTotalQuestions } from '../lib/quizScoring';
 import { publicProcedure, router, getClientIp } from '../trpc';
 import { prisma } from '../db';
 import {
@@ -1033,6 +1037,84 @@ export const sessionRouter = router({
         participantCount: session._count.participants + 1,
         participantId: participant.id,
       };
+    }),
+
+  /** Leaderboard: Ranking aller Teilnehmer nach Gesamtpunktzahl (Story 4.1). */
+  getLeaderboard: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(z.array(LeaderboardEntryDTOSchema))
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        include: {
+          quiz: {
+            select: {
+              showLeaderboard: true,
+              questions: { select: { type: true } },
+            },
+          },
+          participants: { select: { id: true, nickname: true } },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (!session.quiz?.showLeaderboard) {
+        return [];
+      }
+
+      const totalScoredQuestions = session.quiz.questions.filter(
+        (q) => questionCountsTowardsTotalQuestions(q.type as QuestionType),
+      ).length;
+
+      const votes = await prisma.vote.findMany({
+        where: { sessionId: session.id, round: 1 },
+        select: {
+          participantId: true,
+          score: true,
+          responseTimeMs: true,
+          question: { select: { type: true } },
+          selectedAnswers: { select: { answerOption: { select: { isCorrect: true } } } },
+        },
+      });
+
+      const stats = new Map<string, { totalScore: number; correctCount: number; totalResponseTimeMs: number }>();
+      for (const p of session.participants) {
+        stats.set(p.id, { totalScore: 0, correctCount: 0, totalResponseTimeMs: 0 });
+      }
+
+      for (const v of votes) {
+        const s = stats.get(v.participantId);
+        if (!s) continue;
+        s.totalScore += v.score;
+        s.totalResponseTimeMs += v.responseTimeMs ?? 0;
+
+        if (questionCountsTowardsTotalQuestions(v.question.type as QuestionType)) {
+          const correctIds = v.selectedAnswers.filter((sa) => sa.answerOption.isCorrect);
+          const allCorrect = correctIds.length > 0 &&
+            correctIds.length === v.selectedAnswers.length;
+          if (allCorrect) s.correctCount++;
+        }
+      }
+
+      const nicknameById = new Map(session.participants.map((p) => [p.id, p.nickname]));
+
+      const entries: LeaderboardEntryDTO[] = [...stats.entries()]
+        .map(([pid, s]) => ({
+          rank: 0,
+          nickname: nicknameById.get(pid) ?? '?',
+          totalScore: s.totalScore,
+          correctCount: s.correctCount,
+          totalQuestions: totalScoredQuestions,
+          totalResponseTimeMs: s.totalResponseTimeMs,
+        }))
+        .sort((a, b) => b.totalScore - a.totalScore || a.totalResponseTimeMs - b.totalResponseTimeMs);
+
+      for (let i = 0; i < entries.length; i++) {
+        entries[i].rank = i + 1;
+      }
+
+      return entries;
     }),
 
   /** Session manuell beenden (Story 4.2). Setzt Status FINISHED, endedAt, räumt Redis auf. */

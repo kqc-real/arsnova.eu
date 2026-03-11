@@ -19,11 +19,16 @@ interface CalculateVoteScoreInput {
   difficulty: Difficulty;
   selectedAnswerIds: string[];
   correctAnswerIds: string[];
+  responseTimeMs?: number | null;
+  timerDurationMs?: number | null;
 }
 
 /**
- * Punkte für eine abgegebene Antwort.
- * Nicht-wertbare Typen (SURVEY, FREETEXT, RATING) geben immer 0 Punkte zurück.
+ * Punkte für eine abgegebene Antwort (Story 4.1).
+ * Formel: difficultyMultiplier × timeBonus.
+ * TimeBonus = maxPoints × (1 − responseTime / timerDuration).
+ * Fallback ohne Timer: maxPoints × difficultyMultiplier (kein Zeitbonus).
+ * Nicht-wertbare Typen (SURVEY, FREETEXT, RATING) geben immer 0 zurück.
  */
 export function calculateVoteScore(input: CalculateVoteScoreInput): number {
   if (!questionCountsTowardsTotalQuestions(input.type)) {
@@ -39,6 +44,13 @@ export function calculateVoteScore(input: CalculateVoteScoreInput): number {
     return 0;
   }
 
-  return MAX_BASE_POINTS * DIFFICULTY_MULTIPLIER[input.difficulty];
+  const multiplier = DIFFICULTY_MULTIPLIER[input.difficulty];
+
+  if (input.timerDurationMs && input.timerDurationMs > 0 && input.responseTimeMs != null) {
+    const timeFraction = Math.max(0, 1 - input.responseTimeMs / input.timerDurationMs);
+    return Math.round(multiplier * MAX_BASE_POINTS * timeFraction);
+  }
+
+  return MAX_BASE_POINTS * multiplier;
 }
 

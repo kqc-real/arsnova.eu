@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+import { DecimalPipe, DOCUMENT } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -13,6 +13,7 @@ import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import type {
   HostCurrentQuestionDTO,
+  LeaderboardEntryDTO,
   SessionInfoDTO,
   SessionParticipantsPayload,
   SessionStatusUpdate,
@@ -31,6 +32,7 @@ const ANSWER_SHAPES = ['\u25B3', '\u25CB', '\u25A1', '\u25C7', '\u2606', '\u2B21
   selector: 'app-session-host',
   standalone: true,
   imports: [
+    DecimalPipe,
     MatButton,
     MatCard,
     MatCardContent,
@@ -64,6 +66,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly wordCloudInfo = signal('Warte auf Live-Freitextdaten …');
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly exportStatus = signal<string | null>(null);
+  readonly leaderboard = signal<LeaderboardEntryDTO[]>([]);
+  readonly leaderboardLoading = signal(false);
   /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
   readonly currentQuestionForHost = signal<HostCurrentQuestionDTO | null>(null);
   /** Countdown in Sekunden (null = kein Timer, Story 3.5). */
@@ -100,6 +104,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (this.allHaveVoted()) {
         this.stopCountdown();
         this.countdownSeconds.set(null);
+      }
+    });
+    effect(() => {
+      const status = this.effectiveStatus();
+      if (status === 'FINISHED' || status === 'RESULTS') {
+        void this.loadLeaderboard();
       }
     });
   }
@@ -345,6 +355,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.startCountdown(this.currentQuestionForHost()?.timer, result.activeAt);
     } finally {
       this.controlPending.set(false);
+    }
+  }
+
+  async loadLeaderboard(): Promise<void> {
+    if (!this.code || this.leaderboardLoading()) return;
+    this.leaderboardLoading.set(true);
+    try {
+      const entries = await trpc.session.getLeaderboard.query({ code: this.code.toUpperCase() });
+      this.leaderboard.set(entries);
+    } catch {
+      this.leaderboard.set([]);
+    } finally {
+      this.leaderboardLoading.set(false);
     }
   }
 
