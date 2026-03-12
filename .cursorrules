@@ -29,6 +29,8 @@ Du bist der Lead-Architekt. Wir arbeiten in einem **npm Workspaces Monorepo**.
 
 ## 🌐 i18n (Story 6.2, ADR-0008)
 - **Quellsprache:** Deutsch; nur UI-Texte übersetzen, Quiz-Inhalte (Fragen/Antworten) nicht.
+- **Pflicht bei UI-Weiterentwicklung:** Neue oder geänderte deutschsprachige UI-Texte (Template, `$localize`, ARIA, Fehlermeldungen, Placeholders, Hilfetexte, Legal-Texte) MUESSEN im gleichen Arbeitsschritt in allen 5 Sprachen (`de`, `en`, `fr`, `es`, `it`) nachgezogen werden.
+- **Keine Teilübersetzung mergen:** Änderungen an DE-Texten gelten als unvollständig, solange die zugehörigen Targets in `messages.en.xlf`, `messages.fr.xlf`, `messages.es.xlf`, `messages.it.xlf` (und bei Legal-Seiten `imprint/privacy.{locale}.md`) nicht synchron aktualisiert sind.
 - **Stil:** Informell (Duzen), zeitgemäß. Deutsch = Referenz für Form und Länge.
 - **Prüfung:** Darstellung mit Übersetzungen **zuerst auf Smartphone** (Mobile-First), dann Desktop; bei Überlänge Strukturbrüche vermeiden (kürzere Formulierung oder zwei Varianten Mobile/Desktop).
 - **Datum/Einheiten/Idiomatik:** Zielsprache/Locale beachten; Formulierungen idiomatisch.

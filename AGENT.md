@@ -56,6 +56,8 @@ Die folgenden Patterns wurden als verbindlich etabliert und MUESSEN bei Aenderun
 Bei Arbeit an UI-Texten, Übersetzungsdateien oder mehrsprachiger Darstellung gelten die Vorgaben aus **ADR-0008** und `docs/I18N-ANGULAR.md`:
 
 * **Technik:** @angular/localize, Locale als Subpfad; Quellsprache Deutsch. Quiz-Inhalte (Fragen, Antworten) werden NICHT übersetzt – nur UI-Texte.
+* **Verbindliche Sync-Regel (5 Sprachen):** Neue oder geänderte deutschsprachige UI-Texte MUESSEN sofort in `en`, `fr`, `es`, `it` nachgezogen werden (gleiches PR/gleicher Commit). Dazu gehören auch ARIA-Texte, Platzhalter, Fehlermeldungen, Help-Texte und rechtliche Seiten.
+* **Definition unvollständig:** Eine Story mit geänderten DE-UI-Texten ist nicht done, solange `messages.en.xlf`, `messages.fr.xlf`, `messages.es.xlf`, `messages.it.xlf` (und bei Legal-Inhalten `imprint/privacy.{locale}.md`) nicht synchron aktualisiert sind.
 * **Sprachstil:** Informelle Anrede (Duzen) und zeitgemäßer Stil in allen Sprachen.
 * **Referenz Deutsch:** Deutscher Quelltext ist Maßstab für Form und Länge; Übersetzungen sollen die vorgegebene Kürze/Struktur wahren.
 * **Visuelle Prüfung, Mobile-First:** Darstellung mit Übersetzungen **zuerst auf Smartphone** prüfen, dann Desktop. Längere Texte können Strukturbrüche verursachen → kürzere Formulierung oder Layout anpassen; bei Bedarf **zwei Varianten** (Mobile kurz / Desktop voll).

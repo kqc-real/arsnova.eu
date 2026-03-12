@@ -10,7 +10,8 @@ import { MatOption } from '@angular/material/core';
 import { trpc } from '../../core/trpc.client';
 import type { SessionInfoDTO } from '@arsnova/shared-types';
 import type { NicknameTheme } from '@arsnova/shared-types';
-import { NICKNAME_LISTS } from './nickname-themes';
+import { getLocaleFromPath } from '../../core/locale-from-path';
+import { getNicknameList } from './nickname-themes';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const SESSION_POLL_MS = 3000;
@@ -30,6 +31,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly code = (this.route.snapshot.paramMap.get('code') ?? '').trim().toUpperCase();
+  private readonly locale = getLocaleFromPath() ?? 'de';
 
   readonly session = signal<SessionInfoDTO | null>(null);
   readonly error = signal<string | null>(null);
@@ -48,8 +50,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     const s = this.session();
     if (!s || s.type !== 'QUIZ') return [];
     const theme = (s.nicknameTheme ?? 'NOBEL_LAUREATES') as NicknameTheme;
-    if (!(theme in NICKNAME_LISTS)) return [];
-    return [...(NICKNAME_LISTS[theme] ?? [])];
+    return [...getNicknameList(theme, this.locale)];
   });
 
   /** Liste anzeigen nur wenn Dozent keine eigenen Nicks erlaubt und Quiz eine Namensliste (nicknameTheme) vorgegeben hat. */
