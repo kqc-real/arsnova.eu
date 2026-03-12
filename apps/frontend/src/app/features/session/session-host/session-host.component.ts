@@ -443,7 +443,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** True, wenn die aktuelle Frage die letzte ist – dann zeigt der Steuerungs-Button „Session beenden“. */
   isLastQuestion(): boolean {
     const q = this.currentQuestionForHost();
-    if (!q || q.totalQuestions == null) return false;
+    if (!q || q.totalQuestions === null || q.totalQuestions === undefined) return false;
     return q.order + 1 >= q.totalQuestions;
   }
 

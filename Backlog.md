@@ -2,9 +2,11 @@
 
 > **Priorisierung:** 🔴 Must · 🟡 Should · 🟢 Could
 >
-> **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5
+> **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Parallelpfad (jederzeit ab Epic 0):** Epic 6 (Theming, i18n, Accessibility, Mobile-First, Impressum), Epic 9 (Admin: Inspektion, Löschen, Auszug für Behörden)
+> **Nächster Fokus:** Epic 6 (Theming, i18n, Impressum/Datenschutz, Mobile-First, Barrierefreiheit) — parallel ab Epic 0 möglich.
+>
+> **Weitere Parallelpfade:** Epic 9 (Admin: Inspektion, Löschen, Auszug für Behörden)
 
 ---
 
@@ -679,7 +681,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ---
 
-## Epic 5: Gamification & Audio-Effekte (Rolle: Dozent & Student)
+## Epic 5: Gamification & Audio-Effekte (Rolle: Dozent & Student) ✅ abgeschlossen
+
+> **Tag:** `epic-5` · UX-Verbesserungen (Phasen-Labels, Lesephase-Banner, Letzte-Frage-Hinweis, Richtig-Badge, KaTeX-Scrollbar, Join/Diskussion) sind in den Session-Features integriert.
 
 - **Story 5.1 (Sound-Effekte):** 🟡 Als Dozent möchte ich, dass bei bestimmten Quiz-Events automatisch Sound-Effekte abgespielt werden, um die Atmosphäre im Hörsaal zu steigern.
   - **Akzeptanzkriterien:**
@@ -753,7 +757,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ---
 
-## Epic 6: Theming & Barrierefreiheit (Rolle: Alle Nutzer)
+## Epic 6: Theming & Barrierefreiheit (Rolle: Alle Nutzer) — als Nächstes
+
+Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobile-First und Barrierefreiheit**. Alle Stories zielen auf Nutzer:innen aller Rollen (Dozent, Student, Gast). Keine Abhängigkeit von Epic 5; kann parallel ab Epic 0 umgesetzt werden.
 
 - **Story 6.1 (Dark/Light/System-Theme):** 🟡 Als Nutzer möchte ich zwischen Dark Theme, Light Theme und System-Einstellung wählen können, damit die App meinen Sehgewohnheiten entspricht.
   - **Akzeptanzkriterien:**
