@@ -123,7 +123,7 @@ npm run dev
 
 ### 4. Lokalisierter Build (i18n) lokal testen (optional)
 
-Die App unterstützt **mehrere Sprachen** (de, en) über Angular i18n; jede Locale hat einen eigenen Build (z. B. `dist/browser/de`, `dist/browser/en`). Damit du die lokalisierten Varianten **mit funktionierender API und WebSockets** testen kannst, ist ein **eigener Proxy-Server** nötig (nicht nur `npx serve`):
+Die App unterstützt **mehrere Sprachen** (de, en) über Angular i18n; jede Locale hat einen eigenen Build (z. B. `dist/browser/de`, `dist/browser/en`). Die englische Übersetzung ist vollständig (UI + Legal-Seiten Impressum/Datenschutz). Damit du die lokalisierten Varianten **mit funktionierender API und WebSockets** testen kannst, ist ein **eigener Proxy-Server** nötig (nicht nur `npx serve`):
 
 1. **Backend laufen lassen** (HTTP auf 3000, tRPC-WebSocket auf 3001, Yjs auf 3002):
    ```bash

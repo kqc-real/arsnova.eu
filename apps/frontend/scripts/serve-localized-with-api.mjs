@@ -46,6 +46,10 @@ app.use('/trpc', express.raw({ type: '*/*' }), async (req, res) => {
 
 // /assets/* aus de/ (lokalisiert: Icons/Manifest unter /de/ nutzen /assets/ absolut)
 app.use('/assets', express.static(path.join(distBrowser, 'de', 'assets')));
+// Locale-prefixed assets (Legal-Seiten laden z. B. /en/assets/legal/imprint.de.md).
+// fallthrough: false → fehlende Dateien liefern 404 (nicht SPA-index.html), damit Fallback auf .de.md funktioniert
+app.use('/de/assets', express.static(path.join(distBrowser, 'de', 'assets'), { fallthrough: false }));
+app.use('/en/assets', express.static(path.join(distBrowser, 'en', 'assets'), { fallthrough: false }));
 app.use(express.static(distBrowser));
 
 app.get('/de', (_, res) => res.sendFile(path.join(distBrowser, 'de', 'index.html')));

@@ -105,3 +105,9 @@ Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwi
 
 - **ngx-translate / Transloco:** Laufzeit-i18n, ein Build, Sprachwechsel ohne Reload → kein State-Verlust. Verworfen für die erste Umsetzung, da Backlog Performance und offizielle Angular-Integration priorisiert; bei Bedarf später ergänzbar.
 - **Sprachwechsel ohne Hinweis auf Quiz Edit/New:** Würde ungespeicherte Änderungen still verlieren lassen. Verworfen aus Nutzer:innenschutz-Gründen; Hinweis ist verbindlich.
+
+---
+
+## Implementierungsstand (Projekt arsnova.eu)
+
+Stand 2026-03-12: Alle UI-Texte für **de** und **en** markiert; `messages.en.xlf` vollständig (~580 trans-units). Legal-Seiten als Markdown pro Locale (`imprint.en.md`, `privacy.en.md`). Build `ng build --localize` ohne fehlende Übersetzungen. Details: [I18N-PLAN.md](../../implementation/I18N-PLAN.md), [I18N-ANGULAR.md](../../I18N-ANGULAR.md).

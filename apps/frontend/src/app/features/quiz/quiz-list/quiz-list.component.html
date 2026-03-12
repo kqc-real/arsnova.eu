@@ -2,15 +2,15 @@
   <div class="quiz-list__actions">
     <button mat-button type="button" (click)="toggleAiImport()">
       <mat-icon>psychology</mat-icon>
-      KI-Quiz importieren
+      <span i18n>KI-Quiz importieren</span>
     </button>
     <button mat-button type="button" (click)="importFileInput.click()">
       <mat-icon>upload_file</mat-icon>
-      Importieren
+      <span i18n>Importieren</span>
     </button>
-    <a matButton="filled" routerLink="new" aria-label="Neues Quiz erstellen">
+    <a matButton="filled" routerLink="new" i18n-aria-label aria-label="Neues Quiz erstellen">
       <mat-icon>add_circle</mat-icon>
-      Neues Quiz erstellen
+      <span i18n>Neues Quiz erstellen</span>
     </a>
     <input
       #importFileInput
@@ -31,16 +31,16 @@
   @if (showAiImport()) {
     <mat-card appearance="outlined" class="quiz-list__ai-card">
       <mat-card-content class="quiz-list__ai-content l-stack l-stack--xs">
-        <h2 class="quiz-list__ai-title">KI-Quiz importieren</h2>
-        <p class="quiz-list__ai-hint">
+        <h2 class="quiz-list__ai-title" i18n>KI-Quiz importieren</h2>
+        <p class="quiz-list__ai-hint" i18n>
           Kopiere den Prompt in deine KI, dann füge das generierte JSON hier ein.
         </p>
         <button mat-button type="button" (click)="copyKiPrompt()">
           <mat-icon>content_copy</mat-icon>
-          Prompt kopieren
+          <span i18n>Prompt kopieren</span>
         </button>
         <mat-form-field appearance="outline" class="quiz-list__ai-field">
-          <mat-label>KI-JSON</mat-label>
+          <mat-label i18n>KI-JSON</mat-label>
           <textarea
             #aiJsonTextarea
             class="quiz-list__ai-textarea"
@@ -51,8 +51,8 @@
           ></textarea>
         </mat-form-field>
         <div class="quiz-list__ai-actions">
-          <button mat-button type="button" (click)="toggleAiImport()">Abbrechen</button>
-          <button matButton="filled" type="button" (click)="importAiJson()">
+          <button mat-button type="button" (click)="toggleAiImport()" i18n>Abbrechen</button>
+          <button matButton="filled" type="button" (click)="importAiJson()" i18n>
             Import starten
           </button>
         </div>
@@ -64,15 +64,15 @@
     <mat-card appearance="outlined" class="quiz-empty-state">
       <mat-card-content class="quiz-empty-state__content">
         <mat-icon class="quiz-empty-state__icon">library_books</mat-icon>
-        <p class="quiz-empty-state__text">
+        <p class="quiz-empty-state__text" i18n>
           Deine Quiz-Bibliothek ist noch leer.
         </p>
-        <p class="quiz-empty-state__hint">
+        <p class="quiz-empty-state__hint" i18n>
           Erstelle dein erstes Quiz oder importiere eines per JSON.
         </p>
         <a matButton="filled" routerLink="new" class="quiz-empty-state__cta">
           <mat-icon>add_circle</mat-icon>
-          Erstes Quiz erstellen
+          <span i18n>Erstes Quiz erstellen</span>
         </a>
       </mat-card-content>
     </mat-card>
@@ -81,7 +81,7 @@
       @for (quiz of quizzes(); track quiz.id) {
         <mat-card appearance="outlined" class="quiz-list-item">
           <mat-card-content class="quiz-list-item__content">
-            <a class="quiz-list-item__link" [routerLink]="quiz.id" [attr.aria-label]="'Quiz ' + quiz.name + ' öffnen'">
+            <a class="quiz-list-item__link" [routerLink]="quiz.id" [attr.aria-label]="getQuizOpenAriaLabel(quiz.name)">
               <div class="quiz-list-item__main">
                 <h2 class="quiz-list-item__title">{{ quiz.name }}</h2>
                 @if (quiz.description) {
@@ -92,9 +92,9 @@
                     {{ quiz.questionCount }}
                   </span>
                   @if (quiz.questionCount === 0) {
-                    <span class="quiz-list-item__meta-text quiz-list-item__meta-text--warn">Noch keine Fragen</span>
+                    <span class="quiz-list-item__meta-text quiz-list-item__meta-text--warn" i18n>Noch keine Fragen</span>
                   } @else {
-                    <span class="quiz-list-item__meta-text">{{ quiz.questionCount === 1 ? 'Frage' : 'Fragen' }}</span>
+                    <span class="quiz-list-item__meta-text" i18n>{{ quiz.questionCount === 1 ? 'Frage' : 'Fragen' }}</span>
                   }
                   <span class="quiz-list-item__meta-sep" aria-hidden="true">·</span>
                   <span class="quiz-list-item__meta-text">{{ quiz.updatedAt | date: 'dd.MM.yy' }}</span>
@@ -109,7 +109,7 @@
                 type="button"
                 [disableRipple]="true"
                 [matMenuTriggerFor]="quizMenu"
-                [attr.aria-label]="'Aktionen für Quiz ' + quiz.name"
+                [attr.aria-label]="getQuizActionsAriaLabel(quiz.name)"
               >
                 <mat-icon>more_vert</mat-icon>
               </button>
@@ -118,38 +118,38 @@
                   mat-menu-item
                   type="button"
                   [disabled]="quiz.questionCount === 0 || liveStartPending()"
-                  [matTooltip]="quiz.questionCount === 0 ? 'Mindestens eine Frage erforderlich.' : null"
+                  [matTooltip]="quiz.questionCount === 0 ? tooltipMinQuestions() : null"
                   (click)="startLiveSession(quiz.id)"
                 >
                   <mat-icon>play_circle</mat-icon>
-                  Live schalten
+                  <span i18n>Live schalten</span>
                 </button>
                 <a mat-menu-item [routerLink]="[quiz.id, 'preview']">
                   <mat-icon>visibility</mat-icon>
-                  Vorschau
+                  <span i18n>Vorschau</span>
                 </a>
                 <button mat-menu-item type="button" (click)="exportQuiz(quiz.id)">
                   <mat-icon>download</mat-icon>
-                  Exportieren
+                  <span i18n>Exportieren</span>
                 </button>
                 <button mat-menu-item type="button" (click)="duplicateQuiz(quiz.id)">
                   <mat-icon>content_copy</mat-icon>
-                  Duplizieren
+                  <span i18n>Duplizieren</span>
                 </button>
                 @if (isQuizLive(quiz.id)) {
                   <button
                     mat-menu-item
                     type="button"
                     disabled
-                    matTooltip="Kann nicht gelöscht werden, solange das Quiz live ist."
+                    [matTooltip]="tooltipDeleteLive()"
                   >
                     <mat-icon>delete</mat-icon>
-                    Löschen (live)
+                    <span i18n>Löschen (live)</span>
                   </button>
                 } @else {
                   <button mat-menu-item type="button" (click)="deleteQuiz(quiz.id, quiz.name)">
                     <mat-icon>delete</mat-icon>
-                    Löschen
+                    <span i18n>Löschen</span>
                   </button>
                 }
               </mat-menu>

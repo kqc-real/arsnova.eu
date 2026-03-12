@@ -57,6 +57,24 @@ export class QuizListComponent implements OnInit {
   /** Wird true, während quiz.upload + session.create laufen (Story 2.1a). */
   readonly liveStartPending = signal(false);
 
+  /** Für i18n-matTooltip: Mindestens eine Frage erforderlich. */
+  tooltipMinQuestions(): string {
+    return $localize`:@@quizList.tooltipMinQuestions:Mindestens eine Frage erforderlich.`;
+  }
+
+  /** Für i18n-matTooltip: Kann nicht gelöscht werden, solange das Quiz live ist. */
+  tooltipDeleteLive(): string {
+    return $localize`:@@quizList.tooltipDeleteLive:Kann nicht gelöscht werden, solange das Quiz live ist.`;
+  }
+
+  getQuizOpenAriaLabel(quizName: string): string {
+    return $localize`:@@quizList.ariaQuizOpen:Quiz ${quizName}:quizName: öffnen`;
+  }
+
+  getQuizActionsAriaLabel(quizName: string): string {
+    return $localize`:@@quizList.ariaQuizActions:Aktionen für Quiz ${quizName}:quizName:`;
+  }
+
   async ngOnInit(): Promise<void> {
     try {
       const activeQuizIds = await trpc.session.getActiveQuizIds.query();
@@ -80,28 +98,28 @@ export class QuizListComponent implements OnInit {
     this.actionError.set(null);
     try {
       const duplicate = this.quizStore.duplicateQuiz(quizId);
-      this.actionInfo.set(`„${duplicate.name}“ wurde dupliziert.`);
+      this.actionInfo.set($localize`„${duplicate.name}“ wurde dupliziert.`);
     } catch (error) {
-      this.actionError.set(error instanceof Error ? error.message : 'Duplizieren fehlgeschlagen.');
+      this.actionError.set(error instanceof Error ? error.message : $localize`Duplizieren fehlgeschlagen.`);
     }
   }
 
   deleteQuiz(quizId: string, quizName: string): void {
     this.actionError.set(null);
     if (this.isQuizLive(quizId)) {
-      this.actionInfo.set(`„${quizName}“ ist gerade live und kann nicht gelöscht werden.`);
+      this.actionInfo.set($localize`„${quizName}“ ist gerade live und kann nicht gelöscht werden.`);
       return;
     }
     const confirmed = globalThis.confirm(
-      `„${quizName}“ wirklich löschen? Das lässt sich nicht rückgängig machen.`,
+      $localize`„${quizName}“ wirklich löschen? Das lässt sich nicht rückgängig machen.`,
     );
     if (!confirmed) return;
 
     try {
       this.quizStore.deleteQuiz(quizId);
-      this.actionInfo.set(`„${quizName}“ wurde gelöscht.`);
+      this.actionInfo.set($localize`„${quizName}“ wurde gelöscht.`);
     } catch (error) {
-      this.actionError.set(error instanceof Error ? error.message : 'Löschen fehlgeschlagen.');
+      this.actionError.set(error instanceof Error ? error.message : $localize`Löschen fehlgeschlagen.`);
     }
   }
 
@@ -118,9 +136,9 @@ export class QuizListComponent implements OnInit {
       anchor.download = filename;
       anchor.click();
       URL.revokeObjectURL(url);
-      this.actionInfo.set(`„${quiz.quiz.name}“ wurde exportiert.`);
+      this.actionInfo.set($localize`„${quiz.quiz.name}“ wurde exportiert.`);
     } catch (error) {
-      this.actionError.set(error instanceof Error ? error.message : 'Export fehlgeschlagen.');
+      this.actionError.set(error instanceof Error ? error.message : $localize`Export fehlgeschlagen.`);
     }
   }
 
@@ -134,10 +152,10 @@ export class QuizListComponent implements OnInit {
       const raw = await file.text();
       const parsed = JSON.parse(raw) as unknown;
       const imported = this.quizStore.importQuiz(parsed);
-      this.actionInfo.set(`„${imported.name}“ wurde importiert.`);
+      this.actionInfo.set($localize`„${imported.name}“ wurde importiert.`);
       target.value = '';
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Import fehlgeschlagen.';
+      const message = error instanceof Error ? error.message : $localize`Import fehlgeschlagen.`;
       this.actionError.set(message);
       target.value = '';
     }
@@ -152,9 +170,9 @@ export class QuizListComponent implements OnInit {
     });
     try {
       await navigator.clipboard.writeText(prompt);
-      this.actionInfo.set('Prompt in die Zwischenablage kopiert.');
+      this.actionInfo.set($localize`Prompt in die Zwischenablage kopiert.`);
     } catch {
-      this.actionError.set('Kopieren fehlgeschlagen – bitte manuell kopieren.');
+      this.actionError.set($localize`Kopieren fehlgeschlagen – bitte manuell kopieren.`);
     }
   }
 
@@ -164,18 +182,18 @@ export class QuizListComponent implements OnInit {
 
     const raw = this.aiJsonInput().trim();
     if (!raw) {
-      this.actionError.set('Füge zuerst das KI-JSON ein.');
+      this.actionError.set($localize`Füge zuerst das KI-JSON ein.`);
       return;
     }
 
     try {
       const parsed = JSON.parse(raw) as unknown;
       const imported = this.quizStore.importQuiz(parsed);
-      this.actionInfo.set(`KI-„${imported.name}“ wurde importiert.`);
+      this.actionInfo.set($localize`KI-„${imported.name}“ wurde importiert.`);
       this.aiJsonInput.set('');
       this.showAiImport.set(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'KI-Import fehlgeschlagen.';
+      const message = error instanceof Error ? error.message : $localize`KI-Import fehlgeschlagen.`;
       this.actionError.set(message);
     }
   }
@@ -214,15 +232,15 @@ export class QuizListComponent implements OnInit {
         quizId: uploadedQuizId,
         type: 'QUIZ',
       });
-      this.actionInfo.set(`Session ${result.code} gestartet.`);
+      this.actionInfo.set($localize`Session ${result.code} gestartet.`);
       await this.router.navigate(['/session', result.code]);
     } catch (error) {
       const msg =
         error && typeof error === 'object' && 'message' in error
           ? String((error as { message: string }).message)
-          : 'Live-Start fehlgeschlagen.';
+          : $localize`Live-Start fehlgeschlagen.`;
       if (msg.includes('TOO_MANY_REQUESTS') || msg.includes('Sessions pro Stunde')) {
-        this.actionError.set('Zu viele Sessions – bitte später erneut versuchen.');
+        this.actionError.set($localize`Zu viele Sessions – bitte später erneut versuchen.`);
       } else {
         this.actionError.set(msg);
       }

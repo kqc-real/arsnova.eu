@@ -22,11 +22,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   readonly freetextResponses = signal<string[]>([]);
   readonly currentQuestionLabel = signal<string | null>(null);
-  readonly presenterInfo = signal('Warte auf Live-Freitextdaten …');
+  readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
 
   async ngOnInit(): Promise<void> {
     if (this.code.length !== 6) {
-      this.presenterInfo.set('Ungültiger Session-Code.');
+      this.presenterInfo.set($localize`Ungültiger Session-Code.`);
       return;
     }
 
@@ -52,18 +52,18 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.currentQuestionLabel.set(
           data.questionOrder !== null ? `Frage ${data.questionOrder + 1}: ${data.questionText ?? ''}` : null,
         );
-        this.presenterInfo.set('Live-Freitext wird aktualisiert.');
+        this.presenterInfo.set($localize`Live-Freitext wird aktualisiert.`);
       } else if (data.questionType) {
         this.currentQuestionLabel.set(
           data.questionOrder !== null ? `Frage ${data.questionOrder + 1}: ${data.questionText ?? ''}` : null,
         );
-        this.presenterInfo.set('Aktuelle Frage ist keine Freitext-Frage.');
+        this.presenterInfo.set($localize`Aktuelle Frage ist keine Freitext-Frage.`);
       } else {
         this.currentQuestionLabel.set(null);
-        this.presenterInfo.set('Noch keine aktive Frage.');
+        this.presenterInfo.set($localize`Noch keine aktive Frage.`);
       }
     } catch {
-      this.presenterInfo.set('Live-Freitextdaten konnten nicht geladen werden.');
+      this.presenterInfo.set($localize`Live-Freitextdaten konnten nicht geladen werden.`);
     }
   }
 }

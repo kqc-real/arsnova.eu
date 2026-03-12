@@ -44,23 +44,36 @@
   }
 }
 
+/* Skip-Link: visuell versteckt, kein Layout-Platz, nur bei Fokus sichtbar (Tab-Navigation). */
 .app-skip-link {
   position: absolute;
-  top: -100px;
+  top: 0.5rem;
   left: 0.5rem;
-  z-index: 100;
+  z-index: 1000;
   padding: 0.5rem 1rem;
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
   font: var(--mat-sys-label-large);
   border-radius: var(--mat-sys-corner-small);
   text-decoration: none;
-  transition: top 0.2s;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  border: 0;
+  white-space: nowrap;
+  transition: clip-path 0.2s ease, width 0.2s ease, height 0.2s ease, padding 0.2s ease, margin 0.2s ease;
 }
 
 .app-skip-link:focus,
 .app-skip-link:focus-visible {
-  top: 0.5rem;
+  clip: auto;
+  clip-path: none;
+  width: auto;
+  height: auto;
+  margin: 0;
   outline: 2px solid var(--mat-sys-on-primary);
   outline-offset: 2px;
 }

@@ -1,14 +1,14 @@
 <div class="l-page" [class.l-section]="!isHostRoute()">
   @if (loading()) {
     <div class="session-page__state">
-      <p class="session-page__muted-text">Wird geladen…</p>
+      <p class="session-page__muted-text" i18n>Wird geladen…</p>
     </div>
   } @else if (error()) {
     <mat-card class="session-page__error-card">
       <mat-card-header>
         <mat-card-title>
           <mat-icon class="session-page__error-icon">error</mat-icon>
-          Fehler
+          <span i18n>Fehler</span>
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>

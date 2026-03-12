@@ -259,7 +259,7 @@ Auf den Routen **Quiz bearbeiten** (`/quiz/:id`) und **Quiz neu** (`/quiz/new`) 
   - Entweder: Pro Locale eigene Markdown-Dateien (z. B. `imprint.de.md`, `imprint.en.md`) und im Frontend die aktuelle Locale (z. B. aus Pfad oder einer Locale-Service) verwenden, um die richtige Datei zu laden.
   - Oder: Inhalte in die jeweilige Übersetzungsdatei (XLIFF/JSON) legen und über `$localize`/Template ausgeben.
 
-**Umsetzung (Phase 5.1):** `LegalPageComponent` liest die Locale über `getLocaleFromPath()` (aus `core/locale-from-path.ts`) und lädt `assets/legal/{slug}.{locale}.md`. Bei 404 wird auf `{slug}.de.md` zurückgefallen. Vorhanden: `imprint.de.md`, `privacy.de.md`; für en/fr/it/es können weitere Dateien ergänzt werden.
+**Umsetzung (Phase 5.1):** `LegalPageComponent` liest die Locale über `getLocaleFromPath()` (aus `core/locale-from-path.ts`) und lädt `assets/legal/{slug}.{locale}.md`. Bei 404 wird auf `{slug}.de.md` zurückgefallen. **Vorhanden:** `imprint.de.md`, `imprint.en.md`, `privacy.de.md`, `privacy.en.md`; für fr, it, es können weitere Dateien ergänzt werden.
 
 ---
 
@@ -274,6 +274,18 @@ Verbindliche Vorgaben für alle Übersetzungen sind in **ADR-0008** (Abschnitt 4
 - **Datum, Einheiten, Idiomatik:** Datums- und Zahlenformate sowie Maßeinheiten folgen der **Zielsprache/Locale**. Formulierungen sind **idiomatisch** (natürlich in der Zielsprache, nicht wörtlich).
 
 Details: [docs/architecture/decisions/0008-i18n-internationalization.md](architecture/decisions/0008-i18n-internationalization.md).
+
+---
+
+## 9b. Aktueller Stand (Projekt arsnova.eu)
+
+| Aspekt | Stand |
+|--------|--------|
+| **Extrahierte Messages** | ~580 (Stand nach `ng extract-i18n`) |
+| **Englisch (en)** | Vollständig: Alle trans-units in `messages.en.xlf` haben ein `<target>`; Build ohne „No translation found“. |
+| **Legal-Seiten** | DE + EN: `imprint.de.md`, `imprint.en.md`, `privacy.de.md`, `privacy.en.md` in `src/assets/legal/`. |
+| **Markierte Bereiche** | App, Home, Toolbar, Join, Preset-Toast, Session (Host/Vote/Present), Quiz (Liste/New/Edit/Preview/Sync), Help, Feedback, Legal. |
+| **Skripte** | `scripts/merge-missing-i18n-en.mjs`: fehlende EN-Targets aus fester TARGET_MAP einfügen. `scripts/add-missing-en-translations.mjs`: nach neuem Extract fehlende trans-units in `messages.en.xlf` mit EN-Targets ergänzen (ID→Target-Map im Skript). Nach Änderungen an UI-Texten: `ng extract-i18n` ausführen, dann ggf. Skript ausführen und neue IDs in die Map aufnehmen. |
 
 ---
 

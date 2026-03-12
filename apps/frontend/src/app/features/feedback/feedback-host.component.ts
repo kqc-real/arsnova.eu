@@ -83,7 +83,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
           this.error.set(null);
         },
         onError: () => {
-          this.error.set('Feedback-Runde nicht gefunden oder abgelaufen.');
+          this.error.set($localize`Feedback-Runde nicht gefunden oder abgelaufen.`);
         },
       },
     );

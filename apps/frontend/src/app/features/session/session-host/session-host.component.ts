@@ -74,7 +74,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
   readonly freetextResponses = signal<string[]>([]);
-  readonly wordCloudInfo = signal('Warte auf Live-Freitextdaten …');
+  readonly wordCloudInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly exportStatus = signal<string | null>(null);
   readonly exportExporting = signal(false);
@@ -395,9 +395,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       anchor.download = `freetext-session_${new Date().toISOString().slice(0, 10)}.csv`;
       anchor.click();
       URL.revokeObjectURL(url);
-      this.exportStatus.set('Session-CSV exportiert.');
+      this.exportStatus.set($localize`Session-CSV exportiert.`);
     } catch {
-      this.exportStatus.set('Session-CSV konnte nicht exportiert werden.');
+      this.exportStatus.set($localize`Session-CSV konnte nicht exportiert werden.`);
     }
   }
 
@@ -433,6 +433,29 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** i18n: Feedback rating count (plural). */
   feedbackRatingPlural(): string {
     return $localize`Bewertungen`;
+  }
+
+  /** Wartetext Bewertungsfrage (Ergebnisse vor / Zeit abgelaufen / Warte auf Bewertungen). */
+  ratingWaitingText(): string {
+    if (this.allHaveVoted()) return $localize`Die Ergebnisse liegen vor.`;
+    if (this.countdownEnded()) return $localize`Zeit abgelaufen.`;
+    return $localize`Warte auf Bewertungen…`;
+  }
+
+  /** Wartetext Freitextfrage (Ergebnisse vor / Zeit abgelaufen / Warte auf Antworten). */
+  freetextWaitingText(): string {
+    if (this.allHaveVoted()) return $localize`Die Ergebnisse liegen vor.`;
+    if (this.countdownEnded()) return $localize`Zeit abgelaufen.`;
+    return $localize`Warte auf Antworten…`;
+  }
+
+  /** Label „X von Y hat/haben geantwortet“ mit korrekter Pluralform. */
+  freetextRespondedLabel(count: number, total: number | undefined): string {
+    const totalStr = total !== undefined && total !== null ? String(total) : '?';
+    if (count === 1) {
+      return $localize`${count} von ${totalStr} hat geantwortet`;
+    }
+    return $localize`${count} von ${totalStr} haben geantwortet`;
   }
 
   /** Lesbare Phasen-Beschreibung für Dozenten-Info und Publikum. */
@@ -674,9 +697,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       a.download = `ergebnis-export-${data.sessionCode}-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      this.exportStatus.set('Ergebnis-CSV exportiert.');
+      this.exportStatus.set($localize`Ergebnis-CSV exportiert.`);
     } catch {
-      this.exportStatus.set('Export fehlgeschlagen.');
+      this.exportStatus.set($localize`Export fehlgeschlagen.`);
     } finally {
       this.exportExporting.set(false);
     }
@@ -715,18 +738,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.currentQuestionLabel.set(
           data.questionOrder !== null ? `Frage ${data.questionOrder + 1}: ${data.questionText ?? ''}` : null,
         );
-        this.wordCloudInfo.set('Live-Freitext wird aktualisiert.');
+        this.wordCloudInfo.set($localize`Live-Freitext wird aktualisiert.`);
       } else if (data.questionType) {
         this.currentQuestionLabel.set(
           data.questionOrder !== null ? `Frage ${data.questionOrder + 1}: ${data.questionText ?? ''}` : null,
         );
-        this.wordCloudInfo.set('Aktuelle Frage ist keine Freitext-Frage.');
+        this.wordCloudInfo.set($localize`Aktuelle Frage ist keine Freitext-Frage.`);
       } else {
         this.currentQuestionLabel.set(null);
-        this.wordCloudInfo.set('Noch keine aktive Frage.');
+        this.wordCloudInfo.set($localize`Noch keine aktive Frage.`);
       }
     } catch {
-      this.wordCloudInfo.set('Live-Freitextdaten konnten nicht geladen werden.');
+      this.wordCloudInfo.set($localize`Live-Freitextdaten konnten nicht geladen werden.`);
     }
   }
 }

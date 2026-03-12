@@ -1182,6 +1182,1464 @@
         <source>Feedback-Runde nicht gefunden oder abgelaufen.</source>
         <target>Feedback round not found or expired.</target>
       </trans-unit>
+      <trans-unit id="7052056728813506858" datatype="html">
+        <source>QR-Code zum Beitreten</source>
+        <target>QR code to join</target>
+      </trans-unit>
+      <trans-unit id="8359317501063179444" datatype="html">
+        <source>Zweite Abstimmung starten</source>
+        <target>Start second vote</target>
+      </trans-unit>
+      <trans-unit id="8694843024838471833" datatype="html">
+        <source>Beitrittslink kopieren</source>
+        <target>Copy join link</target>
+      </trans-unit>
+      <trans-unit id="6560376369763226298" datatype="html">
+        <source>Zweite Abstimmung</source>
+        <target>Second vote</target>
+      </trans-unit>
+      <trans-unit id="6112538218983779949" datatype="html">
+        <source>Diskussionsphase starten</source>
+        <target>Start discussion phase</target>
+      </trans-unit>
+      <trans-unit id="589026023124922508" datatype="html">
+        <source>Diskussionsphase</source>
+        <target>Discussion phase</target>
+      </trans-unit>
+      <trans-unit id="5229710408819956324" datatype="html">
+        <source>Kopiert</source>
+        <target>Copied</target>
+      </trans-unit>
+      <trans-unit id="8287983445032156515" datatype="html">
+        <source>Link kopieren</source>
+        <target>Copy link</target>
+      </trans-unit>
+      <trans-unit id="2305724970328741685" datatype="html">
+        <source>Ergebnisse zurücksetzen</source>
+        <target>Reset results</target>
+      </trans-unit>
+      <trans-unit id="4784429222538374335" datatype="html">
+        <source>Neue Runde starten</source>
+        <target>Start new round</target>
+      </trans-unit>
+      <trans-unit id="1817781971327674796" datatype="html">
+        <source>Neue Runde</source>
+        <target>New round</target>
+      </trans-unit>
+      <trans-unit id="4078831613258873996" datatype="html">
+        <source>Diskutiert mit eurem Nachbarn!</source>
+        <target>Discuss with your neighbour!</target>
+      </trans-unit>
+      <trans-unit id="2344979570783306989" datatype="html">
+        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst. Zweite Abstimmung folgt.</source>
+        <target>Round 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> votes recorded. Second vote follows.</target>
+      </trans-unit>
+      <trans-unit id="7882475767985187890" datatype="html">
+        <source>Runde 1 (<x id="INTERPOLATION" equiv-text="{{ data.round1Total }}"/> Stimmen)</source>
+        <target>Round 1 (<x id="INTERPOLATION" equiv-text="{{ data.round1Total }}"/> votes)</target>
+      </trans-unit>
+      <trans-unit id="3290249633796072524" datatype="html">
+        <source>Runde 2 (<x id="INTERPOLATION" equiv-text="{{ data.totalVotes }}"/> Stimmen)</source>
+        <target>Round 2 (<x id="INTERPOLATION" equiv-text="{{ data.totalVotes }}"/> votes)</target>
+      </trans-unit>
+      <trans-unit id="5212385726875478215" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ shift.changedCount }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ shift.bothRoundsCount }}"/> (<x id="INTERPOLATION_2" equiv-text="{{ shift.changedPercentage }}"/> %) änderten ihre Meinung</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ shift.changedCount }}"/> of <x id="INTERPOLATION_1" equiv-text="{{ shift.bothRoundsCount }}"/> (<x id="INTERPOLATION_2" equiv-text="{{ shift.changedPercentage }}"/>%) changed their mind</target>
+      </trans-unit>
+      <trans-unit id="8412700802719865750" datatype="html">
+        <source>2. Runde</source>
+        <target>Round 2</target>
+      </trans-unit>
+      <trans-unit id="1849869449023019502" datatype="html">
+        <source>{VAR_PLURAL, plural, =1 {1 Stimme} other {<x id="INTERPOLATION"/> Stimmen}}</source>
+        <target>{VAR_PLURAL, plural, =1 {1 vote} other {<x id="INTERPOLATION"/> votes}}</target>
+      </trans-unit>
+      <trans-unit id="3484828841397104190" datatype="html">
+        <source>Danke für dein Feedback!</source>
+        <target>Thanks for your feedback!</target>
+      </trans-unit>
+      <trans-unit id="277160140878382764" datatype="html">
+        <source>Abstimmung ist pausiert.</source>
+        <target>Voting is paused.</target>
+      </trans-unit>
+      <trans-unit id="1945994423591083225" datatype="html">
+        <source> Hat die Diskussion deine Meinung geändert? </source>
+        <target> Did the discussion change your mind? </target>
+      </trans-unit>
+      <trans-unit id="5595168807167215658" datatype="html">
+        <source>Laden…</source>
+        <target>Loading…</target>
+      </trans-unit>
+      <trans-unit id="8285655979894479213" datatype="html">
+        <source>Hat dein Nachbar die gleiche Meinung? Überzeugt euch gegenseitig.</source>
+        <target>Does your neighbour have the same opinion? Convince each other.</target>
+      </trans-unit>
+      <trans-unit id="7951167119693455848" datatype="html">
+        <source>Zweite Abstimmung folgt gleich…</source>
+        <target>Second vote coming up…</target>
+      </trans-unit>
+      <trans-unit id="8584024307985892746" datatype="html">
+        <source>Stimmung wählen</source>
+        <target>Choose mood</target>
+      </trans-unit>
+      <trans-unit id="86284725080995480" datatype="html">
+        <source>Abstimmung wählen</source>
+        <target>Choose vote</target>
+      </trans-unit>
+      <trans-unit id="6763496546776375581" datatype="html">
+        <source>Antwort wählen</source>
+        <target>Choose answer</target>
+      </trans-unit>
+      <trans-unit id="2534835311662058678" datatype="html">
+        <source>Keine Frage aktiv. Mit „Nächste Frage“ starten.</source>
+        <target>No question active. Start with "Next question".</target>
+      </trans-unit>
+      <trans-unit id="5482759156748483613" datatype="html">
+        <source>Host-Ansicht für Lobby und Steuerung.</source>
+        <target>Host view for lobby and control.</target>
+      </trans-unit>
+      <trans-unit id="1709668393368420988" datatype="html">
+        <source>Du bist dabei</source>
+        <target>You're in</target>
+      </trans-unit>
+      <trans-unit id="573499869972254255" datatype="html">
+        <source>Warte auf den Start durch den Dozenten</source>
+        <target>Waiting for the lecturer to start</target>
+      </trans-unit>
+      <trans-unit id="5689929102746781129" datatype="html">
+        <source>Die erste Frage erscheint automatisch – Gerät bereithalten.</source>
+        <target>The first question will appear automatically – have your device ready.</target>
+      </trans-unit>
+      <trans-unit id="3537737767788882165" datatype="html">
+        <source>Platz</source>
+        <target>Rank</target>
+      </trans-unit>
+      <trans-unit id="288809754994321852" datatype="html">
+        <source>Code kopieren</source>
+        <target>Copy code</target>
+      </trans-unit>
+      <trans-unit id="3763724115719180339" datatype="html">
+        <source> Sende diesen Code per E-Mail an deinen Dozenten, um Bonuspunkte zu erhalten. Deine Anonymität bleibt gewahrt, solange du den Code nicht einreichst. </source>
+        <target> Send this code by email to your lecturer to get bonus points. Your anonymity is preserved as long as you don't submit the code. </target>
+      </trans-unit>
+      <trans-unit id="8791525614766253586" datatype="html">
+        <source>Deine Meinung zählt</source>
+        <target>Your opinion counts</target>
+      </trans-unit>
+      <trans-unit id="3107684934438133477" datatype="html">
+        <source>Wie hat dir das Quiz gefallen?</source>
+        <target>How did you like the quiz?</target>
+      </trans-unit>
+      <trans-unit id="1426708919312495433" datatype="html">
+        <source>Qualität der Fragen?</source>
+        <target>Quality of the questions?</target>
+      </trans-unit>
+      <trans-unit id="4737798259674817159" datatype="html">
+        <source>Bewertung absenden</source>
+        <target>Submit rating</target>
+      </trans-unit>
+      <trans-unit id="6659208838121673472" datatype="html">
+        <source>Danke für dein Feedback</source>
+        <target>Thanks for your feedback</target>
+      </trans-unit>
+      <trans-unit id="6062561167696260966" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ summary.totalResponses }}"/> Bewertungen insgesamt</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ summary.totalResponses }}"/> ratings in total</target>
+      </trans-unit>
+      <trans-unit id="2463174291359246534" datatype="html">
+        <source>Lies die Frage in Ruhe – die Antwortoptionen folgen gleich.</source>
+        <target>Read the question at your pace – answer options will follow shortly.</target>
+      </trans-unit>
+      <trans-unit id="5578204879975921358" datatype="html">
+        <source>Tausch dich kurz mit deinem Nachbarn aus</source>
+        <target>Have a quick chat with your neighbour</target>
+      </trans-unit>
+      <trans-unit id="8119041243394062055" datatype="html">
+        <source> 2. Runde – hat die Diskussion deine Meinung geändert? </source>
+        <target> Round 2 – did the discussion change your mind? </target>
+      </trans-unit>
+      <trans-unit id="745241241456341956" datatype="html">
+        <source>Nur für dich sichtbar.</source>
+        <target>Visible only to you.</target>
+      </trans-unit>
+      <trans-unit id="5825634315440002640" datatype="html">
+        <source>Dein Bonus-Code</source>
+        <target>Your bonus code</target>
+      </trans-unit>
+      <trans-unit id="8905340696129344254" datatype="html">
+        <source> arsnova.eu ist eine Plattform für Quiz und Q&amp;A, Blitz-Feedback und Abstimmungen – ohne Anmeldung, direkt im Browser. </source>
+        <target>arsnova.eu is a platform for quizzes and Q&amp;A, quick feedback and polls – no sign-up, right in the browser.</target>
+      </trans-unit>
+      <trans-unit id="2136052427592349202" datatype="html">
+        <source> Auf der Startseite bei <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz starten<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> führt der Link <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo spielen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> in ein vorinstalliertes Beispiel-Quiz. Du siehst alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen. </source>
+        <target>On the home page under <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Start quiz<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, the link <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Play demo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> leads to a pre-installed sample quiz. You see all question types (multiple choice, free text, rating scale, etc.) including KaTeX formulas and Markdown – without creating anything.</target>
+      </trans-unit>
+      <trans-unit id="450997855879759176" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Onboarding:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Die Demo eignet sich gut, um Teilnehmende vor der ersten echten Session mit der App vertraut zu machen. Einfach den Link oder „Demo spielen&quot; weitergeben; sie klicken sich durch und lernen Ablauf und Oberfläche kennen. </source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Onboarding:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> The demo is ideal for familiarising participants with the app before their first real session. Just share the link or “Play demo”; they click through and learn the flow and interface.</target>
+      </trans-unit>
+      <trans-unit id="8359419891361658303" datatype="html">
+        <source>Das Demo-Quiz liegt auch in deiner Quiz-Liste („Meine Quizze&quot;) und kann von dort aus in der Vorschau geöffnet werden.</source>
+        <target>The demo quiz is also in your quiz list (“My quizzes”) and can be opened in preview from there.</target>
+      </trans-unit>
+      <trans-unit id="5757491187251172074" datatype="html">
+        <source>Schnellstart</source>
+        <target>Quick start</target>
+      </trans-unit>
+      <trans-unit id="4487008131522088654" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz erstellen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Auf der Startseite „Neues Quiz erstellen&quot; wählen, Fragen anlegen und Einstellungen festlegen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Create quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> On the home page choose “Create new quiz”, add questions and set options.</target>
+      </trans-unit>
+      <trans-unit id="8536364470427085897" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Code teilen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Nach dem Start siehst du den 6-stelligen Code; Teilnehmende geben ihn auf der Startseite ein oder scannen den QR-Code.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Share code:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> After starting you see the 6-digit code; participants enter it on the home page or scan the QR code.</target>
+      </trans-unit>
+      <trans-unit id="4846208754255153133" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Live spielen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen nacheinander freigeben, alle stimmen ab, Ergebnisse live anzeigen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Play live:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Release questions one by one, everyone votes, show results live.</target>
+      </trans-unit>
+      <trans-unit id="2883378098331699504" datatype="html">
+        <source>Schnelle Abstimmung ohne Quiz – direkt von der Startseite starten.</source>
+        <target>Quick poll without a quiz – start directly from the home page.</target>
+      </trans-unit>
+      <trans-unit id="1700849053740132045" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stimmungsbild<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): Wie geht es den Teilnehmenden?</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Mood<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): How are participants doing?</target>
+      </trans-unit>
+      <trans-unit id="3563833922786121025" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein / Vielleicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Schnelle Zustimmungs-Abfrage.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Yes / No / Maybe<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Quick approval poll.</target>
+      </trans-unit>
+      <trans-unit id="8738149910840056513" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABCD-Voting<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C D): Vier Antwortoptionen, z. B. für spontane Quizfragen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABCD voting<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C D): Four answer options, e.g. for spontaneous quiz questions.</target>
+      </trans-unit>
+      <trans-unit id="142948932975964406" datatype="html">
+        <source>Nach dem Klick erscheint ein QR-Code und ein Session-Code. Teilnehmende scannen oder geben den Code ein und stimmen mit einem Tipp ab. Du siehst die Ergebnisse live als Balkendiagramm.</source>
+        <target>After clicking, a QR code and session code appear. Participants scan or enter the code and vote with one tap. You see results live as a bar chart.</target>
+      </trans-unit>
+      <trans-unit id="2771235871372028980" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stopp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Abstimmung einfrieren – Teilnehmende sehen „Abstimmung ist pausiert&quot; und können nicht mehr abstimmen, bis du „Fortsetzen&quot; wählst.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stop:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Freeze the poll – participants see “Poll is paused” and cannot vote until you choose “Resume”.</target>
+      </trans-unit>
+      <trans-unit id="8619844818513185136" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Zurücksetzen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Alle Stimmen löschen und erneut abstimmen lassen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Reset:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Clear all votes and run the poll again.</target>
+      </trans-unit>
+      <trans-unit id="1563376326853659666" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Neue Runde:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Neuen Code erzeugen und eine frische Runde starten.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>New round:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Generate a new code and start a fresh round.</target>
+      </trans-unit>
+      <trans-unit id="4624381387593523774" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Link kopieren:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beitrittslink in die Zwischenablage kopieren, z. B. zum Teilen per Chat.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Copy link:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Copy the join link to the clipboard, e.g. to share via chat.</target>
+      </trans-unit>
+      <trans-unit id="3412727782808562696" datatype="html">
+        <source>Quiz veranstalten</source>
+        <target>Running a quiz</target>
+      </trans-unit>
+      <trans-unit id="2028710571185930043" datatype="html">
+        <source>Du startest eine Quiz- oder Q&amp;A-Session, teilst den Code und steuerst den Ablauf.</source>
+        <target>You start a quiz or Q&amp;A session, share the code and control the flow.</target>
+      </trans-unit>
+      <trans-unit id="130204107241532945" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz auswählen und live schalten – oder eine Q&amp;A-Fragerunde starten. Dann entsteht ein 6-stelliger Code.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Start session:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Choose a quiz and go live – or start a Q&amp;A round. A 6-digit code is generated.</target>
+      </trans-unit>
+      <trans-unit id="9087203686834832349" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Du siehst, wer beigetreten ist; ein QR-Code zum Beitritt wird angezeigt.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> You see who has joined; a QR code for joining is shown.</target>
+      </trans-unit>
+      <trans-unit id="4645446495292726948" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beamer-Ansicht:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Große Darstellung von Frage, Antworten, Countdown und Ergebnissen für die Projektion im Raum.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Projector view:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Large display of question, answers, countdown and results for room projection.</target>
+      </trans-unit>
+      <trans-unit id="3660636321435230844" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Steuerung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit „Nächste Frage&quot; blendest du die Frage ein. Optional zuerst nur den Text (Lesephase), dann „Antworten freigeben&quot;, danach können alle abstimmen. Anschließend „Ergebnis zeigen&quot;.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Control:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Use “Next question” to show the question. Optionally show only the text first (reading phase), then “Release answers”, then everyone can vote. Then “Show result”.</target>
+      </trans-unit>
+      <trans-unit id="7379376700684566767" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Einstellungen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beim Start legst du den Stil („Seriös&quot; oder „Spielerisch&quot;) und die Optionen fest (Rangliste, Sound, Lesephase, Team-Modus, Nicknamen, Timer). Teilnehmende übernehmen automatisch dein Theme und Preset.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Settings:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> At start you set the style (“Serious” or “Playful”) and options (leaderboard, sound, reading phase, team mode, nicknames, timer). Participants automatically get your theme and preset.</target>
+      </trans-unit>
+      <trans-unit id="6656615814928019620" datatype="html">
+        <source>Ohne Anmeldung mit dem Code beitreten. Stil und Optionen gibt die Session vor.</source>
+        <target>Join with the code, no sign-up. The session defines style and options.</target>
+      </trans-unit>
+      <trans-unit id="2821667593096226007" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf der Startseite eingeben und „Los geht&apos;s&quot; tippen – funktioniert für Quiz- und Q&amp;A-Sessions sowie für Blitz-Feedback.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Join:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Enter the 6-digit code on the home page and tap “Let’s go” – works for quiz and Q&amp;A sessions and quick feedback.</target>
+      </trans-unit>
+      <trans-unit id="628190345512295345" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknamen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Je nach Einstellung vorgegebene Namen (nach Altersgruppe), eigener Name oder anonym.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknames:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Depending on settings: preset names (by age group), own name or anonymous.</target>
+      </trans-unit>
+      <trans-unit id="7488313735355059404" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Abstimmung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Die aktuelle Frage erscheint auf deinem Gerät; du wählst eine oder mehrere Antworten und sendest ab. Bei Zeitlimit läuft ein Countdown.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Voting:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> The current question appears on your device; you pick one or more answers and submit. With a time limit, a countdown runs.</target>
+      </trans-unit>
+      <trans-unit id="6330492107491904814" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ergebnis:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Nach der Auflösung siehst du, ob deine Antwort richtig war, bekommst Punkte und siehst deine Scorecard.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>Result:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> After the reveal you see if your answer was correct, get points and see your scorecard.</target>
+      </trans-unit>
+      <trans-unit id="507192980947350409" datatype="html">
+        <source>Unter „Meine Quizze&quot; findest du alle lokal gespeicherten Quizze.</source>
+        <target>Under “My quizzes” you find all locally saved quizzes.</target>
+      </trans-unit>
+      <trans-unit id="5229539880166867690" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Editor:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen per Drag-and-Drop sortieren, auf- und zuklappen, Vorschau mit Dot-Navigation.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Editor:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sort questions by drag and drop, expand and collapse, preview with dot navigation.</target>
+      </trans-unit>
+      <trans-unit id="9122741059925470323" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Fragetypen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple Choice, Single Choice, Freitext, Umfrage, Bewertungsskala – pro Frage optional mit Timer und Schwierigkeitsgrad.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Question types:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple choice, single choice, free text, survey, rating scale – per question optionally with timer and difficulty.</target>
+      </trans-unit>
+      <trans-unit id="7251608567438179444" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Über den KI-Prompt kannst du ein Quiz mit deiner bevorzugten KI generieren und direkt importieren.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Import or export quizzes as JSON. With the AI prompt you can generate a quiz with your preferred AI and import it directly.</target>
+      </trans-unit>
+      <trans-unit id="6490353651592824722" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. Direkt von der Startseite über „Demo spielen&quot; (Karte „Quiz starten&quot;) oder unter „Meine Quizze&quot; in der Vorschau öffnen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> A pre-installed quiz shows all question types with examples including KaTeX and Markdown. Open from the home page via “Play demo” (Start quiz card) or under “My quizzes” in preview.</target>
+      </trans-unit>
+      <trans-unit id="7073179163226115346" datatype="html">
+        <source>Seriös und Spielerisch</source>
+        <target>Serious and playful</target>
+      </trans-unit>
+      <trans-unit id="3416041951965031902" datatype="html">
+        <source>Zwei Voreinstellungen, wählbar auf der Startseite und in den Quiz-Einstellungen.</source>
+        <target>Two presets, selectable on the home page and in quiz settings.</target>
+      </trans-unit>
+      <trans-unit id="7827300103747816117" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Seriös:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonym, ohne Rangliste, Fokus auf den Inhalt – ideal für Feedback und Abstimmungen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Serious:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonymous, no leaderboard, focus on content – ideal for feedback and polls.</target>
+      </trans-unit>
+      <trans-unit id="6657549844758188161" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Spielerisch:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Rangliste, Sounds, Anfeuerung und Effekten – ideal für Quiz-Wettbewerbe.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Playful:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> With leaderboard, sounds, encouragement and effects – ideal for quiz competitions.</target>
+      </trans-unit>
+      <trans-unit id="5241234745777359399" datatype="html">
+        <source>Alle Optionen (Rangliste, Sound, Lesephase, Team, Bonus) lassen sich einzeln an- und ausschalten.</source>
+        <target>All options (leaderboard, sound, reading phase, team, bonus) can be turned on or off individually.</target>
+      </trans-unit>
+      <trans-unit id="2695832560821947997" datatype="html">
+        <source>Weitere Funktionen</source>
+        <target>More features</target>
+      </trans-unit>
+      <trans-unit id="5709210206293461498" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Bonus-Option:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Top-Platzierte erhalten einen einlösbaren Code (z. B. für Bonuspunkte). Du kannst die Code-Liste einsehen; personenbezogene Daten werden nicht gespeichert.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Bonus option:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Top finishers get a redeemable code (e.g. for bonus points). You can view the code list; no personal data is stored.</target>
+      </trans-unit>
+      <trans-unit id="7548359346207242949" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Team-Modus:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Teilnehmende spielen in Teams mit eigenem Team-Leaderboard.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Team mode:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Participants play in teams with their own team leaderboard.</target>
+      </trans-unit>
+      <trans-unit id="8083812307774980926" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamification:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sound-Effekte, Belohnungseffekte für Top-Plätze, Motivationsmeldungen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamification:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sound effects, reward effects for top places, motivation messages.</target>
+      </trans-unit>
+      <trans-unit id="5791705402266412326" datatype="html">
+        <source>Datenschutz und Technik</source>
+        <target>Privacy and technology</target>
+      </trans-unit>
+      <trans-unit id="1432687275112220656" datatype="html">
+        <source>arsnova.eu ist kostenlos, Open Source und DSGVO-konform. Quiz-Inhalte werden lokal im Browser gespeichert (Local-First). Blitz-Feedback-Runden laufen über Redis und verfallen automatisch nach 30 Minuten. Keine Anmeldung nötig.</source>
+        <target>arsnova.eu is free, open source and GDPR-compliant. Quiz content is stored locally in the browser (local-first). Quick feedback rounds run via Redis and expire automatically after 30 minutes. No sign-up required.</target>
+      </trans-unit>
+      <trans-unit id="4116833993562811042" datatype="html">
+        <source>Zurück zum Editor</source>
+        <target>Back to editor</target>
+      </trans-unit>
+      <trans-unit id="2542400782921183946" datatype="html">
+        <source>Zurück zur Quiz-Liste</source>
+        <target>Back to quiz list</target>
+      </trans-unit>
+      <trans-unit id="8746540616627910360" datatype="html">
+        <source>Vorschau: <x id="INTERPOLATION" equiv-text="{{ quizData.name }}"/></source>
+        <target>Preview: <x id="INTERPOLATION" equiv-text="{{ quizData.name }}"/></target>
+      </trans-unit>
+      <trans-unit id="7548466544563346704" datatype="html">
+        <source>Vorherige</source>
+        <target>Previous</target>
+      </trans-unit>
+      <trans-unit id="6955197012374967605" datatype="html">
+        <source>Nächste</source>
+        <target>Next</target>
+      </trans-unit>
+      <trans-unit id="3742657416068781599" datatype="html">
+        <source>Editor</source>
+        <target>Editor</target>
+      </trans-unit>
+      <trans-unit id="8396108165390443070" datatype="html">
+        <source>Liste</source>
+        <target>List</target>
+      </trans-unit>
+      <trans-unit id="8974101382411060983" datatype="html">
+        <source>Frage <x id="INTERPOLATION" equiv-text="{{ currentIndex() + 1 }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ questions().length }}"/></source>
+        <target>Question <x id="INTERPOLATION" equiv-text="{{ currentIndex() + 1 }}"/> of <x id="INTERPOLATION_1" equiv-text="{{ questions().length }}"/></target>
+      </trans-unit>
+      <trans-unit id="1348774649041038169" datatype="html">
+        <source>Navigation</source>
+        <target>Navigation</target>
+      </trans-unit>
+      <trans-unit id="6920196637619975735" datatype="html">
+        <source>Bearbeiten</source>
+        <target>Edit</target>
+      </trans-unit>
+      <trans-unit id="8930526198656004715" datatype="html">
+        <source>Zurück</source>
+        <target>Back</target>
+      </trans-unit>
+      <trans-unit id="2140584257450546848" datatype="html">
+        <source>Fragen: 0</source>
+        <target>Questions: 0</target>
+      </trans-unit>
+      <trans-unit id="7771603214929017865" datatype="html">
+        <source>Keine Fragen vorhanden</source>
+        <target>No questions yet</target>
+      </trans-unit>
+      <trans-unit id="2765973275531017680" datatype="html">
+        <source>Füge zuerst Fragen im Editor hinzu, um die Vorschau zu nutzen.</source>
+        <target>Add questions in the editor first to use the preview.</target>
+      </trans-unit>
+      <trans-unit id="4210422919292208806" datatype="html">
+        <source>Zum Editor</source>
+        <target>To editor</target>
+      </trans-unit>
+      <trans-unit id="7929709873355642466" datatype="html">
+        <source>Fertig</source>
+        <target>Done</target>
+      </trans-unit>
+      <trans-unit id="7523273078735375430" datatype="html">
+        <source>Direkt bearbeiten</source>
+        <target>Edit inline</target>
+      </trans-unit>
+      <trans-unit id="535583862630354177" datatype="html">
+        <source>Freitext-Antwort</source>
+        <target>Free-text answer</target>
+      </trans-unit>
+      <trans-unit id="4130226732996002249" datatype="html">
+        <source> Skala <x id="INTERPOLATION" equiv-text="{{ question.ratingMin ?? 1 }}"/>–<x id="INTERPOLATION_1" equiv-text="{{ question.ratingMax ?? 5 }}"/> </source>
+        <target> Scale <x id="INTERPOLATION" equiv-text="{{ question.ratingMin ?? 1 }}"/>–<x id="INTERPOLATION_1" equiv-text="{{ question.ratingMax ?? 5 }}"/> </target>
+      </trans-unit>
+      <trans-unit id="1603797023695657113" datatype="html">
+        <source>Alle Fragen gültig – bereit zum Starten.</source>
+        <target>All questions valid – ready to start.</target>
+      </trans-unit>
+      <trans-unit id="4211004050975364742" datatype="html">
+        <source>Validierungshinweise</source>
+        <target>Validation notes</target>
+      </trans-unit>
+      <trans-unit id="4790760145662687228" datatype="html">
+        <source>Nicht gefunden.</source>
+        <target>Not found.</target>
+      </trans-unit>
+      <trans-unit id="2699333634968608869" datatype="html">
+        <source>Zurück zur Liste</source>
+        <target>Back to list</target>
+      </trans-unit>
+      <trans-unit id="2954857718480912988" datatype="html">
+        <source>Sync-Code</source>
+        <target>Sync code</target>
+      </trans-unit>
+      <trans-unit id="3308992171746917207" datatype="html">
+        <source>Geräte synchronisieren</source>
+        <target>Sync devices</target>
+      </trans-unit>
+      <trans-unit id="7764086307286251424" datatype="html">
+        <source> Öffne auf dem zweiten Gerät den Quiz-Bereich und gib dort diesen Code ein. </source>
+        <target>On the second device open the quiz area and enter this code there.</target>
+      </trans-unit>
+      <trans-unit id="6325686163361657876" datatype="html">
+        <source>Dein Sync-Code</source>
+        <target>Your sync code</target>
+      </trans-unit>
+      <trans-unit id="9144953192990853404" datatype="html">
+        <source> Status: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong
+        class=&quot;quiz-sync__state&quot;
+        [class.quiz-sync__state--ok]=&quot;syncConnectionState() === &apos;connected&apos;&quot;
+      &gt;"/> <x id="INTERPOLATION" equiv-text="{{ syncStatusLabel() }}"/> <x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
+        <target> Status: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong
+        class=&quot;quiz-sync__state&quot;
+        [class.quiz-sync__state--ok]=&quot;syncConnectionState() === &apos;connected&apos;&quot;
+      &gt;"/> <x id="INTERPOLATION" equiv-text="{{ syncStatusLabel() }}"/> <x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></target>
+      </trans-unit>
+      <trans-unit id="1676981843569876143" datatype="html">
+        <source>Technische Details</source>
+        <target>Technical details</target>
+      </trans-unit>
+      <trans-unit id="2633047600013021483" datatype="html">
+        <source>Sync-ID: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
+        <target>Sync ID: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></target>
+      </trans-unit>
+      <trans-unit id="7327495541682670981" datatype="html">
+        <source>Sync-Link: <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;quiz-sync__link&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ syncLink() }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
+        <target>Sync link: <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;quiz-sync__link&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ syncLink() }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></target>
+      </trans-unit>
+      <trans-unit id="quizList.tooltipMinQuestions" datatype="html">
+        <source>Mindestens eine Frage erforderlich.</source>
+        <target>At least one question required.</target>
+      </trans-unit>
+      <trans-unit id="quizList.tooltipDeleteLive" datatype="html">
+        <source>Kann nicht gelöscht werden, solange das Quiz live ist.</source>
+        <target>Cannot be deleted while the quiz is live.</target>
+      </trans-unit>
+      <trans-unit id="quizList.ariaQuizOpen" datatype="html">
+        <source>Quiz <x id="quizName" equiv-text="quizName"/> öffnen</source>
+        <target>Open quiz <x id="quizName" equiv-text="quizName"/></target>
+      </trans-unit>
+      <trans-unit id="quizList.ariaQuizActions" datatype="html">
+        <source>Aktionen für Quiz <x id="quizName" equiv-text="quizName"/></source>
+        <target>Actions for quiz <x id="quizName" equiv-text="quizName"/></target>
+      </trans-unit>
+      <trans-unit id="2911576474246468574" datatype="html">
+        <source>KI-Quiz importieren</source>
+        <target>Import AI quiz</target>
+      </trans-unit>
+
+      <trans-unit id="5893501665486949127" datatype="html">
+        <source>Neues Quiz
+        </source>
+        <target>New quiz
+        </target>
+      </trans-unit>
+      <trans-unit id="3218489830147697230" datatype="html">
+        <source>1 Frage
+        </source>
+        <target>1 question
+        </target>
+      </trans-unit>
+      <trans-unit id="2685316649628563933" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ questions().length }}"/> Fragen
+        </source>
+        <target><x id="INTERPOLATION" equiv-text="{{ questions().length }}"/> questions
+        </target>
+      </trans-unit>
+      <trans-unit id="4928437576183373640" datatype="html">
+        <source>Titel &amp; Beschreibung
+        </source>
+        <target>Title &amp;amp; description
+        </target>
+      </trans-unit>
+      <trans-unit id="8953033926734869941" datatype="html">
+        <source>Name
+        </source>
+        <target>Name
+        </target>
+      </trans-unit>
+      <trans-unit id="8768083855656807358" datatype="html">
+        <source>Gib deinem Quiz einen Namen.
+        </source>
+        <target>Give your quiz a name.
+        </target>
+      </trans-unit>
+      <trans-unit id="5939653501562597742" datatype="html">
+        <source>Der Name darf maximal 200 Zeichen lang sein.
+        </source>
+        <target>Name may be at most 200 characters.
+        </target>
+      </trans-unit>
+      <trans-unit id="2628864790352729354" datatype="html">
+        <source>Beschreibung (optional)
+        </source>
+        <target>Description (optional)
+        </target>
+      </trans-unit>
+      <trans-unit id="8645035101864809177" datatype="html">
+        <source>Die Beschreibung darf maximal 1000 Zeichen lang sein.
+        </source>
+        <target>Description may be at most 1000 characters.
+        </target>
+      </trans-unit>
+      <trans-unit id="3241474076591504793" datatype="html">
+        <source>Gespeichert.
+        </source>
+        <target>Saved.
+        </target>
+      </trans-unit>
+      <trans-unit id="1843830756194261727" datatype="html">
+        <source>Synchronisieren
+        </source>
+        <target>Sync
+        </target>
+      </trans-unit>
+      <trans-unit id="281161753824332366" datatype="html">
+        <source>Vorschau öffnen
+        </source>
+        <target>Open preview
+        </target>
+      </trans-unit>
+      <trans-unit id="8104152103272919854" datatype="html">
+        <source>Vorschau
+        </source>
+        <target>Preview
+        </target>
+      </trans-unit>
+      <trans-unit id="1736772795054152455" datatype="html">
+        <source>Einstellungen ausblenden
+        </source>
+        <target>Hide settings
+        </target>
+      </trans-unit>
+      <trans-unit id="1573644813194149153" datatype="html">
+        <source>Einstellungen anpassen
+        </source>
+        <target>Adjust settings
+        </target>
+      </trans-unit>
+      <trans-unit id="4435703504669117699" datatype="html">
+        <source>Einstellungen
+        </source>
+        <target>Settings
+        </target>
+      </trans-unit>
+      <trans-unit id="6568899376509991089" datatype="html">
+        <source>Gelten für alle Fragen in diesem Quiz
+        </source>
+        <target>Apply to all questions in this quiz
+        </target>
+      </trans-unit>
+      <trans-unit id="5339011327463703957" datatype="html">
+        <source> <x id="INTERPOLATION" equiv-text="{{ preset.label }}"/> anwenden 
+        </source>
+        <target> <x id="INTERPOLATION" equiv-text="{{ preset.label }}"/> apply 
+        </target>
+      </trans-unit>
+      <trans-unit id="5642511860113360206" datatype="html">
+        <source>Rangliste anzeigen
+        </source>
+        <target>Show leaderboard
+        </target>
+      </trans-unit>
+      <trans-unit id="6991540885968863848" datatype="html">
+        <source> Belohnungen zeigen 
+        </source>
+        <target> Show rewards 
+        </target>
+      </trans-unit>
+      <trans-unit id="2355797381776819101" datatype="html">
+        <source> Anfeuerung einblenden 
+        </source>
+        <target> Show encouragement 
+        </target>
+      </trans-unit>
+      <trans-unit id="88521927529972246" datatype="html">
+        <source> Emojis erlauben 
+        </source>
+        <target> Allow emojis 
+        </target>
+      </trans-unit>
+      <trans-unit id="382752805490514678" datatype="html">
+        <source> Eigene Nicks erlauben 
+        </source>
+        <target> Allow custom nicknames 
+        </target>
+      </trans-unit>
+      <trans-unit id="4861370785316880928" datatype="html">
+        <source>Anonym teilnehmen
+        </source>
+        <target>Participate anonymously
+        </target>
+      </trans-unit>
+      <trans-unit id="6862352681342046423" datatype="html">
+        <source> Lesephase vor dem Antworten 
+        </source>
+        <target> Reading phase before answering 
+        </target>
+      </trans-unit>
+      <trans-unit id="2261296473393717678" datatype="html">
+        <source>Im Team spielen
+        </source>
+        <target>Play in teams
+        </target>
+      </trans-unit>
+      <trans-unit id="2782132960865520584" datatype="html">
+        <source>Sounds abspielen
+        </source>
+        <target>Play sounds
+        </target>
+      </trans-unit>
+      <trans-unit id="8823381792360645071" datatype="html">
+        <source>Zeitlimit pro Frage in Sekunden (optional)
+        </source>
+        <target>Time limit per question in seconds (optional)
+        </target>
+      </trans-unit>
+      <trans-unit id="7640339655716023309" datatype="html">
+        <source>Ohne Wert gibt es kein Zeitlimit.
+        </source>
+        <target>Leave empty for no time limit.
+        </target>
+      </trans-unit>
+      <trans-unit id="2616703419117401747" datatype="html">
+        <source>Mindestens 5 Sekunden.
+        </source>
+        <target>At least 5 seconds.
+        </target>
+      </trans-unit>
+      <trans-unit id="2431517154855981271" datatype="html">
+        <source>Höchstens 300 Sekunden.
+        </source>
+        <target>At most 300 seconds.
+        </target>
+      </trans-unit>
+      <trans-unit id="5647672382112608804" datatype="html">
+        <source>Altersgruppe für Namen
+        </source>
+        <target>Age group for names
+        </target>
+      </trans-unit>
+      <trans-unit id="1110390562708491750" datatype="html">
+        <source>Anzahl Teams
+        </source>
+        <target>Number of teams
+        </target>
+      </trans-unit>
+      <trans-unit id="2791556515624323205" datatype="html">
+        <source>Mindestens 2 Teams.
+        </source>
+        <target>At least 2 teams.
+        </target>
+      </trans-unit>
+      <trans-unit id="8045223473941356687" datatype="html">
+        <source>Höchstens 8 Teams.
+        </source>
+        <target>At most 8 teams.
+        </target>
+      </trans-unit>
+      <trans-unit id="1129308278678680080" datatype="html">
+        <source>Teams zuweisen
+        </source>
+        <target>Assign teams
+        </target>
+      </trans-unit>
+      <trans-unit id="7503778474761741054" datatype="html">
+        <source>Automatisch
+        </source>
+        <target>Automatic
+        </target>
+      </trans-unit>
+      <trans-unit id="6218443954027762472" datatype="html">
+        <source>Manuell
+        </source>
+        <target>Manual
+        </target>
+      </trans-unit>
+      <trans-unit id="8606357587641495734" datatype="html">
+        <source>Hintergrundmusik
+        </source>
+        <target>Background music
+        </target>
+      </trans-unit>
+      <trans-unit id="3299340173858348406" datatype="html">
+        <source>Bonus-Codes für Top-Plätze (optional)
+        </source>
+        <target>Bonus codes for top places (optional)
+        </target>
+      </trans-unit>
+      <trans-unit id="3509273486839658148" datatype="html">
+        <source>Ohne Wert werden keine Bonus-Codes vergeben.
+        </source>
+        <target>Leave empty to award no bonus codes.
+        </target>
+      </trans-unit>
+      <trans-unit id="9198827608414028616" datatype="html">
+        <source>Mindestens 1 Bonus-Code.
+        </source>
+        <target>At least 1 bonus code.
+        </target>
+      </trans-unit>
+      <trans-unit id="2400955821540044178" datatype="html">
+        <source>Höchstens 50 Bonus-Codes.
+        </source>
+        <target>At most 50 bonus codes.
+        </target>
+      </trans-unit>
+      <trans-unit id="1742287928029463475" datatype="html">
+        <source>Einstellungen übernommen.
+        </source>
+        <target>Settings applied.
+        </target>
+      </trans-unit>
+      <trans-unit id="7678024627255247069" datatype="html">
+        <source>Übernehmen
+        </source>
+        <target>Apply
+        </target>
+      </trans-unit>
+      <trans-unit id="341765638334099836" datatype="html">
+        <source>Frage bearbeiten
+        </source>
+        <target>Edit question
+        </target>
+      </trans-unit>
+      <trans-unit id="884716686888359227" datatype="html">
+        <source>Neue Frage
+        </source>
+        <target>New question
+        </target>
+      </trans-unit>
+      <trans-unit id="867046407244543093" datatype="html">
+        <source> Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX verwenden. 
+        </source>
+        <target> Choose a question type and add answers. You can use Markdown and KaTeX. 
+        </target>
+      </trans-unit>
+      <trans-unit id="4611696472883105418" datatype="html">
+        <source> Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren&quot;, um die Änderungen zu speichern. 
+        </source>
+        <target> You are editing an existing question. Click "Update" to save changes. 
+        </target>
+      </trans-unit>
+      <trans-unit id="1577042233775426233" datatype="html">
+        <source>Fragetext
+        </source>
+        <target>Question text
+        </target>
+      </trans-unit>
+      <trans-unit id="4579210211803634368" datatype="html">
+        <source> Markdown und KaTeX werden in der Vorschau unten gerendert. 
+        </source>
+        <target> Markdown and KaTeX are rendered in the preview below. 
+        </target>
+      </trans-unit>
+      <trans-unit id="1245945853792844677" datatype="html">
+        <source>Gib einen Fragetext ein.
+        </source>
+        <target>Enter question text.
+        </target>
+      </trans-unit>
+      <trans-unit id="2963862029448330443" datatype="html">
+        <source>Der Fragetext darf maximal 2000 Zeichen lang sein.
+        </source>
+        <target>Question text may be at most 2000 characters.
+        </target>
+      </trans-unit>
+      <trans-unit id="1182293107570344716" datatype="html">
+        <source>Fragetyp
+        </source>
+        <target>Question type
+        </target>
+      </trans-unit>
+      <trans-unit id="3515317012613638265" datatype="html">
+        <source>Schwierigkeit
+        </source>
+        <target>Difficulty
+        </target>
+      </trans-unit>
+      <trans-unit id="8205020163645016790" datatype="html">
+        <source>Schnellformat
+        </source>
+        <target>Quick format
+        </target>
+      </trans-unit>
+      <trans-unit id="7287117104463920417" datatype="html">
+        <source>Überschreibt vorhandene Antworten.
+        </source>
+        <target>Overwrites existing answers.
+        </target>
+      </trans-unit>
+      <trans-unit id="8259238864102475814" datatype="html">
+        <source>Skala
+        </source>
+        <target>Scale
+        </target>
+      </trans-unit>
+      <trans-unit id="7544463867005932926" datatype="html">
+        <source>Label Minimum (optional)
+        </source>
+        <target>Label minimum (optional)
+        </target>
+      </trans-unit>
+      <trans-unit id="1229476588328636113" datatype="html">
+        <source>Label Maximum (optional)
+        </source>
+        <target>Label maximum (optional)
+        </target>
+      </trans-unit>
+      <trans-unit id="8021687558521014030" datatype="html">
+        <source>Option
+        </source>
+        <target>Option
+        </target>
+      </trans-unit>
+      <trans-unit id="2856257833786492684" datatype="html">
+        <source>Antwort <x id="INTERPOLATION" equiv-text="{{ i + 1 }}"/>
+        </source>
+        <target>Answer <x id="INTERPOLATION" equiv-text="{{ i + 1 }}"/>
+        </target>
+      </trans-unit>
+      <trans-unit id="6278157135662238363" datatype="html">
+        <source>Gib einen Antworttext ein.
+        </source>
+        <target>Enter answer text.
+        </target>
+      </trans-unit>
+      <trans-unit id="2650319028885568688" datatype="html">
+        <source>Maximal 500 Zeichen.
+        </source>
+        <target>At most 500 characters.
+        </target>
+      </trans-unit>
+      <trans-unit id="8266267788371304686" datatype="html">
+        <source>Weitere Antwort
+        </source>
+        <target>Another answer
+        </target>
+      </trans-unit>
+      <trans-unit id="2525684207823121577" datatype="html">
+        <source> Hier antworten Teilnehmende frei – keine vorgegebenen Antworten nötig. 
+        </source>
+        <target> Participants answer freely here – no predefined answers needed. 
+        </target>
+      </trans-unit>
+      <trans-unit id="3730214089391253539" datatype="html">
+        <source>Live-Vorschau
+        </source>
+        <target>Live preview
+        </target>
+      </trans-unit>
+      <trans-unit id="7492260970005034710" datatype="html">
+        <source> Formelfehler: <x id="INTERPOLATION" equiv-text="{{ previewKatexError() }}"/> 
+        </source>
+        <target> Formula error: <x id="INTERPOLATION" equiv-text="{{ previewKatexError() }}"/> 
+        </target>
+      </trans-unit>
+      <trans-unit id="2863483573986908286" datatype="html">
+        <source>Frage
+        </source>
+        <target>Question
+        </target>
+      </trans-unit>
+      <trans-unit id="3643065623582513222" datatype="html">
+        <source>Antworten
+        </source>
+        <target>Answers
+        </target>
+      </trans-unit>
+      <trans-unit id="7832220288598509801" datatype="html">
+        <source>Aktualisieren
+        </source>
+        <target>Update
+        </target>
+      </trans-unit>
+      <trans-unit id="623302995999546215" datatype="html">
+        <source>Hinzufügen
+        </source>
+        <target>Add
+        </target>
+      </trans-unit>
+      <trans-unit id="3700479510053399162" datatype="html">
+        <source>Fragenliste
+        </source>
+        <target>Question list
+        </target>
+      </trans-unit>
+      <trans-unit id="9015237973110909131" datatype="html">
+        <source>Fragen im Quiz
+        </source>
+        <target>Questions in quiz
+        </target>
+      </trans-unit>
+      <trans-unit id="8122550761270535954" datatype="html">
+        <source>Hinzugefügt
+        </source>
+        <target>Added
+        </target>
+      </trans-unit>
+      <trans-unit id="3827964072457808965" datatype="html">
+        <source>Noch keine Fragen
+        </source>
+        <target>No questions yet
+        </target>
+      </trans-unit>
+      <trans-unit id="4150250960798262494" datatype="html">
+        <source> Füge oben deine erste Frage hinzu, um loszulegen. 
+        </source>
+        <target> Add your first question above to get started. 
+        </target>
+      </trans-unit>
+      <trans-unit id="4580399730639224598" datatype="html">
+        <source>Löschen
+        </source>
+        <target>Delete
+        </target>
+      </trans-unit>
+      <trans-unit id="7620597678842046410" datatype="html">
+        <source>Quiz nicht gefunden.
+        </source>
+        <target>Quiz not found.
+        </target>
+      </trans-unit>
+      <trans-unit id="6672916435220201136" datatype="html">
+        <source>Zur Liste
+        </source>
+        <target>To list
+        </target>
+      </trans-unit>
+      <trans-unit id="3127243514376945641" datatype="html">
+        <source> Kopiere den Prompt in deine KI, dann füge das generierte JSON hier ein. 
+        </source>
+        <target> Copy the prompt into your AI, then paste the generated JSON here. 
+        </target>
+      </trans-unit>
+      <trans-unit id="5088922883755257679" datatype="html">
+        <source>Prompt kopieren
+        </source>
+        <target>Copy prompt
+        </target>
+      </trans-unit>
+      <trans-unit id="8651032424782410006" datatype="html">
+        <source>KI-JSON
+        </source>
+        <target>AI JSON
+        </target>
+      </trans-unit>
+      <trans-unit id="3856389466227560114" datatype="html">
+        <source> Import starten 
+        </source>
+        <target> Start import 
+        </target>
+      </trans-unit>
+      <trans-unit id="6809333927973571945" datatype="html">
+        <source> Deine Quiz-Bibliothek ist noch leer. 
+        </source>
+        <target> Your quiz library is empty. 
+        </target>
+      </trans-unit>
+      <trans-unit id="3567296382906760482" datatype="html">
+        <source> Erstelle dein erstes Quiz oder importiere eines per JSON. 
+        </source>
+        <target> Create your first quiz or import one via JSON. 
+        </target>
+      </trans-unit>
+      <trans-unit id="6655547102817503628" datatype="html">
+        <source>Erstes Quiz erstellen
+        </source>
+        <target>Create first quiz
+        </target>
+      </trans-unit>
+      <trans-unit id="187187500641108332" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ quiz.questionCount === 1 ? &apos;Frage&apos; : &apos;Fragen&apos; }}"/>
+        </source>
+        <target><x id="INTERPOLATION" equiv-text="{{ questions().length }}"/>
+        </target>
+      </trans-unit>
+      <trans-unit id="5590446157839389105" datatype="html">
+        <source>Live schalten
+        </source>
+        <target>Go live
+        </target>
+      </trans-unit>
+      <trans-unit id="6471364499877510205" datatype="html">
+        <source>Duplizieren
+        </source>
+        <target>Duplicate
+        </target>
+      </trans-unit>
+      <trans-unit id="1892540928773826144" datatype="html">
+        <source>Löschen (live)
+        </source>
+        <target>Delete (live)
+        </target>
+      </trans-unit>
+      <trans-unit id="7547865767239725827" datatype="html">
+        <source>Quiz erstellen
+        </source>
+        <target>Create quiz
+        </target>
+      </trans-unit>
+      <trans-unit id="6163248709380828164" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ preset.label }}"/> anwenden
+        </source>
+        <target><x id="INTERPOLATION" equiv-text="{{ preset.label }}"/> apply
+        </target>
+      </trans-unit>
+      <trans-unit id="9039835516404568569" datatype="html">
+        <source>KI-Prompt kopieren
+        </source>
+        <target>Copy AI prompt
+        </target>
+      </trans-unit>
+      <trans-unit id="3469430709894599256" datatype="html">
+        <source> Füge das JSON aus deiner KI ein oder lade es als Datei. Wir prüfen den Inhalt vor dem Import. 
+        </source>
+        <target> Paste the JSON from your AI or load it as a file. We check the content before importing. 
+        </target>
+      </trans-unit>
+      <trans-unit id="1013568912261252993" datatype="html">
+        <source>KI-JSON einfügen
+        </source>
+        <target>Paste AI JSON
+        </target>
+      </trans-unit>
+      <trans-unit id="2692783602359224969" datatype="html">
+        <source>Datei wählen
+        </source>
+        <target>Choose file
+        </target>
+      </trans-unit>
+      <trans-unit id="5988877745866171840" datatype="html">
+        <source> Importieren 
+        </source>
+        <target> Import 
+        </target>
+      </trans-unit>
+      <trans-unit id="7479683756900419424" datatype="html">
+        <source>Wird erstellt…
+        </source>
+        <target>Creating…
+        </target>
+      </trans-unit>
+
+      <trans-unit id="3293413491190500382" datatype="html">
+        <source>„<x id="PH" equiv-text="duplicate.name"/>“ wurde dupliziert.</source>
+        <target><x id="PH"/> was duplicated.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">101</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4762683087008225986" datatype="html">
+        <source>Duplizieren fehlgeschlagen.</source>
+        <target>Duplicate failed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">103</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1590286753172731809" datatype="html">
+        <source>„<x id="PH" equiv-text="quizName"/>“ ist gerade live und kann nicht gelöscht werden.</source>
+        <target><x id="PH"/> is currently live and cannot be deleted.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">110</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3191214074647652455" datatype="html">
+        <source>„<x id="PH" equiv-text="quizName"/>“ wirklich löschen? Das lässt sich nicht rückgängig machen.</source>
+        <target>Really delete <x id="PH"/>? This cannot be undone.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">114</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4443887030685792442" datatype="html">
+        <source>„<x id="PH" equiv-text="quizName"/>“ wurde gelöscht.</source>
+        <target><x id="PH"/> was deleted.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">120</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4357290152640831712" datatype="html">
+        <source>Löschen fehlgeschlagen.</source>
+        <target>Delete failed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">122</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6566123000837537104" datatype="html">
+        <source>„<x id="PH" equiv-text="quiz.quiz.name"/>“ wurde exportiert.</source>
+        <target><x id="PH"/> was exported.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">139</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1016176997972069088" datatype="html">
+        <source>Export fehlgeschlagen.</source>
+        <target>Export failed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">141</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">702</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="523492152856026511" datatype="html">
+        <source>„<x id="PH" equiv-text="imported.name"/>“ wurde importiert.</source>
+        <target><x id="PH"/> was imported.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">155</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="990033847964014823" datatype="html">
+        <source>Import fehlgeschlagen.</source>
+        <target>Import failed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">158</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4312378971475601737" datatype="html">
+        <source>Prompt in die Zwischenablage kopiert.</source>
+        <target>Prompt copied to clipboard.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">173</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1470494159022701029" datatype="html">
+        <source>Kopieren fehlgeschlagen – bitte manuell kopieren.</source>
+        <target>Copy failed – please copy manually.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">175</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1234862766189211955" datatype="html">
+        <source>Füge zuerst das KI-JSON ein.</source>
+        <target>Add the AI JSON first.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">185</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3967078712690677551" datatype="html">
+        <source>KI-„<x id="PH" equiv-text="imported.name"/>“ wurde importiert.</source>
+        <target>AI <x id="PH"/> was imported.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">192</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4513949433042265518" datatype="html">
+        <source>KI-Import fehlgeschlagen.</source>
+        <target>AI import failed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">196</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4816916877207589304" datatype="html">
+        <source>Session <x id="PH" equiv-text="result.code"/> gestartet.</source>
+        <target>Session <x id="PH"/> started.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">235</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8680320837061900030" datatype="html">
+        <source>Live-Start fehlgeschlagen.</source>
+        <target>Live start failed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">241</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4077659868462369036" datatype="html">
+        <source>Zu viele Sessions – bitte später erneut versuchen.</source>
+        <target>Too many sessions – please try again later.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">243</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7000635549914845512" datatype="html">
+        <source>Vorher/Nachher-Vergleich Peer Instruction</source>
+        <target>Before/after comparison Peer Instruction</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">305,306</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4102765943850996306" datatype="html">
+        <source>Weitere Aktionen</source>
+        <target>More actions</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">572,573</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6361582957693255944" datatype="html">
+        <source>Freitext-Session als CSV exportieren</source>
+        <target>Export freetext session as CSV</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">576,577</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4017389878545296254" datatype="html">
+        <source>Warte auf Live-Freitextdaten …</source>
+        <target>Waiting for live freetext data …</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">77</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">25</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7037370522292851726" datatype="html">
+        <source>Session-CSV exportiert.</source>
+        <target>Session CSV exported.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">398</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2061865449420302342" datatype="html">
+        <source>Session-CSV konnte nicht exportiert werden.</source>
+        <target>Session CSV could not be exported.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">400</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1459586565397898784" datatype="html">
+        <source>Die Ergebnisse liegen vor.</source>
+        <target>Results are in.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">440</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">447</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3158548505527185467" datatype="html">
+        <source>Zeit abgelaufen.</source>
+        <target>Time's up.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">441</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">448</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1777945885954120583" datatype="html">
+        <source>Warte auf Bewertungen…</source>
+        <target>Waiting for ratings…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">442</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6747188936976845111" datatype="html">
+        <source>Warte auf Antworten…</source>
+        <target>Waiting for answers…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">449</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5598682335417207093" datatype="html">
+        <source><x id="PH" equiv-text="count"/> von <x id="PH_1" equiv-text="totalStr"/> hat geantwortet</source>
+        <target><x id="PH"/> of <x id="PH_1"/> has responded</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">456</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4585702281654307614" datatype="html">
+        <source><x id="PH" equiv-text="count"/> von <x id="PH_1" equiv-text="totalStr"/> haben geantwortet</source>
+        <target><x id="PH"/> of <x id="PH_1"/> have responded</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">458</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1234284807882172595" datatype="html">
+        <source>Ergebnis-CSV exportiert.</source>
+        <target>Result CSV exported.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">700</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="163495290423277905" datatype="html">
+        <source>Live-Freitext wird aktualisiert.</source>
+        <target>Live freetext is being updated.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">741</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">55</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5499551582155303933" datatype="html">
+        <source>Aktuelle Frage ist keine Freitext-Frage.</source>
+        <target>Current question is not a freetext question.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">746</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">60</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3759418096569402581" datatype="html">
+        <source>Noch keine aktive Frage.</source>
+        <target>No active question yet.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">749</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="464314562794611731" datatype="html">
+        <source>Live-Freitextdaten konnten nicht geladen werden.</source>
+        <target>Live freetext data could not be loaded.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">752</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
+          <context context-type="linenumber">66</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9100338136740737033" datatype="html">
+        <source>Ja, gerne wieder</source>
+        <target>Yes, gladly again</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">105,106</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1129377650136106404" datatype="html">
+        <source>Ja, gerne</source>
+        <target>Yes, gladly</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">106,107</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="872696803891941459" datatype="html">
+        <source>Eher nicht</source>
+        <target>Rather not</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">112,113</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">113,114</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9175670018185396326" datatype="html">
+        <source>Fehler</source>
+        <target>Error</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session.component.html</context>
+          <context context-type="linenumber">11,12</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

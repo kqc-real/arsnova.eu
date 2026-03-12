@@ -284,28 +284,28 @@
                           }
                         </div>
                       } @else {
-                        <p class="session-host__rating-waiting">{{ allHaveVoted() ? 'Die Ergebnisse liegen vor.' : (countdownEnded() ? 'Zeit abgelaufen.' : 'Warte auf Bewertungen…') }}</p>
+                        <p class="session-host__rating-waiting">{{ ratingWaitingText() }}</p>
                       }
                     </div>
                   } @else if (q.type === 'FREETEXT') {
                     <div class="session-host__freetext">
                       @if (effectiveStatus() === 'RESULTS' && q.freeTextResponses && q.freeTextResponses.length > 0) {
-                        <p class="session-host__freetext-count">{{ q.freeTextResponses.length }} von {{ participantsPayload()?.participantCount ?? '?' }} {{ q.freeTextResponses.length === 1 ? 'hat' : 'haben' }} geantwortet</p>
+                        <p class="session-host__freetext-count">{{ freetextRespondedLabel(q.freeTextResponses.length, participantsPayload()?.participantCount ?? 0) }}</p>
                         <ul class="session-host__freetext-list" role="list">
                           @for (text of q.freeTextResponses; track text) {
                             <li class="session-host__freetext-item">{{ text }}</li>
                           }
                         </ul>
                       } @else {
-                        <p class="session-host__freetext-waiting">{{ allHaveVoted() ? 'Die Ergebnisse liegen vor.' : (countdownEnded() ? 'Zeit abgelaufen.' : 'Warte auf Antworten…') }}</p>
+                        <p class="session-host__freetext-waiting">{{ freetextWaitingText() }}</p>
                       }
                     </div>
                   } @else if (q.roundComparison && effectiveStatus() === 'RESULTS') {
                     <!-- Peer Instruction: Vorher/Nachher-Vergleich (Story 2.7) -->
-                    <div class="session-host__round-comparison" role="img" aria-label="Vorher/Nachher-Vergleich Peer Instruction">
+                    <div class="session-host__round-comparison" role="img" i18n-aria-label aria-label="Vorher/Nachher-Vergleich Peer Instruction">
                       <div class="session-host__round-comparison-header">
-                        <span class="session-host__round-comparison-label session-host__round-comparison-label--r1">Runde 1 ({{ q.roundComparison.round1Total }} Stimmen)</span>
-                        <span class="session-host__round-comparison-label session-host__round-comparison-label--r2">Runde 2 ({{ q.roundComparison.round2Total }} Stimmen)</span>
+                        <span class="session-host__round-comparison-label session-host__round-comparison-label--r1" i18n>Runde 1 ({{ q.roundComparison.round1Total }} Stimmen)</span>
+                        <span class="session-host__round-comparison-label session-host__round-comparison-label--r2" i18n>Runde 2 ({{ q.roundComparison.round2Total }} Stimmen)</span>
                       </div>
                       @if (q.roundComparison.round1CorrectCount !== null && q.roundComparison.round1CorrectCount !== undefined && q.type !== 'SURVEY') {
                         <p class="session-host__round-comparison-correct">
@@ -443,7 +443,7 @@
               </div>
             }
           } @else {
-            <p class="session-host__no-question">Keine Frage aktiv. Mit „Nächste Frage“ starten.</p>
+            <p class="session-host__no-question" i18n>Keine Frage aktiv. Mit „Nächste Frage“ starten.</p>
           }
 
           @if (effectiveStatus() === 'RESULTS' && session()?.enableEmojiReactions && emojiReactions(); as reactions) {
@@ -569,11 +569,11 @@
 
           <!-- Weitere Aktionen (eingeklappt) -->
           <details class="session-host__extra">
-            <summary>Weitere Aktionen</summary>
+            <summary i18n>Weitere Aktionen</summary>
             <div class="session-host__extra-content">
               <button mat-button type="button" (click)="exportFreetextSessionCsv()">
                 <mat-icon>download</mat-icon>
-                Freitext-Session als CSV exportieren
+                <span i18n>Freitext-Session als CSV exportieren</span>
               </button>
               @if (exportStatus()) {
                 <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
@@ -598,7 +598,7 @@
   } @else {
     <mat-card appearance="outlined" class="session-placeholder">
       <mat-card-content>
-        <p class="session-placeholder__text">Host-Ansicht für Lobby und Steuerung.</p>
+        <p class="session-placeholder__text" i18n>Host-Ansicht für Lobby und Steuerung.</p>
       </mat-card-content>
     </mat-card>
   }
