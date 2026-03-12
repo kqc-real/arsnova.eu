@@ -106,6 +106,8 @@ html {
   --app-color-danger-bg: var(--mat-sys-error-container);
   --app-color-danger-fg: var(--mat-sys-on-error-container);
   --arsnova-bar-correct: light-dark(#2e7d32, #66bb6a);
+  /** Text/Icon auf „Richtig“-Flächen (kontrastreich in Light + Dark) */
+  --arsnova-bar-correct-on: light-dark(#fff, #1b5e20);
   --arsnova-bar-wrong: light-dark(#c62828, #ef5350);
   --app-color-info-bg: var(--mat-sys-tertiary-container);
   --app-color-info-fg: var(--mat-sys-on-tertiary-container);
@@ -453,12 +455,25 @@ html {
   hyphens: auto;
 }
 
+/* KaTeX: line-height für Lesbarkeit; overflow-y: hidden verhindert unerwünschten vertikalen Scrollbalken (v. a. bei overflow-x: auto, siehe GitHub KaTeX #2942) */
+.katex,
+.katex-display {
+  line-height: 2.2 !important;
+  overflow-y: hidden;
+}
+
+.katex-display {
+  margin: 0.75em 0;
+}
+
+/* overflow-x + overflow-y: hidden: bekanntes KaTeX-Problem – nur bei overflow-x: auto erscheint sonst ein vertikaler Scrollbalken (GitHub #2942, SO 67146733) */
 .session-host__question-title-inner .katex,
 .session-host__question-title-inner .katex-display,
 .vote-question__text .katex,
 .vote-question__text .katex-display {
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   display: inline-block;
   vertical-align: middle;
   scrollbar-gutter: stable;

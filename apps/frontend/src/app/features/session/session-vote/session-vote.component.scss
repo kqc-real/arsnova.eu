@@ -22,30 +22,81 @@
   color: var(--mat-sys-primary);
 }
 
-// Lobby
+// Lobby (Einwahlphase)
 .vote-lobby {
   text-align: center;
-  padding: 3.5rem 1.5rem;
+  padding: 2rem 1rem 3rem;
+  max-width: 28rem;
+  margin: 0 auto;
 }
 
-.vote-lobby__icon {
-  font-size: 3.5rem;
-  width: 3.5rem;
-  height: 3.5rem;
+.vote-lobby__badge {
+  display: inline-block;
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
   color: var(--mat-sys-primary);
-  margin-bottom: 1.25rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  border: 1.5px solid var(--mat-sys-primary);
+  border-radius: var(--mat-sys-corner-medium, 8px);
+  padding: 0.35rem 0.85rem;
+  margin: 0 0 1.25rem;
 }
 
-.vote-lobby__text {
-  font: var(--mat-sys-headline-small);
-  color: var(--mat-sys-on-surface);
+.vote-lobby__code {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--mat-sys-primary);
   margin: 0 0 0.5rem;
 }
 
-.vote-lobby__hint {
+.vote-lobby__quiz {
   font: var(--mat-sys-body-large);
   color: var(--mat-sys-on-surface-variant);
+  margin: 0 0 2rem;
+  line-height: 1.45;
+}
+
+.vote-lobby__wait {
+  padding: 1.5rem 1rem;
+  border-radius: var(--mat-sys-corner-medium, 8px);
+  background: var(--mat-sys-surface-container-high, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.08));
+}
+
+.vote-lobby__icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin: 0 auto 0.75rem;
+  display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vote-lobby__icon {
+    animation: vote-lobby-icon-pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes vote-lobby-icon-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.vote-lobby__text {
+  font: var(--mat-sys-title-medium);
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+  margin: 0 0 0.35rem;
+}
+
+.vote-lobby__hint {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
   margin: 0;
+  line-height: 1.45;
 }
 
 // Question
@@ -59,6 +110,21 @@
   font-weight: 600;
   color: var(--mat-sys-primary);
   margin: 0 0 0.35rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.vote-question__last-badge {
+  display: inline-block;
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  border: 1.5px solid var(--mat-sys-primary);
+  border-radius: var(--mat-sys-corner-small, 6px);
+  padding: 0.25rem 0.6rem;
 }
 
 .vote-question__text {
@@ -67,12 +133,40 @@
   line-height: 1.55;
 }
 
-.vote-question__reading-hint {
-  margin: 1.75rem 0 0;
-  font: var(--mat-sys-body-large);
-  color: var(--mat-sys-on-surface-variant);
+.vote-reading-banner {
+  margin-top: 1.75rem;
+  padding: 1.5rem 1.25rem;
   text-align: center;
-  font-style: italic;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  border-radius: var(--mat-sys-corner-large, 12px);
+  border: 2px solid var(--mat-sys-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vote-reading-banner__icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--mat-sys-primary);
+}
+
+.vote-reading-banner__title {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+  font-weight: 700;
+  color: var(--mat-sys-on-primary-container);
+}
+
+.vote-reading-banner__hint {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-primary-container);
+  opacity: 0.95;
+  line-height: 1.45;
 }
 
 .vote-question__header {
@@ -131,6 +225,7 @@
   align-items: center;
   gap: 0.6rem;
   padding: 1rem 1.25rem;
+  margin-top: 1.5rem;
   margin-bottom: 1.25rem;
   border-radius: var(--mat-sys-corner-large, 12px);
   background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
@@ -716,9 +811,10 @@
 
 .vote-discussion__hint {
   font: var(--mat-sys-body-large);
-  color: var(--mat-sys-on-surface);
+  color: var(--mat-sys-on-surface-variant);
   max-width: 28rem;
   margin: 0;
+  line-height: 1.5;
 }
 
 .vote-discussion__next {

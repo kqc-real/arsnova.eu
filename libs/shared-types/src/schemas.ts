@@ -251,6 +251,8 @@ export type RoundComparisonDTO = z.infer<typeof RoundComparisonDTOSchema>;
 export const HostCurrentQuestionDTOSchema = z.object({
   questionId: z.string().uuid(),
   order: z.number().int().min(0),
+  /** Gesamtanzahl Fragen im Quiz (für Host-Button „Nächste Frage“ vs. „Session beenden“). */
+  totalQuestions: z.number().int().min(1).optional(),
   text: z.string(),
   type: QuestionTypeEnum,
   timer: z.number().nullable().optional(),
@@ -348,6 +350,8 @@ export const QuestionRevealedDTOSchema = z.object({
   type: QuestionTypeEnum,
   difficulty: DifficultyEnum,
   order: z.number(),
+  /** Gesamtanzahl Fragen (für Client-Hinweis „Letzte Frage“). */
+  totalQuestions: z.number().int().min(1).optional(),
   answers: z.array(AnswerOptionRevealedDTOSchema),
   freeTextResponses: z.array(z.string()).optional(), // Nur bei FREETEXT-Fragen
   totalVotes: z.number(),
@@ -362,6 +366,8 @@ export const QuestionStudentDTOSchema = z.object({
   timer: z.number().nullable(),
   difficulty: DifficultyEnum,
   order: z.number(),
+  /** Gesamtanzahl Fragen (für Client-Hinweis „Letzte Frage“). */
+  totalQuestions: z.number().int().min(1).optional(),
   answers: z.array(AnswerOptionStudentDTOSchema),
   activeAt: z.string().optional(),
   ratingMin: z.number().nullable().optional(),
@@ -385,6 +391,8 @@ export const QuestionPreviewDTOSchema = z.object({
   type: QuestionTypeEnum,
   difficulty: DifficultyEnum,
   order: z.number(),
+  /** Gesamtanzahl Fragen (für Client-Hinweis „Letzte Frage“). */
+  totalQuestions: z.number().int().min(1).optional(),
   ratingMin: z.number().nullable().optional(),        // Nur bei RATING
   ratingMax: z.number().nullable().optional(),        // Nur bei RATING
   ratingLabelMin: z.string().nullable().optional(),   // Nur bei RATING

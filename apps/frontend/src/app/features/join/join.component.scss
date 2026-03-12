@@ -9,31 +9,69 @@
     color: var(--mat-sys-on-surface);
   }
 
-  &__label {
-    margin: 0 0 0.25rem;
-    font: var(--mat-sys-label-medium);
+  &__title {
+    margin: 0 0 1.25rem;
+    font: var(--mat-sys-headline-small);
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+
+  &__session {
+    margin-bottom: 1.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+  }
+
+  &__session-heading {
+    margin: 0 0 0.5rem;
+    font: var(--mat-sys-label-large);
+    font-weight: 600;
     color: var(--mat-sys-on-surface-variant);
   }
 
   &__code {
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.35rem;
     font-family: ui-monospace, 'SF Mono', Consolas, monospace;
-    font-size: 1.5rem;
+    font-size: clamp(1.35rem, 5vw, 1.75rem);
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     color: var(--mat-sys-primary);
   }
 
   &__quiz {
-    margin: 0 0 0.25rem;
-    font: var(--mat-sys-title-small);
+    margin: 0 0 0.5rem;
+    font: var(--mat-sys-body-large);
     color: var(--mat-sys-on-surface);
+    line-height: 1.45;
   }
 
   &__participants {
+    margin: 0;
+    font: var(--mat-sys-body-medium);
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__participants-count {
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+
+  &__nickname-group {
+    margin-bottom: 1rem;
+  }
+
+  &__nickname-heading {
+    margin: 0 0 0.2rem;
+    font: var(--mat-sys-title-small);
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+
+  &__nickname-hint {
     margin: 0 0 0.75rem;
     font: var(--mat-sys-body-small);
     color: var(--mat-sys-on-surface-variant);
+    line-height: 1.4;
   }
 
   &__hint {
@@ -53,24 +91,26 @@
     color: var(--mat-sys-error);
   }
 
-  &--lobby .join-card__code {
-    margin-bottom: 0.5rem;
-  }
-
   &__field {
     display: block;
     width: 100%;
-    margin-bottom: 0.5rem;
   }
 
   &__submit {
-    margin-top: 0.75rem;
+    margin-top: 1rem;
+    width: 100%;
+
+    @media (min-width: 480px) {
+      width: auto;
+      min-width: 10rem;
+    }
   }
 
   &__error {
-    margin: 0.5rem 0 0;
+    margin: 0.75rem 0 0;
     font: var(--mat-sys-body-small);
     color: var(--mat-sys-error);
+    line-height: 1.4;
   }
 
   &__option--taken {

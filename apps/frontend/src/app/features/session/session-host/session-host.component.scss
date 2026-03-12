@@ -150,31 +150,10 @@
   color: var(--mat-sys-on-surface);
 }
 
-.session-host__meta-details {
-  display: inline-block;
-  list-style: none;
-
-  &[open] .session-host__meta-details-summary {
-    margin-bottom: 0.25rem;
-  }
-}
-
-.session-host__meta-details-summary {
-  cursor: pointer;
-  font-size: 0.875rem;
-  color: var(--mat-sys-on-surface-variant);
-  opacity: 0.85;
-
-  &::-webkit-details-marker {
-    display: none;
-  }
-}
-
 .session-host__meta-status {
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   display: inline-block;
   margin-right: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .session-host__meta-quiz {
@@ -528,11 +507,40 @@
   }
 }
 
-.session-host__reading-hint {
-  margin: 1.25rem 0 0;
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
-  font-style: italic;
+.session-host__reading-banner {
+  margin-top: 1.25rem;
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  border-radius: var(--mat-sys-corner-large, 12px);
+  border: 2px solid var(--mat-sys-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.session-host__reading-banner-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: var(--mat-sys-primary);
+}
+
+.session-host__reading-banner-title {
+  margin: 0;
+  font: var(--mat-sys-headline-medium);
+  font-weight: 700;
+  color: var(--mat-sys-on-primary-container);
+}
+
+.session-host__reading-banner-hint {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-primary-container);
+  opacity: 0.95;
+  line-height: 1.45;
 }
 
 .session-host__question-title {
@@ -583,13 +591,32 @@
 }
 
 .session-host__answer--correct {
-  background: var(--app-color-success-bg);
-  color: var(--app-color-success-fg);
-  border-color: var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+  background: color-mix(in srgb, var(--arsnova-bar-correct) 18%, var(--mat-sys-surface-container-low));
+  color: var(--mat-sys-on-surface);
+  border: 2px solid var(--arsnova-bar-correct);
+  font-weight: 500;
 }
 
 .session-host__answer-text {
   flex: 1;
+}
+
+.session-host__answer-correct-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--mat-sys-corner-small, 6px);
+  background: var(--arsnova-bar-correct);
+  color: var(--arsnova-bar-correct-on);
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+  flex-shrink: 0;
+
+  &--dist {
+    padding: 0.25rem 0.5rem;
+    font: var(--mat-sys-label-medium);
+  }
 }
 
 .session-host__answer-icon {
@@ -597,6 +624,19 @@
   width: 1.25rem;
   height: 1.25rem;
   opacity: 0.9;
+
+  .session-host__answer-correct-label & {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    opacity: 1;
+  }
+
+  .session-host__answer-correct-label--dist & {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 }
 
 .session-host__answer-badge {
@@ -662,6 +702,31 @@
   border-top: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
 }
 
+// Diskussionsphase-Button: MD3 tonal (Primary Container), Styleguide-Tokens
+button.session-host__btn-discussion {
+  background: var(--mat-sys-primary-container) !important;
+  color: var(--mat-sys-on-primary-container) !important;
+  border-radius: var(--mat-sys-corner-medium, 8px);
+  padding: 0.5rem 1.25rem;
+  font: var(--mat-sys-label-large);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background 200ms ease, color 200ms ease, opacity 200ms ease;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--mat-sys-primary-container) 85%, var(--mat-sys-on-primary-container)) !important;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 .session-host__extra {
   margin-top: 2rem;
   padding-top: 1.25rem;
@@ -692,10 +757,22 @@
 .session-host__question-subtitle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   width: 100%;
   font: var(--mat-sys-label-large);
   color: var(--mat-sys-on-surface-variant);
+}
+
+.session-host__question-last-badge {
+  display: inline-block;
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  border: 1.5px solid var(--mat-sys-primary);
+  border-radius: var(--mat-sys-corner-small, 6px);
+  padding: 0.25rem 0.6rem;
 }
 
 .session-host__all-voted {
@@ -704,9 +781,9 @@
   gap: 0.35rem;
   font: var(--mat-sys-title-small);
   font-weight: 600;
-  color: var(--arsnova-bar-correct, #43a047);
-  background: color-mix(in srgb, var(--arsnova-bar-correct, #43a047) 14%, transparent);
-  border: 1.5px solid var(--arsnova-bar-correct, #43a047);
+  color: var(--arsnova-bar-correct);
+  background: color-mix(in srgb, var(--arsnova-bar-correct) 14%, transparent);
+  border: 1.5px solid var(--arsnova-bar-correct);
   border-radius: 0.5rem;
   padding: 0.35rem 0.75rem;
 
@@ -714,7 +791,7 @@
     font-size: 1.125rem;
     width: 1.125rem;
     height: 1.125rem;
-    color: var(--arsnova-bar-correct, #43a047);
+    color: var(--arsnova-bar-correct);
   }
 }
 
@@ -889,9 +966,9 @@
   gap: 0.5rem;
   font: var(--mat-sys-title-large);
   font-weight: 700;
-  color: var(--arsnova-bar-correct, #43a047);
-  background: color-mix(in srgb, var(--arsnova-bar-correct, #43a047) 12%, transparent);
-  border: 2px solid var(--arsnova-bar-correct, #43a047);
+  color: var(--mat-sys-on-surface);
+  background: color-mix(in srgb, var(--arsnova-bar-correct) 12%, transparent);
+  border: 2px solid var(--arsnova-bar-correct);
   border-radius: 0.75rem;
   padding: 0.5rem 1rem;
   margin-bottom: 0.75rem;
@@ -907,9 +984,17 @@
 }
 
 .session-host__vote-dist-item {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--mat-sys-corner-small, 6px);
+  border: 1px solid transparent;
+
   &--correct {
+    background: color-mix(in srgb, var(--arsnova-bar-correct) 14%, transparent);
+    border-color: var(--arsnova-bar-correct);
+
     .session-host__vote-dist-text {
       font-weight: 700;
+      color: var(--mat-sys-on-surface);
     }
   }
 }
@@ -953,7 +1038,7 @@
   transition: width 300ms ease;
 
   &--correct {
-    background: var(--arsnova-bar-correct, #43a047);
+    background: var(--arsnova-bar-correct);
   }
 
   &--neutral {
@@ -961,31 +1046,53 @@
   }
 }
 
-// Story 2.7: Diskussionsphase
-.session-host__discussion {
+// Story 2.7: Diskussionsphase – großer Banner für Publikum (Beamer)
+.session-host__discussion-banner {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  border-radius: var(--mat-sys-corner-extra-large, 1rem);
+  border: 2px solid var(--mat-sys-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 2rem 1rem;
-  text-align: center;
+  gap: 0.75rem;
 }
 
-.session-host__discussion-icon {
-  font-size: 3rem;
-  width: 3rem;
-  height: 3rem;
-  color: var(--mat-sys-primary);
+.session-host__discussion-banner-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: var(--mat-sys-on-primary-container);
 }
 
-.session-host__discussion-text {
-  font: var(--mat-sys-headline-medium);
-  color: var(--mat-sys-on-surface);
+.session-host__discussion-banner-text {
+  margin: 0;
+  font: var(--mat-sys-headline-large);
+  font-weight: 600;
+  color: var(--mat-sys-on-primary-container);
+  line-height: 1.3;
+  max-width: 36rem;
 }
 
-.session-host__discussion-hint {
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
+.session-host__discussion-banner-hint {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-primary-container);
+  opacity: 0.95;
+  line-height: 1.5;
+  max-width: 32rem;
+}
+
+.session-host__discussion-banner-next {
+  margin: 0.5rem 0 0;
+  font: var(--mat-sys-title-medium);
+  font-weight: 500;
+  color: var(--mat-sys-on-primary-container);
+  opacity: 0.9;
 }
 
 // Story 2.7: Vorher/Nachher-Vergleich (Peer Instruction)
@@ -1041,7 +1148,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   gap: 0.5rem;
   font: var(--mat-sys-body-medium);
   font-weight: 600;
-  color: var(--arsnova-bar-correct, #43a047);
+  color: var(--arsnova-bar-correct);
 
   mat-icon {
     font-size: 1.25rem;
@@ -1065,7 +1172,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   padding: 0.75rem 1rem;
 
   &--correct {
-    border-color: var(--arsnova-bar-correct, #43a047);
+    border-color: var(--arsnova-bar-correct);
     border-width: 2px;
   }
 }
@@ -1182,7 +1289,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 }
 
 .session-host__opinion-shift-gain {
-  color: var(--arsnova-bar-correct, #2e7d32);
+  color: var(--arsnova-bar-correct);
   font-weight: 600;
 }
 

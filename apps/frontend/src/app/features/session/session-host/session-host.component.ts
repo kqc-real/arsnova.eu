@@ -129,6 +129,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     });
     effect(() => {
+      if (this.countdownEnded()) {
+        this.sound.stopMusic();
+      }
+    });
+    effect(() => {
       const status = this.effectiveStatus();
       if (status === 'FINISHED' || status === 'RESULTS') {
         void this.loadLeaderboard();
@@ -355,6 +360,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private stopCountdown(): void {
     if (this.countdownTimer) { clearInterval(this.countdownTimer); this.countdownTimer = null; }
     if (this.fingerHideTimeout) { clearTimeout(this.fingerHideTimeout); this.fingerHideTimeout = null; }
+    this.sound.stopMusic();
   }
 
   /**
@@ -411,9 +417,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return su?.status ?? s?.status ?? null;
   }
 
+  /** Lesbare Phasen-Beschreibung für Dozenten-Info und Publikum. */
+  phaseLabel(status: SessionInfoDTO['status'] | null, allVoted = false, countdownEnded = false): string {
+    if (!status) return '—';
+    if (status === 'ACTIVE' && (allVoted || countdownEnded)) {
+      return 'Abstimmung beendet – warte auf Auswertung';
+    }
+    const labels: Record<SessionInfoDTO['status'], string> = {
+      LOBBY: 'Lobby – Teilnehmende können beitreten',
+      QUESTION_OPEN: 'Lesephase – Frage sichtbar, Antworten noch gesperrt',
+      ACTIVE: 'Abstimmung läuft',
+      PAUSED: 'Pausiert',
+      RESULTS: 'Ergebnisse werden angezeigt',
+      DISCUSSION: 'Diskussionsphase – Austausch vor zweiter Runde',
+      FINISHED: 'Session beendet',
+    };
+    return labels[status] ?? status;
+  }
+
   effectiveCurrentQuestion(): number | null {
     const su = this.statusUpdate();
     return su?.currentQuestion ?? null;
+  }
+
+  /** True, wenn die aktuelle Frage die letzte ist – dann zeigt der Steuerungs-Button „Session beenden“. */
+  isLastQuestion(): boolean {
+    const q = this.currentQuestionForHost();
+    if (!q || q.totalQuestions == null) return false;
+    return q.order + 1 >= q.totalQuestions;
   }
 
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */

@@ -43,17 +43,14 @@
     } @else {
       <!-- Keine Lobby: Beamer-tauglich. Fragenkarte = Toolbar-Breite (56rem), Ergebniskarte darunter. -->
       <div class="session-host__run l-page">
-        <!-- Minimal für Projektion: nur Code + Teilnehmerzahl; Rest in Dozenten-Info (eingeklappt) -->
+        <!-- Code, Teilnehmerzahl, Phase und Quiz-Name für alle sichtbar (Dozent und Publikum). -->
         <header class="session-host__meta">
           <span class="session-host__meta-code" aria-label="Session-Code {{ s.code }}">{{ s.code }}</span>
           <span class="session-host__meta-participants">{{ s.participantCount }} Teilnehmende</span>
-          <details class="session-host__meta-details">
-            <summary class="session-host__meta-details-summary">Dozenten-Info</summary>
-            <span class="session-host__meta-status">{{ effectiveStatus() ?? s.status }}</span>
-            @if (s.quizName) {
-              <span class="session-host__meta-quiz">{{ s.quizName }}</span>
-            }
-          </details>
+          <span class="session-host__meta-status">{{ phaseLabel(effectiveStatus(), allHaveVoted(), countdownEnded()) }}</span>
+          @if (s.quizName) {
+            <span class="session-host__meta-quiz">{{ s.quizName }}</span>
+          }
         </header>
 
         @if (effectiveStatus() === 'FINISHED') {
@@ -210,12 +207,25 @@
             </div>
           }
 
+          <!-- Banner: Diskussionsphase (groß, für Publikum auf Beamer) -->
+          @if (effectiveStatus() === 'DISCUSSION') {
+            <div class="session-host__discussion-banner" role="status" aria-live="polite">
+              <mat-icon class="session-host__discussion-banner-icon" aria-hidden="true">groups</mat-icon>
+              <p class="session-host__discussion-banner-text">Tauscht euch kurz mit eurem Nachbarn aus</p>
+              <p class="session-host__discussion-banner-hint">Gleiche Antwort? Prima. Verschiedene Meinung? Überzeugt euch gegenseitig.</p>
+              <p class="session-host__discussion-banner-next">Zweite Abstimmung folgt gleich.</p>
+            </div>
+          }
+
           <!-- Karte 1: Frage (toolbar-breit) -->
           @if (currentQuestionForHost(); as q) {
             <mat-card appearance="outlined" class="session-host__question-card">
               <mat-card-header>
                 <mat-card-subtitle class="session-host__question-subtitle">
                   <span>Frage {{ q.order + 1 }}</span>
+                  @if (q.totalQuestions != null && q.order + 1 === q.totalQuestions) {
+                    <span class="session-host__question-last-badge">Letzte Frage</span>
+                  }
                   @if (allHaveVoted()) {
                     <span class="session-host__all-voted" role="status" aria-live="polite">
                       <mat-icon>how_to_vote</mat-icon>
@@ -233,15 +243,10 @@
               </mat-card-header>
               @if (effectiveStatus() === 'QUESTION_OPEN') {
                 <mat-card-content>
-                  <p class="session-host__reading-hint" role="status" aria-live="polite">Gleich geht's los…</p>
-                </mat-card-content>
-              }
-              @if (effectiveStatus() === 'DISCUSSION') {
-                <mat-card-content>
-                  <div class="session-host__discussion" role="status" aria-live="polite">
-                    <mat-icon class="session-host__discussion-icon">groups</mat-icon>
-                    <p class="session-host__discussion-text">Diskutiert mit eurem Nachbarn!</p>
-                    <p class="session-host__discussion-hint">Zweite Abstimmung folgt gleich.</p>
+                  <div class="session-host__reading-banner" role="status" aria-live="polite">
+                    <mat-icon class="session-host__reading-banner-icon" aria-hidden="true">menu_book</mat-icon>
+                    <p class="session-host__reading-banner-title">Lesephase</p>
+                    <p class="session-host__reading-banner-hint">Frage ist sichtbar. Antworten noch gesperrt – gleich freigeben.</p>
                   </div>
                 </mat-card-content>
               }
@@ -391,7 +396,10 @@
                               </span>
                               <span class="session-host__vote-dist-text session-host__rich-text" [innerHTML]="renderMarkdown(a.text)"></span>
                               @if (a.isCorrect && q.type !== 'SURVEY') {
-                                <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                                <span class="session-host__answer-correct-label session-host__answer-correct-label--dist">
+                                  <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                                  <span>Richtig</span>
+                                </span>
                               }
                               <span class="session-host__vote-dist-pct">{{ a.votePercentage }}&nbsp;%</span>
                               <span class="session-host__vote-dist-count">({{ a.voteCount }})</span>
@@ -421,7 +429,10 @@
                           </span>
                           <span class="session-host__answer-text session-host__rich-text" [innerHTML]="renderMarkdown(a.text)"></span>
                           @if (effectiveStatus() === 'RESULTS' && a.isCorrect) {
-                            <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                            <span class="session-host__answer-correct-label">
+                              <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                              <span>Richtig</span>
+                            </span>
                           }
                         </li>
                       }
@@ -507,12 +518,14 @@
               </button>
               @if (currentQuestionForHost()?.currentRound === 1 && (currentQuestionForHost()?.totalVotes ?? 0) > 0) {
                 <button
-                  mat-tonal-button
+                  matButton="tonal"
                   type="button"
+                  class="session-host__btn-discussion"
                   [disabled]="controlPending()"
                   (click)="startDiscussion()"
+                  aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
                 >
-                  <mat-icon>groups</mat-icon>
+                  <mat-icon aria-hidden="true">groups</mat-icon>
                   Diskussionsphase
                 </button>
               }
@@ -529,7 +542,7 @@
                 Zweite Abstimmung
               </button>
               <button
-                mat-tonal-button
+                matButton="tonal"
                 type="button"
                 [disabled]="controlPending()"
                 (click)="nextQuestion()"
@@ -545,7 +558,11 @@
                 [disabled]="controlPending()"
                 (click)="nextQuestion()"
               >
-                Nächste Frage
+                @if (isLastQuestion()) {
+                  Session beenden
+                } @else {
+                  Nächste Frage
+                }
               </button>
             }
           </div>

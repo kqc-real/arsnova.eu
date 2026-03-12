@@ -1,10 +1,19 @@
 <div class="vote-page">
-  <p class="vote-session-code" aria-label="Session-Code {{ code }}">{{ code }}</p>
+  @if (!isLobby()) {
+    <p class="vote-session-code" aria-label="Session-Code {{ code }}">{{ code }}</p>
+  }
   @if (isLobby()) {
     <div class="vote-lobby">
-      <mat-icon class="vote-lobby__icon">hourglass_empty</mat-icon>
-      <p class="vote-lobby__text">Warte auf den Dozenten…</p>
-      <p class="vote-lobby__hint">Die erste Frage erscheint automatisch.</p>
+      <p class="vote-lobby__badge" role="status">Du bist dabei</p>
+      <p class="vote-lobby__code" aria-label="Session-Code {{ code }}">{{ code }}</p>
+      @if (sessionSettings().quizName) {
+        <p class="vote-lobby__quiz">{{ sessionSettings().quizName }}</p>
+      }
+      <div class="vote-lobby__wait" role="status">
+        <mat-icon class="vote-lobby__icon" aria-hidden="true">schedule</mat-icon>
+        <p class="vote-lobby__text">Warte auf den Start durch den Dozenten</p>
+        <p class="vote-lobby__hint">Die erste Frage erscheint automatisch – Gerät bereithalten.</p>
+      </div>
     </div>
   } @else if (isFinished()) {
     <div class="vote-finished-page">
@@ -127,25 +136,37 @@
   } @else if (isQuestionOpen()) {
     @if (currentQuestion(); as q) {
       <div class="vote-question">
-        <p class="vote-question__label">Frage {{ q.order + 1 }}</p>
-        <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
-        <p class="vote-question__reading-hint" role="status" aria-live="polite">
-          Lies die Frage — Antworten folgen gleich.
+        <p class="vote-question__label">
+          Frage {{ q.order + 1 }}
+          @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
+            <span class="vote-question__last-badge">Letzte Frage</span>
+          }
         </p>
+        <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
+        <div class="vote-reading-banner" role="status" aria-live="polite">
+          <mat-icon class="vote-reading-banner__icon" aria-hidden="true">menu_book</mat-icon>
+          <p class="vote-reading-banner__title">Lesephase</p>
+          <p class="vote-reading-banner__hint">Lies die Frage in Ruhe – die Antwortoptionen folgen gleich.</p>
+        </div>
       </div>
     }
   } @else if (isDiscussion()) {
     @if (currentQuestion(); as q) {
       <div class="vote-question">
-        <p class="vote-question__label">Frage {{ q.order + 1 }}</p>
+        <p class="vote-question__label">
+          Frage {{ q.order + 1 }}
+          @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
+            <span class="vote-question__last-badge">Letzte Frage</span>
+          }
+        </p>
         <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
       </div>
       <div class="vote-discussion" role="status" aria-live="polite">
         <div class="vote-discussion__icon-ring">
           <mat-icon class="vote-discussion__icon">groups</mat-icon>
         </div>
-        <p class="vote-discussion__text">Diskutiert mit eurem Nachbarn!</p>
-        <p class="vote-discussion__hint">Hat dein Nachbar die gleiche Antwort? Überzeugt euch gegenseitig.</p>
+        <p class="vote-discussion__text">Tausch dich kurz mit deinem Nachbarn aus</p>
+        <p class="vote-discussion__hint">Gleiche Antwort? Prima. Verschiedene Meinung? Überzeugt euch gegenseitig.</p>
         <p class="vote-discussion__next">Zweite Abstimmung folgt gleich…</p>
       </div>
     }
@@ -160,6 +181,9 @@
         <div class="vote-question__header">
           <p class="vote-question__label">
             Frage {{ q.order + 1 }}
+            @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
+              <span class="vote-question__last-badge">Letzte Frage</span>
+            }
             @if (currentRound() === 2) {
               <span class="vote-question__round-badge">2. Runde</span>
             }
@@ -177,6 +201,113 @@
         </div>
         <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
       </div>
+
+      @if (timeoutMessage() && !voteSent()) {
+        <div class="vote-timeout" role="status" aria-live="polite">
+          <mat-icon>timer_off</mat-icon>
+          <span>{{ timeoutMessage() }}</span>
+        </div>
+      }
+
+      @if (voteError()) {
+        <p class="vote-error" role="alert">{{ voteError() }}</p>
+      }
+
+      @if (hasAnswers()) {
+        <ul class="vote-answers">
+          @for (a of $any(q).answers; track a.id; let i = $index) {
+            @let isSelected = selectedAnswerIds().has(a.id);
+            @let isRevealed = isResults();
+            @let isCorrect = isRevealed && a.isCorrect;
+            @let isWrong = isRevealed && isSelected && !a.isCorrect;
+            <li>
+              <button
+                class="vote-answer"
+                [class.vote-answer--selected]="isSelected"
+                [class.vote-answer--correct]="isCorrect"
+                [class.vote-answer--wrong]="isWrong"
+                [class.vote-answer--disabled]="voteSent() || !isActive() || timerExpired()"
+                [disabled]="voteSent() || !isActive() || timerExpired()"
+                (click)="toggleAnswer(a.id)"
+                [attr.aria-label]="getLetter(i) + ': ' + a.text"
+              >
+                <span class="vote-answer__badge" [style.background-color]="getColor(i)">
+                  <span class="vote-answer__shape">{{ getShape(i) }}</span>
+                  <span class="vote-answer__letter">{{ getLetter(i) }}</span>
+                </span>
+                <span class="vote-answer__text" [innerHTML]="renderMarkdown(a.text)"></span>
+                @if (isRevealed) {
+                  @if (a.isCorrect) {
+                    <mat-icon class="vote-answer__icon vote-answer__icon--correct">check_circle</mat-icon>
+                  } @else {
+                    <mat-icon class="vote-answer__icon vote-answer__icon--wrong">cancel</mat-icon>
+                  }
+                }
+                @if (voteSending() && isSelected) {
+                  <mat-progress-spinner diameter="20" mode="indeterminate" class="vote-answer__spinner"></mat-progress-spinner>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+
+        @if (!voteSent() && isActive()) {
+          <button mat-flat-button color="primary" class="vote-submit-mc" [disabled]="selectedAnswerIds().size === 0 || debounced() || timerExpired()" (click)="submitVote()">
+            Absenden
+          </button>
+        }
+      } @else if ($any(q).type === 'FREETEXT' && isActive()) {
+        <div class="vote-freetext">
+          <textarea class="vote-freetext__input" [value]="freeTextValue()" (input)="freeTextValue.set($any($event.target).value)" placeholder="Deine Antwort…" maxlength="500" rows="3" [disabled]="voteSent() || timerExpired()"></textarea>
+          <button mat-flat-button color="primary" class="vote-freetext__submit" [disabled]="!freeTextValue().trim() || voteSent() || debounced() || timerExpired()" (click)="submitVote()">
+            Absenden
+          </button>
+        </div>
+      } @else if ($any(q).type === 'FREETEXT' && isResults()) {
+        <div class="vote-freetext vote-freetext--result">
+          @if (freeTextValue()) {
+            <p class="vote-freetext__own">Deine Antwort: <strong>{{ freeTextValue() }}</strong></p>
+          } @else {
+            <p class="vote-freetext__own vote-freetext__own--empty">Keine Antwort abgegeben.</p>
+          }
+        </div>
+      } @else if (isRating() && isActive()) {
+        <div class="vote-rating" role="radiogroup" [attr.aria-label]="'Bewertung von ' + ratingLabelMin() + ' bis ' + ratingLabelMax()">
+          @if (ratingLabelMin() || ratingLabelMax()) {
+            <div class="vote-rating__labels">
+              <span class="vote-rating__label vote-rating__label--min">{{ ratingLabelMin() }}</span>
+              <span class="vote-rating__label vote-rating__label--max">{{ ratingLabelMax() }}</span>
+            </div>
+          }
+          <div class="vote-rating__buttons">
+            @for (val of ratingRange(); track val) {
+              <button
+                class="vote-rating__btn"
+                [class.vote-rating__btn--selected]="ratingValue() === val"
+                [disabled]="voteSent() || debounced() || timerExpired()"
+                role="radio"
+                [attr.aria-checked]="ratingValue() === val"
+                [attr.aria-label]="'Bewertung ' + val"
+                (click)="selectRating(val)">
+                {{ val }}
+              </button>
+            }
+          </div>
+          @if (!voteSent()) {
+            <button mat-flat-button color="primary" class="vote-rating__submit" [disabled]="ratingValue() === null || debounced() || timerExpired()" (click)="submitVote()">
+              Absenden
+            </button>
+          }
+        </div>
+      } @else if (isRating() && isResults()) {
+        <div class="vote-rating vote-rating--result">
+          <p class="vote-rating__result-label">Deine Bewertung: <strong>{{ ratingValue() ?? '–' }}</strong></p>
+        </div>
+      }
+
+      @if (showFingerCountdown() && !allHaveVoted()) {
+        <app-countdown-fingers [seconds]="countdownSeconds()!" size="small" />
+      }
 
       @if (voteSent()) {
         <div class="vote-sent" role="status" aria-live="polite">
@@ -288,113 +419,6 @@
             Reaktion gesendet
           </p>
         }
-      }
-
-      @if (timeoutMessage() && !voteSent()) {
-        <div class="vote-timeout" role="status" aria-live="polite">
-          <mat-icon>timer_off</mat-icon>
-          <span>{{ timeoutMessage() }}</span>
-        </div>
-      }
-
-      @if (voteError()) {
-        <p class="vote-error" role="alert">{{ voteError() }}</p>
-      }
-
-      @if (hasAnswers()) {
-        <ul class="vote-answers">
-          @for (a of $any(q).answers; track a.id; let i = $index) {
-            @let isSelected = selectedAnswerIds().has(a.id);
-            @let isRevealed = isResults();
-            @let isCorrect = isRevealed && a.isCorrect;
-            @let isWrong = isRevealed && isSelected && !a.isCorrect;
-            <li>
-              <button
-                class="vote-answer"
-                [class.vote-answer--selected]="isSelected"
-                [class.vote-answer--correct]="isCorrect"
-                [class.vote-answer--wrong]="isWrong"
-                [class.vote-answer--disabled]="voteSent() || !isActive() || timerExpired()"
-                [disabled]="voteSent() || !isActive() || timerExpired()"
-                (click)="toggleAnswer(a.id)"
-                [attr.aria-label]="getLetter(i) + ': ' + a.text"
-              >
-                <span class="vote-answer__badge" [style.background-color]="getColor(i)">
-                  <span class="vote-answer__shape">{{ getShape(i) }}</span>
-                  <span class="vote-answer__letter">{{ getLetter(i) }}</span>
-                </span>
-                <span class="vote-answer__text" [innerHTML]="renderMarkdown(a.text)"></span>
-                @if (isRevealed) {
-                  @if (a.isCorrect) {
-                    <mat-icon class="vote-answer__icon vote-answer__icon--correct">check_circle</mat-icon>
-                  } @else {
-                    <mat-icon class="vote-answer__icon vote-answer__icon--wrong">cancel</mat-icon>
-                  }
-                }
-                @if (voteSending() && isSelected) {
-                  <mat-progress-spinner diameter="20" mode="indeterminate" class="vote-answer__spinner"></mat-progress-spinner>
-                }
-              </button>
-            </li>
-          }
-        </ul>
-
-        @if (!voteSent() && isActive()) {
-          <button mat-flat-button color="primary" class="vote-submit-mc" [disabled]="selectedAnswerIds().size === 0 || debounced() || timerExpired()" (click)="submitVote()">
-            Absenden
-          </button>
-        }
-      } @else if ($any(q).type === 'FREETEXT' && isActive()) {
-        <div class="vote-freetext">
-          <textarea class="vote-freetext__input" [value]="freeTextValue()" (input)="freeTextValue.set($any($event.target).value)" placeholder="Deine Antwort…" maxlength="500" rows="3" [disabled]="voteSent() || timerExpired()"></textarea>
-          <button mat-flat-button color="primary" class="vote-freetext__submit" [disabled]="!freeTextValue().trim() || voteSent() || debounced() || timerExpired()" (click)="submitVote()">
-            Absenden
-          </button>
-        </div>
-      } @else if ($any(q).type === 'FREETEXT' && isResults()) {
-        <div class="vote-freetext vote-freetext--result">
-          @if (freeTextValue()) {
-            <p class="vote-freetext__own">Deine Antwort: <strong>{{ freeTextValue() }}</strong></p>
-          } @else {
-            <p class="vote-freetext__own vote-freetext__own--empty">Keine Antwort abgegeben.</p>
-          }
-        </div>
-      } @else if (isRating() && isActive()) {
-        <div class="vote-rating" role="radiogroup" [attr.aria-label]="'Bewertung von ' + ratingLabelMin() + ' bis ' + ratingLabelMax()">
-          @if (ratingLabelMin() || ratingLabelMax()) {
-            <div class="vote-rating__labels">
-              <span class="vote-rating__label vote-rating__label--min">{{ ratingLabelMin() }}</span>
-              <span class="vote-rating__label vote-rating__label--max">{{ ratingLabelMax() }}</span>
-            </div>
-          }
-          <div class="vote-rating__buttons">
-            @for (val of ratingRange(); track val) {
-              <button
-                class="vote-rating__btn"
-                [class.vote-rating__btn--selected]="ratingValue() === val"
-                [disabled]="voteSent() || debounced() || timerExpired()"
-                role="radio"
-                [attr.aria-checked]="ratingValue() === val"
-                [attr.aria-label]="'Bewertung ' + val"
-                (click)="selectRating(val)">
-                {{ val }}
-              </button>
-            }
-          </div>
-          @if (!voteSent()) {
-            <button mat-flat-button color="primary" class="vote-rating__submit" [disabled]="ratingValue() === null || debounced() || timerExpired()" (click)="submitVote()">
-              Absenden
-            </button>
-          }
-        </div>
-      } @else if (isRating() && isResults()) {
-        <div class="vote-rating vote-rating--result">
-          <p class="vote-rating__result-label">Deine Bewertung: <strong>{{ ratingValue() ?? '–' }}</strong></p>
-        </div>
-      }
-
-      @if (showFingerCountdown() && !allHaveVoted()) {
-        <app-countdown-fingers [seconds]="countdownSeconds()!" size="small" />
       }
     }
   } @else {

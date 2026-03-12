@@ -22,37 +22,52 @@
   } @else if (session(); as s) {
     <mat-card appearance="outlined" class="join-card join-card--lobby">
       <mat-card-content>
-        <p class="join-card__label">Session-Code</p>
-        <p class="join-card__code" aria-label="Session-Code {{ s.code }}">{{ s.code }}</p>
-        @if (s.quizName) {
-          <p class="join-card__quiz">{{ s.quizName }}</p>
-        }
-        <p class="join-card__participants">{{ s.participantCount }} Teilnehmende</p>
+        <h1 class="join-card__title">Session beitreten</h1>
+
+        <div class="join-card__session" role="group" aria-labelledby="join-session-heading">
+          <p class="join-card__session-heading" id="join-session-heading">Session-Info</p>
+          <p class="join-card__code" aria-label="Session-Code {{ s.code }}">{{ s.code }}</p>
+          @if (s.quizName) {
+            <p class="join-card__quiz">{{ s.quizName }}</p>
+          }
+          <p class="join-card__participants">
+            <span class="join-card__participants-count">{{ s.participantCount }}</span>
+            {{ s.participantCount === 1 ? 'Teilnehmer' : 'Teilnehmende' }} in der Lobby
+          </p>
+        </div>
 
         @if (showNicknameList()) {
-          <mat-form-field appearance="outline" class="join-card__field">
-            <mat-label>Nickname</mat-label>
-            <mat-select [value]="selectedNickname()" (valueChange)="selectedNickname.set($event)" placeholder="Wähle einen Namen">
-              <mat-option value="">— Auswählen —</mat-option>
-              @for (opt of nicknameOptions(); track opt) {
-                <mat-option [value]="opt" [disabled]="isTaken(opt)" [class.join-card__option--taken]="isTaken(opt)">
-                  {{ opt }}{{ isTaken(opt) ? ' (vergeben)' : '' }}
-                </mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+          <div class="join-card__nickname-group" role="group" aria-labelledby="join-nickname-heading">
+            <p class="join-card__nickname-heading" id="join-nickname-heading">Dein Name in der Session</p>
+            <p class="join-card__nickname-hint">Wähle einen Namen – er wird bei Abstimmungen angezeigt.</p>
+            <mat-form-field appearance="outline" class="join-card__field">
+              <mat-label>Name wählen</mat-label>
+              <mat-select [value]="selectedNickname()" (valueChange)="selectedNickname.set($event)" placeholder="Namen auswählen">
+                <mat-option value="">— Bitte wählen —</mat-option>
+                @for (opt of nicknameOptions(); track opt) {
+                  <mat-option [value]="opt" [disabled]="isTaken(opt)" [class.join-card__option--taken]="isTaken(opt)">
+                    {{ opt }}{{ isTaken(opt) ? ' (vergeben)' : '' }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
         } @else if (showCustomNickname()) {
-          <mat-form-field appearance="outline" class="join-card__field">
-            <mat-label>Nickname</mat-label>
-            <input matInput type="text" [value]="customNickname()" (input)="customNickname.set($any($event.target).value)" placeholder="Dein Name" maxlength="30" />
-          </mat-form-field>
+          <div class="join-card__nickname-group" role="group" aria-labelledby="join-nickname-heading">
+            <p class="join-card__nickname-heading" id="join-nickname-heading">Dein Name in der Session</p>
+            <p class="join-card__nickname-hint">Wird bei Abstimmungen angezeigt.</p>
+            <mat-form-field appearance="outline" class="join-card__field">
+              <mat-label>Dein Name</mat-label>
+              <input matInput type="text" [value]="customNickname()" (input)="customNickname.set($any($event.target).value)" placeholder="z. B. Max oder M. Mustermann" maxlength="30" />
+            </mat-form-field>
+          </div>
         }
 
         @if (error()) {
           <p class="join-card__error" role="alert">{{ error() }}</p>
         }
         <button mat-flat-button color="primary" class="join-card__submit" [disabled]="!canSubmit() || joining()" (click)="submitJoin()">
-          {{ joining() ? 'Wird beigetreten…' : 'Beitreten' }}
+          {{ joining() ? 'Wird beigetreten…' : 'Jetzt beitreten' }}
         </button>
       </mat-card-content>
     </mat-card>

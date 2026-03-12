@@ -128,7 +128,7 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt in QUESTION_OPEN nur Fragentext und Hinweis Gleich geht\'s los', async () => {
+  it('zeigt in QUESTION_OPEN Fragentext und deutlichen Lesephase-Hinweis', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
     onStatusChangedSubscribeMock.mockImplementation((_input: unknown, opts: { onData: (d: unknown) => void }) => {
       opts.onData({ status: 'QUESTION_OPEN', currentQuestion: 0 });
@@ -152,7 +152,7 @@ describe('SessionHostComponent', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Lies die Frage zuerst.');
-    expect(el.textContent).toContain("Gleich geht's los");
+    expect(el.textContent).toContain('Lesephase');
     expect(el.textContent).toContain('Antworten freigeben');
     expect(el.querySelector('.session-host__answers')).toBeNull();
     fixture.destroy();

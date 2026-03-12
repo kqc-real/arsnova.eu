@@ -712,6 +712,7 @@ export const sessionRouter = router({
       const base = {
         questionId: question.id,
         order: question.order,
+        totalQuestions: questions.length,
         text: question.text,
         type: question.type as 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'FREETEXT' | 'RATING' | 'SURVEY',
         timer: question.timer ?? null,
@@ -826,6 +827,8 @@ export const sessionRouter = router({
       const question = session.quiz.questions[idx];
       if (!question) return null;
 
+      const totalQuestions = session.quiz.questions.length;
+
       if (session.status === 'QUESTION_OPEN') {
         return QuestionPreviewDTOSchema.parse({
           id: question.id,
@@ -833,6 +836,7 @@ export const sessionRouter = router({
           type: question.type,
           difficulty: question.difficulty,
           order: question.order,
+          totalQuestions,
           ratingMin: question.ratingMin ?? null,
           ratingMax: question.ratingMax ?? null,
           ratingLabelMin: question.ratingLabelMin ?? null,
@@ -847,6 +851,7 @@ export const sessionRouter = router({
           type: question.type,
           difficulty: question.difficulty,
           order: question.order,
+          totalQuestions,
           ratingMin: question.ratingMin ?? null,
           ratingMax: question.ratingMax ?? null,
           ratingLabelMin: question.ratingLabelMin ?? null,
@@ -866,6 +871,7 @@ export const sessionRouter = router({
           timer: question.timer,
           difficulty: question.difficulty,
           order: question.order,
+          totalQuestions,
           answers: question.answers.map((a) => ({ id: a.id, text: a.text })),
           activeAt: session.statusChangedAt.toISOString(),
           ratingMin: question.ratingMin ?? null,
@@ -896,6 +902,7 @@ export const sessionRouter = router({
           type: question.type,
           difficulty: question.difficulty,
           order: question.order,
+          totalQuestions,
           answers: question.answers.map((a) => ({
             id: a.id,
             text: a.text,
