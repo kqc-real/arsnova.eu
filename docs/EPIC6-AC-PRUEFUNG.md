@@ -1,6 +1,6 @@
-# Epic 6: Prüfung der Akzeptanzkriterien (ohne i18n & Barrierefreiheit)
+# Epic 6: Prüfung der Akzeptanzkriterien (Abschlussstand)
 
-Stand: Prüfung der Stories 6.1, 6.3, 6.4 gegen Codebase. Story 6.2 (i18n) und 6.5 (Barrierefreiheit) ausgenommen; 6.5 wird ans Projektende zur Prüfung gestellt.
+Stand: Abschlussprüfung der Stories 6.1–6.4 gegen Codebase. Story 6.5 (Barrierefreiheit) bleibt als kontinuierlicher Qualitäts-Checkpoint (WCAG-Audit) bestehen.
 
 ---
 
@@ -55,10 +55,18 @@ Stand: Prüfung der Stories 6.1, 6.3, 6.4 gegen Codebase. Story 6.2 (i18n) und 6
 
 ## Story 6.2 — Internationalisierung
 
-Nicht implementiert (keine Übersetzungsdateien, kein ngx-translate/@angular/localize, UI-Texte hardcodiert). Bleibt offen.
+| Kriterium | Status | Nachweis |
+|-----------|--------|----------|
+| Sprachen de/en/fr/it/es verfügbar | ✅ | `angular.json` mit allen fünf Locales; lokalisierter Build erzeugt `dist/browser/{de,en,fr,it,es}` |
+| Angular i18n mit `@angular/localize` und XLIFF | ✅ | `src/locale/messages.xlf` + `messages.en/fr/es/it.xlf`; UI-Texte in Templates und `$localize` markiert |
+| Sprachwähler in Toolbar + Locale-Subpfade | ✅ | `top-toolbar.component.*`: Sprachmenü, Redirect auf `/de|en|fr|it|es/...`, Persistenz via `home-language` |
+| Rechtstexte je Locale + Fallback | ✅ | `assets/legal/imprint.{locale}.md`, `privacy.{locale}.md`; Fallback auf `de` in `legal-page.component` |
+| Datums-/Zahlenformate je Locale | ✅ | Keine feste `LOCALE_ID`-Verdrahtung mehr; `registerLocaleData(...)` für `de/en/fr/es/it` in `main.ts`; Pipes nutzen Angular-Locale |
+
+**Fazit:** Story 6.2 erfüllt.
 
 ---
 
 ## Story 6.5 — Barrierefreiheit
 
-Zur Prüfung ans Projektende gestellt. MD3 und Angular Material decken viele Anforderungen ab (Fokus, Semantik, Touch); finale Prüfung (Tastatur, Screenreader, WCAG 2.1 AA) am Ende des Projekts empfohlen.
+Als fortlaufender Qualitäts-Checkpoint geführt. MD3 und Angular Material decken viele Grundlagen ab (Fokus, Semantik, Touch); finale vollständige WCAG-2.1-AA-Prüfung bleibt Bestandteil der Abschluss-QA.

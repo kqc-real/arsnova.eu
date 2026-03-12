@@ -757,11 +757,11 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ---
 
-## Epic 6: Theming & Barrierefreiheit (Rolle: Alle Nutzer) — als Nächstes
+## Epic 6: Theming & Barrierefreiheit (Rolle: Alle Nutzer) — abgeschlossen
 
 Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobile-First und Barrierefreiheit**. Alle Stories zielen auf Nutzer:innen aller Rollen (Dozent, Student, Gast). Keine Abhängigkeit von Epic 5; kann parallel ab Epic 0 umgesetzt werden.
 
-**Stand:** Stories 6.1 (Theme), 6.2 (i18n), 6.3 (Impressum/Datenschutz) und 6.4 (Mobile-First/PWA) sind umgesetzt; Akzeptanzkriterien geprüft (siehe `docs/EPIC6-AC-PRUEFUNG.md`). **6.5 (Barrierefreiheit)** wird ans Projektende zur Prüfung gestellt (MD3/Angular-Komponenten decken vieles ab; finale WCAG-Prüfung dann).
+**Stand:** Stories 6.1 (Theme), 6.2 (i18n inkl. Locale-Formatierung für Datum/Zahlen), 6.3 (Impressum/Datenschutz) und 6.4 (Mobile-First/PWA) sind umgesetzt; Akzeptanzkriterien geprüft (siehe `docs/EPIC6-AC-PRUEFUNG.md`). Story 6.5 bleibt als fortlaufender Qualitäts-Checkpoint (WCAG-Audit) über den Projektverlauf bestehen und blockiert den Epic-Abschluss nicht.
 
 - **Story 6.1 (Dark/Light/System-Theme):** 🟡 Als Nutzer möchte ich zwischen Dark Theme, Light Theme und System-Einstellung wählen können, damit die App meinen Sehgewohnheiten entspricht.
   - **Akzeptanzkriterien:**

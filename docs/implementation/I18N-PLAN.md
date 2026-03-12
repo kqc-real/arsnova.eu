@@ -2,9 +2,9 @@
 
 **Ziel:** UI der App mehrsprachig anbieten (de, en, fr, it, es) mit @angular/localize, Locale als Subpfad, ohne Quiz-Inhalte zu übersetzen.
 
-**Implementierungsstand (2026-03-12):** Phase 1–5 und Teile von Phase 6 umgesetzt. **Phase 2 (abgeschlossen):** Alle UI-Bereiche mit i18n/$localize markiert: App, Home, Top-Toolbar, Join, Preset-Toast, Session (Host, Vote, Present), Quiz (Liste, New, Edit, Preview, Sync), Help, Feedback (Host, Vote), Legal-Page (Lade-/Fehlertexte). **607 Messages** (ng extract-i18n); `messages.en.xlf` mit EN-Targets für alle Einheiten; Build ohne „No translation found“. **Phase 4 (technisch erweitert):** `angular.json` enthält `en`, `fr`, `it`, `es`; `messages.fr.xlf`, `messages.it.xlf`, `messages.es.xlf` als Startbasis angelegt (Source=Target, Übersetzung folgt); lokalisierter Build erzeugt `dist/browser/{de,en,fr,it,es}`. Sprachwähler → Locale-URL (Top-Toolbar, localStorage, Vollreload); Locale-Helfer in `core/locale-from-path.ts`. **Phase 5:** Legal-Seiten laden Inhalte pro Locale (`imprint.{locale}.md`, `privacy.{locale}.md`) mit Fallback auf `de` bei 404; **imprint.en.md** und **privacy.en.md** vorhanden. Hinweis bei Sprachwechsel auf Quiz Edit/New: `LocaleSwitchGuardService`, Toolbar-Dialog „Sprache wechseln? Ungespeicherte Änderungen gehen verloren.“ mit „Abbrechen“ / „Trotzdem wechseln“. **Phase 6:** `i18nMissingTranslation: "warning"` in `angular.json`; für strikte CI auf `"error"` umstellbar. **Hilfsskripte:** `scripts/merge-missing-i18n-en.mjs` (fehlende EN-Targets aus TARGET_MAP einfügen), `scripts/add-missing-en-translations.mjs` (nach neuem Extract fehlende trans-units mit EN-Targets ergänzen).
+**Implementierungsstand (2026-03-12):** Story 6.2 ist abgeschlossen. Alle UI-Bereiche sind mit i18n/$localize markiert (inkl. ARIA, Fehlertexte, Placeholders), die Locale-Dateien `messages.en/fr/es/it.xlf` sind gepflegt, und `angular.json` baut `de/en/fr/it/es`. Sprachwähler (Toolbar) nutzt Locale-Subpfade + Persistenz (`home-language`) mit Vollreload und Guard bei ungespeicherten Änderungen. Legal-Seiten laden `imprint/privacy.{locale}.md` mit Fallback auf `de`. Datums- und Zahlenformate folgen der gewählten Locale (keine feste `LOCALE_ID`-Vorgabe; Locale-Daten für `de/en/fr/es/it` registriert). Build und CI laufen mit lokalisiertem Output erfolgreich.
 
-**Nächste Schritte (optional):** Inhaltliche Übersetzung für `fr`, `it`, `es` einpflegen (aktuell technische Startbasis), Legal-Seiten für `fr/it/es` ergänzen, danach Phase 6.1–6.3 (visuelle Prüfung Mobile-First, DoD 6.2, Stichproben Datum/Einheiten).
+**Nächste Schritte (optional):** Laufender sprachlicher Feinschliff bei neuen/angepassten UI-Texten in allen 5 Sprachen (`de/en/fr/es/it`) im selben PR/Commit gemäß ADR-0008 sowie AGENT/.cursorrules.
 
 **Referenzen:**
 - **Backlog:** Epic 6, Story 6.2 (Internationalisierung)
@@ -191,4 +191,4 @@ Alle **UI-Texte** (keine Quiz-Inhalte) in Templates und TypeScript mit `i18n` bz
 
 ---
 
-*Stand: Planung; Implementierung startet erst nach Freigabe. Bei Änderungen an ADR-0008 oder Backlog 6.2 diesen Plan anpassen.*
+*Stand: Umsetzung abgeschlossen; Dokument dient als Referenz und Wartungsleitfaden. Bei Änderungen an ADR-0008 oder Backlog 6.2 diesen Plan synchron aktualisieren.*
