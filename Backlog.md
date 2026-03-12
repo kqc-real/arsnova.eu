@@ -74,7 +74,7 @@
 | 5    | 5.7   | Motivationsmeldungen                          | 🟡   | ✅ Fertig |
 | 5    | 5.8   | Emoji-Reaktionen                              | 🟢   | ✅ Fertig |
 | 6    | 6.1   | Dark/Light/System-Theme                       | 🟡   | ✅ Fertig |
-| 6    | 6.2   | Internationalisierung                         | 🟡   | ⬜ Offen  |
+| 6    | 6.2   | Internationalisierung                         | 🟡   | ✅ Fertig |
 | 6    | 6.3   | Impressum & Datenschutz                       | 🔴   | ✅ Fertig |
 | 6    | 6.4   | Mobile-First & Responsive                     | 🔴   | ✅ Fertig |
 | 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)        | 🔴   | ⬜ Offen  |
@@ -761,7 +761,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobile-First und Barrierefreiheit**. Alle Stories zielen auf Nutzer:innen aller Rollen (Dozent, Student, Gast). Keine Abhängigkeit von Epic 5; kann parallel ab Epic 0 umgesetzt werden.
 
-**Stand:** Stories 6.1 (Theme), 6.3 (Impressum/Datenschutz) und 6.4 (Mobile-First/PWA) sind umgesetzt; Akzeptanzkriterien geprüft (siehe `docs/EPIC6-AC-PRUEFUNG.md`). **6.2 (i18n)** bleibt offen. **6.5 (Barrierefreiheit)** wird ans Projektende zur Prüfung gestellt (MD3/Angular-Komponenten decken vieles ab; finale WCAG-Prüfung dann).
+**Stand:** Stories 6.1 (Theme), 6.2 (i18n), 6.3 (Impressum/Datenschutz) und 6.4 (Mobile-First/PWA) sind umgesetzt; Akzeptanzkriterien geprüft (siehe `docs/EPIC6-AC-PRUEFUNG.md`). **6.5 (Barrierefreiheit)** wird ans Projektende zur Prüfung gestellt (MD3/Angular-Komponenten decken vieles ab; finale WCAG-Prüfung dann).
 
 - **Story 6.1 (Dark/Light/System-Theme):** 🟡 Als Nutzer möchte ich zwischen Dark Theme, Light Theme und System-Einstellung wählen können, damit die App meinen Sehgewohnheiten entspricht.
   - **Akzeptanzkriterien:**
@@ -779,10 +779,11 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Browser** (default) — die Sprache wird automatisch aus `navigator.language` abgeleitet; Fallback: Englisch.
     - Ein Sprachwähler (Dropdown / Icon-Button) in der Navigationsleiste ermöglicht manuelles Umschalten.
     - Die Auswahl wird im `localStorage` persistiert und beim nächsten Besuch wiederhergestellt.
-    - Internationalisierung wird über Angulars eingebautes i18n (`@angular/localize`) oder `ngx-translate` realisiert.
-    - Alle UI-Texte (Buttons, Labels, Fehlermeldungen, Platzhalter) werden über Übersetzungsdateien (`i18n/*.json`) bereitgestellt.
+    - Internationalisierung wird über Angulars eingebautes i18n (`@angular/localize`) mit XLIFF umgesetzt.
+    - Alle UI-Texte (Buttons, Labels, Fehlermeldungen, Platzhalter) werden über Übersetzungsdateien (`src/locale/messages.*.xlf`) bereitgestellt.
     - Quiz-Inhalte (Fragenstamm, Antworten) werden **nicht** übersetzt — sie bleiben in der vom Dozenten eingegebenen Sprache.
     - Datums- und Zahlenformate passen sich der gewählten Locale an (`DatePipe`, `DecimalPipe`).
+  - **Verifizierung:** Locales `de/en/fr/es/it` in `angular.json` aktiv; `messages.en.xlf`, `messages.fr.xlf`, `messages.es.xlf`, `messages.it.xlf` vorhanden und build-fähig (`npm run build:localize`). Sprachwähler und Locale-Subpfade aktiv (`/de`, `/en`, `/fr`, `/es`, `/it`); UI-Texte inkl. ARIA/Status in Templates und `$localize` markiert.
 - **Story 6.3 (Impressum & Datenschutzerklärung):** 🔴 Als Nutzer möchte ich ein Impressum und eine Datenschutzerklärung einsehen können, damit die App den gesetzlichen Anforderungen (TMG, DSGVO) entspricht.
   - **Akzeptanzkriterien:**
     - Im Footer jeder Seite befinden sich Links zu „Impressum" und „Datenschutz".
@@ -792,7 +793,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Datenschutzerklärung** enthält mindestens: Verantwortlicher, Art der erhobenen Daten, Rechtsgrundlage (Art. 6 DSGVO), Hinweis auf Local-First-Architektur (keine serverseitige Speicherung von Quiz-Inhalten), Cookie-/LocalStorage-Nutzung, Hosting-Anbieter, Betroffenenrechte (Auskunft, Löschung, Widerspruch), Kontakt des Datenschutzbeauftragten.
     - Beide Seiten sind ohne Login erreichbar.
     - Inhalte werden in der aktuell gewählten Sprache angezeigt (abhängig von Story 6.2; Fallback: Deutsch).
-  - **Verifizierung:** Footer-Links, Routen, Markdown in `assets/legal/`, Inhalte vollständig; Sprache aktuell nur DE (6.2 ausstehend).
+  - **Verifizierung:** Footer-Links, Routen, Markdown in `assets/legal/` vollständig; Inhalte verfügbar für `de/en/fr/es/it` (`imprint.{locale}.md`, `privacy.{locale}.md`) mit Fallback auf `de`.
 - **Story 6.4 (Mobile-First & Responsive Design):** 🔴 Als Student möchte ich die App auf meinem Smartphone komfortabel bedienen können, da ich im Hörsaal primär mein Handy nutze.
   - **Akzeptanzkriterien:**
     - Alle Ansichten werden **Mobile-First** entwickelt: Basis-Layout für Smartphones (≤ 640px), erweitert für Tablets (≥ 768px) und Desktop/Beamer (≥ 1024px).

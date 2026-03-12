@@ -69,6 +69,12 @@ function restorePlaceholders(text, placeholders) {
   return result;
 }
 
+function encodeEntitiesPreservingPlaceholders(text) {
+  const { protectedText, placeholders } = protectPlaceholders(text);
+  const escaped = encodeEntities(protectedText);
+  return restorePlaceholders(escaped, placeholders);
+}
+
 async function translateText(text) {
   if (!text.trim()) return text;
   const { protectedText, placeholders } = protectPlaceholders(text);
@@ -122,7 +128,7 @@ let updated = original;
 for (const unit of translatable) {
   const key = decodeEntities(unit.source.trim());
   const translated = translationMap.get(key) ?? key;
-  const escaped = encodeEntities(translated);
+  const escaped = encodeEntitiesPreservingPlaceholders(translated);
   updated = updated.replace(unit.full, `${unit.head}${escaped}${unit.tail}`);
 }
 

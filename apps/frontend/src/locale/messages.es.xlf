@@ -260,7 +260,7 @@
       </trans-unit>
       <trans-unit id="2344979570783306989" datatype="html">
         <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst. Zweite Abstimmung folgt.</source>
-        <target>Ronda 1: &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ data.round1Total ?? 0 }}&quot;/&gt; votos registrados. Sigue la segunda votación.</target>
+        <target>Ronda 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> votos registrados. Sigue la segunda votación.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">62,63</context>
@@ -268,7 +268,7 @@
       </trans-unit>
       <trans-unit id="7882475767985187890" datatype="html">
         <source>Runde 1 (<x id="INTERPOLATION" equiv-text="{{ data.round1Total }}"/> Stimmen)</source>
-        <target>Ronda 1 (&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ data.round1Total }}&quot;/&gt; votos)</target>
+        <target>Ronda 1 (<x id="INTERPOLATION" equiv-text="{{ data.round1Total }}"/> votos)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">68,69</context>
@@ -280,7 +280,7 @@
       </trans-unit>
       <trans-unit id="3290249633796072524" datatype="html">
         <source>Runde 2 (<x id="INTERPOLATION" equiv-text="{{ data.totalVotes }}"/> Stimmen)</source>
-        <target>Ronda 2 (&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ data.totalVotes }}&quot;/&gt; votos)</target>
+        <target>Ronda 2 (<x id="INTERPOLATION" equiv-text="{{ data.totalVotes }}"/> votos)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">69,70</context>
@@ -308,7 +308,7 @@
       </trans-unit>
       <trans-unit id="5212385726875478215" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ shift.changedCount }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ shift.bothRoundsCount }}"/> (<x id="INTERPOLATION_2" equiv-text="{{ shift.changedPercentage }}"/> %) änderten ihre Meinung</source>
-        <target>&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ shift.changedCount }}&quot;/&gt; de &lt;x id=&quot;INTERPOLATION_1&quot; equiv-text=&quot;{{ shift.bothRoundsCount }}&quot;/&gt; (&lt;x id=&quot;INTERPOLATION_2&quot; equiv-text=&quot;{{ shift.changedPercentage }}&quot;/&gt;%) cambiaron de opinión</target>
+        <target><x id="INTERPOLATION" equiv-text="{{ shift.changedCount }}"/> de <x id="INTERPOLATION_1" equiv-text="{{ shift.bothRoundsCount }}"/> (<x id="INTERPOLATION_2" equiv-text="{{ shift.changedPercentage }}"/>%) cambiaron de opinión</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">97,98</context>
@@ -332,7 +332,7 @@
       </trans-unit>
       <trans-unit id="1849869449023019502" datatype="html">
         <source>{VAR_PLURAL, plural, =1 {1 Stimme} other {<x id="INTERPOLATION"/> Stimmen}}</source>
-        <target>{VAR_PLURAL, plural, =1 {1 voto} otros {&lt;x id=&quot;INTERPOLATION&quot;/&gt; votos}}</target>
+        <target>{VAR_PLURAL, plural, =1 {1 voto} otros {<x id="INTERPOLATION"/> votos}}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">116</context>
@@ -400,7 +400,7 @@
       </trans-unit>
       <trans-unit id="5623833948584439689" datatype="html">
         <source>Ergebnisse: <x id="PH" equiv-text="feedbackTitle(type)"/></source>
-        <target>Resultados: &lt;x id=&quot;PH&quot; equiv-text=&quot;feedbackTitle(type)&quot;/&gt;</target>
+        <target>Resultados: <x id="PH" equiv-text="feedbackTitle(type)"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.ts</context>
           <context context-type="linenumber">251</context>
@@ -632,7 +632,7 @@
       </trans-unit>
       <trans-unit id="2136052427592349202" datatype="html">
         <source> Auf der Startseite bei <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz starten<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> führt der Link <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo spielen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> in ein vorinstalliertes Beispiel-Quiz. Du siehst alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen. </source>
-        <target>En la página de inicio en &lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Iniciar cuestionario&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; el enlace &lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Jugar demo&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; en un cuestionario de ejemplo preinstalado. Puedes ver todos los formatos de preguntas (opción múltiple, texto libre, escala de valoración, etc.), incluidas fórmulas KaTeX y Markdown, sin tener que crear nada.</target>
+        <target>En la página de inicio en <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Iniciar cuestionario<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> el enlace <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Jugar demo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> en un cuestionario de ejemplo preinstalado. Puedes ver todos los formatos de preguntas (opción múltiple, texto libre, escala de valoración, etc.), incluidas fórmulas KaTeX y Markdown, sin tener que crear nada.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">14,16</context>
@@ -640,7 +640,7 @@
       </trans-unit>
       <trans-unit id="450997855879759176" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Onboarding:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Die Demo eignet sich gut, um Teilnehmende vor der ersten echten Session mit der App vertraut zu machen. Einfach den Link oder „Demo spielen&quot; weitergeben; sie klicken sich durch und lernen Ablauf und Oberfläche kennen. </source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Introducción:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; La demo es una buena forma de familiarizar a los participantes con la app antes de la primera sesión real. Solo tienes que compartir el enlace o pulsar &quot;Jugar demo&quot;; con un clic verás el flujo y la interfaz.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Introducción:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> La demo es una buena forma de familiarizar a los participantes con la app antes de la primera sesión real. Solo tienes que compartir el enlace o pulsar &quot;Jugar demo&quot;; con un clic verás el flujo y la interfaz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">17,19</context>
@@ -664,7 +664,7 @@
       </trans-unit>
       <trans-unit id="4487008131522088654" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz erstellen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Auf der Startseite „Neues Quiz erstellen&quot; wählen, Fragen anlegen und Einstellungen festlegen.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Crear cuestionario:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Selecciona &quot;Crear nuevo cuestionario&quot; en la página de inicio, crea preguntas y define la configuración.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Crear cuestionario:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Selecciona &quot;Crear nuevo cuestionario&quot; en la página de inicio, crea preguntas y define la configuración.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">25,26</context>
@@ -672,7 +672,7 @@
       </trans-unit>
       <trans-unit id="8536364470427085897" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Code teilen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Nach dem Start siehst du den 6-stelligen Code; Teilnehmende geben ihn auf der Startseite ein oder scannen den QR-Code.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Compartir código:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Después de comenzar verás el código de 6 dígitos; Los participantes lo ingresan en la página de inicio o escanean el código QR.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Compartir código:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Después de comenzar verás el código de 6 dígitos; Los participantes lo ingresan en la página de inicio o escanean el código QR.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">26,27</context>
@@ -680,7 +680,7 @@
       </trans-unit>
       <trans-unit id="4846208754255153133" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Live spielen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen nacheinander freigeben, alle stimmen ab, Ergebnisse live anzeigen.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Jugar en directo:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Publica las preguntas una a una, todos votan y muestra los resultados en directo.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Jugar en directo:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Publica las preguntas una a una, todos votan y muestra los resultados en directo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">27,29</context>
@@ -708,7 +708,7 @@
       </trans-unit>
       <trans-unit id="1700849053740132045" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stimmungsbild<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): Wie geht es den Teilnehmenden?</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Imagen del estado de ánimo&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; (😊😐😟): ¿Cómo les va a los participantes?</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Imagen del estado de ánimo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): ¿Cómo les va a los participantes?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">35,36</context>
@@ -716,7 +716,7 @@
       </trans-unit>
       <trans-unit id="3563833922786121025" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein / Vielleicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Schnelle Zustimmungs-Abfrage.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Sí / No / Quizás&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; (👍👎🤷): Consulta de consentimiento rápida.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sí / No / Quizás<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Consulta de consentimiento rápida.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">36,37</context>
@@ -724,7 +724,7 @@
       </trans-unit>
       <trans-unit id="8738149910840056513" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABCD-Voting<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C D): Vier Antwortoptionen, z. B. für spontane Quizfragen.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Votación ABCD&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; (A, B, C, D): cuatro opciones de respuesta, por ejemplo para preguntas espontáneas del cuestionario.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Votación ABCD<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A, B, C, D): cuatro opciones de respuesta, por ejemplo para preguntas espontáneas del cuestionario.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">37,39</context>
@@ -740,7 +740,7 @@
       </trans-unit>
       <trans-unit id="2771235871372028980" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stopp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Abstimmung einfrieren – Teilnehmende sehen „Abstimmung ist pausiert&quot; und können nicht mehr abstimmen, bis du „Fortsetzen&quot; wählst.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Detener:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Congelar la votación: los participantes ven &quot;La votación está en pausa&quot; y ya no pueden votar hasta que elijas &quot;Reanudar&quot;.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Detener:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Congelar la votación: los participantes ven &quot;La votación está en pausa&quot; y ya no pueden votar hasta que elijas &quot;Reanudar&quot;.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">41,42</context>
@@ -748,7 +748,7 @@
       </trans-unit>
       <trans-unit id="8619844818513185136" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Zurücksetzen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Alle Stimmen löschen und erneut abstimmen lassen.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Restablecer:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Elimina todos los votos y déjalos votar nuevamente.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Restablecer:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Elimina todos los votos y déjalos votar nuevamente.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">42,43</context>
@@ -756,7 +756,7 @@
       </trans-unit>
       <trans-unit id="1563376326853659666" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Neue Runde:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Neuen Code erzeugen und eine frische Runde starten.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Nueva ronda:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Genera nuevo código y comienza una nueva ronda.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nueva ronda:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Genera nuevo código y comienza una nueva ronda.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">43,44</context>
@@ -764,7 +764,7 @@
       </trans-unit>
       <trans-unit id="4624381387593523774" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Link kopieren:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beitrittslink in die Zwischenablage kopieren, z. B. zum Teilen per Chat.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Copiar enlace:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Copiar enlace de unión al portapapeles, p. B. para compartir a través del chat.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Copiar enlace:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Copiar enlace de unión al portapapeles, p. B. para compartir a través del chat.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">44,46</context>
@@ -788,7 +788,7 @@
       </trans-unit>
       <trans-unit id="130204107241532945" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz auswählen und live schalten – oder eine Q&amp;A-Fragerunde starten. Dann entsteht ein 6-stelliger Code.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Iniciar sesión:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Selecciona el cuestionario y ponlo en directo, o inicia una sesión de preguntas y respuestas. Luego se crea un código de 6 dígitos.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Iniciar sesión:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Selecciona el cuestionario y ponlo en directo, o inicia una sesión de preguntas y respuestas. Luego se crea un código de 6 dígitos.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">52,53</context>
@@ -796,7 +796,7 @@
       </trans-unit>
       <trans-unit id="9087203686834832349" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Du siehst, wer beigetreten ist; ein QR-Code zum Beitritt wird angezeigt.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Lobby:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Ves quién se ha unido; se muestra un código QR para unirse.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ves quién se ha unido; se muestra un código QR para unirse.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">53,54</context>
@@ -804,7 +804,7 @@
       </trans-unit>
       <trans-unit id="4645446495292726948" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beamer-Ansicht:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Große Darstellung von Frage, Antworten, Countdown und Ergebnissen für die Projektion im Raum.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Vista del proyector:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Gran visualización de preguntas, respuestas, cuenta regresiva y resultados para proyección en la sala.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Vista del proyector:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Gran visualización de preguntas, respuestas, cuenta regresiva y resultados para proyección en la sala.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">54,55</context>
@@ -812,7 +812,7 @@
       </trans-unit>
       <trans-unit id="3660636321435230844" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Steuerung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit „Nächste Frage&quot; blendest du die Frage ein. Optional zuerst nur den Text (Lesephase), dann „Antworten freigeben&quot;, danach können alle abstimmen. Anschließend „Ergebnis zeigen&quot;.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Control:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Usa &quot;Siguiente pregunta&quot; para mostrar la pregunta. Opcionalmente, primero solo el texto (fase de lectura), luego “publicar respuestas” y después todos pueden votar. Finalmente, “Mostrar resultado”.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Control:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Usa &quot;Siguiente pregunta&quot; para mostrar la pregunta. Opcionalmente, primero solo el texto (fase de lectura), luego “publicar respuestas” y después todos pueden votar. Finalmente, “Mostrar resultado”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">55,56</context>
@@ -820,7 +820,7 @@
       </trans-unit>
       <trans-unit id="7379376700684566767" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Einstellungen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beim Start legst du den Stil („Seriös&quot; oder „Spielerisch&quot;) und die Optionen fest (Rangliste, Sound, Lesephase, Team-Modus, Nicknamen, Timer). Teilnehmende übernehmen automatisch dein Theme und Preset.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Configuración:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Cuando comienzas, estableces el estilo (&quot;Serio&quot; o &quot;Juguetón&quot;) y las opciones (clasificaciones, sonido, fase de lectura, modo de equipo, apodos, cronómetro). Los participantes adoptan automáticamente tu tema y tu ajuste preestablecido.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Configuración:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Cuando comienzas, estableces el estilo (&quot;Serio&quot; o &quot;Juguetón&quot;) y las opciones (clasificaciones, sonido, fase de lectura, modo de equipo, apodos, cronómetro). Los participantes adoptan automáticamente tu tema y tu ajuste preestablecido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">56,58</context>
@@ -848,7 +848,7 @@
       </trans-unit>
       <trans-unit id="2821667593096226007" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf der Startseite eingeben und „Los geht&apos;s&quot; tippen – funktioniert für Quiz- und Q&amp;A-Sessions sowie für Blitz-Feedback.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Unirse:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Introduce el código de 6 caracteres en la página de inicio y pulsa &quot;Empezar&quot;. Funciona para cuestionarios, sesiones de preguntas y respuestas y feedback rápido.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Unirse:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Introduce el código de 6 caracteres en la página de inicio y pulsa &quot;Empezar&quot;. Funciona para cuestionarios, sesiones de preguntas y respuestas y feedback rápido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">64,65</context>
@@ -856,7 +856,7 @@
       </trans-unit>
       <trans-unit id="628190345512295345" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknamen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Je nach Einstellung vorgegebene Namen (nach Altersgruppe), eigener Name oder anonym.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Apodos:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Dependiendo de la configuración, nombres predefinidos (según grupo de edad), nombre propio o anónimo.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Apodos:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Dependiendo de la configuración, nombres predefinidos (según grupo de edad), nombre propio o anónimo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">65,66</context>
@@ -864,7 +864,7 @@
       </trans-unit>
       <trans-unit id="7488313735355059404" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Abstimmung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Die aktuelle Frage erscheint auf deinem Gerät; du wählst eine oder mehrere Antworten und sendest ab. Bei Zeitlimit läuft ein Countdown.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Vota:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; La pregunta actual aparece en tu dispositivo; tú eliges una o más respuestas y las envías. Si hay un límite de tiempo, comienza una cuenta atrás.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Vota:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> La pregunta actual aparece en tu dispositivo; tú eliges una o más respuestas y las envías. Si hay un límite de tiempo, comienza una cuenta atrás.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">66,67</context>
@@ -872,7 +872,7 @@
       </trans-unit>
       <trans-unit id="6330492107491904814" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ergebnis:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Nach der Auflösung siehst du, ob deine Antwort richtig war, bekommst Punkte und siehst deine Scorecard.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Resultado:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Después de resolver, puedes ver si tu respuesta fue correcta, obtener puntos y ver tu cuadro de mando.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Resultado:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Después de resolver, puedes ver si tu respuesta fue correcta, obtener puntos y ver tu cuadro de mando.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">67,69</context>
@@ -900,7 +900,7 @@
       </trans-unit>
       <trans-unit id="5229539880166867690" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Editor:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen per Drag-and-Drop sortieren, auf- und zuklappen, Vorschau mit Dot-Navigation.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Editor:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Ordena preguntas con arrastrar y soltar, expande o contrae bloques y usa la vista previa con navegación por puntos.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Editor:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ordena preguntas con arrastrar y soltar, expande o contrae bloques y usa la vista previa con navegación por puntos.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">75,76</context>
@@ -908,7 +908,7 @@
       </trans-unit>
       <trans-unit id="9122741059925470323" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Fragetypen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple Choice, Single Choice, Freitext, Umfrage, Bewertungsskala – pro Frage optional mit Timer und Schwierigkeitsgrad.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Tipos de preguntas:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Opción múltiple, opción única, texto libre, encuesta, escala de calificación; opcionalmente con cronómetro y nivel de dificultad por pregunta.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Tipos de preguntas:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Opción múltiple, opción única, texto libre, encuesta, escala de calificación; opcionalmente con cronómetro y nivel de dificultad por pregunta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">76,77</context>
@@ -916,7 +916,7 @@
       </trans-unit>
       <trans-unit id="7251608567438179444" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Über den KI-Prompt kannst du ein Quiz mit deiner bevorzugten KI generieren und direkt importieren.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Importar/Exportar:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Importar o exportar cuestionario como JSON. Puedes usar el prompt de IA para generar un cuestionario con tu IA preferida e importarlo directamente.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Importar/Exportar:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Importar o exportar cuestionario como JSON. Puedes usar el prompt de IA para generar un cuestionario con tu IA preferida e importarlo directamente.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">77,78</context>
@@ -924,7 +924,7 @@
       </trans-unit>
       <trans-unit id="6490353651592824722" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. Direkt von der Startseite über „Demo spielen&quot; (Karte „Quiz starten&quot;) oder unter „Meine Quizze&quot; in der Vorschau öffnen.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Prueba de demostración:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Un cuestionario de demostración preinstalado muestra todos los formatos de preguntas con ejemplos, incluidas fórmulas KaTeX y Markdown. Ábrelo directamente desde la página de inicio con &quot;Jugar demo&quot; (tarjeta &quot;Iniciar cuestionario&quot;) o desde la vista previa en &quot;Mis cuestionarios&quot;.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Prueba de demostración:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Un cuestionario de demostración preinstalado muestra todos los formatos de preguntas con ejemplos, incluidas fórmulas KaTeX y Markdown. Ábrelo directamente desde la página de inicio con &quot;Jugar demo&quot; (tarjeta &quot;Iniciar cuestionario&quot;) o desde la vista previa en &quot;Mis cuestionarios&quot;.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">78,80</context>
@@ -948,7 +948,7 @@
       </trans-unit>
       <trans-unit id="7827300103747816117" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Seriös:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonym, ohne Rangliste, Fokus auf den Inhalt – ideal für Feedback und Abstimmungen.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Reputado:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Anónimo, sin clasificaciones, céntrese en el contenido, ideal para comentarios y votaciones.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Reputado:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anónimo, sin clasificaciones, céntrese en el contenido, ideal para comentarios y votaciones.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">86,87</context>
@@ -956,7 +956,7 @@
       </trans-unit>
       <trans-unit id="6657549844758188161" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Spielerisch:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Rangliste, Sounds, Anfeuerung und Effekten – ideal für Quiz-Wettbewerbe.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Juguetón:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Con lista de clasificación, sonidos, animaciones y efectos, ideal para concursos de preguntas.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Juguetón:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Con lista de clasificación, sonidos, animaciones y efectos, ideal para concursos de preguntas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">87,89</context>
@@ -980,7 +980,7 @@
       </trans-unit>
       <trans-unit id="5709210206293461498" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Bonus-Option:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Top-Platzierte erhalten einen einlösbaren Code (z. B. für Bonuspunkte). Du kannst die Code-Liste einsehen; personenbezogene Daten werden nicht gespeichert.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Opción de bonificación:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Los primeros lugares reciben un código canjeable (por ejemplo, por puntos de bonificación). Puedes ver la lista de códigos; no se almacenan datos personales.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Opción de bonificación:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Los primeros lugares reciben un código canjeable (por ejemplo, por puntos de bonificación). Puedes ver la lista de códigos; no se almacenan datos personales.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">95,96</context>
@@ -988,7 +988,7 @@
       </trans-unit>
       <trans-unit id="7548359346207242949" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Team-Modus:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Teilnehmende spielen in Teams mit eigenem Team-Leaderboard.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Modo de equipo:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Los participantes juegan en equipos con su propia tabla de clasificación de equipo.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Modo de equipo:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Los participantes juegan en equipos con su propia tabla de clasificación de equipo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">96,97</context>
@@ -996,7 +996,7 @@
       </trans-unit>
       <trans-unit id="8083812307774980926" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamification:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sound-Effekte, Belohnungseffekte für Top-Plätze, Motivationsmeldungen.</source>
-        <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Gamificación:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Efectos de sonido, efectos de recompensa por los primeros lugares, mensajes motivadores.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamificación:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Efectos de sonido, efectos de recompensa por los primeros lugares, mensajes motivadores.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">97,99</context>
@@ -1360,7 +1360,7 @@
       </trans-unit>
       <trans-unit id="homeRemoveSession" datatype="html">
         <source>Session <x id="PH" equiv-text="code"/> aus Liste entfernen</source>
-        <target>Eliminar la sesión &lt;x id=&quot;PH&quot; equiv-text=&quot;code&quot;/&gt; de la lista</target>
+        <target>Eliminar la sesión <x id="PH" equiv-text="code"/> de la lista</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">196</context>
@@ -1732,7 +1732,7 @@
       </trans-unit>
       <trans-unit id="2685316649628563933" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ questions().length }}"/> Fragen</source>
-        <target>&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ questions().length }}&quot;/&gt; Preguntas</target>
+        <target><x id="INTERPOLATION" equiv-text="{{ questions().length }}"/> Preguntas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">7,8</context>
@@ -1956,7 +1956,7 @@
       </trans-unit>
       <trans-unit id="5339011327463703957" datatype="html">
         <source> <x id="INTERPOLATION" equiv-text="{{ preset.label }}"/> anwenden </source>
-        <target>Aplicar &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ preset.label }}&quot;/&gt;</target>
+        <target>Aplicar <x id="INTERPOLATION" equiv-text="{{ preset.label }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">95,96</context>
@@ -2572,7 +2572,7 @@
       </trans-unit>
       <trans-unit id="2856257833786492684" datatype="html">
         <source>Antwort <x id="INTERPOLATION" equiv-text="{{ i + 1 }}"/></source>
-        <target>Respuesta &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ i + 1 }}&quot;/&gt;</target>
+        <target>Respuesta <x id="INTERPOLATION" equiv-text="{{ i + 1 }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">380,381</context>
@@ -2620,7 +2620,7 @@
       </trans-unit>
       <trans-unit id="7492260970005034710" datatype="html">
         <source> Formelfehler: <x id="INTERPOLATION" equiv-text="{{ previewKatexError() }}"/> </source>
-        <target>Error de fórmula: &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ previewKatexError() }}&quot;/&gt;</target>
+        <target>Error de fórmula: <x id="INTERPOLATION" equiv-text="{{ previewKatexError() }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">436,437</context>
@@ -3072,7 +3072,7 @@
       </trans-unit>
       <trans-unit id="187187500641108332" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ quiz.questionCount === 1 ? &apos;Frage&apos; : &apos;Fragen&apos; }}"/></source>
-        <target>&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ quiz.questionCount === 1 ? &apos;Frage&apos; : &apos;Fragen&apos; }}&quot;/&gt;</target>
+        <target><x id="INTERPOLATION" equiv-text="{{ quiz.questionCount === 1 ? &apos;Frage&apos; : &apos;Fragen&apos; }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">97,98</context>
@@ -3132,7 +3132,7 @@
       </trans-unit>
       <trans-unit id="quizList.ariaQuizOpen" datatype="html">
         <source>Quiz <x id="quizName" equiv-text="quizName"/> öffnen</source>
-        <target>Abrir cuestionario &lt;x id=&quot;quizName&quot; equiv-text=&quot;quizName&quot;/&gt;</target>
+        <target>Abrir cuestionario <x id="quizName" equiv-text="quizName"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">71</context>
@@ -3140,7 +3140,7 @@
       </trans-unit>
       <trans-unit id="quizList.ariaQuizActions" datatype="html">
         <source>Aktionen für Quiz <x id="quizName" equiv-text="quizName"/></source>
-        <target>Promociones para el cuestionario &lt;x id=&quot;quizName&quot; equiv-text=&quot;quizName&quot;/&gt;</target>
+        <target>Promociones para el cuestionario <x id="quizName" equiv-text="quizName"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">75</context>
@@ -3148,7 +3148,7 @@
       </trans-unit>
       <trans-unit id="3293413491190500382" datatype="html">
         <source>„<x id="PH" equiv-text="duplicate.name"/>“ wurde dupliziert.</source>
-        <target>“&lt;x id=&quot;PH&quot; equiv-text=&quot;duplicate.name&quot;/&gt;” se ha duplicado.</target>
+        <target>“<x id="PH" equiv-text="duplicate.name"/>” se ha duplicado.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">101</context>
@@ -3164,7 +3164,7 @@
       </trans-unit>
       <trans-unit id="1590286753172731809" datatype="html">
         <source>„<x id="PH" equiv-text="quizName"/>“ ist gerade live und kann nicht gelöscht werden.</source>
-        <target>“&lt;x id=&quot;PH&quot; equiv-text=&quot;quizName&quot;/&gt;” está activo actualmente y no se puede eliminar.</target>
+        <target>“<x id="PH" equiv-text="quizName"/>” está activo actualmente y no se puede eliminar.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">110</context>
@@ -3172,7 +3172,7 @@
       </trans-unit>
       <trans-unit id="3191214074647652455" datatype="html">
         <source>„<x id="PH" equiv-text="quizName"/>“ wirklich löschen? Das lässt sich nicht rückgängig machen.</source>
-        <target>¿Realmente eliminar “&lt;x id=&quot;PH&quot; equiv-text=&quot;quizName&quot;/&gt;”? Esto no se puede deshacer.</target>
+        <target>¿Realmente eliminar “<x id="PH" equiv-text="quizName"/>”? Esto no se puede deshacer.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">114</context>
@@ -3180,7 +3180,7 @@
       </trans-unit>
       <trans-unit id="4443887030685792442" datatype="html">
         <source>„<x id="PH" equiv-text="quizName"/>“ wurde gelöscht.</source>
-        <target>&quot;&lt;x id=&quot;PH&quot; equiv-text=&quot;quizName&quot;/&gt;&quot; ha sido eliminado.</target>
+        <target>&quot;<x id="PH" equiv-text="quizName"/>&quot; ha sido eliminado.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">120</context>
@@ -3188,7 +3188,7 @@
       </trans-unit>
       <trans-unit id="6566123000837537104" datatype="html">
         <source>„<x id="PH" equiv-text="quiz.quiz.name"/>“ wurde exportiert.</source>
-        <target>Se exportó “&lt;x id=&quot;PH&quot; equiv-text=&quot;quiz.quiz.name&quot;/&gt;”.</target>
+        <target>Se exportó “<x id="PH" equiv-text="quiz.quiz.name"/>”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">139</context>
@@ -3208,7 +3208,7 @@
       </trans-unit>
       <trans-unit id="523492152856026511" datatype="html">
         <source>„<x id="PH" equiv-text="imported.name"/>“ wurde importiert.</source>
-        <target>Se importó “&lt;x id=&quot;PH&quot; equiv-text=&quot;imported.name&quot;/&gt;”.</target>
+        <target>Se importó “<x id="PH" equiv-text="imported.name"/>”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">155</context>
@@ -3252,7 +3252,7 @@
       </trans-unit>
       <trans-unit id="3967078712690677551" datatype="html">
         <source>KI-„<x id="PH" equiv-text="imported.name"/>“ wurde importiert.</source>
-        <target>Se ha importado la IA “&lt;x id=&quot;PH&quot; equiv-text=&quot;imported.name&quot;/&gt;”.</target>
+        <target>Se ha importado la IA “<x id="PH" equiv-text="imported.name"/>”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">192</context>
@@ -3268,7 +3268,7 @@
       </trans-unit>
       <trans-unit id="4816916877207589304" datatype="html">
         <source>Session <x id="PH" equiv-text="result.code"/> gestartet.</source>
-        <target>Se inició la sesión &lt;x id=&quot;PH&quot; equiv-text=&quot;result.code&quot;/&gt;.</target>
+        <target>Se inició la sesión <x id="PH" equiv-text="result.code"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">235</context>
@@ -3320,7 +3320,7 @@
       </trans-unit>
       <trans-unit id="6163248709380828164" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ preset.label }}"/> anwenden</source>
-        <target>Aplicar &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ preset.label }}&quot;/&gt;</target>
+        <target>Aplicar <x id="INTERPOLATION" equiv-text="{{ preset.label }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
           <context context-type="linenumber">64,65</context>
@@ -3404,7 +3404,7 @@
       </trans-unit>
       <trans-unit id="349348167181554046" datatype="html">
         <source>KI-Quiz „<x id="PH" equiv-text="imported.name"/>“ importiert.</source>
-        <target>Prueba de IA “&lt;x id=&quot;PH&quot; equiv-text=&quot;imported.name&quot;/&gt;” importada.</target>
+        <target>Prueba de IA “<x id="PH" equiv-text="imported.name"/>” importada.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.ts</context>
           <context context-type="linenumber">265</context>
@@ -3412,7 +3412,7 @@
       </trans-unit>
       <trans-unit id="8746540616627910360" datatype="html">
         <source>Vorschau: <x id="INTERPOLATION" equiv-text="{{ quizData.name }}"/></source>
-        <target>Vista previa: &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ quizData.name }}&quot;/&gt;</target>
+        <target>Vista previa: <x id="INTERPOLATION" equiv-text="{{ quizData.name }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">5</context>
@@ -3420,7 +3420,7 @@
       </trans-unit>
       <trans-unit id="8974101382411060983" datatype="html">
         <source>Frage <x id="INTERPOLATION" equiv-text="{{ currentIndex() + 1 }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ questions().length }}"/></source>
-        <target>Pregunta &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ currentIndex() + 1 }}&quot;/&gt; de &lt;x id=&quot;INTERPOLATION_1&quot; equiv-text=&quot;{{ questions().length }}&quot;/&gt;</target>
+        <target>Pregunta <x id="INTERPOLATION" equiv-text="{{ currentIndex() + 1 }}"/> de <x id="INTERPOLATION_1" equiv-text="{{ questions().length }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">13,14</context>
@@ -3500,7 +3500,7 @@
       </trans-unit>
       <trans-unit id="4130226732996002249" datatype="html">
         <source> Skala <x id="INTERPOLATION" equiv-text="{{ question.ratingMin ?? 1 }}"/>–<x id="INTERPOLATION_1" equiv-text="{{ question.ratingMax ?? 5 }}"/> </source>
-        <target>Escala &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ question.ratingMin ?? 1 }}&quot;/&gt;–&lt;x id=&quot;INTERPOLATION_1&quot; equiv-text=&quot;{{ question.ratingMax ?? 5 }}&quot;/&gt;</target>
+        <target>Escala <x id="INTERPOLATION" equiv-text="{{ question.ratingMin ?? 1 }}"/>–<x id="INTERPOLATION_1" equiv-text="{{ question.ratingMax ?? 5 }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">104,106</context>
@@ -3588,7 +3588,7 @@
       </trans-unit>
       <trans-unit id="8343794034704107656" datatype="html">
         <source>Frage <x id="questionNumber" equiv-text="index + 1"/>: weniger als 2 Antworten</source>
-        <target>Pregunta &lt;x id=&quot;questionNumber&quot; equiv-text=&quot;index + 1&quot;/&gt;: menos de 2 respuestas</target>
+        <target>Pregunta <x id="questionNumber" equiv-text="index + 1"/>: menos de 2 respuestas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
           <context context-type="linenumber">75</context>
@@ -3596,7 +3596,7 @@
       </trans-unit>
       <trans-unit id="5979233666889654499" datatype="html">
         <source>Frage <x id="questionNumber" equiv-text="index + 1"/>: keine richtige Antwort gewählt</source>
-        <target>Pregunta &lt;x id=&quot;questionNumber&quot; equiv-text=&quot;index + 1&quot;/&gt;: no se seleccionó ninguna respuesta correcta</target>
+        <target>Pregunta <x id="questionNumber" equiv-text="index + 1"/>: no se seleccionó ninguna respuesta correcta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
           <context context-type="linenumber">80</context>
@@ -3608,7 +3608,7 @@
       </trans-unit>
       <trans-unit id="4769513855100232737" datatype="html">
         <source>Frage <x id="PH" equiv-text="index + 1"/></source>
-        <target>Pregunta &lt;x id=&quot;PH&quot; equiv-text=&quot;index + 1&quot;/&gt;</target>
+        <target>Pregunta <x id="PH" equiv-text="index + 1"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
           <context context-type="linenumber">144</context>
@@ -3643,10 +3643,7 @@
         class=&quot;quiz-sync__state&quot;
         [class.quiz-sync__state--ok]=&quot;syncConnectionState() === &apos;connected&apos;&quot;
       &gt;"/> <x id="INTERPOLATION" equiv-text="{{ syncStatusLabel() }}"/> <x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
-        <target>Estado: &lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong
-        clase=&quot;quiz-sync__state&quot;
-        [class.quiz-sync__state--ok]=&quot;syncConnectionState() === &apos;conectado&apos;&quot;
-      &gt;&quot;/&gt; &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ syncStatusLabel() }}&quot;/&gt; &lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt;</target>
+        <target>Estado: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong class=&quot;quiz-sync__state&quot; [class.quiz-sync__state--ok]=&quot;syncConnectionState() === &apos;connected&apos;&quot;&gt;"/> <x id="INTERPOLATION" equiv-text="{{ syncStatusLabel() }}"/> <x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">12,20</context>
@@ -3674,7 +3671,7 @@
       </trans-unit>
       <trans-unit id="2633047600013021483" datatype="html">
         <source>Sync-ID: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
-        <target>ID de sincronización: &lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ docId }}&quot;/&gt;&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt;</target>
+        <target>ID de sincronización: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">32,33</context>
@@ -3682,7 +3679,7 @@
       </trans-unit>
       <trans-unit id="7327495541682670981" datatype="html">
         <source>Sync-Link: <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;quiz-sync__link&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ syncLink() }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
-        <target>Enlace de sincronización: &lt;x id=&quot;START_TAG_SPAN&quot; ctype=&quot;x-span&quot; equiv-text=&quot;&lt;span class=&quot;quiz-sync__link&quot;&gt;&quot;/&gt;&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ syncLink() }}&quot;/&gt;&lt;x id=&quot;CLOSE_TAG_SPAN&quot; ctype=&quot;x-span&quot; equiv-text=&quot;&lt;/span&gt;&quot;/&gt;</target>
+        <target>Enlace de sincronización: <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;quiz-sync__link&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ syncLink() }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">33,34</context>
@@ -3706,7 +3703,7 @@
       </trans-unit>
       <trans-unit id="7526770781960740234" datatype="html">
         <source>Session-Code <x id="INTERPOLATION" equiv-text="{{ s.code }}"/></source>
-        <target>Código de sesión &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ s.code }}&quot;/&gt;</target>
+        <target>Código de sesión <x id="INTERPOLATION" equiv-text="{{ s.code }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">7</context>
@@ -3942,7 +3939,7 @@
       </trans-unit>
       <trans-unit id="8116022307556021692" datatype="html">
         <source>Frage <x id="INTERPOLATION" equiv-text="{{ q.order + 1 }}"/></source>
-        <target>Pregunta &lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ q.order + 1 }}&quot;/&gt;</target>
+        <target>Pregunta <x id="INTERPOLATION" equiv-text="{{ q.order + 1 }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">225,226</context>
@@ -4058,7 +4055,7 @@
       </trans-unit>
       <trans-unit id="8436638106328843877" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ entry.totalScore | number }}"/> Pkt.</source>
-        <target>&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ entry.totalScore | number }}&quot;/&gt; puntos.</target>
+        <target><x id="INTERPOLATION" equiv-text="{{ entry.totalScore | number }}"/> puntos.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">489,490</context>
@@ -4170,7 +4167,7 @@
       </trans-unit>
       <trans-unit id="5001533029320507746" datatype="html">
         <source><x id="PH" equiv-text="participants"/> Teilnehmende warten auf deine Steuerung.</source>
-        <target>&lt;x id=&quot;PH&quot; equiv-text=&quot;participants&quot;/&gt; participantes esperan tu acción.</target>
+        <target><x id="PH" equiv-text="participants"/> participantes esperan tu acción.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">303</context>
@@ -4290,7 +4287,7 @@
       </trans-unit>
       <trans-unit id="5598682335417207093" datatype="html">
         <source><x id="PH" equiv-text="count"/> von <x id="PH_1" equiv-text="totalStr"/> hat geantwortet</source>
-        <target>&lt;x id=&quot;PH&quot; equiv-text=&quot;count&quot;/&gt; de &lt;x id=&quot;PH_1&quot; equiv-text=&quot;totalStr&quot;/&gt; respondió</target>
+        <target><x id="PH" equiv-text="count"/> de <x id="PH_1" equiv-text="totalStr"/> respondió</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">456</context>
@@ -4298,7 +4295,7 @@
       </trans-unit>
       <trans-unit id="4585702281654307614" datatype="html">
         <source><x id="PH" equiv-text="count"/> von <x id="PH_1" equiv-text="totalStr"/> haben geantwortet</source>
-        <target>&lt;x id=&quot;PH&quot; equiv-text=&quot;count&quot;/&gt; de &lt;x id=&quot;PH_1&quot; equiv-text=&quot;totalStr&quot;/&gt; respondió</target>
+        <target><x id="PH" equiv-text="count"/> de <x id="PH_1" equiv-text="totalStr"/> respondió</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">458</context>
@@ -4306,7 +4303,7 @@
       </trans-unit>
       <trans-unit id="6038081262407463029" datatype="html">
         <source><x id="PH" equiv-text="total"/> Reaktion</source>
-        <target>&lt;x id=&quot;PH&quot; equiv-text=&quot;total&quot;/&gt; reacción</target>
+        <target><x id="PH" equiv-text="total"/> reacción</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">462</context>
@@ -4314,7 +4311,7 @@
       </trans-unit>
       <trans-unit id="8711778533396778089" datatype="html">
         <source><x id="PH" equiv-text="total"/> Reaktionen</source>
-        <target>&lt;x id=&quot;PH&quot; equiv-text=&quot;total&quot;/&gt; reacciones</target>
+        <target><x id="PH" equiv-text="total"/> reacciones</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">462</context>
@@ -4394,7 +4391,7 @@
       </trans-unit>
       <trans-unit id="7304749878499794874" datatype="html">
         <source>Frage <x id="questionNumber" equiv-text="data.questionOrder + 1"/>: <x id="questionText" equiv-text="data.questionText ?? &apos;&apos;"/></source>
-        <target>Pregunta &lt;x id=&quot;questionNumber&quot; equiv-text=&quot;data.questionOrder + 1&quot;/&gt;: &lt;x id=&quot;questionText&quot; equiv-text=&quot;data.questionText ?? &apos;&apos;&quot;/&gt;</target>
+        <target>Pregunta <x id="questionNumber" equiv-text="data.questionOrder + 1"/>: <x id="questionText" equiv-text="data.questionText ?? &apos;&apos;"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">744</context>
@@ -4614,7 +4611,7 @@
       </trans-unit>
       <trans-unit id="6062561167696260966" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ summary.totalResponses }}"/> Bewertungen insgesamt</source>
-        <target>&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ summary.totalResponses }}&quot;/&gt; Calificaciones totales</target>
+        <target><x id="INTERPOLATION" equiv-text="{{ summary.totalResponses }}"/> Calificaciones totales</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">130,131</context>
@@ -4670,7 +4667,7 @@
       </trans-unit>
       <trans-unit id="3462014492286363639" datatype="html">
         <source>Deine Antwort: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ freeTextValue() }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
-        <target>Tu respuesta: &lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ freeTextValue() }}&quot;/&gt;&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt;</target>
+        <target>Tu respuesta: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ freeTextValue() }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">269,270</context>
@@ -4686,7 +4683,7 @@
       </trans-unit>
       <trans-unit id="6645327449824549569" datatype="html">
         <source>Deine Bewertung: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ ratingValue() ?? &apos;–&apos; }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
-        <target>Tu valoración: &lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ ratingValue() ?? &apos;–&apos; }}&quot;/&gt;&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt;</target>
+        <target>Tu valoración: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ ratingValue() ?? &apos;–&apos; }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">304,306</context>
@@ -4750,7 +4747,7 @@
       </trans-unit>
       <trans-unit id="8052936664226936966" datatype="html">
         <source>Serie (×<x id="INTERPOLATION" equiv-text="{{ sc.streakMultiplier | number:&apos;1.1-1&apos; }}"/>)</source>
-        <target>Serie (×&lt;x id=&quot;INTERPOLATION&quot; equiv-text=&quot;{{ sc.streakMultiplier | number:&apos;1.1-1&apos; }}&quot;/&gt;)</target>
+        <target>Serie (×<x id="INTERPOLATION" equiv-text="{{ sc.streakMultiplier | number:&apos;1.1-1&apos; }}"/>)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">377,378</context>
@@ -4986,7 +4983,7 @@
       </trans-unit>
       <trans-unit id="4542999724018341506" datatype="html">
         <source>On fire! 🔥 <x id="PH" equiv-text="sc.streakCount"/>er-Serie!</source>
-        <target>¡En llamas! 🔥 ¡Serie &lt;x id=&quot;PH&quot; equiv-text=&quot;sc.streakCount&quot;/&gt;!</target>
+        <target>¡En llamas! 🔥 ¡Serie <x id="PH" equiv-text="sc.streakCount"/>!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">50</context>
@@ -4994,7 +4991,7 @@
       </trans-unit>
       <trans-unit id="7742449833700733926" datatype="html">
         <source><x id="PH" equiv-text="sc.rankChange"/> Platz aufgestiegen! 🚀</source>
-        <target>¡&lt;x id=&quot;PH&quot; equiv-text=&quot;sc.rankChange&quot;/&gt; subió! 🚀</target>
+        <target>¡<x id="PH" equiv-text="sc.rankChange"/> subió! 🚀</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">53</context>
@@ -5002,7 +4999,7 @@
       </trans-unit>
       <trans-unit id="4163599396055968239" datatype="html">
         <source><x id="PH" equiv-text="sc.rankChange"/> Plätze aufgestiegen! 🚀</source>
-        <target>¡&lt;x id=&quot;PH&quot; equiv-text=&quot;sc.rankChange&quot;/&gt; lugares subieron! 🚀</target>
+        <target>¡<x id="PH" equiv-text="sc.rankChange"/> lugares subieron! 🚀</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">54</context>
@@ -5034,7 +5031,7 @@
       </trans-unit>
       <trans-unit id="2602080285199874401" datatype="html">
         <source><x id="PH" equiv-text="stars"/> von 5 Sternen</source>
-        <target>&lt;x id=&quot;PH&quot; equiv-text=&quot;stars&quot;/&gt; de 5 estrellas</target>
+        <target><x id="PH" equiv-text="stars"/> de 5 estrellas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">212</context>
@@ -5042,7 +5039,7 @@
       </trans-unit>
       <trans-unit id="5465731935001574060" datatype="html">
         <source><x id="PH" equiv-text="seconds ?? 0"/> Sekunden verbleibend</source>
-        <target>Quedan &lt;x id=&quot;PH&quot; equiv-text=&quot;seconds ?? 0&quot;/&gt; segundos</target>
+        <target>Quedan <x id="PH" equiv-text="seconds ?? 0"/> segundos</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">217</context>
@@ -5050,7 +5047,7 @@
       </trans-unit>
       <trans-unit id="5043949766391435553" datatype="html">
         <source>Bewertung von <x id="PH" equiv-text="this.ratingLabelMin()"/> bis <x id="PH_1" equiv-text="this.ratingLabelMax()"/></source>
-        <target>Clasificación de &lt;x id=&quot;PH&quot; equiv-text=&quot;this.ratingLabelMin()&quot;/&gt; a &lt;x id=&quot;PH_1&quot; equiv-text=&quot;this.ratingLabelMax()&quot;/&gt;</target>
+        <target>Clasificación de <x id="PH" equiv-text="this.ratingLabelMin()"/> a <x id="PH_1" equiv-text="this.ratingLabelMax()"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">221</context>
@@ -5058,7 +5055,7 @@
       </trans-unit>
       <trans-unit id="2721187191897749624" datatype="html">
         <source>Bewertung <x id="PH" equiv-text="value"/></source>
-        <target>Calificación &lt;x id=&quot;PH&quot; equiv-text=&quot;value&quot;/&gt;</target>
+        <target>Calificación <x id="PH" equiv-text="value"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">225</context>
@@ -5066,7 +5063,7 @@
       </trans-unit>
       <trans-unit id="974858114847169012" datatype="html">
         <source>Reagiere mit <x id="PH" equiv-text="emoji"/></source>
-        <target>Responder con &lt;x id=&quot;PH&quot; equiv-text=&quot;emoji&quot;/&gt;</target>
+        <target>Responder con <x id="PH" equiv-text="emoji"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">229</context>
@@ -5266,7 +5263,7 @@
       </trans-unit>
       <trans-unit id="presetTeamCount" datatype="html">
         <source><x id="PH" equiv-text="n"/> Teams</source>
-        <target>&lt;x id=&quot;PH&quot; equiv-text=&quot;n&quot;/&gt; equipos</target>
+        <target><x id="PH" equiv-text="n"/> equipos</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.ts</context>
           <context context-type="linenumber">60</context>
@@ -5466,7 +5463,7 @@
       </trans-unit>
       <trans-unit id="2715446489589386153" datatype="html">
         <source>Server-Status: <x id="PH" equiv-text="statusText"/>. <x id="PH_1" equiv-text="s.activeSessions"/> Quiz live, <x id="PH_2" equiv-text="s.activeBlitzRounds"/> Blitz-Runden, <x id="PH_3" equiv-text="s.totalParticipants"/> Teilnehmende, <x id="PH_4" equiv-text="s.completedSessions"/> Quizzes durchgeführt.</source>
-        <target>Estado del servidor: &lt;x id=&quot;PH&quot; equiv-text=&quot;statusText&quot;/&gt;. &lt;x id=&quot;PH_1&quot; equiv-text=&quot;s.activeSessions&quot;/&gt; cuestionario en vivo, &lt;x id=&quot;PH_2&quot; equiv-text=&quot;s.activeBlitzRounds&quot;/&gt; rondas relámpago, &lt;x id=&quot;PH_3&quot; equiv-text=&quot;s.totalParticipants&quot;/&gt; participantes, &lt;x id=&quot;PH_4&quot; equiv-text=&quot;s.completedSessions&quot;/&gt; cuestionarios realizados.</target>
+        <target>Estado del servidor: <x id="PH" equiv-text="statusText"/>. <x id="PH_1" equiv-text="s.activeSessions"/> cuestionario en vivo, <x id="PH_2" equiv-text="s.activeBlitzRounds"/> rondas relámpago, <x id="PH_3" equiv-text="s.totalParticipants"/> participantes, <x id="PH_4" equiv-text="s.completedSessions"/> cuestionarios realizados.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-widget/server-status-widget.component.ts</context>
           <context context-type="linenumber">33</context>
@@ -5574,7 +5571,7 @@
       </trans-unit>
       <trans-unit id="4917065994836676067" datatype="html">
         <source>In der Entwicklung wird nur Deutsch ausgeliefert. Für andere Sprachen: <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>npm run build:localize<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/> und <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>serve:localize:api<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/>.</source>
-        <target>En desarrollo sólo se entrega alemán. Para otros idiomas: &lt;x id=&quot;START_TAG_CODE&quot; ctype=&quot;x-code&quot; equiv-text=&quot;&lt;code&gt;&quot;/&gt;npm run build:localize&lt;x id=&quot;CLOSE_TAG_CODE&quot; ctype=&quot;x-code&quot; equiv-text=&quot;&lt;/code&gt;&quot;/&gt; y &lt;x id=&quot;START_TAG_CODE&quot; ctype=&quot;x-code&quot; equiv-text=&quot;&lt;code&gt;&quot;/&gt;serve:localize:api&lt;x id=&quot;CLOSE_TAG_CODE&quot; ctype=&quot;x-code&quot; equiv-text=&quot;&lt;/code&gt;&quot;/&gt;.</target>
+        <target>En desarrollo sólo se entrega alemán. Para otros idiomas: <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>npm run build:localize<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/> y <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>serve:localize:api<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.html</context>
           <context context-type="linenumber">162,164</context>
