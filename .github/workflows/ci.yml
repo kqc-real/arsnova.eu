@@ -52,6 +52,10 @@ jobs:
       - name: TypeScript compile – frontend
         run: npx tsc --project apps/frontend/tsconfig.app.json --noEmit
 
+      - name: Frontend localized production build (de/en)
+        if: matrix.node-version == 22
+        run: npm run build:localize -w @arsnova/frontend
+
   # ─── Lint ────────────────────────────────────────────────────────────────────
   lint:
     name: ESLint
@@ -121,7 +125,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-  # ─── Docker Build ────────────────────────────────────────────────────────────
+  # ─── Docker Build (inkl. lokalisiertem Frontend-Build) ──────────────────────
   docker:
     name: Docker Build
     runs-on: ubuntu-latest

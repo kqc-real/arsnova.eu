@@ -30,8 +30,8 @@ RUN npx prisma generate
 # Build shared-types + backend (tsc -b handles project references)
 RUN npx tsc -b apps/backend/tsconfig.json
 
-# Build frontend (Angular production build)
-RUN cd apps/frontend && npx ng build --configuration production
+# Build frontend localized (de/en) including root redirect index
+RUN npm run build:localize -w @arsnova/frontend
 
 # ─── Stage 2: Production ────────────────────────────────────────────────────
 FROM node:20-alpine AS production

@@ -152,6 +152,8 @@ Die App unterstützt **mehrere Sprachen** (de, en) über Angular i18n; jede Loca
 
 Für einen **lokal production-ähnlichen** Lauf (optimierter Build, ein Prozess liefert alles aus, Gzip, Pre-Render) sollten Postgres und Redis laufen (wie in Schritt 2, z. B. `docker compose up -d redis postgres`).
 
+`npm run build:prod` erzeugt dabei den **lokalisierten Frontend-Build** (`de`/`en`) und kopiert die Root-`index.html` für den Redirect auf `/de/`.
+
 ```bash
 npm run build:prod    # shared-types + Backend + Frontend (Production) bauen
 npm run start:prod    # Backend starten (gibt Port 3000 ggf. automatisch frei)

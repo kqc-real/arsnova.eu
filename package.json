@@ -30,7 +30,7 @@
     "docker:up": "docker compose up -d",
     "docker:up:dev": "docker compose up -d postgres redis",
     "docker:down": "docker compose down",
-    "build:prod": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/backend && npm run build:prod -w @arsnova/frontend",
+    "build:prod": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/backend && npm run build:localize -w @arsnova/frontend",
     "free-port-3000": "node scripts/free-port-3000.mjs",
     "free-dev-ports": "node scripts/free-dev-ports.mjs",
     "start:prod": "node scripts/start-backend-prod.mjs"

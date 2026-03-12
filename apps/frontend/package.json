@@ -6,7 +6,7 @@
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
-    "build:prod": "ng build --configuration=production",
+    "build:prod": "npm run build:localize",
     "serve:dist": "npx serve dist/browser -s",
     "build:localize": "ng build --localize && node -e \"require('fs').copyFileSync('static-root-index.html', 'dist/browser/index.html')\"",
     "serve:localize": "npx serve dist/browser -p 4200",

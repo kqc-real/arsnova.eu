@@ -40,25 +40,62 @@ const frontendDist = fs.existsSync(path.join(frontendDistBase, 'browser'))
   ? path.join(frontendDistBase, 'browser')
   : frontendDistBase;
 if (fs.existsSync(frontendDist)) {
+  const rootIndexPath = path.join(frontendDist, 'index.html');
+  const csrPath = path.join(frontendDist, 'index.csr.html');
+  const deIndexPath = path.join(frontendDist, 'de', 'index.html');
+  const enIndexPath = path.join(frontendDist, 'en', 'index.html');
+  const hasLocalizedBuild = fs.existsSync(deIndexPath) && fs.existsSync(enIndexPath);
+
   // PWA-Update: ngsw.json und index.html nicht cachen, damit der Service Worker neue Versionen erkennt.
   app.use((req, res, next) => {
-    if (req.path === '/ngsw.json' || req.path === '/index.html') {
+    if (req.path.endsWith('/ngsw.json') || req.path.endsWith('/index.html')) {
       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     }
     next();
   });
-  app.use(express.static(frontendDist));
-  app.get('*', (_req, res, next) => {
-    const indexPath = path.join(frontendDist, 'index.html');
-    const csrPath = path.join(frontendDist, 'index.csr.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else if (fs.existsSync(csrPath)) {
-      res.sendFile(csrPath);
-    } else {
-      next();
-    }
-  });
+
+  if (hasLocalizedBuild) {
+    // /assets/* aus de/ (lokalisiert: Manifest-Icons werden unter /assets referenziert)
+    app.use('/assets', express.static(path.join(frontendDist, 'de', 'assets')));
+    // Locale-prefixed assets: fallthrough false → fehlende Dateien liefern 404 statt SPA-index
+    app.use('/de/assets', express.static(path.join(frontendDist, 'de', 'assets'), { fallthrough: false }));
+    app.use('/en/assets', express.static(path.join(frontendDist, 'en', 'assets'), { fallthrough: false }));
+    app.use(express.static(frontendDist));
+
+    app.get('/de', (_, res) => res.sendFile(deIndexPath));
+    app.get('/de/', (_, res) => res.sendFile(deIndexPath));
+    app.get(/^\/de\/.+/, (_, res) => res.sendFile(deIndexPath));
+    app.get('/en', (_, res) => res.sendFile(enIndexPath));
+    app.get('/en/', (_, res) => res.sendFile(enIndexPath));
+    app.get(/^\/en\/.+/, (_, res) => res.sendFile(enIndexPath));
+
+    app.get('/', (_, res) => {
+      if (fs.existsSync(rootIndexPath)) {
+        res.sendFile(rootIndexPath);
+      } else {
+        res.sendFile(deIndexPath);
+      }
+    });
+    // Fallback für nicht-lokalisierte SPA-Routen → Root-Index (leitet auf /de/)
+    app.get('*', (_, res) => {
+      if (fs.existsSync(rootIndexPath)) {
+        res.sendFile(rootIndexPath);
+      } else {
+        res.sendFile(deIndexPath);
+      }
+    });
+  } else {
+    app.use(express.static(frontendDist));
+    app.get('*', (_req, res, next) => {
+      if (fs.existsSync(rootIndexPath)) {
+        res.sendFile(rootIndexPath);
+      } else if (fs.existsSync(csrPath)) {
+        res.sendFile(csrPath);
+      } else {
+        next();
+      }
+    });
+  }
 }
 
 const server = app.listen(PORT, () => {
