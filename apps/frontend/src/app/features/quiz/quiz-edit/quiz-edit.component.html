@@ -124,7 +124,7 @@
             <mat-checkbox formControlName="readingPhaseEnabled" i18n>
               Lesephase vor dem Antworten
             </mat-checkbox>
-            <mat-checkbox formControlName="teamMode" i18n>Im Team spielen</mat-checkbox>
+            <mat-checkbox formControlName="teamMode" (change)="syncTeamNamesValidation()" i18n>Im Team spielen</mat-checkbox>
           </fieldset>
 
           <fieldset class="quiz-edit-form__fieldset">
@@ -178,6 +178,7 @@
                   formControlName="teamCount"
                   min="2"
                   max="8"
+                  (input)="syncTeamNamesValidation()"
                   i18n-aria-label aria-label="Anzahl Teams"
                 />
                 @if (teamCountControl.hasError('min')) {
@@ -195,6 +196,44 @@
                   <mat-option value="MANUAL" i18n>Manuell</mat-option>
                 </mat-select>
               </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Eigene Team-Namen (optional)</mat-label>
+                <textarea
+                  matInput
+                  formControlName="teamNamesText"
+                  rows="4"
+                  (input)="syncTeamNamesValidation()"
+                  i18n-placeholder
+                  placeholder="Ein Team pro Zeile"
+                  i18n-aria-label
+                  aria-label="Eigene Team-Namen"
+                ></textarea>
+                <mat-hint i18n>
+                  Leer gelassene Teams erhalten automatisch Namen wie Team A, Team B oder Team C.
+                </mat-hint>
+                @if (teamNamesTextControl.hasError('tooManyTeamNames')) {
+                  <mat-error i18n>Gib höchstens so viele Namen wie Teams an.</mat-error>
+                }
+                @if (teamNamesTextControl.hasError('duplicateTeamNames')) {
+                  <mat-error i18n>Jeder Team-Name darf nur einmal vorkommen.</mat-error>
+                }
+                @if (teamNamesTextControl.hasError('teamNameTooLong')) {
+                  <mat-error i18n>Jeder Team-Name darf maximal 40 Zeichen lang sein.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="quiz-edit-form__team-preview" aria-live="polite">
+              <p class="quiz-edit-form__team-preview-title" i18n>So entstehen die Teams</p>
+              <ol class="quiz-edit-form__team-preview-list">
+                @for (teamName of teamNamePreview(); track $index) {
+                  <li class="quiz-edit-form__team-preview-item">
+                    <span class="quiz-edit-form__team-preview-index">{{ $index + 1 }}</span>
+                    <span class="quiz-edit-form__team-preview-name">{{ teamName }}</span>
+                  </li>
+                }
+              </ol>
             </div>
           }
 

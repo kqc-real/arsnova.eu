@@ -38,14 +38,29 @@ describe('session.getParticipants (Story 2.2)', () => {
 
     expect(result.participantCount).toBe(2);
     expect(result.participants).toHaveLength(2);
-    expect(result.participants[0]).toEqual({ id: p1Id, nickname: 'Marie Curie' });
-    expect(result.participants[1]).toEqual({ id: p2Id, nickname: 'Albert Einstein' });
+    expect(result.participants[0]).toEqual({
+      id: p1Id,
+      nickname: 'Marie Curie',
+      teamId: null,
+      teamName: null,
+    });
+    expect(result.participants[1]).toEqual({
+      id: p2Id,
+      nickname: 'Albert Einstein',
+      teamId: null,
+      teamName: null,
+    });
     expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
       where: { code: 'ABC123' },
       include: {
         participants: {
           orderBy: { joinedAt: 'asc' },
-          select: { id: true, nickname: true },
+          select: {
+            id: true,
+            nickname: true,
+            teamId: true,
+            team: { select: { name: true } },
+          },
         },
       },
     });

@@ -34,6 +34,7 @@ describe('quiz.upload (Story 2.1a)', () => {
       enableEmojiReactions: true,
       anonymousMode: false,
       teamMode: false,
+      teamNames: [],
       nicknameTheme: 'NOBEL_LAUREATES' as const,
       questions: [
         {
@@ -75,6 +76,7 @@ describe('quiz.upload (Story 2.1a)', () => {
       enableEmojiReactions: false,
       anonymousMode: false,
       teamMode: false,
+      teamNames: [],
       nicknameTheme: 'NOBEL_LAUREATES' as const,
       questions: [
         {

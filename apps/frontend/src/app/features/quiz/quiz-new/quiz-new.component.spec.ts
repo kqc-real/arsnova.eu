@@ -45,6 +45,7 @@ describe('QuizNewComponent', () => {
         teamMode: false,
         teamCount: null,
         teamAssignment: 'AUTO',
+        teamNames: [],
         backgroundMusic: null,
         nicknameTheme: 'NOBEL_LAUREATES',
         bonusTokenCount: null,
@@ -72,6 +73,7 @@ describe('QuizNewComponent', () => {
         teamMode: false,
         teamCount: null,
         teamAssignment: 'AUTO',
+        teamNames: [],
         backgroundMusic: null,
         nicknameTheme: 'NOBEL_LAUREATES',
         bonusTokenCount: null,
@@ -138,5 +140,22 @@ describe('QuizNewComponent', () => {
 
     expect(component.aiImportError()).toBe('Füge zuerst das KI-JSON ein.');
     expect(mockStore.importQuiz).not.toHaveBeenCalled();
+  });
+
+  it('verhindert das Erstellen bei doppelten Team-Namen', async () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+
+    component.form.patchValue({
+      name: 'Team-Quiz',
+      teamMode: true,
+      teamCount: 2,
+      teamNamesText: 'Rot\nRot',
+    });
+
+    await component.submit();
+
+    expect(component.teamNamesTextControl.hasError('duplicateTeamNames')).toBe(true);
+    expect(mockStore.createQuiz).not.toHaveBeenCalled();
   });
 });

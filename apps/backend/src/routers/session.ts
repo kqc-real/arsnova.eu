@@ -17,12 +17,14 @@ import {
   SessionInfoDTOSchema,
   SessionExportDTOSchema,
   SessionParticipantsPayloadSchema,
+  SessionTeamsPayloadSchema,
   SessionStatusUpdateSchema,
   HostCurrentQuestionDTOSchema,
   QuestionStudentDTOSchema,
   QuestionPreviewDTOSchema,
   QuestionRevealedDTOSchema,
   LeaderboardEntryDTOSchema,
+  TeamLeaderboardEntryDTOSchema,
   BonusTokenListDTOSchema,
   SubmitSessionFeedbackInputSchema,
   SessionFeedbackSummarySchema,
@@ -34,6 +36,7 @@ import {
   type FreetextAggregateEntry,
   type BonusTokenEntryDTO,
   type LeaderboardEntryDTO,
+  type TeamLeaderboardEntryDTO,
   type RoundComparisonDTO,
   type RoundDistributionEntry,
   type VoterMigrationEntry,
@@ -63,6 +66,16 @@ import {
 import { randomBytes } from 'crypto';
 
 const QUESTION_TEXT_SHORT_MAX = 100;
+const TEAM_COLORS = [
+  '#1E88E5',
+  '#43A047',
+  '#F4511E',
+  '#8E24AA',
+  '#FDD835',
+  '#00897B',
+  '#6D4C41',
+  '#5E35B1',
+] as const;
 
 /** Typen für getExportData-Callbacks (vermeidet implizites any). */
 interface QuestionWithAnswersForExport {
@@ -103,6 +116,52 @@ async function ensureUniqueSessionCode(): Promise<string> {
     if (!existing) return code;
   }
   throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Konnte keinen freien Session-Code erzeugen.' });
+}
+
+function buildDefaultTeamName(index: number): string {
+  return `Team ${String.fromCharCode(65 + index)}`;
+}
+
+function normalizeConfiguredTeamNames(teamNames: string[] | null | undefined): string[] {
+  if (!Array.isArray(teamNames)) {
+    return [];
+  }
+
+  return teamNames
+    .filter((entry): entry is string => typeof entry === 'string')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+async function ensureSessionTeams(
+  sessionId: string,
+  requestedTeamCount: number,
+  configuredTeamNames?: string[] | null,
+) {
+  const effectiveTeamCount = Math.min(8, Math.max(2, requestedTeamCount));
+  const teamNames = normalizeConfiguredTeamNames(configuredTeamNames);
+  const existing = await prisma.team.findMany({
+    where: { sessionId },
+    include: { _count: { select: { participants: true } } },
+    orderBy: { name: 'asc' },
+  });
+  if (existing.length > 0) {
+    return existing;
+  }
+
+  await prisma.team.createMany({
+    data: Array.from({ length: effectiveTeamCount }, (_, index) => ({
+      sessionId,
+      name: teamNames[index] ?? buildDefaultTeamName(index),
+      color: TEAM_COLORS[index] ?? null,
+    })),
+  });
+
+  return prisma.team.findMany({
+    where: { sessionId },
+    include: { _count: { select: { participants: true } } },
+    orderBy: { name: 'asc' },
+  });
 }
 
 async function buildRoundComparison(
@@ -311,8 +370,11 @@ export const sessionRouter = router({
           moderationMode: input.moderationMode ?? false,
           status: 'LOBBY',
         },
-        include: { quiz: { select: { name: true } } },
+        include: { quiz: { select: { name: true, teamMode: true, teamCount: true, teamNames: true } } },
       });
+      if (session.type === 'QUIZ' && session.quiz?.teamMode) {
+        await ensureSessionTeams(session.id, session.quiz.teamCount ?? 2, session.quiz.teamNames);
+      }
       return {
         sessionId: session.id,
         code: session.code,
@@ -393,14 +455,59 @@ export const sessionRouter = router({
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        include: { participants: { orderBy: { joinedAt: 'asc' }, select: { id: true, nickname: true } } },
+        include: {
+          participants: {
+            orderBy: { joinedAt: 'asc' },
+            select: {
+              id: true,
+              nickname: true,
+              teamId: true,
+              team: { select: { name: true } },
+            },
+          },
+        },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       return {
-        participants: session.participants.map((p) => ({ id: p.id, nickname: p.nickname })),
+        participants: session.participants.map((p) => ({
+          id: p.id,
+          nickname: p.nickname,
+          teamId: p.teamId ?? null,
+          teamName: p.team?.name ?? null,
+        })),
         participantCount: session.participants.length,
+      };
+    }),
+
+  /** Teams einer Session für manuellen Join / Team-Lobby (Story 7.1). */
+  getTeams: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionTeamsPayloadSchema)
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        include: {
+          quiz: { select: { teamMode: true, teamCount: true, teamNames: true } },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (!session.quiz?.teamMode) {
+        return { teams: [], teamCount: 0 };
+      }
+
+      const teams = await ensureSessionTeams(session.id, session.quiz.teamCount ?? 2, session.quiz.teamNames);
+      return {
+        teams: teams.map((team) => ({
+          id: team.id,
+          name: team.name,
+          color: team.color ?? null,
+          memberCount: team._count.participants,
+        })),
+        teamCount: teams.length,
       };
     }),
 
@@ -413,13 +520,28 @@ export const sessionRouter = router({
       while (true) {
         const session = await prisma.session.findUnique({
           where: { code },
-          include: { participants: { orderBy: { joinedAt: 'asc' }, select: { id: true, nickname: true } } },
+          include: {
+            participants: {
+              orderBy: { joinedAt: 'asc' },
+              select: {
+                id: true,
+                nickname: true,
+                teamId: true,
+                team: { select: { name: true } },
+              },
+            },
+          },
         });
         if (!session) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
         }
         const payload = {
-          participants: session.participants.map((p) => ({ id: p.id, nickname: p.nickname })),
+          participants: session.participants.map((p) => ({
+            id: p.id,
+            nickname: p.nickname,
+            teamId: p.teamId ?? null,
+            teamName: p.team?.name ?? null,
+          })),
           participantCount: session.participants.length,
         };
         const json = JSON.stringify(payload);
@@ -1100,7 +1222,18 @@ export const sessionRouter = router({
       }
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        include: { quiz: { select: { name: true } }, _count: { select: { participants: true } } },
+        include: {
+          quiz: {
+            select: {
+              name: true,
+              teamMode: true,
+              teamCount: true,
+              teamAssignment: true,
+              teamNames: true,
+            },
+          },
+          _count: { select: { participants: true } },
+        },
       });
       if (!session) {
         const after = await recordFailedSessionCodeAttempt(ip);
@@ -1116,8 +1249,42 @@ export const sessionRouter = router({
       if (session.status === 'FINISHED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
       }
+      let assignedTeamId: string | undefined;
+      let assignedTeamName: string | null = null;
+      if (session.quiz?.teamMode) {
+        const teams = await ensureSessionTeams(
+          session.id,
+          session.quiz.teamCount ?? 2,
+          session.quiz.teamNames,
+        );
+        if (teams.length === 0) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Teams konnten nicht vorbereitet werden.' });
+        }
+
+        if (session.quiz.teamAssignment === 'MANUAL') {
+          if (!input.teamId) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Bitte wähle ein Team aus.' });
+          }
+          const selectedTeam = teams.find((team) => team.id === input.teamId);
+          if (!selectedTeam) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ungültiges Team.' });
+          }
+          assignedTeamId = selectedTeam.id;
+          assignedTeamName = selectedTeam.name;
+        } else {
+          const autoTeam = [...teams].sort(
+            (a, b) => a._count.participants - b._count.participants || a.name.localeCompare(b.name),
+          )[0]!;
+          assignedTeamId = autoTeam.id;
+          assignedTeamName = autoTeam.name;
+        }
+      }
       const participant = await prisma.participant.create({
-        data: { sessionId: session.id, nickname: input.nickname.trim().slice(0, 30) },
+        data: {
+          sessionId: session.id,
+          nickname: input.nickname.trim().slice(0, 30),
+          teamId: assignedTeamId,
+        },
       }).catch(() => {
         throw new TRPCError({ code: 'CONFLICT', message: 'Dieser Nickname ist in dieser Session bereits vergeben.' });
       });
@@ -1130,6 +1297,8 @@ export const sessionRouter = router({
         title: session.title ?? null,
         participantCount: session._count.participants + 1,
         participantId: participant.id,
+        teamId: assignedTeamId ?? null,
+        teamName: assignedTeamName,
       };
     }),
 
@@ -1208,6 +1377,77 @@ export const sessionRouter = router({
       for (let i = 0; i < entries.length; i++) {
         entries[i].rank = i + 1;
       }
+
+      return entries;
+    }),
+
+  /** Team-Leaderboard: Ranking aller Teams nach Gesamtpunktzahl (Story 7.1). */
+  getTeamLeaderboard: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(z.array(TeamLeaderboardEntryDTOSchema))
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        include: {
+          quiz: { select: { teamMode: true, teamCount: true, teamNames: true } },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (!session.quiz?.teamMode) {
+        return [];
+      }
+
+      const teams = await ensureSessionTeams(session.id, session.quiz.teamCount ?? 2, session.quiz.teamNames);
+      const participants = await prisma.participant.findMany({
+        where: { sessionId: session.id },
+        select: { id: true, teamId: true },
+      });
+      const votes = await prisma.vote.findMany({
+        where: { sessionId: session.id, round: 1 },
+        select: { participantId: true, score: true },
+      });
+
+      const teamStats = new Map<string, { teamName: string; teamColor: string | null; totalScore: number; memberCount: number }>();
+      for (const team of teams) {
+        teamStats.set(team.id, {
+          teamName: team.name,
+          teamColor: team.color ?? null,
+          totalScore: 0,
+          memberCount: 0,
+        });
+      }
+
+      const participantTeam = new Map<string, string>();
+      for (const participant of participants) {
+        if (!participant.teamId) continue;
+        participantTeam.set(participant.id, participant.teamId);
+        const stats = teamStats.get(participant.teamId);
+        if (stats) {
+          stats.memberCount += 1;
+        }
+      }
+
+      for (const vote of votes) {
+        const teamId = participantTeam.get(vote.participantId);
+        if (!teamId) continue;
+        const stats = teamStats.get(teamId);
+        if (!stats) continue;
+        stats.totalScore += Number(vote.score) || 0;
+      }
+
+      const entries: TeamLeaderboardEntryDTO[] = [...teamStats.values()]
+        .filter((team) => team.memberCount > 0)
+        .sort((a, b) => b.totalScore - a.totalScore || b.memberCount - a.memberCount || a.teamName.localeCompare(b.teamName))
+        .map((team, index) => ({
+          rank: index + 1,
+          teamName: team.teamName,
+          teamColor: team.teamColor,
+          totalScore: team.totalScore,
+          memberCount: team.memberCount,
+          averageScore: team.memberCount > 0 ? Number((team.totalScore / team.memberCount).toFixed(2)) : 0,
+        }));
 
       return entries;
     }),

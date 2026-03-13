@@ -26,6 +26,8 @@ import type {
   SessionInfoDTO,
   SessionParticipantsPayload,
   SessionStatusUpdate,
+  TeamDTO,
+  TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
@@ -79,6 +81,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly exportStatus = signal<string | null>(null);
   readonly exportExporting = signal(false);
   readonly leaderboard = signal<LeaderboardEntryDTO[]>([]);
+  readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
+  readonly lobbyTeams = signal<TeamDTO[]>([]);
   readonly leaderboardLoading = signal(false);
   readonly bonusTokens = signal<BonusTokenEntryDTO[]>([]);
   readonly feedbackSummary = signal<SessionFeedbackSummary | null>(null);
@@ -93,6 +97,32 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
   readonly Math = Math;
+  readonly teamLeaderboardMaxScore = computed(() =>
+    Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
+  );
+  readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
+  readonly lobbyTeamsWithParticipants = computed(() => {
+    const teams = this.lobbyTeams();
+    const participants = this.participantsPayload()?.participants ?? [];
+    const showNames = this.session()?.anonymousMode !== true;
+    const participantMap = new Map<string, string[]>();
+
+    for (const participant of participants) {
+      if (!participant.teamId || !participant.nickname) {
+        continue;
+      }
+      const names = participantMap.get(participant.teamId) ?? [];
+      if (showNames) {
+        names.push(participant.nickname);
+      }
+      participantMap.set(participant.teamId, names);
+    }
+
+    return teams.map((team) => ({
+      ...team,
+      participants: participantMap.get(team.id) ?? [],
+    }));
+  });
 
   /** Reihenfolge der Emojis für die Reaktions-Anzeige (Story 5.8). */
   readonly emojiOrder: readonly string[] = ['👏', '🎉', '😮', '😂', '😢'];
@@ -199,6 +229,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
       this.session.set(session);
+      await this.refreshLobbyTeams();
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
       }
@@ -214,6 +245,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       void this.refreshLiveFreetext();
       void this.refreshCurrentQuestionForHost();
       void this.refreshEmojiReactions();
+      void this.refreshLobbyTeams();
       this.syncMusic();
     }, 2000);
     this.syncMusic();
@@ -222,7 +254,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.participantSub = trpc.session.onParticipantJoined.subscribe(
         { code: this.code.toUpperCase() },
         {
-          onData: (data) => this.participantsPayload.set(data),
+          onData: (data) => {
+            this.participantsPayload.set(data);
+            void this.refreshLobbyTeams();
+          },
           onError: () => {},
         },
       );
@@ -426,6 +461,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`Teilnehmende`;
   }
 
+  teamMemberLabel(count: number): string {
+    return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
+  }
+
+  lobbyTeamEmptyLabel(): string {
+    return $localize`Noch niemand in diesem Team.`;
+  }
+
+  playfulLobbyTeamsLabel(): string {
+    return $localize`Teamduell startet gleich. Zeigt die Farben schon auf dem Beamer.`;
+  }
+
   /** i18n: Feedback rating count (singular). */
   feedbackRatingSingular(): string {
     return $localize`Bewertung`;
@@ -460,6 +507,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   emojiReactionsTotalLabel(total: number): string {
     return total === 1 ? $localize`${total} Reaktion` : $localize`${total} Reaktionen`;
+  }
+
+  teamScoreBarWidth(totalScore: number): string {
+    const max = this.teamLeaderboardMaxScore();
+    const percentage = max <= 0 ? 0 : Math.max(10, Math.round((totalScore / max) * 100));
+    return `${percentage}%`;
+  }
+
+  private async refreshLobbyTeams(): Promise<void> {
+    if (!this.session()?.teamMode) {
+      this.lobbyTeams.set([]);
+      return;
+    }
+
+    try {
+      const payload = await trpc.session.getTeams.query({ code: this.code.toUpperCase() });
+      this.lobbyTeams.set(payload.teams);
+    } catch {
+      this.lobbyTeams.set([]);
+    }
   }
 
   /** Lesbare Phasen-Beschreibung für Dozenten-Info und Publikum. */
@@ -596,8 +663,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const entries = await trpc.session.getLeaderboard.query({ code: this.code.toUpperCase() });
       this.leaderboard.set(entries);
+      const teamEntries = await trpc.session.getTeamLeaderboard.query({ code: this.code.toUpperCase() });
+      this.teamLeaderboard.set(teamEntries);
     } catch {
       this.leaderboard.set([]);
+      this.teamLeaderboard.set([]);
     } finally {
       this.leaderboardLoading.set(false);
     }

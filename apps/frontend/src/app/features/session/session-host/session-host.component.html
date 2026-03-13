@@ -18,7 +18,39 @@
           <span class="session-lobby__participants-count">{{ count }}</span>
           {{ count === 1 ? participantLabelSingular() : participantLabelPlural() }}
         </p>
-        @if (!s.anonymousMode && payload && payload.participants.length > 0) {
+        @if (s.teamMode && lobbyTeamsWithParticipants().length > 0) {
+          <section class="session-lobby__teams" aria-labelledby="session-lobby-teams-heading">
+            <h2 class="session-lobby__teams-title" id="session-lobby-teams-heading" i18n>Teams in der Lobby</h2>
+            @if (isPlayfulPreset()) {
+              <p class="session-lobby__teams-playful">{{ playfulLobbyTeamsLabel() }}</p>
+            }
+            <div class="session-lobby__teams-grid">
+              @for (team of lobbyTeamsWithParticipants(); track team.id) {
+                <article class="session-lobby__team-card" [class.session-lobby__team-card--playful]="isPlayfulPreset()">
+                  <div class="session-lobby__team-card-head">
+                    <span
+                      class="session-lobby__team-card-dot"
+                      [style.background]="team.color || 'var(--mat-sys-primary)'"
+                      aria-hidden="true"
+                    ></span>
+                    <span class="session-lobby__team-card-name">{{ team.name }}</span>
+                    <span class="session-lobby__team-card-count">{{ teamMemberLabel(team.memberCount) }}</span>
+                  </div>
+                  @if (!s.anonymousMode && team.participants.length > 0) {
+                    <ul class="session-lobby__team-members" role="list">
+                      @for (nickname of team.participants; track nickname) {
+                        <li class="session-lobby__team-member">{{ nickname }}</li>
+                      }
+                    </ul>
+                  } @else if (!s.anonymousMode) {
+                    <p class="session-lobby__team-empty">{{ lobbyTeamEmptyLabel() }}</p>
+                  }
+                </article>
+              }
+            </div>
+          </section>
+        }
+        @if (!s.teamMode && !s.anonymousMode && payload && payload.participants.length > 0) {
           <ul class="session-lobby__list" role="list" i18n-aria-label aria-label="Teilnehmende">
             @for (p of payload.participants; track p.id) {
               <li class="session-lobby__list-item">{{ p.nickname }}</li>
@@ -112,6 +144,41 @@
                 </tbody>
               </table>
               </div>
+            </section>
+          }
+
+          @if (session()?.teamMode && teamLeaderboard().length > 0) {
+            <section class="session-host__leaderboard-card" aria-labelledby="team-leaderboard-heading">
+              <h2 class="session-host__leaderboard-title" id="team-leaderboard-heading">
+                <mat-icon aria-hidden="true">groups</mat-icon>
+                <span i18n>Team-Leaderboard</span>
+              </h2>
+              <ol class="session-host__team-bars">
+                @for (entry of teamLeaderboard(); track entry.rank) {
+                  <li class="session-host__team-bar-item" [class.session-host__team-bar-item--top3]="entry.rank <= 3">
+                    <div class="session-host__team-bar-head">
+                      <span class="session-host__team-bar-rank">#{{ entry.rank }}</span>
+                      <span class="session-host__team-bar-name">
+                        <span
+                          class="session-host__team-bar-dot"
+                          [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                        ></span>
+                        {{ entry.teamName }}
+                      </span>
+                      <span class="session-host__team-bar-meta">
+                        {{ entry.memberCount }} <span i18n>Mitglieder</span> · {{ entry.totalScore | number }}
+                      </span>
+                    </div>
+                    <div class="session-host__team-bar-track" aria-hidden="true">
+                      <div
+                        class="session-host__team-bar-fill"
+                        [style.width]="teamScoreBarWidth(entry.totalScore)"
+                        [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                      ></div>
+                    </div>
+                  </li>
+                }
+              </ol>
             </section>
           }
 

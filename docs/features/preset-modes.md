@@ -48,6 +48,17 @@ Die Preset-Modi lösen dieses Problem mit **zwei Grundkonfigurationen**, die der
 
 **Typischer Einsatz:** Auflockerung in der Vorlesung, Wettbewerbs-Quizze, Gamified Learning.
 
+### Spielerisch + Team-Modus
+
+Wenn der **Team-Modus** mit dem Preset **Spielerisch** kombiniert wird, soll die Session schon vor der ersten Frage nach Wettbewerb aussehen, ohne hektisch zu werden:
+
+- Bereits beim **Beitritt** sehen Teilnehmende farbige Teamkarten und bekommen bei manueller Auswahl einen kleinen positiven Bestätigungsmoment.
+- In der **Host-Lobby** erscheinen Teams gruppiert mit Farben und Mitgliedern; auf dem Beamer darf das wie ein bevorstehendes Teamduell wirken.
+- In den **Ergebnisphasen auf dem Teilnehmergerät** bleibt der Teamgedanke sichtbar: eigene Teamkarte, Teamrang, Team-Punkte und eine kleine Topliste schaffen einen kollektiven Reward statt nur Individual-Feedback.
+- Im **Present-/Beamer-Finale** gibt es eine Siegerkarte und ein Team-Balkenboard; im Preset `PLAYFUL` mit dezentem Finish-Effekt.
+- Alle dekorativen Bewegungen bleiben an `@media (prefers-reduced-motion: no-preference)` gebunden.
+- Gamification-Effekte sind unterstützend: klare Zugehörigkeit, leichte Spannung, kein visuelles Chaos.
+
 ## Optionen im Detail
 
 Jede Option ist ein Toggle (an/aus) und gehört zu einer Kategorie:
@@ -85,6 +96,7 @@ Der Namensmodus bestimmt, wie Teilnehmer im Quiz erscheinen:
 |--------|------|-------------|
 | In Teams spielen | `groups` | Aktiviert den Team-Modus (2–8 Teams wählbar) |
 | Teams auto/manuell zuweisen | `shuffle` | Art der Teamzuweisung (nur aktiv wenn Team-Modus an) |
+| Eigene Team-Namen | `edit_note` | Optional: eigene Namen statt `Team A`, `Team B`, …; Vorschau der effektiv entstehenden Teams im Quiz-Setup |
 
 ### Audio
 
@@ -102,6 +114,16 @@ teamAssignment → teamMode (muss an sein)
 ```
 
 Ist die Parent-Option aus, wird die abhängige Option ausgegraut und auf „aus" erzwungen.
+
+## Aktueller UI-Stand Team-Modus
+
+- `quiz/new` und `quiz/:id`: Teamanzahl, Auto/Manual-Zuweisung und optionale eigene Team-Namen mit Live-Vorschau
+- `join/:code`: Teamkarten mit Farben, Mitgliederzahl und Auswahlzustand; bei `AUTO` sichtbare Teamvorschau, bei `MANUAL` direkte Auswahl
+- `session/:code/host`: Teamübersicht in der Lobby sowie Team-Leaderboard in der Abschlussansicht
+- `session/:code/present`: Team-Siegerkarte und kompaktes Balkenboard für das Beamer-Finale
+- `session/:code/vote`: kollektiver Team-Reward in `RESULTS` und `FINISHED` mit eigener Teamkarte und Mini-Leaderboard
+
+Offen bleibt vor allem die formale Story-Abnahme; der sichtbare Teamfluss von Setup über Join/Lobby bis Vote/Present ist jetzt umgesetzt.
 
 ## Nickname-Themes (Altersgruppen)
 

@@ -587,6 +587,183 @@
   100% { transform: translateY(200px) rotate(720deg); opacity: 0; }
 }
 
+.vote-team-reward {
+  position: relative;
+  margin: 1rem 0 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--mat-sys-corner-large, 1rem);
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  overflow: hidden;
+
+  &--leader {
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant));
+    background: color-mix(in srgb, var(--mat-sys-primary-container) 55%, white);
+  }
+
+  &--finished {
+    padding: 1.15rem 1.2rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: scorecard-enter 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+}
+
+.vote-team-reward__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.vote-team-reward__eyebrow {
+  margin: 0;
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+}
+
+.vote-team-reward__title {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+  line-height: 1.25;
+}
+
+.vote-team-reward__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0;
+}
+
+.vote-team-reward__team {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+}
+
+.vote-team-reward__dot {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.vote-team-reward__message,
+.vote-team-reward__hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
+}
+
+.vote-team-reward__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.vote-team-reward__stat {
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+  text-align: center;
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.vote-team-reward__stat-value {
+  display: block;
+  font: var(--mat-sys-title-large);
+  font-weight: 700;
+  color: var(--mat-sys-on-surface);
+}
+
+.vote-team-reward__stat-label {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+}
+
+.vote-team-reward__board {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.vote-team-reward__board-item {
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+
+  &--own {
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, var(--mat-sys-outline-variant));
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface));
+  }
+}
+
+.vote-team-reward__board-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.vote-team-reward__board-rank {
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+}
+
+.vote-team-reward__board-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font: var(--mat-sys-body-large);
+  font-weight: 600;
+}
+
+.vote-team-reward__board-score {
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.vote-team-reward__board-track {
+  margin-top: 0.55rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+}
+
+.vote-team-reward__board-fill {
+  height: 100%;
+  min-width: 0.9rem;
+  border-radius: inherit;
+}
+
+@media (max-width: 520px) {
+  .vote-team-reward__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .vote-team-reward__board-head {
+    grid-template-columns: auto 1fr;
+  }
+
+  .vote-team-reward__board-score {
+    grid-column: 1 / -1;
+    padding-left: 1.8rem;
+  }
+}
+
 /* Story 5.8: Emoji-Reaktionsleiste */
 .vote-emoji-wrap {
   margin: 1rem 0;

@@ -12,3 +12,188 @@
 .session-present {
   width: 100%;
 }
+
+.session-present__winner-card,
+.session-present__team-board-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.session-present__winner-card {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mat-sys-primary-container) 72%, white),
+    var(--mat-sys-surface)
+  );
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 30%, var(--mat-sys-outline-variant));
+}
+
+.session-present__winner-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.session-present__winner-icon {
+  color: var(--mat-sys-primary);
+}
+
+.session-present__winner-label {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-present__winner-name {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.55rem 0 0;
+  font: var(--mat-sys-headline-medium);
+  line-height: 1.2;
+}
+
+.session-present__winner-dot,
+.session-present__team-board-dot {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.session-present__winner-text {
+  margin: 0.6rem 0 0;
+  font: var(--mat-sys-title-medium);
+}
+
+.session-present__winner-meta {
+  margin: 0.5rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.session-present__team-board-title {
+  margin: 0 0 1rem;
+  font: var(--mat-sys-title-large);
+}
+
+.session-present__team-board-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.session-present__team-board-item {
+  padding: 0.9rem 1rem;
+  border-radius: var(--mat-sys-corner-large, 0.875rem);
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.session-present__team-board-item--winner {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, var(--mat-sys-primary) 7%, var(--mat-sys-surface-container-low));
+}
+
+.session-present__team-board-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.session-present__team-board-rank {
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+}
+
+.session-present__team-board-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font: var(--mat-sys-title-small);
+  font-weight: 600;
+}
+
+.session-present__team-board-meta {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-present__team-board-track {
+  margin-top: 0.7rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+}
+
+.session-present__team-board-fill {
+  height: 100%;
+  min-width: 0.9rem;
+  border-radius: inherit;
+}
+
+.session-present__confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.session-present__confetti-piece {
+  --size: 0.55rem;
+  position: absolute;
+  top: -0.5rem;
+  left: calc(10% + (var(--i) * 10%));
+  width: var(--size);
+  height: calc(var(--size) * 1.6);
+  border-radius: 999px;
+  background: hsl(calc(var(--i) * 42deg), 90%, 60%);
+}
+
+@media (max-width: 700px) {
+  .session-present__team-board-head {
+    grid-template-columns: auto 1fr;
+  }
+
+  .session-present__team-board-meta {
+    grid-column: 1 / -1;
+    text-align: left;
+    padding-left: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .session-present__winner-card {
+    animation: present-winner-enter 420ms ease-out both;
+  }
+
+  .session-present__team-board-card {
+    animation: present-board-enter 480ms ease-out both;
+  }
+
+  .session-present__confetti-piece {
+    animation: present-confetti-fall 1.6s ease-out calc(var(--i) * 0.08s) both;
+  }
+
+  @keyframes present-winner-enter {
+    0% { opacity: 0; transform: translateY(0.5rem) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes present-board-enter {
+    0% { opacity: 0; transform: translateY(0.75rem); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes present-confetti-fall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    15% { opacity: 1; }
+    100% { transform: translateY(8.5rem) rotate(320deg); opacity: 0; }
+  }
+}

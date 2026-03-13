@@ -440,6 +440,7 @@ describe('QuizStoreService', () => {
           anonymousMode: false,
           teamMode: false,
           teamAssignment: 'AUTO',
+          teamNames: [],
           backgroundMusic: null,
           nicknameTheme: 'NOBEL_LAUREATES',
           bonusTokenCount: null,

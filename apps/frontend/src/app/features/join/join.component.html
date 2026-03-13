@@ -36,6 +36,72 @@
           </p>
         </div>
 
+        @if (showTeamInfo()) {
+          <div class="join-card__nickname-group" role="group" aria-labelledby="join-team-heading">
+            <p class="join-card__nickname-heading" id="join-team-heading">{{ teamInfoHeading() }}</p>
+            <p class="join-card__nickname-hint">{{ teamInfoHint() }}</p>
+            @if (showTeamSelect()) {
+              <mat-form-field appearance="outline" class="join-card__field">
+                <mat-label i18n>Team wählen</mat-label>
+                <mat-select [value]="selectedTeamId()" (valueChange)="selectedTeamId.set($event)" i18n-placeholder placeholder="Team auswählen">
+                  <mat-option value="" i18n>— Bitte wählen —</mat-option>
+                  @for (team of teams(); track team.id) {
+                    <mat-option [value]="team.id">
+                      {{ team.name }} ({{ team.memberCount }})
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+            <div class="join-card__team-grid">
+              @for (team of teams(); track team.id) {
+                @if (showTeamSelect()) {
+                  <button
+                    type="button"
+                    mat-stroked-button
+                    class="join-card__team-card"
+                    [class.join-card__team-card--selected]="selectedTeamId() === team.id"
+                    [attr.aria-label]="teamCardAriaLabel(team)"
+                    [attr.aria-pressed]="selectedTeamId() === team.id"
+                    (click)="selectTeam(team.id)"
+                  >
+                    <span class="join-card__team-card-name">
+                      <span
+                        class="join-card__team-card-dot"
+                        [style.background]="team.color || 'var(--mat-sys-primary)'"
+                        aria-hidden="true"
+                      ></span>
+                      {{ team.name }}
+                    </span>
+                    <span class="join-card__team-card-meta">{{ teamMembersLabel(team.memberCount) }}</span>
+                  </button>
+                } @else {
+                  <div class="join-card__team-card join-card__team-card--readonly" [attr.aria-label]="teamCardAriaLabel(team)">
+                    <span class="join-card__team-card-name">
+                      <span
+                        class="join-card__team-card-dot"
+                        [style.background]="team.color || 'var(--mat-sys-primary)'"
+                        aria-hidden="true"
+                      ></span>
+                      {{ team.name }}
+                    </span>
+                    <span class="join-card__team-card-meta">{{ teamMembersLabel(team.memberCount) }}</span>
+                  </div>
+                }
+              }
+            </div>
+            @if (selectedTeamLabel(); as selectedTeamLabelText) {
+              <p class="join-card__team-selected" role="status">{{ selectedTeamLabelText }}</p>
+            }
+            @if (isPlayfulPreset() && selectedTeam() && playfulTeamReadyLabel(); as playfulReadyText) {
+              <div class="join-card__team-playful" role="status" aria-live="polite">
+                <mat-icon aria-hidden="true">celebration</mat-icon>
+                <span>{{ playfulReadyText }}</span>
+              </div>
+            }
+          </div>
+        }
+
         @if (showNicknameList()) {
           <div class="join-card__nickname-group" role="group" aria-labelledby="join-nickname-heading">
             <p class="join-card__nickname-heading" id="join-nickname-heading" i18n>Dein Name in der Session</p>

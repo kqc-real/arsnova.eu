@@ -75,6 +75,7 @@ type QuizSettingsFormGroup = FormGroup<{
   teamMode: FormControl<boolean>;
   teamCount: FormControl<number | null>;
   teamAssignment: FormControl<TeamAssignment>;
+  teamNamesText: FormControl<string>;
   backgroundMusic: FormControl<string>;
   nicknameTheme: FormControl<NicknameTheme>;
   bonusTokenCount: FormControl<number | null>;
@@ -230,6 +231,7 @@ export class QuizEditComponent implements OnDestroy {
       validators: [Validators.min(2), Validators.max(8)],
     }),
     teamAssignment: this.formBuilder.control<TeamAssignment>('AUTO'),
+    teamNamesText: this.formBuilder.control(''),
     backgroundMusic: this.formBuilder.control(''),
     nicknameTheme: this.formBuilder.control<NicknameTheme>('NOBEL_LAUREATES'),
     bonusTokenCount: this.formBuilder.control<number | null>(null, {
@@ -295,6 +297,10 @@ export class QuizEditComponent implements OnDestroy {
     return this.settingsForm.controls.teamCount;
   }
 
+  get teamNamesTextControl(): FormControl<string> {
+    return this.settingsForm.controls.teamNamesText;
+  }
+
   get bonusTokenCountControl(): FormControl<number | null> {
     return this.settingsForm.controls.bonusTokenCount;
   }
@@ -323,6 +329,18 @@ export class QuizEditComponent implements OnDestroy {
 
   isTeamModeEnabled(): boolean {
     return this.settingsForm.controls.teamMode.value;
+  }
+
+  teamNamePreview(): string[] {
+    return buildEffectiveTeamNames(this.teamNamesTextControl.value, this.teamCountControl.value);
+  }
+
+  syncTeamNamesValidation(): void {
+    applyTeamNamesValidation(
+      this.teamNamesTextControl,
+      this.settingsForm.controls.teamMode.value,
+      this.teamCountControl.value,
+    );
   }
 
   settingsPresetLabel(): string {
@@ -524,6 +542,7 @@ export class QuizEditComponent implements OnDestroy {
   saveSettings(): void {
     this.settingsSaved.set(false);
     this.settingsSubmitError.set(null);
+    this.syncTeamNamesValidation();
 
     if (this.settingsForm.invalid) {
       this.settingsForm.markAllAsTouched();
@@ -693,6 +712,7 @@ export class QuizEditComponent implements OnDestroy {
       teamMode: settings.teamMode,
       teamCount: settings.teamCount,
       teamAssignment: settings.teamAssignment,
+      teamNamesText: settings.teamNames.join('\n'),
       backgroundMusic: settings.backgroundMusic ?? '',
       nicknameTheme: settings.nicknameTheme,
       bonusTokenCount: settings.bonusTokenCount,
@@ -717,6 +737,7 @@ export class QuizEditComponent implements OnDestroy {
         ? this.settingsForm.controls.teamCount.value
         : null,
       teamAssignment: this.settingsForm.controls.teamAssignment.value,
+      teamNames: parseTeamNamesText(this.settingsForm.controls.teamNamesText.value),
       backgroundMusic: this.settingsForm.controls.backgroundMusic.value || null,
       nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
       bonusTokenCount: this.settingsForm.controls.bonusTokenCount.value,
@@ -870,4 +891,53 @@ export class QuizEditComponent implements OnDestroy {
       this.previewTimer = null;
     }, 200);
   }
+}
+
+function parseTeamNamesText(value: string): string[] {
+  return value
+    .split('\n')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+function buildEffectiveTeamNames(value: string, teamCount: number | null | undefined): string[] {
+  const customNames = parseTeamNamesText(value);
+  const effectiveCount = normalizeTeamCount(teamCount);
+  return Array.from({ length: effectiveCount }, (_, index) => customNames[index] ?? buildDefaultTeamName(index));
+}
+
+function applyTeamNamesValidation(
+  control: FormControl<string>,
+  teamModeEnabled: boolean,
+  teamCount: number | null | undefined,
+): void {
+  if (!teamModeEnabled) {
+    control.setErrors(null);
+    return;
+  }
+
+  const names = parseTeamNamesText(control.value);
+  const effectiveCount = normalizeTeamCount(teamCount);
+  const normalizedNames = names.map((entry) => entry.toLocaleLowerCase());
+  const errors: Record<string, true> = {};
+
+  if (names.length > effectiveCount) {
+    errors['tooManyTeamNames'] = true;
+  }
+  if (names.some((entry) => entry.length > 40)) {
+    errors['teamNameTooLong'] = true;
+  }
+  if (new Set(normalizedNames).size !== normalizedNames.length) {
+    errors['duplicateTeamNames'] = true;
+  }
+
+  control.setErrors(Object.keys(errors).length > 0 ? errors : null);
+}
+
+function normalizeTeamCount(teamCount: number | null | undefined): number {
+  return Math.min(8, Math.max(2, teamCount ?? 2));
+}
+
+function buildDefaultTeamName(index: number): string {
+  return `Team ${String.fromCharCode(65 + index)}`;
 }

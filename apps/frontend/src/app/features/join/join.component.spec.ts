@@ -35,6 +35,7 @@ vi.mock('../../core/trpc.client', () => ({
           allowCustomNicknames: true,
         }),
       },
+      getTeams: { query: vi.fn().mockResolvedValue({ teams: [], teamCount: 0 }) },
       getParticipants: { query: vi.fn().mockResolvedValue({ participants: [], participantCount: 0 }) },
       join: { mutate: vi.fn().mockResolvedValue({ id: 'sess-1', code: 'ABC123', type: 'QUIZ', status: 'LOBBY', quizName: 'Test-Quiz', title: null, participantCount: 6, participantId: 'part-1' }) },
     },
@@ -44,6 +45,7 @@ vi.mock('../../core/trpc.client', () => ({
 describe('JoinComponent', () => {
   beforeEach(() => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue(mockSession);
+    vi.mocked(trpc.session.getTeams.query).mockResolvedValue({ teams: [], teamCount: 0 });
     vi.mocked(trpc.session.getParticipants.query).mockResolvedValue({ participants: [], participantCount: 0 });
     vi.mocked(trpc.session.join.mutate).mockResolvedValue({ ...mockSession, participantId: 'part-1' });
     TestBed.configureTestingModule({
@@ -155,5 +157,86 @@ describe('JoinComponent', () => {
 
     expect(trpc.session.join.mutate).toHaveBeenCalledWith({ code: 'ABC123', nickname: 'Ada Yonath' });
     expect(navSpy).toHaveBeenCalledWith(['/session', 'ABC123', 'vote']);
+  });
+
+  it('zeigt Teamauswahl bei manuellem Teammodus', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      teamMode: true,
+      teamAssignment: 'MANUAL',
+    });
+    vi.mocked(trpc.session.getTeams.query).mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Team A', color: '#1E88E5', memberCount: 1 },
+        { id: 'team-b', name: 'Team B', color: '#43A047', memberCount: 2 },
+      ],
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(comp.showTeamSelect()).toBe(true);
+    expect(comp.teams()).toHaveLength(2);
+  });
+
+  it('sendet teamId beim Join im manuellen Teammodus', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      teamMode: true,
+      teamAssignment: 'MANUAL',
+    });
+    vi.mocked(trpc.session.getTeams.query).mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Team A', color: '#1E88E5', memberCount: 1 },
+        { id: 'team-b', name: 'Team B', color: '#43A047', memberCount: 2 },
+      ],
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    const router = fixture.debugElement.injector.get(Router);
+    const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    comp.customNickname.set('Ada');
+    comp.selectedTeamId.set('team-b');
+    await comp.submitJoin();
+    await fixture.whenStable();
+
+    expect(trpc.session.join.mutate).toHaveBeenCalledWith({
+      code: 'ABC123',
+      nickname: 'Ada',
+      teamId: 'team-b',
+    });
+    expect(navSpy).toHaveBeenCalledWith(['/session', 'ABC123', 'vote']);
+  });
+
+  it('zeigt Teamvorschau auch bei automatischer Zuweisung', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      teamMode: true,
+      teamAssignment: 'AUTO',
+    });
+    vi.mocked(trpc.session.getTeams.query).mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 2 },
+      ],
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(comp.showTeamInfo()).toBe(true);
+    expect(comp.showTeamSelect()).toBe(false);
+    expect(comp.teams().map((team) => team.name)).toEqual(['Rot', 'Blau']);
   });
 });

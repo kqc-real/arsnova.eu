@@ -8,7 +8,7 @@ import { MatInput } from '@angular/material/input';
 import { MatSelect } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { trpc } from '../../core/trpc.client';
-import type { SessionInfoDTO } from '@arsnova/shared-types';
+import type { SessionInfoDTO, TeamDTO } from '@arsnova/shared-types';
 import type { NicknameTheme } from '@arsnova/shared-types';
 import { getLocaleFromPath } from '../../core/locale-from-path';
 import { getNicknameList } from './nickname-themes';
@@ -39,7 +39,9 @@ export class JoinComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   /** Bereits vergebene Nicknames (für Ausgrauen). */
   readonly takenNicknames = signal<Set<string>>(new Set());
+  readonly teams = signal<TeamDTO[]>([]);
   readonly selectedNickname = signal<string>('');
+  readonly selectedTeamId = signal('');
   readonly customNickname = signal('');
   readonly joining = signal(false);
 
@@ -66,14 +68,31 @@ export class JoinComponent implements OnInit, OnDestroy {
     return s?.allowCustomNicknames === true;
   });
 
+  readonly showTeamSelect = computed(() => {
+    const s = this.session();
+    return s?.teamMode === true && s.teamAssignment === 'MANUAL';
+  });
+
+  readonly showTeamInfo = computed(() => this.session()?.teamMode === true);
+  readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
+
+  readonly selectedTeam = computed(() =>
+    this.teams().find((team) => team.id === this.selectedTeamId()) ?? null,
+  );
+
   readonly canSubmit = computed(() => {
     const sel = this.selectedNickname().trim();
     const custom = this.customNickname().trim();
     const allowCustom = this.session()?.allowCustomNicknames ?? true;
-    return (sel.length > 0) || (allowCustom && custom.length > 0);
+    const hasName = this.session()?.anonymousMode === true || sel.length > 0 || (allowCustom && custom.length > 0);
+    const hasTeam = !this.showTeamSelect() || this.selectedTeamId().trim().length > 0;
+    return hasName && hasTeam;
   });
 
   readonly effectiveNickname = computed(() => {
+    if (this.session()?.anonymousMode === true) {
+      return `Teilnehmer #${(this.session()?.participantCount ?? 0) + 1}`;
+    }
     const custom = this.customNickname().trim();
     if (custom.length > 0) return custom;
     return this.selectedNickname().trim();
@@ -91,6 +110,22 @@ export class JoinComponent implements OnInit, OnDestroy {
   takenSuffix = () => $localize`(vergeben)`;
   /** i18n: "in der Lobby" suffix. */
   inLobbyLabel = () => $localize`in der Lobby`;
+  teamMembersLabel = (count: number) =>
+    count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
+  teamCardAriaLabel = (team: TeamDTO) => $localize`${team.name}, ${this.teamMembersLabel(team.memberCount)}`;
+  teamInfoHeading = () => (this.showTeamSelect() ? $localize`Dein Team` : $localize`Team-Modus aktiv`);
+  teamInfoHint = () =>
+    this.showTeamSelect()
+      ? $localize`Wähle ein Team, bevor du beitrittst.`
+      : $localize`Teams werden automatisch verteilt. Du siehst hier schon, welche Teams bereitstehen.`;
+  selectedTeamLabel = () => {
+    const team = this.selectedTeam();
+    return team ? $localize`Ausgewählt: ${team.name}` : null;
+  };
+  playfulTeamReadyLabel = () => {
+    const team = this.selectedTeam();
+    return team ? $localize`Perfekt! ${team.name} wartet schon auf dich.` : null;
+  };
 
   ngOnInit(): void {
     if (this.code.length !== 6) {
@@ -121,7 +156,8 @@ export class JoinComponent implements OnInit, OnDestroy {
         return;
       }
       this.session.set(session);
-      if (session.anonymousMode) {
+      await this.loadTeams();
+      if (session.anonymousMode && !this.showTeamSelect()) {
         await this.joinAnonymous(session);
         return;
       }
@@ -163,15 +199,35 @@ export class JoinComponent implements OnInit, OnDestroy {
         return;
       }
       this.session.set(session);
+      await this.loadTeams();
       const opts = this.nicknameOptions();
       if (opts.length > 0 && this.selectedNickname().trim() && !opts.includes(this.selectedNickname().trim())) {
         this.selectedNickname.set('');
+      }
+      const teamIds = new Set(this.teams().map((team) => team.id));
+      if (this.selectedTeamId().trim() && !teamIds.has(this.selectedTeamId().trim())) {
+        this.selectedTeamId.set('');
       }
       if (!session.anonymousMode) {
         await this.loadParticipants();
       }
     } catch {
       this.stopSessionPoll();
+    }
+  }
+
+  private async loadTeams(): Promise<void> {
+    const s = this.session();
+    if (!s?.teamMode) {
+      this.teams.set([]);
+      this.selectedTeamId.set('');
+      return;
+    }
+    try {
+      const payload = await trpc.session.getTeams.query({ code: this.code });
+      this.teams.set(payload.teams);
+    } catch {
+      this.teams.set([]);
     }
   }
 
@@ -189,11 +245,19 @@ export class JoinComponent implements OnInit, OnDestroy {
     return this.takenNicknames().has(nickname.trim().toLowerCase());
   }
 
+  selectTeam(teamId: string): void {
+    this.selectedTeamId.set(teamId);
+  }
+
   private async joinAnonymous(session: SessionInfoDTO): Promise<void> {
     this.joining.set(true);
     try {
       const nickname = `Teilnehmer #${session.participantCount + 1}`;
-      const result = await trpc.session.join.mutate({ code: this.code, nickname });
+      const result = await trpc.session.join.mutate({
+        code: this.code,
+        nickname,
+        teamId: this.selectedTeamId().trim() || undefined,
+      });
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
       }
@@ -217,7 +281,11 @@ export class JoinComponent implements OnInit, OnDestroy {
     this.error.set(null);
     this.joining.set(true);
     try {
-      const result = await trpc.session.join.mutate({ code: this.code, nickname: nickname.slice(0, 30) });
+      const result = await trpc.session.join.mutate({
+        code: this.code,
+        nickname: nickname.slice(0, 30),
+        teamId: this.selectedTeamId().trim() || undefined,
+      });
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
       }

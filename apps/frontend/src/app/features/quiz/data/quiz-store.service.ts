@@ -66,6 +66,7 @@ export interface QuizSettings {
   teamMode: boolean;
   teamCount: number | null;
   teamAssignment: TeamAssignment;
+  teamNames: string[];
   backgroundMusic: string | null;
   nicknameTheme: NicknameTheme;
   bonusTokenCount: number | null;
@@ -159,6 +160,7 @@ const QuizSettingsSchema = CreateQuizInputSchema.pick({
   teamMode: true,
   teamCount: true,
   teamAssignment: true,
+  teamNames: true,
   backgroundMusic: true,
   nicknameTheme: true,
   bonusTokenCount: true,
@@ -482,6 +484,7 @@ export class QuizStoreService {
         teamMode: document.settings.teamMode,
         teamCount: document.settings.teamCount,
         teamAssignment: document.settings.teamAssignment,
+        teamNames: document.settings.teamNames,
         backgroundMusic: document.settings.backgroundMusic,
         nicknameTheme: document.settings.nicknameTheme,
         bonusTokenCount: document.settings.bonusTokenCount,
@@ -538,6 +541,7 @@ export class QuizStoreService {
       teamMode: document.settings.teamMode,
       teamCount: document.settings.teamCount ?? undefined,
       teamAssignment: document.settings.teamAssignment,
+      teamNames: document.settings.teamNames,
       backgroundMusic: document.settings.backgroundMusic ?? undefined,
       nicknameTheme: document.settings.nicknameTheme,
       bonusTokenCount: document.settings.bonusTokenCount ?? undefined,
@@ -593,6 +597,7 @@ export class QuizStoreService {
         teamMode: parsed.data.quiz.teamMode,
         teamCount: parsed.data.quiz.teamCount ?? null,
         teamAssignment: parsed.data.quiz.teamAssignment,
+        teamNames: parsed.data.quiz.teamNames ?? [],
         backgroundMusic: parsed.data.quiz.backgroundMusic ?? null,
         nicknameTheme: parsed.data.quiz.nicknameTheme,
         bonusTokenCount: parsed.data.quiz.bonusTokenCount ?? null,
@@ -1083,6 +1088,7 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
     teamMode: input.teamMode,
     teamCount: input.teamCount ?? undefined,
     teamAssignment: input.teamAssignment,
+    teamNames: normalizeTeamNames(input.teamNames),
     backgroundMusic: normalizeBackgroundMusic(input.backgroundMusic),
     nicknameTheme: input.nicknameTheme,
     bonusTokenCount: input.bonusTokenCount ?? null,
@@ -1107,6 +1113,7 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
     teamMode: parsed.data.teamMode,
     teamCount: parsed.data.teamCount ?? null,
     teamAssignment: parsed.data.teamAssignment ?? 'AUTO',
+    teamNames: parsed.data.teamNames ?? [],
     backgroundMusic: normalizeBackgroundMusic(parsed.data.backgroundMusic) ?? null,
     nicknameTheme: parsed.data.nicknameTheme,
     bonusTokenCount: parsed.data.bonusTokenCount ?? null,
@@ -1138,6 +1145,7 @@ function normalizeStoredQuizSettings(value: unknown): QuizSettings {
         typeof candidate['teamAssignment'] === 'string'
           ? (candidate['teamAssignment'] as TeamAssignment)
           : undefined,
+      teamNames: readStringArray(candidate['teamNames']),
       backgroundMusic: readStringOrNull(candidate['backgroundMusic']),
       nicknameTheme:
         typeof candidate['nicknameTheme'] === 'string'
@@ -1301,6 +1309,17 @@ function normalizeNullableLabel(value: string | null | undefined): string | unde
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function normalizeTeamNames(value: string[] | null | undefined): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value
+    .filter((entry): entry is string => typeof entry === 'string')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
 function readDescription(value: unknown): string | null | undefined {
   if (value === null || value === undefined) return value;
   if (typeof value === 'string') return value;
@@ -1319,6 +1338,10 @@ function readNumberOrNull(value: unknown): number | null | undefined {
 function readStringOrNull(value: unknown): string | null | undefined {
   if (value === null) return null;
   return typeof value === 'string' ? value : undefined;
+}
+
+function readStringArray(value: unknown): string[] | undefined {
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : undefined;
 }
 
 function isValidDateString(value: string): boolean {

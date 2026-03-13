@@ -27,6 +27,7 @@ describe('QuizEditComponent', () => {
       teamMode: false,
       teamCount: null,
       teamAssignment: 'AUTO',
+      teamNames: [],
       backgroundMusic: null,
       nicknameTheme: 'NOBEL_LAUREATES',
       bonusTokenCount: null,
@@ -241,6 +242,7 @@ describe('QuizEditComponent', () => {
       teamMode: true,
       teamCount: 3,
       teamAssignment: 'MANUAL',
+      teamNames: ['Rot', 'Blau', 'Gold'],
       backgroundMusic: 'CALM_LOFI',
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: 5,
@@ -262,6 +264,7 @@ describe('QuizEditComponent', () => {
       teamMode: true,
       teamCount: 3,
       teamAssignment: 'MANUAL',
+      teamNamesText: 'Rot\nBlau\nGold',
       backgroundMusic: 'CALM_LOFI',
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: 5,
@@ -282,11 +285,28 @@ describe('QuizEditComponent', () => {
         teamMode: true,
         teamCount: 3,
         teamAssignment: 'MANUAL',
+        teamNames: ['Rot', 'Blau', 'Gold'],
         backgroundMusic: 'CALM_LOFI',
         nicknameTheme: 'HIGH_SCHOOL',
       }),
     );
     expect(component.settingsSaved()).toBe(true);
+  });
+
+  it('verhindert das Speichern von Einstellungen bei doppelten Team-Namen', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.settingsForm.patchValue({
+      teamMode: true,
+      teamCount: 2,
+      teamNamesText: 'Rot\nRot',
+    });
+
+    component.saveSettings();
+
+    expect(component.teamNamesTextControl.hasError('duplicateTeamNames')).toBe(true);
+    expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
   });
 
   it('wendet Preset-Werte auf die Sitzungs-Konfiguration an', () => {

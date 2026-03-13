@@ -25,10 +25,12 @@ describe('QuizPreviewComponent', () => {
       teamMode: false,
       teamCount: null,
       teamAssignment: 'AUTO',
+      teamNames: [],
       backgroundMusic: null,
       nicknameTheme: 'NOBEL_LAUREATES',
       bonusTokenCount: null,
       readingPhaseEnabled: true,
+      preset: 'PLAYFUL',
     },
     questions: [
       {

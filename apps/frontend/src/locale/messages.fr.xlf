@@ -2302,6 +2302,38 @@
           <context context-type="linenumber">206</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="779755067930993565" datatype="html">
+        <source>Eigene Team-Namen (optional)</source>
+        <target>Noms d’équipe personnalisés (optionnel)</target>
+      </trans-unit>
+      <trans-unit id="2128216678357411651" datatype="html">
+        <source>Ein Team pro Zeile</source>
+        <target>Une équipe par ligne</target>
+      </trans-unit>
+      <trans-unit id="6833731260245784082" datatype="html">
+        <source>Eigene Team-Namen</source>
+        <target>Noms d’équipe personnalisés</target>
+      </trans-unit>
+      <trans-unit id="9069866690976133077" datatype="html">
+        <source> Leer gelassene Teams erhalten automatisch Namen wie Team A, Team B oder Team C. </source>
+        <target> Les équipes laissées vides reçoivent automatiquement des noms comme Équipe A, Équipe B ou Équipe C. </target>
+      </trans-unit>
+      <trans-unit id="4670748957383239368" datatype="html">
+        <source>Gib höchstens so viele Namen wie Teams an.</source>
+        <target>Indique au maximum autant de noms que d’équipes.</target>
+      </trans-unit>
+      <trans-unit id="4697728187977360700" datatype="html">
+        <source>Jeder Team-Name darf nur einmal vorkommen.</source>
+        <target>Chaque nom d’équipe ne peut apparaître qu’une seule fois.</target>
+      </trans-unit>
+      <trans-unit id="5310453163748704447" datatype="html">
+        <source>Jeder Team-Name darf maximal 40 Zeichen lang sein.</source>
+        <target>Chaque nom d’équipe peut comporter au maximum 40 caractères.</target>
+      </trans-unit>
+      <trans-unit id="7838593330998231121" datatype="html">
+        <source>So entstehen die Teams</source>
+        <target>Voici comment les équipes seront créées</target>
+      </trans-unit>
       <trans-unit id="8606357587641495734" datatype="html">
         <source>Hintergrundmusik</source>
         <target>Musique de fond</target>
@@ -3736,6 +3768,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">39,40</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="1731931877331110196" datatype="html">
+        <source>Teams in der Lobby</source>
+        <target>Équipes dans le lobby</target>
       </trans-unit>
       <trans-unit id="882376754672492511" datatype="html">
         <source>Session beendet</source>
@@ -5608,6 +5644,158 @@
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">116</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="711550637807137020" datatype="html">
+        <source>Dein Team</source>
+        <target>Ton équipe</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.html</context>
+          <context context-type="linenumber">41,42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2734421585608935278" datatype="html">
+        <source>Wähle ein Team, bevor du beitrittst.</source>
+        <target>Choisis une équipe avant de participer.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.html</context>
+          <context context-type="linenumber">42,43</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5683915683305860193" datatype="html">
+        <source><x id="PH" equiv-text="team.name"/>, <x id="PH_1" equiv-text="this.teamMembersLabel(team.memberCount)"/></source>
+        <target><x id="PH"/>, <x id="PH_1"/></target>
+      </trans-unit>
+      <trans-unit id="1764019201483757959" datatype="html">
+        <source>Team-Modus aktiv</source>
+        <target>Mode équipe activé</target>
+      </trans-unit>
+      <trans-unit id="5207126952231558325" datatype="html">
+        <source>Teams werden automatisch verteilt. Du siehst hier schon, welche Teams bereitstehen.</source>
+        <target>Les équipes sont attribuées automatiquement. Tu peux déjà voir ici quelles équipes sont prêtes.</target>
+      </trans-unit>
+      <trans-unit id="6373282182753447697" datatype="html">
+        <source>Ausgewählt: <x id="PH" equiv-text="team.name"/></source>
+        <target>Sélectionné : <x id="PH"/></target>
+      </trans-unit>
+      <trans-unit id="5844895614349840583" datatype="html">
+        <source>Team wählen</source>
+        <target>Choisir une équipe</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.html</context>
+          <context context-type="linenumber">44</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="709237660031901730" datatype="html">
+        <source>Team auswählen</source>
+        <target>Sélectionner une équipe</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.html</context>
+          <context context-type="linenumber">45,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9081167021850692567" datatype="html">
+        <source>Team-Leaderboard</source>
+        <target>Classement des équipes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">122,123</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3511589864838625223" datatype="html">
+        <source>Mitglieder</source>
+        <target>Membres</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">131,132</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5068460562901785713" datatype="html">
+        <source><x id="PH" equiv-text="count"/> Mitglied</source>
+        <target><x id="PH" equiv-text="count"/> membre</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
+          <context context-type="linenumber">111</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6658206425619028413" datatype="html">
+        <source><x id="PH" equiv-text="count"/> Mitglieder</source>
+        <target><x id="PH" equiv-text="count"/> membres</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
+          <context context-type="linenumber">111</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6807726879921681315" datatype="html">
+        <source>Noch niemand in diesem Team.</source>
+        <target>Personne n’est encore dans cette équipe.</target>
+      </trans-unit>
+      <trans-unit id="5809086812588413372" datatype="html">
+        <source>Perfekt! <x id="PH" equiv-text="team.name"/> wartet schon auf dich.</source>
+        <target>Parfait ! <x id="PH"/> t’attend déjà.</target>
+      </trans-unit>
+      <trans-unit id="7483257426731152393" datatype="html">
+        <source>Teamduell startet gleich. Zeigt die Farben schon auf dem Beamer.</source>
+        <target>Le duel par équipes commence dans un instant. Affichez déjà les couleurs sur le vidéoprojecteur.</target>
+      </trans-unit>
+      <trans-unit id="8212070192943694871" datatype="html">
+        <source>Team-Sieg</source>
+        <target>Victoire d’équipe</target>
+      </trans-unit>
+      <trans-unit id="7276641186512341859" datatype="html">
+        <source>Team-Finale</source>
+        <target>Finale par équipes</target>
+      </trans-unit>
+      <trans-unit id="6026083779019354476" datatype="html">
+        <source><x id="PH" equiv-text="entry.teamName"/> gewinnt mit <x id="totalScore" equiv-text="entry.totalScore"/> Punkten!</source>
+        <target><x id="PH"/> gagne avec <x id="totalScore"/> points !</target>
+      </trans-unit>
+      <trans-unit id="779632159042335735" datatype="html">
+        <source>Teamrang</source>
+        <target>Rang de l’équipe</target>
+      </trans-unit>
+      <trans-unit id="4781735108033194260" datatype="html">
+        <source>Team-Punkte</source>
+        <target>Points de l’équipe</target>
+      </trans-unit>
+      <trans-unit id="5730538337811744150" datatype="html">
+        <source><x id="PH" equiv-text="entry.teamName"/> gewinnt das Teamduell</source>
+        <target><x id="PH"/> remporte le duel par équipes</target>
+      </trans-unit>
+      <trans-unit id="7023118553614234106" datatype="html">
+        <source><x id="PH" equiv-text="entry.teamName"/> ist im Ziel</source>
+        <target><x id="PH"/> est arrivée</target>
+      </trans-unit>
+      <trans-unit id="9155906302092753678" datatype="html">
+        <source><x id="PH" equiv-text="entry.teamName"/> führt gerade</source>
+        <target><x id="PH"/> est actuellement en tête</target>
+      </trans-unit>
+      <trans-unit id="7256238892640496598" datatype="html">
+        <source><x id="PH" equiv-text="entry.teamName"/> bleibt im Rennen</source>
+        <target><x id="PH"/> reste dans la course</target>
+      </trans-unit>
+      <trans-unit id="5589078632616700616" datatype="html">
+        <source>Gemeinsam geschafft: <x id="PH" equiv-text="entry.teamName"/> holt <x id="totalScore" equiv-text="entry.totalScore"/> Punkte und Platz 1.</source>
+        <target>Ensemble, c’est réussi : <x id="PH"/> obtient <x id="totalScore"/> points et la 1re place.</target>
+      </trans-unit>
+      <trans-unit id="3537217153588193608" datatype="html">
+        <source><x id="PH" equiv-text="entry.teamName"/> beendet das Quiz mit <x id="totalScore" equiv-text="entry.totalScore"/> Punkten auf Platz <x id="teamRank" equiv-text="entry.rank"/>.</source>
+        <target><x id="PH"/> termine le quiz avec <x id="totalScore"/> points à la place <x id="teamRank"/>.</target>
+      </trans-unit>
+      <trans-unit id="1083101748107127201" datatype="html">
+        <source>Gemeinsam stark: <x id="PH" equiv-text="entry.teamName"/> liegt mit <x id="totalScore" equiv-text="entry.totalScore"/> Punkten vorn.</source>
+        <target>Ensemble, vous êtes forts : <x id="PH"/> mène avec <x id="totalScore"/> points.</target>
+      </trans-unit>
+      <trans-unit id="8668664145054353441" datatype="html">
+        <source><x id="PH" equiv-text="entry.teamName"/> steht aktuell auf Platz <x id="teamRank" equiv-text="entry.rank"/> mit <x id="totalScore" equiv-text="entry.totalScore"/> Punkten.</source>
+        <target><x id="PH"/> est actuellement à la place <x id="teamRank"/> avec <x id="totalScore"/> points.</target>
+      </trans-unit>
+      <trans-unit id="5401328714448713901" datatype="html">
+        <source>Vorne liegt <x id="leaderName" equiv-text="leader.teamName"/> mit <x id="leaderScore" equiv-text="leader.totalScore"/> Punkten.</source>
+        <target>En tête : <x id="leaderName"/> avec <x id="leaderScore"/> points.</target>
+      </trans-unit>
+      <trans-unit id="2056726732284037224" datatype="html">
+        <source>Platz <x id="teamRank" equiv-text="entry.rank"/>: <x id="teamName" equiv-text="entry.teamName"/> mit <x id="totalScore" equiv-text="entry.totalScore"/> Punkten</source>
+        <target>Place <x id="teamRank"/> : <x id="teamName"/> avec <x id="totalScore"/> points</target>
       </trans-unit>
     </body>
   </file>

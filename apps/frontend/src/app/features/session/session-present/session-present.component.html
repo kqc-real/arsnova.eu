@@ -1,4 +1,69 @@
 <section class="session-present l-stack l-stack--sm">
+  @if (showTeamFinish() && winningTeam(); as winner) {
+    <mat-card appearance="outlined" class="session-present__winner-card">
+      <mat-card-content>
+        @if (isPlayfulPreset()) {
+          <div class="session-present__confetti" aria-hidden="true">
+            @for (piece of [0, 1, 2, 3, 4, 5, 6, 7]; track piece) {
+              <span class="session-present__confetti-piece" [style.--i]="piece"></span>
+            }
+          </div>
+        }
+        <div class="session-present__winner-head">
+          <mat-icon class="session-present__winner-icon" aria-hidden="true">emoji_events</mat-icon>
+          <p class="session-present__winner-label" i18n>Team-Sieg</p>
+        </div>
+        <h1 class="session-present__winner-name">
+          <span
+            class="session-present__winner-dot"
+            [style.background]="winner.teamColor || 'var(--mat-sys-primary)'"
+            aria-hidden="true"
+          ></span>
+          {{ winner.teamName }}
+        </h1>
+        @if (winningTeamLabel(winner); as winnerText) {
+          <p class="session-present__winner-text">{{ winnerText }}</p>
+        }
+        <p class="session-present__winner-meta">
+          {{ teamMemberLabel(winner.memberCount) }} · {{ winner.totalScore | number }} <span i18n>Punkte</span>
+        </p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="session-present__team-board-card">
+      <mat-card-content>
+        <h2 class="session-present__team-board-title" i18n>Team-Finale</h2>
+        <ol class="session-present__team-board-list">
+          @for (entry of teamLeaderboard(); track entry.rank) {
+            <li class="session-present__team-board-item" [class.session-present__team-board-item--winner]="entry.rank === 1">
+              <div class="session-present__team-board-head">
+                <span class="session-present__team-board-rank">#{{ entry.rank }}</span>
+                <span class="session-present__team-board-name">
+                  <span
+                    class="session-present__team-board-dot"
+                    [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                    aria-hidden="true"
+                  ></span>
+                  {{ entry.teamName }}
+                </span>
+                <span class="session-present__team-board-meta">
+                  {{ teamMemberLabel(entry.memberCount) }} · {{ entry.totalScore | number }}
+                </span>
+              </div>
+              <div class="session-present__team-board-track" aria-hidden="true">
+                <div
+                  class="session-present__team-board-fill"
+                  [style.width]="teamScoreBarWidth(entry.totalScore)"
+                  [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                ></div>
+              </div>
+            </li>
+          }
+        </ol>
+      </mat-card-content>
+    </mat-card>
+  }
+
   <mat-card appearance="outlined" class="session-placeholder">
     <mat-card-content>
       <p class="session-placeholder__text">{{ presenterInfo() }}</p>

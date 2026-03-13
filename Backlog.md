@@ -78,7 +78,7 @@
 | 6    | 6.3   | Impressum & Datenschutz                       | 🔴   | ✅ Fertig |
 | 6    | 6.4   | Mobile-First & Responsive                     | 🔴   | ✅ Fertig |
 | 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)        | 🔴   | ⬜ Offen  |
-| 7    | 7.1   | Team-Modus                                    | 🟢   | ⬜ Offen  |
+| 7    | 7.1   | Team-Modus                                    | 🟢   | 🔨 In Arbeit |
 | 8    | 8.1   | Q&A-Session starten                           | 🟢   | ⬜ Offen  |
 | 8    | 8.2   | Fragen einreichen                             | 🟢   | ⬜ Offen  |
 | 8    | 8.3   | Upvoting & Sortierung                         | 🟢   | ⬜ Offen  |
@@ -831,6 +831,21 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Team-Belohnungseffekte (Story 5.4): Das Gewinnerteam erhält eine kollektive Konfetti-Animation.
     - Prisma-Modell `Team` verknüpft `Session` ↔ `Participant` (n:m via Team).
     - DSGVO: Team-Zugehörigkeit wird nur temporär für die Session vorgehalten (wie alle Session-Daten).
+  - **Aktueller Implementierungsstand (März 2026):**
+    - `shared-types`, Prisma und Backend-Router tragen `teamMode`, `teamCount`, `teamAssignment` und konfigurierbare `teamNames` Ende-zu-Ende.
+    - Beim Session-Start werden Teams serverseitig initialisiert; eigene Team-Namen werden übernommen, fehlende Namen fallen auf `Team A`, `Team B`, … zurück.
+    - `join/:code` unterstützt sowohl **MANUAL**-Teamwahl als Karten-/Select-UI als auch **AUTO**-Zuweisung mit sichtbarer Teamvorschau.
+    - Die Join-Ansicht zeigt Teamfarben, Mitgliederzahl, klaren Auswahlzustand und im Preset `PLAYFUL` einen kleinen spielerischen Bestätigungs-/Motivationsmoment.
+    - Die Host-Lobby gruppiert Teilnehmende bereits nach Teams; die Abschlussansicht zeigt zusätzlich ein Team-Leaderboard mit farbigen Balken.
+    - Für Quiz New/Edit gibt es konfigurierbare Team-Namen inkl. Live-Vorschau der effektiv entstehenden Teams sowie Validierung gegen Duplikate, Überlänge und zu viele Einträge.
+    - `session/:code/present` inszeniert das Team-Finale jetzt mit Siegerkarte, Team-Balkenboard und leichtem `PLAYFUL`-Finish für den Beamer.
+    - `session/:code/vote` zeigt in `RESULTS` und `FINISHED` einen kollektiven Team-Moment mit eigener Teamkarte, Teamrang, Team-Punkten und kompakter Team-Topliste.
+  - **Verifizierung bisher:**
+    - Backend: Team-Initialisierung, Auto-/Manual-Join und Team-Leaderboard sind durch Unit-Tests abgedeckt.
+    - Frontend: Join-, Quiz-, Host-, Present- und Vote-Specs decken Teamwahl, Teamvorschau, Lobby/Leaderboard, Beamer-Finale und kollektiven Teilnehmer-Reward ab.
+    - Lokalisierung: Alle neuen Teammodus-Texte sind in `de`, `en`, `fr`, `es`, `it` nachgezogen; `extract-i18n` und `build:localize` laufen erfolgreich.
+  - **Noch offen bis `✅ Fertig`:**
+    - abschließende Story-Abnahme und Dokumentation als vollständig abgeschlossen
 
 ---
 

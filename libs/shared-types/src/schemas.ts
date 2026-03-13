@@ -39,6 +39,25 @@ export type NicknameTheme = z.infer<typeof NicknameThemeEnum>;
 export const TeamAssignmentEnum = z.enum(['AUTO', 'MANUAL']);
 export type TeamAssignment = z.infer<typeof TeamAssignmentEnum>;
 
+export const TeamNamesSchema = z
+  .array(z.string().trim().min(1).max(40))
+  .max(8)
+  .superRefine((names, ctx) => {
+    const seen = new Set<string>();
+    for (const [index, name] of names.entries()) {
+      const normalized = name.trim().toLocaleLowerCase();
+      if (seen.has(normalized)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [index],
+          message: 'Team-Namen müssen eindeutig sein.',
+        });
+      }
+      seen.add(normalized);
+    }
+  });
+export type TeamNames = z.infer<typeof TeamNamesSchema>;
+
 export const QaQuestionStatusEnum = z.enum([
   'PENDING',
   'ACTIVE',
@@ -99,6 +118,7 @@ export const CreateQuizInputSchema = z.object({
   teamMode: z.boolean().optional().default(false),
   teamCount: z.number().int().min(2).max(8).optional(),
   teamAssignment: TeamAssignmentEnum.optional().default('AUTO'),
+  teamNames: TeamNamesSchema.optional().default([]),
   backgroundMusic: z.string().max(50).nullable().optional().default(null),
   nicknameTheme: NicknameThemeEnum.optional().default('NOBEL_LAUREATES'),
   bonusTokenCount: z.number().int().min(1).max(50).nullable().optional().default(null), // Story 4.6
@@ -144,6 +164,7 @@ export const QuizUploadInputSchema = z.object({
   teamMode: z.boolean(),
   teamCount: z.number().int().min(2).max(8).nullable().optional(),
   teamAssignment: TeamAssignmentEnum.optional(),
+  teamNames: TeamNamesSchema.optional(),
   backgroundMusic: z.string().max(50).nullable().optional(),
   nicknameTheme: NicknameThemeEnum,
   bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
@@ -287,6 +308,7 @@ export type HostCurrentQuestionDTO = z.infer<typeof HostCurrentQuestionDTOSchema
 export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   nickname: z.string().min(1).max(30),
+  teamId: z.uuid().optional(),
 });
 export type JoinSessionInput = z.infer<typeof JoinSessionInputSchema>;
 
@@ -423,6 +445,7 @@ export const SessionInfoDTOSchema = z.object({
   teamMode: z.boolean().optional(),
   teamCount: z.number().nullable().optional(),
   teamAssignment: z.string().nullable().optional(),
+  teamNames: z.array(z.string()).optional(),
   bonusTokenCount: z.number().nullable().optional(),
   preset: QuizPresetEnum.optional(),
 });
@@ -431,6 +454,8 @@ export type SessionInfoDTO = z.infer<typeof SessionInfoDTOSchema>;
 /** Output: Nach Join (Session-Info + eigene Participant-ID für vote.submit). */
 export const JoinSessionOutputSchema = SessionInfoDTOSchema.extend({
   participantId: z.uuid(),
+  teamId: z.uuid().nullable().optional(),
+  teamName: z.string().nullable().optional(),
 });
 export type JoinSessionOutput = z.infer<typeof JoinSessionOutputSchema>;
 
@@ -460,6 +485,8 @@ export type ActiveQuizIdsDTO = z.infer<typeof ActiveQuizIdsDTOSchema>;
 export const ParticipantDTOSchema = z.object({
   id: z.uuid(),
   nickname: z.string(),
+  teamId: z.uuid().nullable().optional(),
+  teamName: z.string().nullable().optional(),
 });
 export type ParticipantDTO = z.infer<typeof ParticipantDTOSchema>;
 
@@ -469,6 +496,22 @@ export const SessionParticipantsPayloadSchema = z.object({
   participantCount: z.number(),
 });
 export type SessionParticipantsPayload = z.infer<typeof SessionParticipantsPayloadSchema>;
+
+/** DTO: Team-Info für Join/Lobby (Story 7.1). */
+export const TeamDTOSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  color: z.string().nullable(),
+  memberCount: z.number().int(),
+});
+export type TeamDTO = z.infer<typeof TeamDTOSchema>;
+
+/** Payload: verfügbare Teams einer Session (Story 7.1). */
+export const SessionTeamsPayloadSchema = z.object({
+  teams: z.array(TeamDTOSchema),
+  teamCount: z.number().int(),
+});
+export type SessionTeamsPayload = z.infer<typeof SessionTeamsPayloadSchema>;
 
 /** DTO: Leaderboard-Eintrag (Story 4.1) */
 export const LeaderboardEntryDTOSchema = z.object({
@@ -595,6 +638,7 @@ export const QuizExportSchema = z.object({
     teamMode: z.boolean(),
     teamCount: z.number().int().min(2).max(8).nullable().optional(),
     teamAssignment: TeamAssignmentEnum.optional(),
+    teamNames: TeamNamesSchema.optional(),
     backgroundMusic: z.string().max(50).nullable().optional(),
     nicknameTheme: NicknameThemeEnum,
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6

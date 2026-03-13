@@ -6,6 +6,10 @@ const { prismaMock, checkSessionCreateRateMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       create: vi.fn(),
     },
+    team: {
+      findMany: vi.fn(),
+      createMany: vi.fn(),
+    },
   },
   checkSessionCreateRateMock: vi.fn(),
 }));
@@ -36,7 +40,7 @@ describe('session.create (Story 2.1a)', () => {
       type: 'QUIZ',
       status: 'LOBBY',
       quizId: QUIZ_ID,
-      quiz: { name: 'Mein Quiz' },
+      quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
     });
   });
 

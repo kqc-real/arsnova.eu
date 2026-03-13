@@ -33,6 +33,7 @@ export const quizRouter = router({
           teamMode: input.teamMode,
           teamCount: input.teamCount ?? null,
           teamAssignment: input.teamAssignment ?? 'AUTO',
+          teamNames: input.teamNames ?? [],
           backgroundMusic: input.backgroundMusic ?? null,
           nicknameTheme: input.nicknameTheme,
           bonusTokenCount: input.bonusTokenCount ?? null,

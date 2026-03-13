@@ -7,14 +7,20 @@ const unsubscribeMock = vi.fn();
 
 const {
   getInfoQueryMock,
+  getTeamsQueryMock,
   getLiveFreetextQueryMock,
   getCurrentQuestionForHostQueryMock,
+  getLeaderboardQueryMock,
+  getTeamLeaderboardQueryMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
 } = vi.hoisted(() => ({
   getInfoQueryMock: vi.fn(),
+  getTeamsQueryMock: vi.fn(),
   getLiveFreetextQueryMock: vi.fn(),
   getCurrentQuestionForHostQueryMock: vi.fn(),
+  getLeaderboardQueryMock: vi.fn(),
+  getTeamLeaderboardQueryMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
 }));
@@ -23,8 +29,11 @@ vi.mock('../../../core/trpc.client', () => ({
   trpc: {
     session: {
       getInfo: { query: getInfoQueryMock },
+      getTeams: { query: getTeamsQueryMock },
       getLiveFreetext: { query: getLiveFreetextQueryMock },
       getCurrentQuestionForHost: { query: getCurrentQuestionForHostQueryMock },
+      getLeaderboard: { query: getLeaderboardQueryMock },
+      getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
     },
@@ -60,8 +69,13 @@ describe('SessionHostComponent', () => {
     vi.clearAllMocks();
     unsubscribeMock.mockClear();
     getInfoQueryMock.mockResolvedValue({ ...defaultSession });
+    onParticipantJoinedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
+    onStatusChangedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
+    getTeamsQueryMock.mockResolvedValue({ teams: [], teamCount: 0 });
     getLiveFreetextQueryMock.mockResolvedValue({ ...defaultLiveFreetext });
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([]);
   });
 
   const setup = () => {
@@ -175,5 +189,90 @@ describe('SessionHostComponent', () => {
     );
     fixture.destroy();
     expect(unsubscribeMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('zeigt Team-Leaderboard bei Teammodus im Abschlussstatus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      teamMode: true,
+    });
+    onStatusChangedSubscribeMock.mockImplementation((_input: unknown, opts: { onData: (d: unknown) => void }) => {
+      opts.onData({ status: 'FINISHED', currentQuestion: null });
+      return { unsubscribe: unsubscribeMock };
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        nickname: 'Ada',
+        totalScore: 120,
+        correctCount: 3,
+        totalQuestions: 4,
+        totalResponseTimeMs: 5000,
+      },
+    ]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: 'Team A',
+        teamColor: '#1E88E5',
+        totalScore: 220,
+        memberCount: 3,
+        averageScore: 73.33,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Team-Leaderboard');
+    expect(text).toContain('Team A');
+    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    fixture.destroy();
+  });
+
+  it('zeigt in der Lobby eine Teamübersicht mit Mitgliedern', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 2 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 1 },
+      ],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation((_input: unknown, opts: { onData: (d: unknown) => void }) => {
+      opts.onData({
+        participantCount: 3,
+        participants: [
+          { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Linus', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p3', nickname: 'Grace', teamId: 'team-b', teamName: 'Blau' },
+        ],
+      });
+      return { unsubscribe: unsubscribeMock };
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Teams in der Lobby');
+    expect(text).toContain('Rot');
+    expect(text).toContain('Blau');
+    expect(text).toContain('Ada');
+    expect(text).toContain('Grace');
+    fixture.destroy();
   });
 });

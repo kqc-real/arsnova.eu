@@ -37,6 +37,86 @@
         }
       </section>
 
+      @if (showTeamRewardCard() && ownTeamEntry(); as ownTeam) {
+        <section
+          class="vote-team-reward"
+          aria-labelledby="team-reward-heading-finished"
+          [class.vote-team-reward--leader]="ownTeam.rank === 1"
+          [class.vote-team-reward--finished]="true"
+        >
+          @if (showTeamRewardConfetti()) {
+            <div class="vote-confetti" aria-hidden="true">
+              @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+                <span class="vote-confetti__piece" [style.--i]="i"></span>
+              }
+            </div>
+          }
+          <div class="vote-team-reward__head">
+            <p class="vote-team-reward__eyebrow" i18n>Dein Team</p>
+            <h2 class="vote-team-reward__title" id="team-reward-heading-finished">{{ teamRewardTitle() }}</h2>
+          </div>
+          <p class="vote-team-reward__summary">
+            <span class="vote-team-reward__team">
+              <span
+                class="vote-team-reward__dot"
+                [style.background]="ownTeam.teamColor || 'var(--mat-sys-primary)'"
+                aria-hidden="true"
+              ></span>
+              {{ ownTeam.teamName }}
+            </span>
+            <span class="vote-team-reward__message">{{ teamRewardMessage() }}</span>
+          </p>
+          <div class="vote-team-reward__stats">
+            <div class="vote-team-reward__stat">
+              <span class="vote-team-reward__stat-value">#{{ ownTeam.rank }}</span>
+              <span class="vote-team-reward__stat-label" i18n>Teamrang</span>
+            </div>
+            <div class="vote-team-reward__stat">
+              <span class="vote-team-reward__stat-value">{{ ownTeam.totalScore | number }}</span>
+              <span class="vote-team-reward__stat-label" i18n>Team-Punkte</span>
+            </div>
+            <div class="vote-team-reward__stat">
+              <span class="vote-team-reward__stat-value">{{ ownTeam.memberCount }}</span>
+              <span class="vote-team-reward__stat-label" i18n>Mitglieder</span>
+            </div>
+          </div>
+          @if (visibleTeamLeaderboard().length > 0) {
+            <ol class="vote-team-reward__board">
+              @for (entry of visibleTeamLeaderboard(); track entry.rank) {
+                <li
+                  class="vote-team-reward__board-item"
+                  [class.vote-team-reward__board-item--own]="entry.teamName === ownTeam.teamName"
+                  [attr.aria-label]="teamStandingAriaLabel(entry)"
+                >
+                  <div class="vote-team-reward__board-head">
+                    <span class="vote-team-reward__board-rank">#{{ entry.rank }}</span>
+                    <span class="vote-team-reward__board-name">
+                      <span
+                        class="vote-team-reward__dot"
+                        [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                        aria-hidden="true"
+                      ></span>
+                      {{ entry.teamName }}
+                    </span>
+                    <span class="vote-team-reward__board-score">{{ entry.totalScore | number }}</span>
+                  </div>
+                  <div class="vote-team-reward__board-track" aria-hidden="true">
+                    <div
+                      class="vote-team-reward__board-fill"
+                      [style.width]="teamScoreBarWidth(entry.totalScore)"
+                      [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                    ></div>
+                  </div>
+                </li>
+              }
+            </ol>
+          }
+          @if (teamRewardLeaderHint(); as leaderHint) {
+            <p class="vote-team-reward__hint">{{ leaderHint }}</p>
+          }
+        </section>
+      }
+
       <!-- Bonus-Code -->
       @if (bonusToken(); as token) {
         <section class="vote-bonus-card" aria-labelledby="bonus-heading">
@@ -396,6 +476,85 @@
           </div>
           </div>
         </div>
+      }
+
+      @if (showTeamRewardCard() && ownTeamEntry(); as ownTeam) {
+        <section
+          class="vote-team-reward"
+          aria-labelledby="team-reward-heading-results"
+          [class.vote-team-reward--leader]="ownTeam.rank === 1"
+        >
+          @if (showTeamRewardConfetti()) {
+            <div class="vote-confetti" aria-hidden="true">
+              @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+                <span class="vote-confetti__piece" [style.--i]="i"></span>
+              }
+            </div>
+          }
+          <div class="vote-team-reward__head">
+            <p class="vote-team-reward__eyebrow" i18n>Dein Team</p>
+            <h2 class="vote-team-reward__title" id="team-reward-heading-results">{{ teamRewardTitle() }}</h2>
+          </div>
+          <p class="vote-team-reward__summary">
+            <span class="vote-team-reward__team">
+              <span
+                class="vote-team-reward__dot"
+                [style.background]="ownTeam.teamColor || 'var(--mat-sys-primary)'"
+                aria-hidden="true"
+              ></span>
+              {{ ownTeam.teamName }}
+            </span>
+            <span class="vote-team-reward__message">{{ teamRewardMessage() }}</span>
+          </p>
+          <div class="vote-team-reward__stats">
+            <div class="vote-team-reward__stat">
+              <span class="vote-team-reward__stat-value">#{{ ownTeam.rank }}</span>
+              <span class="vote-team-reward__stat-label" i18n>Teamrang</span>
+            </div>
+            <div class="vote-team-reward__stat">
+              <span class="vote-team-reward__stat-value">{{ ownTeam.totalScore | number }}</span>
+              <span class="vote-team-reward__stat-label" i18n>Team-Punkte</span>
+            </div>
+            <div class="vote-team-reward__stat">
+              <span class="vote-team-reward__stat-value">{{ ownTeam.memberCount }}</span>
+              <span class="vote-team-reward__stat-label" i18n>Mitglieder</span>
+            </div>
+          </div>
+          @if (visibleTeamLeaderboard().length > 0) {
+            <ol class="vote-team-reward__board">
+              @for (entry of visibleTeamLeaderboard(); track entry.rank) {
+                <li
+                  class="vote-team-reward__board-item"
+                  [class.vote-team-reward__board-item--own]="entry.teamName === ownTeam.teamName"
+                  [attr.aria-label]="teamStandingAriaLabel(entry)"
+                >
+                  <div class="vote-team-reward__board-head">
+                    <span class="vote-team-reward__board-rank">#{{ entry.rank }}</span>
+                    <span class="vote-team-reward__board-name">
+                      <span
+                        class="vote-team-reward__dot"
+                        [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                        aria-hidden="true"
+                      ></span>
+                      {{ entry.teamName }}
+                    </span>
+                    <span class="vote-team-reward__board-score">{{ entry.totalScore | number }}</span>
+                  </div>
+                  <div class="vote-team-reward__board-track" aria-hidden="true">
+                    <div
+                      class="vote-team-reward__board-fill"
+                      [style.width]="teamScoreBarWidth(entry.totalScore)"
+                      [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                    ></div>
+                  </div>
+                </li>
+              }
+            </ol>
+          }
+          @if (teamRewardLeaderHint(); as leaderHint) {
+            <p class="vote-team-reward__hint">{{ leaderHint }}</p>
+          }
+        </section>
       }
 
       @if (isResults() && sessionSettings().enableEmojiReactions) {

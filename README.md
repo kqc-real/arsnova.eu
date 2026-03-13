@@ -20,7 +20,7 @@
 
 ### Alleinstellungsmerkmale
 
-* **Stil-Auswahl:** Die Lehrperson wählt beim Start der Session den Stil (**Seriös** oder **Spielerisch**) und kann Optionen anpassen (Rangliste, Sound, Lesephase, Team-Modus, Nicknames, Timer). So passt sich die Session an – Kita bis Uni. Teilnehmende können den Stil nicht ändern. Im Preset **Spielerisch** pulsieren auf der Startseite Logo und Hero-Icons (nur bei normaler Bewegungspräferenz).
+* **Stil-Auswahl:** Die Lehrperson wählt beim Start der Session den Stil (**Seriös** oder **Spielerisch**) und kann Optionen anpassen (Rangliste, Sound, Lesephase, Team-Modus, Nicknames, Timer). So passt sich die Session an – Kita bis Uni. Teilnehmende können den Stil nicht ändern. Im Preset **Spielerisch** pulsieren auf der Startseite Logo und Hero-Icons (nur bei normaler Bewegungspräferenz); im Team-Modus kommen zusätzlich farbige Teamkarten, motivierende Effekte im Join-/Lobby-Flow sowie ein sichtbarer Team-Finishing-Moment auf Teilnehmergerät und Beamer dazu.
 * **Bonus-Option für die Besten:** Top-Platzierte erhalten einen **einlösbaren Code**, den sie bei der Quizleitung einlösen können (z. B. für Bonuspunkte oder Anerkennung). Die App dient nicht als autorisiertes Prüfungsinstrument; die Einlösung liegt bei der Lehrperson.
 * **Zero-Knowledge / Local-First:** Keine Accounts nötig. Quiz-Inhalte werden lokal im Browser des Erstellers gespeichert; beim Start einer Live-Session wird nur temporär eine Kopie an den Server übertragen. Nach Ende der Session werden die Daten bereinigt. Der Server ist reiner Relay für Echtzeit-Abstimmungen.
 

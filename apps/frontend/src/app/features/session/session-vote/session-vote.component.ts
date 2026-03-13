@@ -9,7 +9,16 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
-import type { SessionStatus, SessionInfoDTO, QuestionStudentDTO, QuestionPreviewDTO, QuestionRevealedDTO, PersonalScorecardDTO } from '@arsnova/shared-types';
+import type {
+  ParticipantDTO,
+  PersonalScorecardDTO,
+  QuestionPreviewDTO,
+  QuestionRevealedDTO,
+  QuestionStudentDTO,
+  SessionInfoDTO,
+  SessionStatus,
+  TeamLeaderboardEntryDTO,
+} from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import type { Unsubscribable } from '@trpc/server/observable';
 
@@ -108,6 +117,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly personalScore = signal<number | null>(null);
   readonly bonusToken = signal<string | null>(null);
   readonly personalResultLoaded = signal(false);
+  readonly participantTeam = signal<ParticipantDTO | null>(null);
+  readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
 
   /** Story 5.6: Persönliche Scorecard pro Frage */
   readonly scorecard = signal<PersonalScorecardDTO | null>(null);
@@ -157,6 +168,33 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
 
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
+  readonly ownTeamEntry = computed(() => {
+    const teamName = this.participantTeam()?.teamName;
+    if (!teamName) {
+      return null;
+    }
+    return this.teamLeaderboard().find((entry) => entry.teamName === teamName) ?? null;
+  });
+  readonly teamLeaderboardMaxScore = computed(() =>
+    Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
+  );
+  readonly visibleTeamLeaderboard = computed(() => {
+    const leaderboard = this.teamLeaderboard();
+    const ownEntry = this.ownTeamEntry();
+    if (leaderboard.length <= 3 || !ownEntry || ownEntry.rank <= 3) {
+      return leaderboard.slice(0, 3);
+    }
+    return [...leaderboard.slice(0, 2), ownEntry];
+  });
+  readonly showTeamRewardCard = computed(() =>
+    this.sessionSettings().teamMode === true && this.ownTeamEntry() !== null,
+  );
+  readonly showTeamRewardConfetti = computed(() =>
+    this.showTeamRewardCard()
+    && this.sessionSettings().enableRewardEffects === true
+    && this.isPlayfulPreset()
+    && this.ownTeamEntry()?.rank === 1,
+  );
 
   readonly timerExpired = computed(() => {
     const s = this.countdownSeconds();
@@ -208,6 +246,57 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   getShape(index: number): string { return ANSWER_SHAPES[index % ANSWER_SHAPES.length]; }
   getLetter(index: number): string { return String.fromCharCode(65 + index); }
 
+  teamRewardTitle(): string {
+    const entry = this.ownTeamEntry();
+    if (!entry) {
+      return '';
+    }
+    if (this.isFinished()) {
+      return entry.rank === 1
+        ? $localize`${entry.teamName} gewinnt das Teamduell`
+        : $localize`${entry.teamName} ist im Ziel`;
+    }
+    return entry.rank === 1
+      ? $localize`${entry.teamName} führt gerade`
+      : $localize`${entry.teamName} bleibt im Rennen`;
+  }
+
+  teamRewardMessage(): string {
+    const entry = this.ownTeamEntry();
+    if (!entry) {
+      return '';
+    }
+    if (this.isFinished()) {
+      if (entry.rank === 1) {
+        return $localize`Gemeinsam geschafft: ${entry.teamName} holt ${entry.totalScore}:totalScore: Punkte und Platz 1.`;
+      }
+      return $localize`${entry.teamName} beendet das Quiz mit ${entry.totalScore}:totalScore: Punkten auf Platz ${entry.rank}:teamRank:.`;
+    }
+    if (entry.rank === 1) {
+      return $localize`Gemeinsam stark: ${entry.teamName} liegt mit ${entry.totalScore}:totalScore: Punkten vorn.`;
+    }
+    return $localize`${entry.teamName} steht aktuell auf Platz ${entry.rank}:teamRank: mit ${entry.totalScore}:totalScore: Punkten.`;
+  }
+
+  teamRewardLeaderHint(): string | null {
+    const ownEntry = this.ownTeamEntry();
+    const leader = this.teamLeaderboard()[0];
+    if (!ownEntry || !leader || leader.teamName === ownEntry.teamName) {
+      return null;
+    }
+    return $localize`Vorne liegt ${leader.teamName}:leaderName: mit ${leader.totalScore}:leaderScore: Punkten.`;
+  }
+
+  teamStandingAriaLabel(entry: TeamLeaderboardEntryDTO): string {
+    return $localize`Platz ${entry.rank}:teamRank:: ${entry.teamName}:teamName: mit ${entry.totalScore}:totalScore: Punkten`;
+  }
+
+  teamScoreBarWidth(totalScore: number): string {
+    const max = this.teamLeaderboardMaxScore();
+    const percentage = max <= 0 ? 0 : Math.max(12, Math.round((totalScore / max) * 100));
+    return `${percentage}%`;
+  }
+
   starsAriaLabel(stars: number): string {
     return $localize`${stars} von 5 Sternen`;
   }
@@ -248,6 +337,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
       }
+      if (session.teamMode) {
+        await this.loadParticipantTeam();
+        if (session.status === 'RESULTS' || session.status === 'FINISHED') {
+          await this.loadTeamLeaderboard();
+        }
+      }
     } catch { /* Parent-Shell hat schon validiert */ }
 
     this.statusSub = trpc.session.onStatusChanged.subscribe(
@@ -276,6 +371,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           } else if (data.status !== 'ACTIVE') {
             this.stopCountdown();
             this.countdownSeconds.set(null);
+          }
+          if (this.sessionSettings().teamMode) {
+            if (data.status === 'RESULTS' || data.status === 'FINISHED') {
+              void this.loadTeamRewardState();
+            } else {
+              this.teamLeaderboard.set([]);
+            }
           }
           void this.refreshQuestion();
         },
@@ -515,6 +617,45 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.bonusToken.set(result.bonusToken);
       this.personalResultLoaded.set(true);
     } catch { /* noop */ }
+  }
+
+  private async loadParticipantTeam(): Promise<void> {
+    const pid = this.participantId();
+    if (!this.code || !pid || this.sessionSettings().teamMode !== true) {
+      this.participantTeam.set(null);
+      return;
+    }
+    try {
+      const payload = await trpc.session.getParticipants.query({ code: this.code });
+      this.participantTeam.set(payload.participants.find((participant) => participant.id === pid) ?? null);
+    } catch {
+      this.participantTeam.set(null);
+    }
+  }
+
+  private async loadTeamLeaderboard(): Promise<void> {
+    if (!this.code || this.sessionSettings().teamMode !== true) {
+      this.teamLeaderboard.set([]);
+      return;
+    }
+    try {
+      const leaderboard = await trpc.session.getTeamLeaderboard.query({ code: this.code });
+      this.teamLeaderboard.set(leaderboard);
+    } catch {
+      this.teamLeaderboard.set([]);
+    }
+  }
+
+  private async loadTeamRewardState(): Promise<void> {
+    if (this.sessionSettings().teamMode !== true) {
+      this.participantTeam.set(null);
+      this.teamLeaderboard.set([]);
+      return;
+    }
+    if (!this.participantTeam()?.teamName) {
+      await this.loadParticipantTeam();
+    }
+    await this.loadTeamLeaderboard();
   }
 
   async copyBonusCode(): Promise<void> {

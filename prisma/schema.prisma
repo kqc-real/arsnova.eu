@@ -25,6 +25,7 @@ model Quiz {
   teamMode             Boolean    @default(false)  // Story 7.1: Team-Modus an/aus
   teamCount            Int?                         // Story 7.1: Anzahl Teams (2–8, null = kein Team-Modus)
   teamAssignment       TeamAssignment @default(AUTO) // Story 7.1: Teamzuweisung
+  teamNames            String[]   @default([])       // Story 7.1b: Konfigurierbare Team-Namen
   backgroundMusic      String?                      // Story 5.3: Track-Name (null = aus)
   nicknameTheme        NicknameTheme @default(NOBEL_LAUREATES) // Story 3.2: Nickname-Liste
   bonusTokenCount      Int?                         // Story 4.6: Anzahl Top-Plätze mit Bonus-Token (1–50, null = deaktiviert)
