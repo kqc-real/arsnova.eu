@@ -5822,8 +5822,8 @@
         <target>Con quiz</target>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.optionQuizHint" datatype="html">
-        <source>Nutzt „<x id="PH" equiv-text="data.quizName"/>“.</source>
-        <target>Usa « <x id="PH"/> ».</target>
+        <source>Nutzt „<x id="INTERPOLATION" equiv-text="data.quizName"/>“.</source>
+        <target>Usa « <x id="INTERPOLATION"/> ».</target>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.optionQa" datatype="html">
         <source>Mit Fragen</source>
@@ -6160,6 +6160,42 @@
       <trans-unit id="help.demoQuizHint" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. Direkt von der Startseite über „Demo spielen&quot; (Karte „Veranstaltung starten&quot;) oder in der Quiz-Bibliothek in der Vorschau öffnen.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz de demostración:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Un quiz preinstalado muestra todos los tipos de preguntas con ejemplos, incluidas fórmulas KaTeX y Markdown. Ábrelo directamente desde la página de inicio con « Jugar la demo » (tarjeta « Iniciar evento ») o desde la vista previa de la biblioteca de quizzes.</target>
+      </trans-unit>
+      <trans-unit id="2616613557782343249" datatype="html">
+        <source>Schnelle Abstimmung als Live-Bereich in deiner Veranstaltung.</source>
+        <target>Votación rápida como espacio en vivo de tu sesión.</target>
+      </trans-unit>
+      <trans-unit id="1722407967240348062" datatype="html">
+        <source>Du startest die Runde im Host-Bereich deiner Live-Session. Teilnehmende bleiben mit demselben Session-Code dabei und stimmen mit einem Tipp ab. Du siehst die Ergebnisse live als Balkendiagramm.</source>
+        <target>Inicias la ronda en el área de anfitrión de tu sesión en vivo. Las personas participantes siguen con el mismo código de sesión y votan con un toque. Ves los resultados en directo como gráfico de barras.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStatusDiscussion" datatype="html">
+        <source>Diskussion läuft</source>
+        <target>Discusión en curso</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStatusRound2" datatype="html">
+        <source>Runde 2 läuft</source>
+        <target>Ronda 2 en curso</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStatusPaused" datatype="html">
+        <source>Pausiert</source>
+        <target>En pausa</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStatusActive" datatype="html">
+        <source>Runde 1 läuft</source>
+        <target>Ronda 1 en curso</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaQueueLabel" datatype="html">
+        <source>Fragen aus dem Saal</source>
+        <target>Preguntas desde la sala</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaQueueTitle" datatype="html">
+        <source>Als Nächstes im Raum</source>
+        <target>Lo siguiente en la sala</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackVotes" datatype="html">
+        <source>Stimmen</source>
+        <target>Votos</target>
       </trans-unit>
     </body>
   </file>

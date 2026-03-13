@@ -5355,7 +5355,7 @@
         <source>Mit Quiz</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.optionQuizHint" datatype="html">
-        <source>Nutzt „<x id="PH" equiv-text="data.quizName"/>“.</source>
+        <source>Nutzt „<x id="INTERPOLATION" equiv-text="data.quizName"/>“.</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.optionQa" datatype="html">
         <source>Mit Fragen</source>
@@ -5608,6 +5608,33 @@
       </trans-unit>
       <trans-unit id="help.demoQuizHint" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. Direkt von der Startseite über „Demo spielen&quot; (Karte „Veranstaltung starten&quot;) oder in der Quiz-Bibliothek in der Vorschau öffnen.</source>
+      </trans-unit>
+      <trans-unit id="2616613557782343249" datatype="html">
+        <source>Schnelle Abstimmung als Live-Bereich in deiner Veranstaltung.</source>
+      </trans-unit>
+      <trans-unit id="1722407967240348062" datatype="html">
+        <source>Du startest die Runde im Host-Bereich deiner Live-Session. Teilnehmende bleiben mit demselben Session-Code dabei und stimmen mit einem Tipp ab. Du siehst die Ergebnisse live als Balkendiagramm.</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStatusDiscussion" datatype="html">
+        <source>Diskussion läuft</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStatusRound2" datatype="html">
+        <source>Runde 2 läuft</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStatusPaused" datatype="html">
+        <source>Pausiert</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackStatusActive" datatype="html">
+        <source>Runde 1 läuft</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaQueueLabel" datatype="html">
+        <source>Fragen aus dem Saal</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaQueueTitle" datatype="html">
+        <source>Als Nächstes im Raum</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quickFeedbackVotes" datatype="html">
+        <source>Stimmen</source>
       </trans-unit>
     </body>
   </file>
