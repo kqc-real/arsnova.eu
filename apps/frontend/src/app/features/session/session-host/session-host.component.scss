@@ -49,6 +49,31 @@
   }
 }
 
+.session-lobby__qr--compact {
+  margin: 0;
+
+  img {
+    width: min(10rem, 100%);
+  }
+}
+
+.session-lobby__hero {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+}
+
+.session-lobby__hero-main {
+  text-align: center;
+}
+
+.session-lobby__hero-qr {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .session-lobby__join-hint {
   margin: 0 0 0.25rem;
   font: var(--mat-sys-body-medium);
@@ -70,6 +95,19 @@
   }
 }
 
+.session-lobby__join-url--compact {
+  width: min(10rem, 100%);
+  margin: 0.55rem 0 0;
+  font: var(--mat-sys-body-small);
+  text-align: center;
+  line-height: 1.35;
+
+  a {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+}
+
 .session-lobby__participants {
   margin: 0;
   font: var(--mat-sys-headline-small);
@@ -83,53 +121,30 @@
   color: var(--mat-sys-primary);
 }
 
-.session-lobby__access,
 .session-lobby__teams {
   margin: 1.5rem 0 0;
   text-align: left;
 }
 
 .session-lobby__teams--hero {
-  margin-top: 1.2rem;
-}
-
-.session-lobby__access {
-  padding: 1rem 1.1rem;
-  border-radius: var(--mat-sys-corner-extra-large, 1.5rem);
-  border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface-container-low);
-}
-
-.session-lobby__access-title {
-  margin: 0 0 0.8rem;
-  text-align: center;
-  font: var(--mat-sys-title-medium);
-  color: var(--mat-sys-on-surface);
-}
-
-.session-lobby__access-layout {
-  display: grid;
-  gap: 1rem;
-  align-items: center;
-}
-
-.session-lobby__access-copy {
-  text-align: center;
+  margin-top: 2.4rem;
 }
 
 .session-lobby__teams-title {
-  margin: 0 0 0.8rem;
+  margin: 0;
   text-align: center;
   font-size: clamp(1.2rem, 2vw, 1.6rem);
   font-weight: 700;
   color: var(--mat-sys-on-surface);
+  line-height: 1.2;
 }
 
-.session-lobby__teams-playful {
-  margin: 0.85rem 0 0;
+.session-lobby__teams-subtitle {
+  margin: 0.55rem 0 1.75rem;
   text-align: center;
   font: var(--mat-sys-title-small);
   color: var(--mat-sys-tertiary);
+  line-height: 1.4;
 }
 
 .session-lobby__teams-grid {
@@ -244,16 +259,17 @@
     max-width: 68rem;
   }
 
+  .session-lobby__hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 10rem);
+    gap: 1.5rem;
+  }
+
+  .session-lobby__hero-main {
+    text-align: center;
+  }
+
   .session-lobby__teams-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .session-lobby__access-layout {
-    grid-template-columns: auto 1fr;
-  }
-
-  .session-lobby__access-copy {
-    text-align: left;
   }
 }
 
