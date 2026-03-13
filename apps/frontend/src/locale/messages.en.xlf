@@ -126,17 +126,17 @@
           <context context-type="linenumber">94</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4859548675378498878" datatype="html">
-        <source>Quizzen, abstimmen, gemeinsam und live</source>
-        <target>Quiz, vote, together and live</target>
+      <trans-unit id="3928002386541025507" datatype="html">
+        <source>Quiz, Q&amp;A und Feedback – live in einer App</source>
+        <target>Quiz, Q&amp;A and feedback - live in one app</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">3,4</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="309180159916522042" datatype="html">
-        <source>Kita bis Uni – Seriös bis Spielerisch</source>
-        <target>Kindergarten to university – Serious to playful</target>
+      <trans-unit id="4642582109589985725" datatype="html">
+        <source>Für Schulen, Unis, Events &amp; Business</source>
+        <target>For schools, universities, events &amp; business</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">4,5</context>
@@ -362,17 +362,17 @@
           <context context-type="linenumber">187,188</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="898140095577856961" datatype="html">
-        <source>Fragerunden kommen bald</source>
-        <target>Q&amp;A rounds coming soon</target>
+      <trans-unit id="2392784859345882096" datatype="html">
+        <source>Q&amp;A kommt bald</source>
+        <target>Q&amp;A coming soon</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">194,195</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8837644370638292027" datatype="html">
-        <source>Fragerunde</source>
-        <target>Q&amp;A round</target>
+      <trans-unit id="4975810912271557778" datatype="html">
+        <source>Q&amp;A</source>
+        <target>Q&amp;A</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">197,198</context>
