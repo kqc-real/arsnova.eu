@@ -5,25 +5,21 @@
       <div class="session-lobby">
         <p class="session-lobby__label" aria-hidden="true" i18n>Session-Code</p>
         <p class="session-lobby__code" i18n-aria-label aria-label="Session-Code {{ s.code }}">{{ s.code }}</p>
-        @if (qrDataUrl()) {
-          <div class="session-lobby__qr">
-            <img [src]="qrDataUrl()" alt="QR-Code: Beitritts-Link {{ joinUrl }}" width="320" height="320" />
-          </div>
-        }
-        <p class="session-lobby__join-hint" i18n>Beitreten unter</p>
-        <p class="session-lobby__join-url"><a [href]="joinUrl" target="_blank" rel="noopener">{{ joinUrl }}</a></p>
         @let payload = participantsPayload();
         @let count = payload ? payload.participantCount : s.participantCount;
         <p class="session-lobby__participants">
           <span class="session-lobby__participants-count">{{ count }}</span>
           {{ count === 1 ? participantLabelSingular() : participantLabelPlural() }}
         </p>
+        @if (s.quizName) {
+          <p class="session-lobby__quiz-name">{{ s.quizName }}</p>
+        }
         @if (s.teamMode && lobbyTeamsWithParticipants().length > 0) {
-          <section class="session-lobby__teams" aria-labelledby="session-lobby-teams-heading">
+          @if (isPlayfulPreset()) {
+            <p class="session-lobby__teams-playful">{{ playfulLobbyTeamsLabel() }}</p>
+          }
+          <section class="session-lobby__teams session-lobby__teams--hero" aria-labelledby="session-lobby-teams-heading">
             <h2 class="session-lobby__teams-title" id="session-lobby-teams-heading" i18n>Teams in der Lobby</h2>
-            @if (isPlayfulPreset()) {
-              <p class="session-lobby__teams-playful">{{ playfulLobbyTeamsLabel() }}</p>
-            }
             <div class="session-lobby__teams-grid">
               @for (team of lobbyTeamsWithParticipants(); track team.id) {
                 <article class="session-lobby__team-card" [class.session-lobby__team-card--playful]="isPlayfulPreset()">
@@ -49,6 +45,29 @@
               }
             </div>
           </section>
+
+          <section class="session-lobby__access" aria-labelledby="session-lobby-access-heading">
+            <h2 class="session-lobby__access-title" id="session-lobby-access-heading" i18n>Zugang zur Session</h2>
+            <div class="session-lobby__access-layout">
+              @if (qrDataUrl()) {
+                <div class="session-lobby__qr">
+                  <img [src]="qrDataUrl()" alt="QR-Code: Beitritts-Link {{ joinUrl }}" width="320" height="320" />
+                </div>
+              }
+              <div class="session-lobby__access-copy">
+                <p class="session-lobby__join-hint" i18n>Beitreten unter</p>
+                <p class="session-lobby__join-url"><a [href]="joinUrl" target="_blank" rel="noopener">{{ joinUrl }}</a></p>
+              </div>
+            </div>
+          </section>
+        } @else {
+          @if (qrDataUrl()) {
+            <div class="session-lobby__qr">
+              <img [src]="qrDataUrl()" alt="QR-Code: Beitritts-Link {{ joinUrl }}" width="320" height="320" />
+            </div>
+          }
+          <p class="session-lobby__join-hint" i18n>Beitreten unter</p>
+          <p class="session-lobby__join-url"><a [href]="joinUrl" target="_blank" rel="noopener">{{ joinUrl }}</a></p>
         }
         @if (!s.teamMode && !s.anonymousMode && payload && payload.participants.length > 0) {
           <ul class="session-lobby__list" role="list" i18n-aria-label aria-label="Teilnehmende">
@@ -56,9 +75,6 @@
               <li class="session-lobby__list-item">{{ p.nickname }}</li>
             }
           </ul>
-        }
-        @if (s.quizName) {
-          <p class="session-lobby__quiz-name">{{ s.quizName }}</p>
         }
         <div class="session-lobby__actions">
           <button

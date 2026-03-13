@@ -1,4 +1,4 @@
-<section class="session-present l-stack l-stack--sm">
+<section class="session-present l-stack l-stack--sm" [class.session-present--team-finale]="showTeamFinish()">
   @if (showTeamFinish() && winningTeam(); as winner) {
     <mat-card appearance="outlined" class="session-present__winner-card">
       <mat-card-content>
@@ -64,14 +64,16 @@
     </mat-card>
   }
 
-  <mat-card appearance="outlined" class="session-placeholder">
-    <mat-card-content>
-      <p class="session-placeholder__text">{{ presenterInfo() }}</p>
-      @if (currentQuestionLabel()) {
-        <p class="session-placeholder__question">{{ currentQuestionLabel() }}</p>
-      }
-    </mat-card-content>
-  </mat-card>
+  @if (!showTeamFinish()) {
+    <mat-card appearance="outlined" class="session-placeholder">
+      <mat-card-content>
+        <p class="session-placeholder__text">{{ presenterInfo() }}</p>
+        @if (currentQuestionLabel()) {
+          <p class="session-placeholder__question">{{ currentQuestionLabel() }}</p>
+        }
+      </mat-card-content>
+    </mat-card>
 
-  <app-word-cloud [responses]="freetextResponses()" />
+    <app-word-cloud [responses]="freetextResponses()" />
+  }
 </section>

@@ -229,6 +229,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
       this.session.set(session);
+      await this.refreshParticipantsPayload();
       await this.refreshLobbyTeams();
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
@@ -242,6 +243,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.refreshCurrentQuestionForHost();
     this.sound.stopMusic();
     this.pollTimer = setInterval(() => {
+      void this.refreshParticipantsPayload();
       void this.refreshLiveFreetext();
       void this.refreshCurrentQuestionForHost();
       void this.refreshEmojiReactions();
@@ -526,6 +528,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.lobbyTeams.set(payload.teams);
     } catch {
       this.lobbyTeams.set([]);
+    }
+  }
+
+  private async refreshParticipantsPayload(): Promise<void> {
+    if (!this.code) {
+      this.participantsPayload.set(null);
+      return;
+    }
+    try {
+      const payload = await trpc.session.getParticipants.query({ code: this.code.toUpperCase() });
+      this.participantsPayload.set(payload);
+    } catch {
+      // Subscription updates remain the primary live path; keep the last payload on transient failures.
     }
   }
 

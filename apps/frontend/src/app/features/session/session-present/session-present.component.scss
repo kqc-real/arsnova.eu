@@ -13,6 +13,12 @@
   width: 100%;
 }
 
+.session-present--team-finale {
+  max-width: 72rem;
+  margin: 0 auto;
+  gap: 1.25rem;
+}
+
 .session-present__winner-card,
 .session-present__team-board-card {
   position: relative;
@@ -20,12 +26,25 @@
 }
 
 .session-present__winner-card {
+  min-height: min(40vh, 24rem);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--mat-sys-primary-container) 72%, white),
     var(--mat-sys-surface)
   );
   border-color: color-mix(in srgb, var(--mat-sys-primary) 30%, var(--mat-sys-outline-variant));
+
+  .session-present--team-finale & {
+    box-shadow: 0 1rem 2.5rem color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  }
+
+  mat-card-content {
+    display: flex;
+    min-height: inherit;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: clamp(1.75rem, 4vw, 3rem);
+  }
 }
 
 .session-present__winner-head {
@@ -42,6 +61,8 @@
   margin: 0;
   font: var(--mat-sys-title-small);
   color: var(--mat-sys-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .session-present__winner-name {
@@ -49,7 +70,8 @@
   align-items: center;
   gap: 0.65rem;
   margin: 0.55rem 0 0;
-  font: var(--mat-sys-headline-medium);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
   line-height: 1.2;
 }
 
@@ -63,18 +85,22 @@
 
 .session-present__winner-text {
   margin: 0.6rem 0 0;
-  font: var(--mat-sys-title-medium);
+  max-width: 24ch;
+  font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+  line-height: 1.25;
 }
 
 .session-present__winner-meta {
-  margin: 0.5rem 0 0;
+  margin: 0.8rem 0 0;
   color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
+  font-size: clamp(1rem, 1.7vw, 1.15rem);
+  font-weight: 600;
 }
 
 .session-present__team-board-title {
   margin: 0 0 1rem;
-  font: var(--mat-sys-title-large);
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 700;
 }
 
 .session-present__team-board-list {
@@ -86,7 +112,7 @@
 }
 
 .session-present__team-board-item {
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.1rem;
   border-radius: var(--mat-sys-corner-large, 0.875rem);
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
@@ -106,7 +132,7 @@
 
 .session-present__team-board-rank {
   color: var(--mat-sys-primary);
-  font: var(--mat-sys-title-small);
+  font-size: 1.05rem;
   font-weight: 700;
 }
 
@@ -114,13 +140,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  font: var(--mat-sys-title-small);
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
 .session-present__team-board-meta {
   color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
+  font-size: 0.95rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -157,6 +183,14 @@
 }
 
 @media (max-width: 700px) {
+  .session-present--team-finale {
+    gap: 1rem;
+  }
+
+  .session-present__winner-card {
+    min-height: auto;
+  }
+
   .session-present__team-board-head {
     grid-template-columns: auto 1fr;
   }

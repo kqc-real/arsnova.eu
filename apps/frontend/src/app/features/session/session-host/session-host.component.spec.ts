@@ -7,6 +7,7 @@ const unsubscribeMock = vi.fn();
 
 const {
   getInfoQueryMock,
+  getParticipantsQueryMock,
   getTeamsQueryMock,
   getLiveFreetextQueryMock,
   getCurrentQuestionForHostQueryMock,
@@ -16,6 +17,7 @@ const {
   onStatusChangedSubscribeMock,
 } = vi.hoisted(() => ({
   getInfoQueryMock: vi.fn(),
+  getParticipantsQueryMock: vi.fn(),
   getTeamsQueryMock: vi.fn(),
   getLiveFreetextQueryMock: vi.fn(),
   getCurrentQuestionForHostQueryMock: vi.fn(),
@@ -29,6 +31,7 @@ vi.mock('../../../core/trpc.client', () => ({
   trpc: {
     session: {
       getInfo: { query: getInfoQueryMock },
+      getParticipants: { query: getParticipantsQueryMock },
       getTeams: { query: getTeamsQueryMock },
       getLiveFreetext: { query: getLiveFreetextQueryMock },
       getCurrentQuestionForHost: { query: getCurrentQuestionForHostQueryMock },
@@ -69,6 +72,7 @@ describe('SessionHostComponent', () => {
     vi.clearAllMocks();
     unsubscribeMock.mockClear();
     getInfoQueryMock.mockResolvedValue({ ...defaultSession });
+    getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
     onParticipantJoinedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     onStatusChangedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     getTeamsQueryMock.mockResolvedValue({ teams: [], teamCount: 0 });
@@ -247,6 +251,14 @@ describe('SessionHostComponent', () => {
       teams: [
         { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 2 },
         { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 1 },
+      ],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 3,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p2', nickname: 'Linus', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p3', nickname: 'Grace', teamId: 'team-b', teamName: 'Blau' },
       ],
     });
     onParticipantJoinedSubscribeMock.mockImplementation((_input: unknown, opts: { onData: (d: unknown) => void }) => {

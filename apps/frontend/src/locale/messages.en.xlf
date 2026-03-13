@@ -762,6 +762,10 @@
         <source>Session-Code</source>
         <target>Session code</target>
       </trans-unit>
+      <trans-unit id="7212853021617194008" datatype="html">
+        <source>Zugang zur Session</source>
+        <target>Session access</target>
+      </trans-unit>
       <trans-unit id="1080394870774492028" datatype="html">
         <source>Beitreten unter</source>
         <target>Join at</target>

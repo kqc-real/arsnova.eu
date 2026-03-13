@@ -130,6 +130,12 @@
     cursor: default;
   }
 
+  &__team-card--suggested {
+    border-color: color-mix(in srgb, var(--mat-sys-tertiary) 48%, var(--mat-sys-outline-variant));
+    background: color-mix(in srgb, var(--mat-sys-tertiary-container) 22%, var(--mat-sys-surface-container-low));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
+  }
+
   &__team-card--selected {
     border-color: var(--mat-sys-primary);
     background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-low));

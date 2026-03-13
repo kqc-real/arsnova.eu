@@ -79,6 +79,22 @@ export class JoinComponent implements OnInit, OnDestroy {
   readonly selectedTeam = computed(() =>
     this.teams().find((team) => team.id === this.selectedTeamId()) ?? null,
   );
+  readonly autoPreviewTeam = computed(() => {
+    if (!this.showTeamInfo() || this.showTeamSelect()) {
+      return null;
+    }
+
+    return [...this.teams()].sort((left, right) => {
+      if (left.memberCount !== right.memberCount) {
+        return left.memberCount - right.memberCount;
+      }
+
+      return left.name.localeCompare(right.name, this.locale);
+    })[0] ?? null;
+  });
+  readonly visibleTeamChoice = computed(() =>
+    this.showTeamSelect() ? this.selectedTeam() : this.autoPreviewTeam(),
+  );
 
   readonly canSubmit = computed(() => {
     const sel = this.selectedNickname().trim();
@@ -119,11 +135,11 @@ export class JoinComponent implements OnInit, OnDestroy {
       ? $localize`Wähle ein Team, bevor du beitrittst.`
       : $localize`Teams werden automatisch verteilt. Du siehst hier schon, welche Teams bereitstehen.`;
   selectedTeamLabel = () => {
-    const team = this.selectedTeam();
+    const team = this.showTeamSelect() ? this.selectedTeam() : null;
     return team ? $localize`Ausgewählt: ${team.name}` : null;
   };
   playfulTeamReadyLabel = () => {
-    const team = this.selectedTeam();
+    const team = this.visibleTeamChoice();
     return team ? $localize`Perfekt! ${team.name} wartet schon auf dich.` : null;
   };
 

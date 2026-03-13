@@ -122,6 +122,8 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Team-Sieg');
     expect(text).toContain('Rot');
     expect(text).toContain('Team-Finale');
+    expect(text).not.toContain('Noch keine aktive Frage.');
+    expect(text).not.toContain('Word-Cloud');
     expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
     fixture.destroy();
   });

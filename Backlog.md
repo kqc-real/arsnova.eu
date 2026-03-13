@@ -834,18 +834,19 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
   - **Aktueller Implementierungsstand (März 2026):**
     - `shared-types`, Prisma und Backend-Router tragen `teamMode`, `teamCount`, `teamAssignment` und konfigurierbare `teamNames` Ende-zu-Ende.
     - Beim Session-Start werden Teams serverseitig initialisiert; eigene Team-Namen werden übernommen, fehlende Namen fallen auf `Team A`, `Team B`, … zurück.
-    - `join/:code` unterstützt sowohl **MANUAL**-Teamwahl als Karten-/Select-UI als auch **AUTO**-Zuweisung mit sichtbarer Teamvorschau.
+    - `join/:code` nutzt im **MANUAL**-Modus jetzt ein eindeutiges Kartenmuster statt doppelter Auswahl; im **AUTO**-Modus bleibt die Teamvorschau sichtbar und hebt ein wahrscheinliches Zielteam als kleinen Orientierungsmoment hervor.
     - Die Join-Ansicht zeigt Teamfarben, Mitgliederzahl, klaren Auswahlzustand und im Preset `PLAYFUL` einen kleinen spielerischen Bestätigungs-/Motivationsmoment.
-    - Die Host-Lobby gruppiert Teilnehmende bereits nach Teams; die Abschlussansicht zeigt zusätzlich ein Team-Leaderboard mit farbigen Balken.
+    - Die Host-Lobby gruppiert Teilnehmende nach Teams, priorisiert die Teamkarten jetzt visuell vor QR/Join-Link und zeigt den Zugang zur Session als sekundären Block darunter; die Abschlussansicht zeigt zusätzlich ein Team-Leaderboard mit farbigen Balken.
     - Für Quiz New/Edit gibt es konfigurierbare Team-Namen inkl. Live-Vorschau der effektiv entstehenden Teams sowie Validierung gegen Duplikate, Überlänge und zu viele Einträge.
-    - `session/:code/present` inszeniert das Team-Finale jetzt mit Siegerkarte, Team-Balkenboard und leichtem `PLAYFUL`-Finish für den Beamer.
+    - `session/:code/present` inszeniert das Team-Finale jetzt fokussiert als Siegerkarte plus kompaktes Team-Balkenboard; laufzeitfremde Word-Cloud-/Placeholder-Inhalte bleiben im Abschlusszustand ausgeblendet.
     - `session/:code/vote` zeigt in `RESULTS` und `FINISHED` einen kollektiven Team-Moment mit eigener Teamkarte, Teamrang, Team-Punkten und kompakter Team-Topliste.
   - **Verifizierung bisher:**
     - Backend: Team-Initialisierung, Auto-/Manual-Join und Team-Leaderboard sind durch Unit-Tests abgedeckt.
     - Frontend: Join-, Quiz-, Host-, Present- und Vote-Specs decken Teamwahl, Teamvorschau, Lobby/Leaderboard, Beamer-Finale und kollektiven Teilnehmer-Reward ab.
     - Lokalisierung: Alle neuen Teammodus-Texte sind in `de`, `en`, `fr`, `es`, `it` nachgezogen; `extract-i18n` und `build:localize` laufen erfolgreich.
+    - Laufzeit-Review: Echte Multi-Client-Captures aus dem lokalisierten Build wurden nach dem UX-Feinschliff erneuert (`runtime-02-join-manual.png`, `runtime-03-host-lobby-fixed.png`, `runtime-05-join-auto.png`, `runtime-06-present-finale.png`); der frühere Lobby-Befund bleibt als Vergleich in `runtime-03-host-lobby.png` erhalten.
   - **Noch offen bis `✅ Fertig`:**
-    - abschließende Story-Abnahme und Dokumentation als vollständig abgeschlossen
+    - abschließende Story-Abnahme und Commit/Integration der final verifizierten Teammodus-Dokumentation
 
 ---
 
