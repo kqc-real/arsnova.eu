@@ -142,6 +142,27 @@ describe('JoinComponent', () => {
     expect(comp.isTaken('Albert Einstein')).toBe(false);
   });
 
+  it('zeigt bei Q&A ein freies Namensfeld auch ohne Quiz-Einstellungen', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      id: 'sess-qa',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 3,
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(comp.showCustomNickname()).toBe(true);
+    expect(comp.showNicknameList()).toBe(false);
+    expect(comp.canSubmit()).toBe(false);
+  });
+
   it('ruft join mit Code und Nickname auf und navigiert zu vote (Story 3.2)', async () => {
     const { fixture, comp } = createWithCode('ABC123');
     const router = fixture.debugElement.injector.get(Router);

@@ -33,8 +33,6 @@
           <div class="home-hero-icon"><mat-icon>how_to_vote</mat-icon></div>
         </div>
 
-        <p class="home-trust-badges" i18n>Kostenlos · DSGVO-konform · Open Source</p>
-
         <mat-card appearance="raised" id="participant-entry" class="home-card">
           <mat-card-header>
             <mat-card-subtitle>
@@ -138,7 +136,7 @@
                 <mat-icon class="home-card__icon">school</mat-icon>
                 <span i18n>Veranstalten</span>
               </mat-card-subtitle>
-              <mat-card-title class="home-card__title" i18n>Quiz starten</mat-card-title>
+              <mat-card-title class="home-card__title" i18n="@@homeHostCard.title">Veranstaltung starten</mat-card-title>
             </div>
             <a
               mat-button
@@ -155,7 +153,7 @@
 
           <mat-card-content>
             <div class="home-card__meta">
-              <p class="home-card__copy" i18n>Quiz oder Q&amp;A in Sekunden</p>
+              <p class="home-card__copy" i18n="@@homeHostCard.copy">Quiz, Fragen und Feedback mit einem Code</p>
               <a
                 matButton
                 routerLink="/help"
@@ -170,11 +168,26 @@
           </mat-card-content>
 
           <mat-card-actions class="l-stack l-stack--sm">
-            <a matButton="filled" routerLink="/quiz/new" class="home-cta" (mouseenter)="preloadQuiz()">
-              <mat-icon class="home-cta__icon">add_circle</mat-icon>
-              <span i18n>Neues Quiz erstellen</span>
+            <a
+              matButton="filled"
+              routerLink="/quiz"
+              [queryParams]="{ startLive: 1 }"
+              class="home-cta"
+              (mouseenter)="preloadQuiz()"
+            >
+              <mat-icon class="home-cta__icon">play_circle</mat-icon>
+              <span i18n="@@homeHostCard.primaryCta">Veranstaltung starten</span>
             </a>
             <div class="home-cta-row">
+              <a
+                matButton="tonal"
+                routerLink="/quiz/new"
+                class="home-cta home-cta--secondary"
+                (mouseenter)="preloadQuiz()"
+              >
+                <mat-icon class="home-cta__icon">add_circle</mat-icon>
+                <span i18n="@@homeHostCard.secondaryCta">Neues Quiz erstellen</span>
+              </a>
               <a
                 matButton="tonal"
                 routerLink="/quiz"
@@ -183,81 +196,12 @@
                 [matBadge]="quizCount()"
                 [matBadgeHidden]="quizCount() === 0"
               >
-                <mat-icon class="home-cta__icon">quiz</mat-icon>
-                <span i18n>Meine Quizze</span>
+                <mat-icon class="home-cta__icon">library_books</mat-icon>
+                <span i18n="@@homeHostCard.libraryCta">Quiz-Bibliothek</span>
               </a>
-              <button
-                matButton="tonal"
-                class="home-cta home-cta--secondary"
-                disabled
-                i18n-matTooltip
-                matTooltip="Q&amp;A kommt bald"
-              >
-                <mat-icon class="home-cta__icon">question_answer</mat-icon>
-                <span i18n>Q&amp;A</span>
-              </button>
             </div>
           </mat-card-actions>
         </mat-card>
       </main>
 
-      <section class="home-grid">
-        <mat-card appearance="raised" class="home-card">
-          <mat-card-header>
-            <mat-card-subtitle>
-              <mat-icon class="home-card__icon">bolt</mat-icon>
-              <span i18n>Abstimmen</span>
-            </mat-card-subtitle>
-            <mat-card-title class="home-card__title" i18n>Blitz-Feedback</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            @if (feedbackError(); as fbErr) {
-              <p class="home-feedback-error" role="alert">{{ fbErr }}</p>
-            }
-            <div class="home-feedback-row">
-              <button class="home-feedback-btn" type="button" (click)="startQuickFeedback('MOOD')" i18n-aria-label aria-label="Stimmungsbild starten">
-                <span class="home-feedback-btn__icon">😊</span>
-                <span class="home-feedback-btn__icon">😐</span>
-                <span class="home-feedback-btn__icon">😟</span>
-              </button>
-              <button class="home-feedback-btn" type="button" (click)="startQuickFeedback('YESNO')" i18n-aria-label aria-label="Ja/Nein-Voting starten">
-                <span class="home-feedback-btn__icon">👍</span>
-                <span class="home-feedback-btn__icon">👎</span>
-                <span class="home-feedback-btn__icon">🤷</span>
-              </button>
-              <button class="home-feedback-btn" type="button" (click)="startQuickFeedback('ABCD')" i18n-aria-label aria-label="ABCD-Voting starten">
-                <span class="home-feedback-btn__letter">A</span>
-                <span class="home-feedback-btn__letter">B</span>
-                <span class="home-feedback-btn__letter">C</span>
-                <span class="home-feedback-btn__letter">D</span>
-              </button>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card appearance="raised" class="home-card home-subcard--status">
-          <mat-card-header>
-            <mat-card-subtitle>
-              <mat-icon class="home-card__icon">sensors</mat-icon>
-              <span i18n>Server</span>
-            </mat-card-subtitle>
-            <mat-card-title class="home-card__title" i18n>Status</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            @if (apiStatus()) {
-              <p class="home-subcard__body" i18n>Verbunden</p>
-            } @else {
-              <p class="home-subcard__body" i18n>Keine Verbindung</p>
-              <button matButton="outlined" class="home-retry-btn" (click)="retryConnection()" [disabled]="apiRetrying()">
-                {{ retryButtonLabel() }}
-              </button>
-            }
-            @defer (on viewport) {
-              <app-server-status-widget [connectionOk]="!!apiStatus()" />
-            } @placeholder {
-              <div class="home-status-placeholder" aria-hidden="true"><span></span></div>
-            }
-          </mat-card-content>
-        </mat-card>
-      </section>
     </div>

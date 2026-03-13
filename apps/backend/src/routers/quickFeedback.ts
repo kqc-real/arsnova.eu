@@ -17,6 +17,7 @@ import {
 } from '@arsnova/shared-types';
 import { publicProcedure, router } from '../trpc';
 import { getRedis } from '../redis';
+import { prisma } from '../db';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
 const POLL_INTERVAL_MS = 300;
@@ -60,13 +61,34 @@ function emptyDistribution(type: QuickFeedbackType): Record<string, number> {
   return Object.fromEntries(validValues(type).map((v) => [v, 0]));
 }
 
+async function assertSessionQuickFeedbackEnabled(code: string): Promise<void> {
+  const session = await prisma.session.findUnique({
+    where: { code },
+    select: { id: true, quickFeedbackEnabled: true },
+  });
+
+  if (!session) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+  }
+
+  if (session.quickFeedbackEnabled !== true) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Blitz-Feedback ist für diese Session nicht aktiviert.',
+    });
+  }
+}
+
 export const quickFeedbackRouter = router({
   create: publicProcedure
     .input(CreateQuickFeedbackInputSchema)
     .output(CreateQuickFeedbackOutputSchema)
     .mutation(async ({ input }) => {
       const redis = getRedis();
-      const code = generateCode();
+      const code = input.sessionCode?.toUpperCase() ?? generateCode();
+      if (input.sessionCode) {
+        await assertSessionQuickFeedbackEnabled(code);
+      }
       const key = feedbackKey(code);
 
       const initial: QuickFeedbackResult = {
@@ -78,7 +100,12 @@ export const quickFeedbackRouter = router({
         distribution: emptyDistribution(input.type),
       };
 
-      await redis.set(key, JSON.stringify(initial), 'EX', FEEDBACK_TTL_SECONDS);
+      const multi = redis.multi();
+      multi.set(key, JSON.stringify(initial), 'EX', FEEDBACK_TTL_SECONDS);
+      multi.del(votersKey(code));
+      multi.del(choicesKey(code));
+      multi.del(choicesR1Key(code));
+      await multi.exec();
       return { feedbackId: key, sessionCode: code };
     }),
 

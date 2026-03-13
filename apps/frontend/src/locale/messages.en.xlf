@@ -1407,8 +1407,8 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Play live:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Release questions one by one, everyone votes, show results live.</target>
       </trans-unit>
       <trans-unit id="2883378098331699504" datatype="html">
-        <source>Schnelle Abstimmung ohne Quiz – direkt von der Startseite starten.</source>
-        <target>Quick poll without a quiz – start directly from the home page.</target>
+        <source>Schnelle Abstimmung als Live-Bereich in deiner Veranstaltung.</source>
+        <target>Quick polling as a live area in your event.</target>
       </trans-unit>
       <trans-unit id="1700849053740132045" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stimmungsbild<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): Wie geht es den Teilnehmenden?</source>
@@ -1423,8 +1423,8 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABCD voting<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C D): Four answer options, e.g. for spontaneous quiz questions.</target>
       </trans-unit>
       <trans-unit id="142948932975964406" datatype="html">
-        <source>Nach dem Klick erscheint ein QR-Code und ein Session-Code. Teilnehmende scannen oder geben den Code ein und stimmen mit einem Tipp ab. Du siehst die Ergebnisse live als Balkendiagramm.</source>
-        <target>After clicking, a QR code and session code appear. Participants scan or enter the code and vote with one tap. You see results live as a bar chart.</target>
+        <source>Du startest die Runde im Host-Bereich deiner Live-Session. Teilnehmende bleiben mit demselben Session-Code dabei und stimmen mit einem Tipp ab. Du siehst die Ergebnisse live als Balkendiagramm.</source>
+        <target>You start the round in the host area of your live session. Participants stay in with the same session code and vote with one tap. You see the results live as a bar chart.</target>
       </trans-unit>
       <trans-unit id="2771235871372028980" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stopp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Abstimmung einfrieren – Teilnehmende sehen „Abstimmung ist pausiert&quot; und können nicht mehr abstimmen, bis du „Fortsetzen&quot; wählst.</source>
@@ -1685,8 +1685,8 @@
         <target>Sync link: <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;quiz-sync__link&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ syncLink() }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></target>
       </trans-unit>
       <trans-unit id="quizList.tooltipMinQuestions" datatype="html">
-        <source>Mindestens eine Frage erforderlich.</source>
-        <target>At least one question required.</target>
+        <source>Für ein Quiz brauchst du mindestens eine Frage.</source>
+        <target>You need at least one question to start a quiz.</target>
       </trans-unit>
       <trans-unit id="quizList.tooltipDeleteLive" datatype="html">
         <source>Kann nicht gelöscht werden, solange das Quiz live ist.</source>
@@ -3612,6 +3612,362 @@
       <trans-unit id="2056726732284037224" datatype="html">
         <source>Platz <x id="teamRank" equiv-text="entry.rank"/>: <x id="teamName" equiv-text="entry.teamName"/> mit <x id="totalScore" equiv-text="entry.totalScore"/> Punkten</source>
         <target>Place <x id="teamRank"/>: <x id="teamName"/> with <x id="totalScore"/> points</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.title" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Start event</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.intro" datatype="html">
+        <source>Wähle den Start. Alles Weitere läuft mit demselben Code.</source>
+        <target>Choose the start. Everything else uses the same code.</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.startLabel" datatype="html">
+        <source>Start</source>
+        <target>Start</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionQuiz" datatype="html">
+        <source>Mit Quiz</source>
+        <target>With quiz</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionQuizHint" datatype="html">
+        <source>Nutzt „<x id="PH" equiv-text="data.quizName"/>“.</source>
+        <target>Uses “<x id="PH"/>”.</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionQa" datatype="html">
+        <source>Mit Fragen</source>
+        <target>With questions</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionQaHint" datatype="html">
+        <source>Startet mit Fragen. Quiz später dazu.</source>
+        <target>Starts with questions. Add quiz later.</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.quizDisabled" datatype="html">
+        <source>Für Quiz brauchst du mindestens eine Frage. Sonst starte mit Fragen.</source>
+        <target>You need at least one question for quiz. Otherwise start with questions.</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.qaTitleLabel" datatype="html">
+        <source>Fragen-Titel (optional)</source>
+        <target>Questions title (optional)</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.qaTitlePlaceholder" datatype="html">
+        <source>z. B. Vorlesung</source>
+        <target>e.g. Lecture</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.cancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Cancel</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.confirm" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Start event</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionGroup" datatype="html">
+        <source>Start für Live-Session wählen</source>
+        <target>Select how the live session starts</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelGroup" datatype="html">
+        <source>Zusätzliche Live-Bereiche wählen</source>
+        <target>Select additional live areas</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelsLabel" datatype="html">
+        <source>Zusätzlich aktivieren</source>
+        <target>Enable as well</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQuiz" datatype="html">
+        <source>Quiz</source>
+        <target>Quiz</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQuizHint" datatype="html">
+        <source>Fragen und Ergebnisse</source>
+        <target>Questions and results</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQa" datatype="html">
+        <source>Fragen</source>
+        <target>Questions</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQaHint" datatype="html">
+        <source>Fragen aus dem Raum</source>
+        <target>Questions from the room</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQuickFeedback" datatype="html">
+        <source>Blitz-Feedback</source>
+        <target>Quick feedback</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQuickFeedbackHint" datatype="html">
+        <source>Kurze Stimmungsbilder</source>
+        <target>Quick mood checks</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelStateStart" datatype="html">
+        <source>Start</source>
+        <target>Start</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelStateOn" datatype="html">
+        <source>An</source>
+        <target>On</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelStateOff" datatype="html">
+        <source>Aus</source>
+        <target>Off</target>
+      </trans-unit>
+      <trans-unit id="quizList.startSession" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Start event</target>
+      </trans-unit>
+      <trans-unit id="quizList.qaStarted" datatype="html">
+        <source>Fragerunde <x id="code" equiv-text="result.code"/> gestartet.</source>
+        <target>Q&amp;A round <x id="code"/> started.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.startQa" datatype="html">
+        <source>Fragerunde starten</source>
+        <target>Start Q&amp;A round</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.qaLiveLabel" datatype="html">
+        <source>Fragerunde läuft</source>
+        <target>Q&amp;A round is live</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.qaLiveHint" datatype="html">
+        <source>Teilnehmende können jetzt mit dem Session-Code beitreten.</source>
+        <target>Participants can now join with the session code.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.endQa" datatype="html">
+        <source>Fragerunde beenden</source>
+        <target>End Q&amp;A round</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.qaTitleFallback" datatype="html">
+        <source>Fragerunde</source>
+        <target>Q&amp;A round</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseLobby" datatype="html">
+        <source>Lobby – Teilnehmende können beitreten</source>
+        <target>Lobby - participants can join</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseQaPreparing" datatype="html">
+        <source>Fragerunde wird vorbereitet</source>
+        <target>Q&amp;A round is getting ready</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseQaActive" datatype="html">
+        <source>Fragerunde läuft</source>
+        <target>Q&amp;A round is live</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phasePaused" datatype="html">
+        <source>Pausiert</source>
+        <target>Paused</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseQaFinished" datatype="html">
+        <source>Fragerunde beendet</source>
+        <target>Q&amp;A round ended</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.qaLobbyHint" datatype="html">
+        <source>Die Fragerunde startet automatisch. Halte diese Seite offen.</source>
+        <target>The Q&amp;A round starts automatically. Keep this page open.</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.qaActiveTitle" datatype="html">
+        <source>Fragerunde läuft</source>
+        <target>Q&amp;A round is live</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.qaActiveHint" datatype="html">
+        <source>Du bist verbunden. Neue Inhalte erscheinen hier automatisch.</source>
+        <target>You're connected. New content appears here automatically.</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.hostAria" datatype="html">
+        <source>Live-Bereich wählen</source>
+        <target>Choose live area</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.voteAria" datatype="html">
+        <source>Live-Bereich wählen</source>
+        <target>Choose live area</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quiz" datatype="html">
+        <source>Quiz</source>
+        <target>Quiz</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.questions" datatype="html">
+        <source>Fragen</source>
+        <target>Questions</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.questionsWithCount" datatype="html">
+        <source>Fragen (<x id="count" equiv-text="this.qaQuestions().length"/>)</source>
+        <target>Questions (<x id="count" equiv-text="this.qaQuestions().length"/>)</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedback" datatype="html">
+        <source>Blitz-Feedback</source>
+        <target>Quick feedback</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.qaHostPlaceholder" datatype="html">
+        <source>Hier sammelst und moderierst du Fragen aus dem Publikum.</source>
+        <target>This is where you collect and moderate questions from the audience.</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackHostTitle" datatype="html">
+        <source>Kurze Rückmeldungen im Blick</source>
+        <target>Quick reactions at a glance</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackHostPlaceholder" datatype="html">
+        <source>Hier erscheinen spontane Rückmeldungen und schnelle Stimmungsbilder der Gruppe.</source>
+        <target>This is where spontaneous reactions and quick mood snapshots of the group appear.</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.qaVotePlaceholder" datatype="html">
+        <source>Hier kannst du Fragen an die Quizleitung senden und später wiederfinden.</source>
+        <target>Here you can send questions to the quiz host and find them again later.</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackVoteTitle" datatype="html">
+        <source>Schnell Rückmeldung geben</source>
+        <target>Give quick feedback</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackVotePlaceholder" datatype="html">
+        <source>Hier kannst du kurze Rückmeldungen und spontane Stimmungsbilder abgeben.</source>
+        <target>Here you can give short reactions and spontaneous mood feedback.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusPinned" datatype="html">
+        <source>Wird beantwortet</source>
+        <target>Being answered</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusActive" datatype="html">
+        <source>Offen</source>
+        <target>Open</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusPending" datatype="html">
+        <source>Wartet auf Freigabe</source>
+        <target>Waiting for approval</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusArchived" datatype="html">
+        <source>Beantwortet</source>
+        <target>Answered</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusDeleted" datatype="html">
+        <source>Entfernt</source>
+        <target>Removed</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.votes" datatype="html">
+        <source>Stimmen</source>
+        <target>Votes</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostLoadError" datatype="html">
+        <source>Fragen konnten nicht geladen werden.</source>
+        <target>Questions could not be loaded.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.voteLoadError" datatype="html">
+        <source>Fragen konnten nicht geladen werden.</source>
+        <target>Questions could not be loaded.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.askLabel" datatype="html">
+        <source>Deine Frage</source>
+        <target>Your question</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.askPlaceholder" datatype="html">
+        <source>Schreibe deine Frage hier</source>
+        <target>Write your question here</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.askSubmit" datatype="html">
+        <source>Frage senden</source>
+        <target>Send question</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.submitSuccess" datatype="html">
+        <source>Frage gesendet.</source>
+        <target>Question sent.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.submitError" datatype="html">
+        <source>Frage konnte nicht gesendet werden.</source>
+        <target>Question could not be sent.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.upvoteError" datatype="html">
+        <source>Stimme konnte nicht gespeichert werden.</source>
+        <target>Vote could not be saved.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionApprove" datatype="html">
+        <source>Freigeben</source>
+        <target>Approve</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionPin" datatype="html">
+        <source>Hervorheben</source>
+        <target>Highlight</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionArchive" datatype="html">
+        <source>Archivieren</source>
+        <target>Archive</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionDelete" datatype="html">
+        <source>Löschen</source>
+        <target>Delete</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationModeHint" datatype="html">
+        <source>Vorab-Moderation ist aktiv. Neue Fragen warten erst auf deine Freigabe.</source>
+        <target>Pre-moderation is enabled. New questions wait for your approval first.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryTotal" datatype="html">
+        <source>Gesamt: <x id="INTERPOLATION" equiv-text="qaQuestions().length"/></source>
+        <target>Total: <x id="INTERPOLATION" equiv-text="qaQuestions().length"/></target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryPending" datatype="html">
+        <source>Warten auf Freigabe: <x id="INTERPOLATION" equiv-text="qaPendingCount()"/></source>
+        <target>Waiting for approval: <x id="INTERPOLATION" equiv-text="qaPendingCount()"/></target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationApproved" datatype="html">
+        <source>Frage freigegeben.</source>
+        <target>Question approved.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationPinned" datatype="html">
+        <source>Frage hervorgehoben.</source>
+        <target>Question highlighted.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationArchived" datatype="html">
+        <source>Frage archiviert.</source>
+        <target>Question archived.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationDeleted" datatype="html">
+        <source>Frage entfernt.</source>
+        <target>Question removed.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationError" datatype="html">
+        <source>Moderationsaktion konnte nicht ausgeführt werden.</source>
+        <target>Moderation action could not be completed.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaLabel" datatype="html">
+        <source>Frage aus dem Saal</source>
+        <target>Question from the room</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaTitle" datatype="html">
+        <source>Wird gerade beantwortet</source>
+        <target>Currently being answered</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.questionsBadgeNew" datatype="html">
+        <source><x id="count" equiv-text="this.qaUnseenCount()"/> neu</source>
+        <target><x id="count" equiv-text="this.qaUnseenCount()"/> new</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.title" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Start event</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.copy" datatype="html">
+        <source>Quiz, Fragen und Feedback mit einem Code</source>
+        <target>Quiz, questions and feedback with one code</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.primaryCta" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Start event</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.secondaryCta" datatype="html">
+        <source>Neues Quiz erstellen</source>
+        <target>Create new quiz</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.libraryCta" datatype="html">
+        <source>Quiz-Bibliothek</source>
+        <target>Quiz library</target>
+      </trans-unit>
+      <trans-unit id="help.demoCardHint" datatype="html">
+        <source>Auf der Startseite in der Karte <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Veranstaltung starten<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> führt der Link <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo spielen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> in ein vorinstalliertes Beispiel-Quiz. Du siehst alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen.</source>
+        <target>On the home page, in the <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Start event<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> card, the <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Play demo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> link opens a preinstalled sample quiz. You can see all question types, including KaTeX formulas and Markdown, without creating anything first.</target>
+      </trans-unit>
+      <trans-unit id="help.hostLead" datatype="html">
+        <source>Du startest eine Live-Session, teilst den Code und steuerst Quiz, Fragen und weitere Live-Bereiche.</source>
+        <target>You start a live session, share the code and control quiz, questions and other live areas.</target>
+      </trans-unit>
+      <trans-unit id="help.hostStartStep" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In deiner Quiz-Bibliothek eine Veranstaltung starten und festlegen, ob sie mit Quiz oder Fragen beginnt. Dann entsteht ein 6-stelliger Code.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Start session:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Start an event in your quiz library and choose whether it begins with a quiz or questions. This creates a 6-character code.</target>
+      </trans-unit>
+      <trans-unit id="help.demoQuizHint" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. Direkt von der Startseite über „Demo spielen&quot; (Karte „Veranstaltung starten&quot;) oder in der Quiz-Bibliothek in der Vorschau öffnen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> A preinstalled quiz shows all question types with examples, including KaTeX formulas and Markdown. Open it directly from the home page via “Play demo” (card “Start event”) or from the quiz library preview.</target>
       </trans-unit>
     </body>
   </file>

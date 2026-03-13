@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
@@ -22,60 +22,103 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly themePreset = inject(ThemePresetService);
   private subscription: Unsubscribable | null = null;
+  private pollTimer: ReturnType<typeof setInterval> | null = null;
+  readonly sessionCode = input('');
+  readonly embeddedInSession = input(false);
 
-  readonly code = (this.route.snapshot.paramMap.get('code') ?? '').toUpperCase();
+  readonly code = computed(() =>
+    (this.sessionCode() || (this.route.snapshot.paramMap.get('code') ?? '')).toUpperCase(),
+  );
   readonly result = signal<QuickFeedbackResult | null>(null);
   readonly qrDataUrl = signal<string>('');
   readonly error = signal<string | null>(null);
   readonly copied = signal(false);
   readonly resetting = signal(false);
   readonly locked = signal(false);
+  readonly selectedType = signal<'MOOD' | 'ABCD' | 'YESNO'>('MOOD');
+  readonly showEmbeddedEmptyState = computed(() => this.embeddedInSession() && this.result() === null);
 
   constructor() {
     effect(() => {
       const theme = this.themePreset.theme();
       const preset = this.themePreset.preset();
-      if (this.code) {
+      const code = this.code();
+      if (code) {
         trpc.quickFeedback.updateStyle.mutate({
-          sessionCode: this.code,
+          sessionCode: code,
           theme,
           preset,
         }).catch(() => {});
+      }
+    });
+    effect(() => {
+      const currentType = this.result()?.type;
+      if (currentType === 'MOOD' || currentType === 'ABCD' || currentType === 'YESNO') {
+        this.selectedType.set(currentType);
       }
     });
   }
 
   get joinUrl(): string {
     const base = globalThis.location?.origin ?? '';
-    return `${base}/feedback/${this.code}/vote`;
+    const code = this.code();
+    return this.embeddedInSession() ? `${base}/join/${code}` : `${base}/feedback/${code}/vote`;
   }
 
   async ngOnInit(): Promise<void> {
-    this.generateQrCode();
+    await this.generateQrCode();
     await this.loadInitialResult();
-    this.subscribeToResults();
+    this.startPolling();
+    if (this.result()) {
+      this.subscribeToResults();
+    }
   }
 
   ngOnDestroy(): void {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
     this.subscription?.unsubscribe();
     this.subscription = null;
   }
 
+  private startPolling(): void {
+    if (this.pollTimer || !this.code()) {
+      return;
+    }
+    this.pollTimer = setInterval(() => {
+      void this.loadInitialResult();
+    }, 1500);
+  }
+
   /** Erste Daten per HTTP laden, damit die Seite nicht auf die WebSocket-Subscription warten muss. */
   private async loadInitialResult(): Promise<void> {
+    const code = this.code();
+    if (!code) {
+      return;
+    }
+
     try {
-      const data = await trpc.quickFeedback.results.query({ sessionCode: this.code });
+      const data = await trpc.quickFeedback.results.query({ sessionCode: code });
       this.result.set(data);
       this.locked.set(data.locked);
       this.error.set(null);
     } catch {
-      this.error.set($localize`Feedback-Runde nicht gefunden oder abgelaufen.`);
+      this.result.set(null);
+      this.locked.set(false);
+      this.error.set(this.embeddedInSession() ? null : $localize`Feedback-Runde nicht gefunden oder abgelaufen.`);
     }
   }
 
   private subscribeToResults(): void {
+    const code = this.code();
+    if (!code || this.subscription) {
+      return;
+    }
+
     this.subscription = trpc.quickFeedback.onResults.subscribe(
-      { sessionCode: this.code },
+      { sessionCode: code },
       {
         onData: (data) => {
           this.result.set(data);
@@ -83,7 +126,11 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
           this.error.set(null);
         },
         onError: () => {
-          this.error.set($localize`Feedback-Runde nicht gefunden oder abgelaufen.`);
+          this.subscription?.unsubscribe();
+          this.subscription = null;
+          if (!this.embeddedInSession()) {
+            this.error.set($localize`Feedback-Runde nicht gefunden oder abgelaufen.`);
+          }
         },
       },
     );
@@ -109,8 +156,13 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   async toggleLock(): Promise<void> {
+    const code = this.code();
+    if (!code) {
+      return;
+    }
+
     try {
-      const res = await trpc.quickFeedback.toggleLock.mutate({ sessionCode: this.code });
+      const res = await trpc.quickFeedback.toggleLock.mutate({ sessionCode: code });
       this.locked.set(res.locked);
     } catch {
       // best-effort
@@ -156,26 +208,40 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   async startDiscussion(): Promise<void> {
+    const code = this.code();
+    if (!code) {
+      return;
+    }
+
     try {
-      await trpc.quickFeedback.startDiscussion.mutate({ sessionCode: this.code });
+      await trpc.quickFeedback.startDiscussion.mutate({ sessionCode: code });
     } catch {
       // best-effort
     }
   }
 
   async startSecondRound(): Promise<void> {
+    const code = this.code();
+    if (!code) {
+      return;
+    }
+
     try {
-      await trpc.quickFeedback.startSecondRound.mutate({ sessionCode: this.code });
+      await trpc.quickFeedback.startSecondRound.mutate({ sessionCode: code });
     } catch {
       // best-effort
     }
   }
 
   async resetRound(): Promise<void> {
-    if (this.resetting()) return;
+    const code = this.code();
+    if (!code || this.resetting()) {
+      return;
+    }
+
     this.resetting.set(true);
     try {
-      await trpc.quickFeedback.reset.mutate({ sessionCode: this.code });
+      await trpc.quickFeedback.reset.mutate({ sessionCode: code });
     } catch {
       // best-effort
     } finally {
@@ -183,20 +249,35 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async newRound(): Promise<void> {
-    const type = this.result()?.type;
-    if (!type) return;
+  async startRound(type: 'MOOD' | 'ABCD' | 'YESNO'): Promise<void> {
+    const code = this.code();
+    if (!code) {
+      return;
+    }
+
+    this.selectedType.set(type);
     try {
       const res = await trpc.quickFeedback.create.mutate({
-        type: type as 'MOOD' | 'ABCD' | 'YESNO',
+        type,
         theme: this.themePreset.theme(),
         preset: this.themePreset.preset(),
+        sessionCode: this.embeddedInSession() ? code : undefined,
       });
+      if (this.embeddedInSession()) {
+        await this.loadInitialResult();
+        this.subscribeToResults();
+        return;
+      }
+
       await this.router.navigateByUrl('/', { skipLocationChange: true });
       await this.router.navigate(['/feedback', res.sessionCode]);
     } catch {
       // best-effort
     }
+  }
+
+  async newRound(): Promise<void> {
+    await this.startRound(this.selectedType());
   }
 
   readonly orderedEntries = computed(() => {

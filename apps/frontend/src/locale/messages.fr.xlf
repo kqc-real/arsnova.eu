@@ -699,8 +699,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2883378098331699504" datatype="html">
-        <source>Schnelle Abstimmung ohne Quiz – direkt von der Startseite starten.</source>
-        <target>Coordination rapide sans quiz – démarrez directement depuis la page d’accueil.</target>
+        <source>Schnelle Abstimmung als Live-Bereich in deiner Veranstaltung.</source>
+        <target>Vote rapide comme espace live dans ton événement.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">33,34</context>
@@ -731,8 +731,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="142948932975964406" datatype="html">
-        <source>Nach dem Klick erscheint ein QR-Code und ein Session-Code. Teilnehmende scannen oder geben den Code ein und stimmen mit einem Tipp ab. Du siehst die Ergebnisse live als Balkendiagramm.</source>
-        <target>Après le clic, un QR code et un code de session s’affichent. Les participant·es scannent ou saisissent le code et votent sur leur appareil. Tu vois les résultats en direct sous forme d’histogramme.</target>
+        <source>Du startest die Runde im Host-Bereich deiner Live-Session. Teilnehmende bleiben mit demselben Session-Code dabei und stimmen mit einem Tipp ab. Du siehst die Ergebnisse live als Balkendiagramm.</source>
+        <target>Tu lances le tour dans l’espace hôte de ta session live. Les participant·es restent avec le même code de session et votent d’un tap. Tu vois les résultats en direct sous forme d’histogramme.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">39,40</context>
@@ -3147,8 +3147,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.tooltipMinQuestions" datatype="html">
-        <source>Mindestens eine Frage erforderlich.</source>
-        <target>Au moins une question requise.</target>
+        <source>Für ein Quiz brauchst du mindestens eine Frage.</source>
+        <target>Pour lancer un quiz, il te faut au moins une question.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">62</context>
@@ -5804,6 +5804,358 @@
       <trans-unit id="2056726732284037224" datatype="html">
         <source>Platz <x id="teamRank" equiv-text="entry.rank"/>: <x id="teamName" equiv-text="entry.teamName"/> mit <x id="totalScore" equiv-text="entry.totalScore"/> Punkten</source>
         <target>Place <x id="teamRank"/> : <x id="teamName"/> avec <x id="totalScore"/> points</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.title" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Démarrer l’événement</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.startLabel" datatype="html">
+        <source>Start</source>
+        <target>Départ</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionQuiz" datatype="html">
+        <source>Mit Quiz</source>
+        <target>Avec quiz</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionQuizHint" datatype="html">
+        <source>Nutzt „<x id="PH" equiv-text="data.quizName"/>“.</source>
+        <target>Utilise « <x id="PH"/> ».</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionQa" datatype="html">
+        <source>Mit Fragen</source>
+        <target>Avec questions</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionQaHint" datatype="html">
+        <source>Startet mit Fragen. Quiz später dazu.</source>
+        <target>Commence avec les questions. Quiz plus tard.</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.quizDisabled" datatype="html">
+        <source>Für Quiz brauchst du mindestens eine Frage. Sonst starte mit Fragen.</source>
+        <target>Il faut au moins une question pour le quiz. Sinon commence avec les questions.</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.qaTitleLabel" datatype="html">
+        <source>Fragen-Titel (optional)</source>
+        <target>Titre des questions (optionnel)</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.qaTitlePlaceholder" datatype="html">
+        <source>z. B. Vorlesung</source>
+        <target>p. ex. Cours</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.cancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Annuler</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.confirm" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Démarrer l’événement</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.optionGroup" datatype="html">
+        <source>Start für Live-Session wählen</source>
+        <target>Choisir comment la session live démarre</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelGroup" datatype="html">
+        <source>Zusätzliche Live-Bereiche wählen</source>
+        <target>Choisir des espaces live supplémentaires</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelsLabel" datatype="html">
+        <source>Zusätzlich aktivieren</source>
+        <target>Activer aussi</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQuiz" datatype="html">
+        <source>Quiz</source>
+        <target>Quiz</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQuizHint" datatype="html">
+        <source>Fragen und Ergebnisse</source>
+        <target>Questions et résultats</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQa" datatype="html">
+        <source>Fragen</source>
+        <target>Questions</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQaHint" datatype="html">
+        <source>Fragen aus dem Raum</source>
+        <target>Questions de la salle</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQuickFeedback" datatype="html">
+        <source>Blitz-Feedback</source>
+        <target>Retour express</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelQuickFeedbackHint" datatype="html">
+        <source>Kurze Stimmungsbilder</source>
+        <target>Ambiance rapide</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelStateStart" datatype="html">
+        <source>Start</source>
+        <target>Départ</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelStateOn" datatype="html">
+        <source>An</source>
+        <target>Actif</target>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.channelStateOff" datatype="html">
+        <source>Aus</source>
+        <target>Off</target>
+      </trans-unit>
+      <trans-unit id="quizList.startSession" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Démarrer l’événement</target>
+      </trans-unit>
+      <trans-unit id="quizList.qaStarted" datatype="html">
+        <source>Fragerunde <x id="code" equiv-text="result.code"/> gestartet.</source>
+        <target>Session de questions <x id="code"/> démarrée.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.startQa" datatype="html">
+        <source>Fragerunde starten</source>
+        <target>Lancer la session de questions</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.qaLiveLabel" datatype="html">
+        <source>Fragerunde läuft</source>
+        <target>Session de questions en cours</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.qaLiveHint" datatype="html">
+        <source>Teilnehmende können jetzt mit dem Session-Code beitreten.</source>
+        <target>Les participantes et participants peuvent maintenant rejoindre la session avec le code.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.endQa" datatype="html">
+        <source>Fragerunde beenden</source>
+        <target>Terminer la session de questions</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.qaTitleFallback" datatype="html">
+        <source>Fragerunde</source>
+        <target>Session de questions</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseLobby" datatype="html">
+        <source>Lobby – Teilnehmende können beitreten</source>
+        <target>Lobby – les participantes et participants peuvent rejoindre</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseQaPreparing" datatype="html">
+        <source>Fragerunde wird vorbereitet</source>
+        <target>La session de questions se prépare</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseQaActive" datatype="html">
+        <source>Fragerunde läuft</source>
+        <target>Session de questions en cours</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phasePaused" datatype="html">
+        <source>Pausiert</source>
+        <target>En pause</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseQaFinished" datatype="html">
+        <source>Fragerunde beendet</source>
+        <target>Session de questions terminée</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.qaLobbyHint" datatype="html">
+        <source>Die Fragerunde startet automatisch. Halte diese Seite offen.</source>
+        <target>La session de questions démarre automatiquement. Garde cette page ouverte.</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.qaActiveTitle" datatype="html">
+        <source>Fragerunde läuft</source>
+        <target>Session de questions en cours</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.qaActiveHint" datatype="html">
+        <source>Du bist verbunden. Neue Inhalte erscheinen hier automatisch.</source>
+        <target>Tu es connecté. Les nouveaux contenus apparaissent ici automatiquement.</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.hostAria" datatype="html">
+        <source>Live-Bereich wählen</source>
+        <target>Choisir l’espace live</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.voteAria" datatype="html">
+        <source>Live-Bereich wählen</source>
+        <target>Choisir l’espace live</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quiz" datatype="html">
+        <source>Quiz</source>
+        <target>Quiz</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.questions" datatype="html">
+        <source>Fragen</source>
+        <target>Questions</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.questionsWithCount" datatype="html">
+        <source>Fragen (<x id="count" equiv-text="this.qaQuestions().length"/>)</source>
+        <target>Questions (<x id="count" equiv-text="this.qaQuestions().length"/>)</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedback" datatype="html">
+        <source>Blitz-Feedback</source>
+        <target>Retour express</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.qaHostPlaceholder" datatype="html">
+        <source>Hier sammelst und moderierst du Fragen aus dem Publikum.</source>
+        <target>Ici, tu rassembles et modères les questions du public.</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackHostTitle" datatype="html">
+        <source>Kurze Rückmeldungen im Blick</source>
+        <target>Les retours rapides en un coup d’œil</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackHostPlaceholder" datatype="html">
+        <source>Hier erscheinen spontane Rückmeldungen und schnelle Stimmungsbilder der Gruppe.</source>
+        <target>Ici apparaissent les réactions spontanées et les tendances rapides du groupe.</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.qaVotePlaceholder" datatype="html">
+        <source>Hier kannst du Fragen an die Quizleitung senden und später wiederfinden.</source>
+        <target>Ici, tu peux envoyer des questions à l’animation du quiz et les retrouver plus tard.</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackVoteTitle" datatype="html">
+        <source>Schnell Rückmeldung geben</source>
+        <target>Donner un retour rapide</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackVotePlaceholder" datatype="html">
+        <source>Hier kannst du kurze Rückmeldungen und spontane Stimmungsbilder abgeben.</source>
+        <target>Ici, tu peux donner des retours courts et partager l’ambiance du moment.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusPinned" datatype="html">
+        <source>Wird beantwortet</source>
+        <target>En cours de réponse</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusActive" datatype="html">
+        <source>Offen</source>
+        <target>Ouverte</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusPending" datatype="html">
+        <source>Wartet auf Freigabe</source>
+        <target>En attente de validation</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusArchived" datatype="html">
+        <source>Beantwortet</source>
+        <target>Répondue</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.statusDeleted" datatype="html">
+        <source>Entfernt</source>
+        <target>Supprimée</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.votes" datatype="html">
+        <source>Stimmen</source>
+        <target>votes</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.hostLoadError" datatype="html">
+        <source>Fragen konnten nicht geladen werden.</source>
+        <target>Impossible de charger les questions.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.voteLoadError" datatype="html">
+        <source>Fragen konnten nicht geladen werden.</source>
+        <target>Impossible de charger les questions.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.askLabel" datatype="html">
+        <source>Deine Frage</source>
+        <target>Ta question</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.askPlaceholder" datatype="html">
+        <source>Schreibe deine Frage hier</source>
+        <target>Écris ta question ici</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.askSubmit" datatype="html">
+        <source>Frage senden</source>
+        <target>Envoyer la question</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.submitSuccess" datatype="html">
+        <source>Frage gesendet.</source>
+        <target>Question envoyée.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.submitError" datatype="html">
+        <source>Frage konnte nicht gesendet werden.</source>
+        <target>Impossible d’envoyer la question.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.upvoteError" datatype="html">
+        <source>Stimme konnte nicht gespeichert werden.</source>
+        <target>Impossible d’enregistrer le vote.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionApprove" datatype="html">
+        <source>Freigeben</source>
+        <target>Valider</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionPin" datatype="html">
+        <source>Hervorheben</source>
+        <target>Mettre en avant</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionArchive" datatype="html">
+        <source>Archivieren</source>
+        <target>Archiver</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionDelete" datatype="html">
+        <source>Löschen</source>
+        <target>Supprimer</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationModeHint" datatype="html">
+        <source>Vorab-Moderation ist aktiv. Neue Fragen warten erst auf deine Freigabe.</source>
+        <target>La pré-modération est activée. Les nouvelles questions attendent d’abord ta validation.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryTotal" datatype="html">
+        <source>Gesamt: <x id="INTERPOLATION" equiv-text="qaQuestions().length"/></source>
+        <target>Total : <x id="INTERPOLATION" equiv-text="qaQuestions().length"/></target>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryPending" datatype="html">
+        <source>Warten auf Freigabe: <x id="INTERPOLATION" equiv-text="qaPendingCount()"/></source>
+        <target>En attente de validation : <x id="INTERPOLATION" equiv-text="qaPendingCount()"/></target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationApproved" datatype="html">
+        <source>Frage freigegeben.</source>
+        <target>Question validée.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationPinned" datatype="html">
+        <source>Frage hervorgehoben.</source>
+        <target>Question mise en avant.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationArchived" datatype="html">
+        <source>Frage archiviert.</source>
+        <target>Question archivée.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationDeleted" datatype="html">
+        <source>Frage entfernt.</source>
+        <target>Question supprimée.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationError" datatype="html">
+        <source>Moderationsaktion konnte nicht ausgeführt werden.</source>
+        <target>Impossible d’exécuter l’action de modération.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaLabel" datatype="html">
+        <source>Frage aus dem Saal</source>
+        <target>Question de la salle</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.qaTitle" datatype="html">
+        <source>Wird gerade beantwortet</source>
+        <target>En cours de réponse</target>
+      </trans-unit>
+      <trans-unit id="sessionTabs.questionsBadgeNew" datatype="html">
+        <source><x id="count" equiv-text="this.qaUnseenCount()"/> neu</source>
+        <target><x id="count" equiv-text="this.qaUnseenCount()"/> nouvelle(s)</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.title" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Démarrer l’événement</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.copy" datatype="html">
+        <source>Quiz, Fragen und Feedback mit einem Code</source>
+        <target>Quiz, questions et retours avec un seul code</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.primaryCta" datatype="html">
+        <source>Veranstaltung starten</source>
+        <target>Démarrer l’événement</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.secondaryCta" datatype="html">
+        <source>Neues Quiz erstellen</source>
+        <target>Créer un nouveau quiz</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.libraryCta" datatype="html">
+        <source>Quiz-Bibliothek</source>
+        <target>Bibliothèque de quiz</target>
+      </trans-unit>
+      <trans-unit id="help.demoCardHint" datatype="html">
+        <source>Auf der Startseite in der Karte <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Veranstaltung starten<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> führt der Link <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo spielen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> in ein vorinstalliertes Beispiel-Quiz. Du siehst alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen.</source>
+        <target>Sur la page d’accueil, dans la carte <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Démarrer l’événement<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, le lien <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Jouer à la démo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> ouvre un quiz d’exemple préinstallé. Tu y vois tous les formats de questions, y compris les formules KaTeX et Markdown, sans rien devoir créer.</target>
+      </trans-unit>
+      <trans-unit id="help.hostLead" datatype="html">
+        <source>Du startest eine Live-Session, teilst den Code und steuerst Quiz, Fragen und weitere Live-Bereiche.</source>
+        <target>Tu démarres une session live, tu partages le code et tu pilotes le quiz, les questions et d’autres espaces live.</target>
+      </trans-unit>
+      <trans-unit id="help.hostStartStep" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In deiner Quiz-Bibliothek eine Veranstaltung starten und festlegen, ob sie mit Quiz oder Fragen beginnt. Dann entsteht ein 6-stelliger Code.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Démarrer la session :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Démarre un événement dans ta bibliothèque de quiz et choisis s’il commence par un quiz ou par des questions. Cela crée un code à 6 caractères.</target>
+      </trans-unit>
+      <trans-unit id="help.demoQuizHint" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. Direkt von der Startseite über „Demo spielen&quot; (Karte „Veranstaltung starten&quot;) oder in der Quiz-Bibliothek in der Vorschau öffnen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz de démo :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Un quiz préinstallé montre tous les formats de questions avec des exemples, y compris les formules KaTeX et Markdown. Ouvre-le directement depuis la page d’accueil via « Jouer à la démo » (carte « Démarrer l’événement ») ou depuis l’aperçu de la bibliothèque de quiz.</target>
       </trans-unit>
     </body>
   </file>

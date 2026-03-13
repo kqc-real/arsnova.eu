@@ -1,4 +1,26 @@
 <div class="vote-page">
+  @if (showChannelTabs()) {
+    <mat-button-toggle-group
+      class="session-channel-tabs"
+      [value]="activeChannel()"
+      (valueChange)="selectChannel($event)"
+      i18n-aria-label="@@sessionTabs.voteAria"
+      aria-label="Live-Bereich wählen"
+    >
+      @for (channel of visibleChannels(); track channel) {
+        <mat-button-toggle [value]="channel">
+          <span class="session-channel-tabs__label">{{ channelLabel(channel) }}</span>
+          @if (channelTabMetaLabel(channel); as metaLabel) {
+            <span class="session-channel-tabs__badge session-channel-tabs__badge--status">
+              {{ metaLabel }}
+            </span>
+          }
+        </mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+  }
+
+  @if (showPrimaryLiveView()) {
   @if (!isLobby()) {
     <p class="vote-session-code" i18n-aria-label aria-label="Session-Code {{ code }}">{{ code }}</p>
   }
@@ -8,12 +30,24 @@
       <p class="vote-lobby__code" i18n-aria-label aria-label="Session-Code {{ code }}">{{ code }}</p>
       @if (sessionSettings().quizName) {
         <p class="vote-lobby__quiz">{{ sessionSettings().quizName }}</p>
+      } @else if (sessionSettings().title) {
+        <p class="vote-lobby__quiz">{{ sessionSettings().title }}</p>
       }
       <div class="vote-lobby__wait" role="status">
         <mat-icon class="vote-lobby__icon" aria-hidden="true">schedule</mat-icon>
         <p class="vote-lobby__text" i18n>Warte auf den Start durch den Dozenten</p>
-        <p class="vote-lobby__hint" i18n>Die erste Frage erscheint automatisch – Gerät bereithalten.</p>
+        @if (sessionSettings().type === 'Q_AND_A') {
+          <p class="vote-lobby__hint" i18n="@@sessionVote.qaLobbyHint">Die Fragerunde startet automatisch. Halte diese Seite offen.</p>
+        } @else {
+          <p class="vote-lobby__hint" i18n>Die erste Frage erscheint automatisch – Gerät bereithalten.</p>
+        }
       </div>
+    </div>
+  } @else if (isActive() && sessionSettings().type === 'Q_AND_A') {
+    <div class="vote-lobby vote-lobby--active">
+      <mat-icon class="vote-lobby__icon" aria-hidden="true">forum</mat-icon>
+      <p class="vote-lobby__text" i18n="@@sessionVote.qaActiveTitle">Fragerunde läuft</p>
+      <p class="vote-lobby__hint" i18n="@@sessionVote.qaActiveHint">Du bist verbunden. Neue Inhalte erscheinen hier automatisch.</p>
     </div>
   } @else if (isFinished()) {
     <div class="vote-finished-page">
@@ -585,5 +619,75 @@
       <mat-icon class="vote-lobby__icon">hourglass_empty</mat-icon>
       <p class="vote-lobby__text" i18n>Einen Moment…</p>
     </div>
+  }
+  } @else if (activeChannel() === 'qa') {
+    <section class="session-channel-card session-channel-card--qa" aria-labelledby="vote-qa-heading">
+      <div class="session-channel-card__header">
+        <div>
+          <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
+          <h2 class="session-channel-card__title" id="vote-qa-heading">{{ qaHeading() }}</h2>
+        </div>
+        <mat-icon class="session-channel-card__icon" aria-hidden="true">forum</mat-icon>
+      </div>
+
+      <label class="session-qa-form__label" for="qa-draft" i18n="@@sessionQa.askLabel">Deine Frage</label>
+      <textarea
+        id="qa-draft"
+        class="session-qa-form__textarea"
+        rows="4"
+        maxlength="500"
+        [value]="qaDraft()"
+        (input)="updateQaDraft($any($event.target).value)"
+        i18n-placeholder="@@sessionQa.askPlaceholder"
+        placeholder="Schreibe deine Frage hier"
+      ></textarea>
+      <div class="session-qa-form__meta">
+        <span>{{ qaDraft().trim().length }}/500</span>
+        <button mat-flat-button type="button" [disabled]="!qaCanSubmit()" (click)="submitQaQuestion()">
+          <span i18n="@@sessionQa.askSubmit">Frage senden</span>
+        </button>
+      </div>
+
+      @if (qaError(); as error) {
+        <p class="session-channel-card__error" role="alert">{{ error }}</p>
+      }
+      @if (qaInfo(); as info) {
+        <p class="session-channel-card__info" role="status">{{ info }}</p>
+      }
+
+      @if (qaQuestions().length === 0) {
+        <p class="session-channel-card__text" i18n="@@sessionTabs.qaVotePlaceholder">
+          Hier kannst du Fragen an die Quizleitung senden und später wiederfinden.
+        </p>
+      } @else {
+        <div class="session-qa-list" role="list">
+          @for (question of qaQuestions(); track question.id) {
+            <article class="session-qa-card" role="listitem">
+              <div class="session-qa-card__head">
+                <span class="session-qa-card__status">{{ qaStatusLabel(question.status) }}</span>
+                <button
+                  matButton="tonal"
+                  type="button"
+                  class="session-qa-card__vote-btn"
+                  [disabled]="qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'"
+                  (click)="toggleQaUpvote(question.id)"
+                >
+                  <mat-icon aria-hidden="true">{{ question.hasUpvoted ? 'arrow_drop_down' : 'arrow_drop_up' }}</mat-icon>
+                  <span>{{ question.upvoteCount }}</span>
+                </button>
+              </div>
+              <div class="session-qa-card__text" [innerHTML]="renderMarkdown(question.text)"></div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  } @else if (activeChannel() === 'quickFeedback') {
+    <app-feedback-vote
+      [sessionCode]="code"
+      [participantId]="participantId()"
+      [embeddedInSession]="true"
+      [showSessionCode]="false"
+    />
   }
 </div>

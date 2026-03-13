@@ -11,6 +11,41 @@
   box-sizing: border-box;
 }
 
+.session-channel-card {
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.session-channel-card__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.session-channel-card__icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  color: var(--mat-sys-primary);
+}
+
+.session-channel-card__eyebrow {
+  margin: 0;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-primary);
+}
+
+.session-channel-card__title {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.session-channel-card__text {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .feedback-host__wrapper {
   display: flex;
   flex-direction: column;

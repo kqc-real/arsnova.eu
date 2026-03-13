@@ -164,6 +164,34 @@ async function ensureSessionTeams(
   });
 }
 
+function buildSessionChannels(session: {
+  type: 'QUIZ' | 'Q_AND_A';
+  quizId?: string | null;
+  quiz?: object | null;
+  qaEnabled?: boolean | null;
+  qaTitle?: string | null;
+  qaModerationMode?: boolean | null;
+  title?: string | null;
+  moderationMode?: boolean | null;
+  quickFeedbackEnabled?: boolean | null;
+}) {
+  const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
+
+  return {
+    quiz: {
+      enabled: session.type !== 'Q_AND_A' && (typeof session.quizId === 'string' || session.quiz != null),
+    },
+    qa: {
+      enabled: qaEnabled,
+      title: qaEnabled ? session.qaTitle ?? session.title ?? null : null,
+      moderationMode: qaEnabled ? (session.qaModerationMode ?? session.moderationMode ?? false) : false,
+    },
+    quickFeedback: {
+      enabled: session.quickFeedbackEnabled === true,
+    },
+  };
+}
+
 async function buildRoundComparison(
   sessionId: string,
   questionId: string,
@@ -361,13 +389,21 @@ export const sessionRouter = router({
         });
       }
       const code = await ensureUniqueSessionCode();
+      const isQaOnlySession = input.type === 'Q_AND_A';
+      const qaEnabled = isQaOnlySession || input.qaEnabled === true;
+      const qaTitle = qaEnabled ? input.qaTitle?.trim() || input.title?.trim() || null : null;
+      const qaModerationMode = qaEnabled ? input.qaModerationMode ?? input.moderationMode ?? false : false;
       const session = await prisma.session.create({
         data: {
           code,
           type: input.type ?? 'QUIZ',
-          quizId: input.quizId ?? null,
-          title: input.title ?? null,
-          moderationMode: input.moderationMode ?? false,
+          quizId: isQaOnlySession ? null : input.quizId ?? null,
+          title: isQaOnlySession ? qaTitle : null,
+          moderationMode: isQaOnlySession ? qaModerationMode : false,
+          qaEnabled,
+          qaTitle,
+          qaModerationMode,
+          quickFeedbackEnabled: input.quickFeedbackEnabled ?? false,
           status: 'LOBBY',
         },
         include: { quiz: { select: { name: true, teamMode: true, teamCount: true, teamNames: true } } },
@@ -380,6 +416,45 @@ export const sessionRouter = router({
         code: session.code,
         status: session.status,
         quizName: session.quiz?.name ?? null,
+      };
+    }),
+
+  /** Q&A-Session aus der Lobby starten (Story 8.1). LOBBY → ACTIVE ohne Quiz-Fragenfluss. */
+  startQa: publicProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: { id: true, status: true, type: true, qaEnabled: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.type !== 'Q_AND_A' && session.qaEnabled !== true) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Q&A-Start ist nur für Sessions mit aktiviertem Fragen-Kanal verfügbar.',
+        });
+      }
+      if (session.status !== 'LOBBY') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Q&A-Session kann nur aus Status LOBBY gestartet werden. Aktuell: ${session.status}.`,
+        });
+      }
+
+      const activeAt = new Date().toISOString();
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { status: 'ACTIVE', statusChangedAt: new Date() },
+      });
+
+      return {
+        status: 'ACTIVE' as const,
+        currentQuestion: null,
+        currentRound: 1,
+        activeAt,
       };
     }),
 
@@ -426,6 +501,7 @@ export const sessionRouter = router({
         status: session.status,
         quizName: q?.name ?? null,
         title: session.title ?? null,
+        channels: buildSessionChannels(session),
         participantCount: session._count.participants,
         ...(q && {
           nicknameTheme: q.nicknameTheme ?? 'NOBEL_LAUREATES',
@@ -1295,6 +1371,7 @@ export const sessionRouter = router({
         status: session.status,
         quizName: session.quiz?.name ?? null,
         title: session.title ?? null,
+        channels: buildSessionChannels(session),
         participantCount: session._count.participants + 1,
         participantId: participant.id,
         teamId: assignedTeamId ?? null,

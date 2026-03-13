@@ -1,4 +1,20 @@
-@if (error(); as err) {
+@if (showEmbeddedEmptyState()) {
+  <mat-card appearance="outlined" class="session-channel-card">
+    <mat-card-content class="session-channel-card__content">
+      <mat-icon class="session-channel-card__icon" aria-hidden="true">bolt</mat-icon>
+      <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.quickFeedback">Blitz-Feedback</p>
+      <h2 class="session-channel-card__title" i18n="@@sessionTabs.quickFeedbackHostTitle">Kurze Rückmeldungen im Blick</h2>
+      <p class="session-channel-card__text" i18n="@@sessionTabs.quickFeedbackHostPlaceholder">
+        Hier erscheinen spontane Rückmeldungen und schnelle Stimmungsbilder der Gruppe.
+      </p>
+      <div class="feedback-host__actions">
+        <button mat-button type="button" (click)="startRound('MOOD')">{{ feedbackTitle('MOOD') }}</button>
+        <button mat-button type="button" (click)="startRound('YESNO')">{{ feedbackTitle('YESNO') }}</button>
+        <button mat-button type="button" (click)="startRound('ABCD')">{{ feedbackTitle('ABCD') }}</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+} @else if (error(); as err) {
   <mat-card appearance="outlined" class="feedback-host__error" role="alert">
     <mat-card-content>
       <mat-icon>error_outline</mat-icon>
@@ -12,7 +28,7 @@
       @if (qrDataUrl()) {
         <img [src]="qrDataUrl()" i18n-alt alt="QR-Code zum Beitreten" class="feedback-host__qr" />
       }
-      <p class="feedback-host__code">{{ code }}</p>
+      <p class="feedback-host__code">{{ code() }}</p>
       <p class="feedback-host__url">{{ joinUrl }}</p>
       <div class="feedback-host__actions">
         @if (isDiscussion()) {

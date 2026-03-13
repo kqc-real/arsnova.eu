@@ -79,10 +79,10 @@
 | 6    | 6.4   | Mobile-First & Responsive                     | 🔴   | ✅ Fertig |
 | 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)        | 🔴   | ⬜ Offen  |
 | 7    | 7.1   | Team-Modus                                    | 🟢   | 🔨 In Arbeit |
-| 8    | 8.1   | Q&A-Session starten                           | 🟢   | ⬜ Offen  |
-| 8    | 8.2   | Fragen einreichen                             | 🟢   | ⬜ Offen  |
-| 8    | 8.3   | Upvoting & Sortierung                         | 🟢   | ⬜ Offen  |
-| 8    | 8.4   | Dozenten-Moderation                           | 🟢   | ⬜ Offen  |
+| 8    | 8.1   | Q&A-Session starten                           | 🟢   | ✅ Fertig |
+| 8    | 8.2   | Fragen einreichen                             | 🟢   | ✅ Fertig |
+| 8    | 8.3   | Upvoting & Sortierung                         | 🟢   | ✅ Fertig |
+| 8    | 8.4   | Dozenten-Moderation                           | 🟢   | ✅ Fertig |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren     | 🟡   | ⬜ Offen  |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)        | 🟡   | ⬜ Offen  |
 | 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft | 🟡   | ⬜ Offen  |
@@ -852,20 +852,25 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ## Epic 8: Q&A-Modus (Rolle: Dozent & Student) 🟢
 
+> **Verifizierung Epic 8 (2026-03-13):** Status aller Storys 8.1–8.4 auf **✅ Fertig** gesetzt.  
+> Backend-Checks: `npm run test -w @arsnova/backend -- qa session.start-qa` ✅.  
+> Frontend-Checks: Spec-Abdeckung für Host-, Vote-, Present- und eingebettete Blitz-Feedback-Flows vorhanden ✅.  
+> Laufzeit-Review: `BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend` ✅, inklusive automatischem Fallback auf bestehende Unified-Session bei Session-Rate-Limit.
+
 - **Story 8.1 (Q&A-Session starten):** 🟢 Als Dozent möchte ich eine Q&A-Session starten können, in der Studenten Fragen stellen und die besten Fragen hochvoten können — als interaktive Alternative zur klassischen Fragenrunde.
   - **Akzeptanzkriterien:**
-    - Neuer Session-Typ `Q_AND_A` (neben dem regulären Quiz-Modus) — auswählbar beim Live-Schalten.
-    - Der Dozent legt optional einen Titel / ein Thema für die Q&A-Runde fest.
-    - Studenten treten über den gleichen Session-Code bei (Story 3.1).
-    - Session-Status: `LOBBY → ACTIVE → FINISHED` (kein `PAUSED`/`RESULTS`).
-    - Prisma: Neues Enum `SessionType` (`QUIZ` / `Q_AND_A`), neues Feld `Session.type`, `Session.title`, `Session.moderationMode`. `Session.quizId` wird optional (null bei Q&A).
+    - Q&A wird gemäß ADR-0009 als Live-Kanal innerhalb derselben Veranstaltung gestartet; Quiz, Fragen und Blitz-Feedback teilen sich einen Session-Code.
+    - Der Dozent kann beim Live-Schalten festlegen, mit welchem Kanal die Session startet, und Q&A zusätzlich aktivieren.
+    - Der Dozent legt optional einen Titel / ein Thema für den Q&A-Kanal fest.
+    - Studenten treten einmal über denselben Session-Code bei (Story 3.1) und wechseln anschließend in derselben Session-Shell zwischen den Kanälen.
+    - Prisma/DTOs modellieren Q&A als Session-Funktion (`qaEnabled`, `qaTitle`, `qaModerationMode`) im bestehenden Session-Modell.
 - **Story 8.2 (Fragen einreichen):** 🟢 Als Student möchte ich eine Frage an den Dozenten einreichen können.
   - **Akzeptanzkriterien:**
     - Eingabefeld für Freitext (max. 500 Zeichen) + „Absenden"-Button.
     - Fragen werden anonym eingereicht (kein Nickname sichtbar) — konsistent mit dem seriösen Modus (Story 3.6).
     - Markdown wird in Fragen unterstützt (Story 1.7).
     - Maximal 3 Fragen pro Student pro Session (Spam-Schutz).
-    - Fragen erscheinen sofort auf der Beamer-Ansicht und auf allen Studenten-Geräten.
+    - Fragen erscheinen sofort im Teilnehmer-Tab und in der Host-Moderation; freigegebene bzw. hervorgehobene Fragen sind auf der Presenter-Ansicht sichtbar.
 - **Story 8.3 (Upvoting & Sortierung):** 🟢 Als Student möchte ich die Fragen anderer Studenten upvoten können, damit die relevantesten Fragen nach oben wandern.
   - **Akzeptanzkriterien:**
     - Jede Frage hat einen Upvote-Button (👍 / ▲) mit aktueller Stimmenanzahl.
@@ -880,6 +885,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
       - **Archivieren** — entfernt die Frage aus der aktiven Liste (als „Beantwortet" markiert).
       - **Löschen** — entfernt unangemessene Fragen (nur für Dozent sichtbar).
     - Optional: Vorab-Moderation — Fragen erscheinen erst nach Freigabe durch den Dozenten (`moderationMode: boolean`, default: aus).
+    - Host- und Presenter-Ansicht zeigen neue Fragen bzw. aktive Warteschlangen sichtbar an (Badge/Highlight/Queue), ohne die Session-Shell zu verlassen.
     - Prisma: Neues Modell `QaQuestion` mit Feldern `id`, `sessionId`, `participantId` (Autor, für 3-Fragen-Limit), `text`, `upvoteCount`, `status` (PENDING/ACTIVE/PINNED/ARCHIVED/DELETED), `createdAt`.
 
 ---

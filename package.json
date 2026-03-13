@@ -13,8 +13,8 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start -w @arsnova/frontend\"",
-    "dev:backend": "npm run dev -w @arsnova/backend",
+    "dev": "node scripts/ensure-schema.js && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start -w @arsnova/frontend\"",
+    "dev:backend": "node scripts/ensure-schema.js && npm run dev -w @arsnova/backend",
     "dev:frontend": "npm run start -w @arsnova/frontend",
     "dev:landing": "npm run dev -w @arsnova/landing",
     "build": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/backend && npm run build -w @arsnova/frontend",

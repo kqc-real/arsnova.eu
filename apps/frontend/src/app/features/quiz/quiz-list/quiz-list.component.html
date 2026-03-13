@@ -103,6 +103,18 @@
             </a>
 
             <div class="quiz-list-item__actions">
+              @if (startLiveShortcutMode()) {
+                <button
+                  matButton="filled"
+                  type="button"
+                  [disabled]="liveStartPending()"
+                  [matTooltip]="quiz.questionCount === 0 ? tooltipMinQuestions() : null"
+                  (click)="openLiveStartDialog(quiz.id, quiz.name, quiz.questionCount)"
+                >
+                  <mat-icon>play_circle</mat-icon>
+                  <span i18n="@@quizList.startSession">Veranstaltung starten</span>
+                </button>
+              }
               <button
                 mat-icon-button
                 class="quiz-list-item__menu-trigger"
@@ -117,12 +129,12 @@
                 <button
                   mat-menu-item
                   type="button"
-                  [disabled]="quiz.questionCount === 0 || liveStartPending()"
+                  [disabled]="liveStartPending()"
                   [matTooltip]="quiz.questionCount === 0 ? tooltipMinQuestions() : null"
-                  (click)="startLiveSession(quiz.id)"
+                  (click)="openLiveStartDialog(quiz.id, quiz.name, quiz.questionCount)"
                 >
                   <mat-icon>play_circle</mat-icon>
-                  <span i18n>Live schalten</span>
+                  <span i18n="@@quizList.startSession">Veranstaltung starten</span>
                 </button>
                 <a mat-menu-item [routerLink]="[quiz.id, 'preview']">
                   <mat-icon>visibility</mat-icon>

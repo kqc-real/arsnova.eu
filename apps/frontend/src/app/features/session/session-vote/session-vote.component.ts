@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,6 +13,8 @@ import { ThemePresetService } from '../../../core/theme-preset.service';
 import type {
   ParticipantDTO,
   PersonalScorecardDTO,
+  QaQuestionDTO,
+  QuickFeedbackResult,
   QuestionPreviewDTO,
   QuestionRevealedDTO,
   QuestionStudentDTO,
@@ -21,10 +24,12 @@ import type {
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import type { Unsubscribable } from '@trpc/server/observable';
+import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 
 type CurrentQuestion = QuestionStudentDTO | QuestionPreviewDTO | QuestionRevealedDTO;
+type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
 
 const ANSWER_COLORS = ['#1565c0', '#e65100', '#2e7d32', '#6a1b9a', '#c62828', '#00838f', '#4e342e', '#37474f'];
 const ANSWER_SHAPES = ['\u25B3', '\u25CB', '\u25A1', '\u25C7', '\u2606', '\u2B21', '\u2B20', '\u2BC6'];
@@ -78,7 +83,7 @@ function getContextMotivation(sc: PersonalScorecardDTO, totalParticipants: numbe
 @Component({
   selector: 'app-session-vote',
   standalone: true,
-  imports: [MatButton, MatIcon, MatProgressSpinner, CountdownFingersComponent, DecimalPipe],
+  imports: [MatButton, MatButtonToggle, MatButtonToggleGroup, MatIcon, MatProgressSpinner, CountdownFingersComponent, DecimalPipe, FeedbackVoteComponent],
   templateUrl: './session-vote.component.html',
   styleUrl: './session-vote.component.scss',
 })
@@ -89,6 +94,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly snackBar = inject(MatSnackBar);
   private statusSub: Unsubscribable | null = null;
+  private qaSub: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly code = (this.route.parent?.snapshot.paramMap.get('code') ?? '').toUpperCase();
@@ -96,6 +102,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly participantId = signal('');
   readonly status = signal<SessionStatus>('LOBBY');
   readonly sessionSettings = signal<Partial<SessionInfoDTO>>({});
+  readonly activeChannel = signal<SessionChannelTab>('quiz');
+  readonly qaQuestions = signal<QaQuestionDTO[]>([]);
+  readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
+  readonly qaDraft = signal('');
+  readonly qaSubmitting = signal(false);
+  readonly qaError = signal<string | null>(null);
+  readonly qaInfo = signal<string | null>(null);
+  readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
   readonly currentQuestion = signal<CurrentQuestion | null>(null);
 
   readonly selectedAnswerIds = signal<Set<string>>(new Set());
@@ -139,6 +153,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
+      this.ensureActiveChannel();
+    });
+    effect(() => {
       if (this.isFinished() && !this.personalResultLoaded()) {
         void this.loadPersonalResult();
       }
@@ -168,6 +185,48 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
 
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
+  readonly channels = computed(() => {
+    const session = this.sessionSettings();
+    return {
+      quiz: session.channels?.quiz.enabled ?? session.type === 'QUIZ',
+      qa: session.channels?.qa.enabled ?? session.type === 'Q_AND_A',
+      quickFeedback: session.channels?.quickFeedback.enabled ?? false,
+    };
+  });
+  readonly visibleChannels = computed<SessionChannelTab[]>(() => {
+    const result: SessionChannelTab[] = [];
+    const channels = this.channels();
+    if (channels.quiz) result.push('quiz');
+    if (channels.qa) result.push('qa');
+    if (channels.quickFeedback) result.push('quickFeedback');
+    return result;
+  });
+  readonly showChannelTabs = computed(() => this.visibleChannels().length > 1);
+  readonly isLegacyQaOnlySession = computed(() =>
+    this.sessionSettings().type === 'Q_AND_A' && this.channels().quiz === false && this.channels().qa === true,
+  );
+  readonly showPrimaryLiveView = computed(() => {
+    const active = this.activeChannel();
+    if (active === 'quiz') {
+      return this.channels().quiz;
+    }
+
+    if (active === 'qa' && this.isLegacyQaOnlySession()) {
+      return true;
+    }
+
+    return false;
+  });
+  readonly qaHeading = computed(() =>
+    this.sessionSettings().channels?.qa.title ?? this.sessionSettings().title ?? $localize`:@@sessionTabs.questions:Fragen`,
+  );
+  readonly qaCanSubmit = computed(() =>
+    this.participantId().length > 0
+    && this.sessionId().length > 0
+    && this.qaDraft().trim().length > 0
+    && this.qaDraft().trim().length <= 500
+    && !this.qaSubmitting(),
+  );
   readonly ownTeamEntry = computed(() => {
     const teamName = this.participantTeam()?.teamName;
     if (!teamName) {
@@ -245,6 +304,75 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   getColor(index: number): string { return ANSWER_COLORS[index % ANSWER_COLORS.length]; }
   getShape(index: number): string { return ANSWER_SHAPES[index % ANSWER_SHAPES.length]; }
   getLetter(index: number): string { return String.fromCharCode(65 + index); }
+
+  channelLabel(channel: SessionChannelTab): string {
+    switch (channel) {
+      case 'quiz':
+        return $localize`:@@sessionTabs.quiz:Quiz`;
+      case 'qa':
+        return $localize`:@@sessionTabs.questions:Fragen`;
+      case 'quickFeedback':
+        return $localize`:@@sessionTabs.quickFeedback:Blitz-Feedback`;
+    }
+  }
+
+  quickFeedbackTabMetaLabel(): string | null {
+    const result = this.quickFeedbackResult();
+    if (!result) {
+      return null;
+    }
+
+    if (result.discussion) {
+      return 'R1';
+    }
+
+    if ((result.currentRound ?? 1) === 2) {
+      return 'R2';
+    }
+
+    if (result.locked) {
+      return '||';
+    }
+
+    if (result.totalVotes > 0) {
+      return String(result.totalVotes);
+    }
+
+    return null;
+  }
+
+  channelTabMetaLabel(channel: SessionChannelTab): string | null {
+    if (channel === 'quickFeedback') {
+      return this.quickFeedbackTabMetaLabel();
+    }
+    return null;
+  }
+
+  selectChannel(channel: string): void {
+    if (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') {
+      this.activeChannel.set(channel);
+      this.ensureActiveChannel();
+    }
+  }
+
+  qaStatusLabel(status: QaQuestionDTO['status']): string {
+    switch (status) {
+      case 'PINNED':
+        return $localize`:@@sessionQa.statusPinned:Wird beantwortet`;
+      case 'ACTIVE':
+        return $localize`:@@sessionQa.statusActive:Offen`;
+      case 'PENDING':
+        return $localize`:@@sessionQa.statusPending:Wartet auf Freigabe`;
+      case 'ARCHIVED':
+        return $localize`:@@sessionQa.statusArchived:Beantwortet`;
+      case 'DELETED':
+        return $localize`:@@sessionQa.statusDeleted:Entfernt`;
+    }
+  }
+
+  updateQaDraft(value: string): void {
+    this.qaDraft.set(value);
+  }
 
   teamRewardTitle(): string {
     const entry = this.ownTeamEntry();
@@ -334,6 +462,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionId.set(session.id);
       this.status.set(session.status as SessionStatus);
       this.sessionSettings.set(session);
+      await this.refreshQaQuestions();
+      await this.refreshQuickFeedbackResult();
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
       }
@@ -384,13 +514,31 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       },
     );
 
+    if (this.channels().qa && this.sessionId()) {
+      this.qaSub = trpc.qa.onQuestionsUpdated.subscribe(
+        { sessionId: this.sessionId(), participantId: this.participantId() || undefined },
+        {
+          onData: (data) => {
+            this.qaQuestions.set(data);
+            this.qaError.set(null);
+          },
+          onError: () => {},
+        },
+      );
+    }
+
     void this.refreshQuestion();
-    this.pollTimer = setInterval(() => void this.refreshQuestion(), 1000);
+    this.pollTimer = setInterval(() => {
+      void this.refreshQuestion();
+      void this.refreshQuickFeedbackResult();
+    }, 1000);
   }
 
   ngOnDestroy(): void {
     this.statusSub?.unsubscribe();
     this.statusSub = null;
+    this.qaSub?.unsubscribe();
+    this.qaSub = null;
     if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
     this.stopCountdown();
   }
@@ -430,6 +578,113 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private stopCountdown(): void {
     if (this.countdownTimer) { clearInterval(this.countdownTimer); this.countdownTimer = null; }
     if (this.fingerHideTimeout) { clearTimeout(this.fingerHideTimeout); this.fingerHideTimeout = null; }
+  }
+
+  private ensureActiveChannel(): void {
+    const visible = this.visibleChannels();
+    if (visible.length === 0) {
+      return;
+    }
+
+    const active = this.activeChannel();
+    if (!visible.includes(active)) {
+      this.activeChannel.set(visible[0]!);
+      return;
+    }
+
+    if (
+      active === 'quiz'
+      && visible.includes('qa')
+      && this.status() === 'ACTIVE'
+      && this.currentQuestion() === null
+    ) {
+      this.activeChannel.set('qa');
+    }
+  }
+
+  private async refreshQaQuestions(): Promise<void> {
+    if (!this.channels().qa || !this.sessionId()) {
+      this.qaQuestions.set([]);
+      return;
+    }
+
+    try {
+      const questions = await trpc.qa.list.query({
+        sessionId: this.sessionId(),
+        participantId: this.participantId() || undefined,
+      });
+      this.qaQuestions.set(questions);
+      this.qaError.set(null);
+    } catch {
+      this.qaError.set($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
+    }
+  }
+
+  private async refreshQuickFeedbackResult(): Promise<void> {
+    if (!this.channels().quickFeedback || !this.code) {
+      this.quickFeedbackResult.set(null);
+      return;
+    }
+
+    try {
+      const result = await trpc.quickFeedback.results.query({ sessionCode: this.code });
+      this.quickFeedbackResult.set(result);
+    } catch {
+      this.quickFeedbackResult.set(null);
+    }
+  }
+
+  async submitQaQuestion(): Promise<void> {
+    if (!this.qaCanSubmit()) {
+      return;
+    }
+
+    this.qaSubmitting.set(true);
+    this.qaError.set(null);
+    this.qaInfo.set(null);
+    try {
+      await trpc.qa.submit.mutate({
+        sessionId: this.sessionId(),
+        participantId: this.participantId(),
+        text: this.qaDraft().trim(),
+      });
+      this.qaDraft.set('');
+      this.qaInfo.set($localize`:@@sessionQa.submitSuccess:Frage gesendet.`);
+      await this.refreshQaQuestions();
+    } catch (error) {
+      const message =
+        error && typeof error === 'object' && 'message' in error
+          ? String((error as { message: string }).message)
+          : $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`;
+      this.qaError.set(message);
+    } finally {
+      this.qaSubmitting.set(false);
+    }
+  }
+
+  async toggleQaUpvote(questionId: string): Promise<void> {
+    if (!this.participantId() || this.qaPendingQuestionIds().has(questionId)) {
+      return;
+    }
+
+    this.qaError.set(null);
+    const nextPending = new Set(this.qaPendingQuestionIds());
+    nextPending.add(questionId);
+    this.qaPendingQuestionIds.set(nextPending);
+
+    try {
+      await trpc.qa.upvote.mutate({
+        questionId,
+        participantId: this.participantId(),
+      });
+      await this.refreshQaQuestions();
+    } catch {
+      this.qaError.set($localize`:@@sessionQa.upvoteError:Stimme konnte nicht gespeichert werden.`);
+    } finally {
+      const remaining = new Set(this.qaPendingQuestionIds());
+      remaining.delete(questionId);
+      this.qaPendingQuestionIds.set(remaining);
+    }
   }
 
   private async refreshQuestion(): Promise<void> {

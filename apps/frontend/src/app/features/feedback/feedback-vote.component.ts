@@ -1,4 +1,4 @@
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, input, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatFabButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
@@ -41,14 +41,21 @@ function hasAlreadyVoted(code: string): boolean {
   templateUrl: './feedback-vote.component.html',
   styleUrl: './feedback-vote.component.scss',
 })
-export class FeedbackVoteComponent implements OnDestroy {
+export class FeedbackVoteComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly themePreset = inject(ThemePresetService);
   private styleTimer: ReturnType<typeof setInterval> | null = null;
-  private readonly voterId = getOrCreateVoterId();
+  private readonly standaloneVoterId = getOrCreateVoterId();
+  readonly sessionCode = input('');
+  readonly participantId = input('');
+  readonly embeddedInSession = input(false);
+  readonly showSessionCode = input(true);
 
-  readonly code = (this.route.snapshot.paramMap.get('code') ?? '').toUpperCase();
-  readonly voted = signal(hasAlreadyVoted(this.code));
+  readonly code = computed(() =>
+    (this.sessionCode() || (this.route.snapshot.paramMap.get('code') ?? '')).toUpperCase(),
+  );
+  readonly effectiveVoterId = computed(() => this.participantId() || this.standaloneVoterId);
+  readonly voted = signal(false);
   readonly error = signal<string | null>(null);
   readonly feedbackType = signal<'MOOD' | 'ABCD' | 'YESNO' | null>(null);
   readonly loading = signal(true);
@@ -65,8 +72,8 @@ export class FeedbackVoteComponent implements OnDestroy {
   readonly yesnoOptions = YESNO_OPTIONS;
   readonly abcdOptions = ABCD_OPTIONS;
 
-  constructor() {
-    this.init();
+  ngOnInit(): void {
+    void this.init();
   }
 
   ngOnDestroy(): void {
@@ -77,39 +84,57 @@ export class FeedbackVoteComponent implements OnDestroy {
   }
 
   private async init(): Promise<void> {
-    try {
-      const result = await trpc.quickFeedback.results.query({ sessionCode: this.code });
-      this.feedbackType.set(result.type as 'MOOD' | 'ABCD' | 'YESNO');
-      this.locked.set(result.locked);
-      this.applyStyle(result.theme, result.preset);
+    const code = this.code();
+    if (!code) {
       this.loading.set(false);
-      this.styleTimer = setInterval(() => this.pollStyle(), 3000);
-    } catch {
-      this.error.set('Feedback-Runde nicht gefunden oder abgelaufen.');
-      this.loading.set(false);
+      return;
     }
+
+    this.voted.set(hasAlreadyVoted(code));
+    await this.pollStyle();
+    this.loading.set(false);
+    this.styleTimer = setInterval(() => void this.pollStyle(), 3000);
+  }
+
+  private clearEmbeddedState(): void {
+    this.feedbackType.set(null);
+    this.locked.set(false);
+    this.discussion.set(false);
+    this.currentRound.set(1);
   }
 
   private async pollStyle(): Promise<void> {
+    const code = this.code();
+    if (!code) {
+      return;
+    }
+
     try {
-      const result = await trpc.quickFeedback.results.query({ sessionCode: this.code });
+      const result = await trpc.quickFeedback.results.query({ sessionCode: code });
+      this.feedbackType.set(result.type as 'MOOD' | 'ABCD' | 'YESNO');
       this.locked.set(result.locked);
       this.discussion.set(!!result.discussion);
+      this.error.set(null);
       this.applyStyle(result.theme, result.preset);
 
       const newRound = result.currentRound ?? 1;
       if (newRound === 2 && this.currentRound() === 1) {
         this.voted.set(false);
-        try { localStorage.removeItem(votedStorageKey(this.code)); } catch { /* private browsing */ }
+        try { localStorage.removeItem(votedStorageKey(code)); } catch { /* private browsing */ }
       }
       this.currentRound.set(newRound);
 
       if (result.totalVotes === 0 && this.voted()) {
         this.voted.set(false);
-        try { localStorage.removeItem(votedStorageKey(this.code)); } catch { /* private browsing */ }
+        try { localStorage.removeItem(votedStorageKey(code)); } catch { /* private browsing */ }
       }
     } catch {
-      // best-effort
+      if (this.embeddedInSession()) {
+        this.clearEmbeddedState();
+        this.error.set(null);
+      } else {
+        this.error.set('Feedback-Runde nicht gefunden oder abgelaufen.');
+      }
     }
   }
 
@@ -123,19 +148,24 @@ export class FeedbackVoteComponent implements OnDestroy {
   }
 
   async vote(value: string): Promise<void> {
+    const code = this.code();
+    if (!code) {
+      return;
+    }
+
     try {
       await trpc.quickFeedback.vote.mutate({
-        sessionCode: this.code,
-        voterId: this.voterId,
+        sessionCode: code,
+        voterId: this.effectiveVoterId(),
         value,
       });
       this.voted.set(true);
-      try { localStorage.setItem(votedStorageKey(this.code), '1'); } catch { /* private browsing */ }
+      try { localStorage.setItem(votedStorageKey(code), '1'); } catch { /* private browsing */ }
     } catch (err) {
       const message = (err as { message?: string })?.message ?? '';
       if (message.includes('bereits abgestimmt')) {
         this.voted.set(true);
-        try { localStorage.setItem(votedStorageKey(this.code), '1'); } catch { /* private browsing */ }
+        try { localStorage.setItem(votedStorageKey(code), '1'); } catch { /* private browsing */ }
       } else {
         this.error.set('Abstimmung fehlgeschlagen.');
       }

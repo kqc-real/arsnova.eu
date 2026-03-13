@@ -8,19 +8,29 @@ const {
   getInfoQueryMock,
   statusChangedSubscribeMock,
   currentQuestionQueryMock,
+  quickFeedbackResultsQueryMock,
   getParticipantsQueryMock,
   getTeamLeaderboardQueryMock,
   getPersonalResultQueryMock,
   getHasSubmittedFeedbackQueryMock,
+  qaListQueryMock,
+  qaSubmitMutateMock,
+  qaUpvoteMutateMock,
+  qaQuestionsUpdatedSubscribeMock,
   snackBarOpenMock,
 } = vi.hoisted(() => ({
   getInfoQueryMock: vi.fn(),
   statusChangedSubscribeMock: vi.fn(),
   currentQuestionQueryMock: vi.fn(),
+  quickFeedbackResultsQueryMock: vi.fn(),
   getParticipantsQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
   getPersonalResultQueryMock: vi.fn(),
   getHasSubmittedFeedbackQueryMock: vi.fn(),
+  qaListQueryMock: vi.fn(),
+  qaSubmitMutateMock: vi.fn(),
+  qaUpvoteMutateMock: vi.fn(),
+  qaQuestionsUpdatedSubscribeMock: vi.fn(),
   snackBarOpenMock: vi.fn(),
 }));
 
@@ -34,6 +44,15 @@ vi.mock('../../../core/trpc.client', () => ({
       getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
       getPersonalResult: { query: getPersonalResultQueryMock },
       getHasSubmittedFeedback: { query: getHasSubmittedFeedbackQueryMock },
+    },
+    quickFeedback: {
+      results: { query: quickFeedbackResultsQueryMock },
+    },
+    qa: {
+      list: { query: qaListQueryMock },
+      submit: { mutate: qaSubmitMutateMock },
+      upvote: { mutate: qaUpvoteMutateMock },
+      onQuestionsUpdated: { subscribe: qaQuestionsUpdatedSubscribeMock },
     },
   },
 }));
@@ -79,6 +98,11 @@ describe('SessionVoteComponent', () => {
       bonusToken: null,
     });
     getHasSubmittedFeedbackQueryMock.mockResolvedValue({ submitted: false });
+    quickFeedbackResultsQueryMock.mockRejectedValue(new Error('not found'));
+    qaListQueryMock.mockResolvedValue([]);
+    qaSubmitMutateMock.mockResolvedValue({});
+    qaUpvoteMutateMock.mockResolvedValue({});
+    qaQuestionsUpdatedSubscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
 
     TestBed.configureTestingModule({
       imports: [SessionVoteComponent],
@@ -169,6 +193,143 @@ describe('SessionVoteComponent', () => {
     expect(text).toContain('Dein Team');
     expect(text).toContain('Rot gewinnt das Teamduell');
     expect(text).toContain('Teamrang');
+    fixture.destroy();
+  });
+
+  it('zeigt bei aktiver Q&A-Session einen neutralen Wartezustand', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 6,
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Fragerunde läuft');
+    expect(text).toContain('Neue Inhalte erscheinen hier automatisch.');
+    fixture.destroy();
+  });
+
+  it('zeigt Kanal-Tabs für Quiz, Fragen und Blitz-Feedback', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen aus dem Saal', moderationMode: false },
+        quickFeedback: { enabled: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Quiz');
+    expect(text).toContain('Fragen');
+    expect(text).toContain('Blitz-Feedback');
+    fixture.destroy();
+  });
+
+  it('zeigt im Blitz-Feedback-Tab den laufenden Rundenzustand', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 12,
+      distribution: { POSITIVE: 5, NEUTRAL: 4, NEGATIVE: 3 },
+      currentRound: 2,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Blitz-Feedback');
+    expect(text).toContain('R2');
+    fixture.destroy();
+  });
+
+  it('sendet im Fragen-Tab eine neue Frage', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen aus dem Saal', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: 'question-1',
+        text: 'Was ist klausurrelevant?',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    component.updateQaDraft('Kommt Aufgabe 3 in der Klausur vor?');
+    fixture.detectChanges();
+    await component.submitQaQuestion();
+
+    expect(qaSubmitMutateMock).toHaveBeenCalledWith({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '11111111-1111-4111-8111-111111111111',
+      text: 'Kommt Aufgabe 3 in der Klausur vor?',
+    });
     fixture.destroy();
   });
 });

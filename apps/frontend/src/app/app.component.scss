@@ -153,13 +153,6 @@
   flex-shrink: 0;
 }
 
-.app-footer__badges {
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
-  text-align: center;
-  margin: 0;
-}
-
 @media (min-width: 600px) {
   .app-footer__inner {
     flex-direction: row;
@@ -193,6 +186,30 @@
   width: 1.125rem;
   height: 1.125rem;
   margin-right: 0.35rem;
+}
+
+.app-footer__status-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}
+
+.app-footer__status-line--offline {
+  color: var(--mat-sys-error);
+}
+
+.app-footer__status-action {
+  min-width: 0;
+  padding-inline: 0.35rem;
+}
+
+.app-footer__status-widget {
+  width: auto;
 }
 
 /* Preset-Snackbar (global): Pill, inverse-surface, Blur/Refocus über PresetSnackbarFocusService */

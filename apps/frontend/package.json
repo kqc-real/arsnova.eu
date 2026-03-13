@@ -13,6 +13,7 @@
     "serve:localize:api": "node scripts/serve-localized-with-api.mjs",
     "lighthouse:serve": "npm run build:prod && npm run serve:dist",
     "check:viewport": "node scripts/check-viewport-320.mjs",
+    "smoke:unified-session": "node scripts/check-unified-session-flow.mjs",
     "lighthouse:a11y": "node scripts/lighthouse-a11y.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

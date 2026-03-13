@@ -72,7 +72,14 @@
           </a>
         </div>
       </div>
-      <p class="app-footer__badges" i18n>Kostenlos · 100 % DSGVO-konform · Open Source</p>
+      <div class="app-footer__status-line" [class.app-footer__status-line--offline]="!apiStatus()">
+        <app-server-status-widget class="app-footer__status-widget" [connectionOk]="!!apiStatus()" [compact]="true" />
+        @if (!apiStatus()) {
+          <button matButton class="app-footer__status-action" (click)="retryApiConnection()" [disabled]="apiRetrying()">
+            {{ footerRetryLabel() }}
+          </button>
+        }
+      </div>
     </div>
   </footer>
   }

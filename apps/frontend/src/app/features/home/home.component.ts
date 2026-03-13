@@ -6,9 +6,7 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
 import { trpc } from '../../core/trpc.client';
-import { ServerStatusWidgetComponent } from '../../shared/server-status-widget/server-status-widget.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
@@ -29,8 +27,6 @@ import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service'
     MatCardTitle,
     MatIcon,
     MatIconButton,
-    MatTooltip,
-    ServerStatusWidgetComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
@@ -40,9 +36,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
 
-  apiStatus = signal<string | null>(null);
-  apiRetrying = signal(false);
-  redisStatus = signal<string | null>(null);
   sessionCode = signal('');
   codeInputFocused = signal(false);
   codeShaking = signal(false);
@@ -56,10 +49,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly themePreset = inject(ThemePresetService);
   private readonly quizStore = inject(QuizStoreService);
   readonly quizCount = computed(() => this.quizStore.quizzes().filter(q => q.id !== DEMO_QUIZ_ID).length);
-  /** i18n: Label for retry button (connecting vs try again). */
-  retryButtonLabel = computed(() =>
-    this.apiRetrying() ? $localize`Verbinde…` : $localize`Nochmal versuchen`,
-  );
   private readonly platformId = inject(PLATFORM_ID);
 
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
@@ -133,30 +122,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       this.loadRecentSessionCodes();
     }
-    // Health-Check nach First Paint, damit API-Anfrage den kritischen Lade-Pfad nicht blockiert
-    if (isPlatformBrowser(this.platformId)) {
-      if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(() => this.checkApiConnection(), { timeout: 2000 });
-      } else {
-        setTimeout(() => this.checkApiConnection(), 0);
-      }
-    }
-  }
-
-  async checkApiConnection(): Promise<void> {
-    try {
-      const health = await trpc.health.check.query();
-      this.apiStatus.set(health.status);
-      this.redisStatus.set(health.redis ?? null);
-    } catch {
-      this.apiStatus.set(null);
-    }
-  }
-
-  async retryConnection(): Promise<void> {
-    this.apiRetrying.set(true);
-    await this.checkApiConnection();
-    this.apiRetrying.set(false);
   }
 
   private loadRecentSessionCodes(): void {
@@ -218,22 +183,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   preloadQuiz(): void {
     import('../quiz/quiz.component').then(() => {});
-  }
-
-  feedbackError = signal<string | null>(null);
-
-  async startQuickFeedback(type: 'MOOD' | 'ABCD' | 'YESNO'): Promise<void> {
-    this.feedbackError.set(null);
-    try {
-      const result = await trpc.quickFeedback.create.mutate({
-        type,
-        theme: this.themePreset.theme(),
-        preset: this.themePreset.preset(),
-      });
-      await this.router.navigate(['/feedback', result.sessionCode]);
-    } catch {
-      this.feedbackError.set($localize`Feedback konnte nicht gestartet werden. Ist der Server erreichbar?`);
-    }
   }
 
   onSessionCodeInput(event: Event): void {

@@ -3,6 +3,7 @@ import { Component, HostListener, OnDestroy, OnInit, inject, signal, computed, e
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -22,6 +23,8 @@ import type {
   BonusTokenEntryDTO,
   HostCurrentQuestionDTO,
   LeaderboardEntryDTO,
+  QaQuestionDTO,
+  QuickFeedbackResult,
   SessionFeedbackSummary,
   SessionInfoDTO,
   SessionParticipantsPayload,
@@ -31,9 +34,11 @@ import type {
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
+import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 
 const ANSWER_COLORS = ['#1565c0', '#e65100', '#2e7d32', '#6a1b9a', '#c62828', '#00838f', '#4e342e', '#37474f'];
 const ANSWER_SHAPES = ['\u25B3', '\u25CB', '\u25A1', '\u25C7', '\u2606', '\u2B21', '\u2B20', '\u2BC6'];
+type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
 
 /**
  * Host-Ansicht: Lobby + Präsentations-Steuerung (Epic 2).
@@ -45,6 +50,8 @@ const ANSWER_SHAPES = ['\u25B3', '\u25CB', '\u25A1', '\u25C7', '\u2606', '\u2B21
   imports: [
     DecimalPipe,
     MatButton,
+    MatButtonToggle,
+    MatButtonToggleGroup,
     MatCard,
     MatCardContent,
     MatCardHeader,
@@ -53,6 +60,7 @@ const ANSWER_SHAPES = ['\u25B3', '\u25CB', '\u25A1', '\u25C7', '\u2606', '\u2B21
     MatIcon,
     WordCloudComponent,
     CountdownFingersComponent,
+    FeedbackHostComponent,
   ],
   templateUrl: './session-host.component.html',
   styleUrl: './session-host.component.scss',
@@ -64,8 +72,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Live-Status für Steuerung (Story 2.3). */
   readonly statusUpdate = signal<SessionStatusUpdate | null>(null);
   readonly controlPending = signal(false);
+  readonly activeChannel = signal<SessionChannelTab>('quiz');
+  readonly qaQuestions = signal<QaQuestionDTO[]>([]);
+  readonly qaError = signal<string | null>(null);
+  readonly qaInfo = signal<string | null>(null);
+  readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
+  readonly qaSeenQuestionIds = signal<Set<string>>(new Set());
+  readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
+  readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
+  readonly quickFeedbackSeenVoteCount = signal(0);
   private participantSub: Unsubscribable | null = null;
   private statusSub: Unsubscribable | null = null;
+  private qaSub: Unsubscribable | null = null;
   private presetSub: Subscription | null = null;
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
@@ -74,7 +92,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly sound = inject(SoundService);
   private readonly dialog = inject(MatDialog);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
-  private readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
+  readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
+  private readonly requestedInitialTab = this.route.snapshot?.queryParamMap?.get('tab') ?? null;
   readonly freetextResponses = signal<string[]>([]);
   readonly wordCloudInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly currentQuestionLabel = signal<string | null>(null);
@@ -100,7 +119,71 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
   );
+  readonly channels = computed(() => {
+    const session = this.session();
+    return {
+      quiz: session?.channels?.quiz.enabled ?? session?.type === 'QUIZ',
+      qa: session?.channels?.qa.enabled ?? session?.type === 'Q_AND_A',
+      quickFeedback: session?.channels?.quickFeedback.enabled ?? false,
+    };
+  });
+  readonly visibleChannels = computed<SessionChannelTab[]>(() => {
+    const result: SessionChannelTab[] = [];
+    const channels = this.channels();
+    if (channels.quiz) result.push('quiz');
+    if (channels.qa) result.push('qa');
+    if (channels.quickFeedback) result.push('quickFeedback');
+    return result;
+  });
+  readonly showChannelTabs = computed(() => this.visibleChannels().length > 1);
+  readonly isLegacyQaOnlySession = computed(() => {
+    const session = this.session();
+    return session?.type === 'Q_AND_A' && this.channels().quiz === false && this.channels().qa === true;
+  });
+  readonly showPrimaryLiveView = computed(() => {
+    const active = this.activeChannel();
+    if (active === 'quiz') {
+      return this.channels().quiz;
+    }
+
+    if (active === 'qa' && this.isLegacyQaOnlySession()) {
+      return true;
+    }
+
+    return false;
+  });
+  readonly isQaSession = computed(() => this.session()?.type === 'Q_AND_A');
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
+  readonly sessionHeading = computed(() => {
+    const session = this.session();
+    if (!session) {
+      return null;
+    }
+
+    if (session.type === 'Q_AND_A') {
+      return session.title?.trim() || $localize`:@@sessionHost.qaTitleFallback:Fragerunde`;
+    }
+
+    return session.quizName ?? null;
+  });
+  readonly qaHeading = computed(() =>
+    this.session()?.channels?.qa.title ?? this.session()?.title ?? $localize`:@@sessionTabs.questions:Fragen`,
+  );
+  readonly qaPendingCount = computed(() =>
+    this.qaQuestions().filter((question) => question.status === 'PENDING').length,
+  );
+  readonly qaUnseenCount = computed(() =>
+    this.qaQuestions().filter((question) =>
+      question.status !== 'DELETED' && !this.qaSeenQuestionIds().has(question.id),
+    ).length,
+  );
+  readonly quickFeedbackUnseenCount = computed(() => {
+    const result = this.quickFeedbackResult();
+    if (!result) {
+      return 0;
+    }
+    return Math.max(0, result.totalVotes - this.quickFeedbackSeenVoteCount());
+  });
   readonly lobbyTeamsWithParticipants = computed(() => {
     const teams = this.lobbyTeams();
     const participants = this.participantsPayload()?.participants ?? [];
@@ -152,6 +235,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
+      this.ensureActiveChannel();
+    });
+    effect(() => {
       if (this.allHaveVoted()) {
         this.stopCountdown();
         this.countdownSeconds.set(null);
@@ -161,6 +247,57 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     effect(() => {
       if (this.countdownEnded()) {
         this.sound.stopMusic();
+      }
+    });
+    effect(() => {
+      if (this.activeChannel() !== 'qa') {
+        if (this.qaHighlightedQuestionIds().size > 0) {
+          this.qaHighlightedQuestionIds.set(new Set());
+        }
+        return;
+      }
+
+      const nextSeen = new Set(this.qaSeenQuestionIds());
+      const visibleQuestionIds = new Set(
+        this.qaQuestions()
+          .filter((question) => question.status !== 'DELETED')
+          .map((question) => question.id),
+      );
+      const nextHighlighted = new Set(
+        [...this.qaHighlightedQuestionIds()].filter((questionId) => visibleQuestionIds.has(questionId)),
+      );
+      let changed = false;
+      for (const question of this.qaQuestions()) {
+        if (question.status === 'DELETED') {
+          continue;
+        }
+        if (!nextSeen.has(question.id)) {
+          nextSeen.add(question.id);
+          nextHighlighted.add(question.id);
+          changed = true;
+        }
+      }
+      if (changed || !this.setsEqual(this.qaHighlightedQuestionIds(), nextHighlighted)) {
+        this.qaHighlightedQuestionIds.set(nextHighlighted);
+      }
+      if (changed) {
+        this.qaSeenQuestionIds.set(nextSeen);
+      }
+    });
+    effect(() => {
+      const result = this.quickFeedbackResult();
+      if (!result) {
+        this.quickFeedbackSeenVoteCount.set(0);
+        return;
+      }
+
+      if (this.activeChannel() === 'quickFeedback') {
+        this.quickFeedbackSeenVoteCount.set(result.totalVotes);
+        return;
+      }
+
+      if (result.totalVotes < this.quickFeedbackSeenVoteCount()) {
+        this.quickFeedbackSeenVoteCount.set(result.totalVotes);
       }
     });
     effect(() => {
@@ -231,6 +368,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.session.set(session);
       await this.refreshParticipantsPayload();
       await this.refreshLobbyTeams();
+      await this.refreshQaQuestions();
+      await this.refreshQuickFeedbackResult();
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
       }
@@ -248,6 +387,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       void this.refreshCurrentQuestionForHost();
       void this.refreshEmojiReactions();
       void this.refreshLobbyTeams();
+      void this.refreshQaQuestions();
+      void this.refreshQuickFeedbackResult();
       this.syncMusic();
     }, 2000);
     this.syncMusic();
@@ -275,6 +416,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         },
       );
 
+      if (this.channels().qa && this.session()?.id) {
+        this.qaSub = trpc.qa.onQuestionsUpdated.subscribe(
+          { sessionId: this.session()!.id, moderatorView: true },
+          {
+            onData: (data) => {
+              this.qaQuestions.set(data);
+              this.qaError.set(null);
+            },
+            onError: () => {},
+          },
+        );
+      }
+
       this.presetSub = this.themePreset.presetChanged$.subscribe(() => {
         const preset = this.themePreset.preset() === 'serious' ? 'SERIOUS' as const : 'PLAYFUL' as const;
         void trpc.session.updatePreset.mutate({ code: this.code.toUpperCase(), preset });
@@ -296,6 +450,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.participantSub = null;
     this.statusSub?.unsubscribe();
     this.statusSub = null;
+    this.qaSub?.unsubscribe();
+    this.qaSub = null;
     this.presetSub?.unsubscribe();
     this.presetSub = null;
     if (this.pollTimer) {
@@ -547,6 +703,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Lesbare Phasen-Beschreibung für Dozenten-Info und Publikum. */
   phaseLabel(status: SessionInfoDTO['status'] | null, allVoted = false, countdownEnded = false): string {
     if (!status) return '—';
+    if (this.isQaSession()) {
+      const labels: Record<SessionInfoDTO['status'], string> = {
+        LOBBY: $localize`:@@sessionHost.phaseLobby:Lobby – Teilnehmende können beitreten`,
+        QUESTION_OPEN: $localize`:@@sessionHost.phaseQaPreparing:Fragerunde wird vorbereitet`,
+        ACTIVE: $localize`:@@sessionHost.phaseQaActive:Fragerunde läuft`,
+        PAUSED: $localize`:@@sessionHost.phasePaused:Pausiert`,
+        RESULTS: $localize`:@@sessionHost.phaseQaActive:Fragerunde läuft`,
+        DISCUSSION: $localize`:@@sessionHost.phaseQaActive:Fragerunde läuft`,
+        FINISHED: $localize`:@@sessionHost.phaseQaFinished:Fragerunde beendet`,
+      };
+      return labels[status] ?? status;
+    }
     if (status === 'ACTIVE' && (allVoted || countdownEnded)) {
       return $localize`Abstimmung beendet – warte auf Auswertung`;
     }
@@ -579,6 +747,143 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
   }
 
+  channelLabel(channel: SessionChannelTab): string {
+    switch (channel) {
+      case 'quiz':
+        return $localize`:@@sessionTabs.quiz:Quiz`;
+      case 'qa':
+        return $localize`:@@sessionTabs.questions:Fragen`;
+      case 'quickFeedback':
+        return $localize`:@@sessionTabs.quickFeedback:Blitz-Feedback`;
+    }
+  }
+
+  qaTabMetaLabel(): string | null {
+    if (this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0) {
+      return $localize`:@@sessionTabs.questionsBadgeNew:${this.qaUnseenCount()}:count: neu`;
+    }
+
+    if (this.qaQuestions().length > 0) {
+      return String(this.qaQuestions().length);
+    }
+
+    return null;
+  }
+
+  quickFeedbackTabMetaLabel(): string | null {
+    const result = this.quickFeedbackResult();
+    if (!result) {
+      return null;
+    }
+
+    if (this.activeChannel() !== 'quickFeedback' && this.quickFeedbackUnseenCount() > 0) {
+      return $localize`:@@sessionTabs.questionsBadgeNew:${this.quickFeedbackUnseenCount()}:count: neu`;
+    }
+
+    if (result.discussion) {
+      return 'R1';
+    }
+
+    if ((result.currentRound ?? 1) === 2) {
+      return 'R2';
+    }
+
+    if (result.locked) {
+      return '||';
+    }
+
+    if (result.totalVotes > 0) {
+      return String(result.totalVotes);
+    }
+
+    return null;
+  }
+
+  channelTabMetaLabel(channel: SessionChannelTab): string | null {
+    if (channel === 'qa') {
+      return this.qaTabMetaLabel();
+    }
+    if (channel === 'quickFeedback') {
+      return this.quickFeedbackTabMetaLabel();
+    }
+    return null;
+  }
+
+  isChannelBadgeAlert(channel: SessionChannelTab): boolean {
+    if (channel === 'qa') {
+      return this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0;
+    }
+    if (channel === 'quickFeedback') {
+      return this.activeChannel() !== 'quickFeedback' && this.quickFeedbackUnseenCount() > 0;
+    }
+    return false;
+  }
+
+  qaStatusLabel(status: QaQuestionDTO['status']): string {
+    switch (status) {
+      case 'PINNED':
+        return $localize`:@@sessionQa.statusPinned:Wird beantwortet`;
+      case 'ACTIVE':
+        return $localize`:@@sessionQa.statusActive:Offen`;
+      case 'PENDING':
+        return $localize`:@@sessionQa.statusPending:Wartet auf Freigabe`;
+      case 'ARCHIVED':
+        return $localize`:@@sessionQa.statusArchived:Beantwortet`;
+      case 'DELETED':
+        return $localize`:@@sessionQa.statusDeleted:Entfernt`;
+    }
+  }
+
+  qaActionLabel(action: 'APPROVE' | 'PIN' | 'ARCHIVE' | 'DELETE'): string {
+    switch (action) {
+      case 'APPROVE':
+        return $localize`:@@sessionQa.actionApprove:Freigeben`;
+      case 'PIN':
+        return $localize`:@@sessionQa.actionPin:Hervorheben`;
+      case 'ARCHIVE':
+        return $localize`:@@sessionQa.actionArchive:Archivieren`;
+      case 'DELETE':
+        return $localize`:@@sessionQa.actionDelete:Löschen`;
+    }
+  }
+
+  canModerateQaQuestion(question: QaQuestionDTO, action: 'APPROVE' | 'PIN' | 'ARCHIVE' | 'DELETE'): boolean {
+    if (this.qaPendingQuestionIds().has(question.id)) {
+      return false;
+    }
+
+    switch (action) {
+      case 'APPROVE':
+        return question.status === 'PENDING' || question.status === 'ARCHIVED';
+      case 'PIN':
+        return question.status !== 'DELETED' && question.status !== 'PINNED';
+      case 'ARCHIVE':
+        return question.status !== 'DELETED' && question.status !== 'ARCHIVED';
+      case 'DELETE':
+        return question.status !== 'DELETED';
+    }
+  }
+
+  isQaQuestionHighlighted(questionId: string): boolean {
+    return this.qaHighlightedQuestionIds().has(questionId);
+  }
+
+  selectChannel(channel: string): void {
+    if (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') {
+      this.activeChannel.set(channel);
+      this.ensureActiveChannel();
+    }
+  }
+
+  async startSessionFlow(): Promise<void> {
+    if (this.activeChannel() === 'qa' && this.channels().qa) {
+      await this.startQa();
+      return;
+    }
+
+    await this.nextQuestion();
+  }
+
   async nextQuestion(): Promise<void> {
     if (this.controlPending() || !this.code) return;
     this.controlPending.set(true);
@@ -594,6 +899,117 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     } finally {
       this.controlPending.set(false);
+    }
+  }
+
+  async startQa(): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    this.controlPending.set(true);
+    try {
+      const result = await trpc.session.startQa.mutate({ code: this.code.toUpperCase() });
+      this.statusUpdate.set(result);
+      this.currentQuestionForHost.set(null);
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
+  private ensureActiveChannel(): void {
+    const visible = this.visibleChannels();
+    if (visible.length === 0) {
+      return;
+    }
+
+    const active = this.activeChannel();
+    if (!visible.includes(active)) {
+      this.activeChannel.set(visible[0]!);
+      return;
+    }
+
+    if (this.requestedInitialTab === 'qa' && visible.includes('qa') && active !== 'qa') {
+      this.activeChannel.set('qa');
+    }
+  }
+
+  private setsEqual<T>(left: ReadonlySet<T>, right: ReadonlySet<T>): boolean {
+    if (left.size !== right.size) {
+      return false;
+    }
+    for (const value of left) {
+      if (!right.has(value)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private async refreshQaQuestions(): Promise<void> {
+    const sessionId = this.session()?.id;
+    if (!sessionId || !this.channels().qa) {
+      this.qaQuestions.set([]);
+      return;
+    }
+
+    try {
+      const questions = await trpc.qa.list.query({ sessionId, moderatorView: true });
+      this.qaQuestions.set(questions);
+      this.qaError.set(null);
+    } catch {
+      this.qaError.set($localize`:@@sessionQa.hostLoadError:Fragen konnten nicht geladen werden.`);
+    }
+  }
+
+  private async refreshQuickFeedbackResult(): Promise<void> {
+    if (!this.channels().quickFeedback || this.code.length !== 6) {
+      this.quickFeedbackResult.set(null);
+      this.quickFeedbackSeenVoteCount.set(0);
+      return;
+    }
+
+    try {
+      const result = await trpc.quickFeedback.results.query({ sessionCode: this.code.toUpperCase() });
+      this.quickFeedbackResult.set(result);
+    } catch {
+      this.quickFeedbackResult.set(null);
+    }
+  }
+
+  async moderateQaQuestion(questionId: string, action: 'APPROVE' | 'PIN' | 'ARCHIVE' | 'DELETE'): Promise<void> {
+    if (!this.code) {
+      return;
+    }
+
+    const pending = new Set(this.qaPendingQuestionIds());
+    if (pending.has(questionId)) {
+      return;
+    }
+    pending.add(questionId);
+    this.qaPendingQuestionIds.set(pending);
+    this.qaError.set(null);
+    this.qaInfo.set(null);
+
+    try {
+      await trpc.qa.moderate.mutate({
+        sessionCode: this.code.toUpperCase(),
+        questionId,
+        action,
+      });
+      await this.refreshQaQuestions();
+      this.qaInfo.set(
+        action === 'APPROVE'
+          ? $localize`:@@sessionQa.moderationApproved:Frage freigegeben.`
+          : action === 'PIN'
+            ? $localize`:@@sessionQa.moderationPinned:Frage hervorgehoben.`
+            : action === 'ARCHIVE'
+              ? $localize`:@@sessionQa.moderationArchived:Frage archiviert.`
+              : $localize`:@@sessionQa.moderationDeleted:Frage entfernt.`,
+      );
+    } catch {
+      this.qaError.set($localize`:@@sessionQa.moderationError:Moderationsaktion konnte nicht ausgeführt werden.`);
+    } finally {
+      const remaining = new Set(this.qaPendingQuestionIds());
+      remaining.delete(questionId);
+      this.qaPendingQuestionIds.set(remaining);
     }
   }
 

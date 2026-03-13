@@ -16,6 +16,8 @@ import type { ServerStatsDTO } from '@arsnova/shared-types';
 export class ServerStatusWidgetComponent implements OnInit, OnDestroy {
   /** Wenn false, wird „Keine Verbindung“ angezeigt statt „Gerade aktiv“ / „Wird geladen…“. */
   @Input() connectionOk = true;
+  /** Kompakter Modus für enge Layouts wie den globalen Footer. */
+  @Input() compact = false;
 
   stats = signal<ServerStatsDTO | null>(null);
   private intervalId: ReturnType<typeof setInterval> | null = null;

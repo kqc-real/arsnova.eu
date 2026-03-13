@@ -1,10 +1,23 @@
 <div class="feedback-vote">
-  <p class="feedback-vote__session-code" aria-label="Session-Code {{ code }}">{{ code }}</p>
+  @if (showSessionCode()) {
+    <p class="feedback-vote__session-code" aria-label="Session-Code {{ code() }}">{{ code() }}</p>
+  }
   @if (error(); as err) {
     <mat-card appearance="outlined" class="feedback-vote__card" role="alert">
       <mat-card-content>
         <mat-icon class="feedback-vote__status-icon">error_outline</mat-icon>
         <p>{{ err }}</p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (embeddedInSession() && !feedbackType() && !loading()) {
+    <mat-card appearance="outlined" class="session-channel-card">
+      <mat-card-content class="session-channel-card__content">
+        <mat-icon class="session-channel-card__icon" aria-hidden="true">bolt</mat-icon>
+        <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.quickFeedback">Blitz-Feedback</p>
+        <h2 class="session-channel-card__title" i18n="@@sessionTabs.quickFeedbackVoteTitle">Schnell Rückmeldung geben</h2>
+        <p class="session-channel-card__text" i18n="@@sessionTabs.quickFeedbackVotePlaceholder">
+          Hier kannst du kurze Rückmeldungen und spontane Stimmungsbilder abgeben.
+        </p>
       </mat-card-content>
     </mat-card>
   } @else if (voted()) {

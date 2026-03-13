@@ -1,18 +1,16 @@
 /**
  * ensure-schema.js – Stellt sicher, dass alle DB-Spalten/Enums existieren.
  * Wird im Docker-Entrypoint vor dem App-Start ausgeführt.
- * Nutzt PrismaClient direkt (keine CLI nötig, kein prisma.config.ts-Parsing).
+ * Nutzt `pg` direkt, damit das Script unabhängig vom Prisma-Client-Setup läuft.
  */
-const { PrismaClient } = require('@prisma/client');
+const { Client } = require('pg');
 
-function createPrisma() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL nicht gesetzt');
-  try {
-    return new PrismaClient({ datasourceUrl: url });
-  } catch {
-    return new PrismaClient({ datasources: { db: { url } } });
-  }
+const DEFAULT_DATABASE_URL =
+  'postgresql://arsnova_user:secretpassword@localhost:5432/arsnova_v3_dev?schema=public';
+
+function createClient() {
+  const connectionString = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;
+  return new Client({ connectionString });
 }
 
 const statements = [
@@ -46,6 +44,10 @@ const statements = [
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "type" "SessionType" NOT NULL DEFAULT 'QUIZ'`,
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "title" TEXT`,
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "moderationMode" BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaEnabled" BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaTitle" TEXT`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaModerationMode" BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "quickFeedbackEnabled" BOOLEAN NOT NULL DEFAULT false`,
 
   // Quiz: readingPhaseEnabled
   `ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "readingPhaseEnabled" BOOLEAN NOT NULL DEFAULT true`,
@@ -133,14 +135,15 @@ const statements = [
 ];
 
 async function main() {
-  const prisma = createPrisma();
+  const client = createClient();
+  await client.connect();
   let ok = 0;
   let skipped = 0;
   let failed = 0;
 
   for (const sql of statements) {
     try {
-      await prisma.$executeRawUnsafe(sql);
+      await client.query(sql);
       ok++;
     } catch (err) {
       const msg = err.message || String(err);
@@ -153,7 +156,7 @@ async function main() {
     }
   }
 
-  await prisma.$disconnect();
+  await client.end();
   console.log(`>>> ensure-schema: ${ok} OK, ${skipped} übersprungen, ${failed} Fehler`);
 
   if (failed > 0) {

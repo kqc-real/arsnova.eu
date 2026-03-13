@@ -40,6 +40,10 @@ describe('session.create (Story 2.1a)', () => {
       type: 'QUIZ',
       status: 'LOBBY',
       quizId: QUIZ_ID,
+      qaEnabled: false,
+      qaTitle: null,
+      qaModerationMode: false,
+      quickFeedbackEnabled: false,
       quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
     });
   });
@@ -57,9 +61,97 @@ describe('session.create (Story 2.1a)', () => {
           status: 'LOBBY',
           type: 'QUIZ',
           quizId: QUIZ_ID,
+          qaEnabled: false,
+          qaTitle: null,
+          qaModerationMode: false,
+          quickFeedbackEnabled: false,
         }),
       }),
     );
+  });
+
+  it('aktiviert optionale Live-Kanäle für Quiz-Sessions', async () => {
+    prismaMock.session.create.mockResolvedValueOnce({
+      id: SESSION_ID,
+      code: CODE,
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizId: QUIZ_ID,
+      qaEnabled: true,
+      qaTitle: 'Fragen zum Kapitel 3',
+      qaModerationMode: true,
+      quickFeedbackEnabled: true,
+      quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
+    });
+
+    await caller.create({
+      quizId: QUIZ_ID,
+      qaEnabled: true,
+      qaTitle: '  Fragen zum Kapitel 3  ',
+      qaModerationMode: true,
+      quickFeedbackEnabled: true,
+    });
+
+    expect(prismaMock.session.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          type: 'QUIZ',
+          quizId: QUIZ_ID,
+          qaEnabled: true,
+          qaTitle: 'Fragen zum Kapitel 3',
+          qaModerationMode: true,
+          quickFeedbackEnabled: true,
+        }),
+      }),
+    );
+  });
+
+  it('erstellt Q&A-Session ohne quizId und mit optionalem Titel', async () => {
+    prismaMock.session.create.mockResolvedValueOnce({
+      id: SESSION_ID,
+      code: CODE,
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      quizId: null,
+      title: 'Offene Fragerunde',
+      quiz: null,
+    });
+
+    const result = await caller.create({
+      type: 'Q_AND_A',
+      title: '  Offene Fragerunde  ',
+      moderationMode: true,
+    });
+
+    expect(result).toEqual({
+      sessionId: SESSION_ID,
+      code: CODE,
+      status: 'LOBBY',
+      quizName: null,
+    });
+    expect(prismaMock.session.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          type: 'Q_AND_A',
+          quizId: null,
+          title: 'Offene Fragerunde',
+          moderationMode: true,
+          qaEnabled: true,
+          qaTitle: 'Offene Fragerunde',
+          qaModerationMode: true,
+          quickFeedbackEnabled: false,
+          status: 'LOBBY',
+        }),
+      }),
+    );
+  });
+
+  it('lehnt Quiz-Sessions ohne quizId ab', async () => {
+    await expect(caller.create({})).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+
+    expect(prismaMock.session.create).not.toHaveBeenCalled();
   });
 
   it('wirft TOO_MANY_REQUESTS wenn Rate-Limit überschritten', async () => {

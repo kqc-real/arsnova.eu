@@ -4,6 +4,7 @@ import { quizRouter } from './quiz';
 import { sessionRouter } from './session';
 import { voteRouter } from './vote';
 import { quickFeedbackRouter } from './quickFeedback';
+import { qaRouter } from './qa';
 
 /**
  * Der zentrale App-Router.
@@ -15,6 +16,7 @@ export const appRouter = router({
   quiz: quizRouter,
   session: sessionRouter,
   vote: voteRouter,
+  qa: qaRouter,
   quickFeedback: quickFeedbackRouter,
 });
 

@@ -65,7 +65,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   /** Eigenes Namensfeld nur wenn Dozent eigene Nicks erlaubt (Preset: eigener Name). */
   readonly showCustomNickname = computed(() => {
     const s = this.session();
-    return s?.allowCustomNicknames === true;
+    return s?.type === 'Q_AND_A' || s?.allowCustomNicknames === true;
   });
 
   readonly showTeamSelect = computed(() => {

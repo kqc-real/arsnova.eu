@@ -24,6 +24,8 @@ import { PresetSnackbarFocusService } from './core/preset-snackbar-focus.service
 import { Subscription } from 'rxjs';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
 import { ConnectionBannerComponent } from './shared/connection-banner/connection-banner.component';
+import { trpc } from './core/trpc.client';
+import { ServerStatusWidgetComponent } from './shared/server-status-widget/server-status-widget.component';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
@@ -42,7 +44,7 @@ class PresetToastHostDirective {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, MatButton, MatIcon, TopToolbarComponent, PresetToastHostDirective, ConnectionBannerComponent],
+  imports: [RouterOutlet, RouterLink, MatButton, MatIcon, TopToolbarComponent, PresetToastHostDirective, ConnectionBannerComponent, ServerStatusWidgetComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
@@ -50,6 +52,8 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly year = new Date().getFullYear();
   isOnline = signal(true);
   updateAvailable = signal(false);
+  apiStatus = signal<string | null>(null);
+  apiRetrying = signal(false);
   presetSnackbarVisible = signal(false);
   presetToastVisible = signal(false);
   /** Einmalig beim ersten Wechsel auf Spielerisch: Snackbar-Text „Jetzt mit mehr Schwung!“ */
@@ -93,11 +97,19 @@ export class AppComponent implements OnInit, OnDestroy {
       ? $localize`Preset: Seriös`
       : $localize`Preset: Spielerisch`;
   });
+  footerRetryLabel = computed(() =>
+    this.apiRetrying() ? $localize`Verbinde…` : $localize`Nochmal versuchen`,
+  );
 
   ngOnInit(): void {
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     if (isPlatformBrowser(this.platformId)) {
       this.isOnline.set(navigator.onLine);
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => void this.checkApiConnection(), { timeout: 2000 });
+      } else {
+        setTimeout(() => void this.checkApiConnection(), 0);
+      }
       this.checkForUpdates();
       this.setupPwaInstallPrompt();
       this.routerSub = this.router.events
@@ -247,9 +259,25 @@ export class AppComponent implements OnInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     if (navigator.onLine) {
       this.isOnline.set(true);
+      void this.checkApiConnection();
     } else {
       window.location.reload();
     }
+  }
+
+  async checkApiConnection(): Promise<void> {
+    try {
+      const health = await trpc.health.check.query();
+      this.apiStatus.set(health.status);
+    } catch {
+      this.apiStatus.set(null);
+    }
+  }
+
+  async retryApiConnection(): Promise<void> {
+    this.apiRetrying.set(true);
+    await this.checkApiConnection();
+    this.apiRetrying.set(false);
   }
 
   onPresetChanged(): void {

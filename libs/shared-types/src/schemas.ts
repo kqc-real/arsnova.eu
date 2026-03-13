@@ -188,8 +188,28 @@ export type QuizUploadOutput = z.infer<typeof QuizUploadOutputSchema>;
 export const CreateSessionInputSchema = z.object({
   type: SessionTypeEnum.optional().default('QUIZ'),       // Story 8.1: Quiz oder Q&A
   quizId: z.uuid().optional(),                    // Pflicht bei QUIZ, null bei Q_AND_A
-  title: z.string().max(200).optional(),                   // Story 8.1: Titel für Q&A-Runde
+  title: z.string().trim().max(200).optional(),          // Story 8.1: Titel für Q&A-Runde
   moderationMode: z.boolean().optional().default(false),   // Story 8.4: Q&A-Fragen moderieren
+  qaEnabled: z.boolean().optional().default(false),        // ADR-0009: Q&A-Kanal in Quiz-Session
+  qaTitle: z.string().trim().max(200).optional(),          // ADR-0009: Titel des Q&A-Tabs
+  qaModerationMode: z.boolean().optional(),                // ADR-0009: Vorab-Moderation für Q&A
+  quickFeedbackEnabled: z.boolean().optional().default(false), // ADR-0009: Blitz-Feedback-Kanal
+}).superRefine((value, ctx) => {
+  if (value.type === 'QUIZ' && !value.quizId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['quizId'],
+      message: 'Für Quiz-Sessions ist eine quizId erforderlich.',
+    });
+  }
+
+  if (value.type === 'Q_AND_A' && value.quizId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['quizId'],
+      message: 'Q&A-Sessions dürfen keine quizId enthalten.',
+    });
+  }
 });
 export type CreateSessionInput = z.infer<typeof CreateSessionInputSchema>;
 
@@ -423,6 +443,21 @@ export const QuestionPreviewDTOSchema = z.object({
 export type QuestionPreviewDTO = z.infer<typeof QuestionPreviewDTOSchema>;
 
 /** DTO: Session-Info für den Beitritt (Story 3.1, 3.2). Enthält Nickname-Konfiguration bei QUIZ. */
+export const SessionChannelsDTOSchema = z.object({
+  quiz: z.object({
+    enabled: z.boolean(),
+  }),
+  qa: z.object({
+    enabled: z.boolean(),
+    title: z.string().nullable(),
+    moderationMode: z.boolean(),
+  }),
+  quickFeedback: z.object({
+    enabled: z.boolean(),
+  }),
+});
+export type SessionChannelsDTO = z.infer<typeof SessionChannelsDTOSchema>;
+
 export const SessionInfoDTOSchema = z.object({
   id: z.uuid(),
   code: z.string(),
@@ -430,6 +465,7 @@ export const SessionInfoDTOSchema = z.object({
   status: SessionStatusEnum,
   quizName: z.string().nullable(),
   title: z.string().nullable().optional(),
+  channels: SessionChannelsDTOSchema.optional(), // ADR-0009: Übergangsweise optional für schrittweise Migration
   participantCount: z.number(),
   nicknameTheme: NicknameThemeEnum.optional(),
   allowCustomNicknames: z.boolean().optional(),
@@ -782,9 +818,20 @@ export const QaQuestionDTOSchema = z.object({
 });
 export type QaQuestionDTO = z.infer<typeof QaQuestionDTOSchema>;
 
+export const QaQuestionsListDTOSchema = z.array(QaQuestionDTOSchema);
+export type QaQuestionsListDTO = z.infer<typeof QaQuestionsListDTOSchema>;
+
+export const GetQaQuestionsInputSchema = z.object({
+  sessionId: z.uuid(),
+  participantId: z.uuid().optional(),
+  moderatorView: z.boolean().optional().default(false),
+});
+export type GetQaQuestionsInput = z.infer<typeof GetQaQuestionsInputSchema>;
+
 /** Input: Q&A-Frage einreichen (Story 8.2) */
 export const SubmitQaQuestionInputSchema = z.object({
   sessionId: z.uuid(),
+  participantId: z.uuid(),
   text: z.string().min(1).max(500),
 });
 export type SubmitQaQuestionInput = z.infer<typeof SubmitQaQuestionInputSchema>;
@@ -792,8 +839,31 @@ export type SubmitQaQuestionInput = z.infer<typeof SubmitQaQuestionInputSchema>;
 /** Input: Q&A-Frage upvoten (Story 8.3) */
 export const UpvoteQaQuestionInputSchema = z.object({
   questionId: z.uuid(),
+  participantId: z.uuid(),
 });
 export type UpvoteQaQuestionInput = z.infer<typeof UpvoteQaQuestionInputSchema>;
+
+export const ToggleQaUpvoteOutputSchema = z.object({
+  questionId: z.uuid(),
+  upvoted: z.boolean(),
+  upvoteCount: z.number(),
+});
+export type ToggleQaUpvoteOutput = z.infer<typeof ToggleQaUpvoteOutputSchema>;
+
+export const ModerateQaQuestionActionEnum = z.enum([
+  'APPROVE',
+  'PIN',
+  'ARCHIVE',
+  'DELETE',
+]);
+export type ModerateQaQuestionAction = z.infer<typeof ModerateQaQuestionActionEnum>;
+
+export const ModerateQaQuestionInputSchema = z.object({
+  sessionCode: z.string().trim().min(6).max(6),
+  questionId: z.uuid(),
+  action: ModerateQaQuestionActionEnum,
+});
+export type ModerateQaQuestionInput = z.infer<typeof ModerateQaQuestionInputSchema>;
 
 // ---------------------------------------------------------------------------
 // SC-Schnellformate (Story 1.12) — clientseitig angewandt
@@ -898,6 +968,7 @@ export const CreateQuickFeedbackInputSchema = z.object({
   type: QuickFeedbackTypeEnum,
   theme: QuickFeedbackThemeEnum,
   preset: QuickFeedbackPresetEnum,
+  sessionCode: z.string().trim().length(6).optional(),
 });
 export type CreateQuickFeedbackInput = z.infer<typeof CreateQuickFeedbackInputSchema>;
 

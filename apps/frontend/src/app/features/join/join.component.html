@@ -29,6 +29,8 @@
           <p class="join-card__code" aria-label="Session-Code {{ s.code }}">{{ s.code }}</p>
           @if (s.quizName) {
             <p class="join-card__quiz">{{ s.quizName }}</p>
+          } @else if (s.title) {
+            <p class="join-card__quiz">{{ s.title }}</p>
           }
           <p class="join-card__participants">
             <span class="join-card__participants-count">{{ s.participantCount }}</span>

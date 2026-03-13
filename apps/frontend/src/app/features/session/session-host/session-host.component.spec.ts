@@ -13,6 +13,10 @@ const {
   getCurrentQuestionForHostQueryMock,
   getLeaderboardQueryMock,
   getTeamLeaderboardQueryMock,
+  qaListQueryMock,
+  qaModerateMutateMock,
+  qaOnQuestionsUpdatedSubscribeMock,
+  startQaMutateMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
 } = vi.hoisted(() => ({
@@ -23,6 +27,10 @@ const {
   getCurrentQuestionForHostQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
+  qaListQueryMock: vi.fn(),
+  qaModerateMutateMock: vi.fn(),
+  qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
+  startQaMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
 }));
@@ -37,8 +45,14 @@ vi.mock('../../../core/trpc.client', () => ({
       getCurrentQuestionForHost: { query: getCurrentQuestionForHostQueryMock },
       getLeaderboard: { query: getLeaderboardQueryMock },
       getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
+      startQa: { mutate: startQaMutateMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
+    },
+    qa: {
+      list: { query: qaListQueryMock },
+      moderate: { mutate: qaModerateMutateMock },
+      onQuestionsUpdated: { subscribe: qaOnQuestionsUpdatedSubscribeMock },
     },
   },
 }));
@@ -80,6 +94,10 @@ describe('SessionHostComponent', () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
     getLeaderboardQueryMock.mockResolvedValue([]);
     getTeamLeaderboardQueryMock.mockResolvedValue([]);
+    qaListQueryMock.mockResolvedValue([]);
+    qaModerateMutateMock.mockResolvedValue({});
+    qaOnQuestionsUpdatedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
+    startQaMutateMock.mockResolvedValue({ status: 'ACTIVE', currentQuestion: null, currentRound: 1 });
   });
 
   const setup = () => {
@@ -113,6 +131,153 @@ describe('SessionHostComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('ABC123');
     expect(text).toContain('Erste Frage starten');
+    fixture.destroy();
+  });
+
+  it('zeigt für Q&A in der Lobby den Button Fragerunde starten', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      type: 'Q_AND_A',
+      quizName: null,
+      title: 'Offene Fragen',
+      status: 'LOBBY',
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Offene Fragen');
+    expect(text).toContain('Fragerunde starten');
+    fixture.destroy();
+  });
+
+  it('zeigt Kanal-Tabs für Quiz, Fragen und Blitz-Feedback', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen aus dem Saal', moderationMode: false },
+        quickFeedback: { enabled: true },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Quiz');
+    expect(text).toContain('Fragen');
+    expect(text).toContain('Blitz-Feedback');
+    fixture.destroy();
+  });
+
+  it('führt im Fragen-Tab eine Moderationsaktion aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen aus dem Saal', moderationMode: true },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Was ist klausurrelevant?',
+        upvoteCount: 3,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await component.moderateQaQuestion('44444444-4444-4444-8444-444444444444', 'APPROVE');
+
+    expect(qaModerateMutateMock).toHaveBeenCalledWith({
+      sessionCode: 'ABC123',
+      questionId: '44444444-4444-4444-8444-444444444444',
+      action: 'APPROVE',
+    });
+    fixture.destroy();
+  });
+
+  it('zeigt am Fragen-Tab einen Hinweis auf neue Fragen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen aus dem Saal', moderationMode: true },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Ist das klausurrelevant?',
+        upvoteCount: 1,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('1 neu');
+    fixture.destroy();
+  });
+
+  it('hebt neue Fragen im Fragen-Tab in der Liste hervor', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen aus dem Saal', moderationMode: true },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Was kommt in der Klausur dran?',
+        upvoteCount: 2,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const highlightedCard = fixture.nativeElement.querySelector('.session-qa-card--highlight');
+    expect(highlightedCard).not.toBeNull();
     fixture.destroy();
   });
 

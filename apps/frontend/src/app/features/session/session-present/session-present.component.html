@@ -65,6 +65,92 @@
   }
 
   @if (!showTeamFinish()) {
+    @if (showPinnedQaQuestion() && pinnedQaQuestion(); as pinnedQuestion) {
+      <mat-card appearance="outlined" class="session-present__qa-card">
+        <mat-card-content>
+          <div class="session-present__qa-head">
+            <div>
+              <p class="session-present__qa-label" i18n="@@sessionPresent.qaLabel">Frage aus dem Saal</p>
+              <h2 class="session-present__qa-title" i18n="@@sessionPresent.qaTitle">Wird gerade beantwortet</h2>
+            </div>
+            <div class="session-present__qa-votes">
+              <mat-icon aria-hidden="true">thumb_up</mat-icon>
+              <span>{{ pinnedQuestion.upvoteCount }}</span>
+            </div>
+          </div>
+          <div class="session-present__qa-text" [innerHTML]="renderMarkdown(pinnedQuestion.text)"></div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (showQaQueue()) {
+      <mat-card appearance="outlined" class="session-present__qa-list-card">
+        <mat-card-content>
+          <div class="session-present__qa-list-head">
+            <div>
+              <p class="session-present__qa-label" i18n="@@sessionPresent.qaQueueLabel">Fragen aus dem Saal</p>
+              <h2 class="session-present__qa-list-title" i18n="@@sessionPresent.qaQueueTitle">Als Nächstes im Raum</h2>
+            </div>
+            <span class="session-present__qa-list-count">
+              {{ presenterQaQuestions().length }}
+            </span>
+          </div>
+
+          <div class="session-present__qa-list" role="list">
+            @for (question of presenterQaQuestions(); track question.id) {
+              <article class="session-present__qa-list-item" role="listitem">
+                <div class="session-present__qa-list-votes">
+                  <mat-icon aria-hidden="true">thumb_up</mat-icon>
+                  <span>{{ question.upvoteCount }}</span>
+                </div>
+                <div class="session-present__qa-list-text" [innerHTML]="renderMarkdown(question.text)"></div>
+              </article>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (showQuickFeedbackCard() && quickFeedbackResult(); as quickFeedback) {
+      <mat-card appearance="outlined" class="session-present__feedback-card">
+        <mat-card-content>
+          <div class="session-present__feedback-head">
+            <div>
+              <p class="session-present__feedback-label" i18n="@@sessionTabs.quickFeedback">Blitz-Feedback</p>
+              <h2 class="session-present__feedback-title">{{ quickFeedbackHeading(quickFeedback.type) }}</h2>
+            </div>
+            <div class="session-present__feedback-meta">
+              @if (quickFeedbackStatusLabel(); as statusLabel) {
+                <span class="session-present__feedback-status">{{ statusLabel }}</span>
+              }
+              <span class="session-present__feedback-votes">
+                {{ quickFeedback.totalVotes }} <span i18n="@@sessionPresent.quickFeedbackVotes">Stimmen</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="session-present__feedback-bars">
+            @for (entry of quickFeedbackEntries(); track entry.key) {
+              <div class="session-present__feedback-row">
+                <span class="session-present__feedback-row-label">
+                  {{ quickFeedbackDisplayLabel(entry.key, quickFeedback.type) }}
+                </span>
+                <div class="session-present__feedback-track" aria-hidden="true">
+                  <div
+                    class="session-present__feedback-fill"
+                    [style.width]="quickFeedbackBarWidth(entry.value)"
+                  ></div>
+                </div>
+                <span class="session-present__feedback-row-value">
+                  {{ entry.value }} ({{ quickFeedbackPercentage(entry.value) }} %)
+                </span>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
     <mat-card appearance="outlined" class="session-placeholder">
       <mat-card-content>
         <p class="session-placeholder__text">{{ presenterInfo() }}</p>

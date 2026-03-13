@@ -1,5 +1,31 @@
 <section class="session-host" [class.session-host--lobby]="effectiveStatus() === 'LOBBY'">
   @if (session(); as s) {
+    @if (showChannelTabs()) {
+      <mat-button-toggle-group
+        class="session-channel-tabs"
+        [value]="activeChannel()"
+        (valueChange)="selectChannel($event)"
+        i18n-aria-label="@@sessionTabs.hostAria"
+        aria-label="Live-Bereich wählen"
+      >
+        @for (channel of visibleChannels(); track channel) {
+          <mat-button-toggle [value]="channel">
+            <span class="session-channel-tabs__label">{{ channelLabel(channel) }}</span>
+            @if (channelTabMetaLabel(channel); as metaLabel) {
+              <span
+                class="session-channel-tabs__badge"
+                [class.session-channel-tabs__badge--alert]="isChannelBadgeAlert(channel)"
+                [class.session-channel-tabs__badge--status]="channel === 'quickFeedback' && !isChannelBadgeAlert(channel)"
+              >
+                {{ metaLabel }}
+              </span>
+            }
+          </mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+    }
+
+    @if (showPrimaryLiveView()) {
     @if (effectiveStatus() === 'LOBBY') {
       <!-- Lobby: Code, QR (Story 2.1b), Beitritts-URL, Teilnehmerzahl. -->
       <div class="session-lobby">
@@ -14,8 +40,8 @@
                 <span class="session-lobby__participants-count">{{ count }}</span>
                 {{ count === 1 ? participantLabelSingular() : participantLabelPlural() }}
               </p>
-              @if (s.quizName) {
-                <p class="session-lobby__quiz-name">{{ s.quizName }}</p>
+              @if (sessionHeading(); as heading) {
+                <p class="session-lobby__quiz-name">{{ heading }}</p>
               }
             </div>
             @if (qrDataUrl()) {
@@ -67,8 +93,8 @@
             <span class="session-lobby__participants-count">{{ count }}</span>
             {{ count === 1 ? participantLabelSingular() : participantLabelPlural() }}
           </p>
-          @if (s.quizName) {
-            <p class="session-lobby__quiz-name">{{ s.quizName }}</p>
+          @if (sessionHeading(); as heading) {
+            <p class="session-lobby__quiz-name">{{ heading }}</p>
           }
           @if (qrDataUrl()) {
             <div class="session-lobby__qr">
@@ -91,9 +117,13 @@
             color="primary"
             type="button"
             [disabled]="controlPending()"
-            (click)="nextQuestion()"
+            (click)="startSessionFlow()"
           >
-            <span i18n>Erste Frage starten</span>
+            @if (isQaSession()) {
+              <span i18n="@@sessionHost.startQa">Fragerunde starten</span>
+            } @else {
+              <span i18n>Erste Frage starten</span>
+            }
           </button>
         </div>
       </div>
@@ -105,8 +135,8 @@
           <span class="session-host__meta-code" i18n-aria-label aria-label="Session-Code {{ s.code }}">{{ s.code }}</span>
           <span class="session-host__meta-participants">{{ s.participantCount }} {{ participantLabelPlural() }}</span>
           <span class="session-host__meta-status">{{ phaseLabel(effectiveStatus(), allHaveVoted(), countdownEnded()) }}</span>
-          @if (s.quizName) {
-            <span class="session-host__meta-quiz">{{ s.quizName }}</span>
+          @if (sessionHeading(); as heading) {
+            <span class="session-host__meta-quiz">{{ heading }}</span>
           }
         </header>
 
@@ -309,8 +339,18 @@
             </div>
           }
 
-          <!-- Karte 1: Frage (toolbar-breit) -->
-          @if (currentQuestionForHost(); as q) {
+          <!-- Karte 1: Frage oder Q&A-Status (toolbar-breit) -->
+          @if (isQaSession() && effectiveStatus() === 'ACTIVE') {
+            <mat-card appearance="outlined" class="session-host__qa-card">
+              <mat-card-content class="session-host__qa-card-content">
+                <p class="session-host__qa-card-label" i18n="@@sessionHost.qaLiveLabel">Fragerunde läuft</p>
+                <h1 class="session-host__qa-card-title">{{ sessionHeading() }}</h1>
+                <p class="session-host__qa-card-hint" i18n="@@sessionHost.qaLiveHint">
+                  Teilnehmende können jetzt mit dem Session-Code beitreten.
+                </p>
+              </mat-card-content>
+            </mat-card>
+          } @else if (currentQuestionForHost(); as q) {
             <mat-card appearance="outlined" class="session-host__question-card">
               <mat-card-header>
                 <mat-card-subtitle class="session-host__question-subtitle">
@@ -598,7 +638,18 @@
                 <span i18n>Antworten freigeben</span>
               </button>
             }
-            @if (effectiveStatus() === 'ACTIVE') {
+            @if (effectiveStatus() === 'ACTIVE' && isQaSession()) {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="controlPending()"
+                (click)="endSession()"
+              >
+                <span i18n="@@sessionHost.endQa">Fragerunde beenden</span>
+              </button>
+            }
+            @if (effectiveStatus() === 'ACTIVE' && !isQaSession()) {
               <button
                 mat-flat-button
                 color="primary"
@@ -663,14 +714,16 @@
           <details class="session-host__extra">
             <summary i18n>Weitere Aktionen</summary>
             <div class="session-host__extra-content">
-              <button mat-button type="button" (click)="exportFreetextSessionCsv()">
-                <mat-icon>download</mat-icon>
-                <span i18n>Freitext-Session als CSV exportieren</span>
-              </button>
-              @if (exportStatus()) {
-                <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
+              @if (!isQaSession()) {
+                <button mat-button type="button" (click)="exportFreetextSessionCsv()">
+                  <mat-icon>download</mat-icon>
+                  <span i18n>Freitext-Session als CSV exportieren</span>
+                </button>
+                @if (exportStatus()) {
+                  <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
+                }
+                <app-word-cloud [responses]="freetextResponses()" />
               }
-              <app-word-cloud [responses]="freetextResponses()" />
               <button
                 mat-button
                 color="warn"
@@ -686,6 +739,80 @@
           </details>
         }
       </div>
+    }
+    } @else if (activeChannel() === 'qa') {
+      <mat-card appearance="outlined" class="session-channel-card session-channel-card--qa">
+        <mat-card-content class="session-channel-card__content session-channel-card__content--left">
+          <div class="session-channel-card__header">
+            <div>
+              <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
+              <h2 class="session-channel-card__title">{{ qaHeading() }}</h2>
+            </div>
+            <mat-icon class="session-channel-card__icon" aria-hidden="true">forum</mat-icon>
+          </div>
+
+          @if (qaError(); as error) {
+            <p class="session-channel-card__error" role="alert">{{ error }}</p>
+          }
+          @if (qaInfo(); as info) {
+            <p class="session-channel-card__info" role="status">{{ info }}</p>
+          }
+
+          @if (session()?.channels?.qa?.moderationMode) {
+            <p class="session-channel-card__text session-channel-card__text--compact" i18n="@@sessionQa.moderationModeHint">
+              Vorab-Moderation ist aktiv. Neue Fragen warten erst auf deine Freigabe.
+            </p>
+          }
+
+          @if (qaQuestions().length === 0) {
+            <p class="session-channel-card__text" i18n="@@sessionTabs.qaHostPlaceholder">
+              Hier sammelst und moderierst du Fragen aus dem Publikum.
+            </p>
+          } @else {
+            <div class="session-qa-summary">
+              <span i18n="@@sessionQa.summaryTotal">Gesamt: {{ qaQuestions().length }}</span>
+              <span i18n="@@sessionQa.summaryPending">Warten auf Freigabe: {{ qaPendingCount() }}</span>
+            </div>
+            <div class="session-qa-list" role="list">
+              @for (question of qaQuestions(); track question.id) {
+                <article
+                  class="session-qa-card"
+                  [class.session-qa-card--highlight]="isQaQuestionHighlighted(question.id)"
+                  role="listitem"
+                >
+                  <div class="session-qa-card__head">
+                    <div class="session-qa-card__head-main">
+                      <span class="session-qa-card__status">{{ qaStatusLabel(question.status) }}</span>
+                      @if (isQaQuestionHighlighted(question.id)) {
+                        <span class="session-qa-card__marker" aria-hidden="true"></span>
+                      }
+                    </div>
+                    <span class="session-qa-card__votes">{{ question.upvoteCount }} <span i18n="@@sessionQa.votes">Stimmen</span></span>
+                  </div>
+                  <div class="session-qa-card__text" [innerHTML]="renderMarkdown(question.text)"></div>
+                  <div class="session-qa-card__actions">
+                    @for (action of ['APPROVE', 'PIN', 'ARCHIVE', 'DELETE']; track action) {
+                      @if (canModerateQaQuestion(question, $any(action))) {
+                        <button
+                          matButton="tonal"
+                          type="button"
+                          class="session-qa-card__action-btn"
+                          [disabled]="qaPendingQuestionIds().has(question.id)"
+                          (click)="moderateQaQuestion(question.id, $any(action))"
+                        >
+                          {{ qaActionLabel($any(action)) }}
+                        </button>
+                      }
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    } @else if (activeChannel() === 'quickFeedback') {
+      <app-feedback-host [sessionCode]="code" [embeddedInSession]="true" />
     }
   } @else {
     <mat-card appearance="outlined" class="session-placeholder">

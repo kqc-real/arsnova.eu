@@ -1,11 +1,14 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { WordCloudComponent } from './word-cloud.component';
 import { trpc } from '../../../core/trpc.client';
-import type { SessionInfoDTO, TeamLeaderboardEntryDTO } from '@arsnova/shared-types';
+import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import { feedbackDisplayLabel, feedbackTitle, MOOD_OPTIONS, YESNO_OPTIONS, ABCD_OPTIONS } from '../../feedback/feedback.config';
+import type { QaQuestionDTO, QuickFeedbackResult, SessionInfoDTO, TeamLeaderboardEntryDTO } from '@arsnova/shared-types';
 
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
@@ -20,15 +23,22 @@ import type { SessionInfoDTO, TeamLeaderboardEntryDTO } from '@arsnova/shared-ty
 })
 export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly sanitizer = inject(DomSanitizer);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
 
   readonly session = signal<SessionInfoDTO | null>(null);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
+  readonly pinnedQaQuestion = signal<QaQuestionDTO | null>(null);
+  readonly presenterQaQuestions = signal<QaQuestionDTO[]>([]);
+  readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly freetextResponses = signal<string[]>([]);
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
+  readonly showPinnedQaQuestion = computed(() => this.pinnedQaQuestion() !== null && !this.showTeamFinish());
+  readonly showQaQueue = computed(() => this.presenterQaQuestions().length > 0 && !this.showTeamFinish());
+  readonly showQuickFeedbackCard = computed(() => this.quickFeedbackResult() !== null && !this.showTeamFinish());
   readonly showTeamFinish = computed(() => {
     const session = this.session();
     return session?.teamMode === true && session.status === 'FINISHED' && this.teamLeaderboard().length > 0;
@@ -37,6 +47,20 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
   );
+  readonly quickFeedbackEntries = computed(() => {
+    const data = this.quickFeedbackResult();
+    if (!data) {
+      return [];
+    }
+
+    const orderMap: Record<string, string[]> = {
+      MOOD: MOOD_OPTIONS.map((o) => o.value),
+      YESNO: YESNO_OPTIONS.map((o) => o.value),
+      ABCD: ABCD_OPTIONS.map((o) => o.value),
+    };
+    const order = orderMap[data.type] ?? Object.keys(data.distribution);
+    return order.map((key) => ({ key, value: data.distribution[key] ?? 0 }));
+  });
 
   async ngOnInit(): Promise<void> {
     if (this.code.length !== 6) {
@@ -46,9 +70,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
     await this.refreshSessionMeta();
     await this.refreshLiveFreetext();
+    await this.refreshQaQuestions();
+    await this.refreshQuickFeedbackResult();
     this.pollTimer = setInterval(() => {
       void this.refreshSessionMeta();
       void this.refreshLiveFreetext();
+      void this.refreshQaQuestions();
+      void this.refreshQuickFeedbackResult();
     }, 2000);
   }
 
@@ -76,6 +104,53 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return $localize`${entry.teamName} gewinnt mit ${entry.totalScore}:totalScore: Punkten!`;
   }
 
+  renderMarkdown(value: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+  }
+
+  quickFeedbackHeading(type: string): string {
+    return feedbackTitle(type);
+  }
+
+  quickFeedbackDisplayLabel(key: string, type: string): string {
+    return feedbackDisplayLabel(key, type);
+  }
+
+  quickFeedbackStatusLabel(): string | null {
+    const result = this.quickFeedbackResult();
+    if (!result) {
+      return null;
+    }
+
+    if (result.discussion) {
+      return $localize`:@@sessionPresent.quickFeedbackStatusDiscussion:Diskussion läuft`;
+    }
+
+    if ((result.currentRound ?? 1) === 2) {
+      return $localize`:@@sessionPresent.quickFeedbackStatusRound2:Runde 2 läuft`;
+    }
+
+    if (result.locked) {
+      return $localize`:@@sessionPresent.quickFeedbackStatusPaused:Pausiert`;
+    }
+
+    return $localize`:@@sessionPresent.quickFeedbackStatusActive:Runde 1 läuft`;
+  }
+
+  quickFeedbackBarWidth(value: number): string {
+    const entries = this.quickFeedbackEntries();
+    const max = Math.max(1, ...entries.map((entry) => entry.value));
+    return `${Math.max(8, Math.round((value / max) * 100))}%`;
+  }
+
+  quickFeedbackPercentage(value: number): string {
+    const total = this.quickFeedbackResult()?.totalVotes ?? 0;
+    if (total <= 0) {
+      return '0';
+    }
+    return String(Math.round((value / total) * 100));
+  }
+
   private async refreshSessionMeta(): Promise<void> {
     try {
       const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
@@ -89,6 +164,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     } catch {
       this.session.set(null);
       this.teamLeaderboard.set([]);
+      this.pinnedQaQuestion.set(null);
+      this.presenterQaQuestions.set([]);
     }
   }
 
@@ -117,6 +194,43 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       }
     } catch {
       this.presenterInfo.set($localize`Live-Freitextdaten konnten nicht geladen werden.`);
+    }
+  }
+
+  private async refreshQaQuestions(): Promise<void> {
+    const sessionId = this.session()?.id;
+    const qaEnabled = this.session()?.channels?.qa.enabled ?? this.session()?.type === 'Q_AND_A';
+    if (!sessionId || !qaEnabled || this.showTeamFinish()) {
+      this.pinnedQaQuestion.set(null);
+      this.presenterQaQuestions.set([]);
+      return;
+    }
+
+    try {
+      const questions = await trpc.qa.list.query({ sessionId });
+      const visibleQuestions = questions.filter((question) => question.status === 'PINNED' || question.status === 'ACTIVE');
+      const pinned = visibleQuestions.find((question) => question.status === 'PINNED') ?? null;
+      const queue = visibleQuestions.filter((question) => question.status === 'ACTIVE');
+      this.pinnedQaQuestion.set(pinned);
+      this.presenterQaQuestions.set(queue);
+    } catch {
+      this.pinnedQaQuestion.set(null);
+      this.presenterQaQuestions.set([]);
+    }
+  }
+
+  private async refreshQuickFeedbackResult(): Promise<void> {
+    const quickFeedbackEnabled = this.session()?.channels?.quickFeedback.enabled ?? false;
+    if (!quickFeedbackEnabled || this.showTeamFinish()) {
+      this.quickFeedbackResult.set(null);
+      return;
+    }
+
+    try {
+      const result = await trpc.quickFeedback.results.query({ sessionCode: this.code.toUpperCase() });
+      this.quickFeedbackResult.set(result);
+    } catch {
+      this.quickFeedbackResult.set(null);
     }
   }
 }

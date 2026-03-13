@@ -9,6 +9,40 @@
   position: relative;
 }
 
+.session-channel-card {
+  max-width: 28rem;
+  text-align: left;
+}
+
+.session-channel-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-channel-card__icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  color: var(--mat-sys-primary);
+}
+
+.session-channel-card__eyebrow {
+  margin: 0;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-primary);
+}
+
+.session-channel-card__title {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.session-channel-card__text {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .feedback-vote__session-code {
   margin: 0 0 3rem;
   padding: 0;
