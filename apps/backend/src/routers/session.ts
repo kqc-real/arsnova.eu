@@ -179,7 +179,7 @@ function buildSessionChannels(session: {
 
   return {
     quiz: {
-      enabled: session.type !== 'Q_AND_A' && (typeof session.quizId === 'string' || session.quiz != null),
+      enabled: session.type !== 'Q_AND_A' && (typeof session.quizId === 'string' || session.quiz !== null),
     },
     qa: {
       enabled: qaEnabled,
