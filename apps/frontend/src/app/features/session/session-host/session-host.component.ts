@@ -7,6 +7,7 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { firstValueFrom } from 'rxjs';
 import QRCode from 'qrcode';
 import type { Unsubscribable } from '@trpc/server/observable';
@@ -39,6 +40,15 @@ import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 const ANSWER_COLORS = ['#1565c0', '#e65100', '#2e7d32', '#6a1b9a', '#c62828', '#00838f', '#4e342e', '#37474f'];
 const ANSWER_SHAPES = ['\u25B3', '\u25CB', '\u25A1', '\u25C7', '\u2606', '\u2B21', '\u2B20', '\u2BC6'];
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
+type HostMusicTrack =
+  | 'LOBBY_0'
+  | 'LOBBY_1'
+  | 'LOBBY_2'
+  | 'LOBBY_3'
+  | 'CONNECTING_0'
+  | 'COUNTDOWN_RUNNING_0'
+  | 'COUNTDOWN_RUNNING_1'
+  | 'COUNTDOWN_RUNNING_2';
 
 /**
  * Host-Ansicht: Lobby + Präsentations-Steuerung (Epic 2).
@@ -58,6 +68,9 @@ type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
     MatCardSubtitle,
     MatCardTitle,
     MatIcon,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
     WordCloudComponent,
     CountdownFingersComponent,
     FeedbackHostComponent,
@@ -158,8 +171,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly isQaSession = computed(() => this.session()?.type === 'Q_AND_A');
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
+  readonly musicTracks: ReadonlyArray<{ value: HostMusicTrack; label: string }> = [
+    { value: 'LOBBY_0', label: 'Lobby · Warm' },
+    { value: 'LOBBY_1', label: 'Lobby · Drive' },
+    { value: 'LOBBY_2', label: 'Lobby · Smooth' },
+    { value: 'LOBBY_3', label: 'Lobby · Pulse' },
+    { value: 'CONNECTING_0', label: 'Connecting · Build' },
+    { value: 'COUNTDOWN_RUNNING_0', label: 'Running · Focus' },
+    { value: 'COUNTDOWN_RUNNING_1', label: 'Running · Push' },
+    { value: 'COUNTDOWN_RUNNING_2', label: 'Running · Intense' },
+  ];
   /** Live-Override durch den Dozenten: null = Quiz-Setting, true/false = manuelle Erzwingung. */
   readonly musicOverrideEnabled = signal<boolean | null>(null);
+  /** Optionaler Live-Track-Override durch den Dozenten (nur Laufzeit, nicht persistent). */
+  readonly musicOverrideTrack = signal<HostMusicTrack | null>(null);
+  readonly activeMusicTrack = computed<HostMusicTrack | null>(() =>
+    this.musicOverrideTrack() ?? this.resolveMusicTrack(this.session()?.backgroundMusic),
+  );
+  readonly activeMusicLabel = computed(() => {
+    const active = this.activeMusicTrack();
+    if (!active) return $localize`:@@sessionHost.musicLabelOff:Musik aus`;
+    return this.musicTracks.find((track) => track.value === active)?.label ?? active;
+  });
   readonly isBackgroundMusicEnabled = computed(() => {
     const forced = this.musicOverrideEnabled();
     if (forced !== null) return forced;
@@ -576,25 +609,50 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.sound.stopMusic();
       return;
     }
-    const track = this.resolveMusicTrack(session.backgroundMusic) ?? 'CALM_LOFI';
+    const track = this.activeMusicTrack() ?? 'LOBBY_0';
     void this.sound.playMusic(track);
   }
 
   toggleBackgroundMusic(): void {
     this.sound.unlock();
     this.musicOverrideEnabled.set(!this.isBackgroundMusicEnabled());
+    if (this.musicOverrideEnabled() === true && !this.activeMusicTrack()) {
+      this.musicOverrideTrack.set('LOBBY_0');
+    }
     this.syncMusic();
   }
 
-  private resolveMusicTrack(raw: string | null | undefined): 'CALM_LOFI' | 'UPBEAT_POP' | 'FOCUS_AMBIENT' | null {
-    if (raw === 'CALM_LOFI' || raw === 'UPBEAT_POP' || raw === 'FOCUS_AMBIENT') {
+  selectBackgroundMusicTrack(track: HostMusicTrack): void {
+    this.sound.unlock();
+    this.musicOverrideTrack.set(track);
+    this.musicOverrideEnabled.set(true);
+    this.syncMusic();
+  }
+
+  private resolveMusicTrack(raw: string | null | undefined): HostMusicTrack | null {
+    if (
+      raw === 'LOBBY_0' ||
+      raw === 'LOBBY_1' ||
+      raw === 'LOBBY_2' ||
+      raw === 'LOBBY_3' ||
+      raw === 'CONNECTING_0' ||
+      raw === 'COUNTDOWN_RUNNING_0' ||
+      raw === 'COUNTDOWN_RUNNING_1' ||
+      raw === 'COUNTDOWN_RUNNING_2'
+    ) {
       return raw;
     }
+    if (raw === 'CALM_LOFI') return 'LOBBY_0';
+    if (raw === 'UPBEAT_POP') return 'LOBBY_1';
+    if (raw === 'FOCUS_AMBIENT') return 'LOBBY_2';
     if (raw === 'UPBEAT') {
-      return 'UPBEAT_POP';
+      return 'LOBBY_1';
     }
     if (raw === 'CHILL') {
-      return 'CALM_LOFI';
+      return 'LOBBY_0';
+    }
+    if (raw === 'EPIC') {
+      return 'LOBBY_3';
     }
     return null;
   }

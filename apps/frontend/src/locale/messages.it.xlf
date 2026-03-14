@@ -6245,6 +6245,22 @@
         <source>Hintergrundmusik einschalten</source>
         <target>Attiva musica di sottofondo</target>
       </trans-unit>
+      <trans-unit id="sessionHost.musicControlAria" datatype="html">
+        <source>Soundsteuerung öffnen</source>
+        <target>Apri controlli audio</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicMenuTitle" datatype="html">
+        <source>Hintergrundmusik</source>
+        <target>Musica di sottofondo</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicMenuHint" datatype="html">
+        <source>Live steuerbar, unabhängig von den Quiz-Einstellungen.</source>
+        <target>Gestibile live, indipendentemente dalle impostazioni del quiz.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicLabelOff" datatype="html">
+        <source>Musik aus</source>
+        <target>Musica off</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

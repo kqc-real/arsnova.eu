@@ -157,35 +157,45 @@
           @if (sessionHeading(); as heading) {
             <span class="session-host__meta-quiz">{{ heading }}</span>
           }
-          @if (isBackgroundMusicEnabled()) {
-            <button
-              mat-icon-button
-              type="button"
-              class="session-host__meta-sound-toggle"
-              [attr.aria-pressed]="true"
-              (click)="toggleBackgroundMusic()"
-              i18n-title="@@sessionHost.musicToggleTitleOn"
-              title="Musik aus"
-              i18n-aria-label="@@sessionHost.musicToggleAriaOn"
-              aria-label="Hintergrundmusik ausschalten"
-            >
-              <mat-icon aria-hidden="true">volume_up</mat-icon>
-            </button>
-          } @else {
-            <button
-              mat-icon-button
-              type="button"
-              class="session-host__meta-sound-toggle"
-              [attr.aria-pressed]="false"
-              (click)="toggleBackgroundMusic()"
-              i18n-title="@@sessionHost.musicToggleTitleOff"
-              title="Musik an"
-              i18n-aria-label="@@sessionHost.musicToggleAriaOff"
-              aria-label="Hintergrundmusik einschalten"
-            >
-              <mat-icon aria-hidden="true">volume_off</mat-icon>
-            </button>
-          }
+          <button
+            mat-stroked-button
+            type="button"
+            class="session-host__meta-sound-control"
+            [class.session-host__meta-sound-control--active]="isBackgroundMusicEnabled()"
+            [matMenuTriggerFor]="hostMusicMenu"
+            i18n-aria-label="@@sessionHost.musicControlAria"
+            aria-label="Soundsteuerung öffnen"
+          >
+            <mat-icon aria-hidden="true">{{ isBackgroundMusicEnabled() ? 'graphic_eq' : 'volume_off' }}</mat-icon>
+            <span class="session-host__meta-sound-label">{{ activeMusicLabel() }}</span>
+            <span class="session-host__meta-sound-indicator" [class.session-host__meta-sound-indicator--on]="isBackgroundMusicEnabled()"></span>
+            <mat-icon aria-hidden="true">expand_more</mat-icon>
+          </button>
+          <mat-menu #hostMusicMenu="matMenu" xPosition="before">
+            <div class="session-host__music-menu-head" (click)="$event.stopPropagation()">
+              <p class="session-host__music-menu-title" i18n="@@sessionHost.musicMenuTitle">Hintergrundmusik</p>
+              <p class="session-host__music-menu-subtitle" i18n="@@sessionHost.musicMenuHint">
+                Live steuerbar, unabhängig von den Quiz-Einstellungen.
+              </p>
+            </div>
+            @if (isBackgroundMusicEnabled()) {
+              <button mat-menu-item type="button" (click)="toggleBackgroundMusic()">
+                <mat-icon aria-hidden="true">volume_off</mat-icon>
+                <span i18n="@@sessionHost.musicToggleTitleOn">Musik aus</span>
+              </button>
+            } @else {
+              <button mat-menu-item type="button" (click)="toggleBackgroundMusic()">
+                <mat-icon aria-hidden="true">volume_up</mat-icon>
+                <span i18n="@@sessionHost.musicToggleTitleOff">Musik an</span>
+              </button>
+            }
+            @for (track of musicTracks; track track.value) {
+              <button mat-menu-item type="button" (click)="selectBackgroundMusicTrack(track.value)">
+                <mat-icon aria-hidden="true">{{ activeMusicTrack() === track.value ? 'check_circle' : 'music_note' }}</mat-icon>
+                <span>{{ track.label }}</span>
+              </button>
+            }
+          </mat-menu>
         </header>
 
         @if (effectiveStatus() === 'FINISHED') {

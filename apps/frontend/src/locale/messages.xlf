@@ -5672,6 +5672,18 @@
       <trans-unit id="sessionHost.musicToggleAriaOff" datatype="html">
         <source>Hintergrundmusik einschalten</source>
       </trans-unit>
+      <trans-unit id="sessionHost.musicControlAria" datatype="html">
+        <source>Soundsteuerung öffnen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicMenuTitle" datatype="html">
+        <source>Hintergrundmusik</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicMenuHint" datatype="html">
+        <source>Live steuerbar, unabhängig von den Quiz-Einstellungen.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.musicLabelOff" datatype="html">
+        <source>Musik aus</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>

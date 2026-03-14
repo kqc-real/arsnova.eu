@@ -602,9 +602,59 @@
   white-space: nowrap;
 }
 
-.session-host__meta-sound-toggle {
+.session-host__meta-sound-control {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-inline: 0.65rem;
+  border-radius: var(--mat-sys-corner-full);
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 34%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, var(--mat-sys-primary) 9%, var(--mat-sys-surface));
+  color: var(--mat-sys-on-surface);
+}
+
+.session-host__meta-sound-control--active {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 52%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-surface));
+}
+
+.session-host__meta-sound-label {
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+}
+
+.session-host__meta-sound-indicator {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-outline) 70%, transparent);
+}
+
+.session-host__meta-sound-indicator--on {
+  background: var(--mat-sys-primary);
+  box-shadow: 0 0 0.45rem color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
+}
+
+.session-host__music-menu-head {
+  padding: 0.55rem 1rem 0.4rem;
+}
+
+.session-host__music-menu-title {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface);
+}
+
+.session-host__music-menu-subtitle {
+  margin: 0.2rem 0 0;
+  font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
+  line-height: 1.4;
 }
 
 /* --- Ergebnisseite (FINISHED) – Container & Hero --- */

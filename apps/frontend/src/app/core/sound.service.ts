@@ -15,6 +15,14 @@ const SOUND_PATHS: Record<SoundKey, string> = {
 
 export type MusicTrack = 'CALM_LOFI' | 'UPBEAT_POP' | 'FOCUS_AMBIENT' | 'UPBEAT' | 'EPIC' | 'CHILL';
 const MUSIC_PATHS: Record<string, string> = {
+  LOBBY_0: 'assets/sound/lobby/Song0.mp3',
+  LOBBY_1: 'assets/sound/lobby/Song1.mp3',
+  LOBBY_2: 'assets/sound/lobby/Song2.mp3',
+  LOBBY_3: 'assets/sound/lobby/Song3.mp3',
+  CONNECTING_0: 'assets/sound/connecting/Song0.mp3',
+  COUNTDOWN_RUNNING_0: 'assets/sound/countdownRunning/Song0.mp3',
+  COUNTDOWN_RUNNING_1: 'assets/sound/countdownRunning/Song1.mp3',
+  COUNTDOWN_RUNNING_2: 'assets/sound/countdownRunning/Song2.mp3',
   CALM_LOFI: 'assets/sound/lobby/Song0.mp3',
   UPBEAT_POP: 'assets/sound/lobby/Song1.mp3',
   FOCUS_AMBIENT: 'assets/sound/lobby/Song2.mp3',
@@ -53,18 +61,28 @@ export class SoundService {
     return this.ctx;
   }
 
+  private async ensureContextRunning(): Promise<AudioContext | null> {
+    const ctx = this.getContext();
+    if (!ctx) return null;
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume();
+      } catch {
+        return null;
+      }
+    }
+    return ctx.state === 'running' ? ctx : null;
+  }
+
   unlock(): void {
     if (this.unlocked) return;
-    const ctx = this.getContext();
-    if (ctx?.state === 'suspended') {
-      void ctx.resume();
-    }
+    void this.ensureContextRunning();
     this.unlocked = true;
   }
 
   async play(key: SoundKey): Promise<void> {
-    const ctx = this.getContext();
-    if (!ctx || ctx.state === 'suspended') return;
+    const ctx = await this.ensureContextRunning();
+    if (!ctx) return;
 
     const path = SOUND_PATHS[key];
     if (!path) return;
@@ -100,8 +118,8 @@ export class SoundService {
 
   /** Startet (oder hält) loopende Hintergrundmusik für den gewünschten Track. */
   async playMusic(track: MusicTrack | string): Promise<void> {
-    const ctx = this.getContext();
-    if (!ctx || ctx.state === 'suspended') return;
+    const ctx = await this.ensureContextRunning();
+    if (!ctx) return;
     const path = MUSIC_PATHS[track];
     if (!path) {
       this.stopMusic();
