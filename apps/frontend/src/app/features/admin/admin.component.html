@@ -1,9 +1,237 @@
-<div class="l-page l-section">
-  <mat-card appearance="outlined" class="admin-placeholder">
-    <mat-card-content>
-      <p class="admin-placeholder__text" i18n>
-        Admin-Bereich – Story 9.1–9.3 (Login, Session-Code, Liste, Löschen, Export)
-      </p>
-    </mat-card-content>
-  </mat-card>
+<div class="l-page l-section admin-page">
+  @if (!authenticated()) {
+    <mat-card appearance="outlined" class="admin-card admin-card--login">
+      <mat-card-header>
+        <mat-card-title>Admin-Login</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="admin-help">Zugang nur mit Admin-Schlüssel aus der Server-Konfiguration.</p>
+        <mat-form-field appearance="outline" class="admin-field">
+          <mat-label>Admin-Schlüssel</mat-label>
+          <input
+            matInput
+            id="admin-secret"
+            type="password"
+            [value]="adminSecret()"
+            (input)="updateAdminSecret($any($event.target).value)"
+            autocomplete="current-password"
+          />
+        </mat-form-field>
+        @if (loginError(); as error) {
+          <p class="admin-error" role="alert">{{ error }}</p>
+        }
+        <div class="admin-actions">
+          <button mat-flat-button type="button" [disabled]="loginLoading() || !adminSecret().trim()" (click)="login()">
+            @if (loginLoading()) {
+              <mat-progress-spinner diameter="18" mode="indeterminate" />
+            } @else {
+              <span>Anmelden</span>
+            }
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="admin-shell">
+      <mat-card appearance="outlined" class="admin-card">
+        <mat-card-header>
+          <mat-card-title>Admin-Bereich</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="admin-help">Recherchefenster A/B: laufende Sessions und Nachlaufdaten.</p>
+          <div class="admin-actions admin-actions--top">
+            <button matButton="tonal" type="button" (click)="logout()">Abmelden</button>
+          </div>
+
+          <div class="admin-lookup">
+            <label class="admin-label" for="admin-lookup-code">Session-Code (6-stellig)</label>
+            <div class="admin-lookup__row">
+              <mat-form-field appearance="outline" class="admin-field admin-field--code">
+                <mat-label>Code</mat-label>
+                <input
+                  matInput
+                  id="admin-lookup-code"
+                  class="admin-input--code"
+                  type="text"
+                  [value]="lookupCode()"
+                  (input)="updateLookupCode($any($event.target).value)"
+                  maxlength="6"
+                />
+              </mat-form-field>
+              <button mat-flat-button type="button" [disabled]="lookupLoading() || lookupCode().length !== 6" (click)="lookupByCode()">
+                Öffnen
+              </button>
+            </div>
+            @if (lookupError(); as error) {
+              <p class="admin-error" role="alert">{{ error }}</p>
+            }
+          </div>
+
+          @if (listError(); as error) {
+            <p class="admin-error" role="alert">{{ error }}</p>
+          }
+          @if (listLoading()) {
+            <p class="admin-help">Sessions werden geladen…</p>
+          } @else if (!hasSessions()) {
+            <p class="admin-help">Keine Sessions im Recherchefenster gefunden.</p>
+          } @else {
+            <div class="admin-list">
+              @for (session of sessions(); track session.sessionId) {
+                <button matButton="tonal" type="button" class="admin-list__item" (click)="openSessionDetail(session.sessionId)">
+                  <span class="admin-list__code">{{ session.sessionCode }}</span>
+                  <span class="admin-list__meta">{{ session.type }} · {{ session.status }}</span>
+                  <span class="admin-list__meta">Fenster: {{ retentionLabel(session.retention.window) }}</span>
+                </button>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="admin-card">
+        <mat-card-header>
+          <mat-card-title>Session-Detail</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (detailError(); as error) {
+            <p class="admin-error" role="alert">{{ error }}</p>
+          }
+          @if (detailLoading()) {
+            <p class="admin-help">Details werden geladen…</p>
+          } @else if (selectedDetail(); as detail) {
+            <div class="admin-detail__meta">
+              <p class="admin-detail__line"><strong>Code:</strong> {{ detail.session.sessionCode }}</p>
+              <p class="admin-detail__line"><strong>Status:</strong> {{ detail.session.status }}</p>
+              <p class="admin-detail__line"><strong>Fenster:</strong> {{ retentionLabel(detail.session.retention.window) }}</p>
+              <p class="admin-detail__line"><strong>Typ:</strong> {{ detail.session.type }}</p>
+              <p class="admin-detail__line"><strong>Teilnehmer:</strong> {{ detail.session.participantCount }}</p>
+            </div>
+            @if (detail.title) {
+              <p class="admin-detail__line"><strong>Titel:</strong> {{ detail.title }}</p>
+            }
+            <div class="admin-actions admin-actions--hold">
+              <button
+                matButton="tonal"
+                class="admin-action-btn"
+                type="button"
+                [disabled]="holdLoading()"
+                (click)="setLegalHold(true)"
+              >
+                Legal Hold 30 Tage setzen
+              </button>
+              <button
+                matButton="tonal"
+                class="admin-action-btn"
+                type="button"
+                [disabled]="holdLoading()"
+                (click)="setLegalHold(false)"
+              >
+                Legal Hold lösen
+              </button>
+            </div>
+            @if (holdError(); as holdErrorText) {
+              <p class="admin-error" role="alert">{{ holdErrorText }}</p>
+            }
+
+            <div class="admin-actions admin-actions--export">
+              <button
+                mat-flat-button
+                class="admin-action-btn"
+                type="button"
+                [disabled]="exportLoading()"
+                (click)="exportForAuthorities('PDF')"
+              >
+                Behördenauszug (PDF) exportieren
+              </button>
+              <button
+                matButton="tonal"
+                class="admin-action-btn"
+                type="button"
+                [disabled]="exportLoading()"
+                (click)="exportForAuthorities('JSON')"
+              >
+                JSON (optional)
+              </button>
+            </div>
+            @if (exportError(); as exportErrorText) {
+              <p class="admin-error" role="alert">{{ exportErrorText }}</p>
+            }
+            @if (exportInfo(); as exportInfoText) {
+              <p class="admin-info" role="status">{{ exportInfoText }}</p>
+            }
+
+            <section class="admin-delete">
+              <h3 class="admin-delete__title">Session endgültig löschen</h3>
+              <p class="admin-help">
+                Diese Aktion ist irreversibel. Bitte begründe die Löschung und bestätige mit dem Session-Code.
+              </p>
+              <mat-form-field appearance="outline" class="admin-field">
+                <mat-label>Grund (optional)</mat-label>
+                <textarea
+                  matInput
+                  rows="3"
+                  maxlength="1000"
+                  [value]="deleteReason()"
+                  (input)="updateDeleteReason($any($event.target).value)"
+                ></textarea>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="admin-field admin-field--code">
+                <mat-label>Bestätigungscode</mat-label>
+                <input
+                  matInput
+                  class="admin-input--code"
+                  type="text"
+                  [value]="deleteConfirmCode()"
+                  (input)="updateDeleteConfirmCode($any($event.target).value)"
+                  maxlength="6"
+                />
+              </mat-form-field>
+              <div class="admin-actions admin-actions--delete">
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="admin-action-btn admin-btn-danger"
+                  [disabled]="deleteLoading() || !canDeleteSelectedSession()"
+                  (click)="deleteSelectedSession()"
+                >
+                  Session endgültig löschen
+                </button>
+              </div>
+              @if (deleteError(); as deleteErrorText) {
+                <p class="admin-error" role="alert">{{ deleteErrorText }}</p>
+              }
+              @if (deleteInfo(); as deleteInfoText) {
+                <p class="admin-info" role="status">{{ deleteInfoText }}</p>
+              }
+            </section>
+
+            @if (detail.questions?.length) {
+              <div class="admin-questions">
+                @for (question of detail.questions!; track question.id) {
+                  <article class="admin-question">
+                    <p class="admin-question__head">Frage {{ question.order + 1 }} · {{ question.type }}</p>
+                    <p class="admin-question__text">{{ renderMarkdownText(question.text) }}</p>
+                    @if (question.answers.length > 0) {
+                      <ul class="admin-question__answers">
+                        @for (answer of question.answers; track answer.id) {
+                          <li>
+                            <span>{{ renderMarkdownText(answer.text) }}</span>
+                            @if (answer.isCorrect) { <strong>(korrekt)</strong> }
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </article>
+                }
+              </div>
+            } @else {
+              <p class="admin-help">Keine Quiz-Fragen in dieser Session vorhanden.</p>
+            }
+          } @else {
+            <p class="admin-help">Wähle eine Session aus der Liste oder über den Code-Lookup.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
 </div>

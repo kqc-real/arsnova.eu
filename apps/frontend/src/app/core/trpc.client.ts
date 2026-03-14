@@ -9,6 +9,12 @@ import type { AppRouter } from '@arsnova/api';
 import { getTrpcWsUrl } from './ws-urls';
 
 const isBrowser = typeof window !== 'undefined';
+const ADMIN_TOKEN_STORAGE_KEY = 'arsnova-admin-token';
+let adminToken: string | null = null;
+
+if (isBrowser) {
+  adminToken = window.sessionStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
+}
 
 /**
  * Exponential Backoff: 500ms → 1s → 2s → 4s → max 10s (Story 4.3).
@@ -35,6 +41,20 @@ function setWsState(state: WsConnectionState): void {
   stateListeners.forEach((fn) => fn(state));
 }
 
+export function setAdminToken(token: string | null): void {
+  adminToken = token?.trim() || null;
+  if (!isBrowser) return;
+  if (adminToken) {
+    window.sessionStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, adminToken);
+  } else {
+    window.sessionStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+  }
+}
+
+export function getAdminToken(): string | null {
+  return adminToken;
+}
+
 const wsClient = isBrowser
   ? createWSClient({
       url: getTrpcWsUrl(),
@@ -59,8 +79,18 @@ export const trpc = createTRPCProxyClient<AppRouter>({
       ? splitLink({
           condition: (op) => op.type === 'subscription',
           true: wsLink({ client: wsClient }),
-          false: httpBatchLink({ url: '/trpc' }),
+          false: httpBatchLink({
+            url: '/trpc',
+            headers() {
+              return adminToken ? { 'x-admin-token': adminToken } : {};
+            },
+          }),
         })
-      : httpBatchLink({ url: '/trpc' }),
+      : httpBatchLink({
+          url: '/trpc',
+          headers() {
+            return adminToken ? { 'x-admin-token': adminToken } : {};
+          },
+        }),
   ],
 });

@@ -804,6 +804,169 @@ export const SessionExportDTOSchema = z.object({
 export type SessionExportDTO = z.infer<typeof SessionExportDTOSchema>;
 
 // ---------------------------------------------------------------------------
+// Admin (Epic 9)
+// ---------------------------------------------------------------------------
+
+/** Input: Admin-Login per Shared Secret (MVP). */
+export const AdminLoginInputSchema = z.object({
+  secret: z.string().trim().min(1).max(512),
+});
+export type AdminLoginInput = z.infer<typeof AdminLoginInputSchema>;
+
+/** Output: Admin-Login erfolgreich, Token mit Ablaufzeit. */
+export const AdminLoginOutputSchema = z.object({
+  token: z.string().min(32),
+  expiresAt: z.string(), // ISO-8601
+});
+export type AdminLoginOutput = z.infer<typeof AdminLoginOutputSchema>;
+
+/** Input: Session-Lookup im Admin-Bereich über 6-stelligen Code. */
+export const AdminSessionLookupInputSchema = z.object({
+  code: z.string().trim().length(6),
+});
+export type AdminSessionLookupInput = z.infer<typeof AdminSessionLookupInputSchema>;
+
+/** Input: Admin-Sessionliste mit optionalen Filtern und Pagination. */
+export const AdminListSessionsInputSchema = z.object({
+  page: z.number().int().min(1).optional().default(1),
+  pageSize: z.number().int().min(1).max(100).optional().default(25),
+  status: SessionStatusEnum.optional(),
+  type: SessionTypeEnum.optional(),
+  code: z.string().trim().length(6).optional(),
+});
+export type AdminListSessionsInput = z.infer<typeof AdminListSessionsInputSchema>;
+
+/** Input: Admin-Sessiondetail via Session-ID. */
+export const AdminGetSessionDetailInputSchema = z.object({
+  sessionId: z.uuid(),
+});
+export type AdminGetSessionDetailInput = z.infer<typeof AdminGetSessionDetailInputSchema>;
+
+/** Recherchefenster laut Epic 9 (A/B/C). */
+export const AdminRetentionWindowEnum = z.enum([
+  'RUNNING',
+  'POST_SESSION_24H',
+  'PURGED',
+]);
+export type AdminRetentionWindow = z.infer<typeof AdminRetentionWindowEnum>;
+
+/** Retention-Status inkl. optionalem Legal Hold. */
+export const AdminRetentionStateDTOSchema = z.object({
+  window: AdminRetentionWindowEnum,
+  legalHoldUntil: z.string().nullable().optional(),
+  legalHoldReason: z.string().nullable().optional(),
+});
+export type AdminRetentionStateDTO = z.infer<typeof AdminRetentionStateDTOSchema>;
+
+/** Kompakter Admin-Listeneintrag für Sessions. */
+export const AdminSessionSummaryDTOSchema = z.object({
+  sessionId: z.uuid(),
+  sessionCode: z.string().length(6),
+  type: SessionTypeEnum,
+  status: SessionStatusEnum,
+  quizName: z.string().nullable(),
+  participantCount: z.number().int().min(0),
+  startedAt: z.string(),
+  endedAt: z.string().nullable(),
+  retention: AdminRetentionStateDTOSchema,
+});
+export type AdminSessionSummaryDTO = z.infer<typeof AdminSessionSummaryDTOSchema>;
+
+/** Session-Liste für Admin mit Pagination-Metadaten. */
+export const AdminSessionListDTOSchema = z.object({
+  sessions: z.array(AdminSessionSummaryDTOSchema),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  pageSize: z.number().int().min(1),
+});
+export type AdminSessionListDTO = z.infer<typeof AdminSessionListDTOSchema>;
+
+/** Vollständige Admin-Detailansicht einer Session (read-only). */
+export const AdminSessionDetailDTOSchema = z.object({
+  session: AdminSessionSummaryDTOSchema,
+  title: z.string().nullable().optional(),
+  questions: z.array(z.object({
+    id: z.uuid(),
+    order: z.number().int().min(0),
+    text: z.string(),
+    type: QuestionTypeEnum,
+    answers: z.array(z.object({
+      id: z.uuid(),
+      text: z.string(),
+      isCorrect: z.boolean(),
+    })),
+  })).optional(),
+});
+export type AdminSessionDetailDTO = z.infer<typeof AdminSessionDetailDTOSchema>;
+
+/** Input: Legal Hold setzen/lösen. */
+export const AdminSetLegalHoldInputSchema = z.object({
+  sessionId: z.uuid(),
+  enabled: z.boolean(),
+  reason: z.string().trim().max(1000).optional(),
+  holdDays: z.number().int().min(1).max(365).optional(),
+});
+export type AdminSetLegalHoldInput = z.infer<typeof AdminSetLegalHoldInputSchema>;
+
+/** Input: Session endgültig löschen (Story 9.2). */
+export const AdminDeleteSessionInputSchema = z.object({
+  sessionId: z.uuid(),
+  reason: z.string().trim().max(1000).optional(),
+});
+export type AdminDeleteSessionInput = z.infer<typeof AdminDeleteSessionInputSchema>;
+
+/** Output: Session-Löschung bestätigt. */
+export const AdminDeleteSessionOutputSchema = z.object({
+  deleted: z.literal(true),
+  sessionId: z.uuid(),
+  sessionCode: z.string().length(6),
+});
+export type AdminDeleteSessionOutput = z.infer<typeof AdminDeleteSessionOutputSchema>;
+
+/** Export-Format für Behördenauszug (Story 9.3). */
+export const AdminExportFormatEnum = z.enum(['PDF', 'JSON']);
+export type AdminExportFormat = z.infer<typeof AdminExportFormatEnum>;
+
+/** Input: Behördenexport anstoßen. */
+export const AdminExportInputSchema = z.object({
+  sessionId: z.uuid(),
+  format: AdminExportFormatEnum.default('PDF'),
+  reason: z.string().trim().max(1000).optional(),
+  caseReference: z.string().trim().max(200).optional(),
+});
+export type AdminExportInput = z.infer<typeof AdminExportInputSchema>;
+
+/** Output: Exportdatei als Base64 für Download im Frontend. */
+export const AdminExportOutputSchema = z.object({
+  exportId: z.uuid(),
+  format: AdminExportFormatEnum,
+  mimeType: z.string(),
+  fileName: z.string(),
+  contentBase64: z.string(),
+  sha256: z.string().length(64),
+  generatedAt: z.string(),
+});
+export type AdminExportOutput = z.infer<typeof AdminExportOutputSchema>;
+
+/** Audit-Log-Eintrag für Admin-Aktionen. */
+export const AdminAuditLogEntryDTOSchema = z.object({
+  id: z.uuid(),
+  action: z.enum(['SESSION_DELETE', 'EXPORT_FOR_AUTHORITIES']),
+  sessionId: z.string(),
+  sessionCode: z.string(),
+  adminIdentifier: z.string().nullable().optional(),
+  reason: z.string().nullable().optional(),
+  createdAt: z.string(),
+});
+export type AdminAuditLogEntryDTO = z.infer<typeof AdminAuditLogEntryDTOSchema>;
+
+/** Output: Admin-Session gültig. */
+export const AdminWhoAmIOutputSchema = z.object({
+  authenticated: z.literal(true),
+});
+export type AdminWhoAmIOutput = z.infer<typeof AdminWhoAmIOutputSchema>;
+
+// ---------------------------------------------------------------------------
 // Q&A-Modus (Epic 8)
 // ---------------------------------------------------------------------------
 

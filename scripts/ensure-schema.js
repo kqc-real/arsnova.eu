@@ -132,6 +132,11 @@ const statements = [
      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
      CONSTRAINT "AdminAuditLog_pkey" PRIMARY KEY ("id")
    )`,
+
+  // Epic 9: Session Legal Hold (Retention-Override)
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldUntil" TIMESTAMP(3)`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldReason" TEXT`,
+  `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldSetAt" TIMESTAMP(3)`,
 ];
 
 async function main() {

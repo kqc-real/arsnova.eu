@@ -5,6 +5,7 @@ import { sessionRouter } from './session';
 import { voteRouter } from './vote';
 import { quickFeedbackRouter } from './quickFeedback';
 import { qaRouter } from './qa';
+import { adminRouter } from './admin';
 
 /**
  * Der zentrale App-Router.
@@ -18,6 +19,7 @@ export const appRouter = router({
   vote: voteRouter,
   qa: qaRouter,
   quickFeedback: quickFeedbackRouter,
+  admin: adminRouter,
 });
 
 /** Der exportierte Typ für den tRPC-Client im Frontend */

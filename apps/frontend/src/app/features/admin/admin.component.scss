@@ -1,5 +1,263 @@
-.admin-placeholder__text {
-  margin: 0 0 1rem;
+.admin-page {
+  max-width: min(74rem, 100%);
+}
+
+.admin-shell {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 960px) {
+  .admin-shell {
+    grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.admin-card {
+  width: 100%;
+}
+
+.admin-card mat-card-content {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-card--login {
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.admin-help {
+  margin: 0;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-medium);
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+
+.admin-label {
+  display: block;
+  margin: 0 0 0.35rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface);
+}
+
+.admin-field {
+  width: 100%;
+}
+
+.admin-field--code {
+  flex: 1;
+}
+
+.admin-input--code {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+}
+
+.admin-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.admin-actions--top {
+  margin-bottom: 0.35rem;
+}
+
+.admin-actions--hold {
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+  justify-content: flex-start;
+}
+
+.admin-actions--export {
+  margin-top: 0.1rem;
+  margin-bottom: 0.1rem;
+  justify-content: flex-start;
+}
+
+.admin-lookup {
+  margin-bottom: 0.4rem;
+}
+
+.admin-lookup__row {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.admin-error {
+  margin: 0.2rem 0 0;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
+.admin-info {
+  margin: 0.2rem 0 0;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
+.admin-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-list__item {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--mat-sys-corner-medium);
+  min-height: 4.2rem;
+}
+
+.admin-list__code {
+  display: block;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.admin-list__meta {
+  display: block;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+
+.admin-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.7rem;
+  margin-bottom: 0.1rem;
+}
+
+.admin-detail__line {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
+.admin-questions {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.75rem;
+}
+
+.admin-question {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  padding: 0.85rem 0.95rem;
+  background: var(--mat-sys-surface-container-low);
+}
+
+.admin-question__head {
+  margin: 0 0 0.3rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-primary);
+}
+
+.admin-question__text {
+  margin: 0 0 0.45rem;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+
+.admin-question__answers {
+  margin: 0;
+  padding-left: 1.2rem;
+  font: var(--mat-sys-body-small);
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+
+.admin-question__answers li + li {
+  margin-top: 0.2rem;
+}
+
+.admin-delete {
+  margin-top: 0.5rem;
+  padding: 0.95rem;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-error-container) 55%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--mat-sys-error) 30%, transparent);
+}
+
+.admin-delete__title {
+  margin: 0 0 0.3rem;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-error);
+}
+
+.admin-actions--delete {
+  justify-content: flex-start;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.admin-action-btn {
+  min-height: 2.75rem;
+  max-width: 100%;
+}
+
+.admin-btn-danger {
+  background: color-mix(in srgb, var(--mat-sys-error) 90%, #000 10%);
+  color: var(--mat-sys-on-error);
+  box-shadow: var(--mat-sys-level1);
+}
+
+:host ::ng-deep .admin-card .mdc-button__label {
+  white-space: normal;
+  line-height: 1.25;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 640px) {
+  .admin-shell {
+    gap: 1rem;
+  }
+
+  .admin-actions {
+    width: 100%;
+  }
+
+  .admin-action-btn {
+    width: 100%;
+  }
+
+  .admin-lookup__row > .admin-field--code {
+    min-width: 100%;
+  }
+
+  .admin-lookup__row > button {
+    width: 100%;
+  }
+
+  .admin-detail__meta {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .admin-delete {
+    padding: 0.75rem;
+  }
+
+  .admin-question {
+    padding: 0.75rem 0.8rem;
+  }
 }

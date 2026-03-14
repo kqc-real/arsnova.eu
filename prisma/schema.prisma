@@ -92,6 +92,9 @@ model Session {
   qaQuestions     QaQuestion[]  // Story 8: Q&A-Fragen
   startedAt       DateTime      @default(now())
   endedAt         DateTime?
+  legalHoldUntil  DateTime?                         // Epic 9: schützt vor Purge bis Zeitpunkt
+  legalHoldReason String?                           // Epic 9: Begründung für Legal Hold
+  legalHoldSetAt  DateTime?                         // Epic 9: Zeitpunkt des letzten Hold-Setzens
 }
 
 // Ein Teilnehmer in einer Live-Session (Story 3.1, 3.2)
