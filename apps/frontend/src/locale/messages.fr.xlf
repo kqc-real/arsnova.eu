@@ -6257,6 +6257,30 @@
         <source>Musik aus</source>
         <target>Couper la musique</target>
       </trans-unit>
+      <trans-unit id="homeHostCard.docHint" datatype="html">
+        <source>Neu in Epic 8: Ein Session-Code, drei Live-Bereiche, inklusive Live-Soundsteuerung im Host.</source>
+        <target>Nouveau dans l’Epic 8 : un code de session, trois espaces live, avec contrôle audio en direct côté hôte.</target>
+      </trans-unit>
+      <trans-unit id="help.epic8Title" datatype="html">
+        <source>Neu seit Epic 8</source>
+        <target>Nouveau depuis l’Epic 8</target>
+      </trans-unit>
+      <trans-unit id="help.epic8Unified" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ein Code, drei Live-Bereiche:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz, Fragen und Blitz-Feedback laufen in einer gemeinsamen Veranstaltung.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Un code, trois espaces live :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> quiz, questions et feedback rapide fonctionnent dans un même événement.</target>
+      </trans-unit>
+      <trans-unit id="help.epic8Tabs" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Kanalwechsel live:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Host, Teilnehmende und Präsentationsansicht wechseln per Tabs zwischen den Bereichen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Changement de canal en direct :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> l’hôte, les participantes et participants et la vue de présentation passent d’un espace à l’autre via des onglets.</target>
+      </trans-unit>
+      <trans-unit id="help.epic8Sound" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Soundsteuerung im Host:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Musik direkt während der Session an/aus schalten und Tracks auswählen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Contrôle du son côté hôte :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> active ou coupe la musique pendant la session et choisis la piste.</target>
+      </trans-unit>
+      <trans-unit id="help.epic8Footer" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Statushilfe im Footer:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein Hilfe-Popup erklärt die Server-Statusanzeige und Kennzahlen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Aide d’état dans le footer :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> un pop-up explique l’état du serveur et les indicateurs.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

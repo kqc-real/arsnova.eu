@@ -83,7 +83,7 @@
         >
           <mat-icon>help</mat-icon>
         </button>
-        <mat-menu #serverStatusHelpMenu="matMenu" xPosition="before" yPosition="above">
+        <mat-menu #serverStatusHelpMenu="matMenu" xPosition="before" yPosition="above" panelClass="app-status-help-menu-panel">
           <div class="app-footer__status-help" (click)="$event.stopPropagation()">
             <p class="app-footer__status-help-title" i18n="@@app.footer.statusHelpTitle">Server-Status erklärt</p>
             <p class="app-footer__status-help-copy" i18n="@@app.footer.statusHelpDot">

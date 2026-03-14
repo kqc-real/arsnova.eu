@@ -238,8 +238,10 @@
 }
 
 .app-footer__status-help {
-  width: min(20rem, 84vw);
-  padding: 0.25rem 0.2rem;
+  width: min(20rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  box-sizing: border-box;
+  padding: 0.6rem 0.6rem 0.5rem;
 }
 
 .app-footer__status-help-title {
@@ -253,6 +255,8 @@
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .app-footer__status-help-list {
@@ -271,6 +275,8 @@
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface);
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .app-footer__status-help-list mat-icon {

@@ -398,6 +398,17 @@ html.dark .app-qr-image {
   box-sizing: border-box;
 }
 
+.app-status-help-menu-panel.mat-mdc-menu-panel {
+  max-width: calc(100vw - 0.75rem) !important;
+}
+
+.app-status-help-menu-panel .mat-mdc-menu-content {
+  white-space: normal;
+  overflow-x: hidden;
+  max-width: 100%;
+  padding: 0.1rem !important;
+}
+
 @media (max-width: 600px), (max-height: 700px) {
   .app-qr-image {
     width: min(var(--app-qr-size-compact), 100%);

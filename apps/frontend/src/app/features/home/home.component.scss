@@ -380,6 +380,13 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.home-card__hint {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-primary);
+  line-height: 1.45;
+}
+
 mat-card-actions.l-stack { display: flex; flex-direction: column; gap: 0.5rem; }
 .home-cta { width: 100%; }
 
