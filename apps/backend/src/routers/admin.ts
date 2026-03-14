@@ -784,7 +784,7 @@ export const adminRouter = router({
       const adminIdentifier = ctx.adminToken ? `token:${ctx.adminToken.slice(0, 12)}` : 'admin';
 
       let fileName = `authority-export-${session.code}-${generatedAt.slice(0, 10)}`;
-      let mimeType = 'application/pdf';
+      let mimeType: string;
       let fileBuffer: Buffer;
 
       if (input.format === 'JSON') {
