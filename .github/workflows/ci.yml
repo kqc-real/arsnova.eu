@@ -15,6 +15,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 # Deploy-Branch: Standard ist main. Optional Repository-Variable DEPLOY_BRANCH setzen (z. B. deploy).
 concurrency:
   group: ci-${{ github.ref }}
@@ -28,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20, 22]
+        node-version: [22, 24]
 
     steps:
       - name: Checkout
