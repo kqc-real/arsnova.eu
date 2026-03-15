@@ -100,8 +100,8 @@ export class AppComponent implements OnInit, OnDestroy {
   isFeedbackRoute = signal(
     typeof window !== 'undefined' && window.location.pathname.startsWith('/feedback/')
   );
-  isHomeRoute = signal(
-    typeof window !== 'undefined' && this.matchesHomeRoute(window.location.pathname)
+  isPreviewRoute = signal(
+    typeof window !== 'undefined' && this.matchesPreviewRoute(window.location.pathname)
   );
   private lastScrollY = 0;
   private static readonly HIDE_SCROLL_THRESHOLD_PX = 80;
@@ -394,10 +394,10 @@ export class AppComponent implements OnInit, OnDestroy {
     const pathname = typeof window !== 'undefined' ? window.location.pathname : this.router.url;
     const normalizedPath = pathname.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/';
     this.isFeedbackRoute.set(normalizedPath.startsWith('/feedback/'));
-    this.isHomeRoute.set(this.matchesHomeRoute(pathname));
+    this.isPreviewRoute.set(this.matchesPreviewRoute(pathname));
   }
 
-  private matchesHomeRoute(pathname: string): boolean {
-    return /^\/(?:de|en|fr|it|es)?\/?$/.test(pathname);
+  private matchesPreviewRoute(pathname: string): boolean {
+    return /\/quiz\/[^/]+\/preview\/?$/.test(pathname.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, ''));
   }
 }

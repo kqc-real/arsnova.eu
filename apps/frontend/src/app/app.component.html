@@ -54,7 +54,7 @@
   />
 
   <main id="main-content" class="app-main app-main--toolbar-fixed" role="main">
-    <div class="app-main__content" [class.app-main__content--centered]="isHomeRoute()">
+    <div class="app-main__content" [class.app-main__content--centered]="!isPreviewRoute()">
       <router-outlet />
     </div>
   </main>
