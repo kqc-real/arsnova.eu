@@ -166,10 +166,10 @@ describe('QuizPreviewComponent', () => {
       '.quiz-preview-question__answers li',
     ) as HTMLElement | null;
     expect(firstAnswerRow).not.toBeNull();
-    expect(firstAnswerRow?.firstElementChild?.classList.contains('quiz-preview-question__correct-toggle')).toBe(
-      true,
-    );
-    expect(firstAnswerRow?.firstElementChild?.tagName).toBe('SPAN');
+    const children = Array.from(firstAnswerRow?.children ?? []);
+    expect(children[0]?.classList.contains('quiz-preview-question__answer-label')).toBe(true);
+    expect(children[1]?.classList.contains('quiz-preview-question__correct-toggle')).toBe(true);
+    expect(children[2]?.classList.contains('quiz-preview-question__answer-content')).toBe(true);
   });
 
   it('schaltet mit Hotkey E die Inline-Bearbeitung um', () => {
