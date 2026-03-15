@@ -58,6 +58,7 @@ export class QuizPreviewComponent implements OnDestroy {
   readonly answerDraftTexts = signal<string[]>([]);
   readonly originalQuestionSnapshot = signal<AddQuizQuestionInput | null>(null);
   readonly swipeDirection = signal<'left' | 'right' | null>(null);
+  readonly animationNonce = signal(0);
   readonly liveStartPending = signal(false);
   readonly liveStartError = signal<string | null>(null);
   readonly quiz = computed(() => this.quizStore.getQuizById(this.id));
@@ -67,6 +68,17 @@ export class QuizPreviewComponent implements OnDestroy {
     return [...quiz.questions].sort((a, b) => a.order - b.order);
   });
   readonly currentQuestion = computed(() => this.questions()[this.currentIndex()] ?? null);
+  readonly animatedCurrentQuestion = computed(() => {
+    const question = this.currentQuestion();
+    if (!question) return [];
+
+    return [
+      {
+        key: `${question.id}-${this.animationNonce()}`,
+        question,
+      },
+    ];
+  });
   readonly progressValue = computed(() => {
     const total = this.questions().length;
     if (total === 0) return 0;
@@ -154,22 +166,29 @@ export class QuizPreviewComponent implements OnDestroy {
   nextQuestion(): void {
     const total = this.questions().length;
     if (total === 0) return;
+    const nextIndex = Math.min(this.currentIndex() + 1, total - 1);
+    if (nextIndex === this.currentIndex()) return;
     this.commitInlineEdits();
+    this.currentIndex.set(nextIndex);
     this.triggerSwipeAnimation('left');
-    this.currentIndex.update((index) => Math.min(index + 1, total - 1));
   }
 
   previousQuestion(): void {
+    const previousIndex = Math.max(this.currentIndex() - 1, 0);
+    if (previousIndex === this.currentIndex()) return;
     this.commitInlineEdits();
+    this.currentIndex.set(previousIndex);
     this.triggerSwipeAnimation('right');
-    this.currentIndex.update((index) => Math.max(index - 1, 0));
   }
 
   goToQuestion(index: number): void {
     const total = this.questions().length;
     if (index < 0 || index >= total) return;
+    const currentIndex = this.currentIndex();
+    if (index === currentIndex) return;
     this.commitInlineEdits();
     this.currentIndex.set(index);
+    this.triggerSwipeAnimation(index > currentIndex ? 'left' : 'right');
   }
 
   questionAriaLabel(index: number): string {
@@ -177,13 +196,13 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   goFirst(): void {
-    this.currentIndex.set(0);
+    this.goToQuestion(0);
   }
 
   goLast(): void {
     const total = this.questions().length;
     if (total === 0) return;
-    this.currentIndex.set(total - 1);
+    this.goToQuestion(total - 1);
   }
 
   leavePreview(): void {
@@ -476,11 +495,12 @@ export class QuizPreviewComponent implements OnDestroy {
     if (this.animationTimer) {
       clearTimeout(this.animationTimer);
     }
+    this.animationNonce.update((value) => value + 1);
     this.swipeDirection.set(direction);
     this.animationTimer = setTimeout(() => {
       this.swipeDirection.set(null);
       this.animationTimer = null;
-    }, 200);
+    }, 1160);
   }
 
   private async startLiveSession(options: {

@@ -19,86 +19,89 @@
         </mat-card-content>
       </mat-card>
     } @else if (currentQuestion(); as question) {
-      <mat-card
-        appearance="outlined"
-        class="quiz-preview-question"
-        [class.quiz-preview-question--slide-left]="swipeDirection() === 'left'"
-        [class.quiz-preview-question--slide-right]="swipeDirection() === 'right'"
-        (touchstart)="onTouchStart($event)"
-        (touchend)="onTouchEnd($event)"
-      >
-        <mat-card-content>
-          <div class="quiz-preview-question__header">
-            <div class="quiz-preview-question__meta">
-              <span class="quiz-preview-question__badge">{{ questionTypeLabel(question.type) }}</span>
-              <span class="quiz-preview-question__badge quiz-preview-question__badge--difficulty">
-                {{ difficultyLabel(question.difficulty) }}
-              </span>
-            </div>
-            <p class="quiz-preview-question__position" i18n>
-              Frage {{ currentIndex() + 1 }} von {{ questions().length }}
-            </p>
-          </div>
-          <div class="quiz-preview-question__text" [innerHTML]="renderMarkdown(question.text)"></div>
-          @if (question.type === 'FREETEXT') {
-            <p class="quiz-preview-question__text quiz-preview-question__text--hint" i18n>Freitext-Antwort</p>
-          } @else if (question.type === 'RATING') {
-            <div class="quiz-preview-question__rating">
-              <p class="quiz-preview-question__rating-meta" i18n>
-                Skala {{ question.ratingMin ?? 1 }}–{{ question.ratingMax ?? 5 }}
+      @for (slide of animatedCurrentQuestion(); track slide.key) {
+        <mat-card
+          appearance="outlined"
+          class="quiz-preview-question"
+          [class.quiz-preview-question--slide-left]="swipeDirection() === 'left'"
+          [class.quiz-preview-question--slide-right]="swipeDirection() === 'right'"
+          (touchstart)="onTouchStart($event)"
+          (touchend)="onTouchEnd($event)"
+        >
+          <mat-card-content>
+            <div class="quiz-preview-question__header">
+              <div class="quiz-preview-question__meta">
+                <span class="quiz-preview-question__badge">{{ questionTypeLabel(slide.question.type) }}</span>
+                <span class="quiz-preview-question__badge quiz-preview-question__badge--difficulty">
+                  {{ difficultyLabel(slide.question.difficulty) }}
+                </span>
+              </div>
+              <p class="quiz-preview-question__position" i18n>
+                Frage {{ currentIndex() + 1 }} von {{ questions().length }}
               </p>
-              <div class="quiz-preview-question__rating-scale" aria-hidden="true">
-                @for (
-                  value of ratingScaleValues(question.ratingMin ?? 1, question.ratingMax ?? 5);
-                  track value
-                ) {
-                  <span class="quiz-preview-question__rating-point">{{ value }}</span>
+            </div>
+            <div class="quiz-preview-question__text" [innerHTML]="renderMarkdown(slide.question.text)"></div>
+            @if (slide.question.type === 'FREETEXT') {
+              <p class="quiz-preview-question__text quiz-preview-question__text--hint" i18n>Freitext-Antwort</p>
+            } @else if (slide.question.type === 'RATING') {
+              <div class="quiz-preview-question__rating">
+                <p class="quiz-preview-question__rating-meta" i18n>
+                  Skala {{ slide.question.ratingMin ?? 1 }}–{{ slide.question.ratingMax ?? 5 }}
+                </p>
+                <div class="quiz-preview-question__rating-scale" aria-hidden="true">
+                  @for (
+                    value of ratingScaleValues(slide.question.ratingMin ?? 1, slide.question.ratingMax ?? 5);
+                    track value
+                  ) {
+                    <span class="quiz-preview-question__rating-point">{{ value }}</span>
+                  }
+                </div>
+                @if (slide.question.ratingLabelMin || slide.question.ratingLabelMax) {
+                  <p class="quiz-preview-question__rating-labels">
+                    <span [innerHTML]="renderMarkdown(slide.question.ratingLabelMin || 'Min')"></span>
+                    <span [innerHTML]="renderMarkdown(slide.question.ratingLabelMax || 'Max')"></span>
+                  </p>
                 }
               </div>
-              @if (question.ratingLabelMin || question.ratingLabelMax) {
-                <p class="quiz-preview-question__rating-labels">
-                  <span [innerHTML]="renderMarkdown(question.ratingLabelMin || 'Min')"></span>
-                  <span [innerHTML]="renderMarkdown(question.ratingLabelMax || 'Max')"></span>
-                </p>
-              }
-            </div>
-          } @else {
-            <ol class="quiz-preview-question__answers">
-              @for (answer of question.answers; track answer.id; let i = $index) {
-                <li
-                  class="quiz-preview-question__answer-row"
-                  [class.quiz-preview-question__answer-row--with-toggle]="
-                    questionTypeHasCorrectAnswers(question.type)
-                  "
-                  [class.quiz-preview-question__answer-row--correct]="
-                    questionTypeHasCorrectAnswers(question.type) && answer.isCorrect
-                  "
-                >
-                  <span class="quiz-preview-question__answer-label" aria-hidden="true">{{ answerOptionLabel(i) }}</span>
-                  @if (questionTypeHasCorrectAnswers(question.type)) {
+            } @else {
+              <ol class="quiz-preview-question__answers">
+                @for (answer of slide.question.answers; track answer.id; let i = $index) {
+                  <li
+                    class="quiz-preview-question__answer-row"
+                    [style.--answer-index]="i"
+                    [class.quiz-preview-question__answer-row--with-toggle]="
+                      questionTypeHasCorrectAnswers(slide.question.type)
+                    "
+                    [class.quiz-preview-question__answer-row--correct]="
+                      questionTypeHasCorrectAnswers(slide.question.type) && answer.isCorrect
+                    "
+                  >
+                    <span class="quiz-preview-question__answer-label" aria-hidden="true">{{ answerOptionLabel(i) }}</span>
+                    @if (questionTypeHasCorrectAnswers(slide.question.type)) {
+                      <span
+                        class="quiz-preview-question__correct-toggle"
+                        aria-hidden="true"
+                      >
+                        <mat-icon class="quiz-preview-question__correct">
+                          @if (slide.question.type === 'SINGLE_CHOICE') {
+                            {{ answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked' }}
+                          } @else {
+                            {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
+                          }
+                        </mat-icon>
+                      </span>
+                    }
                     <span
-                      class="quiz-preview-question__correct-toggle"
-                      aria-hidden="true"
-                    >
-                      <mat-icon class="quiz-preview-question__correct">
-                        @if (question.type === 'SINGLE_CHOICE') {
-                          {{ answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked' }}
-                        } @else {
-                          {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
-                        }
-                      </mat-icon>
-                    </span>
-                  }
-                  <span
-                    class="quiz-preview-question__answer-content"
-                    [innerHTML]="renderMarkdown(answer.text)"
-                  ></span>
-                </li>
-              }
-            </ol>
-          }
-        </mat-card-content>
-      </mat-card>
+                      class="quiz-preview-question__answer-content"
+                      [innerHTML]="renderMarkdown(answer.text)"
+                    ></span>
+                  </li>
+                }
+              </ol>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
 
       @if (inlineEditMode()) {
         <mat-card appearance="outlined" class="quiz-preview-editor">
