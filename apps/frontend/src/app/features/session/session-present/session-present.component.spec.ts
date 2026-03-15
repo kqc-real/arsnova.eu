@@ -232,7 +232,7 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt laufendes Blitz-Feedback in der Presenter-Ansicht', async () => {
+  it('zeigt laufendes Blitzlicht in der Presenter-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       code: 'ABC123',
@@ -266,7 +266,7 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Blitz-Feedback');
+    expect(text).toContain('Blitzlicht');
     expect(text).toContain('ja · nein · vielleicht');
     expect(text).toContain('Runde 2 läuft');
     expect(text).toContain('9 Stimmen');

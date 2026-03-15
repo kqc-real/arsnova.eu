@@ -4,6 +4,7 @@
   [class.session-host--team-mode]="session()?.teamMode === true"
   [class.session-host--with-channel-tabs]="showChannelTabs()"
   [class.session-host--with-live-banner]="effectiveStatus() === 'LOBBY' || (showChannelTabs() && activeChannel() !== 'quiz')"
+  [class.session-host--immersive]="isImmersiveMode()"
 >
   @if (session(); as s) {
     @if (showChannelTabs()) {
@@ -30,8 +31,124 @@
             </mat-button-toggle>
           }
         </mat-button-toggle-group>
+
+        @if (isRunningSession()) {
+          <div class="session-host__view-controls session-host__view-controls--inline">
+            <button
+              mat-icon-button
+              type="button"
+              class="session-host__view-toggle"
+              [class.session-host__view-toggle--active]="isBackgroundMusicEnabled()"
+              [matMenuTriggerFor]="hostMusicMenu"
+              i18n-aria-label="@@sessionHost.musicControlAria"
+              aria-label="Soundsteuerung öffnen"
+              [attr.aria-pressed]="isBackgroundMusicEnabled()"
+            >
+              <mat-icon aria-hidden="true">{{ isBackgroundMusicEnabled() ? 'graphic_eq' : 'volume_off' }}</mat-icon>
+            </button>
+
+            <button
+              mat-icon-button
+              type="button"
+              class="session-host__view-toggle"
+              [class.session-host__view-toggle--active]="!isImmersiveMode()"
+              (click)="toggleHostFrameMode()"
+              i18n-aria-label="@@sessionHost.frameToggleAria"
+              aria-label="App-Rahmen umschalten"
+              [attr.aria-pressed]="!isImmersiveMode()"
+            >
+              <mat-icon aria-hidden="true">{{ isImmersiveMode() ? 'web_asset' : 'center_focus_strong' }}</mat-icon>
+            </button>
+
+            @if (isFullscreenSupported()) {
+              <button
+                mat-icon-button
+                type="button"
+                class="session-host__view-toggle session-host__view-toggle--fullscreen"
+                [class.session-host__view-toggle--active]="isFullscreenActive()"
+                (click)="toggleFullscreen()"
+                i18n-aria-label="@@sessionHost.fullscreenToggleAria"
+                aria-label="Vollbild umschalten"
+                [attr.aria-pressed]="isFullscreenActive()"
+              >
+                <mat-icon aria-hidden="true">{{ isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+              </button>
+            }
+          </div>
+        }
       </div>
     }
+
+    @if (isRunningSession() && !showChannelTabs()) {
+      <div class="session-host__view-controls">
+        <button
+          mat-icon-button
+          type="button"
+          class="session-host__view-toggle"
+          [class.session-host__view-toggle--active]="isBackgroundMusicEnabled()"
+          [matMenuTriggerFor]="hostMusicMenu"
+          i18n-aria-label="@@sessionHost.musicControlAria"
+          aria-label="Soundsteuerung öffnen"
+          [attr.aria-pressed]="isBackgroundMusicEnabled()"
+        >
+          <mat-icon aria-hidden="true">{{ isBackgroundMusicEnabled() ? 'graphic_eq' : 'volume_off' }}</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="session-host__view-toggle"
+          [class.session-host__view-toggle--active]="!isImmersiveMode()"
+          (click)="toggleHostFrameMode()"
+          i18n-aria-label="@@sessionHost.frameToggleAria"
+          aria-label="App-Rahmen umschalten"
+          [attr.aria-pressed]="!isImmersiveMode()"
+        >
+          <mat-icon aria-hidden="true">{{ isImmersiveMode() ? 'web_asset' : 'center_focus_strong' }}</mat-icon>
+        </button>
+
+        @if (isFullscreenSupported()) {
+          <button
+            mat-icon-button
+            type="button"
+            class="session-host__view-toggle session-host__view-toggle--fullscreen"
+            [class.session-host__view-toggle--active]="isFullscreenActive()"
+            (click)="toggleFullscreen()"
+            i18n-aria-label="@@sessionHost.fullscreenToggleAria"
+            aria-label="Vollbild umschalten"
+            [attr.aria-pressed]="isFullscreenActive()"
+          >
+            <mat-icon aria-hidden="true">{{ isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+          </button>
+        }
+      </div>
+    }
+
+    <mat-menu #hostMusicMenu="matMenu" xPosition="before">
+      <div class="session-host__music-menu-head" (click)="$event.stopPropagation()">
+        <p class="session-host__music-menu-title" i18n="@@sessionHost.musicMenuTitle">Hintergrundmusik</p>
+        <p class="session-host__music-menu-subtitle" i18n="@@sessionHost.musicMenuHint">
+          Live steuerbar, unabhängig von den Quiz-Einstellungen.
+        </p>
+      </div>
+      @if (isBackgroundMusicEnabled()) {
+        <button mat-menu-item type="button" (click)="toggleBackgroundMusic()">
+          <mat-icon aria-hidden="true">volume_off</mat-icon>
+          <span i18n="@@sessionHost.musicToggleTitleOn">Musik aus</span>
+        </button>
+      } @else {
+        <button mat-menu-item type="button" (click)="toggleBackgroundMusic()">
+          <mat-icon aria-hidden="true">volume_up</mat-icon>
+          <span i18n="@@sessionHost.musicToggleTitleOff">Musik an</span>
+        </button>
+      }
+      @for (track of musicTracks; track track.value) {
+        <button mat-menu-item type="button" (click)="selectBackgroundMusicTrack(track.value)">
+          <mat-icon aria-hidden="true">{{ activeMusicTrack() === track.value ? 'check_circle' : 'music_note' }}</mat-icon>
+          <span>{{ track.label }}</span>
+        </button>
+      }
+    </mat-menu>
 
     @if (effectiveStatus() === 'LOBBY' || (showChannelTabs() && activeChannel() !== 'quiz')) {
       @let liveParticipantCount = participantsPayload()?.participantCount ?? s.participantCount;
@@ -70,31 +187,6 @@
             </button>
           </div>
         </div>
-        <mat-menu #hostMusicMenu="matMenu" xPosition="before">
-          <div class="session-host__music-menu-head" (click)="$event.stopPropagation()">
-            <p class="session-host__music-menu-title" i18n="@@sessionHost.musicMenuTitle">Hintergrundmusik</p>
-            <p class="session-host__music-menu-subtitle" i18n="@@sessionHost.musicMenuHint">
-              Live steuerbar, unabhängig von den Quiz-Einstellungen.
-            </p>
-          </div>
-          @if (isBackgroundMusicEnabled()) {
-            <button mat-menu-item type="button" (click)="toggleBackgroundMusic()">
-              <mat-icon aria-hidden="true">volume_off</mat-icon>
-              <span i18n="@@sessionHost.musicToggleTitleOn">Musik aus</span>
-            </button>
-          } @else {
-            <button mat-menu-item type="button" (click)="toggleBackgroundMusic()">
-              <mat-icon aria-hidden="true">volume_up</mat-icon>
-              <span i18n="@@sessionHost.musicToggleTitleOff">Musik an</span>
-            </button>
-          }
-          @for (track of musicTracks; track track.value) {
-            <button mat-menu-item type="button" (click)="selectBackgroundMusicTrack(track.value)">
-              <mat-icon aria-hidden="true">{{ activeMusicTrack() === track.value ? 'check_circle' : 'music_note' }}</mat-icon>
-              <span>{{ track.label }}</span>
-            </button>
-          }
-        </mat-menu>
         <mat-menu #hostJoinMenu="matMenu" xPosition="before">
           <div class="session-host__join-menu-panel" (click)="$event.stopPropagation()">
             <p class="session-host__join-menu-title" i18n>Beitritt</p>

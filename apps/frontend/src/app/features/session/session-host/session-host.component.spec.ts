@@ -154,7 +154,7 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt Kanal-Tabs für Quiz, Fragen und Blitz-Feedback', async () => {
+  it('zeigt Kanal-Tabs für Quiz, Q&A und Blitzlicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       channels: {
@@ -171,8 +171,8 @@ describe('SessionHostComponent', () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Quiz');
-    expect(text).toContain('Fragen');
-    expect(text).toContain('Blitz-Feedback');
+    expect(text).toContain('Q&A');
+    expect(text).toContain('Blitzlicht');
     fixture.destroy();
   });
 

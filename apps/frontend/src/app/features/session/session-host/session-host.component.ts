@@ -15,6 +15,7 @@ import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { SoundService } from '../../../core/sound.service';
+import { HostDisplayModeService } from '../../../core/host-display-mode.service';
 import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
@@ -103,6 +104,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly themePreset = inject(ThemePresetService);
   private readonly sound = inject(SoundService);
+  private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
@@ -174,6 +176,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly isQaSession = computed(() => this.session()?.type === 'Q_AND_A');
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
+  readonly isRunningSession = computed(() => {
+    const status = this.effectiveStatus();
+    return this.session() !== null && status !== 'LOBBY' && status !== 'FINISHED';
+  });
+  readonly isImmersiveMode = computed(() => this.hostDisplayMode.immersiveHostActive());
+  readonly isFullscreenSupported = computed(() => {
+    const doc = this.document as Document & {
+      fullscreenEnabled?: boolean;
+      webkitFullscreenEnabled?: boolean;
+    };
+    const root = this.document.documentElement as HTMLElement & {
+      requestFullscreen?: () => Promise<void> | void;
+      webkitRequestFullscreen?: () => Promise<void> | void;
+    };
+    return (
+      doc.fullscreenEnabled === true ||
+      doc.webkitFullscreenEnabled === true ||
+      typeof root.requestFullscreen === 'function' ||
+      typeof root.webkitRequestFullscreen === 'function'
+    );
+  });
+  readonly isFullscreenActive = signal(false);
   readonly musicTracks: ReadonlyArray<{ value: HostMusicTrack; label: string }> = [
     { value: 'LOBBY_0', label: 'Lobby · Warm' },
     { value: 'LOBBY_1', label: 'Lobby · Drive' },
@@ -214,7 +238,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return session.quizName ?? null;
   });
   readonly qaHeading = computed(() =>
-    this.session()?.channels?.qa.title ?? this.session()?.title ?? $localize`:@@sessionTabs.questions:Fragen`,
+    this.session()?.channels?.qa.title ?? this.session()?.title ?? $localize`:@@sessionTabs.questions:Q&A`,
   );
   readonly qaPendingCount = computed(() =>
     this.qaQuestions().filter((question) => question.status === 'PENDING').length,
@@ -347,6 +371,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (status === 'FINISHED' || status === 'RESULTS') {
         void this.loadLeaderboard();
       }
+    });
+    effect(() => {
+      this.hostDisplayMode.setHostSessionActive(this.isRunningSession());
     });
     // Story 5.1: Sound-Effekte bei Status-Wechsel
     effect(() => {
@@ -487,6 +514,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   };
 
   ngOnDestroy(): void {
+    this.hostDisplayMode.setHostSessionActive(false);
     this.participantSub?.unsubscribe();
     this.participantSub = null;
     this.statusSub?.unsubscribe();
@@ -515,6 +543,53 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.isSessionActive()) {
       event.preventDefault();
     }
+  }
+
+  @HostListener('document:fullscreenchange')
+  @HostListener('document:webkitfullscreenchange')
+  onFullscreenChange(): void {
+    this.isFullscreenActive.set(this.getFullscreenElement() !== null);
+  }
+
+  async toggleFullscreen(): Promise<void> {
+    if (!this.isFullscreenSupported()) {
+      return;
+    }
+    const root = this.document.documentElement as HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void> | void;
+    };
+    const doc = this.document as Document & {
+      webkitExitFullscreen?: () => Promise<void> | void;
+    };
+
+    try {
+      if (this.getFullscreenElement()) {
+        if (typeof doc.exitFullscreen === 'function') {
+          await doc.exitFullscreen();
+        } else {
+          await doc.webkitExitFullscreen?.();
+        }
+      } else if (typeof root.requestFullscreen === 'function') {
+        await root.requestFullscreen();
+      } else {
+        await root.webkitRequestFullscreen?.();
+      }
+    } catch {
+      // Browser blockiert Fullscreen ohne direkte User-Geste oder unterstützt API nicht vollständig.
+    } finally {
+      this.isFullscreenActive.set(this.getFullscreenElement() !== null);
+    }
+  }
+
+  toggleHostFrameMode(): void {
+    this.hostDisplayMode.setPreferImmersiveHost(!this.isImmersiveMode());
+  }
+
+  private getFullscreenElement(): Element | null {
+    const doc = this.document as Document & {
+      webkitFullscreenElement?: Element | null;
+    };
+    return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
   }
 
   /** Prüft, ob die Session noch läuft (nicht FINISHED und nicht null). */
@@ -876,9 +951,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'quiz':
         return $localize`:@@sessionTabs.quiz:Quiz`;
       case 'qa':
-        return $localize`:@@sessionTabs.questions:Fragen`;
+        return $localize`:@@sessionTabs.questions:Q&A`;
       case 'quickFeedback':
-        return $localize`:@@sessionTabs.quickFeedback:Blitz-Feedback`;
+        return $localize`:@@sessionTabs.quickFeedback:Blitzlicht`;
     }
   }
 
@@ -1011,6 +1086,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async nextQuestion(): Promise<void> {
     if (this.controlPending() || !this.code) return;
     this.controlPending.set(true);
+    this.hostDisplayMode.setPreferImmersiveHost(true);
     try {
       this.clearEmojiNewBadge();
       this.stopCountdown();

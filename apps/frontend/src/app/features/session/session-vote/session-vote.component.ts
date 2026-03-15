@@ -225,7 +225,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return false;
   });
   readonly qaHeading = computed(() =>
-    this.sessionSettings().channels?.qa.title ?? this.sessionSettings().title ?? $localize`:@@sessionTabs.questions:Fragen`,
+    this.sessionSettings().channels?.qa.title ?? this.sessionSettings().title ?? $localize`:@@sessionTabs.questions:Q&A`,
   );
   readonly liveHeading = computed(() =>
     this.sessionSettings().quizName ?? this.sessionSettings().title ?? null,
@@ -318,9 +318,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       case 'quiz':
         return $localize`:@@sessionTabs.quiz:Quiz`;
       case 'qa':
-        return $localize`:@@sessionTabs.questions:Fragen`;
+        return $localize`:@@sessionTabs.questions:Q&A`;
       case 'quickFeedback':
-        return $localize`:@@sessionTabs.quickFeedback:Blitz-Feedback`;
+        return $localize`:@@sessionTabs.quickFeedback:Blitzlicht`;
     }
   }
 

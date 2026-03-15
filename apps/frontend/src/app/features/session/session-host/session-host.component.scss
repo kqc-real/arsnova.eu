@@ -1,5 +1,6 @@
 .session-host {
   width: 100%;
+  --session-host-float-top: 0.75rem;
 }
 
 .session-host--with-channel-tabs {
@@ -11,6 +12,11 @@
     var(--session-host-tabs-top) + var(--session-host-tabs-height) + var(--session-host-banner-gap)
   );
   --session-host-run-offset: 0.75rem;
+}
+
+.session-host--immersive.session-host--with-channel-tabs {
+  padding-top: 0;
+  --session-host-tabs-top: 0.75rem;
 }
 
 .session-host--with-live-banner.session-host--with-channel-tabs {
@@ -36,12 +42,55 @@
 
 .session-channel-tabs-shell {
   position: fixed;
-  top: 6.75rem;
+  top: var(--session-host-tabs-top);
   left: 50%;
   transform: translateX(-50%);
-  z-index: 8;
+  z-index: 1100;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   width: auto;
   max-width: calc(100% - 2rem);
+}
+
+.session-host__view-controls {
+  position: fixed;
+  top: var(--session-host-float-top);
+  right: max(1rem, calc((100vw - 56rem) / 2));
+  z-index: 1100;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.session-host__view-controls--inline {
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: auto;
+  flex: 0 0 auto;
+}
+
+.session-host__view-toggle {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-full);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 94%, var(--mat-sys-surface));
+  color: var(--mat-sys-on-surface-variant);
+  box-shadow: var(--mat-sys-level1);
+
+  &--active {
+    color: var(--mat-sys-primary);
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 32%, var(--mat-sys-outline-variant));
+    background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-high));
+  }
+}
+
+@media (max-width: 599px) {
+  .session-host__view-toggle--fullscreen {
+    display: none;
+  }
 }
 
 .session-channel-tabs {
@@ -56,10 +105,18 @@
 }
 
 @media (min-width: 600px) {
+  .session-host {
+    --session-host-float-top: 1rem;
+  }
+
   .session-host--with-channel-tabs {
     padding-top: 5.5rem;
     --session-host-tabs-top: 7.25rem;
     --session-host-run-offset: 0.9rem;
+  }
+
+  .session-host--immersive.session-host--with-channel-tabs {
+    --session-host-tabs-top: 1rem;
   }
 
   .session-host--with-live-banner.session-host--with-channel-tabs {
@@ -71,16 +128,27 @@
   }
 
   .session-channel-tabs-shell {
-    top: 7.25rem;
     max-width: calc(100% - 3rem);
+  }
+
+  .session-host__view-controls {
+    right: max(1.5rem, calc((100vw - 56rem) / 2));
   }
 }
 
 @media (min-width: 840px) {
+  .session-host {
+    --session-host-float-top: 1.25rem;
+  }
+
   .session-host--with-channel-tabs {
     padding-top: 6rem;
     --session-host-tabs-top: 7.75rem;
     --session-host-run-offset: 1rem;
+  }
+
+  .session-host--immersive.session-host--with-channel-tabs {
+    --session-host-tabs-top: 1.25rem;
   }
 
   .session-host--with-live-banner.session-host--with-channel-tabs {
@@ -92,8 +160,11 @@
   }
 
   .session-channel-tabs-shell {
-    top: 7.75rem;
     max-width: calc(100% - 4rem);
+  }
+
+  .session-host__view-controls {
+    right: max(2rem, calc((100vw - 56rem) / 2));
   }
 }
 

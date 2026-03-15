@@ -24,6 +24,10 @@
 .app-main--toolbar-fixed {
   padding-top: 4rem;
 }
+
+.app-main--immersive-host {
+  padding-top: 0;
+}
 @media (min-width: 600px) {
   .app-main--toolbar-fixed {
     padding-top: 4.5rem;
@@ -33,6 +37,10 @@
   .app-main--toolbar-fixed {
     padding-top: 5rem;
   }
+}
+
+.app-main--toolbar-fixed.app-main--immersive-host {
+  padding-top: 0;
 }
 
 .app-main__content {

@@ -549,7 +549,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="8905340696129344254" datatype="html">
-        <source> arsnova.eu ist eine Plattform für Quiz und Q&amp;A, Blitz-Feedback und Abstimmungen – ohne Anmeldung, direkt im Browser. </source>
+        <source> arsnova.eu ist eine Plattform für Quiz und Q&amp;A, Blitzlicht und Abstimmungen – ohne Anmeldung, direkt im Browser. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">8,9</context>
@@ -616,7 +616,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="3945076184928471190" datatype="html">
-        <source>Blitz-Feedback</source>
+        <source>Blitzlicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">32,33</context>
@@ -757,7 +757,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2821667593096226007" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf der Startseite eingeben und „Los geht&apos;s&quot; tippen – funktioniert für Quiz- und Q&amp;A-Sessions sowie für Blitz-Feedback.</source>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf der Startseite eingeben und „Los geht&apos;s&quot; tippen – funktioniert für Quiz- und Q&amp;A-Sessions sowie für Blitzlicht.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">64,65</context>
@@ -901,7 +901,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="1432687275112220656" datatype="html">
-        <source>arsnova.eu ist kostenlos, Open Source und DSGVO-konform. Quiz-Inhalte werden lokal im Browser gespeichert (Local-First). Blitz-Feedback-Runden laufen über Redis und verfallen automatisch nach 30 Minuten. Keine Anmeldung nötig.</source>
+        <source>arsnova.eu ist kostenlos, Open Source und DSGVO-konform. Quiz-Inhalte werden lokal im Browser gespeichert (Local-First). Blitzlicht-Runden laufen über Redis und verfallen automatisch nach 30 Minuten. Keine Anmeldung nötig.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">103,104</context>
@@ -5370,16 +5370,16 @@
         <source>Nutzt „<x id="INTERPOLATION" equiv-text="data.quizName"/>“.</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.optionQa" datatype="html">
-        <source>Mit Fragen</source>
+        <source>Mit Q&amp;A</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.optionQaHint" datatype="html">
-        <source>Startet mit Fragen. Quiz später dazu.</source>
+        <source>Startet mit Q&amp;A. Quiz später dazu.</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.quizDisabled" datatype="html">
-        <source>Für Quiz brauchst du mindestens eine Frage. Sonst starte mit Fragen.</source>
+        <source>Für Quiz brauchst du mindestens eine Frage. Sonst starte mit Q&amp;A.</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.qaTitleLabel" datatype="html">
-        <source>Fragen-Titel (optional)</source>
+        <source>Q&amp;A-Titel (optional)</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.qaTitlePlaceholder" datatype="html">
         <source>z. B. Vorlesung</source>
@@ -5406,13 +5406,13 @@
         <source>Fragen und Ergebnisse</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQa" datatype="html">
-        <source>Fragen</source>
+        <source>Q&amp;A</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQaHint" datatype="html">
         <source>Fragen aus dem Raum</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQuickFeedback" datatype="html">
-        <source>Blitz-Feedback</source>
+        <source>Blitzlicht</source>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQuickFeedbackHint" datatype="html">
         <source>Kurze Stimmungsbilder</source>
@@ -5484,13 +5484,13 @@
         <source>Quiz</source>
       </trans-unit>
       <trans-unit id="sessionTabs.questions" datatype="html">
-        <source>Fragen</source>
+        <source>Q&amp;A</source>
       </trans-unit>
       <trans-unit id="sessionTabs.questionsWithCount" datatype="html">
-        <source>Fragen (<x id="count" equiv-text="this.qaQuestions().length"/>)</source>
+        <source>Q&amp;A (<x id="count" equiv-text="this.qaQuestions().length"/>)</source>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedback" datatype="html">
-        <source>Blitz-Feedback</source>
+        <source>Blitzlicht</source>
       </trans-unit>
       <trans-unit id="sessionTabs.qaHostPlaceholder" datatype="html">
         <source>Hier sammelst und moderierst du Fragen aus dem Publikum.</source>
@@ -5643,10 +5643,10 @@
         <source>Auf der Startseite in der Karte <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Veranstaltung starten<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> führt der Link <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo spielen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> in ein vorinstalliertes Beispiel-Quiz. Du siehst alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen.</source>
       </trans-unit>
       <trans-unit id="help.hostLead" datatype="html">
-        <source>Du startest eine Live-Session, teilst den Code und steuerst Quiz, Fragen und weitere Live-Bereiche.</source>
+        <source>Du startest eine Live-Session, teilst den Code und steuerst Quiz, Q&amp;A und weitere Live-Bereiche.</source>
       </trans-unit>
       <trans-unit id="help.hostStartStep" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In deiner Quiz-Bibliothek eine Veranstaltung starten und festlegen, ob sie mit Quiz oder Fragen beginnt. Dann entsteht ein 6-stelliger Code.</source>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In deiner Quiz-Bibliothek eine Veranstaltung starten und festlegen, ob sie mit Quiz oder Q&amp;A beginnt. Dann entsteht ein 6-stelliger Code.</source>
       </trans-unit>
       <trans-unit id="help.demoQuizHint" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. Direkt von der Startseite über „Demo spielen&quot; (Karte „Veranstaltung starten&quot;) oder in der Quiz-Bibliothek in der Vorschau öffnen.</source>
@@ -5726,6 +5726,12 @@
       <trans-unit id="sessionHost.musicControlAria" datatype="html">
         <source>Soundsteuerung öffnen</source>
       </trans-unit>
+      <trans-unit id="sessionHost.fullscreenToggleAria" datatype="html">
+        <source>Vollbild umschalten</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.frameToggleAria" datatype="html">
+        <source>App-Rahmen umschalten</source>
+      </trans-unit>
       <trans-unit id="sessionHost.musicMenuTitle" datatype="html">
         <source>Hintergrundmusik</source>
       </trans-unit>
@@ -5739,7 +5745,7 @@
         <source>Neu seit Epic 8</source>
       </trans-unit>
       <trans-unit id="help.epic8Unified" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ein Code, drei Live-Bereiche:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz, Fragen und Blitz-Feedback laufen in einer gemeinsamen Veranstaltung.</source>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ein Code, drei Live-Bereiche:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz, Q&amp;A und Blitzlicht laufen in einer gemeinsamen Veranstaltung.</source>
       </trans-unit>
       <trans-unit id="help.epic8Tabs" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Kanalwechsel live:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Host, Teilnehmende und Präsentationsansicht wechseln per Tabs zwischen den Bereichen.</source>

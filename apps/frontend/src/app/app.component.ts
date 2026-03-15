@@ -28,6 +28,7 @@ import { trpc } from './core/trpc.client';
 import { ServerStatusWidgetComponent } from './shared/server-status-widget/server-status-widget.component';
 import { ServerStatusHelpDialogComponent } from './shared/server-status-help-dialog/server-status-help-dialog.component';
 import { localizePath } from './core/locale-router';
+import { HostDisplayModeService } from './core/host-display-mode.service';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
@@ -91,6 +92,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly focusService = inject(PresetSnackbarFocusService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly hostDisplayMode = inject(HostDisplayModeService);
   private versionSub: Subscription | null = null;
   private routerSub: Subscription | null = null;
   private presetSub: Subscription | null = null;
@@ -122,6 +124,7 @@ export class AppComponent implements OnInit, OnDestroy {
   footerRetryLabel = computed(() =>
     this.apiRetrying() ? $localize`Verbinde…` : $localize`Nochmal versuchen`,
   );
+  isImmersiveHostView = computed(() => this.hostDisplayMode.immersiveHostActive());
 
   ngOnInit(): void {
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());

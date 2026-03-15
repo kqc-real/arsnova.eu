@@ -50,7 +50,7 @@ describe('FeedbackVoteComponent', () => {
     });
   });
 
-  it('lädt eingebettetes Blitz-Feedback nach gesetztem Session-Code-Input', async () => {
+  it('lädt eingebettetes Blitzlicht nach gesetztem Session-Code-Input', async () => {
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
     fixture.componentRef.setInput('sessionCode', 'ABC123');
     fixture.componentRef.setInput('participantId', 'participant-1');

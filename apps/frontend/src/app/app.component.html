@@ -1,4 +1,4 @@
-<div class="app-layout">
+<div class="app-layout" [class.app-layout--immersive-host]="isImmersiveHostView()">
   @if (!isOnline()) {
     <div class="app-offline-banner" role="alert">
       <mat-icon class="app-offline-banner__icon">cloud_off</mat-icon>
@@ -47,18 +47,25 @@
     </div>
   }
 
-  <app-top-toolbar
-    [scrolled]="hasScrolled()"
-    [hideOnScroll]="true"
-    [toolbarHidden]="toolbarHidden()"
-  />
+  @if (!isImmersiveHostView()) {
+    <app-top-toolbar
+      [scrolled]="hasScrolled()"
+      [hideOnScroll]="true"
+      [toolbarHidden]="toolbarHidden()"
+    />
+  }
 
-  <main id="main-content" class="app-main app-main--toolbar-fixed" role="main">
+  <main
+    id="main-content"
+    class="app-main app-main--toolbar-fixed"
+    [class.app-main--immersive-host]="isImmersiveHostView()"
+    role="main"
+  >
     <div class="app-main__content" [class.app-main__content--centered]="!isPreviewRoute()">
       <router-outlet />
     </div>
   </main>
-  @if (!isFeedbackRoute()) {
+  @if (!isFeedbackRoute() && !isImmersiveHostView()) {
   <footer class="app-footer" role="contentinfo">
     <div class="app-footer__inner">
       <div class="app-footer__row">

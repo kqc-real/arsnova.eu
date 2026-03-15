@@ -86,9 +86,9 @@ export interface LiveSessionDialogResult {
         >
           <mat-icon class="live-session-dialog__option-icon" aria-hidden="true">forum</mat-icon>
           <span class="live-session-dialog__option-copy">
-            <span class="live-session-dialog__option-label" i18n="@@quizList.liveDialog.optionQa">Mit Fragen</span>
+            <span class="live-session-dialog__option-label" i18n="@@quizList.liveDialog.optionQa">Mit Q&amp;A</span>
             <span class="live-session-dialog__option-hint" i18n="@@quizList.liveDialog.optionQaHint">
-              Startet mit Fragen. Quiz später dazu.
+              Startet mit Q&amp;A. Quiz später dazu.
             </span>
           </span>
           <span
@@ -149,7 +149,7 @@ export interface LiveSessionDialogResult {
               >
                 <mat-icon class="live-session-dialog__channel-icon" aria-hidden="true">forum</mat-icon>
                 <span class="live-session-dialog__channel-copy">
-                  <span class="live-session-dialog__channel-label" i18n="@@quizList.liveDialog.channelQa">Fragen</span>
+                  <span class="live-session-dialog__channel-label" i18n="@@quizList.liveDialog.channelQa">Q&amp;A</span>
                   <span class="live-session-dialog__channel-hint" i18n="@@quizList.liveDialog.channelQaHint">
                     Fragen aus dem Raum
                   </span>
@@ -177,7 +177,7 @@ export interface LiveSessionDialogResult {
             >
               <mat-icon class="live-session-dialog__channel-icon" aria-hidden="true">bolt</mat-icon>
               <span class="live-session-dialog__channel-copy">
-                <span class="live-session-dialog__channel-label" i18n="@@quizList.liveDialog.channelQuickFeedback">Blitz-Feedback</span>
+                <span class="live-session-dialog__channel-label" i18n="@@quizList.liveDialog.channelQuickFeedback">Blitzlicht</span>
                 <span class="live-session-dialog__channel-hint" i18n="@@quizList.liveDialog.channelQuickFeedbackHint">
                   Kurze Stimmungsbilder
                 </span>
@@ -199,14 +199,14 @@ export interface LiveSessionDialogResult {
 
       @if (startMode() === 'QUIZ' && !data.quizCanStart) {
         <p class="live-session-dialog__hint live-session-dialog__hint--error" i18n="@@quizList.liveDialog.quizDisabled">
-          Für Quiz brauchst du mindestens eine Frage. Sonst starte mit Fragen.
+          Für Quiz brauchst du mindestens eine Frage. Sonst starte mit Q&amp;A.
         </p>
       }
 
       @if (enableQa()) {
         <div class="live-session-dialog__field-row">
           <mat-form-field appearance="outline" class="live-session-dialog__field">
-            <mat-label i18n="@@quizList.liveDialog.qaTitleLabel">Fragen-Titel (optional)</mat-label>
+            <mat-label i18n="@@quizList.liveDialog.qaTitleLabel">Q&amp;A-Titel (optional)</mat-label>
             <input
               matInput
               type="text"

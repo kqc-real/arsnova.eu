@@ -220,7 +220,7 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt Kanal-Tabs für Quiz, Fragen und Blitz-Feedback', async () => {
+  it('zeigt Kanal-Tabs für Quiz, Q&A und Blitzlicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       code: 'ABC123',
@@ -245,12 +245,12 @@ describe('SessionVoteComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Quiz');
-    expect(text).toContain('Fragen');
-    expect(text).toContain('Blitz-Feedback');
+    expect(text).toContain('Q&A');
+    expect(text).toContain('Blitzlicht');
     fixture.destroy();
   });
 
-  it('zeigt im Blitz-Feedback-Tab den laufenden Rundenzustand', async () => {
+  it('zeigt im Blitzlicht-Tab den laufenden Rundenzustand', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       code: 'ABC123',
@@ -283,7 +283,7 @@ describe('SessionVoteComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Blitz-Feedback');
+    expect(text).toContain('Blitzlicht');
     expect(text).toContain('R2');
     fixture.destroy();
   });
