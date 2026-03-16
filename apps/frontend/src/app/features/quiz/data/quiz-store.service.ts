@@ -80,6 +80,9 @@ export interface QuizDocument {
   description: string | null;
   createdAt: string;
   updatedAt: string;
+  updatedByDeviceId?: string | null;
+  updatedByDeviceLabel?: string | null;
+  updatedByBrowserLabel?: string | null;
   settings: QuizSettings;
   questions: QuizQuestion[];
 }
@@ -130,12 +133,40 @@ interface HomePresetSnapshot {
   playfulOptions: string | null;
 }
 
+interface SyncMetadataSnapshot {
+  lastConnectedAt: string | null;
+  lastLocalChangeAt: string | null;
+  lastRemoteSyncAt: string | null;
+  lastRemoteChangedQuizName: string | null;
+  lastRemoteChangedQuizUpdatedAt: string | null;
+  lastRemoteChangedByDeviceLabel: string | null;
+  lastRemoteChangedByBrowserLabel: string | null;
+  originSharedAt: string | null;
+  originDeviceLabel: string | null;
+  originBrowserLabel: string | null;
+}
+
+interface SyncClientPresence {
+  deviceId: string;
+  deviceLabel: string;
+  browserLabel: string;
+}
+
+export interface SyncPeerInfo {
+  deviceId: string;
+  deviceLabel: string;
+  browserLabel: string;
+}
+
 export const QUIZ_STORAGE_KEY = 'quiz-library-v1';
 const QUIZ_STORAGE_LEGACY_KEY = QUIZ_STORAGE_KEY;
 const QUIZ_YDOC_NAME = 'arsnova-quiz-library-v1';
 const QUIZ_YDOC_ROOT_KEY = 'quizzes';
 const QUIZ_YDOC_PRESET_KEY = 'home-presets';
 const QUIZ_SYNC_ROOM_STORAGE_KEY = 'quiz-sync-room-id';
+const QUIZ_SYNC_METADATA_PREFIX = 'quiz-sync-meta';
+const QUIZ_SYNC_DEVICE_ID_KEY = 'quiz-sync-device-id';
+const QUIZ_LIBRARY_SHARING_MODE_KEY = 'quiz-library-sharing-mode';
 const QUIZ_SYNC_ROOM_PREFIX = 'quiz-library-room-';
 const HOME_THEME_STORAGE_KEY = 'home-theme';
 const HOME_PRESET_STORAGE_KEY = 'home-preset';
@@ -291,6 +322,7 @@ const UUID_PATTERN =
 
 const DEFAULT_QUIZ_SETTINGS: QuizSettings = parseQuizSettings({});
 type SyncConnectionState = 'connected' | 'connecting' | 'disconnected';
+export type LibrarySharingMode = 'local' | 'shared';
 
 export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
 
@@ -300,12 +332,27 @@ export class QuizStoreService {
   private readonly quizDocuments = signal<QuizDocument[]>([]);
   readonly syncRoomId = signal('');
   readonly syncConnectionState = signal<SyncConnectionState>('disconnected');
+  readonly librarySharingMode = signal<LibrarySharingMode>('local');
+  readonly lastConnectedAt = signal<string | null>(null);
+  readonly lastLocalChangeAt = signal<string | null>(null);
+  readonly lastRemoteSyncAt = signal<string | null>(null);
+  readonly lastRemoteChangedQuizName = signal<string | null>(null);
+  readonly lastRemoteChangedQuizUpdatedAt = signal<string | null>(null);
+  readonly lastRemoteChangedByDeviceLabel = signal<string | null>(null);
+  readonly lastRemoteChangedByBrowserLabel = signal<string | null>(null);
+  readonly originSharedAt = signal<string | null>(null);
+  readonly originDeviceLabel = signal<string | null>(null);
+  readonly originBrowserLabel = signal<string | null>(null);
+  readonly currentDeviceLabel = signal('Dieses Gerät');
+  readonly currentBrowserLabel = signal('');
+  readonly syncPeerInfos = signal<SyncPeerInfo[]>([]);
   private yDoc: Y.Doc | null = null;
   private yRoot: Y.Map<string> | null = null;
   private yPersistence: IndexeddbPersistence | null = null;
   private yProvider: WebsocketProvider | null = null;
   private isApplyingYjsSnapshot = false;
   private hasStoredSyncRoomId = false;
+  private readonly currentSyncDeviceId = this.resolveCurrentSyncDeviceId();
   private readonly onPresetUpdated = (): void => {
     this.writePresetSnapshotToYjs();
   };
@@ -323,7 +370,12 @@ export class QuizStoreService {
 
   constructor() {
     const roomId = this.resolveInitialSyncRoomId();
+    const currentClient = readCurrentSyncClientPresence();
+    this.currentDeviceLabel.set(currentClient.deviceLabel);
+    this.currentBrowserLabel.set(currentClient.browserLabel);
+    this.librarySharingMode.set(this.resolveInitialLibrarySharingMode());
     this.syncRoomId.set(roomId);
+    this.loadSyncMetadata(roomId);
     this.loadFromStorage(roomId, !this.hasStoredSyncRoomId);
     this.initYjsPersistence(roomId);
     if (isPlatformBrowser(this.platformId)) {
@@ -333,6 +385,14 @@ export class QuizStoreService {
 
   getDemoQuizId(): string | null {
     return this.getQuizById(DEMO_QUIZ_ID) ? DEMO_QUIZ_ID : null;
+  }
+
+  private currentQuizUpdateSource(): Pick<QuizDocument, 'updatedByDeviceId' | 'updatedByDeviceLabel' | 'updatedByBrowserLabel'> {
+    return {
+      updatedByDeviceId: this.currentSyncDeviceId,
+      updatedByDeviceLabel: this.currentDeviceLabel(),
+      updatedByBrowserLabel: this.currentBrowserLabel(),
+    };
   }
 
   createQuiz(input: CreateQuizDocumentInput): QuizDocument {
@@ -354,6 +414,7 @@ export class QuizStoreService {
       description: parsed.data.description ?? null,
       createdAt: now,
       updatedAt: now,
+      ...this.currentQuizUpdateSource(),
       settings,
       questions: [],
     };
@@ -387,6 +448,7 @@ export class QuizStoreService {
       name: parsed.data.name,
       description: parsed.data.description ?? null,
       updatedAt,
+      ...this.currentQuizUpdateSource(),
     };
 
     this.quizDocuments.update((current) =>
@@ -415,6 +477,7 @@ export class QuizStoreService {
               ...quiz,
               settings: nextSettings,
               updatedAt,
+              ...this.currentQuizUpdateSource(),
             }
           : quiz,
       ),
@@ -436,6 +499,7 @@ export class QuizStoreService {
       name: buildCopyName(document.name),
       createdAt: now,
       updatedAt: now,
+      ...this.currentQuizUpdateSource(),
       questions: document.questions.map((question) => ({
         ...question,
         id: generateUuid(),
@@ -585,6 +649,7 @@ export class QuizStoreService {
       description: normalizeDescription(parsed.data.quiz.description) ?? null,
       createdAt: now,
       updatedAt: now,
+      ...this.currentQuizUpdateSource(),
       settings: parseQuizSettings({
         showLeaderboard: parsed.data.quiz.showLeaderboard,
         allowCustomNicknames: parsed.data.quiz.allowCustomNicknames,
@@ -667,6 +732,7 @@ export class QuizStoreService {
           ? {
               ...quiz,
               updatedAt,
+              ...this.currentQuizUpdateSource(),
               questions: [...quiz.questions, question],
             }
           : quiz,
@@ -719,7 +785,7 @@ export class QuizStoreService {
         if (quiz.id !== quizId) return quiz;
         const questions = [...quiz.questions];
         questions[questionIndex] = updatedQuestion;
-        return { ...quiz, updatedAt, questions };
+        return { ...quiz, updatedAt, ...this.currentQuizUpdateSource(), questions };
       }),
     );
     this.persistToStorage();
@@ -744,6 +810,7 @@ export class QuizStoreService {
         return {
           ...quiz,
           updatedAt,
+          ...this.currentQuizUpdateSource(),
           questions: questions.map((q, i) => ({ ...q, order: i })),
         };
       }),
@@ -769,7 +836,7 @@ export class QuizStoreService {
         const questions = quiz.questions
           .filter((question) => question.id !== questionId)
           .map((question, index) => ({ ...question, order: index }));
-        return { ...quiz, updatedAt, questions };
+        return { ...quiz, updatedAt, ...this.currentQuizUpdateSource(), questions };
       }),
     );
     this.persistToStorage();
@@ -789,16 +856,29 @@ export class QuizStoreService {
     }
   }
 
-  activateSyncRoom(roomId: string): void {
+  activateSyncRoom(roomId: string, options?: { markShared?: boolean; registerOrigin?: boolean }): void {
     const normalizedRoomId = normalizeSyncRoomId(roomId);
     if (!normalizedRoomId) {
       throw new Error($localize`Ungültige Sync-ID.`);
     }
-    if (this.syncRoomId() === normalizedRoomId) return;
+    const shouldRegisterOrigin = options?.registerOrigin && this.librarySharingMode() === 'local';
+    if (options?.markShared) {
+      this.setLibrarySharingMode('shared');
+    }
+    if (this.syncRoomId() === normalizedRoomId) {
+      if (shouldRegisterOrigin) {
+        this.recordSyncOriginIfMissing();
+      }
+      return;
+    }
 
     this.teardownYjs();
     this.syncRoomId.set(normalizedRoomId);
     this.storeSyncRoomId(normalizedRoomId);
+    this.loadSyncMetadata(normalizedRoomId);
+    if (shouldRegisterOrigin) {
+      this.recordSyncOriginIfMissing();
+    }
 
     this.loadFromStorage(normalizedRoomId, false);
     this.initYjsPersistence(normalizedRoomId);
@@ -830,6 +910,7 @@ export class QuizStoreService {
   }
 
   private persistToStorage(): void {
+    this.recordLocalChange();
     this.persistLocalMirror();
     this.writeYjsSnapshot();
   }
@@ -871,13 +952,18 @@ export class QuizStoreService {
           `${QUIZ_SYNC_ROOM_PREFIX}${roomId}`,
           this.yDoc,
         );
+        this.yProvider.awareness.setLocalStateField('syncClient', readCurrentSyncClientPresence(this.currentSyncDeviceId));
+        this.yProvider.awareness.on('change', this.onAwarenessChanged);
         this.yProvider.on('sync', (isSynced: boolean) => {
           if (isSynced) this.syncFromYjsOrSeed();
         });
         this.yProvider.on('status', ({ status }: { status: SyncConnectionState }) => {
-          this.syncConnectionState.set(
-            status === 'connected' ? 'connected' : status === 'connecting' ? 'connecting' : 'disconnected',
-          );
+          const nextState =
+            status === 'connected' ? 'connected' : status === 'connecting' ? 'connecting' : 'disconnected';
+          this.syncConnectionState.set(nextState);
+          if (nextState === 'connected') {
+            this.recordConnectedAt();
+          }
         });
       } else {
         this.syncConnectionState.set('disconnected');
@@ -894,6 +980,11 @@ export class QuizStoreService {
     } catch {
       // Best effort cleanup.
     }
+    try {
+      this.yProvider?.awareness.off('change', this.onAwarenessChanged);
+    } catch {
+      // Best effort cleanup.
+    }
     this.yProvider?.destroy();
     this.yPersistence?.destroy();
     this.yDoc?.destroy();
@@ -901,6 +992,7 @@ export class QuizStoreService {
     this.yPersistence = null;
     this.yRoot = null;
     this.yDoc = null;
+    this.syncPeerInfos.set([]);
   }
 
   private syncFromYjsOrSeed(): void {
@@ -929,13 +1021,18 @@ export class QuizStoreService {
 
     const raw = this.yRoot.get(QUIZ_YDOC_ROOT_KEY);
     if (typeof raw !== 'string') return;
+    if (raw === JSON.stringify(this.quizDocuments())) return;
 
     try {
       const parsed = JSON.parse(raw) as unknown;
       const validQuizzes = normalizeStoredQuizzes(parsed);
+      const lastRemoteChangedQuiz = determineLastChangedQuiz(this.quizDocuments(), validQuizzes);
 
       this.isApplyingYjsSnapshot = true;
       this.quizDocuments.set(validQuizzes);
+      if (lastRemoteChangedQuiz) {
+        this.recordRemoteSync(lastRemoteChangedQuiz);
+      }
       this.persistLocalMirror();
     } catch {
       // Ignore malformed CRDT payload and keep current in-memory state.
@@ -943,6 +1040,125 @@ export class QuizStoreService {
       this.isApplyingYjsSnapshot = false;
     }
   }
+
+  private loadSyncMetadata(roomId: string): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    try {
+      const raw = localStorage.getItem(this.syncMetadataStorageKey(roomId));
+      if (!raw) {
+        this.lastConnectedAt.set(null);
+        this.lastLocalChangeAt.set(null);
+        this.lastRemoteSyncAt.set(null);
+        this.lastRemoteChangedQuizName.set(null);
+        this.lastRemoteChangedQuizUpdatedAt.set(null);
+        this.lastRemoteChangedByDeviceLabel.set(null);
+        this.lastRemoteChangedByBrowserLabel.set(null);
+        this.originSharedAt.set(null);
+        this.originDeviceLabel.set(null);
+        this.originBrowserLabel.set(null);
+        return;
+      }
+      const snapshot = normalizeSyncMetadataSnapshot(JSON.parse(raw) as unknown);
+      this.lastConnectedAt.set(snapshot.lastConnectedAt);
+      this.lastLocalChangeAt.set(snapshot.lastLocalChangeAt);
+      this.lastRemoteSyncAt.set(snapshot.lastRemoteSyncAt);
+      this.lastRemoteChangedQuizName.set(snapshot.lastRemoteChangedQuizName);
+      this.lastRemoteChangedQuizUpdatedAt.set(snapshot.lastRemoteChangedQuizUpdatedAt);
+      this.lastRemoteChangedByDeviceLabel.set(snapshot.lastRemoteChangedByDeviceLabel);
+      this.lastRemoteChangedByBrowserLabel.set(snapshot.lastRemoteChangedByBrowserLabel);
+      this.originSharedAt.set(snapshot.originSharedAt);
+      this.originDeviceLabel.set(snapshot.originDeviceLabel);
+      this.originBrowserLabel.set(snapshot.originBrowserLabel);
+    } catch {
+      this.lastConnectedAt.set(null);
+      this.lastLocalChangeAt.set(null);
+      this.lastRemoteSyncAt.set(null);
+      this.lastRemoteChangedQuizName.set(null);
+      this.lastRemoteChangedQuizUpdatedAt.set(null);
+      this.lastRemoteChangedByDeviceLabel.set(null);
+      this.lastRemoteChangedByBrowserLabel.set(null);
+      this.originSharedAt.set(null);
+      this.originDeviceLabel.set(null);
+      this.originBrowserLabel.set(null);
+    }
+  }
+
+  private persistSyncMetadata(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const roomId = this.syncRoomId();
+    if (!roomId) return;
+
+    const snapshot: SyncMetadataSnapshot = {
+      lastConnectedAt: this.lastConnectedAt(),
+      lastLocalChangeAt: this.lastLocalChangeAt(),
+      lastRemoteSyncAt: this.lastRemoteSyncAt(),
+      lastRemoteChangedQuizName: this.lastRemoteChangedQuizName(),
+      lastRemoteChangedQuizUpdatedAt: this.lastRemoteChangedQuizUpdatedAt(),
+      lastRemoteChangedByDeviceLabel: this.lastRemoteChangedByDeviceLabel(),
+      lastRemoteChangedByBrowserLabel: this.lastRemoteChangedByBrowserLabel(),
+      originSharedAt: this.originSharedAt(),
+      originDeviceLabel: this.originDeviceLabel(),
+      originBrowserLabel: this.originBrowserLabel(),
+    };
+
+    try {
+      localStorage.setItem(this.syncMetadataStorageKey(roomId), JSON.stringify(snapshot));
+    } catch {
+      // Ignore quota/unavailable storage and keep in-memory metadata.
+    }
+  }
+
+  private recordConnectedAt(): void {
+    this.lastConnectedAt.set(new Date().toISOString());
+    this.persistSyncMetadata();
+  }
+
+  private recordLocalChange(): void {
+    this.lastLocalChangeAt.set(new Date().toISOString());
+    this.persistSyncMetadata();
+  }
+
+  private recordRemoteSync(changedQuiz: QuizDocument): void {
+    this.lastRemoteSyncAt.set(new Date().toISOString());
+    this.lastRemoteChangedQuizName.set(changedQuiz.name);
+    this.lastRemoteChangedQuizUpdatedAt.set(changedQuiz.updatedAt);
+    this.lastRemoteChangedByDeviceLabel.set(changedQuiz.updatedByDeviceLabel ?? null);
+    this.lastRemoteChangedByBrowserLabel.set(changedQuiz.updatedByBrowserLabel ?? null);
+    this.persistSyncMetadata();
+  }
+
+  private recordSyncOriginIfMissing(): void {
+    if (this.originSharedAt() && this.originDeviceLabel() && this.originBrowserLabel()) {
+      return;
+    }
+
+    this.originSharedAt.set(this.originSharedAt() ?? new Date().toISOString());
+    this.originDeviceLabel.set(this.originDeviceLabel() ?? this.currentDeviceLabel());
+    this.originBrowserLabel.set(this.originBrowserLabel() ?? this.currentBrowserLabel());
+    this.persistSyncMetadata();
+  }
+
+  private readonly onAwarenessChanged = (): void => {
+    const states = this.yProvider?.awareness.getStates();
+    if (!states) {
+      this.syncPeerInfos.set([]);
+      return;
+    }
+
+    const peersByDeviceId = new Map<string, SyncPeerInfo>();
+    for (const awarenessState of states.values()) {
+      const candidate = normalizeSyncClientPresence((awarenessState as Record<string, unknown>)['syncClient']);
+      if (!candidate || candidate.deviceId === this.currentSyncDeviceId) continue;
+      peersByDeviceId.set(candidate.deviceId, {
+        deviceId: candidate.deviceId,
+        deviceLabel: candidate.deviceLabel,
+        browserLabel: candidate.browserLabel,
+      });
+    }
+
+    this.syncPeerInfos.set(Array.from(peersByDeviceId.values()));
+  };
 
   private writeYjsSnapshot(): void {
     if (!this.yRoot || this.isApplyingYjsSnapshot) return;
@@ -1004,14 +1220,47 @@ export class QuizStoreService {
     return generated;
   }
 
+  private resolveInitialLibrarySharingMode(): LibrarySharingMode {
+    if (!isPlatformBrowser(this.platformId)) {
+      return 'local';
+    }
+
+    return localStorage.getItem(QUIZ_LIBRARY_SHARING_MODE_KEY) === 'shared' ? 'shared' : 'local';
+  }
+
+  private resolveCurrentSyncDeviceId(): string {
+    if (!isPlatformBrowser(this.platformId)) {
+      return 'server';
+    }
+
+    const stored = localStorage.getItem(QUIZ_SYNC_DEVICE_ID_KEY);
+    if (stored) {
+      return stored;
+    }
+
+    const generated = generateUuid();
+    localStorage.setItem(QUIZ_SYNC_DEVICE_ID_KEY, generated);
+    return generated;
+  }
+
   private storeSyncRoomId(roomId: string): void {
     if (!isPlatformBrowser(this.platformId)) return;
     localStorage.setItem(QUIZ_SYNC_ROOM_STORAGE_KEY, roomId);
     this.hasStoredSyncRoomId = true;
   }
 
+  private setLibrarySharingMode(mode: LibrarySharingMode): void {
+    this.librarySharingMode.set(mode);
+    if (!isPlatformBrowser(this.platformId)) return;
+    localStorage.setItem(QUIZ_LIBRARY_SHARING_MODE_KEY, mode);
+  }
+
   private storageKeyForRoom(roomId: string): string {
     return `${QUIZ_STORAGE_KEY}:${roomId}`;
+  }
+
+  private syncMetadataStorageKey(roomId: string): string {
+    return `${QUIZ_SYNC_METADATA_PREFIX}:${roomId}`;
   }
 }
 
@@ -1058,9 +1307,29 @@ function normalizeStoredQuiz(value: unknown): QuizDocument | null {
     description: metadata.data.description ?? null,
     createdAt,
     updatedAt,
+    updatedByDeviceId: readStringOrNull(candidate['updatedByDeviceId']) ?? null,
+    updatedByDeviceLabel: readStringOrNull(candidate['updatedByDeviceLabel']) ?? null,
+    updatedByBrowserLabel: readStringOrNull(candidate['updatedByBrowserLabel']) ?? null,
     settings: normalizeStoredQuizSettings(candidate['settings']),
     questions,
   };
+}
+
+function determineLastChangedQuiz(previousQuizzes: QuizDocument[], nextQuizzes: QuizDocument[]): QuizDocument | null {
+  const previousById = new Map(previousQuizzes.map((quiz) => [quiz.id, quiz]));
+  const changed = nextQuizzes.filter((quiz) => {
+    const previous = previousById.get(quiz.id);
+    return !previous || previous.updatedAt !== quiz.updatedAt;
+  });
+
+  if (changed.length === 0) {
+    return null;
+  }
+
+  return changed.reduce<QuizDocument | null>((latest, quiz) => {
+    if (!latest) return quiz;
+    return Date.parse(quiz.updatedAt) > Date.parse(latest.updatedAt) ? quiz : latest;
+  }, null);
 }
 
 function normalizeStoredQuizzes(value: unknown): QuizDocument[] {
@@ -1429,6 +1698,95 @@ function setStorageValue(key: string, value: string | null): void {
   } else {
     localStorage.setItem(key, value);
   }
+}
+
+function normalizeSyncMetadataSnapshot(value: unknown): SyncMetadataSnapshot {
+  if (!value || typeof value !== 'object') {
+    return {
+      lastConnectedAt: null,
+      lastLocalChangeAt: null,
+      lastRemoteSyncAt: null,
+      lastRemoteChangedQuizName: null,
+      lastRemoteChangedQuizUpdatedAt: null,
+      lastRemoteChangedByDeviceLabel: null,
+      lastRemoteChangedByBrowserLabel: null,
+      originSharedAt: null,
+      originDeviceLabel: null,
+      originBrowserLabel: null,
+    };
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return {
+    lastConnectedAt: readIsoDateOrNull(candidate['lastConnectedAt']),
+    lastLocalChangeAt: readIsoDateOrNull(candidate['lastLocalChangeAt']),
+    lastRemoteSyncAt: readIsoDateOrNull(candidate['lastRemoteSyncAt']),
+    lastRemoteChangedQuizName: readStringOrNull(candidate['lastRemoteChangedQuizName']) ?? null,
+    lastRemoteChangedQuizUpdatedAt: readIsoDateOrNull(candidate['lastRemoteChangedQuizUpdatedAt']),
+    lastRemoteChangedByDeviceLabel: readStringOrNull(candidate['lastRemoteChangedByDeviceLabel']) ?? null,
+    lastRemoteChangedByBrowserLabel: readStringOrNull(candidate['lastRemoteChangedByBrowserLabel']) ?? null,
+    originSharedAt: readIsoDateOrNull(candidate['originSharedAt']),
+    originDeviceLabel: readStringOrNull(candidate['originDeviceLabel']) ?? null,
+    originBrowserLabel: readStringOrNull(candidate['originBrowserLabel']) ?? null,
+  };
+}
+
+function normalizeSyncClientPresence(value: unknown): SyncClientPresence | null {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as Record<string, unknown>;
+  const deviceId = candidate['deviceId'];
+  const deviceLabel = candidate['deviceLabel'];
+  const browserLabel = candidate['browserLabel'];
+  if (typeof deviceId !== 'string' || typeof deviceLabel !== 'string' || typeof browserLabel !== 'string') {
+    return null;
+  }
+  if (!deviceId.trim() || !deviceLabel.trim() || !browserLabel.trim()) {
+    return null;
+  }
+  return {
+    deviceId,
+    deviceLabel,
+    browserLabel,
+  };
+}
+
+function readCurrentSyncClientPresence(deviceId?: string): SyncClientPresence {
+  return {
+    deviceId: deviceId ?? generateUuid(),
+    deviceLabel: detectDeviceLabel(),
+    browserLabel: detectBrowserLabel(),
+  };
+}
+
+function detectDeviceLabel(): string {
+  if (typeof navigator === 'undefined') {
+    return 'Device';
+  }
+  const userAgent = navigator.userAgent;
+  if (/iPhone/i.test(userAgent)) return 'iPhone';
+  if (/iPad/i.test(userAgent)) return 'iPad';
+  if (/Android/i.test(userAgent) && /Mobile/i.test(userAgent)) return 'Android Phone';
+  if (/Android/i.test(userAgent)) return 'Android Tablet';
+  if (/Macintosh|Mac OS X/i.test(userAgent)) return 'Mac';
+  if (/Windows/i.test(userAgent)) return 'Windows PC';
+  if (/Linux/i.test(userAgent)) return 'Linux PC';
+  return 'Device';
+}
+
+function detectBrowserLabel(): string {
+  if (typeof navigator === 'undefined') {
+    return 'Browser';
+  }
+  const userAgent = navigator.userAgent;
+  if (/Firefox\//i.test(userAgent)) return 'Firefox';
+  if (/Edg\//i.test(userAgent)) return 'Edge';
+  if (/Chrome\//i.test(userAgent) && !/Edg\//i.test(userAgent)) return 'Chrome';
+  if (/Safari\//i.test(userAgent) && !/Chrome\//i.test(userAgent)) return 'Safari';
+  return 'Browser';
+}
+
+function readIsoDateOrNull(value: unknown): string | null {
+  return typeof value === 'string' && isValidDateString(value) ? value : null;
 }
 
 function hasIndexedDbSupport(): boolean {

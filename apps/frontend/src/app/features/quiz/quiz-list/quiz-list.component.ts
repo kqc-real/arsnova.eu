@@ -59,6 +59,20 @@ export class QuizListComponent implements OnInit {
   readonly quizzes = this.quizStore.quizzes;
   readonly syncRoomId = this.quizStore.syncRoomId;
   readonly syncConnectionState = this.quizStore.syncConnectionState;
+  readonly librarySharingMode = this.quizStore.librarySharingMode;
+  readonly lastConnectedAt = this.quizStore.lastConnectedAt;
+  readonly lastLocalChangeAt = this.quizStore.lastLocalChangeAt;
+  readonly lastRemoteSyncAt = this.quizStore.lastRemoteSyncAt;
+  readonly lastRemoteChangedQuizName = this.quizStore.lastRemoteChangedQuizName;
+  readonly lastRemoteChangedQuizUpdatedAt = this.quizStore.lastRemoteChangedQuizUpdatedAt;
+  readonly lastRemoteChangedByDeviceLabel = this.quizStore.lastRemoteChangedByDeviceLabel;
+  readonly lastRemoteChangedByBrowserLabel = this.quizStore.lastRemoteChangedByBrowserLabel;
+  readonly originSharedAt = this.quizStore.originSharedAt;
+  readonly originDeviceLabel = this.quizStore.originDeviceLabel;
+  readonly originBrowserLabel = this.quizStore.originBrowserLabel;
+  readonly currentDeviceLabel = this.quizStore.currentDeviceLabel;
+  readonly currentBrowserLabel = this.quizStore.currentBrowserLabel;
+  readonly syncPeerInfos = this.quizStore.syncPeerInfos;
   readonly actionInfo = signal<string | null>(null);
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizIds = signal<Set<string>>(new Set());
@@ -84,6 +98,90 @@ export class QuizListComponent implements OnInit {
 
   getQuizActionsAriaLabel(quizName: string): string {
     return $localize`:@@quizList.ariaQuizActions:Aktionen für Quiz ${quizName}:quizName:`;
+  }
+
+  isSharedLibrary(): boolean {
+    return this.librarySharingMode() === 'shared';
+  }
+
+  syncStatusLabel(): string {
+    const state = this.syncConnectionState();
+    if (state === 'connected') return $localize`:@@quizList.syncStatusConnected:Verbunden`;
+    if (state === 'connecting') return $localize`:@@quizList.syncStatusConnecting:Verbindung wird aufgebaut`;
+    return $localize`:@@quizList.syncStatusOffline:Offline`;
+  }
+
+  syncCode(): string {
+    return this.syncRoomId().replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase();
+  }
+
+  syncPeerCountLabel(): string {
+    const count = this.syncPeerInfos().length;
+    if (count === 0) return $localize`:@@quizList.syncPeerCountNone:Gerade kein anderes Gerät aktiv`;
+    if (count === 1) return $localize`:@@quizList.syncPeerCountOne:Gerade 1 weiteres Gerät aktiv`;
+    return $localize`:@@quizList.syncPeerCountMany:Gerade ${count}:count: weitere Geräte aktiv`;
+  }
+
+  deviceSummary(deviceLabel: string, browserLabel: string): string {
+    return `${deviceLabel} · ${browserLabel}`;
+  }
+
+  formatSyncDateTime(value: string | null): string {
+    if (!value) {
+      return $localize`:@@quizList.syncTimestampUnknown:Noch keine Daten`;
+    }
+    return this.formatSyncTimestamp(value) ?? $localize`:@@quizList.syncTimestampUnknown:Noch keine Daten`;
+  }
+
+  lastRemoteSyncSummary(): string {
+    const quizName = this.lastRemoteChangedQuizName() || this.fallbackLatestQuizName();
+    const timestamp = this.formatSyncDateTimeOrNull(this.lastRemoteSyncAt());
+
+    if (!quizName || !timestamp) {
+      return $localize`:@@quizList.syncNoRemoteChangesYet:Bisher keine übernommene Änderung`;
+    }
+
+    return `${quizName} · ${timestamp}`;
+  }
+
+  lastRemoteChangedDeviceSummary(): string {
+    const deviceLabel = this.lastRemoteChangedByDeviceLabel();
+    const browserLabel = this.lastRemoteChangedByBrowserLabel();
+    if (!deviceLabel || !browserLabel) {
+      return $localize`:@@quizList.syncDeviceUnknown:Unbekannt`;
+    }
+    return this.deviceSummary(deviceLabel, browserLabel);
+  }
+
+  syncOriginDeviceSummary(): string {
+    const deviceLabel = this.originDeviceLabel();
+    const browserLabel = this.originBrowserLabel();
+    if (!deviceLabel || !browserLabel) {
+      return $localize`:@@quizList.syncOriginUnknown:Noch nicht bekannt`;
+    }
+    return this.deviceSummary(deviceLabel, browserLabel);
+  }
+
+  private fallbackLatestQuizName(): string | null {
+    const quizzes = this.quizzes();
+    if (quizzes.length === 0) {
+      return null;
+    }
+
+    return quizzes.reduce<QuizSummary | null>((latest, quiz) => {
+      if (!latest) return quiz;
+      return Date.parse(quiz.updatedAt) > Date.parse(latest.updatedAt) ? quiz : latest;
+    }, null)?.name ?? null;
+  }
+
+  private formatSyncDateTimeOrNull(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    return this.formatSyncDateTime(value) === $localize`:@@quizList.syncTimestampUnknown:Noch keine Daten`
+      ? null
+      : this.formatSyncDateTime(value);
   }
 
   async ngOnInit(): Promise<void> {

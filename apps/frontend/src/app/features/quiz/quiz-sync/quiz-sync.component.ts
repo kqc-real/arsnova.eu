@@ -45,7 +45,7 @@ export class QuizSyncComponent {
 
   constructor() {
     try {
-      this.quizStore.activateSyncRoom(this.docId);
+      this.quizStore.activateSyncRoom(this.docId, { markShared: true, registerOrigin: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Sync-Raum konnte nicht aktiviert werden.';
       this.syncError.set(message);

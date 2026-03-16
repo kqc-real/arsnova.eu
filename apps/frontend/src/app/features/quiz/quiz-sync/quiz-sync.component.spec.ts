@@ -35,7 +35,10 @@ describe('QuizSyncComponent', () => {
     const fixture = TestBed.createComponent(QuizSyncComponent);
     fixture.detectChanges();
 
-    expect(mockStore.activateSyncRoom).toHaveBeenCalledWith('sync-room-12345678');
+    expect(mockStore.activateSyncRoom).toHaveBeenCalledWith('sync-room-12345678', {
+      markShared: true,
+      registerOrigin: true,
+    });
     expect(fixture.nativeElement.textContent).toContain('Quiz-Bibliothek weitergeben');
     expect(fixture.nativeElement.textContent).toContain('SYNCROOM');
   });

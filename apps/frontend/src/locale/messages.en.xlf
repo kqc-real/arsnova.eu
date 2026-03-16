@@ -1761,8 +1761,8 @@
         <target>Generate sync ID and link</target>
       </trans-unit>
       <trans-unit id="quizList.syncHint" datatype="html">
-        <source>Sichere deine Quiz-Bibliothek auf ein anderes Geraet oder gib sie per Sync-ID oder Sync-Link an Kolleginnen und Kollegen weiter.</source>
-        <target>Save your quiz library to another device or share it with colleagues via sync ID or sync link.</target>
+        <source>Sichere deine Quiz-Bibliothek auf ein anderes Gerät – oder gib sie per Sync-ID oder Sync-Link an Kolleginnen und Kollegen weiter.</source>
+        <target>Save your quiz library to another device - or share it with colleagues via sync ID or sync link.</target>
       </trans-unit>
       <trans-unit id="quizList.syncImportedSuccess" datatype="html">
         <source>Quiz-Bibliothek erfolgreich synchronisiert.</source>
@@ -1771,6 +1771,98 @@
       <trans-unit id="quizList.edit" datatype="html">
         <source>Bearbeiten</source>
         <target>Edit</target>
+      </trans-unit>
+      <trans-unit id="quizList.sharedLibraryTitle" datatype="html">
+        <source>Geteilte Quiz-Bibliothek</source>
+        <target>Shared quiz library</target>
+      </trans-unit>
+      <trans-unit id="quizList.sharedLibraryDetailsToggle" datatype="html">
+        <source>Mehr zur Synchronisierung</source>
+        <target>More about syncing</target>
+      </trans-unit>
+      <trans-unit id="quizList.sharedLibraryHint" datatype="html">
+        <source>Hier siehst du, ob deine Quiz-Bibliothek auf dem neuesten Stand ist und von welchem Gerät Änderungen kamen.</source>
+        <target>Here you can see whether your quiz library is up to date and which device changes came from.</target>
+      </trans-unit>
+      <trans-unit id="quizList.sharedLibraryCode" datatype="html">
+        <source>Sync-ID: <x id="INTERPOLATION" equiv-text="{{ syncCode() }}"/></source>
+        <target>Sync ID: <x id="INTERPOLATION" equiv-text="{{ syncCode() }}"/></target>
+      </trans-unit>
+      <trans-unit id="quizList.syncStatusConnected" datatype="html">
+        <source>Verbunden</source>
+        <target>Connected</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncStatusConnecting" datatype="html">
+        <source>Verbindung wird aufgebaut</source>
+        <target>Connecting</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncStatusOffline" datatype="html">
+        <source>Offline</source>
+        <target>Offline</target>
+      </trans-unit>
+      <trans-unit id="quizList.currentDeviceLabel" datatype="html">
+        <source>Du arbeitest gerade auf</source>
+        <target>You are currently using</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncPeerCountLabel" datatype="html">
+        <source>Auch geöffnet auf</source>
+        <target>Also open on</target>
+      </trans-unit>
+      <trans-unit id="quizList.lastConnectedLabel" datatype="html">
+        <source>Zuletzt verbunden</source>
+        <target>Last connected</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncOriginDeviceLabel" datatype="html">
+        <source>Ursprünglich freigegeben von</source>
+        <target>Originally shared from</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncOriginTimeLabel" datatype="html">
+        <source>Freigegeben am</source>
+        <target>Shared on</target>
+      </trans-unit>
+      <trans-unit id="quizList.lastRemoteSyncLabel" datatype="html">
+        <source>Zuletzt übernommen</source>
+        <target>Last received</target>
+      </trans-unit>
+      <trans-unit id="quizList.lastRemoteDeviceLabel" datatype="html">
+        <source>Kam von</source>
+        <target>Came from</target>
+      </trans-unit>
+      <trans-unit id="quizList.lastLocalChangeLabel" datatype="html">
+        <source>Zuletzt hier geändert</source>
+        <target>Last changed here</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncPeerCountNone" datatype="html">
+        <source>Gerade kein anderes Gerät aktiv</source>
+        <target>No other device is active right now</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncPeerCountOne" datatype="html">
+        <source>Gerade 1 weiteres Gerät aktiv</source>
+        <target>1 other device is active right now</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncPeerCountMany" datatype="html">
+        <source>Gerade <x id="count" equiv-text="count"/> weitere Geräte aktiv</source>
+        <target><x id="count" equiv-text="count"/> other devices are active right now</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncTimestampUnknown" datatype="html">
+        <source>Noch keine Daten</source>
+        <target>No data yet</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncNoRemoteChangesYet" datatype="html">
+        <source>Bisher keine übernommene Änderung</source>
+        <target>No synced change received yet</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncOriginUnknown" datatype="html">
+        <source>Noch nicht bekannt</source>
+        <target>Not known yet</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncDeviceUnknown" datatype="html">
+        <source>Unbekannt</source>
+        <target>Unknown</target>
+      </trans-unit>
+      <trans-unit id="quizList.peerListAria" datatype="html">
+        <source>Andere verbundene Geräte</source>
+        <target>Other connected devices</target>
       </trans-unit>
       <trans-unit id="quizList.syncImportedSuccessWithTimestamp" datatype="html">
         <source>Quiz-Bibliothek erfolgreich synchronisiert. Neuester Stand vom <x id="timestamp" equiv-text="formattedTimestamp"/>.</source>

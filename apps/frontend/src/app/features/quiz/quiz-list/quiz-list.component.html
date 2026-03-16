@@ -21,6 +21,83 @@
     />
   </div>
   <div class="quiz-list__sync-callout">
+    @if (isSharedLibrary()) {
+      <div class="quiz-list__sync-status">
+        <div class="quiz-list__sync-status-header">
+          <p class="quiz-list__sync-status-title" i18n="@@quizList.sharedLibraryTitle">Geteilte Quiz-Bibliothek</p>
+          <span
+            class="quiz-list__sync-status-badge"
+            [class.quiz-list__sync-status-badge--connected]="syncConnectionState() === 'connected'"
+            [class.quiz-list__sync-status-badge--connecting]="syncConnectionState() === 'connecting'"
+          >
+            <mat-icon>devices</mat-icon>
+            <span>{{ syncStatusLabel() }}</span>
+          </span>
+        </div>
+        <details class="quiz-list__sync-status-expander">
+          <summary>
+            <span class="quiz-list__sync-status-summary-copy">
+              <span class="quiz-list__sync-status-summary-title" i18n="@@quizList.sharedLibraryDetailsToggle">
+                Mehr zur Synchronisierung
+              </span>
+              <span class="quiz-list__sync-status-summary-meta">{{ lastRemoteSyncSummary() }}</span>
+            </span>
+          </summary>
+          <div class="quiz-list__sync-status-panel">
+            <div class="quiz-list__sync-status-intro">
+              <p class="quiz-list__sync-status-text" i18n="@@quizList.sharedLibraryHint">
+                Hier siehst du, ob deine Quiz-Bibliothek auf dem neuesten Stand ist und von welchem Gerät Änderungen kamen.
+              </p>
+              <p class="quiz-list__sync-status-code" i18n="@@quizList.sharedLibraryCode">Sync-ID: {{ syncCode() }}</p>
+            </div>
+            <dl class="quiz-list__sync-status-details">
+              <div class="quiz-list__sync-status-detail">
+                <dt i18n="@@quizList.currentDeviceLabel">Du arbeitest gerade auf</dt>
+                <dd>{{ deviceSummary(currentDeviceLabel(), currentBrowserLabel()) }}</dd>
+              </div>
+              <div class="quiz-list__sync-status-detail">
+                <dt i18n="@@quizList.syncPeerCountLabel">Auch geöffnet auf</dt>
+                <dd>{{ syncPeerCountLabel() }}</dd>
+              </div>
+              <div class="quiz-list__sync-status-detail">
+                <dt i18n="@@quizList.lastConnectedLabel">Zuletzt verbunden</dt>
+                <dd>{{ formatSyncDateTime(lastConnectedAt()) }}</dd>
+              </div>
+              <div class="quiz-list__sync-status-detail">
+                <dt i18n="@@quizList.syncOriginDeviceLabel">Ursprünglich freigegeben von</dt>
+                <dd>{{ syncOriginDeviceSummary() }}</dd>
+              </div>
+              <div class="quiz-list__sync-status-detail">
+                <dt i18n="@@quizList.syncOriginTimeLabel">Freigegeben am</dt>
+                <dd>{{ formatSyncDateTime(originSharedAt()) }}</dd>
+              </div>
+              <div class="quiz-list__sync-status-detail">
+                <dt i18n="@@quizList.lastRemoteSyncLabel">Zuletzt übernommen</dt>
+                <dd>{{ lastRemoteSyncSummary() }}</dd>
+              </div>
+              <div class="quiz-list__sync-status-detail">
+                <dt i18n="@@quizList.lastRemoteDeviceLabel">Kam von</dt>
+                <dd>{{ lastRemoteChangedDeviceSummary() }}</dd>
+              </div>
+              <div class="quiz-list__sync-status-detail">
+                <dt i18n="@@quizList.lastLocalChangeLabel">Zuletzt hier geändert</dt>
+                <dd>{{ formatSyncDateTime(lastLocalChangeAt()) }}</dd>
+              </div>
+            </dl>
+            @if (syncPeerInfos().length > 0) {
+              <div class="quiz-list__sync-peer-section">
+                <p class="quiz-list__sync-peer-title">{{ syncPeerCountLabel() }}</p>
+                <ul class="quiz-list__sync-peer-list" i18n-aria-label="@@quizList.peerListAria" aria-label="Andere verbundene Geräte">
+                  @for (peer of syncPeerInfos(); track peer.deviceId) {
+                    <li>{{ deviceSummary(peer.deviceLabel, peer.browserLabel) }}</li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        </details>
+      </div>
+    }
     <a
       matButton="tonal"
       class="quiz-list__sync-cta"
@@ -32,7 +109,7 @@
       <span i18n="@@quizList.syncCta">Sync-ID und -Link erzeugen</span>
     </a>
     <p class="quiz-list__sync-hint" i18n="@@quizList.syncHint">
-      Sichere deine Quiz-Bibliothek auf ein anderes Geraet oder gib sie per Sync-ID oder Sync-Link an Kolleginnen und Kollegen weiter.
+      Sichere deine Quiz-Bibliothek auf ein anderes Gerät – oder gib sie per Sync-ID oder Sync-Link an Kolleginnen und Kollegen weiter.
     </p>
   </div>
 

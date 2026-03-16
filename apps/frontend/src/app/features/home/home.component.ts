@@ -225,7 +225,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.syncLinkError.set(null);
-    this.quizStore.activateSyncRoom(docId);
+    this.quizStore.activateSyncRoom(docId, { markShared: true });
     await this.router.navigate(this.localizedCommands(['quiz']), {
       queryParams: { syncImported: 1 },
     });

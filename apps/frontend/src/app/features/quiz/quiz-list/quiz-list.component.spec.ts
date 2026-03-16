@@ -33,6 +33,20 @@ describe('QuizListComponent', () => {
     quizzes: quizzesSignal.asReadonly(),
     syncRoomId: signal('sync-room-12345678'),
     syncConnectionState: signal<'connected' | 'connecting' | 'disconnected'>('connected'),
+    librarySharingMode: signal<'local' | 'shared'>('local'),
+    lastConnectedAt: signal<string | null>(null),
+    lastLocalChangeAt: signal<string | null>(null),
+    lastRemoteSyncAt: signal<string | null>(null),
+    lastRemoteChangedQuizName: signal<string | null>(null),
+    lastRemoteChangedQuizUpdatedAt: signal<string | null>(null),
+    lastRemoteChangedByDeviceLabel: signal<string | null>(null),
+    lastRemoteChangedByBrowserLabel: signal<string | null>(null),
+    originSharedAt: signal<string | null>(null),
+    originDeviceLabel: signal<string | null>(null),
+    originBrowserLabel: signal<string | null>(null),
+    currentDeviceLabel: signal('Mac'),
+    currentBrowserLabel: signal('Firefox'),
+    syncPeerInfos: signal<Array<{ deviceId: string; deviceLabel: string; browserLabel: string }>>([]),
     duplicateQuiz: vi.fn(),
     deleteQuiz: vi.fn(),
     exportQuiz: vi.fn(),
@@ -43,6 +57,21 @@ describe('QuizListComponent', () => {
     vi.clearAllMocks();
     quizzesSignal.set([]);
     mockRoute.snapshot.queryParamMap = convertToParamMap({});
+    mockStore.librarySharingMode.set('local');
+    mockStore.syncConnectionState.set('connected');
+    mockStore.lastConnectedAt.set(null);
+    mockStore.lastLocalChangeAt.set(null);
+    mockStore.lastRemoteSyncAt.set(null);
+    mockStore.lastRemoteChangedQuizName.set(null);
+    mockStore.lastRemoteChangedQuizUpdatedAt.set(null);
+    mockStore.lastRemoteChangedByDeviceLabel.set(null);
+    mockStore.lastRemoteChangedByBrowserLabel.set(null);
+    mockStore.originSharedAt.set(null);
+    mockStore.originDeviceLabel.set(null);
+    mockStore.originBrowserLabel.set(null);
+    mockStore.currentDeviceLabel.set('Mac');
+    mockStore.currentBrowserLabel.set('Firefox');
+    mockStore.syncPeerInfos.set([]);
     getActiveQuizIdsQueryMock.mockResolvedValue([]);
     TestBed.configureTestingModule({
       imports: [QuizListComponent, NoopAnimationsModule],
@@ -77,7 +106,47 @@ describe('QuizListComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Sync-ID und -Link erzeugen');
-    expect(text).toContain('Sichere deine Quiz-Bibliothek auf ein anderes Geraet');
+    expect(text).toContain('Sichere deine Quiz-Bibliothek auf ein anderes Gerät');
+  });
+
+  it('zeigt bei geteilter Bibliothek einen sichtbaren Sync-Status', () => {
+    mockStore.librarySharingMode.set('shared');
+    mockStore.lastConnectedAt.set('2026-03-16T18:07:00.000Z');
+    mockStore.lastLocalChangeAt.set('2026-03-16T18:05:00.000Z');
+    mockStore.lastRemoteSyncAt.set('2026-03-16T18:06:00.000Z');
+    mockStore.lastRemoteChangedQuizName.set('Datenbanken');
+    mockStore.lastRemoteChangedQuizUpdatedAt.set('2026-03-16T18:04:00.000Z');
+    mockStore.lastRemoteChangedByDeviceLabel.set('iPad');
+    mockStore.lastRemoteChangedByBrowserLabel.set('Safari');
+    mockStore.originSharedAt.set('2026-03-16T17:55:00.000Z');
+    mockStore.originDeviceLabel.set('MacBook');
+    mockStore.originBrowserLabel.set('Chrome');
+    mockStore.syncPeerInfos.set([
+      { deviceId: 'peer-1', deviceLabel: 'iPhone', browserLabel: 'Safari' },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Geteilte Quiz-Bibliothek');
+    expect(text).toContain('Hier siehst du, ob deine Quiz-Bibliothek auf dem neuesten Stand ist');
+    expect(text).toContain('Verbunden');
+    expect(text).toContain('Sync-ID: SYNCROOM');
+    expect(text).toContain('Du arbeitest gerade auf');
+    expect(text).toContain('Mac · Firefox');
+    expect(text).toContain('Gerade 1 weiteres Gerät aktiv');
+    expect(text).toContain('iPhone · Safari');
+    expect(text).toContain('Zuletzt verbunden');
+    expect(text).toContain('Ursprünglich freigegeben von');
+    expect(text).toContain('MacBook · Chrome');
+    expect(text).toContain('Freigegeben am');
+    expect(text).toContain('Zuletzt übernommen');
+    expect(text).toContain('Datenbanken');
+    expect(text).toContain('Datenbanken ·');
+    expect(text).toContain('Kam von');
+    expect(text).toContain('iPad · Safari');
+    expect(text).toContain('Zuletzt hier geändert');
   });
 
   it('zeigt nach einem Sync-Import einen Snackbar-Hinweis', async () => {

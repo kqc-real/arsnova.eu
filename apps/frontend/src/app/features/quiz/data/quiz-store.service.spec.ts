@@ -485,6 +485,41 @@ describe('QuizStoreService', () => {
     expect(service.syncRoomId()).toBe('syncroom_123');
   });
 
+  it('markiert eine Bibliothek beim bewussten Sync als geteilt', () => {
+    const service = TestBed.inject(QuizStoreService);
+
+    service.activateSyncRoom('syncroom_123', { markShared: true });
+
+    expect(service.librarySharingMode()).toBe('shared');
+  });
+
+  it('merkt sich die ursprüngliche Freigabequelle nur einmalig', () => {
+    const service = TestBed.inject(QuizStoreService);
+
+    service.activateSyncRoom('syncroom_123', { markShared: true, registerOrigin: true });
+    const firstOriginDevice = service.originDeviceLabel();
+    const firstOriginBrowser = service.originBrowserLabel();
+    const firstOriginAt = service.originSharedAt();
+
+    service.activateSyncRoom('syncroom_123', { markShared: true, registerOrigin: true });
+
+    expect(service.originDeviceLabel()).toBe(firstOriginDevice);
+    expect(service.originBrowserLabel()).toBe(firstOriginBrowser);
+    expect(service.originSharedAt()).toBe(firstOriginAt);
+  });
+
+  it('merkt sich Gerät und Browser bei lokalen Quiz-Änderungen', () => {
+    const service = TestBed.inject(QuizStoreService);
+
+    const created = service.createQuiz({ name: 'Metadaten Quiz' });
+    service.updateQuizMetadata(created.id, { name: 'Metadaten Quiz v2' });
+
+    const updated = service.getQuizById(created.id);
+    expect(updated?.updatedByDeviceId).toBeTruthy();
+    expect(updated?.updatedByDeviceLabel).toBeTruthy();
+    expect(updated?.updatedByBrowserLabel).toBeTruthy();
+  });
+
   it('lehnt ungültige Sync-IDs ab', () => {
     const service = TestBed.inject(QuizStoreService);
 
