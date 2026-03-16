@@ -143,7 +143,7 @@ try {
     logger.warn('Yjs WebSocket-Server Fehler:', (err as Error).message);
   });
   yjsChild.on('exit', (code, signal) => {
-    if (code !== 0 && signal == null) {
+    if (code !== 0 && signal === null) {
       logger.warn(`Yjs WebSocket-Server beendet mit Exit-Code ${String(code)}`);
     }
   });
