@@ -190,6 +190,7 @@ describe('SessionVoteComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Session beendet');
+    expect(text).toContain('Zur Startseite');
     expect(text).toContain('Dein Team');
     expect(text).toContain('Rot gewinnt das Teamduell');
     expect(text).toContain('Teamrang');

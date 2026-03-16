@@ -1,6 +1,6 @@
 import { DecimalPipe, DOCUMENT } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit, inject, signal, computed, effect } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -16,6 +16,7 @@ import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { SoundService } from '../../../core/sound.service';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
+import { localizePath } from '../../../core/locale-router';
 import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
@@ -61,6 +62,7 @@ type HostMusicTrack =
   imports: [
     DecimalPipe,
     MatButton,
+    RouterLink,
     MatButtonToggle,
     MatButtonToggleGroup,
     MatCard,
@@ -80,6 +82,7 @@ type HostMusicTrack =
   styleUrl: './session-host.component.scss',
 })
 export class SessionHostComponent implements OnInit, OnDestroy {
+  readonly localizedPath = localizePath;
   session = signal<SessionInfoDTO | null>(null);
   /** Lobby: Live-Teilnehmerliste (Story 2.2). */
   readonly participantsPayload = signal<SessionParticipantsPayload | null>(null);

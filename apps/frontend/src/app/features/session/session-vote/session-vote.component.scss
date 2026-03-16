@@ -1494,6 +1494,12 @@
   background: var(--mat-sys-outline-variant);
 }
 
+.vote-finished-hero__actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
 // --- Bonus-Code Card ---
 .vote-bonus-card {
   text-align: center;

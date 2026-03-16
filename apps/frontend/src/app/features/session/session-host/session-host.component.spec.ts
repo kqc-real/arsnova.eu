@@ -341,6 +341,76 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt "komplett richtig" nicht bei Single-Choice-Ergebnisfragen', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation((_input: unknown, opts: { onData: (d: unknown) => void }) => {
+      opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+      return { unsubscribe: unsubscribeMock };
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false, voteCount: 0, votePercentage: 0 },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true, voteCount: 0, votePercentage: 0 },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent ?? '').not.toContain('komplett richtig');
+    fixture.destroy();
+  });
+
+  it('zeigt "komplett richtig" bei Multiple-Choice-Ergebnisfragen', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation((_input: unknown, opts: { onData: (d: unknown) => void }) => {
+      opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+      return { unsubscribe: unsubscribeMock };
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'cccccccc-3333-4333-8333-333333333333',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antworten sind richtig?',
+      type: 'MULTIPLE_CHOICE',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: true },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: false },
+        { id: 'cccccccc-3333-4333-8333-333333333333', text: 'C', isCorrect: true },
+      ],
+      voteDistribution: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: true, voteCount: 0, votePercentage: 0 },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: false, voteCount: 0, votePercentage: 0 },
+        { id: 'cccccccc-3333-4333-8333-333333333333', text: 'C', isCorrect: true, voteCount: 0, votePercentage: 0 },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent ?? '').toContain('0 von 0 komplett richtig');
+    fixture.destroy();
+  });
+
   it('ruft onParticipantJoined und onStatusChanged subscribe auf', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
     const fixture = setup();
@@ -398,6 +468,7 @@ describe('SessionHostComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Zur Startseite');
     expect(text).toContain('Team-Leaderboard');
     expect(text).toContain('Team A');
     expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });

@@ -111,7 +111,7 @@
   display: inline;
 }
 
-@media (max-width: 599px) {
+@media (max-width: 599px) and (orientation: portrait) {
   .home-hero-break-mobile {
     display: block;
   }

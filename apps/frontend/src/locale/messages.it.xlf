@@ -1027,16 +1027,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="3928002386541025507" datatype="html">
-        <source>Quiz, Q&amp;A und Feedback – live in einer App</source>
-        <target>Quiz, Q&amp;A e feedback, in diretta in un&apos;unica app</target>
+        <source>Quiz, Q&amp;A und Blitzlicht – live in einer App</source>
+        <target>Quiz, Q&amp;A e Blitzlicht, in diretta in un&apos;unica app</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">3,4</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.line1" datatype="html">
-        <source>Quiz, Q&amp;A und Feedback –</source>
-        <target>Quiz, Q&amp;A e feedback -</target>
+        <source>Quiz, Q&amp;A und Blitzlicht – </source>
+        <target>Quiz, Q&amp;A e Blitzlicht - </target>
       </trans-unit>
       <trans-unit id="homeHero.line2" datatype="html">
         <source>live in einer App</source>

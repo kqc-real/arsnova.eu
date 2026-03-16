@@ -302,6 +302,10 @@
               <h1 class="session-host__finished-text" id="session-finished-heading" i18n>Session beendet</h1>
               <p class="session-host__finished-sub" i18n>Alle Ergebnisse sind gespeichert.</p>
               <div class="session-host__export-actions">
+                <a matButton="filled" [routerLink]="localizedPath('/')">
+                  <mat-icon>home</mat-icon>
+                  <span i18n>Zur Startseite</span>
+                </a>
                 <button matButton="tonal"
                   type="button"
                   (click)="exportSessionResultsCsv()"
@@ -670,7 +674,7 @@
                   } @else if (q.voteDistribution && q.voteDistribution.length > 0 && effectiveStatus() === 'RESULTS') {
                     <div class="session-host__vote-dist">
                       <p class="session-host__vote-dist-total">{{ q.totalVotes }} von {{ participantsPayload()?.participantCount ?? '?' }} {{ q.totalVotes === 1 ? 'hat' : 'haben' }} abgestimmt</p>
-                      @if (q.correctVoterCount !== null && q.correctVoterCount !== undefined && q.type !== 'SURVEY') {
+                      @if (q.correctVoterCount !== null && q.correctVoterCount !== undefined && q.type === 'MULTIPLE_CHOICE') {
                         <p class="session-host__vote-dist-correct">
                           <mat-icon>check_circle</mat-icon>
                           {{ q.correctVoterCount }} von {{ q.totalVotes }} komplett richtig

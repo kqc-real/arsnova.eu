@@ -112,6 +112,12 @@
             </div>
           </div>
         }
+        <div class="vote-finished-hero__actions">
+          <a matButton="filled" [routerLink]="localizedPath('/')">
+            <mat-icon>home</mat-icon>
+            <span i18n>Zur Startseite</span>
+          </a>
+        </div>
       </section>
 
       @if (showTeamRewardCard() && ownTeamEntry(); as ownTeam) {

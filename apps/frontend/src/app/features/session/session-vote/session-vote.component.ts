@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy, inject, signal, computed, effect } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -10,6 +10,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { localizePath } from '../../../core/locale-router';
 import type {
   ParticipantDTO,
   PersonalScorecardDTO,
@@ -84,11 +85,12 @@ function getContextMotivation(sc: PersonalScorecardDTO, totalParticipants: numbe
 @Component({
   selector: 'app-session-vote',
   standalone: true,
-  imports: [MatButton, MatButtonToggle, MatButtonToggleGroup, MatIcon, MatProgressSpinner, CountdownFingersComponent, DecimalPipe, FeedbackVoteComponent],
+  imports: [MatButton, RouterLink, MatButtonToggle, MatButtonToggleGroup, MatIcon, MatProgressSpinner, CountdownFingersComponent, DecimalPipe, FeedbackVoteComponent],
   templateUrl: './session-vote.component.html',
   styleUrl: './session-vote.component.scss',
 })
 export class SessionVoteComponent implements OnInit, OnDestroy {
+  readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly themePreset = inject(ThemePresetService);
