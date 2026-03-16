@@ -46,6 +46,7 @@
 | 1    | 1.15  | Preset-Konfiguration exportieren & importieren | 🟢   | ✅ Fertig |
 | 2    | 2.1a  | Session-ID & Quiz-Upload                      | 🔴   | ✅ Fertig |
 | 2    | 2.1b  | QR-Code                                       | 🟢   | ✅ Fertig |
+| 2    | 2.1c  | Host-/Presenter-Zugang mit Session-Token härten | 🔴   | ⬜ Offen  |
 | 2    | 2.2   | Lobby-Ansicht                                 | 🔴   | ✅ Fertig |
 | 2    | 2.3   | Präsentations-Steuerung                       | 🔴   | ✅ Fertig |
 | 2    | 2.4   | Security / Data-Stripping                     | 🔴   | ✅ Fertig |
@@ -85,6 +86,7 @@
 | 8    | 8.2   | Fragen einreichen                             | 🟢   | ✅ Fertig |
 | 8    | 8.3   | Upvoting & Sortierung                         | 🟢   | ✅ Fertig |
 | 8    | 8.4   | Dozenten-Moderation                           | 🟢   | ✅ Fertig |
+| 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen   | 🟡   | ⬜ Offen  |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren     | 🟡   | ✅ Fertig |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)        | 🟡   | ✅ Fertig |
 | 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft | 🟡   | ✅ Fertig |
@@ -92,7 +94,7 @@
 
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 24 · 🟡 Should: 33 · 🟢 Could: 14 = **71 Storys gesamt**
+> **Statistik:** 🔴 Must: 25 · 🟡 Should: 34 · 🟢 Could: 14 = **73 Storys gesamt**
 
 ---
 
@@ -434,7 +436,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 2: Live-Sitzung & Lobby (Rolle: Dozent)
 
-> **Verifizierung (Commit-Historie):** Storys 2.1a–2.7 als ✅ Fertig markiert. Epic 2 ist vollständig abgeschlossen.
+> **Verifizierung (Commit-Historie):** Der bisherige Kernumfang 2.1a–2.7 ist umgesetzt. Offene Nachschärfung: Story 2.1c für tokenbasierten Host-/Presenter-Zugang.
 
 - **Story 2.1a (Session-ID generieren & Quiz-Upload):** 🔴 Als Dozent möchte ich ein Quiz live schalten können, wodurch eine 6-stellige Session-ID generiert wird und die Quizdaten an den Server übertragen werden.
   - **Akzeptanzkriterien:**
@@ -447,6 +449,14 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
   - **Akzeptanzkriterien:**
     - QR-Code encodiert `{baseUrl}/join/{sessionCode}`.
     - QR-Code ist auf Beamer-Auflösung lesbar.
+- **Story 2.1c (Host-/Presenter-Zugang mit Session-Token härten):** 🔴 Als Dozent möchte ich, dass eine laufende Veranstaltung nur mit passenden Session-Tokens gesteuert oder angezeigt werden kann, damit weder Teilnehmende noch Dritte allein über den Session-Code Host-Rechte erhalten.
+  - **Akzeptanzkriterien:**
+    - `session.create` liefert mindestens ein **Host-Token** zurück; optional zusätzlich ein separates **Presenter-Token** oder einen Presenter-Link.
+    - Der 6-stellige **Session-Code** bleibt ausschließlich Join-Zugang für Teilnehmende und reicht **nicht** für `/session/:code/host` oder geschützte Host-Prozeduren.
+    - Alle Host-only-Prozeduren (`nextQuestion`, `revealAnswers`, `revealResults`, `end`, Exporte, Bonus-/Moderationssteuerung) prüfen serverseitig ein gültiges Host-Token.
+    - Die Presenter-Ansicht ist als **read-only** abgesichert: Sie zeigt Live-Inhalte, kann aber keine Session steuern.
+    - Tokens werden serverseitig nur gehasht gespeichert, sind an die Session gebunden und mindestens für die Laufzeit der Session gültig.
+    - Ohne gültiges Token zeigen Host-/Presenter-Routen eine klare Zugriffsfehlermeldung oder leiten in einen sicheren Einstieg um.
 - **Story 2.2 (Lobby-Ansicht):** 🔴 Als Dozent möchte ich in Echtzeit sehen, wie viele und welche Studenten meiner Lobby beigetreten sind.
   - **Akzeptanzkriterien:**
     - tRPC-Subscription `session.onParticipantJoined` pusht neue Teilnehmer in Echtzeit.
@@ -867,9 +877,9 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ---
 
-## Epic 8: Q&A-Modus (Rolle: Dozent & Student) 🟢
+## Epic 8: Q&A-Modus (Rolle: Dozent & Student)
 
-> **Verifizierung Epic 8 (2026-03-13):** Status aller Storys 8.1–8.4 auf **✅ Fertig** gesetzt.  
+> **Verifizierung Epic 8 (2026-03-13):** Der bisherige Kernumfang 8.1–8.4 ist umgesetzt. Offene Nachschärfung: Story 8.5 für delegierbare Moderatorrechte ohne Vollzugriff.  
 > Backend-Checks: `npm run test -w @arsnova/backend -- qa session.start-qa` ✅.  
 > Frontend-Checks: Spec-Abdeckung für Host-, Vote-, Present- und eingebettete Blitz-Feedback-Flows vorhanden ✅.  
 > Laufzeit-Review: `BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend` ✅, inklusive automatischem Fallback auf bestehende Unified-Session bei Session-Rate-Limit.
@@ -904,6 +914,14 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Optional: Vorab-Moderation — Fragen erscheinen erst nach Freigabe durch den Dozenten (`moderationMode: boolean`, default: aus).
     - Host- und Presenter-Ansicht zeigen neue Fragen bzw. aktive Warteschlangen sichtbar an (Badge/Highlight/Queue), ohne die Session-Shell zu verlassen.
     - Prisma: Neues Modell `QaQuestion` mit Feldern `id`, `sessionId`, `participantId` (Autor, für 3-Fragen-Limit), `text`, `upvoteCount`, `status` (PENDING/ACTIVE/PINNED/ARCHIVED/DELETED), `createdAt`.
+- **Story 8.5 (Delegierbare Q&A-Moderation für Tutor:innen):** 🟡 Als Dozent möchte ich Q&A-Moderation an Tutor:innen delegieren können, damit eine zweite Person eingehende Fragen parallel sichten und freigeben kann, ohne Vollzugriff auf die Veranstaltung zu erhalten.
+  - **Akzeptanzkriterien:**
+    - Aus der laufenden Session kann ein **Moderator-Link** oder **Moderator-Token** erzeugt werden.
+    - Moderator:innen dürfen Q&A-Fragen listen, freigeben, pinnen, archivieren und löschen, aber **keine** Quiz-Steuerung, keine Blitzlicht-Steuerung und kein Session-Ende auslösen.
+    - Moderatorrechte sind **kanalgebunden** auf Q&A und gelten nicht automatisch für Presenter- oder Host-Funktionen.
+    - Der Moderatorzugang ist widerrufbar oder neu generierbar, falls ein Link versehentlich weitergegeben wurde.
+    - Die UI macht klar unterscheidbar, ob ein Gerät als **Host**, **Presenter** oder **Moderator:in** verbunden ist.
+    - Sicherheits- und Integrationstests decken unzulässige Rolleneskalation ausdrücklich ab.
 
 ---
 
