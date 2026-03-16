@@ -1773,8 +1773,8 @@
         <target>Edit</target>
       </trans-unit>
       <trans-unit id="quizList.syncImportedSuccessWithTimestamp" datatype="html">
-        <source>Quiz-Bibliothek erfolgreich synchronisiert. Neuester Stand vom <x id="PH" equiv-text="formattedTimestamp"/>.</source>
-        <target>Quiz library synced successfully. Latest version from <x id="PH" equiv-text="formattedTimestamp"/>.</target>
+        <source>Quiz-Bibliothek erfolgreich synchronisiert. Neuester Stand vom <x id="timestamp" equiv-text="formattedTimestamp"/>.</source>
+        <target>Quiz library synced successfully. Latest version from <x id="timestamp" equiv-text="formattedTimestamp"/>.</target>
       </trans-unit>
       <trans-unit id="2911576474246468574" datatype="html">
         <source>KI-Quiz importieren</source>

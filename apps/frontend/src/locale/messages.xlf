@@ -3016,7 +3016,7 @@
         <source>Quiz-Bibliothek erfolgreich synchronisiert.</source>
       </trans-unit>
       <trans-unit id="quizList.syncImportedSuccessWithTimestamp" datatype="html">
-        <source>Quiz-Bibliothek erfolgreich synchronisiert. Neuester Stand vom <x id="PH" equiv-text="formattedTimestamp"/>.</source>
+        <source>Quiz-Bibliothek erfolgreich synchronisiert. Neuester Stand vom <x id="timestamp" equiv-text="formattedTimestamp"/>.</source>
       </trans-unit>
       <trans-unit id="quizList.edit" datatype="html">
         <source>Bearbeiten</source>

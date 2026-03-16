@@ -3207,8 +3207,8 @@
         <target>Bibliothèque de quiz synchronisée avec succès.</target>
       </trans-unit>
       <trans-unit id="quizList.syncImportedSuccessWithTimestamp" datatype="html">
-        <source>Quiz-Bibliothek erfolgreich synchronisiert. Neuester Stand vom <x id="PH" equiv-text="formattedTimestamp"/>.</source>
-        <target>Bibliothèque de quiz synchronisée avec succès. Dernière version du <x id="PH" equiv-text="formattedTimestamp"/>.</target>
+        <source>Quiz-Bibliothek erfolgreich synchronisiert. Neuester Stand vom <x id="timestamp" equiv-text="formattedTimestamp"/>.</source>
+        <target>Bibliothèque de quiz synchronisée avec succès. Dernière version du <x id="timestamp" equiv-text="formattedTimestamp"/>.</target>
       </trans-unit>
       <trans-unit id="quizList.edit" datatype="html">
         <source>Bearbeiten</source>
