@@ -1,11 +1,14 @@
 <mat-card appearance="outlined" class="quiz-sync-card">
   <mat-card-content class="quiz-sync__content">
-    <h2 class="quiz-sync__title" i18n>Geräte synchronisieren</h2>
-    <p class="quiz-sync__text" i18n>
-      Öffne auf dem zweiten Gerät den Quiz-Bereich und gib dort diesen Code ein.
+    <h2 class="quiz-sync__title" i18n="@@quizSync.title">Quiz-Bibliothek weitergeben</h2>
+    <p class="quiz-sync__text" i18n="@@quizSync.intro">
+      Öffne deine Quiz-Bibliothek auf einem anderen Gerät oder teile sie mit Kolleginnen und Kollegen.
     </p>
-    <div class="quiz-sync__code-box" i18n-aria-label aria-label="Sync-Code">
-      <p class="quiz-sync__code-label" i18n>Dein Sync-Code</p>
+    <p class="quiz-sync__text" i18n="@@quizSync.introSecondary">
+      Nutze dafür einfach die Sync-ID oder den Sync-Link.
+    </p>
+    <div class="quiz-sync__code-box" i18n-aria-label="@@quizSync.codeAria" aria-label="Sync-ID">
+      <p class="quiz-sync__code-label" i18n="@@quizSync.codeLabel">Deine Sync-ID</p>
       <p class="quiz-sync__code-value">{{ syncCode() }}</p>
     </div>
     <p class="quiz-sync__text" i18n>
@@ -20,15 +23,15 @@
     <div class="quiz-sync__actions">
       <button mat-button type="button" (click)="copySyncCode()">
         <mat-icon>pin</mat-icon>
-        <span i18n>Code kopieren</span>
+        <span i18n="@@quizSync.copyCode">Sync-ID kopieren</span>
       </button>
       <button mat-button type="button" (click)="copySyncLink()">
         <mat-icon>link</mat-icon>
-        <span i18n>Link kopieren</span>
+        <span i18n="@@quizSync.copyLink">Sync-Link kopieren</span>
       </button>
     </div>
     <details class="quiz-sync__details">
-      <summary i18n>Technische Details</summary>
+      <summary i18n="@@quizSync.more">Mehr anzeigen</summary>
       <p class="quiz-sync__text" i18n>Sync-ID: <strong>{{ docId }}</strong></p>
       <p class="quiz-sync__text" i18n>Sync-Link: <span class="quiz-sync__link">{{ syncLink() }}</span></p>
     </details>
@@ -39,9 +42,9 @@
       @if (syncError()) {
         <p class="quiz-sync__error" role="alert">{{ syncError() }}</p>
       }
-      <a mat-button class="quiz-sync__back" routerLink=".." i18n-aria-label aria-label="Zurück zur Quiz-Liste">
+      <a mat-button class="quiz-sync__back" [routerLink]="localizedPath('/quiz')" i18n-aria-label="@@quizSync.backAria" aria-label="Zurück zur Quiz-Bibliothek">
         <mat-icon>arrow_back</mat-icon>
-        <span i18n>Zurück</span>
+        <span i18n="@@quizSync.back">Zurück zur Quiz-Bibliothek</span>
       </a>
     </div>
   </mat-card-content>

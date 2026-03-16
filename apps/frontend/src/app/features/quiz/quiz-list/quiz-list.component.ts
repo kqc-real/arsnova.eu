@@ -55,6 +55,7 @@ export class QuizListComponent implements OnInit {
   private readonly themePreset = inject(ThemePresetService);
   private readonly dialog = inject(MatDialog);
   readonly quizzes = this.quizStore.quizzes;
+  readonly syncRoomId = this.quizStore.syncRoomId;
   readonly actionInfo = signal<string | null>(null);
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizIds = signal<Set<string>>(new Set());

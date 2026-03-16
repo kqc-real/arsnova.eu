@@ -23,6 +23,7 @@ describe('QuizListComponent', () => {
   const quizzesSignal = signal<QuizSummary[]>([]);
   const mockStore = {
     quizzes: quizzesSignal.asReadonly(),
+    syncRoomId: signal('sync-room-12345678'),
     duplicateQuiz: vi.fn(),
     deleteQuiz: vi.fn(),
     exportQuiz: vi.fn(),
@@ -55,6 +56,15 @@ describe('QuizListComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Deine Quiz-Bibliothek ist noch leer.');
     expect(fixture.nativeElement.textContent).toContain('Erstes Quiz erstellen');
+  });
+
+  it('zeigt den Sync-Button mit Hilfetext in der Bibliothek', () => {
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Sync-ID und -Link erzeugen');
+    expect(text).toContain('Sichere deine Quiz-Bibliothek auf ein anderes Geraet');
   });
 
   it('zeigt gespeicherte Quizzes in der Liste', () => {

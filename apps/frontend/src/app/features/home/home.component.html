@@ -185,7 +185,7 @@
                 <mat-icon class="home-card__icon">school</mat-icon>
                 <span i18n>Veranstalten</span>
               </mat-card-subtitle>
-              <mat-card-title class="home-card__title" i18n="@@homeHostCard.title">Veranstaltung starten</mat-card-title>
+              <mat-card-title class="home-card__title" i18n="@@homeHostCard.title">Mit Quiz starten</mat-card-title>
             </div>
           </mat-card-header>
 
@@ -216,7 +216,7 @@
               (mouseenter)="preloadQuiz()"
             >
               <mat-icon class="home-cta__icon">play_circle</mat-icon>
-              <span i18n="@@homeHostCard.primaryCta">Veranstaltung starten</span>
+              <span i18n="@@homeHostCard.primaryCta">Letztes Quiz starten</span>
             </a>
             <div class="home-cta-row">
               <a
@@ -228,9 +228,51 @@
                 [matBadgeHidden]="quizCount() === 0"
               >
                 <mat-icon class="home-cta__icon">library_books</mat-icon>
-                <span i18n="@@homeHostCard.libraryCta">Meine Quizze</span>
+                <span i18n="@@homeHostCard.libraryCta">Meine Quiz-Bibliothek</span>
               </a>
             </div>
+            <div class="home-card__tertiary">
+              <button
+                mat-button
+                type="button"
+                class="home-card__tertiary-link"
+                (click)="toggleSyncLinkEntry()"
+                [attr.aria-expanded]="syncLinkVisible()"
+                i18n-aria-label
+                aria-label="Sync-ID oder -Link eingeben"
+              >
+                <mat-icon class="home-cta__icon">devices</mat-icon>
+                <span i18n="@@homeHostCard.syncLinkCta">Sync-ID oder -Link eingeben</span>
+              </button>
+              <p class="home-card__hint" i18n="@@homeHostCard.syncLinkHint">Wenn du hier mit der Quiz-Bibliothek von einem anderen Geraet weitermachen willst.</p>
+            </div>
+            @if (syncLinkVisible()) {
+              <div class="home-sync-entry">
+                <label class="home-sync-entry__label" for="home-sync-link" i18n="@@homeHostCard.syncLinkLabel">Sync-ID oder Sync-Link</label>
+                <div class="home-sync-entry__form">
+                  <input
+                    #syncLinkInput
+                    id="home-sync-link"
+                    class="home-sync-entry__input"
+                    type="url"
+                    [value]="syncLinkValue()"
+                    (input)="onSyncLinkInput($event)"
+                    (keydown.enter)="openSyncLink()"
+                    placeholder="https://click.arsnova.eu/quiz/sync/sync-room-12345678"
+                    i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
+                    autocapitalize="off"
+                    autocomplete="off"
+                    spellcheck="false"
+                    i18n-aria-label
+                    aria-label="Sync-ID oder Sync-Link eingeben"
+                  />
+                  <button matButton="tonal" type="button" class="home-sync-entry__submit" (click)="openSyncLink()" i18n="@@homeHostCard.syncLinkSubmit">Oeffnen</button>
+                </div>
+                @if (syncLinkError()) {
+                  <p class="home-error" role="alert">{{ syncLinkError() }}</p>
+                }
+              </div>
+            }
           </mat-card-actions>
         </mat-card>
       </main>

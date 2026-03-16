@@ -36,6 +36,7 @@ describe('QuizSyncComponent', () => {
     fixture.detectChanges();
 
     expect(mockStore.activateSyncRoom).toHaveBeenCalledWith('sync-room-12345678');
+    expect(fixture.nativeElement.textContent).toContain('Quiz-Bibliothek weitergeben');
     expect(fixture.nativeElement.textContent).toContain('SYNCROOM');
   });
 });

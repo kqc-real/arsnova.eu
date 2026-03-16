@@ -6,6 +6,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HomeComponent } from './home.component';
+import { QuizStoreService } from '../quiz/data/quiz-store.service';
 
 vi.mock('../../core/trpc.client', () => ({
   trpc: {
@@ -181,6 +182,50 @@ describe('HomeComponent', () => {
       });
       expect(navSpy).toHaveBeenCalledWith(['feedback', 'ABC123']);
       expect(comp.quickFeedbackError()).toBeNull();
+    });
+  });
+
+  describe('openSyncLink', () => {
+    it('aktiviert mit kompletter Sync-URL den Raum und oeffnet die Quiz-Bibliothek', async () => {
+      const comp = createComponent();
+      const router = TestBed.inject(Router);
+      const quizStore = TestBed.inject(QuizStoreService);
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom');
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      comp.syncLinkValue.set('https://click.arsnova.eu/quiz/sync/sync-room-12345678');
+      await comp.openSyncLink();
+
+      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678');
+      expect(navSpy).toHaveBeenCalledWith(['quiz']);
+      expect(comp.syncLinkError()).toBeNull();
+    });
+
+    it('akzeptiert auch nur die rohe Sync-ID und oeffnet die Quiz-Bibliothek', async () => {
+      const comp = createComponent();
+      const router = TestBed.inject(Router);
+      const quizStore = TestBed.inject(QuizStoreService);
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom');
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      comp.syncLinkValue.set('sync-room-12345678');
+      await comp.openSyncLink();
+
+      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678');
+      expect(navSpy).toHaveBeenCalledWith(['quiz']);
+      expect(comp.syncLinkError()).toBeNull();
+    });
+
+    it('zeigt einen Fehler bei ungueltigem Sync-Link', async () => {
+      const comp = createComponent();
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      comp.syncLinkValue.set('https://click.arsnova.eu/quiz/test');
+      await comp.openSyncLink();
+
+      expect(navSpy).not.toHaveBeenCalled();
+      expect(comp.syncLinkError()).toBe('Bitte eine gueltige Sync-ID oder einen gueltigen Sync-Link eingeben.');
     });
   });
 

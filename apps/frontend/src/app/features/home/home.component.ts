@@ -40,6 +40,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('syncLinkInput') private readonly syncLinkInput?: ElementRef<HTMLInputElement>;
 
   sessionCode = signal('');
   codeInputFocused = signal(false);
@@ -50,6 +51,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Set when join failed because session is finished (for showing host link). */
   joinErrorSessionFinished = signal(false);
   isJoining = signal(false);
+  syncLinkVisible = signal(false);
+  syncLinkValue = signal('');
+  syncLinkError = signal<string | null>(null);
   quickFeedbackError = signal<string | null>(null);
   quickFeedbackStarting = signal<QuickFeedbackType | null>(null);
 
@@ -193,6 +197,38 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     import('../quiz/quiz.component').then(() => {});
   }
 
+  toggleSyncLinkEntry(): void {
+    const nextVisible = !this.syncLinkVisible();
+    this.syncLinkVisible.set(nextVisible);
+    this.syncLinkError.set(null);
+    if (!nextVisible) {
+      this.syncLinkValue.set('');
+      return;
+    }
+    setTimeout(() => this.syncLinkInput?.nativeElement.focus(), 0);
+  }
+
+  onSyncLinkInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.syncLinkValue.set(target.value);
+    this.syncLinkError.set(null);
+  }
+
+  async openSyncLink(): Promise<void> {
+    const docId = this.extractSyncDocId(this.syncLinkValue());
+    if (!docId) {
+      this.syncLinkError.set(
+        $localize`:@@homeHostCard.syncLinkError:Bitte eine gueltige Sync-ID oder einen gueltigen Sync-Link eingeben.`,
+      );
+      this.syncLinkInput?.nativeElement.focus();
+      return;
+    }
+
+    this.syncLinkError.set(null);
+    this.quizStore.activateSyncRoom(docId);
+    await this.router.navigate(this.localizedCommands(['quiz']));
+  }
+
   async startQuickFeedback(type: QuickFeedbackType): Promise<void> {
     if (this.quickFeedbackStarting()) return;
 
@@ -266,5 +302,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     } finally {
       this.isJoining.set(false);
     }
+  }
+
+  private extractSyncDocId(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const rawIdMatch = trimmed.match(/^[a-zA-Z0-9_-]{8,128}$/);
+    if (rawIdMatch) {
+      return rawIdMatch[0];
+    }
+
+    const syncPathMatch = trimmed.match(
+      /(?:https?:\/\/[^/]+)?\/(?:(?:de|en|fr|it|es)\/)?quiz\/sync\/([a-zA-Z0-9_-]{8,128})(?:[/?#].*)?$/i,
+    );
+    return syncPathMatch?.[1] ?? null;
   }
 }

@@ -40,6 +40,29 @@
   justify-content: flex-end;
 }
 
+.quiz-list__sync-callout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.9rem 1rem 0.95rem;
+  border-radius: var(--mat-sys-corner-extra-large);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 38%, var(--mat-sys-surface));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+}
+
+.quiz-list__sync-cta {
+  --mdc-filled-button-container-height: 2.75rem;
+}
+
+.quiz-list__sync-hint {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+  color: var(--mat-sys-on-surface-variant);
+  max-width: 58ch;
+}
+
 .quiz-list__info,
 .quiz-list__error {
   margin: 0.1rem 0 0;

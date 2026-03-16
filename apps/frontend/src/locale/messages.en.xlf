@@ -1692,6 +1692,46 @@
         <source>Technische Details</source>
         <target>Technical details</target>
       </trans-unit>
+      <trans-unit id="quizSync.title" datatype="html">
+        <source>Quiz-Bibliothek weitergeben</source>
+        <target>Share quiz library</target>
+      </trans-unit>
+      <trans-unit id="quizSync.intro" datatype="html">
+        <source>Öffne deine Quiz-Bibliothek auf einem anderen Gerät oder teile sie mit Kolleginnen und Kollegen.</source>
+        <target>Open your quiz library on another device or share it with colleagues.</target>
+      </trans-unit>
+      <trans-unit id="quizSync.introSecondary" datatype="html">
+        <source>Nutze dafür einfach die Sync-ID oder den Sync-Link.</source>
+        <target>Simply use the sync ID or the sync link for that.</target>
+      </trans-unit>
+      <trans-unit id="quizSync.codeAria" datatype="html">
+        <source>Sync-ID</source>
+        <target>Sync ID</target>
+      </trans-unit>
+      <trans-unit id="quizSync.codeLabel" datatype="html">
+        <source>Deine Sync-ID</source>
+        <target>Your sync ID</target>
+      </trans-unit>
+      <trans-unit id="quizSync.copyCode" datatype="html">
+        <source>Sync-ID kopieren</source>
+        <target>Copy sync ID</target>
+      </trans-unit>
+      <trans-unit id="quizSync.copyLink" datatype="html">
+        <source>Sync-Link kopieren</source>
+        <target>Copy sync link</target>
+      </trans-unit>
+      <trans-unit id="quizSync.more" datatype="html">
+        <source>Mehr anzeigen</source>
+        <target>Show more</target>
+      </trans-unit>
+      <trans-unit id="quizSync.backAria" datatype="html">
+        <source>Zurück zur Quiz-Bibliothek</source>
+        <target>Back to quiz library</target>
+      </trans-unit>
+      <trans-unit id="quizSync.back" datatype="html">
+        <source>Zurück zur Quiz-Bibliothek</source>
+        <target>Back to quiz library</target>
+      </trans-unit>
       <trans-unit id="2633047600013021483" datatype="html">
         <source>Sync-ID: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
         <target>Sync ID: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></target>
@@ -1715,6 +1755,14 @@
       <trans-unit id="quizList.ariaQuizActions" datatype="html">
         <source>Aktionen für Quiz <x id="quizName" equiv-text="quizName"/></source>
         <target>Actions for quiz <x id="quizName" equiv-text="quizName"/></target>
+      </trans-unit>
+      <trans-unit id="quizList.syncCta" datatype="html">
+        <source>Sync-ID und -Link erzeugen</source>
+        <target>Generate sync ID and link</target>
+      </trans-unit>
+      <trans-unit id="quizList.syncHint" datatype="html">
+        <source>Sichere deine Quiz-Bibliothek auf ein anderes Geraet oder gib sie per Sync-ID oder Sync-Link an Kolleginnen und Kollegen weiter.</source>
+        <target>Save your quiz library to another device or share it with colleagues via sync ID or sync link.</target>
       </trans-unit>
       <trans-unit id="2911576474246468574" datatype="html">
         <source>KI-Quiz importieren</source>
@@ -3954,20 +4002,44 @@
         <target><x id="count" equiv-text="this.qaUnseenCount()"/> new</target>
       </trans-unit>
       <trans-unit id="homeHostCard.title" datatype="html">
-        <source>Veranstaltung starten</source>
-        <target>Start event</target>
+        <source>Mit Quiz starten</source>
+        <target>Start with a quiz</target>
       </trans-unit>
       <trans-unit id="homeHostCard.primaryCta" datatype="html">
-        <source>Veranstaltung starten</source>
-        <target>Start event</target>
+        <source>Letztes Quiz starten</source>
+        <target>Start latest quiz</target>
       </trans-unit>
       <trans-unit id="homeHostCard.secondaryCta" datatype="html">
         <source>Neues Quiz erstellen</source>
         <target>Create new quiz</target>
       </trans-unit>
       <trans-unit id="homeHostCard.libraryCta" datatype="html">
-        <source>Meine Quizze</source>
-        <target>My quizzes</target>
+        <source>Meine Quiz-Bibliothek</source>
+        <target>My quiz library</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkCta" datatype="html">
+        <source>Sync-ID oder -Link eingeben</source>
+        <target>Enter sync ID or link</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkHint" datatype="html">
+        <source>Wenn du hier mit der Quiz-Bibliothek von einem anderen Geraet weitermachen willst.</source>
+        <target>If you want to continue here with your quiz library from another device.</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkLabel" datatype="html">
+        <source>Sync-ID oder Sync-Link</source>
+        <target>Sync ID or sync link</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkPlaceholder" datatype="html">
+        <source>https://click.arsnova.eu/quiz/sync/sync-room-12345678</source>
+        <target>https://click.arsnova.eu/quiz/sync/sync-room-12345678</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkSubmit" datatype="html">
+        <source>Oeffnen</source>
+        <target>Open</target>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkError" datatype="html">
+        <source>Bitte eine gueltige Sync-ID oder einen gueltigen Sync-Link eingeben.</source>
+        <target>Please enter a valid sync ID or sync link.</target>
       </trans-unit>
       <trans-unit id="quizPreview.editModeEyebrow" datatype="html">
         <source>Bearbeitungsmodus</source>

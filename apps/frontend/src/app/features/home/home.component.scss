@@ -533,12 +533,82 @@ mat-card-actions.l-stack { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .home-cta-row .home-cta--secondary { flex: 1 1 0; min-width: 0; width: auto; }
 
+.home-card__tertiary {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.2rem;
+  width: 100%;
+  margin-top: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.home-card__tertiary-link {
+  align-self: center;
+  padding-inline: 0;
+  min-width: 0;
+  --mdc-text-button-container-height: 2rem;
+}
+
+.home-sync-entry {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: var(--mat-sys-corner-large);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+}
+
+.home-sync-entry__label {
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.home-sync-entry__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.home-sync-entry__input {
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  padding: 0.7rem 0.9rem;
+  box-sizing: border-box;
+}
+
+.home-sync-entry__input:focus {
+  outline: 2px solid color-mix(in srgb, var(--mat-sys-primary) 44%, transparent);
+  outline-offset: 1px;
+  border-color: var(--mat-sys-primary);
+}
+
+.home-sync-entry__submit {
+  align-self: flex-start;
+}
+
 @media (min-width: 600px) {
   mat-card-actions.l-stack { flex-direction: row; flex-wrap: wrap; }
   .home-cta { width: auto; flex: 1 1 0; }
   .home-card--create mat-card-actions { flex-direction: column; }
   .home-card--create mat-card-actions > .home-cta { width: 100%; flex: none; }
   .home-card--create .home-cta-row .home-cta--secondary { flex: 1 1 0; width: auto; }
+  .home-card__tertiary { margin-bottom: 0.75rem; }
+  .home-sync-entry__form {
+    flex-direction: row;
+    align-items: center;
+  }
+  .home-sync-entry__submit {
+    align-self: stretch;
+    flex: 0 0 auto;
+  }
 }
 
 .home-recent-label {

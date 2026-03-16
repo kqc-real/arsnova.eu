@@ -20,6 +20,21 @@
       (change)="onImportFileSelected($event)"
     />
   </div>
+  <div class="quiz-list__sync-callout">
+    <a
+      matButton="tonal"
+      class="quiz-list__sync-cta"
+      [routerLink]="['sync', syncRoomId()]"
+      i18n-aria-label
+      aria-label="Sync-ID und -Link erzeugen"
+    >
+      <mat-icon>devices</mat-icon>
+      <span i18n="@@quizList.syncCta">Sync-ID und -Link erzeugen</span>
+    </a>
+    <p class="quiz-list__sync-hint" i18n="@@quizList.syncHint">
+      Sichere deine Quiz-Bibliothek auf ein anderes Geraet oder gib sie per Sync-ID oder Sync-Link an Kolleginnen und Kollegen weiter.
+    </p>
+  </div>
 
   @if (actionInfo()) {
     <p class="quiz-list__info" role="status">{{ actionInfo() }}</p>

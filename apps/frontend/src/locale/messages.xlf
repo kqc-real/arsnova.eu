@@ -3006,6 +3006,12 @@
           <context context-type="linenumber">75</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizList.syncCta" datatype="html">
+        <source>Sync-ID und -Link erzeugen</source>
+      </trans-unit>
+      <trans-unit id="quizList.syncHint" datatype="html">
+        <source>Sichere deine Quiz-Bibliothek auf ein anderes Geraet oder gib sie per Sync-ID oder Sync-Link an Kolleginnen und Kollegen weiter.</source>
+      </trans-unit>
       <trans-unit id="3293413491190500382" datatype="html">
         <source>„<x id="PH" equiv-text="duplicate.name"/>“ wurde dupliziert.</source>
         <context-group purpose="location">
@@ -3466,6 +3472,36 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">31,32</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizSync.title" datatype="html">
+        <source>Quiz-Bibliothek weitergeben</source>
+      </trans-unit>
+      <trans-unit id="quizSync.intro" datatype="html">
+        <source>Öffne deine Quiz-Bibliothek auf einem anderen Gerät oder teile sie mit Kolleginnen und Kollegen.</source>
+      </trans-unit>
+      <trans-unit id="quizSync.introSecondary" datatype="html">
+        <source>Nutze dafür einfach die Sync-ID oder den Sync-Link.</source>
+      </trans-unit>
+      <trans-unit id="quizSync.codeAria" datatype="html">
+        <source>Sync-ID</source>
+      </trans-unit>
+      <trans-unit id="quizSync.codeLabel" datatype="html">
+        <source>Deine Sync-ID</source>
+      </trans-unit>
+      <trans-unit id="quizSync.copyCode" datatype="html">
+        <source>Sync-ID kopieren</source>
+      </trans-unit>
+      <trans-unit id="quizSync.copyLink" datatype="html">
+        <source>Sync-Link kopieren</source>
+      </trans-unit>
+      <trans-unit id="quizSync.more" datatype="html">
+        <source>Mehr anzeigen</source>
+      </trans-unit>
+      <trans-unit id="quizSync.backAria" datatype="html">
+        <source>Zurück zur Quiz-Bibliothek</source>
+      </trans-unit>
+      <trans-unit id="quizSync.back" datatype="html">
+        <source>Zurück zur Quiz-Bibliothek</source>
       </trans-unit>
       <trans-unit id="2633047600013021483" datatype="html">
         <source>Sync-ID: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
@@ -5598,16 +5634,34 @@
         <source><x id="count" equiv-text="this.qaUnseenCount()"/> neu</source>
       </trans-unit>
       <trans-unit id="homeHostCard.title" datatype="html">
-        <source>Veranstaltung starten</source>
+        <source>Mit Quiz starten</source>
       </trans-unit>
       <trans-unit id="homeHostCard.primaryCta" datatype="html">
-        <source>Veranstaltung starten</source>
+        <source>Letztes Quiz starten</source>
       </trans-unit>
       <trans-unit id="homeHostCard.secondaryCta" datatype="html">
         <source>Neues Quiz erstellen</source>
       </trans-unit>
       <trans-unit id="homeHostCard.libraryCta" datatype="html">
-        <source>Meine Quizze</source>
+        <source>Meine Quiz-Bibliothek</source>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkCta" datatype="html">
+        <source>Sync-ID oder -Link eingeben</source>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkHint" datatype="html">
+        <source>Wenn du hier mit der Quiz-Bibliothek von einem anderen Geraet weitermachen willst.</source>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkLabel" datatype="html">
+        <source>Sync-ID oder Sync-Link</source>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkPlaceholder" datatype="html">
+        <source>https://click.arsnova.eu/quiz/sync/sync-room-12345678</source>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkSubmit" datatype="html">
+        <source>Oeffnen</source>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkError" datatype="html">
+        <source>Bitte eine gueltige Sync-ID oder einen gueltigen Sync-Link eingeben.</source>
       </trans-unit>
       <trans-unit id="quizPreview.editModeEyebrow" datatype="html">
         <source>Bearbeitungsmodus</source>

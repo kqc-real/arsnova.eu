@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { localizePath } from '../../../core/locale-router';
 import { QuizStoreService } from '../data/quiz-store.service';
 
 /**
@@ -18,6 +19,7 @@ import { QuizStoreService } from '../data/quiz-store.service';
   styleUrl: './quiz-sync.component.scss',
 })
 export class QuizSyncComponent {
+  readonly localizedPath = localizePath;
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
   private readonly quizStore = inject(QuizStoreService);
