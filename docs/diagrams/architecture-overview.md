@@ -1,10 +1,12 @@
+<!-- markdownlint-disable MD013 -->
+
 # 🏗️ Architektur-Übersicht: arsnova.eu
 
 **Erstellt:** 2026-02-20  
-**Zuletzt aktualisiert:** 2026-03-14  
-**Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur  
+**Zuletzt aktualisiert:** 2026-03-16  
+**Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur
 
-**Status:** Epics 0–5, 7.1, 8, 9 umgesetzt · Epic 6.5 offen. Rollen/Routen/Autorisierung inkl. Admin siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Status:** Epics 0–5, 7.1, 8, 9 umgesetzt · Epic 6.5 offen. Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung inkl. Admin siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 ## System-Architektur-Diagramm
 
@@ -12,10 +14,10 @@
 %%{init: {'flowchart': {'curve': 'basis', 'nodeSpacing': 58, 'rankSpacing': 84, 'padding': 18}}}%%
 graph LR
     subgraph "Monorepo (npm Workspaces)"
-        subgraph "Frontend - Angular (aktuell 21)"
+        subgraph "Frontend - Angular 21"
             FE[Angular App<br/>Port 4200]
             FE_COMP[Standalone Components<br/>Signals · Angular Material 3]
-            FE_ROUTES["Routing<br/>/quiz<br/>/session/:code/(host|present|vote)<br/>/join/:code · /feedback/:code<br/>/admin · /help · /legal/*<br/>optional locale prefix:<br/>/de /en /fr /es /it"]
+            FE_ROUTES["Routing<br/>/quiz<br/>/session/:code/(host|present|vote)<br/>/join/:code · /feedback/:code · /feedback/:code/vote<br/>/admin · /help · /legal/*<br/>optional locale prefix:<br/>/de /en /fr /es /it"]
             FE_SERVICES[Core Services<br/>tRPC Client · ws-connection · theme-preset<br/>locale guard · sound]
         end
         
@@ -40,7 +42,7 @@ graph LR
     
     subgraph "Externe Clients"
         DOZENT[Dozent Client<br/>Quiz-Erstellung<br/>Session-Steuerung]
-        STUDENT[Student Client<br/>Voting<br/>Leaderboard]
+        STUDENT[Teilnehmer-Client<br/>Quiz · Q&A · Blitzlicht<br/>Voting · Leaderboard]
         ADMIN["Admin Client<br/>/admin · Inspektion<br/>Löschen · Auszug"]
     end
     
@@ -236,9 +238,9 @@ graph LR
 graph LR
     ROUTES[app.routes.ts]
 
-    HOME[HomeComponent]
+    HOME[HomeComponent<br/>inkl. Blitzlicht-Schnellstart]
     QUIZ[QuizComponent]
-    SESSION[SessionComponent]
+    SESSION[SessionComponent<br/>Quiz · Q&A · Blitzlicht]
     JOIN[JoinComponent]
     FEEDBACK_HOST[FeedbackHostComponent]
     FEEDBACK_VOTE[FeedbackVoteComponent]
@@ -281,11 +283,15 @@ graph LR
         SHOST[SessionHostComponent]
         SPRESENT[SessionPresentComponent]
         SVOTE[SessionVoteComponent]
+        FBHOST[FeedbackHostComponent]
+        FBVOTE[FeedbackVoteComponent]
         WCLOUD[WordCloudComponent]
         COUNTDOWN[CountdownFingersComponent]
         SROOT --> SHOST
         SROOT --> SPRESENT
         SROOT --> SVOTE
+        SHOST --> FBHOST
+        SVOTE --> FBVOTE
         SPRESENT --> WCLOUD
         SHOST --> COUNTDOWN
         SVOTE --> COUNTDOWN
@@ -313,7 +319,7 @@ graph LR
 mindmap
   root((arsnova.eu))
     Frontend
-      Angular 17+
+      Angular 21
         Standalone Components
         Signals
         Control Flow @if @for
@@ -407,7 +413,7 @@ erDiagram
     }
 ```
 
-### Erweiterungen (Team, Bonus, Q&A, Admin)
+### Erweiterungen (Team, Bonus, Q&A, Session-Kanaele, Admin)
 
 ```mermaid
 %%{init: {'flowchart': {'nodeSpacing': 46, 'rankSpacing': 70, 'padding': 14}}}%%
@@ -421,6 +427,11 @@ erDiagram
     QaQuestion ||--o{ QaUpvote : erhaelt
     Participant ||--o{ QaUpvote : votet
     Session ||--o{ AdminAuditLog : protokolliert
+
+    Session {
+        boolean qaEnabled
+        boolean quickFeedbackEnabled
+    }
 ```
 
 ## Sicherheits-Architektur

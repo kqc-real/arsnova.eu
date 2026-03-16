@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # ADR-0006: Rollen, Routen und Autorisierung (Host, Teilnehmer, Admin)
 
 **Status:** Accepted  
@@ -16,13 +18,13 @@ Die App ist für Dozenten und Teilnehmer **accountfrei**; Sessions und Quiz-Date
 
 ### 1. Rollen und Routen (URL-Struktur)
 
-| Rolle        | URL-Segment(e)              | Bedeutung |
-|-------------|------------------------------|-----------|
-| **Host**    | `/session/:code/host`        | Dozent: Steuerung, Lobby |
-| **Present** | `/session/:code/present`     | Dozent: Beamer/Projektion |
-| **Join**    | `/join/:code`                | Teilnehmer: Einstieg (QR-Ziel), Nickname, dann Redirect auf vote |
-| **Vote**    | `/session/:code/vote`        | Teilnehmer: Abstimmung, Scorecard |
-| **Admin**   | `/admin`                     | Admin: Dashboard, Session-Code-Eingabe, Liste, Detail, Löschen, Export |
+| Rolle | URL-Segment(e) | Bedeutung |
+| --- | --- | --- |
+| **Host** | `/session/:code/host` | Dozent: Steuerung, Lobby |
+| **Present** | `/session/:code/present` | Dozent: Beamer/Projektion |
+| **Join** | `/join/:code` | Teilnehmer: Einstieg (QR-Ziel), Nickname, dann Redirect auf Vote |
+| **Vote** | `/session/:code/vote` | Teilnehmer: Abstimmung, Scorecard |
+| **Admin** | `/admin` | Admin: Dashboard, Session-Code-Eingabe, Liste, Detail, Löschen, Export |
 
 - **`/session/:code`** ohne Segment: Redirect auf `.../host` (wenn Host-Token) oder `/join/:code` (wenn unklar), damit keine mehrdeutige URL bleibt.
 - QR-Code (Story 2.1b) verweist auf **`/join/:code`**.

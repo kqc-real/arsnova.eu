@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 MD022 MD032 -->
+
 # UI Styleguide (Angular Material 3)
 
 ## Ziel und Geltungsbereich
@@ -217,5 +219,7 @@ Tokenbasierte Card-Flaeche:
 
 ## Dokumente
 - ADR: `docs/architecture/decisions/0005-use-angular-material-design.md`
+- ADR: `docs/architecture/decisions/0010-blitzlicht-as-core-live-mode.md`
 - Tokens: `docs/ui/TOKENS.md`
+- Guideline: `docs/ui/BLITZLICHT-GUIDELINES.md`
 - PR-Checkliste: `docs/ui/PR-CHECKLIST-UI.md`

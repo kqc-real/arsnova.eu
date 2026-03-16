@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 MD025 -->
+
 # ADR-0007: Promptarchitektur für KI-generierte Quizzes
 
 **Status:** Accepted  

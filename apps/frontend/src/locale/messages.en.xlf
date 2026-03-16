@@ -3818,24 +3818,24 @@
         <target>This is where you collect and moderate questions from the audience.</target>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostTitle" datatype="html">
-        <source>Kurze Rückmeldungen im Blick</source>
-        <target>Quick reactions at a glance</target>
+        <source>Blitzlicht direkt starten</source>
+        <target>Start a Blitzlicht right away</target>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostPlaceholder" datatype="html">
-        <source>Hier erscheinen spontane Rückmeldungen und schnelle Stimmungsbilder der Gruppe.</source>
-        <target>This is where spontaneous reactions and quick mood snapshots of the group appear.</target>
+        <source>Wähle ein Format und hole dir in Sekunden ein Stimmungsbild aus der Gruppe.</source>
+        <target>Choose a format and get a quick read of the group's mood in seconds.</target>
       </trans-unit>
       <trans-unit id="sessionTabs.qaVotePlaceholder" datatype="html">
         <source>Hier kannst du Fragen an die Quizleitung senden und später wiederfinden.</source>
         <target>Here you can send questions to the quiz host and find them again later.</target>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackVoteTitle" datatype="html">
-        <source>Schnell Rückmeldung geben</source>
-        <target>Give quick feedback</target>
+        <source>Beim Blitzlicht mitmachen</source>
+        <target>Join the Blitzlicht</target>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackVotePlaceholder" datatype="html">
-        <source>Hier kannst du kurze Rückmeldungen und spontane Stimmungsbilder abgeben.</source>
-        <target>Here you can give short reactions and spontaneous mood feedback.</target>
+        <source>Sobald ein Format startet, kannst du hier in Sekunden deine Einschätzung abgeben.</source>
+        <target>As soon as a format starts, you can share your view here in seconds.</target>
       </trans-unit>
       <trans-unit id="sessionQa.statusPinned" datatype="html">
         <source>Wird beantwortet</source>

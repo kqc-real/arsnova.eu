@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # ADR-0003: Nutzung von tRPC für die API-Schicht
 
 **Status:** Accepted
@@ -17,15 +19,18 @@ tRPC wird auch für **WebSocket-Subscriptions** (Echtzeit-Abstimmungen) verwende
 ## Konsequenzen
 
 ### Positiv
+
 - Typ-Änderungen im Backend führen sofort zu Compile-Fehlern im Frontend
 - Kein manuelles Pflegen von API-Schemas oder OpenAPI-Specs
 - WebSockets und HTTP-Calls über dieselbe Abstraktion
 - Zod-Validierung am Eingang jedes Endpoints
 
 ### Negativ / Risiken
+
 - Frontend und Backend müssen im selben Monorepo liegen (oder Types separat publishen)
 - tRPC ist weniger bekannt als REST – Einarbeitungszeit für Studenten
 
 ## Alternativen (geprüft)
+
 - **REST + OpenAPI:** Typsicherheit nur über Code-Generierung, fehleranfällig
 - **GraphQL:** Sehr mächtig, aber Overshoot für dieses Projekt; eigener Schema-Layer nötig

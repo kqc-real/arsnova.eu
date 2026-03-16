@@ -6006,24 +6006,24 @@
         <target>Ici, tu rassembles et modères les questions du public.</target>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostTitle" datatype="html">
-        <source>Kurze Rückmeldungen im Blick</source>
-        <target>Les retours rapides en un coup d’œil</target>
+        <source>Blitzlicht direkt starten</source>
+        <target>Démarrer un Blitzlicht tout de suite</target>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostPlaceholder" datatype="html">
-        <source>Hier erscheinen spontane Rückmeldungen und schnelle Stimmungsbilder der Gruppe.</source>
-        <target>Ici apparaissent les réactions spontanées et les tendances rapides du groupe.</target>
+        <source>Wähle ein Format und hole dir in Sekunden ein Stimmungsbild aus der Gruppe.</source>
+        <target>Choisis un format et obtiens en quelques secondes une tendance du groupe.</target>
       </trans-unit>
       <trans-unit id="sessionTabs.qaVotePlaceholder" datatype="html">
         <source>Hier kannst du Fragen an die Quizleitung senden und später wiederfinden.</source>
         <target>Ici, tu peux envoyer des questions à l’animation du quiz et les retrouver plus tard.</target>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackVoteTitle" datatype="html">
-        <source>Schnell Rückmeldung geben</source>
-        <target>Donner un retour rapide</target>
+        <source>Beim Blitzlicht mitmachen</source>
+        <target>Participer au Blitzlicht</target>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackVotePlaceholder" datatype="html">
-        <source>Hier kannst du kurze Rückmeldungen und spontane Stimmungsbilder abgeben.</source>
-        <target>Ici, tu peux donner des retours courts et partager l’ambiance du moment.</target>
+        <source>Sobald ein Format startet, kannst du hier in Sekunden deine Einschätzung abgeben.</source>
+        <target>Dès qu’un format démarre, tu peux donner ton avis ici en quelques secondes.</target>
       </trans-unit>
       <trans-unit id="sessionQa.statusPinned" datatype="html">
         <source>Wird beantwortet</source>

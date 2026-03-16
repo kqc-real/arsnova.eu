@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # 🎓 Onboarding: arsnova.eu
 
 Willkommen im Entwickler-Team von **arsnova.eu**! Dieses Dokument hilft dir als Informatikstudierende/r, das Projekt zu verstehen, die Entwicklungsumgebung aufzusetzen und produktiv mitzuarbeiten.
@@ -9,7 +11,7 @@ Willkommen im Entwickler-Team von **arsnova.eu**! Dieses Dokument hilft dir als 
 ### Voraussetzungen
 
 | Tool | Version | Prüfbefehl |
-|------|---------|------------|
+| --- | --- | --- |
 | Node.js | ≥ 20 (siehe `.nvmrc`) | `node -v` |
 | npm | ≥ 10 | `npm -v` |
 | Docker & Docker Compose | aktuell | `docker compose version` |
@@ -63,7 +65,7 @@ npm run build:prod    # Backend + Frontend für Production bauen
 npm run start:prod    # Port 3000 freigeben, Backend starten (liefert Frontend aus)
 ```
 
-Im Browser **http://localhost:3000** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **http://localhost:3010**. Details (Gzip, Pre-Render, Fallbacks) siehe **docs/cursor-context.md** Abschnitt 18.1.
+Im Browser **`http://localhost:3000`** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **`http://localhost:3010`**. Details (Gzip, Pre-Render, Fallbacks) siehe **`docs/cursor-context.md`** Abschnitt 18.1.
 
 ---
 
@@ -71,7 +73,7 @@ Im Browser **http://localhost:3000** öffnen. Bei belegtem Port zuerst `npm run 
 
 Das Projekt nutzt **npm Workspaces**, um Backend, Frontend und geteilte Typen in einem Repository zu verwalten. Änderungen an `@arsnova/shared-types` wirken sich sofort auf Backend und Frontend aus.
 
-```
+```text
 arsnova.eu/
 ├── apps/
 │   ├── backend/              # Node.js + tRPC API-Server
@@ -83,7 +85,7 @@ arsnova.eu/
 │   │           ├── health.ts # health.check, health.stats, health.ping
 │   │           ├── session.ts# session.create, getInfo, join, getExportData
 │   │           └── vote.ts   # vote.submit (mit Rate-Limit)
-│   └── frontend/             # Angular 19 Single-Page-App (Angular-Style: core/shared/features)
+│   └── frontend/             # Angular 21 Single-Page-App (Angular-Style: core/shared/features)
 │       └── src/app/
 │           ├── app.component.ts   # Root-Komponente
 │           ├── app.routes.ts     # Routing-Konfiguration
@@ -113,7 +115,7 @@ arsnova.eu/
 ### Wichtige Zusammenhänge
 
 | Paket | npm-Name | Aufgabe |
-|-------|----------|---------|
+| --- | --- | --- |
 | `apps/backend` | `@arsnova/backend` | API-Server – empfängt Requests, validiert mit Zod, greift auf DB zu |
 | `apps/frontend` | `@arsnova/frontend` | Browser-App – Angular-Standalone-Components mit Angular Material 3 und SCSS-Patterns |
 | `libs/shared-types` | `@arsnova/shared-types` | Geteilte Verträge – Zod-Schemas, die **beide** Seiten importieren |
@@ -128,47 +130,47 @@ arsnova.eu/
 
 Das System ist nach dem **Local-First**-Prinzip entworfen:
 
-* **Zero-Knowledge:** Der Server speichert Quiz-Inhalte *niemals dauerhaft*. Die „Single Source of Truth" für Quizzes ist die lokale Browser-Datenbank des Dozenten.
-* **Datensouveränität:** Das geistige Eigentum (die Fragen) verbleibt beim Dozenten – keine Cloud, kein Account-Zwang.
-* **Relay-Modell:** Das Backend fungiert als *flüchtiger Vermittler* für Live-Daten während einer Hörsaal-Sitzung.
+- **Zero-Knowledge:** Der Server speichert Quiz-Inhalte *niemals dauerhaft*. Die „Single Source of Truth" für Quizzes ist die lokale Browser-Datenbank des Dozenten.
+- **Datensouveränität:** Das geistige Eigentum (die Fragen) verbleibt beim Dozenten – keine Cloud, kein Account-Zwang.
+- **Relay-Modell:** Das Backend fungiert als *flüchtiger Vermittler* für Live-Daten während einer Hörsaal-Sitzung.
 
 ---
 
 ## 4. Aktueller Stand vs. Ziel-Architektur
 
-> **Epic 0 (Infrastruktur) ist abgeschlossen.** Dieser Abschnitt kennzeichnet, was **bereits implementiert** ist und was als nächstes ansteht (siehe `Backlog.md`).
+> **Epics 0–5, 7.1, 8 und 9 sind weitgehend umgesetzt.** Dieser Abschnitt zeigt den groben aktuellen Stand; fuer Architekturdetails sind die Living Docs in `docs/diagrams/` und die ADRs maßgeblich.
 
-### Was bereits funktioniert (✅ Implementiert – Stand: Tag `v0-epic0`)
+### Was bereits funktioniert (✅ Implementiert – Stand: 2026-03-16)
 
 | Komponente | Beschreibung |
-|---|---|
+| --- | --- |
 | Express + tRPC-Server | Backend auf Port 3000 mit `health.check`, `health.stats`, `health.ping` (Subscription) |
-| Angular 19 Frontend | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget |
+| Angular 21 Frontend | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget |
 | tRPC-Client | `httpBatchLink` (Queries/Mutations) + `wsLink` (Subscriptions) |
 | Redis-Anbindung | `ioredis`-Client, Health-Check, Rate-Limiting (Sliding-Window), Session-Code-Lockout |
 | tRPC WebSocket | Separater WebSocket-Server (Port 3001) für Subscriptions |
 | Yjs y-websocket Relay | Backend startet y-websocket-Server (Port 3002) für Multi-Device-Sync |
 | Server-Status (Epic 0.4) | `health.stats`, Widget auf Startseite (Polling 30s), Schwellwerte healthy/busy/overloaded |
-| Session- & Vote-Router | `session` (create, getInfo, join, getExportData) und `vote` (submit) mit Rate-Limiting |
+| Session-, Vote-, Q&A- und Blitzlicht-Router | `session`, `vote`, `qa`, `quickFeedback`, `admin` mit Rate-Limiting und Live-Subscriptions |
 | Prisma-Schema | Vollständiges Datenbankmodell (Quiz, Question, Session, Vote, etc.) |
 | Zod-Schemas (`shared-types`) | Alle Input-/Output-Schemas und DTOs definiert |
 | Docker Compose | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up` |
 | CI/CD-Pipeline | GitHub Actions: Prisma validate/generate, TypeScript, ESLint, Tests, Docker-Build (Node 20/22) |
 
-### Was als nächstes ansteht (🔲 Geplant)
+### Was als nächstes ansteht (🔲 Geplant / offen)
 
 | Komponente | Beschreibung | Backlog |
-|---|---|---|
+| --- | --- | --- |
 | Quiz-Verwaltung | Erstellen, Bearbeiten, Löschen von Quizzes (Local-First mit Yjs/IndexedDB) | Epic 1 (1.1–1.10) |
-| Live-Session-Flow | Lobby, Fragen freigeben, Abstimmung, Ergebnis, Leaderboard | Epics 2–4 |
-| Service Layer | ScoringService, StreakService, BonusTokenService, CleanupService | Epics 4–5 |
-| DTO-Stripping (Runtime) | `isCorrect` serverseitig bei Status `ACTIVE` entfernen (QuestionStudentDTO) | Story 2.4 |
+| Weitere i18n-Abrundung | Vollständige Konsistenz aller Locales in Randbereichen und Rechtstexten | Epic 6.x |
+| Weitere UX-Politur | Feinschliff für Startseite, Presenter, Beamer-Modi, Mobile/Tablet | laufend |
+| Architektur-Cleanup | Übergangslogik rund um `Session.type = Q_AND_A` weiter zurückbauen | nach ADR-0009 |
 
 ---
 
-## 5. Komponentenbeschreibung (Stand: Epic 0 abgeschlossen)
+## 5. Komponentenbeschreibung (Stand: 2026-03-16)
 
-Das folgende Diagramm zeigt die **Backend-Architektur**. Bereits umgesetzt: health-, session- und vote-Router, Redis-Anbindung, Rate-Limiting, WebSocket und Yjs-Relay.
+Das folgende Diagramm zeigt eine vereinfachte **Backend-Architektur**. Neben Quiz und Session sind inzwischen auch `Q&A`, `Blitzlicht` und `Admin` integriert.
 
 ```mermaid
 graph TB
@@ -180,22 +182,27 @@ graph TB
 
     subgraph Router["appRouter - tRPC"]
         health["healthRouter ✅"]
-        quiz["quizRouter 🔲"]
+        quiz["quizRouter ✅"]
         session["sessionRouter ✅"]
         vote["voteRouter ✅"]
+        qa["qaRouter ✅"]
+        quickfb["quickFeedbackRouter ✅"]
+        admin["adminRouter ✅"]
     end
 
     subgraph Services["Services"]
         ratelimit[RateLimitService ✅]
-        scoring[ScoringService 🔲]
-        streak[StreakService 🔲]
+        scoring[Scoring / Session Logic ✅]
+        streak[Streak / Bonus Logic ✅]
         codegen[SessionCodeService ✅]
-        cleanup[CleanupService 🔲]
+        cleanup[CleanupService ✅]
     end
 
     subgraph DTO["DTO Layer"]
-        studdto["QuestionStudentDTO 🔲"]
-        revdto["QuestionRevealedDTO 🔲"]
+        prevdto["QuestionPreviewDTO ✅"]
+        studdto["QuestionStudentDTO ✅"]
+        revdto["QuestionRevealedDTO ✅"]
+        sessiondto["SessionInfoDTO ✅"]
     end
 
     pg[(PostgreSQL ✅)]
@@ -208,11 +215,18 @@ graph TB
     trpcmw --> quiz
     trpcmw --> session
     trpcmw --> vote
+    trpcmw --> qa
+    trpcmw --> quickfb
+    trpcmw --> admin
     session --> codegen
     vote --> ratelimit
     session --> ratelimit
+    qa --> ratelimit
+    quickfb --> ratelimit
+    session --> prevdto
     session --> studdto
     session --> revdto
+    session --> sessiondto
     codegen --> pg
     ratelimit --> redis
     session --> redis
@@ -220,49 +234,51 @@ graph TB
     express --> yws
 ```
 
-> ✅ = implementiert (Epic 0) · 🔲 = geplant (Epic 1+)
+> ✅ = im Projektstand 2026-03-16 umgesetzt
 
-### A. Frontend (Angular 19)
+### A. Frontend (Angular 21)
 
 Das Frontend nutzt modernste Angular-Features:
 
-* **Standalone Components:** Keine `NgModules` – jede Komponente ist eigenständig importierbar.
-* **Angular Signals:** Reaktiver UI-Zustand; keine manuellen Subscriptions für State.
-* **tRPC-Client:** `httpBatchLink` (Queries/Mutations) und `wsLink` (Subscriptions) – beide aktiv.
-* **Server-Status-Widget:** Zeigt auf der Startseite aggregierte Kennzahlen (health.stats, Polling 30s).
-* **Yjs & IndexedDB (geplant – Epic 1):** Quiz-Daten Local-First im Browser; Yjs für Multi-Device-Sync.
+- **Standalone Components:** Keine `NgModules` – jede Komponente ist eigenständig importierbar.
+- **Angular Signals:** Reaktiver UI-Zustand; keine manuellen Subscriptions für State.
+- **tRPC-Client:** `httpBatchLink` (Queries/Mutations) und `wsLink` (Subscriptions) – beide aktiv.
+- **Server-Status-Widget:** Zeigt auf der Startseite aggregierte Kennzahlen (`health.stats`, Polling 30s).
+- **Yjs & IndexedDB:** Quiz-Daten Local-First im Browser; Yjs für Multi-Device-Sync.
+- **Unified Live Session:** Session-Shell mit Kanälen für Quiz, Q&A und Blitzlicht; zusätzlich Standalone-Blitzlicht über die Startseite.
 
 ### B. Backend (Node.js + tRPC)
 
-* **tRPC Router:** health (check, stats, ping), session (create, getInfo, join, getExportData), vote (submit). Typen über `@arsnova/shared-types`.
-* **Rate-Limiting (Epic 0.5):** Redis Sliding-Window für Session-Code, Vote-Submit und Session-Erstellung; tRPC-Error `TOO_MANY_REQUESTS` mit Retry-After.
-* **Service Layer (teilweise):** SessionCode-Logik im sessionRouter; ScoringService, StreakService, CleanupService folgen in Epics 4–5.
-* **DTO Layer (geplant – Story 2.4):** Data-Stripping für `isCorrect` bei Status ACTIVE.
-* **Prisma ORM:** Schema in `prisma/schema.prisma`; Migrations/Client per `prisma generate` und `prisma db push`.
+- **tRPC Router:** health, quiz, session, vote, qa, quickFeedback, admin. Typen über `@arsnova/shared-types`.
+- **Rate-Limiting:** Redis Sliding-Window für Session-Code, Vote-Submit, Session-Erstellung und weitere Live-Aktionen; tRPC-Error `TOO_MANY_REQUESTS` mit Retry-After.
+- **Service Layer:** SessionCode-, Scoring-, Bonus-, Cleanup- und Admin-Logik sind integriert.
+- **DTO Layer:** Data-Stripping für `isCorrect` ist entlang des Session-Status umgesetzt.
+- **Prisma ORM:** Schema in `prisma/schema.prisma`; Migrations/Client per `prisma generate` und `prisma db push`.
 
 ### C. Infrastruktur
 
-* **PostgreSQL:** Live-Session-Daten (Sessions, Participants, Votes). Docker Compose.
-* **Redis (✅):** Health-Check, Rate-Limiting (ioredis), vorbereitet für Pub/Sub in Epics 2–4.
-* **WebSocket (Port 3001):** tRPC-Subscriptions (z. B. health.ping).
-* **y-websocket (Port 3002):** Yjs-Relay für Dozenten-Multi-Device-Sync.
+- **PostgreSQL:** Live-Session-Daten (Sessions, Participants, Votes). Docker Compose.
+- **Redis (✅):** Health-Check, Rate-Limiting (`ioredis`), vorbereitet für Pub/Sub in Epics 2–4.
+- **WebSocket (Port 3001):** tRPC-Subscriptions (z. B. `health.ping`).
+- **y-websocket (Port 3002):** Yjs-Relay für Dozenten-Multi-Device-Sync.
 
 ---
 
-## 6. Das Zusammenspiel in einer Live-Session (Ziel)
+## 6. Das Zusammenspiel in einer Live-Session (Referenzmodell)
 
-> Dieser Ablauf beschreibt die **fertige Ziel-Architektur**. Nutze ihn als Referenz, um zu verstehen, worauf die Entwicklung hinarbeitet.
+> Dieser Ablauf beschreibt das aktuelle Referenzmodell. Details dazu stehen in `docs/diagrams/diagrams.md`, `ADR-0009` und `ADR-0010`.
 
 1. **Quiz-Upload:** Der Dozent wählt ein Quiz aus seiner lokalen IndexedDB. Das Frontend sendet eine Kopie via `quiz.upload` (Zod-validiert) an das Backend.
 2. **Session-Initialisierung:** Das Backend speichert die Quiz-Kopie in PostgreSQL, generiert einen 6-stelligen Code und registriert ihn in Redis.
 3. **Lobby-Phase:** Studenten treten mit dem Code bei. Das Backend erstellt einen `Participant`-Eintrag und informiert den Dozenten in Echtzeit via Redis Pub/Sub → tRPC Subscription.
 4. **Frage-Aktivierung (Security):**
-    * Der Dozent klickt „Nächste Frage".
-    * Das Backend setzt den Status auf `ACTIVE`.
-    * Das **DTO-Stripping** entfernt `isCorrect` aus den Antwortoptionen.
-    * Die gefilterten Daten (`QuestionStudentDTO`) werden via tRPC Subscription an alle Studenten-Smartphones gepusht.
+   - Der Dozent klickt „Nächste Frage".
+   - Das Backend setzt den Status auf `ACTIVE`.
+   - Das **DTO-Stripping** entfernt `isCorrect` aus den Antwortoptionen.
+   - Die gefilterten Daten (`QuestionStudentDTO`) werden via tRPC Subscription an alle Studenten-Smartphones gepusht.
 5. **Abstimmung:** Studenten senden ihre Votes. Der ScoringService berechnet Punkte basierend auf Korrektheit, Antwortzeit und Schwierigkeitsgrad.
 6. **Auflösung:** Der Dozent beendet die Frage (Status → `RESULTS`). *Erst jetzt* sendet das Backend das vollständige Objekt (`QuestionRevealedDTO` inkl. `isCorrect`) an die Studenten.
+7. **Parallele Live-Kanaele:** Innerhalb derselben Session koennen zusaetzlich `Q&A` und `Blitzlicht` aktiv sein. Blitzlicht ist sowohl im Session-Kanal als auch direkt ueber die Startseite verfuegbar.
 
 ---
 
@@ -271,7 +287,7 @@ Das Frontend nutzt modernste Angular-Features:
 > Diese Regeln sind ausführlich in [`AGENT.md`](../AGENT.md) beschrieben. Hier die Kurzfassung:
 
 | Regel | Beschreibung |
-|---|---|
+| --- | --- |
 | **Kein `any`** | TypeScript-Typen immer aus `@arsnova/shared-types` importieren |
 | **Signals statt RxJS** | Für UI-State ausschließlich Angular Signals verwenden. RxJS nur für WebSocket-Streams |
 | **Security First** | Neues Feld an einer Frage? → Prüfen, ob es im `QuestionStudentDTO` entfernt werden muss |
@@ -284,7 +300,7 @@ Das Frontend nutzt modernste Angular-Features:
 ## 8. Pflichtlektüre
 
 | Dokument | Inhalt |
-|---|---|
+| --- | --- |
 | [`AGENT.md`](../AGENT.md) | KI-Coding-Regeln und Architektur-Leitplanken |
 | [`Backlog.md`](../Backlog.md) | Alle User-Storys mit Priorität und Akzeptanzkriterien |
 | [`docs/architecture/handbook.md`](architecture/handbook.md) | Ausführliches Architektur-Handbuch |
@@ -298,7 +314,7 @@ Das Frontend nutzt modernste Angular-Features:
 Falls die Umgebung kaputt geht oder du einen sauberen Ausgangspunkt brauchst:
 
 | Git-Tag | Beschreibung |
-|---------|--------------|
+| --- | --- |
 | **`v0-epic0`** | Stand nach Epic 0 (Redis, WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD) – **empfohlen** |
 | **`v0-baseline`** | Nur Projekt-Skeleton (vor Epic 0) |
 
@@ -312,7 +328,7 @@ npm install
 ## 9. Glossar
 
 | Begriff | Erklärung |
-|---|---|
+| --- | --- |
 | **Monorepo** | Ein einzelnes Git-Repository, das mehrere Pakete enthält (hier: Backend, Frontend, shared-types). Verwaltet über npm Workspaces. |
 | **tRPC** | TypeScript Remote Procedure Call – Framework für typsichere API-Kommunikation ohne REST-Boilerplate. Frontend und Backend teilen sich die Typen direkt. |
 | **Zod** | TypeScript-Validierungsbibliothek. Definiert Schemas, die sowohl zur Laufzeit (Eingabevalidierung) als auch zur Compile-Zeit (Typen) genutzt werden. |

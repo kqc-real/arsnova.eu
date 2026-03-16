@@ -5496,19 +5496,19 @@
         <source>Hier sammelst und moderierst du Fragen aus dem Publikum.</source>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostTitle" datatype="html">
-        <source>Kurze Rückmeldungen im Blick</source>
+        <source>Blitzlicht direkt starten</source>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostPlaceholder" datatype="html">
-        <source>Hier erscheinen spontane Rückmeldungen und schnelle Stimmungsbilder der Gruppe.</source>
+        <source>Wähle ein Format und hole dir in Sekunden ein Stimmungsbild aus der Gruppe.</source>
       </trans-unit>
       <trans-unit id="sessionTabs.qaVotePlaceholder" datatype="html">
         <source>Hier kannst du Fragen an die Quizleitung senden und später wiederfinden.</source>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackVoteTitle" datatype="html">
-        <source>Schnell Rückmeldung geben</source>
+        <source>Beim Blitzlicht mitmachen</source>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackVotePlaceholder" datatype="html">
-        <source>Hier kannst du kurze Rückmeldungen und spontane Stimmungsbilder abgeben.</source>
+        <source>Sobald ein Format startet, kannst du hier in Sekunden deine Einschätzung abgeben.</source>
       </trans-unit>
       <trans-unit id="sessionQa.statusPinned" datatype="html">
         <source>Wird beantwortet</source>

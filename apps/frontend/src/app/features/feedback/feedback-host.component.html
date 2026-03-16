@@ -3,11 +3,11 @@
     <mat-card-content class="session-channel-card__content">
       <mat-icon class="session-channel-card__icon" aria-hidden="true">bolt</mat-icon>
       <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.quickFeedback">Blitzlicht</p>
-      <h2 class="session-channel-card__title" i18n="@@sessionTabs.quickFeedbackHostTitle">Kurze Rückmeldungen im Blick</h2>
+      <h2 class="session-channel-card__title" i18n="@@sessionTabs.quickFeedbackHostTitle">Blitzlicht direkt starten</h2>
       <p class="session-channel-card__text" i18n="@@sessionTabs.quickFeedbackHostPlaceholder">
-        Hier erscheinen spontane Rückmeldungen und schnelle Stimmungsbilder der Gruppe.
+        Wähle ein Format und hole dir in Sekunden ein Stimmungsbild aus der Gruppe.
       </p>
-      <div class="feedback-host__actions">
+      <div class="feedback-host__template-switch">
         @for (chip of presetChips; track chip.type) {
           <button
             mat-button
@@ -169,7 +169,37 @@
           <div class="feedback-host__comparison-bars" role="list">
             @for (entry of orderedEntries(); track entry.key) {
               <div class="feedback-host__comparison-row" role="listitem">
-                <span class="feedback-host__bar-label" aria-hidden="true">{{ displayLabel(entry.key, data.type) }}</span>
+                <span class="feedback-host__bar-label" aria-hidden="true">
+                  @if (displayIcon(entry.key, data.type); as icon) {
+                    @if (icon.kind === 'mat') {
+                      <mat-icon
+                        class="feedback-host__bar-icon"
+                        [class.feedback-host__bar-icon--positive]="icon.tone === 'positive'"
+                        [class.feedback-host__bar-icon--negative]="icon.tone === 'negative'"
+                        [class.feedback-host__bar-icon--neutral]="icon.tone === 'neutral'"
+                        aria-hidden="true"
+                      >
+                        {{ icon.value }}
+                      </mat-icon>
+                    } @else {
+                      <span
+                        class="feedback-host__bar-glyph"
+                        [class.feedback-host__bar-glyph--letter]="data.type === 'ABC' || data.type === 'ABCD'"
+                        aria-hidden="true"
+                      >
+                        {{ icon.value }}
+                      </span>
+                    }
+                  } @else {
+                    <span
+                      class="feedback-host__bar-glyph"
+                      [class.feedback-host__bar-glyph--letter]="data.type === 'ABC' || data.type === 'ABCD'"
+                      aria-hidden="true"
+                    >
+                      {{ displayLabel(entry.key, data.type) }}
+                    </span>
+                  }
+                </span>
                 <div class="feedback-host__comparison-tracks">
                   <div class="feedback-host__comparison-track">
                     <span class="feedback-host__comparison-round-tag feedback-host__comparison-round-tag--r1" i18n>R1</span>
@@ -211,7 +241,13 @@
                               {{ icon.value }}
                             </mat-icon>
                           } @else {
-                            {{ icon.value }}
+                            <span
+                              class="feedback-host__migration-glyph"
+                              [class.feedback-host__migration-glyph--letter]="data.type === 'ABC' || data.type === 'ABCD'"
+                              aria-hidden="true"
+                            >
+                              {{ icon.value }}
+                            </span>
                           }
                         } @else {
                           {{ displayLabel(m.from, data.type) }}
@@ -231,7 +267,13 @@
                               {{ icon.value }}
                             </mat-icon>
                           } @else {
-                            {{ icon.value }}
+                            <span
+                              class="feedback-host__migration-glyph"
+                              [class.feedback-host__migration-glyph--letter]="data.type === 'ABC' || data.type === 'ABCD'"
+                              aria-hidden="true"
+                            >
+                              {{ icon.value }}
+                            </span>
                           }
                         } @else {
                           {{ displayLabel(m.to, data.type) }}
@@ -270,10 +312,22 @@
                       {{ icon.value }}
                     </mat-icon>
                   } @else {
-                    {{ icon.value }}
+                    <span
+                      class="feedback-host__bar-glyph"
+                      [class.feedback-host__bar-glyph--letter]="data.type === 'ABC' || data.type === 'ABCD'"
+                      aria-hidden="true"
+                    >
+                      {{ icon.value }}
+                    </span>
                   }
                 } @else {
-                  {{ displayLabel(entry.key, data.type) }}
+                  <span
+                    class="feedback-host__bar-glyph"
+                    [class.feedback-host__bar-glyph--letter]="data.type === 'ABC' || data.type === 'ABCD'"
+                    aria-hidden="true"
+                  >
+                    {{ displayLabel(entry.key, data.type) }}
+                  </span>
                 }
               </span>
               <div

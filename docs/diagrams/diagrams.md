@@ -1,7 +1,9 @@
+<!-- markdownlint-disable MD013 -->
+
 # Diagramme: arsnova.eu
 
-Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.  
-**Stand:** 2026-03-14 · **Epics 0–5, 7.1, 8, 9 umgesetzt;** **Epic 6.5 offen.** Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.
+**Stand:** 2026-03-16 · **Epics 0–5, 7.1, 8, 9 umgesetzt;** **Epic 6.5 offen.** `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 > **VS Code:** Mermaid wird in der Standard-Markdown-Vorschau nicht gerendert. Bitte die Erweiterung **„Markdown Preview Mermaid Support“** (`bierner.markdown-mermaid`) installieren. Siehe [README.md](./README.md) in diesem Ordner.
 
@@ -179,9 +181,9 @@ graph LR
 %%{init: {'flowchart': {'curve': 'basis', 'nodeSpacing': 66, 'rankSpacing': 100, 'padding': 20}}}%%
 graph LR
     ROUTES[app.routes.ts]
-    HOME[HomeComponent]
+    HOME[HomeComponent<br/>inkl. Blitzlicht-Schnellstart]
     QUIZ[QuizComponent]
-    SESSION[SessionComponent]
+    SESSION[SessionComponent<br/>Quiz · Q&A · Blitzlicht]
     JOIN[JoinComponent]
     FBHOST[FeedbackHostComponent]
     FBVOTE[FeedbackVoteComponent]
@@ -224,11 +226,15 @@ graph LR
         SHOST[SessionHostComponent]
         SPRESENT[SessionPresentComponent]
         SVOTE[SessionVoteComponent]
+        FBHOST[FeedbackHostComponent]
+        FBVOTE[FeedbackVoteComponent]
         WCLOUD[WordCloudComponent]
         COUNTDOWN[CountdownFingersComponent]
         SROOT --> SHOST
         SROOT --> SPRESENT
         SROOT --> SVOTE
+        SHOST --> FBHOST
+        SVOTE --> FBVOTE
         SPRESENT --> WCLOUD
         SHOST --> COUNTDOWN
         SVOTE --> COUNTDOWN
@@ -306,7 +312,7 @@ erDiagram
     }
 ```
 
-### 3.2 Erweiterungen (Team, Bonus, Q&A, Admin-Audit)
+### 3.2 Erweiterungen (Team, Bonus, Q&A, Session-Kanaele, Admin-Audit)
 
 ```mermaid
 %%{init: {'flowchart': {'nodeSpacing': 48, 'rankSpacing': 72, 'padding': 14}}}%%
@@ -345,9 +351,14 @@ erDiagram
         string action
         string sessionId FK
     }
+
+    Session {
+        boolean qaEnabled
+        boolean quickFeedbackEnabled
+    }
 ```
 
-**Hinweis (Data-Stripping):** `AnswerOption.isCorrect` wird im Status ACTIVE niemals an Studenten gesendet; erst nach RESULTS-Auflösung (QuestionRevealedDTO).  
+**Hinweis (Data-Stripping):** `AnswerOption.isCorrect` wird im Status ACTIVE niemals an Studenten gesendet; erst nach RESULTS-Auflösung (`QuestionRevealedDTO`).
 **Session-Status (Story 2.6):** `LOBBY → QUESTION_OPEN` (Lesephase, nur Fragenstamm) → `ACTIVE` → `RESULTS` → `PAUSED` → … → `FINISHED`. Optional überspringbar: bei `readingPhaseEnabled=false` geht „Nächste Frage" direkt zu `ACTIVE`.
 
 ---
@@ -389,9 +400,12 @@ sequenceDiagram
     BE-->>FE: sessionId, code A3F7K2
     FE->>BE: Subscribe session.onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed
 
-    Note over D,R: Phase 3 - Lobby
+    Note over D,R: Phase 3 - Lobby und Kanalwahl
     BE->>FE: Event onParticipantJoined (ParticipantDTO)
     FE->>D: Lobby: Teilnehmer anzeigen
+    opt Unified Live Session
+        FE->>D: Kanaele Quiz, Q&A und Blitzlicht sichtbar
+    end
 ```
 
 ### 4.2 Fragezyklus (Lesephase, ACTIVE, RESULTS)
@@ -484,6 +498,9 @@ sequenceDiagram
     BE->>R: PUBLISH participantJoined
     BE-->>FE: participantId, token
     FE->>BE: Subscribe onQuestionRevealed, onResultsRevealed, onAnswersRevealed, onPersonalResult, onStatusChanged
+    opt Unified Live Session
+        FE->>S: Tabs fuer Quiz, Q&A und Blitzlicht sichtbar
+    end
 
     Note over S,R: Phase 2a: Lesephase (QUESTION_OPEN, Story 2.6)
     BE->>FE: Event onQuestionRevealed (QuestionPreviewDTO, nur Fragenstamm)
@@ -696,11 +713,63 @@ flowchart LR
     A5 --> S10
 ```
 
-**Legende:**  
-- **QuestionPreviewDTO (Story 2.6):** In der Lesephase (`QUESTION_OPEN`) nur Fragenstamm, keine Antwortoptionen.  
-- **QuestionStudentDTO:** isCorrect wird serverseitig entfernt (Story 2.4).  
-- **QuestionRevealedDTO:** isCorrect erst nach expliziter Auflösung (RESULTS).  
-- **PAUSED:** Zwischenzustand nach Ergebnis-Anzeige, bevor die nächste Frage gestartet wird.  
-- **Lesephase:** Bei `readingPhaseEnabled=false` wird QUESTION_OPEN übersprungen — „Nächste Frage" wechselt direkt zu ACTIVE (D5 → S3b, D5b/ST3a entfallen).  
-- **Bonus-Token (Story 4.6):** Nur für Top-X, individuell per onPersonalResult.  
+**Legende:**
+
+- **QuestionPreviewDTO (Story 2.6):** In der Lesephase (`QUESTION_OPEN`) nur Fragenstamm, keine Antwortoptionen.
+- **QuestionStudentDTO:** `isCorrect` wird serverseitig entfernt (Story 2.4).
+- **QuestionRevealedDTO:** `isCorrect` erst nach expliziter Auflösung (`RESULTS`).
+- **PAUSED:** Zwischenzustand nach Ergebnis-Anzeige, bevor die nächste Frage gestartet wird.
+- **Lesephase:** Bei `readingPhaseEnabled=false` wird `QUESTION_OPEN` übersprungen — „Nächste Frage" wechselt direkt zu `ACTIVE` (D5 → S3b, D5b/ST3a entfallen).
+- **Bonus-Token (Story 4.6):** Nur für Top-X, individuell per `onPersonalResult`.
 - **Admin (Epic 9):** Eigener Ablauf; Zugriff nur mit Admin-Credentials (ADMIN_SECRET → Session-Token). Route `/admin`; Inspektion, Löschen, Auszug für Behörden; Audit-Log für Lösch- und Export-Aktionen. Siehe ADR-0006.
+
+### 6.3 Blitzlicht-Lifecycle (Startseite oder Session-Kanal)
+
+```mermaid
+%%{init: {'flowchart': {'curve': 'basis', 'nodeSpacing': 64, 'rankSpacing': 96, 'padding': 20}}}%%
+flowchart LR
+    subgraph Einstieg["Einstieg"]
+        H1[Startseite]
+        H2[Session Host]
+        H3[Teilnehmer in Session]
+    end
+
+    subgraph Host["Host-Flow"]
+        F1[Blitzlicht-Format waehlen]
+        F2[Blitzlicht starten]
+        F3[Antworten sammeln]
+        F4[Vergleichsrunde starten]
+        F5[Zweite Abstimmung]
+        F6[Reset oder Beenden]
+    end
+
+    subgraph Backend["Backend / Redis"]
+        B1[quickFeedback.create oder changeType]
+        B2[quickFeedback.onResults]
+        B3[quickFeedback.startDiscussion]
+        B4[quickFeedback.startSecondRound]
+        B5[quickFeedback.reset oder end]
+    end
+
+    subgraph Vote["Teilnehmer-Flow"]
+        V1[Blitzlicht sehen]
+        V2[Stimme abgeben]
+        V3[Vergleichsrunde sehen]
+        V4[Zweite Stimme abgeben]
+    end
+
+    H1 --> F1
+    H2 --> F1
+    H3 --> V1
+
+    F1 --> F2 --> B1 --> B2
+    B2 --> V1
+    V1 --> V2 --> B2 --> F3
+    F3 --> F4 --> B3 --> V3
+    V3 --> F5
+    F5 --> B4 --> V4
+    V4 --> B2 --> F3
+    F3 --> F6 --> B5
+```
+
+**Hinweis:** Standalone-Blitzlicht (`/feedback/:code`, `/feedback/:code/vote`) und Blitzlicht im Session-Kanal teilen sich denselben Fachkern. Unterschiedlich ist nur der Einstiegskontext, nicht die Grundlogik.

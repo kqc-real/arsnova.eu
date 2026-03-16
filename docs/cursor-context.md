@@ -16,7 +16,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 ## 2. Repository-Struktur (Pfade)
 
 - **Backend:** `apps/backend/` – Node.js, Express, tRPC v11, Prisma 7, Redis.
-- **Frontend:** `apps/frontend/` – Angular 17+ (aktuell 19), Standalone Components, Signals, Angular Material 3.
+- **Frontend:** `apps/frontend/` – Angular 21, Standalone Components, Signals, Angular Material 3.
 - **Shared Types:** `libs/shared-types/` – Zod-Schemas, TypeScript-Typen, DTO-Definitionen. Import: `@arsnova/shared-types`.
 - **Prisma:** `prisma/schema.prisma` – Datenmodell; Migrationen und Client-Generierung wie üblich.
 - **Dokumentation:** `docs/` – architecture, diagrams, onboarding, vibe-coding; `Backlog.md` im Repo-Root.
@@ -67,7 +67,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **Quiz:** id, name, description, showLeaderboard, allowCustomNicknames, defaultTimer, readingPhaseEnabled, bonusTokenCount, nicknameTheme, teamMode, enableSoundEffects, enableRewardEffects, enableMotivationMessages, enableEmojiReactions, anonymousMode, backgroundMusic; Relationen: questions, sessions.
 - **Question:** id, text, type (QuestionType), timer, difficulty, ratingMin/Max/LabelMin/Max, quizId, order; Relationen: answers (AnswerOption), votes.
 - **AnswerOption:** id, text, isCorrect, questionId; Relation: voteAnswers (VoteAnswer).
-- **Session:** id, code (UK), type (SessionType), status (SessionStatus), title, moderationMode, currentQuestion, quizId; Relationen: participants, teams, votes, bonusTokens, qaQuestions.
+- **Session:** id, code (UK), type (SessionType), status (SessionStatus), title, moderationMode, currentQuestion, quizId, qaEnabled, quickFeedbackEnabled; Relationen: participants, teams, votes, bonusTokens, qaQuestions.
 - **Participant:** id, nickname, sessionId, teamId; Relationen: votes, bonusTokens, qaQuestions, qaUpvotes.
 - **Vote:** sessionId, participantId, questionId, selectedAnswers (VoteAnswer), freeText, ratingValue, responseTimeMs, score, streakCount, streakBonus.
 - **VoteAnswer:** voteId, answerOptionId.
@@ -81,7 +81,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 
 ## 8. tRPC-Router und zentrale Procedures
 
-- **appRouter** (apps/backend/src/routers/index.ts): health, quiz, session, vote, qa (weitere Router je nach Implementierungsstand).
+- **appRouter** (apps/backend/src/routers/index.ts): health, quiz, session, vote, qa, quickFeedback, admin.
 - **health:** check, ggf. stats (Story 0.4).
 - **quiz:** upload (QuizUploadInputSchema), getById, list, etc.
 - **session:** create (CreateSessionInputSchema), getInfo (per code), join (JoinSessionInputSchema), nextQuestion, revealAnswers (Story 2.6), revealResults, end; Subscriptions: onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed, onResultsRevealed, onPersonalResult; getBonusTokens, getLeaderboard; getExportData (Story 4.7: GetExportDataInputSchema → SessionExportDTO).
@@ -94,12 +94,12 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 ## 9. Frontend-Routen und Komponenten (Überblick)
 
 - **App-Verzeichnis (Angular-konform):** `apps/frontend/src/app/` ist nach Feature-Bereichen organisiert: **core/** (App-weite Singletons: ws-urls, trpc.client, theme-preset.service), **shared/** (wiederverwendbare UI: preset-toast, server-status-widget), **features/** (pro Route/Feature: home, quiz, session, legal, help). Keine typbasierten Ordner wie `components/` oder `services/` (Angular Style Guide).
-- **Routen:** / (Home), /quiz (Quiz-Verwaltung), /session/:code (Dozent-Steuerung), /session/:code/present (optional, siehe unten), /session/:code/vote (Student), /legal (Impressum, Datenschutz).
+- **Routen:** / (Home), /quiz (Quiz-Verwaltung), /session/:code/host (Dozent-Steuerung), /session/:code/present, /session/:code/vote, /join/:code, /feedback/:code, /feedback/:code/vote, /legal (Impressum, Datenschutz).
 - **Host = Beamer (gespiegelt):** Übliche Laptops haben nur einen Bildschirmausgang; was der Dozent sieht, wird 1:1 per HDMI auf den Beamer gespiegelt. **Die Host-Ansicht (/session/:code/host) ist daher die einzige Projektions-Ansicht** – alles (Lobby, Frage, Steuerung) spielt sich in diesem View ab. Sie ist beamer-tauglich gestaltet; **nichts wird verraten**, was der Dozent nicht freigegeben hat (z. B. korrekte Antworten erst nach „Ergebnis zeigen“). Story 2.5 (Beamer-Ansicht) bedeutet: diese Host-Ansicht ist die Beamer-Ansicht; eine separate Route /present ist optional (z. B. gleicher Inhalt in Vollbild-Tab).
-- **Home:** HomePageComponent in features/home (inkl. Segment-Code-Input, Snackbar, Onboarding-Banner, Hero-Icons, Status-Dot im Brand-SVG), PresetToastComponent in shared.
+- **Home:** HomePageComponent in features/home (inkl. Segment-Code-Input, Snackbar, Hero-Icons, Blitzlicht-Schnellstart, Status-Dot im Brand-SVG), PresetToastComponent in shared.
 - **Quiz:** QuizListComponent, QuizEditorComponent, QuizConfigComponent, QuestionEditorComponent, AnswerEditorComponent, QuizPreviewComponent, ImportExportComponent.
-- **Session (Dozent):** LobbyComponent, QuizControlComponent, BeamerViewComponent, QaModeratorComponent, BonusTokenListComponent; Beamer: ResultChartComponent, WordcloudComponent, RatingHistogramComponent, LeaderboardComponent, EmojiOverlayComponent, QrCodeComponent, CountdownComponent.
-- **Student:** NicknameSelectComponent, VotingViewComponent, AnswerButtonsComponent, McToggleButtonsComponent, RatingScaleComponent, FreetextInputComponent, ScorecardComponent, BonusTokenDisplay, MotivationMessageComponent, EmojiBarComponent, QaStudentComponent, CountdownComponent.
+- **Session (Dozent):** LobbyComponent, QuizControlComponent, BeamerViewComponent, QaModeratorComponent, FeedbackHostComponent, BonusTokenListComponent; Beamer: ResultChartComponent, WordcloudComponent, RatingHistogramComponent, LeaderboardComponent, EmojiOverlayComponent, QrCodeComponent, CountdownComponent.
+- **Student:** NicknameSelectComponent, VotingViewComponent, FeedbackVoteComponent, AnswerButtonsComponent, McToggleButtonsComponent, RatingScaleComponent, FreetextInputComponent, ScorecardComponent, BonusTokenDisplay, MotivationMessageComponent, EmojiBarComponent, QaStudentComponent, CountdownComponent.
 - **Shared:** PresetToastComponent, ServerStatusWidgetComponent; (geplant: HeaderComponent, FooterComponent, ThemeSwitcherComponent, CountdownComponent, MarkdownKatexComponent, ConfirmDialogComponent).
 - **Core:** trpc (core/trpc.client: im Browser wsLink+httpBatchLink, bei SSR nur httpBatchLink), ThemePresetService (core/theme-preset.service), ws-urls (core/ws-urls); (geplant: YjsService, Guards, Interceptors).
 - **SSR/Prerender:** HttpClient mit `withFetch()`; localStorage/requestIdleCallback nur in Komponenten mit `isPlatformBrowser(PLATFORM_ID)` (z. B. HomeComponent); tRPC-WebSocket nur im Browser.
@@ -117,6 +117,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **Epic 6 – Theming, i18n, Rechtliches, A11y:** Dark/Light/System (6.1), i18n (6.2), Impressum & Datenschutz (6.3), Mobile-First (6.4), Barrierefreiheit (6.5).
 - **Epic 7 – Team-Modus (Could):** Team-Modus (7.1).
 - **Epic 8 – Q&A (Could):** Q&A starten (8.1), Fragen einreichen (8.2), Upvoting (8.3), Moderation (8.4).
+- **Blitzlicht:** Als Startseiten-Shortcut und als Session-Kanal integriert; Vergleichsrunde und Formatwechsel folgen ADR-0010.
 
 Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1 → 2 → 3 → 4 → 5; Epic 6 parallel ab 0.
 
@@ -205,8 +206,8 @@ Für einen **lokal production-ähnlichen** Lauf (optimierter Frontend-Build, ein
 
 1. **Build:** Im Repo-Root `npm run build:prod` ausführen. Baut Backend (`apps/backend/dist`) und Frontend für Production (`apps/frontend/dist/browser`, inkl. Pre-Render für `/`, `/help`, `/quiz`).
 2. **Start:** `npm run start:prod` ausführen. Das Skript `scripts/start-backend-prod.mjs` lädt optional `.env` aus dem Root, gibt Port 3000 frei (falls belegt), baut das Backend bei Bedarf nach und startet es mit `NODE_ENV=production`. Das Backend bedient HTTP/tRPC und liefert die statischen Dateien aus `apps/frontend/dist/browser` aus (Fallback: `index.csr.html`, wenn kein `index.html`).
-3. **Aufruf:** Im Browser **http://localhost:3000** öffnen. Ohne laufendes PostgreSQL/Redis funktioniert die Auslieferung und die Startseite; Health-Stats und Session-Funktionen liefern Fallbacks bzw. benötigen DB/Redis.
-4. **Optional – Port bereits belegt:** Zuerst `npm run free-port-3000`, danach `npm run start:prod`. Oder Backend auf anderem Port starten: `PORT=3010 npm run start:prod`, dann **http://localhost:3010**.
+3. **Aufruf:** Im Browser **`http://localhost:3000`** öffnen. Ohne laufendes PostgreSQL/Redis funktioniert die Auslieferung und die Startseite; Health-Stats und Session-Funktionen liefern Fallbacks bzw. benötigen DB/Redis.
+4. **Optional – Port bereits belegt:** Zuerst `npm run free-port-3000`, danach `npm run start:prod`. Oder Backend auf anderem Port starten: `PORT=3010 npm run start:prod`, dann **`http://localhost:3010`**.
 5. **Optional – volle Funktionalität:** Docker Desktop starten und `npm run docker:up` ausführen (PostgreSQL + Redis), danach erneut `npm run start:prod`.
 
 ### 18.2 Lokalisierter Build (i18n) lokal testen

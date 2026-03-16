@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # ADR-0001: ADR-Template & Konventionen
 
 **Status:** Accepted
@@ -38,15 +40,18 @@ Jede ADR folgt diesem Template:
 ```
 
 ### Namenskonvention
+
 - Dateiname: `NNNN-kebab-case-titel.md` (4-stellige Nummer, aufsteigend)
 - Ordner: `docs/architecture/decisions/`
 
 ## Konsequenzen
 
 ### Positiv
+
 - Einheitliche, durchsuchbare Dokumentation aller Architekturentscheidungen
 - Neue Teammitglieder können Entscheidungen nachvollziehen
 - Git-History zeigt die Entwicklung der Architektur
 
 ### Negativ / Risiken
+
 - Overhead: Jede Entscheidung muss dokumentiert werden (bewusst akzeptiert)

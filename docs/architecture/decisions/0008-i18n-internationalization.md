@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # ADR-0008: Internationalisierung (i18n) — Technik, Locale-Strategie und Hinweise bei Inhaltsverlust
 
 **Status:** Accepted  
@@ -33,7 +35,7 @@ Detaillierte Umsetzungshinweise: [docs/I18N-ANGULAR.md](../../I18N-ANGULAR.md).
 Bei Sprachwechsel über Locale-Subpfad erfolgt ein **Seiten-Reload**. Alles, was nur im Speicher lebt (Komponenten-State, ungespeicherte Formulare), geht verloren. Erhalten bleiben: `localStorage`, `sessionStorage` sowie Daten, die nach dem Reload aus URL oder Server wieder geladen werden.
 
 | View / Route | URL enthält | Risiko State-Verlust |
-|--------------|-------------|------------------------|
+| --- | --- | --- |
 | Startseite `/` | – | **Niedrig:** Nur eingegebener Session-Code weg. |
 | Join `/join/:code` | Session-Code | **Mittel:** Nickname/Formular weg; Code bleibt. |
 | Session Host/Vote/Present `/session/:code/...` | Session-Code | **Niedrig:** State wird per tRPC aus Server wiederhergestellt. |
@@ -59,15 +61,18 @@ Bei Sprachwechsel über Locale-Subpfad erfolgt ein **Seiten-Reload**. Alles, was
 
 Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwickler:innen halten sie ein.
 
-**Sprachstil und Anrede**
+#### Sprachstil und Anrede
+
 - **Informelle Sprache (Duzen):** Die App spricht Nutzer:innen mit „Du“ an (Deutsch). In den Zielsprachen ist die **entsprechende informelle Anrede** zu verwenden (z. B. „tu“/„Du“ im Französischen, „tú“/„Du“ im Spanischen, „tu“ im Italienischen, „you“ im Englischen ohne formelle Variante, sofern nicht zwingend erforderlich).
 - **Zeitgemäßer Sprachstil:** Formulierungen sind zeitgemäß, klar und handlungsorientiert; keine veralteten Floskeln oder übermäßig formelle Wendungen.
 
-**Quellsprache Deutsch: Form und Länge**
+#### Quellsprache Deutsch: Form und Länge
+
 - **Deutsch ist die Referenz** für Form (Struktur, Satzbau, Aufzählungen) und **Länge** aller UI-Texte. Die deutschen Quelltexte wurden in Form und Länge geprüft und gelten als Maßstab für die anderen Sprachen.
 - Übersetzungen sollen in der Zielsprache natürlich wirken, **ohne** die im Deutschen vorgegebene inhaltliche Kürze und Struktur grundlegend zu sprengen (keine unnötigen Verlängerungen, wo der deutsche Text knapp ist).
 
-**Layout und Strukturbrüche (Mobile-First)**
+#### Layout und Strukturbrüche (Mobile-First)
+
 - Es muss **stets visuell geprüft** werden, ob längere übersetzte Texte zu **Strukturbrüchen** führen (z. B. Umbrüche, Überläufe, abgeschnittene Buttons, verschobene Layouts). Ist der übersetzte Text in der Zielsprache deutlich länger als der deutsche, sind entweder:
   - **kürzere, gleichwertige Formulierungen** zu wählen, oder
   - **Layout/UI** (z. B. Zeilenumbruch, `min-width`, Truncation) so anzupassen, dass in allen Locales kein Bruch entsteht.
@@ -75,7 +80,8 @@ Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwi
 - Die Prüfung erfolgt pro View und pro Locale (z. B. in den relevanten Breakpoints); neue oder geänderte Übersetzungen werden vor Merge/Freigabe visuell in der App geprüft.
 - **Zwei Übersetzungen (Mobile vs. Desktop):** Wenn ein einziger übersetzter Text auf Smartphone zu Strukturbrüchen oder schlechter Lesbarkeit führt, auf Desktop aber passend wäre, sind **zwei Varianten** zulässig und erwünscht: eine kürzere bzw. angepasste Fassung für Mobile und eine vollständige für Desktop. Die technische Umsetzung (z. B. unterschiedliche Message-IDs oder Kontext für „short“/„long“) ist im Übersetzungsworkflow zu definieren; die Quelltexte (Deutsch) liefern dann ebenfalls zwei Varianten pro Stelle, an der getrennt wird.
 
-**Datum, Einheiten und idiomatische Sprache**
+#### Datum, Einheiten und idiomatische Sprache
+
 - **Datums- und Zeitformate** folgen der **Zielsprache/Locale** (z. B. über DatePipe/LOCALE_ID); keine Vermischung von Formaten (z. B. deutsches Datum in englischer UI).
 - **Maßeinheiten, Zahlenformate und Währungen** entsprechen den **Konventionen der Zielsprache** (Dezimaltrennzeichen, Tausendertrennzeichen, Währungssymbol/Position).
 - **Idiomatische Sprache:** Formulierungen sind in der Zielsprache **idiomatisch** (natürlich, nicht wörtlich „übersetzt“). Redewendungen, feste Begriffe (z. B. „Session beitreten“, „Abstimmung“, „Impressum“) und Button-Texte werden so gewählt, wie sie muttersprachliche Nutzer:innen erwarten.

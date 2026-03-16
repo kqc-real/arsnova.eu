@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # ADR-0004: Nutzung von Yjs (CRDTs) für Local-First Speicherung
 
 **Status:** Accepted
@@ -20,17 +22,20 @@ Wir verwenden **Yjs** als CRDT-Framework (Conflict-free Replicated Data Types) k
 ## Konsequenzen
 
 ### Positiv
+
 - 100 % DSGVO-Konformität: Keine personenbezogenen Inhalte auf dem Server
 - Offline-Fähigkeit: Dozenten können Quizzes ohne Internetverbindung erstellen
 - Multi-Device-Sync ohne Cloud-Account
 - Konfliktfreie Zusammenarbeit durch CRDTs
 
 ### Negativ / Risiken
+
 - Yjs hat eine Lernkurve; CRDTs sind konzeptionell anspruchsvoll
 - Browser-Storage (IndexedDB) kann vom User gelöscht werden → Datenverlust möglich
 - Debugging von CRDT-Sync-Problemen ist schwieriger als bei klassischen DB-Queries
 
 ## Alternativen (geprüft)
+
 - **Klassische Server-Speicherung:** Widerspricht dem Zero-Knowledge-Prinzip
 - **LocalStorage:** Zu limitiert (5 MB), keine strukturierte Abfrage
 - **PouchDB/CouchDB:** Gute Sync-Lösung, aber weniger flexibel als Yjs bei Echtzeit-Collaboration
