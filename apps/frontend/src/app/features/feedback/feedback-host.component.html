@@ -8,9 +8,35 @@
         Hier erscheinen spontane Rückmeldungen und schnelle Stimmungsbilder der Gruppe.
       </p>
       <div class="feedback-host__actions">
-        <button mat-button type="button" (click)="startRound('MOOD')">{{ feedbackTitle('MOOD') }}</button>
-        <button mat-button type="button" (click)="startRound('YESNO')">{{ feedbackTitle('YESNO') }}</button>
-        <button mat-button type="button" (click)="startRound('ABCD')">{{ feedbackTitle('ABCD') }}</button>
+        @for (chip of presetChips; track chip.type) {
+          <button
+            mat-button
+            type="button"
+            class="feedback-host__template-action"
+            (click)="startRound(chip.type)"
+            [attr.aria-label]="chip.label"
+          >
+            <span class="feedback-host__template-icons" aria-hidden="true">
+              @for (icon of chip.icons; track icon) {
+                @if (icon.kind === 'mat') {
+                  <mat-icon
+                    class="feedback-host__template-icon"
+                    [class.feedback-host__template-icon--positive]="icon.tone === 'positive'"
+                    [class.feedback-host__template-icon--negative]="icon.tone === 'negative'"
+                    [class.feedback-host__template-icon--neutral]="icon.tone === 'neutral'"
+                  >
+                    {{ icon.value }}
+                  </mat-icon>
+                } @else {
+                  <span class="feedback-host__template-icon">{{ icon.value }}</span>
+                }
+              }
+            </span>
+            @if (chip.showLabel !== false) {
+              <span class="feedback-host__template-label">{{ chip.label }}</span>
+            }
+          </button>
+        }
       </div>
     </mat-card-content>
   </mat-card>
@@ -41,7 +67,15 @@
       }
       <div class="feedback-host__actions">
         @if (isDiscussion()) {
-          <button mat-button type="button" (click)="startSecondRound()" i18n-aria-label aria-label="Zweite Abstimmung starten">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="feedback-host__next-round-cta"
+            (click)="startSecondRound()"
+            i18n-aria-label
+            aria-label="Zweite Abstimmung starten"
+          >
             <mat-icon>replay</mat-icon>
             <span i18n>Zweite Abstimmung</span>
           </button>
@@ -51,9 +85,15 @@
             {{ lockToggleLabel() }}
           </button>
           @if (data.totalVotes > 0) {
-            <button mat-button type="button" (click)="startDiscussion()" i18n-aria-label aria-label="Diskussionsphase starten">
+            <button
+              mat-button
+              type="button"
+              (click)="startDiscussion()"
+              i18n-aria-label="@@feedback.compareRoundStartAria"
+              aria-label="Vergleichsrunde starten"
+            >
               <mat-icon>groups</mat-icon>
-              <span i18n>Diskussionsphase</span>
+              <span i18n="@@feedback.compareRoundLabel">Vergleichsrunde</span>
             </button>
           }
         } @else {
@@ -70,38 +110,43 @@
           <mat-icon>restart_alt</mat-icon>
           <span i18n>Zurücksetzen</span>
         </button>
-        <div class="feedback-host__template-switch">
+        <button mat-button type="button" class="feedback-host__action-link feedback-host__end-session-link" (click)="endSession()">
+          <mat-icon>stop_circle</mat-icon>
+          <span i18n>Session beenden</span>
+        </button>
+      </div>
+      <div class="feedback-host__template-switch">
+        @for (chip of presetChips; track chip.type) {
           <button
             mat-button
             type="button"
             class="feedback-host__template-action"
-            [class.feedback-host__template-action--active]="data.type === 'MOOD'"
-            [disabled]="data.type === 'MOOD'"
-            (click)="startRound('MOOD')"
+            [class.feedback-host__template-action--active]="data.type === chip.type"
+            [disabled]="data.type === chip.type"
+            (click)="startRound(chip.type)"
+            [attr.aria-label]="chip.label"
           >
-            {{ feedbackTitle('MOOD') }}
+            <span class="feedback-host__template-icons" aria-hidden="true">
+              @for (icon of chip.icons; track icon) {
+                @if (icon.kind === 'mat') {
+                  <mat-icon
+                    class="feedback-host__template-icon"
+                    [class.feedback-host__template-icon--positive]="icon.tone === 'positive'"
+                    [class.feedback-host__template-icon--negative]="icon.tone === 'negative'"
+                    [class.feedback-host__template-icon--neutral]="icon.tone === 'neutral'"
+                  >
+                    {{ icon.value }}
+                  </mat-icon>
+                } @else {
+                  <span class="feedback-host__template-icon">{{ icon.value }}</span>
+                }
+              }
+            </span>
+            @if (chip.showLabel !== false) {
+              <span class="feedback-host__template-label">{{ chip.label }}</span>
+            }
           </button>
-          <button
-            mat-button
-            type="button"
-            class="feedback-host__template-action"
-            [class.feedback-host__template-action--active]="data.type === 'YESNO'"
-            [disabled]="data.type === 'YESNO'"
-            (click)="startRound('YESNO')"
-          >
-            {{ feedbackTitle('YESNO') }}
-          </button>
-          <button
-            mat-button
-            type="button"
-            class="feedback-host__template-action"
-            [class.feedback-host__template-action--active]="data.type === 'ABCD'"
-            [disabled]="data.type === 'ABCD'"
-            (click)="startRound('ABCD')"
-          >
-            {{ feedbackTitle('ABCD') }}
-          </button>
-        </div>
+        }
       </div>
     </section>
 
@@ -111,8 +156,8 @@
       @if (isDiscussion()) {
         <div class="feedback-host__discussion" role="status" aria-live="polite">
           <mat-icon class="feedback-host__discussion-icon">groups</mat-icon>
-          <p class="feedback-host__discussion-text" i18n>Diskutiert mit eurem Nachbarn!</p>
-          <p class="feedback-host__discussion-hint" i18n>Runde 1: {{ data.round1Total ?? 0 }} Stimmen erfasst. Zweite Abstimmung folgt.</p>
+          <p class="feedback-host__discussion-text" i18n="@@feedback.compareRoundHeadline">Jetzt zum Vergleich ein zweites Blitzlicht...</p>
+          <p class="feedback-host__discussion-hint" i18n="@@feedback.compareRoundSummary">Runde 1: {{ data.round1Total ?? 0 }} Stimmen erfasst.</p>
         </div>
       } @else if (hasComparison()) {
         <!-- Vorher/Nachher-Vergleich (Story 2.7) -->
@@ -153,9 +198,45 @@
                   @for (m of shift.migrations; track m.from + m.to) {
                     <li class="feedback-host__migration-item">
                       <span class="feedback-host__migration-count">{{ m.count }}×</span>
-                      <span class="feedback-host__migration-from">{{ displayLabel(m.from, data.type) }}</span>
+                      <span class="feedback-host__migration-from">
+                        @if (displayIcon(m.from, data.type); as icon) {
+                          @if (icon.kind === 'mat') {
+                            <mat-icon
+                              class="feedback-host__bar-icon"
+                              [class.feedback-host__bar-icon--positive]="icon.tone === 'positive'"
+                              [class.feedback-host__bar-icon--negative]="icon.tone === 'negative'"
+                              [class.feedback-host__bar-icon--neutral]="icon.tone === 'neutral'"
+                              aria-hidden="true"
+                            >
+                              {{ icon.value }}
+                            </mat-icon>
+                          } @else {
+                            {{ icon.value }}
+                          }
+                        } @else {
+                          {{ displayLabel(m.from, data.type) }}
+                        }
+                      </span>
                       <mat-icon class="feedback-host__migration-arrow">east</mat-icon>
-                      <span class="feedback-host__migration-to">{{ displayLabel(m.to, data.type) }}</span>
+                      <span class="feedback-host__migration-to">
+                        @if (displayIcon(m.to, data.type); as icon) {
+                          @if (icon.kind === 'mat') {
+                            <mat-icon
+                              class="feedback-host__bar-icon"
+                              [class.feedback-host__bar-icon--positive]="icon.tone === 'positive'"
+                              [class.feedback-host__bar-icon--negative]="icon.tone === 'negative'"
+                              [class.feedback-host__bar-icon--neutral]="icon.tone === 'neutral'"
+                              aria-hidden="true"
+                            >
+                              {{ icon.value }}
+                            </mat-icon>
+                          } @else {
+                            {{ icon.value }}
+                          }
+                        } @else {
+                          {{ displayLabel(m.to, data.type) }}
+                        }
+                      </span>
                     </li>
                   }
                 </ul>
@@ -176,7 +257,25 @@
               role="listitem"
               [attr.aria-label]="displayLabel(entry.key, data.type) + ': ' + entry.value + ' (' + percentage(entry.key) + ' %)'"
             >
-              <span class="feedback-host__bar-label" aria-hidden="true">{{ displayLabel(entry.key, data.type) }}</span>
+              <span class="feedback-host__bar-label" aria-hidden="true">
+                @if (displayIcon(entry.key, data.type); as icon) {
+                  @if (icon.kind === 'mat') {
+                    <mat-icon
+                      class="feedback-host__bar-icon"
+                      [class.feedback-host__bar-icon--positive]="icon.tone === 'positive'"
+                      [class.feedback-host__bar-icon--negative]="icon.tone === 'negative'"
+                      [class.feedback-host__bar-icon--neutral]="icon.tone === 'neutral'"
+                      aria-hidden="true"
+                    >
+                      {{ icon.value }}
+                    </mat-icon>
+                  } @else {
+                    {{ icon.value }}
+                  }
+                } @else {
+                  {{ displayLabel(entry.key, data.type) }}
+                }
+              </span>
               <div
                 class="feedback-host__bar-track"
                 role="progressbar"

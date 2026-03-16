@@ -3,9 +3,11 @@ import { ActivatedRoute } from '@angular/router';
 import { MatFabButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import type { Unsubscribable } from '@trpc/server/observable';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
-import { MOOD_OPTIONS, YESNO_OPTIONS, ABCD_OPTIONS, feedbackTitle } from './feedback.config';
+import { feedbackOptions, feedbackTitle } from './feedback.config';
+import type { QuickFeedbackResult, QuickFeedbackType } from '@arsnova/shared-types';
 
 const VOTER_ID_KEY = 'qf-voter-id';
 
@@ -49,6 +51,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly themePreset = inject(ThemePresetService);
   private styleTimer: ReturnType<typeof setInterval> | null = null;
+  private subscription: Unsubscribable | null = null;
   private readonly standaloneVoterId = getOrCreateVoterId();
   readonly sessionCode = input('');
   readonly participantId = input('');
@@ -61,7 +64,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly effectiveVoterId = computed(() => this.participantId() || this.standaloneVoterId);
   readonly voted = signal(false);
   readonly error = signal<string | null>(null);
-  readonly feedbackType = signal<'MOOD' | 'ABCD' | 'YESNO' | null>(null);
+  readonly feedbackType = signal<QuickFeedbackType | null>(null);
   readonly loading = signal(true);
   readonly locked = signal(false);
   readonly discussion = signal(false);
@@ -72,9 +75,14 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     return type ? feedbackTitle(type) : '';
   });
 
-  readonly moodOptions = MOOD_OPTIONS;
-  readonly yesnoOptions = YESNO_OPTIONS;
-  readonly abcdOptions = ABCD_OPTIONS;
+  readonly currentOptions = computed(() => {
+    const type = this.feedbackType();
+    return type ? feedbackOptions(type) : [];
+  });
+  readonly usesLetterButtons = computed(() => {
+    const type = this.feedbackType();
+    return type === 'ABC' || type === 'ABCD';
+  });
 
   ngOnInit(): void {
     void this.init();
@@ -85,6 +93,8 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       clearInterval(this.styleTimer);
       this.styleTimer = null;
     }
+    this.subscription?.unsubscribe();
+    this.subscription = null;
   }
 
   private async init(): Promise<void> {
@@ -96,6 +106,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
     this.voted.set(hasAlreadyVoted(code));
     await this.pollStyle();
+    this.subscribeToResults();
     this.loading.set(false);
     this.styleTimer = setInterval(() => void this.pollStyle(), 3000);
   }
@@ -115,23 +126,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
     try {
       const result = await trpc.quickFeedback.results.query({ sessionCode: code });
-      this.feedbackType.set(result.type as 'MOOD' | 'ABCD' | 'YESNO');
-      this.locked.set(result.locked);
-      this.discussion.set(!!result.discussion);
-      this.error.set(null);
-      this.applyStyle(result.theme, result.preset);
-
-      const newRound = result.currentRound ?? 1;
-      if (newRound === 2 && this.currentRound() === 1) {
-        this.voted.set(false);
-        try { localStorage.removeItem(votedStorageKey(code)); } catch { /* private browsing */ }
-      }
-      this.currentRound.set(newRound);
-
-      if (result.totalVotes === 0 && this.voted()) {
-        this.voted.set(false);
-        try { localStorage.removeItem(votedStorageKey(code)); } catch { /* private browsing */ }
-      }
+      this.applyResult(result);
     } catch {
       if (this.embeddedInSession()) {
         this.clearEmbeddedState();
@@ -139,6 +134,48 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       } else {
         this.error.set('Feedback-Runde nicht gefunden oder abgelaufen.');
       }
+    }
+  }
+
+  private subscribeToResults(): void {
+    const code = this.code();
+    if (!code || this.subscription) {
+      return;
+    }
+
+    this.subscription = trpc.quickFeedback.onResults.subscribe(
+      { sessionCode: code },
+      {
+        onData: (result) => {
+          this.applyResult(result);
+          this.loading.set(false);
+        },
+        onError: () => {
+          this.subscription?.unsubscribe();
+          this.subscription = null;
+        },
+      },
+    );
+  }
+
+  private applyResult(result: QuickFeedbackResult): void {
+    const code = this.code();
+    this.feedbackType.set(result.type);
+    this.locked.set(result.locked);
+    this.discussion.set(!!result.discussion);
+    this.error.set(null);
+    this.applyStyle(result.theme, result.preset);
+
+    const newRound = result.currentRound ?? 1;
+    if (newRound === 2 && this.currentRound() === 1) {
+      this.voted.set(false);
+      try { localStorage.removeItem(votedStorageKey(code)); } catch { /* private browsing */ }
+    }
+    this.currentRound.set(newRound);
+
+    if (result.totalVotes === 0 && this.voted()) {
+      this.voted.set(false);
+      try { localStorage.removeItem(votedStorageKey(code)); } catch { /* private browsing */ }
     }
   }
 

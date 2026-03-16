@@ -267,7 +267,7 @@ describe('SessionPresentComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Blitzlicht');
-    expect(text).toContain('ja · nein · vielleicht');
+    expect(text).toContain('Ja · Nein · Vielleicht');
     expect(text).toContain('Runde 2 läuft');
     expect(text).toContain('9 Stimmen');
     fixture.destroy();

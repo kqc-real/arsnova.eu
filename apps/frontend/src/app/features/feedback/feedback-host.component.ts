@@ -3,11 +3,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { localizeCommands, localizePath } from '../../core/locale-router';
-import { feedbackDisplayLabel, feedbackTitle, MOOD_OPTIONS, YESNO_OPTIONS, ABCD_OPTIONS } from './feedback.config';
-import type { QuickFeedbackResult } from '@arsnova/shared-types';
+import { feedbackDisplayIcon, feedbackDisplayLabel, feedbackOptions, feedbackTitle, QUICK_FEEDBACK_PRESET_CHIPS } from './feedback.config';
+import type { QuickFeedbackResult, QuickFeedbackType } from '@arsnova/shared-types';
 import type { Unsubscribable } from '@trpc/server/observable';
 
 @Component({
@@ -24,6 +25,7 @@ import type { Unsubscribable } from '@trpc/server/observable';
 export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly themePreset = inject(ThemePresetService);
   private subscription: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -40,6 +42,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly resetting = signal(false);
   readonly locked = signal(false);
   readonly showEmbeddedEmptyState = computed(() => this.embeddedInSession() && this.result() === null);
+  readonly presetChips = QUICK_FEEDBACK_PRESET_CHIPS;
 
   constructor() {
     effect(() => {
@@ -200,9 +203,12 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     const data = this.result();
     if (!data?.round1Distribution) return [];
     const orderMap: Record<string, string[]> = {
-      MOOD: MOOD_OPTIONS.map((o) => o.value),
-      YESNO: YESNO_OPTIONS.map((o) => o.value),
-      ABCD: ABCD_OPTIONS.map((o) => o.value),
+      MOOD: feedbackOptions('MOOD').map((o) => o.value),
+      YESNO: feedbackOptions('YESNO').map((o) => o.value),
+      YESNO_BINARY: feedbackOptions('YESNO_BINARY').map((o) => o.value),
+      TRUEFALSE_UNKNOWN: feedbackOptions('TRUEFALSE_UNKNOWN').map((o) => o.value),
+      ABC: feedbackOptions('ABC').map((o) => o.value),
+      ABCD: feedbackOptions('ABCD').map((o) => o.value),
     };
     const order = orderMap[data.type] ?? Object.keys(data.round1Distribution);
     return order.map((key) => ({ key, value: data.round1Distribution![key] ?? 0 }));
@@ -264,20 +270,81 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async startRound(type: 'MOOD' | 'ABCD' | 'YESNO'): Promise<void> {
+  endSession(): void {
     const code = this.code();
     if (!code) {
       return;
     }
 
+    const ref = this.snackBar.open(
+      this.embeddedInSession()
+        ? $localize`:@@feedback.endSessionWarning:Eine zweite Vergleichsrunde ist dann nicht mehr möglich. Es werden alle Ergebnisse gelöscht.`
+        : $localize`:@@feedback.endStandaloneWarning:Das Blitzlicht wird beendet. Es werden alle Ergebnisse gelöscht.`,
+      $localize`:@@feedback.endSessionConfirm:Trotzdem beenden`,
+      { duration: 7000 },
+    );
+
+    ref.onAction().subscribe(() => {
+      if (this.embeddedInSession()) {
+        void this.confirmEndSession(code);
+        return;
+      }
+      void this.confirmEndStandaloneFeedback(code);
+    });
+  }
+
+  private async confirmEndSession(code: string): Promise<void> {
     try {
+      await trpc.session.end.mutate({ code });
+      await this.router.navigateByUrl(localizePath('/'));
+    } catch {
+      // best-effort
+    }
+  }
+
+  private async confirmEndStandaloneFeedback(code: string): Promise<void> {
+    try {
+      await trpc.quickFeedback.end.mutate({ sessionCode: code });
+      await this.router.navigateByUrl(localizePath('/'));
+    } catch {
+      // best-effort
+    }
+  }
+
+  async startRound(type: QuickFeedbackType): Promise<void> {
+    const code = this.code();
+    try {
+      const theme = this.themePreset.theme();
+      const preset = this.themePreset.preset();
+
+      if (this.shouldBlockTypeChange(type)) {
+        this.snackBar.open(
+          $localize`:@@feedback.compareRoundFormatHint:Eine Vergleichsrunde funktioniert nur mit demselben Blitzlicht-Format. Bitte erst zurücksetzen. Das löscht die bisherigen Stimmen.`,
+          undefined,
+          { duration: 5000 },
+        );
+        return;
+      }
+
+      if (this.result() && code) {
+        await trpc.quickFeedback.changeType.mutate({
+          sessionCode: code,
+          type,
+          theme,
+          preset,
+        });
+        await this.loadInitialResult();
+        this.subscribeToResults();
+        return;
+      }
+
       const res = await trpc.quickFeedback.create.mutate({
         type,
-        theme: this.themePreset.theme(),
-        preset: this.themePreset.preset(),
-        sessionCode: this.embeddedInSession() ? code : undefined,
+        theme,
+        preset,
+        sessionCode: code || undefined,
       });
-      if (this.embeddedInSession()) {
+      if (code) {
         await this.loadInitialResult();
         this.subscribeToResults();
         return;
@@ -290,13 +357,31 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  private shouldBlockTypeChange(type: QuickFeedbackType): boolean {
+    const data = this.result();
+    if (!data || data.type === type) {
+      return false;
+    }
+
+    return (
+      data.totalVotes > 0
+      || (data.round1Total ?? 0) > 0
+      || !!data.round1Distribution
+      || !!data.discussion
+      || (data.currentRound ?? 1) === 2
+    );
+  }
+
   readonly orderedEntries = computed(() => {
     const data = this.result();
     if (!data) return [];
     const orderMap: Record<string, string[]> = {
-      MOOD: MOOD_OPTIONS.map((o) => o.value),
-      YESNO: YESNO_OPTIONS.map((o) => o.value),
-      ABCD: ABCD_OPTIONS.map((o) => o.value),
+      MOOD: feedbackOptions('MOOD').map((o) => o.value),
+      YESNO: feedbackOptions('YESNO').map((o) => o.value),
+      YESNO_BINARY: feedbackOptions('YESNO_BINARY').map((o) => o.value),
+      TRUEFALSE_UNKNOWN: feedbackOptions('TRUEFALSE_UNKNOWN').map((o) => o.value),
+      ABC: feedbackOptions('ABC').map((o) => o.value),
+      ABCD: feedbackOptions('ABCD').map((o) => o.value),
     };
     const order = orderMap[data.type] ?? Object.keys(data.distribution);
     return order.map((key) => ({ key, value: data.distribution[key] ?? 0 }));
@@ -349,6 +434,10 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
   displayLabel(key: string, type: string): string {
     return feedbackDisplayLabel(key, type);
+  }
+
+  displayIcon(key: string, type: string) {
+    return feedbackDisplayIcon(key, type);
   }
 
   feedbackTitle(type: string): string {

@@ -160,4 +160,28 @@ describe('HomeComponent', () => {
     });
   });
 
+  describe('startQuickFeedback', () => {
+    it('erstellt ein Blitzlicht und navigiert direkt zur Host-Ansicht', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.quickFeedback.create.mutate).mockResolvedValueOnce({
+        feedbackId: 'qf:ABC123',
+        sessionCode: 'ABC123',
+      });
+
+      const comp = createComponent();
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      await comp.startQuickFeedback('TRUEFALSE_UNKNOWN');
+
+      expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledWith({
+        type: 'TRUEFALSE_UNKNOWN',
+        theme: comp.themePreset.theme(),
+        preset: comp.themePreset.preset(),
+      });
+      expect(navSpy).toHaveBeenCalledWith(['feedback', 'ABC123']);
+      expect(comp.quickFeedbackError()).toBeNull();
+    });
+  });
+
 });

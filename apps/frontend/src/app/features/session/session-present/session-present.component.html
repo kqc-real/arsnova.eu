@@ -133,7 +133,23 @@
             @for (entry of quickFeedbackEntries(); track entry.key) {
               <div class="session-present__feedback-row">
                 <span class="session-present__feedback-row-label">
-                  {{ quickFeedbackDisplayLabel(entry.key, quickFeedback.type) }}
+                  @if (quickFeedbackDisplayIcon(entry.key, quickFeedback.type); as icon) {
+                    @if (icon.kind === 'mat') {
+                      <mat-icon
+                        class="session-present__feedback-row-icon"
+                        [class.session-present__feedback-row-icon--positive]="icon.tone === 'positive'"
+                        [class.session-present__feedback-row-icon--negative]="icon.tone === 'negative'"
+                        [class.session-present__feedback-row-icon--neutral]="icon.tone === 'neutral'"
+                        aria-hidden="true"
+                      >
+                        {{ icon.value }}
+                      </mat-icon>
+                    } @else {
+                      {{ icon.value }}
+                    }
+                  } @else {
+                    {{ quickFeedbackDisplayLabel(entry.key, quickFeedback.type) }}
+                  }
                 </span>
                 <div class="session-present__feedback-track" aria-hidden="true">
                   <div

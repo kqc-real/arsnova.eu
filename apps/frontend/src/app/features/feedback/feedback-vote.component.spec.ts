@@ -6,9 +6,11 @@ import { FeedbackVoteComponent } from './feedback-vote.component';
 const {
   quickFeedbackResultsQueryMock,
   quickFeedbackVoteMutateMock,
+  quickFeedbackOnResultsSubscribeMock,
 } = vi.hoisted(() => ({
   quickFeedbackResultsQueryMock: vi.fn(),
   quickFeedbackVoteMutateMock: vi.fn(),
+  quickFeedbackOnResultsSubscribeMock: vi.fn(() => ({ unsubscribe: vi.fn() })),
 }));
 
 vi.mock('../../core/trpc.client', () => ({
@@ -16,6 +18,7 @@ vi.mock('../../core/trpc.client', () => ({
     quickFeedback: {
       results: { query: quickFeedbackResultsQueryMock },
       vote: { mutate: quickFeedbackVoteMutateMock },
+      onResults: { subscribe: quickFeedbackOnResultsSubscribeMock },
     },
   },
 }));
@@ -64,7 +67,82 @@ describe('FeedbackVoteComponent', () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(quickFeedbackResultsQueryMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
-    expect(text).toContain('ja · nein · vielleicht');
+    expect(text).toContain('Ja · Nein · Vielleicht');
+    fixture.destroy();
+  });
+
+  it('übernimmt einen Typwechsel per Live-Subscription sofort', async () => {
+    quickFeedbackOnResultsSubscribeMock.mockImplementationOnce(
+      (_input, opts: { onData: (result: {
+        type: 'ABC';
+        theme: 'system';
+        preset: 'serious';
+        locked: false;
+        discussion: false;
+        totalVotes: 0;
+        distribution: { A: 0; B: 0; C: 0 };
+        currentRound: 1;
+      }) => void }) => {
+        setTimeout(() => {
+          opts.onData({
+            type: 'ABC',
+            theme: 'system',
+            preset: 'serious',
+            locked: false,
+            discussion: false,
+            totalVotes: 0,
+            distribution: { A: 0, B: 0, C: 0 },
+            currentRound: 1,
+          });
+        }, 0);
+        return { unsubscribe: vi.fn() };
+      },
+    );
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(quickFeedbackOnResultsSubscribeMock).toHaveBeenCalledWith(
+      { sessionCode: 'ABC123' },
+      expect.objectContaining({ onData: expect.any(Function), onError: expect.any(Function) }),
+    );
+    expect(text).toContain('ABC-Voting');
+    fixture.destroy();
+  });
+
+  it('zeigt Wahr/Falsch/Weiß nicht als Abstimmungsoptionen an', async () => {
+    quickFeedbackResultsQueryMock.mockResolvedValueOnce({
+      type: 'TRUEFALSE_UNKNOWN',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { TRUE: 0, FALSE: 0, UNKNOWN: 0 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Wahr · Falsch · Weiß nicht');
+    expect(text).toContain('Wahr');
+    expect(text).toContain('Falsch');
+    expect(text).toContain('Weiß nicht');
+    const positiveIcon = fixture.nativeElement.querySelector('.feedback-vote__mood-icon--positive');
+    const negativeIcon = fixture.nativeElement.querySelector('.feedback-vote__mood-icon--negative');
+    expect(positiveIcon?.textContent).toContain('check_circle');
+    expect(negativeIcon?.textContent).toContain('cancel');
     fixture.destroy();
   });
 });

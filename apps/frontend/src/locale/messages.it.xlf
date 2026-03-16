@@ -255,8 +255,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="4078831613258873996" datatype="html">
-        <source>Diskutiert mit eurem Nachbarn!</source>
-        <target>Discuti con il tuo vicino!</target>
+        <source>Jetzt zum Vergleich ein zweites Blitzlicht...</source>
+        <target>Ora, un secondo voto rapido per confrontare...</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">61,62</context>
@@ -267,8 +267,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2344979570783306989" datatype="html">
-        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst. Zweite Abstimmung folgt.</source>
-        <target>Turno 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> voti registrati. Segue la seconda votazione.</target>
+        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst.</source>
+        <target>Turno 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> voti registrati.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">62,63</context>
@@ -435,8 +435,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="8285655979894479213" datatype="html">
-        <source>Hat dein Nachbar die gleiche Meinung? Überzeugt euch gegenseitig.</source>
-        <target>Il tuo vicino ha la stessa opinione? Convincetevi a vicenda.</target>
+        <source>Gleich kannst du dein zweites Blitzlicht abgeben.</source>
+        <target>Tra poco potrai esprimere il tuo secondo voto rapido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">25,26</context>
@@ -463,8 +463,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="1945994423591083225" datatype="html">
-        <source> Hat die Diskussion deine Meinung geändert? </source>
-        <target>La discussione ti ha fatto cambiare idea?</target>
+        <source> Wie ist deine Einschätzung jetzt? </source>
+        <target>Qual è ora la tua valutazione?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">44,45</context>
@@ -6226,8 +6226,8 @@
         <target>Avvii il turno nell'area host della tua sessione live. Le persone partecipanti restano con lo stesso codice sessione e votano con un tocco. Vedi i risultati in tempo reale come grafico a barre.</target>
       </trans-unit>
       <trans-unit id="sessionPresent.quickFeedbackStatusDiscussion" datatype="html">
-        <source>Diskussion läuft</source>
-        <target>Discussione in corso</target>
+        <source>Vergleichsrunde läuft</source>
+        <target>Giro di confronto in corso</target>
       </trans-unit>
       <trans-unit id="sessionPresent.quickFeedbackStatusRound2" datatype="html">
         <source>Runde 2 läuft</source>
@@ -6356,6 +6356,110 @@
       <trans-unit id="help.epic8Footer" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Statushilfe im Footer:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein Hilfe-Popup erklärt die Server-Statusanzeige und Kennzahlen.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Aiuto stato nel footer:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> un pop-up spiega lo stato del server e le metriche.</target>
+      </trans-unit>
+      <trans-unit id="feedback.optionTrue" datatype="html">
+        <source>Wahr</source>
+        <target>Vero</target>
+      </trans-unit>
+      <trans-unit id="feedback.optionFalse" datatype="html">
+        <source>Falsch</source>
+        <target>Falso</target>
+      </trans-unit>
+      <trans-unit id="feedback.optionUnknown" datatype="html">
+        <source>Weiß nicht</source>
+        <target>Non lo so</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleYesNoMaybe" datatype="html">
+        <source>Ja · Nein · Vielleicht</source>
+        <target>Sì · No · Forse</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleYesNoBinary" datatype="html">
+        <source>Ja · Nein</source>
+        <target>Sì · No</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleTrueFalseUnknown" datatype="html">
+        <source>Wahr · Falsch · Weiß nicht</source>
+        <target>Vero · Falso · Non lo so</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleAbcShort" datatype="html">
+        <source>ABC</source>
+        <target>ABC</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleAbcVoting" datatype="html">
+        <source>ABC-Voting</source>
+        <target>Votazione ABC</target>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.title" datatype="html">
+        <source>Direkt live starten</source>
+        <target>Avvia subito dal vivo</target>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.copy" datatype="html">
+        <source>Ein Klick erzeugt sofort den Code und startet eine Blitzlicht-Runde ohne Quiz und ohne Q&amp;A.</source>
+        <target>Un clic crea subito il codice e avvia un turno Blitzlicht senza quiz e senza Q&amp;A.</target>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.startError" datatype="html">
+        <source>Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.</source>
+        <target>Impossibile avviare Blitzlicht. Riprova.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackIntro" datatype="html">
+        <source>Schnelle Abstimmung als Live-Bereich in deiner Veranstaltung oder direkt von der Startseite.</source>
+        <target>Votazione rapida come area live nel tuo evento o direttamente dalla pagina iniziale.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackYesNo" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): Klare Zwei-Optionen-Abfrage ohne Mittelweg.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sì / No<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): domanda binaria chiara, senza via di mezzo.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackTrueFalseUnknown" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Wahr / Falsch / Weiß nicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✔️✖️❔): Für schnelle Einschätzungen oder Wissenschecks.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Vero / Falso / Non lo so<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✔️✖️❔): per valutazioni rapide o brevi verifiche di conoscenza.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackAbc" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABC<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C): Drei Antwortoptionen für spontane Auswahlfragen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABC<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C): tre opzioni di risposta per domande a scelta estemporanee.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackStartFlow" datatype="html">
+        <source>Du startest die Runde im Host-Bereich deiner Live-Session oder direkt über die Blitzlicht-Karte auf der Startseite. Teilnehmende stimmen mit einem Tipp ab, und du siehst die Ergebnisse live als Balkendiagramm.</source>
+        <target>Avvii il turno dalla vista host della tua sessione live oppure direttamente dalla scheda Blitzlicht nella pagina iniziale. Le persone partecipanti votano con un tocco e tu vedi i risultati in tempo reale come grafico a barre.</target>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundStartAria" datatype="html">
+        <source>Vergleichsrunde starten</source>
+        <target>Avvia giro di confronto</target>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundLabel" datatype="html">
+        <source>Vergleichsrunde</source>
+        <target>Giro di confronto</target>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundHeadline" datatype="html">
+        <source>Jetzt zum Vergleich ein zweites Blitzlicht...</source>
+        <target>Ora, un secondo voto rapido per confrontare...</target>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundSummary" datatype="html">
+        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst.</source>
+        <target>Turno 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> voti registrati.</target>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundVoteHint" datatype="html">
+        <source>Gleich kannst du dein zweites Blitzlicht abgeben.</source>
+        <target>Tra poco potrai esprimere il tuo secondo voto rapido.</target>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundQuestion" datatype="html">
+        <source>Wie ist deine Einschätzung jetzt?</source>
+        <target>Qual è ora la tua valutazione?</target>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundFormatHint" datatype="html">
+        <source>Eine Vergleichsrunde funktioniert nur mit demselben Blitzlicht-Format. Bitte erst zurücksetzen. Das löscht die bisherigen Stimmen.</source>
+        <target>Un giro di confronto funziona solo con lo stesso formato di voto rapido. Prima reimpostalo. Questo elimina i voti già espressi.</target>
+      </trans-unit>
+          <trans-unit id="feedback.endSessionWarning" datatype="html">
+        <source>Eine zweite Vergleichsrunde ist dann nicht mehr möglich. Es werden alle Ergebnisse gelöscht.</source>
+        <target>Una seconda fase di confronto non sarà più possibile. Tutti i risultati verranno eliminati.</target>
+      </trans-unit>
+      <trans-unit id="feedback.endStandaloneWarning" datatype="html">
+        <source>Das Blitzlicht wird beendet. Es werden alle Ergebnisse gelöscht.</source>
+        <target>Il voto rapido verrà terminato. Tutti i risultati verranno eliminati.</target>
+      </trans-unit>
+      <trans-unit id="feedback.endSessionConfirm" datatype="html">
+        <source>Trotzdem beenden</source>
+        <target>Termina comunque</target>
       </trans-unit>
     </body>
   </file>

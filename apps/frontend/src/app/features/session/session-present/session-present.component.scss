@@ -216,6 +216,24 @@
   font-weight: 700;
 }
 
+.session-present__feedback-row-icon {
+  font-size: 1.55rem;
+  width: 1.55rem;
+  height: 1.55rem;
+}
+
+.session-present__feedback-row-icon--positive {
+  color: var(--arsnova-bar-correct, #2e7d32);
+}
+
+.session-present__feedback-row-icon--negative {
+  color: var(--arsnova-bar-wrong, #c62828);
+}
+
+.session-present__feedback-row-icon--neutral {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .session-present__feedback-track {
   height: 1rem;
   border-radius: 999px;

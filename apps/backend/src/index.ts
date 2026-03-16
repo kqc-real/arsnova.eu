@@ -136,11 +136,16 @@ try {
     'server.js',
   );
   yjsChild = spawn(process.execPath, [serverPath], {
-    env: { ...process.env, PORT: String(YJS_WS_PORT), HOST: 'localhost' },
+    env: { ...process.env, PORT: String(YJS_WS_PORT), HOST: '127.0.0.1' },
     stdio: 'ignore',
   });
   yjsChild.on('error', (err) => {
     logger.warn('Yjs WebSocket-Server Fehler:', (err as Error).message);
+  });
+  yjsChild.on('exit', (code, signal) => {
+    if (code !== 0 && signal == null) {
+      logger.warn(`Yjs WebSocket-Server beendet mit Exit-Code ${String(code)}`);
+    }
   });
   logger.info(`   Yjs WebSocket: ws://localhost:${YJS_WS_PORT}`);
 } catch (e) {

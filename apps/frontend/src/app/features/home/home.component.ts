@@ -11,6 +11,8 @@ import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import { localizeCommands, localizePath } from '../../core/locale-router';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
+import { QUICK_FEEDBACK_PRESET_CHIPS } from '../feedback/feedback.config';
+import type { QuickFeedbackType } from '@arsnova/shared-types';
 
 @Component({
   selector: 'app-home',
@@ -48,6 +50,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Set when join failed because session is finished (for showing host link). */
   joinErrorSessionFinished = signal(false);
   isJoining = signal(false);
+  quickFeedbackError = signal<string | null>(null);
+  quickFeedbackStarting = signal<QuickFeedbackType | null>(null);
 
   readonly themePreset = inject(ThemePresetService);
   private readonly quizStore = inject(QuizStoreService);
@@ -58,6 +62,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly demoSessionCode = 'DEMO01';
   readonly demoQuizId = DEMO_QUIZ_ID;
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
+  readonly quickFeedbackPresetChips = QUICK_FEEDBACK_PRESET_CHIPS;
 
   /** Leertaste schon in keydown verarbeitet → keyup nicht erneut auslösen (vermeidet Doppel-Submit, nutzt keyup für virtuelle Tastatur). */
   private spaceHandledInKeydown = false;
@@ -188,12 +193,35 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     import('../quiz/quiz.component').then(() => {});
   }
 
+  async startQuickFeedback(type: QuickFeedbackType): Promise<void> {
+    if (this.quickFeedbackStarting()) return;
+
+    this.quickFeedbackError.set(null);
+    this.quickFeedbackStarting.set(type);
+
+    try {
+      const result = await trpc.quickFeedback.create.mutate({
+        type,
+        theme: this.themePreset.theme(),
+        preset: this.themePreset.preset(),
+      });
+      await this.router.navigate(this.localizedCommands(['feedback', result.sessionCode]));
+    } catch {
+      this.quickFeedbackError.set(
+        $localize`:@@homeFeedbackCard.startError:Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.`,
+      );
+    } finally {
+      this.quickFeedbackStarting.set(null);
+    }
+  }
+
   onSessionCodeInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const prev = this.sessionCode();
     const normalized = target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
     this.sessionCode.set(normalized);
     this.joinError.set(null);
+    this.quickFeedbackError.set(null);
     if (normalized.length === 6 && prev.length < 6) {
       this.triggerCtaPulse();
     }

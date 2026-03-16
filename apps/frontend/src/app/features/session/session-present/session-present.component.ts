@@ -7,7 +7,7 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 import { WordCloudComponent } from './word-cloud.component';
 import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
-import { feedbackDisplayLabel, feedbackTitle, MOOD_OPTIONS, YESNO_OPTIONS, ABCD_OPTIONS } from '../../feedback/feedback.config';
+import { feedbackDisplayIcon, feedbackDisplayLabel, feedbackTitle, MOOD_OPTIONS, YESNO_OPTIONS, ABCD_OPTIONS } from '../../feedback/feedback.config';
 import type { QaQuestionDTO, QuickFeedbackResult, SessionInfoDTO, TeamLeaderboardEntryDTO } from '@arsnova/shared-types';
 
 /**
@@ -116,6 +116,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return feedbackDisplayLabel(key, type);
   }
 
+  quickFeedbackDisplayIcon(key: string, type: string) {
+    return feedbackDisplayIcon(key, type);
+  }
+
   quickFeedbackStatusLabel(): string | null {
     const result = this.quickFeedbackResult();
     if (!result) {
@@ -123,7 +127,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
 
     if (result.discussion) {
-      return $localize`:@@sessionPresent.quickFeedbackStatusDiscussion:Diskussion läuft`;
+      return $localize`:@@sessionPresent.quickFeedbackStatusDiscussion:Vergleichsrunde läuft`;
     }
 
     if ((result.currentRound ?? 1) === 2) {

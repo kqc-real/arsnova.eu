@@ -1112,7 +1112,14 @@ export type PresetConfigExport = z.infer<typeof PresetConfigExportSchema>;
 // Quick-Feedback (One-Shot-Feedback)
 // ---------------------------------------------------------------------------
 
-export const QuickFeedbackTypeEnum = z.enum(['MOOD', 'ABCD', 'YESNO']);
+export const QuickFeedbackTypeEnum = z.enum([
+  'MOOD',
+  'YESNO',
+  'YESNO_BINARY',
+  'TRUEFALSE_UNKNOWN',
+  'ABC',
+  'ABCD',
+]);
 export type QuickFeedbackType = z.infer<typeof QuickFeedbackTypeEnum>;
 
 export const MoodValueEnum = z.enum(['POSITIVE', 'NEUTRAL', 'NEGATIVE']);
@@ -1123,6 +1130,15 @@ export type AbcdValue = z.infer<typeof AbcdValueEnum>;
 
 export const YesNoValueEnum = z.enum(['YES', 'NO', 'MAYBE']);
 export type YesNoValue = z.infer<typeof YesNoValueEnum>;
+
+export const YesNoBinaryValueEnum = z.enum(['YES', 'NO']);
+export type YesNoBinaryValue = z.infer<typeof YesNoBinaryValueEnum>;
+
+export const TrueFalseUnknownValueEnum = z.enum(['TRUE', 'FALSE', 'UNKNOWN']);
+export type TrueFalseUnknownValue = z.infer<typeof TrueFalseUnknownValueEnum>;
+
+export const AbcValueEnum = z.enum(['A', 'B', 'C']);
+export type AbcValue = z.infer<typeof AbcValueEnum>;
 
 export const QuickFeedbackThemeEnum = z.enum(['system', 'dark', 'light']);
 export const QuickFeedbackPresetEnum = z.enum(['serious', 'spielerisch']);
@@ -1141,6 +1157,14 @@ export const UpdateQuickFeedbackStyleInputSchema = z.object({
   preset: QuickFeedbackPresetEnum,
 });
 export type UpdateQuickFeedbackStyleInput = z.infer<typeof UpdateQuickFeedbackStyleInputSchema>;
+
+export const UpdateQuickFeedbackTypeInputSchema = z.object({
+  sessionCode: z.string().trim().length(6),
+  type: QuickFeedbackTypeEnum,
+  theme: QuickFeedbackThemeEnum,
+  preset: QuickFeedbackPresetEnum,
+});
+export type UpdateQuickFeedbackTypeInput = z.infer<typeof UpdateQuickFeedbackTypeInputSchema>;
 
 export const CreateQuickFeedbackOutputSchema = z.object({
   feedbackId: z.string(),

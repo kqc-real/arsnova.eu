@@ -34,8 +34,8 @@
       <div class="feedback-vote__discussion-ring">
         <mat-icon class="feedback-vote__discussion-icon">groups</mat-icon>
       </div>
-      <p class="feedback-vote__discussion-text" i18n>Diskutiert mit eurem Nachbarn!</p>
-      <p class="feedback-vote__discussion-hint" i18n>Hat dein Nachbar die gleiche Meinung? Überzeugt euch gegenseitig.</p>
+      <p class="feedback-vote__discussion-text" i18n="@@feedback.compareRoundHeadline">Jetzt zum Vergleich ein zweites Blitzlicht...</p>
+      <p class="feedback-vote__discussion-hint" i18n="@@feedback.compareRoundVoteHint">Gleich kannst du dein zweites Blitzlicht abgeben.</p>
       <p class="feedback-vote__discussion-next" i18n>Zweite Abstimmung folgt gleich…</p>
     </div>
   } @else if (locked()) {
@@ -53,39 +53,13 @@
       }
     </h1>
     @if (currentRound() === 2 && !voted()) {
-      <p class="feedback-vote__round2-hint" role="status" aria-live="polite" i18n>
-        Hat die Diskussion deine Meinung geändert?
+      <p class="feedback-vote__round2-hint" role="status" aria-live="polite" i18n="@@feedback.compareRoundQuestion">
+        Wie ist deine Einschätzung jetzt?
       </p>
     }
-    @if (feedbackType() === 'MOOD') {
-      <div class="feedback-vote__options feedback-vote__options--mood" role="group" i18n-aria-label aria-label="Stimmung wählen">
-        @for (option of moodOptions; track option.value) {
-          <button
-            class="feedback-vote__mood-btn"
-            type="button"
-            (click)="vote(option.value)"
-            [attr.aria-label]="option.label"
-          >
-            <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
-          </button>
-        }
-      </div>
-    } @else if (feedbackType() === 'YESNO') {
-      <div class="feedback-vote__options feedback-vote__options--mood" role="group" i18n-aria-label aria-label="Abstimmung wählen">
-        @for (option of yesnoOptions; track option.value) {
-          <button
-            class="feedback-vote__mood-btn"
-            type="button"
-            (click)="vote(option.value)"
-            [attr.aria-label]="option.label"
-          >
-            <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
-          </button>
-        }
-      </div>
-    } @else if (feedbackType() === 'ABCD') {
+    @if (usesLetterButtons()) {
       <div class="feedback-vote__options feedback-vote__options--abcd" role="group" i18n-aria-label aria-label="Antwort wählen">
-        @for (option of abcdOptions; track option.value) {
+        @for (option of currentOptions(); track option.value) {
           <button
             mat-fab
             class="feedback-vote__abcd-btn"
@@ -94,6 +68,34 @@
             [attr.aria-label]="option.label"
           >
             {{ option.value }}
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="feedback-vote__options feedback-vote__options--mood" role="group" i18n-aria-label aria-label="Abstimmung wählen">
+        @for (option of currentOptions(); track option.value) {
+          <button
+            class="feedback-vote__mood-btn"
+            type="button"
+            (click)="vote(option.value)"
+            [attr.aria-label]="option.label"
+          >
+            @if (option.icon) {
+              @if (option.iconKind === 'mat') {
+                <mat-icon
+                  class="feedback-vote__mood-icon"
+                  [class.feedback-vote__mood-icon--positive]="option.tone === 'positive'"
+                  [class.feedback-vote__mood-icon--negative]="option.tone === 'negative'"
+                  [class.feedback-vote__mood-icon--neutral]="option.tone === 'neutral'"
+                  aria-hidden="true"
+                >
+                  {{ option.icon }}
+                </mat-icon>
+              } @else {
+                <span class="feedback-vote__mood-emoji">{{ option.icon }}</span>
+              }
+            }
+            <span class="feedback-vote__mood-label">{{ option.label }}</span>
           </button>
         }
       </div>

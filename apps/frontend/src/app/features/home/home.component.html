@@ -131,6 +131,53 @@
           </mat-card-actions>
         </mat-card>
 
+        <mat-card appearance="raised" class="home-card home-card--feedback">
+          <mat-card-header>
+            <mat-card-subtitle>
+              <mat-icon class="home-card__icon">bolt</mat-icon>
+              <span i18n="@@sessionTabs.quickFeedback">Blitzlicht</span>
+            </mat-card-subtitle>
+            <mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">Direkt live starten</mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content class="l-stack l-stack--sm">
+            <div class="home-feedback-chip-grid">
+              @for (chip of quickFeedbackPresetChips; track chip.type) {
+                <button
+                  matButton="tonal"
+                  type="button"
+                  class="home-feedback-chip"
+                  (click)="startQuickFeedback(chip.type)"
+                  [disabled]="!!quickFeedbackStarting()"
+                  [attr.aria-busy]="quickFeedbackStarting() === chip.type"
+                  [attr.aria-label]="chip.label"
+                >
+                  <span class="home-feedback-chip__icons" aria-hidden="true">
+                    @for (icon of chip.icons; track icon) {
+                      @if (icon.kind === 'mat') {
+                        <mat-icon class="home-feedback-chip__icon" [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'" [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'" [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'">
+                          {{ icon.value }}
+                        </mat-icon>
+                      } @else {
+                        <span class="home-feedback-chip__icon">{{ icon.value }}</span>
+                      }
+                    }
+                  </span>
+                  @if (chip.showLabel !== false) {
+                    <span class="home-feedback-chip__label">{{ chip.label }}</span>
+                  }
+                  @if (quickFeedbackStarting() === chip.type) {
+                    <mat-icon class="home-feedback-chip__busy home-spin">sync</mat-icon>
+                  }
+                </button>
+              }
+            </div>
+            @if (quickFeedbackError()) {
+              <p class="home-error" role="alert">{{ quickFeedbackError() }}</p>
+            }
+          </mat-card-content>
+        </mat-card>
+
         <mat-card appearance="raised" class="home-card home-card--create">
           <mat-card-header class="home-card__header-with-action">
             <div class="home-card__header-text">

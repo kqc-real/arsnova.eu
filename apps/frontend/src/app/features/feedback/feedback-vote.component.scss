@@ -165,6 +165,32 @@
   line-height: 1;
 }
 
+.feedback-vote__mood-icon {
+  font-size: 4.5rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  line-height: 1;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.feedback-vote__mood-icon--positive {
+  color: var(--arsnova-bar-correct, #2e7d32);
+}
+
+.feedback-vote__mood-icon--negative {
+  color: var(--arsnova-bar-wrong, #c62828);
+}
+
+.feedback-vote__mood-icon--neutral {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.feedback-vote__mood-label {
+  font: var(--mat-sys-title-medium);
+  color: var(--mat-sys-on-surface);
+  text-align: center;
+}
+
 .feedback-vote__abcd-btn {
   width: 6rem;
   height: 6rem;

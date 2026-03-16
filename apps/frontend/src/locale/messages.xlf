@@ -225,7 +225,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="4078831613258873996" datatype="html">
-        <source>Diskutiert mit eurem Nachbarn!</source>
+        <source>Jetzt zum Vergleich ein zweites Blitzlicht...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">61,62</context>
@@ -236,7 +236,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2344979570783306989" datatype="html">
-        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst. Zweite Abstimmung folgt.</source>
+        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">62,63</context>
@@ -387,7 +387,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="8285655979894479213" datatype="html">
-        <source>Hat dein Nachbar die gleiche Meinung? Überzeugt euch gegenseitig.</source>
+        <source>Gleich kannst du dein zweites Blitzlicht abgeben.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">25,26</context>
@@ -412,7 +412,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="1945994423591083225" datatype="html">
-        <source> Hat die Diskussion deine Meinung geändert? </source>
+        <source> Wie ist deine Einschätzung jetzt? </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">44,45</context>
@@ -5658,7 +5658,7 @@
         <source>Du startest die Runde im Host-Bereich deiner Live-Session. Teilnehmende bleiben mit demselben Session-Code dabei und stimmen mit einem Tipp ab. Du siehst die Ergebnisse live als Balkendiagramm.</source>
       </trans-unit>
       <trans-unit id="sessionPresent.quickFeedbackStatusDiscussion" datatype="html">
-        <source>Diskussion läuft</source>
+        <source>Vergleichsrunde läuft</source>
       </trans-unit>
       <trans-unit id="sessionPresent.quickFeedbackStatusRound2" datatype="html">
         <source>Runde 2 läuft</source>
@@ -5755,6 +5755,84 @@
       </trans-unit>
       <trans-unit id="help.epic8Footer" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Statushilfe im Footer:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein Hilfe-Popup erklärt die Server-Statusanzeige und Kennzahlen.</source>
+      </trans-unit>
+      <trans-unit id="feedback.optionTrue" datatype="html">
+        <source>Wahr</source>
+      </trans-unit>
+      <trans-unit id="feedback.optionFalse" datatype="html">
+        <source>Falsch</source>
+      </trans-unit>
+      <trans-unit id="feedback.optionUnknown" datatype="html">
+        <source>Weiß nicht</source>
+      </trans-unit>
+      <trans-unit id="feedback.titleYesNoMaybe" datatype="html">
+        <source>Ja · Nein · Vielleicht</source>
+      </trans-unit>
+      <trans-unit id="feedback.titleYesNoBinary" datatype="html">
+        <source>Ja · Nein</source>
+      </trans-unit>
+      <trans-unit id="feedback.titleTrueFalseUnknown" datatype="html">
+        <source>Wahr · Falsch · Weiß nicht</source>
+      </trans-unit>
+      <trans-unit id="feedback.titleAbcShort" datatype="html">
+        <source>ABC</source>
+      </trans-unit>
+      <trans-unit id="feedback.titleAbcVoting" datatype="html">
+        <source>ABC-Voting</source>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.title" datatype="html">
+        <source>Direkt live starten</source>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.copy" datatype="html">
+        <source>Ein Klick erzeugt sofort den Code und startet eine Blitzlicht-Runde ohne Quiz und ohne Q&amp;A.</source>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.startError" datatype="html">
+        <source>Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.</source>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackIntro" datatype="html">
+        <source>Schnelle Abstimmung als Live-Bereich in deiner Veranstaltung oder direkt von der Startseite.</source>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackYesNo" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): Klare Zwei-Optionen-Abfrage ohne Mittelweg.</source>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackTrueFalseUnknown" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Wahr / Falsch / Weiß nicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✔️✖️❔): Für schnelle Einschätzungen oder Wissenschecks.</source>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackAbc" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABC<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C): Drei Antwortoptionen für spontane Auswahlfragen.</source>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackStartFlow" datatype="html">
+        <source>Du startest die Runde im Host-Bereich deiner Live-Session oder direkt über die Blitzlicht-Karte auf der Startseite. Teilnehmende stimmen mit einem Tipp ab, und du siehst die Ergebnisse live als Balkendiagramm.</source>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundStartAria" datatype="html">
+        <source>Vergleichsrunde starten</source>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundLabel" datatype="html">
+        <source>Vergleichsrunde</source>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundHeadline" datatype="html">
+        <source>Jetzt zum Vergleich ein zweites Blitzlicht...</source>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundSummary" datatype="html">
+        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst.</source>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundVoteHint" datatype="html">
+        <source>Gleich kannst du dein zweites Blitzlicht abgeben.</source>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundQuestion" datatype="html">
+        <source>Wie ist deine Einschätzung jetzt?</source>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundFormatHint" datatype="html">
+        <source>Eine Vergleichsrunde funktioniert nur mit demselben Blitzlicht-Format. Bitte erst zurücksetzen. Das löscht die bisherigen Stimmen. Das löscht die bisherigen Stimmen.</source>
+      </trans-unit>
+          <trans-unit id="feedback.endSessionWarning" datatype="html">
+        <source>Eine zweite Vergleichsrunde ist dann nicht mehr möglich. Es werden alle Ergebnisse gelöscht.</source>
+      </trans-unit>
+      <trans-unit id="feedback.endStandaloneWarning" datatype="html">
+        <source>Das Blitzlicht wird beendet. Es werden alle Ergebnisse gelöscht.</source>
+      </trans-unit>
+      <trans-unit id="feedback.endSessionConfirm" datatype="html">
+        <source>Trotzdem beenden</source>
       </trans-unit>
     </body>
   </file>

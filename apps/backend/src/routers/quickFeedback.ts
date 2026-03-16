@@ -7,11 +7,15 @@ import {
   CreateQuickFeedbackInputSchema,
   CreateQuickFeedbackOutputSchema,
   UpdateQuickFeedbackStyleInputSchema,
+  UpdateQuickFeedbackTypeInputSchema,
   QuickFeedbackVoteInputSchema,
   QuickFeedbackResultSchema,
   MoodValueEnum,
   AbcdValueEnum,
   YesNoValueEnum,
+  YesNoBinaryValueEnum,
+  TrueFalseUnknownValueEnum,
+  AbcValueEnum,
   type QuickFeedbackType,
   type QuickFeedbackResult,
 } from '@arsnova/shared-types';
@@ -53,8 +57,11 @@ function generateCode(): string {
 function validValues(type: QuickFeedbackType): readonly string[] {
   switch (type) {
     case 'MOOD': return MoodValueEnum.options;
-    case 'ABCD': return AbcdValueEnum.options;
     case 'YESNO': return YesNoValueEnum.options;
+    case 'YESNO_BINARY': return YesNoBinaryValueEnum.options;
+    case 'TRUEFALSE_UNKNOWN': return TrueFalseUnknownValueEnum.options;
+    case 'ABC': return AbcValueEnum.options;
+    case 'ABCD': return AbcdValueEnum.options;
   }
 }
 
@@ -129,6 +136,41 @@ export const quickFeedbackRouter = router({
       return { ok: true };
     }),
 
+  changeType: publicProcedure
+    .input(UpdateQuickFeedbackTypeInputSchema)
+    .mutation(async ({ input }) => {
+      const redis = getRedis();
+      const code = input.sessionCode.toUpperCase();
+      const key = feedbackKey(code);
+      const raw = await redis.get(key);
+
+      if (!raw) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Feedback-Runde nicht gefunden oder abgelaufen.' });
+      }
+
+      const result = JSON.parse(raw) as QuickFeedbackResult;
+      result.type = input.type;
+      result.theme = input.theme;
+      result.preset = input.preset;
+      result.locked = false;
+      result.totalVotes = 0;
+      result.distribution = emptyDistribution(input.type);
+      result.currentRound = undefined;
+      result.discussion = undefined;
+      result.round1Distribution = undefined;
+      result.round1Total = undefined;
+      result.opinionShift = undefined;
+
+      const multi = redis.multi();
+      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      multi.del(votersKey(code));
+      multi.del(choicesKey(code));
+      multi.del(choicesR1Key(code));
+      await multi.exec();
+
+      return { ok: true };
+    }),
+
   reset: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .mutation(async ({ input }) => {
@@ -153,6 +195,22 @@ export const quickFeedbackRouter = router({
 
       const multi = redis.multi();
       multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+      multi.del(votersKey(code));
+      multi.del(choicesKey(code));
+      multi.del(choicesR1Key(code));
+      await multi.exec();
+
+      return { ok: true };
+    }),
+
+  end: publicProcedure
+    .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .mutation(async ({ input }) => {
+      const redis = getRedis();
+      const code = input.sessionCode.toUpperCase();
+
+      const multi = redis.multi();
+      multi.del(feedbackKey(code));
       multi.del(votersKey(code));
       multi.del(choicesKey(code));
       multi.del(choicesR1Key(code));

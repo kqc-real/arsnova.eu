@@ -1251,12 +1251,12 @@
         <target>New round</target>
       </trans-unit>
       <trans-unit id="4078831613258873996" datatype="html">
-        <source>Diskutiert mit eurem Nachbarn!</source>
-        <target>Discuss with your neighbour!</target>
+        <source>Jetzt zum Vergleich ein zweites Blitzlicht...</source>
+        <target>Now a second quick vote for comparison...</target>
       </trans-unit>
       <trans-unit id="2344979570783306989" datatype="html">
-        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst. Zweite Abstimmung folgt.</source>
-        <target>Round 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> votes recorded. Second vote follows.</target>
+        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst.</source>
+        <target>Round 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> votes recorded.</target>
       </trans-unit>
       <trans-unit id="7882475767985187890" datatype="html">
         <source>Runde 1 (<x id="INTERPOLATION" equiv-text="{{ data.round1Total }}"/> Stimmen)</source>
@@ -1287,16 +1287,16 @@
         <target>Voting is paused.</target>
       </trans-unit>
       <trans-unit id="1945994423591083225" datatype="html">
-        <source> Hat die Diskussion deine Meinung geändert? </source>
-        <target> Did the discussion change your mind? </target>
+        <source> Wie ist deine Einschätzung jetzt? </source>
+        <target> What's your assessment now? </target>
       </trans-unit>
       <trans-unit id="5595168807167215658" datatype="html">
         <source>Laden…</source>
         <target>Loading…</target>
       </trans-unit>
       <trans-unit id="8285655979894479213" datatype="html">
-        <source>Hat dein Nachbar die gleiche Meinung? Überzeugt euch gegenseitig.</source>
-        <target>Does your neighbour have the same opinion? Convince each other.</target>
+        <source>Gleich kannst du dein zweites Blitzlicht abgeben.</source>
+        <target>You'll be able to cast your second quick vote in a moment.</target>
       </trans-unit>
       <trans-unit id="7951167119693455848" datatype="html">
         <source>Zweite Abstimmung folgt gleich…</source>
@@ -4034,8 +4034,8 @@
         <target>You start the round in the host area of your live session. Participants stay in with the same session code and vote with a tap. You see the results live as a bar chart.</target>
       </trans-unit>
       <trans-unit id="sessionPresent.quickFeedbackStatusDiscussion" datatype="html">
-        <source>Diskussion läuft</source>
-        <target>Discussion in progress</target>
+        <source>Vergleichsrunde läuft</source>
+        <target>Comparison round in progress</target>
       </trans-unit>
       <trans-unit id="sessionPresent.quickFeedbackStatusRound2" datatype="html">
         <source>Runde 2 läuft</source>
@@ -4164,6 +4164,110 @@
       <trans-unit id="help.epic8Footer" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Statushilfe im Footer:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein Hilfe-Popup erklärt die Server-Statusanzeige und Kennzahlen.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Status help in the footer:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> a help popup explains server status and metrics.</target>
+      </trans-unit>
+      <trans-unit id="feedback.optionTrue" datatype="html">
+        <source>Wahr</source>
+        <target>True</target>
+      </trans-unit>
+      <trans-unit id="feedback.optionFalse" datatype="html">
+        <source>Falsch</source>
+        <target>False</target>
+      </trans-unit>
+      <trans-unit id="feedback.optionUnknown" datatype="html">
+        <source>Weiß nicht</source>
+        <target>Don&apos;t know</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleYesNoMaybe" datatype="html">
+        <source>Ja · Nein · Vielleicht</source>
+        <target>Yes · No · Maybe</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleYesNoBinary" datatype="html">
+        <source>Ja · Nein</source>
+        <target>Yes · No</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleTrueFalseUnknown" datatype="html">
+        <source>Wahr · Falsch · Weiß nicht</source>
+        <target>True · False · Don&apos;t know</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleAbcShort" datatype="html">
+        <source>ABC</source>
+        <target>ABC</target>
+      </trans-unit>
+      <trans-unit id="feedback.titleAbcVoting" datatype="html">
+        <source>ABC-Voting</source>
+        <target>ABC voting</target>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.title" datatype="html">
+        <source>Direkt live starten</source>
+        <target>Start live instantly</target>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.copy" datatype="html">
+        <source>Ein Klick erzeugt sofort den Code und startet eine Blitzlicht-Runde ohne Quiz und ohne Q&amp;A.</source>
+        <target>One click creates the code instantly and starts a Blitzlicht round without quiz and without Q&amp;A.</target>
+      </trans-unit>
+      <trans-unit id="homeFeedbackCard.startError" datatype="html">
+        <source>Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.</source>
+        <target>Blitzlicht could not be started. Please try again.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackIntro" datatype="html">
+        <source>Schnelle Abstimmung als Live-Bereich in deiner Veranstaltung oder direkt von der Startseite.</source>
+        <target>Quick voting as a live area in your event or directly from the start page.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackYesNo" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): Klare Zwei-Optionen-Abfrage ohne Mittelweg.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Yes / No<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): Clear two-option poll with no middle ground.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackTrueFalseUnknown" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Wahr / Falsch / Weiß nicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✔️✖️❔): Für schnelle Einschätzungen oder Wissenschecks.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>True / False / Don&apos;t know<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✔️✖️❔): For quick assessments or knowledge checks.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackAbc" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABC<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C): Drei Antwortoptionen für spontane Auswahlfragen.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABC<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C): Three answer options for spontaneous choice questions.</target>
+      </trans-unit>
+      <trans-unit id="help.quickFeedbackStartFlow" datatype="html">
+        <source>Du startest die Runde im Host-Bereich deiner Live-Session oder direkt über die Blitzlicht-Karte auf der Startseite. Teilnehmende stimmen mit einem Tipp ab, und du siehst die Ergebnisse live als Balkendiagramm.</source>
+        <target>You start the round in the host area of your live session or directly via the Blitzlicht card on the start page. Participants vote with one tap, and you see the results live as a bar chart.</target>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundStartAria" datatype="html">
+        <source>Vergleichsrunde starten</source>
+        <target>Start comparison round</target>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundLabel" datatype="html">
+        <source>Vergleichsrunde</source>
+        <target>Comparison round</target>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundHeadline" datatype="html">
+        <source>Jetzt zum Vergleich ein zweites Blitzlicht...</source>
+        <target>Now a second quick vote for comparison...</target>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundSummary" datatype="html">
+        <source>Runde 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> Stimmen erfasst.</source>
+        <target>Round 1: <x id="INTERPOLATION" equiv-text="{{ data.round1Total ?? 0 }}"/> votes recorded.</target>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundVoteHint" datatype="html">
+        <source>Gleich kannst du dein zweites Blitzlicht abgeben.</source>
+        <target>You'll be able to cast your second quick vote in a moment.</target>
+      </trans-unit>
+      <trans-unit id="feedback.compareRoundQuestion" datatype="html">
+        <source>Wie ist deine Einschätzung jetzt?</source>
+        <target>What's your assessment now?</target>
+      </trans-unit>
+          <trans-unit id="feedback.compareRoundFormatHint" datatype="html">
+        <source>Eine Vergleichsrunde funktioniert nur mit demselben Blitzlicht-Format. Bitte erst zurücksetzen. Das löscht die bisherigen Stimmen.</source>
+        <target>A comparison round only works with the same quick-vote format. Please reset first. This deletes the previous votes.</target>
+      </trans-unit>
+          <trans-unit id="feedback.endSessionWarning" datatype="html">
+        <source>Eine zweite Vergleichsrunde ist dann nicht mehr möglich. Es werden alle Ergebnisse gelöscht.</source>
+        <target>A second comparison round will no longer be possible. All results will be deleted.</target>
+      </trans-unit>
+      <trans-unit id="feedback.endStandaloneWarning" datatype="html">
+        <source>Das Blitzlicht wird beendet. Es werden alle Ergebnisse gelöscht.</source>
+        <target>The quick poll will be ended. All results will be deleted.</target>
+      </trans-unit>
+      <trans-unit id="feedback.endSessionConfirm" datatype="html">
+        <source>Trotzdem beenden</source>
+        <target>End anyway</target>
       </trans-unit>
     </body>
   </file>
