@@ -60,6 +60,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly themePreset = inject(ThemePresetService);
   private readonly quizStore = inject(QuizStoreService);
   readonly quizCount = computed(() => this.quizStore.quizzes().filter(q => q.id !== DEMO_QUIZ_ID).length);
+  readonly latestHostedQuizId = computed(() => {
+    const quizzes = this.quizStore.quizzes().filter((quiz) => quiz.id !== DEMO_QUIZ_ID);
+    return quizzes.reduce<string | null>((latestId, quiz) => {
+      if (!latestId) {
+        return quiz.id;
+      }
+
+      const latestQuiz = quizzes.find((candidate) => candidate.id === latestId) ?? null;
+      if (!latestQuiz) {
+        return quiz.id;
+      }
+
+      return Date.parse(quiz.updatedAt) > Date.parse(latestQuiz.updatedAt) ? quiz.id : latestId;
+    }, null);
+  });
+  readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
   private readonly platformId = inject(PLATFORM_ID);
 
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));

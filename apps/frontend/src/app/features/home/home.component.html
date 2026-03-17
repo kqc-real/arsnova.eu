@@ -210,13 +210,23 @@
           <mat-card-actions class="l-stack l-stack--sm">
             <a
               matButton="filled"
-              [routerLink]="localizedPath('/quiz')"
-              [queryParams]="{ startLive: 1 }"
+              [routerLink]="localizedPath(hasHostedQuiz() ? '/quiz' : '/quiz/new')"
+              [queryParams]="hasHostedQuiz() ? { startLiveQuiz: latestHostedQuizId() } : null"
               class="home-cta"
               (mouseenter)="preloadQuiz()"
             >
-              <mat-icon class="home-cta__icon">play_circle</mat-icon>
-              <span i18n="@@homeHostCard.primaryCta">Letztes Quiz starten</span>
+              <mat-icon class="home-cta__icon">
+                @if (hasHostedQuiz()) {
+                  play_circle
+                } @else {
+                  add_circle
+                }
+              </mat-icon>
+              @if (hasHostedQuiz()) {
+                <span i18n="@@homeHostCard.primaryCta">Letztes Quiz starten</span>
+              } @else {
+                <span i18n="@@homeHostCard.primaryCtaEmpty">Quiz erstellen</span>
+              }
             </a>
             <div class="home-cta-row">
               <a

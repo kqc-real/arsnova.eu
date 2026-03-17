@@ -233,4 +233,42 @@ describe('HomeComponent', () => {
     });
   });
 
+  describe('latestHostedQuizId', () => {
+    it('ist null, wenn noch kein eigenes Quiz vorhanden ist', () => {
+      const comp = createComponent();
+
+      expect(comp.latestHostedQuizId()).toBeNull();
+      expect(comp.hasHostedQuiz()).toBe(false);
+    });
+
+    it('verwendet fuer "Letztes Quiz starten" das zuletzt geaenderte Quiz', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      const olderQuiz = quizStore.createQuiz({
+        name: 'Aelteres Quiz',
+        description: '',
+      });
+      const newerQuiz = quizStore.createQuiz({
+        name: 'Neueres Quiz',
+        description: '',
+      });
+
+      quizStore.updateQuizMetadata(olderQuiz.id, { name: 'Aelteres Quiz', description: '' });
+      quizStore.updateQuizMetadata(newerQuiz.id, { name: 'Neueres Quiz', description: 'Aktualisiert' });
+
+      const comp = createComponent();
+
+      expect(comp.latestHostedQuizId()).toBe(newerQuiz.id);
+      expect(comp.hasHostedQuiz()).toBe(true);
+    });
+
+    it('zeigt ohne Quiz den CTA "Quiz erstellen"', () => {
+      const fixture = TestBed.createComponent(HomeComponent);
+      fixture.detectChanges();
+
+      const cta = fixture.nativeElement.querySelector('.home-card--create .home-cta') as HTMLAnchorElement | null;
+
+      expect(cta?.textContent).toContain('Quiz erstellen');
+    });
+  });
+
 });

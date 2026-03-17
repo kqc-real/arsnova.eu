@@ -451,6 +451,15 @@ export class QuizListComponent implements OnInit {
   }
 
   private async activateLiveStartShortcutIfRequested(): Promise<void> {
+    const requestedQuizId = this.route.snapshot.queryParamMap.get('startLiveQuiz');
+    if (requestedQuizId) {
+      const quiz = this.quizzes().find((entry) => entry.id === requestedQuizId) ?? null;
+      if (quiz) {
+        await this.openLiveStartDialog(quiz.id, quiz.name, quiz.questionCount);
+        return;
+      }
+    }
+
     if (this.route.snapshot.queryParamMap.get('startLive') !== '1') {
       return;
     }
@@ -540,14 +549,17 @@ export class QuizListComponent implements OnInit {
   }
 
   private async clearLiveStartShortcut(): Promise<void> {
-    if (!this.startLiveShortcutMode() && this.route.snapshot.queryParamMap.get('startLive') !== '1') {
+    const hasShortcutParams =
+      this.route.snapshot.queryParamMap.get('startLive') === '1' ||
+      this.route.snapshot.queryParamMap.get('startLiveQuiz') !== null;
+    if (!this.startLiveShortcutMode() && !hasShortcutParams) {
       return;
     }
 
     this.startLiveShortcutMode.set(false);
     await this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { startLive: null },
+      queryParams: { startLive: null, startLiveQuiz: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });

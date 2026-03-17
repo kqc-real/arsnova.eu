@@ -340,4 +340,43 @@ Viel Erfolg beim Import.`);
     expect(text).toContain('Starten');
     expect(fixture.componentInstance.startLiveShortcutMode()).toBe(true);
   });
+
+  it('oeffnet den Startdialog direkt fuer das angeforderte Quiz', async () => {
+    quizzesSignal.set([
+      {
+        id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+        name: 'Datenbanken',
+        description: 'SQL Grundlagen',
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+      },
+      {
+        id: 'bb0cd69b-a0d2-4373-b83e-c1abb0a8b58a',
+        name: 'Netzwerke',
+        description: 'OSI-Modell',
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:31:00.000Z',
+        questionCount: 3,
+      },
+    ]);
+    mockRoute.snapshot.queryParamMap = convertToParamMap({
+      startLiveQuiz: 'bb0cd69b-a0d2-4373-b83e-c1abb0a8b58a',
+    });
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const openSpy = vi
+      .spyOn(fixture.componentInstance, 'openLiveStartDialog' as keyof QuizListComponent)
+      .mockResolvedValue(undefined);
+
+    await (fixture.componentInstance as QuizListComponent & {
+      activateLiveStartShortcutIfRequested: () => Promise<void>;
+    }).activateLiveStartShortcutIfRequested();
+
+    expect(openSpy).toHaveBeenCalledWith(
+      'bb0cd69b-a0d2-4373-b83e-c1abb0a8b58a',
+      'Netzwerke',
+      3,
+    );
+  });
 });
