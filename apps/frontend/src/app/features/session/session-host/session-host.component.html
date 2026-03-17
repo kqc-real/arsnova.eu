@@ -331,6 +331,18 @@
                 <mat-icon aria-hidden="true">leaderboard</mat-icon>
                 <span i18n>Leaderboard</span>
               </h2>
+              @if (leaderboard()[0]; as leader) {
+                <div class="session-host__leaderboard-winner">
+                  <p class="session-host__leaderboard-winner-label">
+                    <span aria-hidden="true">🏆</span>
+                    <span i18n="@@sessionHost.leaderboardWinnerLabel">Vorn liegt</span>
+                  </p>
+                  <p class="session-host__leaderboard-winner-name">{{ leader.nickname }}</p>
+                  <p class="session-host__leaderboard-winner-meta" i18n="@@sessionHost.leaderboardWinnerMeta">
+                    Mit {{ leader.totalScore | number }} Punkten
+                  </p>
+                </div>
+              }
               <div class="session-host__leaderboard-wrap">
               <table class="session-host__leaderboard-table" role="table">
                 <thead>
@@ -343,7 +355,13 @@
                 </thead>
                 <tbody>
                   @for (entry of leaderboard(); track entry.rank) {
-                    <tr class="session-host__lb-row" [class.session-host__lb-row--top3]="entry.rank <= 3">
+                    <tr
+                      class="session-host__lb-row"
+                      [class.session-host__lb-row--top3]="entry.rank <= 3"
+                      [class.session-host__lb-row--rank1]="entry.rank === 1"
+                      [class.session-host__lb-row--rank2]="entry.rank === 2"
+                      [class.session-host__lb-row--rank3]="entry.rank === 3"
+                    >
                       <td class="session-host__lb-col--rank">
                         @if (entry.rank === 1) { 🥇 }
                         @else if (entry.rank === 2) { 🥈 }
@@ -513,7 +531,11 @@
             <mat-card appearance="outlined" class="session-host__question-card">
               <mat-card-header>
                 <mat-card-subtitle class="session-host__question-subtitle">
-                  <span i18n>Frage {{ q.order + 1 }}</span>
+                  @if (q.totalQuestions != null) {
+                    <span i18n="@@sessionHost.questionCounter">Frage {{ q.order + 1 }} / {{ q.totalQuestions }}</span>
+                  } @else {
+                    <span i18n="@@sessionHost.questionNumber">Frage {{ q.order + 1 }}</span>
+                  }
                   @if (q.totalQuestions != null && q.order + 1 === q.totalQuestions) {
                     <span class="session-host__question-last-badge" i18n>Letzte Frage</span>
                   }

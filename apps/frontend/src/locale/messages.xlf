@@ -4442,6 +4442,34 @@
           <context context-type="linenumber">508,509</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.questionCounter" datatype="html">
+        <source>Frage <x id="INTERPOLATION" equiv-text="{{ q.order + 1 }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ q.totalQuestions }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">516,518</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.questionNumber" datatype="html">
+        <source>Frage <x id="INTERPOLATION" equiv-text="{{ q.order + 1 }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">518,520</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.leaderboardWinnerLabel" datatype="html">
+        <source>Vorn liegt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">336,338</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.leaderboardWinnerMeta" datatype="html">
+        <source>Mit <x id="INTERPOLATION" equiv-text="leader.totalScore | number"/> Punkten</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">340,342</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="8116022307556021692" datatype="html">
         <source>Frage <x id="INTERPOLATION" equiv-text="{{ q.order + 1 }}"/></source>
         <context-group purpose="location">

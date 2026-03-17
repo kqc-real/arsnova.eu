@@ -121,6 +121,11 @@ html {
   --app-shadow-accent: none;
   --app-live-channel-max-width: 36rem;
   --app-live-channel-inline: 1rem;
+  --host-mobile-inline: 0.75rem;
+  --host-mobile-stack-gap: 0.875rem;
+  --host-mobile-card-padding: 0.875rem;
+  --host-mobile-toolbar-gap: 0.5rem;
+  --host-mobile-safe-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   --app-qr-size: 6rem;
   --app-qr-size-compact: 6rem;
 }
@@ -397,6 +402,12 @@ html.dark .app-qr-image {
   width: min(100%, var(--app-live-channel-max-width));
   margin-inline: auto;
   box-sizing: border-box;
+}
+
+@media (max-width: 599px) {
+  .app-live-channel-shell {
+    width: min(var(--app-live-channel-max-width), calc(100vw - (2 * var(--host-mobile-inline))));
+  }
 }
 
 .app-status-help-dialog-panel .mat-mdc-dialog-surface {

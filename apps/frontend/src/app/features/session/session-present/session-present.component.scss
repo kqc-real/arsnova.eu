@@ -134,8 +134,28 @@
 }
 
 @media (max-width: 599px) {
+  .session-present__qa-card,
+  .session-present__qa-list-card,
+  .session-present__feedback-card {
+    mat-card-content {
+      gap: var(--host-mobile-stack-gap);
+    }
+  }
+
   .session-present__qa-list-item {
     grid-template-columns: 1fr;
+    gap: 0.55rem;
+    padding: var(--host-mobile-card-padding);
+  }
+
+  .session-present__qa-title {
+    font-size: clamp(1.2rem, 5vw, 1.45rem);
+  }
+
+  .session-present__qa-text,
+  .session-present__qa-list-text {
+    font: var(--mat-sys-body-medium);
+    line-height: 1.6;
   }
 }
 
@@ -296,6 +316,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
 }
 
 .session-present__winner-icon {
@@ -336,7 +359,13 @@
 }
 
 .session-present__winner-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   margin: 0.8rem 0 0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
   color: var(--mat-sys-on-surface-variant);
   font-size: clamp(1rem, 1.7vw, 1.15rem);
   font-weight: 600;
@@ -410,6 +439,15 @@
   border-radius: inherit;
 }
 
+.session-present__word-cloud-card {
+  padding: clamp(0.85rem, 2.8vw, 1.2rem);
+  border-radius: var(--mat-sys-corner-extra-large, 1.25rem);
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--mat-sys-primary) 10%, transparent), transparent 62%),
+    color-mix(in srgb, var(--mat-sys-surface-container-low) 90%, var(--mat-sys-surface));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, var(--mat-sys-outline-variant));
+}
+
 .session-present__confetti {
   position: absolute;
   inset: 0;
@@ -428,6 +466,19 @@
 }
 
 @media (max-width: 700px) {
+  .session-present {
+    gap: var(--host-mobile-stack-gap);
+  }
+
+  .session-present__qa-card,
+  .session-present__feedback-card,
+  .session-present__winner-card,
+  .session-present__team-board-card {
+    mat-card-content {
+      padding-block: var(--host-mobile-card-padding);
+    }
+  }
+
   .session-present__qa-head {
     flex-direction: column;
   }
@@ -442,11 +493,13 @@
 
   .session-present__feedback-row {
     grid-template-columns: auto 1fr;
+    gap: 0.45rem 0.5rem;
   }
 
   .session-present__feedback-row-value {
     grid-column: 1 / -1;
-    padding-left: 3.25rem;
+    padding-left: 3rem;
+    font: var(--mat-sys-body-small);
   }
 
   .session-present--team-finale {
@@ -457,6 +510,24 @@
     min-height: auto;
   }
 
+  .session-present__winner-name {
+    font-size: clamp(2rem, 8vw, 2.8rem);
+  }
+
+  .session-present__winner-text {
+    font-size: clamp(1rem, 4.5vw, 1.35rem);
+  }
+
+  .session-present__winner-head,
+  .session-present__winner-meta {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .session-present__team-board-item {
+    padding: var(--host-mobile-card-padding);
+  }
+
   .session-present__team-board-head {
     grid-template-columns: auto 1fr;
   }
@@ -465,6 +536,10 @@
     grid-column: 1 / -1;
     text-align: left;
     padding-left: 2rem;
+  }
+
+  .session-present__word-cloud-card {
+    padding: var(--host-mobile-card-padding);
   }
 }
 

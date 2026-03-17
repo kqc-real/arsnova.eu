@@ -21,6 +21,20 @@
   box-sizing: border-box;
 }
 
+@media (max-width: 600px), (max-height: 700px) {
+  .feedback-vote {
+    padding: 1rem var(--host-mobile-inline) var(--host-mobile-safe-bottom);
+    min-height: calc(100dvh - env(safe-area-inset-top, 0px));
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .feedback-vote__session-code {
+    margin: 0 0 1.25rem;
+  }
+}
+
 .feedback-vote--embedded {
   min-height: auto;
   justify-content: flex-start;
@@ -290,4 +304,71 @@
   background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
   color: var(--mat-sys-primary);
   vertical-align: middle;
+}
+
+@media (max-width: 600px), (max-height: 700px) {
+  .feedback-vote__heading {
+    margin: 0 0 1.25rem;
+    font: var(--mat-sys-title-large);
+  }
+
+  .feedback-vote__card {
+    overflow: visible;
+  }
+
+  .feedback-vote__options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .feedback-vote__mood-btn {
+    gap: 0.5rem;
+    padding: 1.1rem 0.75rem;
+    min-width: 0;
+  }
+
+  .feedback-vote__mood-emoji {
+    font-size: 3.5rem;
+  }
+
+  .feedback-vote__mood-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .feedback-vote__mood-label {
+    font: var(--mat-sys-title-small);
+  }
+
+  .feedback-vote__abcd-btn {
+    width: 100%;
+    height: 4.75rem;
+    font-size: 1.9rem;
+  }
+
+  .feedback-vote__discussion {
+    padding: 1.5rem 1rem;
+  }
+
+  .feedback-vote__discussion-text {
+    font: var(--mat-sys-title-large);
+  }
+
+  .feedback-vote__discussion-hint {
+    font: var(--mat-sys-body-medium);
+  }
+
+  .feedback-vote__round2-hint {
+    margin: -0.25rem 0 1rem;
+    font: var(--mat-sys-body-small);
+  }
+}
+
+@media (max-width: 380px) {
+  .feedback-vote__options {
+    grid-template-columns: 1fr;
+  }
 }

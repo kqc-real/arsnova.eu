@@ -161,10 +161,12 @@
 /* Smartphone: ohne Scrollen sichtbar – QR verkleinern, Abstände reduzieren */
 @media (max-width: 600px), (max-height: 700px) {
   .feedback-host {
-    padding: 0.5rem var(--app-live-channel-inline) 1.25rem;
+    min-height: auto;
+    padding: 0.5rem var(--host-mobile-inline) var(--host-mobile-safe-bottom);
     max-height: none;
   }
   .feedback-host__wrapper {
+    margin-block: 0;
     gap: 1.35rem;
   }
 }
@@ -381,8 +383,29 @@
     gap: 0.5rem;
   }
   .feedback-host__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
     margin-top: 0.25rem;
+    width: 100%;
+  }
+  .feedback-host__actions > .mat-mdc-button-base,
+  .feedback-host__actions > .feedback-host__action-link {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+  .feedback-host__end-session-link,
+  .feedback-host__next-round-cta {
+    grid-column: 1 / -1;
+  }
+  .feedback-host__template-switch {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .feedback-host__template-action {
+    min-height: 4.5rem;
+    padding: 0.55rem 0.6rem;
   }
 }
 
@@ -539,7 +562,10 @@
     gap: 0.5rem;
   }
   .feedback-host__bar-row {
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.45rem 0.5rem;
+    align-items: center;
   }
   .feedback-host__bar-label {
     width: 2.5rem;
@@ -568,8 +594,11 @@
     height: 1.75rem;
   }
   .feedback-host__bar-count {
-    min-width: 3.5rem;
+    grid-column: 1 / -1;
+    min-width: 0;
     font-size: 0.875rem;
+    text-align: left;
+    padding-left: 3rem;
   }
 }
 
@@ -853,14 +882,39 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 
 @media (max-width: 600px), (max-height: 700px) {
   .feedback-host__comparison-header {
-    gap: 0.75rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
   }
   .feedback-host__comparison-label {
     font-size: 0.75rem;
     padding: 0.2rem 0.6rem;
+    justify-content: center;
+  }
+  .feedback-host__comparison-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    align-items: start;
+  }
+  .feedback-host__comparison-tracks {
+    width: 100%;
+  }
+  .feedback-host__comparison-track {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.4rem;
+    align-items: center;
   }
   .feedback-host__comparison-pct {
-    width: 3rem;
+    width: auto;
+    min-width: 2.75rem;
     font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .feedback-host__template-switch {
+    grid-template-columns: 1fr;
   }
 }

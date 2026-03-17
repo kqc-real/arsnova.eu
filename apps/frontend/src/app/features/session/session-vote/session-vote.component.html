@@ -96,7 +96,13 @@
     <div class="vote-finished-page">
 
       <!-- Hero: Ergebnis -->
-      <section class="vote-finished-hero" aria-labelledby="finished-heading">
+      <section
+        class="vote-finished-hero"
+        aria-labelledby="finished-heading"
+        [class.vote-finished-hero--rank1]="personalRank() === 1"
+        [class.vote-finished-hero--rank2]="personalRank() === 2"
+        [class.vote-finished-hero--rank3]="personalRank() === 3"
+      >
         <mat-icon class="vote-finished-hero__icon" aria-hidden="true">emoji_events</mat-icon>
         <h1 class="vote-finished-hero__title" id="finished-heading" i18n>Session beendet</h1>
         @if (personalResultLoaded()) {
@@ -169,6 +175,9 @@
                 <li
                   class="vote-team-reward__board-item"
                   [class.vote-team-reward__board-item--own]="entry.teamName === ownTeam.teamName"
+                  [class.vote-team-reward__board-item--rank1]="entry.rank === 1"
+                  [class.vote-team-reward__board-item--rank2]="entry.rank === 2"
+                  [class.vote-team-reward__board-item--rank3]="entry.rank === 3"
                   [attr.aria-label]="teamStandingAriaLabel(entry)"
                 >
                   <div class="vote-team-reward__board-head">
