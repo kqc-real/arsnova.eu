@@ -112,6 +112,49 @@ describe('QuizPreviewComponent', () => {
     expect(text).toContain('Hoch');
   });
 
+  it('zeigt bei Bewertung kein Schwierigkeits-Badge', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    fixture.detectChanges();
+
+    const badges = Array.from(
+      fixture.nativeElement.querySelectorAll('.quiz-preview-question__badge'),
+    ).map((badge) => (badge.textContent as string).trim());
+
+    expect(badges).toContain('Bewertung');
+    expect(badges).not.toContain('Mittel');
+  });
+
+  it('zeigt bei Umfragen kein Schwierigkeits-Badge', () => {
+    const originalQuestion = quiz.questions[0];
+    quiz.questions[0] = {
+      id: 'survey-question',
+      text: 'Wie hilfreich war die Einführung?',
+      type: 'SURVEY',
+      difficulty: 'HARD',
+      order: 0,
+      answers: [
+        { id: 's1', text: 'Sehr hilfreich', isCorrect: false },
+        { id: 's2', text: 'Teilweise hilfreich', isCorrect: false },
+      ],
+      ratingMin: null,
+      ratingMax: null,
+      ratingLabelMin: null,
+      ratingLabelMax: null,
+    };
+
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    fixture.detectChanges();
+
+    const badges = Array.from(
+      fixture.nativeElement.querySelectorAll('.quiz-preview-question__badge'),
+    ).map((badge) => (badge.textContent as string).trim());
+
+    expect(badges).toContain('Umfrage');
+    expect(badges).not.toContain('Schwer');
+
+    quiz.questions[0] = originalQuestion!;
+  });
+
   it('navigiert zwischen Fragen und zeigt Validierungshinweis', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;

@@ -2891,8 +2891,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="3494344475146199959" datatype="html">
-        <source>Nobelpreisträger:innen</source>
-        <target>Ganadores del Premio Nobel</target>
+        <source>Nobelpreis</source>
+        <target>Premio Nobel</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">180</context>
@@ -5466,8 +5466,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="3284733597105340728" datatype="html">
-        <source>Nobelpreisträger</source>
-        <target>ganador del premio nobel</target>
+        <source>Nobelpreis</source>
+        <target>Premio Nobel</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.ts</context>
           <context context-type="linenumber">53</context>

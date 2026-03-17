@@ -72,7 +72,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   ];
 
   readonly nicknameThemeOptions: Array<{ value: NicknameTheme; label: string }> = [
-    { value: 'NOBEL_LAUREATES', label: $localize`Nobelpreisträger:innen` },
+    { value: 'NOBEL_LAUREATES', label: $localize`Nobelpreis` },
     { value: 'KINDERGARTEN', label: $localize`Kita` },
     { value: 'PRIMARY_SCHOOL', label: $localize`Grundschule` },
     { value: 'MIDDLE_SCHOOL', label: $localize`Mittelstufe` },

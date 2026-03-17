@@ -1059,8 +1059,8 @@
         <target>Background music in lobby</target>
       </trans-unit>
       <trans-unit id="3284733597105340728" datatype="html">
-        <source>Nobelpreisträger</source>
-        <target>Nobel laureates</target>
+        <source>Nobelpreis</source>
+        <target>Nobel Prize</target>
       </trans-unit>
       <trans-unit id="7626477121022284790" datatype="html">
         <source>Kita</source>
@@ -3108,9 +3108,9 @@
         <target>Hard</target>
       </trans-unit>
       <trans-unit id="3494344475146199959" datatype="html">
-        <source>Nobelpreisträger:innen
+        <source>Nobelpreis
         </source>
-        <target>Nobel laureates</target>
+        <target>Nobel Prize</target>
       </trans-unit>
       <trans-unit id="28705485233984970" datatype="html">
         <source>Keine Musik

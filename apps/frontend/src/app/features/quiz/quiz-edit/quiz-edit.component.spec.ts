@@ -131,6 +131,30 @@ describe('QuizEditComponent', () => {
     });
   });
 
+  it('blendet bei Umfrage die Schwierigkeit im Formular aus', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.form.controls.type.setValue('SURVEY');
+    component.onTypeChanged();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).not.toContain('Schwierigkeit');
+  });
+
+  it('blendet bei Bewertung die Schwierigkeit im Formular aus', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.form.controls.type.setValue('RATING');
+    component.onTypeChanged();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).not.toContain('Schwierigkeit');
+  });
+
   it('aktualisiert eine vorhandene Frage im Bearbeitungsmodus', () => {
     quiz.questions = [
       {

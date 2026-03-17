@@ -427,6 +427,10 @@ export class QuizPreviewComponent implements OnDestroy {
     return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
   }
 
+  questionTypeShowsDifficulty(type: SupportedQuestionType): boolean {
+    return type !== 'SURVEY' && type !== 'RATING';
+  }
+
   difficultyLabel(value: Difficulty): string {
     if (value === 'EASY') return 'Leicht';
     if (value === 'HARD') return 'Schwer';

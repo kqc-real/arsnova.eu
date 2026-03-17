@@ -22,6 +22,7 @@ import {
   MatCardTitle,
 } from '@angular/material/card';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
@@ -107,6 +108,7 @@ type QuizMetadataFormGroup = FormGroup<{
     MatCardSubtitle,
     MatCardTitle,
     MatCheckbox,
+    MatExpansionModule,
     MatError,
     MatFormField,
     MatHint,
@@ -178,7 +180,7 @@ export class QuizEditComponent implements OnDestroy {
   ];
 
   readonly nicknameThemeOptions: Array<{ value: NicknameTheme; label: string }> = [
-    { value: 'NOBEL_LAUREATES', label: $localize`Nobelpreisträger:innen` },
+    { value: 'NOBEL_LAUREATES', label: $localize`Nobelpreis` },
     { value: 'KINDERGARTEN', label: $localize`Kita` },
     { value: 'PRIMARY_SCHOOL', label: $localize`Grundschule` },
     { value: 'MIDDLE_SCHOOL', label: $localize`Mittelstufe` },
@@ -379,6 +381,10 @@ export class QuizEditComponent implements OnDestroy {
     return this.typeControl.value === 'SURVEY';
   }
 
+  showDifficultySelection(): boolean {
+    return this.questionTypeShowsDifficulty(this.typeControl.value);
+  }
+
   isRatingType(): boolean {
     return this.typeControl.value === 'RATING';
   }
@@ -389,6 +395,10 @@ export class QuizEditComponent implements OnDestroy {
 
   questionTypeHasCorrectAnswers(type: SupportedQuestionType): boolean {
     return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
+  }
+
+  questionTypeShowsDifficulty(type: SupportedQuestionType): boolean {
+    return type !== 'SURVEY' && type !== 'RATING';
   }
 
   renderMarkdown(value: string | null | undefined): SafeHtml {

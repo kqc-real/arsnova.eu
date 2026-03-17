@@ -32,9 +32,11 @@
             <div class="quiz-preview-question__header">
               <div class="quiz-preview-question__meta">
                 <span class="quiz-preview-question__badge">{{ questionTypeLabel(slide.question.type) }}</span>
-                <span class="quiz-preview-question__badge quiz-preview-question__badge--difficulty">
-                  {{ difficultyLabel(slide.question.difficulty) }}
-                </span>
+                @if (questionTypeShowsDifficulty(slide.question.type)) {
+                  <span class="quiz-preview-question__badge quiz-preview-question__badge--difficulty">
+                    {{ difficultyLabel(slide.question.difficulty) }}
+                  </span>
+                }
               </div>
               <p class="quiz-preview-question__position" i18n>
                 Frage {{ currentIndex() + 1 }} von {{ questions().length }}

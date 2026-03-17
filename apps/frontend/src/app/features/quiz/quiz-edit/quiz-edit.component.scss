@@ -80,19 +80,29 @@
   border-color: var(--mat-sys-primary);
 }
 
-.quiz-edit__form-header {
-  padding-bottom: 0.55rem;
-}
-
 .quiz-edit__form-title {
-  margin-bottom: 0.25rem;
   line-height: 1.35;
 }
 
 .quiz-edit__form-subtitle {
   max-width: 68ch;
   line-height: 1.55;
-  margin-top: 0.15rem;
+  margin: 0;
+}
+
+.quiz-edit__form-expander {
+  margin-bottom: 1rem;
+  background: transparent;
+  box-shadow: none;
+  border: 1px solid var(--mat-sys-outline-variant);
+
+  .mat-expansion-panel-header {
+    padding-inline: 1rem;
+  }
+
+  .mat-expansion-panel-content .mat-expansion-panel-body {
+    padding: 0 1rem 1rem;
+  }
 }
 
 .quiz-edit-form {

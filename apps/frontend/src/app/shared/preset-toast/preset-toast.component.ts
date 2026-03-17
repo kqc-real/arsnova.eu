@@ -50,7 +50,7 @@ export const PRESET_OPTION_IDS = [
 ] as const;
 
 export const NICKNAME_THEME_OPTIONS: { value: NicknameTheme; label: string; icon: string }[] = [
-  { value: 'NOBEL_LAUREATES', label: $localize`Nobelpreisträger`, icon: 'military_tech' },
+  { value: 'NOBEL_LAUREATES', label: $localize`Nobelpreis`, icon: 'military_tech' },
   { value: 'KINDERGARTEN', label: $localize`Kita`, icon: 'child_care' },
   { value: 'PRIMARY_SCHOOL', label: $localize`Grundschule`, icon: 'abc' },
   { value: 'MIDDLE_SCHOOL', label: $localize`Mittelstufe`, icon: 'calculate' },
