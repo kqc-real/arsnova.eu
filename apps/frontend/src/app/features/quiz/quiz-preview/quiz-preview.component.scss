@@ -141,8 +141,14 @@
 
 .quiz-preview-question__text {
   margin: 0;
-  font: var(--mat-sys-headline-small);
-  line-height: 1.35;
+  font: var(--mat-sys-title-medium);
+  line-height: 1.4;
+}
+
+@media (min-width: 840px) {
+  .quiz-preview-question__text {
+    font: var(--mat-sys-title-large);
+  }
 }
 
 .quiz-preview-question__text--hint {
@@ -264,22 +270,25 @@
 }
 
 .quiz-preview-question__rating-scale {
-  display: flex;
-  flex-wrap: wrap;
+  --rating-count: 5;
+  display: grid;
+  grid-template-columns: repeat(var(--rating-count), minmax(0, 1fr));
   gap: 0.45rem;
   margin-top: 0.45rem;
+  width: 100%;
 }
 
 .quiz-preview-question__rating-point {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.8rem;
+  width: 100%;
   height: 1.8rem;
   padding: 0 0.35rem;
   border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-surface-container-high);
   font: var(--mat-sys-label-medium);
+  box-sizing: border-box;
 }
 
 .quiz-preview-question__rating-labels {

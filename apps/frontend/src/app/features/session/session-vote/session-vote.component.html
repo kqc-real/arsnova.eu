@@ -446,14 +446,15 @@
         </div>
       } @else if (isRating() && isActive()) {
         <div class="vote-rating" role="radiogroup" [attr.aria-label]="ratingAriaLabel()">
+          @let values = ratingRange();
           @if (ratingLabelMin() || ratingLabelMax()) {
             <div class="vote-rating__labels">
               <span class="vote-rating__label vote-rating__label--min">{{ ratingLabelMin() }}</span>
               <span class="vote-rating__label vote-rating__label--max">{{ ratingLabelMax() }}</span>
             </div>
           }
-          <div class="vote-rating__buttons">
-            @for (val of ratingRange(); track val) {
+          <div class="vote-rating__buttons" [style.--rating-count]="values.length">
+            @for (val of values; track val) {
               <button
                 class="vote-rating__btn"
                 [class.vote-rating__btn--selected]="ratingValue() === val"

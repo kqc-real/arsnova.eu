@@ -44,15 +44,17 @@
             @if (slide.question.type === 'FREETEXT') {
               <p class="quiz-preview-question__text quiz-preview-question__text--hint" i18n>Freitext-Antwort</p>
             } @else if (slide.question.type === 'RATING') {
+              @let ratingValues = ratingScaleValues(slide.question.ratingMin ?? 1, slide.question.ratingMax ?? 5);
               <div class="quiz-preview-question__rating">
                 <p class="quiz-preview-question__rating-meta" i18n>
                   Skala {{ slide.question.ratingMin ?? 1 }}–{{ slide.question.ratingMax ?? 5 }}
                 </p>
-                <div class="quiz-preview-question__rating-scale" aria-hidden="true">
-                  @for (
-                    value of ratingScaleValues(slide.question.ratingMin ?? 1, slide.question.ratingMax ?? 5);
-                    track value
-                  ) {
+                <div
+                  class="quiz-preview-question__rating-scale"
+                  aria-hidden="true"
+                  [style.--rating-count]="ratingValues.length"
+                >
+                  @for (value of ratingValues; track value) {
                     <span class="quiz-preview-question__rating-point">{{ value }}</span>
                   }
                 </div>

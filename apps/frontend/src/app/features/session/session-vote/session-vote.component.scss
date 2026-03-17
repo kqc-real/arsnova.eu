@@ -1269,15 +1269,18 @@
   }
 
   &__buttons {
-    display: flex;
-    justify-content: center;
+    --rating-count: 5;
+    display: grid;
+    grid-template-columns: repeat(var(--rating-count), minmax(0, 1fr));
     gap: 0.6rem;
-    flex-wrap: wrap;
+    width: 100%;
+    align-items: center;
   }
 
   &__btn {
-    width: 3.25rem;
-    height: 3.25rem;
+    width: min(100%, 3.25rem);
+    aspect-ratio: 1 / 1;
+    min-height: 2.5rem;
     border-radius: 50%;
     border: 2px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
     background: var(--mat-sys-surface);
@@ -1286,6 +1289,8 @@
     font-weight: 600;
     cursor: pointer;
     transition: background 150ms, border-color 150ms, transform 150ms;
+    justify-self: center;
+    box-sizing: border-box;
 
     &:hover:not(:disabled) {
       background: var(--mat-sys-primary-container);
