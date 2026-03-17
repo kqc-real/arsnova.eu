@@ -690,7 +690,7 @@ function tryParseJson(value: string): { ok: true; value: unknown } | { ok: false
 }
 
 function extractBalancedJsonCandidate(value: string): string | null {
-  const startIndex = value.search(/[\[{]/);
+  const startIndex = value.search(/[[{]/);
   if (startIndex < 0) {
     return null;
   }
