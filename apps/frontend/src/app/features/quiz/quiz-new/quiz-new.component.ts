@@ -181,9 +181,24 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     const settings = this.readSettingsFromForm();
     const prompt = buildKiQuizSystemPrompt({
       presetLabel: this.presetBadgeLabel(),
+      presetValue: settings.preset,
       nicknameTheme: settings.nicknameTheme,
       readingPhaseEnabled: settings.readingPhaseEnabled,
       defaultDifficulty: 'MEDIUM',
+      showLeaderboard: settings.showLeaderboard,
+      allowCustomNicknames: settings.allowCustomNicknames,
+      defaultTimer: settings.defaultTimer,
+      enableSoundEffects: settings.enableSoundEffects,
+      enableRewardEffects: settings.enableRewardEffects,
+      enableMotivationMessages: settings.enableMotivationMessages,
+      enableEmojiReactions: settings.enableEmojiReactions,
+      anonymousMode: settings.anonymousMode,
+      teamMode: settings.teamMode,
+      teamCount: settings.teamCount,
+      teamAssignment: settings.teamAssignment,
+      teamNames: settings.teamNames,
+      backgroundMusic: settings.backgroundMusic,
+      bonusTokenCount: settings.bonusTokenCount,
     });
 
     try {

@@ -12,10 +12,10 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
-import { PresetStorageEntrySchema } from '@arsnova/shared-types';
+import { QUIZ_PRESETS, PresetStorageEntrySchema, type QuizPreset, type TeamAssignment } from '@arsnova/shared-types';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { localizeCommands } from '../../../core/locale-router';
-import { QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
+import { QuizStoreService, type QuizSettings, type QuizSummary } from '../data/quiz-store.service';
 import { trpc } from '../../../core/trpc.client';
 import { buildKiQuizSystemPrompt } from '../../../shared/ki-quiz-prompt';
 import { LiveSessionDialogComponent } from './live-session-dialog.component';
@@ -274,17 +274,95 @@ export class QuizListComponent implements OnInit {
   }
 
   async copyKiPrompt(): Promise<void> {
+    const settings = this.readPromptSettingsFromHomePreset();
     const prompt = buildKiQuizSystemPrompt({
-      presetLabel: 'Standard',
-      nicknameTheme: 'NOBEL_LAUREATES',
-      readingPhaseEnabled: true,
+      presetLabel: settings.preset === 'SERIOUS' ? $localize`Seriös` : $localize`Spielerisch`,
+      presetValue: settings.preset,
+      nicknameTheme: settings.nicknameTheme,
+      readingPhaseEnabled: settings.readingPhaseEnabled,
       defaultDifficulty: 'MEDIUM',
+      showLeaderboard: settings.showLeaderboard,
+      allowCustomNicknames: settings.allowCustomNicknames,
+      defaultTimer: settings.defaultTimer,
+      enableSoundEffects: settings.enableSoundEffects,
+      enableRewardEffects: settings.enableRewardEffects,
+      enableMotivationMessages: settings.enableMotivationMessages,
+      enableEmojiReactions: settings.enableEmojiReactions,
+      anonymousMode: settings.anonymousMode,
+      teamMode: settings.teamMode,
+      teamCount: settings.teamCount,
+      teamAssignment: settings.teamAssignment,
+      teamNames: settings.teamNames,
+      backgroundMusic: settings.backgroundMusic,
+      bonusTokenCount: settings.bonusTokenCount,
     });
     try {
       await navigator.clipboard.writeText(prompt);
       this.actionInfo.set($localize`Prompt in die Zwischenablage kopiert.`);
     } catch {
       this.actionError.set($localize`Kopieren fehlgeschlagen – bitte manuell kopieren.`);
+    }
+  }
+
+  private readPromptSettingsFromHomePreset(): QuizSettings {
+    const preset: QuizPreset = this.themePreset.preset() === 'serious' ? 'SERIOUS' : 'PLAYFUL';
+    const presetDefaults = QUIZ_PRESETS[preset];
+    const defaultSettings: QuizSettings = {
+      showLeaderboard: presetDefaults.showLeaderboard ?? true,
+      allowCustomNicknames: false,
+      defaultTimer: preset === 'PLAYFUL' ? 60 : (presetDefaults.defaultTimer ?? null),
+      enableSoundEffects: presetDefaults.enableSoundEffects ?? true,
+      enableRewardEffects: presetDefaults.enableRewardEffects ?? true,
+      enableMotivationMessages: presetDefaults.enableMotivationMessages ?? true,
+      enableEmojiReactions: presetDefaults.enableEmojiReactions ?? true,
+      anonymousMode: preset === 'SERIOUS',
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: 'AUTO',
+      teamNames: [],
+      backgroundMusic: null,
+      nicknameTheme: 'NOBEL_LAUREATES',
+      bonusTokenCount: null,
+      readingPhaseEnabled: presetDefaults.readingPhaseEnabled ?? false,
+      preset,
+    };
+
+    try {
+      const presetKey = PRESET_OPTIONS_STORAGE_PREFIX + this.themePreset.preset();
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
+      const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+      const entry = PresetStorageEntrySchema.safeParse(parsed);
+      if (!entry.success) {
+        return defaultSettings;
+      }
+
+      const options = entry.data.options;
+      const optionEnabled = (id: string, fallback: boolean) => (id in options ? options[id] === true : fallback);
+      const nameMode = entry.data.nameMode;
+      const teamMode = optionEnabled('teamMode', false);
+
+      return {
+        ...defaultSettings,
+        nicknameTheme: entry.data.nicknameThemeValue,
+        allowCustomNicknames: nameMode === 'allowCustomNicknames',
+        anonymousMode: nameMode === 'anonymousMode',
+        showLeaderboard: optionEnabled('showLeaderboard', defaultSettings.showLeaderboard),
+        defaultTimer: optionEnabled('defaultTimer', defaultSettings.defaultTimer !== null)
+          ? defaultSettings.defaultTimer ?? 60
+          : null,
+        enableRewardEffects: optionEnabled('enableRewardEffects', defaultSettings.enableRewardEffects),
+        enableMotivationMessages: optionEnabled('enableMotivationMessages', defaultSettings.enableMotivationMessages),
+        enableEmojiReactions: optionEnabled('enableEmojiReactions', defaultSettings.enableEmojiReactions),
+        enableSoundEffects: optionEnabled('enableSoundEffects', defaultSettings.enableSoundEffects),
+        readingPhaseEnabled: optionEnabled('readingPhaseEnabled', defaultSettings.readingPhaseEnabled),
+        teamMode,
+        teamAssignment: optionEnabled('teamAssignment', false) ? ('MANUAL' as TeamAssignment) : 'AUTO',
+        teamCount: teamMode ? entry.data.teamCountValue : null,
+        backgroundMusic: optionEnabled('backgroundMusic', false) ? defaultSettings.backgroundMusic : null,
+        bonusTokenCount: optionEnabled('bonusTokenCount', false) ? defaultSettings.bonusTokenCount ?? 3 : null,
+      };
+    } catch {
+      return defaultSettings;
     }
   }
 

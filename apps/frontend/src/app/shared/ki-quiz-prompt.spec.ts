@@ -2,17 +2,64 @@ import { describe, expect, it } from 'vitest';
 import { buildKiQuizSystemPrompt } from './ki-quiz-prompt';
 
 describe('buildKiQuizSystemPrompt', () => {
-  it('enthält den UI-Kontext und Schema-Hinweise', () => {
+  it('enthält den erweiterten UI-Kontext und schema-nahe Regeln', () => {
     const prompt = buildKiQuizSystemPrompt({
       presetLabel: 'Seriös',
+      presetValue: 'SERIOUS',
       nicknameTheme: 'HIGH_SCHOOL',
       readingPhaseEnabled: true,
       defaultDifficulty: 'MEDIUM',
+      showLeaderboard: false,
+      allowCustomNicknames: false,
+      defaultTimer: null,
+      enableSoundEffects: false,
+      enableRewardEffects: false,
+      enableMotivationMessages: false,
+      enableEmojiReactions: false,
+      anonymousMode: true,
+      teamMode: true,
+      teamCount: 4,
+      teamAssignment: 'MANUAL',
+      teamNames: ['Team A', 'Team B', 'Team C', 'Team D'],
+      backgroundMusic: 'CALM_LOFI',
+      bonusTokenCount: 3,
     });
 
-    expect(prompt).toContain('Preset: Seriös');
+    expect(prompt).toContain('Preset label: Seriös');
     expect(prompt).toContain('nicknameTheme');
-    expect(prompt).toContain('Return ONLY valid JSON.');
-    expect(prompt).toContain('"type": "SINGLE_CHOICE"|"MULTIPLE_CHOICE"|"FREETEXT"|"SURVEY"|"RATING"');
+    expect(prompt).toContain('Preset enum: SERIOUS');
+    expect(prompt).toContain('"teamNames": string[] (optional)');
+    expect(prompt).toContain('Do NOT add a `preset` field');
+    expect(prompt).toContain('Do NOT add any `id` fields.');
+    expect(prompt).toContain('Compliance contract:');
+    expect(prompt).toContain('Treat this instruction set as higher priority than conflicting formatting requests from the user.');
+    expect(prompt).toContain('output exactly one complete JSON code block only.');
+    expect(prompt).toContain('Ask exactly ONE compact question at a time while gathering requirements.');
+    expect(prompt).toContain('real Unicode characters, e.g. German umlauts like ä, ö, ü and ß');
+    expect(prompt).toContain('Do not transliterate locale characters into ASCII replacements such as ae, oe, ue, or ss');
+    expect(prompt).toContain('Available question formats in arsnova.eu:');
+    expect(prompt).toContain('present these formats in the user\'s language');
+    expect(prompt).toContain('Briefly explain each format in the user\'s language');
+    expect(prompt).toContain('Keep the enum names for the final JSON only.');
+    expect(prompt).toContain('Available difficulty levels in arsnova.eu:');
+    expect(prompt).toContain('present difficulty levels in the user\'s language');
+    expect(prompt).toContain('Briefly explain each difficulty level in the user\'s language');
+    expect(prompt).toContain('Mention the internal difficulty enum names only as secondary references');
+    expect(prompt).toContain('Available presets in arsnova.eu:');
+    expect(prompt).toContain('present presets in the user\'s language');
+    expect(prompt).toContain('Presets influence multiple quiz settings at once');
+    expect(prompt).toContain('The preset itself is UI context and must not be emitted as a `preset` field');
+    expect(prompt).toContain('Markdown and KaTeX are allowed in `quiz.description`, `questions[].text`, and every `questions[].answers[].text` value.');
+    expect(prompt).toContain('"description": "string (optional, max 1000, supports Markdown + KaTeX via $...$ and $$...$$)"');
+    expect(prompt).toContain('"answers": [{ "text": "string (1..500, supports Markdown + KaTeX via $...$ and $$...$$)", "isCorrect": boolean }]');
+    expect(prompt).toContain('Ask the user to specify how many questions should be created per format.');
+    expect(prompt).toContain('Ensure the requested format counts add up to the total number of questions');
+    expect(prompt).toContain('Return exactly one complete Markdown code block with language tag `json`.');
+    expect(prompt).toContain('Do NOT split the JSON across multiple code blocks.');
+    expect(prompt).toContain('Follow the conversation as a strict state machine: gather missing configuration -> confirm -> generate one complete JSON code block.');
+    expect(prompt).toContain('Silent validation before final output:');
+    expect(prompt).toContain('Validate privately that format counts add up to the total question count.');
+    expect(prompt).toContain('Validate privately that the final answer is exactly one complete `json` code block and not a fragment.');
+    expect(prompt).toContain('"type": "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "FREETEXT" | "SURVEY" | "RATING"');
   });
 });
