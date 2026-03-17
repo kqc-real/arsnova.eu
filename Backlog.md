@@ -43,6 +43,7 @@
 | 1    | 1.12  | SC-Schnellformate                             | 🟡   | ✅ Fertig |
 | 1    | 1.13  | Quiz-Preview & Schnellkorrektur               | 🟡   | ✅ Fertig |
 | 1    | 1.14  | Word Cloud (interaktiv + Export)              | 🟡   | ✅ Fertig |
+| 1    | 1.14a | Word Cloud 2.0 (echtes Layout + Premium-UX)    | 🟡   | ⬜ Offen  |
 | 1    | 1.15  | Preset-Konfiguration exportieren & importieren | 🟢   | ✅ Fertig |
 | 2    | 2.1a  | Session-ID & Quiz-Upload                      | 🔴   | ✅ Fertig |
 | 2    | 2.1b  | QR-Code                                       | 🟢   | ✅ Fertig |
@@ -94,7 +95,7 @@
 
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 25 · 🟡 Should: 34 · 🟢 Could: 14 = **73 Storys gesamt**
+> **Statistik:** 🔴 Must: 25 · 🟡 Should: 35 · 🟢 Could: 14 = **74 Storys gesamt**
 
 ---
 
@@ -422,6 +423,43 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - **Bild/PNG (optional):** Screenshot der Word-Cloud oder der Ergebnis-Visualisierung für eine Frage.
     - Export ist nur für den Dozenten zugänglich (kein Studenten-Zugriff); Daten nur aggregiert bzw. pseudonym (Bonus-Code-Liste), DSGVO-konform.
     - Abhängigkeiten: Story 4.5 (Freitext-Auswertung), Story 2.5 (Beamer), Story 4.4 (Ergebnis-Visualisierung).
+- **Story 1.14a (Word Cloud 2.0 – echtes Layout + Premium-UX):** 🟡 Als Dozent möchte ich Freitext-Antworten in einer echten, dichten und praesentationstauglichen Word-Cloud sehen, damit arsnova.eu bei Live-Freitext mindestens so stark wie Kahoot oder Mentimeter wirkt und in Lesbarkeit, Interaktion und Export sichtbar darueber liegt.
+  - **Akzeptanzkriterien:**
+    - **Layout-Engine:** Die Word-Cloud verwendet eine echte Layout-Engine mit Kollisionspruefung und Spiralplatzierung; die bisherige `flex-wrap`-Tag-Cloud wird fuer Host/Presenter durch ein echtes Cloud-Layout ersetzt.
+    - **Wichtigstes Wort zentral:** Das haeufigste oder eines der haeufigsten Woerter wird sichtbar dominanter und moeglichst zentral platziert; die visuelle Hierarchie ist fuer einen Beamer aus mehreren Metern Entfernung erkennbar.
+    - **Dichte statt Liste:** Die Darstellung nutzt die verfuegbare Flaeche deutlich besser als die bisherige Tag-Cloud; sie wirkt wie eine echte Wortwolke und nicht wie eine umbrochene Begriffsliste.
+    - **Mindestens Benchmark-Niveau:** Die Standarddarstellung ist in wahrgenommener Qualitaet, Lesbarkeit und visueller Dichte mindestens auf dem Niveau von Kahoot oder Mentimeter.
+    - **Zielbild besser als Benchmark:** In mindestens zwei Bereichen ist die Darstellung sichtbar besser als typische Standard-Word-Clouds von Kahoot oder Mentimeter, z. B. bei Live-Aktualisierung ohne visuelle Unruhe, Interaktion, Exportqualitaet, Filterung oder Responsiveness.
+    - **Live-Update ohne Chaos:** Neue Freitext-Antworten fuehren zu einer stabilen Neuberechnung; bereits platzierte Woerter springen nicht bei jedem Update chaotisch ueber die Flaeche, sondern veraendern sich fuer Nutzer:innen nachvollziehbar.
+    - **Animierter, aber ruhiger Uebergang:** Wenn Woerter ihre Position oder Groesse aendern, erfolgen diese Aenderungen weich und visuell ruhig; bei `prefers-reduced-motion` werden Animationen reduziert oder deaktiviert.
+    - **Skalierung:** Die Schriftgroesse wird nicht nur linear vergroessert, sondern so skaliert, dass Unterschiede zwischen seltenen, mittleren und sehr haeufigen Begriffen auch bei vielen Eintraegen gut erkennbar bleiben.
+    - **Farblogik:** Die Cloud verwendet eine projektkonforme Farb- und Kontrastlogik; Farben duerfen die Hierarchie unterstuetzen, aber nie die Lesbarkeit schwaechen.
+    - **Rotation konfigurierbar:** Wortrotation ist technisch moeglich und konfigurierbar; Standard bleibt nur dann ohne Rotation, wenn dies nach UX-Pruefung klar besser lesbar ist.
+    - **Padding konfigurierbar:** Wortabstaende, Mindestpadding und maximale Dichte sind konfigurierbar, damit die Darstellung je nach Host-, Presenter- oder Exportkontext feinjustiert werden kann.
+    - **Groesse adaptiv:** Die Word-Cloud passt sich an verschiedene Viewports und Seitenverhaeltnisse an, ohne dass die Layoutqualitaet auf Mobilgeraeten, Laptops oder Projektionsflaechen sichtbar kollabiert.
+    - **Presenter und Host konsistent:** Host- und Presenter-Ansicht nutzen dieselbe fachliche Aggregation und dasselbe Layoutprinzip; Unterschiede duerfen nur bewusst in Dichte, Bedienelementen oder Rahmung bestehen.
+    - **Echte Interaktion:** Klick oder Fokus auf ein Wort markiert es sichtbar und filtert die zugrundeliegenden Antworten; das aktive Wort kann wieder deaktiviert werden.
+    - **Exakte Mengen sichtbar:** Fuer jedes Wort ist die genaue Haeufigkeit per Tooltip, Overlay oder Fokuszustand klar erkennbar.
+    - **Stopwoerter professionell:** Stopwoerter koennen ein- und ausgeblendet werden; das Umschalten fuehrt zu einer nachvollziehbaren, konsistenten Neuberechnung statt zu einem kompletten visuellen Neustart.
+    - **Semantische Robustheit:** Tokenisierung, Stopwortlogik und Mindestwortlaenge bleiben getrennt vom Layout und koennen spaeter ohne Austausch der Layout-Engine erweitert werden.
+    - **Lexikonform per NLP:** Woerter werden vor der Aggregation ueber geeignete NLP-Komponenten in ihre moeglichst fehlerfreie Lexikonform ueberfuehrt, damit Beugungen, Flexionen und naheliegende Wortformen nicht als getrennte Begriffe erscheinen.
+    - **Aehnliche Woerter zusammenfassen:** Fachlich gleichartige Wortformen wie Singular/Plural, konjugierte Verbformen oder flektierte Adjektive koennen auf einen gemeinsamen Begriff aggregiert und als ein Wort in der Cloud dargestellt werden; als Referenz fuer die Qualitaet gilt ein Ansatz mit NLP-Bausteinen auf dem Niveau von spaCy.
+    - **Viele verschiedene Eintraege:** Bei einer Testmenge mit vielen heterogenen Freitext-Antworten bleibt die Darstellung lesbar und praesentierbar; die Ansicht darf nicht in eine ungeordnete Mikrotext-Flaeche kippen.
+    - **Viele Dubletten:** Bei stark haeufigen Wiederholungen wird die Dominanz weniger Leitbegriffe deutlich sichtbar, ohne dass seltenere, relevante Woerter vollstaendig untergehen.
+    - **Begrenzung mit Qualitaetsregel:** Wenn aufgrund der Flaeche oder Dichte nicht alle Woerter gerendert werden koennen, werden die wichtigsten Woerter priorisiert; verworfene Woerter fuehren nicht zu einem inkonsistenten oder kaputten Layout.
+    - **Leere und fruehe Zustaende:** Bei noch keinen oder sehr wenigen Antworten zeigt die UI einen hochwertigen leeren bzw. fruehen Zustand und wechselt sauber in die eigentliche Cloud.
+    - **Export in Praesentationsqualitaet:** PNG- oder SVG-Export liefert eine hochwertige, ruhige und beamergeeignete Grafik; der Export ist kein bloesser Screenshot einer instabilen Zwischenansicht.
+    - **Export und Live-Ansicht konsistent:** Die Exportdarstellung entspricht in Hierarchie und Wortanordnung plausibel der Live-Ansicht oder nutzt bewusst ein hochwertigeres statisches Layout desselben Datenstands.
+    - **Barrierefreiheit:** Die wichtigsten Informationen der Cloud bleiben nicht nur visuell zugreifbar; es gibt eine textuelle Alternative oder assistive Darstellung fuer Haeufigkeiten und gefilterte Antworten.
+    - **Tastaturbedienung:** Interaktive Woerter sind per Tastatur erreichbar; Fokuszustand und Aktivierung sind sichtbar und sinnvoll.
+    - **Performance im Live-Betrieb:** Die Layoutberechnung bleibt fuer typische Live-Szenarien performant genug, dass Host und Presenter waehrend eingehender Antworten reaktiv bleiben.
+    - **Messbare Qualitaetsprobe:** Vor Abschluss der Story wird die neue Darstellung mit mehreren realistischen Demo-Datensaetzen geprueft, darunter:
+      - viele unterschiedliche kurze Antworten
+      - viele Wiederholungen weniger Begriffe
+      - gemischte deutsche und englische Begriffe
+      - sehr lange Einzelbegriffe
+    - **Architekturvorgabe:** Die Umsetzung folgt ADR-0012; `d3-cloud` wird als Layout-Engine in eine eigene Angular-Komponente gekapselt und nicht als unkontrolliertes Fremd-Widget direkt in die UI eingebaut.
+  - **Abhaengigkeiten:** Story 1.14 (bestehende Word-Cloud), Story 4.5 (Freitext-Auswertung), Story 2.5 (Beamer / Presenter), Story 6.4 (Responsive), Story 6.5 (Barrierefreiheit), ADR-0012.
 - **Story 1.15 (Preset-Konfiguration exportieren & importieren):** 🟢 Als Dozent möchte ich meine Preset-Konfiguration (Seriös/Spielerisch inkl. aller Optionen) als Datei exportieren und auf einem anderen Gerät/Browser importieren können, damit ich meine Einstellungen geräteübergreifend nutzen kann — ohne Account und ohne serverseitige Speicherung.
   - **Motivation:** Presets werden im `localStorage` des Browsers gespeichert und sind damit an ein Gerät/einen Browser gebunden. Für Dozenten, die zwischen Laptop und Tablet wechseln, geht die individuelle Konfiguration verloren. Diese Story bietet eine einfache, Zero-Knowledge-konforme Lösung.
   - **Akzeptanzkriterien:**
