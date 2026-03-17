@@ -1,8 +1,8 @@
 ## 📊 Vergleich mit den Marktführern
 
-**arsnova.eu** ist die **führende europäische, 100 % DSGVO-konforme und kostenlose Alternative** zu Kahoot, Mentimeter und Slido – und setzt in zentralen Punkten den Maßstab: **Datenschutz** (Quiz-Inhalte nie dauerhaft auf dem Server), **Kosten** (vollständig kostenlos, Open Source, kein Abo), **Didaktik** (Lesephase, Presets Seriös/Spielerisch, Bonus-Code für Top-Plätze) und **Offenheit** (Self-Hosted, WCAG 2.1 AA, KI-Quiz mit externem LLM ohne Datenpreisgabe).
+**arsnova.eu** ist die **führende europäische, 100 % DSGVO-konforme und kostenlose Alternative** zu Kahoot, Mentimeter und Slido – und setzt in zentralen Punkten den Maßstab: **Datenschutz** (Quiz-Inhalte nie dauerhaft auf dem Server), **Kosten** (vollständig kostenlos, Open Source, kein Abo), **Didaktik** (Lesephase, Presets Seriös/Spielerisch, Bonus-Code für Top-Plätze), **mobiles Live-Hosting** (echte Session-Steuerung ohne Desktop) und **Offenheit** (Self-Hosted, WCAG 2.1 AA, KI-Quiz mit externem LLM ohne Datenpreisgabe).
 
-**Wo wir vorne liegen:** Eine Startseite, eine URL für alle (Dozenten & Teilnehmer, demokratisch) · Kostenlos & Zero-Account · Local-First (Yjs) · KaTeX & Markdown (MINT) · Lesephase & Presets · Bonus-Token · Self-Hosted · Barrierefreiheit · KI-Quiz per externem LLM (Zero-Knowledge).
+**Wo wir vorne liegen:** Eine Startseite, eine URL für alle (Dozenten & Teilnehmer, demokratisch) · Kostenlos & Zero-Account · Local-First (Yjs) · KaTeX & Markdown (MINT) · Lesephase & Presets · Bonus-Token · produktives Smartphone-Hosting · Self-Hosted · Barrierefreiheit · KI-Quiz per externem LLM (Zero-Knowledge).
 
 **Legende**  
 ✅ = voll umgesetzt  
@@ -24,6 +24,7 @@
 |                          | Konfetti, Sounds, Persönliche Scorecard      | ✅          | ❌           | ❌           | **✅**                                 |
 | **Live-Modus**           | 6-stelliger Code + QR + Beamer-Ansicht       | ✅          | ✅           | ✅           | ✅                                     |
 |                          | Dedizierte Presenter-Ansicht                 | ✅          | ✅           | ✅           | **✅** (optimiert für Hörsäle)         |
+|                          | Veranstaltung produktiv direkt vom Smartphone hosten | ❌ | ❌ | ❌ | **🟡** (Story 2.8 + ADR-0014: Core Use Case) |
 | **Technik**              | Self-Hosted (Docker)                         | ❌          | ❌           | ❌           | **✅**                                 |
 |                          | Echtzeit (tRPC + Redis) + Offline-Sync       | ✅          | ✅           | ✅           | **✅ Yjs CRDT**                        |
 | **Barrierefreiheit**     | WCAG 2.1 AA + Mobile-First + Dark-Mode       | 🟡          | 🟡           | 🟡           | **✅** (im DoD verankert)              |
@@ -34,7 +35,7 @@
 |                          | Anonymer Export für Nachbereitung/Evaluation | 🟡          | ✅           | ✅           | **🟡** (Story 4.7)                     |
 
 **Fazit:**  
-**arsnova.eu** liegt bei **Datenschutz**, **Kosten**, **Didaktik** (Lesephase, Presets, Bonus-Token) und **Offenheit** (Self-Hosted, Open Source) **vorn**. Mit Markdown & KaTeX, Local-First und anonymer Nutzung ist es die **erste Wahl für Hochschulen, Schulen und Bildungsträger**, die Wert auf DSGVO, Zero-Account und didaktische Kontrolle legen. Geplante Features (Word-Cloud 1.14, KI-Quiz-Import 1.9a/1.9b) bringen uns weiter an die Spitze – ohne Kompromisse bei der Datensouveränität.
+**arsnova.eu** liegt bei **Datenschutz**, **Kosten**, **Didaktik** (Lesephase, Presets, Bonus-Token), **mobilem Live-Hosting** und **Offenheit** (Self-Hosted, Open Source) **vorn**. Mit Markdown & KaTeX, Local-First, anonymer Nutzung und dem Zielbild einer echten Smartphone-Host-Steuerung ist es die **erste Wahl für Hochschulen, Schulen und Bildungsträger**, die Wert auf DSGVO, Zero-Account, didaktische Kontrolle und flexible Live-Settings ohne Desktop-Zwang legen. Geplante Features wie produktives Smartphone-Hosting (Story 2.8), Word-Cloud 2.0 und KI-Quiz-Import bringen uns weiter an die Spitze – ohne Kompromisse bei der Datensouveränität.
 
 ---
 

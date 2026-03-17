@@ -4,13 +4,14 @@
 
 ---
 
-## 1. Bereits verankerte Alleinstellungsmerkte
+## 1. Bereits verankerte Alleinstellungsmerkmale
 
 - **Datenschutz als Enabler:** DSGVO, Local-First, anonymer Modus → Formate, die bei US-ARS schwer vertretbar sind.
 - **Zwei Modi in einem Tool:** Presets „Spielerisch“ vs. „Seriös“, Lesephase für reflektiertes Antworten.
 - **Hochschul-Fit:** KaTeX, Schwierigkeitsstufen, Bonus-Token für formelle Anerkennung bei Wahrung der Anonymität.
 - **Feedback & Gamification:** Streak, persönliche Scorecard, kontextuelle Motivationsmeldungen, differenziertes Scoring (Schwierigkeit + Zeit).
 - **Institutionelle Souveränität:** Self-Hosted, Open Source, Zero-Account, keine Abo-Kosten, WCAG 2.1 AA.
+- **Live-Hosting ohne Desktop:** arsnova.eu kann produktiv direkt vom Smartphone aus gehostet werden. Das ist nicht nur Responsive Design, sondern ein eigener Core Use Case fuer Lehre ohne Laptop, Beamer oder stationaeres Setup.
 
 ---
 
@@ -28,6 +29,7 @@
 
 - **Story 1.14 (Word Cloud)** ist im ARS-Vergleich genannt, fehlt aber in der Backlog-Tabelle → als Story aufnehmen und als „Mentimeter-Level Freitext-Auswertung“ kommunizieren.
 - **Story 2.6 (Lesephase)** in Außendarstellung klar als didaktisches Alleinstellungsmerkmal hervorheben („Frage zuerst lesen, dann antworten“).
+- **Story 2.8 (Produktives Smartphone-Hosting)** als strategisches Gegenmodell zu Desktop-zentrierten ARS-Systemen kommunizieren: „Live unterrichten, moderieren und steuern direkt vom Smartphone aus.“
 - **Presets (1.11)** in Docs und UI mit kurzer didaktischer Begründung versehen („Spielerisch: Motivation & Wettbewerb“ / „Seriös: Druckfreiheit & Fokus“).
 
 ### 2.3 Neue / erweiterte Backlog-Ideen (didaktisch)

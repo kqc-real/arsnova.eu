@@ -55,6 +55,7 @@
 | 2    | 2.5   | Beamer-Ansicht / Presenter-Mode               | 🔴   | ✅ Fertig |
 | 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)          | 🟡   | ✅ Fertig |
 | 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher) | 🟡   | ✅ Fertig |
+| 2    | 2.8   | Produktives Smartphone-Hosting fuer Live-Sessions | 🔴   | ⬜ Offen  |
 | 3    | 3.1   | Beitreten                                     | 🔴   | ✅ Fertig |
 | 3    | 3.2   | Nicknames                                     | 🟡   | ✅ Fertig |
 | 3    | 3.3a  | Frage empfangen                               | 🔴   | ✅ Fertig |
@@ -97,7 +98,7 @@
 
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 25 · 🟡 Should: 37 · 🟢 Could: 14 = **76 Storys gesamt**
+> **Statistik:** 🔴 Must: 26 · 🟡 Should: 37 · 🟢 Could: 14 = **77 Storys gesamt**
 
 ---
 
@@ -513,7 +514,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 2: Live-Sitzung & Lobby (Rolle: Dozent)
 
-> **Verifizierung (Commit-Historie):** Der bisherige Kernumfang 2.1a–2.7 ist umgesetzt. Offene Nachschärfung: Story 2.1c für tokenbasierten Host-/Presenter-Zugang.
+> **Verifizierung (Commit-Historie):** Der bisherige Kernumfang 2.1a–2.7 ist umgesetzt. Offene Nachschärfungen: Story 2.1c für tokenbasierten Host-/Presenter-Zugang und Story 2.8 für produktives Smartphone-Hosting.
 
 - **Story 2.1a (Session-ID generieren & Quiz-Upload):** 🔴 Als Dozent möchte ich ein Quiz live schalten können, wodurch eine 6-stellige Session-ID generiert wird und die Quizdaten an den Server übertragen werden.
   - **Akzeptanzkriterien:**
@@ -602,6 +603,32 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Alternative/Ergänzung: Zusätzliche Kennzahlen (z. B. „Richtig in Runde 1: 45 % → Runde 2: 72 %“) für schnelle Einordnung.
     - **Beamer & Dozenten-Steuerung:** Die Vorher/Nachher-Visualisierung erscheint in der Beamer-Ansicht (Story 2.5) und in der Dozenten-Ergebnisansicht. Barrierefrei: Balken mit `aria-label`/`role`, sinnvolle Kontraste (Story 6.5).
   - **Abhängigkeiten:** Story 2.3 (Steuerung), Story 2.5 (Beamer), Story 3.3b (Abstimmung), Story 4.4 (Ergebnis-Visualisierung), Story 4.2 (Session-Cleanup für Speicherdauer).
+- **Story 2.8 (Produktives Smartphone-Hosting fuer Live-Sessions):** 🔴 Als Dozent moechte ich eine laufende Veranstaltung komplett und verlaesslich auf meinem Smartphone hosten koennen, damit Quiz, Q&A und Blitzlicht auch ohne Desktop oder Beamer in echten Live-Situationen professionell steuerbar sind.
+  - **Kontext:** Smartphone-Hosting ist kein Test- oder Fallback-Szenario, sondern ein echter Kernanwendungsfall, z. B. fuer Outdoor-Events, Seminare ohne Beamer, spontane Kleingruppenformate oder Lehrsituationen ohne Laptop. Das Produktversprechen lautet daher nicht nur "responsive", sondern "live hostbar ohne Desktop".
+  - **Akzeptanzkriterien:**
+    - **Produktiver Primaermodus:** Die Host-Ansicht ist auf Smartphone ein vollwertiger produktiver Bedienmodus; Start, Steuerung, Kanalwechsel und Session-Ende sind ohne Desktop moeglich.
+    - **Gleiche Rolle, gleiche Route:** Es gibt keine eigene Mobile-Host-Rolle und keine separate Mobile-Route; dieselbe Host-Funktionalitaet wird ueber responsive Informationsarchitektur fuer Smartphone nutzbar gemacht.
+    - **Desktop bleibt stabil:** Desktop- und Beamer-Ansicht werden nicht verschlechtert; mobile Anpassungen erfolgen gezielt unter `@media`-Breakpoints.
+    - **Obere Steuerzone mobil vereinfacht:** Kanal-Tabs, Live-Banner, Session-Code, Status, Join-/Sound-Aktionen und Zusatz-Controls sind auf Smartphone so priorisiert, dass die obere Zone kompakt, ruhig und ohne visuelle Ueberladung bedienbar bleibt.
+    - **Natuerliche Scrollbarkeit:** Jede mobile Host-Ansicht ist vollstaendig scrollbar; wichtige Aktionen oder Informationen werden nicht durch konkurrierende `fixed`-/`sticky`-/`dvh`-Konstruktionen abgeschnitten oder ueberlagert.
+    - **Safe-Area sauber:** iPhone- und Android-Safe-Areas sowie Browser-Chrome werden in Hoehen- und Padding-Logik beruecksichtigt.
+    - **Quiz mobil steuerbar:** In laufenden Quiz-Sessions sind Frage, Status, Countdown, primäre Steueraktion und Folgeaktionen auf Smartphone ohne horizontales Scrollen und ohne gequetschte Toolbar bedienbar.
+    - **Q&A mobil steuerbar:** Fragenliste, Moderationsstatus, Votes und Moderationsaktionen bleiben auf Smartphone lesbar, scrollbar und fingerfreundlich; Moderationsaktionen sind ohne Fehlbedienung erreichbar.
+    - **Blitzlicht mobil steuerbar:** Startzustand, Rundenergebnis, Vergleichsrunde und Reset-/Ende-Aktionen sind auf Smartphone klar gegliedert; Aktionsbereiche und Ergebnisbalken kollabieren nicht visuell.
+    - **Ergebnis-Views mobil robust:** Leaderboard, Freitext-/Word-Cloud-Rahmung, Bewertungs- und Auswertungsansichten bleiben auf Smartphone strukturiert, mit angenehmen Abstaenden und klarer visueller Hierarchie.
+    - **Einheitliche mobile IA:** Quiz, Q&A, Blitzlicht und Ergebnisansichten folgen auf Smartphone einem konsistenten Layoutsystem mit einspaltiger Haupthierarchie, vergleichbaren Kartenbreiten und abgestimmten Abstaenden.
+    - **Touch-Ziele:** Alle interaktiven Hauptelemente in der mobilen Host-Ansicht erreichen mindestens 44 × 44 px und sind mit dem Daumen sicher bedienbar.
+    - **Keine horizontale Ueberforderung:** Auf 320 px Breite gibt es in der Host-Ansicht kein unbeabsichtigtes horizontales Scrollen.
+    - **Kanalwechsel bleiben ruhig:** Beim Wechsel zwischen Quiz, Q&A und Blitzlicht verschieben sich Hauptkarten und Widgets nicht stoerend; der Layoutfluss bleibt stabil.
+    - **Performance im Live-Betrieb:** Die mobile Host-Ansicht bleibt auch bei verbundenen Teilnehmenden, Live-Updates und Kanalwechseln reaktiv genug fuer den Echtbetrieb.
+    - **Echte Geraetepruefung:** Vor Abschluss der Story wird die Host-Ansicht auf realen Smartphones in produktnahen Sessions fuer mindestens folgende Szenarien geprueft:
+      - Quiz live starten und mehrere Fragen steuern
+      - zwischen Quiz, Q&A und Blitzlicht wechseln
+      - Blitzlicht starten, zuruecksetzen und beenden
+      - Q&A moderieren
+      - Session ohne Desktop beenden
+    - **Architekturvorgabe:** Umsetzung und Priorisierung folgen ADR-0014; Smartphone-Hosting wird als mobile Informationsarchitektur und als produktives USP-Feature behandelt, nicht als reine Responsive-Korrektur.
+  - **Abhängigkeiten:** Story 2.3 (Praesentations-Steuerung), Story 2.5 (Beamer-/Host-Ansicht), Story 2.7 (Kanalwechsel und Vergleichsrunden), Story 4.4 (Ergebnis-Visualisierung), Story 6.4 (Mobile-First & Responsive), Story 6.5 (Barrierefreiheit), ADR-0014.
 
 ---
 
