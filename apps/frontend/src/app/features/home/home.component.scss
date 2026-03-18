@@ -545,7 +545,8 @@ mat-card-actions.l-stack { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .home-card__tertiary-link {
   align-self: center;
-  padding-inline: 0;
+  padding-inline: 0.75rem;
+  padding-block: 0.35rem;
   min-width: 0;
   --mdc-text-button-container-height: 2rem;
 }

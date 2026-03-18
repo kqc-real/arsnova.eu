@@ -119,19 +119,23 @@
 
 @media (max-width: 599px) {
   .session-channel-tabs-shell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: var(--host-mobile-toolbar-gap);
-    width: fit-content;
+    width: min(100%, calc(100vw - (2 * var(--session-host-shell-inline))));
     max-width: calc(100vw - (2 * var(--session-host-shell-inline)));
     margin: 0 auto var(--host-mobile-toolbar-gap);
   }
 
   .session-channel-tabs {
     width: auto;
-    max-width: calc(100vw - (2 * var(--session-host-shell-inline)));
+    max-width: calc(100vw - (2 * var(--session-host-shell-inline)) - 6.25rem);
     display: flex;
     overflow-x: auto;
     overflow-y: hidden;
     border-radius: var(--mat-sys-corner-extra-large);
+    flex: 0 1 auto;
   }
 
   .session-channel-tabs mat-button-toggle {
@@ -156,6 +160,7 @@
   }
 
   .session-host__view-controls--inline {
+    flex: 0 0 auto;
     justify-self: end;
     gap: var(--host-mobile-toolbar-gap);
   }
