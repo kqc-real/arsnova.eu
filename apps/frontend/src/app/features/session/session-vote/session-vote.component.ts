@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, OnDestroy, ElementRef, inject, signal, computed, effect } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, ElementRef, ViewChild, inject, signal, computed, effect } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
@@ -105,6 +105,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private lastVoteSubmitAt = 0;
   private lastQaSubmitAt = 0;
   private reorderLockUntil = 0;
+  private qaInfoTimeout: ReturnType<typeof setTimeout> | null = null;
+  private qaErrorTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  @ViewChild('qaTextarea') qaTextareaRef?: ElementRef<HTMLTextAreaElement>;
 
   readonly code = (this.route.parent?.snapshot.paramMap.get('code') ?? '').toUpperCase();
   readonly sessionId = signal('');
@@ -384,6 +388,45 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   updateQaDraft(value: string): void {
     this.qaDraft.set(value);
+  }
+
+  relativeTime(isoDate: string): string {
+    const diff = Date.now() - new Date(isoDate).getTime();
+    const seconds = Math.floor(diff / 1000);
+    if (seconds < 60) return $localize`gerade eben`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return $localize`vor ${minutes}\u00A0Min.`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours === 1 ? $localize`vor 1\u00A0Std.` : $localize`vor ${hours}\u00A0Std.`;
+    const days = Math.floor(hours / 24);
+    return days === 1 ? $localize`vor 1\u00A0Tag` : $localize`vor ${days}\u00A0Tagen`;
+  }
+
+  autoResizeTextarea(event: Event): void {
+    const el = event.target as HTMLTextAreaElement;
+    el.style.height = 'auto';
+    const maxHeight = parseFloat(getComputedStyle(el).lineHeight) * 6 + 32;
+    el.style.height = Math.min(el.scrollHeight, maxHeight) + 'px';
+  }
+
+  private showQaInfo(msg: string, durationMs = 3000): void {
+    if (this.qaInfoTimeout) clearTimeout(this.qaInfoTimeout);
+    this.qaInfo.set(msg);
+    this.qaInfoTimeout = setTimeout(() => this.qaInfo.set(null), durationMs);
+  }
+
+  private showQaError(msg: string, durationMs = 5000): void {
+    if (this.qaErrorTimeout) clearTimeout(this.qaErrorTimeout);
+    this.qaError.set(msg);
+    this.qaErrorTimeout = setTimeout(() => this.qaError.set(null), durationMs);
+  }
+
+  private collapseTextarea(): void {
+    const el = this.qaTextareaRef?.nativeElement;
+    if (el) {
+      el.style.height = '';
+      el.blur();
+    }
   }
 
   teamRewardTitle(): string {
@@ -723,7 +766,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.setQaQuestionsAnimated(questions);
       this.qaError.set(null);
     } catch {
-      this.qaError.set($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
+      this.showQaError($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
     }
   }
 
@@ -765,14 +808,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         text: this.qaDraft().trim(),
       });
       this.qaDraft.set('');
-      this.qaInfo.set($localize`:@@sessionQa.submitSuccess:Frage gesendet.`);
+      this.collapseTextarea();
+      this.showQaInfo($localize`:@@sessionQa.submitSuccess:Frage gesendet.`);
       await this.refreshQaQuestions();
     } catch (error) {
       const message =
         error && typeof error === 'object' && 'message' in error
           ? String((error as { message: string }).message)
           : $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`;
-      this.qaError.set(message);
+      this.showQaError(message);
     } finally {
       this.qaSubmitting.set(false);
     }
@@ -787,7 +831,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.sessionId.set(session.id);
         this.sessionSettings.set(session);
       } catch {
-        this.qaError.set($localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`);
+        this.showQaError($localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`);
         return null;
       }
     }
@@ -818,13 +862,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           error && typeof error === 'object' && 'message' in error
             ? String((error as { message: string }).message)
             : $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`;
-        this.qaError.set(message);
+        this.showQaError(message);
         return null;
       }
     }
 
     if (!sessionId || !participantId) {
-      this.qaError.set($localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`);
+      this.showQaError($localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`);
       return null;
     }
 
@@ -861,7 +905,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.qaError.set(null);
     } catch {
       this.qaQuestions.set(snapshot);
-      this.qaError.set($localize`:@@sessionQa.upvoteError:Stimme konnte nicht gespeichert werden.`);
+      this.showQaError($localize`:@@sessionQa.upvoteError:Stimme konnte nicht gespeichert werden.`);
     } finally {
       this.reorderLockUntil = 0;
       const remaining = new Set(this.qaPendingQuestionIds());
@@ -884,7 +928,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       await trpc.qa.deleteOwn.mutate({ questionId, participantId: this.participantId() });
       await this.refreshQaQuestions();
     } catch {
-      this.qaError.set($localize`:@@sessionQa.deleteOwnError:Frage konnte nicht gelöscht werden.`);
+      this.showQaError($localize`:@@sessionQa.deleteOwnError:Frage konnte nicht gelöscht werden.`);
       await this.refreshQaQuestions();
     } finally {
       const remaining = new Set(this.qaPendingQuestionIds());

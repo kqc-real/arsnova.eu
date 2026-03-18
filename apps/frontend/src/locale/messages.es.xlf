@@ -5201,9 +5201,44 @@
           <context context-type="linenumber">931,933</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.moderationToggleLabel" datatype="html">
+        <source>Vorab-Moderation</source>
+        <target>Pre-moderación</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationNotice" datatype="html">
+        <source>Deine Fragen werden vor der Veröffentlichung geprüft.</source>
+        <target>Tus preguntas serán revisadas antes de publicarse.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationEnabled" datatype="html">
+        <source>Vorab-Moderation aktiviert.</source>
+        <target>Pre-moderación activada.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationDisabled" datatype="html">
+        <source>Vorab-Moderation deaktiviert.</source>
+        <target>Pre-moderación desactivada.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationToggleError" datatype="html">
+        <source>Moderation konnte nicht umgeschaltet werden.</source>
+        <target>No se pudo cambiar el modo de moderación.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionTabs.qaHostPlaceholder" datatype="html">
-        <source> Hier sammelst und moderierst du Fragen aus dem Publikum.</source>
-        <target>Aquí recoges y moderas las preguntas del público.</target>
+        <source>Noch keine Fragen – sobald Teilnehmende Fragen stellen, erscheinen sie hier.</source>
+        <target>Aún no hay preguntas – aparecerán aquí en cuanto los participantes pregunten.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">937,939</context>
@@ -5481,6 +5516,27 @@
           <context context-type="linenumber">910</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.phaseLobbyShort" datatype="html">
+        <source>Lobby</source>
+        <target>Lobby</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseConnectingShort" datatype="html">
+        <source>Beitritt</source>
+        <target>Acceso</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.phaseRunningShort" datatype="html">
+        <source>Countdown</source>
+        <target>Cuenta atrás</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.phaseQaPreparing" datatype="html">
         <source>Fragerunde wird vorbereitet</source>
         <target>Se está preparando la ronda de preguntas</target>
@@ -5677,6 +5733,30 @@
           <context context-type="linenumber">1044</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.actionUnpin" datatype="html">
+        <source>Hervorhebung aufheben</source>
+        <target>Quitar resaltado</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1098</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.newQuestionsAria" datatype="html">
+        <source>Neue Fragen anzeigen</source>
+        <target>Mostrar nuevas preguntas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1025</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.newQuestionsLabel" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ qaUnseenCount() }}"/> neue Fragen</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ qaUnseenCount() }}"/> preguntas nuevas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1028</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.actionArchive" datatype="html">
         <source>Archivieren</source>
         <target>Archivar</target>
@@ -5691,6 +5771,48 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1048</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionPurge" datatype="html">
+        <source>Endgültig entfernen</source>
+        <target>Eliminar definitivamente</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterPinnedAria" datatype="html">
+        <source>Sichere Ansicht – nur freigegebene Fragen</source>
+        <target>Vista segura – solo preguntas aprobadas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterPinnedLabel" datatype="html">
+        <source>Sichere Ansicht</source>
+        <target>Vista segura</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterEmptyHint" datatype="html">
+        <source>Sichere Ansicht aktiv – keine hervorgehobenen Fragen vorhanden.</source>
+        <target>Vista segura activa – no hay preguntas destacadas.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterShowAllAria" datatype="html">
+        <source>Alle Fragen anzeigen</source>
+        <target>Mostrar todas las preguntas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterShowAllLabel" datatype="html">
+        <source>Alle anzeigen</source>
+        <target>Mostrar todas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.hostLoadError" datatype="html">
@@ -6362,8 +6484,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionTabs.qaVotePlaceholder" datatype="html">
-        <source> Hier kannst du Fragen an die Quizleitung senden und später wiederfinden.</source>
-        <target>Aquí puedes enviar preguntas a quien dirige el quiz y volver a encontrarlas más tarde.</target>
+        <source>Noch keine Fragen – stell die erste!</source>
+        <target>¡Aún no hay preguntas – haz la primera!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">734,737</context>

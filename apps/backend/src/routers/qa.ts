@@ -146,6 +146,7 @@ export const qaRouter = router({
       let nextStatus = question.status;
       switch (input.action) {
         case 'APPROVE':
+        case 'UNPIN':
           nextStatus = 'ACTIVE';
           break;
         case 'PIN':
@@ -159,31 +160,28 @@ export const qaRouter = router({
           break;
       }
 
-      if (question.status === 'DELETED' && input.action !== 'DELETE') {
+      if (question.status === 'DELETED' && input.action === 'DELETE') {
+        await prisma.qaQuestion.delete({ where: { id: question.id } });
+        return QaQuestionDTOSchema.parse({
+          id: question.id,
+          text: question.text,
+          upvoteCount: question.upvoteCount,
+          status: 'DELETED',
+          createdAt: question.createdAt.toISOString(),
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        });
+      }
+
+      if (question.status === 'DELETED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Gelöschte Fragen können nicht weiter moderiert werden.' });
       }
 
-      if (input.action === 'PIN') {
-        await prisma.$transaction([
-          prisma.qaQuestion.updateMany({
-            where: {
-              sessionId: session.id,
-              status: 'PINNED',
-              NOT: { id: question.id },
-            },
-            data: { status: 'ACTIVE' },
-          }),
-          prisma.qaQuestion.update({
-            where: { id: question.id },
-            data: { status: nextStatus },
-          }),
-        ]);
-      } else {
-        await prisma.qaQuestion.update({
-          where: { id: question.id },
-          data: { status: nextStatus },
-        });
-      }
+      await prisma.qaQuestion.update({
+        where: { id: question.id },
+        data: { status: nextStatus },
+      });
 
       const updated = await prisma.qaQuestion.findUnique({
         where: { id: question.id },

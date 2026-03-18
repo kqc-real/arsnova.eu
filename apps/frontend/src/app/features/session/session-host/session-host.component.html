@@ -954,33 +954,118 @@
             </div>
 
             @if (qaQuestions().length === 0) {
-              <p class="session-channel-card__text" i18n="@@sessionTabs.qaHostPlaceholder">
-                Hier sammelst und moderierst du Fragen aus dem Publikum.
-              </p>
+              <div class="session-qa-empty">
+                <mat-icon class="session-qa-empty__icon" aria-hidden="true">forum</mat-icon>
+                <p class="session-qa-empty__text" i18n="@@sessionTabs.qaHostPlaceholder">
+                  Noch keine Fragen – sobald Teilnehmende Fragen stellen, erscheinen sie hier.
+                </p>
+              </div>
             } @else {
               <div class="session-qa-summary">
-                <span i18n="@@sessionQa.summaryTotal">Gesamt: {{ qaQuestions().length }}</span>
-                <span i18n="@@sessionQa.summaryPending">Warten auf Freigabe: {{ qaPendingCount() }}</span>
+                <div class="session-qa-summary__chips">
+                  <span class="session-qa-summary__chip">
+                    <mat-icon class="session-qa-summary__icon" aria-hidden="true">question_answer</mat-icon>
+                    <span i18n="@@sessionQa.summaryTotal">Gesamt: {{ qaQuestions().length }}</span>
+                  </span>
+                  @if (qaPendingCount() > 0) {
+                    <span class="session-qa-summary__chip session-qa-summary__chip--pending">
+                      <mat-icon class="session-qa-summary__icon" aria-hidden="true">hourglass_top</mat-icon>
+                      <span i18n="@@sessionQa.summaryPending">Warten auf Freigabe: {{ qaPendingCount() }}</span>
+                    </span>
+                  }
+                  @if (qaPinnedCount() > 0) {
+                    <span class="session-qa-summary__chip session-qa-summary__chip--pinned">
+                      <mat-icon class="session-qa-summary__icon" aria-hidden="true">push_pin</mat-icon>
+                      {{ qaPinnedCount() }}
+                    </span>
+                  }
+                  @if (qaArchivedCount() > 0) {
+                    <span class="session-qa-summary__chip session-qa-summary__chip--archived">
+                      <mat-icon class="session-qa-summary__icon" aria-hidden="true">archive</mat-icon>
+                      {{ qaArchivedCount() }}
+                    </span>
+                  }
+                  @if (qaDeletedCount() > 0) {
+                    <span class="session-qa-summary__chip session-qa-summary__chip--deleted">
+                      <mat-icon class="session-qa-summary__icon" aria-hidden="true">delete_outline</mat-icon>
+                      {{ qaDeletedCount() }}
+                    </span>
+                  }
+                </div>
+                @if (qaShowPinnedOnly()) {
+                  <button
+                    type="button"
+                    class="session-qa-filter-btn session-qa-filter-btn--active"
+                    (click)="qaShowPinnedOnly.set(false)"
+                    i18n-aria-label="@@sessionQa.filterShowAllAria"
+                    aria-label="Alle Fragen anzeigen"
+                  >
+                    <mat-icon aria-hidden="true">visibility</mat-icon>
+                    <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="session-qa-filter-btn"
+                    (click)="qaShowPinnedOnly.set(true)"
+                    i18n-aria-label="@@sessionQa.filterPinnedAria"
+                    aria-label="Sichere Ansicht – nur freigegebene Fragen"
+                  >
+                    <mat-icon aria-hidden="true">shield</mat-icon>
+                    <span i18n="@@sessionQa.filterPinnedLabel">Sichere Ansicht</span>
+                  </button>
+                }
               </div>
-              <div class="session-qa-list" role="list">
-                @for (question of qaQuestions(); track question.id) {
+              @if (qaShowNewBanner()) {
+                <button
+                  type="button"
+                  class="session-qa-new-banner"
+                  (click)="scrollToQaTop()"
+                  i18n-aria-label="@@sessionQa.newQuestionsAria"
+                  aria-label="Neue Fragen anzeigen"
+                >
+                  <mat-icon class="session-qa-new-banner__icon" aria-hidden="true">arrow_upward</mat-icon>
+                  <span i18n="@@sessionQa.newQuestionsLabel">{{ qaUnseenCount() }} neue Fragen</span>
+                </button>
+              }
+              <div class="session-qa-list" role="list" #qaListContainer (scroll)="onQaListScroll($event)">
+                @for (question of qaFilteredQuestions(); track question.id) {
                   <article
                     class="session-qa-card"
                     [class.session-qa-card--highlight]="isQaQuestionHighlighted(question.id)"
+                    [class.session-qa-card--pinned]="question.status === 'PINNED'"
+                    [class.session-qa-card--pending]="question.status === 'PENDING'"
                     role="listitem"
                   >
                     <div class="session-qa-card__head">
                       <div class="session-qa-card__head-main">
-                        <span class="session-qa-card__status">{{ qaStatusLabel(question.status) }}</span>
+                        @if (question.status !== 'ACTIVE') {
+                          <span class="session-qa-card__status"
+                                [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
+                                [class.session-qa-card__status--pending]="question.status === 'PENDING'"
+                                [class.session-qa-card__status--archived]="question.status === 'ARCHIVED'"
+                                [class.session-qa-card__status--deleted]="question.status === 'DELETED'">
+                            <mat-icon class="session-qa-card__status-icon" aria-hidden="true">{{ qaStatusIcon(question.status) }}</mat-icon>
+                            {{ qaStatusLabel(question.status) }}
+                          </span>
+                        }
                         @if (isQaQuestionHighlighted(question.id)) {
                           <span class="session-qa-card__marker" aria-hidden="true"></span>
                         }
                       </div>
-                      <span class="session-qa-card__votes">{{ question.upvoteCount }}&nbsp;<span i18n="@@sessionQa.votes">Stimmen</span></span>
+                      <span class="session-qa-card__votes"
+                            [class.session-qa-card__votes--positive]="question.upvoteCount > 0"
+                            [class.session-qa-card__votes--negative]="question.upvoteCount < 0">
+                        <mat-icon class="session-qa-card__votes-icon" aria-hidden="true">thumb_up_off_alt</mat-icon>
+                        {{ question.upvoteCount }}
+                      </span>
                     </div>
                     <div class="session-qa-card__text" [innerHTML]="renderMarkdown(question.text)"></div>
+                    <div class="session-qa-card__meta">
+                      <span class="session-qa-card__time">{{ relativeTime(question.createdAt) }}</span>
+                    </div>
                     <div class="session-qa-card__actions">
-                      @for (action of ['APPROVE', 'PIN', 'ARCHIVE', 'DELETE']; track action) {
+                      @for (action of ['APPROVE', 'PIN', 'UNPIN', 'ARCHIVE', 'DELETE']; track action) {
                         @if (canModerateQaQuestion(question, $any(action))) {
                           <button
                             matButton="tonal"
@@ -988,12 +1073,14 @@
                             class="session-qa-card__action-btn"
                             [class.session-qa-card__action-btn--approve]="$any(action) === 'APPROVE'"
                             [class.session-qa-card__action-btn--pin]="$any(action) === 'PIN'"
+                            [class.session-qa-card__action-btn--unpin]="$any(action) === 'UNPIN'"
                             [class.session-qa-card__action-btn--archive]="$any(action) === 'ARCHIVE'"
                             [class.session-qa-card__action-btn--delete]="$any(action) === 'DELETE'"
                             [disabled]="qaPendingQuestionIds().has(question.id)"
                             (click)="moderateQaQuestion(question.id, $any(action))"
                           >
-                            {{ qaActionLabel($any(action)) }}
+                            <mat-icon class="session-qa-card__action-icon">{{ qaActionIcon($any(action)) }}</mat-icon>
+                            {{ qaActionLabel($any(action), question.status) }}
                           </button>
                         }
                       }
@@ -1001,6 +1088,14 @@
                   </article>
                 }
               </div>
+              @if (qaFilteredQuestions().length === 0 && qaShowPinnedOnly()) {
+                <div class="session-qa-empty session-qa-empty--filtered">
+                  <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
+                  <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
+                    Sichere Ansicht aktiv – keine hervorgehobenen Fragen vorhanden.
+                  </p>
+                </div>
+              }
             }
           </mat-card-content>
         </mat-card>

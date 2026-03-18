@@ -1049,6 +1049,7 @@ export type ToggleQaModerationInput = z.infer<typeof ToggleQaModerationInputSche
 export const ModerateQaQuestionActionEnum = z.enum([
   'APPROVE',
   'PIN',
+  'UNPIN',
   'ARCHIVE',
   'DELETE',
 ]);

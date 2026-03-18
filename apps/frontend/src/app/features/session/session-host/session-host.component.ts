@@ -1,5 +1,5 @@
 import { DecimalPipe, DOCUMENT } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, inject, signal, computed, effect } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject, signal, computed, effect } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
@@ -138,6 +138,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaInfo = signal<string | null>(null);
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
   readonly qaSeenQuestionIds = signal<Set<string>>(new Set());
+  readonly qaScrolledDown = signal(false);
+  @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
   readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly quickFeedbackSeenVoteCount = signal(0);
@@ -288,8 +290,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaHeading = computed(() =>
     this.session()?.channels?.qa.title ?? this.session()?.title ?? $localize`:@@sessionTabs.questions:Q&A`,
   );
+  readonly qaShowPinnedOnly = signal(false);
+  readonly qaFilteredQuestions = computed(() => {
+    const all = this.qaQuestions();
+    return this.qaShowPinnedOnly() ? all.filter((q) => q.status === 'PINNED') : all;
+  });
+  readonly qaPinnedCount = computed(() =>
+    this.qaQuestions().filter((q) => q.status === 'PINNED').length,
+  );
   readonly qaPendingCount = computed(() =>
     this.qaQuestions().filter((question) => question.status === 'PENDING').length,
+  );
+  readonly qaArchivedCount = computed(() =>
+    this.qaQuestions().filter((q) => q.status === 'ARCHIVED').length,
+  );
+  readonly qaDeletedCount = computed(() =>
+    this.qaQuestions().filter((q) => q.status === 'DELETED').length,
+  );
+  readonly qaShowNewBanner = computed(() =>
+    this.qaUnseenCount() > 0 && this.qaScrolledDown(),
   );
   readonly qaUnseenCount = computed(() =>
     this.qaQuestions().filter((question) =>
@@ -1048,33 +1067,90 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  qaActionLabel(action: 'APPROVE' | 'PIN' | 'ARCHIVE' | 'DELETE'): string {
+  qaStatusIcon(status: QaQuestionDTO['status']): string {
+    switch (status) {
+      case 'PINNED': return 'push_pin';
+      case 'PENDING': return 'hourglass_top';
+      case 'ARCHIVED': return 'check_circle_outline';
+      case 'DELETED': return 'delete_outline';
+      default: return 'circle';
+    }
+  }
+
+  onQaListScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    this.qaScrolledDown.set(el.scrollTop > 80);
+  }
+
+  scrollToQaTop(): void {
+    const el = this.qaListContainerRef?.nativeElement;
+    if (el) {
+      el.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    this.qaScrolledDown.set(false);
+    const allIds = new Set(this.qaQuestions().map((q) => q.id));
+    this.qaSeenQuestionIds.set(allIds);
+  }
+
+  relativeTime(isoDate: string): string {
+    const diff = Date.now() - new Date(isoDate).getTime();
+    const seconds = Math.floor(diff / 1000);
+    if (seconds < 60) return $localize`gerade eben`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return $localize`vor ${minutes}\u00A0Min.`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours === 1 ? $localize`vor 1\u00A0Std.` : $localize`vor ${hours}\u00A0Std.`;
+    const days = Math.floor(hours / 24);
+    return days === 1 ? $localize`vor 1\u00A0Tag` : $localize`vor ${days}\u00A0Tagen`;
+  }
+
+  qaActionLabel(action: 'APPROVE' | 'PIN' | 'UNPIN' | 'ARCHIVE' | 'DELETE', status?: QaQuestionDTO['status']): string {
     switch (action) {
       case 'APPROVE':
         return $localize`:@@sessionQa.actionApprove:Freigeben`;
       case 'PIN':
         return $localize`:@@sessionQa.actionPin:Hervorheben`;
+      case 'UNPIN':
+        return $localize`:@@sessionQa.actionUnpin:Hervorhebung aufheben`;
       case 'ARCHIVE':
         return $localize`:@@sessionQa.actionArchive:Archivieren`;
       case 'DELETE':
-        return $localize`:@@sessionQa.actionDelete:Löschen`;
+        return status === 'DELETED'
+          ? $localize`:@@sessionQa.actionPurge:Endgültig entfernen`
+          : $localize`:@@sessionQa.actionDelete:Löschen`;
     }
   }
 
-  canModerateQaQuestion(question: QaQuestionDTO, action: 'APPROVE' | 'PIN' | 'ARCHIVE' | 'DELETE'): boolean {
+  qaActionIcon(action: 'APPROVE' | 'PIN' | 'UNPIN' | 'ARCHIVE' | 'DELETE'): string {
+    switch (action) {
+      case 'APPROVE': return 'check';
+      case 'PIN': return 'push_pin';
+      case 'UNPIN': return 'push_pin';
+      case 'ARCHIVE': return 'archive';
+      case 'DELETE': return 'delete_outline';
+    }
+  }
+
+  canModerateQaQuestion(question: QaQuestionDTO, action: 'APPROVE' | 'PIN' | 'UNPIN' | 'ARCHIVE' | 'DELETE'): boolean {
     if (this.qaPendingQuestionIds().has(question.id)) {
       return false;
+    }
+
+    if (question.status === 'DELETED') {
+      return action === 'DELETE';
     }
 
     switch (action) {
       case 'APPROVE':
         return question.status === 'PENDING' || question.status === 'ARCHIVED';
       case 'PIN':
-        return question.status !== 'DELETED' && question.status !== 'PINNED';
+        return question.status !== 'PINNED';
+      case 'UNPIN':
+        return question.status === 'PINNED';
       case 'ARCHIVE':
-        return question.status !== 'DELETED' && question.status !== 'ARCHIVED';
+        return question.status !== 'ARCHIVED';
       case 'DELETE':
-        return question.status !== 'DELETED';
+        return true;
     }
   }
 

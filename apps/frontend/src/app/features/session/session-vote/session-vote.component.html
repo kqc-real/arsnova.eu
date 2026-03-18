@@ -717,16 +717,18 @@
         <label class="session-qa-form__label" for="qa-draft" i18n="@@sessionQa.askLabel">Deine Frage</label>
         <textarea
           id="qa-draft"
+          #qaTextarea
           class="session-qa-form__textarea"
-          rows="4"
+          rows="2"
           maxlength="500"
           [value]="qaDraft()"
-          (input)="updateQaDraft($any($event.target).value)"
+          (input)="updateQaDraft($any($event.target).value); autoResizeTextarea($event)"
+          (focus)="autoResizeTextarea($event)"
           i18n-placeholder="@@sessionQa.askPlaceholder"
           placeholder="Schreibe deine Frage hier"
         ></textarea>
         <div class="session-qa-form__meta">
-          <span>{{ qaDraft().trim().length }}/500</span>
+          <span class="session-qa-form__counter" [class.session-qa-form__counter--warn]="qaDraft().trim().length >= 450">{{ qaDraft().trim().length }}/500</span>
           <button
             mat-flat-button
             type="button"
@@ -748,14 +750,18 @@
       }
 
       @if (qaQuestions().length === 0) {
-        <p class="session-channel-card__text" i18n="@@sessionTabs.qaVotePlaceholder">
-          Hier kannst du Fragen an die Quizleitung senden und später wiederfinden.
-        </p>
+        <div class="session-qa-empty">
+          <mat-icon class="session-qa-empty__icon" aria-hidden="true">chat_bubble_outline</mat-icon>
+          <p class="session-qa-empty__text" i18n="@@sessionTabs.qaVotePlaceholder">
+            Noch keine Fragen – stell die erste!
+          </p>
+        </div>
       } @else {
         <div class="session-qa-list" role="list">
           @for (question of qaQuestions(); track question.id) {
             <article class="session-qa-card" role="listitem" [attr.data-qa-id]="question.id"
-                     [class.session-qa-card--own]="question.isOwn">
+                     [class.session-qa-card--own]="question.isOwn"
+                     [class.session-qa-card--pinned]="question.status === 'PINNED'">
               @if (!question.isOwn) {
                 <div class="session-qa-card__vote-stepper"
                      [class.session-qa-card__vote-stepper--disabled]="qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'">
@@ -788,14 +794,21 @@
               }
               <div class="session-qa-card__body">
                 <div class="session-qa-card__status-row">
-                  <span class="session-qa-card__status">{{ qaStatusLabel(question.status) }}</span>
+                  @if (question.status !== 'ACTIVE') {
+                    <span class="session-qa-card__status"
+                          [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
+                          [class.session-qa-card__status--pending]="question.status === 'PENDING'">
+                      {{ qaStatusLabel(question.status) }}
+                    </span>
+                  }
                   @if (question.isOwn) {
                     <span class="session-qa-card__own-badge" i18n="@@sessionQa.ownBadge">Deine Frage</span>
                   }
                   <span class="session-qa-card__score"
                         [class.session-qa-card__score--positive]="question.upvoteCount > 0"
                         [class.session-qa-card__score--negative]="question.upvoteCount < 0">
-                    {{ question.upvoteCount }} <span i18n="@@sessionQa.scoreLabel">Stimmen</span>
+                    <mat-icon class="session-qa-card__score-icon" aria-hidden="true">thumb_up_off_alt</mat-icon>
+                    {{ question.upvoteCount }}
                   </span>
                   @if (question.isOwn) {
                     <button
@@ -811,6 +824,7 @@
                   }
                 </div>
                 <div class="session-qa-card__text" [innerHTML]="renderMarkdown(question.text)"></div>
+                <span class="session-qa-card__time">{{ relativeTime(question.createdAt) }}</span>
               </div>
             </article>
           }
