@@ -3,7 +3,7 @@
   [class.session-host--lobby]="effectiveStatus() === 'LOBBY'"
   [class.session-host--team-mode]="session()?.teamMode === true"
   [class.session-host--with-channel-tabs]="showChannelTabs()"
-  [class.session-host--with-live-banner]="effectiveStatus() === 'LOBBY' || (showChannelTabs() && activeChannel() !== 'quiz')"
+  [class.session-host--with-live-banner]="effectiveStatus() !== 'FINISHED'"
   [class.session-host--immersive]="isImmersiveMode()"
 >
   @if (session(); as s) {
@@ -150,7 +150,7 @@
       }
     </mat-menu>
 
-    @if (effectiveStatus() === 'LOBBY' || (showChannelTabs() && activeChannel() !== 'quiz')) {
+    @if (effectiveStatus() !== 'FINISHED') {
       @let liveParticipantCount = participantsPayload()?.participantCount ?? s.participantCount;
       <section class="session-host__live-banner app-live-channel-shell">
         <div class="session-host__live-banner-main">
@@ -208,6 +208,7 @@
       </section>
     }
 
+    <div class="session-host__channel-stage">
     @if (showPrimaryLiveView()) {
     @if (effectiveStatus() === 'LOBBY') {
       <!-- Lobby: Code, QR (Story 2.1b), Beitritts-URL, Teilnehmerzahl. -->
@@ -977,7 +978,7 @@
                           <span class="session-qa-card__marker" aria-hidden="true"></span>
                         }
                       </div>
-                      <span class="session-qa-card__votes">{{ question.upvoteCount }} <span i18n="@@sessionQa.votes">Stimmen</span></span>
+                      <span class="session-qa-card__votes">{{ question.upvoteCount }}&nbsp;<span i18n="@@sessionQa.votes">Stimmen</span></span>
                     </div>
                     <div class="session-qa-card__text" [innerHTML]="renderMarkdown(question.text)"></div>
                     <div class="session-qa-card__actions">
@@ -987,6 +988,10 @@
                             matButton="tonal"
                             type="button"
                             class="session-qa-card__action-btn"
+                            [class.session-qa-card__action-btn--approve]="$any(action) === 'APPROVE'"
+                            [class.session-qa-card__action-btn--pin]="$any(action) === 'PIN'"
+                            [class.session-qa-card__action-btn--archive]="$any(action) === 'ARCHIVE'"
+                            [class.session-qa-card__action-btn--delete]="$any(action) === 'DELETE'"
                             [disabled]="qaPendingQuestionIds().has(question.id)"
                             (click)="moderateQaQuestion(question.id, $any(action))"
                           >
@@ -1007,6 +1012,7 @@
         <app-feedback-host [sessionCode]="code" [embeddedInSession]="true" />
       </div>
     }
+    </div>
   } @else {
     <mat-card appearance="outlined" class="session-placeholder">
       <mat-card-content>

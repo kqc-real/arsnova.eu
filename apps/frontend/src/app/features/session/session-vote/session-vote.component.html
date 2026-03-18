@@ -699,36 +699,38 @@
   } @else if (activeChannel() === 'qa') {
     <section class="session-channel-card session-channel-card--qa app-live-channel-shell" aria-labelledby="vote-qa-heading">
       <div class="session-channel-card__header">
-        <div>
+        <div class="session-channel-card__header-main">
           <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
           <h2 class="session-channel-card__title" id="vote-qa-heading">{{ qaHeading() }}</h2>
         </div>
         <mat-icon class="session-channel-card__icon" aria-hidden="true">forum</mat-icon>
       </div>
 
-      <label class="session-qa-form__label" for="qa-draft" i18n="@@sessionQa.askLabel">Deine Frage</label>
-      <textarea
-        id="qa-draft"
-        class="session-qa-form__textarea"
-        rows="4"
-        maxlength="500"
-        [value]="qaDraft()"
-        (input)="updateQaDraft($any($event.target).value)"
-        i18n-placeholder="@@sessionQa.askPlaceholder"
-        placeholder="Schreibe deine Frage hier"
-      ></textarea>
-      <div class="session-qa-form__meta">
-        <span>{{ qaDraft().trim().length }}/500</span>
-        <button
-          mat-flat-button
-          type="button"
-          class="session-qa-form__submit"
-          [class.vote-submit--pending]="qaSubmitting()"
-          [disabled]="!qaCanSubmit()"
-          (click)="submitQaQuestion()"
-        >
-          <span i18n="@@sessionQa.askSubmit">Frage senden</span>
-        </button>
+      <div class="session-qa-form">
+        <label class="session-qa-form__label" for="qa-draft" i18n="@@sessionQa.askLabel">Deine Frage</label>
+        <textarea
+          id="qa-draft"
+          class="session-qa-form__textarea"
+          rows="4"
+          maxlength="500"
+          [value]="qaDraft()"
+          (input)="updateQaDraft($any($event.target).value)"
+          i18n-placeholder="@@sessionQa.askPlaceholder"
+          placeholder="Schreibe deine Frage hier"
+        ></textarea>
+        <div class="session-qa-form__meta">
+          <span>{{ qaDraft().trim().length }}/500</span>
+          <button
+            mat-flat-button
+            type="button"
+            class="session-qa-form__submit"
+            [class.vote-submit--pending]="qaSubmitting()"
+            [disabled]="!qaCanSubmit()"
+            (click)="submitQaQuestion()"
+          >
+            <span i18n="@@sessionQa.askSubmit">Frage senden</span>
+          </button>
+        </div>
       </div>
 
       @if (qaError(); as error) {
