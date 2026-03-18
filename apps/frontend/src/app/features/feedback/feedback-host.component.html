@@ -42,9 +42,9 @@
   </mat-card>
 } @else if (error(); as err) {
   <mat-card appearance="outlined" class="feedback-host__error" role="alert">
-    <mat-card-content>
-      <mat-icon>error_outline</mat-icon>
-      <p>{{ err }}</p>
+    <mat-card-content class="feedback-host__state">
+      <mat-icon class="feedback-host__state-icon feedback-host__state-icon--error">error_outline</mat-icon>
+      <p class="feedback-host__state-text">{{ err }}</p>
     </mat-card-content>
   </mat-card>
 } @else if (result(); as data) {
@@ -354,7 +354,7 @@
   </div>
 } @else {
   <div class="feedback-host__loading">
-    <mat-icon>hourglass_empty</mat-icon>
-    <p i18n>Verbinde…</p>
+    <mat-icon class="feedback-host__state-icon">hourglass_empty</mat-icon>
+    <p class="feedback-host__state-text" i18n>Verbinde…</p>
   </div>
 }

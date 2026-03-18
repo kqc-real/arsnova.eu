@@ -4,9 +4,9 @@
   }
   @if (error(); as err) {
     <mat-card appearance="outlined" class="feedback-vote__card" role="alert">
-      <mat-card-content>
-        <mat-icon class="feedback-vote__status-icon">error_outline</mat-icon>
-        <p>{{ err }}</p>
+      <mat-card-content class="feedback-vote__done">
+        <mat-icon class="feedback-vote__status-icon feedback-vote__status-icon--error">error_outline</mat-icon>
+        <p class="feedback-vote__done-text">{{ err }}</p>
       </mat-card-content>
     </mat-card>
   } @else if (embeddedInSession() && !feedbackType() && !loading()) {
@@ -28,7 +28,10 @@
       </mat-card-content>
     </mat-card>
   } @else if (loading()) {
-    <p class="feedback-vote__loading" i18n>Laden…</p>
+    <div class="feedback-vote__loading" role="status" aria-live="polite">
+      <mat-icon class="feedback-vote__status-icon">hourglass_empty</mat-icon>
+      <p class="feedback-vote__done-text" i18n>Laden…</p>
+    </div>
   } @else if (discussion()) {
     <div class="feedback-vote__discussion" role="status" aria-live="polite">
       <div class="feedback-vote__discussion-ring">
