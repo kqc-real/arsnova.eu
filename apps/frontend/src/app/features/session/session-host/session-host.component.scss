@@ -607,6 +607,19 @@
   line-height: 1.4;
 }
 
+.session-qa-moderation-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.session-qa-moderation-hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
 .session-qa-summary {
   display: flex;
   align-items: center;
@@ -1949,20 +1962,44 @@
   font-weight: 500;
 }
 
+.session-host__answer--wrong {
+  background: color-mix(in srgb, var(--arsnova-bar-wrong, #e53935) 12%, var(--mat-sys-surface-container-low));
+  color: var(--mat-sys-on-surface);
+  border: 2px solid var(--arsnova-bar-wrong, #e53935);
+  font-weight: 500;
+}
+
 .session-host__answer-text {
   flex: 1;
   font-weight: 400;
   line-height: 1.45;
 }
 
-.session-host__answer-correct-label {
+.session-host__answer-correct-label,
+.session-host__answer-wrong-label {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
   border-radius: var(--mat-sys-corner-small, 6px);
+}
+
+.session-host__answer-correct-label {
   background: var(--arsnova-bar-correct);
   color: var(--arsnova-bar-correct-on);
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+  flex-shrink: 0;
+
+  &--dist {
+    padding: 0.25rem 0.5rem;
+    font: var(--mat-sys-label-medium);
+  }
+}
+
+.session-host__answer-wrong-label {
+  background: var(--arsnova-bar-wrong, #e53935);
+  color: #fff;
   font: var(--mat-sys-label-large);
   font-weight: 600;
   flex-shrink: 0;
@@ -1979,14 +2016,16 @@
   height: 1.25rem;
   opacity: 0.9;
 
-  .session-host__answer-correct-label & {
+  .session-host__answer-correct-label &,
+  .session-host__answer-wrong-label & {
     font-size: 1.5rem;
     width: 1.5rem;
     height: 1.5rem;
     opacity: 1;
   }
 
-  .session-host__answer-correct-label--dist & {
+  .session-host__answer-correct-label--dist &,
+  .session-host__answer-wrong-label--dist & {
     font-size: 1.25rem;
     width: 1.25rem;
     height: 1.25rem;
@@ -2380,6 +2419,16 @@ button.session-host__btn-discussion {
       color: var(--mat-sys-on-surface);
     }
   }
+
+  &--wrong {
+    background: color-mix(in srgb, var(--arsnova-bar-wrong, #e53935) 10%, transparent);
+    border-color: var(--arsnova-bar-wrong, #e53935);
+
+    .session-host__vote-dist-text {
+      font-weight: 700;
+      color: var(--mat-sys-on-surface);
+    }
+  }
 }
 
 .session-host__vote-dist-header {
@@ -2463,7 +2512,8 @@ button.session-host__btn-discussion {
     line-height: 1.35;
   }
 
-  .session-host__answer-correct-label {
+  .session-host__answer-correct-label,
+  .session-host__answer-wrong-label {
     padding: 0.2rem 0.35rem;
   }
 

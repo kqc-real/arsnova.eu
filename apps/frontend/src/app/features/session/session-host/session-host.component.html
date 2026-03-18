@@ -685,7 +685,9 @@
                       }
                       <ul class="session-host__vote-dist-list" role="list">
                         @for (a of q.voteDistribution; track a.id; let i = $index) {
-                          <li class="session-host__vote-dist-item" [class.session-host__vote-dist-item--correct]="a.isCorrect && q.type !== 'SURVEY'">
+                          <li class="session-host__vote-dist-item"
+                              [class.session-host__vote-dist-item--correct]="a.isCorrect && q.type !== 'SURVEY'"
+                              [class.session-host__vote-dist-item--wrong]="!a.isCorrect && q.type !== 'SURVEY'">
                             <div class="session-host__vote-dist-header">
                               <span class="session-host__answer-badge session-host__answer-badge--small" [style.background-color]="getColor(i)">
                                 <span class="session-host__answer-badge-shape">{{ getShape(i) }}</span>
@@ -695,6 +697,10 @@
                               @if (a.isCorrect && q.type !== 'SURVEY') {
                                 <span class="session-host__answer-correct-label session-host__answer-correct-label--dist">
                                   <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                                </span>
+                              } @else if (!a.isCorrect && q.type !== 'SURVEY') {
+                                <span class="session-host__answer-wrong-label session-host__answer-wrong-label--dist">
+                                  <mat-icon class="session-host__answer-icon" aria-hidden="true">cancel</mat-icon>
                                 </span>
                               }
                               <span class="session-host__vote-dist-pct">{{ a.votePercentage }}&nbsp;%</span>
@@ -718,6 +724,7 @@
                         <li
                           class="session-host__answer"
                           [class.session-host__answer--correct]="effectiveStatus() === 'RESULTS' && a.isCorrect"
+                          [class.session-host__answer--wrong]="effectiveStatus() === 'RESULTS' && !a.isCorrect"
                         >
                           <span class="session-host__answer-badge" [style.background-color]="getColor(i)">
                             <span class="session-host__answer-badge-shape">{{ getShape(i) }}</span>
@@ -727,6 +734,10 @@
                           @if (effectiveStatus() === 'RESULTS' && a.isCorrect) {
                             <span class="session-host__answer-correct-label">
                               <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                            </span>
+                          } @else if (effectiveStatus() === 'RESULTS' && !a.isCorrect) {
+                            <span class="session-host__answer-wrong-label">
+                              <mat-icon class="session-host__answer-icon" aria-hidden="true">cancel</mat-icon>
                             </span>
                           }
                         </li>
@@ -928,11 +939,19 @@
               <p class="session-channel-card__info" role="status">{{ info }}</p>
             }
 
-            @if (session()?.channels?.qa?.moderationMode) {
-              <p class="session-channel-card__text session-channel-card__text--compact" i18n="@@sessionQa.moderationModeHint">
-                Vorab-Moderation ist aktiv. Neue Fragen warten erst auf deine Freigabe.
-              </p>
-            }
+            <div class="session-qa-moderation-toggle">
+              <mat-slide-toggle
+                [checked]="!!session()?.channels?.qa?.moderationMode"
+                (change)="toggleQaModeration()"
+                i18n="@@sessionQa.moderationToggleLabel">
+                Vorab-Moderation
+              </mat-slide-toggle>
+              @if (session()?.channels?.qa?.moderationMode) {
+                <p class="session-qa-moderation-hint" i18n="@@sessionQa.moderationModeHint">
+                  Neue Fragen warten erst auf deine Freigabe.
+                </p>
+              }
+            </div>
 
             @if (qaQuestions().length === 0) {
               <p class="session-channel-card__text" i18n="@@sessionTabs.qaHostPlaceholder">

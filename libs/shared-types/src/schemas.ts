@@ -982,8 +982,13 @@ export const QaQuestionDTOSchema = z.object({
   text: z.string(),
   upvoteCount: z.number(),
   status: QaQuestionStatusEnum,
-  createdAt: z.string(),          // ISO-8601
-  hasUpvoted: z.boolean(),        // Hat der aktuelle Student bereits gevotet?
+  createdAt: z.string(),
+  /** 'UP' | 'DOWN' | null — aktueller Vote-Status dieses Teilnehmers */
+  myVote: z.enum(['UP', 'DOWN']).nullable(),
+  /** true wenn die Frage vom aktuellen Teilnehmer stammt */
+  isOwn: z.boolean(),
+  /** @deprecated – wird durch myVote ersetzt */
+  hasUpvoted: z.boolean(),
 });
 export type QaQuestionDTO = z.infer<typeof QaQuestionDTOSchema>;
 
@@ -1005,7 +1010,7 @@ export const SubmitQaQuestionInputSchema = z.object({
 });
 export type SubmitQaQuestionInput = z.infer<typeof SubmitQaQuestionInputSchema>;
 
-/** Input: Q&A-Frage upvoten (Story 8.3) */
+/** Input: Q&A-Frage upvoten (Story 8.3) – Legacy */
 export const UpvoteQaQuestionInputSchema = z.object({
   questionId: z.uuid(),
   participantId: z.uuid(),
@@ -1018,6 +1023,28 @@ export const ToggleQaUpvoteOutputSchema = z.object({
   upvoteCount: z.number(),
 });
 export type ToggleQaUpvoteOutput = z.infer<typeof ToggleQaUpvoteOutputSchema>;
+
+/** Input: Q&A-Frage voten (UP / DOWN / toggle-off) */
+export const QaVoteInputSchema = z.object({
+  questionId: z.uuid(),
+  participantId: z.uuid(),
+  direction: z.enum(['UP', 'DOWN']),
+});
+export type QaVoteInput = z.infer<typeof QaVoteInputSchema>;
+
+export const QaVoteOutputSchema = z.object({
+  questionId: z.uuid(),
+  myVote: z.enum(['UP', 'DOWN']).nullable(),
+  upvoteCount: z.number(),
+});
+export type QaVoteOutput = z.infer<typeof QaVoteOutputSchema>;
+
+/** Input: Q&A-Moderation an/aus toggeln (Host) */
+export const ToggleQaModerationInputSchema = z.object({
+  sessionCode: z.string().trim().min(6).max(6),
+  enabled: z.boolean(),
+});
+export type ToggleQaModerationInput = z.infer<typeof ToggleQaModerationInputSchema>;
 
 export const ModerateQaQuestionActionEnum = z.enum([
   'APPROVE',

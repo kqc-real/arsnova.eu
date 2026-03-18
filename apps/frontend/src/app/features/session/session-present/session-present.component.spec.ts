@@ -166,6 +166,8 @@ describe('SessionPresentComponent', () => {
         upvoteCount: 7,
         status: 'PINNED',
         createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
         hasUpvoted: false,
       },
     ]);
@@ -207,6 +209,8 @@ describe('SessionPresentComponent', () => {
         upvoteCount: 9,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
         hasUpvoted: false,
       },
       {
@@ -215,6 +219,8 @@ describe('SessionPresentComponent', () => {
         upvoteCount: 4,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
         hasUpvoted: false,
       },
     ]);

@@ -706,6 +706,13 @@
         <mat-icon class="session-channel-card__icon" aria-hidden="true">forum</mat-icon>
       </div>
 
+      @if (sessionSettings().channels?.qa?.moderationMode) {
+        <div class="session-qa-moderation-notice" role="status">
+          <mat-icon aria-hidden="true">visibility</mat-icon>
+          <span i18n="@@sessionQa.moderationNotice">Deine Fragen werden vor der Veröffentlichung geprüft.</span>
+        </div>
+      }
+
       <div class="session-qa-form">
         <label class="session-qa-form__label" for="qa-draft" i18n="@@sessionQa.askLabel">Deine Frage</label>
         <textarea
@@ -747,21 +754,64 @@
       } @else {
         <div class="session-qa-list" role="list">
           @for (question of qaQuestions(); track question.id) {
-            <article class="session-qa-card" role="listitem">
-              <div class="session-qa-card__head">
-                <span class="session-qa-card__status">{{ qaStatusLabel(question.status) }}</span>
-                <button
-                  matButton="tonal"
-                  type="button"
-                  class="session-qa-card__vote-btn"
-                  [disabled]="qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'"
-                  (click)="toggleQaUpvote(question.id)"
-                >
-                  <mat-icon aria-hidden="true">{{ question.hasUpvoted ? 'arrow_drop_down' : 'arrow_drop_up' }}</mat-icon>
-                  <span>{{ question.upvoteCount }}</span>
-                </button>
+            <article class="session-qa-card" role="listitem" [attr.data-qa-id]="question.id"
+                     [class.session-qa-card--own]="question.isOwn">
+              @if (!question.isOwn) {
+                <div class="session-qa-card__vote-stepper"
+                     [class.session-qa-card__vote-stepper--disabled]="qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'">
+                  <button
+                    type="button"
+                    class="session-qa-card__vote-arrow session-qa-card__vote-arrow--up"
+                    [class.session-qa-card__vote-arrow--active]="question.myVote === 'UP'"
+                    [disabled]="qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'"
+                    (click)="voteQa(question.id, 'UP')"
+                    aria-label="Upvote"
+                  >
+                    <mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon>
+                  </button>
+                  <span class="session-qa-card__vote-count"
+                        [class.session-qa-card__vote-count--positive]="question.upvoteCount > 0"
+                        [class.session-qa-card__vote-count--negative]="question.upvoteCount < 0">
+                    {{ question.upvoteCount }}
+                  </span>
+                  <button
+                    type="button"
+                    class="session-qa-card__vote-arrow session-qa-card__vote-arrow--down"
+                    [class.session-qa-card__vote-arrow--active]="question.myVote === 'DOWN'"
+                    [disabled]="qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'"
+                    (click)="voteQa(question.id, 'DOWN')"
+                    aria-label="Downvote"
+                  >
+                    <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
+                  </button>
+                </div>
+              }
+              <div class="session-qa-card__body">
+                <div class="session-qa-card__status-row">
+                  <span class="session-qa-card__status">{{ qaStatusLabel(question.status) }}</span>
+                  @if (question.isOwn) {
+                    <span class="session-qa-card__own-badge" i18n="@@sessionQa.ownBadge">Deine Frage</span>
+                  }
+                  <span class="session-qa-card__score"
+                        [class.session-qa-card__score--positive]="question.upvoteCount > 0"
+                        [class.session-qa-card__score--negative]="question.upvoteCount < 0">
+                    {{ question.upvoteCount }} <span i18n="@@sessionQa.scoreLabel">Stimmen</span>
+                  </span>
+                  @if (question.isOwn) {
+                    <button
+                      type="button"
+                      class="session-qa-card__delete-btn"
+                      [disabled]="qaPendingQuestionIds().has(question.id)"
+                      (click)="deleteOwnQuestion(question.id)"
+                      i18n-aria-label="@@sessionQa.deleteOwnAria"
+                      aria-label="Frage löschen"
+                    >
+                      <mat-icon aria-hidden="true">delete_outline</mat-icon>
+                    </button>
+                  }
+                </div>
+                <div class="session-qa-card__text" [innerHTML]="renderMarkdown(question.text)"></div>
               </div>
-              <div class="session-qa-card__text" [innerHTML]="renderMarkdown(question.text)"></div>
             </article>
           }
         </div>

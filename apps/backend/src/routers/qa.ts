@@ -1,10 +1,14 @@
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 import {
   GetQaQuestionsInputSchema,
   ModerateQaQuestionInputSchema,
   QaQuestionDTOSchema,
   QaQuestionsListDTOSchema,
+  QaVoteInputSchema,
+  QaVoteOutputSchema,
   SubmitQaQuestionInputSchema,
+  ToggleQaModerationInputSchema,
   ToggleQaUpvoteOutputSchema,
   UpvoteQaQuestionInputSchema,
 } from '@arsnova/shared-types';
@@ -40,19 +44,23 @@ function mapQaQuestion(
     upvoteCount: number;
     status: 'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED' | 'DELETED';
     createdAt: Date;
-    upvotes?: Array<{ participantId: string }>;
+    participantId: string;
+    upvotes?: Array<{ participantId: string; direction?: string }>;
   },
   participantId?: string,
 ) {
+  const myUpvote = participantId
+    ? (question.upvotes ?? []).find((v) => v.participantId === participantId)
+    : undefined;
   return QaQuestionDTOSchema.parse({
     id: question.id,
     text: question.text,
     upvoteCount: question.upvoteCount,
     status: question.status,
     createdAt: question.createdAt.toISOString(),
-    hasUpvoted: participantId
-      ? (question.upvotes ?? []).some((upvote) => upvote.participantId === participantId)
-      : false,
+    myVote: myUpvote ? (myUpvote.direction === 'DOWN' ? 'DOWN' : 'UP') : null,
+    isOwn: !!participantId && question.participantId === participantId,
+    hasUpvoted: !!myUpvote && myUpvote.direction !== 'DOWN',
   });
 }
 
@@ -93,7 +101,7 @@ export const qaRouter = router({
         },
         include: {
           upvotes: input.participantId
-            ? { where: { participantId: input.participantId }, select: { participantId: true } }
+            ? { where: { participantId: input.participantId }, select: { participantId: true, direction: true } }
             : false,
         },
       });
@@ -185,6 +193,7 @@ export const qaRouter = router({
           upvoteCount: true,
           status: true,
           createdAt: true,
+          participantId: true,
         },
       });
       if (!updated) {
@@ -244,12 +253,33 @@ export const qaRouter = router({
         include: {
           upvotes: {
             where: { participantId: input.participantId },
-            select: { participantId: true },
+            select: { participantId: true, direction: true },
           },
         },
       });
 
       return mapQaQuestion(question, input.participantId);
+    }),
+
+  deleteOwn: publicProcedure
+    .input(UpvoteQaQuestionInputSchema)
+    .output(z.object({ deleted: z.boolean() }))
+    .mutation(async ({ input }) => {
+      const question = await prisma.qaQuestion.findUnique({
+        where: { id: input.questionId },
+        select: { id: true, participantId: true, status: true },
+      });
+      if (!question || question.status === 'DELETED') {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
+      }
+      if (question.participantId !== input.participantId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Du kannst nur deine eigenen Fragen löschen.' });
+      }
+      await prisma.qaQuestion.update({
+        where: { id: input.questionId },
+        data: { status: 'DELETED' },
+      });
+      return { deleted: true };
     }),
 
   upvote: publicProcedure
@@ -276,6 +306,9 @@ export const qaRouter = router({
       }
       if (!['ACTIVE', 'PINNED', 'ARCHIVED'].includes(question.status)) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Frage kann aktuell nicht bewertet werden.' });
+      }
+      if (question.participantId === input.participantId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Du kannst deine eigene Frage nicht bewerten.' });
       }
 
       const participant = await prisma.participant.findUnique({
@@ -341,6 +374,90 @@ export const qaRouter = router({
       };
     }),
 
+  vote: publicProcedure
+    .input(QaVoteInputSchema)
+    .output(QaVoteOutputSchema)
+    .mutation(async ({ input }) => {
+      const question = await prisma.qaQuestion.findUnique({
+        where: { id: input.questionId },
+        include: { session: { select: { id: true, type: true, qaEnabled: true } } },
+      });
+      if (!question || question.status === 'DELETED') {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
+      }
+      if (question.session.type !== 'Q_AND_A' && question.session.qaEnabled !== true) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Fragen sind in dieser Session nicht aktiviert.' });
+      }
+      if (!['ACTIVE', 'PINNED', 'ARCHIVED'].includes(question.status)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Frage kann aktuell nicht bewertet werden.' });
+      }
+      if (question.participantId === input.participantId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Du kannst deine eigene Frage nicht bewerten.' });
+      }
+
+      const participant = await prisma.participant.findUnique({
+        where: { id: input.participantId },
+        select: { id: true, sessionId: true },
+      });
+      if (!participant || participant.sessionId !== question.sessionId) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Teilnahme zur Session nicht gefunden.' });
+      }
+
+      const existing = await prisma.qaUpvote.findUnique({
+        where: { qaQuestionId_participantId: { qaQuestionId: input.questionId, participantId: input.participantId } },
+      });
+
+      if (existing && existing.direction === input.direction) {
+        // Same direction again → toggle off
+        const delta = existing.direction === 'UP' ? -1 : 1;
+        await prisma.$transaction([
+          prisma.qaUpvote.delete({ where: { id: existing.id } }),
+          prisma.qaQuestion.update({ where: { id: input.questionId }, data: { upvoteCount: { increment: delta } } }),
+        ]);
+        const updated = await prisma.qaQuestion.findUnique({ where: { id: input.questionId }, select: { upvoteCount: true } });
+        return { questionId: input.questionId, myVote: null, upvoteCount: updated?.upvoteCount ?? question.upvoteCount + delta };
+      }
+
+      if (existing) {
+        // Switch direction: old was UP→DOWN or DOWN→UP, delta is ±2
+        const delta = input.direction === 'UP' ? 2 : -2;
+        await prisma.$transaction([
+          prisma.qaUpvote.update({ where: { id: existing.id }, data: { direction: input.direction } }),
+          prisma.qaQuestion.update({ where: { id: input.questionId }, data: { upvoteCount: { increment: delta } } }),
+        ]);
+        const updated = await prisma.qaQuestion.findUnique({ where: { id: input.questionId }, select: { upvoteCount: true } });
+        return { questionId: input.questionId, myVote: input.direction, upvoteCount: updated?.upvoteCount ?? question.upvoteCount + delta };
+      }
+
+      // New vote
+      const delta = input.direction === 'UP' ? 1 : -1;
+      await prisma.$transaction([
+        prisma.qaUpvote.create({ data: { qaQuestionId: input.questionId, participantId: input.participantId, direction: input.direction } }),
+        prisma.qaQuestion.update({ where: { id: input.questionId }, data: { upvoteCount: { increment: delta } } }),
+      ]);
+      const updated = await prisma.qaQuestion.findUnique({ where: { id: input.questionId }, select: { upvoteCount: true } });
+      return { questionId: input.questionId, myVote: input.direction, upvoteCount: updated?.upvoteCount ?? question.upvoteCount + delta };
+    }),
+
+  toggleModeration: publicProcedure
+    .input(ToggleQaModerationInputSchema)
+    .output(z.object({ enabled: z.boolean() }))
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findFirst({
+        where: { code: input.sessionCode.toUpperCase() },
+        select: { id: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const updated = await prisma.session.update({
+        where: { id: session.id },
+        data: { qaModerationMode: input.enabled },
+        select: { qaModerationMode: true },
+      });
+      return { enabled: updated.qaModerationMode };
+    }),
+
   onQuestionsUpdated: publicProcedure
     .input(GetQaQuestionsInputSchema)
     .subscription(async function* ({ input }) {
@@ -376,7 +493,7 @@ export const qaRouter = router({
           },
           include: {
             upvotes: input.participantId
-              ? { where: { participantId: input.participantId }, select: { participantId: true } }
+              ? { where: { participantId: input.participantId }, select: { participantId: true, direction: true } }
               : false,
           },
         });

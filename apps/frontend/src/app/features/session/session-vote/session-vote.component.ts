@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, OnDestroy, inject, signal, computed, effect } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, ElementRef, inject, signal, computed, effect } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
@@ -95,6 +95,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly themePreset = inject(ThemePresetService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly el = inject(ElementRef);
   private readonly snackBar = inject(MatSnackBar);
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
@@ -103,6 +104,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private lastAnswerToggleAt = 0;
   private lastVoteSubmitAt = 0;
   private lastQaSubmitAt = 0;
+  private reorderLockUntil = 0;
 
   readonly code = (this.route.parent?.snapshot.paramMap.get('code') ?? '').toUpperCase();
   readonly sessionId = signal('');
@@ -550,7 +552,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       { sessionId: this.sessionId(), participantId: this.participantId() || undefined },
       {
         onData: (data) => {
-          this.qaQuestions.set(data);
+          if (Date.now() < this.reorderLockUntil) return;
+          this.setQaQuestionsAnimated(data);
           this.qaError.set(null);
         },
         onError: () => {},
@@ -709,13 +712,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.qaQuestions.set([]);
       return;
     }
+    if (Date.now() < this.reorderLockUntil) return;
 
     try {
       const questions = await trpc.qa.list.query({
         sessionId: this.sessionId(),
         participantId: this.participantId() || undefined,
       });
-      this.qaQuestions.set(questions);
+      if (Date.now() < this.reorderLockUntil) return;
+      this.setQaQuestionsAnimated(questions);
       this.qaError.set(null);
     } catch {
       this.qaError.set($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
@@ -826,7 +831,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return { sessionId, participantId };
   }
 
-  async toggleQaUpvote(questionId: string): Promise<void> {
+  async voteQa(questionId: string, direction: 'UP' | 'DOWN'): Promise<void> {
     if (!this.participantId() || this.qaPendingQuestionIds().has(questionId)) {
       return;
     }
@@ -836,19 +841,119 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     nextPending.add(questionId);
     this.qaPendingQuestionIds.set(nextPending);
 
+    const snapshot = this.qaQuestions();
+    this.applyOptimisticVote(questionId, direction);
+    this.reorderLockUntil = Date.now() + 1800;
+
     try {
-      await trpc.qa.upvote.mutate({
+      await trpc.qa.vote.mutate({
         questionId,
         participantId: this.participantId(),
+        direction,
       });
+      const serverData = await trpc.qa.list.query({
+        sessionId: this.sessionId(),
+        participantId: this.participantId() || undefined,
+      });
+      const wait = Math.max(0, this.reorderLockUntil - Date.now());
+      await new Promise((r) => setTimeout(r, wait));
+      this.setQaQuestionsAnimated(serverData);
+      this.qaError.set(null);
+    } catch {
+      this.qaQuestions.set(snapshot);
+      this.qaError.set($localize`:@@sessionQa.upvoteError:Stimme konnte nicht gespeichert werden.`);
+    } finally {
+      this.reorderLockUntil = 0;
+      const remaining = new Set(this.qaPendingQuestionIds());
+      remaining.delete(questionId);
+      this.qaPendingQuestionIds.set(remaining);
+    }
+  }
+
+  async deleteOwnQuestion(questionId: string): Promise<void> {
+    if (!this.participantId() || this.qaPendingQuestionIds().has(questionId)) return;
+
+    const pending = new Set(this.qaPendingQuestionIds());
+    pending.add(questionId);
+    this.qaPendingQuestionIds.set(pending);
+    this.qaError.set(null);
+
+    this.qaQuestions.update((qs) => qs.filter((q) => q.id !== questionId));
+
+    try {
+      await trpc.qa.deleteOwn.mutate({ questionId, participantId: this.participantId() });
       await this.refreshQaQuestions();
     } catch {
-      this.qaError.set($localize`:@@sessionQa.upvoteError:Stimme konnte nicht gespeichert werden.`);
+      this.qaError.set($localize`:@@sessionQa.deleteOwnError:Frage konnte nicht gelöscht werden.`);
+      await this.refreshQaQuestions();
     } finally {
       const remaining = new Set(this.qaPendingQuestionIds());
       remaining.delete(questionId);
       this.qaPendingQuestionIds.set(remaining);
     }
+  }
+
+  private applyOptimisticVote(questionId: string, direction: 'UP' | 'DOWN'): void {
+    this.qaQuestions.update((questions) =>
+      questions.map((q) => {
+        if (q.id !== questionId) return q;
+        const wasVoted = q.myVote;
+        if (wasVoted === direction) {
+          const delta = direction === 'UP' ? -1 : 1;
+          return { ...q, myVote: null, hasUpvoted: false, upvoteCount: q.upvoteCount + delta };
+        }
+        if (wasVoted) {
+          const delta = direction === 'UP' ? 2 : -2;
+          return { ...q, myVote: direction, hasUpvoted: direction === 'UP', upvoteCount: q.upvoteCount + delta };
+        }
+        const delta = direction === 'UP' ? 1 : -1;
+        return { ...q, myVote: direction, hasUpvoted: direction === 'UP', upvoteCount: q.upvoteCount + delta };
+      }),
+    );
+  }
+
+  private setQaQuestionsAnimated(next: QaQuestionDTO[]): void {
+    const prefersReducedMotion =
+      typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const container: HTMLElement | null = this.el.nativeElement.querySelector('.session-qa-list');
+
+    if (!container || prefersReducedMotion) {
+      this.qaQuestions.set(next);
+      return;
+    }
+
+    const cards = container.querySelectorAll<HTMLElement>('[data-qa-id]');
+    const prevRects = new Map<string, DOMRect>();
+    cards.forEach((card) => {
+      const id = card.getAttribute('data-qa-id');
+      if (id) prevRects.set(id, card.getBoundingClientRect());
+    });
+
+    this.qaQuestions.set(next);
+    this.cdr.detectChanges();
+
+    requestAnimationFrame(() => {
+      const newCards = container.querySelectorAll<HTMLElement>('[data-qa-id]');
+      newCards.forEach((card) => {
+        const id = card.getAttribute('data-qa-id');
+        if (!id) return;
+        const prev = prevRects.get(id);
+        if (!prev) {
+          card.animate([{ opacity: 0, transform: 'scale(0.95)' }, { opacity: 1, transform: 'scale(1)' }], {
+            duration: 600,
+            easing: 'ease-out',
+          });
+          return;
+        }
+        const curr = card.getBoundingClientRect();
+        const dy = prev.top - curr.top;
+        if (Math.abs(dy) < 1) return;
+        card.animate(
+          [{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }],
+          { duration: 800, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' },
+        );
+      });
+    });
   }
 
   private async refreshQuestion(): Promise<void> {

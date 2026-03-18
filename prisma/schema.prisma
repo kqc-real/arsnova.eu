@@ -265,15 +265,21 @@ model QaQuestion {
   @@index([sessionId, participantId])
 }
 
-// Upvote-Tracking für Q&A-Fragen (Story 8.3)
+// Vote-Tracking für Q&A-Fragen (Story 8.3): UP oder DOWN pro Teilnehmer
 model QaUpvote {
-  id            String      @id @default(uuid())
+  id            String         @id @default(uuid())
   qaQuestionId  String
-  qaQuestion    QaQuestion  @relation(fields: [qaQuestionId], references: [id], onDelete: Cascade)
+  qaQuestion    QaQuestion     @relation(fields: [qaQuestionId], references: [id], onDelete: Cascade)
   participantId String
-  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  participant   Participant    @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  direction     QaVoteDirection @default(UP)
 
-  @@unique([qaQuestionId, participantId]) // Max. 1 Upvote pro Student pro Frage
+  @@unique([qaQuestionId, participantId])
+}
+
+enum QaVoteDirection {
+  UP
+  DOWN
 }
 
 enum QaQuestionStatus {

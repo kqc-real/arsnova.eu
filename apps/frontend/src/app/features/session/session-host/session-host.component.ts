@@ -8,6 +8,7 @@ import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle }
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
 import type { Subscription } from 'rxjs';
@@ -115,6 +116,7 @@ const ALL_MUSIC_TRACK_VALUES = ALL_MUSIC_TRACKS.map((t) => t.value);
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
+    MatSlideToggle,
     WordCloudComponent,
     CountdownFingersComponent,
     FeedbackHostComponent,
@@ -1189,6 +1191,29 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.quickFeedbackResult.set(result);
     } catch {
       this.quickFeedbackResult.set(null);
+    }
+  }
+
+  async toggleQaModeration(): Promise<void> {
+    const current = this.session()?.channels?.qa?.moderationMode ?? false;
+    try {
+      const result = await trpc.qa.toggleModeration.mutate({
+        sessionCode: this.code.toUpperCase(),
+        enabled: !current,
+      });
+      this.session.update((s) => {
+        if (!s || !s.channels) return s;
+        return {
+          ...s,
+          channels: { ...s.channels, qa: { ...s.channels.qa, moderationMode: result.enabled } },
+        };
+      });
+      this.qaInfo.set(result.enabled
+        ? $localize`:@@sessionQa.moderationEnabled:Vorab-Moderation aktiviert.`
+        : $localize`:@@sessionQa.moderationDisabled:Vorab-Moderation deaktiviert.`,
+      );
+    } catch {
+      this.qaError.set($localize`:@@sessionQa.moderationToggleError:Moderation konnte nicht umgeschaltet werden.`);
     }
   }
 

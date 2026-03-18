@@ -6036,6 +6036,30 @@
           <context context-type="linenumber">846</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.ownBadge" datatype="html">
+        <source>Deine Frage</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.scoreLabel" datatype="html">
+        <source>Stimmen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.deleteOwnAria" datatype="html">
+        <source>Frage löschen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.deleteOwnError" datatype="html">
+        <source>Frage konnte nicht gelöscht werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="9175670018185396326" datatype="html">
         <source>Fehler</source>
         <context-group purpose="location">

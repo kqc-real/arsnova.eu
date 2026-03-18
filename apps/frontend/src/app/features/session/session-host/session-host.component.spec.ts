@@ -192,6 +192,8 @@ describe('SessionHostComponent', () => {
         upvoteCount: 3,
         status: 'PENDING',
         createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
         hasUpvoted: false,
       },
     ]);
@@ -230,6 +232,8 @@ describe('SessionHostComponent', () => {
         upvoteCount: 1,
         status: 'PENDING',
         createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
         hasUpvoted: false,
       },
     ]);
@@ -261,6 +265,8 @@ describe('SessionHostComponent', () => {
         upvoteCount: 2,
         status: 'PENDING',
         createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
         hasUpvoted: false,
       },
     ]);
