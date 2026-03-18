@@ -51,11 +51,12 @@ describe('qa router (Epic 8)', () => {
     prismaMock.qaQuestion.findMany.mockResolvedValue([
       {
         id: QUESTION_ID,
+        participantId: 'other-participant',
         text: 'Was ist klausurrelevant?',
         upvoteCount: 4,
         status: 'ACTIVE',
         createdAt: new Date('2026-03-13T12:00:00.000Z'),
-        upvotes: [{ participantId: PARTICIPANT_ID }],
+        upvotes: [{ participantId: PARTICIPANT_ID, direction: 'UP' }],
       },
     ]);
 
@@ -69,6 +70,8 @@ describe('qa router (Epic 8)', () => {
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:00:00.000Z',
         hasUpvoted: true,
+        isOwn: false,
+        myVote: 'UP',
       },
     ]);
   });
@@ -167,7 +170,7 @@ describe('qa router (Epic 8)', () => {
     });
   });
 
-  it('moderiert Fragen und hebt beim Pinnen alte Pins auf', async () => {
+  it('moderiert Fragen und erlaubt mehrfaches Pinnen', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       type: 'QUIZ',
@@ -177,6 +180,7 @@ describe('qa router (Epic 8)', () => {
       .mockResolvedValueOnce({
         id: QUESTION_ID,
         sessionId: SESSION_ID,
+        participantId: PARTICIPANT_ID,
         text: 'Welche Themen kommen dran?',
         upvoteCount: 5,
         status: 'ACTIVE',
@@ -184,12 +188,14 @@ describe('qa router (Epic 8)', () => {
       })
       .mockResolvedValueOnce({
         id: QUESTION_ID,
+        participantId: PARTICIPANT_ID,
         text: 'Welche Themen kommen dran?',
         upvoteCount: 5,
         status: 'PINNED',
         createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        upvotes: [],
       });
-    prismaMock.$transaction.mockResolvedValue([]);
+    prismaMock.qaQuestion.update.mockResolvedValue({});
 
     const result = await caller.moderate({
       sessionCode: 'ABC123',
@@ -197,14 +203,11 @@ describe('qa router (Epic 8)', () => {
       action: 'PIN',
     });
 
-    expect(prismaMock.qaQuestion.updateMany).toHaveBeenCalledWith({
-      where: {
-        sessionId: SESSION_ID,
-        status: 'PINNED',
-        NOT: { id: QUESTION_ID },
-      },
-      data: { status: 'ACTIVE' },
+    expect(prismaMock.qaQuestion.update).toHaveBeenCalledWith({
+      where: { id: QUESTION_ID },
+      data: { status: 'PINNED' },
     });
+    expect(prismaMock.qaQuestion.updateMany).not.toHaveBeenCalled();
     expect(result.status).toBe('PINNED');
   });
 });
