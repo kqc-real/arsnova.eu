@@ -65,7 +65,7 @@
 
   .session-host--with-channel-tabs .session-host__channel-panel {
     padding-inline: var(--host-mobile-inline);
-    padding-bottom: 0;
+    padding-bottom: var(--host-mobile-safe-bottom);
   }
 }
 
@@ -84,20 +84,16 @@
 }
 
 .session-host__view-controls {
-  position: fixed;
-  top: var(--session-host-float-top);
-  right: max(1rem, calc((100vw - 56rem) / 2));
-  z-index: 1100;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
 }
 
 .session-host__view-controls--inline {
-  position: static;
-  top: auto;
-  right: auto;
-  z-index: auto;
+  flex: 0 0 auto;
+}
+
+.session-host__view-controls--meta {
   flex: 0 0 auto;
 }
 
@@ -165,6 +161,17 @@
     gap: var(--host-mobile-toolbar-gap);
   }
 
+  .session-host__live-actions {
+    gap: var(--host-mobile-toolbar-gap);
+  }
+
+  .session-host__view-toggle--fullscreen {
+    display: none;
+  }
+}
+
+/* Smartphone Landscape: Fullscreen-Button ausblenden (Viewport-Höhe typisch < 500px). */
+@media (max-height: 500px) {
   .session-host__view-toggle--fullscreen {
     display: none;
   }
@@ -192,10 +199,6 @@
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
-
-  .session-host__view-controls {
-    right: max(1.5rem, calc((100vw - 56rem) / 2));
-  }
 }
 
 @media (min-width: 840px) {
@@ -203,10 +206,6 @@
     --session-host-shell-inline: 2rem;
     --session-host-toolbar-clearance: 5.25rem;
     --session-host-float-top: 1.25rem;
-  }
-
-  .session-host__view-controls {
-    right: max(2rem, calc((100vw - 56rem) / 2));
   }
 }
 
@@ -407,6 +406,13 @@
 .session-host__live-sound-control {
   margin-left: 0;
   justify-self: center;
+}
+
+.session-host__live-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 0.45rem;
 }
 
 .session-host__live-join-control {
