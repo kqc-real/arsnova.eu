@@ -8,6 +8,8 @@
 **Architekturbezug:** `ADR-0014`  
 **Backlog-Bezug:** `Story 2.8 Produktives Smartphone-Hosting fuer Live-Sessions`
 
+**Status:** ✅ Abgeschlossen (2026-03-13)
+
 ---
 
 ## Zielbild
@@ -381,6 +383,19 @@ Der folgende Zuschnitt ist bewusst so klein gehalten, dass er in wenigen zusamme
 3. **Commit 3:** Scrolllogik / Feedback-/Vote-Anpassungen als Vorbereitung fuer Phase 3/4
 
 So bleiben Rueckbau, Review und visuelle Gegenpruefung deutlich einfacher.
+
+---
+
+## Abschluss (2026-03-13)
+
+Story 2.8 wurde ueber mehrere Iterationen umgesetzt. Statt punktueller CSS-Korrekturen wurde ein **Vier-Zonen-Layout** als gemeinsame Informationsarchitektur etabliert:
+
+1. **Top-Toolbar** (Logo, Preset, Theme)
+2. **Session-Channel-Tabs** (Quiz, Q&A, Blitzlicht)
+3. **Live-Channel-Shell** (QR, Session-Code, Musik)
+4. **Channel-Panel** (Kanalinhalt)
+
+Alle `fixed`-Elemente in `session-host` wurden entfernt; Tabs und Banner sind statisch im Dokumentfluss. Mobile Host-Tokens, Q&A-Stabilisierung, Blitzlicht-Alignment (embedded/standalone) und 2-Button-Zentrierung (Ja/Nein) sind umgesetzt. Der Fullscreen-Button wird auf Smartphone (inkl. Landscape) ausgeblendet.
 
 ---
 

@@ -176,4 +176,19 @@ Sie soll produktnah geprueft werden:
 
 ---
 
-**Referenzen:** `apps/frontend/src/app/features/session/session-host/session-host.component.scss`, `apps/frontend/src/app/features/feedback/feedback-host.component.scss`, `apps/frontend/src/app/features/session/session-vote/session-vote.component.scss`, `apps/frontend/src/app/features/session/session-present/session-present.component.scss`, [ADR-0005: Angular Material Design](./0005-use-angular-material-design.md), [ADR-0009: Einheitliche Live-Session mit Tabs fuer Quiz, Q&A und Blitzlicht](./0009-unified-live-session-channels.md), [ADR-0010: Blitzlicht als Kernmodus fuer Live-Sessions](./0010-blitzlicht-as-core-live-mode.md).
+## Umsetzungsstand (2026-03-13)
+
+Die Architektur wurde umgesetzt. Zentrale Aenderungen:
+
+- **Vier-Zonen-Layout:** Top-Toolbar, Session-Channel-Tabs, Live-Channel-Shell (QR, Code, Musik), Channel-Panel sind in allen Phasen (connecting, running, result) und allen Kanaelen (Quiz, Q&A, Blitzlicht) konsistent positioniert.
+- **Keine fixed-Elemente mehr in session-host:** Tabs, Banner und Controls sind statisch im Dokumentfluss; natuerliche Scrollbarkeit ohne Ueberlagerungen.
+- **Mobile Host-Tokens:** `--host-mobile-inline`, `--host-mobile-stack-gap`, `--host-mobile-card-padding`, `--host-mobile-toolbar-gap`, `--host-mobile-safe-bottom` in `styles.scss`.
+- **Q&A-Host:** Im Vier-Zonen-Modell stabilisiert, Safe-Bottom auf Mobile.
+- **Blitzlicht:** Ergebnisbalken und Format-Buttons zwischen embedded (Kanal) und standalone (Startseite) angeglichen; 2-Button-Layout (Ja/Nein) zentriert.
+- **Fullscreen-Button:** Auf Smartphone (inkl. Landscape) ausgeblendet.
+
+Story 2.8 gilt als erfuellt.
+
+---
+
+**Referenzen:** `apps/frontend/src/app/features/session/session-host/session-host.component.scss`, `apps/frontend/src/app/features/feedback/feedback-host.component.scss`, `apps/frontend/src/app/features/feedback/feedback-vote.component.scss`, `apps/frontend/src/app/features/session/session-vote/session-vote.component.scss`, `apps/frontend/src/app/features/session/session-present/session-present.component.scss`, [ADR-0005: Angular Material Design](./0005-use-angular-material-design.md), [ADR-0009: Einheitliche Live-Session mit Tabs fuer Quiz, Q&A und Blitzlicht](./0009-unified-live-session-channels.md), [ADR-0010: Blitzlicht als Kernmodus fuer Live-Sessions](./0010-blitzlicht-as-core-live-mode.md).

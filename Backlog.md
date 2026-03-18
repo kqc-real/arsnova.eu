@@ -55,7 +55,7 @@
 | 2    | 2.5   | Beamer-Ansicht / Presenter-Mode               | 🔴   | ✅ Fertig |
 | 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)          | 🟡   | ✅ Fertig |
 | 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher) | 🟡   | ✅ Fertig |
-| 2    | 2.8   | Produktives Smartphone-Hosting fuer Live-Sessions | 🔴   | ⬜ Offen  |
+| 2    | 2.8   | Produktives Smartphone-Hosting fuer Live-Sessions | 🔴   | ✅ Fertig |
 | 3    | 3.1   | Beitreten                                     | 🔴   | ✅ Fertig |
 | 3    | 3.2   | Nicknames                                     | 🟡   | ✅ Fertig |
 | 3    | 3.3a  | Frage empfangen                               | 🔴   | ✅ Fertig |
@@ -514,7 +514,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 2: Live-Sitzung & Lobby (Rolle: Dozent)
 
-> **Verifizierung (Commit-Historie):** Der bisherige Kernumfang 2.1a–2.7 ist umgesetzt. Offene Nachschärfungen: Story 2.1c für tokenbasierten Host-/Presenter-Zugang und Story 2.8 für produktives Smartphone-Hosting.
+> **Verifizierung (Commit-Historie):** Der bisherige Kernumfang 2.1a–2.8 ist umgesetzt. Offen: Story 2.1c für tokenbasierten Host-/Presenter-Zugang.
 
 - **Story 2.1a (Session-ID generieren & Quiz-Upload):** 🔴 Als Dozent möchte ich ein Quiz live schalten können, wodurch eine 6-stellige Session-ID generiert wird und die Quizdaten an den Server übertragen werden.
   - **Akzeptanzkriterien:**
