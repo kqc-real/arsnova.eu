@@ -265,7 +265,7 @@ describe('SessionPresentComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
-    const text = fixture.nativeElement.textContent as string;
+    const text = (fixture.nativeElement.textContent as string).replace(/\u00a0/g, ' ');
     expect(text).toContain('Blitzlicht');
     expect(text).toContain('Ja · Nein · Vielleicht');
     expect(text).toContain('Runde 2 läuft');
