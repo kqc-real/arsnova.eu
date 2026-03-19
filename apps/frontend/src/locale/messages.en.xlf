@@ -95,7 +95,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">9,10</context>
+          <context context-type="linenumber">15,16</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1547876271716599756" datatype="html">
@@ -814,7 +814,7 @@
         <target>Back to previous page</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">3,4</context>
+          <context context-type="linenumber">8,10</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/legal/legal-page.component.html</context>
@@ -826,7 +826,7 @@
         <target>Back</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">5,8</context>
+          <context context-type="linenumber">11,14</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/legal/legal-page.component.html</context>
@@ -842,7 +842,7 @@
         <target>arsnova.eu supports you with quizzes, Q&amp;A and flashlights in courses, workshops and events. Without registration – you start, your participants join in.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">11,12</context>
+          <context context-type="linenumber">17,18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2882795758937128373" datatype="html">
@@ -850,15 +850,15 @@
         <target>Demo Quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">15,16</context>
+          <context context-type="linenumber">22,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoCardHint" datatype="html">
         <source> Ein vorinstalliertes Beispiel-Quiz zeigt alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen. Du findest es in deiner Quiz-Bibliothek („Meine Quiz-Bibliothek&quot;) und kannst es dort in der Vorschau öffnen.</source>
-        <target>On the home page, in the <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Start event<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> card, the <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Play demo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> link opens a preinstalled sample quiz. You can see all question types, including KaTeX formulas and Markdown, without creating anything first.</target>
+        <target>A preinstalled sample quiz shows all question types (multiple choice, free text, rating scale, etc.) including KaTeX formulas and Markdown – without having to create anything. You&apos;ll find it in your quiz library (&quot;My Quiz Library&quot;) and can open it there in preview.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">17,19</context>
+          <context context-type="linenumber">24,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6929805573893138465" datatype="html">
@@ -866,7 +866,7 @@
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Tip:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Give your participants the link to the preview before the first real session - this way they get to know the process and interface, without pressure.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">20,22</context>
+          <context context-type="linenumber">30,33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5757491187251172074" datatype="html">
@@ -874,31 +874,31 @@
         <target>Quick start</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">25,26</context>
+          <context context-type="linenumber">36,37</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8476097345531218120" datatype="html">
+      <trans-unit id="5731188417149565361" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz anlegen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> „Meine Quiz-Bibliothek&quot; öffnen, neues Quiz erstellen, Fragen und Einstellungen festlegen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Create quiz:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Open &quot;My Quiz Library&quot;, create a new quiz, define questions and settings.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">27,28</context>
+          <context context-type="linenumber">39,41</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="423809207543072683" datatype="html">
+      <trans-unit id="3722614997917330799" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Veranstaltung starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In der Bibliothek „Veranstaltung starten&quot; wählen – ein 6-stelliger Code entsteht. Code oder QR-Code mit deinen Teilnehmenden teilen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Start event:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Select &quot;Start event&quot; in the library - a 6-digit code is created. Share code or QR code with your participants.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">28,29</context>
+          <context context-type="linenumber">43,45</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7783173998386694533" datatype="html">
+      <trans-unit id="4296851443480886852" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Live durchführen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen nacheinander freigeben, abstimmen lassen, Ergebnisse live anzeigen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Perform live:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Release questions one after the other, have them voted on, display the results live.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">29,31</context>
+          <context context-type="linenumber">47,49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4233310573129701226" datatype="html">
@@ -906,15 +906,15 @@
         <target>Lead the event</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">34,35</context>
+          <context context-type="linenumber">54,55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLead" datatype="html">
-        <source>Du startest eine Live-Session, teilst den Code und steuerst Quiz, Q&amp;A und Blitzlicht.</source>
+        <source> Du startest eine Live-Session, teilst den Code und steuerst Quiz, Q&amp;A und Blitzlicht.</source>
         <target>You start a live session, share the code and control quiz, Q&amp;A and other live areas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">35,37</context>
+          <context context-type="linenumber">56,58</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostStartStep" datatype="html">
@@ -922,47 +922,47 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Start session:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Start an event in your quiz library and choose whether it begins with a quiz or Q&amp;A. This creates a 6-character code.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">37,38</context>
+          <context context-type="linenumber">60,62</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="9087203686834832349" datatype="html">
+      <trans-unit id="3905875505126452162" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Du siehst, wer beigetreten ist; ein QR-Code zum Beitritt wird angezeigt.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> You see who has joined; a QR code for joining is shown.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">38,39</context>
+          <context context-type="linenumber">64,66</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4645446495292726948" datatype="html">
+      <trans-unit id="4249072203599185571" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beamer-Ansicht:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Große Darstellung von Frage, Antworten, Countdown und Ergebnissen für die Projektion im Raum.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Projector view:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Large display of question, answers, countdown and results for room projection.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">39,40</context>
+          <context context-type="linenumber">68,70</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3660636321435230844" datatype="html">
+      <trans-unit id="2728956304182403110" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Steuerung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit „Nächste Frage&quot; blendest du die Frage ein. Optional zuerst nur den Text (Lesephase), dann „Antworten freigeben&quot;, danach können alle abstimmen. Anschließend „Ergebnis zeigen&quot;.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Control:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Use “Next question” to show the question. Optionally show only the text first (reading phase), then “Release answers”, then everyone can vote. Then “Show result”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">40,41</context>
+          <context context-type="linenumber">72,75</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="5604128861019150500" datatype="html">
+      <trans-unit id="850060981643787918" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Bei Quiz- und Blitzlicht-Fragen: Erst abstimmen lassen → „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) → „Zweite Abstimmung&quot; – Vorher/Nachher-Vergleich zeigt, wie sich die Meinung durch den Austausch verändert hat.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Peer Instruction (double rounds):&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; For quiz and flashlight questions: get the vote first → start the “discussion phase” (“discuss with your neighbor”) → “second vote” – Before/after comparison shows how opinions have changed as a result of the exchange.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">41,42</context>
+          <context context-type="linenumber">77,80</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8248798317865819680" datatype="html">
+      <trans-unit id="8301891335167587496" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Einstellungen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beim Start legst du den Stil („Seriös&quot; oder „Spielerisch&quot;) und die Optionen fest (Rangliste, Sound, Lesephase, Team-Modus, Nicknamen, Timer). Deine Teilnehmenden übernehmen automatisch dein Theme.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Settings:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; When you start, you set the style (&quot;Serious&quot; or &quot;Playful&quot;) and the options (rankings, sound, reading phase, team mode, nicknames, timer). Your participants automatically adopt your theme.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">42,44</context>
+          <context context-type="linenumber">83,86</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6578769733165701997" datatype="html">
@@ -970,15 +970,15 @@
         <target>Blitzlicht</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">47,48</context>
+          <context context-type="linenumber">91,92</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackIntro" datatype="html">
-        <source>Schnelle Stimmungsabfragen – z. B. vor der Pause, zum Einstieg oder für spontane Wissenschecks. Als Live-Bereich in deiner Veranstaltung oder direkt von der Startseite.</source>
+        <source> Schnelle Stimmungsabfragen – z. B. vor der Pause, zum Einstieg oder für spontane Wissenschecks. Als Live-Bereich in deiner Veranstaltung oder direkt von der Startseite.</source>
         <target>Quick voting as a live area in your event or directly from the start page.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">48,50</context>
+          <context context-type="linenumber">93,97</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1700849053740132045" datatype="html">
@@ -986,15 +986,15 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Mood<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): How are participants doing?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">50,51</context>
+          <context context-type="linenumber">97,98</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3563833922786121025" datatype="html">
+      <trans-unit id="8976505060971265678" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein / Vielleicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Schnelle Zustimmungs-Abfrage.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Yes / No / Maybe<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Quick approval poll.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">51,52</context>
+          <context context-type="linenumber">99,101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackYesNo" datatype="html">
@@ -1002,7 +1002,7 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Yes / No<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): Clear two-option poll with no middle ground.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">52,53</context>
+          <context context-type="linenumber">102,104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackTrueFalseUnknown" datatype="html">
@@ -1010,7 +1010,7 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>True / False / Don&apos;t know<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✔️✖️❔): For quick assessments or knowledge checks.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">53,54</context>
+          <context context-type="linenumber">105,107</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackAbc" datatype="html">
@@ -1018,63 +1018,63 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABC<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C): Three answer options for spontaneous choice questions.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">54,55</context>
+          <context context-type="linenumber">109,111</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8738149910840056513" datatype="html">
+      <trans-unit id="656110606833955350" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABCD-Voting<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C D): Vier Antwortoptionen, z. B. für spontane Quizfragen.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABCD voting<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C D): Four answer options, e.g. for spontaneous quiz questions.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">55,57</context>
+          <context context-type="linenumber">112,114</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackStartFlow" datatype="html">
-        <source>Du startest die Runde im Host-Bereich deiner Live-Session oder direkt über die Blitzlicht-Karte „Live starten&quot; auf der Startseite. Deine Teilnehmenden stimmen mit einem Tipp ab; du siehst die Ergebnisse live als Balkendiagramm.</source>
+        <source> Du startest die Runde im Host-Bereich deiner Live-Session oder direkt über die Blitzlicht-Karte „Live starten&quot; auf der Startseite. Deine Teilnehmenden stimmen mit einem Tipp ab; du siehst die Ergebnisse live als Balkendiagramm.</source>
         <target>You start the round in the host area of your live session or directly via the Blitzlicht card on the start page. Participants vote with one tap, and you see the results live as a bar chart.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">57,59</context>
+          <context context-type="linenumber">117,121</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8255671127978226490" datatype="html">
+      <trans-unit id="2872668827565440769" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Erste Runde – Ergebnis nicht auflösen – „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) – „Zweite Abstimmung&quot;. Vorher/Nachher-Vergleich zeigt den Lerneffekt durch den Austausch.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Peer Instruction (double rounds):&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; First round - Do not resolve the result - Start the &quot;discussion phase&quot; (&quot;Discuss with your neighbor&quot;) - &quot;Second vote&quot;. Before/after comparison shows the learning effect through the exchange.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">59,60</context>
+          <context context-type="linenumber">123,126</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2771235871372028980" datatype="html">
+      <trans-unit id="5555991429758536123" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stopp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Abstimmung einfrieren – Teilnehmende sehen „Abstimmung ist pausiert&quot; und können nicht mehr abstimmen, bis du „Fortsetzen&quot; wählst.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stop:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Freeze the poll – participants see “Poll is paused” and cannot vote until you choose “Resume”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">60,61</context>
+          <context context-type="linenumber">128,130</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8619844818513185136" datatype="html">
+      <trans-unit id="4551175203253050768" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Zurücksetzen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Alle Stimmen löschen und erneut abstimmen lassen.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Reset:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Clear all votes and run the poll again.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">61,62</context>
+          <context context-type="linenumber">132,134</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1563376326853659666" datatype="html">
+      <trans-unit id="1038623880816692160" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Neue Runde:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Neuen Code erzeugen und eine frische Runde starten.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>New round:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Generate a new code and start a fresh round.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">62,63</context>
+          <context context-type="linenumber">135,137</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4624381387593523774" datatype="html">
+      <trans-unit id="3701761523716248058" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Link kopieren:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beitrittslink in die Zwischenablage kopieren, z. B. zum Teilen per Chat.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Copy link:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Copy the join link to the clipboard, e.g. to share via chat.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">63,65</context>
+          <context context-type="linenumber">138,140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1686642580667707820" datatype="html">
@@ -1082,7 +1082,7 @@
         <target>For your participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">68,69</context>
+          <context context-type="linenumber">145,146</context>
         </context-group>
       </trans-unit>
       <trans-unit id="404518008402448103" datatype="html">
@@ -1090,31 +1090,31 @@
         <target>Here&apos;s how you can briefly explain it to your participants:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">69,70</context>
+          <context context-type="linenumber">146,147</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2345171050011617562" datatype="html">
+      <trans-unit id="9053923677144238946" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf arsnova.eu eingeben und „Los geht&apos;s&quot; – funktioniert für Quiz, Q&amp;A und Blitzlicht. Keine Anmeldung nötig.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Join:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Enter the 6-digit code on arsnova.eu and &quot;Let&apos;s get started&quot; - works for quizzes, Q&amp;A and flashlights. No registration necessary.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">71,72</context>
+          <context context-type="linenumber">149,151</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4744519463620771442" datatype="html">
+      <trans-unit id="414384862681892947" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknamen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Je nach deiner Einstellung vorgegebene Namen, eigener Name oder anonym.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Nicknames:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Depending on your settings, predefined names, your own name or anonymous.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">72,73</context>
+          <context context-type="linenumber">153,155</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8123546303847145687" datatype="html">
+      <trans-unit id="822721482896983993" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Abstimmung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Frage erscheint auf dem Gerät, Antwort wählen und absenden. Bei Zeitlimit läuft ein Countdown.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Vote:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Question appears on the device, select answer and send. If there is a time limit, a countdown starts.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">73,75</context>
+          <context context-type="linenumber">157,159</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5152194987083256317" datatype="html">
@@ -1122,7 +1122,7 @@
         <target>My quiz library</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">78,79</context>
+          <context context-type="linenumber">164,165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2240139559342874951" datatype="html">
@@ -1130,39 +1130,39 @@
         <target>Here you create and prepare your quizzes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">79,80</context>
+          <context context-type="linenumber">165,166</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="247184407571353913" datatype="html">
+      <trans-unit id="6600283498524676772" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Editor:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen per Drag-and-Drop sortieren, auf- und zuklappen, Vorschau prüfen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Editor:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Sort questions using drag and drop, expand and collapse, check preview.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">81,82</context>
+          <context context-type="linenumber">168,170</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="9122741059925470323" datatype="html">
+      <trans-unit id="4102885613161875751" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Fragetypen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple Choice, Single Choice, Freitext, Umfrage, Bewertungsskala – pro Frage optional mit Timer und Schwierigkeitsgrad.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Question types:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple choice, single choice, free text, survey, rating scale – per question optionally with timer and difficulty.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">82,83</context>
+          <context context-type="linenumber">172,174</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1199889366785902262" datatype="html">
+      <trans-unit id="4048987240351845009" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Über den KI-Prompt kannst du ein Quiz mit deiner bevorzugten KI generieren und direkt importieren – deine Lehrmaterialien werden nicht an arsnova.eu gesendet, du nutzt deine eigene KI.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Import / Export:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Import or export quizzes as JSON. Use the AI prompt to generate a quiz with your preferred AI and import it – nothing goes to arsnova.eu, you use your own AI.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">83,84</context>
+          <context context-type="linenumber">176,179</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4685787551760390359" datatype="html">
+      <trans-unit id="2677326509780560651" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Sync-ID oder Sync-Link die Bibliothek mit Kolleg:innen teilen oder auf anderen Geräten weiterarbeiten.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Sync:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Share the library with colleagues or continue working on other devices using Sync ID or Sync Link.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">84,85</context>
+          <context context-type="linenumber">181,183</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoQuizHint" datatype="html">
@@ -1170,7 +1170,7 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> A preinstalled quiz shows all question types with examples, including KaTeX formulas and Markdown. Open it directly from the home page via “Play demo” (card “Start event”) or from the quiz library preview.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">85,87</context>
+          <context context-type="linenumber">185,188</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7073179163226115346" datatype="html">
@@ -1178,39 +1178,39 @@
         <target>Serious and playful</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">90,91</context>
+          <context context-type="linenumber">193,194</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="634530665123137018" datatype="html">
-        <source>Zwei Stile für unterschiedliche Situationen – wählbar auf der Startseite und beim Session-Start.</source>
+      <trans-unit id="3849582059767738114" datatype="html">
+        <source> Zwei Stile für unterschiedliche Situationen – wählbar auf der Startseite und beim Session-Start.</source>
         <target>Two styles for different situations – selectable on the home page and at session start.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">91,92</context>
+          <context context-type="linenumber">195,196</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3119445196453544272" datatype="html">
+      <trans-unit id="23612533526910166" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Seriös:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonym, ohne Rangliste – ideal für formative Assessments, Prüfungsvorbereitung und sensible Themen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Serious:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Anonymous, no leaderboard – ideal for formative assessments, exam prep and sensitive topics.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">93,94</context>
+          <context context-type="linenumber">200,202</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="58665901351132724" datatype="html">
+      <trans-unit id="956730822996543973" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Spielerisch:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Rangliste, Sounds und Anfeuerung – ideal für Auflockerung, Wettbewerbe und motivierende Quizze.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Playful:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; With ranking list, sounds and cheering - ideal for loosening up, competitions and motivating quizzes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">94,96</context>
+          <context context-type="linenumber">204,206</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="5241234745777359399" datatype="html">
-        <source>Alle Optionen (Rangliste, Sound, Lesephase, Team, Bonus) lassen sich einzeln an- und ausschalten.</source>
+      <trans-unit id="3286389552526644188" datatype="html">
+        <source> Alle Optionen (Rangliste, Sound, Lesephase, Team, Bonus) lassen sich einzeln an- und ausschalten.</source>
         <target>All options (leaderboard, sound, reading phase, team, bonus) can be turned on or off individually.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">96,97</context>
+          <context context-type="linenumber">209,210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2695832560821947997" datatype="html">
@@ -1218,31 +1218,31 @@
         <target>More features</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">100,101</context>
+          <context context-type="linenumber">215,216</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4664676098582228302" datatype="html">
+      <trans-unit id="6441286626213820551" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Bonus-Codes:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Top-Platzierte erhalten einen einlösbaren Code (z. B. für Bonuspunkte). Du siehst die Code-Liste; personenbezogene Daten werden nicht gespeichert.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Bonus codes:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Top-place finishers receive a redeemable code (e.g. for bonus points). You see the code list; Personal data is not stored.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">102,103</context>
+          <context context-type="linenumber">218,220</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6622955520868558495" datatype="html">
+      <trans-unit id="1743050057149633294" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Team-Modus:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Deine Teilnehmenden spielen in Teams mit eigenem Team-Leaderboard – z. B. für Gruppenwettbewerbe im Seminar.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Team mode:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Your participants play in teams with their own team leaderboard – e.g. for group competitions in seminars.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">103,104</context>
+          <context context-type="linenumber">222,224</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="564487158973077203" datatype="html">
+      <trans-unit id="1593499419199975863" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamification:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sound-Effekte, Belohnungseffekte für Top-Plätze, Motivationsmeldungen – im Spielerisch-Modus.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Gamification:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Sound effects, reward effects for top places, motivational messages - in playful mode.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">104,106</context>
+          <context context-type="linenumber">226,228</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5791705402266412326" datatype="html">
@@ -1250,15 +1250,15 @@
         <target>Privacy and technology</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">109,110</context>
+          <context context-type="linenumber">233,234</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8938949533043767525" datatype="html">
-        <source>arsnova.eu ist kostenlos, Open Source und 100 % DSGVO-konform – geeignet für Schulen, Unis und Events. Quiz-Inhalte werden lokal im Browser gespeichert. Keine Anmeldung nötig, weder für dich noch für deine Teilnehmenden. Als App installierbar (PWA) – z. B. für schnelleren Start auf dem Smartphone. Verfügbar auf Deutsch, Englisch, Französisch, Spanisch und Italienisch.</source>
+      <trans-unit id="518006033859572065" datatype="html">
+        <source> arsnova.eu ist kostenlos, Open Source und 100 % DSGVO-konform – geeignet für Schulen, Unis und Events. Quiz-Inhalte werden lokal im Browser gespeichert. Keine Anmeldung nötig, weder für dich noch für deine Teilnehmenden. Als App installierbar (PWA) – z. B. für schnelleren Start auf dem Smartphone. Verfügbar auf Deutsch, Englisch, Französisch, Spanisch und Italienisch.</source>
         <target>arsnova.eu is free, open source and 100% GDPR compliant – suitable for schools, universities and events. Quiz content is saved locally in the browser. No sign-up needed, for you or your participants. Installable as an app (PWA) – e.g. B. for faster start on your phone. Available in German, English, French, Spanish and Italian.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">110</context>
+          <context context-type="linenumber">235,238</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.line1" datatype="html">

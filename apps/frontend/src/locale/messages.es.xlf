@@ -95,7 +95,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">9,10</context>
+          <context context-type="linenumber">15,16</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1547876271716599756" datatype="html">
@@ -811,7 +811,7 @@
         <target>Volver a la página anterior</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">3,4</context>
+          <context context-type="linenumber">8,10</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/legal/legal-page.component.html</context>
@@ -823,7 +823,7 @@
         <target>Volver</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">5,8</context>
+          <context context-type="linenumber">11,14</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/legal/legal-page.component.html</context>
@@ -839,7 +839,7 @@
         <target>arsnova.eu le apoya con cuestionarios, preguntas y respuestas y linternas en cursos, talleres y eventos. Sin registrarse: usted comienza, sus participantes se unen.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">11,12</context>
+          <context context-type="linenumber">17,18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2882795758937128373" datatype="html">
@@ -847,15 +847,15 @@
         <target>Prueba de demostración</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">15,16</context>
+          <context context-type="linenumber">22,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoCardHint" datatype="html">
         <source> Ein vorinstalliertes Beispiel-Quiz zeigt alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen. Du findest es in deiner Quiz-Bibliothek („Meine Quiz-Bibliothek&quot;) und kannst es dort in der Vorschau öffnen.</source>
-        <target>En la página de inicio, dentro de la tarjeta <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Iniciar evento<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, el enlace <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Jugar la demo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> abre un quiz de ejemplo ya instalado. Allí ves todos los tipos de preguntas, incluidas fórmulas KaTeX y Markdown, sin tener que crear nada antes.</target>
+        <target>Un cuestionario de ejemplo preinstalado muestra todos los tipos de preguntas (opción múltiple, texto libre, escala de valoración, etc.) incluidas fórmulas KaTeX y Markdown, sin tener que crear nada. Lo encuentras en tu biblioteca de quizzes (« Mi biblioteca de quizzes ») y puedes abrirlo allí en vista previa.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">17,19</context>
+          <context context-type="linenumber">24,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6929805573893138465" datatype="html">
@@ -863,7 +863,7 @@
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Consejo:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Proporcione a sus participantes el enlace a la vista previa antes de la primera sesión real; de esta manera conocerán el proceso y la interfaz, sin presión.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">20,22</context>
+          <context context-type="linenumber">30,33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5757491187251172074" datatype="html">
@@ -871,31 +871,31 @@
         <target>Inicio rápido</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">25,26</context>
+          <context context-type="linenumber">36,37</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8476097345531218120" datatype="html">
+      <trans-unit id="5731188417149565361" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz anlegen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> „Meine Quiz-Bibliothek&quot; öffnen, neues Quiz erstellen, Fragen und Einstellungen festlegen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Crear cuestionario:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Abra &quot;Mi biblioteca de cuestionarios&quot;, cree un nuevo cuestionario, defina preguntas y configuraciones.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">27,28</context>
+          <context context-type="linenumber">39,41</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="423809207543072683" datatype="html">
+      <trans-unit id="3722614997917330799" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Veranstaltung starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In der Bibliothek „Veranstaltung starten&quot; wählen – ein 6-stelliger Code entsteht. Code oder QR-Code mit deinen Teilnehmenden teilen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Evento de inicio:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Seleccione &quot;Evento de inicio&quot; en la biblioteca; se crea un código de 6 dígitos. Comparte código o código QR con tus participantes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">28,29</context>
+          <context context-type="linenumber">43,45</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7783173998386694533" datatype="html">
+      <trans-unit id="4296851443480886852" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Live durchführen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen nacheinander freigeben, abstimmen lassen, Ergebnisse live anzeigen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Realizar en vivo:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Publicar preguntas una tras otra, hacer que se voten y mostrar los resultados en vivo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">29,31</context>
+          <context context-type="linenumber">47,49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4233310573129701226" datatype="html">
@@ -903,15 +903,15 @@
         <target>Liderar el evento</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">34,35</context>
+          <context context-type="linenumber">54,55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLead" datatype="html">
-        <source>Du startest eine Live-Session, teilst den Code und steuerst Quiz, Q&amp;A und Blitzlicht.</source>
+        <source> Du startest eine Live-Session, teilst den Code und steuerst Quiz, Q&amp;A und Blitzlicht.</source>
         <target>Inicias una sesión en directo, compartes el código y controlas quiz, Q&amp;A y otras áreas en vivo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">35,37</context>
+          <context context-type="linenumber">56,58</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostStartStep" datatype="html">
@@ -919,47 +919,47 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Iniciar sesión:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Inicia un evento desde tu biblioteca de quizzes y elige si empieza con un quiz o con Q&amp;A. Así se crea un código de 6 caracteres.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">37,38</context>
+          <context context-type="linenumber">60,62</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="9087203686834832349" datatype="html">
+      <trans-unit id="3905875505126452162" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Du siehst, wer beigetreten ist; ein QR-Code zum Beitritt wird angezeigt.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ves quién se ha unido; se muestra un código QR para unirse.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">38,39</context>
+          <context context-type="linenumber">64,66</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4645446495292726948" datatype="html">
+      <trans-unit id="4249072203599185571" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beamer-Ansicht:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Große Darstellung von Frage, Antworten, Countdown und Ergebnissen für die Projektion im Raum.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Vista del proyector:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Gran visualización de preguntas, respuestas, cuenta regresiva y resultados para proyección en la sala.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">39,40</context>
+          <context context-type="linenumber">68,70</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3660636321435230844" datatype="html">
+      <trans-unit id="2728956304182403110" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Steuerung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit „Nächste Frage&quot; blendest du die Frage ein. Optional zuerst nur den Text (Lesephase), dann „Antworten freigeben&quot;, danach können alle abstimmen. Anschließend „Ergebnis zeigen&quot;.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Control:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Usa &quot;Siguiente pregunta&quot; para mostrar la pregunta. Opcionalmente, primero solo el texto (fase de lectura), luego “publicar respuestas” y después todos pueden votar. Finalmente, “Mostrar resultado”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">40,41</context>
+          <context context-type="linenumber">72,75</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="5604128861019150500" datatype="html">
+      <trans-unit id="850060981643787918" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Bei Quiz- und Blitzlicht-Fragen: Erst abstimmen lassen → „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) → „Zweite Abstimmung&quot; – Vorher/Nachher-Vergleich zeigt, wie sich die Meinung durch den Austausch verändert hat.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Instrucción entre pares (rondas dobles):&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Para cuestionarios y preguntas destacadas: obtenga el voto primero → comience la “fase de discusión” (“discute con tu vecino”) → “segunda votación” – La comparación antes/después muestra cómo han cambiado las opiniones a medida que resultado del intercambio.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">41,42</context>
+          <context context-type="linenumber">77,80</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8248798317865819680" datatype="html">
+      <trans-unit id="8301891335167587496" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Einstellungen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beim Start legst du den Stil („Seriös&quot; oder „Spielerisch&quot;) und die Optionen fest (Rangliste, Sound, Lesephase, Team-Modus, Nicknamen, Timer). Deine Teilnehmenden übernehmen automatisch dein Theme.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Configuración:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Cuando comienzas, estableces el estilo (&quot;Serio&quot; o &quot;Juguetón&quot;) y las opciones (clasificaciones, sonido, fase de lectura, modo de equipo, apodos, cronómetro). Sus participantes adoptan automáticamente su tema.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">42,44</context>
+          <context context-type="linenumber">83,86</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6578769733165701997" datatype="html">
@@ -967,15 +967,15 @@
         <target>Blitzlicht</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">47,48</context>
+          <context context-type="linenumber">91,92</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackIntro" datatype="html">
-        <source>Schnelle Stimmungsabfragen – z. B. vor der Pause, zum Einstieg oder für spontane Wissenschecks. Als Live-Bereich in deiner Veranstaltung oder direkt von der Startseite.</source>
+        <source> Schnelle Stimmungsabfragen – z. B. vor der Pause, zum Einstieg oder für spontane Wissenschecks. Als Live-Bereich in deiner Veranstaltung oder direkt von der Startseite.</source>
         <target>Votación rápida como área en directo dentro de tu evento o directamente desde la página de inicio.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">48,50</context>
+          <context context-type="linenumber">93,97</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1700849053740132045" datatype="html">
@@ -983,15 +983,15 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Imagen del estado de ánimo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): ¿Cómo les va a los participantes?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">50,51</context>
+          <context context-type="linenumber">97,98</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3563833922786121025" datatype="html">
+      <trans-unit id="8976505060971265678" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein / Vielleicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Schnelle Zustimmungs-Abfrage.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sí / No / Quizás<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Consulta de consentimiento rápida.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">51,52</context>
+          <context context-type="linenumber">99,101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackYesNo" datatype="html">
@@ -999,7 +999,7 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sí / No<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): pregunta binaria clara, sin término medio.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">52,53</context>
+          <context context-type="linenumber">102,104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackTrueFalseUnknown" datatype="html">
@@ -1007,7 +1007,7 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Verdadero / Falso / No lo sé<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✔️✖️❔): para valoraciones rápidas o comprobaciones de conocimiento.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">53,54</context>
+          <context context-type="linenumber">105,107</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackAbc" datatype="html">
@@ -1015,63 +1015,63 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABC<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C): tres opciones de respuesta para preguntas espontáneas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">54,55</context>
+          <context context-type="linenumber">109,111</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8738149910840056513" datatype="html">
+      <trans-unit id="656110606833955350" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>ABCD-Voting<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A B C D): Vier Antwortoptionen, z. B. für spontane Quizfragen.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Votación ABCD<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A, B, C, D): cuatro opciones de respuesta, por ejemplo para preguntas espontáneas del cuestionario.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">55,57</context>
+          <context context-type="linenumber">112,114</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackStartFlow" datatype="html">
-        <source>Du startest die Runde im Host-Bereich deiner Live-Session oder direkt über die Blitzlicht-Karte „Live starten&quot; auf der Startseite. Deine Teilnehmenden stimmen mit einem Tipp ab; du siehst die Ergebnisse live als Balkendiagramm.</source>
+        <source> Du startest die Runde im Host-Bereich deiner Live-Session oder direkt über die Blitzlicht-Karte „Live starten&quot; auf der Startseite. Deine Teilnehmenden stimmen mit einem Tipp ab; du siehst die Ergebnisse live als Balkendiagramm.</source>
         <target>Inicias la ronda en la vista de anfitrión de tu sesión en directo o directamente desde la tarjeta Blitzlicht de la página de inicio. Las personas participantes votan con un toque y ves los resultados al instante en un gráfico de barras.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">57,59</context>
+          <context context-type="linenumber">117,121</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8255671127978226490" datatype="html">
+      <trans-unit id="2872668827565440769" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Erste Runde – Ergebnis nicht auflösen – „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) – „Zweite Abstimmung&quot;. Vorher/Nachher-Vergleich zeigt den Lerneffekt durch den Austausch.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Instrucción entre pares (rondas dobles):&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Primera ronda - No resolver el resultado - Iniciar la &quot;fase de discusión&quot; (&quot;Discute con tu vecino&quot;) - &quot;Segunda votación&quot;. La comparación antes/después muestra el efecto de aprendizaje a través del intercambio.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">59,60</context>
+          <context context-type="linenumber">123,126</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2771235871372028980" datatype="html">
+      <trans-unit id="5555991429758536123" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stopp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Abstimmung einfrieren – Teilnehmende sehen „Abstimmung ist pausiert&quot; und können nicht mehr abstimmen, bis du „Fortsetzen&quot; wählst.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Detener:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Congelar la votación: los participantes ven &quot;La votación está en pausa&quot; y ya no pueden votar hasta que elijas &quot;Reanudar&quot;.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">60,61</context>
+          <context context-type="linenumber">128,130</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8619844818513185136" datatype="html">
+      <trans-unit id="4551175203253050768" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Zurücksetzen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Alle Stimmen löschen und erneut abstimmen lassen.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Restablecer:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Elimina todos los votos y déjalos votar nuevamente.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">61,62</context>
+          <context context-type="linenumber">132,134</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1563376326853659666" datatype="html">
+      <trans-unit id="1038623880816692160" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Neue Runde:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Neuen Code erzeugen und eine frische Runde starten.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nueva ronda:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Genera nuevo código y comienza una nueva ronda.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">62,63</context>
+          <context context-type="linenumber">135,137</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4624381387593523774" datatype="html">
+      <trans-unit id="3701761523716248058" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Link kopieren:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beitrittslink in die Zwischenablage kopieren, z. B. zum Teilen per Chat.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Copiar enlace:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Copiar enlace de unión al portapapeles, p. ej. para compartir a través del chat.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">63,65</context>
+          <context context-type="linenumber">138,140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1686642580667707820" datatype="html">
@@ -1079,7 +1079,7 @@
         <target>Para tus participantes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">68,69</context>
+          <context context-type="linenumber">145,146</context>
         </context-group>
       </trans-unit>
       <trans-unit id="404518008402448103" datatype="html">
@@ -1087,31 +1087,31 @@
         <target>Así es como puedes explicárselo brevemente a tus participantes:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">69,70</context>
+          <context context-type="linenumber">146,147</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2345171050011617562" datatype="html">
+      <trans-unit id="9053923677144238946" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf arsnova.eu eingeben und „Los geht&apos;s&quot; – funktioniert für Quiz, Q&amp;A und Blitzlicht. Keine Anmeldung nötig.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Únase:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Ingrese el código de 6 dígitos en arsnova.eu y &quot;Comencemos&quot;: funciona para cuestionarios, preguntas y respuestas y linternas. No es necesario registrarse.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">71,72</context>
+          <context context-type="linenumber">149,151</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4744519463620771442" datatype="html">
+      <trans-unit id="414384862681892947" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknamen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Je nach deiner Einstellung vorgegebene Namen, eigener Name oder anonym.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Apodos:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Dependiendo de tu configuración, nombres predefinidos, tu propio nombre o anónimo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">72,73</context>
+          <context context-type="linenumber">153,155</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8123546303847145687" datatype="html">
+      <trans-unit id="822721482896983993" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Abstimmung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Frage erscheint auf dem Gerät, Antwort wählen und absenden. Bei Zeitlimit läuft ein Countdown.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Vota:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; La pregunta aparece en el dispositivo, selecciona responder y enviar. Si hay un límite de tiempo, comienza una cuenta atrás.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">73,75</context>
+          <context context-type="linenumber">157,159</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5152194987083256317" datatype="html">
@@ -1119,7 +1119,7 @@
         <target>Mi biblioteca de quizzes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">78,79</context>
+          <context context-type="linenumber">164,165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2240139559342874951" datatype="html">
@@ -1127,39 +1127,39 @@
         <target>Aquí creas y preparas tus cuestionarios.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">79,80</context>
+          <context context-type="linenumber">165,166</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="247184407571353913" datatype="html">
+      <trans-unit id="6600283498524676772" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Editor:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen per Drag-and-Drop sortieren, auf- und zuklappen, Vorschau prüfen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Editor:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Ordene las preguntas arrastrando y soltando, expandiendo y contrayendo, verifique la vista previa.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">81,82</context>
+          <context context-type="linenumber">168,170</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="9122741059925470323" datatype="html">
+      <trans-unit id="4102885613161875751" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Fragetypen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple Choice, Single Choice, Freitext, Umfrage, Bewertungsskala – pro Frage optional mit Timer und Schwierigkeitsgrad.</source>
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Tipos de preguntas:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Opción múltiple, opción única, texto libre, encuesta, escala de calificación; opcionalmente con cronómetro y nivel de dificultad por pregunta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">82,83</context>
+          <context context-type="linenumber">172,174</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1199889366785902262" datatype="html">
+      <trans-unit id="4048987240351845009" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Über den KI-Prompt kannst du ein Quiz mit deiner bevorzugten KI generieren und direkt importieren – deine Lehrmaterialien werden nicht an arsnova.eu gesendet, du nutzt deine eigene KI.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Importar/Exportar:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Importa o exporta cuestionarios como JSON. Usa el prompt de IA para generar un cuestionario con tu IA preferida e importarlo – nada se envía a arsnova.eu, usas tu propia IA.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">83,84</context>
+          <context context-type="linenumber">176,179</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4685787551760390359" datatype="html">
+      <trans-unit id="2677326509780560651" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Sync-ID oder Sync-Link die Bibliothek mit Kolleg:innen teilen oder auf anderen Geräten weiterarbeiten.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Sincronización:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Comparte la biblioteca con colegas o continúa en otros dispositivos usando Sync ID o Sync Link.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">84,85</context>
+          <context context-type="linenumber">181,183</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoQuizHint" datatype="html">
@@ -1167,7 +1167,7 @@
         <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz de demostración:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Un quiz preinstalado muestra todos los tipos de preguntas con ejemplos, incluidas fórmulas KaTeX y Markdown. Ábrelo directamente desde la página de inicio con « Jugar la demo » (tarjeta « Iniciar evento ») o desde la vista previa de la biblioteca de quizzes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">85,87</context>
+          <context context-type="linenumber">185,188</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7073179163226115346" datatype="html">
@@ -1175,39 +1175,39 @@
         <target>Serio y juguetón</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">90,91</context>
+          <context context-type="linenumber">193,194</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="634530665123137018" datatype="html">
-        <source>Zwei Stile für unterschiedliche Situationen – wählbar auf der Startseite und beim Session-Start.</source>
+      <trans-unit id="3849582059767738114" datatype="html">
+        <source> Zwei Stile für unterschiedliche Situationen – wählbar auf der Startseite und beim Session-Start.</source>
         <target>Dos estilos para diferentes situaciones: seleccionables en la página de inicio y al inicio de la sesión.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">91,92</context>
+          <context context-type="linenumber">195,196</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3119445196453544272" datatype="html">
+      <trans-unit id="23612533526910166" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Seriös:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonym, ohne Rangliste – ideal für formative Assessments, Prüfungsvorbereitung und sensible Themen.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Serio:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Anónimo, sin clasificaciones: ideal para evaluaciones formativas, preparación de exámenes y temas delicados.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">93,94</context>
+          <context context-type="linenumber">200,202</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="58665901351132724" datatype="html">
+      <trans-unit id="956730822996543973" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Spielerisch:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Rangliste, Sounds und Anfeuerung – ideal für Auflockerung, Wettbewerbe und motivierende Quizze.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Juguetón:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Con lista de clasificación, sonidos y animaciones: ideal para relajarse, competir y realizar pruebas motivadoras.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">94,96</context>
+          <context context-type="linenumber">204,206</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="5241234745777359399" datatype="html">
-        <source>Alle Optionen (Rangliste, Sound, Lesephase, Team, Bonus) lassen sich einzeln an- und ausschalten.</source>
+      <trans-unit id="3286389552526644188" datatype="html">
+        <source> Alle Optionen (Rangliste, Sound, Lesephase, Team, Bonus) lassen sich einzeln an- und ausschalten.</source>
         <target>Todas las opciones (clasificaciones, sonido, fase de lectura, equipo, bonificación) se pueden activar y desactivar individualmente.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">96,97</context>
+          <context context-type="linenumber">209,210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2695832560821947997" datatype="html">
@@ -1215,31 +1215,31 @@
         <target>Más funciones</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">100,101</context>
+          <context context-type="linenumber">215,216</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4664676098582228302" datatype="html">
+      <trans-unit id="6441286626213820551" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Bonus-Codes:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Top-Platzierte erhalten einen einlösbaren Code (z. B. für Bonuspunkte). Du siehst die Code-Liste; personenbezogene Daten werden nicht gespeichert.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Códigos de bonificación:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Los primeros lugares reciben un código canjeable (por ejemplo, por puntos de bonificación). Verá la lista de códigos; Los datos personales no se almacenan.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">102,103</context>
+          <context context-type="linenumber">218,220</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6622955520868558495" datatype="html">
+      <trans-unit id="1743050057149633294" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Team-Modus:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Deine Teilnehmenden spielen in Teams mit eigenem Team-Leaderboard – z. B. für Gruppenwettbewerbe im Seminar.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Modo de equipo:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Tus participantes juegan en equipos con su propia tabla de clasificación de equipos, p. ej. para competiciones grupales en seminarios.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">103,104</context>
+          <context context-type="linenumber">222,224</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="564487158973077203" datatype="html">
+      <trans-unit id="1593499419199975863" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamification:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sound-Effekte, Belohnungseffekte für Top-Plätze, Motivationsmeldungen – im Spielerisch-Modus.</source>
         <target>&lt;x id=&quot;START_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;strong&gt;&quot;/&gt;Gamificación:&lt;x id=&quot;CLOSE_TAG_STRONG&quot; ctype=&quot;x-strong&quot; equiv-text=&quot;&lt;/strong&gt;&quot;/&gt; Efectos de sonido, efectos de recompensa para los mejores lugares, mensajes motivadores, en modo lúdico.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">104,106</context>
+          <context context-type="linenumber">226,228</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5791705402266412326" datatype="html">
@@ -1247,15 +1247,15 @@
         <target>Protección de datos y tecnología</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">109,110</context>
+          <context context-type="linenumber">233,234</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8938949533043767525" datatype="html">
-        <source>arsnova.eu ist kostenlos, Open Source und 100 % DSGVO-konform – geeignet für Schulen, Unis und Events. Quiz-Inhalte werden lokal im Browser gespeichert. Keine Anmeldung nötig, weder für dich noch für deine Teilnehmenden. Als App installierbar (PWA) – z. B. für schnelleren Start auf dem Smartphone. Verfügbar auf Deutsch, Englisch, Französisch, Spanisch und Italienisch.</source>
+      <trans-unit id="518006033859572065" datatype="html">
+        <source> arsnova.eu ist kostenlos, Open Source und 100 % DSGVO-konform – geeignet für Schulen, Unis und Events. Quiz-Inhalte werden lokal im Browser gespeichert. Keine Anmeldung nötig, weder für dich noch für deine Teilnehmenden. Als App installierbar (PWA) – z. B. für schnelleren Start auf dem Smartphone. Verfügbar auf Deutsch, Englisch, Französisch, Spanisch und Italienisch.</source>
         <target>arsnova.eu es gratuito, de código abierto y 100 % compatible con el RGPD, adecuado para escuelas, universidades y eventos. El contenido del cuestionario se guarda localmente en el navegador. No es necesario registrarse, ni para ti ni para tus participantes. Se puede instalar como una aplicación (PWA), p. ej. para un inicio más rápido en el smartphone. Disponible en alemán, inglés, francés, español e italiano.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">110</context>
+          <context context-type="linenumber">235,238</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.line1" datatype="html">
