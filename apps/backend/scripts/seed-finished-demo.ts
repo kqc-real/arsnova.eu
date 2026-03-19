@@ -20,9 +20,18 @@ const SESSION_CODE = 'DEMO01';
 const PARTICIPANT_COUNT = 12;
 const BONUS_TOKEN_TOP = 5;
 const NICKNAMES = [
-  'Marie Curie', 'Albert Einstein', 'Max Planck', 'Niels Bohr', 'Erwin Schrödinger',
-  'Werner Heisenberg', 'Richard Feynman', 'Stephen Hawking', 'Rosalind Franklin',
-  'Lise Meitner', 'Carl Sagan', 'Ada Lovelace',
+  'Marie Curie',
+  'Albert Einstein',
+  'Max Planck',
+  'Niels Bohr',
+  'Erwin Schrödinger',
+  'Werner Heisenberg',
+  'Richard Feynman',
+  'Stephen Hawking',
+  'Rosalind Franklin',
+  'Lise Meitner',
+  'Carl Sagan',
+  'Ada Lovelace',
 ];
 
 function generateBonusCode(): string {
@@ -122,8 +131,8 @@ async function main(): Promise<void> {
     NICKNAMES.slice(0, PARTICIPANT_COUNT).map((nickname, index) =>
       prisma.participant.create({
         data: { sessionId: session.id, nickname: `${nickname}${index < 3 ? ' (Top)' : ''}` },
-      })
-    )
+      }),
+    ),
   );
 
   const timerMs = 30_000;
@@ -177,7 +186,9 @@ async function main(): Promise<void> {
   const ranked = [...totalByParticipant.entries()]
     .map(([pid, totalScore]) => ({ pid, totalScore }))
     .sort((a, b) => b.totalScore - a.totalScore);
-  const topN = ranked.slice(0, BONUS_TOKEN_TOP);
+  // Teilnehmer mit 0 Punkten erhalten keinen Bonus
+  const eligible = ranked.filter(([, totalScore]) => totalScore > 0);
+  const topN = eligible.slice(0, BONUS_TOKEN_TOP);
   const nicknameById = new Map(participants.map((p) => [p.id, p.nickname]));
 
   for (let i = 0; i < topN.length; i++) {
@@ -217,7 +228,9 @@ async function main(): Promise<void> {
   console.log('  Session-Code: ', SESSION_CODE);
   console.log('  Host-Ansicht:  /session/' + SESSION_CODE + '/host');
   console.log('  Join-URL:      /join (Code ' + SESSION_CODE + ' eingeben)');
-  console.log('  Teilnehmer:    ' + participants.length + ', Top ' + BONUS_TOKEN_TOP + ' mit Bonus-Code.');
+  console.log(
+    '  Teilnehmer:    ' + participants.length + ', Top ' + BONUS_TOKEN_TOP + ' mit Bonus-Code.',
+  );
   console.log('');
 }
 

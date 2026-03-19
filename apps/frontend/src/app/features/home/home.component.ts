@@ -1,10 +1,28 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
+import {
+  MatCard,
+  MatCardActions,
+  MatCardContent,
+  MatCardHeader,
+  MatCardSubtitle,
+  MatCardTitle,
+} from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
@@ -59,7 +77,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly themePreset = inject(ThemePresetService);
   private readonly quizStore = inject(QuizStoreService);
-  readonly quizCount = computed(() => this.quizStore.quizzes().filter(q => q.id !== DEMO_QUIZ_ID).length);
+  readonly quizCount = computed(
+    () => this.quizStore.quizzes().filter((q) => q.id !== DEMO_QUIZ_ID).length,
+  );
   readonly latestHostedQuizId = computed(() => {
     const quizzes = this.quizStore.quizzes().filter((quiz) => quiz.id !== DEMO_QUIZ_ID);
     return quizzes.reduce<string | null>((latestId, quiz) => {
@@ -79,8 +99,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
 
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
-  readonly demoSessionCode = 'DEMO01';
-  readonly demoQuizId = DEMO_QUIZ_ID;
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
   readonly quickFeedbackPresetChips = QUICK_FEEDBACK_PRESET_CHIPS;
 
@@ -99,7 +117,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.joinSession();
       return;
     }
-    const cta = document.getElementById('participant-entry')
+    const cta = document
+      .getElementById('participant-entry')
       ?.querySelector<HTMLElement>('.home-cta:not([disabled])');
     if (cta?.contains(active)) {
       e.preventDefault();
@@ -158,7 +177,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       const raw = localStorage.getItem('home-recent-sessions');
       const codes = raw ? (JSON.parse(raw) as string[]) : [];
       const valid = Array.isArray(codes)
-        ? codes.filter((c) => typeof c === 'string' && /^[A-Z0-9]{6}$/.test(c.trim().toUpperCase())).slice(0, 3)
+        ? codes
+            .filter((c) => typeof c === 'string' && /^[A-Z0-9]{6}$/.test(c.trim().toUpperCase()))
+            .slice(0, 3)
         : [];
       this.recentSessionCodes.set(valid);
     } catch {
@@ -272,7 +293,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   onSessionCodeInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const prev = this.sessionCode();
-    const normalized = target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    const normalized = target.value
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 6);
     this.sessionCode.set(normalized);
     this.joinError.set(null);
     this.quickFeedbackError.set(null);
@@ -295,7 +319,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.joinError.set(null);
     this.isJoining.set(true);
     try {
-      const fbResult = await trpc.quickFeedback.results.query({ sessionCode: code }).catch(() => null);
+      const fbResult = await trpc.quickFeedback.results
+        .query({ sessionCode: code })
+        .catch(() => null);
       if (fbResult) {
         this.addToRecentSessionCodes(code);
         await this.router.navigate(localizeCommands(['feedback', code, 'vote']));
@@ -311,9 +337,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.addToRecentSessionCodes(code);
       await this.router.navigate(localizeCommands(['join', code]));
     } catch (err: unknown) {
-      const msg = err && typeof err === 'object' && 'message' in err && typeof (err as { message: string }).message === 'string'
-        ? (err as { message: string }).message
-        : $localize`Session nicht gefunden.`;
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: string }).message === 'string'
+          ? (err as { message: string }).message
+          : $localize`Session nicht gefunden.`;
       this.joinErrorSessionFinished.set(false);
       this.joinError.set(msg);
       this.triggerShake();

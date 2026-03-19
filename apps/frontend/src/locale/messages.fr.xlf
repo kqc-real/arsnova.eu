@@ -1491,8 +1491,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeFeedbackCard.title" datatype="html">
-        <source>Direkt live starten</source>
-        <target>Démarrer en direct immédiatement</target>
+        <source>Live starten</source>
+        <target>Démarrer en direct</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">140,141</context>
@@ -3432,6 +3432,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
           <context context-type="linenumber">136,138</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionTabs.qaTitleDefault" datatype="html">
+        <source>Fragen zur Veranstaltung...</source>
+        <target>Questions sur l'événement...</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
+          <context context-type="linenumber">144,146</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.qaTitlePlaceholder" datatype="html">

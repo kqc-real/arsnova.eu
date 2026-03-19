@@ -16,9 +16,9 @@ Bonuspunkte zu erhalten. Solange sie das nicht tun, bleibt ihre Identitaet gewah
 
 ## Konfiguration
 
-| Parameter | Feld | Wertebereich | Standard |
-|---|---|---|---|
-| Anzahl Bonus-Codes | `bonusTokenCount` | 1 – 50 | `null` (deaktiviert) |
+| Parameter          | Feld              | Wertebereich | Standard             |
+| ------------------ | ----------------- | ------------ | -------------------- |
+| Anzahl Bonus-Codes | `bonusTokenCount` | 1 – 50       | `null` (deaktiviert) |
 
 Der Dozent legt im **Quiz-Editor** fest, wie viele Top-Plaetze einen Code erhalten.
 Ohne Wert werden keine Codes vergeben.
@@ -73,17 +73,19 @@ flowchart TD
   DUP -- "[nein]" --> LOAD["Alle Votes der Session laden (Runde 1)"]
   LOAD --> AGG["Pro Teilnehmer summieren: totalScore, totalResponseTimeMs"]
   AGG --> SORT["Sortieren: Score absteigend, bei Gleichstand Antwortzeit aufsteigend"]
-  SORT --> SLICE["Top X Eintraege auswaehlen"]
+  SORT --> FILTER["Teilnehmer mit 0 Punkten ausschliessen"]
+  FILTER --> SLICE["Top X Eintraege auswaehlen"]
   SLICE --> GEN["Pro Eintrag: BNS-Code generieren (randomBytes)"]
   GEN --> SAVE["bonusToken.createMany()"]
   SAVE --> E(( ))
 ```
 
-| Schritt | Detail |
-|---|---|
-| Score-Summe | Alle `vote.score`-Werte eines Teilnehmers werden addiert |
-| Tiebreaker | Bei gleichem Score gewinnt die kuerzere Gesamt-Antwortzeit |
-| Idempotenz | Bereits vorhandene Tokens verhindern doppelte Generierung |
+| Schritt             | Detail                                                     |
+| ------------------- | ---------------------------------------------------------- |
+| Score-Summe         | Alle `vote.score`-Werte eines Teilnehmers werden addiert   |
+| 0-Punkte-Ausschluss | Teilnehmer mit insgesamt 0 Punkten erhalten keinen Bonus   |
+| Tiebreaker          | Bei gleichem Score gewinnt die kuerzere Gesamt-Antwortzeit |
+| Idempotenz          | Bereits vorhandene Tokens verhindern doppelte Generierung  |
 
 ---
 
@@ -93,12 +95,12 @@ flowchart TD
 BNS-A3F7-K2M9
 ```
 
-| Eigenschaft | Wert |
-|---|---|
-| Prefix | `BNS-` |
+| Eigenschaft | Wert                                                    |
+| ----------- | ------------------------------------------------------- |
+| Prefix      | `BNS-`                                                  |
 | Zeichenraum | `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (ohne O, 0, I, 1, L) |
-| Laenge | 4 + 4 Zeichen (durch Bindestrich getrennt) |
-| Entropie | 8 Bytes via `crypto.randomBytes()` |
+| Laenge      | 4 + 4 Zeichen (durch Bindestrich getrennt)              |
+| Entropie    | 8 Bytes via `crypto.randomBytes()`                      |
 
 ---
 
@@ -179,12 +181,12 @@ Teilnehmende sehen auf der Ergebnis-Seite:
 
 Der Dozent sieht nach Session-Ende eine Tabelle aller Bonus-Codes:
 
-| Spalte | Inhalt |
-|---|---|
-| # | Rang (1-basiert) |
+| Spalte   | Inhalt                                  |
+| -------- | --------------------------------------- |
+| #        | Rang (1-basiert)                        |
 | Nickname | Pseudonym zum Zeitpunkt der Generierung |
-| Code | `BNS-XXXX-XXXX` (Monospace) |
-| Punkte | Gesamt-Score |
+| Code     | `BNS-XXXX-XXXX` (Monospace)             |
+| Punkte   | Gesamt-Score                            |
 
 Dazu ein **CSV-Export-Button** (Dateiname: `bonus-codes-{SESSION-CODE}.csv`).
 
@@ -221,14 +223,14 @@ stateDiagram-v2
   end note
 ```
 
-| Phase | Zeitpunkt | Tokens vorhanden? |
-|---|---|---|
-| Quiz erstellt | Konfiguration | Nein |
-| Session laeuft | LOBBY bis DISCUSSION | Nein |
-| Session endet | FINISHED | Ja (generiert) |
-| Ergebnis-Phase | FINISHED, Abruf moeglich | Ja |
-| Session-Purge | 24 h nach Ende | Geloescht (CASCADE) |
-| Token-Cleanup | 90 Tage nach Generierung | Geloescht (Fallback) |
+| Phase          | Zeitpunkt                | Tokens vorhanden?    |
+| -------------- | ------------------------ | -------------------- |
+| Quiz erstellt  | Konfiguration            | Nein                 |
+| Session laeuft | LOBBY bis DISCUSSION     | Nein                 |
+| Session endet  | FINISHED                 | Ja (generiert)       |
+| Ergebnis-Phase | FINISHED, Abruf moeglich | Ja                   |
+| Session-Purge  | 24 h nach Ende           | Geloescht (CASCADE)  |
+| Token-Cleanup  | 90 Tage nach Generierung | Geloescht (Fallback) |
 
 ---
 
@@ -290,13 +292,13 @@ sequenceDiagram
 
 ### Wissensmatrix
 
-| | App speichert | Dozent kennt | Student kennt |
-|---|---|---|---|
-| **Reale Identitaet** | nie | erst nach Einreichung | immer |
-| **Pseudonym** | ja (Snapshot) | ja | ja |
-| **Score + Rang** | ja | ja | eigenen |
-| **BNS-Code** | ja | ja (alle Top X) | nur eigenen |
-| **Zuordnung Code ↔ Person** | nie | erst nach Einreichung | immer |
+|                             | App speichert | Dozent kennt          | Student kennt |
+| --------------------------- | ------------- | --------------------- | ------------- |
+| **Reale Identitaet**        | nie           | erst nach Einreichung | immer         |
+| **Pseudonym**               | ja (Snapshot) | ja                    | ja            |
+| **Score + Rang**            | ja            | ja                    | eigenen       |
+| **BNS-Code**                | ja            | ja (alle Top X)       | nur eigenen   |
+| **Zuordnung Code ↔ Person** | nie           | erst nach Einreichung | immer         |
 
 ### Sicherheitseigenschaften
 
@@ -317,37 +319,37 @@ flowchart TD
   DRITTE --> NEIN2["Nicht moeglich:\nCode nicht\nerratbar"]
 ```
 
-| Eigenschaft | Garantie |
-|---|---|
-| **Keine Login-Pflicht** | Teilnahme ohne Account moeglich |
-| **Pseudonym statt Name** | App vergibt zufaellige Pseudonyme (z. B. Nobelpreistraeger) |
-| **Kein Tracking** | Keine Session-uebergreifende Wiedererkennung |
-| **Freiwilligkeit** | Einreichung ist optional, Nicht-Einreichung hat keinen Nachteil in der App |
-| **Code-Sicherheit** | Kryptografisch sicher (8 Bytes Entropie), nicht erratbar |
-| **Zeitlich begrenzt** | Token werden nach 24 h (Session-Purge) bzw. 90 Tagen (Cleanup) geloescht |
+| Eigenschaft              | Garantie                                                                   |
+| ------------------------ | -------------------------------------------------------------------------- |
+| **Keine Login-Pflicht**  | Teilnahme ohne Account moeglich                                            |
+| **Pseudonym statt Name** | App vergibt zufaellige Pseudonyme (z. B. Nobelpreistraeger)                |
+| **Kein Tracking**        | Keine Session-uebergreifende Wiedererkennung                               |
+| **Freiwilligkeit**       | Einreichung ist optional, Nicht-Einreichung hat keinen Nachteil in der App |
+| **Code-Sicherheit**      | Kryptografisch sicher (8 Bytes Entropie), nicht erratbar                   |
+| **Zeitlich begrenzt**    | Token werden nach 24 h (Session-Purge) bzw. 90 Tagen (Cleanup) geloescht   |
 
 ---
 
 ## tRPC-Endpunkte
 
-| Endpunkt | Typ | Zugriff | Beschreibung |
-|---|---|---|---|
-| `session.getBonusTokens` | Query | Dozent | Liste aller Tokens einer Session |
+| Endpunkt                    | Typ   | Zugriff    | Beschreibung                       |
+| --------------------------- | ----- | ---------- | ---------------------------------- |
+| `session.getBonusTokens`    | Query | Dozent     | Liste aller Tokens einer Session   |
 | `session.getPersonalResult` | Query | Teilnehmer | Eigener Score, Rang und ggf. Token |
-| `session.getExportData` | Query | Dozent | Session-Export inkl. Bonus-Tokens |
+| `session.getExportData`     | Query | Dozent     | Session-Export inkl. Bonus-Tokens  |
 
 ---
 
 ## Relevante Dateien
 
-| Bereich | Datei |
-|---|---|
-| **Zod-Schemas** | `libs/shared-types/src/schemas.ts` (`BonusTokenEntryDTOSchema`, `BonusTokenListDTOSchema`) |
-| **Quiz-Konfiguration** | `libs/shared-types/src/schemas.ts` (`CreateQuizInputSchema.bonusTokenCount`) |
-| **Token-Generierung** | `apps/backend/src/routers/session.ts` (`generateBonusTokens`, `generateBonusCode`) |
-| **Scoring** | `apps/backend/src/lib/quizScoring.ts` |
-| **Prisma-Modell** | `prisma/schema.prisma` (`model BonusToken`) |
-| **Token-Cleanup** | `apps/backend/src/lib/sessionCleanup.ts` (`cleanupExpiredBonusTokens`) |
-| **Dozenten-Ansicht** | `apps/frontend/src/app/features/session/session-host/` |
-| **Teilnehmer-Ansicht** | `apps/frontend/src/app/features/session/session-vote/` |
-| **Quiz-Editor** | `apps/frontend/src/app/features/quiz/quiz-edit/` |
+| Bereich                | Datei                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| **Zod-Schemas**        | `libs/shared-types/src/schemas.ts` (`BonusTokenEntryDTOSchema`, `BonusTokenListDTOSchema`) |
+| **Quiz-Konfiguration** | `libs/shared-types/src/schemas.ts` (`CreateQuizInputSchema.bonusTokenCount`)               |
+| **Token-Generierung**  | `apps/backend/src/routers/session.ts` (`generateBonusTokens`, `generateBonusCode`)         |
+| **Scoring**            | `apps/backend/src/lib/quizScoring.ts`                                                      |
+| **Prisma-Modell**      | `prisma/schema.prisma` (`model BonusToken`)                                                |
+| **Token-Cleanup**      | `apps/backend/src/lib/sessionCleanup.ts` (`cleanupExpiredBonusTokens`)                     |
+| **Dozenten-Ansicht**   | `apps/frontend/src/app/features/session/session-host/`                                     |
+| **Teilnehmer-Ansicht** | `apps/frontend/src/app/features/session/session-vote/`                                     |
+| **Quiz-Editor**        | `apps/frontend/src/app/features/quiz/quiz-edit/`                                           |

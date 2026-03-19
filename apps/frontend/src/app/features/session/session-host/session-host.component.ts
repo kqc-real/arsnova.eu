@@ -330,7 +330,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     if (session.type === 'Q_AND_A') {
-      return session.title?.trim() || $localize`:@@sessionHost.qaTitleFallback:Fragerunde`;
+      return (
+        session.title?.trim() ||
+        $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`
+      );
     }
 
     return session.quizName ?? null;
@@ -339,7 +342,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () =>
       this.session()?.channels?.qa.title ??
       this.session()?.title ??
-      $localize`:@@sessionTabs.questions:Q&A`,
+      $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`,
   );
   readonly qaShowPinnedOnly = signal(false);
   readonly qaFilteredQuestions = computed(() => {

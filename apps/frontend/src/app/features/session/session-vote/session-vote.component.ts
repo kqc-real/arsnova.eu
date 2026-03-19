@@ -1,4 +1,15 @@
-import { ChangeDetectorRef, Component, OnInit, OnDestroy, ElementRef, ViewChild, inject, signal, computed, effect } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  inject,
+  signal,
+  computed,
+  effect,
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
@@ -35,18 +46,46 @@ const VOTE_FALLBACK_POLL_MS = 2000;
 type CurrentQuestion = QuestionStudentDTO | QuestionPreviewDTO | QuestionRevealedDTO;
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
 
-const ANSWER_COLORS = ['#1565c0', '#e65100', '#2e7d32', '#6a1b9a', '#c62828', '#00838f', '#4e342e', '#37474f'];
-const ANSWER_SHAPES = ['\u25B3', '\u25CB', '\u25A1', '\u25C7', '\u2606', '\u2B21', '\u2B20', '\u2BC6'];
+const ANSWER_COLORS = [
+  '#1565c0',
+  '#e65100',
+  '#2e7d32',
+  '#6a1b9a',
+  '#c62828',
+  '#00838f',
+  '#4e342e',
+  '#37474f',
+];
+const ANSWER_SHAPES = [
+  '\u25B3',
+  '\u25CB',
+  '\u25A1',
+  '\u25C7',
+  '\u2606',
+  '\u2B21',
+  '\u2B20',
+  '\u2BC6',
+];
 const MESSAGES_CORRECT = [
-  $localize`Perfekt! 🎯`, $localize`Richtig! 💪`, $localize`Volltreffer! ⭐`, $localize`Stark! 🔥`,
-  $localize`Genau richtig! 🚀`, $localize`Läuft bei dir! 🎸`, $localize`Nailed it! 👏`,
+  $localize`Perfekt! 🎯`,
+  $localize`Richtig! 💪`,
+  $localize`Volltreffer! ⭐`,
+  $localize`Stark! 🔥`,
+  $localize`Genau richtig! 🚀`,
+  $localize`Läuft bei dir! 🎸`,
+  $localize`Nailed it! 👏`,
 ];
 const MESSAGES_WRONG = [
-  $localize`Knapp daneben! 🤏`, $localize`Nächstes Mal! 💡`, $localize`Weiter dranbleiben! 🔄`,
-  $localize`Das wird schon! 📈`, $localize`Nicht aufgeben! 💪`,
+  $localize`Knapp daneben! 🤏`,
+  $localize`Nächstes Mal! 💡`,
+  $localize`Weiter dranbleiben! 🔄`,
+  $localize`Das wird schon! 📈`,
+  $localize`Nicht aufgeben! 💪`,
 ];
 const MESSAGES_NEUTRAL = [
-  $localize`Antwort gespeichert! ✓`, $localize`Danke für deine Antwort! 📝`, $localize`Weiter so! 🚀`,
+  $localize`Antwort gespeichert! ✓`,
+  $localize`Danke für deine Antwort! 📝`,
+  $localize`Weiter so! 🚀`,
 ];
 const MESSAGES_TIMEOUT = [
   $localize`Knapp verpasst – nächste Runde! ⏱️`,
@@ -71,7 +110,13 @@ function getContextMotivation(sc: PersonalScorecardDTO, totalParticipants: numbe
         ? $localize`${sc.rankChange} Platz aufgestiegen! 🚀`
         : $localize`${sc.rankChange} Plätze aufgestiegen! 🚀`;
     }
-    return pickRandom([$localize`Perfekt! 🎯`, $localize`Richtig! 💪`, $localize`Volltreffer! ⭐`, $localize`Stark! 🔥`, $localize`Nailed it! 👏`]);
+    return pickRandom([
+      $localize`Perfekt! 🎯`,
+      $localize`Richtig! 💪`,
+      $localize`Volltreffer! ⭐`,
+      $localize`Stark! 🔥`,
+      $localize`Nailed it! 👏`,
+    ]);
   }
   if (sc.wasCorrect === false) {
     if (sc.streakCount === 0 && sc.previousRank !== null && sc.previousRank < sc.currentRank) {
@@ -87,7 +132,17 @@ function getContextMotivation(sc: PersonalScorecardDTO, totalParticipants: numbe
 @Component({
   selector: 'app-session-vote',
   standalone: true,
-  imports: [MatButton, RouterLink, MatButtonToggle, MatButtonToggleGroup, MatIcon, MatProgressSpinner, CountdownFingersComponent, DecimalPipe, FeedbackVoteComponent],
+  imports: [
+    MatButton,
+    RouterLink,
+    MatButtonToggle,
+    MatButtonToggleGroup,
+    MatIcon,
+    MatProgressSpinner,
+    CountdownFingersComponent,
+    DecimalPipe,
+    FeedbackVoteComponent,
+  ],
   templateUrl: './session-vote.component.html',
   styleUrl: './session-vote.component.scss',
 })
@@ -173,7 +228,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly feedbackRepeat = signal<boolean | null>(null);
   readonly feedbackSubmitted = signal(false);
   readonly feedbackSubmitting = signal(false);
-  readonly feedbackSummary = signal<{ totalResponses: number; overallAverage: number; overallDistribution: Record<string, number> } | null>(null);
+  readonly feedbackSummary = signal<{
+    totalResponses: number;
+    overallAverage: number;
+    overallDistribution: Record<string, number>;
+  } | null>(null);
   private feedbackStateLoaded = false;
 
   constructor() {
@@ -207,7 +266,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   readonly showFingerCountdown = computed(() => {
     const s = this.countdownSeconds();
-    return this.isActive() && s !== null && s >= 0 && s <= 5 && this.themePreset.preset() === 'spielerisch';
+    return (
+      this.isActive() &&
+      s !== null &&
+      s >= 0 &&
+      s <= 5 &&
+      this.themePreset.preset() === 'spielerisch'
+    );
   });
 
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
@@ -228,8 +293,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return result;
   });
   readonly showChannelTabs = computed(() => this.visibleChannels().length > 1);
-  readonly isLegacyQaOnlySession = computed(() =>
-    this.sessionSettings().type === 'Q_AND_A' && this.channels().quiz === false && this.channels().qa === true,
+  readonly isLegacyQaOnlySession = computed(
+    () =>
+      this.sessionSettings().type === 'Q_AND_A' &&
+      this.channels().quiz === false &&
+      this.channels().qa === true,
   );
   readonly showPrimaryLiveView = computed(() => {
     const active = this.activeChannel();
@@ -243,16 +311,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     return false;
   });
-  readonly qaHeading = computed(() =>
-    this.sessionSettings().channels?.qa.title ?? this.sessionSettings().title ?? $localize`:@@sessionTabs.questions:Q&A`,
+  readonly qaHeading = computed(
+    () =>
+      this.sessionSettings().channels?.qa.title ??
+      this.sessionSettings().title ??
+      $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`,
   );
-  readonly liveHeading = computed(() =>
-    this.sessionSettings().quizName ?? this.sessionSettings().title ?? null,
+  readonly liveHeading = computed(
+    () => this.sessionSettings().quizName ?? this.sessionSettings().title ?? null,
   );
-  readonly qaCanSubmit = computed(() =>
-    this.qaDraft().trim().length > 0
-    && this.qaDraft().trim().length <= 500
-    && !this.qaSubmitting(),
+  readonly qaCanSubmit = computed(
+    () =>
+      this.qaDraft().trim().length > 0 &&
+      this.qaDraft().trim().length <= 500 &&
+      !this.qaSubmitting(),
   );
   readonly ownTeamEntry = computed(() => {
     const teamName = this.participantTeam()?.teamName;
@@ -272,14 +344,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     return [...leaderboard.slice(0, 2), ownEntry];
   });
-  readonly showTeamRewardCard = computed(() =>
-    this.sessionSettings().teamMode === true && this.ownTeamEntry() !== null,
+  readonly showTeamRewardCard = computed(
+    () => this.sessionSettings().teamMode === true && this.ownTeamEntry() !== null,
   );
-  readonly showTeamRewardConfetti = computed(() =>
-    this.showTeamRewardCard()
-    && this.sessionSettings().enableRewardEffects === true
-    && this.isPlayfulPreset()
-    && this.ownTeamEntry()?.rank === 1,
+  readonly showTeamRewardConfetti = computed(
+    () =>
+      this.showTeamRewardCard() &&
+      this.sessionSettings().enableRewardEffects === true &&
+      this.isPlayfulPreset() &&
+      this.ownTeamEntry()?.rank === 1,
   );
 
   readonly timerExpired = computed(() => {
@@ -291,7 +364,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly allHaveVoted = computed(() => {
     const q = this.currentQuestion();
     if (!q || !this.isActive()) return false;
-    const pc = 'participantCount' in q ? (q as { participantCount?: number }).participantCount : undefined;
+    const pc =
+      'participantCount' in q ? (q as { participantCount?: number }).participantCount : undefined;
     const tv = 'totalVotes' in q ? (q as { totalVotes?: number }).totalVotes : undefined;
     if (pc === null || pc === undefined || tv === null || tv === undefined || pc <= 0) return false;
     return tv >= pc;
@@ -314,12 +388,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   ratingLabelMin(): string {
     const q = this.currentQuestion();
-    return (q && 'ratingLabelMin' in q ? (q as { ratingLabelMin?: string | null }).ratingLabelMin : null) ?? '';
+    return (
+      (q && 'ratingLabelMin' in q
+        ? (q as { ratingLabelMin?: string | null }).ratingLabelMin
+        : null) ?? ''
+    );
   }
 
   ratingLabelMax(): string {
     const q = this.currentQuestion();
-    return (q && 'ratingLabelMax' in q ? (q as { ratingLabelMax?: string | null }).ratingLabelMax : null) ?? '';
+    return (
+      (q && 'ratingLabelMax' in q
+        ? (q as { ratingLabelMax?: string | null }).ratingLabelMax
+        : null) ?? ''
+    );
   }
 
   selectRating(value: number): void {
@@ -328,9 +410,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  getColor(index: number): string { return ANSWER_COLORS[index % ANSWER_COLORS.length]; }
-  getShape(index: number): string { return ANSWER_SHAPES[index % ANSWER_SHAPES.length]; }
-  getLetter(index: number): string { return String.fromCharCode(65 + index); }
+  getColor(index: number): string {
+    return ANSWER_COLORS[index % ANSWER_COLORS.length];
+  }
+  getShape(index: number): string {
+    return ANSWER_SHAPES[index % ANSWER_SHAPES.length];
+  }
+  getLetter(index: number): string {
+    return String.fromCharCode(65 + index);
+  }
 
   channelLabel(channel: SessionChannelTab): string {
     switch (channel) {
@@ -408,7 +496,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return $localize`vor ${minutes}\u00A0Min.`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return hours === 1 ? $localize`vor 1\u00A0Std.` : $localize`vor ${hours}\u00A0Std.`;
+    if (hours < 24)
+      return hours === 1 ? $localize`vor 1\u00A0Std.` : $localize`vor ${hours}\u00A0Std.`;
     const days = Math.floor(hours / 24);
     return days === 1 ? $localize`vor 1\u00A0Tag` : $localize`vor ${days}\u00A0Tagen`;
   }
@@ -530,13 +619,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.statusSub = trpc.session.onStatusChanged.subscribe(
       { code: this.code },
       {
-        onData: (data: { status: string; currentQuestion: number | null; activeAt?: string; timer?: number | null; preset?: string; currentRound?: number }) => {
+        onData: (data: {
+          status: string;
+          currentQuestion: number | null;
+          activeAt?: string;
+          timer?: number | null;
+          preset?: string;
+          currentRound?: number;
+        }) => {
           const prevRound = this.currentRound();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
           this.currentRound.set(newRound);
           if (data.preset === 'PLAYFUL' || data.preset === 'SERIOUS') {
-            this.themePreset.setPreset(data.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
+            this.themePreset.setPreset(data.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
+              silent: true,
+            });
           }
           if (data.status === 'ACTIVE' && newRound === 2 && prevRound === 1) {
             this.voteSent.set(false);
@@ -585,7 +683,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       await this.refreshQaQuestions();
       await this.refreshQuickFeedbackResult();
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
-        this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
+        this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
+          silent: true,
+        });
       }
       if (session.teamMode) {
         await Promise.all([this.loadParticipantTeam(), this.loadSessionTeams()]);
@@ -631,7 +731,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.status.set(nextStatus);
       this.ensureQaSubscription();
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
-        this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
+        this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
+          silent: true,
+        });
       }
       if (prevStatus !== nextStatus && session.teamMode) {
         if (nextStatus === 'RESULTS' || nextStatus === 'FINISHED') {
@@ -648,18 +750,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-
   ngOnDestroy(): void {
     this.statusSub?.unsubscribe();
     this.statusSub = null;
     this.qaSub?.unsubscribe();
     this.qaSub = null;
-    if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
     this.stopCountdown();
   }
 
   get joinUrl(): string {
-    const origin = typeof globalThis.location?.origin === 'string' ? globalThis.location.origin : '';
+    const origin =
+      typeof globalThis.location?.origin === 'string' ? globalThis.location.origin : '';
     return origin ? `${origin}/join/${this.code}` : `/join/${this.code}`;
   }
 
@@ -696,8 +801,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private stopCountdown(): void {
-    if (this.countdownTimer) { clearInterval(this.countdownTimer); this.countdownTimer = null; }
-    if (this.fingerHideTimeout) { clearTimeout(this.fingerHideTimeout); this.fingerHideTimeout = null; }
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
+    if (this.fingerHideTimeout) {
+      clearTimeout(this.fingerHideTimeout);
+      this.fingerHideTimeout = null;
+    }
   }
 
   private ensureActiveChannel(): void {
@@ -713,25 +824,23 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     if (
-      active === 'quiz'
-      && visible.includes('qa')
-      && this.status() === 'ACTIVE'
-      && this.currentQuestion() === null
+      active === 'quiz' &&
+      visible.includes('qa') &&
+      this.status() === 'ACTIVE' &&
+      this.currentQuestion() === null
     ) {
       this.activeChannel.set('qa');
       return;
     }
 
     if (
-      active !== 'quiz'
-      && visible.includes('quiz')
-      && this.currentQuestion() !== null
-      && (
-        this.status() === 'QUESTION_OPEN'
-        || this.status() === 'ACTIVE'
-        || this.status() === 'DISCUSSION'
-        || this.status() === 'RESULTS'
-      )
+      active !== 'quiz' &&
+      visible.includes('quiz') &&
+      this.currentQuestion() !== null &&
+      (this.status() === 'QUESTION_OPEN' ||
+        this.status() === 'ACTIVE' ||
+        this.status() === 'DISCUSSION' ||
+        this.status() === 'RESULTS')
     ) {
       this.activeChannel.set('quiz');
     }
@@ -834,7 +943,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async ensureQaSubmitContext(): Promise<{ sessionId: string; participantId: string } | null> {
+  private async ensureQaSubmitContext(): Promise<{
+    sessionId: string;
+    participantId: string;
+  } | null> {
     let sessionId = this.sessionId();
     if (!sessionId && this.code) {
       try {
@@ -963,17 +1075,28 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         }
         if (wasVoted) {
           const delta = direction === 'UP' ? 2 : -2;
-          return { ...q, myVote: direction, hasUpvoted: direction === 'UP', upvoteCount: q.upvoteCount + delta };
+          return {
+            ...q,
+            myVote: direction,
+            hasUpvoted: direction === 'UP',
+            upvoteCount: q.upvoteCount + delta,
+          };
         }
         const delta = direction === 'UP' ? 1 : -1;
-        return { ...q, myVote: direction, hasUpvoted: direction === 'UP', upvoteCount: q.upvoteCount + delta };
+        return {
+          ...q,
+          myVote: direction,
+          hasUpvoted: direction === 'UP',
+          upvoteCount: q.upvoteCount + delta,
+        };
       }),
     );
   }
 
   private setQaQuestionsAnimated(next: QaQuestionDTO[]): void {
     const prefersReducedMotion =
-      typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const container: HTMLElement | null = this.el.nativeElement.querySelector('.session-qa-list');
 
     if (!container || prefersReducedMotion) {
@@ -998,19 +1121,25 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         if (!id) return;
         const prev = prevRects.get(id);
         if (!prev) {
-          card.animate([{ opacity: 0, transform: 'scale(0.95)' }, { opacity: 1, transform: 'scale(1)' }], {
-            duration: 600,
-            easing: 'ease-out',
-          });
+          card.animate(
+            [
+              { opacity: 0, transform: 'scale(0.95)' },
+              { opacity: 1, transform: 'scale(1)' },
+            ],
+            {
+              duration: 600,
+              easing: 'ease-out',
+            },
+          );
           return;
         }
         const curr = card.getBoundingClientRect();
         const dy = prev.top - curr.top;
         if (Math.abs(dy) < 1) return;
-        card.animate(
-          [{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }],
-          { duration: 800, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' },
-        );
+        card.animate([{ transform: `translateY(${dy}px)` }, { transform: 'translateY(0)' }], {
+          duration: 800,
+          easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+        });
       });
     });
   }
@@ -1024,7 +1153,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       const prevHadTimer = prev && 'timer' in prev && prev.timer;
       const newHasTimer = q && 'timer' in q && q.timer;
 
-      const qRound = q && 'currentRound' in q ? (q as { currentRound?: number }).currentRound : undefined;
+      const qRound =
+        q && 'currentRound' in q ? (q as { currentRound?: number }).currentRound : undefined;
       if (qRound && qRound !== this.currentRound()) {
         this.currentRound.set(qRound);
       }
@@ -1056,10 +1186,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           const selected = this.selectedAnswerIds();
           const revealed = (q as QuestionRevealedDTO).answers;
           const correctIds = new Set(revealed.filter((a) => a.isCorrect).map((a) => a.id));
-          const allCorrect = correctIds.size > 0
-            && selected.size > 0
-            && [...correctIds].every((id) => selected.has(id))
-            && [...selected].every((id) => correctIds.has(id));
+          const allCorrect =
+            correctIds.size > 0 &&
+            selected.size > 0 &&
+            [...correctIds].every((id) => selected.has(id)) &&
+            [...selected].every((id) => correctIds.has(id));
 
           if (allCorrect && settings.enableRewardEffects) {
             this.showRewardEffect.set(true);
@@ -1082,21 +1213,32 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
 
       // Gleiche Frage: Antwort-Liste beibehalten, um Re-Render zu vermeiden – Buttons reagieren sofort
-      if (newId === prevId && prev && q && 'answers' in prev && 'answers' in q && Array.isArray((prev as { answers: unknown[] }).answers)) {
+      if (
+        newId === prevId &&
+        prev &&
+        q &&
+        'answers' in prev &&
+        'answers' in q &&
+        Array.isArray((prev as { answers: unknown[] }).answers)
+      ) {
         const prevAnswers = (prev as { answers: unknown[] }).answers;
         this.currentQuestion.set({ ...q, answers: prevAnswers } as CurrentQuestion);
       } else {
         this.currentQuestion.set(q);
       }
 
-      const pc = q && 'participantCount' in q ? (q as { participantCount?: number }).participantCount : undefined;
+      const pc =
+        q && 'participantCount' in q
+          ? (q as { participantCount?: number }).participantCount
+          : undefined;
       const tv = q && 'totalVotes' in q ? (q as { totalVotes?: number }).totalVotes : undefined;
       if (typeof pc === 'number' && typeof tv === 'number' && pc > 0 && tv >= pc) {
         this.stopCountdown();
         this.countdownSeconds.set(null);
       }
-
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
   toggleAnswer(answerId: string): void {
@@ -1111,7 +1253,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (q.type === 'SINGLE_CHOICE') {
       this.selectedAnswerIds.set(new Set([answerId]));
     } else {
-      if (set.has(answerId)) set.delete(answerId); else set.add(answerId);
+      if (set.has(answerId)) set.delete(answerId);
+      else set.add(answerId);
       this.selectedAnswerIds.set(set);
     }
     this.cdr.detectChanges();
@@ -1127,7 +1270,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     const answerIds = overrideIds ?? [...this.selectedAnswerIds()];
     const freeText = q.type === 'FREETEXT' ? this.freeTextValue().trim() : undefined;
-    const rating = q.type === 'RATING' ? this.ratingValue() ?? undefined : undefined;
+    const rating = q.type === 'RATING' ? (this.ratingValue() ?? undefined) : undefined;
 
     this.debounced.set(true);
     this.voteSending.set(true);
@@ -1145,12 +1288,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ratingValue: rating,
         round: this.currentRound(),
       });
-      try { navigator.vibrate?.(10); } catch { /* unsupported */ }
+      try {
+        navigator.vibrate?.(10);
+      } catch {
+        /* unsupported */
+      }
     } catch (err: unknown) {
       this.voteSent.set(false);
-      const msg = err && typeof err === 'object' && 'message' in err
-        ? (err as { message: string }).message
-        : 'Abstimmung fehlgeschlagen.';
+      const msg =
+        err && typeof err === 'object' && 'message' in err
+          ? (err as { message: string }).message
+          : 'Abstimmung fehlgeschlagen.';
       this.voteError.set(msg);
       if (!overrideIds) this.selectedAnswerIds.set(new Set());
     } finally {
@@ -1173,7 +1321,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         participantId: this.participantId(),
         emoji: emoji as '👏' | '🎉' | '😮' | '😂' | '😢',
       });
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
   async loadScorecard(questionIndex: number): Promise<void> {
@@ -1193,7 +1343,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const totalParticipants = settings.participantCount ?? 1;
         this.motivationMessage.set(getContextMotivation(sc, totalParticipants));
       }
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
   async loadPersonalResult(): Promise<void> {
@@ -1208,7 +1360,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.personalScore.set(result.totalScore);
       this.bonusToken.set(result.bonusToken);
       this.personalResultLoaded.set(true);
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
   private async loadParticipantTeam(): Promise<void> {
@@ -1273,19 +1427,28 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     try {
       await navigator.clipboard.writeText(token);
       this.snackBar.open('Code kopiert!', '', { duration: 2000 });
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
-  setFeedbackOverall(v: number): void { this.feedbackOverall.set(v); }
-  setFeedbackQuality(v: number): void { this.feedbackQuality.set(v); }
+  setFeedbackOverall(v: number): void {
+    this.feedbackOverall.set(v);
+  }
+  setFeedbackQuality(v: number): void {
+    this.feedbackQuality.set(v);
+  }
   setFeedbackRepeat(v: boolean): void {
     this.feedbackRepeat.set(this.feedbackRepeat() === v ? null : v);
   }
 
-  feedbackStars(): number[] { return [1, 2, 3, 4, 5]; }
+  feedbackStars(): number[] {
+    return [1, 2, 3, 4, 5];
+  }
 
   async submitFeedback(): Promise<void> {
-    if (this.feedbackSubmitting() || this.feedbackSubmitted() || this.feedbackOverall() === 0) return;
+    if (this.feedbackSubmitting() || this.feedbackSubmitted() || this.feedbackOverall() === 0)
+      return;
     this.feedbackSubmitting.set(true);
     try {
       await trpc.session.submitSessionFeedback.mutate({
@@ -1299,9 +1462,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.snackBar.open($localize`Danke für dein Feedback!`, '', { duration: 2000 });
       void this.loadFeedbackSummary();
     } catch (err: unknown) {
-      const msg = err && typeof err === 'object' && 'message' in err
-        ? (err as { message: string }).message
-        : '';
+      const msg =
+        err && typeof err === 'object' && 'message' in err
+          ? (err as { message: string }).message
+          : '';
       if (msg.includes('bereits bewertet')) {
         this.feedbackSubmitted.set(true);
         void this.loadFeedbackSummary();
@@ -1319,7 +1483,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (summary.totalResponses > 0) {
         this.feedbackSummary.set(summary);
       }
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
   /** Beim Neuladen prüfen, ob dieser Teilnehmer bereits bewertet hat (Formular ausblenden). */

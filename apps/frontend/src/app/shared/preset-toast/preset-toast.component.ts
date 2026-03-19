@@ -177,7 +177,7 @@ export class PresetToastComponent implements OnInit {
   teamCountValue = signal<number>(DEFAULT_TEAM_COUNT);
 
   toastTitle = signal('');
-  toastIcon = signal('school');
+  toastIcon = signal('work');
   toastHint = signal('');
   importExportStatus = signal<string | null>(null);
 
@@ -397,7 +397,7 @@ export class PresetToastComponent implements OnInit {
 
   private loadPreset(preset: 'serious' | 'spielerisch'): void {
     this.toastTitle.set(preset === 'serious' ? $localize`Seriös` : $localize`Spielerisch`);
-    this.toastIcon.set(preset === 'serious' ? 'school' : 'celebration');
+    this.toastIcon.set(preset === 'serious' ? 'work' : 'celebration');
     this.toastHint.set(
       preset === 'serious'
         ? $localize`Anonym, ohne Wettbewerb, Fokus auf Inhalte.`

@@ -29,7 +29,9 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .top-toolbar--fixed {
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition:
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
   }
 }
 
@@ -100,7 +102,9 @@
   color: var(--mat-sys-on-surface-variant);
   text-decoration: none;
   border-radius: 50%;
-  transition: color 0.2s ease, background-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
   flex-shrink: 0;
   .mat-icon {
     font-size: 1.5rem;
@@ -116,7 +120,6 @@
     outline-offset: 2px;
   }
 }
-
 
 @media (min-width: 600px) {
   .top-toolbar__row {
@@ -227,7 +230,7 @@
   .top-toolbar__preset-option {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.5rem;
   }
 }
 

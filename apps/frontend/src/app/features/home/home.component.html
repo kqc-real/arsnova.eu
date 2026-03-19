@@ -1,290 +1,330 @@
-    <div class="l-page">
-      <main class="home-main">
-        <p class="home-hero">
-          <span i18n="@@homeHero.line1">Quiz, Q&amp;A und Blitzlicht – </span>
-          <span class="home-hero-break-mobile" i18n="@@homeHero.line2">live in einer App</span>
-        </p>
-        <p class="home-hero-usp" i18n>Für Schulen, Unis, Events &amp; Business</p>
+<div class="l-page">
+  <main class="home-main">
+    <p class="home-hero">
+      <span i18n="@@homeHero.line1">Quiz, Q&amp;A und Blitzlicht – </span>
+      <span class="home-hero-break-mobile" i18n="@@homeHero.line2">live in einer App</span>
+    </p>
+    <p class="home-hero-usp" i18n>Für Schulen, Unis, Events &amp; Business</p>
 
-        <div class="home-hero-preset-mobile" i18n-aria-label aria-label="Stil wählen">
-          <mat-button-toggle-group
-            [value]="themePreset.preset()"
-            appearance="standard"
-            i18n-aria-label
-            i18n-aria-label aria-label="Stil auswählen"
-            class="home-hero-preset-toggle"
-          >
-            <mat-button-toggle value="serious" (click)="themePreset.setPreset('serious')">
-              <mat-icon>school</mat-icon>
-              <span i18n>Seriös</span>
-            </mat-button-toggle>
-            <mat-button-toggle value="spielerisch" (click)="themePreset.setPreset('spielerisch')">
-              <mat-icon class="home-preset-icon--playful">celebration</mat-icon>
-              <span i18n>Spielerisch</span>
-            </mat-button-toggle>
-          </mat-button-toggle-group>
-        </div>
-
-        <div class="home-hero-icons" aria-hidden="true">
-          <div class="home-hero-icon"><mat-icon>quiz</mat-icon></div>
-          <span class="home-hero-icon-dot"></span>
-          <div class="home-hero-icon"><mat-icon>question_answer</mat-icon></div>
-          <span class="home-hero-icon-dot"></span>
-          <div class="home-hero-icon"><mat-icon>bolt</mat-icon></div>
-        </div>
-
-        <mat-card appearance="raised" id="participant-entry" class="home-card">
-          <mat-card-header>
-            <mat-card-subtitle>
-              <mat-icon class="home-card__icon">group</mat-icon>
-              <span i18n>Mitmachen</span>
-            </mat-card-subtitle>
-            <mat-card-title class="home-card__title" i18n>Dabei sein</mat-card-title>
-          </mat-card-header>
-
-          <mat-card-content class="l-stack l-stack--sm">
-            @if (recentSessionCodes().length > 0) {
-              <p class="home-recent-label" i18n>Letzte Sessions</p>
-              <div class="home-recent-codes">
-                @for (code of recentSessionCodes(); track code) {
-                  <span class="home-recent-code-row">
-                    <button matButton="outlined" class="home-recent-code" (click)="joinSessionByCode(code)">
-                      {{ code }}
-                    </button>
-                    <button mat-icon-button type="button" class="home-recent-code-remove" (click)="removeRecentSessionCode(code); $event.stopPropagation()" [attr.aria-label]="removeSessionAriaLabel(code)">
-                      <mat-icon>close</mat-icon>
-                    </button>
-                  </span>
-                }
-              </div>
-            }
-
-            <div class="home-code-entry">
-              <div
-                class="home-code-segments"
-                [class.home-code-segments--focused]="codeInputFocused()"
-                [class.home-code-segments--valid]="isValidSessionCode()"
-                [class.home-code-segments--shake]="codeShaking()"
-                (click)="focusCodeInput()"
-              >
-                @for (slot of codeSlots; track slot) {
-                  <span
-                    class="home-code-segment"
-                    [class.home-code-segment--active]="codeInputFocused() && sessionCode().length === slot"
-                    [class.home-code-segment--filled]="sessionCode().length > slot"
-                  >{{ sessionCode()[slot] }}</span>
-                }
-                <input
-                  #sessionCodeInput
-                  class="home-code-segments__input"
-                  type="text"
-                  maxlength="6"
-                  [value]="sessionCode()"
-                  (input)="onSessionCodeInput($event)"
-                  (keydown.enter)="joinSession()"
-                  (focus)="codeInputFocused.set(true)"
-                  (blur)="codeInputFocused.set(false)"
-                  autocapitalize="characters"
-                  autocomplete="off"
-                  spellcheck="false"
-                  i18n-aria-label aria-label="Session-Code, 6 Zeichen"
-                />
-              </div>
-              <div class="home-code-meta">
-                @if (sessionCode().length > 0) {
-                  <span class="home-code-counter">{{ sessionCode().length }}/6</span>
-                }
-                <span class="home-code-help" i18n>6 Zeichen, z.B. ABC123</span>
-              </div>
-            </div>
-          </mat-card-content>
-
-          <mat-card-actions class="l-stack l-stack--sm">
-            @if (isJoining()) {
-              <button matButton="filled" class="home-cta" disabled i18n-aria-label aria-label="Session beitreten">
-                <mat-icon class="home-cta__icon home-spin">sync</mat-icon>
-                <span i18n>Verbinde…</span>
-              </button>
-            } @else {
-              <button
-                matButton="filled"
-                class="home-cta"
-                [class.home-cta--ready]="ctaReady()"
-                (click)="joinSession()"
-                [disabled]="!isValidSessionCode()"
-                i18n-aria-label
-                aria-label="Teilnehmen"
-              >
-                <mat-icon class="home-cta__icon">login</mat-icon>
-                <span i18n>Los geht's</span>
-              </button>
-            }
-            @if (joinError()) {
-              <p class="home-error" role="alert">{{ joinError() }}</p>
-              @if (joinErrorSessionFinished() && sessionCode().length === 6) {
-                <a [routerLink]="localizedCommands(['session', sessionCode().toUpperCase(), 'host'])" mat-button class="home-error-link">
-                  <mat-icon>admin_panel_settings</mat-icon>
-                  <span i18n>Als Dozent anzeigen</span>
-                </a>
-              }
-            }
-          </mat-card-actions>
-        </mat-card>
-
-        <mat-card appearance="raised" class="home-card home-card--feedback">
-          <mat-card-header>
-            <mat-card-subtitle>
-              <mat-icon class="home-card__icon">bolt</mat-icon>
-              <span i18n="@@sessionTabs.quickFeedback">Blitzlicht</span>
-            </mat-card-subtitle>
-            <mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title">Direkt live starten</mat-card-title>
-          </mat-card-header>
-
-          <mat-card-content class="l-stack l-stack--sm">
-            <div class="home-feedback-chip-grid">
-              @for (chip of quickFeedbackPresetChips; track chip.type) {
-                <button
-                  matButton="tonal"
-                  type="button"
-                  class="home-feedback-chip"
-                  (click)="startQuickFeedback(chip.type)"
-                  [disabled]="!!quickFeedbackStarting()"
-                  [attr.aria-busy]="quickFeedbackStarting() === chip.type"
-                  [attr.aria-label]="chip.label"
-                >
-                  <span class="home-feedback-chip__icons" aria-hidden="true">
-                    @for (icon of chip.icons; track icon) {
-                      @if (icon.kind === 'mat') {
-                        <mat-icon class="home-feedback-chip__icon" [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'" [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'" [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'">
-                          {{ icon.value }}
-                        </mat-icon>
-                      } @else {
-                        <span class="home-feedback-chip__icon">{{ icon.value }}</span>
-                      }
-                    }
-                  </span>
-                  @if (chip.showLabel !== false) {
-                    <span class="home-feedback-chip__label">{{ chip.label }}</span>
-                  }
-                  @if (quickFeedbackStarting() === chip.type) {
-                    <mat-icon class="home-feedback-chip__busy home-spin">sync</mat-icon>
-                  }
-                </button>
-              }
-            </div>
-            @if (quickFeedbackError()) {
-              <p class="home-error" role="alert">{{ quickFeedbackError() }}</p>
-            }
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card appearance="raised" class="home-card home-card--create">
-          <mat-card-header class="home-card__header-with-action">
-            <div class="home-card__header-text">
-              <mat-card-subtitle>
-                <mat-icon class="home-card__icon">school</mat-icon>
-                <span i18n>Veranstalten</span>
-              </mat-card-subtitle>
-              <mat-card-title class="home-card__title" i18n="@@homeHostCard.title">Mit Quiz starten</mat-card-title>
-            </div>
-          </mat-card-header>
-
-          <mat-card-content>
-            <div class="home-card__meta home-card__meta--links">
-              <div class="home-card__quick-links">
-                <a
-                  mat-button
-                  [routerLink]="localizedCommands(['quiz', demoQuizId, 'preview'])"
-                  class="home-help-btn"
-                  (mouseenter)="preloadQuiz()"
-                  i18n-aria-label
-                  aria-label="Demo spielen"
-                >
-                  <mat-icon class="home-card__demo-btn-icon">play_circle</mat-icon>
-                  <span i18n>Demo</span>
-                </a>
-              </div>
-            </div>
-          </mat-card-content>
-
-          <mat-card-actions class="l-stack l-stack--sm">
-            <a
-              matButton="filled"
-              [routerLink]="localizedPath(hasHostedQuiz() ? '/quiz' : '/quiz/new')"
-              [queryParams]="hasHostedQuiz() ? { startLiveQuiz: latestHostedQuizId() } : null"
-              class="home-cta"
-              (mouseenter)="preloadQuiz()"
-            >
-              <mat-icon class="home-cta__icon">
-                @if (hasHostedQuiz()) {
-                  play_circle
-                } @else {
-                  add_circle
-                }
-              </mat-icon>
-              @if (hasHostedQuiz()) {
-                <span i18n="@@homeHostCard.primaryCta">Letztes Quiz starten</span>
-              } @else {
-                <span i18n="@@homeHostCard.primaryCtaEmpty">Quiz erstellen</span>
-              }
-            </a>
-            <div class="home-cta-row">
-              <a
-                matButton="tonal"
-                [routerLink]="localizedPath('/quiz')"
-                class="home-cta home-cta--secondary"
-                (mouseenter)="preloadQuiz()"
-                [matBadge]="quizCount()"
-                [matBadgeHidden]="quizCount() === 0"
-              >
-                <mat-icon class="home-cta__icon">library_books</mat-icon>
-                <span i18n="@@homeHostCard.libraryCta">Meine Quiz-Bibliothek</span>
-              </a>
-            </div>
-            <div class="home-card__tertiary">
-              <button
-                mat-button
-                type="button"
-                class="home-card__tertiary-link"
-                (click)="toggleSyncLinkEntry()"
-                [attr.aria-expanded]="syncLinkVisible()"
-                i18n-aria-label
-                aria-label="Sync-ID oder -Link eingeben"
-              >
-                <mat-icon class="home-cta__icon">devices</mat-icon>
-                <span i18n="@@homeHostCard.syncLinkCta">Sync-ID oder -Link eingeben</span>
-              </button>
-              <p class="home-card__hint" i18n="@@homeHostCard.syncLinkHint">Wenn du hier mit der Quiz-Bibliothek von einem anderen Geraet weitermachen willst.</p>
-            </div>
-            @if (syncLinkVisible()) {
-              <div class="home-sync-entry">
-                <label class="home-sync-entry__label" for="home-sync-link" i18n="@@homeHostCard.syncLinkLabel">Sync-ID oder Sync-Link</label>
-                <div class="home-sync-entry__form">
-                  <input
-                    #syncLinkInput
-                    id="home-sync-link"
-                    class="home-sync-entry__input"
-                    type="url"
-                    [value]="syncLinkValue()"
-                    (input)="onSyncLinkInput($event)"
-                    (keydown.enter)="openSyncLink()"
-                    placeholder="https://click.arsnova.eu/quiz/sync/sync-room-12345678"
-                    i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
-                    autocapitalize="off"
-                    autocomplete="off"
-                    spellcheck="false"
-                    i18n-aria-label
-                    aria-label="Sync-ID oder Sync-Link eingeben"
-                  />
-                  <button matButton="tonal" type="button" class="home-sync-entry__submit" (click)="openSyncLink()" i18n="@@homeHostCard.syncLinkSubmit">Oeffnen</button>
-                </div>
-                @if (syncLinkError()) {
-                  <p class="home-error" role="alert">{{ syncLinkError() }}</p>
-                }
-              </div>
-            }
-          </mat-card-actions>
-        </mat-card>
-      </main>
-
+    <div class="home-hero-preset-mobile" i18n-aria-label aria-label="Stil wählen">
+      <mat-button-toggle-group
+        [value]="themePreset.preset()"
+        appearance="standard"
+        i18n-aria-label
+        i18n-aria-label
+        aria-label="Stil auswählen"
+        class="home-hero-preset-toggle"
+      >
+        <mat-button-toggle value="serious" (click)="themePreset.setPreset('serious')">
+          <span class="home-preset-option">
+            <mat-icon>work</mat-icon>
+            <span i18n>Seriös</span>
+          </span>
+        </mat-button-toggle>
+        <mat-button-toggle value="spielerisch" (click)="themePreset.setPreset('spielerisch')">
+          <span class="home-preset-option">
+            <mat-icon class="home-preset-icon--playful">celebration</mat-icon>
+            <span i18n>Spielerisch</span>
+          </span>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
     </div>
+
+    <div class="home-hero-icons" aria-hidden="true">
+      <div class="home-hero-icon"><mat-icon>quiz</mat-icon></div>
+      <span class="home-hero-icon-dot"></span>
+      <div class="home-hero-icon"><mat-icon>question_answer</mat-icon></div>
+      <span class="home-hero-icon-dot"></span>
+      <div class="home-hero-icon"><mat-icon>bolt</mat-icon></div>
+    </div>
+
+    <mat-card appearance="raised" id="participant-entry" class="home-card">
+      <mat-card-header>
+        <mat-card-subtitle>
+          <span class="home-card__icon-wrap">
+            <mat-icon class="home-card__icon">group_add</mat-icon>
+          </span>
+          <span i18n>Mitmachen</span>
+        </mat-card-subtitle>
+        <mat-card-title class="home-card__title" i18n>Dabei sein</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content class="l-stack l-stack--sm">
+        @if (recentSessionCodes().length > 0) {
+          <p class="home-recent-label" i18n>Letzte Sessions</p>
+          <div class="home-recent-codes">
+            @for (code of recentSessionCodes(); track code) {
+              <span class="home-recent-code-row">
+                <button
+                  matButton="outlined"
+                  class="home-recent-code"
+                  (click)="joinSessionByCode(code)"
+                >
+                  {{ code }}
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="home-recent-code-remove"
+                  (click)="removeRecentSessionCode(code); $event.stopPropagation()"
+                  [attr.aria-label]="removeSessionAriaLabel(code)"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </span>
+            }
+          </div>
+        }
+
+        <div class="home-code-entry">
+          <div
+            class="home-code-segments"
+            [class.home-code-segments--focused]="codeInputFocused()"
+            [class.home-code-segments--valid]="isValidSessionCode()"
+            [class.home-code-segments--shake]="codeShaking()"
+            (click)="focusCodeInput()"
+          >
+            @for (slot of codeSlots; track slot) {
+              <span
+                class="home-code-segment"
+                [class.home-code-segment--active]="
+                  codeInputFocused() && sessionCode().length === slot
+                "
+                [class.home-code-segment--filled]="sessionCode().length > slot"
+                >{{ sessionCode()[slot] }}</span
+              >
+            }
+            <input
+              #sessionCodeInput
+              class="home-code-segments__input"
+              type="text"
+              maxlength="6"
+              [value]="sessionCode()"
+              (input)="onSessionCodeInput($event)"
+              (keydown.enter)="joinSession()"
+              (focus)="codeInputFocused.set(true)"
+              (blur)="codeInputFocused.set(false)"
+              autocapitalize="characters"
+              autocomplete="off"
+              spellcheck="false"
+              i18n-aria-label
+              aria-label="Session-Code, 6 Zeichen"
+            />
+          </div>
+          <div class="home-code-meta">
+            @if (sessionCode().length > 0) {
+              <span class="home-code-counter">{{ sessionCode().length }}/6</span>
+            }
+            <span class="home-code-help" i18n>6 Zeichen, z.B. ABC123</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="l-stack l-stack--sm">
+        @if (isJoining()) {
+          <button
+            matButton="filled"
+            class="home-cta"
+            disabled
+            i18n-aria-label
+            aria-label="Session beitreten"
+          >
+            <mat-icon class="home-cta__icon home-spin">sync</mat-icon>
+            <span i18n>Verbinde…</span>
+          </button>
+        } @else {
+          <button
+            matButton="filled"
+            class="home-cta"
+            [class.home-cta--ready]="ctaReady()"
+            (click)="joinSession()"
+            [disabled]="!isValidSessionCode()"
+            i18n-aria-label
+            aria-label="Teilnehmen"
+          >
+            <mat-icon class="home-cta__icon">login</mat-icon>
+            <span i18n>Los geht's</span>
+          </button>
+        }
+        @if (joinError()) {
+          <p class="home-error" role="alert">{{ joinError() }}</p>
+          @if (joinErrorSessionFinished() && sessionCode().length === 6) {
+            <a
+              [routerLink]="localizedCommands(['session', sessionCode().toUpperCase(), 'host'])"
+              mat-button
+              class="home-error-link"
+            >
+              <mat-icon>admin_panel_settings</mat-icon>
+              <span i18n>Als Dozent anzeigen</span>
+            </a>
+          }
+        }
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card appearance="raised" class="home-card home-card--feedback">
+      <mat-card-header>
+        <mat-card-subtitle>
+          <span class="home-card__icon-wrap">
+            <mat-icon class="home-card__icon">bolt</mat-icon>
+          </span>
+          <span i18n="@@sessionTabs.quickFeedback">Blitzlicht</span>
+        </mat-card-subtitle>
+        <mat-card-title class="home-card__title" i18n="@@homeFeedbackCard.title"
+          >Live starten</mat-card-title
+        >
+      </mat-card-header>
+
+      <mat-card-content class="l-stack l-stack--sm">
+        <div class="home-feedback-chip-grid">
+          @for (chip of quickFeedbackPresetChips; track chip.type) {
+            <button
+              matButton="tonal"
+              type="button"
+              class="home-feedback-chip"
+              (click)="startQuickFeedback(chip.type)"
+              [disabled]="!!quickFeedbackStarting()"
+              [attr.aria-busy]="quickFeedbackStarting() === chip.type"
+              [attr.aria-label]="chip.label"
+            >
+              <span class="home-feedback-chip__icons" aria-hidden="true">
+                @for (icon of chip.icons; track icon) {
+                  @if (icon.kind === 'mat') {
+                    <mat-icon
+                      class="home-feedback-chip__icon"
+                      [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'"
+                      [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'"
+                      [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'"
+                    >
+                      {{ icon.value }}
+                    </mat-icon>
+                  } @else {
+                    <span class="home-feedback-chip__icon">{{ icon.value }}</span>
+                  }
+                }
+              </span>
+              @if (chip.showLabel !== false) {
+                <span class="home-feedback-chip__label">{{ chip.label }}</span>
+              }
+              @if (quickFeedbackStarting() === chip.type) {
+                <mat-icon class="home-feedback-chip__busy home-spin">sync</mat-icon>
+              }
+            </button>
+          }
+        </div>
+        @if (quickFeedbackError()) {
+          <p class="home-error" role="alert">{{ quickFeedbackError() }}</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="raised" class="home-card home-card--create">
+      <mat-card-header class="home-card__header-with-action">
+        <div class="home-card__header-text">
+          <mat-card-subtitle>
+            <span class="home-card__icon-wrap">
+              <mat-icon class="home-card__icon">event</mat-icon>
+            </span>
+            <span i18n>Veranstalten</span>
+          </mat-card-subtitle>
+          <mat-card-title class="home-card__title" i18n="@@homeHostCard.title"
+            >Mit Quiz starten</mat-card-title
+          >
+        </div>
+      </mat-card-header>
+
+      <mat-card-actions class="l-stack l-stack--sm">
+        <a
+          matButton="filled"
+          [routerLink]="localizedPath(hasHostedQuiz() ? '/quiz' : '/quiz/new')"
+          [queryParams]="hasHostedQuiz() ? { startLiveQuiz: latestHostedQuizId() } : null"
+          class="home-cta"
+          (mouseenter)="preloadQuiz()"
+        >
+          <mat-icon class="home-cta__icon">
+            @if (hasHostedQuiz()) {
+              play_circle
+            } @else {
+              add_circle
+            }
+          </mat-icon>
+          @if (hasHostedQuiz()) {
+            <span i18n="@@homeHostCard.primaryCta">Letztes Quiz starten</span>
+          } @else {
+            <span i18n="@@homeHostCard.primaryCtaEmpty">Quiz erstellen</span>
+          }
+        </a>
+        <div class="home-cta-row">
+          <a
+            matButton="tonal"
+            [routerLink]="localizedPath('/quiz')"
+            class="home-cta home-cta--secondary"
+            (mouseenter)="preloadQuiz()"
+            [matBadge]="quizCount()"
+            [matBadgeHidden]="quizCount() === 0"
+          >
+            <mat-icon class="home-cta__icon">library_books</mat-icon>
+            <span i18n="@@homeHostCard.libraryCta">Meine Quiz-Bibliothek</span>
+          </a>
+        </div>
+        <div class="home-card__tertiary">
+          <button
+            mat-button
+            type="button"
+            class="home-card__tertiary-link"
+            (click)="toggleSyncLinkEntry()"
+            [attr.aria-expanded]="syncLinkVisible()"
+            i18n-aria-label
+            aria-label="Sync-ID oder -Link eingeben"
+          >
+            <mat-icon class="home-cta__icon">devices</mat-icon>
+            <span i18n="@@homeHostCard.syncLinkCta">Sync-ID oder -Link eingeben</span>
+          </button>
+          <p class="home-card__hint" i18n="@@homeHostCard.syncLinkHint">
+            Wenn du hier mit der Quiz-Bibliothek von einem anderen Geraet weitermachen willst.
+          </p>
+        </div>
+        @if (syncLinkVisible()) {
+          <div class="home-sync-entry">
+            <label
+              class="home-sync-entry__label"
+              for="home-sync-link"
+              i18n="@@homeHostCard.syncLinkLabel"
+              >Sync-ID oder Sync-Link</label
+            >
+            <div class="home-sync-entry__form">
+              <input
+                #syncLinkInput
+                id="home-sync-link"
+                class="home-sync-entry__input"
+                type="url"
+                [value]="syncLinkValue()"
+                (input)="onSyncLinkInput($event)"
+                (keydown.enter)="openSyncLink()"
+                placeholder="https://click.arsnova.eu/quiz/sync/sync-room-12345678"
+                i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
+                autocapitalize="off"
+                autocomplete="off"
+                spellcheck="false"
+                i18n-aria-label
+                aria-label="Sync-ID oder Sync-Link eingeben"
+              />
+              <button
+                matButton="tonal"
+                type="button"
+                class="home-sync-entry__submit"
+                (click)="openSyncLink()"
+                i18n="@@homeHostCard.syncLinkSubmit"
+              >
+                Oeffnen
+              </button>
+            </div>
+            @if (syncLinkError()) {
+              <p class="home-error" role="alert">{{ syncLinkError() }}</p>
+            }
+          </div>
+        }
+      </mat-card-actions>
+    </mat-card>
+  </main>
+</div>

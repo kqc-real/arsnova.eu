@@ -78,12 +78,14 @@ export class AppComponent implements OnInit, OnDestroy {
   /** PWA installierbar (beforeinstallprompt) – Snackbar-Hinweis v. a. für Mobile sichtbar. */
   installSnackbarVisible = signal(false);
   @ViewChild(PresetToastHostDirective) private presetToastHost?: PresetToastHostDirective;
-  @ViewChild(ConnectionBannerHostDirective) private connectionBannerHost?: ConnectionBannerHostDirective;
+  @ViewChild(ConnectionBannerHostDirective)
+  private connectionBannerHost?: ConnectionBannerHostDirective;
   private presetToastRef: ComponentRef<unknown> | null = null;
   private connectionBannerRef: ComponentRef<unknown> | null = null;
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
   private deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
-  private beforeInstallPromptListener = (e: Event): void => this.onBeforeInstallPrompt(e as BeforeInstallPromptEvent);
+  private beforeInstallPromptListener = (e: Event): void =>
+    this.onBeforeInstallPrompt(e as BeforeInstallPromptEvent);
   private appInstalledListener = (): void => this.onAppInstalled();
 
   readonly themePreset = inject(ThemePresetService);
@@ -103,16 +105,18 @@ export class AppComponent implements OnInit, OnDestroy {
   toolbarHidden = signal(false);
   isFeedbackRoute = signal(
     typeof window !== 'undefined' &&
-      (window.location.pathname.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/').startsWith('/feedback/')
+      (window.location.pathname.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/').startsWith(
+        '/feedback/',
+      ),
   );
   isPreviewRoute = signal(
-    typeof window !== 'undefined' && this.matchesPreviewRoute(window.location.pathname)
+    typeof window !== 'undefined' && this.matchesPreviewRoute(window.location.pathname),
   );
   private lastScrollY = 0;
   private static readonly HIDE_SCROLL_THRESHOLD_PX = 80;
 
   presetSnackbarIcon = computed(() =>
-    this.themePreset.preset() === 'serious' ? 'school' : 'celebration',
+    this.themePreset.preset() === 'serious' ? 'work' : 'celebration',
   );
   presetSnackbarLabel = computed(() => {
     if (this.firstTimePlayfulMessage() && this.themePreset.preset() === 'spielerisch') {
@@ -163,7 +167,8 @@ export class AppComponent implements OnInit, OnDestroy {
       window.removeEventListener('appinstalled', this.appInstalledListener);
       if (isDevMode()) {
         window.removeEventListener('pwa-install-test', this.pwaInstallTestListener);
-        delete (window as unknown as { __triggerPwaInstallHint?: () => void }).__triggerPwaInstallHint;
+        delete (window as unknown as { __triggerPwaInstallHint?: () => void })
+          .__triggerPwaInstallHint;
       }
     }
   }
@@ -322,7 +327,10 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onPresetChanged(): void {
-    if ((this.router.url.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/').startsWith('/feedback/')) return;
+    if (
+      (this.router.url.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/').startsWith('/feedback/')
+    )
+      return;
     this.focusService.blurInput();
     const isPlayful = this.themePreset.preset() === 'spielerisch';
     const firstTime =
@@ -385,7 +393,9 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.connectionBannerRef || !this.connectionBannerHost) return;
     import('./shared/connection-banner/connection-banner.component').then((m) => {
       if (!this.connectionBannerHost || this.connectionBannerRef) return;
-      this.connectionBannerRef = this.connectionBannerHost.vcRef.createComponent(m.ConnectionBannerComponent);
+      this.connectionBannerRef = this.connectionBannerHost.vcRef.createComponent(
+        m.ConnectionBannerComponent,
+      );
     });
   }
 

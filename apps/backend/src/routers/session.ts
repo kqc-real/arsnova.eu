@@ -401,7 +401,9 @@ async function generateBonusTokens(session: {
     .map(([pid, s]) => ({ pid, ...s }))
     .sort((a, b) => b.totalScore - a.totalScore || a.totalResponseTimeMs - b.totalResponseTimeMs);
 
-  const topEntries = ranked.slice(0, topX);
+  // Teilnehmer mit 0 Punkten erhalten keinen Bonus
+  const eligible = ranked.filter((e) => e.totalScore > 0);
+  const topEntries = eligible.slice(0, topX);
   if (topEntries.length === 0) return;
 
   const tokenData = topEntries.map((entry, i) => ({

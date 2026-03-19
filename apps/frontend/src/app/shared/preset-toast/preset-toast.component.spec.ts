@@ -313,12 +313,15 @@ describe('PresetToastComponent', () => {
     });
 
     it('lädt gespeicherte Optionen beim Init (ngOnInit)', () => {
-      localStorage.setItem('home-preset-options-spielerisch', JSON.stringify({
-        options: { showLeaderboard: false, defaultTimer: true },
-        nameMode: 'allowCustomNicknames',
-        nicknameThemeValue: 'MIDDLE_SCHOOL',
-        teamCountValue: 4,
-      }));
+      localStorage.setItem(
+        'home-preset-options-spielerisch',
+        JSON.stringify({
+          options: { showLeaderboard: false, defaultTimer: true },
+          nameMode: 'allowCustomNicknames',
+          nicknameThemeValue: 'MIDDLE_SCHOOL',
+          teamCountValue: 4,
+        }),
+      );
 
       const comp = createToast();
       comp.themePreset.setPreset('spielerisch');
@@ -341,12 +344,15 @@ describe('PresetToastComponent', () => {
     });
 
     it('validiert nicknameTheme beim Laden aus localStorage', () => {
-      localStorage.setItem('home-preset-options-spielerisch', JSON.stringify({
-        options: {},
-        nameMode: 'nicknameTheme',
-        nicknameThemeValue: 'TOTALLY_INVALID',
-        teamCountValue: 2,
-      }));
+      localStorage.setItem(
+        'home-preset-options-spielerisch',
+        JSON.stringify({
+          options: {},
+          nameMode: 'nicknameTheme',
+          nicknameThemeValue: 'TOTALLY_INVALID',
+          teamCountValue: 2,
+        }),
+      );
 
       const comp = createToast();
       comp.themePreset.setPreset('spielerisch');
@@ -356,12 +362,15 @@ describe('PresetToastComponent', () => {
     });
 
     it('validiert teamCountValue beim Laden (Bereich 2–8)', () => {
-      localStorage.setItem('home-preset-options-spielerisch', JSON.stringify({
-        options: {},
-        nameMode: 'nicknameTheme',
-        nicknameThemeValue: 'NOBEL_LAUREATES',
-        teamCountValue: 99,
-      }));
+      localStorage.setItem(
+        'home-preset-options-spielerisch',
+        JSON.stringify({
+          options: {},
+          nameMode: 'nicknameTheme',
+          nicknameThemeValue: 'NOBEL_LAUREATES',
+          teamCountValue: 99,
+        }),
+      );
 
       const comp = createToast();
       comp.themePreset.setPreset('spielerisch');
@@ -371,12 +380,15 @@ describe('PresetToastComponent', () => {
     });
 
     it('erzwingt teamAssignment=false wenn teamMode=false beim Laden', () => {
-      localStorage.setItem('home-preset-options-spielerisch', JSON.stringify({
-        options: { teamMode: false, teamAssignment: true },
-        nameMode: 'nicknameTheme',
-        nicknameThemeValue: 'NOBEL_LAUREATES',
-        teamCountValue: 2,
-      }));
+      localStorage.setItem(
+        'home-preset-options-spielerisch',
+        JSON.stringify({
+          options: { teamMode: false, teamAssignment: true },
+          nameMode: 'nicknameTheme',
+          nicknameThemeValue: 'NOBEL_LAUREATES',
+          teamCountValue: 2,
+        }),
+      );
 
       const comp = createToast();
       comp.themePreset.setPreset('spielerisch');
@@ -393,7 +405,7 @@ describe('PresetToastComponent', () => {
       comp.ngOnInit();
 
       expect(comp.toastTitle()).toBe('Seriös');
-      expect(comp.toastIcon()).toBe('school');
+      expect(comp.toastIcon()).toBe('work');
     });
 
     it('setzt Titel und Icon für spielerisch', () => {
@@ -444,7 +456,13 @@ describe('PresetToastComponent', () => {
     it('nicknameThemeOptions enthält alle Altersgruppen', () => {
       const comp = createToast();
       const values = comp.nicknameThemeOptions.map((o) => o.value);
-      expect(values).toEqual(['NOBEL_LAUREATES', 'KINDERGARTEN', 'PRIMARY_SCHOOL', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']);
+      expect(values).toEqual([
+        'NOBEL_LAUREATES',
+        'KINDERGARTEN',
+        'PRIMARY_SCHOOL',
+        'MIDDLE_SCHOOL',
+        'HIGH_SCHOOL',
+      ]);
     });
 
     it('teamCountOptions enthält 2 bis 8', () => {

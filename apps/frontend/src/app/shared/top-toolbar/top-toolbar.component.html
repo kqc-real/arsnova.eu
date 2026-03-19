@@ -7,30 +7,35 @@
 >
   <div class="top-toolbar__row">
     <div class="top-toolbar__start">
-      <a [routerLink]="localizedPath('/')" class="top-toolbar__brand" i18n-aria-label aria-label="arsnova.eu Startseite">
+      <a
+        [routerLink]="localizedPath('/')"
+        class="top-toolbar__brand"
+        i18n-aria-label
+        aria-label="arsnova.eu Startseite"
+      >
         <svg
           class="top-toolbar__brand-icon"
-        viewBox="0 0 32 32"
-        preserveAspectRatio="xMidYMid meet"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="toolbar-brand-eu-bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="var(--app-eu-blue)" />
-            <stop offset="100%" stop-color="var(--app-eu-blue-dark)" />
-          </linearGradient>
-        </defs>
-        <rect width="32" height="32" rx="6" fill="url(#toolbar-brand-eu-bg)" />
-        <rect x="2" y="2" width="28" height="28" rx="5" fill="var(--app-eu-blue)" />
-        <path
-          class="top-toolbar__brand-star"
-          d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"
-          fill="var(--app-eu-yellow)"
-        />
-      </svg>
-      <span class="top-toolbar__brand-title">arsnova.eu</span>
-    </a>
+          viewBox="0 0 32 32"
+          preserveAspectRatio="xMidYMid meet"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="toolbar-brand-eu-bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="var(--app-eu-blue)" />
+              <stop offset="100%" stop-color="var(--app-eu-blue-dark)" />
+            </linearGradient>
+          </defs>
+          <rect width="32" height="32" rx="6" fill="url(#toolbar-brand-eu-bg)" />
+          <rect x="2" y="2" width="28" height="28" rx="5" fill="var(--app-eu-blue)" />
+          <path
+            class="top-toolbar__brand-star"
+            d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z"
+            fill="var(--app-eu-yellow)"
+          />
+        </svg>
+        <span class="top-toolbar__brand-title">arsnova.eu</span>
+      </a>
       @if (showHomeLink()) {
         <a
           [routerLink]="localizedPath('/')"
@@ -51,7 +56,8 @@
       class="top-toolbar__menu-btn mobile-only"
       [attr.aria-expanded]="controlsMenuOpen() ? 'true' : 'false'"
       aria-controls="top-toolbar-mobile"
-      i18n-aria-label aria-label="Einstellungen öffnen"
+      i18n-aria-label
+      aria-label="Einstellungen öffnen"
       (click)="toggleControlsMenu()"
     >
       <mat-icon>menu</mat-icon>
@@ -61,12 +67,13 @@
       <mat-button-toggle-group
         [value]="themePreset.preset()"
         appearance="standard"
-        i18n-aria-label aria-label="Preset auswählen"
+        i18n-aria-label
+        aria-label="Preset auswählen"
         class="top-toolbar__toggles top-toolbar__toggles--preset"
       >
         <mat-button-toggle value="serious" (click)="setPreset('serious')">
           <span class="top-toolbar__preset-option">
-            <mat-icon>school</mat-icon>
+            <mat-icon>work</mat-icon>
             <span i18n>Seriös</span>
           </span>
         </mat-button-toggle>
@@ -82,7 +89,8 @@
         [value]="themePreset.theme()"
         (change)="onThemeChange($event.value)"
         appearance="standard"
-        i18n-aria-label aria-label="Theme"
+        i18n-aria-label
+        aria-label="Theme"
         class="top-toolbar__toggles"
       >
         <mat-button-toggle value="system" i18n-aria-label aria-label="System">
@@ -96,7 +104,13 @@
         </mat-button-toggle>
       </mat-button-toggle-group>
 
-      <button matIconButton [matMenuTriggerFor]="langMenu" i18n-aria-label aria-label="Sprache" class="top-toolbar__icon-btn">
+      <button
+        matIconButton
+        [matMenuTriggerFor]="langMenu"
+        i18n-aria-label
+        aria-label="Sprache"
+        class="top-toolbar__icon-btn"
+      >
         <mat-icon>language</mat-icon>
       </button>
       <mat-menu #langMenu="matMenu">
@@ -115,12 +129,13 @@
       <mat-button-toggle-group
         [value]="themePreset.preset()"
         appearance="standard"
-        i18n-aria-label aria-label="Preset auswählen"
+        i18n-aria-label
+        aria-label="Preset auswählen"
         class="top-toolbar__toggles top-toolbar__toggles--full top-toolbar__toggles--preset"
       >
         <mat-button-toggle value="serious" (click)="setPreset('serious', true)">
           <span class="top-toolbar__preset-option">
-            <mat-icon>school</mat-icon>
+            <mat-icon>work</mat-icon>
             <span i18n>Seriös</span>
           </span>
         </mat-button-toggle>
@@ -136,7 +151,8 @@
         [value]="themePreset.theme()"
         (change)="onThemeChange($event.value)"
         appearance="standard"
-        i18n-aria-label aria-label="Theme"
+        i18n-aria-label
+        aria-label="Theme"
         class="top-toolbar__toggles top-toolbar__toggles--full"
       >
         <mat-button-toggle value="system" i18n-aria-label aria-label="System">
@@ -151,7 +167,13 @@
       </mat-button-toggle-group>
 
       <div class="top-toolbar__mobile-lang">
-        <button matIconButton [matMenuTriggerFor]="langMenuMobile" i18n-aria-label aria-label="Sprache" class="top-toolbar__icon-btn">
+        <button
+          matIconButton
+          [matMenuTriggerFor]="langMenuMobile"
+          i18n-aria-label
+          aria-label="Sprache"
+          class="top-toolbar__icon-btn"
+        >
           <mat-icon>language</mat-icon>
         </button>
       </div>
@@ -169,7 +191,10 @@
   @if (showSingleLocaleHint()) {
     <p class="top-toolbar__locale-hint" role="status">
       <mat-icon aria-hidden="true">info</mat-icon>
-      <span i18n>In der Entwicklung wird nur Deutsch ausgeliefert. Für andere Sprachen: <code>npm run build:localize</code> und <code>serve:localize:api</code>.</span>
+      <span i18n
+        >In der Entwicklung wird nur Deutsch ausgeliefert. Für andere Sprachen:
+        <code>npm run build:localize</code> und <code>serve:localize:api</code>.</span
+      >
     </p>
   }
 </header>
