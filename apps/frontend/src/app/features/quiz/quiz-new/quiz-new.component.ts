@@ -99,6 +99,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     teamAssignment: this.formBuilder.control<TeamAssignment>('AUTO'),
     teamNamesText: [''],
     nicknameTheme: this.formBuilder.control<NicknameTheme>('NOBEL_LAUREATES'),
+    bonusEnabled: [false],
     bonusTokenCount: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(1), Validators.max(50)],
     }),
@@ -110,6 +111,10 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   readonly teamCountControl = this.form.controls.teamCount;
   readonly teamNamesTextControl = this.form.controls.teamNamesText;
   readonly bonusTokenCountControl = this.form.controls.bonusTokenCount;
+
+  isBonusEnabled(): boolean {
+    return this.form.controls.bonusEnabled.value;
+  }
 
   ngOnInit(): void {
     this.syncTeamNamesValidation();
@@ -190,7 +195,9 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       teamNames: parseTeamNamesText(this.form.controls.teamNamesText.value),
       backgroundMusic: null,
       nicknameTheme: this.form.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
-      bonusTokenCount: this.bonusTokenCountControl.value,
+      bonusTokenCount: this.form.controls.bonusEnabled.value
+        ? (this.bonusTokenCountControl.value ?? 3)
+        : null,
       readingPhaseEnabled: this.form.controls.readingPhaseEnabled.value,
       preset: this.themePreset.preset() === 'serious' ? 'SERIOUS' as const : 'PLAYFUL' as const,
     };

@@ -200,24 +200,37 @@
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label i18n>Bonus-Codes für Top-Plätze (optional)</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="bonusTokenCount"
-                min="1"
-                max="50"
-                i18n-aria-label aria-label="Anzahl Bonus-Codes"
-              />
-              <mat-hint i18n>Ohne Wert werden keine Bonus-Codes vergeben.</mat-hint>
-              @if (bonusTokenCountControl.hasError('min')) {
-                <mat-error i18n>Mindestens 1 Bonus-Code.</mat-error>
+            <fieldset class="quiz-edit-form__fieldset">
+              <legend class="quiz-edit-form__legend" i18n>Belohnung</legend>
+              <mat-checkbox formControlName="bonusEnabled" i18n>
+                Bonus-Codes vergeben
+              </mat-checkbox>
+              @if (isBonusEnabled()) {
+                <p class="quiz-edit-form__fieldset-hint" i18n>
+                  Die besten Teilnehmenden erhalten nach dem Quiz einen persoenlichen Code,
+                  den sie freiwillig bei dir einreichen koennen.
+                </p>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n>Anzahl Top-Plaetze</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="bonusTokenCount"
+                    min="1"
+                    max="50"
+                    placeholder="3"
+                    i18n-aria-label aria-label="Anzahl Bonus-Codes"
+                  />
+                  <mat-hint i18n>Wie viele der Bestplatzierten einen Code erhalten (1–50).</mat-hint>
+                  @if (bonusTokenCountControl.hasError('min')) {
+                    <mat-error i18n>Mindestens 1.</mat-error>
+                  }
+                  @if (bonusTokenCountControl.hasError('max')) {
+                    <mat-error i18n>Hoechstens 50.</mat-error>
+                  }
+                </mat-form-field>
               }
-              @if (bonusTokenCountControl.hasError('max')) {
-                <mat-error i18n>Höchstens 50 Bonus-Codes.</mat-error>
-              }
-            </mat-form-field>
+            </fieldset>
           </mat-card-content>
         </mat-card>
       }

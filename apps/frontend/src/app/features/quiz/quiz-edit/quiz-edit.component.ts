@@ -78,6 +78,7 @@ type QuizSettingsFormGroup = FormGroup<{
   teamAssignment: FormControl<TeamAssignment>;
   teamNamesText: FormControl<string>;
   nicknameTheme: FormControl<NicknameTheme>;
+  bonusEnabled: FormControl<boolean>;
   bonusTokenCount: FormControl<number | null>;
   preset: FormControl<QuizPreset>;
 }>;
@@ -226,6 +227,7 @@ export class QuizEditComponent implements OnDestroy {
     teamAssignment: this.formBuilder.control<TeamAssignment>('AUTO'),
     teamNamesText: this.formBuilder.control(''),
     nicknameTheme: this.formBuilder.control<NicknameTheme>('NOBEL_LAUREATES'),
+    bonusEnabled: this.formBuilder.control(false),
     bonusTokenCount: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(1), Validators.max(50)],
     }),
@@ -321,6 +323,10 @@ export class QuizEditComponent implements OnDestroy {
 
   isTeamModeEnabled(): boolean {
     return this.settingsForm.controls.teamMode.value;
+  }
+
+  isBonusEnabled(): boolean {
+    return this.settingsForm.controls.bonusEnabled.value;
   }
 
   teamNamePreview(): string[] {
@@ -714,6 +720,7 @@ export class QuizEditComponent implements OnDestroy {
       teamAssignment: settings.teamAssignment,
       teamNamesText: settings.teamNames.join('\n'),
       nicknameTheme: settings.nicknameTheme,
+      bonusEnabled: settings.bonusTokenCount != null && settings.bonusTokenCount > 0,
       bonusTokenCount: settings.bonusTokenCount,
       preset: settings.preset,
     });
@@ -739,7 +746,9 @@ export class QuizEditComponent implements OnDestroy {
       teamNames: parseTeamNamesText(this.settingsForm.controls.teamNamesText.value),
       backgroundMusic: null,
       nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
-      bonusTokenCount: this.settingsForm.controls.bonusTokenCount.value,
+      bonusTokenCount: this.settingsForm.controls.bonusEnabled.value
+        ? (this.settingsForm.controls.bonusTokenCount.value ?? 3)
+        : null,
       readingPhaseEnabled: this.settingsForm.controls.readingPhaseEnabled.value,
       preset: this.settingsForm.controls.preset.value,
     };

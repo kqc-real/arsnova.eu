@@ -288,6 +288,7 @@ describe('QuizEditComponent', () => {
       teamAssignment: 'MANUAL',
       teamNamesText: 'Rot\nBlau\nGold',
       nicknameTheme: 'HIGH_SCHOOL',
+      bonusEnabled: true,
       bonusTokenCount: 5,
       readingPhaseEnabled: true,
       preset: 'SERIOUS',

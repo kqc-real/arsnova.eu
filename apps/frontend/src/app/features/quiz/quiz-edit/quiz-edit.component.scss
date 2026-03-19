@@ -158,6 +158,13 @@
   font-weight: 600;
 }
 
+.quiz-edit-form__fieldset-hint {
+  margin: 0.125rem 0 0.25rem;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.5;
+}
+
 .quiz-edit-answer {
   display: grid;
   grid-template-columns: auto 1fr auto;

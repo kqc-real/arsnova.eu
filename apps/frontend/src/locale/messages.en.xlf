@@ -2740,9 +2740,33 @@
           <context context-type="linenumber">205,206</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="bonus-fieldset-legend" datatype="html">
+        <source>Belohnung</source>
+        <target>Reward</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">238</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="bonus-checkbox-label" datatype="html">
+        <source>Bonus-Codes vergeben</source>
+        <target>Award bonus codes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">239</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="bonus-hint-text" datatype="html">
+        <source>Die besten Teilnehmenden erhalten nach dem Quiz einen persoenlichen Code, den sie freiwillig bei dir einreichen koennen.</source>
+        <target>The top participants will receive a personal code after the quiz that they can voluntarily submit to you.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">243</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="3299340173858348406" datatype="html">
-        <source>Bonus-Codes für Top-Plätze (optional)</source>
-        <target>Bonus codes for top places (optional)
+        <source>Anzahl Top-Plaetze</source>
+        <target>Number of top places
         </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
@@ -2766,8 +2790,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="3509273486839658148" datatype="html">
-        <source>Ohne Wert werden keine Bonus-Codes vergeben.</source>
-        <target>Leave empty to award no bonus codes.
+        <source>Wie viele der Bestplatzierten einen Code erhalten (1–50).</source>
+        <target>How many top performers receive a code (1–50).
         </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
@@ -2779,8 +2803,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="9198827608414028616" datatype="html">
-        <source>Mindestens 1 Bonus-Code.</source>
-        <target>At least 1 bonus code.
+        <source>Mindestens 1.</source>
+        <target>At least 1.
         </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
@@ -2792,8 +2816,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="2400955821540044178" datatype="html">
-        <source>Höchstens 50 Bonus-Codes.</source>
-        <target>At most 50 bonus codes.
+        <source>Hoechstens 50.</source>
+        <target>At most 50.
         </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
