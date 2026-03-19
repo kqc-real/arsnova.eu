@@ -94,6 +94,8 @@ export interface QuizSummary {
   createdAt: string;
   updatedAt: string;
   questionCount: number;
+  teamMode: boolean;
+  hasBonus: boolean;
 }
 
 export interface AddQuizQuestionInput {
@@ -370,6 +372,8 @@ export class QuizStoreService {
       createdAt: quiz.createdAt,
       updatedAt: quiz.updatedAt,
       questionCount: quiz.questions.length,
+      teamMode: quiz.settings.teamMode === true,
+      hasBonus: quiz.settings.bonusTokenCount != null && quiz.settings.bonusTokenCount > 0,
     })),
   );
 

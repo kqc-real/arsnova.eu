@@ -22,6 +22,24 @@
     </div>
   }
 
+  @if (playerNickname()) {
+    <div class="vote-player-badge" role="status">
+      <mat-icon class="vote-player-badge__icon" aria-hidden="true">person</mat-icon>
+      <span class="vote-player-badge__name">{{ playerNickname() }}</span>
+      @if (playerTeamName()) {
+        <span class="vote-player-badge__sep" aria-hidden="true">·</span>
+        @if (playerTeamColor()) {
+          <span
+            class="vote-player-badge__team-dot"
+            [style.background]="playerTeamColor()"
+            aria-hidden="true"
+          ></span>
+        }
+        <span class="vote-player-badge__team">{{ playerTeamName() }}</span>
+      }
+    </div>
+  }
+
   @if (countdownSeconds() !== null && isActive()) {
     <div class="vote-countdown-floating" [class.vote-countdown-floating--with-tabs]="showChannelTabs()">
       <span class="vote-countdown" [class.vote-countdown--urgent]="countdownSeconds()! <= 5" role="timer" [attr.aria-label]="countdownAriaLabel()">

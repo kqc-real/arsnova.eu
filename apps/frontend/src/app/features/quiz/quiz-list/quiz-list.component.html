@@ -244,6 +244,18 @@
                     <mat-icon class="quiz-list-item__meta-icon" aria-hidden="true">update</mat-icon>
                     {{ quiz.updatedAt | date: 'shortDate' }} · {{ quiz.updatedAt | date: 'shortTime' }}
                   </span>
+                  @if (quiz.teamMode) {
+                    <span class="quiz-list-item__feature-chip quiz-list-item__feature-chip--team">
+                      <mat-icon aria-hidden="true">groups</mat-icon>
+                      <span i18n="@@quizList.chipTeam">Teams</span>
+                    </span>
+                  }
+                  @if (quiz.hasBonus) {
+                    <span class="quiz-list-item__feature-chip quiz-list-item__feature-chip--bonus">
+                      <mat-icon aria-hidden="true">school</mat-icon>
+                      <span i18n="@@quizList.chipBonus">Bonus</span>
+                    </span>
+                  }
                 </div>
               </div>
             </a>

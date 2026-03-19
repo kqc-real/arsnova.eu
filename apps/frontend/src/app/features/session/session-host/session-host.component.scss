@@ -2060,6 +2060,20 @@
   font-weight: 600;
 }
 
+.session-host__interim-team-dot {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 0.35rem;
+}
+
+.session-host__interim-leaderboard--teams {
+  margin-top: 0.25rem;
+}
+
 .session-host__question-card {
   width: calc(100% + (2 * var(--session-host-run-bleed)));
   max-width: calc(100% + (2 * var(--session-host-run-bleed)));

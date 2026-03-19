@@ -804,6 +804,36 @@
             </div>
           }
 
+          @if (effectiveStatus() === 'RESULTS' && session()?.teamMode && teamLeaderboard().length > 0) {
+            <div class="session-host__interim-leaderboard session-host__interim-leaderboard--teams">
+              <p class="session-host__interim-title">
+                <mat-icon>groups</mat-icon>
+                <span i18n>Team-Wertung</span>
+              </p>
+              <ol class="session-host__interim-list" role="list">
+                @for (entry of teamLeaderboard(); track entry.rank) {
+                  <li class="session-host__interim-item">
+                    <span class="session-host__interim-rank">
+                      @if (entry.rank === 1) { 🥇 }
+                      @else if (entry.rank === 2) { 🥈 }
+                      @else if (entry.rank === 3) { 🥉 }
+                      @else { {{ entry.rank }}. }
+                    </span>
+                    <span class="session-host__interim-name">
+                      <span
+                        class="session-host__interim-team-dot"
+                        [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                        aria-hidden="true"
+                      ></span>
+                      {{ entry.teamName }}
+                    </span>
+                    <span class="session-host__interim-score" i18n>{{ entry.totalScore | number }} Pkt.</span>
+                  </li>
+                }
+              </ol>
+            </div>
+          }
+
           <!-- Steuerungs-Buttons (primär) -->
           <div class="session-host__steering">
             @if (effectiveStatus() === 'QUESTION_OPEN') {

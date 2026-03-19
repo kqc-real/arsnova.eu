@@ -9,6 +9,57 @@
   padding-top: 5rem;
 }
 
+.vote-player-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  width: fit-content;
+  margin: 0 auto 0.75rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.vote-player-badge__icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.vote-player-badge__name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 10rem;
+  font-weight: 500;
+}
+
+.vote-player-badge__sep {
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+.vote-player-badge__team-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.vote-player-badge__team {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 8rem;
+}
+
 .session-channel-tabs-shell {
   position: fixed;
   top: 6.75rem;

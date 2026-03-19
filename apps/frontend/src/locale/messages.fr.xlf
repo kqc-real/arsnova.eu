@@ -3798,6 +3798,20 @@
           <context context-type="linenumber">202,206</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizList.chipTeam" datatype="html">
+        <source>Teams</source>
+        <target>Équipes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.chipBonus" datatype="html">
+        <source>Bonus</source>
+        <target>Bonus</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="6809333927973571945" datatype="html">
         <source> Deine Quiz-Bibliothek ist noch leer.</source>
         <target>Ta bibliothèque de quiz est encore vide.</target>
@@ -4859,6 +4873,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">368,369</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6896435895128062952" datatype="html">
+        <source>Team-Wertung</source>
+        <target>Score des équipes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">811,812</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3511589864838625223" datatype="html">

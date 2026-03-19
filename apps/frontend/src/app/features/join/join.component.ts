@@ -15,6 +15,7 @@ import { localizeCommands } from '../../core/locale-router';
 import { getNicknameList } from './nickname-themes';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
+const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
 const SESSION_POLL_MS = 3000;
 
 /**
@@ -278,6 +279,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       });
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
+        localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
@@ -306,6 +308,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       });
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
+        localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname.slice(0, 30));
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {

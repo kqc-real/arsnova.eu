@@ -21,6 +21,7 @@ import type {
   QuestionStudentDTO,
   SessionInfoDTO,
   SessionStatus,
+  TeamDTO,
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
@@ -28,6 +29,7 @@ import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
+const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
 const VOTE_FALLBACK_POLL_MS = 2000;
 
 type CurrentQuestion = QuestionStudentDTO | QuestionPreviewDTO | QuestionRevealedDTO;
@@ -145,8 +147,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly personalScore = signal<number | null>(null);
   readonly bonusToken = signal<string | null>(null);
   readonly personalResultLoaded = signal(false);
+  readonly playerNickname = signal<string | null>(null);
   readonly participantTeam = signal<ParticipantDTO | null>(null);
+  readonly sessionTeams = signal<TeamDTO[]>([]);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
+  readonly playerTeamName = computed(() => this.participantTeam()?.teamName ?? null);
+  readonly playerTeamColor = computed(() => {
+    const teamName = this.playerTeamName();
+    if (!teamName) return null;
+    const team = this.sessionTeams().find((t) => t.name === teamName);
+    return team?.color ?? null;
+  });
 
   /** Story 5.6: Persönliche Scorecard pro Frage */
   readonly scorecard = signal<PersonalScorecardDTO | null>(null);
@@ -510,6 +521,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     if (typeof localStorage !== 'undefined') {
       this.participantId.set(localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? '');
+      this.playerNickname.set(localStorage.getItem(`${NICKNAME_STORAGE_KEY}-${this.code}`) ?? null);
     }
 
     await this.generateQrCode();
@@ -576,7 +588,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', { silent: true });
       }
       if (session.teamMode) {
-        await this.loadParticipantTeam();
+        await Promise.all([this.loadParticipantTeam(), this.loadSessionTeams()]);
         if (session.status === 'RESULTS' || session.status === 'FINISHED') {
           await this.loadTeamLeaderboard();
         }
@@ -846,16 +858,19 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     if (!participantId && this.code) {
       try {
+        const autoNickname = `Teilnehmer #${Math.floor(Math.random() * 9000) + 1000}`;
         const join = await trpc.session.join.mutate({
           code: this.code,
-          nickname: `Teilnehmer #${Math.floor(Math.random() * 9000) + 1000}`,
+          nickname: autoNickname,
         });
         participantId = join.participantId;
         sessionId = join.id;
         this.participantId.set(participantId);
         this.sessionId.set(sessionId);
+        this.playerNickname.set(autoNickname);
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, participantId);
+          localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, autoNickname);
         }
       } catch (error) {
         const message =
@@ -1204,9 +1219,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     try {
       const payload = await trpc.session.getParticipants.query({ code: this.code });
-      this.participantTeam.set(payload.participants.find((participant) => participant.id === pid) ?? null);
+      const me = payload.participants.find((participant) => participant.id === pid) ?? null;
+      this.participantTeam.set(me);
+      if (me?.nickname && !this.playerNickname()) {
+        this.playerNickname.set(me.nickname);
+      }
     } catch {
       this.participantTeam.set(null);
+    }
+  }
+
+  private async loadSessionTeams(): Promise<void> {
+    if (!this.code || this.sessionSettings().teamMode !== true) {
+      this.sessionTeams.set([]);
+      return;
+    }
+    try {
+      const payload = await trpc.session.getTeams.query({ code: this.code });
+      this.sessionTeams.set(payload.teams);
+    } catch {
+      this.sessionTeams.set([]);
     }
   }
 

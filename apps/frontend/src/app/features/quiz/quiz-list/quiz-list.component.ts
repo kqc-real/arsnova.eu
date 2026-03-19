@@ -595,6 +595,7 @@ export class QuizListComponent implements OnInit {
             const options = entry.data.options;
             const optionEnabled = (id: string) => options[id] === true;
             const nameMode = entry.data.nameMode;
+            const effectiveTeamMode = optionEnabled('teamMode') || payload.teamMode;
             payload = {
               ...payload,
               nicknameTheme: entry.data.nicknameThemeValue,
@@ -606,10 +607,16 @@ export class QuizListComponent implements OnInit {
               enableEmojiReactions: optionEnabled('enableEmojiReactions'),
               enableSoundEffects: optionEnabled('enableSoundEffects'),
               readingPhaseEnabled: optionEnabled('readingPhaseEnabled'),
-              teamMode: optionEnabled('teamMode'),
-              teamAssignment: optionEnabled('teamAssignment') ? 'MANUAL' : 'AUTO',
-              teamCount: optionEnabled('teamMode') ? entry.data.teamCountValue : payload.teamCount,
-              bonusTokenCount: optionEnabled('bonusTokenCount') ? payload.bonusTokenCount ?? 3 : null,
+              teamMode: effectiveTeamMode,
+              teamAssignment: optionEnabled('teamMode')
+                ? (optionEnabled('teamAssignment') ? 'MANUAL' : 'AUTO')
+                : (payload.teamAssignment ?? 'AUTO'),
+              teamCount: optionEnabled('teamMode')
+                ? (entry.data.teamCountValue ?? payload.teamCount)
+                : payload.teamCount,
+              bonusTokenCount: optionEnabled('bonusTokenCount')
+                ? (payload.bonusTokenCount ?? 3)
+                : payload.bonusTokenCount,
               defaultTimer: optionEnabled('defaultTimer') ? payload.defaultTimer ?? 60 : null,
               backgroundMusic: null,
             };
