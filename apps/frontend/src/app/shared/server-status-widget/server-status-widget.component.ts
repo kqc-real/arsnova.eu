@@ -1,8 +1,16 @@
 /**
  * Server-Status-Widget (Story 0.4).
- * Zeigt aggregierte Kennzahlen und Status-Indikator; Polling alle 30s.
+ * Zeigt aggregierte Kennzahlen und Status-Indikator; Polling alle 30s (nur wenn Verbindung ok).
  */
-import { Component, Input, OnInit, OnDestroy, signal } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+  signal,
+} from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { trpc } from '../../core/trpc.client';
 import type { ServerStatsDTO } from '@arsnova/shared-types';
@@ -13,7 +21,7 @@ import type { ServerStatsDTO } from '@arsnova/shared-types';
   templateUrl: './server-status-widget.component.html',
   styleUrls: ['./server-status-widget.component.scss'],
 })
-export class ServerStatusWidgetComponent implements OnInit, OnDestroy {
+export class ServerStatusWidgetComponent implements OnInit, OnChanges, OnDestroy {
   /** Wenn false, wird „Keine Verbindung“ angezeigt statt „Gerade aktiv“ / „Wird geladen…“. */
   @Input() connectionOk = true;
   /** Kompakter Modus für enge Layouts wie den globalen Footer. */
@@ -50,7 +58,27 @@ export class ServerStatusWidgetComponent implements OnInit, OnDestroy {
     }
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    if (this.connectionOk) this.startPolling();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['connectionOk']) {
+      if (this.connectionOk) {
+        this.startPolling();
+      } else {
+        this.stopPolling();
+        this.stats.set(null);
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopPolling();
+  }
+
+  private startPolling(): void {
+    this.stopPolling();
     const fetchStats = async (): Promise<void> => {
       try {
         const data = await trpc.health.stats.query();
@@ -59,11 +87,14 @@ export class ServerStatusWidgetComponent implements OnInit, OnDestroy {
         this.stats.set(null);
       }
     };
-    await fetchStats();
+    void fetchStats();
     this.intervalId = setInterval(fetchStats, 30_000);
   }
 
-  ngOnDestroy(): void {
-    if (this.intervalId) clearInterval(this.intervalId);
+  private stopPolling(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 }
