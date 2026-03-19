@@ -25,7 +25,17 @@ const SESSION_POLL_MS = 3000;
 @Component({
   selector: 'app-join',
   standalone: true,
-  imports: [MatCard, MatCardContent, MatButton, MatIcon, RouterLink, MatFormField, MatInput, MatSelect, MatOption],
+  imports: [
+    MatCard,
+    MatCardContent,
+    MatButton,
+    MatIcon,
+    RouterLink,
+    MatFormField,
+    MatInput,
+    MatSelect,
+    MatOption,
+  ],
   templateUrl: './join.component.html',
   styleUrl: './join.component.scss',
 })
@@ -79,21 +89,18 @@ export class JoinComponent implements OnInit, OnDestroy {
   readonly showTeamInfo = computed(() => this.session()?.teamMode === true);
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
 
-  readonly selectedTeam = computed(() =>
-    this.teams().find((team) => team.id === this.selectedTeamId()) ?? null,
+  readonly selectedTeam = computed(
+    () => this.teams().find((team) => team.id === this.selectedTeamId()) ?? null,
   );
   readonly autoPreviewTeam = computed(() => {
     if (!this.showTeamInfo() || this.showTeamSelect()) {
       return null;
     }
-
-    return [...this.teams()].sort((left, right) => {
-      if (left.memberCount !== right.memberCount) {
-        return left.memberCount - right.memberCount;
-      }
-
-      return left.name.localeCompare(right.name, this.locale);
-    })[0] ?? null;
+    const list = [...this.teams()].sort((a, b) => a.name.localeCompare(b.name, this.locale));
+    if (list.length === 0) return null;
+    const participantIndex = this.session()?.participantCount ?? 0;
+    const teamIndex = participantIndex % list.length;
+    return list[teamIndex] ?? null;
   });
   readonly visibleTeamChoice = computed(() =>
     this.showTeamSelect() ? this.selectedTeam() : this.autoPreviewTeam(),
@@ -103,7 +110,10 @@ export class JoinComponent implements OnInit, OnDestroy {
     const sel = this.selectedNickname().trim();
     const custom = this.customNickname().trim();
     const allowCustom = this.session()?.allowCustomNicknames ?? true;
-    const hasName = this.session()?.anonymousMode === true || sel.length > 0 || (allowCustom && custom.length > 0);
+    const hasName =
+      this.session()?.anonymousMode === true ||
+      sel.length > 0 ||
+      (allowCustom && custom.length > 0);
     const hasTeam = !this.showTeamSelect() || this.selectedTeamId().trim().length > 0;
     return hasName && hasTeam;
   });
@@ -131,8 +141,10 @@ export class JoinComponent implements OnInit, OnDestroy {
   inLobbyLabel = () => $localize`in der Lobby`;
   teamMembersLabel = (count: number) =>
     count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
-  teamCardAriaLabel = (team: TeamDTO) => $localize`${team.name}, ${this.teamMembersLabel(team.memberCount)}`;
-  teamInfoHeading = () => (this.showTeamSelect() ? $localize`Dein Team` : $localize`Team-Modus aktiv`);
+  teamCardAriaLabel = (team: TeamDTO) =>
+    $localize`${team.name}, ${this.teamMembersLabel(team.memberCount)}`;
+  teamInfoHeading = () =>
+    this.showTeamSelect() ? $localize`Dein Team` : $localize`Team-Modus aktiv`;
   teamInfoHint = () =>
     this.showTeamSelect()
       ? $localize`Wähle ein Team, bevor du beitrittst.`
@@ -183,9 +195,13 @@ export class JoinComponent implements OnInit, OnDestroy {
       await this.loadParticipants();
       this.startSessionPoll();
     } catch (err: unknown) {
-      const msg = err && typeof err === 'object' && 'message' in err && typeof (err as { message: string }).message === 'string'
-        ? (err as { message: string }).message
-        : $localize`Session nicht gefunden.`;
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: string }).message === 'string'
+          ? (err as { message: string }).message
+          : $localize`Session nicht gefunden.`;
       this.errorSessionFinished.set(false);
       this.error.set(msg);
     } finally {
@@ -220,7 +236,11 @@ export class JoinComponent implements OnInit, OnDestroy {
       this.session.set(session);
       await this.loadTeams();
       const opts = this.nicknameOptions();
-      if (opts.length > 0 && this.selectedNickname().trim() && !opts.includes(this.selectedNickname().trim())) {
+      if (
+        opts.length > 0 &&
+        this.selectedNickname().trim() &&
+        !opts.includes(this.selectedNickname().trim())
+      ) {
         this.selectedNickname.set('');
       }
       const teamIds = new Set(this.teams().map((team) => team.id));
@@ -283,9 +303,13 @@ export class JoinComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
-      const msg = err && typeof err === 'object' && 'message' in err && typeof (err as { message: string }).message === 'string'
-        ? (err as { message: string }).message
-        : $localize`Beitritt fehlgeschlagen.`;
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: string }).message === 'string'
+          ? (err as { message: string }).message
+          : $localize`Beitritt fehlgeschlagen.`;
       this.errorSessionFinished.set(false);
       this.error.set(msg);
     } finally {
@@ -312,9 +336,13 @@ export class JoinComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
-      const msg = err && typeof err === 'object' && 'message' in err && typeof (err as { message: string }).message === 'string'
-        ? (err as { message: string }).message
-        : $localize`Beitritt fehlgeschlagen.`;
+      const msg =
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof (err as { message: string }).message === 'string'
+          ? (err as { message: string }).message
+          : $localize`Beitritt fehlgeschlagen.`;
       this.errorSessionFinished.set(false);
       this.error.set(msg);
     } finally {

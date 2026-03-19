@@ -23,7 +23,9 @@
                 <span
                   class="session-channel-tabs__badge"
                   [class.session-channel-tabs__badge--alert]="isChannelBadgeAlert(channel)"
-                  [class.session-channel-tabs__badge--status]="channel === 'quickFeedback' && !isChannelBadgeAlert(channel)"
+                  [class.session-channel-tabs__badge--status]="
+                    channel === 'quickFeedback' && !isChannelBadgeAlert(channel)
+                  "
                 >
                   {{ metaLabel }}
                 </span>
@@ -44,7 +46,9 @@
               aria-label="App-Rahmen umschalten"
               [attr.aria-pressed]="!isImmersiveMode()"
             >
-              <mat-icon aria-hidden="true">{{ isImmersiveMode() ? 'web_asset' : 'center_focus_strong' }}</mat-icon>
+              <mat-icon aria-hidden="true">{{
+                isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
+              }}</mat-icon>
             </button>
 
             @if (isFullscreenSupported()) {
@@ -58,7 +62,9 @@
                 aria-label="Vollbild umschalten"
                 [attr.aria-pressed]="isFullscreenActive()"
               >
-                <mat-icon aria-hidden="true">{{ isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+                <mat-icon aria-hidden="true">{{
+                  isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen'
+                }}</mat-icon>
               </button>
             }
           </div>
@@ -68,7 +74,9 @@
 
     <mat-menu #hostMusicMenu="matMenu" xPosition="before">
       <div class="session-host__music-menu-head" (click)="$event.stopPropagation()">
-        <p class="session-host__music-menu-title" i18n="@@sessionHost.musicMenuTitle">Hintergrundmusik</p>
+        <p class="session-host__music-menu-title" i18n="@@sessionHost.musicMenuTitle">
+          Hintergrundmusik
+        </p>
         <p class="session-host__music-menu-subtitle" i18n="@@sessionHost.musicMenuHint">
           Startet automatisch je Phase. Stoppt 9 Sek. vor Countdown-Ende. Auswahl wird gespeichert.
         </p>
@@ -79,16 +87,24 @@
       </button>
       @for (phase of musicPhases; track phase.id) {
         <div class="session-host__music-phase-group" (click)="$event.stopPropagation()">
-          <p class="session-host__music-phase-label"
-             [class.session-host__music-phase-label--active]="currentMusicPhase() === phase.id">
+          <p
+            class="session-host__music-phase-label"
+            [class.session-host__music-phase-label--active]="currentMusicPhase() === phase.id"
+          >
             {{ phase.label }}
             @if (currentMusicPhase() === phase.id) {
-              <mat-icon class="session-host__music-phase-playing" aria-hidden="true">graphic_eq</mat-icon>
+              <mat-icon class="session-host__music-phase-playing" aria-hidden="true"
+                >graphic_eq</mat-icon
+              >
             }
           </p>
           @for (track of allMusicTracks; track track.value) {
             <button mat-menu-item type="button" (click)="setPhaseTrack(phase.id, track.value)">
-              <mat-icon aria-hidden="true">{{ phaseTracks()[phase.id] === track.value ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+              <mat-icon aria-hidden="true">{{
+                phaseTracks()[phase.id] === track.value
+                  ? 'radio_button_checked'
+                  : 'radio_button_unchecked'
+              }}</mat-icon>
               <span>{{ track.label }}</span>
             </button>
           }
@@ -113,10 +129,16 @@
               <span class="session-host__live-join-label" i18n>Beitritt</span>
             </button>
             <div class="session-host__live-code-block">
-              <p class="session-host__live-code" [attr.aria-label]="'Session-Code ' + s.code">{{ s.code }}</p>
+              <p class="session-host__live-code" [attr.aria-label]="'Session-Code ' + s.code">
+                {{ s.code }}
+              </p>
               <p class="session-host__live-participants">
-                <span class="session-host__live-participants-count">{{ liveParticipantCount }}</span>
-                {{ liveParticipantCount === 1 ? participantLabelSingular() : participantLabelPlural() }}
+                <span class="session-host__live-participants-count">{{
+                  liveParticipantCount
+                }}</span>
+                {{
+                  liveParticipantCount === 1 ? participantLabelSingular() : participantLabelPlural()
+                }}
               </p>
             </div>
             <div class="session-host__live-actions">
@@ -129,7 +151,9 @@
                 i18n-aria-label="@@sessionHost.musicControlAria"
                 aria-label="Soundsteuerung öffnen"
               >
-                <mat-icon aria-hidden="true">{{ musicMuted() ? 'volume_off' : 'graphic_eq' }}</mat-icon>
+                <mat-icon aria-hidden="true">{{
+                  musicMuted() ? 'volume_off' : 'graphic_eq'
+                }}</mat-icon>
                 <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
               </button>
               @if (isRunningSession() && !showChannelTabs()) {
@@ -144,7 +168,9 @@
                     aria-label="App-Rahmen umschalten"
                     [attr.aria-pressed]="!isImmersiveMode()"
                   >
-                    <mat-icon aria-hidden="true">{{ isImmersiveMode() ? 'web_asset' : 'center_focus_strong' }}</mat-icon>
+                    <mat-icon aria-hidden="true">{{
+                      isImmersiveMode() ? 'web_asset' : 'center_focus_strong'
+                    }}</mat-icon>
                   </button>
 
                   @if (isFullscreenSupported()) {
@@ -158,7 +184,9 @@
                       aria-label="Vollbild umschalten"
                       [attr.aria-pressed]="isFullscreenActive()"
                     >
-                      <mat-icon aria-hidden="true">{{ isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+                      <mat-icon aria-hidden="true">{{
+                        isFullscreenActive() ? 'fullscreen_exit' : 'fullscreen'
+                      }}</mat-icon>
                     </button>
                   }
                 </div>
@@ -181,960 +209,1352 @@
               </div>
             }
             <p class="session-host__join-menu-label" i18n>Direkt-Link</p>
-            <a class="session-host__join-menu-link" [href]="joinUrl" target="_blank" rel="noopener">{{ joinUrl }}</a>
+            <a
+              class="session-host__join-menu-link"
+              [href]="joinUrl"
+              target="_blank"
+              rel="noopener"
+              >{{ joinUrl }}</a
+            >
           </div>
         </mat-menu>
       </section>
     }
 
     <div class="session-host__channel-stage">
-    @if (showPrimaryLiveView()) {
-    @if (effectiveStatus() === 'LOBBY') {
-      <!-- Lobby: Code, QR (Story 2.1b), Beitritts-URL, Teilnehmerzahl. -->
-      <div class="session-lobby">
-        @if (sessionHeading(); as heading) {
-          <section class="session-lobby__hero-card">
-            <p class="session-lobby__hero-title">{{ heading }}</p>
-            <div class="session-lobby__actions session-lobby__actions--hero">
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                [disabled]="controlPending()"
-                (click)="startSessionFlow()"
+      @if (showPrimaryLiveView()) {
+        @if (effectiveStatus() === 'LOBBY') {
+          <!-- Lobby: Code, QR (Story 2.1b), Beitritts-URL, Teilnehmerzahl. -->
+          <div class="session-lobby">
+            @if (sessionHeading(); as heading) {
+              <section class="session-lobby__hero-card">
+                <p class="session-lobby__hero-title">{{ heading }}</p>
+                <div class="session-lobby__actions session-lobby__actions--hero">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="controlPending()"
+                    (click)="startSessionFlow()"
+                  >
+                    @if (isQaSession()) {
+                      <span i18n="@@sessionHost.startQa">Fragerunde starten</span>
+                    } @else {
+                      <span i18n>Erste Frage starten</span>
+                    }
+                  </button>
+                </div>
+              </section>
+            }
+            @let payload = participantsPayload();
+            <p class="session-lobby__join-hint" i18n>Beitreten unter</p>
+            <p class="session-lobby__join-url">
+              <a [href]="joinUrl" target="_blank" rel="noopener">{{ joinUrl }}</a>
+            </p>
+            @if (s.teamMode && lobbyTeamsWithParticipants().length > 0) {
+              <section
+                class="session-lobby__teams session-lobby__teams--hero"
+                aria-labelledby="session-lobby-teams-heading"
               >
-                @if (isQaSession()) {
-                  <span i18n="@@sessionHost.startQa">Fragerunde starten</span>
-                } @else {
-                  <span i18n>Erste Frage starten</span>
+                <h2 class="session-lobby__teams-title" id="session-lobby-teams-heading" i18n>
+                  Teams in der Lobby
+                </h2>
+                @if (isPlayfulPreset()) {
+                  <p class="session-lobby__teams-subtitle">{{ playfulLobbyTeamsLabel() }}</p>
                 }
-              </button>
-            </div>
-          </section>
-        }
-        @let payload = participantsPayload();
-        <p class="session-lobby__join-hint" i18n>Beitreten unter</p>
-        <p class="session-lobby__join-url"><a [href]="joinUrl" target="_blank" rel="noopener">{{ joinUrl }}</a></p>
-        @if (s.teamMode && lobbyTeamsWithParticipants().length > 0) {
-          <section class="session-lobby__teams session-lobby__teams--hero" aria-labelledby="session-lobby-teams-heading">
-            <h2 class="session-lobby__teams-title" id="session-lobby-teams-heading" i18n>Teams in der Lobby</h2>
-            @if (isPlayfulPreset()) {
-              <p class="session-lobby__teams-subtitle">{{ playfulLobbyTeamsLabel() }}</p>
-            }
-            <div class="session-lobby__teams-grid">
-              @for (team of lobbyTeamsWithParticipants(); track team.id) {
-                <article class="session-lobby__team-card" [class.session-lobby__team-card--playful]="isPlayfulPreset()">
-                  <div class="session-lobby__team-card-head">
-                    <span
-                      class="session-lobby__team-card-dot"
-                      [style.background]="team.color || 'var(--mat-sys-primary)'"
-                      aria-hidden="true"
-                    ></span>
-                    <span class="session-lobby__team-card-name">{{ team.name }}</span>
-                    <span class="session-lobby__team-card-count">{{ teamMemberLabel(team.memberCount) }}</span>
-                  </div>
-                  @if (!s.anonymousMode && team.participants.length > 0) {
-                    <ul class="session-lobby__team-members" role="list">
-                      @for (nickname of team.participants; track nickname) {
-                        <li class="session-lobby__team-member">{{ nickname }}</li>
+                <div class="session-lobby__teams-grid">
+                  @for (team of lobbyTeamsWithParticipants(); track team.id) {
+                    <article
+                      class="session-lobby__team-card"
+                      [class.session-lobby__team-card--playful]="isPlayfulPreset()"
+                    >
+                      <div class="session-lobby__team-card-head">
+                        <span
+                          class="session-lobby__team-card-dot"
+                          [style.background]="team.color || 'var(--mat-sys-primary)'"
+                          aria-hidden="true"
+                        ></span>
+                        <span class="session-lobby__team-card-name">{{ team.name }}</span>
+                        <span class="session-lobby__team-card-count">{{
+                          teamMemberLabel(team.memberCount)
+                        }}</span>
+                      </div>
+                      @if (!s.anonymousMode && team.participants.length > 0) {
+                        <ul class="session-lobby__team-members" role="list">
+                          @for (nickname of team.participants; track nickname) {
+                            <li class="session-lobby__team-member">{{ nickname }}</li>
+                          }
+                        </ul>
+                      } @else if (!s.anonymousMode) {
+                        <p class="session-lobby__team-empty">{{ lobbyTeamEmptyLabel() }}</p>
                       }
-                    </ul>
-                  } @else if (!s.anonymousMode) {
-                    <p class="session-lobby__team-empty">{{ lobbyTeamEmptyLabel() }}</p>
+                    </article>
                   }
-                </article>
-              }
-            </div>
-          </section>
-        }
-        @if (!s.teamMode && !s.anonymousMode && payload && payload.participants.length > 0) {
-          <ul class="session-lobby__list" role="list" i18n-aria-label aria-label="Teilnehmende">
-            @for (p of payload.participants; track p.id) {
-              <li class="session-lobby__list-item">{{ p.nickname }}</li>
+                </div>
+              </section>
             }
-          </ul>
-        }
-        @if (!sessionHeading()) {
-          <div class="session-lobby__actions">
-            <button
-              mat-flat-button
-              color="primary"
-              type="button"
-              [disabled]="controlPending()"
-              (click)="startSessionFlow()"
-            >
-              @if (isQaSession()) {
-                <span i18n="@@sessionHost.startQa">Fragerunde starten</span>
-              } @else {
-                <span i18n>Erste Frage starten</span>
-              }
-            </button>
-          </div>
-        }
-      </div>
-    } @else {
-      <!-- Keine Lobby: Beamer-tauglich. Fragenkarte = Toolbar-Breite (56rem), Ergebniskarte darunter. -->
-      <div class="session-host__run l-page">
-        @if (effectiveStatus() === 'FINISHED') {
-          <div class="session-host__results">
-            <header class="session-host__finished">
-              <mat-icon class="session-host__finished-icon" aria-hidden="true">verified</mat-icon>
-              <h1 class="session-host__finished-text" id="session-finished-heading" i18n>Session beendet</h1>
-              <p class="session-host__finished-sub" i18n>Alle Ergebnisse sind gespeichert.</p>
-              <div class="session-host__export-actions">
-                <a matButton="filled" [routerLink]="localizedPath('/')">
-                  <mat-icon>home</mat-icon>
-                  <span i18n>Zur Startseite</span>
-                </a>
-                <button matButton="tonal"
+            @if (!s.teamMode && !s.anonymousMode && payload && payload.participants.length > 0) {
+              <ul class="session-lobby__list" role="list" i18n-aria-label aria-label="Teilnehmende">
+                @for (p of payload.participants; track p.id) {
+                  <li class="session-lobby__list-item">{{ p.nickname }}</li>
+                }
+              </ul>
+            }
+            @if (!sessionHeading()) {
+              <div class="session-lobby__actions">
+                <button
+                  mat-flat-button
+                  color="primary"
                   type="button"
-                  (click)="exportSessionResultsCsv()"
-                  [disabled]="exportExporting()"
-                  [attr.aria-busy]="exportExporting()"
-                  i18n-aria-label aria-label="Ergebnis als CSV exportieren">
-                  <mat-icon>download</mat-icon>
-                  <span i18n>Ergebnis exportieren</span>
+                  [disabled]="controlPending()"
+                  (click)="startSessionFlow()"
+                >
+                  @if (isQaSession()) {
+                    <span i18n="@@sessionHost.startQa">Fragerunde starten</span>
+                  } @else {
+                    <span i18n>Erste Frage starten</span>
+                  }
                 </button>
-                @if (exportExporting()) {
-                  <p class="session-host__export-hint" role="status" i18n>Wird exportiert…</p>
-                }
-                @if (exportStatus(); as status) {
-                  <p class="session-host__export-hint" role="status">{{ status }}</p>
-                }
-                <p class="session-host__export-dsgvo" i18n>Export für Dokumentation und Evaluation – keine personenbezogenen Daten.</p>
               </div>
-            </header>
+            }
+          </div>
+        } @else {
+          <!-- Keine Lobby: Beamer-tauglich. Fragenkarte = Toolbar-Breite (56rem), Ergebniskarte darunter. -->
+          <div class="session-host__run l-page">
+            @if (effectiveStatus() === 'FINISHED') {
+              <div class="session-host__results">
+                <header class="session-host__finished">
+                  <mat-icon class="session-host__finished-icon" aria-hidden="true"
+                    >verified</mat-icon
+                  >
+                  <h1 class="session-host__finished-text" id="session-finished-heading" i18n>
+                    Session beendet
+                  </h1>
+                  <p class="session-host__finished-sub" i18n>Alle Ergebnisse sind gespeichert.</p>
+                  <div class="session-host__export-actions">
+                    <a matButton="filled" [routerLink]="localizedPath('/')">
+                      <mat-icon>home</mat-icon>
+                      <span i18n>Zur Startseite</span>
+                    </a>
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      (click)="exportSessionResultsCsv()"
+                      [disabled]="exportExporting()"
+                      [attr.aria-busy]="exportExporting()"
+                      i18n-aria-label
+                      aria-label="Ergebnis als CSV exportieren"
+                    >
+                      <mat-icon>download</mat-icon>
+                      <span i18n>Ergebnis exportieren</span>
+                    </button>
+                    @if (exportExporting()) {
+                      <p class="session-host__export-hint" role="status" i18n>Wird exportiert…</p>
+                    }
+                    @if (exportStatus(); as status) {
+                      <p class="session-host__export-hint" role="status">{{ status }}</p>
+                    }
+                    <p class="session-host__export-dsgvo" i18n>
+                      Export für Dokumentation und Evaluation – keine personenbezogenen Daten.
+                    </p>
+                  </div>
+                </header>
 
-          @if (leaderboard().length > 0) {
-            <section class="session-host__leaderboard-card" aria-labelledby="leaderboard-heading">
-              <h2 class="session-host__leaderboard-title" id="leaderboard-heading">
-                <mat-icon aria-hidden="true">leaderboard</mat-icon>
-                <span i18n>Leaderboard</span>
-              </h2>
-              @if (leaderboard()[0]; as leader) {
-                <div class="session-host__leaderboard-winner">
-                  <p class="session-host__leaderboard-winner-label">
-                    <span aria-hidden="true">🏆</span>
-                    <span i18n="@@sessionHost.leaderboardWinnerLabel">Vorn liegt</span>
+                @if (leaderboard().length > 0) {
+                  <section
+                    class="session-host__leaderboard-card"
+                    aria-labelledby="leaderboard-heading"
+                  >
+                    <h2 class="session-host__leaderboard-title" id="leaderboard-heading">
+                      <mat-icon aria-hidden="true">leaderboard</mat-icon>
+                      <span i18n>Leaderboard</span>
+                    </h2>
+                    @if (leaderboard()[0]; as leader) {
+                      <div class="session-host__leaderboard-winner">
+                        <p class="session-host__leaderboard-winner-label">
+                          <span aria-hidden="true">🏆</span>
+                          <span i18n="@@sessionHost.leaderboardWinnerLabel">Vorn liegt</span>
+                        </p>
+                        <p class="session-host__leaderboard-winner-name">{{ leader.nickname }}</p>
+                        <p
+                          class="session-host__leaderboard-winner-meta"
+                          i18n="@@sessionHost.leaderboardWinnerMeta"
+                        >
+                          Mit {{ leader.totalScore | number }} Punkten
+                        </p>
+                      </div>
+                    }
+                    <div class="session-host__leaderboard-wrap">
+                      <table class="session-host__leaderboard-table" role="table">
+                        <thead>
+                          <tr>
+                            <th class="session-host__lb-col--rank">#</th>
+                            <th class="session-host__lb-col--name" i18n>Nickname</th>
+                            <th class="session-host__lb-col--score" i18n>Punkte</th>
+                            <th class="session-host__lb-col--correct" i18n>Richtig</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (entry of leaderboard(); track entry.rank) {
+                            <tr
+                              class="session-host__lb-row"
+                              [class.session-host__lb-row--top3]="entry.rank <= 3"
+                              [class.session-host__lb-row--rank1]="entry.rank === 1"
+                              [class.session-host__lb-row--rank2]="entry.rank === 2"
+                              [class.session-host__lb-row--rank3]="entry.rank === 3"
+                            >
+                              <td class="session-host__lb-col--rank">
+                                @if (entry.rank === 1) {
+                                  🥇
+                                } @else if (entry.rank === 2) {
+                                  🥈
+                                } @else if (entry.rank === 3) {
+                                  🥉
+                                } @else {
+                                  {{ entry.rank }}
+                                }
+                              </td>
+                              <td class="session-host__lb-col--name">{{ entry.nickname }}</td>
+                              <td class="session-host__lb-col--score">
+                                {{ entry.totalScore | number }}
+                              </td>
+                              <td class="session-host__lb-col--correct">
+                                {{ entry.correctCount }}/{{ entry.totalQuestions }}
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                }
+
+                @if (session()?.teamMode && teamLeaderboard().length > 0) {
+                  <section
+                    class="session-host__leaderboard-card"
+                    aria-labelledby="team-leaderboard-heading"
+                  >
+                    <h2 class="session-host__leaderboard-title" id="team-leaderboard-heading">
+                      <mat-icon aria-hidden="true">groups</mat-icon>
+                      <span i18n>Team-Leaderboard</span>
+                    </h2>
+                    <ol class="session-host__team-bars">
+                      @for (entry of teamLeaderboard(); track entry.rank) {
+                        <li
+                          class="session-host__team-bar-item"
+                          [class.session-host__team-bar-item--top3]="entry.rank <= 3"
+                        >
+                          <div class="session-host__team-bar-head">
+                            <span class="session-host__team-bar-rank">#{{ entry.rank }}</span>
+                            <span class="session-host__team-bar-name">
+                              <span
+                                class="session-host__team-bar-dot"
+                                [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                              ></span>
+                              {{ entry.teamName }}
+                            </span>
+                            <span class="session-host__team-bar-meta">
+                              {{ entry.memberCount }} <span i18n>Mitglieder</span> ·
+                              {{ entry.totalScore | number }}
+                            </span>
+                          </div>
+                          <div class="session-host__team-bar-track" aria-hidden="true">
+                            <div
+                              class="session-host__team-bar-fill"
+                              [style.width]="teamScoreBarWidth(entry.totalScore)"
+                              [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                            ></div>
+                          </div>
+                        </li>
+                      }
+                    </ol>
+                  </section>
+                }
+
+                @if (bonusTokens().length > 0) {
+                  <section class="session-host__bonus-card" aria-labelledby="bonus-heading">
+                    <h2 class="session-host__bonus-tokens-title" id="bonus-heading">
+                      <mat-icon aria-hidden="true">card_giftcard</mat-icon>
+                      <span i18n>Bonus-Codes</span>
+                    </h2>
+                    <table class="session-host__bonus-tokens-table" role="table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th i18n>Nickname</th>
+                          <th i18n>Code</th>
+                          <th i18n>Punkte</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (t of bonusTokens(); track t.token) {
+                          <tr>
+                            <td>{{ t.rank }}</td>
+                            <td>{{ t.nickname }}</td>
+                            <td class="session-host__bonus-code-cell">{{ t.token }}</td>
+                            <td>{{ t.totalScore | number }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      class="session-host__bonus-export-btn"
+                      (click)="exportBonusTokensCsv()"
+                    >
+                      <mat-icon>download</mat-icon>
+                      <span i18n>CSV exportieren</span>
+                    </button>
+                  </section>
+                }
+
+                @if (feedbackSummary(); as fb) {
+                  <section class="session-host__feedback-card" aria-labelledby="feedback-heading">
+                    <h2 class="session-host__feedback-summary-title" id="feedback-heading">
+                      <mat-icon aria-hidden="true">rate_review</mat-icon>
+                      <span i18n>Feedback der Teilnehmer</span>
+                    </h2>
+                    <div class="session-host__feedback-hero">
+                      <span class="session-host__feedback-hero-label" i18n>Gesamtbewertung</span>
+                      <p
+                        class="session-host__feedback-avg"
+                        aria-label="Durchschnitt {{
+                          fb.overallAverage | number: '1.1-1'
+                        }} von 5 Sternen"
+                      >
+                        <span class="session-host__feedback-avg-number">{{
+                          fb.overallAverage | number: '1.1-1'
+                        }}</span>
+                        <span class="session-host__feedback-avg-of">/ 5</span>
+                        <span class="session-host__feedback-avg-stars" aria-hidden="true">★</span>
+                      </p>
+                      <p class="session-host__feedback-count">
+                        {{ fb.totalResponses }}
+                        {{
+                          fb.totalResponses === 1
+                            ? feedbackRatingSingular()
+                            : feedbackRatingPlural()
+                        }}
+                      </p>
+                      @if (getFeedbackDistributionLine(fb.overallDistribution); as distLine) {
+                        <p class="session-host__feedback-distribution">{{ distLine }}</p>
+                      }
+                    </div>
+                    <div class="session-host__feedback-details">
+                      @if (fb.questionQualityAverage !== null) {
+                        <div class="session-host__feedback-detail-row">
+                          <span class="session-host__feedback-detail-label">
+                            <mat-icon class="session-host__feedback-detail-icon" aria-hidden="true"
+                              >star</mat-icon
+                            >
+                            <span i18n>Qualität der Fragen</span>
+                          </span>
+                          <span class="session-host__feedback-detail-value"
+                            >Ø {{ fb.questionQualityAverage | number: '1.1-1' }} ★</span
+                          >
+                        </div>
+                      }
+                      @if (fb.wouldRepeatYes > 0 || fb.wouldRepeatNo > 0) {
+                        <div
+                          class="session-host__feedback-detail-row session-host__feedback-detail-row--repeat"
+                        >
+                          <span class="session-host__feedback-detail-label">
+                            <mat-icon class="session-host__feedback-detail-icon" aria-hidden="true"
+                              >thumb_up</mat-icon
+                            >
+                            <span i18n>Nochmal mitmachen?</span>
+                          </span>
+                          <span class="session-host__feedback-repeat-badges">
+                            <span
+                              class="session-host__feedback-badge session-host__feedback-badge--yes"
+                            >
+                              <mat-icon aria-hidden="true">thumb_up</mat-icon>
+                              {{ fb.wouldRepeatYes }}
+                            </span>
+                            <span
+                              class="session-host__feedback-badge session-host__feedback-badge--no"
+                            >
+                              <mat-icon aria-hidden="true">thumb_down</mat-icon>
+                              {{ fb.wouldRepeatNo }}
+                            </span>
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </section>
+                }
+              </div>
+            } @else {
+              @if (showFingerCountdown()) {
+                <div class="session-host__finger-countdown">
+                  <app-countdown-fingers [seconds]="countdownSeconds()!" size="large" />
+                </div>
+              }
+
+              <!-- Banner: Diskussionsphase (groß, für Publikum auf Beamer) -->
+              @if (effectiveStatus() === 'DISCUSSION') {
+                <div class="session-host__discussion-banner" role="status" aria-live="polite">
+                  <mat-icon class="session-host__discussion-banner-icon" aria-hidden="true"
+                    >groups</mat-icon
+                  >
+                  <p class="session-host__discussion-banner-text" i18n>
+                    Tauscht euch kurz mit eurem Nachbarn aus
                   </p>
-                  <p class="session-host__leaderboard-winner-name">{{ leader.nickname }}</p>
-                  <p class="session-host__leaderboard-winner-meta" i18n="@@sessionHost.leaderboardWinnerMeta">
-                    Mit {{ leader.totalScore | number }} Punkten
+                  <p class="session-host__discussion-banner-hint" i18n>
+                    Gleiche Antwort? Prima. Verschiedene Meinung? Überzeugt euch gegenseitig.
+                  </p>
+                  <p class="session-host__discussion-banner-next" i18n>
+                    Zweite Abstimmung folgt gleich.
                   </p>
                 </div>
               }
-              <div class="session-host__leaderboard-wrap">
-              <table class="session-host__leaderboard-table" role="table">
-                <thead>
-                  <tr>
-                    <th class="session-host__lb-col--rank">#</th>
-                    <th class="session-host__lb-col--name" i18n>Nickname</th>
-                    <th class="session-host__lb-col--score" i18n>Punkte</th>
-                    <th class="session-host__lb-col--correct" i18n>Richtig</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (entry of leaderboard(); track entry.rank) {
-                    <tr
-                      class="session-host__lb-row"
-                      [class.session-host__lb-row--top3]="entry.rank <= 3"
-                      [class.session-host__lb-row--rank1]="entry.rank === 1"
-                      [class.session-host__lb-row--rank2]="entry.rank === 2"
-                      [class.session-host__lb-row--rank3]="entry.rank === 3"
-                    >
-                      <td class="session-host__lb-col--rank">
-                        @if (entry.rank === 1) { 🥇 }
-                        @else if (entry.rank === 2) { 🥈 }
-                        @else if (entry.rank === 3) { 🥉 }
-                        @else { {{ entry.rank }} }
-                      </td>
-                      <td class="session-host__lb-col--name">{{ entry.nickname }}</td>
-                      <td class="session-host__lb-col--score">{{ entry.totalScore | number }}</td>
-                      <td class="session-host__lb-col--correct">{{ entry.correctCount }}/{{ entry.totalQuestions }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-              </div>
-            </section>
-          }
 
-          @if (session()?.teamMode && teamLeaderboard().length > 0) {
-            <section class="session-host__leaderboard-card" aria-labelledby="team-leaderboard-heading">
-              <h2 class="session-host__leaderboard-title" id="team-leaderboard-heading">
-                <mat-icon aria-hidden="true">groups</mat-icon>
-                <span i18n>Team-Leaderboard</span>
-              </h2>
-              <ol class="session-host__team-bars">
-                @for (entry of teamLeaderboard(); track entry.rank) {
-                  <li class="session-host__team-bar-item" [class.session-host__team-bar-item--top3]="entry.rank <= 3">
-                    <div class="session-host__team-bar-head">
-                      <span class="session-host__team-bar-rank">#{{ entry.rank }}</span>
-                      <span class="session-host__team-bar-name">
+              <!-- Karte 1: Frage oder Q&A-Status (toolbar-breit) -->
+              @if (isQaSession() && effectiveStatus() === 'ACTIVE') {
+                <mat-card appearance="outlined" class="session-host__qa-card">
+                  <mat-card-content class="session-host__qa-card-content">
+                    <p class="session-host__qa-card-label" i18n="@@sessionHost.qaLiveLabel">
+                      Fragerunde läuft
+                    </p>
+                    <h1 class="session-host__qa-card-title">{{ sessionHeading() }}</h1>
+                    <p class="session-host__qa-card-hint" i18n="@@sessionHost.qaLiveHint">
+                      Teilnehmende können jetzt mit dem Session-Code beitreten.
+                    </p>
+                  </mat-card-content>
+                </mat-card>
+              } @else if (currentQuestionForHost(); as q) {
+                <mat-card appearance="outlined" class="session-host__question-card">
+                  <mat-card-header>
+                    <mat-card-subtitle class="session-host__question-subtitle">
+                      @if (q.totalQuestions != null) {
+                        <span i18n="@@sessionHost.questionCounter"
+                          >Frage {{ q.order + 1 }} / {{ q.totalQuestions }}</span
+                        >
+                      } @else {
+                        <span i18n="@@sessionHost.questionNumber">Frage {{ q.order + 1 }}</span>
+                      }
+                      @if (q.totalQuestions != null && q.order + 1 === q.totalQuestions) {
+                        <span class="session-host__question-last-badge" i18n>Letzte Frage</span>
+                      }
+                      <span class="session-host__question-phase">
+                        {{ phaseLabel(effectiveStatus(), allHaveVoted(), countdownEnded()) }}
+                      </span>
+                      @if (allHaveVoted()) {
+                        <span class="session-host__all-voted" role="status" aria-live="polite">
+                          <mat-icon>how_to_vote</mat-icon>
+                          <span i18n>Alle haben abgestimmt</span>
+                        </span>
+                      }
+                      @if (countdownSeconds() !== null && effectiveStatus() === 'ACTIVE') {
                         <span
-                          class="session-host__team-bar-dot"
-                          [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                        ></span>
-                        {{ entry.teamName }}
-                      </span>
-                      <span class="session-host__team-bar-meta">
-                        {{ entry.memberCount }} <span i18n>Mitglieder</span> · {{ entry.totalScore | number }}
-                      </span>
-                    </div>
-                    <div class="session-host__team-bar-track" aria-hidden="true">
-                      <div
-                        class="session-host__team-bar-fill"
-                        [style.width]="teamScoreBarWidth(entry.totalScore)"
-                        [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                      ></div>
-                    </div>
-                  </li>
-                }
-              </ol>
-            </section>
-          }
-
-          @if (bonusTokens().length > 0) {
-            <section class="session-host__bonus-card" aria-labelledby="bonus-heading">
-              <h2 class="session-host__bonus-tokens-title" id="bonus-heading">
-                <mat-icon aria-hidden="true">card_giftcard</mat-icon>
-                <span i18n>Bonus-Codes</span>
-              </h2>
-              <table class="session-host__bonus-tokens-table" role="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th i18n>Nickname</th>
-                    <th i18n>Code</th>
-                    <th i18n>Punkte</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (t of bonusTokens(); track t.token) {
-                    <tr>
-                      <td>{{ t.rank }}</td>
-                      <td>{{ t.nickname }}</td>
-                      <td class="session-host__bonus-code-cell">{{ t.token }}</td>
-                      <td>{{ t.totalScore | number }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-              <button matButton="tonal" type="button" class="session-host__bonus-export-btn" (click)="exportBonusTokensCsv()">
-                <mat-icon>download</mat-icon>
-                <span i18n>CSV exportieren</span>
-              </button>
-            </section>
-          }
-
-          @if (feedbackSummary(); as fb) {
-            <section class="session-host__feedback-card" aria-labelledby="feedback-heading">
-              <h2 class="session-host__feedback-summary-title" id="feedback-heading">
-                <mat-icon aria-hidden="true">rate_review</mat-icon>
-                <span i18n>Feedback der Teilnehmer</span>
-              </h2>
-              <div class="session-host__feedback-hero">
-                <span class="session-host__feedback-hero-label" i18n>Gesamtbewertung</span>
-                <p class="session-host__feedback-avg" aria-label="Durchschnitt {{ fb.overallAverage | number:'1.1-1' }} von 5 Sternen">
-                  <span class="session-host__feedback-avg-number">{{ fb.overallAverage | number:'1.1-1' }}</span>
-                  <span class="session-host__feedback-avg-of">/ 5</span>
-                  <span class="session-host__feedback-avg-stars" aria-hidden="true">★</span>
-                </p>
-                <p class="session-host__feedback-count">
-                  {{ fb.totalResponses }} {{ fb.totalResponses === 1 ? feedbackRatingSingular() : feedbackRatingPlural() }}
-                </p>
-                @if (getFeedbackDistributionLine(fb.overallDistribution); as distLine) {
-                  <p class="session-host__feedback-distribution">{{ distLine }}</p>
-                }
-              </div>
-              <div class="session-host__feedback-details">
-                @if (fb.questionQualityAverage !== null) {
-                  <div class="session-host__feedback-detail-row">
-                    <span class="session-host__feedback-detail-label">
-                      <mat-icon class="session-host__feedback-detail-icon" aria-hidden="true">star</mat-icon>
-                      <span i18n>Qualität der Fragen</span>
-                    </span>
-                    <span class="session-host__feedback-detail-value">Ø {{ fb.questionQualityAverage | number:'1.1-1' }} ★</span>
-                  </div>
-                }
-                @if (fb.wouldRepeatYes > 0 || fb.wouldRepeatNo > 0) {
-                  <div class="session-host__feedback-detail-row session-host__feedback-detail-row--repeat">
-                    <span class="session-host__feedback-detail-label">
-                      <mat-icon class="session-host__feedback-detail-icon" aria-hidden="true">thumb_up</mat-icon>
-                      <span i18n>Nochmal mitmachen?</span>
-                    </span>
-                    <span class="session-host__feedback-repeat-badges">
-                      <span class="session-host__feedback-badge session-host__feedback-badge--yes">
-                        <mat-icon aria-hidden="true">thumb_up</mat-icon>
-                        {{ fb.wouldRepeatYes }}
-                      </span>
-                      <span class="session-host__feedback-badge session-host__feedback-badge--no">
-                        <mat-icon aria-hidden="true">thumb_down</mat-icon>
-                        {{ fb.wouldRepeatNo }}
-                      </span>
-                    </span>
-                  </div>
-                }
-              </div>
-            </section>
-          }
-          </div>
-        } @else {
-          @if (showFingerCountdown()) {
-            <div class="session-host__finger-countdown">
-              <app-countdown-fingers [seconds]="countdownSeconds()!" size="large" />
-            </div>
-          }
-
-          <!-- Banner: Diskussionsphase (groß, für Publikum auf Beamer) -->
-          @if (effectiveStatus() === 'DISCUSSION') {
-            <div class="session-host__discussion-banner" role="status" aria-live="polite">
-              <mat-icon class="session-host__discussion-banner-icon" aria-hidden="true">groups</mat-icon>
-              <p class="session-host__discussion-banner-text" i18n>Tauscht euch kurz mit eurem Nachbarn aus</p>
-              <p class="session-host__discussion-banner-hint" i18n>Gleiche Antwort? Prima. Verschiedene Meinung? Überzeugt euch gegenseitig.</p>
-              <p class="session-host__discussion-banner-next" i18n>Zweite Abstimmung folgt gleich.</p>
-            </div>
-          }
-
-          <!-- Karte 1: Frage oder Q&A-Status (toolbar-breit) -->
-          @if (isQaSession() && effectiveStatus() === 'ACTIVE') {
-            <mat-card appearance="outlined" class="session-host__qa-card">
-              <mat-card-content class="session-host__qa-card-content">
-                <p class="session-host__qa-card-label" i18n="@@sessionHost.qaLiveLabel">Fragerunde läuft</p>
-                <h1 class="session-host__qa-card-title">{{ sessionHeading() }}</h1>
-                <p class="session-host__qa-card-hint" i18n="@@sessionHost.qaLiveHint">
-                  Teilnehmende können jetzt mit dem Session-Code beitreten.
-                </p>
-              </mat-card-content>
-            </mat-card>
-          } @else if (currentQuestionForHost(); as q) {
-            <mat-card appearance="outlined" class="session-host__question-card">
-              <mat-card-header>
-                <mat-card-subtitle class="session-host__question-subtitle">
-                  @if (q.totalQuestions != null) {
-                    <span i18n="@@sessionHost.questionCounter">Frage {{ q.order + 1 }} / {{ q.totalQuestions }}</span>
-                  } @else {
-                    <span i18n="@@sessionHost.questionNumber">Frage {{ q.order + 1 }}</span>
-                  }
-                  @if (q.totalQuestions != null && q.order + 1 === q.totalQuestions) {
-                    <span class="session-host__question-last-badge" i18n>Letzte Frage</span>
-                  }
-                  <span class="session-host__question-phase">
-                    {{ phaseLabel(effectiveStatus(), allHaveVoted(), countdownEnded()) }}
-                  </span>
-                  @if (allHaveVoted()) {
-                    <span class="session-host__all-voted" role="status" aria-live="polite">
-                      <mat-icon>how_to_vote</mat-icon>
-                      <span i18n>Alle haben abgestimmt</span>
-                    </span>
-                  }
-                  @if (countdownSeconds() !== null && effectiveStatus() === 'ACTIVE') {
-                    <span class="session-host__countdown" [class.session-host__countdown--urgent]="countdownSeconds()! <= 5" role="timer" [attr.aria-label]="countdownSeconds() + ' Sekunden verbleibend'">
-                      {{ countdownSeconds() }}
-                    </span>
-                  }
-                </mat-card-subtitle>
-                <mat-card-title class="session-host__question-title">
-                  <span class="session-host__question-title-inner" [innerHTML]="renderMarkdown(q.text)"></span>
-                </mat-card-title>
-              </mat-card-header>
-              @if (effectiveStatus() === 'QUESTION_OPEN') {
-                <mat-card-content>
-                  <div class="session-host__reading-banner" role="status" aria-live="polite">
-                    <mat-icon class="session-host__reading-banner-icon" aria-hidden="true">menu_book</mat-icon>
-                    <p class="session-host__reading-banner-title" i18n>Lesephase</p>
-                    <p class="session-host__reading-banner-hint" i18n>Antworten folgen gleich.</p>
-                  </div>
-                </mat-card-content>
-              }
-            </mat-card>
-
-            <!-- Karte 2: Ergebnis (schmaler, zentriert) -->
-            @if (effectiveStatus() !== 'QUESTION_OPEN') {
-              <div class="session-host__results-wrap">
-              <mat-card appearance="outlined" class="session-host__results-card">
-                <mat-card-content>
-                  @if (q.type === 'RATING') {
-                    <div class="session-host__rating">
-                      @if (q.ratingLabelMin || q.ratingLabelMax) {
-                        <div class="session-host__rating-labels">
-                          <span>{{ q.ratingLabelMin }}</span>
-                          <span>{{ q.ratingLabelMax }}</span>
-                        </div>
+                          class="session-host__countdown"
+                          [class.session-host__countdown--urgent]="countdownSeconds()! <= 5"
+                          role="timer"
+                          [attr.aria-label]="countdownSeconds() + ' Sekunden verbleibend'"
+                        >
+                          {{ countdownSeconds() }}
+                        </span>
                       }
-                      @if (effectiveStatus() === 'RESULTS' && q.ratingAvg !== null && q.ratingAvg !== undefined) {
-                        <div class="session-host__rating-result">
-                          <span class="session-host__rating-avg">∅ {{ q.ratingAvg }}</span>
-                          <span class="session-host__rating-count">{{ q.ratingCount }} von {{ participantsPayload()?.participantCount ?? '?' }} {{ q.ratingCount === 1 ? 'hat' : 'haben' }} bewertet</span>
-                        </div>
-                        <div class="session-host__rating-bars" role="img" aria-label="Bewertungsverteilung">
-                          @for (val of ratingBarRange(q); track val) {
-                            @let count = q.ratingDistribution?.['' + val] ?? 0;
-                            @let pct = q.ratingCount ? Math.round(count / q.ratingCount * 100) : 0;
-                            <div class="session-host__rating-bar">
-                              <span class="session-host__rating-bar-label">{{ val }}</span>
-                              <div class="session-host__rating-bar-track">
-                                <div class="session-host__rating-bar-fill" [style.width.%]="pct"></div>
-                              </div>
-                              <span class="session-host__rating-bar-count">{{ count }}</span>
-                            </div>
-                          }
-                        </div>
-                      } @else {
-                        <p class="session-host__rating-waiting">{{ ratingWaitingText() }}</p>
-                      }
-                    </div>
-                  } @else if (q.type === 'FREETEXT') {
-                    <div class="session-host__freetext">
-                      @if (effectiveStatus() === 'RESULTS' && q.freeTextResponses && q.freeTextResponses.length > 0) {
-                        <p class="session-host__freetext-count">{{ freetextRespondedLabel(q.freeTextResponses.length, participantsPayload()?.participantCount ?? 0) }}</p>
-                        <ul class="session-host__freetext-list" role="list">
-                          @for (text of q.freeTextResponses; track text) {
-                            <li class="session-host__freetext-item">{{ text }}</li>
-                          }
-                        </ul>
-                      } @else {
-                        <p class="session-host__freetext-waiting">{{ freetextWaitingText() }}</p>
-                      }
-                    </div>
-                  } @else if (q.roundComparison && effectiveStatus() === 'RESULTS') {
-                    <!-- Peer Instruction: Vorher/Nachher-Vergleich (Story 2.7) -->
-                    <div class="session-host__round-comparison" role="img" i18n-aria-label aria-label="Vorher/Nachher-Vergleich Peer Instruction">
-                      <div class="session-host__round-comparison-header">
-                        <span class="session-host__round-comparison-label session-host__round-comparison-label--r1" i18n>Runde 1 ({{ q.roundComparison.round1Total }} Stimmen)</span>
-                        <span class="session-host__round-comparison-label session-host__round-comparison-label--r2" i18n>Runde 2 ({{ q.roundComparison.round2Total }} Stimmen)</span>
-                      </div>
-                      @if (q.roundComparison.round1CorrectCount !== null && q.roundComparison.round1CorrectCount !== undefined && q.type !== 'SURVEY') {
-                        <p class="session-host__round-comparison-correct">
-                          <mat-icon>check_circle</mat-icon>
-                          Richtig: {{ q.roundComparison.round1CorrectCount }} → {{ q.roundComparison.round2CorrectCount }}
-                          @if (q.roundComparison.round1Total > 0 && q.roundComparison.round2Total > 0) {
-                            ({{ Math.round(q.roundComparison.round1CorrectCount / q.roundComparison.round1Total * 100) }}&nbsp;% → {{ Math.round((q.roundComparison.round2CorrectCount ?? 0) / q.roundComparison.round2Total * 100) }}&nbsp;%)
-                          }
+                    </mat-card-subtitle>
+                    <mat-card-title class="session-host__question-title">
+                      <span
+                        class="session-host__question-title-inner"
+                        [innerHTML]="renderMarkdown(q.text)"
+                      ></span>
+                    </mat-card-title>
+                  </mat-card-header>
+                  @if (effectiveStatus() === 'QUESTION_OPEN') {
+                    <mat-card-content>
+                      <div class="session-host__reading-banner" role="status" aria-live="polite">
+                        <mat-icon class="session-host__reading-banner-icon" aria-hidden="true"
+                          >menu_book</mat-icon
+                        >
+                        <p class="session-host__reading-banner-title" i18n>Lesephase</p>
+                        <p class="session-host__reading-banner-hint" i18n>
+                          Antworten folgen gleich.
                         </p>
-                      }
-                      <ul class="session-host__round-comparison-list" role="list">
-                        @for (a of q.roundComparison.round1Distribution; track a.id; let i = $index) {
-                          @let r2 = q.roundComparison!.round2Distribution[i];
-                          <li class="session-host__round-comparison-item" [class.session-host__round-comparison-item--correct]="a.isCorrect && q.type !== 'SURVEY'">
-                            <div class="session-host__round-comparison-option">
-                              <span class="session-host__answer-badge session-host__answer-badge--small" [style.background-color]="getColor(i)">
-                                <span class="session-host__answer-badge-shape">{{ getShape(i) }}</span>
-                                <span class="session-host__answer-badge-letter">{{ getLetter(i) }}</span>
-                              </span>
-                              <span class="session-host__round-comparison-text session-host__rich-text" [innerHTML]="renderMarkdown(a.text)"></span>
-                              @if (a.isCorrect && q.type !== 'SURVEY') {
-                                <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
-                              }
-                            </div>
-                            <div class="session-host__round-comparison-bars">
-                              <div class="session-host__round-comparison-bar">
-                                <span class="session-host__round-comparison-bar-label session-host__round-comparison-bar-label--r1">R1</span>
-                                <div class="session-host__round-comparison-bar-track">
-                                  <div class="session-host__round-comparison-bar-fill session-host__round-comparison-bar-fill--r1" [style.width.%]="a.votePercentage"></div>
-                                </div>
-                                <span class="session-host__round-comparison-bar-pct session-host__round-comparison-bar-pct--r1">{{ a.votePercentage }}&nbsp;%</span>
+                      </div>
+                    </mat-card-content>
+                  }
+                </mat-card>
+
+                <!-- Karte 2: Ergebnis (schmaler, zentriert) -->
+                @if (effectiveStatus() !== 'QUESTION_OPEN') {
+                  <div class="session-host__results-wrap">
+                    <mat-card appearance="outlined" class="session-host__results-card">
+                      <mat-card-content>
+                        @if (q.type === 'RATING') {
+                          <div class="session-host__rating">
+                            @if (q.ratingLabelMin || q.ratingLabelMax) {
+                              <div class="session-host__rating-labels">
+                                <span>{{ q.ratingLabelMin }}</span>
+                                <span>{{ q.ratingLabelMax }}</span>
                               </div>
-                              <div class="session-host__round-comparison-bar">
-                                <span class="session-host__round-comparison-bar-label session-host__round-comparison-bar-label--r2">R2</span>
-                                <div class="session-host__round-comparison-bar-track">
-                                  <div class="session-host__round-comparison-bar-fill session-host__round-comparison-bar-fill--r2" [style.width.%]="r2?.votePercentage ?? 0"></div>
-                                </div>
-                                <span class="session-host__round-comparison-bar-pct session-host__round-comparison-bar-pct--r2">{{ r2?.votePercentage ?? 0 }}&nbsp;%</span>
+                            }
+                            @if (
+                              effectiveStatus() === 'RESULTS' &&
+                              q.ratingAvg !== null &&
+                              q.ratingAvg !== undefined
+                            ) {
+                              <div class="session-host__rating-result">
+                                <span class="session-host__rating-avg">∅ {{ q.ratingAvg }}</span>
+                                <span class="session-host__rating-count"
+                                  >{{ q.ratingCount }} von
+                                  {{ participantsPayload()?.participantCount ?? '?' }}
+                                  {{ q.ratingCount === 1 ? 'hat' : 'haben' }} bewertet</span
+                                >
                               </div>
+                              <div
+                                class="session-host__rating-bars"
+                                role="img"
+                                aria-label="Bewertungsverteilung"
+                              >
+                                @for (val of ratingBarRange(q); track val) {
+                                  @let count = q.ratingDistribution?.['' + val] ?? 0;
+                                  @let pct =
+                                    q.ratingCount ? Math.round((count / q.ratingCount) * 100) : 0;
+                                  <div class="session-host__rating-bar">
+                                    <span class="session-host__rating-bar-label">{{ val }}</span>
+                                    <div class="session-host__rating-bar-track">
+                                      <div
+                                        class="session-host__rating-bar-fill"
+                                        [style.width.%]="pct"
+                                      ></div>
+                                    </div>
+                                    <span class="session-host__rating-bar-count">{{ count }}</span>
+                                  </div>
+                                }
+                              </div>
+                            } @else {
+                              <p class="session-host__rating-waiting">{{ ratingWaitingText() }}</p>
+                            }
+                          </div>
+                        } @else if (q.type === 'FREETEXT') {
+                          <div class="session-host__freetext">
+                            @if (
+                              effectiveStatus() === 'RESULTS' &&
+                              q.freeTextResponses &&
+                              q.freeTextResponses.length > 0
+                            ) {
+                              <p class="session-host__freetext-count">
+                                {{
+                                  freetextRespondedLabel(
+                                    q.freeTextResponses.length,
+                                    participantsPayload()?.participantCount ?? 0
+                                  )
+                                }}
+                              </p>
+                              <ul class="session-host__freetext-list" role="list">
+                                @for (text of q.freeTextResponses; track text) {
+                                  <li class="session-host__freetext-item">{{ text }}</li>
+                                }
+                              </ul>
+                            } @else {
+                              <p class="session-host__freetext-waiting">
+                                {{ freetextWaitingText() }}
+                              </p>
+                            }
+                          </div>
+                        } @else if (q.roundComparison && effectiveStatus() === 'RESULTS') {
+                          <!-- Peer Instruction: Vorher/Nachher-Vergleich (Story 2.7) -->
+                          <div
+                            class="session-host__round-comparison"
+                            role="img"
+                            i18n-aria-label
+                            aria-label="Vorher/Nachher-Vergleich Peer Instruction"
+                          >
+                            <div class="session-host__round-comparison-header">
+                              <span
+                                class="session-host__round-comparison-label session-host__round-comparison-label--r1"
+                                i18n
+                                >Runde 1 ({{ q.roundComparison.round1Total }} Stimmen)</span
+                              >
+                              <span
+                                class="session-host__round-comparison-label session-host__round-comparison-label--r2"
+                                i18n
+                                >Runde 2 ({{ q.roundComparison.round2Total }} Stimmen)</span
+                              >
                             </div>
-                          </li>
-                        }
-                      </ul>
-                      @if (q.roundComparison!.opinionShift; as shift) {
-                        <div class="session-host__opinion-shift" role="status">
-                          <mat-icon>swap_horiz</mat-icon>
-                          <span>
-                            {{ shift.changedCount }} von {{ shift.bothRoundsCount }} ({{ shift.changedPercentage }}&nbsp;%) änderten ihre Meinung
-                          </span>
-                          @if (shift.wrongToCorrectCount !== null && shift.wrongToCorrectCount !== undefined && q.type !== 'SURVEY') {
-                            <span class="session-host__opinion-shift-detail">
-                              <span class="session-host__opinion-shift-gain">↑ {{ shift.wrongToCorrectCount }} falsch → richtig</span>
-                              <span class="session-host__opinion-shift-loss">↓ {{ shift.correctToWrongCount ?? 0 }} richtig → falsch</span>
-                            </span>
-                          }
-                          @if (shift.migrations && shift.migrations.length > 0) {
-                            <ul class="session-host__migrations" role="list">
-                              @for (m of shift.migrations; track m.from + m.to) {
-                                <li class="session-host__migration-item">
-                                  <span class="session-host__migration-count">{{ m.count }}×</span>
-                                  <span class="session-host__migration-from">{{ m.from }}</span>
-                                  <mat-icon class="session-host__migration-arrow">east</mat-icon>
-                                  <span class="session-host__migration-to">{{ m.to }}</span>
+                            @if (
+                              q.roundComparison.round1CorrectCount !== null &&
+                              q.roundComparison.round1CorrectCount !== undefined &&
+                              q.type !== 'SURVEY'
+                            ) {
+                              <p class="session-host__round-comparison-correct">
+                                <mat-icon>check_circle</mat-icon>
+                                Richtig: {{ q.roundComparison.round1CorrectCount }} →
+                                {{ q.roundComparison.round2CorrectCount }}
+                                @if (
+                                  q.roundComparison.round1Total > 0 &&
+                                  q.roundComparison.round2Total > 0
+                                ) {
+                                  ({{
+                                    Math.round(
+                                      (q.roundComparison.round1CorrectCount /
+                                        q.roundComparison.round1Total) *
+                                        100
+                                    )
+                                  }}&nbsp;% →
+                                  {{
+                                    Math.round(
+                                      ((q.roundComparison.round2CorrectCount ?? 0) /
+                                        q.roundComparison.round2Total) *
+                                        100
+                                    )
+                                  }}&nbsp;%)
+                                }
+                              </p>
+                            }
+                            <ul class="session-host__round-comparison-list" role="list">
+                              @for (
+                                a of q.roundComparison.round1Distribution;
+                                track a.id;
+                                let i = $index
+                              ) {
+                                @let r2 = q.roundComparison!.round2Distribution[i];
+                                <li
+                                  class="session-host__round-comparison-item"
+                                  [class.session-host__round-comparison-item--correct]="
+                                    a.isCorrect && q.type !== 'SURVEY'
+                                  "
+                                >
+                                  <div class="session-host__round-comparison-option">
+                                    <span
+                                      class="session-host__answer-badge session-host__answer-badge--small"
+                                      [style.background-color]="getColor(i)"
+                                    >
+                                      <span class="session-host__answer-badge-shape">{{
+                                        getShape(i)
+                                      }}</span>
+                                      <span class="session-host__answer-badge-letter">{{
+                                        getLetter(i)
+                                      }}</span>
+                                    </span>
+                                    <span
+                                      class="session-host__round-comparison-text session-host__rich-text"
+                                      [innerHTML]="renderMarkdown(a.text)"
+                                    ></span>
+                                    @if (a.isCorrect && q.type !== 'SURVEY') {
+                                      <mat-icon class="session-host__answer-icon" aria-hidden="true"
+                                        >check_circle</mat-icon
+                                      >
+                                    }
+                                  </div>
+                                  <div class="session-host__round-comparison-bars">
+                                    <div class="session-host__round-comparison-bar">
+                                      <span
+                                        class="session-host__round-comparison-bar-label session-host__round-comparison-bar-label--r1"
+                                        >R1</span
+                                      >
+                                      <div class="session-host__round-comparison-bar-track">
+                                        <div
+                                          class="session-host__round-comparison-bar-fill session-host__round-comparison-bar-fill--r1"
+                                          [style.width.%]="a.votePercentage"
+                                        ></div>
+                                      </div>
+                                      <span
+                                        class="session-host__round-comparison-bar-pct session-host__round-comparison-bar-pct--r1"
+                                        >{{ a.votePercentage }}&nbsp;%</span
+                                      >
+                                    </div>
+                                    <div class="session-host__round-comparison-bar">
+                                      <span
+                                        class="session-host__round-comparison-bar-label session-host__round-comparison-bar-label--r2"
+                                        >R2</span
+                                      >
+                                      <div class="session-host__round-comparison-bar-track">
+                                        <div
+                                          class="session-host__round-comparison-bar-fill session-host__round-comparison-bar-fill--r2"
+                                          [style.width.%]="r2?.votePercentage ?? 0"
+                                        ></div>
+                                      </div>
+                                      <span
+                                        class="session-host__round-comparison-bar-pct session-host__round-comparison-bar-pct--r2"
+                                        >{{ r2?.votePercentage ?? 0 }}&nbsp;%</span
+                                      >
+                                    </div>
+                                  </div>
                                 </li>
                               }
                             </ul>
-                          }
-                        </div>
-                      }
-                    </div>
-                  } @else if (q.voteDistribution && q.voteDistribution.length > 0 && effectiveStatus() === 'RESULTS') {
-                    <div class="session-host__vote-dist">
-                      <p class="session-host__vote-dist-total">{{ q.totalVotes }} von {{ participantsPayload()?.participantCount ?? '?' }} {{ q.totalVotes === 1 ? 'hat' : 'haben' }} abgestimmt</p>
-                      @if (q.correctVoterCount !== null && q.correctVoterCount !== undefined && q.type === 'MULTIPLE_CHOICE') {
-                        <p class="session-host__vote-dist-correct">
-                          <mat-icon>check_circle</mat-icon>
-                          {{ q.correctVoterCount }} von {{ q.totalVotes }} komplett richtig
-                          ({{ q.totalVotes ? Math.round(q.correctVoterCount / q.totalVotes * 100) : 0 }}&nbsp;%)
-                        </p>
-                      }
-                      <ul class="session-host__vote-dist-list" role="list">
-                        @for (a of q.voteDistribution; track a.id; let i = $index) {
-                          <li class="session-host__vote-dist-item"
-                              [class.session-host__vote-dist-item--correct]="a.isCorrect && q.type !== 'SURVEY'"
-                              [class.session-host__vote-dist-item--wrong]="!a.isCorrect && q.type !== 'SURVEY'">
-                            <div class="session-host__vote-dist-header">
-                              <span class="session-host__answer-badge session-host__answer-badge--small" [style.background-color]="getColor(i)">
-                                <span class="session-host__answer-badge-shape">{{ getShape(i) }}</span>
-                                <span class="session-host__answer-badge-letter">{{ getLetter(i) }}</span>
-                              </span>
-                              <span class="session-host__vote-dist-text session-host__rich-text" [innerHTML]="renderMarkdown(a.text)"></span>
-                              @if (a.isCorrect && q.type !== 'SURVEY') {
-                                <span class="session-host__answer-correct-label session-host__answer-correct-label--dist">
-                                  <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
+                            @if (q.roundComparison!.opinionShift; as shift) {
+                              <div class="session-host__opinion-shift" role="status">
+                                <mat-icon>swap_horiz</mat-icon>
+                                <span>
+                                  {{ shift.changedCount }} von {{ shift.bothRoundsCount }} ({{
+                                    shift.changedPercentage
+                                  }}&nbsp;%) änderten ihre Meinung
                                 </span>
-                              } @else if (!a.isCorrect && q.type !== 'SURVEY') {
-                                <span class="session-host__answer-wrong-label session-host__answer-wrong-label--dist">
-                                  <mat-icon class="session-host__answer-icon" aria-hidden="true">cancel</mat-icon>
-                                </span>
-                              }
-                              <span class="session-host__vote-dist-pct">{{ a.votePercentage }}&nbsp;%</span>
-                              <span class="session-host__vote-dist-count">({{ a.voteCount }})</span>
-                            </div>
-                            <div class="session-host__vote-dist-track">
-                              <div
-                                class="session-host__vote-dist-fill"
-                                [class.session-host__vote-dist-fill--correct]="a.isCorrect && q.type !== 'SURVEY'"
-                                [class.session-host__vote-dist-fill--neutral]="q.type === 'SURVEY'"
-                                [style.width.%]="a.votePercentage">
+                                @if (
+                                  shift.wrongToCorrectCount !== null &&
+                                  shift.wrongToCorrectCount !== undefined &&
+                                  q.type !== 'SURVEY'
+                                ) {
+                                  <span class="session-host__opinion-shift-detail">
+                                    <span class="session-host__opinion-shift-gain"
+                                      >↑ {{ shift.wrongToCorrectCount }} falsch → richtig</span
+                                    >
+                                    <span class="session-host__opinion-shift-loss"
+                                      >↓ {{ shift.correctToWrongCount ?? 0 }} richtig → falsch</span
+                                    >
+                                  </span>
+                                }
+                                @if (shift.migrations && shift.migrations.length > 0) {
+                                  <ul class="session-host__migrations" role="list">
+                                    @for (m of shift.migrations; track m.from + m.to) {
+                                      <li class="session-host__migration-item">
+                                        <span class="session-host__migration-count"
+                                          >{{ m.count }}×</span
+                                        >
+                                        <span class="session-host__migration-from">{{
+                                          m.from
+                                        }}</span>
+                                        <mat-icon class="session-host__migration-arrow"
+                                          >east</mat-icon
+                                        >
+                                        <span class="session-host__migration-to">{{ m.to }}</span>
+                                      </li>
+                                    }
+                                  </ul>
+                                }
                               </div>
-                            </div>
-                          </li>
+                            }
+                          </div>
+                        } @else if (
+                          q.voteDistribution &&
+                          q.voteDistribution.length > 0 &&
+                          effectiveStatus() === 'RESULTS'
+                        ) {
+                          <div class="session-host__vote-dist">
+                            <p class="session-host__vote-dist-total">
+                              {{ q.totalVotes }} von
+                              {{ participantsPayload()?.participantCount ?? '?' }}
+                              {{ q.totalVotes === 1 ? 'hat' : 'haben' }} abgestimmt
+                            </p>
+                            @if (
+                              q.correctVoterCount !== null &&
+                              q.correctVoterCount !== undefined &&
+                              q.type === 'MULTIPLE_CHOICE'
+                            ) {
+                              <p class="session-host__vote-dist-correct">
+                                <mat-icon>check_circle</mat-icon>
+                                {{ q.correctVoterCount }} von {{ q.totalVotes }} komplett richtig
+                                ({{
+                                  q.totalVotes
+                                    ? Math.round((q.correctVoterCount / q.totalVotes) * 100)
+                                    : 0
+                                }}&nbsp;%)
+                              </p>
+                            }
+                            <ul class="session-host__vote-dist-list" role="list">
+                              @for (a of q.voteDistribution; track a.id; let i = $index) {
+                                <li
+                                  class="session-host__vote-dist-item"
+                                  [class.session-host__vote-dist-item--correct]="
+                                    a.isCorrect && q.type !== 'SURVEY'
+                                  "
+                                  [class.session-host__vote-dist-item--wrong]="
+                                    !a.isCorrect && q.type !== 'SURVEY'
+                                  "
+                                >
+                                  <div class="session-host__vote-dist-header">
+                                    <span
+                                      class="session-host__answer-badge session-host__answer-badge--small"
+                                      [style.background-color]="getColor(i)"
+                                    >
+                                      <span class="session-host__answer-badge-shape">{{
+                                        getShape(i)
+                                      }}</span>
+                                      <span class="session-host__answer-badge-letter">{{
+                                        getLetter(i)
+                                      }}</span>
+                                    </span>
+                                    <span
+                                      class="session-host__vote-dist-text session-host__rich-text"
+                                      [innerHTML]="renderMarkdown(a.text)"
+                                    ></span>
+                                    @if (a.isCorrect && q.type !== 'SURVEY') {
+                                      <span
+                                        class="session-host__answer-correct-label session-host__answer-correct-label--dist"
+                                      >
+                                        <mat-icon
+                                          class="session-host__answer-icon"
+                                          aria-hidden="true"
+                                          >check_circle</mat-icon
+                                        >
+                                      </span>
+                                    } @else if (!a.isCorrect && q.type !== 'SURVEY') {
+                                      <span
+                                        class="session-host__answer-wrong-label session-host__answer-wrong-label--dist"
+                                      >
+                                        <mat-icon
+                                          class="session-host__answer-icon"
+                                          aria-hidden="true"
+                                          >cancel</mat-icon
+                                        >
+                                      </span>
+                                    }
+                                    <span class="session-host__vote-dist-pct"
+                                      >{{ a.votePercentage }}&nbsp;%</span
+                                    >
+                                    <span class="session-host__vote-dist-count"
+                                      >({{ a.voteCount }})</span
+                                    >
+                                  </div>
+                                  <div class="session-host__vote-dist-track">
+                                    <div
+                                      class="session-host__vote-dist-fill"
+                                      [class.session-host__vote-dist-fill--correct]="
+                                        a.isCorrect && q.type !== 'SURVEY'
+                                      "
+                                      [class.session-host__vote-dist-fill--neutral]="
+                                        q.type === 'SURVEY'
+                                      "
+                                      [style.width.%]="a.votePercentage"
+                                    ></div>
+                                  </div>
+                                </li>
+                              }
+                            </ul>
+                          </div>
+                        } @else if (q.answers.length > 0) {
+                          <ul class="session-host__answers" role="list">
+                            @for (a of q.answers; track a.id; let i = $index) {
+                              <li
+                                class="session-host__answer"
+                                [class.session-host__answer--correct]="
+                                  effectiveStatus() === 'RESULTS' && a.isCorrect
+                                "
+                                [class.session-host__answer--wrong]="
+                                  effectiveStatus() === 'RESULTS' && !a.isCorrect
+                                "
+                              >
+                                <span
+                                  class="session-host__answer-badge"
+                                  [style.background-color]="getColor(i)"
+                                >
+                                  <span class="session-host__answer-badge-shape">{{
+                                    getShape(i)
+                                  }}</span>
+                                  <span class="session-host__answer-badge-letter">{{
+                                    getLetter(i)
+                                  }}</span>
+                                </span>
+                                <span
+                                  class="session-host__answer-text session-host__rich-text"
+                                  [innerHTML]="renderMarkdown(a.text)"
+                                ></span>
+                                @if (effectiveStatus() === 'RESULTS' && a.isCorrect) {
+                                  <span class="session-host__answer-correct-label">
+                                    <mat-icon class="session-host__answer-icon" aria-hidden="true"
+                                      >check_circle</mat-icon
+                                    >
+                                  </span>
+                                } @else if (effectiveStatus() === 'RESULTS' && !a.isCorrect) {
+                                  <span class="session-host__answer-wrong-label">
+                                    <mat-icon class="session-host__answer-icon" aria-hidden="true"
+                                      >cancel</mat-icon
+                                    >
+                                  </span>
+                                }
+                              </li>
+                            }
+                          </ul>
                         }
-                      </ul>
-                    </div>
-                  } @else if (q.answers.length > 0) {
-                    <ul class="session-host__answers" role="list">
-                      @for (a of q.answers; track a.id; let i = $index) {
-                        <li
-                          class="session-host__answer"
-                          [class.session-host__answer--correct]="effectiveStatus() === 'RESULTS' && a.isCorrect"
-                          [class.session-host__answer--wrong]="effectiveStatus() === 'RESULTS' && !a.isCorrect"
-                        >
-                          <span class="session-host__answer-badge" [style.background-color]="getColor(i)">
-                            <span class="session-host__answer-badge-shape">{{ getShape(i) }}</span>
-                            <span class="session-host__answer-badge-letter">{{ getLetter(i) }}</span>
-                          </span>
-                          <span class="session-host__answer-text session-host__rich-text" [innerHTML]="renderMarkdown(a.text)"></span>
-                          @if (effectiveStatus() === 'RESULTS' && a.isCorrect) {
-                            <span class="session-host__answer-correct-label">
-                              <mat-icon class="session-host__answer-icon" aria-hidden="true">check_circle</mat-icon>
-                            </span>
-                          } @else if (effectiveStatus() === 'RESULTS' && !a.isCorrect) {
-                            <span class="session-host__answer-wrong-label">
-                              <mat-icon class="session-host__answer-icon" aria-hidden="true">cancel</mat-icon>
-                            </span>
-                          }
-                        </li>
-                      }
-                    </ul>
-                  }
-                </mat-card-content>
-              </mat-card>
-              </div>
-            }
-          } @else {
-            <p class="session-host__no-question" i18n>Keine Frage aktiv. Mit „Nächste Frage“ starten.</p>
-          }
-
-          @if ((effectiveStatus() === 'RESULTS' || effectiveStatus() === 'ACTIVE') && session()?.enableEmojiReactions && emojiReactions(); as reactions) {
-            <div class="session-host__emoji-reactions" aria-labelledby="emoji-reactions-heading">
-              <p class="session-host__emoji-reactions-title" id="emoji-reactions-heading">
-                <mat-icon aria-hidden="true">emoji_emotions</mat-icon>
-                <span i18n>Reaktionen der Teilnehmer</span>
-                @if (emojiNewCount() > 0) {
-                  <span class="session-host__emoji-new-badge" [class.session-host__emoji-new-badge--pulse]="emojiBadgePulse()">
-                    +{{ emojiNewCount() }} <span i18n="@@sessionHost.emojiBadgeNew">neu</span>
-                  </span>
+                      </mat-card-content>
+                    </mat-card>
+                  </div>
                 }
-              </p>
-              @if (reactions.total > 0) {
-                <div class="session-host__emoji-reactions-list" role="list">
-                  @for (emoji of emojiOrder; track emoji) {
-                    @if (reactions.reactions[emoji] > 0) {
-                      <span class="session-host__emoji-item" role="listitem">
-                        <span class="session-host__emoji-icon" aria-hidden="true">{{ emoji }}</span>
-                        <span class="session-host__emoji-count">{{ reactions.reactions[emoji] }}</span>
+              } @else {
+                <p class="session-host__no-question" i18n>
+                  Keine Frage aktiv. Mit „Nächste Frage“ starten.
+                </p>
+              }
+
+              @if (
+                (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'ACTIVE') &&
+                  session()?.enableEmojiReactions &&
+                  emojiReactions();
+                as reactions
+              ) {
+                <div
+                  class="session-host__emoji-reactions"
+                  aria-labelledby="emoji-reactions-heading"
+                >
+                  <p class="session-host__emoji-reactions-title" id="emoji-reactions-heading">
+                    <mat-icon aria-hidden="true">emoji_emotions</mat-icon>
+                    <span i18n>Reaktionen der Teilnehmer</span>
+                    @if (emojiNewCount() > 0) {
+                      <span
+                        class="session-host__emoji-new-badge"
+                        [class.session-host__emoji-new-badge--pulse]="emojiBadgePulse()"
+                      >
+                        +{{ emojiNewCount() }} <span i18n="@@sessionHost.emojiBadgeNew">neu</span>
                       </span>
                     }
+                  </p>
+                  @if (reactions.total > 0) {
+                    <div class="session-host__emoji-reactions-list" role="list">
+                      @for (emoji of emojiOrder; track emoji) {
+                        @if (reactions.reactions[emoji] > 0) {
+                          <span class="session-host__emoji-item" role="listitem">
+                            <span class="session-host__emoji-icon" aria-hidden="true">{{
+                              emoji
+                            }}</span>
+                            <span class="session-host__emoji-count">{{
+                              reactions.reactions[emoji]
+                            }}</span>
+                          </span>
+                        }
+                      }
+                    </div>
+                    <p class="session-host__emoji-reactions-total">
+                      {{ emojiReactionsTotalLabel(reactions.total) }}
+                    </p>
+                  } @else {
+                    <p class="session-host__emoji-reactions-empty" i18n>Noch keine Reaktionen.</p>
                   }
                 </div>
-                <p class="session-host__emoji-reactions-total">{{ emojiReactionsTotalLabel(reactions.total) }}</p>
-              } @else {
-                <p class="session-host__emoji-reactions-empty" i18n>Noch keine Reaktionen.</p>
               }
-            </div>
-          }
 
-          @if (effectiveStatus() === 'RESULTS' && leaderboard().length > 0) {
-            <div class="session-host__interim-leaderboard">
-              <p class="session-host__interim-title">
-                <mat-icon>emoji_events</mat-icon>
-                <span i18n>Top 5</span>
-              </p>
-              <ol class="session-host__interim-list" role="list">
-                @for (entry of leaderboard().slice(0, 5); track entry.rank) {
-                  <li class="session-host__interim-item">
-                    <span class="session-host__interim-rank">
-                      @if (entry.rank === 1) { 🥇 }
-                      @else if (entry.rank === 2) { 🥈 }
-                      @else if (entry.rank === 3) { 🥉 }
-                      @else { {{ entry.rank }}. }
-                    </span>
-                    <span class="session-host__interim-name">{{ entry.nickname }}</span>
-                    <span class="session-host__interim-score" i18n>{{ entry.totalScore | number }} Pkt.</span>
-                  </li>
-                }
-              </ol>
-            </div>
-          }
-
-          @if (effectiveStatus() === 'RESULTS' && session()?.teamMode && teamLeaderboard().length > 0) {
-            <div class="session-host__interim-leaderboard session-host__interim-leaderboard--teams">
-              <p class="session-host__interim-title">
-                <mat-icon>groups</mat-icon>
-                <span i18n>Team-Wertung</span>
-              </p>
-              <ol class="session-host__interim-list" role="list">
-                @for (entry of teamLeaderboard(); track entry.rank) {
-                  <li class="session-host__interim-item">
-                    <span class="session-host__interim-rank">
-                      @if (entry.rank === 1) { 🥇 }
-                      @else if (entry.rank === 2) { 🥈 }
-                      @else if (entry.rank === 3) { 🥉 }
-                      @else { {{ entry.rank }}. }
-                    </span>
-                    <span class="session-host__interim-name">
-                      <span
-                        class="session-host__interim-team-dot"
-                        [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                        aria-hidden="true"
-                      ></span>
-                      {{ entry.teamName }}
-                    </span>
-                    <span class="session-host__interim-score" i18n>{{ entry.totalScore | number }} Pkt.</span>
-                  </li>
-                }
-              </ol>
-            </div>
-          }
-
-          <!-- Steuerungs-Buttons (primär) -->
-          <div class="session-host__steering">
-            @if (effectiveStatus() === 'QUESTION_OPEN') {
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                [disabled]="controlPending()"
-                (click)="revealAnswers()"
-              >
-                <span i18n>Antworten freigeben</span>
-              </button>
-            }
-            @if (effectiveStatus() === 'ACTIVE' && isQaSession()) {
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                [disabled]="controlPending()"
-                (click)="endSession()"
-              >
-                <span i18n="@@sessionHost.endQa">Fragerunde beenden</span>
-              </button>
-            }
-            @if (effectiveStatus() === 'ACTIVE' && !isQaSession()) {
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                [disabled]="controlPending()"
-                (click)="revealResults()"
-              >
-                <span i18n>Ergebnis zeigen</span>
-              </button>
-              @if (currentQuestionForHost()?.currentRound === 1 && (currentQuestionForHost()?.totalVotes ?? 0) > 0) {
-                <button
-                  matButton="tonal"
-                  type="button"
-                  class="session-host__btn-discussion"
-                  [disabled]="controlPending()"
-                  (click)="startDiscussion()"
-                  i18n-aria-label aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
-                >
-                  <mat-icon aria-hidden="true">groups</mat-icon>
-                  <span i18n>Diskussionsphase</span>
-                </button>
+              @if (effectiveStatus() === 'RESULTS' && leaderboard().length > 0) {
+                <div class="session-host__interim-leaderboard">
+                  <p class="session-host__interim-title">
+                    <mat-icon>emoji_events</mat-icon>
+                    <span i18n>Top 5</span>
+                  </p>
+                  <ol class="session-host__interim-list" role="list">
+                    @for (entry of leaderboard().slice(0, 5); track entry.rank) {
+                      <li class="session-host__interim-item">
+                        <span class="session-host__interim-rank">
+                          @if (entry.rank === 1) {
+                            🥇
+                          } @else if (entry.rank === 2) {
+                            🥈
+                          } @else if (entry.rank === 3) {
+                            🥉
+                          } @else {
+                            {{ entry.rank }}.
+                          }
+                        </span>
+                        <span class="session-host__interim-name">{{ entry.nickname }}</span>
+                        <span class="session-host__interim-score" i18n
+                          >{{ entry.totalScore | number }} Pkt.</span
+                        >
+                      </li>
+                    }
+                  </ol>
+                </div>
               }
-            }
-            @if (effectiveStatus() === 'DISCUSSION') {
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                [disabled]="controlPending()"
-                (click)="startSecondRound()"
-              >
-                <mat-icon>replay</mat-icon>
-                <span i18n>Zweite Abstimmung</span>
-              </button>
-              <button
-                matButton="tonal"
-                type="button"
-                [disabled]="controlPending()"
-                (click)="nextQuestion()"
-              >
-                <span i18n>Überspringen</span>
-              </button>
-            }
-            @if (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') {
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                [disabled]="controlPending()"
-                (click)="nextQuestion()"
-              >
-                @if (isLastQuestion()) {
-                  <span i18n>Session beenden</span>
-                } @else {
-                  <span i18n>Nächste Frage</span>
-                }
-              </button>
-              @if (!isLastQuestion()) {
-                <button
-                  matButton="tonal"
-                  type="button"
-                  class="session-host__btn-end-secondary"
-                  [disabled]="controlPending()"
-                  (click)="endSession()"
+
+              @if (
+                effectiveStatus() === 'RESULTS' &&
+                session()?.teamMode &&
+                teamLeaderboard().length > 0
+              ) {
+                <div
+                  class="session-host__interim-leaderboard session-host__interim-leaderboard--teams"
                 >
-                  <mat-icon aria-hidden="true">stop_circle</mat-icon>
-                  <span i18n>Session beenden</span>
-                </button>
+                  <p class="session-host__interim-title">
+                    <mat-icon>groups</mat-icon>
+                    <span i18n>Team-Wertung</span>
+                  </p>
+                  <ol class="session-host__interim-list" role="list">
+                    @for (entry of teamLeaderboard(); track entry.rank) {
+                      <li class="session-host__interim-item">
+                        <span class="session-host__interim-rank">
+                          @if (entry.rank === 1) {
+                            🥇
+                          } @else if (entry.rank === 2) {
+                            🥈
+                          } @else if (entry.rank === 3) {
+                            🥉
+                          } @else {
+                            {{ entry.rank }}.
+                          }
+                        </span>
+                        <span class="session-host__interim-name">
+                          <span
+                            class="session-host__interim-team-dot"
+                            [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                            aria-hidden="true"
+                          ></span>
+                          {{ entry.teamName }}
+                        </span>
+                        <span class="session-host__interim-score" i18n
+                          >{{ entry.totalScore | number }} Pkt.</span
+                        >
+                      </li>
+                    }
+                  </ol>
+                </div>
+              }
+
+              <!-- Steuerungs-Buttons (primär) -->
+              <div class="session-host__steering">
+                @if (effectiveStatus() === 'QUESTION_OPEN') {
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="controlPending()"
+                    (click)="revealAnswers()"
+                  >
+                    <span i18n>Antworten freigeben</span>
+                  </button>
+                }
+                @if (effectiveStatus() === 'ACTIVE' && isQaSession()) {
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="controlPending()"
+                    (click)="endSession()"
+                  >
+                    <span i18n="@@sessionHost.endQa">Fragerunde beenden</span>
+                  </button>
+                }
+                @if (effectiveStatus() === 'ACTIVE' && !isQaSession()) {
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="controlPending()"
+                    (click)="revealResults()"
+                  >
+                    <span i18n>Ergebnis zeigen</span>
+                  </button>
+                  @if (
+                    currentQuestionForHost()?.currentRound === 1 &&
+                    (currentQuestionForHost()?.totalVotes ?? 0) > 0
+                  ) {
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      class="session-host__btn-discussion"
+                      [disabled]="controlPending()"
+                      (click)="startDiscussion()"
+                      i18n-aria-label
+                      aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
+                    >
+                      <mat-icon aria-hidden="true">groups</mat-icon>
+                      <span i18n>Diskussionsphase</span>
+                    </button>
+                  }
+                }
+                @if (effectiveStatus() === 'DISCUSSION') {
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="controlPending()"
+                    (click)="startSecondRound()"
+                  >
+                    <mat-icon>replay</mat-icon>
+                    <span i18n>Zweite Abstimmung</span>
+                  </button>
+                  <button
+                    matButton="tonal"
+                    type="button"
+                    [disabled]="controlPending()"
+                    (click)="nextQuestion()"
+                  >
+                    <span i18n>Überspringen</span>
+                  </button>
+                }
+                @if (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') {
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="controlPending()"
+                    (click)="nextQuestion()"
+                  >
+                    @if (isLastQuestion()) {
+                      <span i18n>Session beenden</span>
+                    } @else {
+                      <span i18n>Nächste Frage</span>
+                    }
+                  </button>
+                  @if (!isLastQuestion()) {
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      class="session-host__btn-end-secondary"
+                      [disabled]="controlPending()"
+                      (click)="endSession()"
+                    >
+                      <mat-icon aria-hidden="true">stop_circle</mat-icon>
+                      <span i18n>Session beenden</span>
+                    </button>
+                  }
+                }
+              </div>
+
+              @if (currentQuestionForHost()?.type === 'FREETEXT') {
+                <!-- Weitere Aktionen (eingeklappt) – nur bei Freitext-Fragen -->
+                <details class="session-host__extra">
+                  <summary i18n>Weitere Aktionen</summary>
+                  <div class="session-host__extra-content">
+                    <button mat-button type="button" (click)="exportFreetextSessionCsv()">
+                      <mat-icon>download</mat-icon>
+                      <span i18n>Freitext-Session als CSV exportieren</span>
+                    </button>
+                    @if (exportStatus()) {
+                      <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
+                    }
+                    <app-word-cloud [responses]="freetextResponses()" />
+                  </div>
+                </details>
               }
             }
           </div>
-
-          <!-- Weitere Aktionen (eingeklappt) -->
-          <details class="session-host__extra">
-            <summary i18n>Weitere Aktionen</summary>
-            <div class="session-host__extra-content">
-              @if (!isQaSession()) {
-                <button mat-button type="button" (click)="exportFreetextSessionCsv()">
-                  <mat-icon>download</mat-icon>
-                  <span i18n>Freitext-Session als CSV exportieren</span>
-                </button>
-                @if (exportStatus()) {
-                  <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
-                }
-                <app-word-cloud [responses]="freetextResponses()" />
-              }
-            </div>
-          </details>
         }
-      </div>
-    }
-    } @else if (activeChannel() === 'qa') {
-      <div class="session-host__channel-panel session-host__channel-panel--qa">
-        <mat-card appearance="outlined" class="session-channel-card session-channel-card--qa app-live-channel-shell">
-          <mat-card-content class="session-channel-card__content session-channel-card__content--left">
-            <div class="session-channel-card__header">
-              <div>
-                <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
-                <h2 class="session-channel-card__title">{{ qaHeading() }}</h2>
-              </div>
-              <mat-icon class="session-channel-card__icon" aria-hidden="true">forum</mat-icon>
-            </div>
-
-            @if (qaError(); as error) {
-              <p class="session-channel-card__error" role="alert">{{ error }}</p>
-            }
-            @if (qaInfo(); as info) {
-              <p class="session-channel-card__info" role="status">{{ info }}</p>
-            }
-
-            <div class="session-qa-moderation-toggle">
-              <mat-slide-toggle
-                [checked]="!!session()?.channels?.qa?.moderationMode"
-                (change)="toggleQaModeration()"
-                i18n="@@sessionQa.moderationToggleLabel">
-                Vorab-Moderation
-              </mat-slide-toggle>
-              @if (session()?.channels?.qa?.moderationMode) {
-                <p class="session-qa-moderation-hint" i18n="@@sessionQa.moderationModeHint">
-                  Neue Fragen warten erst auf deine Freigabe.
-                </p>
-              }
-            </div>
-
-            @if (qaQuestions().length === 0) {
-              <div class="session-qa-empty">
-                <mat-icon class="session-qa-empty__icon" aria-hidden="true">forum</mat-icon>
-                <p class="session-qa-empty__text" i18n="@@sessionTabs.qaHostPlaceholder">
-                  Noch keine Fragen – sobald Teilnehmende Fragen stellen, erscheinen sie hier.
-                </p>
-              </div>
-            } @else {
-              <div class="session-qa-summary">
-                <div class="session-qa-summary__chips">
-                  <span class="session-qa-summary__chip">
-                    <mat-icon class="session-qa-summary__icon" aria-hidden="true">question_answer</mat-icon>
-                    <span i18n="@@sessionQa.summaryTotal">Gesamt: {{ qaQuestions().length }}</span>
-                  </span>
-                  @if (qaPendingCount() > 0) {
-                    <span class="session-qa-summary__chip session-qa-summary__chip--pending">
-                      <mat-icon class="session-qa-summary__icon" aria-hidden="true">hourglass_top</mat-icon>
-                      <span i18n="@@sessionQa.summaryPending">Warten auf Freigabe: {{ qaPendingCount() }}</span>
-                    </span>
-                  }
-                  @if (qaPinnedCount() > 0) {
-                    <span class="session-qa-summary__chip session-qa-summary__chip--pinned">
-                      <mat-icon class="session-qa-summary__icon" aria-hidden="true">push_pin</mat-icon>
-                      {{ qaPinnedCount() }}
-                    </span>
-                  }
-                  @if (qaArchivedCount() > 0) {
-                    <span class="session-qa-summary__chip session-qa-summary__chip--archived">
-                      <mat-icon class="session-qa-summary__icon" aria-hidden="true">archive</mat-icon>
-                      {{ qaArchivedCount() }}
-                    </span>
-                  }
-                  @if (qaDeletedCount() > 0) {
-                    <span class="session-qa-summary__chip session-qa-summary__chip--deleted">
-                      <mat-icon class="session-qa-summary__icon" aria-hidden="true">delete_outline</mat-icon>
-                      {{ qaDeletedCount() }}
-                    </span>
-                  }
+      } @else if (activeChannel() === 'qa') {
+        <div class="session-host__channel-panel session-host__channel-panel--qa">
+          <mat-card
+            appearance="outlined"
+            class="session-channel-card session-channel-card--qa app-live-channel-shell"
+          >
+            <mat-card-content
+              class="session-channel-card__content session-channel-card__content--left"
+            >
+              <div class="session-channel-card__header">
+                <div>
+                  <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
+                  <h2 class="session-channel-card__title">{{ qaHeading() }}</h2>
                 </div>
-                @if (qaShowPinnedOnly()) {
-                  <button
-                    type="button"
-                    class="session-qa-filter-btn session-qa-filter-btn--active"
-                    (click)="qaShowPinnedOnly.set(false)"
-                    i18n-aria-label="@@sessionQa.filterShowAllAria"
-                    aria-label="Alle Fragen anzeigen"
-                  >
-                    <mat-icon aria-hidden="true">visibility</mat-icon>
-                    <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
-                  </button>
-                } @else {
-                  <button
-                    type="button"
-                    class="session-qa-filter-btn"
-                    (click)="qaShowPinnedOnly.set(true)"
-                    i18n-aria-label="@@sessionQa.filterPinnedAria"
-                    aria-label="Sichere Ansicht – nur freigegebene Fragen"
-                  >
-                    <mat-icon aria-hidden="true">shield</mat-icon>
-                    <span i18n="@@sessionQa.filterPinnedLabel">Sichere Ansicht</span>
-                  </button>
-                }
+                <mat-icon class="session-channel-card__icon" aria-hidden="true">forum</mat-icon>
               </div>
-              @if (qaShowNewBanner()) {
-                <button
-                  type="button"
-                  class="session-qa-new-banner"
-                  (click)="scrollToQaTop()"
-                  i18n-aria-label="@@sessionQa.newQuestionsAria"
-                  aria-label="Neue Fragen anzeigen"
-                >
-                  <mat-icon class="session-qa-new-banner__icon" aria-hidden="true">arrow_upward</mat-icon>
-                  <span i18n="@@sessionQa.newQuestionsLabel">{{ qaUnseenCount() }} neue Fragen</span>
-                </button>
+
+              @if (qaError(); as error) {
+                <p class="session-channel-card__error" role="alert">{{ error }}</p>
               }
-              <div class="session-qa-list" role="list" #qaListContainer (scroll)="onQaListScroll($event)">
-                @for (question of qaFilteredQuestions(); track question.id) {
-                  <article
-                    class="session-qa-card"
-                    [class.session-qa-card--highlight]="isQaQuestionHighlighted(question.id)"
-                    [class.session-qa-card--pinned]="question.status === 'PINNED'"
-                    [class.session-qa-card--pending]="question.status === 'PENDING'"
-                    role="listitem"
-                  >
-                    <div class="session-qa-card__head">
-                      <div class="session-qa-card__head-main">
-                        @if (question.status !== 'ACTIVE') {
-                          <span class="session-qa-card__status"
-                                [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
-                                [class.session-qa-card__status--pending]="question.status === 'PENDING'"
-                                [class.session-qa-card__status--archived]="question.status === 'ARCHIVED'"
-                                [class.session-qa-card__status--deleted]="question.status === 'DELETED'">
-                            <mat-icon class="session-qa-card__status-icon" aria-hidden="true">{{ qaStatusIcon(question.status) }}</mat-icon>
-                            {{ qaStatusLabel(question.status) }}
-                          </span>
-                        }
-                        @if (isQaQuestionHighlighted(question.id)) {
-                          <span class="session-qa-card__marker" aria-hidden="true"></span>
-                        }
-                      </div>
-                      <span class="session-qa-card__votes"
-                            [class.session-qa-card__votes--positive]="question.upvoteCount > 0"
-                            [class.session-qa-card__votes--negative]="question.upvoteCount < 0">
-                        <mat-icon class="session-qa-card__votes-icon" aria-hidden="true">thumb_up_off_alt</mat-icon>
-                        {{ question.upvoteCount }}
-                      </span>
-                    </div>
-                    <div class="session-qa-card__text" [innerHTML]="renderMarkdown(question.text)"></div>
-                    <div class="session-qa-card__meta">
-                      <span class="session-qa-card__time">{{ relativeTime(question.createdAt) }}</span>
-                    </div>
-                    <div class="session-qa-card__actions">
-                      @for (action of ['APPROVE', 'PIN', 'UNPIN', 'ARCHIVE', 'DELETE']; track action) {
-                        @if (canModerateQaQuestion(question, $any(action))) {
-                          <button
-                            matButton="tonal"
-                            type="button"
-                            class="session-qa-card__action-btn"
-                            [class.session-qa-card__action-btn--approve]="$any(action) === 'APPROVE'"
-                            [class.session-qa-card__action-btn--pin]="$any(action) === 'PIN'"
-                            [class.session-qa-card__action-btn--unpin]="$any(action) === 'UNPIN'"
-                            [class.session-qa-card__action-btn--archive]="$any(action) === 'ARCHIVE'"
-                            [class.session-qa-card__action-btn--delete]="$any(action) === 'DELETE'"
-                            [disabled]="qaPendingQuestionIds().has(question.id)"
-                            (click)="moderateQaQuestion(question.id, $any(action))"
-                          >
-                            <mat-icon class="session-qa-card__action-icon">{{ qaActionIcon($any(action)) }}</mat-icon>
-                            {{ qaActionLabel($any(action), question.status) }}
-                          </button>
-                        }
-                      }
-                    </div>
-                  </article>
+              @if (qaInfo(); as info) {
+                <p class="session-channel-card__info" role="status">{{ info }}</p>
+              }
+
+              <div class="session-qa-moderation-toggle">
+                <mat-slide-toggle
+                  [checked]="!!session()?.channels?.qa?.moderationMode"
+                  (change)="toggleQaModeration()"
+                  i18n="@@sessionQa.moderationToggleLabel"
+                >
+                  Vorab-Moderation
+                </mat-slide-toggle>
+                @if (session()?.channels?.qa?.moderationMode) {
+                  <p class="session-qa-moderation-hint" i18n="@@sessionQa.moderationModeHint">
+                    Neue Fragen warten erst auf deine Freigabe.
+                  </p>
                 }
               </div>
-              @if (qaFilteredQuestions().length === 0 && qaShowPinnedOnly()) {
-                <div class="session-qa-empty session-qa-empty--filtered">
-                  <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
-                  <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
-                    Sichere Ansicht aktiv – keine hervorgehobenen Fragen vorhanden.
+
+              @if (qaQuestions().length === 0) {
+                <div class="session-qa-empty">
+                  <mat-icon class="session-qa-empty__icon" aria-hidden="true">forum</mat-icon>
+                  <p class="session-qa-empty__text" i18n="@@sessionTabs.qaHostPlaceholder">
+                    Noch keine Fragen – sobald Teilnehmende Fragen stellen, erscheinen sie hier.
                   </p>
                 </div>
+              } @else {
+                <div class="session-qa-summary">
+                  <div class="session-qa-summary__chips">
+                    <span class="session-qa-summary__chip">
+                      <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                        >question_answer</mat-icon
+                      >
+                      <span i18n="@@sessionQa.summaryTotal"
+                        >Gesamt: {{ qaQuestions().length }}</span
+                      >
+                    </span>
+                    @if (qaPendingCount() > 0) {
+                      <span class="session-qa-summary__chip session-qa-summary__chip--pending">
+                        <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                          >hourglass_top</mat-icon
+                        >
+                        <span i18n="@@sessionQa.summaryPending"
+                          >Warten auf Freigabe: {{ qaPendingCount() }}</span
+                        >
+                      </span>
+                    }
+                    @if (qaPinnedCount() > 0) {
+                      <span class="session-qa-summary__chip session-qa-summary__chip--pinned">
+                        <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                          >push_pin</mat-icon
+                        >
+                        {{ qaPinnedCount() }}
+                      </span>
+                    }
+                    @if (qaArchivedCount() > 0) {
+                      <span class="session-qa-summary__chip session-qa-summary__chip--archived">
+                        <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                          >archive</mat-icon
+                        >
+                        {{ qaArchivedCount() }}
+                      </span>
+                    }
+                    @if (qaDeletedCount() > 0) {
+                      <span class="session-qa-summary__chip session-qa-summary__chip--deleted">
+                        <mat-icon class="session-qa-summary__icon" aria-hidden="true"
+                          >delete_outline</mat-icon
+                        >
+                        {{ qaDeletedCount() }}
+                      </span>
+                    }
+                  </div>
+                  @if (qaShowPinnedOnly()) {
+                    <button
+                      type="button"
+                      class="session-qa-filter-btn session-qa-filter-btn--active"
+                      (click)="qaShowPinnedOnly.set(false)"
+                      i18n-aria-label="@@sessionQa.filterShowAllAria"
+                      aria-label="Alle Fragen anzeigen"
+                    >
+                      <mat-icon aria-hidden="true">visibility</mat-icon>
+                      <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="session-qa-filter-btn"
+                      (click)="qaShowPinnedOnly.set(true)"
+                      i18n-aria-label="@@sessionQa.filterPinnedAria"
+                      aria-label="Sichere Ansicht – nur freigegebene Fragen"
+                    >
+                      <mat-icon aria-hidden="true">shield</mat-icon>
+                      <span i18n="@@sessionQa.filterPinnedLabel">Sichere Ansicht</span>
+                    </button>
+                  }
+                </div>
+                @if (qaShowNewBanner()) {
+                  <button
+                    type="button"
+                    class="session-qa-new-banner"
+                    (click)="scrollToQaTop()"
+                    i18n-aria-label="@@sessionQa.newQuestionsAria"
+                    aria-label="Neue Fragen anzeigen"
+                  >
+                    <mat-icon class="session-qa-new-banner__icon" aria-hidden="true"
+                      >arrow_upward</mat-icon
+                    >
+                    <span i18n="@@sessionQa.newQuestionsLabel"
+                      >{{ qaUnseenCount() }} neue Fragen</span
+                    >
+                  </button>
+                }
+                <div
+                  class="session-qa-list"
+                  role="list"
+                  #qaListContainer
+                  (scroll)="onQaListScroll($event)"
+                >
+                  @for (question of qaFilteredQuestions(); track question.id) {
+                    <article
+                      class="session-qa-card"
+                      [class.session-qa-card--highlight]="isQaQuestionHighlighted(question.id)"
+                      [class.session-qa-card--pinned]="question.status === 'PINNED'"
+                      [class.session-qa-card--pending]="question.status === 'PENDING'"
+                      role="listitem"
+                    >
+                      <div class="session-qa-card__head">
+                        <div class="session-qa-card__head-main">
+                          @if (question.status !== 'ACTIVE') {
+                            <span
+                              class="session-qa-card__status"
+                              [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
+                              [class.session-qa-card__status--pending]="
+                                question.status === 'PENDING'
+                              "
+                              [class.session-qa-card__status--archived]="
+                                question.status === 'ARCHIVED'
+                              "
+                              [class.session-qa-card__status--deleted]="
+                                question.status === 'DELETED'
+                              "
+                            >
+                              <mat-icon class="session-qa-card__status-icon" aria-hidden="true">{{
+                                qaStatusIcon(question.status)
+                              }}</mat-icon>
+                              {{ qaStatusLabel(question.status) }}
+                            </span>
+                          }
+                          @if (isQaQuestionHighlighted(question.id)) {
+                            <span class="session-qa-card__marker" aria-hidden="true"></span>
+                          }
+                        </div>
+                        <span
+                          class="session-qa-card__votes"
+                          [class.session-qa-card__votes--positive]="question.upvoteCount > 0"
+                          [class.session-qa-card__votes--negative]="question.upvoteCount < 0"
+                        >
+                          <mat-icon class="session-qa-card__votes-icon" aria-hidden="true"
+                            >thumb_up_off_alt</mat-icon
+                          >
+                          {{ question.upvoteCount }}
+                        </span>
+                      </div>
+                      <div
+                        class="session-qa-card__text"
+                        [innerHTML]="renderMarkdown(question.text)"
+                      ></div>
+                      <div class="session-qa-card__meta">
+                        <span class="session-qa-card__time">{{
+                          relativeTime(question.createdAt)
+                        }}</span>
+                      </div>
+                      <div class="session-qa-card__actions">
+                        @for (
+                          action of ['APPROVE', 'PIN', 'UNPIN', 'ARCHIVE', 'DELETE'];
+                          track action
+                        ) {
+                          @if (canModerateQaQuestion(question, $any(action))) {
+                            <button
+                              matButton="tonal"
+                              type="button"
+                              class="session-qa-card__action-btn"
+                              [class.session-qa-card__action-btn--approve]="
+                                $any(action) === 'APPROVE'
+                              "
+                              [class.session-qa-card__action-btn--pin]="$any(action) === 'PIN'"
+                              [class.session-qa-card__action-btn--unpin]="$any(action) === 'UNPIN'"
+                              [class.session-qa-card__action-btn--archive]="
+                                $any(action) === 'ARCHIVE'
+                              "
+                              [class.session-qa-card__action-btn--delete]="
+                                $any(action) === 'DELETE'
+                              "
+                              [disabled]="qaPendingQuestionIds().has(question.id)"
+                              (click)="moderateQaQuestion(question.id, $any(action))"
+                            >
+                              <mat-icon class="session-qa-card__action-icon">{{
+                                qaActionIcon($any(action))
+                              }}</mat-icon>
+                              {{ qaActionLabel($any(action), question.status) }}
+                            </button>
+                          }
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+                @if (qaFilteredQuestions().length === 0 && qaShowPinnedOnly()) {
+                  <div class="session-qa-empty session-qa-empty--filtered">
+                    <mat-icon class="session-qa-empty__icon" aria-hidden="true">shield</mat-icon>
+                    <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
+                      Sichere Ansicht aktiv – keine hervorgehobenen Fragen vorhanden.
+                    </p>
+                  </div>
+                }
               }
-            }
-          </mat-card-content>
-        </mat-card>
-      </div>
-    } @else if (activeChannel() === 'quickFeedback') {
-      <div class="session-host__channel-panel session-host__channel-panel--feedback">
-        <app-feedback-host [sessionCode]="code" [embeddedInSession]="true" />
-      </div>
-    }
+            </mat-card-content>
+          </mat-card>
+        </div>
+      } @else if (activeChannel() === 'quickFeedback') {
+        <div class="session-host__channel-panel session-host__channel-panel--feedback">
+          <app-feedback-host [sessionCode]="code" [embeddedInSession]="true" />
+        </div>
+      }
     </div>
   } @else {
     <mat-card appearance="outlined" class="session-placeholder">

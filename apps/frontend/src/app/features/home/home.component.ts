@@ -64,7 +64,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   codeInputFocused = signal(false);
   codeShaking = signal(false);
   ctaReady = signal(false);
-  recentSessionCodes = signal<string[]>([]);
+  /** { code, usedAt } – usedAt in ms für relative Anzeige (z.B. „vor 2 Std.“). */
+  recentSessionCodes = signal<{ code: string; usedAt: number }[]>([]);
   joinError = signal<string | null>(null);
   /** Set when join failed because session is finished (for showing host link). */
   joinErrorSessionFinished = signal(false);
@@ -168,19 +169,62 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadRecentSessionCodes();
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => void this.validateRecentSessions(), { timeout: 2000 });
+      } else {
+        setTimeout(() => void this.validateRecentSessions(), 500);
+      }
     }
+  }
+
+  /** Entfernt Sessions, die nicht mehr besucht werden können (cron gelöscht, beendet). */
+  private async validateRecentSessions(): Promise<void> {
+    const list = this.recentSessionCodes();
+    if (list.length === 0) return;
+    const visitable = await Promise.all(
+      list.map(async (item) => ({ item, ok: await this.isSessionVisitable(item.code) })),
+    );
+    const kept = visitable.filter((v) => v.ok).map((v) => v.item);
+    if (kept.length !== list.length) {
+      this.recentSessionCodes.set(kept);
+      localStorage.setItem('home-recent-sessions', JSON.stringify(kept));
+    }
+  }
+
+  private async isSessionVisitable(code: string): Promise<boolean> {
+    const fb = await trpc.quickFeedback.results.query({ sessionCode: code }).catch(() => null);
+    if (fb) return true;
+    const session = await trpc.session.getInfo.query({ code }).catch(() => null);
+    if (!session) return false;
+    return session.status !== 'FINISHED';
   }
 
   private loadRecentSessionCodes(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     try {
       const raw = localStorage.getItem('home-recent-sessions');
-      const codes = raw ? (JSON.parse(raw) as string[]) : [];
-      const valid = Array.isArray(codes)
-        ? codes
-            .filter((c) => typeof c === 'string' && /^[A-Z0-9]{6}$/.test(c.trim().toUpperCase()))
-            .slice(0, 3)
-        : [];
+      const parsed = raw ? JSON.parse(raw) : [];
+      const now = Date.now();
+      const valid: { code: string; usedAt: number }[] = [];
+      if (Array.isArray(parsed)) {
+        for (let i = 0; i < parsed.length && valid.length < 3; i++) {
+          const item = parsed[i];
+          if (typeof item === 'string' && /^[A-Z0-9]{6}$/.test(item.trim().toUpperCase())) {
+            const usedAt = now - (i === 0 ? 3600_000 : i === 1 ? 86400_000 : 172800_000);
+            valid.push({ code: item.trim().toUpperCase(), usedAt });
+          } else if (
+            item &&
+            typeof item === 'object' &&
+            typeof (item as { code?: unknown }).code === 'string' &&
+            typeof (item as { usedAt?: unknown }).usedAt === 'number'
+          ) {
+            const rec = item as { code: string; usedAt: number };
+            if (/^[A-Z0-9]{6}$/.test(rec.code)) {
+              valid.push(rec);
+            }
+          }
+        }
+      }
       this.recentSessionCodes.set(valid);
     } catch {
       this.recentSessionCodes.set([]);
@@ -191,18 +235,34 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     const normalized = code.trim().toUpperCase();
     if (!/^[A-Z0-9]{6}$/.test(normalized)) return;
+    const now = Date.now();
     const current = this.recentSessionCodes();
-    const filtered = current.filter((c) => c !== normalized);
-    const updated = [normalized, ...filtered].slice(0, 3);
+    const filtered = current.filter((c) => c.code !== normalized);
+    const updated = [{ code: normalized, usedAt: now }, ...filtered].slice(0, 3);
     this.recentSessionCodes.set(updated);
     localStorage.setItem('home-recent-sessions', JSON.stringify(updated));
   }
 
+  /** Öffentlich für Template (X-Button) und intern bei Join-Fehler. */
   removeRecentSessionCode(code: string): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    const updated = this.recentSessionCodes().filter((c) => c !== code);
+    const updated = this.recentSessionCodes().filter((c) => c.code !== code);
     this.recentSessionCodes.set(updated);
     localStorage.setItem('home-recent-sessions', JSON.stringify(updated));
+  }
+
+  /** Relative Zeit für „Letzte Sessions“ (z.B. „vor 2 Std.“). */
+  recentSessionTime(usedAt: number): string {
+    const diff = Date.now() - usedAt;
+    const seconds = Math.floor(diff / 1000);
+    if (seconds < 60) return $localize`gerade eben`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return $localize`vor ${minutes}\u00A0Min.`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24)
+      return hours === 1 ? $localize`vor 1\u00A0Std.` : $localize`vor ${hours}\u00A0Std.`;
+    const days = Math.floor(hours / 24);
+    return days === 1 ? $localize`vor 1\u00A0Tag` : $localize`vor ${days}\u00A0Tagen`;
   }
 
   /** i18n: aria-label for remove session from list (code is dynamic). */
@@ -329,6 +389,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       const session = await trpc.session.getInfo.query({ code });
       if (session.status === 'FINISHED') {
+        this.removeRecentSessionCode(code);
         this.joinErrorSessionFinished.set(true);
         this.joinError.set($localize`Diese Session ist bereits beendet.`);
         this.triggerShake();
@@ -337,6 +398,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.addToRecentSessionCodes(code);
       await this.router.navigate(localizeCommands(['join', code]));
     } catch (err: unknown) {
+      this.removeRecentSessionCode(code);
       const msg =
         err &&
         typeof err === 'object' &&

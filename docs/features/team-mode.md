@@ -13,12 +13,12 @@ zugewiesen werden. Der Dozent kann eigene Team-Namen vergeben oder die Standardn
 
 ## Konfiguration
 
-| Parameter | Feld | Wertebereich | Standard |
-|---|---|---|---|
-| Team-Modus | `teamMode` | an / aus | aus |
-| Anzahl Teams | `teamCount` | 2 – 8 | `null` |
-| Zuweisung | `teamAssignment` | `AUTO` / `MANUAL` | `AUTO` |
-| Eigene Namen | `teamNames` | max. 8 Eintraege, je max. 40 Zeichen, eindeutig | leer |
+| Parameter    | Feld             | Wertebereich                                    | Standard |
+| ------------ | ---------------- | ----------------------------------------------- | -------- |
+| Team-Modus   | `teamMode`       | an / aus                                        | aus      |
+| Anzahl Teams | `teamCount`      | 2 – 8                                           | `null`   |
+| Zuweisung    | `teamAssignment` | `AUTO` / `MANUAL`                               | `AUTO`   |
+| Eigene Namen | `teamNames`      | max. 8 Eintraege, je max. 40 Zeichen, eindeutig | leer     |
 
 Die Felder Anzahl, Zuweisung und Namen sind nur sichtbar, wenn `teamMode` aktiv ist
 (Conditional-Visibility-Pattern).
@@ -71,6 +71,7 @@ classDiagram
 ```
 
 Besonderheiten:
+
 - `Team` gehoert immer zu genau einer Session (`@@unique(sessionId, name)`)
 - `Participant.teamId` ist optional (`onDelete: SetNull`)
 - `Team.color` ist eine feste Hex-Farbe aus einer Palette von 8 Farben
@@ -98,27 +99,27 @@ flowchart TD
 
 Die Funktion `ensureSessionTeams()` wird an **drei Stellen** aufgerufen:
 
-| Aufrufstelle | Zeitpunkt |
-|---|---|
-| `session.create` | Direkt nach Session-Erstellung |
-| `session.join` | Vor Teilnehmer-Erstellung |
-| `session.getTeams` | Bei Abfrage der Team-Liste |
+| Aufrufstelle       | Zeitpunkt                      |
+| ------------------ | ------------------------------ |
+| `session.create`   | Direkt nach Session-Erstellung |
+| `session.join`     | Vor Teilnehmer-Erstellung      |
+| `session.getTeams` | Bei Abfrage der Team-Liste     |
 
 Durch die Idempotenz-Pruefung (existierende Teams werden zurueckgegeben) ist
 mehrfacher Aufruf sicher.
 
 ### Farbpalette
 
-| Index | Farbe | Hex |
-|---|---|---|
-| 0 | Blau | `#1E88E5` |
-| 1 | Gruen | `#43A047` |
-| 2 | Orange | `#F4511E` |
-| 3 | Violett | `#8E24AA` |
-| 4 | Gelb | `#FDD835` |
-| 5 | Teal | `#00897B` |
-| 6 | Braun | `#6D4C41` |
-| 7 | Indigo | `#5E35B1` |
+| Index | Farbe   | Hex       |
+| ----- | ------- | --------- |
+| 0     | Blau    | `#1E88E5` |
+| 1     | Gruen   | `#43A047` |
+| 2     | Orange  | `#F4511E` |
+| 3     | Violett | `#8E24AA` |
+| 4     | Gelb    | `#FDD835` |
+| 5     | Teal    | `#00897B` |
+| 6     | Braun   | `#6D4C41` |
+| 7     | Indigo  | `#5E35B1` |
 
 ### Namenslogik
 
@@ -132,12 +133,12 @@ flowchart LR
 
 Beispiel fuer `teamCount = 4`, `teamNames = ['Rot', 'Blau']`:
 
-| Index | Name | Quelle |
-|---|---|---|
-| 0 | Rot | Konfiguriert |
-| 1 | Blau | Konfiguriert |
-| 2 | Team C | Fallback |
-| 3 | Team D | Fallback |
+| Index | Name   | Quelle       |
+| ----- | ------ | ------------ |
+| 0     | Rot    | Konfiguriert |
+| 1     | Blau   | Konfiguriert |
+| 2     | Team C | Fallback     |
+| 3     | Team D | Fallback     |
 
 ---
 
@@ -203,18 +204,18 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-  S(( )) --> LOAD["Teams mit memberCount laden"]
-  LOAD --> SORT["Sortieren: memberCount aufsteigend"]
-  SORT --> TIE{"Gleichstand?"}
-  TIE -- "[ja]" --> ALPHA["Alphabetisch nach Name"]
-  TIE -- "[nein]" --> PICK["Erstes Team waehlen"]
-  ALPHA --> PICK
+  S(( )) --> INDEX["participantIndex = session._count.participants"]
+  INDEX --> SORT["Teams alphabetisch nach Name sortieren"]
+  SORT --> MOD["teamIndex = participantIndex mod teams.length"]
+  MOD --> PICK["teams[teamIndex] waehlen"]
   PICK --> ASSIGN["participant.create mit teamId"]
   ASSIGN --> E(( ))
 ```
 
 Dieses Verfahren ergibt eine **gleichmaessige Round-Robin-Verteilung**:
-Bei 4 Teams und 8 Teilnehmenden erhaelt jedes Team genau 2 Mitglieder.
+
+1. Teilnehmer → Team A, 2. → Team B, 3. → Team C, … dann wieder von vorn.
+   Bei 4 Teams und 8 Teilnehmenden erhaelt jedes Team genau 2 Mitglieder.
 
 ---
 
@@ -238,10 +239,10 @@ flowchart TD
 
 ### Berechnungsbeispiel
 
-| Team | Mitglieder | Votes (Score) | totalScore | averageScore | Rang |
-|---|---|---|---|---|---|
-| Team A | p1, p2 | p1: 40, p2: 60 | 100 | 50 | 1 |
-| Team B | p3 | p3: 70 | 70 | 70 | 2 |
+| Team   | Mitglieder | Votes (Score)  | totalScore | averageScore | Rang |
+| ------ | ---------- | -------------- | ---------- | ------------ | ---- |
+| Team A | p1, p2     | p1: 40, p2: 60 | 100        | 50           | 1    |
+| Team B | p3         | p3: 70         | 70         | 70           | 2    |
 
 Team A gewinnt trotz niedrigerem Durchschnitt, weil `totalScore` das primaere
 Sortierkriterium ist.
@@ -288,12 +289,12 @@ stateDiagram-v2
   end note
 ```
 
-| Phase | Dozent (Host) | Teilnehmer (Vote) | Beamer (Present) |
-|---|---|---|---|
-| **Editor** | Konfiguration, Vorschau | -- | -- |
-| **Lobby** | Teams mit Mitgliedern | Team-Auswahl (MANUAL) oder Zuweisung (AUTO) | -- |
-| **Laufzeit** | Teilnehmer pro Team | Eigenes Team sichtbar | -- |
-| **Ergebnis** | Team-Leaderboard mit Balken | Team-Punkte, Platzierung | Siegerkarte + Leaderboard |
+| Phase        | Dozent (Host)               | Teilnehmer (Vote)                           | Beamer (Present)          |
+| ------------ | --------------------------- | ------------------------------------------- | ------------------------- |
+| **Editor**   | Konfiguration, Vorschau     | --                                          | --                        |
+| **Lobby**    | Teams mit Mitgliedern       | Team-Auswahl (MANUAL) oder Zuweisung (AUTO) | --                        |
+| **Laufzeit** | Teilnehmer pro Team         | Eigenes Team sichtbar                       | --                        |
+| **Ergebnis** | Team-Leaderboard mit Balken | Team-Punkte, Platzierung                    | Siegerkarte + Leaderboard |
 
 ---
 
@@ -301,44 +302,44 @@ stateDiagram-v2
 
 ### Quiz-Editor
 
-| Regel | Fehlercode | Meldung |
-|---|---|---|
-| Mehr Namen als Teams | `tooManyTeamNames` | "Gib hoechstens so viele Namen wie Teams an." |
-| Name laenger als 40 Zeichen | `teamNameTooLong` | "Jeder Team-Name darf maximal 40 Zeichen lang sein." |
-| Doppelte Namen (case-insensitive) | `duplicateTeamNames` | "Jeder Team-Name darf nur einmal vorkommen." |
+| Regel                             | Fehlercode           | Meldung                                              |
+| --------------------------------- | -------------------- | ---------------------------------------------------- |
+| Mehr Namen als Teams              | `tooManyTeamNames`   | "Gib hoechstens so viele Namen wie Teams an."        |
+| Name laenger als 40 Zeichen       | `teamNameTooLong`    | "Jeder Team-Name darf maximal 40 Zeichen lang sein." |
+| Doppelte Namen (case-insensitive) | `duplicateTeamNames` | "Jeder Team-Name darf nur einmal vorkommen."         |
 
 ### Join
 
-| Regel | Fehler | Meldung |
-|---|---|---|
-| MANUAL ohne teamId | `BAD_REQUEST` | "Bitte waehle ein Team aus." |
-| teamId gehoert nicht zur Session | `BAD_REQUEST` | "Ungueltiges Team." |
+| Regel                            | Fehler        | Meldung                      |
+| -------------------------------- | ------------- | ---------------------------- |
+| MANUAL ohne teamId               | `BAD_REQUEST` | "Bitte waehle ein Team aus." |
+| teamId gehoert nicht zur Session | `BAD_REQUEST` | "Ungueltiges Team."          |
 
 ---
 
 ## tRPC-Endpunkte
 
-| Endpunkt | Typ | Beschreibung |
-|---|---|---|
-| `session.create` | Mutation | Erstellt Session + Teams (wenn teamMode) |
-| `session.getInfo` | Query | Liefert teamMode, teamAssignment, teamCount |
-| `session.getTeams` | Query | Teams mit memberCount fuer Join/Lobby |
-| `session.join` | Mutation | Team-Zuweisung (AUTO/MANUAL) + Participant |
-| `session.getParticipants` | Query | Teilnehmer inkl. teamId, teamName |
-| `session.getTeamLeaderboard` | Query | Team-Ranking nach totalScore |
+| Endpunkt                     | Typ      | Beschreibung                                |
+| ---------------------------- | -------- | ------------------------------------------- |
+| `session.create`             | Mutation | Erstellt Session + Teams (wenn teamMode)    |
+| `session.getInfo`            | Query    | Liefert teamMode, teamAssignment, teamCount |
+| `session.getTeams`           | Query    | Teams mit memberCount fuer Join/Lobby       |
+| `session.join`               | Mutation | Team-Zuweisung (AUTO/MANUAL) + Participant  |
+| `session.getParticipants`    | Query    | Teilnehmer inkl. teamId, teamName           |
+| `session.getTeamLeaderboard` | Query    | Team-Ranking nach totalScore                |
 
 ---
 
 ## Relevante Dateien
 
-| Bereich | Datei |
-|---|---|
-| **Zod-Schemas** | `libs/shared-types/src/schemas.ts` (TeamAssignmentEnum, TeamDTOSchema, TeamLeaderboardEntryDTOSchema) |
-| **Prisma-Modell** | `prisma/schema.prisma` (Team, TeamAssignment, Quiz.teamMode/teamCount/teamNames) |
-| **Backend: Team-Logik** | `apps/backend/src/routers/session.ts` (ensureSessionTeams, join, getTeams, getTeamLeaderboard) |
-| **Frontend: Editor** | `apps/frontend/src/app/features/quiz/quiz-edit/` und `quiz-new/` |
-| **Frontend: Join** | `apps/frontend/src/app/features/join/` |
-| **Frontend: Host** | `apps/frontend/src/app/features/session/session-host/` |
-| **Frontend: Vote** | `apps/frontend/src/app/features/session/session-vote/` |
-| **Frontend: Present** | `apps/frontend/src/app/features/session/session-present/` |
-| **Tests** | `apps/backend/src/__tests__/session.teams.test.ts` |
+| Bereich                 | Datei                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Zod-Schemas**         | `libs/shared-types/src/schemas.ts` (TeamAssignmentEnum, TeamDTOSchema, TeamLeaderboardEntryDTOSchema) |
+| **Prisma-Modell**       | `prisma/schema.prisma` (Team, TeamAssignment, Quiz.teamMode/teamCount/teamNames)                      |
+| **Backend: Team-Logik** | `apps/backend/src/routers/session.ts` (ensureSessionTeams, join, getTeams, getTeamLeaderboard)        |
+| **Frontend: Editor**    | `apps/frontend/src/app/features/quiz/quiz-edit/` und `quiz-new/`                                      |
+| **Frontend: Join**      | `apps/frontend/src/app/features/join/`                                                                |
+| **Frontend: Host**      | `apps/frontend/src/app/features/session/session-host/`                                                |
+| **Frontend: Vote**      | `apps/frontend/src/app/features/session/session-vote/`                                                |
+| **Frontend: Present**   | `apps/frontend/src/app/features/session/session-present/`                                             |
+| **Tests**               | `apps/backend/src/__tests__/session.teams.test.ts`                                                    |

@@ -11,14 +11,35 @@ import { QuizStoreService } from '../quiz/data/quiz-store.service';
 vi.mock('../../core/trpc.client', () => ({
   trpc: {
     health: {
-      check: { query: vi.fn().mockResolvedValue({ status: 'ok', redis: 'ok', timestamp: new Date().toISOString(), version: '0.1.0' }) },
+      check: {
+        query: vi
+          .fn()
+          .mockResolvedValue({
+            status: 'ok',
+            redis: 'ok',
+            timestamp: new Date().toISOString(),
+            version: '0.1.0',
+          }),
+      },
     },
     quickFeedback: {
       results: { query: vi.fn().mockRejectedValue(new Error('not found')) },
       create: { mutate: vi.fn().mockRejectedValue(new Error('not available')) },
     },
     session: {
-      getInfo: { query: vi.fn().mockResolvedValue({ id: 'sess-1', code: 'TEST01', type: 'QUIZ', status: 'LOBBY', quizName: 'Test', title: null, participantCount: 0 }) },
+      getInfo: {
+        query: vi
+          .fn()
+          .mockResolvedValue({
+            id: 'sess-1',
+            code: 'TEST01',
+            type: 'QUIZ',
+            status: 'LOBBY',
+            quizName: 'Test',
+            title: null,
+            participantCount: 0,
+          }),
+      },
     },
   },
 }));
@@ -134,7 +155,7 @@ describe('HomeComponent', () => {
       comp.sessionCode.set('NEW001');
       await comp.joinSession();
 
-      expect(comp.recentSessionCodes()).toContain('NEW001');
+      expect(comp.recentSessionCodes().some((r) => r.code === 'NEW001')).toBe(true);
     });
 
     it('verhindert doppelten Join während isJoining', async () => {
@@ -151,7 +172,9 @@ describe('HomeComponent', () => {
 
     it('setzt joinError wenn getInfo Session nicht findet (Story 3.1)', async () => {
       const { trpc } = await import('../../core/trpc.client');
-      vi.mocked(trpc.session.getInfo.query).mockRejectedValueOnce(new Error('Session nicht gefunden.'));
+      vi.mocked(trpc.session.getInfo.query).mockRejectedValueOnce(
+        new Error('Session nicht gefunden.'),
+      );
 
       const comp = createComponent();
       comp.sessionCode.set('NOTFND');
@@ -229,7 +252,9 @@ describe('HomeComponent', () => {
       await comp.openSyncLink();
 
       expect(navSpy).not.toHaveBeenCalled();
-      expect(comp.syncLinkError()).toBe('Bitte eine gueltige Sync-ID oder einen gueltigen Sync-Link eingeben.');
+      expect(comp.syncLinkError()).toBe(
+        'Bitte eine gueltige Sync-ID oder einen gueltigen Sync-Link eingeben.',
+      );
     });
   });
 
@@ -253,7 +278,10 @@ describe('HomeComponent', () => {
       });
 
       quizStore.updateQuizMetadata(olderQuiz.id, { name: 'Aelteres Quiz', description: '' });
-      quizStore.updateQuizMetadata(newerQuiz.id, { name: 'Neueres Quiz', description: 'Aktualisiert' });
+      quizStore.updateQuizMetadata(newerQuiz.id, {
+        name: 'Neueres Quiz',
+        description: 'Aktualisiert',
+      });
 
       const comp = createComponent();
 
@@ -265,10 +293,11 @@ describe('HomeComponent', () => {
       const fixture = TestBed.createComponent(HomeComponent);
       fixture.detectChanges();
 
-      const cta = fixture.nativeElement.querySelector('.home-card--create .home-cta') as HTMLAnchorElement | null;
+      const cta = fixture.nativeElement.querySelector(
+        '.home-card--create .home-cta',
+      ) as HTMLAnchorElement | null;
 
       expect(cta?.textContent).toContain('Quiz erstellen');
     });
   });
-
 });

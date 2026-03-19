@@ -1505,9 +1505,9 @@ export const sessionRouter = router({
           assignedTeamId = selectedTeam.id;
           assignedTeamName = selectedTeam.name;
         } else {
-          const autoTeam = [...teams].sort(
-            (a, b) => a._count.participants - b._count.participants || a.name.localeCompare(b.name),
-          )[0]!;
+          const participantIndex = session._count.participants;
+          const teamIndex = participantIndex % teams.length;
+          const autoTeam = teams[teamIndex]!;
           assignedTeamId = autoTeam.id;
           assignedTeamName = autoTeam.name;
         }

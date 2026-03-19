@@ -53,21 +53,22 @@
         @if (recentSessionCodes().length > 0) {
           <p class="home-recent-label" i18n>Letzte Sessions</p>
           <div class="home-recent-codes">
-            @for (code of recentSessionCodes(); track code) {
+            @for (item of recentSessionCodes(); track item.code) {
               <span class="home-recent-code-row">
                 <button
                   matButton="outlined"
                   class="home-recent-code"
-                  (click)="joinSessionByCode(code)"
+                  (click)="joinSessionByCode(item.code)"
                 >
-                  {{ code }}
+                  {{ item.code }}
+                  <span class="home-recent-code-time">({{ recentSessionTime(item.usedAt) }})</span>
                 </button>
                 <button
                   mat-icon-button
                   type="button"
                   class="home-recent-code-remove"
-                  (click)="removeRecentSessionCode(code); $event.stopPropagation()"
-                  [attr.aria-label]="removeSessionAriaLabel(code)"
+                  (click)="removeRecentSessionCode(item.code); $event.stopPropagation()"
+                  [attr.aria-label]="removeSessionAriaLabel(item.code)"
                 >
                   <mat-icon>close</mat-icon>
                 </button>

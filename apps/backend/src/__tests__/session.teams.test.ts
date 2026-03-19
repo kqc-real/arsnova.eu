@@ -1,25 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock, isSessionCodeLockedOutMock, recordFailedSessionCodeAttemptMock } = vi.hoisted(() => ({
-  prismaMock: {
-    session: {
-      findUnique: vi.fn(),
+const { prismaMock, isSessionCodeLockedOutMock, recordFailedSessionCodeAttemptMock } = vi.hoisted(
+  () => ({
+    prismaMock: {
+      session: {
+        findUnique: vi.fn(),
+      },
+      team: {
+        findMany: vi.fn(),
+        createMany: vi.fn(),
+      },
+      participant: {
+        create: vi.fn(),
+        findMany: vi.fn(),
+      },
+      vote: {
+        findMany: vi.fn(),
+      },
     },
-    team: {
-      findMany: vi.fn(),
-      createMany: vi.fn(),
-    },
-    participant: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-    },
-    vote: {
-      findMany: vi.fn(),
-    },
-  },
-  isSessionCodeLockedOutMock: vi.fn(),
-  recordFailedSessionCodeAttemptMock: vi.fn(),
-}));
+    isSessionCodeLockedOutMock: vi.fn(),
+    recordFailedSessionCodeAttemptMock: vi.fn(),
+  }),
+);
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
@@ -51,12 +53,10 @@ describe('session team mode (Story 7.1)', () => {
       id: SESSION_ID,
       quiz: { teamMode: true, teamCount: 2, teamNames: ['Rot', 'Blau'] },
     });
-    prismaMock.team.findMany
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
-        { id: TEAM_A_ID, name: 'Rot', color: '#1E88E5', _count: { participants: 0 } },
-        { id: TEAM_B_ID, name: 'Blau', color: '#43A047', _count: { participants: 0 } },
-      ]);
+    prismaMock.team.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      { id: TEAM_A_ID, name: 'Rot', color: '#1E88E5', _count: { participants: 0 } },
+      { id: TEAM_B_ID, name: 'Blau', color: '#43A047', _count: { participants: 0 } },
+    ]);
     prismaMock.team.createMany.mockResolvedValue({ count: 2 });
 
     const result = await caller.getTeams({ code: 'ABC123' });
@@ -71,7 +71,7 @@ describe('session team mode (Story 7.1)', () => {
     });
   });
 
-  it('weist beim AUTO-Join das aktuell kleinste Team zu', async () => {
+  it('weist beim AUTO-Join Round-Robin zu (1.→A, 2.→B, 3.→A, …)', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       code: 'ABC123',
@@ -99,11 +99,11 @@ describe('session team mode (Story 7.1)', () => {
       data: {
         sessionId: SESSION_ID,
         nickname: 'Ada',
-        teamId: TEAM_B_ID,
+        teamId: TEAM_A_ID,
       },
     });
-    expect(result.teamId).toBe(TEAM_B_ID);
-    expect(result.teamName).toBe('Team B');
+    expect(result.teamId).toBe(TEAM_A_ID);
+    expect(result.teamName).toBe('Team A');
   });
 
   it('übernimmt beim MANUAL-Join das gewählte Team', async () => {
