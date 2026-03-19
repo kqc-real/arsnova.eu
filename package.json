@@ -34,7 +34,7 @@
     "free-port-3000": "node scripts/free-port-3000.mjs",
     "free-dev-ports": "node scripts/free-dev-ports.mjs",
     "start:prod": "node scripts/start-backend-prod.mjs",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "devDependencies": {
     "@angular/animations": "^21.2.0",
