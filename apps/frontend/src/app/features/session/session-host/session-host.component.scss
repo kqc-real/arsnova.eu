@@ -1502,30 +1502,92 @@
   line-height: 1.4;
 }
 
-.session-host__music-phase-group {
-  padding: 0.15rem 0 0.35rem;
+.session-host__music-phase-picker {
+  padding: 0.45rem 1rem 0.5rem;
   border-top: 1px solid var(--mat-sys-outline-variant);
 }
 
-.session-host__music-phase-label {
+.session-host__music-phase-picker-label {
+  margin: 0 0 0.45rem;
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+  color: var(--mat-sys-on-surface-variant);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.session-host__music-phase-toggle-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+
+  .mat-mdc-button-toggle {
+    flex: 1 1 auto;
+  }
+}
+
+.session-host__music-phase-toggle-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.session-host__music-phase-toggle-live {
+  flex-shrink: 0;
+}
+
+.session-host__music-menu-saved-track {
+  margin: 0.55rem 0 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.4;
+}
+
+.session-host__music-menu-saved-track-name {
+  display: block;
+  margin-top: 0.15rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.session-host__music-track-list {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding-bottom: 0.25rem;
+}
+
+.session-host__music-track-row {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  margin: 0;
-  padding: 0.35rem 1rem 0.15rem;
-  font: var(--mat-sys-label-large);
+  width: 100%;
+  gap: 0;
+
+  > .mat-mdc-menu-item {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.session-host__music-track-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-host__music-preview-btn {
+  flex-shrink: 0;
+  margin-right: 0.15rem;
   color: var(--mat-sys-on-surface-variant);
-}
 
-.session-host__music-phase-label--active {
-  color: var(--mat-sys-primary);
-  font-weight: 600;
-}
+  &:hover {
+    color: var(--mat-sys-primary);
+  }
 
-.session-host__music-phase-playing {
-  font-size: 1rem;
-  width: 1rem;
-  height: 1rem;
+  &--active {
+    color: var(--mat-sys-primary);
+  }
 }
 
 /* --- Ergebnisseite (FINISHED) – Container & Hero --- */

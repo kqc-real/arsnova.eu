@@ -72,7 +72,7 @@
       </div>
     }
 
-    <mat-menu #hostMusicMenu="matMenu" xPosition="before">
+    <mat-menu #hostMusicMenu="matMenu" xPosition="before" (closed)="onHostMusicMenuClosed()">
       <div class="session-host__music-menu-head" (click)="$event.stopPropagation()">
         <p class="session-host__music-menu-title" i18n="@@sessionHost.musicMenuTitle">
           Hintergrundmusik
@@ -85,29 +85,71 @@
         <mat-icon aria-hidden="true">{{ musicMuted() ? 'volume_up' : 'volume_off' }}</mat-icon>
         <span>{{ musicMuted() ? 'Ton an' : 'Ton aus' }}</span>
       </button>
-      @for (phase of musicPhases; track phase.id) {
-        <div class="session-host__music-phase-group" (click)="$event.stopPropagation()">
-          <p
-            class="session-host__music-phase-label"
-            [class.session-host__music-phase-label--active]="currentMusicPhase() === phase.id"
-          >
-            {{ phase.label }}
-            @if (currentMusicPhase() === phase.id) {
-              <app-music-equalizer-icon class="session-host__music-phase-playing" size="small" />
-            }
-          </p>
-          @for (track of allMusicTracks; track track.value) {
-            <button mat-menu-item type="button" (click)="setPhaseTrack(phase.id, track.value)">
+      <div class="session-host__music-phase-picker" (click)="$event.stopPropagation()">
+        <p class="session-host__music-phase-picker-label" i18n="@@sessionHost.musicMenuPhaseLabel">
+          Phase
+        </p>
+        <mat-button-toggle-group
+          class="session-host__music-phase-toggle-group"
+          hideSingleSelectionIndicator
+          [value]="musicMenuEditPhase()"
+          (change)="onMusicMenuPhaseToggle($event)"
+        >
+          @for (phase of musicPhases; track phase.id) {
+            <mat-button-toggle [value]="phase.id">
+              <span class="session-host__music-phase-toggle-inner">
+                <span class="session-host__music-phase-toggle-label">{{ phase.label }}</span>
+                @if (currentMusicPhase() === phase.id && !musicMuted()) {
+                  <app-music-equalizer-icon
+                    class="session-host__music-phase-toggle-live"
+                    size="small"
+                  />
+                }
+              </span>
+            </mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+        <p class="session-host__music-menu-saved-track">
+          <span i18n="@@sessionHost.musicMenuSavedForPhase">Gespeichert für diese Phase:</span>
+          <span class="session-host__music-menu-saved-track-name">{{
+            phaseTrackLabel(musicMenuEditPhase())
+          }}</span>
+        </p>
+      </div>
+      <div class="session-host__music-track-list">
+        @for (track of musicMenuTracksForSelection(); track track.value) {
+          <div class="session-host__music-track-row">
+            <button
+              mat-menu-item
+              type="button"
+              (click)="setPhaseTrack(musicMenuEditPhase(), track.value)"
+            >
               <mat-icon aria-hidden="true">{{
-                phaseTracks()[phase.id] === track.value
+                phaseTracks()[musicMenuEditPhase()] === track.value
                   ? 'radio_button_checked'
                   : 'radio_button_unchecked'
               }}</mat-icon>
-              <span>{{ track.label }}</span>
+              <span class="session-host__music-track-label">{{ track.label }}</span>
             </button>
-          }
-        </div>
-      }
+            <button
+              matIconButton
+              type="button"
+              class="session-host__music-preview-btn"
+              [class.session-host__music-preview-btn--active]="
+                sound.musicPreviewTrackId() === track.value
+              "
+              (click)="previewOrStopHostTrack(track.value, $event)"
+              [attr.aria-label]="ariaHostMusicPreviewButton(track.value)"
+            >
+              @if (sound.musicPreviewTrackId() === track.value) {
+                <mat-icon aria-hidden="true">stop</mat-icon>
+              } @else {
+                <mat-icon aria-hidden="true">play_arrow</mat-icon>
+              }
+            </button>
+          </div>
+        }
+      </div>
     </mat-menu>
 
     @if (effectiveStatus() !== 'FINISHED') {
@@ -146,6 +188,7 @@
                 class="session-host__meta-sound-control session-host__live-sound-control"
                 [class.session-host__meta-sound-control--active]="!musicMuted()"
                 [matMenuTriggerFor]="hostMusicMenu"
+                (click)="onHostMusicMenuOpening()"
                 i18n-aria-label="@@sessionHost.musicControlAria"
                 aria-label="Soundsteuerung öffnen"
               >

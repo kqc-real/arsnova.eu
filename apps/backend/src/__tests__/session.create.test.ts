@@ -1,19 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock, checkSessionCreateRateMock, shouldBypassSessionCreateRateMock } = vi.hoisted(() => ({
-  prismaMock: {
-    session: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
+const { prismaMock, checkSessionCreateRateMock, shouldBypassSessionCreateRateMock } = vi.hoisted(
+  () => ({
+    prismaMock: {
+      session: {
+        findUnique: vi.fn(),
+        create: vi.fn(),
+      },
+      team: {
+        findMany: vi.fn(),
+        createMany: vi.fn(),
+      },
     },
-    team: {
-      findMany: vi.fn(),
-      createMany: vi.fn(),
-    },
-  },
-  checkSessionCreateRateMock: vi.fn(),
-  shouldBypassSessionCreateRateMock: vi.fn(),
-}));
+    checkSessionCreateRateMock: vi.fn(),
+    shouldBypassSessionCreateRateMock: vi.fn(),
+  }),
+);
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
@@ -73,6 +75,37 @@ describe('session.create (Story 2.1a)', () => {
     );
   });
 
+  it('setzt Q&A-Vorab-Moderation standardmäßig an wenn Q&A aktiviert', async () => {
+    prismaMock.session.create.mockResolvedValueOnce({
+      id: SESSION_ID,
+      code: CODE,
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizId: QUIZ_ID,
+      qaEnabled: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      quickFeedbackEnabled: false,
+      quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
+    });
+
+    await caller.create({
+      quizId: QUIZ_ID,
+      qaEnabled: true,
+      qaTitle: 'Fragen',
+    });
+
+    expect(prismaMock.session.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          qaEnabled: true,
+          qaTitle: 'Fragen',
+          qaModerationMode: true,
+        }),
+      }),
+    );
+  });
+
   it('aktiviert optionale Live-Kanäle für Quiz-Sessions', async () => {
     prismaMock.session.create.mockResolvedValueOnce({
       id: SESSION_ID,
@@ -123,7 +156,6 @@ describe('session.create (Story 2.1a)', () => {
     const result = await caller.create({
       type: 'Q_AND_A',
       title: '  Offene Fragerunde  ',
-      moderationMode: true,
     });
 
     expect(result).toEqual({

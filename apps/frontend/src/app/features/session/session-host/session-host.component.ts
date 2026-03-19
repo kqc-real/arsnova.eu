@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import {
   MatCard,
@@ -137,6 +137,19 @@ const ALL_MUSIC_TRACKS: ReadonlyArray<{ value: HostMusicTrack; label: string }> 
 ];
 const ALL_MUSIC_TRACK_VALUES = ALL_MUSIC_TRACKS.map((t) => t.value);
 
+function musicTracksForPhase(
+  phase: MusicPhase,
+): ReadonlyArray<{ value: HostMusicTrack; label: string }> {
+  switch (phase) {
+    case 'lobby':
+      return ALL_MUSIC_TRACKS.filter((t) => t.value.startsWith('LOBBY_'));
+    case 'connecting':
+      return ALL_MUSIC_TRACKS.filter((t) => t.value.startsWith('CONNECTING_'));
+    case 'running':
+      return ALL_MUSIC_TRACKS.filter((t) => t.value.startsWith('COUNTDOWN_RUNNING_'));
+  }
+}
+
 /**
  * Host-Ansicht: Lobby + Präsentations-Steuerung (Epic 2).
  * Story 2.1a, 2.2, 2.3, 2.4, 4.2, 4.6, 4.7, 4.8, 7.1, 8.1, 8.4.
@@ -147,6 +160,7 @@ const ALL_MUSIC_TRACK_VALUES = ALL_MUSIC_TRACKS.map((t) => t.value);
   imports: [
     DecimalPipe,
     MatButton,
+    MatIconButton,
     RouterLink,
     MatButtonToggle,
     MatButtonToggleGroup,
@@ -195,7 +209,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly themePreset = inject(ThemePresetService);
-  private readonly sound = inject(SoundService);
+  readonly sound = inject(SoundService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -295,12 +309,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   });
   readonly isFullscreenActive = signal(false);
-  readonly allMusicTracks = ALL_MUSIC_TRACKS;
   readonly musicPhases: ReadonlyArray<{ id: MusicPhase; label: string }> = [
     { id: 'lobby', label: $localize`:@@sessionHost.phaseLobbyShort:Lobby` },
     { id: 'connecting', label: $localize`:@@sessionHost.phaseConnectingShort:Beitritt` },
     { id: 'running', label: $localize`:@@sessionHost.phaseRunningShort:Countdown` },
   ];
+  /** Im Musik-Menü: welche Phase bearbeitet wird (Tracks-Liste gefiltert). */
+  readonly musicMenuEditPhase = signal<MusicPhase>('lobby');
+  readonly musicMenuTracksForSelection = computed(() =>
+    musicTracksForPhase(this.musicMenuEditPhase()),
+  );
   readonly phaseTracks = signal<Record<MusicPhase, HostMusicTrack>>(loadPhaseTracksFromStorage());
   readonly musicMuted = signal(false);
   readonly currentMusicPhase = computed<MusicPhase | null>(() => {
@@ -836,6 +854,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Synchronisiert Host-Hintergrundmusik phasenabhängig. */
   private syncMusic(): void {
+    if (this.sound.musicPreviewing()) return;
     const session = this.session();
     const track = this.activeMusicTrack();
     if (!session || this.effectiveStatus() === 'FINISHED' || !track) {
@@ -845,14 +864,54 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     void this.sound.playMusic(track);
   }
 
+  /** Menü zu: Vorschau abbrechen, normale Musik wiederherstellen. */
+  onHostMusicMenuClosed(): void {
+    this.sound.stopPreview();
+    this.syncMusic();
+  }
+
+  /** Beim Öffnen: Bearbeitungs-Phase an live-Phase anlehnen. */
+  onHostMusicMenuOpening(): void {
+    const live = this.currentMusicPhase();
+    this.musicMenuEditPhase.set(live ?? 'lobby');
+  }
+
+  onMusicMenuPhaseToggle(ev: { value: unknown }): void {
+    const v = ev.value;
+    if (v === 'lobby' || v === 'connecting' || v === 'running') {
+      this.musicMenuEditPhase.set(v);
+    }
+  }
+
+  /** Kurzvorschau starten oder laufende Vorschau dieses Tracks stoppen. */
+  previewOrStopHostTrack(track: HostMusicTrack, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.sound.unlock();
+    if (this.sound.musicPreviewTrackId() === track) {
+      this.sound.stopPreview();
+      this.syncMusic();
+      return;
+    }
+    this.sound.previewMusic(track, 12, () => this.syncMusic());
+  }
+
+  ariaHostMusicPreviewButton(trackId: HostMusicTrack): string {
+    return this.sound.musicPreviewTrackId() === trackId
+      ? $localize`:@@sessionHost.musicPreviewStopAria:Vorschau stoppen`
+      : $localize`:@@sessionHost.musicPreviewTrackAria:Track kurz anhören (max. 12 Sekunden)`;
+  }
+
   toggleMuteMusic(): void {
     this.sound.unlock();
+    this.sound.stopPreview();
     this.musicMuted.set(!this.musicMuted());
     this.syncMusic();
   }
 
   setPhaseTrack(phase: MusicPhase, track: HostMusicTrack): void {
     this.sound.unlock();
+    this.sound.stopPreview();
     const next = { ...this.phaseTracks(), [phase]: track };
     this.phaseTracks.set(next);
     try {

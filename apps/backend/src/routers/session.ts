@@ -195,7 +195,7 @@ function buildSessionChannels(session: {
       enabled: qaEnabled,
       title: qaEnabled ? (session.qaTitle ?? session.title ?? null) : null,
       moderationMode: qaEnabled
-        ? (session.qaModerationMode ?? session.moderationMode ?? false)
+        ? (session.qaModerationMode ?? session.moderationMode ?? true)
         : false,
     },
     quickFeedback: {
@@ -441,7 +441,7 @@ export const sessionRouter = router({
       const qaEnabled = isQaOnlySession || input.qaEnabled === true;
       const qaTitle = qaEnabled ? input.qaTitle?.trim() || input.title?.trim() || null : null;
       const qaModerationMode = qaEnabled
-        ? (input.qaModerationMode ?? input.moderationMode ?? false)
+        ? (input.qaModerationMode ?? input.moderationMode ?? true)
         : false;
       const session = await prisma.session.create({
         data: {

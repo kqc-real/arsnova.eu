@@ -193,10 +193,10 @@ export const CreateSessionInputSchema = z
     type: SessionTypeEnum.optional().default('QUIZ'), // Story 8.1: Quiz oder Q&A
     quizId: z.uuid().optional(), // Pflicht bei QUIZ, null bei Q_AND_A
     title: z.string().trim().max(200).optional(), // Story 8.1: Titel für Q&A-Runde
-    moderationMode: z.boolean().optional().default(false), // Story 8.4: Q&A-Fragen moderieren
+    moderationMode: z.boolean().optional().default(true), // Story 8.4 / Q&A: Vorab-Moderation (Default an)
     qaEnabled: z.boolean().optional().default(false), // ADR-0009: Q&A-Kanal in Quiz-Session
     qaTitle: z.string().trim().max(200).optional(), // ADR-0009: Titel des Q&A-Tabs
-    qaModerationMode: z.boolean().optional(), // ADR-0009: Vorab-Moderation für Q&A
+    qaModerationMode: z.boolean().optional().default(true), // ADR-0009: Q&A-Vorab-Moderation (Default an)
     quickFeedbackEnabled: z.boolean().optional().default(false), // ADR-0009: Blitz-Feedback-Kanal
   })
   .superRefine((value, ctx) => {

@@ -4,7 +4,7 @@
 
 **Status:** Accepted  
 **Datum:** 2026-03-13  
-**Entscheider:** Projektteam  
+**Entscheider:** Projektteam
 
 ## Kontext
 
@@ -124,6 +124,7 @@ Für Backend und Shared Types gilt:
 - `SessionInfoDTO` beschreibt künftig nicht nur Quiz-Metadaten, sondern die verfügbaren Session-Kanäle und ihre Konfiguration
 - Join- und Host-/Vote-Flows arbeiten mit **einem gemeinsamen Session-DTO**
 - Kanal-spezifische Daten bleiben in eigenen DTOs (`QuestionStudentDTO`, `QaQuestionDTO`, Blitzlicht-DTOs), werden aber unter derselben Session referenziert
+- **Q&A-Vorab-Moderation** (`qaModerationMode`): für **neue** Sessions standardmäßig **an**; der Host kann sie im Q&A-Tab jederzeit ausschalten (explizites Opt-out)
 
 ## Konsequenzen
 
