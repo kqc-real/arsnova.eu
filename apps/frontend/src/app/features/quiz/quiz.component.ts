@@ -6,7 +6,7 @@ import { filter } from 'rxjs/operators';
 
 /**
  * Quiz-Shell (Epic 1). Child-Routes: Liste, new, :id, :id/preview, sync/:docId.
- * Header "Meine Quizze" wird auf der Vorschau-Seite ausgeblendet.
+ * Header „Deine Quiz-Sammlung“ wird auf der Vorschau-Seite ausgeblendet.
  */
 @Component({
   selector: 'app-quiz',

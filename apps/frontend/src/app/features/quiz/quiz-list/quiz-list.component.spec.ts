@@ -98,7 +98,7 @@ describe('QuizListComponent', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Willkommen in deiner Quiz-Bibliothek!');
+    expect(fixture.nativeElement.textContent).toContain('Willkommen in deiner Quiz-Sammlung!');
     expect(fixture.nativeElement.textContent).toContain('Eigenes Quiz erstellen');
   });
 
@@ -108,7 +108,7 @@ describe('QuizListComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Sync-ID und -Link erzeugen');
-    expect(text).toContain('Sichere deine Quiz-Bibliothek auf ein anderes Gerät');
+    expect(text).toContain('Sichere deine Quiz-Sammlung auf ein anderes Gerät');
   });
 
   it('zeigt bei geteilter Bibliothek einen sichtbaren Sync-Status', () => {
@@ -131,8 +131,8 @@ describe('QuizListComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Geteilte Quiz-Bibliothek');
-    expect(text).toContain('Hier siehst du, ob deine Quiz-Bibliothek auf dem neuesten Stand ist');
+    expect(text).toContain('Geteilte Quiz-Sammlung');
+    expect(text).toContain('Hier siehst du, ob deine Quiz-Sammlung auf dem neuesten Stand ist');
     expect(text).toContain('Verbunden');
     expect(text).toContain('Sync-ID: SYNCROOM');
     expect(text).toContain('Du arbeitest gerade auf');
@@ -176,7 +176,7 @@ describe('QuizListComponent', () => {
 
     expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
     expect(snackBarOpenMock.mock.calls[0]?.[0]).toContain(
-      'Quiz-Bibliothek erfolgreich synchronisiert.',
+      'Quiz-Sammlung erfolgreich synchronisiert.',
     );
     expect(snackBarOpenMock.mock.calls[0]?.[0]).toContain('Neuester Stand vom');
     expect(snackBarOpenMock).toHaveBeenCalledWith(expect.any(String), '', {

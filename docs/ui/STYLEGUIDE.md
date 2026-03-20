@@ -157,7 +157,7 @@ Tokenbasierte Card-Flaeche:
 - **Karten:** Zusaetzlicher Schatten mit Primary-Anteil (`--app-shadow-card-playful`). Nur die ersten beiden Karten (Beitreten, Erstellen) haben Hover: leichtes Anheben + Scale aus der Mitte, nur bei `prefers-reduced-motion: no-preference`.
 - **Haupt-CTA:** Der gefuellte Button erhaelt im Spielerisch-Modus einen dezenten Glow (`--app-shadow-cta-glow`).
 - **Header:** Gradient, dezenter Primary-Rahmen, `--app-shadow-accent`.
-- **Wow-Effekt (nur bei prefers-reduced-motion: no-preference):** Brand-Icon dezentes „Atmen“ (Scale 1 → 1.05 → 1, 2.5 s); Hero-Icons (quiz, forum, how_to_vote) sanftes Twinkeln (Opacity/Brightness), gestaffelt (animation-delay), 2.2 s.
+- **Wow-Effekt (nur bei prefers-reduced-motion: no-preference):** Brand-Icon dezentes „Atmen“ (Scale 1 → 1.05 → 1, 2.5 s).
 - Alle Werte tokenbasiert in `styles.scss` (html.preset-playful) und Home-Komponente.
 
 ## Startseite: Buttons, Snackbar und Toast
@@ -172,14 +172,13 @@ Tokenbasierte Card-Flaeche:
 - **6 Segment-Boxen** statt mat-form-field: Jede Box zeigt ein Zeichen, Monospace, zentriert. Transparenter `<input>` liegt als Overlay darueber und faengt alle nativen Interaktionen (Paste, Mobile-Keyboard).
 - **Zustaende:** Leer (outline-variant Border), Active (primary Border + Pulse-Animation), Filled (primary Border + Tint-Background), Valid (success-fg Border + Glow).
 - **Micro-Interactions:** Segment-Pulse auf aktiver Box (breathing-Effekt, 1 s), CTA-Pulse wenn 6. Zeichen eingegeben (scale 1 > 1.04 > 1, 350 ms), Shake bei ungueltigem Submit (horizontale Vibration, 400 ms, mit rotem Border). Alle Animationen in `@media (prefers-reduced-motion: no-preference)`.
-- **Meta-Zeile** unter den Segments: Zaehler links (`3/6`), Hilfetext rechts.
+- **Beschriftung** unter den Segments: zentriert **Session-Code** (`label-medium`, on-surface-variant). Laenge und Beispiel entfallen in der Zeile; Screenreader: `aria-label` am Eingabefeld („Session-Code, 6 Zeichen“).
 - Responsive: Groessere Boxen auf Desktop (3 rem x 3.5 rem vs. 2.5 rem x 3 rem Mobile).
 
 ## Startseite: Hero und Onboarding
 
 - **Hero-Text:** Nutzenversprechen, kein Feature-Listing. Verben statt Nomen.
 - **Alleinstellungsmerkmale (USP):** Direkt unter dem Hero: (1) Zielspanne und Stil – z. B. „Kita bis Uni – serioes oder spielerisch.“ In Primary-Farbe, body-large. (2) Bonus-Option – nur im Preset **Spielerisch**: z. B. „Bonus fuer die Besten: Code bei der Quizleitung einloesbar.“ Einzeilig auf Desktop (max-width 38rem ab 600px); „Code“ statt „Token“. Als zweite Zeile, body-medium, on-surface-variant (`.home-hero-usp--secondary`). Beide zentriert, max-width begrenzt.
-- **Icon-Cluster:** 3 Icons (quiz, forum, how_to_vote) in primary-getoenten Kreisen, verbunden durch Dots. `aria-hidden="true"` da dekorativ.
 - **Trust-Badges:** Staerkstes Argument zuerst (Kostenlos > DSGVO-konform > Open Source).
 - **Kein Onboarding-Banner:** Nach den Hero-Erweiterungen (USPs, Bonus-Option, ggf. Preset-Toggle) wird kein zusaetzliches 3-Schritt-Banner mehr angezeigt. Die Karten (Mitmachen/Veranstalten) und die Hilfe-Seite erklaeren den Ablauf.
 
@@ -208,7 +207,7 @@ Tokenbasierte Card-Flaeche:
 - **Duzen:** In der gesamten App (Hilfe, Hinweise, Buttons, Fehlermeldungen) wird die Nutzerin/der Nutzer mit **Du** angesprochen – einheitlich fuer alle Rollen (Veranstaltende und Teilnehmende). Entspricht dem Vorgehen vieler Lern- und Umfrage-Apps (z. B. Mentimeter, Kahoot!, Slido). Formelles "Sie" nur in rechtlichen Texten (Impressum, Datenschutz), wo ueblich.
 - **Rollenbezeichnungen:** "Mitmachen" (statt "Teilnehmer/in"), "Veranstalten" (statt "Lehrperson"). Aktivierend, rollenunabhaengig.
 - **CTAs:** Handlungsauffordernd mit klarem Nutzen: "Los geht's" (statt "Beitreten"), "Neues Quiz starten" (statt "Session erstellen"), "Aus Bibliothek" (statt "Quiz auswaehlen"), "Fragerunde" (statt "Q&A").
-- **Hilfetext Session-Code:** "6 Zeichen, z. B. ABC123" -- kurz, konkret, kontextneutral.
+- **Session-Code (Startseite):** Sichtbar nur zentrierte Bezeichnung **Session-Code**; Details (6 Zeichen) in **aria-label** des Overlays.
 - **Server-Status:** "Verbunden" / "Keine Verbindung" (statt "Server erreichbar/nicht erreichbar"). "Nochmal versuchen" (statt "Erneut verbinden").
 
 ### Verbindliche Begriffspaare (MUSS)

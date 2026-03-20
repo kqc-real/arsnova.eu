@@ -30,14 +30,6 @@
       </mat-button-toggle-group>
     </div>
 
-    <div class="home-hero-icons" aria-hidden="true">
-      <div class="home-hero-icon"><mat-icon>quiz</mat-icon></div>
-      <span class="home-hero-icon-dot"></span>
-      <div class="home-hero-icon"><mat-icon>question_answer</mat-icon></div>
-      <span class="home-hero-icon-dot"></span>
-      <div class="home-hero-icon"><mat-icon>bolt</mat-icon></div>
-    </div>
-
     <mat-card appearance="raised" id="participant-entry" class="home-card">
       <mat-card-header>
         <mat-card-subtitle>
@@ -113,10 +105,9 @@
             />
           </div>
           <div class="home-code-meta">
-            @if (sessionCode().length > 0) {
-              <span class="home-code-counter">{{ sessionCode().length }}/6</span>
-            }
-            <span class="home-code-help" i18n>6 Zeichen, z.B. ABC123</span>
+            <span class="home-code-under-label" i18n="@@homeCode.sessionCodeLabel"
+              >Session-Code</span
+            >
           </div>
         </div>
       </mat-card-content>
@@ -265,7 +256,7 @@
             [matBadgeHidden]="quizCount() === 0"
           >
             <mat-icon class="home-cta__icon">library_books</mat-icon>
-            <span i18n="@@homeHostCard.libraryCta">Meine Quiz-Bibliothek</span>
+            <span i18n="@@homeHostCard.libraryCta">Deine Quiz-Sammlung</span>
           </a>
         </div>
         <div class="home-card__tertiary">
@@ -281,12 +272,12 @@
             <mat-icon class="home-cta__icon">devices</mat-icon>
             <span i18n="@@homeHostCard.syncLinkCta">Sync-ID oder -Link eingeben</span>
           </button>
-          <p class="home-card__hint" i18n="@@homeHostCard.syncLinkHint">
-            Wenn du hier mit der Quiz-Bibliothek von einem anderen Geraet weitermachen willst.
-          </p>
         </div>
         @if (syncLinkVisible()) {
           <div class="home-sync-entry">
+            <p class="home-card__hint home-sync-entry__hint" i18n="@@homeHostCard.syncLinkHint">
+              Wenn du hier mit der Quiz-Sammlung von einem anderen Gerät weitermachen willst.
+            </p>
             <label
               class="home-sync-entry__label"
               for="home-sync-link"
@@ -317,7 +308,7 @@
                 (click)="openSyncLink()"
                 i18n="@@homeHostCard.syncLinkSubmit"
               >
-                Oeffnen
+                Öffnen
               </button>
             </div>
             @if (syncLinkError()) {

@@ -315,7 +315,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const docId = this.extractSyncDocId(this.syncLinkValue());
     if (!docId) {
       this.syncLinkError.set(
-        $localize`:@@homeHostCard.syncLinkError:Bitte eine gueltige Sync-ID oder einen gueltigen Sync-Link eingeben.`,
+        $localize`:@@homeHostCard.syncLinkError:Bitte eine gültige Sync-ID oder einen gültigen Sync-Link eingeben.`,
       );
       this.syncLinkInput?.nativeElement.focus();
       return;

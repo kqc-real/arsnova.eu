@@ -39,7 +39,7 @@ describe('QuizSyncComponent', () => {
       markShared: true,
       registerOrigin: true,
     });
-    expect(fixture.nativeElement.textContent).toContain('Quiz-Bibliothek weitergeben');
+    expect(fixture.nativeElement.textContent).toContain('Quiz-Sammlung weitergeben');
     expect(fixture.nativeElement.textContent).toContain('SYNCROOM');
   });
 });

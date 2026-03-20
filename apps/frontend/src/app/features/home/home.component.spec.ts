@@ -12,14 +12,12 @@ vi.mock('../../core/trpc.client', () => ({
   trpc: {
     health: {
       check: {
-        query: vi
-          .fn()
-          .mockResolvedValue({
-            status: 'ok',
-            redis: 'ok',
-            timestamp: new Date().toISOString(),
-            version: '0.1.0',
-          }),
+        query: vi.fn().mockResolvedValue({
+          status: 'ok',
+          redis: 'ok',
+          timestamp: new Date().toISOString(),
+          version: '0.1.0',
+        }),
       },
     },
     quickFeedback: {
@@ -28,17 +26,15 @@ vi.mock('../../core/trpc.client', () => ({
     },
     session: {
       getInfo: {
-        query: vi
-          .fn()
-          .mockResolvedValue({
-            id: 'sess-1',
-            code: 'TEST01',
-            type: 'QUIZ',
-            status: 'LOBBY',
-            quizName: 'Test',
-            title: null,
-            participantCount: 0,
-          }),
+        query: vi.fn().mockResolvedValue({
+          id: 'sess-1',
+          code: 'TEST01',
+          type: 'QUIZ',
+          status: 'LOBBY',
+          quizName: 'Test',
+          title: null,
+          participantCount: 0,
+        }),
       },
     },
   },
@@ -209,7 +205,7 @@ describe('HomeComponent', () => {
   });
 
   describe('openSyncLink', () => {
-    it('aktiviert mit kompletter Sync-URL den Raum und oeffnet die Quiz-Bibliothek', async () => {
+    it('aktiviert mit kompletter Sync-URL den Raum und oeffnet die Quiz-Sammlung', async () => {
       const comp = createComponent();
       const router = TestBed.inject(Router);
       const quizStore = TestBed.inject(QuizStoreService);
@@ -226,7 +222,7 @@ describe('HomeComponent', () => {
       expect(comp.syncLinkError()).toBeNull();
     });
 
-    it('akzeptiert auch nur die rohe Sync-ID und oeffnet die Quiz-Bibliothek', async () => {
+    it('akzeptiert auch nur die rohe Sync-ID und oeffnet die Quiz-Sammlung', async () => {
       const comp = createComponent();
       const router = TestBed.inject(Router);
       const quizStore = TestBed.inject(QuizStoreService);
@@ -253,7 +249,7 @@ describe('HomeComponent', () => {
 
       expect(navSpy).not.toHaveBeenCalled();
       expect(comp.syncLinkError()).toBe(
-        'Bitte eine gueltige Sync-ID oder einen gueltigen Sync-Link eingeben.',
+        'Bitte eine gültige Sync-ID oder einen gültigen Sync-Link eingeben.',
       );
     });
   });

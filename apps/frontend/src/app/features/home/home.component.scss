@@ -131,10 +131,14 @@
 }
 
 .home-hero {
-  margin: 0 0 0.25rem;
+  margin: 0.75rem 0 0.25rem;
   font: var(--mat-sys-headline-medium);
   color: var(--mat-sys-on-surface);
   text-align: center;
+
+  @media (min-width: 600px) {
+    margin-top: 1rem;
+  }
 }
 
 .home-hero-break-mobile {
@@ -218,38 +222,6 @@
 .home-hero-preset-toggle .mat-button-toggle-group {
   border: none;
   display: flex;
-}
-
-.home-hero-icons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  margin: 0.25rem 0;
-}
-
-.home-hero-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--mat-sys-corner-full);
-  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
-  color: var(--mat-sys-primary);
-}
-
-.home-hero-icon mat-icon {
-  font-size: 1.375rem;
-  width: 1.375rem;
-  height: 1.375rem;
-}
-
-.home-hero-icon-dot {
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 50%;
-  background: var(--mat-sys-outline-variant);
 }
 
 .home-snackbar {
@@ -364,13 +336,32 @@
 @media (min-width: 600px) {
   .home-main {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* Kein gleich hohes Stretching der Karten: sonst wächst „Dabei sein“ mit
+       der Nachbar-Karte und erzeugt leeren Fläche durch flex:1 + margin:auto. */
+    align-items: start;
   }
   .home-hero,
   .home-hero-usp,
   .home-hero-usp--secondary,
-  .home-hero-preset-mobile,
-  .home-hero-icons {
+  .home-hero-preset-mobile {
     grid-column: 1 / -1;
+  }
+}
+
+/* Zwei Spalten: links „Dabei sein“ + „Veranstalten“ gestapelt, rechts Blitzlicht
+   über beide Zeilen – nutzt die Höhe, kein leeres Feld rechts unten. */
+@media (min-width: 600px) and (max-width: 959.98px) {
+  .home-card#participant-entry {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .home-card.home-card--feedback {
+    grid-column: 2;
+    grid-row: 3 / span 2;
+  }
+  .home-card.home-card--create {
+    grid-column: 1;
+    grid-row: 4;
   }
 }
 
@@ -379,6 +370,13 @@
     grid-template-columns: repeat(3, minmax(18rem, 24rem));
     justify-content: center;
     align-items: start;
+  }
+
+  .home-card#participant-entry,
+  .home-card.home-card--feedback,
+  .home-card.home-card--create {
+    grid-column: auto;
+    grid-row: auto;
   }
 }
 
@@ -395,11 +393,6 @@
 .home-card#participant-entry mat-card-content {
   display: flex;
   flex-direction: column;
-  flex: 1;
-}
-
-.home-code-entry {
-  margin-block: auto;
 }
 
 @media (max-width: 599px) {
@@ -550,6 +543,18 @@
   }
 }
 
+/* „Dabei sein“: eine MD3-Stufe kleiner als die übrigen Karten-Titel. */
+.home-card#participant-entry .home-card__title {
+  font: var(--mat-sys-headline-medium);
+}
+
+@media (min-width: 960px) {
+  .home-card#participant-entry .home-card__title {
+    font: var(--mat-sys-headline-small);
+    white-space: nowrap;
+  }
+}
+
 .home-card__header-with-action {
   display: flex;
   align-items: flex-start;
@@ -650,6 +655,10 @@ mat-card-actions.l-stack {
   border-radius: var(--mat-sys-corner-large);
   background: color-mix(in srgb, var(--mat-sys-surface-container-low) 72%, transparent);
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+}
+
+.home-sync-entry__hint {
+  margin-block-end: 0.15rem;
 }
 
 .home-sync-entry__label {
@@ -843,22 +852,15 @@ mat-card-actions.l-stack {
 
 .home-code-meta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 0.25rem;
+  justify-content: center;
+  margin-top: 0.35rem;
 }
 
-.home-code-counter {
-  font: var(--mat-sys-label-small);
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.home-code-help {
+.home-code-under-label {
   margin: 0;
-  margin-left: auto;
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface);
-  letter-spacing: 0.01em;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
 }
 
 @media (min-width: 600px) {
@@ -950,19 +952,6 @@ mat-card-actions.l-stack {
       transform-origin: center center;
       animation: home-playful-brand-pulse 2s ease-in-out infinite;
     }
-    .home-hero-icon {
-      transform-origin: center center;
-      animation: home-playful-hero-twinkle 2s ease-in-out infinite;
-    }
-    .home-hero-icon:nth-child(1) {
-      animation-delay: 0s;
-    }
-    .home-hero-icon:nth-child(3) {
-      animation-delay: 0.35s;
-    }
-    .home-hero-icon:nth-child(5) {
-      animation-delay: 0.7s;
-    }
   }
   .home-card__icon,
   .home-preset-icon--playful {
@@ -978,9 +967,6 @@ mat-card-actions.l-stack {
   }
   .home-card__icon {
     transform: scale(1.15);
-  }
-  .home-hero-icon {
-    background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
   }
   .home-code-segment {
     border-color: color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);

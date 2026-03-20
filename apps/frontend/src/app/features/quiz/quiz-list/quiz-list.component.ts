@@ -584,10 +584,10 @@ export class QuizListComponent implements OnInit {
     const formattedTimestamp = latestUpdatedAt ? this.formatSyncTimestamp(latestUpdatedAt) : null;
 
     if (!formattedTimestamp) {
-      return $localize`:@@quizList.syncImportedSuccess:Quiz-Bibliothek erfolgreich synchronisiert.`;
+      return $localize`:@@quizList.syncImportedSuccess:Quiz-Sammlung erfolgreich synchronisiert.`;
     }
 
-    return $localize`:@@quizList.syncImportedSuccessWithTimestamp:Quiz-Bibliothek erfolgreich synchronisiert. Neuester Stand vom ${formattedTimestamp}:timestamp:.`;
+    return $localize`:@@quizList.syncImportedSuccessWithTimestamp:Quiz-Sammlung erfolgreich synchronisiert. Neuester Stand vom ${formattedTimestamp}:timestamp:.`;
   }
 
   private formatSyncTimestamp(value: string): string | null {

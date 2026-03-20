@@ -1,8 +1,8 @@
 <mat-card appearance="outlined" class="quiz-sync-card">
   <mat-card-content class="quiz-sync__content">
-    <h2 class="quiz-sync__title" i18n="@@quizSync.title">Quiz-Bibliothek weitergeben</h2>
+    <h2 class="quiz-sync__title" i18n="@@quizSync.title">Quiz-Sammlung weitergeben</h2>
     <p class="quiz-sync__text" i18n="@@quizSync.intro">
-      Öffne deine Quiz-Bibliothek auf einem anderen Gerät oder teile sie mit Kolleginnen und Kollegen.
+      Öffne deine Quiz-Sammlung auf einem anderen Gerät oder teile sie mit Kolleginnen und Kollegen.
     </p>
     <p class="quiz-sync__text" i18n="@@quizSync.introSecondary">
       Nutze dafür einfach die Sync-ID oder den Sync-Link.
@@ -32,8 +32,12 @@
     </div>
     <details class="quiz-sync__details">
       <summary i18n="@@quizSync.more">Mehr anzeigen</summary>
-      <p class="quiz-sync__text" i18n>Sync-ID: <strong>{{ docId }}</strong></p>
-      <p class="quiz-sync__text" i18n>Sync-Link: <span class="quiz-sync__link">{{ syncLink() }}</span></p>
+      <p class="quiz-sync__text" i18n>
+        Sync-ID: <strong>{{ docId }}</strong>
+      </p>
+      <p class="quiz-sync__text" i18n>
+        Sync-Link: <span class="quiz-sync__link">{{ syncLink() }}</span>
+      </p>
     </details>
     <div class="quiz-sync__footer">
       @if (copyStatus()) {
@@ -42,9 +46,15 @@
       @if (syncError()) {
         <p class="quiz-sync__error" role="alert">{{ syncError() }}</p>
       }
-      <a mat-button class="quiz-sync__back" [routerLink]="localizedPath('/quiz')" i18n-aria-label="@@quizSync.backAria" aria-label="Zurück zur Quiz-Bibliothek">
+      <a
+        mat-button
+        class="quiz-sync__back"
+        [routerLink]="localizedPath('/quiz')"
+        i18n-aria-label="@@quizSync.backAria"
+        aria-label="Zurück zur Quiz-Sammlung"
+      >
         <mat-icon>arrow_back</mat-icon>
-        <span i18n="@@quizSync.back">Zurück zur Quiz-Bibliothek</span>
+        <span i18n="@@quizSync.back">Zurück zur Quiz-Sammlung</span>
       </a>
     </div>
   </mat-card-content>
