@@ -1,4 +1,6 @@
+import { DOCUMENT } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -425,6 +427,7 @@ export class LiveSessionDialogComponent {
   private readonly dialogRef = inject(
     MatDialogRef<LiveSessionDialogComponent, LiveSessionDialogResult | undefined>,
   );
+  private readonly document = inject(DOCUMENT);
 
   readonly enableQuiz = signal(this.data.quizCanStart);
   readonly enableQa = signal(true);
@@ -553,6 +556,9 @@ export class LiveSessionDialogComponent {
     if (!this.canStart()) {
       return;
     }
+
+    // Direkt an dieselbe User-Geste wie dieser Klick gekoppelt (nicht erst nach Navigation).
+    tryRequestDocumentFullscreen(this.document);
 
     this.dialogRef.close({
       startChannel: this.startChannel(),

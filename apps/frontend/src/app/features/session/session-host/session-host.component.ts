@@ -1,5 +1,10 @@
 import { DecimalPipe, DOCUMENT } from '@angular/common';
 import {
+  getDocumentFullscreenElement,
+  isDocumentFullscreenEnterAvailable,
+  tryRequestDocumentFullscreen,
+} from '../../../core/document-fullscreen.util';
+import {
   Component,
   ElementRef,
   HostListener,
@@ -308,22 +313,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.currentQuestionForHost() === null;
   });
   readonly isImmersiveMode = computed(() => this.hostDisplayMode.immersiveHostActive());
-  readonly isFullscreenSupported = computed(() => {
-    const doc = this.document as Document & {
-      fullscreenEnabled?: boolean;
-      webkitFullscreenEnabled?: boolean;
-    };
-    const root = this.document.documentElement as HTMLElement & {
-      requestFullscreen?: () => Promise<void> | void;
-      webkitRequestFullscreen?: () => Promise<void> | void;
-    };
-    return (
-      doc.fullscreenEnabled === true ||
-      doc.webkitFullscreenEnabled === true ||
-      typeof root.requestFullscreen === 'function' ||
-      typeof root.webkitRequestFullscreen === 'function'
-    );
-  });
+  readonly isFullscreenSupported = computed(() =>
+    isDocumentFullscreenEnterAvailable(this.document),
+  );
   readonly isFullscreenActive = signal(false);
   readonly musicPhases: ReadonlyArray<{ id: MusicPhase; label: string }> = [
     { id: 'lobby', label: $localize`:@@sessionHost.phaseLobbyShort:Lobby` },
@@ -812,10 +804,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private getFullscreenElement(): Element | null {
-    const doc = this.document as Document & {
-      webkitFullscreenElement?: Element | null;
-    };
-    return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+    return getDocumentFullscreenElement(this.document);
+  }
+
+  /**
+   * Lobby-Start: Vollbild **synchron** im Click-Stack auslösen, danach Session starten.
+   * Wichtig: kein `async` auf dieser Methode — sonst verliert Chrome/Safari oft die User-Activation.
+   */
+  onLobbyStartSessionClick(): void {
+    this.tryEnterHostFullscreenFromUserGesture();
+    void this.startSessionFlow();
+  }
+
+  /**
+   * Gleiche Ziel-Elemente wie `toggleFullscreen` (enter), aber ohne `async`,
+   * damit `requestFullscreen()` noch in derselben User-Geste wie der Klick liegt.
+   */
+  private tryEnterHostFullscreenFromUserGesture(): void {
+    tryRequestDocumentFullscreen(this.document, () => {
+      this.isFullscreenActive.set(this.getFullscreenElement() !== null);
+    });
   }
 
   /** Prüft, ob die Session noch läuft (nicht FINISHED und nicht null). */
