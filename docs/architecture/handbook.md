@@ -2,13 +2,13 @@
 
 # 🏛️ Architektur-Handbuch: arsnova.eu
 
-**Zuletzt aktualisiert:** 2026-03-16  
+**Zuletzt aktualisiert:** 2026-03-20  
 **Rolle:** Living Documentation (Documentation as Code)
 
 **Produktstatus (Stand 2026-03):**
 
 - Produktionsreif umgesetzt: Epics 0-5, 8 und 9.
-- Plattform: Epic 6 weitgehend umgesetzt, 6.5 (Abschlusspruefung Barrierefreiheit) offen.
+- Plattform: Epic 6 weitgehend umgesetzt; offen: **6.5** (Abschlussprüfung Barrierefreiheit / WCAG) und **6.6** (UX-Testreihen _Thinking Aloud_ inkl. Umsetzung der Befunde — siehe `Backlog.md`, Story 6.6, und `docs/EPIC6-AC-PRUEFUNG.md`).
 - Ebenfalls umgesetzt: Epic 7.1 Team-Modus.
 
 ## 1. Einleitung & Philosophie
@@ -75,6 +75,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 **Vertiefende Architektur-Dokumente:**
 
 - [Quiz-Bibliothek Synchronisierung](./quiz-library-sync.md)
+- [Epic 6: Akzeptanzkriterien & Prüfung](../EPIC6-AC-PRUEFUNG.md) (inkl. Story 6.6 — Thinking Aloud / UX-Umsetzung)
 
 ---
 

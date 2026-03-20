@@ -86,6 +86,7 @@
 | 6    | 6.3   | Impressum & Datenschutz                              | 🔴   | ✅ Fertig |
 | 6    | 6.4   | Mobile-First & Responsive                            | 🔴   | ✅ Fertig |
 | 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)               | 🔴   | ⬜ Offen  |
+| 6    | 6.6   | UX-Testreihen Thinking Aloud & Umsetzung             | 🟡   | ⬜ Offen  |
 | 7    | 7.1   | Team-Modus                                           | 🟢   | ✅ Fertig |
 | 8    | 8.1   | Q&A-Session starten                                  | 🟢   | ✅ Fertig |
 | 8    | 8.2   | Fragen einreichen                                    | 🟢   | ✅ Fertig |
@@ -98,7 +99,7 @@
 
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 26 · 🟡 Should: 39 · 🟢 Could: 14 = **79 Storys gesamt**
+> **Statistik:** 🔴 Must: 26 · 🟡 Should: 40 · 🟢 Could: 14 = **80 Storys gesamt**
 
 ---
 
@@ -934,7 +935,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobile-First und Barrierefreiheit**. Alle Stories zielen auf Nutzer:innen aller Rollen (Dozent, Student, Gast). Keine Abhängigkeit von Epic 5; kann parallel ab Epic 0 umgesetzt werden.
 
-**Stand:** Stories 6.1 (Theme), 6.2 (i18n inkl. Locale-Formatierung für Datum/Zahlen), 6.3 (Impressum/Datenschutz) und 6.4 (Mobile-First/PWA) sind umgesetzt; Akzeptanzkriterien geprüft (siehe `docs/EPIC6-AC-PRUEFUNG.md`). Story 6.5 bleibt als fortlaufender Qualitäts-Checkpoint (WCAG-Audit) über den Projektverlauf bestehen und blockiert den Epic-Abschluss nicht.
+**Stand:** Stories 6.1 (Theme), 6.2 (i18n inkl. Locale-Formatierung für Datum/Zahlen), 6.3 (Impressum/Datenschutz) und 6.4 (Mobile-First/PWA) sind umgesetzt; Akzeptanzkriterien geprüft (siehe `docs/EPIC6-AC-PRUEFUNG.md`). Story 6.5 bleibt als fortlaufender Qualitäts-Checkpoint (WCAG-Audit) über den Projektverlauf bestehen und blockiert den Epic-Abschluss nicht. Story 6.6 ergänzt **qualitative UX-Testreihen** (Thinking Aloud) und die **konkrete Umsetzung** der daraus abgeleiteten UI/UX-Anpassungen.
 
 - **Story 6.1 (Dark/Light/System-Theme):** 🟡 Als Nutzer möchte ich zwischen Dark Theme, Light Theme und System-Einstellung wählen können, damit die App meinen Sehgewohnheiten entspricht.
   - **Akzeptanzkriterien:**
@@ -989,6 +990,22 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Schriftgröße:** Text ist bis 200% Browser-Zoom ohne Layoutbruch lesbar.
     - **Reduzierte Bewegung:** Bei `prefers-reduced-motion: reduce` werden Animationen (Konfetti, Pulsen, Countdowns) deaktiviert oder stark reduziert.
     - **Zielstandard:** WCAG 2.1 Level AA für alle öffentlich zugänglichen Ansichten.
+
+- **Story 6.6 (UX-Testreihen nach „Thinking Aloud“ & Umsetzung der Befunde):** 🟡 Als Produktteam möchten wir die App in **strukturierten Nutzertestreihen** mit der Methode **Thinking Aloud** beobachten und die dabei gewonnenen **UI/UX-Erkenntnisse** priorisiert **in der Implementierung nachziehen**, damit reale Verständnis- und Bedienprobleme sichtbar werden und nicht nur intern vermutet werden.
+
+  **Methode „Thinking Aloud“ (Kurzbeschreibung für die Durchführung):**
+  - **Grundidee:** Testpersonen bearbeiten **realistische Aufgaben** (z. B. Session beitreten, abstimmen, Quiz anlegen) und **sprechen dabei laut** über das, was sie denken, erwarten, nicht verstehen oder sie irritiert. Es geht nicht um eine Bewertung der Person, sondern um **Sichtbarkeit des mentalen Modells** und von **Reibung** in der Oberfläche.
+  - **Ablauf:** Moderation mit **Aufgabenliste** (Tasks) und neutralen Nachfragen („Was erwarten Sie jetzt?“); keine Lösung vorgeben. Sitzungen werden **protokolliert** (Notizen; optional Aufzeichnung nur mit **Einwilligung** und DSGVO-konformer Vereinbarung).
+  - **Auswertung:** Beobachter bündeln Beobachtungen zu **Themen** (Wording, Informationsarchitektur, fehlendes Feedback, Touch-Ziele, …), bewerten **Dringlichkeit** und leiten **konkrete Änderungsvorschläge** ab (Must/Should/Could). Typischerweise **kleine Stichprobe** (formative UX-Qualität, kein Ersatz für großflächige quantitative Studien).
+  - **Abgrenzung:** Ergänzt, ersetzt nicht **Story 6.5** (systematische Barrierefreiheit/WCAG); beide können sich überschneiden (z. B. wenn Tester:innen auf Kontrast oder Fokus stoßen).
+
+  - **Akzeptanzkriterien:**
+    - Es liegt ein **schriftlicher Testplan** vor: Zielgruppe (mindestens Rollen **Dozent/Host** und **Teilnehmende**), **Geräte** (mindestens ein Smartphone-Viewport gemäß Mobile-First), **Kernflows** (z. B. Startseite → Session-Code, Join, typische Vote-/Host-Schritte, mindestens ein Quiz-Pfad), Aufgabenformulierung und Erfolgskriterien pro Task.
+    - Es wird mindestens **eine Testreihe** durchgeführt mit **mindestens drei** unterschiedlichen Testpersonen (oder gleichwertig dokumentierte mehrere Termine), Methode und Rahmen sind den Teilnehmenden vorher erklärt.
+    - Aus jeder Sitzung entsteht ein **kurzes Protokoll** (Problemstelle, Zitat oder Paraphrase, Schweregrad); daraus wird ein **Auswertungsdokument** mit **priorisierter Maßnahmenliste** (Umsetzungsempfehlungen inkl. betroffene Bereiche/Dateien wo möglich).
+    - Für **jede Maßnahme** aus der priorisierten Liste wird entschieden und nachverfolgt: **umgesetzt** (PR/Commit referenziert), **zurückgestellt** mit Begründung, oder **bewusst abgelehnt** mit Begründung — sodass keine „toten“ Befunde ohne Status bleiben.
+    - **Umsetzung:** Die als **Should/Must für die Reihe** markierten UX-Anpassungen werden **im Code umgesetzt** (Wording gemäß ADR-0008 in allen Locales, Layout/Interaktion gemäß ADR-0005/ADR-0014 wo betroffen); nachvollziehbar z. B. über Verweis von Maßnahmenliste auf PRs oder kurze Changelog-Notiz im Repo/`docs/`.
+    - Optional aber wünschenswert: **kurze Lessons Learned** (1 Seite) für künftige Testrunden.
 
 ---
 
