@@ -58,6 +58,124 @@
     </mat-card-content>
   </mat-card>
 } @else if (result(); as data) {
+  <ng-template #feedbackHostJoinActions>
+    <div class="feedback-host__actions">
+      @if (isDiscussion()) {
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="feedback-host__next-round-cta"
+          (click)="startSecondRound()"
+          i18n-aria-label
+          aria-label="Zweite Abstimmung starten"
+        >
+          <mat-icon>replay</mat-icon>
+          <span i18n>Zweite Abstimmung</span>
+        </button>
+      } @else if (!isRound2()) {
+        <button
+          mat-button
+          type="button"
+          (click)="toggleLock()"
+          [attr.aria-label]="lockToggleAriaLabel()"
+        >
+          <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
+          {{ lockToggleLabel() }}
+        </button>
+        @if (data.totalVotes > 0) {
+          <button
+            mat-button
+            type="button"
+            (click)="startDiscussion()"
+            i18n-aria-label="@@feedback.compareRoundStartAria"
+            aria-label="Vergleichsrunde starten"
+          >
+            <mat-icon>groups</mat-icon>
+            <span i18n="@@feedback.compareRoundLabel">Vergleichsrunde</span>
+          </button>
+        }
+      } @else {
+        <button
+          mat-button
+          type="button"
+          (click)="toggleLock()"
+          [attr.aria-label]="lockToggleAriaLabel()"
+        >
+          <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
+          {{ lockToggleLabel() }}
+        </button>
+      }
+      <button
+        mat-button
+        type="button"
+        (click)="copyLink()"
+        i18n-aria-label
+        aria-label="Beitrittslink kopieren"
+      >
+        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+        @if (copied()) {
+          <span i18n>Kopiert</span>
+        } @else {
+          <span i18n>Link kopieren</span>
+        }
+      </button>
+      <button
+        mat-button
+        type="button"
+        (click)="resetRound()"
+        [disabled]="resetting()"
+        i18n-aria-label
+        aria-label="Ergebnisse zurücksetzen"
+      >
+        <mat-icon>restart_alt</mat-icon>
+        <span i18n>Zurücksetzen</span>
+      </button>
+      <button
+        mat-button
+        type="button"
+        class="feedback-host__action-link feedback-host__end-session-link"
+        (click)="endSession()"
+      >
+        <mat-icon>stop_circle</mat-icon>
+        <span i18n>Session beenden</span>
+      </button>
+    </div>
+    <div class="feedback-host__template-switch">
+      @for (chip of presetChips; track chip.type) {
+        <button
+          mat-button
+          type="button"
+          class="feedback-host__template-action"
+          [class.feedback-host__template-action--active]="data.type === chip.type"
+          [disabled]="data.type === chip.type"
+          (click)="startRound(chip.type)"
+          [attr.aria-label]="chip.label"
+        >
+          <span class="feedback-host__template-icons" aria-hidden="true">
+            @for (icon of chip.icons; track icon) {
+              @if (icon.kind === 'mat') {
+                <mat-icon
+                  class="feedback-host__template-icon"
+                  [class.feedback-host__template-icon--positive]="icon.tone === 'positive'"
+                  [class.feedback-host__template-icon--negative]="icon.tone === 'negative'"
+                  [class.feedback-host__template-icon--neutral]="icon.tone === 'neutral'"
+                >
+                  {{ icon.value }}
+                </mat-icon>
+              } @else {
+                <span class="feedback-host__template-icon">{{ icon.value }}</span>
+              }
+            }
+          </span>
+          @if (chip.showLabel !== false) {
+            <span class="feedback-host__template-label">{{ chip.label }}</span>
+          }
+        </button>
+      }
+    </div>
+  </ng-template>
+
   <div
     class="feedback-host app-live-channel-shell"
     [class.feedback-host--embedded]="embeddedInSession()"
@@ -66,136 +184,74 @@
       <section
         class="feedback-host__join"
         [class.feedback-host__join--embedded]="embeddedInSession()"
+        [class.feedback-host__join--standalone-shell]="!embeddedInSession()"
       >
         @if (!embeddedInSession()) {
-          @if (qrDataUrl()) {
-            <img
-              [src]="qrDataUrl()"
-              i18n-alt
-              alt="QR-Code zum Beitreten"
-              class="feedback-host__qr app-qr-image"
-              width="320"
-              height="320"
-            />
-          }
-          <p class="feedback-host__code">{{ code() }}</p>
-          <p class="feedback-host__url">{{ joinUrl }}</p>
-        }
-        <div class="feedback-host__actions">
-          @if (isDiscussion()) {
-            <button
-              mat-flat-button
-              color="primary"
-              type="button"
-              class="feedback-host__next-round-cta"
-              (click)="startSecondRound()"
-              i18n-aria-label
-              aria-label="Zweite Abstimmung starten"
-            >
-              <mat-icon>replay</mat-icon>
-              <span i18n>Zweite Abstimmung</span>
-            </button>
-          } @else if (!isRound2()) {
-            <button
-              mat-button
-              type="button"
-              (click)="toggleLock()"
-              [attr.aria-label]="lockToggleAriaLabel()"
-            >
-              <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
-              {{ lockToggleLabel() }}
-            </button>
-            @if (data.totalVotes > 0) {
-              <button
-                mat-button
-                type="button"
-                (click)="startDiscussion()"
-                i18n-aria-label="@@feedback.compareRoundStartAria"
-                aria-label="Vergleichsrunde starten"
-              >
-                <mat-icon>groups</mat-icon>
-                <span i18n="@@feedback.compareRoundLabel">Vergleichsrunde</span>
-              </button>
-            }
-          } @else {
-            <button
-              mat-button
-              type="button"
-              (click)="toggleLock()"
-              [attr.aria-label]="lockToggleAriaLabel()"
-            >
-              <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
-              {{ lockToggleLabel() }}
-            </button>
-          }
-          <button
-            mat-button
-            type="button"
-            (click)="copyLink()"
-            i18n-aria-label
-            aria-label="Beitrittslink kopieren"
-          >
-            <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
-            @if (copied()) {
-              <span i18n>Kopiert</span>
-            } @else {
-              <span i18n>Link kopieren</span>
-            }
-          </button>
-          <button
-            mat-button
-            type="button"
-            (click)="resetRound()"
-            [disabled]="resetting()"
-            i18n-aria-label
-            aria-label="Ergebnisse zurücksetzen"
-          >
-            <mat-icon>restart_alt</mat-icon>
-            <span i18n>Zurücksetzen</span>
-          </button>
-          <button
-            mat-button
-            type="button"
-            class="feedback-host__action-link feedback-host__end-session-link"
-            (click)="endSession()"
-          >
-            <mat-icon>stop_circle</mat-icon>
-            <span i18n>Session beenden</span>
-          </button>
-        </div>
-        <div class="feedback-host__template-switch">
-          @for (chip of presetChips; track chip.type) {
-            <button
-              mat-button
-              type="button"
-              class="feedback-host__template-action"
-              [class.feedback-host__template-action--active]="data.type === chip.type"
-              [disabled]="data.type === chip.type"
-              (click)="startRound(chip.type)"
-              [attr.aria-label]="chip.label"
-            >
-              <span class="feedback-host__template-icons" aria-hidden="true">
-                @for (icon of chip.icons; track icon) {
-                  @if (icon.kind === 'mat') {
-                    <mat-icon
-                      class="feedback-host__template-icon"
-                      [class.feedback-host__template-icon--positive]="icon.tone === 'positive'"
-                      [class.feedback-host__template-icon--negative]="icon.tone === 'negative'"
-                      [class.feedback-host__template-icon--neutral]="icon.tone === 'neutral'"
+          <div class="feedback-host__join-panel">
+            <section class="feedback-host__standalone-live-banner">
+              <div class="feedback-host__standalone-live-main">
+                <div class="feedback-host__standalone-live-access">
+                  <button
+                    #feedbackJoinMenuTrigger="matMenuTrigger"
+                    mat-icon-button
+                    type="button"
+                    class="feedback-host__standalone-join-control"
+                    [matMenuTriggerFor]="feedbackJoinMenu"
+                    i18n-aria-label="@@sessionHost.joinControlAria"
+                    aria-label="Beitrittsinformationen öffnen"
+                  >
+                    <mat-icon aria-hidden="true">qr_code_2</mat-icon>
+                    <span class="feedback-host__standalone-join-label" i18n>Beitritt</span>
+                  </button>
+                  <div class="feedback-host__standalone-code-block">
+                    <p
+                      class="feedback-host__standalone-code"
+                      [attr.aria-label]="'Session-Code ' + code()"
                     >
-                      {{ icon.value }}
-                    </mat-icon>
-                  } @else {
-                    <span class="feedback-host__template-icon">{{ icon.value }}</span>
+                      {{ code() }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <mat-menu
+                #feedbackJoinMenu="matMenu"
+                xPosition="after"
+                yPosition="below"
+                [overlapTrigger]="false"
+                class="feedback-host__join-menu-overlay-panel"
+              >
+                <div class="feedback-host__join-menu-panel" (click)="$event.stopPropagation()">
+                  <div class="feedback-host__join-menu-head">
+                    <p class="feedback-host__join-menu-lead" i18n="@@sessionHost.joinMenuLead">
+                      Gehe auf
+                    </p>
+                    <p class="feedback-host__join-menu-origin">{{ joinOriginForMenu() }}</p>
+                  </div>
+                  @if (qrDataUrl()) {
+                    <div class="feedback-host__join-menu-qr-wrap">
+                      <img
+                        [src]="qrDataUrl()"
+                        alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                        class="feedback-host__join-menu-qr app-qr-image"
+                        width="320"
+                        height="320"
+                      />
+                    </div>
                   }
-                }
-              </span>
-              @if (chip.showLabel !== false) {
-                <span class="feedback-host__template-label">{{ chip.label }}</span>
-              }
-            </button>
-          }
-        </div>
+                  <p
+                    class="feedback-host__join-menu-origin feedback-host__join-menu-origin--code"
+                    [attr.aria-label]="'Session-Code ' + code()"
+                  >
+                    {{ code() }}
+                  </p>
+                </div>
+              </mat-menu>
+            </section>
+            <ng-container *ngTemplateOutlet="feedbackHostJoinActions" />
+          </div>
+        } @else {
+          <ng-container *ngTemplateOutlet="feedbackHostJoinActions" />
+        }
       </section>
 
       <section class="feedback-host__results">

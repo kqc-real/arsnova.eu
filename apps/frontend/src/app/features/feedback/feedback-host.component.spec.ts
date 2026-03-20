@@ -18,7 +18,9 @@ vi.mock('../../core/trpc.client', () => ({
       startSecondRound: { mutate: vi.fn() },
       reset: { mutate: vi.fn() },
       end: { mutate: vi.fn().mockResolvedValue({ ok: true }) },
-      create: { mutate: vi.fn().mockResolvedValue({ feedbackId: 'qf:ABC123', sessionCode: 'ABC123' }) },
+      create: {
+        mutate: vi.fn().mockResolvedValue({ feedbackId: 'qf:ABC123', sessionCode: 'ABC123' }),
+      },
       changeType: { mutate: vi.fn().mockResolvedValue({ ok: true }) },
     },
   },

@@ -444,8 +444,9 @@ html.dark .cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
   }
 }
 
-/* Session-Host: Beitritts-Menü (QR + Link) – Panel liegt im CDK-Overlay (xPosition after, y below) */
-.mat-mdc-menu-panel.session-host__join-menu-overlay-panel {
+/* Session-Host / Standalone-Blitzlicht-Host: Beitritts-Menü (QR) – CDK-Overlay */
+.mat-mdc-menu-panel.session-host__join-menu-overlay-panel,
+.mat-mdc-menu-panel.feedback-host__join-menu-overlay-panel {
   max-width: min(26rem, calc(100vw - 1.25rem));
   max-height: min(calc(100dvh - 1rem), 40rem) !important;
   min-width: 0;
@@ -465,7 +466,8 @@ html.dark .cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
     var(--mat-sys-surface-container-high);
 }
 
-.mat-mdc-menu-panel.session-host__join-menu-overlay-panel .mat-mdc-menu-content {
+.mat-mdc-menu-panel.session-host__join-menu-overlay-panel .mat-mdc-menu-content,
+.mat-mdc-menu-panel.feedback-host__join-menu-overlay-panel .mat-mdc-menu-content {
   padding: 0;
   max-height: inherit;
   box-sizing: border-box;
@@ -473,6 +475,13 @@ html.dark .cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background: transparent;
+}
+
+/* Standalone-Blitzlicht: QR-Menü horizontal zur Viewport-Mitte (nicht am Trigger ausrichten) */
+.cdk-overlay-pane:has(.mat-mdc-menu-panel.feedback-host__join-menu-overlay-panel) {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
 }
 
 // ---------------------------------------------------------------------------

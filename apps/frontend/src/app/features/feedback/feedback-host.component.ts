@@ -1,24 +1,53 @@
-import { Component, OnDestroy, OnInit, computed, effect, inject, input, signal } from '@angular/core';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import {
+  Component,
+  Injector,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { localizeCommands, localizePath } from '../../core/locale-router';
-import { feedbackDisplayIcon, feedbackDisplayLabel, feedbackOptions, feedbackTitle, QUICK_FEEDBACK_PRESET_CHIPS } from './feedback.config';
+import {
+  feedbackDisplayIcon,
+  feedbackDisplayLabel,
+  feedbackOptions,
+  feedbackTitle,
+  QUICK_FEEDBACK_PRESET_CHIPS,
+} from './feedback.config';
 import type { QuickFeedbackResult, QuickFeedbackType } from '@arsnova/shared-types';
 import type { Unsubscribable } from '@trpc/server/observable';
 
 @Component({
   selector: 'app-feedback-host',
   standalone: true,
-  imports: [MatCard, MatCardContent, MatButton, MatIcon],
+  imports: [
+    NgTemplateOutlet,
+    MatCard,
+    MatCardContent,
+    MatButton,
+    MatIconButton,
+    MatIcon,
+    MatMenu,
+    MatMenuTrigger,
+  ],
   templateUrl: './feedback-host.component.html',
   styleUrl: './feedback-host.component.scss',
   host: {
-    'class': 'feedback-host-shell',
+    class: 'feedback-host-shell',
     '[class.feedback-host-shell--embedded]': 'embeddedInSession()',
   },
 })
@@ -27,6 +56,10 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
   private readonly themePreset = inject(ThemePresetService);
+  private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
+  @ViewChild('feedbackJoinMenuTrigger', { read: MatMenuTrigger })
+  feedbackJoinMenuTrigger?: MatMenuTrigger;
   private subscription: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   readonly sessionCode = input('');
@@ -41,7 +74,12 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly copied = signal(false);
   readonly resetting = signal(false);
   readonly locked = signal(false);
-  readonly showEmbeddedEmptyState = computed(() => this.embeddedInSession() && this.result() === null);
+  private priorFeedbackHadResultForMenu = false;
+  private priorFeedbackQrReadyForMenu = false;
+  private suppressFeedbackJoinMenuAutopen = false;
+  readonly showEmbeddedEmptyState = computed(
+    () => this.embeddedInSession() && this.result() === null,
+  );
   readonly presetChips = QUICK_FEEDBACK_PRESET_CHIPS;
 
   constructor() {
@@ -50,12 +88,53 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       const preset = this.themePreset.preset();
       const code = this.code();
       if (code) {
-        trpc.quickFeedback.updateStyle.mutate({
-          sessionCode: code,
-          theme,
-          preset,
-        }).catch(() => {});
+        trpc.quickFeedback.updateStyle
+          .mutate({
+            sessionCode: code,
+            theme,
+            preset,
+          })
+          .catch(() => {});
       }
+    });
+
+    /** Wie Session-Host Lobby: Beitritts-Menü mit QR nach Laden einmal automatisch öffnen. */
+    effect(() => {
+      if (this.embeddedInSession()) {
+        return;
+      }
+      const hasResult = this.result() !== null;
+      const hasQr = this.qrDataUrl().length > 0;
+      const entered = hasResult && !this.priorFeedbackHadResultForMenu;
+      const qrReady = hasResult && hasQr && !this.priorFeedbackQrReadyForMenu;
+
+      if (entered || qrReady) {
+        afterNextRender(
+          () => {
+            if (
+              this.suppressFeedbackJoinMenuAutopen ||
+              !this.result() ||
+              this.embeddedInSession()
+            ) {
+              return;
+            }
+            queueMicrotask(() => {
+              if (this.suppressFeedbackJoinMenuAutopen) {
+                return;
+              }
+              try {
+                this.feedbackJoinMenuTrigger?.openMenu();
+              } catch {
+                /* Menü/Trigger ggf. noch nicht im DOM (Tests, schnelle Navigation) */
+              }
+            });
+          },
+          { injector: this.injector },
+        );
+      }
+
+      this.priorFeedbackHadResultForMenu = hasResult;
+      this.priorFeedbackQrReadyForMenu = hasQr;
     });
   }
 
@@ -63,6 +142,20 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     const base = globalThis.location?.origin ?? '';
     const code = this.code();
     return this.embeddedInSession() ? `${base}/join/${code}` : `${base}/feedback/${code}/vote`;
+  }
+
+  /** Hostname für Join-Menü („Gehe auf …“), analog Session-Host. */
+  joinOriginForMenu(): string {
+    const url = this.joinUrl;
+    try {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return new URL(url).host;
+      }
+    } catch {
+      /* ungültige URL */
+    }
+    const host = this.document.defaultView?.location?.host;
+    return typeof host === 'string' && host.length > 0 ? host : '';
   }
 
   async ngOnInit(): Promise<void> {
@@ -75,6 +168,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.suppressFeedbackJoinMenuAutopen = true;
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
@@ -113,7 +207,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     } catch {
       this.result.set(null);
       this.locked.set(false);
-      this.error.set(this.embeddedInSession() ? null : $localize`Feedback-Runde nicht gefunden oder abgelaufen.`);
+      this.error.set(
+        this.embeddedInSession() ? null : $localize`Feedback-Runde nicht gefunden oder abgelaufen.`,
+      );
     }
   }
 
@@ -370,11 +466,11 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
 
     return (
-      data.totalVotes > 0
-      || (data.round1Total ?? 0) > 0
-      || !!data.round1Distribution
-      || !!data.discussion
-      || (data.currentRound ?? 1) === 2
+      data.totalVotes > 0 ||
+      (data.round1Total ?? 0) > 0 ||
+      !!data.round1Distribution ||
+      !!data.discussion ||
+      (data.currentRound ?? 1) === 2
     );
   }
 
@@ -413,10 +509,12 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       entry.floor += 1;
       assigned += 1;
     }
-    return Object.fromEntries(raw.map((r) => {
-      const val = r.floor / 10;
-      return [r.key, val % 1 === 0 ? String(val) : val.toFixed(1).replace('.', ',')];
-    }));
+    return Object.fromEntries(
+      raw.map((r) => {
+        const val = r.floor / 10;
+        return [r.key, val % 1 === 0 ? String(val) : val.toFixed(1).replace('.', ',')];
+      }),
+    );
   });
 
   maxVotes(): number {
