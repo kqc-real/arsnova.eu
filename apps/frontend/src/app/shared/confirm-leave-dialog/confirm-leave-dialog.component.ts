@@ -5,6 +5,7 @@ import {
   MatDialogActions,
   MatDialogClose,
   MatDialogContent,
+  MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -15,6 +16,11 @@ export interface ConfirmLeaveDialogData {
   consequences: string[];
   confirmLabel: string;
   cancelLabel: string;
+  /**
+   * Synchron im Cancel-Klick (User-Geste), z. B. Vollbild wiederherstellen,
+   * bevor der Dialog schließt (afterClosed wäre oft zu spät für die Fullscreen-API).
+   */
+  onCancelUserGesture?: () => void;
 }
 
 @Component({
@@ -37,36 +43,46 @@ export interface ConfirmLeaveDialogData {
       }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button [mat-dialog-close]="false">{{ data.cancelLabel }}</button>
-      <button mat-flat-button color="warn" [mat-dialog-close]="true">{{ data.confirmLabel }}</button>
+      <button mat-button type="button" (click)="onCancel()">{{ data.cancelLabel }}</button>
+      <button mat-flat-button color="warn" [mat-dialog-close]="true">
+        {{ data.confirmLabel }}
+      </button>
     </mat-dialog-actions>
   `,
-  styles: [`
-    .confirm-leave__title {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+  styles: [
+    `
+      .confirm-leave__title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
 
-      mat-icon {
-        color: var(--mat-sys-error, #b3261e);
+        mat-icon {
+          color: var(--mat-sys-error, #b3261e);
+        }
       }
-    }
 
-    .confirm-leave__message {
-      font: var(--mat-sys-body-large);
-      color: var(--mat-sys-on-surface);
-      margin: 0 0 0.75rem;
-    }
+      .confirm-leave__message {
+        font: var(--mat-sys-body-large);
+        color: var(--mat-sys-on-surface);
+        margin: 0 0 0.75rem;
+      }
 
-    .confirm-leave__list {
-      margin: 0;
-      padding-left: 1.25rem;
-      font: var(--mat-sys-body-medium);
-      color: var(--mat-sys-on-surface-variant);
-      line-height: 1.7;
-    }
-  `],
+      .confirm-leave__list {
+        margin: 0;
+        padding-left: 1.25rem;
+        font: var(--mat-sys-body-medium);
+        color: var(--mat-sys-on-surface-variant);
+        line-height: 1.7;
+      }
+    `,
+  ],
 })
 export class ConfirmLeaveDialogComponent {
   readonly data = inject<ConfirmLeaveDialogData>(MAT_DIALOG_DATA);
+  private readonly dialogRef = inject(MatDialogRef<ConfirmLeaveDialogComponent, boolean>);
+
+  onCancel(): void {
+    this.data.onCancelUserGesture?.();
+    this.dialogRef.close(false);
+  }
 }

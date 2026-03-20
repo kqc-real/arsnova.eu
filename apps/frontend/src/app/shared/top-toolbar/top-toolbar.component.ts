@@ -1,5 +1,6 @@
 import { Component, Input, PLATFORM_ID, inject, signal } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { tryExitDocumentFullscreen } from '../../core/document-fullscreen.util';
 import { Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -43,14 +44,14 @@ export class TopToolbarComponent {
   readonly localizedPath = localizePath;
   readonly themePreset = inject(ThemePresetService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly document = inject(DOCUMENT);
   private readonly focusService = inject(PresetSnackbarFocusService);
   private readonly router = inject(Router);
   private readonly localeGuard = inject(LocaleSwitchGuardService);
   private readonly dialog = inject(MatDialog);
-  readonly showHomeLink = toSignal(
-    this.router.events.pipe(map(() => this.router.url !== '/')),
-    { initialValue: false },
-  );
+  readonly showHomeLink = toSignal(this.router.events.pipe(map(() => this.router.url !== '/')), {
+    initialValue: false,
+  });
 
   readonly supportedLanguages = [
     { code: 'de' as const, label: 'Deutsch' },
@@ -106,7 +107,8 @@ export class TopToolbarComponent {
         window.location.href = newPath + window.location.search + window.location.hash;
       } else {
         const rest = pathname === '/' ? '' : pathname;
-        window.location.href = `/${code}${rest || '/'}` + window.location.search + window.location.hash;
+        window.location.href =
+          `/${code}${rest || '/'}` + window.location.search + window.location.hash;
       }
     };
 
@@ -148,5 +150,13 @@ export class TopToolbarComponent {
 
   closeControlsMenu(): void {
     this.controlsMenuOpen.set(false);
+  }
+
+  /** Logo/Brand: Vollbild verlassen (z. B. Host-Ansicht), Navigation bleibt über routerLink. */
+  onBrandLinkClick(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    tryExitDocumentFullscreen(this.document);
   }
 }

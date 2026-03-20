@@ -78,3 +78,43 @@ export function tryRequestDocumentFullscreen(doc: Document, onSettled?: () => vo
     sync();
   }
 }
+
+/** Vollbild verlassen, falls aktiv (kein User-Gesture nötig). */
+export function tryExitDocumentFullscreen(doc: Document, onSettled?: () => void): void {
+  if (!getDocumentFullscreenElement(doc)) {
+    onSettled?.();
+    return;
+  }
+
+  const d = doc as Document & {
+    webkitExitFullscreen?: () => Promise<void> | void;
+    msExitFullscreen?: () => Promise<void> | void;
+  };
+
+  let pending: Promise<void> | void;
+  try {
+    if (typeof doc.exitFullscreen === 'function') {
+      pending = doc.exitFullscreen();
+    } else if (typeof d.webkitExitFullscreen === 'function') {
+      pending = d.webkitExitFullscreen();
+    } else if (typeof d.msExitFullscreen === 'function') {
+      pending = d.msExitFullscreen();
+    } else {
+      onSettled?.();
+      return;
+    }
+  } catch {
+    onSettled?.();
+    return;
+  }
+
+  const sync = (): void => {
+    onSettled?.();
+  };
+
+  if (pending && typeof (pending as Promise<void>).then === 'function') {
+    void (pending as Promise<void>).then(sync, sync);
+  } else {
+    sync();
+  }
+}

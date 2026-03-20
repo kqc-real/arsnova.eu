@@ -2,6 +2,7 @@ import { DecimalPipe, DOCUMENT } from '@angular/common';
 import {
   getDocumentFullscreenElement,
   isDocumentFullscreenEnterAvailable,
+  tryExitDocumentFullscreen,
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
 import {
@@ -586,6 +587,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.priorLobbyForAutoJoinMenu = inLobby;
       this.priorQrReadyForJoinMenu = hasQr;
     });
+    /** Nach Session-Ende automatisch Vollbild beenden (z. B. nach „Veranstaltung starten“). */
+    effect(() => {
+      if (this.effectiveStatus() !== 'FINISHED') {
+        return;
+      }
+      tryExitDocumentFullscreen(this.document, () => {
+        this.isFullscreenActive.set(this.getFullscreenElement() !== null);
+      });
+    });
   }
 
   getColor(index: number): string {
@@ -862,6 +872,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         consequences,
         confirmLabel: $localize`Trotzdem verlassen`,
         cancelLabel: $localize`Zurück zur Session`,
+        onCancelUserGesture: () => this.tryEnterHostFullscreenFromUserGesture(),
       } satisfies ConfirmLeaveDialogData,
       width: '26rem',
       autoFocus: 'dialog',
