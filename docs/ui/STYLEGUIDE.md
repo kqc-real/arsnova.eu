@@ -176,6 +176,17 @@ Tokenbasierte Card-Flaeche:
 - **Wow-Effekt (nur bei prefers-reduced-motion: no-preference):** Brand-Icon dezentes „Atmen“ (Scale 1 → 1.05 → 1, 2.5 s).
 - Alle Werte tokenbasiert in `styles.scss` (html.preset-playful) und Home-Komponente.
 
+### Innere Ansichten (Preset Spielerisch, schrittweise)
+
+- **Welle 1** (`src/styles/playful-inner-chrome.scss`, per `@import` in `styles.scss`): **Quiz-Sammlung** (`.quiz-list-page`) – **Willkommen**-Leerbereich (`.quiz-empty-state--lead`), **Quiz-Karten** (`.quiz-list-item`), **KI-Import-Karte** (`.quiz-list__ai-card`); **Join** (`.join-page`) – **Session-Karten** ohne Fehlerzustand (`mat-card.join-card:not(.join-card--error)`), **Session-Info** in der Lobby (`.join-card--lobby .join-card__session`) als kompaktes Spotlight-innenaehnlich zu Home. **Fehler-Karte** Join bleibt sachlich ohne diese Fläche.
+- **Welle 2:** **Neues Quiz** (`mat-card.quiz-form-card`) und **Quiz bearbeiten** (`.quiz-edit`: `.quiz-edit__meta-card`, `.quiz-edit__settings-card`, `.quiz-edit__form-card`, `.quiz-edit-list__empty-card`, `.quiz-edit-question`, `.quiz-edit__not-found`) mit gemeinsamem Mixin **„primary“** (wie Listen-Karten); **verschachtelte** Karten (**Einstellungen** in Neu-Quiz, **Live-Vorschau** in Bearbeiten) mit schwächerem Mixin **„nested“** (weniger Schatten, kein `--app-shadow-card-playful`).
+- **Welle 3:** **Quiz-Vorschau** – Leer-Karte, Editor-Karte, Validierungs-Karte (`mat-card`), Folien-Fläche **`.quiz-preview-question`** (Rand + Schatten/Bühnen-Glow); **Quiz-Sync** (`mat-card.quiz-sync-card`) mit **primary**-Mixin.
+- **Welle 4:** **Session Vote** – **`.vote-live-banner`**, **Bonus-** und **Feedback-Karten** mit Panel-Mixin **`app-playful-inner-panel-channel`**; **„seriöse“** Feedback-Karte im UI-Preset Spielerisch mit **nested**; **Lobby-Warteblock** (`.vote-lobby__wait`), **Lese-Banner**, **Team-Belohnung**, **Abschluss-Hero**, **Feedback-erledigt** und **Channel-Tabs** mit Primary-Tint / Zusatzschatten; Medaillen-Varianten des Heroes behalten ihre Farben, erhalten zusätzlich **`--app-shadow-card-playful`**.
+- **Welle 5:** **Session Present** – Sieger-, Team-Board-, Q&amp;A-, Feedback-**`mat-card`** mit **primary**; **Word-Cloud**-Sektion als Panel; **`session-placeholder`** mit **nested**. **Session Host** – Frage-/Ergebnis-/Q&amp;A-Karten und **`session-channel-card`** mit **nested** (ruhiger als Present); Placeholder wie Present.
+- **Welle 6:** **Blitzlicht** – eingebettete/Standalone **`session-channel-card`** mit **nested**, **`feedback-host__error`** mit **muted**-Panel; **Teilnehmer-Blitzlicht** (`mat-card.feedback-vote__card`) **primary**; **Hilfe** und **Legal** – **`.legal-article`** im Seiten-Root mit dezentem Bühnen-Hintergrund und Rand; **Admin** (`mat-card.admin-card`) **primary**.
+- **Seriös:** keine Regeln aus dieser Datei (Selektoren nur unter `html.preset-playful`).
+- **Erweiterung:** Weitere Routen über dieselbe Datei oder thematische Partials anbinden; dicht belegte Host-Ansichten nur dezent tinten.
+
 ## Startseite: Buttons, Snackbar und Toast
 
 - **Button-Hierarchie:** Auf der Veranstalten-Karte erscheint der gefuellte CTA **„Letztes Quiz starten“** nur, wenn mindestens ein **eigenes** Quiz existiert (Demo zaehlt nicht); sonst fuehrt der Einstieg ueber **„Deine Quiz-Sammlung“** (tonal, inkl. „Neues Quiz erstellen“). Hilfe als Text-Button ohne Umrandung.

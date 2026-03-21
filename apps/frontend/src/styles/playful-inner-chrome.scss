@@ -1,0 +1,377 @@
+// ---------------------------------------------------------------------------
+// Preset Spielerisch – innere Ansichten (Wellen 1–6)
+// Bühnen-Sprache wie Startseiten-Nebenbühnen; nur html.preset-playful.
+// ---------------------------------------------------------------------------
+
+@mixin app-playful-inner-card-primary {
+  isolation: isolate;
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 44%, var(--mat-sys-primary) 30%);
+  background:
+    radial-gradient(
+      ellipse 96% 66% at 100% 4%,
+      color-mix(in srgb, var(--mat-sys-primary) 16%, transparent),
+      transparent 56%
+    ),
+    radial-gradient(
+      ellipse 84% 54% at 2% 96%,
+      color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent),
+      transparent 50%
+    ),
+    linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 30%, var(--mat-sys-surface)) 0%,
+      color-mix(in srgb, var(--mat-sys-surface-container-high) 86%, var(--mat-sys-primary) 7%) 47%,
+      color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-tertiary) 8%) 100%
+    );
+  box-shadow:
+    var(--mat-sys-level2),
+    var(--app-shadow-card-playful),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 7%, transparent);
+}
+
+@mixin app-playful-inner-card-nested {
+  isolation: isolate;
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 52%, var(--mat-sys-primary) 24%);
+  background: linear-gradient(
+    168deg,
+    color-mix(in srgb, var(--mat-sys-primary-container) 22%, var(--mat-sys-surface)) 0%,
+    color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, var(--mat-sys-tertiary) 6%) 100%
+  );
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+}
+
+// Große Flächen ohne mat-card (Live-Banner, Vote-Panels) – volle Bühnen-Sprache
+@mixin app-playful-inner-panel-channel {
+  isolation: isolate;
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 40%, var(--mat-sys-primary) 34%);
+  background:
+    radial-gradient(
+      ellipse 98% 64% at 96% 6%,
+      color-mix(in srgb, var(--mat-sys-primary) 16%, transparent),
+      transparent 54%
+    ),
+    radial-gradient(
+      ellipse 80% 52% at 4% 94%,
+      color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent),
+      transparent 48%
+    ),
+    linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 30%, var(--mat-sys-surface)) 0%,
+      color-mix(in srgb, var(--mat-sys-surface-container-high) 88%, var(--mat-sys-primary) 7%) 50%,
+      color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-tertiary) 8%) 100%
+    );
+  box-shadow:
+    var(--mat-sys-level2),
+    var(--app-shadow-card-playful),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 7%, transparent);
+}
+
+// Abgeschwächtes Panel (Fehlerzustände, Host-Steuerung)
+@mixin app-playful-inner-panel-muted {
+  isolation: isolate;
+  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 55%, var(--mat-sys-primary) 18%);
+  background: linear-gradient(
+    168deg,
+    color-mix(in srgb, var(--mat-sys-primary-container) 14%, var(--mat-sys-surface)) 0%,
+    color-mix(in srgb, var(--mat-sys-surface-container-high) 95%, var(--mat-sys-tertiary) 5%) 100%
+  );
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 5%, transparent);
+}
+
+html.preset-playful {
+  .quiz-list-page > .quiz-empty-state--lead {
+    border-radius: var(--mat-sys-corner-extra-large);
+    border: 1px solid
+      color-mix(in srgb, var(--mat-sys-outline-variant) 48%, var(--mat-sys-primary) 28%);
+    background:
+      radial-gradient(
+        ellipse 92% 70% at 88% 8%,
+        color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
+        transparent 55%
+      ),
+      linear-gradient(
+        168deg,
+        color-mix(in srgb, var(--mat-sys-primary-container) 30%, var(--mat-sys-surface)) 0%,
+        color-mix(in srgb, var(--mat-sys-surface-container-high) 90%, var(--mat-sys-tertiary) 8%)
+          100%
+      );
+    box-shadow:
+      var(--mat-sys-level1),
+      0 6px 22px -10px color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+  }
+
+  .quiz-list-page mat-card.quiz-list-item,
+  .quiz-list-page mat-card.quiz-list__ai-card {
+    @include app-playful-inner-card-primary;
+  }
+
+  mat-card.quiz-form-card,
+  .quiz-edit mat-card.quiz-edit__meta-card,
+  .quiz-edit mat-card.quiz-edit__settings-card,
+  .quiz-edit mat-card.quiz-edit__form-card,
+  .quiz-edit mat-card.quiz-edit-list__empty-card,
+  .quiz-edit mat-card.quiz-edit-question,
+  mat-card.quiz-edit__not-found {
+    @include app-playful-inner-card-primary;
+  }
+
+  mat-card.quiz-form-card mat-card,
+  .quiz-edit mat-card.quiz-edit__form-card mat-card.quiz-edit-form__preview {
+    @include app-playful-inner-card-nested;
+  }
+
+  .join-page mat-card.join-card:not(.join-card--error) {
+    isolation: isolate;
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 42%,
+      var(--mat-sys-primary) 32%
+    );
+    background:
+      radial-gradient(
+        ellipse 98% 64% at 96% 6%,
+        color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
+        transparent 54%
+      ),
+      radial-gradient(
+        ellipse 80% 52% at 4% 94%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent),
+        transparent 48%
+      ),
+      linear-gradient(
+        168deg,
+        color-mix(in srgb, var(--mat-sys-primary-container) 34%, var(--mat-sys-surface)) 0%,
+        color-mix(in srgb, var(--mat-sys-surface-container-high) 84%, var(--mat-sys-primary) 8%) 50%,
+        color-mix(in srgb, var(--mat-sys-surface) 90%, var(--mat-sys-tertiary) 10%) 100%
+      );
+    box-shadow:
+      var(--mat-sys-level2),
+      var(--app-shadow-card-playful),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  }
+
+  .join-page .join-card--lobby .join-card__session {
+    border-bottom: none;
+    margin-bottom: 1.35rem;
+    padding: 1rem 1.15rem 1.1rem;
+    border-radius: var(--mat-sys-corner-large);
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-surface) 78%,
+      var(--mat-sys-primary-container) 22%
+    );
+    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent),
+      0 1px 0 color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+  }
+
+  // --- Welle 3: Quiz-Vorschau, Sync ---
+  .quiz-preview mat-card.quiz-preview__empty-card,
+  .quiz-preview mat-card.quiz-preview-editor,
+  .quiz-preview mat-card.quiz-preview__validation {
+    @include app-playful-inner-card-primary;
+  }
+
+  .quiz-preview .quiz-preview-question {
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 42%,
+      var(--mat-sys-primary) 32%
+    );
+    box-shadow:
+      var(--mat-sys-level2),
+      var(--app-shadow-card-playful),
+      0 20px 44px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 7%, transparent);
+  }
+
+  mat-card.quiz-sync-card {
+    @include app-playful-inner-card-primary;
+  }
+
+  // --- Welle 4: Session Vote (Flächen) ---
+  .vote-page .vote-live-banner {
+    @include app-playful-inner-panel-channel;
+  }
+
+  .vote-page .vote-lobby__wait {
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 50%,
+      var(--mat-sys-primary) 26%
+    );
+    background: linear-gradient(
+      168deg,
+      color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 20%,
+          var(--mat-sys-surface-container-high)
+        )
+        0%,
+      color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, var(--mat-sys-tertiary) 8%) 100%
+    );
+    box-shadow:
+      var(--mat-sys-level1),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+  }
+
+  .vote-page .vote-reading-banner {
+    box-shadow:
+      var(--mat-sys-level2),
+      var(--app-shadow-card-playful),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  }
+
+  .vote-page .vote-team-reward {
+    box-shadow:
+      0 0.9rem 1.8rem color-mix(in srgb, black 8%, transparent),
+      var(--app-shadow-card-playful),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+
+    &.vote-team-reward--leader {
+      box-shadow:
+        0 1rem 2rem color-mix(in srgb, #ffd700 12%, transparent),
+        var(--app-shadow-card-playful),
+        inset 0 0 0 1px color-mix(in srgb, #ffd700 22%, transparent);
+    }
+  }
+
+  .vote-page .vote-finished-hero {
+    box-shadow:
+      0 1rem 2rem color-mix(in srgb, black 8%, transparent),
+      var(--app-shadow-card-playful),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+
+    &.vote-finished-hero--rank1 {
+      box-shadow:
+        0 1.2rem 2.4rem color-mix(in srgb, #ffd700 14%, transparent),
+        var(--app-shadow-card-playful),
+        inset 0 0 0 1px color-mix(in srgb, #ffd700 30%, transparent);
+    }
+
+    &.vote-finished-hero--rank2 {
+      box-shadow:
+        0 1rem 2rem color-mix(in srgb, black 7%, transparent),
+        var(--app-shadow-card-playful),
+        inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-outline) 25%, transparent);
+    }
+
+    &.vote-finished-hero--rank3 {
+      box-shadow:
+        0 1rem 2rem color-mix(in srgb, black 7%, transparent),
+        var(--app-shadow-card-playful),
+        inset 0 0 0 1px color-mix(in srgb, #cd7f32 35%, transparent);
+    }
+  }
+
+  .vote-page .vote-bonus-card {
+    @include app-playful-inner-panel-channel;
+  }
+
+  .vote-page .vote-feedback-card--playful {
+    border: 1px solid
+      color-mix(in srgb, var(--mat-sys-outline-variant) 40%, var(--mat-sys-primary) 32%);
+    @include app-playful-inner-panel-channel;
+  }
+
+  .vote-page .vote-feedback-card--serious {
+    border: 1px solid
+      color-mix(in srgb, var(--mat-sys-outline-variant) 52%, var(--mat-sys-primary) 22%);
+    @include app-playful-inner-card-nested;
+  }
+
+  .vote-page .vote-feedback-done {
+    box-shadow:
+      0 0.85rem 1.6rem color-mix(in srgb, black 7%, transparent),
+      var(--app-shadow-card-playful),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  }
+
+  .vote-page .session-channel-tabs {
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 48%,
+      var(--mat-sys-primary) 28%
+    );
+    background: linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 18%, var(--mat-sys-surface-container-low))
+        0%,
+      color-mix(in srgb, var(--mat-sys-surface-container-low) 94%, var(--mat-sys-tertiary) 6%) 100%
+    );
+    box-shadow:
+      var(--mat-sys-level1),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+  }
+
+  // --- Welle 5: Present / Host ---
+  .session-present mat-card.session-present__winner-card,
+  .session-present mat-card.session-present__team-board-card,
+  .session-present mat-card.session-present__qa-card,
+  .session-present mat-card.session-present__qa-list-card,
+  .session-present mat-card.session-present__feedback-card {
+    @include app-playful-inner-card-primary;
+  }
+
+  .session-present mat-card.session-placeholder,
+  .session-host mat-card.session-placeholder {
+    @include app-playful-inner-card-nested;
+  }
+
+  .session-present .session-present__word-cloud-card {
+    @include app-playful-inner-panel-channel;
+  }
+
+  .session-host mat-card.session-host__qa-card,
+  .session-host mat-card.session-host__question-card,
+  .session-host mat-card.session-host__results-card {
+    @include app-playful-inner-card-nested;
+  }
+
+  // --- Welle 6: Feedback (Standalone / eingebettet), Help, Legal, Admin ---
+  mat-card.session-channel-card.app-live-channel-shell {
+    @include app-playful-inner-card-nested;
+  }
+
+  mat-card.feedback-host__error {
+    @include app-playful-inner-panel-muted;
+  }
+
+  mat-card.feedback-vote__card {
+    @include app-playful-inner-card-primary;
+  }
+
+  .help-page .legal-article,
+  .legal-page .legal-article {
+    padding: clamp(1.15rem, 3vw, 1.75rem);
+    border-radius: var(--mat-sys-corner-extra-large);
+    border: 1px solid
+      color-mix(in srgb, var(--mat-sys-outline-variant) 46%, var(--mat-sys-primary) 28%);
+    background:
+      radial-gradient(
+        ellipse 100% 70% at 100% 0%,
+        color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
+        transparent 55%
+      ),
+      linear-gradient(
+        168deg,
+        color-mix(in srgb, var(--mat-sys-primary-container) 22%, var(--mat-sys-surface)) 0%,
+        color-mix(in srgb, var(--mat-sys-surface-container-low) 95%, var(--mat-sys-tertiary) 5%)
+          100%
+      );
+    box-shadow:
+      var(--mat-sys-level1),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+  }
+
+  mat-card.admin-card {
+    @include app-playful-inner-card-primary;
+  }
+}
