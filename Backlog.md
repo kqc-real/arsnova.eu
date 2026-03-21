@@ -219,7 +219,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Freitext-Eingaben mit Live-Auswertung / Word-Cloud
       - Q&A-Fragen einreichen und moderieren
       - Reconnect-Szenarien bei unterbrochener WebSocket-Verbindung
-      - optional Sync-Szenarien fuer Quiz-Bibliothek auf mehreren Clients
+      - optional Sync-Szenarien fuer Quiz-Sammlung auf mehreren Clients
     - Es gibt definierte Laststufen, z. B. klein, mittel und hoch, die mit festen Profilen wiederholbar gestartet werden koennen.
     - Fuer jede Laststufe werden zentrale Metriken erfasst, mindestens:
       - Zeit bis Join erfolgreich abgeschlossen ist
@@ -318,17 +318,17 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Beim Öffnen eines Sync-Links auf dem anderen Client werden diese Einstellungen übernommen (Preset-Anzeige, Optionen-Chips); bei Konflikt gewinnt „last write“ oder CRDT-Merge (z. B. einzelne Optionen als Y-Map).
     - Ohne aktiven Sync bleibt das bisherige Verhalten (nur localStorage); mit Sync werden Änderungen an Preset/Optionen ins Yjs-Dokument geschrieben und so auf andere Clients übertragen.
     - Abhängig von Story 1.6 bzw. 1.6a (Sync-Link/Key muss vorhanden sein).
-- **Story 1.6c (Sync-Sicherheit härten):** 🔴 Als Dozent möchte ich, dass geteilte Quiz-Bibliotheken sicherer geöffnet werden können, damit ein versehentlich weitergegebener oder missverstandener Sync-Zugang nicht stillschweigend Vollzugriff gewährt.
+- **Story 1.6c (Sync-Sicherheit härten):** 🔴 Als Dozent möchte ich, dass geteilte Quiz-Sammlungen sicherer geöffnet werden können, damit ein versehentlich weitergegebener oder missverstandener Sync-Zugang nicht stillschweigend Vollzugriff gewährt.
   - **Akzeptanzkriterien:**
     - Die UI erklärt klar, dass der **Sync-Link** der eigentliche Zugriffsschlüssel ist.
     - Die aktuell verkürzte Anzeige der **Sync-ID** wird fachlich bereinigt: entweder nur noch als Anzeigehilfe oder durch einen echten, technisch auflösbaren Kurzcode ersetzt.
     - Für Sync-Raum-Zugriffe existiert ein Schutzkonzept gegen Missbrauch (mindestens Rate-Limit oder gleichwertige Begrenzung auf Relay-/Proxy-Ebene).
     - Ein Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** ist konzipiert und dokumentiert.
     - Herkunfts- und Geräteangaben werden im UI und in der Doku ausdrücklich als **Vertrauenssignale**, nicht als manipulationssichere Sicherheitsnachweise beschrieben.
-- **Story 1.6d (Sync-Performance & Skalierung optimieren):** 🟡 Als Dozent möchte ich, dass die Synchronisierung meiner Quiz-Bibliothek auch bei größeren Bibliotheken und mehreren Geräten flüssig bleibt, damit Bearbeitung und Gerätewechsel nicht durch spürbare Verzögerungen ausgebremst werden.
+- **Story 1.6d (Sync-Performance & Skalierung optimieren):** 🟡 Als Dozent möchte ich, dass die Synchronisierung meiner Quiz-Sammlung auch bei größeren Sammlungen und mehreren Geräten flüssig bleibt, damit Bearbeitung und Gerätewechsel nicht durch spürbare Verzögerungen ausgebremst werden.
   - **Akzeptanzkriterien:**
     - Kurzfristige Optimierungen reduzieren unnötige Vollserialisierung und bündeln lokale Persistenzvorgänge.
-    - Für größere Bibliotheken werden Messpunkte dokumentiert oder implementiert (z. B. Snapshot-Größe, Dauer von Mirror-/Yjs-Writes, Anzahl von Writes pro Aktion).
+    - Für größere Sammlungen werden Messpunkte dokumentiert oder implementiert (z. B. Snapshot-Größe, Dauer von Mirror-/Yjs-Writes, Anzahl von Writes pro Aktion).
     - Der Legacy-Mirror in `localStorage` ist auf seine Notwendigkeit geprüft und kann perspektivisch reduziert oder entfernt werden.
     - Ein technischer Zielpfad für eine granularere Yjs-Modellierung (`Y.Map`/`Y.Array` statt JSON-Blob) ist dokumentiert.
     - Die Architektur-Dokumentation benennt klar, welche Quick Wins bereits umgesetzt sind und welche Skalierungsmaßnahmen noch offen bleiben.
@@ -376,7 +376,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Der Import erfolgt rein clientseitig (kein Server-Roundtrip).
 - **Story 1.9a (KI-gestützter Quiz-Import mit Zod-Validierung):** 🟡 Als Dozent möchte ich die vom LLM generierte Quiz-JSON (aus dem Workflow von Story 1.9b) in arsnova.eu importieren können, wobei strikte Zod-Validierung sicherstellt, dass fehlerhafte oder halluzinierte KI-Antworten die App nicht zum Absturz bringen.
   - **Akzeptanzkriterien:**
-    - **Import-UI:** Es gibt einen Dialog **„KI-JSON importieren“**, in den der Dozent die Antwort des LLMs per Copy & Paste einfügen oder als `.json`-Datei hochladen kann. Ein Zugang zu diesem Dialog ist dort vorhanden, wo auch der KI-Prompt angeboten wird (Story 1.9b).
+    - **Import-UI:** In der **Quiz-Sammlung** (`/quiz`) gibt es den aufklappbaren Bereich **„Mit unserem Prompt zum fertigen Quiz“**, in den der Dozent die LLM-Antwort per **Copy & Paste** einfügt (inkl. tolerantem Parsing von Markdown-Codeblock `json` bzw. eingebettetem JSON). Der allgemeine **Importieren**-Button daneben dient dem Datei-Import exportierter JSON (Story 1.9) und kann auch für vom LLM gespeicherte `.json`-Dateien genutzt werden.
     - **Strikte Zod-Validierung (Kern-Kriterium):**
       - Das eingefügte JSON wird **nicht** blind mit `JSON.parse()` als `any` in den State übernommen.
       - Es muss durch ein definiertes Zod-Schema (z. B. `quizImportSchema` aus `libs/shared-types/src/schemas.ts`) laufen (mittels `schema.safeParse()`).
@@ -384,13 +384,13 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Fehlerbehandlung (Graceful Degradation):** Wenn die KI das Format verfehlt hat (Zod wirft einen Fehler), stürzt die App nicht ab. Stattdessen liest das Frontend den `ZodError` aus und zeigt dem Dozenten eine verständliche Fehlermeldung an (z. B. „Fehler im Import: Bei Frage 2 fehlt das Feld ‚isCorrect‘“).
     - **Yjs-Integration:** Nur wenn `safeParse().success` wahr ist, wird das typsichere Objekt in ein lokales Yjs-CRDT-Dokument transformiert, in der IndexedDB gespeichert und dem Dashboard des Dozenten hinzugefügt.
   - **Abhängigkeiten:** Story 1.9 (Quiz importieren, gleiches Import-Schema/Wiederverwendung), Story 1.5 (Local-First/Yjs). Das Zod-Schema für den KI-Import kann das gleiche wie für den regulären Import sein oder eine explizite Variante `quizImportSchema` in `libs/shared-types`.
-- **Story 1.9b (KI-Systemprompt – kontextbasiert, schema-getreu):** 🟡 Als Dozent möchte ich einen KI-Systemprompt an der **Stelle in der UI kopieren** können, an der ich bereits meine **Vorgaben** (Preset, Zielgruppe/Nickname-Auswahl, Schwierigkeitsgrad, ggf. weitere Optionen) durchgeklickt habe, damit das LLM ein schema-konformes Quiz genau nach meinen Einstellungen erzeugen kann – inkl. Anleitung für Kontext-Upload (RAG) bei Präsentation/Skript.
+- **Story 1.9b (KI-Systemprompt – kontextbasiert, schema-getreu):** 🟡 Als Dozent möchte ich einen KI-Systemprompt in der App kopieren können, der meine **Quiz-Vorgaben** (Preset, Nickname-Theme, Schwierigkeit, Live-Optionen) widerspiegelt, damit das LLM ein schema-konformes Quiz erzeugen kann – inkl. Anleitung für Kontext-Upload (RAG) bei Präsentation/Skript.
   - **Akzeptanzkriterien:**
-    - **Platzierung:** Der **„KI-Prompt generieren“**-Button (bzw. Zugang zum Kopieren des Prompts) wird **dort angeboten, wo der Dozent bereits Preset-Optionen, Zielgruppe (Nickname-Theme), Schwierigkeitsgrad und ggf. weitere Quiz-Vorgaben** gewählt hat (z. B. auf der Startseite nach Auswahl des Presets und der Optionen, oder in einem dedizierten „Quiz per KI vorbereiten“-Schritt). Nicht auf einer leeren Seite ohne Kontext.
-    - **Kontext-Einbindung:** Der kopierte Prompt enthält die **aktuell gewählten Werte** (Preset: Seriös/Spielerisch, Zielgruppe z. B. Kita/Oberstufe, Standard-Schwierigkeit EASY/MEDIUM/HARD), sodass das LLM das Quiz passend zu diesen Vorgaben generiert. Die Werte werden aus dem gleichen State/Model gespeist wie die übrigen Preset-Optionen (Story 1.11, Home-Optionen).
-    - **Schema-Treue:** Der Prompt-Text (Template bzw. konstante Vorlage in `@arsnova/shared-types` oder Frontend, wartbar) beschreibt **exakt** das von `quizImportSchema` erwartete JSON-Format: erforderliche Felder, erlaubte Enums (`QuestionType`, etc.), `isCorrect` bei Antwortoptionen, Struktur für Fragen und Optionen. Das Ziel ist, dass typische LLM-Ausgaben nach Feintuning **ohne Nachbearbeitung** die Zod-Validierung (Story 1.9a) bestehen.
+    - **Platzierung:** Der Zugang **„Mit unserem Prompt zum fertigen Quiz“** (Textvorlage kopieren) liegt in der **Quiz-Sammlung** (`/quiz`), dort wo der Dozent ohnehin Quizzes verwaltet und importiert. (Nicht zwingend auf der Startseite.)
+    - **Kontext-Einbindung:** Der Prompt enthält die **aktuellen Werte** aus dem **Startseiten-Preset** (`ThemePresetService`: spielerisch/seriös) und – gespeichert – aus den **Preset-Optionen** im `localStorage` (gleiche Quelle wie Preset-Toast auf der Startseite). Er spiegelt **nicht** das gerade fokussierte Quiz in der Liste wider. Vollständiger Vertrag: **ADR-0007**.
+    - **Schema-Treue:** Der Prompt-Text (`buildKiQuizSystemPrompt` in `apps/frontend/src/app/shared/ki-quiz-prompt.ts`, siehe ADR-0007) beschreibt **exakt** das von `quizImportSchema` erwartete JSON-Format: erforderliche Felder, erlaubte Enums (`QuestionType`, etc.), `isCorrect` bei Antwortoptionen, Struktur für Fragen und Optionen. Das Ziel ist, dass typische LLM-Ausgaben nach Feintuning **ohne Nachbearbeitung** die Zod-Validierung (Story 1.9a) bestehen.
     - **RAG-Anleitung:** Der Prompt weist den Dozenten an, bei Bedarf **Lehrmaterial (Präsentation, Skript, PDF)** per Kontext-Upload (Datei/URL) im Chatbot bereitzustellen, und das LLM an, das Quiz **aus diesem Kontext** zu erzeugen – so ist ein präsentations-/skriptbasiertes Quiz (wie bei Mentimeter) abgedeckt, ohne Upload zu arsnova.eu.
-    - **Wartbarkeit:** Der Prompt-Inhalt ist als **eigenes, versionierbares Artefakt** (z. B. Template-String, Markdown-Datei oder Eintrag in i18n) gepflegt, sodass Iterationen für bessere Schema-Konformität (Feintuning) ohne Änderung der Import-Logik (1.9a) möglich sind.
+    - **Wartbarkeit:** Der Prompt-Inhalt ist als **versionierbares Artefakt** im Frontend-Modul `ki-quiz-prompt.ts` (plus Spec) gepflegt, sodass Iterationen für bessere Schema-Konformität (Feintuning) ohne Änderung der Import-Logik (1.9a) möglich sind.
   - **Abhängigkeiten:** Story 1.11 (Preset & Optionen), damit Preset/Zielgruppe/Optionen in der UI verfügbar sind; Story 1.9a (Import) kann parallel oder danach umgesetzt werden – der Prompt wird von 1.9a nur genutzt (Copy), nicht implementiert.
 - **Story 1.10 (Quiz bearbeiten & löschen):** 🔴 Als Dozent möchte ich ein bestehendes Quiz umbenennen, bearbeiten und löschen können, damit ich meine Quiz-Sammlung pflegen kann.
   - **Akzeptanzkriterien:**

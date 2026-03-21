@@ -26,8 +26,7 @@ export function renderMarkdownWithKatex(source: string): MarkdownRenderResult {
         }),
       );
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : $localize`Ungültige KaTeX-Syntax.`;
+      const message = error instanceof Error ? error.message : $localize`Ungültige KaTeX-Syntax.`;
       if (!katexError) {
         katexError = message;
       }
@@ -40,9 +39,8 @@ export function renderMarkdownWithKatex(source: string): MarkdownRenderResult {
   const withBlockMath = input.replace(/\$\$([\s\S]+?)\$\$/g, (_, expression: string) =>
     renderExpression(expression, true),
   );
-  const withInlineMath = withBlockMath.replace(
-    /\$([^$\n]+?)\$/g,
-    (_, expression: string) => renderExpression(expression, false),
+  const withInlineMath = withBlockMath.replace(/\$([^$\n]+?)\$/g, (_, expression: string) =>
+    renderExpression(expression, false),
   );
 
   const markdownHtml = parseMarkdownEscapingInlineHtml(withInlineMath);
@@ -57,6 +55,11 @@ function parseMarkdownEscapingInlineHtml(source: string): string {
   const renderer = new marked.Renderer();
   renderer.html = ({ text }) => escapeHtml(text);
   return marked.parse(source, { renderer }) as string;
+}
+
+/** Markdown → HTML ohne KaTeX (kein `$…$`-Parsing). Für lange System-Prompts mit JSON-Beispielen. */
+export function renderMarkdownWithoutKatex(source: string): string {
+  return parseMarkdownEscapingInlineHtml(source ?? '');
 }
 
 function mathPlaceholder(index: number): string {

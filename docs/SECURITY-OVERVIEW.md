@@ -11,7 +11,7 @@ Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollstä
 ## 1. Produktkontext
 
 - **Accountfrei:** Kein Nutzer-/Login-Modell für Dozenten oder Teilnehmende. Identität **realer Personen** hält die App nicht fest; Pseudonyme und freiwillige Einreichung von Bonus-Codes sind dokumentiert ([bonus-codes](features/bonus-codes.md)).
-- **Local-First (Quiz):** Dauerhafte Quiz-Bibliothek primär im Browser (Yjs); Server erhält eine **flüchtige Kopie** für die Live-Session ([ADR-0004](architecture/decisions/0004-use-yjs-for-local-first-storage.md), Handbook §3.1).
+- **Local-First (Quiz):** Dauerhafte **Quiz-Sammlung** primär im Browser (Yjs); Server erhält eine **flüchtige Kopie** für die Live-Session ([ADR-0004](architecture/decisions/0004-use-yjs-for-local-first-storage.md), Handbook §3.1).
 
 ---
 

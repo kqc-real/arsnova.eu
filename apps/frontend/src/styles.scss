@@ -789,3 +789,124 @@ html.dark .app-qr-image {
   white-space: nowrap;
   width: 2rem;
 }
+
+/* KI-Prompt-Karte: Flex-Kinder dürfen schrumpfen (sonst breitet <pre> die Seite aus) */
+.quiz-list__ai-card.mat-mdc-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.quiz-list__ai-card .mat-mdc-card-content {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* KI-Prompt-Vorschau (Quiz-Liste): Markdown per [innerHTML] — global, damit keine :deep/-Encapsulation nötig ist */
+.quiz-list__ai-prompt-markdown {
+  padding: 0.65rem 0.75rem;
+  font: var(--mat-sys-label-small);
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  overflow-x: hidden;
+}
+
+.quiz-list__ai-prompt-markdown p {
+  margin: 0.4rem 0;
+}
+
+.quiz-list__ai-prompt-markdown p:first-child {
+  margin-top: 0;
+}
+
+.quiz-list__ai-prompt-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.quiz-list__ai-prompt-markdown ul,
+.quiz-list__ai-prompt-markdown ol {
+  margin: 0.4rem 0 0.55rem;
+  padding-left: 1.3rem;
+}
+
+.quiz-list__ai-prompt-markdown li {
+  margin: 0.18rem 0;
+  overflow-wrap: anywhere;
+}
+
+.quiz-list__ai-prompt-markdown h1,
+.quiz-list__ai-prompt-markdown h2,
+.quiz-list__ai-prompt-markdown h3,
+.quiz-list__ai-prompt-markdown h4 {
+  margin: 0.65rem 0 0.3rem;
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.quiz-list__ai-prompt-markdown h1:first-child,
+.quiz-list__ai-prompt-markdown h2:first-child,
+.quiz-list__ai-prompt-markdown h3:first-child,
+.quiz-list__ai-prompt-markdown h4:first-child {
+  margin-top: 0;
+}
+
+.quiz-list__ai-prompt-markdown pre {
+  margin: 0.5rem 0;
+  padding: 0.45rem 0.55rem;
+  overflow-x: auto;
+  border-radius: var(--mat-sys-corner-small);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-surface));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 12%, transparent);
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: 0.625rem;
+  line-height: 1.38;
+}
+
+.quiz-list__ai-prompt-markdown code {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: 0.92em;
+}
+
+.quiz-list__ai-prompt-markdown pre code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  font-size: 0.625rem;
+  line-height: inherit;
+  background: none;
+  padding: 0;
+  border: 0;
+}
+
+.quiz-list__ai-prompt-markdown p code,
+.quiz-list__ai-prompt-markdown li code {
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--mat-sys-corner-extra-small);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 80%, var(--mat-sys-surface));
+}
+
+.quiz-list__ai-prompt-markdown blockquote {
+  margin: 0.45rem 0;
+  padding-left: 0.65rem;
+  border-left: 3px solid var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.quiz-list__ai-prompt-markdown strong {
+  font-weight: 700;
+}
+
+.quiz-list__ai-prompt-markdown hr {
+  margin: 0.65rem 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-outline) 22%, transparent);
+}

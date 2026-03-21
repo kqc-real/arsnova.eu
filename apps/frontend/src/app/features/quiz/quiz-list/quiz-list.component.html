@@ -1,19 +1,20 @@
 <section class="quiz-list-page l-stack l-stack--sm">
   <div class="quiz-list__actions">
     <button
-      matButton="tonal"
+      matButton="filled"
+      color="primary"
       type="button"
       class="quiz-list__ai-trigger"
       (click)="toggleAiImport()"
     >
-      <mat-icon>psychology</mat-icon>
-      <span i18n="@@quizList.aiImport.trigger">Quiz aus KI-Chat importieren</span>
+      <mat-icon>auto_awesome</mat-icon>
+      <span i18n="@@quizList.aiImport.trigger">Mit unserem Prompt zum fertigen Quiz</span>
     </button>
     <button mat-button type="button" (click)="importFileInput.click()">
       <mat-icon>upload_file</mat-icon>
       <span i18n>Importieren</span>
     </button>
-    <a matButton="filled" routerLink="new" i18n-aria-label aria-label="Neues Quiz erstellen">
+    <a matButton="tonal" routerLink="new" i18n-aria-label aria-label="Neues Quiz erstellen">
       <mat-icon>add_circle</mat-icon>
       <span i18n>Neues Quiz erstellen</span>
     </a>
@@ -37,10 +38,15 @@
     <mat-card appearance="outlined" class="quiz-list__ai-card">
       <mat-card-content class="quiz-list__ai-content l-stack l-stack--xs">
         <h2 class="quiz-list__ai-title" i18n="@@quizList.aiImport.title">
-          Quiz aus KI-Chat importieren
+          Mit unserem Prompt zum fertigen Quiz
         </h2>
         <p class="quiz-list__ai-hint" i18n="@@quizList.aiImport.hint">
           In drei kurzen Schritten kommst du vom KI-Chat direkt zu einem neuen Quiz.
+        </p>
+        <p class="quiz-list__ai-token-hint" i18n="@@quizList.aiImport.tokenReassurance">
+          Für gängige KI-Chats ist die Länge der Textvorlage völlig normal – etwa wie eine
+          ausführliche Anleitung, nicht wie ein ganzes Skript. Für deine Nachrichten und Anhänge
+          bleibt danach noch reichlich Platz.
         </p>
         <div
           class="quiz-list__ai-steps"
@@ -59,10 +65,49 @@
                 </p>
               </div>
             </div>
-            <button mat-button type="button" (click)="copyKiPrompt()">
-              <mat-icon>content_copy</mat-icon>
-              <span i18n="@@quizList.aiImport.copyTemplate">Textvorlage kopieren</span>
-            </button>
+            <div class="quiz-list__ai-step-actions">
+              <button mat-button type="button" (click)="copyKiPrompt()">
+                <mat-icon>content_copy</mat-icon>
+                <span i18n="@@quizList.aiImport.copyTemplate">Textvorlage kopieren</span>
+              </button>
+              @if (showKiPromptPreview()) {
+                <button
+                  mat-button
+                  type="button"
+                  aria-expanded="true"
+                  aria-controls="quiz-list-ki-prompt-preview"
+                  (click)="toggleKiPromptPreview()"
+                >
+                  <mat-icon>visibility_off</mat-icon>
+                  <span i18n="@@quizList.aiImport.hidePrompt">Prompt ausblenden</span>
+                </button>
+              } @else {
+                <button
+                  mat-button
+                  type="button"
+                  aria-expanded="false"
+                  (click)="toggleKiPromptPreview()"
+                >
+                  <mat-icon>visibility</mat-icon>
+                  <span i18n="@@quizList.aiImport.showPrompt">Prompt anzeigen</span>
+                </button>
+              }
+            </div>
+            @if (showKiPromptPreview()) {
+              <div
+                id="quiz-list-ki-prompt-preview"
+                class="quiz-list__ai-prompt-preview"
+                role="region"
+                tabindex="0"
+                i18n-aria-label="@@quizList.aiImport.promptPreviewAria"
+                aria-label="Vorschau der Textvorlage für die KI"
+              >
+                <div
+                  class="quiz-list__ai-prompt-markdown"
+                  [innerHTML]="kiPromptPreviewHtml()"
+                ></div>
+              </div>
+            }
           </section>
 
           <section class="quiz-list__ai-step">
@@ -135,8 +180,7 @@
         <mat-icon class="quiz-empty-state__icon">library_books</mat-icon>
         <p class="quiz-empty-state__text" i18n>Willkommen in deiner Quiz-Sammlung!</p>
         <p class="quiz-empty-state__hint" i18n>
-          Starte mit dem Demo-Quiz, um alle Funktionen kennenzulernen – oder erstelle gleich dein
-          eigenes.
+          Mit dem Demo-Quiz starten oder direkt ein eigenes erstellen
         </p>
         <a matButton="filled" routerLink="new" class="quiz-empty-state__cta">
           <mat-icon>add_circle</mat-icon>
@@ -393,15 +437,11 @@
       matButton="tonal"
       class="quiz-list__sync-cta"
       [routerLink]="['sync', syncRoomId()]"
-      i18n-aria-label
-      aria-label="Sync-ID und -Link erzeugen"
+      i18n-aria-label="@@quizList.syncCta"
+      aria-label="Sync-Code erzeugen"
     >
       <mat-icon>devices</mat-icon>
-      <span i18n="@@quizList.syncCta">Sync-ID und -Link erzeugen</span>
+      <span i18n="@@quizList.syncCta">Sync-Code erzeugen</span>
     </a>
-    <p class="quiz-list__sync-hint" i18n="@@quizList.syncHint">
-      Sichere deine Quiz-Sammlung auf ein anderes Gerät – oder gib sie per Sync-ID oder Sync-Link an
-      Kolleginnen und Kollegen weiter.
-    </p>
   </div>
 </section>

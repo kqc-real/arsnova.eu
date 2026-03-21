@@ -1548,20 +1548,16 @@
           <context context-type="linenumber">268,271</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8985074748317258487" datatype="html">
-        <source>Sync-ID oder -Link eingeben</source>
-        <target>Entrer l’identifiant sync ou le lien</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">279,280</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="homeHostCard.syncLinkCta" datatype="html">
-        <source>Sync-ID oder -Link eingeben</source>
-        <target>Entrer l’identifiant sync ou le lien</target>
+        <source>Sync-Code einfügen</source>
+        <target>Coller le code sync</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">282,284</context>
+          <context context-type="linenumber">269,270</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">273,273</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkHint" datatype="html">
@@ -3465,11 +3461,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.title" datatype="html">
-        <source>Veranstaltung starten</source>
-        <target>Démarrer l’événement</target>
+        <source>Live vorbereiten</source>
+        <target>Préparer le live</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">36,40</context>
+          <context context-type="linenumber">37,39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.liveDialog.subtitle" datatype="html">
+        <source> Auftakt und Formate festlegen (Quiz, Q&amp;A, Blitzlicht) </source>
+        <target>Définir l’ouverture et les formats (Quiz, Q&amp;A, Blitzlicht)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
+          <context context-type="linenumber">42,46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQuiz" datatype="html">
@@ -3593,8 +3597,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.trigger" datatype="html">
-        <source>Quiz aus KI-Chat importieren</source>
-        <target>Importer un quiz depuis un chat IA</target>
+        <source>Mit unserem Prompt zum fertigen Quiz</source>
+        <target>Avec notre prompt jusqu’au quiz prêt</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">10,12</context>
@@ -3625,8 +3629,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.title" datatype="html">
-        <source> Quiz aus KI-Chat importieren</source>
-        <target>Importer un quiz depuis le chat AI</target>
+        <source> Mit unserem Prompt zum fertigen Quiz </source>
+        <target>Avec notre prompt jusqu’au quiz prêt</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">40,42</context>
@@ -3638,6 +3642,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">43,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.aiImport.tokenReassurance" datatype="html">
+        <source> Für gängige KI-Chats ist die Länge der Textvorlage völlig normal – etwa wie eine ausführliche Anleitung, nicht wie ein ganzes Skript. Für deine Nachrichten und Anhänge bleibt danach noch reichlich Platz. </source>
+        <target>Pour les chats IA courants, la longueur du modèle est tout à fait normale — plutôt comme un mode d&apos;emploi détaillé, pas comme tout un script. Il reste largement de la place pour tes messages et tes pièces jointes.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">48,52</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepsAria" datatype="html">
@@ -3670,6 +3682,30 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">64,66</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.aiImport.hidePrompt" datatype="html">
+        <source>Prompt ausblenden</source>
+        <target>Masquer le prompt</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">77,79</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.aiImport.showPrompt" datatype="html">
+        <source>Prompt anzeigen</source>
+        <target>Afficher le prompt</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">80,82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.aiImport.promptPreviewAria" datatype="html">
+        <source>Vorschau der Textvorlage für die KI</source>
+        <target>Aperçu du modèle de texte pour l’IA</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">91,93</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepTwoTitle" datatype="html">
@@ -3737,8 +3773,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="5745621313003568705" datatype="html">
-        <source> Starte mit dem Demo-Quiz, um alle Funktionen kennenzulernen – oder erstelle gleich dein eigenes.</source>
-        <target>Essaie le quiz de démo pour découvrir toutes les fonctionnalités – ou crée directement le tien.</target>
+        <source> Mit dem Demo-Quiz starten oder direkt ein eigenes erstellen </source>
+        <target>Commence avec le quiz démo ou crée directement le tien.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">138,139</context>
@@ -3966,28 +4002,16 @@
           <context context-type="linenumber">380,382</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="538980770532489574" datatype="html">
-        <source>Sync-ID und -Link erzeugen</source>
-        <target>Générer l’identifiant sync et le lien</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">397,399</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="quizList.syncCta" datatype="html">
-        <source>Sync-ID und -Link erzeugen</source>
-        <target>Générer l’identifiant sync et le lien</target>
+        <source>Sync-Code erzeugen</source>
+        <target>Générer le code sync</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">400,402</context>
+          <context context-type="linenumber">396,397</context>
         </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.syncHint" datatype="html">
-        <source> Sichere deine Quiz-Sammlung auf ein anderes Gerät – oder gib sie per Sync-ID oder Sync-Link an Kolleginnen und Kollegen weiter.</source>
-        <target>Sauvegarde ta collection de quiz sur un autre appareil - ou partage-la avec des collègues via l’identifiant sync ou le lien sync.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">403,407</context>
+          <context context-type="linenumber">400,400</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.tooltipMinQuestions" datatype="html">

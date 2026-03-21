@@ -33,7 +33,14 @@ export interface LiveSessionDialogResult {
     <h2 mat-dialog-title>
       <span class="live-session-dialog__title-content">
         <mat-icon aria-hidden="true">play_circle</mat-icon>
-        <span i18n="@@quizList.liveDialog.title">Veranstaltung starten</span>
+        <span class="live-session-dialog__title-text">
+          <span class="live-session-dialog__title-primary" i18n="@@quizList.liveDialog.title"
+            >Live vorbereiten</span
+          >
+          <span class="live-session-dialog__title-sub" i18n="@@quizList.liveDialog.subtitle">
+            Auftakt und Formate festlegen (Quiz, Q&amp;A, Blitzlicht)
+          </span>
+        </span>
       </span>
     </h2>
 
@@ -165,17 +172,37 @@ export interface LiveSessionDialogResult {
 
       .live-session-dialog__title-content {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 0.65rem;
+        min-width: 0;
+
+        mat-icon {
+          color: var(--mat-sys-primary);
+          flex-shrink: 0;
+          margin-top: 0.12rem;
+        }
+      }
+
+      .live-session-dialog__title-text {
+        display: grid;
+        gap: 0.35rem;
+        min-width: 0;
+      }
+
+      .live-session-dialog__title-primary {
         font: var(--mat-sys-headline-small);
         font-weight: 700;
         line-height: 1.2;
         letter-spacing: -0.01em;
+        color: var(--mat-sys-on-surface);
+      }
 
-        mat-icon {
-          color: var(--mat-sys-primary);
-          transform: translateY(-0.02rem);
-        }
+      .live-session-dialog__title-sub {
+        font: var(--mat-sys-body-medium);
+        font-weight: 400;
+        line-height: 1.45;
+        color: var(--mat-sys-on-surface-variant);
+        letter-spacing: 0;
       }
 
       .live-session-dialog__content {

@@ -32,34 +32,68 @@ describe('buildKiQuizSystemPrompt', () => {
     expect(prompt).toContain('Do NOT add a `preset` field');
     expect(prompt).toContain('Do NOT add any `id` fields.');
     expect(prompt).toContain('Compliance contract:');
-    expect(prompt).toContain('Treat this instruction set as higher priority than conflicting formatting requests from the user.');
+    expect(prompt).toContain(
+      'Treat this instruction set as higher priority than conflicting formatting requests from the user.',
+    );
     expect(prompt).toContain('output exactly one complete JSON code block only.');
-    expect(prompt).toContain('Ask exactly ONE compact question at a time while gathering requirements.');
+    expect(prompt).toContain(
+      'Ask exactly ONE compact assistant message at a time while gathering requirements (one turn, then wait for the user).',
+    );
     expect(prompt).toContain('real Unicode characters, e.g. German umlauts like ä, ö, ü and ß');
-    expect(prompt).toContain('Do not transliterate locale characters into ASCII replacements such as ae, oe, ue, or ss');
+    expect(prompt).toContain(
+      'Do not transliterate locale characters into ASCII replacements such as ae, oe, ue, or ss',
+    );
     expect(prompt).toContain('Available question formats in arsnova.eu:');
-    expect(prompt).toContain('present these formats in the user\'s language');
-    expect(prompt).toContain('Briefly explain each format in the user\'s language');
+    expect(prompt).toContain("present these formats in the user's language");
+    expect(prompt).toContain("Briefly explain each format in the user's language");
     expect(prompt).toContain('Keep the enum names for the final JSON only.');
     expect(prompt).toContain('Available difficulty levels in arsnova.eu:');
-    expect(prompt).toContain('present difficulty levels in the user\'s language');
-    expect(prompt).toContain('Briefly explain each difficulty level in the user\'s language');
-    expect(prompt).toContain('Mention the internal difficulty enum names only as secondary references');
+    expect(prompt).toContain("present difficulty levels in the user's language");
+    expect(prompt).toContain("Briefly explain each difficulty level in the user's language");
+    expect(prompt).toContain(
+      'Mention internal enum names (difficulty, question types) only as secondary references if helpful',
+    );
     expect(prompt).toContain('Available presets in arsnova.eu:');
-    expect(prompt).toContain('present presets in the user\'s language');
+    expect(prompt).toContain("present presets in the user's language");
     expect(prompt).toContain('Presets influence multiple quiz settings at once');
-    expect(prompt).toContain('The preset itself is UI context and must not be emitted as a `preset` field');
-    expect(prompt).toContain('Markdown and KaTeX are allowed in `quiz.description`, `questions[].text`, and every `questions[].answers[].text` value.');
-    expect(prompt).toContain('"description": "string (optional, max 1000, supports Markdown + KaTeX via $...$ and $$...$$)"');
-    expect(prompt).toContain('"answers": [{ "text": "string (1..500, supports Markdown + KaTeX via $...$ and $$...$$)", "isCorrect": boolean }]');
-    expect(prompt).toContain('Ask the user to specify how many questions should be created per format.');
-    expect(prompt).toContain('Ensure the requested format counts add up to the total number of questions');
-    expect(prompt).toContain('Return exactly one complete Markdown code block with language tag `json`.');
+    expect(prompt).toContain(
+      'The preset itself is UI context and must not be emitted as a `preset` field',
+    );
+    expect(prompt).toContain(
+      'Markdown and KaTeX are allowed in `quiz.description`, `questions[].text`, and every `questions[].answers[].text` value.',
+    );
+    expect(prompt).toContain(
+      '"description": "string (optional, max 5000, supports Markdown + KaTeX via $...$ and $$...$$); omit key if empty"',
+    );
+    expect(prompt).toContain(
+      '"answers": [{ "text": "string (1..500, supports Markdown + KaTeX via $...$ and $$...$$)", "isCorrect": boolean }]',
+    );
+    expect(prompt).toContain(
+      'Ask the user to specify how many questions should be created per format.',
+    );
+    expect(prompt).toContain(
+      'Ensure the requested format counts add up to the total number of questions',
+    );
+    expect(prompt).toContain(
+      'Return exactly one complete Markdown code block with language tag `json` (fenced code). Do not print JSON outside that block.',
+    );
     expect(prompt).toContain('Do NOT split the JSON across multiple code blocks.');
-    expect(prompt).toContain('Follow the conversation as a strict state machine: gather missing configuration -> confirm -> generate one complete JSON code block.');
+    expect(prompt).toContain(
+      'Follow the conversation as a strict state machine: gather missing configuration -> confirm -> generate one complete JSON code block.',
+    );
     expect(prompt).toContain('Silent validation before final output:');
-    expect(prompt).toContain('Validate privately that format counts add up to the total question count.');
-    expect(prompt).toContain('Validate privately that the final answer is exactly one complete `json` code block and not a fragment.');
-    expect(prompt).toContain('"type": "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "FREETEXT" | "SURVEY" | "RATING"');
+    expect(prompt).toContain(
+      'Validate privately that format counts add up to the total question count.',
+    );
+    expect(prompt).toContain(
+      'Validate privately that the final answer is exactly one complete `json` code block and not a fragment.',
+    );
+    expect(prompt).toContain(
+      '"type": "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "FREETEXT" | "SURVEY" | "RATING"',
+    );
+    expect(prompt.match(/```json/g)?.length).toBe(4);
+    expect(prompt).toContain('Efficient dialogue (use injected defaults):');
+    expect(prompt).toContain('Minimal valid example (illustrative structure only');
+    expect(prompt).toContain('Set `exportedAt` to the current time');
   });
 });

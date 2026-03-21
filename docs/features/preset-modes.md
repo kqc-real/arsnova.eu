@@ -157,7 +157,7 @@ Alle Preset-Toast-Einstellungen werden **pro Preset** im Browser des Dozenten ge
 | `home-preset-options-spielerisch` | JSON gemäß `PresetStorageEntrySchema`                                                                                           |
 | `home-theme`                      | UI-Theme (`system` \| `dark` \| `light`)                                                                                        |
 
-**Zusätzlich (Yjs):** Für die **Quiz-Bibliothek** synchronisiert `QuizStoreService` u. a. `home-presets` / gespiegelte Preset-Keys über CRDT — das ist die Multi-Device-Spiegelung der Startseiten-Presets, nicht identisch mit den rein lokalen Keys bevor Sync aktiv ist.
+**Zusätzlich (Yjs):** Für die **Quiz-Sammlung** synchronisiert `QuizStoreService` u. a. `home-presets` / gespiegelte Preset-Keys über CRDT — das ist die Multi-Device-Spiegelung der Startseiten-Presets, nicht identisch mit den rein lokalen Keys bevor Sync aktiv ist.
 
 **Payload-Struktur** (`PresetStorageEntrySchema`, vereinfachtes Beispiel):
 

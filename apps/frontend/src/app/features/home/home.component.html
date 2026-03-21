@@ -266,11 +266,11 @@
             class="home-card__tertiary-link"
             (click)="toggleSyncLinkEntry()"
             [attr.aria-expanded]="syncLinkVisible()"
-            i18n-aria-label
-            aria-label="Sync-ID oder -Link eingeben"
+            i18n-aria-label="@@homeHostCard.syncLinkCta"
+            aria-label="Sync-Code einfügen"
           >
             <mat-icon class="home-cta__icon">devices</mat-icon>
-            <span i18n="@@homeHostCard.syncLinkCta">Sync-ID oder -Link eingeben</span>
+            <span i18n="@@homeHostCard.syncLinkCta">Sync-Code einfügen</span>
           </button>
         </div>
         @if (syncLinkVisible()) {

@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD013 -->
 
-# Quiz-Bibliothek Synchronisierung
+# Quiz-Sammlung – Synchronisierung
 
 **Zielgruppe:** Entwicklerinnen, Entwickler und technisch interessierte Personen  
 **Stand:** 2026-03-20  
@@ -8,13 +8,13 @@
 
 ## 1. Zweck
 
-Dieses Dokument beschreibt die Synchronisierung der **Quiz-Bibliothek** in `arsnova.eu`.
+Dieses Dokument beschreibt die Synchronisierung der **Quiz-Sammlung** in `arsnova.eu`.
 
 Im Zentrum stehen drei Anforderungen:
 
-- **Local-First:** Die dauerhafte Quelle der Quiz-Bibliothek liegt im Browser, nicht auf dem Server.
-- **Zero-Knowledge:** Der Server speichert keine dauerhafte Kopie der Bibliothek.
-- **Multi-Device-Sync ohne Account:** Eine Bibliothek kann über Sync-Link oder Sync-ID auf mehreren Geräten genutzt werden.
+- **Local-First:** Die dauerhafte Quelle der Quiz-Sammlung liegt im Browser, nicht auf dem Server.
+- **Zero-Knowledge:** Der Server speichert keine dauerhafte Kopie der Sammlung.
+- **Multi-Device-Sync ohne Account:** Eine Quiz-Sammlung kann über Sync-Link oder Sync-ID auf mehreren Geräten genutzt werden.
 
 Dieses Dokument ergänzt insbesondere:
 
@@ -24,11 +24,11 @@ Dieses Dokument ergänzt insbesondere:
 
 ## 2. Begriffe
 
-- **Quiz-Bibliothek:** Die lokal gehaltene Sammlung aller Quizzes eines Geräts.
-- **Sync-Raum:** Der logische Yjs-Raum, in dem mehrere Geräte dieselbe Bibliothek teilen.
+- **Quiz-Sammlung:** Die lokal gehaltene Sammlung aller Quizzes eines Geräts.
+- **Sync-Raum:** Der logische Yjs-Raum, in dem mehrere Geräte dieselbe Sammlung teilen.
 - **Sync-ID:** Die technische Raum-ID, aus der im UI ein kurzer Code abgeleitet wird.
 - **Sync-Link:** URL auf `quiz/sync/:docId`, über die ein Gerät gezielt in einen Sync-Raum einsteigt.
-- **Origin / Ursprungsgerät:** Das Gerät, auf dem eine Bibliothek erstmals bewusst für andere Geräte freigegeben wurde.
+- **Origin / Ursprungsgerät:** Das Gerät, auf dem eine Sammlung erstmals bewusst für andere Geräte freigegeben wurde.
 - **Remote-Änderung:** Eine Änderung, die über Yjs von einem anderen Gerät übernommen wird.
 - **Awareness:** Flüchtige Präsenzdaten von `y-websocket`, etwa Gerätetyp und Browser anderer aktiver Clients.
 
@@ -80,7 +80,7 @@ Die Kernlogik liegt in `apps/frontend/src/app/features/quiz/data/quiz-store.serv
 
 Wesentliche Aufgaben des Stores:
 
-- lokale Quiz-Bibliothek halten
+- lokale Quiz-Sammlung halten
 - Änderungen lokal persistieren
 - Yjs initialisieren und beenden
 - Room-Wechsel durchführen
@@ -89,10 +89,10 @@ Wesentliche Aufgaben des Stores:
 
 ### 4.2 Persistenzschichten
 
-Die Bibliothek wird bewusst auf mehreren Ebenen gehalten:
+Die Sammlung wird bewusst auf mehreren Ebenen gehalten:
 
 - **Signals im Speicher:** aktive Arbeitskopie der UI
-- **localStorage Room-Mirror:** serialisierte Bibliothek pro Raum, plus Legacy-Mirror
+- **localStorage Room-Mirror:** serialisierte Sammlung pro Raum, plus Legacy-Mirror
 - **IndexedDB via `y-indexeddb`:** lokale Yjs-Persistenz
 - **Yjs Relay:** Übertragung der Deltas zwischen Geräten
 
@@ -109,9 +109,9 @@ Damit kann dieselbe Frontend-Logik lokal und hinter Reverse Proxy betrieben werd
 
 Es gibt aktuell zwei fachlich unterschiedliche Einstiegswege:
 
-1. **Bibliothek freigeben**
+1. **Sammlung freigeben**
    über `quiz/sync/:docId`
-2. **Bibliothek importieren / auf diesem Gerät weiterführen**
+2. **Sammlung importieren / auf diesem Gerät weiterführen**
    über das Eingabefeld auf der Startseite
 
 Der Unterschied ist wichtig, weil nur beim ersten Weg das **Ursprungsgerät** registriert wird.
@@ -141,17 +141,17 @@ sequenceDiagram
 Bei `activateSyncRoom()` passiert in komprimierter Form:
 
 1. Sync-ID normalisieren und validieren
-2. optional Bibliothek als `shared` markieren
+2. optional Sammlung als `shared` markieren
 3. vorhandene Yjs-Instanz sauber abbauen
 4. neuen Raum aktiv setzen und lokal merken
 5. Sync-Metadaten für diesen Raum laden
 6. falls nötig Origin einmalig registrieren
-7. Bibliothek aus lokalem Room-Mirror laden
+7. Sammlung aus lokalem Room-Mirror laden
 8. Yjs + IndexedDB + Awareness starten
 
 Das ist wichtig für die UX:
 
-- Ein Gerätewechsel fühlt sich wie das Öffnen derselben Bibliothek an.
+- Ein Gerätewechsel fühlt sich wie das Öffnen derselben Sammlung an.
 - Ein Raumwechsel ist ein echter Kontextwechsel mit separatem Mirror und separaten Metadaten.
 
 ## 7. Datenfluss bei lokalen Änderungen
@@ -205,7 +205,7 @@ sequenceDiagram
     Store->>Store: JSON in QuizDocument[] normalisieren
     Store->>Store: determineLastChangedQuiz()
     Store->>Store: recordRemoteSync()
-    Store->>LS: Bibliotheks-Mirror aktualisieren
+    Store->>LS: Sammlungs-Mirror aktualisieren
     Store->>LS: Sync-Metadaten aktualisieren
     Store->>UI: Signals aktualisieren
 ```
@@ -219,7 +219,7 @@ Wichtige Ableitungen dabei:
 
 ## 9. Sync-Metadatenmodell
 
-Neben der Bibliothek selbst speichert das Frontend pro Raum ein separates Metadatenobjekt.
+Neben der Sammlung selbst speichert das Frontend pro Raum ein separates Metadatenobjekt.
 
 ```mermaid
 classDiagram
@@ -263,7 +263,7 @@ classDiagram
 
 ## 10. UI-Sicht auf die Synchronisierung
 
-Die Bibliotheksseite zeigt die Synchronisierung bewusst nicht als rein technischen Debug-Block, sondern als Vertrauenssignal.
+Die Quiz-Sammlungsseite zeigt die Synchronisierung bewusst nicht als rein technischen Debug-Block, sondern als Vertrauenssignal.
 
 Der Expander in `QuizListComponent` zeigt:
 
@@ -278,7 +278,7 @@ Der Expander in `QuizListComponent` zeigt:
 
 Ziel dieser Darstellung:
 
-- nachvollziehbar machen, **ob** die Bibliothek geteilt ist
+- nachvollziehbar machen, **ob** die Sammlung geteilt ist
 - sichtbar machen, **woher** Änderungen kommen
 - ohne Accountsystem trotzdem **Vertrauen** schaffen
 
@@ -294,9 +294,9 @@ Das ist für Architektur und Datenschutz zentral:
 
 ### Der Server weiß nicht dauerhaft
 
-- wem eine Bibliothek gehört
+- wem eine Sammlung gehört
 - welche Person hinter einem Gerät steht
-- eine dauerhafte Klartext-Kopie der kompletten Quiz-Bibliothek
+- eine dauerhafte Klartext-Kopie der kompletten Quiz-Sammlung
 
 Die Vertrauensinformationen im UI stammen deshalb **nicht** aus einem Benutzerkonto, sondern aus lokaler Metadatenpflege plus Awareness.
 
@@ -326,7 +326,7 @@ Für Eingaben und Fehlbedienungen existieren bereits grundlegende Schutzmechanis
 Trotz dieser Validierung gibt es klare Grenzen:
 
 1. **Besitz des Links ist Besitz des Zugriffs.**  
-   Wer den Link kennt, kann die Bibliothek auf einem anderen Gerät öffnen.
+   Wer den Link kennt, kann die Sammlung auf einem anderen Gerät öffnen.
 
 2. **Die kurze angezeigte Sync-ID ist kein eigener Sicherheitsmechanismus.**  
    Die nutzerfreundliche Darstellung darf nicht mit einem eigenständigen, verifizierten Share-Code verwechselt werden.
@@ -360,7 +360,7 @@ Nicht Ziel des aktuellen Modells ist:
   Die UI sollte klar sagen, dass der Link selbst der Zugriffsschlüssel ist.
 
 - **Security-Wording ergänzen**  
-  Zum Beispiel: „Wer den Sync-Link hat, kann diese Bibliothek auf einem anderen Gerät öffnen.“
+  Zum Beispiel: „Wer den Sync-Link hat, kann diese Sammlung auf einem anderen Gerät öffnen.“
 
 - **Kurz-ID semantisch bereinigen**  
   Entweder nur noch als Anzeigehilfe, oder später durch einen echten auflösbaren Kurzcode ersetzen.
@@ -406,7 +406,7 @@ Typische Zielkonflikte:
    Signierte Share-Tokens, Rotation, TTLs und serverseitige Prüfpfade erhöhen den Schutz, kosten aber zusätzliche Roundtrips, Cache-Lookups oder Validierungsarbeit.
 
 2. **Widerrufbarkeit vs. Local-First-Unabhängigkeit**  
-   Je stärker ein Zugriff jederzeit widerrufbar sein soll, desto stärker muss der Server in den Zugriffspfad eingebunden werden. Das steht im Spannungsfeld zum Ziel, Bibliotheken lokal, offlinefähig und mit minimaler Serverkenntnis nutzbar zu halten.
+   Je stärker ein Zugriff jederzeit widerrufbar sein soll, desto stärker muss der Server in den Zugriffspfad eingebunden werden. Das steht im Spannungsfeld zum Ziel, Sammlungen lokal, offlinefähig und mit minimaler Serverkenntnis nutzbar zu halten.
 
 3. **Vertrauenssignale vs. Schreiblast**  
    Herkunftsinformationen, Zeitstempel und Gerätehinweise erhöhen Transparenz und damit Sicherheitsempfinden, erzeugen aber zusätzliche lokale Persistenz und Vergleichslogik.
@@ -423,7 +423,7 @@ Die Konsequenz ist: Optimierung darf hier nie eindimensional erfolgen. Wer Siche
 
 ### 13.1 Keine rückwirkende Herkunft für Altbestände
 
-Bibliotheken, die schon geteilt waren, bevor `originSharedAt` und `originDevice*` eingeführt wurden, können ihre ursprüngliche Quelle nicht rückwirkend zuverlässig rekonstruieren.
+Sammlungen, die schon geteilt waren, bevor `originSharedAt` und `originDevice*` eingeführt wurden, können ihre ursprüngliche Quelle nicht rückwirkend zuverlässig rekonstruieren.
 
 ### 13.2 Keine personenbezogene Identität
 
@@ -456,7 +456,7 @@ Symptome:
 - keine Awareness-Peers sichtbar
 - Remote-Änderungen erscheinen nicht
 
-### Bibliothek wirkt veraltet
+### Quiz-Sammlung wirkt veraltet
 
 Mögliche Ursachen:
 
@@ -469,14 +469,14 @@ Mögliche Ursachen:
 Mögliche Ursachen:
 
 - Altbestand ohne Origin-Metadaten
-- Bibliothek wurde importiert, aber nie auf der Share-Seite erzeugt
+- Sammlung wurde importiert, aber nie auf der Share-Seite erzeugt
 
 ## 15. Hinweise für Weiterentwicklung
 
 Wer das Feature erweitert, sollte folgende Regeln einhalten:
 
 1. **Origin nicht überschreiben.**  
-   Ursprung bleibt stabil, auch wenn später weitere Geräte dieselbe Bibliothek öffnen.
+   Ursprung bleibt stabil, auch wenn später weitere Geräte dieselbe Sammlung öffnen.
 
 2. **Remote- und Origin-Semantik nicht vermischen.**  
    `lastRemoteChangedBy...` ist nicht dasselbe wie `originDevice...`.
@@ -494,10 +494,10 @@ Wer das Feature erweitert, sollte folgende Regeln einhalten:
 
 ### 16.1 Aktuelle Risiken
 
-Die aktuelle Architektur ist für normale Bibliotheksgrößen gut geeignet, hat aber klare Lasttreiber:
+Die aktuelle Architektur ist für normale Sammlungsgrößen gut geeignet, hat aber klare Lasttreiber:
 
-- die Bibliothek wird als JSON-Snapshot in Yjs gehalten
-- größere Bibliotheken erzeugen teurere Serialisierung
+- die Sammlung wird als JSON-Snapshot in Yjs gehalten
+- größere Sammlungen erzeugen teurere Serialisierung
 - `localStorage` läuft synchron auf dem Main Thread
 - lokale Vertrauensmetadaten erzeugen zusätzliche Schreibvorgänge
 
@@ -513,24 +513,24 @@ Diese Maßnahmen ändern die Architektur nicht grundlegend, senken aber unnötig
 
 ### 16.3 Nächste sinnvolle Optimierungsstufe
 
-Wenn die Bibliotheken größer werden oder mehrere Geräte intensiver parallel arbeiten, sind dies die nächsten Hebel:
+Wenn die Sammlungen größer werden oder mehrere Geräte intensiver parallel arbeiten, sind dies die nächsten Hebel:
 
 1. **Legacy-Mirror schrittweise zurückbauen**  
    Der zusätzliche `QUIZ_STORAGE_LEGACY_KEY` verdoppelt einen Teil der lokalen Schreibarbeit.
 
 2. **Room-Mirror weiter reduzieren**  
-   Langfristig sollte `localStorage` nur noch kleine Metadaten halten, nicht die eigentliche Bibliothek.
+   Langfristig sollte `localStorage` nur noch kleine Metadaten halten, nicht die eigentliche Sammlung.
 
 3. **Messpunkte einbauen**  
    Sinnvoll sind Logging oder Telemetrie für:
-   - Größe des serialisierten Bibliotheks-Snapshots
+   - Größe des serialisierten Sammlungs-Snapshots
    - Dauer von Mirror-Writes
    - Dauer von Yjs-Writes
    - Anzahl der Schreibvorgänge pro Nutzeraktion
 
 4. **Yjs granular statt als JSON-Blob nutzen**  
    Der größte Architekturhebel ist ein Umbau auf `Y.Map`/`Y.Array` pro Quiz, Frage und Antwort.
-   Dann würden nicht mehr komplette Bibliotheken neu serialisiert, sondern nur echte Teiländerungen.
+   Dann würden nicht mehr komplette Sammlungen neu serialisiert, sondern nur echte Teiländerungen.
 
 ### 16.4 Empfohlene Reihenfolge
 
@@ -538,7 +538,7 @@ Für die Weiterentwicklung ist diese Reihenfolge sinnvoll:
 
 1. bestehende Quick Wins stabil halten
 2. Legacy-Mirror abbauen
-3. reale Messwerte mit größeren Bibliotheken sammeln
+3. reale Messwerte mit größeren Sammlungen sammeln
 4. erst danach über den Umbau auf granulare Yjs-Strukturen entscheiden
 
 ### 16.5 Abhängigkeiten und Widersprüche zu Sicherheitszielen
@@ -569,15 +569,15 @@ Deshalb gilt als Leitregel:
 Für arsnova.eu bedeutet das konkret:
 
 - Bei Host-/Moderatorzugängen hat **serverseitig prüfbare Autorisierung** Vorrang vor maximaler Bequemlichkeit.
-- Bei der Quiz-Bibliothek hat **Local-First mit nachvollziehbarem Vertrauensmodell** Vorrang vor maximal aggressiver Optimierung.
+- Bei der Quiz-Sammlung hat **Local-First mit nachvollziehbarem Vertrauensmodell** Vorrang vor maximal aggressiver Optimierung.
 - Performance-Maßnahmen sind bevorzugt dort sinnvoll, wo sie **keine** Autorisierung, Widerrufbarkeit oder Transparenz abbauen.
 
 ## 17. TL;DR
 
-Die Synchronisierung der Quiz-Bibliothek ist in `arsnova.eu` ein **frontendzentriertes Local-First-System**:
+Die Synchronisierung der Quiz-Sammlung ist in `arsnova.eu` ein **frontendzentriertes Local-First-System**:
 
 - Yjs liefert konfliktfreie Multi-Device-Synchronisierung
-- IndexedDB und lokale Mirror machen die Bibliothek offlinefähig
+- IndexedDB und lokale Mirror machen die Sammlung offlinefähig
 - der Server ist Relay, nicht dauerhafte Datenquelle
 - zusätzliche lokale Metadaten machen Herkunft, letzte Änderungen und aktive Geräte nachvollziehbar
 

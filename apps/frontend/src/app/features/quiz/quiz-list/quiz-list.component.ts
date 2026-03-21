@@ -31,7 +31,10 @@ import {
 } from '../data/quiz-store.service';
 import { trpc } from '../../../core/trpc.client';
 import { buildKiQuizSystemPrompt } from '../../../shared/ki-quiz-prompt';
-import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import {
+  renderMarkdownWithKatex,
+  renderMarkdownWithoutKatex,
+} from '../../../shared/markdown-katex.util';
 import { LiveSessionDialogComponent } from './live-session-dialog.component';
 
 const PRESET_OPTIONS_STORAGE_PREFIX = 'home-preset-options-';
@@ -100,7 +103,18 @@ export class QuizListComponent implements OnInit {
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizIds = signal<Set<string>>(new Set());
   readonly showAiImport = signal(false);
+  /** Volltext der KI-Systemvorlage im Panel (Schritt 1). */
+  readonly showKiPromptPreview = signal(false);
   readonly aiJsonInput = signal('');
+  /** Gerendertes Markdown/KaTeX der Systemvorlage (nur sichtbar wenn Panel offen). */
+  readonly kiPromptPreviewHtml = computed(() => {
+    if (!this.showKiPromptPreview()) {
+      return this.sanitizer.bypassSecurityTrustHtml('');
+    }
+    this.themePreset.preset();
+    const html = renderMarkdownWithoutKatex(this.buildCurrentKiPromptText());
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  });
   readonly startLiveShortcutMode = signal(false);
   /** Wird true, während quiz.upload + session.create laufen (Story 2.1a). */
   readonly liveStartPending = signal(false);
@@ -236,8 +250,13 @@ export class QuizListComponent implements OnInit {
 
   toggleAiImport(): void {
     this.showAiImport.update((visible) => !visible);
+    this.showKiPromptPreview.set(false);
     this.actionError.set(null);
     this.actionInfo.set(null);
+  }
+
+  toggleKiPromptPreview(): void {
+    this.showKiPromptPreview.update((visible) => !visible);
   }
 
   updateAiJsonInput(value: string): void {
@@ -324,8 +343,22 @@ export class QuizListComponent implements OnInit {
   }
 
   async copyKiPrompt(): Promise<void> {
+    const prompt = this.buildCurrentKiPromptText();
+    try {
+      await navigator.clipboard.writeText(prompt);
+      this.actionInfo.set(
+        $localize`:@@quizList.aiImport.copySuccess:Die Textvorlage ist jetzt in deiner Zwischenablage.`,
+      );
+    } catch {
+      this.actionError.set(
+        $localize`:@@quizList.aiImport.copyFailed:Kopieren fehlgeschlagen. Bitte versuche es noch einmal.`,
+      );
+    }
+  }
+
+  private buildCurrentKiPromptText(): string {
     const settings = this.readPromptSettingsFromHomePreset();
-    const prompt = buildKiQuizSystemPrompt({
+    return buildKiQuizSystemPrompt({
       presetLabel: settings.preset === 'SERIOUS' ? $localize`Seriös` : $localize`Spielerisch`,
       presetValue: settings.preset,
       nicknameTheme: settings.nicknameTheme,
@@ -346,16 +379,6 @@ export class QuizListComponent implements OnInit {
       backgroundMusic: settings.backgroundMusic,
       bonusTokenCount: settings.bonusTokenCount,
     });
-    try {
-      await navigator.clipboard.writeText(prompt);
-      this.actionInfo.set(
-        $localize`:@@quizList.aiImport.copySuccess:Die Textvorlage ist jetzt in deiner Zwischenablage.`,
-      );
-    } catch {
-      this.actionError.set(
-        $localize`:@@quizList.aiImport.copyFailed:Kopieren fehlgeschlagen. Bitte versuche es noch einmal.`,
-      );
-    }
   }
 
   private readPromptSettingsFromHomePreset(): QuizSettings {

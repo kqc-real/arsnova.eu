@@ -37,7 +37,9 @@ Um die Ziele des Projekts zu erreichen, müssen alle Entwickler folgende drei ar
 
 ### 3.1 Local-First & Zero-Knowledge (Die Yjs-Engine)
 
-Die **Quiz-Bibliothek** der Dozenten wird _nicht dauerhaft_ auf dem Server gespeichert. Wenn ein Dozent ein Quiz erstellt, lebt dieses als **CRDT-Dokument (Conflict-free Replicated Data Type)** über `Yjs` primär in der lokalen IndexedDB seines Browsers. Das Backend dient für die Quiz-Erstellung lediglich als "dummer" WebSocket-Relay-Server, um E2E-verschlüsselte Deltas (Änderungen) zwischen den Endgeräten des Dozenten (z.B. PC und iPad) zu synchronisieren. Damit der Dozent dasselbe Quiz auf einem anderen Gerät öffnen kann, erhält er einen **Sync-Link** bzw. **Sync-Code** (Story 1.6a); nur wer diesen Key hat, kann das Quiz bearbeiten oder live steuern. Der Session-Beitrittscode für Studenten gewährt keinen Zugriff auf die Quiz-Bearbeitung. Beim **Start einer Live-Session** wird eine **Kopie** des gewählten Quiz an den Server übermittelt (Quiz-Upload, Story 2.1a); diese Kopie wird nur für die Dauer der Session in PostgreSQL gehalten. Die dauerhafte "Single Source of Truth" der Quiz-Inhalte bleibt die lokale Yjs/IndexedDB des Dozenten.
+Die **Quiz-Sammlung** der Dozenten (in der UI: **Deine Quiz-Sammlung**, Route `/quiz`) wird _nicht dauerhaft_ auf dem Server gespeichert. Wenn ein Dozent ein Quiz erstellt, lebt dieses als **CRDT-Dokument (Conflict-free Replicated Data Type)** über `Yjs` primär in der lokalen IndexedDB seines Browsers. Das Backend dient für die Quiz-Erstellung lediglich als "dummer" WebSocket-Relay-Server, um E2E-verschlüsselte Deltas (Änderungen) zwischen den Endgeräten des Dozenten (z.B. PC und iPad) zu synchronisieren. Damit der Dozent dasselbe Quiz auf einem anderen Gerät öffnen kann, erhält er einen **Sync-Link** bzw. **Sync-Code** (Story 1.6a); nur wer diesen Key hat, kann das Quiz bearbeiten oder live steuern. Der Session-Beitrittscode für Studenten gewährt keinen Zugriff auf die Quiz-Bearbeitung. Beim **Start einer Live-Session** wird eine **Kopie** des gewählten Quiz an den Server übermittelt (Quiz-Upload, Story 2.1a); diese Kopie wird nur für die Dauer der Session in PostgreSQL gehalten. Die dauerhafte "Single Source of Truth" der Quiz-Inhalte bleibt die lokale Yjs/IndexedDB des Dozenten.
+
+**KI-gestützter Quiz-Import (externes LLM):** System-Prompt kopieren und LLM-Antwort einfügen geschieht in derselben **Quiz-Sammlung**; der Prompt bezieht Preset und Optionen aus der Startseite bzw. dem `localStorage` der Preset-Optionen (nicht aus einem einzelnen Listen-Quiz). Vertrag und Pfade: [ADR-0007](./decisions/0007-prompt-architecture-ki-quiz.md).
 
 ### 3.2 End-to-End Typsicherheit (tRPC)
 
@@ -76,7 +78,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 
 - [Dokumentations-Landkarte (`docs/README.md`)](../README.md) · [Umgebungsvariablen (`docs/ENVIRONMENT.md`)](../ENVIRONMENT.md) · [Sicherheitsüberblick](../SECURITY-OVERVIEW.md) · [Tests & CI](../TESTING.md)
 - [Projekt-Glossar (Begriffe, UI, Workflows)](../GLOSSAR.md)
-- [Quiz-Bibliothek Synchronisierung](./quiz-library-sync.md)
+- [Synchronisierung der Quiz-Sammlung](./quiz-library-sync.md)
 - [Epic 6: Akzeptanzkriterien & Prüfung](../EPIC6-AC-PRUEFUNG.md) (inkl. Story 6.6 — Thinking Aloud / UX-Umsetzung)
 
 ---

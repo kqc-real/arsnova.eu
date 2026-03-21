@@ -46,7 +46,7 @@
 | ------------------------------------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | Live-Session (mit Code)                    | `Session`         | u. a. `status`, `code`, `type` (`QUIZ` / `Q_AND_A`), Kanal-Flags `qaEnabled`, `quickFeedbackEnabled`, `currentRound` (Peer Instruction) |
 | Teilnehmende Person                        | `Participant`     | `nickname`, optional `teamId`                                                                                                           |
-| Quiz-Kopie auf dem Server                  | `Quiz`            | Entsteht beim Live-Schalten; **nicht** die Yjs-Bibliothek im Browser                                                                    |
+| Quiz-Kopie auf dem Server                  | `Quiz`            | Entsteht beim Live-Schalten; **nicht** die lokale Quiz-Sammlung (Yjs) im Browser                                                        |
 | Frage im Quiz                              | `Question`        | zu einem `Quiz`; `type`, `order`, Timer, Rating-Grenzen, …                                                                              |
 | Antwortoption                              | `AnswerOption`    | u. a. `isCorrect` — Data-Stripping bis `RESULTS`                                                                                        |
 | Gespeicherte **Abstimmung** zu einer Frage | `Vote`            | pro Teilnehmer, Frage und **Runde** (`round`); Punkte, Freitext, Rating, …                                                              |

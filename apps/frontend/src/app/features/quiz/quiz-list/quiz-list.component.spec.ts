@@ -102,13 +102,12 @@ describe('QuizListComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Eigenes Quiz erstellen');
   });
 
-  it('zeigt den Sync-Button mit Hilfetext in der Bibliothek', () => {
+  it('zeigt den Sync-Button in der Sammlung', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Sync-ID und -Link erzeugen');
-    expect(text).toContain('Sichere deine Quiz-Sammlung auf ein anderes Gerät');
+    expect(text).toContain('Sync-Code erzeugen');
   });
 
   it('zeigt bei geteilter Bibliothek einen sichtbaren Sync-Status', () => {
@@ -275,6 +274,30 @@ describe('QuizListComponent', () => {
     await fixture.whenStable();
 
     expect(fixture.componentInstance.isQuizLive('e31fef3f-f7b1-4705-a739-28c8ec4486bf')).toBe(true);
+  });
+
+  it('blendet die Prompt-Vorschau in Schritt 1 ein und aus', () => {
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+    component.showAiImport.set(true);
+    fixture.detectChanges();
+
+    expect(component.showKiPromptPreview()).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain('You create importable quiz JSON');
+
+    component.toggleKiPromptPreview();
+    fixture.detectChanges();
+
+    expect(component.showKiPromptPreview()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('You create importable quiz JSON');
+    const pre = fixture.nativeElement.querySelector(
+      '.quiz-list__ai-prompt-markdown pre code',
+    ) as HTMLElement | null;
+    expect(pre?.textContent).toContain('"exportVersion"');
+
+    component.toggleKiPromptPreview();
+    fixture.detectChanges();
+    expect(component.showKiPromptPreview()).toBe(false);
   });
 
   it('setzt die KI-Eingabe ohne Schliessen der Karte zurueck', () => {

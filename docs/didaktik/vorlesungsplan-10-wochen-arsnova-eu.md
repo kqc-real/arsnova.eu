@@ -39,18 +39,18 @@ Diese Spannungen machen das Repo zu einer starken Lehrgrundlage fuer Software En
 
 ## 4. Die 10 Vorlesungsthemen
 
-| Woche | Thema | Leitfrage | Zentrale Repo-Anker |
-|------|------|-----------|---------------------|
-| 1 | Onboarding in ein professionelles Monorepo | Wie erschliesst man ein grosses Projekt systematisch? | `README.md`, `docs/onboarding.md`, `CONTRIBUTING.md`, `Backlog.md` |
-| 2 | Documentation as Code und Architekturkommunikation | Wie halten Teams Architekturwissen lebendig? | `docs/architecture/handbook.md`, `docs/architecture/decisions/`, `docs/cursor-context.md` |
-| 3 | Monorepo, Shared Types und Schema-first Entwicklung | Warum beginnt Entwicklung hier mit Vertraegen statt mit UI oder DB-Code? | `libs/shared-types/src/schemas.ts`, `prisma/schema.prisma`, `apps/backend/src/routers/index.ts` |
-| 4 | tRPC und End-to-End-Typsicherheit | Wie entsteht eine typsichere Full-Stack-API ohne REST-Boilerplate? | ADR `0003`, `apps/backend/src/routers/`, `apps/frontend/src/app/core/trpc.client.ts` |
-| 5 | Zero-Knowledge, Datenschutz und Data-Stripping | Wie wird Datenschutz als Architekturprinzip umgesetzt? | `docs/architecture/handbook.md`, `apps/backend/src/__tests__/dto-security.test.ts`, `prisma/schema.prisma` |
-| 6 | Local-First mit Yjs und IndexedDB | Was bedeutet es, wenn die Quiz-Bibliothek primaer im Browser lebt? | ADR `0004`, `docs/architecture/quiz-library-sync.md`, `quiz-store.service.ts` |
-| 7 | Realtime-Architektur fuer Live-Lehre | Wie kombiniert man Sessions, WebSockets, Redis und Live-Status robust? | `apps/backend/src/index.ts`, `apps/backend/src/routers/session.ts`, `apps/backend/src/routers/quickFeedback.ts` |
-| 8 | Produktarchitektur: Eine Session, mehrere Live-Kanaele | Wie werden Quiz, Q&A und Blitzlicht zu einem gemeinsamen Domänenmodell? | ADR `0009`, `app.routes.ts`, Session-Views im Frontend |
-| 9 | Qualitaet, Tests und Definition of Done | Wie wird Qualitaet im Repo verankert statt nur behauptet? | `Backlog.md`, `AGENT.md`, `.github/workflows/ci.yml`, Testdateien |
-| 10 | Entwicklung mit KI-Agenten unter Governance | Wie arbeitet man produktiv mit KI, ohne Architekturkontrolle zu verlieren? | `AGENT.md`, `.cursorrules`, `docs/vibe-coding/vibe-coding-szenario.md`, ADR `0007` |
+| Woche | Thema                                                  | Leitfrage                                                                  | Zentrale Repo-Anker                                                                                             |
+| ----- | ------------------------------------------------------ | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 1     | Onboarding in ein professionelles Monorepo             | Wie erschliesst man ein grosses Projekt systematisch?                      | `README.md`, `docs/onboarding.md`, `CONTRIBUTING.md`, `Backlog.md`                                              |
+| 2     | Documentation as Code und Architekturkommunikation     | Wie halten Teams Architekturwissen lebendig?                               | `docs/architecture/handbook.md`, `docs/architecture/decisions/`, `docs/cursor-context.md`                       |
+| 3     | Monorepo, Shared Types und Schema-first Entwicklung    | Warum beginnt Entwicklung hier mit Vertraegen statt mit UI oder DB-Code?   | `libs/shared-types/src/schemas.ts`, `prisma/schema.prisma`, `apps/backend/src/routers/index.ts`                 |
+| 4     | tRPC und End-to-End-Typsicherheit                      | Wie entsteht eine typsichere Full-Stack-API ohne REST-Boilerplate?         | ADR `0003`, `apps/backend/src/routers/`, `apps/frontend/src/app/core/trpc.client.ts`                            |
+| 5     | Zero-Knowledge, Datenschutz und Data-Stripping         | Wie wird Datenschutz als Architekturprinzip umgesetzt?                     | `docs/architecture/handbook.md`, `apps/backend/src/__tests__/dto-security.test.ts`, `prisma/schema.prisma`      |
+| 6     | Local-First mit Yjs und IndexedDB                      | Was bedeutet es, wenn die Quiz-Sammlung primaer im Browser lebt?           | ADR `0004`, `docs/architecture/quiz-library-sync.md`, `quiz-store.service.ts`                                   |
+| 7     | Realtime-Architektur fuer Live-Lehre                   | Wie kombiniert man Sessions, WebSockets, Redis und Live-Status robust?     | `apps/backend/src/index.ts`, `apps/backend/src/routers/session.ts`, `apps/backend/src/routers/quickFeedback.ts` |
+| 8     | Produktarchitektur: Eine Session, mehrere Live-Kanaele | Wie werden Quiz, Q&A und Blitzlicht zu einem gemeinsamen Domänenmodell?    | ADR `0009`, `app.routes.ts`, Session-Views im Frontend                                                          |
+| 9     | Qualitaet, Tests und Definition of Done                | Wie wird Qualitaet im Repo verankert statt nur behauptet?                  | `Backlog.md`, `AGENT.md`, `.github/workflows/ci.yml`, Testdateien                                               |
+| 10    | Entwicklung mit KI-Agenten unter Governance            | Wie arbeitet man produktiv mit KI, ohne Architekturkontrolle zu verlieren? | `AGENT.md`, `.cursorrules`, `docs/vibe-coding/vibe-coding-szenario.md`, ADR `0007`                              |
 
 ---
 
