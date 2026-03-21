@@ -276,3 +276,105 @@
     border-radius: 2px;
   }
 }
+
+/* Preset Spielerisch: Toolbar wie Hero-/Bühnen-Fläche, nicht nur flache surface-container */
+:host-context(html.preset-playful) {
+  /*
+   * Kein position: relative hier – sonst überschreibt es .top-toolbar--fixed und die Toolbar
+   * verliert left/right; Inhalt wirkt „nach rechts rausgeschossen“. isolation genügt für ::after.
+   */
+  .top-toolbar {
+    isolation: isolate;
+    background: linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 42%, var(--mat-sys-surface-container)) 0%,
+      color-mix(in srgb, var(--mat-sys-surface-container) 78%, var(--mat-sys-tertiary-container))
+        100%
+    );
+    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
+    box-shadow:
+      var(--mat-sys-level1),
+      var(--app-shadow-accent),
+      inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent);
+    transition:
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .top-toolbar.top-toolbar--fixed {
+    position: fixed;
+  }
+
+  .top-toolbar.top-toolbar--scrolled {
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
+    box-shadow:
+      var(--mat-sys-level2),
+      var(--app-shadow-accent),
+      0 8px 30px -10px color-mix(in srgb, var(--mat-sys-primary) 26%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 10%, transparent);
+  }
+
+  .top-toolbar > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .top-toolbar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(
+        ellipse 75% 140% at 100% 0%,
+        color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
+        transparent 58%
+      );
+      opacity: 0.45;
+    }
+  }
+
+  .top-toolbar__brand-icon {
+    border-radius: 0.5rem;
+    overflow: visible;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .top-toolbar__brand-icon {
+      transform-origin: center center;
+      animation: home-playful-brand-pulse 2s ease-in-out infinite;
+    }
+  }
+
+  .top-toolbar__preset-icon-playful {
+    color: var(--mat-sys-primary);
+  }
+
+  .top-toolbar__toggles .mat-button-toggle-checked {
+    background: color-mix(in srgb, var(--mat-sys-primary-container) 52%, transparent);
+  }
+
+  .top-toolbar__toggles .mat-button-toggle-checked .mat-icon {
+    color: var(--mat-sys-primary);
+  }
+
+  .top-toolbar__mobile {
+    border-top-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 65%,
+      var(--mat-sys-primary) 35%
+    );
+  }
+
+  .top-toolbar__locale-hint {
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-surface-container-high) 85%,
+      var(--mat-sys-primary-container) 15%
+    );
+    border: 1px solid
+      color-mix(in srgb, var(--mat-sys-outline-variant) 75%, var(--mat-sys-primary) 25%);
+  }
+}

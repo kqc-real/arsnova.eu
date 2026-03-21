@@ -1,36 +1,53 @@
 <div class="l-page">
   <main class="home-main">
-    <p class="home-hero">
-      <span i18n="@@homeHero.line1">Quiz, Q&amp;A und Blitzlicht – </span>
-      <span class="home-hero-break-mobile" i18n="@@homeHero.line2">live in einer App</span>
-    </p>
-    <p class="home-hero-usp" i18n>Für Schulen, Unis, Events &amp; Business</p>
+    <div class="home-hero-band">
+      <p class="home-hero">
+        <span i18n="@@homeHero.line1">Quiz, Q&amp;A und Blitzlicht – </span>
+        <span class="home-hero-break-mobile" i18n="@@homeHero.line2">live in einer App</span>
+      </p>
+      <p class="home-hero-usp" i18n>Für Schulen, Unis, Events &amp; Business</p>
 
-    <div class="home-hero-preset-mobile" i18n-aria-label aria-label="Stil wählen">
-      <mat-button-toggle-group
-        [value]="themePreset.preset()"
-        appearance="standard"
-        i18n-aria-label
-        i18n-aria-label
-        aria-label="Stil auswählen"
-        class="home-hero-preset-toggle"
-      >
-        <mat-button-toggle value="serious" (click)="themePreset.setPreset('serious')">
-          <span class="home-preset-option">
-            <mat-icon>work</mat-icon>
-            <span i18n>Seriös</span>
-          </span>
-        </mat-button-toggle>
-        <mat-button-toggle value="spielerisch" (click)="themePreset.setPreset('spielerisch')">
-          <span class="home-preset-option">
-            <mat-icon class="home-preset-icon--playful">celebration</mat-icon>
-            <span i18n>Spielerisch</span>
-          </span>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+      <div class="home-hero-preset-mobile" i18n-aria-label aria-label="Stil wählen">
+        <mat-button-toggle-group
+          [value]="themePreset.preset()"
+          appearance="standard"
+          i18n-aria-label
+          i18n-aria-label
+          aria-label="Stil auswählen"
+          class="home-hero-preset-toggle"
+        >
+          <mat-button-toggle value="serious" (click)="themePreset.setPreset('serious')">
+            <span class="home-preset-option">
+              <mat-icon>work</mat-icon>
+              <span i18n>Seriös</span>
+            </span>
+          </mat-button-toggle>
+          <mat-button-toggle value="spielerisch" (click)="themePreset.setPreset('spielerisch')">
+            <span class="home-preset-option">
+              <mat-icon class="home-preset-icon--playful">celebration</mat-icon>
+              <span i18n>Spielerisch</span>
+            </span>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
     </div>
 
-    <mat-card appearance="raised" id="participant-entry" class="home-card">
+    @if (isPlayfulPreset()) {
+      <div class="home-stage-rotator" aria-hidden="true">
+        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate1">
+          Code eingeben – mit dabei sein.
+        </p>
+        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate2">Blitzlicht in Sekunden.</p>
+        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate3">
+          Deine Sammlung, dein Tempo.
+        </p>
+        <p class="home-stage-rotator__line" i18n="@@homeStage.rotate4">
+          Mitmachen, messen, veranstalten – du entscheidest.
+        </p>
+      </div>
+    }
+
+    <mat-card appearance="raised" id="participant-entry" class="home-card home-card--stage-main">
       <mat-card-header>
         <mat-card-subtitle>
           <span class="home-card__icon-wrap">
@@ -43,33 +60,37 @@
 
       <mat-card-content class="l-stack l-stack--sm">
         @if (recentSessionCodes().length > 0) {
-          <p class="home-recent-label" i18n>Letzte Sessions</p>
-          <div class="home-recent-codes">
-            @for (item of recentSessionCodes(); track item.code) {
-              <span class="home-recent-code-row">
-                <button
-                  matButton="outlined"
-                  class="home-recent-code"
-                  (click)="joinSessionByCode(item.code)"
-                >
-                  {{ item.code }}
-                  <span class="home-recent-code-time">({{ recentSessionTime(item.usedAt) }})</span>
-                </button>
-                <button
-                  mat-icon-button
-                  type="button"
-                  class="home-recent-code-remove"
-                  (click)="removeRecentSessionCode(item.code); $event.stopPropagation()"
-                  [attr.aria-label]="removeSessionAriaLabel(item.code)"
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
-              </span>
-            }
+          <div class="home-recent-panel home-spotlight-panel">
+            <p class="home-recent-label" i18n>Letzte Sessions</p>
+            <div class="home-recent-codes">
+              @for (item of recentSessionCodes(); track item.code) {
+                <span class="home-recent-code-row">
+                  <button
+                    matButton="outlined"
+                    class="home-recent-code"
+                    (click)="joinSessionByCode(item.code)"
+                  >
+                    {{ item.code }}
+                    <span class="home-recent-code-time"
+                      >({{ recentSessionTime(item.usedAt) }})</span
+                    >
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="home-recent-code-remove"
+                    (click)="removeRecentSessionCode(item.code); $event.stopPropagation()"
+                    [attr.aria-label]="removeSessionAriaLabel(item.code)"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </span>
+              }
+            </div>
           </div>
         }
 
-        <div class="home-code-entry">
+        <div class="home-code-entry home-spotlight-panel">
           <div
             class="home-code-segments"
             [class.home-code-segments--focused]="codeInputFocused()"
@@ -154,7 +175,7 @@
       </mat-card-actions>
     </mat-card>
 
-    <mat-card appearance="raised" class="home-card home-card--feedback">
+    <mat-card appearance="raised" class="home-card home-card--feedback home-card--stage-side">
       <mat-card-header>
         <mat-card-subtitle>
           <span class="home-card__icon-wrap">
@@ -210,7 +231,7 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="raised" class="home-card home-card--create">
+    <mat-card appearance="raised" class="home-card home-card--create home-card--stage-side">
       <mat-card-header class="home-card__header-with-action">
         <div class="home-card__header-text">
           <mat-card-subtitle>

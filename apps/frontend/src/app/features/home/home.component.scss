@@ -210,6 +210,15 @@
   border-left: 1px solid var(--mat-sys-outline-variant);
 }
 
+/* Hero + USP + Preset (mobil): eine Grid-Zeile, damit Layout und Preset-Bühne steuerbar bleiben */
+.home-hero-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
 .home-hero-preset-toggle .mat-button-toggle-checked {
   background: var(--mat-sys-primary-container);
   color: var(--mat-sys-on-primary-container);
@@ -340,28 +349,26 @@
        der Nachbar-Karte und erzeugt leeren Fläche durch flex:1 + margin:auto. */
     align-items: start;
   }
-  .home-hero,
-  .home-hero-usp,
-  .home-hero-usp--secondary,
-  .home-hero-preset-mobile {
+  .home-hero-band {
     grid-column: 1 / -1;
   }
 }
 
 /* Zwei Spalten: links „Dabei sein“ + „Veranstalten“ gestapelt, rechts Blitzlicht
-   über beide Zeilen – nutzt die Höhe, kein leeres Feld rechts unten. */
+   über beide Zeilen – nutzt die Höhe, kein leeres Feld rechts unten.
+   Zeile 1 = home-hero-band, Zeile 2–3 = Karten (seriös). */
 @media (min-width: 600px) and (max-width: 959.98px) {
   .home-card#participant-entry {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 2;
   }
   .home-card.home-card--feedback {
     grid-column: 2;
-    grid-row: 3 / span 2;
+    grid-row: 2 / span 2;
   }
   .home-card.home-card--create {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 3;
   }
 }
 
@@ -1022,6 +1029,424 @@ mat-card-actions.l-stack {
     }
     .home-card--create.home-card:hover {
       box-shadow: var(--mat-sys-level3);
+    }
+  }
+
+  /* --- Spielerisch: Bühne – Hero-Band, Mitmachen als Hauptbühne, Side Acts --- */
+  .home-hero-band {
+    position: relative;
+    z-index: 0;
+    overflow: hidden;
+    padding: 0.85rem 1rem 1.15rem;
+    margin-bottom: 0.1rem;
+    border-radius: var(--mat-sys-corner-extra-large);
+    background: linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--mat-sys-primary-container) 52%, transparent) 0%,
+      color-mix(in srgb, var(--mat-sys-tertiary-container) 28%, transparent) 48%,
+      transparent 92%
+    );
+    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+    box-shadow: var(--mat-sys-level1);
+  }
+
+  .home-hero-band > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .home-hero-band::after {
+      content: '';
+      position: absolute;
+      inset: -35% -20% auto -20%;
+      height: 85%;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--mat-sys-primary) 16%, transparent),
+        transparent 72%
+      );
+      opacity: 0.55;
+      animation: home-hero-band-spotlight-drift 14s ease-in-out infinite;
+    }
+  }
+
+  @keyframes home-hero-band-spotlight-drift {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translateY(2.5%) scale(1.03);
+      opacity: 0.62;
+    }
+  }
+
+  /* Copy-Rotation (Nutzermomente) + Hauptkarte leicht in die Bühne ziehen */
+  .home-stage-rotator {
+    --home-stage-rotator-cycle: 16s;
+    grid-column: 1 / -1;
+    position: relative;
+    min-height: 2.75rem;
+    margin: 0.15rem 0 0;
+    padding: 0 0.5rem;
+  }
+
+  .home-stage-rotator__line {
+    margin: 0;
+    font: var(--mat-sys-title-small);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--mat-sys-primary);
+    text-wrap: balance;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-stage-rotator__line:not(:first-of-type) {
+      display: none;
+    }
+
+    .home-stage-rotator__line:first-of-type {
+      position: relative;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .home-stage-rotator__line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      width: 100%;
+      opacity: 0;
+      animation: home-stage-copy-rotate var(--home-stage-rotator-cycle) ease-in-out infinite;
+    }
+
+    .home-stage-rotator__line:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .home-stage-rotator__line:nth-child(2) {
+      animation-delay: calc(var(--home-stage-rotator-cycle) * 0.25);
+    }
+
+    .home-stage-rotator__line:nth-child(3) {
+      animation-delay: calc(var(--home-stage-rotator-cycle) * 0.5);
+    }
+
+    .home-stage-rotator__line:nth-child(4) {
+      animation-delay: calc(var(--home-stage-rotator-cycle) * 0.75);
+    }
+  }
+
+  @keyframes home-stage-copy-rotate {
+    0% {
+      opacity: 0;
+      transform: translateY(0.35rem);
+    }
+    2% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    24% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    26% {
+      opacity: 0;
+      transform: translateY(-0.2rem);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-0.2rem);
+    }
+  }
+
+  @media (min-width: 600px) {
+    .home-stage-rotator {
+      grid-row: 2;
+      margin-top: 0.35rem;
+    }
+
+    .home-hero-band + .home-stage-rotator + .home-card#participant-entry.home-card--stage-main {
+      margin-top: -0.5rem;
+    }
+  }
+
+  @media (min-width: 960px) {
+    .home-hero-band + .home-stage-rotator + .home-card#participant-entry.home-card--stage-main {
+      margin-top: -0.85rem;
+    }
+  }
+
+  .home-card--stage-main#participant-entry {
+    position: relative;
+    z-index: 2;
+    isolation: isolate;
+    background:
+      radial-gradient(
+        ellipse 88% 58% at 94% 12%,
+        color-mix(in srgb, var(--mat-sys-primary) 26%, transparent),
+        transparent 58%
+      ),
+      radial-gradient(
+        ellipse 72% 52% at 6% 92%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 22%, transparent),
+        transparent 52%
+      ),
+      linear-gradient(
+        168deg,
+        color-mix(in srgb, var(--mat-sys-primary-container) 48%, var(--mat-sys-surface)) 0%,
+        color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-primary) 16%)
+          42%,
+        color-mix(in srgb, var(--mat-sys-surface) 88%, var(--mat-sys-tertiary) 12%) 100%
+      );
+    border: 1px solid
+      color-mix(in srgb, var(--mat-sys-outline-variant) 52%, var(--mat-sys-primary) 38%);
+    padding: 0.35rem;
+    box-shadow:
+      var(--mat-sys-level3),
+      var(--app-shadow-card-playful),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  }
+
+  .home-card--stage-main#participant-entry .home-card__title {
+    font: var(--mat-sys-headline-large);
+    text-wrap: balance;
+  }
+
+  .home-card--stage-side .home-card__title {
+    font: var(--mat-sys-title-large);
+    white-space: normal;
+  }
+
+  @media (min-width: 960px) {
+    .home-card--stage-main#participant-entry {
+      padding: 0.55rem 0.7rem 0.6rem;
+      box-shadow:
+        var(--mat-sys-level3),
+        var(--app-shadow-card-playful),
+        inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
+        inset 5px 0 0 color-mix(in srgb, var(--mat-sys-primary) 72%, transparent);
+    }
+
+    .home-card--stage-main#participant-entry .mat-mdc-card-header {
+      padding-inline: 0.15rem 0.35rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .home-card--stage-main#participant-entry .home-card__icon-wrap {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .home-card--stage-main#participant-entry .home-card__title {
+      font: var(--mat-sys-headline-large);
+      white-space: normal;
+    }
+
+    .home-card--stage-main#participant-entry mat-card-content {
+      position: relative;
+      z-index: 1;
+      padding-bottom: 0.35rem;
+    }
+
+    /* Spotlight-Panels: Session-Code + optional „Letzte Sessions“ */
+    .home-card--stage-main#participant-entry .home-spotlight-panel {
+      margin-top: 0.25rem;
+      padding: 1.1rem 1.25rem 1.2rem;
+      border-radius: var(--mat-sys-corner-extra-large);
+      background: color-mix(
+        in srgb,
+        var(--mat-sys-surface) 78%,
+        var(--mat-sys-primary-container) 22%
+      );
+      border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 26%, transparent);
+      box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 10%, transparent),
+        0 1px 0 color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+    }
+
+    .home-card--stage-main#participant-entry .home-spotlight-panel:first-child {
+      margin-top: 0.15rem;
+    }
+
+    .home-card--stage-main#participant-entry .home-spotlight-panel .home-recent-codes {
+      margin-bottom: 0;
+    }
+
+    .home-card--stage-main#participant-entry .home-code-segments {
+      margin-top: 0.25rem;
+      gap: 0.55rem;
+    }
+
+    .home-card--stage-main#participant-entry .home-code-segment {
+      width: 3.35rem;
+      height: 4rem;
+      font-size: 1.65rem;
+      border-radius: var(--mat-sys-corner-large);
+    }
+
+    .home-card--stage-side .home-card__title {
+      font: var(--mat-sys-title-large);
+    }
+  }
+
+  /* Nebenbühnen: gleiche Bühnen-Sprache wie Mitmachen-Karte, klar schwächer */
+  .home-card.home-card--stage-side {
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
+    padding: 0.32rem 0.38rem 0.34rem;
+    border: 1px solid
+      color-mix(in srgb, var(--mat-sys-outline-variant) 44%, var(--mat-sys-primary) 30%);
+    box-shadow:
+      var(--mat-sys-level2),
+      0 6px 26px -8px color-mix(in srgb, var(--mat-sys-primary) 24%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+    background:
+      radial-gradient(
+        ellipse 100% 68% at 96% 4%,
+        color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
+        transparent 56%
+      ),
+      radial-gradient(
+        ellipse 88% 56% at 4% 96%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 14%, transparent),
+        transparent 50%
+      ),
+      linear-gradient(
+        168deg,
+        color-mix(in srgb, var(--mat-sys-primary-container) 34%, var(--mat-sys-surface)) 0%,
+        color-mix(in srgb, var(--mat-sys-surface-container-high) 82%, var(--mat-sys-primary) 8%) 46%,
+        color-mix(in srgb, var(--mat-sys-surface) 90%, var(--mat-sys-tertiary) 10%) 100%
+      );
+  }
+
+  .home-card.home-card--feedback.home-card--stage-side {
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 40%,
+      var(--mat-sys-primary) 34%
+    );
+    box-shadow:
+      var(--mat-sys-level2),
+      0 7px 28px -8px color-mix(in srgb, var(--mat-sys-primary) 30%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+    background:
+      radial-gradient(
+        ellipse 105% 72% at 94% 2%,
+        color-mix(in srgb, var(--mat-sys-primary) 24%, transparent),
+        transparent 54%
+      ),
+      radial-gradient(
+        ellipse 82% 52% at 8% 98%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent),
+        transparent 48%
+      ),
+      linear-gradient(
+        168deg,
+        color-mix(in srgb, var(--mat-sys-primary-container) 42%, var(--mat-sys-surface)) 0%,
+        color-mix(in srgb, var(--mat-sys-surface-container-high) 76%, var(--mat-sys-primary) 10%)
+          48%,
+        color-mix(in srgb, var(--mat-sys-surface) 92%, var(--mat-sys-tertiary) 8%) 100%
+      );
+  }
+
+  .home-card.home-card--create.home-card--stage-side {
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-outline-variant) 42%,
+      var(--mat-sys-tertiary) 32%
+    );
+    box-shadow:
+      var(--mat-sys-level2),
+      0 7px 28px -8px color-mix(in srgb, var(--mat-sys-tertiary) 28%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 9%, transparent);
+    background:
+      radial-gradient(
+        ellipse 98% 66% at 6% 6%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 22%, transparent),
+        transparent 52%
+      ),
+      radial-gradient(
+        ellipse 90% 58% at 98% 94%,
+        color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
+        transparent 50%
+      ),
+      linear-gradient(
+        168deg,
+        color-mix(in srgb, var(--mat-sys-tertiary-container) 40%, var(--mat-sys-surface)) 0%,
+        color-mix(in srgb, var(--mat-sys-surface-container-high) 80%, var(--mat-sys-tertiary) 9%)
+          50%,
+        color-mix(in srgb, var(--mat-sys-surface) 88%, var(--mat-sys-primary) 12%) 100%
+      );
+  }
+
+  .home-card.home-card--stage-side .mat-mdc-card-header {
+    padding-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .home-card.home-card--feedback.home-card--stage-side .home-card__icon-wrap {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  }
+
+  .home-card.home-card--create.home-card--stage-side .home-card__icon-wrap {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 16%, transparent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .home-card.home-card--feedback.home-card--stage-side.home-card:hover {
+      transform: translateY(-5px) scale(1.014);
+      box-shadow:
+        var(--mat-sys-level3),
+        0 12px 36px -8px color-mix(in srgb, var(--mat-sys-primary) 34%, transparent),
+        0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 20%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 11%, transparent);
+    }
+
+    .home-card.home-card--create.home-card--stage-side.home-card:hover {
+      transform: translateY(-5px) scale(1.014);
+      box-shadow:
+        var(--mat-sys-level3),
+        0 12px 36px -8px color-mix(in srgb, var(--mat-sys-tertiary) 32%, transparent),
+        0 0 0 2px color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 11%, transparent);
+    }
+  }
+
+  @media (min-width: 600px) {
+    .home-card#participant-entry.home-card--stage-main {
+      grid-column: 1 / -1;
+      grid-row: 3;
+    }
+
+    .home-card.home-card--feedback.home-card--stage-side {
+      grid-column: 1;
+      grid-row: 4;
+      align-self: start;
+    }
+
+    .home-card.home-card--create.home-card--stage-side {
+      grid-column: 2;
+      grid-row: 4;
+      align-self: start;
+    }
+  }
+
+  @media (min-width: 960px) {
+    .home-main {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-width: 56rem;
+      justify-content: center;
     }
   }
 }

@@ -77,6 +77,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   quickFeedbackStarting = signal<QuickFeedbackType | null>(null);
 
   readonly themePreset = inject(ThemePresetService);
+  /** Nur Preset Spielerisch: Bühne-Intro und Layout-Hinweise im Template. */
+  readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   private readonly quizStore = inject(QuizStoreService);
   readonly quizCount = computed(
     () => this.quizStore.quizzes().filter((q) => q.id !== DEMO_QUIZ_ID).length,

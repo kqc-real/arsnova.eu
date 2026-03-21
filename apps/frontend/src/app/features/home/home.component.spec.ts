@@ -56,6 +56,19 @@ describe('HomeComponent', () => {
     return fixture.componentInstance;
   }
 
+  describe('isPlayfulPreset', () => {
+    it('ist true im Standard-Preset Spielerisch', () => {
+      const comp = createComponent();
+      expect(comp.isPlayfulPreset()).toBe(true);
+    });
+
+    it('ist false nach Umschalten auf Seriös', () => {
+      const comp = createComponent();
+      comp.themePreset.setPreset('serious');
+      expect(comp.isPlayfulPreset()).toBe(false);
+    });
+  });
+
   describe('isValidSessionCode', () => {
     it('akzeptiert gültigen 6-stelligen alphanumerischen Code', () => {
       const comp = createComponent();
