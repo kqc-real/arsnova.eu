@@ -279,6 +279,23 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sessionCodeInput?.nativeElement.focus();
   }
 
+  /** Nach unbekanntem Code: Feld leeren und Fokus auf Anfang (neuer Versuch). */
+  private clearSessionCodeAndFocusStart(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.sessionCode.set('');
+    const el = this.sessionCodeInput?.nativeElement;
+    if (!el) return;
+    const run = (): void => {
+      el.focus();
+      try {
+        el.setSelectionRange(0, 0);
+      } catch {
+        /* ignore */
+      }
+    };
+    setTimeout(run, 0);
+  }
+
   private triggerShake(): void {
     this.codeShaking.set(true);
     setTimeout(() => this.codeShaking.set(false), 400);
@@ -409,6 +426,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.joinErrorSessionFinished.set(false);
       this.joinError.set(msg);
       this.triggerShake();
+      this.clearSessionCodeAndFocusStart();
     } finally {
       this.isJoining.set(false);
     }

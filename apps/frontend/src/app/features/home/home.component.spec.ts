@@ -177,6 +177,7 @@ describe('HomeComponent', () => {
       await comp.joinSession();
 
       expect(comp.joinError()).toBe('Session nicht gefunden.');
+      expect(comp.sessionCode()).toBe('');
     });
   });
 

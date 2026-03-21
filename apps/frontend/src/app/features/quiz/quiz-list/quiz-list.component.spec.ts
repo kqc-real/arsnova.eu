@@ -99,7 +99,7 @@ describe('QuizListComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Willkommen in deiner Quiz-Sammlung!');
-    expect(fixture.nativeElement.textContent).toContain('Eigenes Quiz erstellen');
+    expect(fixture.nativeElement.textContent).toContain('Neues Quiz erstellen');
   });
 
   it('zeigt den Sync-Button in der Sammlung', () => {
