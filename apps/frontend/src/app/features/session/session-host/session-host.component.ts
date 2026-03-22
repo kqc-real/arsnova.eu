@@ -1137,6 +1137,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`${count} von ${totalStr} haben geantwortet`;
   }
 
+  /** Ergebnisansicht: „X von Y hat/haben abgestimmt“ (Plural nach Anzahl abgegebener Stimmen). */
+  votesCastLabel(votes: number, participantTotal: number | null | undefined): string {
+    const totalStr =
+      participantTotal !== undefined && participantTotal !== null ? String(participantTotal) : '?';
+    if (votes === 1) {
+      return $localize`:@@sessionHost.votesCastOne:${votes}:voteCount: von ${totalStr}:participantTotal: hat abgestimmt`;
+    }
+    return $localize`:@@sessionHost.votesCastMany:${votes}:voteCount: von ${totalStr}:participantTotal: haben abgestimmt`;
+  }
+
   emojiReactionsTotalLabel(total: number): string {
     return total === 1 ? $localize`${total} Reaktion` : $localize`${total} Reaktionen`;
   }

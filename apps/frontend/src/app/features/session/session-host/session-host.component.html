@@ -939,9 +939,12 @@
                         ) {
                           <div class="session-host__vote-dist">
                             <p class="session-host__vote-dist-total">
-                              {{ q.totalVotes }} von
-                              {{ participantsPayload()?.participantCount ?? '?' }}
-                              {{ q.totalVotes === 1 ? 'hat' : 'haben' }} abgestimmt
+                              {{
+                                votesCastLabel(
+                                  q.totalVotes ?? 0,
+                                  participantsPayload()?.participantCount ?? null
+                                )
+                              }}
                             </p>
                             @if (
                               q.correctVoterCount !== null &&

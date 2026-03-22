@@ -5959,6 +5959,22 @@
           <context context-type="linenumber">1137</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.votesCastOne" datatype="html">
+        <source><x id="voteCount" equiv-text="votes"/> von <x id="participantTotal" equiv-text="totalStr"/> hat abgestimmt</source>
+        <target><x id="voteCount"/> of <x id="participantTotal"/> has voted</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1144</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.votesCastMany" datatype="html">
+        <source><x id="voteCount" equiv-text="votes"/> von <x id="participantTotal" equiv-text="totalStr"/> haben abgestimmt</source>
+        <target><x id="voteCount"/> of <x id="participantTotal"/> have voted</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1146</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="6038081262407463029" datatype="html">
         <source><x id="PH" equiv-text="total"/> Reaktion</source>
         <target><x id="PH" equiv-text="total"/> reaction</target>
