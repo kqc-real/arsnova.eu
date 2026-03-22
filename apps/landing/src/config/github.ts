@@ -11,5 +11,5 @@ export const GITHUB_DOCS_URL = `${GITHUB_URL}/blob/main/docs/ARS-comparison/Kaho
 
 /** CTA: App (Beta) – z. B. Demo oder gleiche URL bis Server steht */
 // default points to the current production host; override via PUBLIC_APP_URL_V3
-// (e.g. set to https://click.arsnova.eu in CI or Vercel env vars)
-export const APP_URL_V3 = import.meta.env.PUBLIC_APP_URL_V3 || 'https://click.arsnova.eu';
+// (e.g. set to https://arsnova.eu in CI or Vercel env vars)
+export const APP_URL_V3 = import.meta.env.PUBLIC_APP_URL_V3 || 'https://arsnova.eu';

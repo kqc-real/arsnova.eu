@@ -1,10 +1,10 @@
-# Deployment: click.arsnova.eu auf Debian Root-Server
+# Deployment: arsnova.eu auf Debian Root-Server
 
 > **Domain:** Die hier beschriebene Produktionsinstanz ist unter
-> https://click.arsnova.eu erreichbar. Falls bei künftigen Deployments ein
+> https://arsnova.eu erreichbar. Falls bei künftigen Deployments ein
 > anderer Hostname verwendet wird, passe die Nginx-Konfiguration sowie
-> DNS‑Einträge entsprechend an.
-
+> DNS‑Einträge entsprechend an. Optional kann eine ältere Subdomain per **301**
+> auf `https://arsnova.eu` zeigen, falls noch alte URLs in Umlauf sind.
 
 Vorschlag für das Deployment auf einem externen Linux-Root-Server (Debian) nach aktuellem Stand der Technik: Let's Encrypt, Firewall, gehärteter Server. **Bei Hetzner** (Cloud oder Root) gelten die gleichen Schritte; Besonderheiten und Vereinfachungen sind in Abschnitt 2.7 und Abschnitt 11 beschrieben.
 
@@ -23,32 +23,32 @@ sudo mv micro /usr/local/bin/
 
 ### Die wichtigsten Shortcuts
 
-| Aktion       | Shortcut |
-|--------------|----------|
-| Speichern    | Ctrl+S   |
-| Beenden      | Ctrl+Q   |
-| Suchen       | Ctrl+F   |
-| Kopieren     | Ctrl+C   |
-| Einfügen     | Ctrl+V   |
-| Rückgängig   | Ctrl+Z   |
+| Aktion     | Shortcut |
+| ---------- | -------- |
+| Speichern  | Ctrl+S   |
+| Beenden    | Ctrl+Q   |
+| Suchen     | Ctrl+F   |
+| Kopieren   | Ctrl+C   |
+| Einfügen   | Ctrl+V   |
+| Rückgängig | Ctrl+Z   |
 
 > **⚠️ Achtung Mac-User / VS Code Terminal:** Viele Terminal-Apps (macOS Terminal, iTerm2, und die integrierte VS Code Terminal-Instanz) fangen **Ctrl+Q** ab und schließen das Terminal-Fenster bzw. die SSH-Verbindung, bevor `micro` den Shortcut empfängt. Optionen:
 >
->- Kurzfristig: Vor dem ersten `micro`-Start einmal `stty start undef stop undef` ausführen (oder in `~/.zshrc` eintragen):
+> - Kurzfristig: Vor dem ersten `micro`-Start einmal `stty start undef stop undef` ausführen (oder in `~/.zshrc` eintragen):
 >
->```bash
->echo 'stty start undef stop undef' >> ~/.zshrc
->```
+> ```bash
+> echo 'stty start undef stop undef' >> ~/.zshrc
+> ```
 >
->- In VS Code: Preferences → Keyboard Shortcuts (JSON) und diese Zeile einfügen, um `Ctrl+Q` zu deaktivieren:
+> - In VS Code: Preferences → Keyboard Shortcuts (JSON) und diese Zeile einfügen, um `Ctrl+Q` zu deaktivieren:
 >
->```json
->{ "key": "ctrl+q", "command": "-workbench.action.quit" }
->```
+> ```json
+> { "key": "ctrl+q", "command": "-workbench.action.quit" }
+> ```
 >
->- Alternativ immer `Ctrl+S` zum Speichern, dann `Ctrl+Q` nur verwenden, wenn du sicher bist, dass der Terminal-Host das nicht abfängt.
+> - Alternativ immer `Ctrl+S` zum Speichern, dann `Ctrl+Q` nur verwenden, wenn du sicher bist, dass der Terminal-Host das nicht abfängt.
 
->**Tipp:** Falls `micro` nicht verfügbar ist oder du Konflikte vermeiden willst, verwende `nano` (Speichern: `Ctrl+O`, Beenden: `Ctrl+X`).
+> **Tipp:** Falls `micro` nicht verfügbar ist oder du Konflikte vermeiden willst, verwende `nano` (Speichern: `Ctrl+O`, Beenden: `Ctrl+X`).
 
 Im Rest dieser Anleitung verwenden wir `micro` zum Bearbeiten von Dateien – du kannst jederzeit `nano` oder einen anderen Editor deiner Wahl verwenden.
 
@@ -56,14 +56,14 @@ Im Rest dieser Anleitung verwenden wir `micro` zum Bearbeiten von Dateien – du
 
 ## 1. Übersicht
 
-| Komponente        | Technologie              | Rolle                                      |
-|-------------------|--------------------------|--------------------------------------------|
-| Reverse Proxy     | Nginx                    | TLS-Terminierung, HTTP→HTTPS, WebSocket-Proxy |
-| Zertifikate       | Let's Encrypt (Certbot)  | Kostenlose, vertrauenswürdige TLS-Zertifikate |
-| Firewall          | UFW                      | Nur benötigte Ports (22, 80, 443)          |
-| App + DB + Redis  | Docker Compose           | Isolierte Laufzeitumgebung                  |
-| Prozess-Manager   | Docker (restart policy)  | Automatischer Neustart bei Ausfall         |
-| Härtung           | Siehe Abschnitt 2        | SSH, Updates, Fail2ban, minimale Dienste   |
+| Komponente       | Technologie             | Rolle                                         |
+| ---------------- | ----------------------- | --------------------------------------------- |
+| Reverse Proxy    | Nginx                   | TLS-Terminierung, HTTP→HTTPS, WebSocket-Proxy |
+| Zertifikate      | Let's Encrypt (Certbot) | Kostenlose, vertrauenswürdige TLS-Zertifikate |
+| Firewall         | UFW                     | Nur benötigte Ports (22, 80, 443)             |
+| App + DB + Redis | Docker Compose          | Isolierte Laufzeitumgebung                    |
+| Prozess-Manager  | Docker (restart policy) | Automatischer Neustart bei Ausfall            |
+| Härtung          | Siehe Abschnitt 2       | SSH, Updates, Fail2ban, minimale Dienste      |
 
 **Port-Mapping (intern):**
 
@@ -270,6 +270,7 @@ sudo certbot --nginx -d arsnova.eu -d www.arsnova.eu
 ```
 
 **Was passiert dabei?** Certbot erledigt automatisch drei Dinge:
+
 1. Er verifiziert die Domain über den laufenden HTTP-Server (Port 80).
 2. Er erstellt die Zertifikatsdateien unter `/etc/letsencrypt/live/arsnova.eu/`.
 3. Er erweitert die Nginx-Konfiguration um einen HTTPS-Block (Port 443) mit den SSL-Pfaden.
@@ -284,7 +285,7 @@ Jetzt ergänzen wir die Nginx-Konfiguration um die **Upstreams** (Weiterleitung 
 
 > **Wichtig:** Die `ssl_certificate`-Pfade unten (`/etc/letsencrypt/live/arsnova.eu/...`) sollten mit euren übereinstimmen. Kurz prüfen mit: `ls /etc/letsencrypt/live/`
 
-```nginx
+````nginx
 # Upstreams: Weiterleitung an die Docker-Container auf localhost
 upstream app_http {
     server 127.0.0.1:3000;   # HTTP (tRPC + Angular-Frontend)
@@ -320,7 +321,7 @@ upstream app_ws_yjs {
 > server {
 >     listen 80;
 >     listen [::]:80;
->     server_name click.arsnova.eu;
+>     server_name arsnova.eu www.arsnova.eu;
 >
 >     location /.well-known/acme-challenge/ {
 >         root /var/www/certbot;
@@ -336,10 +337,10 @@ upstream app_ws_yjs {
 > server {
 >     listen 443 ssl http2;
 >     listen [::]:443 ssl http2;
->     server_name click.arsnova.eu;
+>     server_name arsnova.eu www.arsnova.eu;
 >
->     ssl_certificate     /etc/letsencrypt/live/click.arsnova.eu/fullchain.pem;
->     ssl_certificate_key /etc/letsencrypt/live/click.arsnova.eu/privkey.pem;
+>     ssl_certificate     /etc/letsencrypt/live/arsnova.eu/fullchain.pem;
+>     ssl_certificate_key /etc/letsencrypt/live/arsnova.eu/privkey.pem;
 >     include /etc/letsencrypt/options-ssl-nginx.conf;
 >     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 >
@@ -456,7 +457,7 @@ server {
         proxy_set_header Host $host;
     }
 }
-```
+````
 
 Konfiguration testen und aktivieren:
 
@@ -519,7 +520,7 @@ services:
     networks:
       - app
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U arsnova_user -d arsnova_v3"]
+      test: ['CMD-SHELL', 'pg_isready -U arsnova_user -d arsnova_v3']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -534,7 +535,7 @@ services:
     networks:
       - app
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -549,16 +550,16 @@ services:
       # Nur auf localhost binden! Nginx leitet von außen weiter.
       # Ohne "127.0.0.1:" wären die Ports direkt aus dem Internet erreichbar
       # (Docker umgeht UFW-Regeln – das ist ein häufiger Fehler).
-      - "127.0.0.1:3000:3000"
-      - "127.0.0.1:3001:3001"
-      - "127.0.0.1:3002:3002"
+      - '127.0.0.1:3000:3000'
+      - '127.0.0.1:3001:3001'
+      - '127.0.0.1:3002:3002'
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
-      PORT: "3000"
-      WS_PORT: "3001"
-      YJS_WS_PORT: "3002"
-      NODE_ENV: "production"
+      PORT: '3000'
+      WS_PORT: '3001'
+      YJS_WS_PORT: '3002'
+      NODE_ENV: 'production'
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       postgres:
@@ -568,7 +569,7 @@ services:
     networks:
       - app
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/trpc/health.check"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/trpc/health.check']
       interval: 30s
       timeout: 5s
       start_period: 15s
@@ -602,6 +603,7 @@ Starke Passwörter und `JWT_SECRET` z. B. mit `openssl rand -base64 32` erzeugen
 ### 6.3 WebSocket-URLs im Frontend
 
 Die App nutzt die zentrale Konfiguration **`apps/frontend/src/app/core/ws-urls.ts`**:
+
 - **`getTrpcWsUrl()`** – wird vom tRPC-Client verwendet; in Produktion (HTTPS oder Host ≠ localhost) automatisch `wss://<domain>/trpc-ws`.
 - **`getYjsWsUrl()`** – für Yjs Multi-Device-Sync (Story 1.6); in Produktion `wss://<domain>/yjs-ws`.
 
@@ -654,13 +656,13 @@ curl -s https://arsnova.eu/trpc/health.check
 
 ## 9. Kurzreferenz Befehle
 
-| Aktion              | Befehl |
-|---------------------|--------|
+| Aktion              | Befehl                                                                       |
+| ------------------- | ---------------------------------------------------------------------------- |
 | App starten         | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d` |
-| App stoppen         | `docker compose -f docker-compose.prod.yml down` |
-| Logs anzeigen       | `docker compose -f docker-compose.prod.yml logs -f app` |
-| Nginx neu laden     | `sudo systemctl reload nginx` |
-| Zertifikat erneuern | `sudo certbot renew` (läuft automatisch per Timer) |
+| App stoppen         | `docker compose -f docker-compose.prod.yml down`                             |
+| Logs anzeigen       | `docker compose -f docker-compose.prod.yml logs -f app`                      |
+| Nginx neu laden     | `sudo systemctl reload nginx`                                                |
+| Zertifikat erneuern | `sudo certbot renew` (läuft automatisch per Timer)                           |
 
 ---
 
@@ -687,14 +689,14 @@ Deployments laufen automatisch, **nur wenn alle CI-Jobs erfolgreich sind** (Buil
 
 **Deploy ist standardmäßig aus:** Ohne weitere Einstellung wird der Deploy-Job **übersprungen** (CI bleibt grün). Erst wenn du einen Server bereitstellst, setze die Variable und die Secrets.
 
-| Typ | Name | Pflicht | Beschreibung |
-|-----|------|--------|--------------|
-| **Variable** | `DEPLOY_ENABLED` | Ja (für Deploy) | Auf `true` setzen, sobald der Server steht und deployt werden soll. Ohne diese Variable: kein Deploy, kein Fehlschlag. |
-| Secret | `DEPLOY_SSH_KEY` | Ja (wenn Deploy) | Privater SSH-Schlüssel des Deploy-Users (kompletter Inhalt von z. B. `~/.ssh/id_ed25519`). |
-| Secret | `DEPLOY_HOST` | Ja (wenn Deploy) | Hostname oder IP des Servers (z. B. `arsnova.eu` oder `123.45.67.89`). |
-| Secret | `DEPLOY_USER` | Ja (wenn Deploy) | SSH-User (z. B. `deploy`). |
-| Secret | `DEPLOY_SSH_PORT` | Nein | SSH-Port, falls nicht 22 (z. B. `2222`). |
-| **Variable** | `DEPLOY_DIR` | Nein | Pfad zum Repo auf dem Server. Standard: `/home/deploy/arsnova.eu`. |
+| Typ          | Name              | Pflicht          | Beschreibung                                                                                                           |
+| ------------ | ----------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Variable** | `DEPLOY_ENABLED`  | Ja (für Deploy)  | Auf `true` setzen, sobald der Server steht und deployt werden soll. Ohne diese Variable: kein Deploy, kein Fehlschlag. |
+| Secret       | `DEPLOY_SSH_KEY`  | Ja (wenn Deploy) | Privater SSH-Schlüssel des Deploy-Users (kompletter Inhalt von z. B. `~/.ssh/id_ed25519`).                             |
+| Secret       | `DEPLOY_HOST`     | Ja (wenn Deploy) | Hostname oder IP des Servers (z. B. `arsnova.eu` oder `123.45.67.89`).                                                 |
+| Secret       | `DEPLOY_USER`     | Ja (wenn Deploy) | SSH-User (z. B. `deploy`).                                                                                             |
+| Secret       | `DEPLOY_SSH_PORT` | Nein             | SSH-Port, falls nicht 22 (z. B. `2222`).                                                                               |
+| **Variable** | `DEPLOY_DIR`      | Nein             | Pfad zum Repo auf dem Server. Standard: `/home/deploy/arsnova.eu`.                                                     |
 
 **Hinweis:** Unter **Variables** (nicht Secrets) `DEPLOY_DIR` setzen, wenn das Repo woanders liegt.
 
@@ -743,28 +745,28 @@ Für die **Erstphase** mit geringem Lastaufkommen reicht die kleinste sinnvolle 
 
 ### 12.1 Alle CX/CAX Cloud-Server (Shared & Dedicated)
 
-| Server   | vCPU | RAM  | SSD   | Preis/Monat (DE/FI, Stand 2025) | Vorauss. max. gleichz. Quizze (Ø 30 Teiln./Quiz) | Vorauss. max. Teilnehmer (alle verbunden) |
-|----------|------|------|-------|----------------------------------|---------------------------------------------------|------------------------------------------|
-| **CX23** | 2    | 4 GB | 40 GB | ca. 3,49 €                       | **3–6**                                           | **~150–250**                              |
-| **CAX11**| 2    | 4 GB | 40 GB | ca. 3,79 €                      | 3–6                                               | ~150–250                                  |
-| **CX33** | 4    | 8 GB | 80 GB | ca. 5,49 €                      | **8–12**                                          | **~400–600**                              |
-| **CAX21**| 4    | 8 GB | 80 GB | ca. 6,49 €                      | 8–12                                              | ~400–600                                  |
-| **CX43** | 8    | 16 GB| 160 GB| ca. 9,49 €                      | **20–25**                                         | **~1.000**                                |
-| **CAX31**| 8    | 16 GB| 160 GB| ca. 12,49 €                     | 20–25                                             | ~1.000                                    |
-| **CX53** | 16   | 32 GB| 320 GB| ca. 17,49 €                     | **25–35**                                         | **~1.200–1.500**                          |
-| **CAX41**| 16   | 32 GB| 320 GB| ca. 24,49 €                     | 25–35                                             | ~1.200–1.500                              |
+| Server    | vCPU | RAM   | SSD    | Preis/Monat (DE/FI, Stand 2025) | Vorauss. max. gleichz. Quizze (Ø 30 Teiln./Quiz) | Vorauss. max. Teilnehmer (alle verbunden) |
+| --------- | ---- | ----- | ------ | ------------------------------- | ------------------------------------------------ | ----------------------------------------- |
+| **CX23**  | 2    | 4 GB  | 40 GB  | ca. 3,49 €                      | **3–6**                                          | **~150–250**                              |
+| **CAX11** | 2    | 4 GB  | 40 GB  | ca. 3,79 €                      | 3–6                                              | ~150–250                                  |
+| **CX33**  | 4    | 8 GB  | 80 GB  | ca. 5,49 €                      | **8–12**                                         | **~400–600**                              |
+| **CAX21** | 4    | 8 GB  | 80 GB  | ca. 6,49 €                      | 8–12                                             | ~400–600                                  |
+| **CX43**  | 8    | 16 GB | 160 GB | ca. 9,49 €                      | **20–25**                                        | **~1.000**                                |
+| **CAX31** | 8    | 16 GB | 160 GB | ca. 12,49 €                     | 20–25                                            | ~1.000                                    |
+| **CX53**  | 16   | 32 GB | 320 GB | ca. 17,49 €                     | **25–35**                                        | **~1.200–1.500**                          |
+| **CAX41** | 16   | 32 GB | 320 GB | ca. 24,49 €                     | 25–35                                            | ~1.200–1.500                              |
 
 - **Bedeutung:** „Gleichzeitige Quizze“ = Sessions mit Status ≠ FINISHED. „Teilnehmer (alle verbunden)“ = alle mit WebSocket verbunden (praktische Obergrenze). Bei höherer Teilnehmerzahl pro Quiz sinkt die Quiz-Anzahl.- **CX vs. CAX:** **CX** = x86_64 (Intel/AMD), **CAX** = ARM64 (Ampere Altra). Für diese App kein funktionaler Unterschied – Node.js, Docker, PostgreSQL und Redis laufen auf beiden Architekturen. **Empfehlung: CX (x86)** für maximale Kompatibilität; vereinzelt liefern npm-Pakete mit nativen Binaries kein ARM-Build mit, was den Docker-Build auf CAX brechen kann.- **2 vCPU:** Bei hoher Last kann CPU (Node Event-Loop + PostgreSQL) zum Engpass werden; für Dauerlast ab mittlerer Auslastung 4 vCPU oder mehr empfehlenswert.
 - **Preise:** Abrechnung minütlich, monatlicher Deckel. 20 TB Traffic inklusive (EU). Andere Standorte (z. B. USA/Singapore) teurer.
 
 ### 12.2 Empfehlung nach Phase
 
-| Phase / Last              | Sinnvolle Instanz | Ungefährer Bereich                    |
-|---------------------------|-------------------|----------------------------------------|
-| Erstphase, geringe Last   | CX23 oder CAX11   | 1–2 Quizze, wenige Teilnehmer          |
-| Wachsende Nutzung         | CX33 oder CAX21   | Mehrere Quizze, bis ~400–600 Teiln.    |
-| Stabile Produktion        | CX43 oder CAX31   | Bis ~20–25 Quizze, ~1.000 Teiln.       |
-| Hohe Last / viele Sessions| CX53 oder CAX41   | Bis ~35 Quizze, ~1.500 Teiln.          |
+| Phase / Last               | Sinnvolle Instanz | Ungefährer Bereich                  |
+| -------------------------- | ----------------- | ----------------------------------- |
+| Erstphase, geringe Last    | CX23 oder CAX11   | 1–2 Quizze, wenige Teilnehmer       |
+| Wachsende Nutzung          | CX33 oder CAX21   | Mehrere Quizze, bis ~400–600 Teiln. |
+| Stabile Produktion         | CX43 oder CAX31   | Bis ~20–25 Quizze, ~1.000 Teiln.    |
+| Hohe Last / viele Sessions | CX53 oder CAX41   | Bis ~35 Quizze, ~1.500 Teiln.       |
 
 - **Aufrüsten ohne Neuinstallation:** In der Hetzner Cloud Console „Resize“ / Servertyp ändern → größeren Typ wählen. Nach Neustart bleiben OS, Docker, App und Daten erhalten. Nur nach oben aufrüsten; Verkleinern oft nicht möglich.
 
@@ -776,29 +778,29 @@ Für **geringes bis mittleres Lastaufkommen** reicht ein einzelner Server (Absch
 
 ### 13.1 Architektur
 
-| Aspekt | Ein-Server (aktuell) | Cluster (Load Balancer + mehrere App-Server) |
-|--------|----------------------|---------------------------------------------|
-| **Einstieg** | 1 × Nginx (auf demselben Server) | Load Balancer (Hetzner LB oder eigener Nginx/HAProxy) → mehrere App-Server |
-| **App** | 1 × Node (Docker) | 2+ × Node (je ein Server oder Container pro Instanz) |
-| **Daten** | PostgreSQL + Redis auf demselben Server | PostgreSQL + Redis **getrennt** (eigener Server oder Managed DB), von allen App-Instanzen genutzt |
-| **WebSockets** | Direkt zu einer Instanz | **Sticky Sessions** nötig: gleicher Client muss immer dieselbe App-Instanz treffen (tRPC-WS, Yjs-WS). Hetzner LB bietet nur Round Robin / Least Connections, **keine** Session-Affinität → daher typisch **eigener Reverse Proxy (Nginx/HAProxy)** mit Sticky (Cookie oder IP-Hash) vor den App-Servern. |
+| Aspekt         | Ein-Server (aktuell)                    | Cluster (Load Balancer + mehrere App-Server)                                                                                                                                                                                                                                                             |
+| -------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Einstieg**   | 1 × Nginx (auf demselben Server)        | Load Balancer (Hetzner LB oder eigener Nginx/HAProxy) → mehrere App-Server                                                                                                                                                                                                                               |
+| **App**        | 1 × Node (Docker)                       | 2+ × Node (je ein Server oder Container pro Instanz)                                                                                                                                                                                                                                                     |
+| **Daten**      | PostgreSQL + Redis auf demselben Server | PostgreSQL + Redis **getrennt** (eigener Server oder Managed DB), von allen App-Instanzen genutzt                                                                                                                                                                                                        |
+| **WebSockets** | Direkt zu einer Instanz                 | **Sticky Sessions** nötig: gleicher Client muss immer dieselbe App-Instanz treffen (tRPC-WS, Yjs-WS). Hetzner LB bietet nur Round Robin / Least Connections, **keine** Session-Affinität → daher typisch **eigener Reverse Proxy (Nginx/HAProxy)** mit Sticky (Cookie oder IP-Hash) vor den App-Servern. |
 
 ### 13.2 Vor- und Nachteile
 
-| | Ein-Server | Cluster |
-|--|------------|--------|
-| **Vorteile** | Einfach zu betreiben, ein System zu patchen, ein Backup. Geringe Kosten. Keine Sticky-Session-Konfiguration. | Höhere Ausfallsicherheit (eine App-Instanz down → andere übernehmen). Horizontale Skalierung (mehr Instanzen = mehr Verbindungen/Throughput). Getrennte DB ermöglicht unabhängiges Skalieren und Backups. |
-| **Nachteile** | Single Point of Failure: Ausfall oder Wartung = Downtime. Skalierung nur vertikal (größerer Server). | Deutlich mehr Aufwand: mehrere Server, LB, Sticky Sessions, gemeinsame DB/Redis, Deployment auf alle App-Server, ggf. PgBouncer. Höhere Kosten. |
-| **Betrieb** | Ein Server, ein Docker Compose, ein Nginx. | LB + N App-Server + 1 DB-Server (+ optional 1 Redis-Server oder Redis auf DB-Server). CI/CD muss alle App-Server deployen oder über zentralen Platz (shared storage) laufen. |
+|               | Ein-Server                                                                                                   | Cluster                                                                                                                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Vorteile**  | Einfach zu betreiben, ein System zu patchen, ein Backup. Geringe Kosten. Keine Sticky-Session-Konfiguration. | Höhere Ausfallsicherheit (eine App-Instanz down → andere übernehmen). Horizontale Skalierung (mehr Instanzen = mehr Verbindungen/Throughput). Getrennte DB ermöglicht unabhängiges Skalieren und Backups. |
+| **Nachteile** | Single Point of Failure: Ausfall oder Wartung = Downtime. Skalierung nur vertikal (größerer Server).         | Deutlich mehr Aufwand: mehrere Server, LB, Sticky Sessions, gemeinsame DB/Redis, Deployment auf alle App-Server, ggf. PgBouncer. Höhere Kosten.                                                           |
+| **Betrieb**   | Ein Server, ein Docker Compose, ein Nginx.                                                                   | LB + N App-Server + 1 DB-Server (+ optional 1 Redis-Server oder Redis auf DB-Server). CI/CD muss alle App-Server deployen oder über zentralen Platz (shared storage) laufen.                              |
 
 ### 13.3 Grobe Kosten (Hetzner Cloud, monatlich, Richtwerte)
 
-| Modell | Komponenten | Grobe Kosten (DE/FI) |
-|--------|-------------|----------------------|
-| **Ein-Server** | 1 × CX43 (16 GB) | ca. 9,49 € |
-| **Ein-Server (klein)** | 1 × CX23 (4 GB) | ca. 3,49 € |
-| **Cluster (minimal)** | 1 × LB11 (ca. 5 €) + 2 × CX23 (App) + 1 × CX22 (DB/Redis oder getrennt) | ca. 5 + 7 + 4 ≈ **16–18 €** |
-| **Cluster (stabil)** | 1 × LB11 + 2 × CX33 (App) + 1 × CX33 (PostgreSQL + Redis) | ca. 5 + 11 + 5,5 ≈ **21–22 €** |
+| Modell                 | Komponenten                                                             | Grobe Kosten (DE/FI)           |
+| ---------------------- | ----------------------------------------------------------------------- | ------------------------------ |
+| **Ein-Server**         | 1 × CX43 (16 GB)                                                        | ca. 9,49 €                     |
+| **Ein-Server (klein)** | 1 × CX23 (4 GB)                                                         | ca. 3,49 €                     |
+| **Cluster (minimal)**  | 1 × LB11 (ca. 5 €) + 2 × CX23 (App) + 1 × CX22 (DB/Redis oder getrennt) | ca. 5 + 7 + 4 ≈ **16–18 €**    |
+| **Cluster (stabil)**   | 1 × LB11 + 2 × CX33 (App) + 1 × CX33 (PostgreSQL + Redis)               | ca. 5 + 11 + 5,5 ≈ **21–22 €** |
 
 Der Cluster ist also **deutlich teurer** und lohnt sich vor allem bei Anforderungen an **Verfügbarkeit** (kein Single Point of Failure) oder **mehr Last**, als ein einzelner CX53/CAX41 stemmen kann.
 
@@ -822,25 +824,25 @@ Der Cluster ist also **deutlich teurer** und lohnt sich vor allem bei Anforderun
 
 ### 14.1 Typische Architektur (cloud-native)
 
-| Komponente | Ein-Server / Cluster (Abschnitt 13) | Cloud-native |
-|------------|-------------------------------------|--------------|
-| **App** | Docker Compose auf VM(s) | **Kubernetes**: Deployment mit mehreren Pods (Node-Container), automatische Neustarts, Rolling Updates, horizontaler Autoscaler (HPA) möglich |
-| **Einstieg** | Nginx auf VM oder LB + Nginx | **Ingress-Controller** (z. B. Nginx Ingress, Traefik) im Cluster, TLS (z. B. cert-manager + Let’s Encrypt), **Sticky Sessions** für WebSockets konfigurierbar |
-| **PostgreSQL** | Selbst betrieben (Container oder VM) | **Managed PostgreSQL** (z. B. AWS RDS, Google Cloud SQL, Aiven, oder auf Hetzner z. B. externe Anbieter wie Ubicloud) – Backups, Patches, HA vom Anbieter |
-| **Redis** | Selbst betrieben im Compose/VM | **Managed Redis** (z. B. ElastiCache, Redis Cloud, Upstash) oder Redis im K8s (StatefulSet / Operator) |
-| **Deployment** | SSH + `docker compose` oder Ansible | **CI/CD** baut Container-Image, pusht in **Container Registry** (GHCR, Docker Hub, GCR, ECR), Kubernetes zieht neues Image (kubectl set image oder GitOps z. B. Argo CD / Flux) |
+| Komponente     | Ein-Server / Cluster (Abschnitt 13)  | Cloud-native                                                                                                                                                                    |
+| -------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **App**        | Docker Compose auf VM(s)             | **Kubernetes**: Deployment mit mehreren Pods (Node-Container), automatische Neustarts, Rolling Updates, horizontaler Autoscaler (HPA) möglich                                   |
+| **Einstieg**   | Nginx auf VM oder LB + Nginx         | **Ingress-Controller** (z. B. Nginx Ingress, Traefik) im Cluster, TLS (z. B. cert-manager + Let’s Encrypt), **Sticky Sessions** für WebSockets konfigurierbar                   |
+| **PostgreSQL** | Selbst betrieben (Container oder VM) | **Managed PostgreSQL** (z. B. AWS RDS, Google Cloud SQL, Aiven, oder auf Hetzner z. B. externe Anbieter wie Ubicloud) – Backups, Patches, HA vom Anbieter                       |
+| **Redis**      | Selbst betrieben im Compose/VM       | **Managed Redis** (z. B. ElastiCache, Redis Cloud, Upstash) oder Redis im K8s (StatefulSet / Operator)                                                                          |
+| **Deployment** | SSH + `docker compose` oder Ansible  | **CI/CD** baut Container-Image, pusht in **Container Registry** (GHCR, Docker Hub, GCR, ECR), Kubernetes zieht neues Image (kubectl set image oder GitOps z. B. Argo CD / Flux) |
 
 ### 14.2 Vor- und Nachteile (cloud-native)
 
-| | Vorteile | Nachteile |
-|--|----------|-----------|
-| **Kubernetes** | Automatische Skalierung (mehr Pods bei Last), Self-Healing (abgestürzte Pods werden neu gestartet), Rolling Updates ohne komplette Downtime, deklarative Konfiguration (YAML/Helm). | Hoher Einstieg: Konzepte (Pods, Services, Ingress, ConfigMaps, Secrets), Betrieb und Updates der Control Plane (wenn self-managed). Managed K8s (GKE, EKS, AKS) kostet Aufpreis; auf **Hetzner** gibt es **kein** offizielles Managed Kubernetes – Optionen sind z. B. selbst gebaut (kubeadm, Cluster API, k3s) oder Drittanbieter (z. B. Cloudfleet, Edka). |
-| **Managed DB/Redis** | Weniger Betrieb: Backups, Patches, Failover oft inklusive. Weniger eigene Fehlerquellen. | Kosten (oft ab ca. 15–30 €/Monat für kleine Instanzen), Abhängigkeit vom Anbieter, Daten außerhalb der eigenen VM (Datenschutz/Standort prüfen). **Hetzner** bietet derzeit **keinen** eigenen Managed PostgreSQL/Redis; nutzbar wären z. B. Aiven, Ubicloud (auf Hetzner-Infrastruktur), oder DB in anderer Cloud. |
+|                      | Vorteile                                                                                                                                                                            | Nachteile                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Kubernetes**       | Automatische Skalierung (mehr Pods bei Last), Self-Healing (abgestürzte Pods werden neu gestartet), Rolling Updates ohne komplette Downtime, deklarative Konfiguration (YAML/Helm). | Hoher Einstieg: Konzepte (Pods, Services, Ingress, ConfigMaps, Secrets), Betrieb und Updates der Control Plane (wenn self-managed). Managed K8s (GKE, EKS, AKS) kostet Aufpreis; auf **Hetzner** gibt es **kein** offizielles Managed Kubernetes – Optionen sind z. B. selbst gebaut (kubeadm, Cluster API, k3s) oder Drittanbieter (z. B. Cloudfleet, Edka). |
+| **Managed DB/Redis** | Weniger Betrieb: Backups, Patches, Failover oft inklusive. Weniger eigene Fehlerquellen.                                                                                            | Kosten (oft ab ca. 15–30 €/Monat für kleine Instanzen), Abhängigkeit vom Anbieter, Daten außerhalb der eigenen VM (Datenschutz/Standort prüfen). **Hetzner** bietet derzeit **keinen** eigenen Managed PostgreSQL/Redis; nutzbar wären z. B. Aiven, Ubicloud (auf Hetzner-Infrastruktur), oder DB in anderer Cloud.                                           |
 
 ### 14.3 Kosten (Richtwerte, cloud-native)
 
-- **Kubernetes:**  
-  - **Managed K8s (GKE/EKS/AKS):** Control Plane oft kostenpflichtig (z. B. ~70–150 €/Monat) plus Worker-Nodes.  
+- **Kubernetes:**
+  - **Managed K8s (GKE/EKS/AKS):** Control Plane oft kostenpflichtig (z. B. ~70–150 €/Monat) plus Worker-Nodes.
   - **Hetzner:** Kein Managed K8s; selbst gebaut = Kosten nur für die VMs (z. B. 2–3 × CX33 als Worker), dafür Betriebsaufwand selbst.
 - **Managed PostgreSQL:** Ab ca. 15–40 €/Monat (kleine Instanz), je Anbieter.
 - **Managed Redis:** Ab ca. 0–15 €/Monat (kleine/freie Tiers möglich).
@@ -853,11 +855,11 @@ Der Cluster ist also **deutlich teurer** und lohnt sich vor allem bei Anforderun
 
 ### 14.5 Kurzvergleich aller Optionen
 
-| Modell | Komplexität | Kosten (grob) | Skalierung | Verfügbarkeit |
-|--------|-------------|----------------|------------|----------------|
-| **Ein-Server** | Niedrig | 3–10 €/Monat | Vertikal (Resize) | Ein Ausfallpunkt |
-| **Cluster (LB + VMs)** | Mittel | 16–25 €/Monat | Horizontal (mehr App-Server) | Höher (mehrere App-Instanzen) |
-| **Cloud-native (K8s + Managed DB)** | Hoch | 30–80+ €/Monat | Horizontal + automatisch möglich | Hoch (K8s + Managed Services) |
+| Modell                              | Komplexität | Kosten (grob)  | Skalierung                       | Verfügbarkeit                 |
+| ----------------------------------- | ----------- | -------------- | -------------------------------- | ----------------------------- |
+| **Ein-Server**                      | Niedrig     | 3–10 €/Monat   | Vertikal (Resize)                | Ein Ausfallpunkt              |
+| **Cluster (LB + VMs)**              | Mittel      | 16–25 €/Monat  | Horizontal (mehr App-Server)     | Höher (mehrere App-Instanzen) |
+| **Cloud-native (K8s + Managed DB)** | Hoch        | 30–80+ €/Monat | Horizontal + automatisch möglich | Hoch (K8s + Managed Services) |
 
 Für **arsnova.eu** in der Erstphase reicht der **Ein-Server**; Cluster oder cloud-native lohnen sich, wenn Last oder Anforderungen an Verfügbarkeit und Skalierung wachsen.
 

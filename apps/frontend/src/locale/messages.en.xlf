@@ -63,7 +63,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">75,76</context>
+          <context context-type="linenumber">84,85</context>
         </context-group>
       </trans-unit>
       <trans-unit id="804017840391960536" datatype="html">
@@ -1584,8 +1584,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkPlaceholder" datatype="html">
-        <source>https://click.arsnova.eu/quiz/sync/sync-room-12345678</source>
-        <target>https://click.arsnova.eu/quiz/sync/sync-room-12345678</target>
+        <source>https://arsnova.eu/quiz/sync/sync-room-12345678</source>
+        <target>https://arsnova.eu/quiz/sync/sync-room-12345678</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">309,310</context>
@@ -2100,7 +2100,7 @@
         <target>Invalid quiz settings.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1467</context>
+          <context context-type="linenumber">1466</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5143514353984065697" datatype="html">
@@ -2108,7 +2108,7 @@
         <target>Invalid question.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1547</context>
+          <context context-type="linenumber">1546</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5893501665486949127" datatype="html">
@@ -3544,7 +3544,7 @@
         <target>Bonus codes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">4,5</context>
+          <context context-type="linenumber">7,9</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.bonusCodesDialogPrivacyHint" datatype="html">
@@ -3552,7 +3552,7 @@
         <target>Please only view it privately - do not make it visible in the lecture hall or to viewers.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">11,15</context>
+          <context context-type="linenumber">19,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.bonusCodesDialogLoadError" datatype="html">
@@ -3560,7 +3560,7 @@
         <target>The codes could not be loaded. Please try again later.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">20,22</context>
+          <context context-type="linenumber">28,30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.bonusCodesDialogEmpty" datatype="html">
@@ -3568,7 +3568,7 @@
         <target>No codes yet - they will appear here as soon as a live session with this quiz has ended and the bonus was active.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">24,28</context>
+          <context context-type="linenumber">32,36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.bonusCodesSessionLabel" datatype="html">
@@ -3576,7 +3576,7 @@
         <target>session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">31,33</context>
+          <context context-type="linenumber">42,44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5506569422969383542" datatype="html">
@@ -3584,7 +3584,7 @@
         <target>Nickname</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">43,44</context>
+          <context context-type="linenumber">52,53</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -3596,7 +3596,7 @@
         <target>Code</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">44,45</context>
+          <context context-type="linenumber">53,54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1327302134726196371" datatype="html">
@@ -3604,7 +3604,7 @@
         <target>Points</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">45,46</context>
+          <context context-type="linenumber">54,55</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -3624,7 +3624,7 @@
         <target>Export CSV</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
-          <context context-type="linenumber">69,72</context>
+          <context context-type="linenumber">78,81</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.liveDialog.title" datatype="html">
@@ -7356,7 +7356,7 @@
         <target>Front: <x id="name" equiv-text="leaderName"/> with <x id="score" equiv-text="leaderScore"/> points – chase them down!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">471</context>
+          <context context-type="linenumber">468</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamLeaderHintSerious" datatype="html">
@@ -7364,7 +7364,7 @@
         <target><x id="name" equiv-text="leaderName"/> is ahead with <x id="score" equiv-text="leaderScore"/> points.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">478</context>
+          <context context-type="linenumber">472</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionTabs.voteAria" datatype="html">
@@ -7877,7 +7877,7 @@
         <target>Questions could not be loaded.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">934</context>
+          <context context-type="linenumber">936</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.submitSuccess" datatype="html">
@@ -7885,7 +7885,7 @@
         <target>Question sent.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">977</context>
+          <context context-type="linenumber">979</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.submitError" datatype="html">
@@ -7893,19 +7893,19 @@
         <target>Question could not be sent.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">983</context>
+          <context context-type="linenumber">985</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">1002</context>
+          <context context-type="linenumber">1004</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">1035</context>
+          <context context-type="linenumber">1037</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">1042</context>
+          <context context-type="linenumber">1044</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.upvoteError" datatype="html">
@@ -7913,7 +7913,7 @@
         <target>Vote could not be saved.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">1079</context>
+          <context context-type="linenumber">1081</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.deleteOwnError" datatype="html">
@@ -7921,7 +7921,7 @@
         <target>Question could not be deleted.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">1102</context>
+          <context context-type="linenumber">1104</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9175670018185396326" datatype="html">

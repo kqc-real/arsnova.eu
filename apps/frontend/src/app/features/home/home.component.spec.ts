@@ -226,7 +226,7 @@ describe('HomeComponent', () => {
       const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom');
       const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-      comp.syncLinkValue.set('https://click.arsnova.eu/quiz/sync/sync-room-12345678');
+      comp.syncLinkValue.set('https://arsnova.eu/quiz/sync/sync-room-12345678');
       await comp.openSyncLink();
 
       expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', { markShared: true });
@@ -258,7 +258,7 @@ describe('HomeComponent', () => {
       const router = TestBed.inject(Router);
       const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-      comp.syncLinkValue.set('https://click.arsnova.eu/quiz/test');
+      comp.syncLinkValue.set('https://arsnova.eu/quiz/test');
       await comp.openSyncLink();
 
       expect(navSpy).not.toHaveBeenCalled();
