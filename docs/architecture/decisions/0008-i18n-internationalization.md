@@ -4,7 +4,7 @@
 
 **Status:** Accepted  
 **Datum:** 2026-03-12  
-**Entscheider:** Projektteam  
+**Entscheider:** Projektteam
 
 ## Kontext
 
@@ -34,16 +34,16 @@ Detaillierte Umsetzungshinweise: [docs/I18N-ANGULAR.md](../../I18N-ANGULAR.md).
 
 Bei Sprachwechsel über Locale-Subpfad erfolgt ein **Seiten-Reload**. Alles, was nur im Speicher lebt (Komponenten-State, ungespeicherte Formulare), geht verloren. Erhalten bleiben: `localStorage`, `sessionStorage` sowie Daten, die nach dem Reload aus URL oder Server wieder geladen werden.
 
-| View / Route | URL enthält | Risiko State-Verlust |
-| --- | --- | --- |
-| Startseite `/` | – | **Niedrig:** Nur eingegebener Session-Code weg. |
-| Join `/join/:code` | Session-Code | **Mittel:** Nickname/Formular weg; Code bleibt. |
-| Session Host/Vote/Present `/session/:code/...` | Session-Code | **Niedrig:** State wird per tRPC aus Server wiederhergestellt. |
-| Quiz-Liste `/quiz` | – | **Niedrig:** Liste aus Store neu ladbar. |
-| **Quiz bearbeiten** `/quiz/:id` | Quiz-ID | **Hoch:** **Ungespeicherte Änderungen** (Fragen, Antworten, Einstellungen) gehen verloren. |
-| **Quiz neu** `/quiz/new` | – | **Hoch:** **Gesamter neuer Quiz-Entwurf** weg, wenn noch nicht gespeichert. |
-| Quiz Preview `/quiz/:id/preview` | Quiz-ID | **Mittel:** Nur View-State (z. B. aktuelle Seite) weg. |
-| Legal / Help | – | **Keins.** |
+| View / Route                                   | URL enthält  | Risiko State-Verlust                                                                       |
+| ---------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------ |
+| Startseite `/`                                 | –            | **Niedrig:** Nur eingegebener Session-Code weg.                                            |
+| Join `/join/:code`                             | Session-Code | **Mittel:** Nickname/Formular weg; Code bleibt.                                            |
+| Session Host/Vote/Present `/session/:code/...` | Session-Code | **Niedrig:** State wird per tRPC aus Server wiederhergestellt.                             |
+| Quiz-Liste `/quiz`                             | –            | **Niedrig:** Liste aus Store neu ladbar.                                                   |
+| **Quiz bearbeiten** `/quiz/:id`                | Quiz-ID      | **Hoch:** **Ungespeicherte Änderungen** (Fragen, Antworten, Einstellungen) gehen verloren. |
+| **Quiz neu** `/quiz/new`                       | –            | **Hoch:** **Gesamter neuer Quiz-Entwurf** weg, wenn noch nicht gespeichert.                |
+| Quiz Preview `/quiz/:id/preview`               | Quiz-ID      | **Mittel:** Nur View-State (z. B. aktuelle Seite) weg.                                     |
+| Legal / Help                                   | –            | **Keins.**                                                                                 |
 
 ### 3. Pflicht: Hinweis an Nutzer:innen bei möglichem Inhaltsverlust
 
@@ -86,12 +86,17 @@ Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwi
 - **Maßeinheiten, Zahlenformate und Währungen** entsprechen den **Konventionen der Zielsprache** (Dezimaltrennzeichen, Tausendertrennzeichen, Währungssymbol/Position).
 - **Idiomatische Sprache:** Formulierungen sind in der Zielsprache **idiomatisch** (natürlich, nicht wörtlich „übersetzt“). Redewendungen, feste Begriffe (z. B. „Session beitreten“, „Abstimmung“, „Impressum“) und Button-Texte werden so gewählt, wie sie muttersprachliche Nutzer:innen erwarten.
 
+#### ICU (Plural / Select) in XLF
+
+- In **Plural- und Select-Messages** (Unicode ICU MessageFormat) bleiben die **technischen Schlüsselwörter englisch**: u. a. `plural`, `select`, die Kategorie **`other`** (nicht z. B. `autres`, `altro`, `otros`) sowie die vom Quelltext vorgegebenen Kategorienamen. Nur der **sichtbare Text** in den geschweiften Blöcken wird übersetzt. Falsche Tokens können die Auswertung zerstören und **größere UI-Teile** (nicht nur die eine Zeile) ausfallen lassen.
+- Details und Beispiele: [docs/I18N-ANGULAR.md](../../I18N-ANGULAR.md) (Abschnitt 3.3.1).
+
 ### 5. Zusammenfassung für Entwickler:innen
 
 - **i18n-Stack:** @angular/localize, Locale als Subpfad, Extract/Merge/Build pro Locale.
 - **State-Verlust:** Siehe Tabelle oben; kritisch sind **Quiz bearbeiten** und **Quiz neu**.
 - **Hinweis-Pflicht:** Auf diesen beiden Seiten muss vor einem Sprachwechsel bei ungespeichertem Inhalt ein **Hinweis an die Nutzer:innen** erscheinen (Dialog mit Erklärung und Bestätigung/Abbrechen oder Deaktivierung der Sprachwahl).
-- **Übersetzungsvorgaben:** Informelle Anrede (Duzen), zeitgemäßer Stil; Deutsch als Referenz für Form und Länge; **visuelle Prüfung zuerst auf Smartphone** (Mobile-First), dann Desktop; bei Bedarf **zwei Übersetzungen** (Mobile kurz / Desktop voll); Datum, Einheiten und idiomatische Formulierungen in der Zielsprache zwingend beachten (Abschnitt 4).
+- **Übersetzungsvorgaben:** Informelle Anrede (Duzen), zeitgemäßer Stil; Deutsch als Referenz für Form und Länge; **visuelle Prüfung zuerst auf Smartphone** (Mobile-First), dann Desktop; bei Bedarf **zwei Übersetzungen** (Mobile kurz / Desktop voll); Datum, Einheiten und idiomatische Formulierungen in der Zielsprache zwingend beachten (Abschnitt 4); **ICU-Schlüsselwörter in XLF nicht übersetzen** (Abschnitt 4, ICU / [I18N-ANGULAR.md](../../I18N-ANGULAR.md) 3.3.1).
 
 ## Konsequenzen
 

@@ -6,12 +6,12 @@ Recherche basierend auf der **offiziellen Angular-Dokumentation** (angular.dev).
 
 ## 1. Zwei Wege: Offiziell vs. Laufzeit
 
-| Aspekt | **@angular/localize (offiziell)** | **ngx-translate / Transloco** |
-|--------|-----------------------------------|-------------------------------|
-| **Sprachwechsel** | Pro Sprache eigener Build; Wechsel = andere URL/Subdirectory (z. B. `/de/`, `/en/`) | Ein Build; Wechsel zur Laufzeit ohne Reload |
-| **Performance** | Optimal (nur eine Sprache pro Bundle) | Alle Sprachen im Bundle oder nachladen |
-| **Workflow** | Extract → Übersetzen → Merge → Build pro Locale | JSON-Dateien, zur Laufzeit geladen |
-| **Empfehlung** | Wenn wenige Sprachen, SEO/Performance wichtig, Deployment mit Subpfaden ok | Wenn dynamischer Sprachwechsel in einer App-Instanz nötig |
+| Aspekt            | **@angular/localize (offiziell)**                                                   | **ngx-translate / Transloco**                             |
+| ----------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **Sprachwechsel** | Pro Sprache eigener Build; Wechsel = andere URL/Subdirectory (z. B. `/de/`, `/en/`) | Ein Build; Wechsel zur Laufzeit ohne Reload               |
+| **Performance**   | Optimal (nur eine Sprache pro Bundle)                                               | Alle Sprachen im Bundle oder nachladen                    |
+| **Workflow**      | Extract → Übersetzen → Merge → Build pro Locale                                     | JSON-Dateien, zur Laufzeit geladen                        |
+| **Empfehlung**    | Wenn wenige Sprachen, SEO/Performance wichtig, Deployment mit Subpfaden ok          | Wenn dynamischer Sprachwechsel in einer App-Instanz nötig |
 
 **Backlog 6.2** nennt „Angulars eingebautes i18n (`@angular/localize`) oder `ngx-translate`“. Für **de, en, fr, it, es** und typisches Deployment (Subpfade wie `/de/`, `/en/`) ist **@angular/localize** der empfohlene, offizielle Weg.
 
@@ -26,18 +26,18 @@ Recherche basierend auf der **offiziellen Angular-Dokumentation** (angular.dev).
 - **Alles, was nur im Speicher lebt** (Komponenten-State, Service-State, ungespeicherte Formulare), ist weg.
 - **Erhalten bleiben:** `localStorage`, `sessionStorage`, und alles, was die App nach dem Reload wieder vom Server oder aus der URL lädt.
 
-| View / Route | URL enthält | Was bei Reload passiert | Risiko State-Verlust |
-|--------------|-------------|-------------------------|----------------------|
-| **Startseite** `/` | – | Formular (Session-Code) neu | **Niedrig:** Nur eingegebener Code weg; Nutzer tippt neu. |
-| **Join** `/join/:code` | Session-Code | Code bleibt; Formular (Nickname etc.) neu | **Mittel:** Nickname/ausgewählte Optionen weg; Code bleibt, Beitritt schnell wiederholbar. |
-| **Session Host** `/session/:code/host` | Session-Code | Session wird per tRPC wieder geladen | **Niedrig:** Server-State (Frage, Phase) wird neu geholt; nur rein lokale UI-Zustände (z. B. aufgeklapptes Panel) weg. |
-| **Session Vote** `/session/:code/vote` | Session-Code | Session/aktuelle Frage wieder per tRPC | **Niedrig:** Abstimmung/Scorecard vom Server; nur kurz „Neuladen“. |
-| **Session Present** `/session/:code/present` | Session-Code | Wie Host, State vom Server | **Niedrig.** |
-| **Quiz-Liste** `/quiz` | – | Liste aus IndexedDB/Store neu laden | **Niedrig.** |
-| **Quiz bearbeiten** `/quiz/:id` | Quiz-ID | Quiz aus Store laden; **ungespeicherte Änderungen** nicht mehr da | **Hoch:** Ungespeicherte Bearbeitung (Fragen, Antworten, Einstellungen) geht verloren. |
-| **Quiz neu** `/quiz/new` | – | Kein persistierter Entwurf | **Hoch:** Gesamter neuer Quiz-Entwurf weg, wenn noch nicht gespeichert. |
-| **Quiz Preview** `/quiz/:id/preview` | Quiz-ID | Quiz aus Store | **Mittel:** Nur aktueller View-State (z. B. Seite) weg. |
-| **Legal/Help** | – | Nur Inhalt neu geladen | **Keins.** |
+| View / Route                                 | URL enthält  | Was bei Reload passiert                                           | Risiko State-Verlust                                                                                                   |
+| -------------------------------------------- | ------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Startseite** `/`                           | –            | Formular (Session-Code) neu                                       | **Niedrig:** Nur eingegebener Code weg; Nutzer tippt neu.                                                              |
+| **Join** `/join/:code`                       | Session-Code | Code bleibt; Formular (Nickname etc.) neu                         | **Mittel:** Nickname/ausgewählte Optionen weg; Code bleibt, Beitritt schnell wiederholbar.                             |
+| **Session Host** `/session/:code/host`       | Session-Code | Session wird per tRPC wieder geladen                              | **Niedrig:** Server-State (Frage, Phase) wird neu geholt; nur rein lokale UI-Zustände (z. B. aufgeklapptes Panel) weg. |
+| **Session Vote** `/session/:code/vote`       | Session-Code | Session/aktuelle Frage wieder per tRPC                            | **Niedrig:** Abstimmung/Scorecard vom Server; nur kurz „Neuladen“.                                                     |
+| **Session Present** `/session/:code/present` | Session-Code | Wie Host, State vom Server                                        | **Niedrig.**                                                                                                           |
+| **Quiz-Liste** `/quiz`                       | –            | Liste aus IndexedDB/Store neu laden                               | **Niedrig.**                                                                                                           |
+| **Quiz bearbeiten** `/quiz/:id`              | Quiz-ID      | Quiz aus Store laden; **ungespeicherte Änderungen** nicht mehr da | **Hoch:** Ungespeicherte Bearbeitung (Fragen, Antworten, Einstellungen) geht verloren.                                 |
+| **Quiz neu** `/quiz/new`                     | –            | Kein persistierter Entwurf                                        | **Hoch:** Gesamter neuer Quiz-Entwurf weg, wenn noch nicht gespeichert.                                                |
+| **Quiz Preview** `/quiz/:id/preview`         | Quiz-ID      | Quiz aus Store                                                    | **Mittel:** Nur aktueller View-State (z. B. Seite) weg.                                                                |
+| **Legal/Help**                               | –            | Nur Inhalt neu geladen                                            | **Keins.**                                                                                                             |
 
 **Praktische Konsequenzen:**
 
@@ -85,6 +85,7 @@ ng add @angular/localize
 ### 3.2 Im TypeScript-Code
 
 - **Tagged Template Literal** `$localize`:
+
   ```ts
   import { $localize } from '@angular/localize/init';
 
@@ -92,6 +93,7 @@ ng add @angular/localize
   message = $localize`:Button-Label|Beschreibung:Abbrechen`;
   withVar = $localize`Hallo ${this.name}:name:!`;
   ```
+
 - **Bedingt:** z. B. für Aria-Labels.
   ```ts
   return this.visible ? $localize`Anzeigen` : $localize`Ausblenden`;
@@ -103,6 +105,27 @@ ng add @angular/localize
 - **Select (z. B. Geschlecht):** `{ variable, select, male {...} female {...} other {...} }`
 
 Beispiele siehe [Prepare component for translation](https://angular.dev/guide/i18n/prepare).
+
+#### 3.3.1 Pflicht: ICU-Schlüsselwörter in XLF `<target>` nicht übersetzen
+
+Die **Message-Format-Syntax** (Unicode ICU) verwendet **feste englische Schlüsselwörter**. Sie müssen in den Übersetzungsdateien **unverändert** bleiben — auch in Französisch, Italienisch, Spanisch usw. Nur der **sichtbare Nutzertext** innerhalb der geschweiften Blöcke ist zu übersetzen.
+
+| Immer englisch lassen (Beispiele)                                   | Falsch (bricht Laufzeit / Template)                         |
+| ------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `plural` (Plural-Selektor)                                          | `pluriel`, `plurale`, …                                     |
+| `select` (Auswahl-Selektor)                                         | übersetzte Varianten des Wortes „select“                    |
+| Plural-Kategorien: `zero`, `one`, `two`, `few`, `many`, **`other`** | z. B. `autres`, `altro`, `otros` statt `other`              |
+| Select-Keys aus dem Quelltext (z. B. `male`, `female`, `other`)     | nur ändern, wenn der **Quell**-String dieselben Keys ändert |
+
+**Hintergrund:** `@angular/localize` parst die Zielzeichenkette zur Laufzeit. Falsche Tokens führen zu Fehlern oder dazu, dass **ganze Template-Abschnitte** (z. B. eine Zeile mit Stimmenzahl **und** darunter folgende UI wie Balkendiagramme) **nicht gerendert** werden.
+
+**Richtiges Muster (Plural):**
+
+```text
+{VAR_PLURAL, plural, =1 {1 vote} other {<x id="INTERPOLATION"/> votes}}
+```
+
+Hier sind `VAR_PLURAL`, `plural`, `=1`, `other` und die Platzhalter-Struktur beizubehalten; nur `1 vote` / `votes` (bzw. die entsprechenden Zielsprachen-Texte) werden sprachlich angepasst.
 
 ---
 
@@ -130,7 +153,7 @@ ng extract-i18n --format=json --output-path src/locale --out-file messages.json
 
 ### 4.2 Pro Sprache eine Übersetzungsdatei
 
-- **XLIFF:** Kopie der Quell-XLF pro Locale (z. B. `messages.de.xlf`, `messages.en.xlf`); in jeder Datei die `<target>`-Tags mit den Übersetzungen füllen.
+- **XLIFF:** Kopie der Quell-XLF pro Locale (z. B. `messages.de.xlf`, `messages.en.xlf`); in jeder Datei die `<target>`-Tags mit den Übersetzungen füllen. **ICU:** In Plural-/Select-Messages die Schlüsselwörter `plural`, `select`, `other` usw. nie übersetzen (siehe **Abschnitt 3.3.1** oben).
 - **JSON/ARB:** Entsprechend eine JSON-Datei pro Locale (z. B. `messages.de.json`).
 
 Sprachen laut Backlog: **de, en, fr, it, es**.
@@ -214,11 +237,11 @@ Die Top-Toolbar liest die aktuelle Locale aus dem **ersten URL-Segment** (`/de/`
 
 Damit die lokalisierten Builds (de/en/fr/it/es) mit **funktionierender API, tRPC-Subscriptions und Yjs-WebSocket** laufen, wird ein **eigener Proxy** genutzt – ein reiner Statik-Serve reicht nicht.
 
-| Schritt | Befehl | Erklärung |
-|--------|--------|-----------|
-| 1 | `npm run dev -w @arsnova/backend` | Backend muss laufen: HTTP (3000), tRPC-WS (3001), Yjs-WS (3002). |
-| 2 | `npm run build:localize -w @arsnova/frontend` | Baut `dist/browser/de/`, `dist/browser/en/`, `dist/browser/fr/`, `dist/browser/it/`, `dist/browser/es/`, kopiert Root-`index.html` (Redirect → `/de/`). |
-| 3 | `npm run serve:localize:api -w @arsnova/frontend` | Startet `scripts/serve-localized-with-api.mjs` auf Port 4200. |
+| Schritt | Befehl                                            | Erklärung                                                                                                                                               |
+| ------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1       | `npm run dev -w @arsnova/backend`                 | Backend muss laufen: HTTP (3000), tRPC-WS (3001), Yjs-WS (3002).                                                                                        |
+| 2       | `npm run build:localize -w @arsnova/frontend`     | Baut `dist/browser/de/`, `dist/browser/en/`, `dist/browser/fr/`, `dist/browser/it/`, `dist/browser/es/`, kopiert Root-`index.html` (Redirect → `/de/`). |
+| 3       | `npm run serve:localize:api -w @arsnova/frontend` | Startet `scripts/serve-localized-with-api.mjs` auf Port 4200.                                                                                           |
 
 **Was der Proxy macht:** Er serviert statische Dateien aus `dist/browser`, liefert für `/`, `/de`, `/en`, `/fr`, `/it`, `/es` (jeweils inkl. Subpfaden) die passende `index.html` aus, und leitet weiter:
 
@@ -279,29 +302,29 @@ Details: [docs/architecture/decisions/0008-i18n-internationalization.md](archite
 
 ## 9b. Aktueller Stand (Projekt arsnova.eu)
 
-| Aspekt | Stand |
-|--------|--------|
-| **Extrahierte Messages** | 607 (Stand nach `ng extract-i18n`) |
-| **Englisch (en)** | Vollständig: Alle trans-units in `messages.en.xlf` haben ein `<target>`; Build ohne „No translation found“. |
-| **fr/it/es (Technikstatus)** | `messages.fr.xlf`, `messages.it.xlf`, `messages.es.xlf` vorhanden (Startbasis, Source=Target) und in `angular.json` eingebunden; Build erzeugt Locale-Ausgaben für alle fünf Sprachen. |
-| **Legal-Seiten** | DE + EN: `imprint.de.md`, `imprint.en.md`, `privacy.de.md`, `privacy.en.md` in `src/assets/legal/`. |
-| **Markierte Bereiche** | App, Home, Toolbar, Join, Preset-Toast, Session (Host/Vote/Present), Quiz (Liste/New/Edit/Preview/Sync), Help, Feedback, Legal. |
-| **Skripte** | `scripts/merge-missing-i18n-en.mjs`: fehlende EN-Targets aus fester TARGET_MAP einfügen. `scripts/add-missing-en-translations.mjs`: nach neuem Extract fehlende trans-units in `messages.en.xlf` mit EN-Targets ergänzen (ID→Target-Map im Skript). Nach Änderungen an UI-Texten: `ng extract-i18n` ausführen, dann ggf. Skript ausführen und neue IDs in die Map aufnehmen. |
+| Aspekt                       | Stand                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Extrahierte Messages**     | 607 (Stand nach `ng extract-i18n`)                                                                                                                                                                                                                                                                                                                                           |
+| **Englisch (en)**            | Vollständig: Alle trans-units in `messages.en.xlf` haben ein `<target>`; Build ohne „No translation found“.                                                                                                                                                                                                                                                                  |
+| **fr/it/es (Technikstatus)** | `messages.fr.xlf`, `messages.it.xlf`, `messages.es.xlf` vorhanden (Startbasis, Source=Target) und in `angular.json` eingebunden; Build erzeugt Locale-Ausgaben für alle fünf Sprachen.                                                                                                                                                                                       |
+| **Legal-Seiten**             | DE + EN: `imprint.de.md`, `imprint.en.md`, `privacy.de.md`, `privacy.en.md` in `src/assets/legal/`.                                                                                                                                                                                                                                                                          |
+| **Markierte Bereiche**       | App, Home, Toolbar, Join, Preset-Toast, Session (Host/Vote/Present), Quiz (Liste/New/Edit/Preview/Sync), Help, Feedback, Legal.                                                                                                                                                                                                                                              |
+| **Skripte**                  | `scripts/merge-missing-i18n-en.mjs`: fehlende EN-Targets aus fester TARGET_MAP einfügen. `scripts/add-missing-en-translations.mjs`: nach neuem Extract fehlende trans-units in `messages.en.xlf` mit EN-Targets ergänzen (ID→Target-Map im Skript). Nach Änderungen an UI-Texten: `ng extract-i18n` ausführen, dann ggf. Skript ausführen und neue IDs in die Map aufnehmen. |
 
 ---
 
 ## 10. Kurz-Checkliste für Story 6.2
 
-| Backlog-Kriterium | Umsetzung |
-|-------------------|-----------|
-| Sprachen de, en, fr, it, es | In `i18n.locales` eintragen + Übersetzungsdateien pflegen |
-| Browser (default) / Fallback Englisch | Server-Redirect per Accept-Language; Fallback z. B. auf `/en/` |
-| Sprachwähler in der Nav | Link/Button zu den Locale-Subpfaden (`/de/`, `/en/`, …) oder Redirect mit Reload |
-| Persistenz der Auswahl | Cookie oder LocalStorage speichern; beim nächsten Besuch serverseitig oder clientseitig auf gespeicherte Locale redirecten |
-| @angular/localize | `ng add @angular/localize`; Templates/Code mit `i18n` und `$localize` markieren |
-| Übersetzungsdateien | `ng extract-i18n`; pro Sprache eine Datei (z. B. in `src/locale/` oder `i18n/`) |
-| Quiz-Inhalte nicht übersetzen | Kein `i18n` an Dozenten-Texten (Fragenstamm, Antworten); nur UI-Texte markieren |
-| Datum/Zahl nach Locale | DatePipe/DecimalPipe nutzen; LOCALE_ID kommt durch Build pro Locale |
+| Backlog-Kriterium                     | Umsetzung                                                                                                                  |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Sprachen de, en, fr, it, es           | In `i18n.locales` eintragen + Übersetzungsdateien pflegen                                                                  |
+| Browser (default) / Fallback Englisch | Server-Redirect per Accept-Language; Fallback z. B. auf `/en/`                                                             |
+| Sprachwähler in der Nav               | Link/Button zu den Locale-Subpfaden (`/de/`, `/en/`, …) oder Redirect mit Reload                                           |
+| Persistenz der Auswahl                | Cookie oder LocalStorage speichern; beim nächsten Besuch serverseitig oder clientseitig auf gespeicherte Locale redirecten |
+| @angular/localize                     | `ng add @angular/localize`; Templates/Code mit `i18n` und `$localize` markieren                                            |
+| Übersetzungsdateien                   | `ng extract-i18n`; pro Sprache eine Datei (z. B. in `src/locale/` oder `i18n/`)                                            |
+| Quiz-Inhalte nicht übersetzen         | Kein `i18n` an Dozenten-Texten (Fragenstamm, Antworten); nur UI-Texte markieren                                            |
+| Datum/Zahl nach Locale                | DatePipe/DecimalPipe nutzen; LOCALE_ID kommt durch Build pro Locale                                                        |
 
 ---
 
@@ -318,4 +341,4 @@ Details: [docs/architecture/decisions/0008-i18n-internationalization.md](archite
 
 ---
 
-*Stand: Recherche für Angular v21/v22; Dokumentation unter https://angular.dev/guide/i18n.*
+_Stand: Recherche für Angular v21/v22; Dokumentation unter https://angular.dev/guide/i18n._
