@@ -131,7 +131,7 @@
         <target>¡Ahora con más impulso!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">123</context>
+          <context context-type="linenumber">125</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1136696335453039978" datatype="html">
@@ -139,7 +139,7 @@
         <target>Preestablecido: Serio</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">126</context>
+          <context context-type="linenumber">128</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6151253518820826531" datatype="html">
@@ -147,7 +147,7 @@
         <target>Preestablecido: Juguetón</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">129</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2911090466936872230" datatype="html">
@@ -155,7 +155,7 @@
         <target>Conectar…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
-          <context context-type="linenumber">130</context>
+          <context context-type="linenumber">132</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
@@ -171,7 +171,231 @@
         <target>Intentar otra vez</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
+          <context context-type="linenumber">132</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleHome" datatype="html">
+        <source>arsnova.eu – Live-Quiz &amp; Abstimmung</source>
+        <target>arsnova.eu – Prueba en vivo y votación</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">62</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descHome" datatype="html">
+        <source>Kostenlose, DSGVO-konforme Live-Quiz- und Abstimmungsplattform für Hochschulen, Schulen, Events und Business.</source>
+        <target>Plataforma gratuita de votación y cuestionarios en vivo que cumple con el RGPD para universidades, escuelas, eventos y empresas.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">66</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleQuizList" datatype="html">
+        <source>Meine Quizzes – arsnova.eu</source>
+        <target>Mis cuestionarios – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">70</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descQuizList" datatype="html">
+        <source>Quiz-Sammlung anlegen, bearbeiten und für Live-Sessions nutzen – lokal oder synchronisiert zwischen Geräten.</source>
+        <target>Cree, edite y utilice colecciones de pruebas para sesiones en vivo, localmente o sincronizadas entre dispositivos.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">74</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleQuizNew" datatype="html">
+        <source>Neues Quiz – arsnova.eu</source>
+        <target>Nuevo cuestionario – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">78</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descQuizNew" datatype="html">
+        <source>Ein neues Quiz erstellen: Fragen, Antworten und Einstellungen für eure nächste Live-Session.</source>
+        <target>Crea un nuevo cuestionario: preguntas, respuestas y configuraciones para tu próxima sesión en vivo.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleQuizEdit" datatype="html">
+        <source>Quiz bearbeiten – arsnova.eu</source>
+        <target>Editar cuestionario – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">86</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descQuizEdit" datatype="html">
+        <source>Fragen und Metadaten eines Quizzes bearbeiten, Vorschau und Upload für die Session vorbereiten.</source>
+        <target>Edite preguntas y metadatos de un cuestionario, prepare una vista previa y cárguelos para la sesión.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">90</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleQuizPreview" datatype="html">
+        <source>Quiz-Vorschau – arsnova.eu</source>
+        <target>Vista previa del cuestionario – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">94</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descQuizPreview" datatype="html">
+        <source>Quiz so ansehen, wie Teilnehmende es in der Session sehen – vor dem Start testen.</source>
+        <target>Vea el cuestionario tal como lo ven los participantes en la sesión; pruébelo antes de comenzar.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleQuizSync" datatype="html">
+        <source>Quiz-Bibliothek teilen – arsnova.eu</source>
+        <target>Compartir biblioteca de cuestionarios – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">102</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descQuizSync" datatype="html">
+        <source>Bibliothek zwischen Geräten synchronisieren – gemeinsame Sync-ID und geteilter Zugriff.</source>
+        <target>Biblioteca de sincronización entre dispositivos: ID de sincronización compartida y acceso compartido.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">106</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleHelp" datatype="html">
+        <source>Hilfe &amp; Anleitung – arsnova.eu</source>
+        <target>Ayuda e instrucciones – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">110</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descHelp" datatype="html">
+        <source>Kurze Anleitungen zu Sessions, Quiz, Blitzlicht und den wichtigsten Abläufen auf arsnova.eu.</source>
+        <target>Instrucciones breves para sesiones, cuestionarios, linternas y los procesos más importantes en arsnova.eu.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">114</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleImprint" datatype="html">
+        <source>Impressum – arsnova.eu</source>
+        <target>Pie de imprenta – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">118</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descImprint" datatype="html">
+        <source>Impressum und Anbieterkennzeichnung gemäß den gesetzlichen Pflichtangaben.</source>
+        <target>Pie de imprenta e identificación del proveedor de acuerdo con la información legalmente requerida.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">122</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titlePrivacy" datatype="html">
+        <source>Datenschutz – arsnova.eu</source>
+        <target>Protección de datos – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">126</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descPrivacy" datatype="html">
+        <source>Datenschutzerklärung: Verarbeitung personenbezogener Daten bei Nutzung von arsnova.eu.</source>
+        <target>Declaración de protección de datos: Tratamiento de datos personales al utilizar arsnova.eu.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">130</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleJoin" datatype="html">
+        <source>Session beitreten – arsnova.eu</source>
+        <target>Unirse a la sesión – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">134</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descJoin" datatype="html">
+        <source>Mit Session-Code einer Live-Veranstaltung beitreten – Quiz, Q&amp;A oder Blitzlicht.</source>
+        <target>Únase a un evento en vivo con un código de sesión: cuestionario, preguntas y respuestas o linterna.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">138</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleSession" datatype="html">
+        <source>Live-Session – arsnova.eu</source>
+        <target>Sesión en vivo – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">142</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descSession" datatype="html">
+        <source>Moderation oder Teilnahme an einer laufenden Session – Fragen, Abstimmung und Ergebnisse in Echtzeit.</source>
+        <target>Moderación o participación en una sesión en curso: preguntas, votaciones y resultados en tiempo real.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">146</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleFeedbackHost" datatype="html">
+        <source>Blitzlicht moderieren – arsnova.eu</source>
+        <target>Linterna moderada – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">150</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descFeedbackHost" datatype="html">
+        <source>Schnelle Rückmeldungen in der Veranstaltung einrichten und Ergebnisse live steuern.</source>
+        <target>Configure comentarios rápidos en el evento y controle los resultados en vivo.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">154</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleFeedbackVote" datatype="html">
+        <source>Blitzlicht mitmachen – arsnova.eu</source>
+        <target>Súmate con la linterna – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">158</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descFeedbackVote" datatype="html">
+        <source>Kurz abstimmen oder Feedback geben – ohne Konto, datensparsam.</source>
+        <target>Vote brevemente o dé su opinión: sin cuenta, ahorrando datos.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">162</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.titleAdmin" datatype="html">
+        <source>Administration – arsnova.eu</source>
+        <target>Administración – arsnova.eu</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">166</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="seo.descAdmin" datatype="html">
+        <source>Interne Verwaltung (nur für Betreiber).</source>
+        <target>Administración interna (solo para operadores).</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
+          <context context-type="linenumber">170</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedback" datatype="html">
@@ -2097,7 +2321,7 @@
         <target>Configuración de prueba no válida.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1466</context>
+          <context context-type="linenumber">1486</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5143514353984065697" datatype="html">
@@ -2105,7 +2329,7 @@
         <target>Pregunta no válida.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
-          <context context-type="linenumber">1546</context>
+          <context context-type="linenumber">1566</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5893501665486949127" datatype="html">

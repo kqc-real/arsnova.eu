@@ -3,14 +3,34 @@
   <head>
     <meta charset="utf-8" />
     <base href="/" />
-    <title>arsnova.eu – Live-Quiz &amp; Abstimmung</title>
+    <title i18n="@@seo.titleHome">arsnova.eu – Live-Quiz &amp; Abstimmung</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Kostenlose, DSGVO-konforme Live-Quiz- und Abstimmungsplattform für Hochschulen." />
+    <meta
+      name="description"
+      i18n-content="@@seo.descHome"
+      content="Kostenlose, DSGVO-konforme Live-Quiz- und Abstimmungsplattform für Hochschulen, Schulen, Events und Business."
+    />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f5" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1c1b1f" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="arsnova.eu" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- Open Graph / Twitter: Basis; og:url, og:title, … aktualisiert SeoService pro Route -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="arsnova.eu" />
+    <meta property="og:image" content="https://arsnova.eu/de/assets/icons/icon-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="arsnova.eu" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- hreflang: Produktionsdomain; lokal andere Origin ignoriert Suchmaschinen praktisch -->
+    <link rel="alternate" hreflang="de" href="https://arsnova.eu/de/" />
+    <link rel="alternate" hreflang="en" href="https://arsnova.eu/en/" />
+    <link rel="alternate" hreflang="fr" href="https://arsnova.eu/fr/" />
+    <link rel="alternate" hreflang="it" href="https://arsnova.eu/it/" />
+    <link rel="alternate" hreflang="es" href="https://arsnova.eu/es/" />
+    <link rel="alternate" hreflang="x-default" href="https://arsnova.eu/de/" />
     <!-- Keine Google-Requests: System-Schriften + selbst gehostete Material Icons (kein Tracking). -->
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg" />
@@ -18,20 +38,63 @@
     <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png" />
     <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
     <style>
-      html, body { margin: 0; min-height: 100%; background: #faf8ff; }
-      @media (prefers-color-scheme: dark) { html, body { background: #141218; } }
-      html.dark, html.dark body { background: #141218; }
-      html.light, html.light body { background: #faf8ff; }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #faf8ff;
+      }
+      @media (prefers-color-scheme: dark) {
+        html,
+        body {
+          background: #141218;
+        }
+      }
+      html.dark,
+      html.dark body {
+        background: #141218;
+      }
+      html.light,
+      html.light body {
+        background: #faf8ff;
+      }
     </style>
   </head>
   <body>
-    <noscript>Bitte aktiviere JavaScript, um arsnova.eu zu nutzen.</noscript>
+    <!-- Noscript-Texte: scripts/patch-prerender-noscript.mjs (nach Build, je Locale) -->
+    <noscript><p>Bitte aktiviere JavaScript, um arsnova.eu zu nutzen.</p></noscript>
     <app-root>
       <!-- LCP-Shell: sofort sichtbar, reduziert Render-Delay bis Angular bootstrapped (Trace: LCP breakdown). -->
-      <div class="app-shell" aria-hidden="true" style="position:sticky;top:0;z-index:10;margin-bottom:1.25rem;border-radius:28px;background:light-dark(#efedf0,#2b2930);padding:1rem;box-shadow:0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14);">
-        <h1 style="margin:0;font:400 1.75rem/2.25rem system-ui;color:light-dark(#1a1b1f,#e5e1e6);">arsnova.eu</h1>
+      <div
+        class="app-shell"
+        aria-hidden="true"
+        style="
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          margin-bottom: 1.25rem;
+          border-radius: 28px;
+          background: light-dark(#efedf0, #2b2930);
+          padding: 1rem;
+          box-shadow:
+            0 2px 1px -1px rgba(0, 0, 0, 0.2),
+            0 1px 1px 0 rgba(0, 0, 0, 0.14);
+        "
+      >
+        <h1
+          style="
+            margin: 0;
+            font: 400 1.75rem/2.25rem system-ui;
+            color: light-dark(#1a1b1f, #e5e1e6);
+          "
+        >
+          arsnova.eu
+        </h1>
       </div>
     </app-root>
-    <script>if(location.pathname.startsWith('/feedback/'))document.querySelector('.app-shell').style.display='none';</script>
+    <script>
+      if (location.pathname.startsWith('/feedback/'))
+        document.querySelector('.app-shell').style.display = 'none';
+    </script>
   </body>
 </html>

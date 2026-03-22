@@ -29,6 +29,7 @@ import { ServerStatusWidgetComponent } from './shared/server-status-widget/serve
 import { ServerStatusHelpDialogComponent } from './shared/server-status-help-dialog/server-status-help-dialog.component';
 import { localizePath } from './core/locale-router';
 import { HostDisplayModeService } from './core/host-display-mode.service';
+import { SeoService } from './core/seo.service';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
@@ -95,6 +96,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
+  private readonly seo = inject(SeoService);
   private versionSub: Subscription | null = null;
   private routerSub: Subscription | null = null;
   private presetSub: Subscription | null = null;
@@ -132,6 +134,7 @@ export class AppComponent implements OnInit, OnDestroy {
   isImmersiveHostView = computed(() => this.hostDisplayMode.immersiveHostActive());
 
   ngOnInit(): void {
+    this.seo.applyFromRouter();
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
     if (isPlatformBrowser(this.platformId)) {
       this.updateRouteFlags();
@@ -150,6 +153,7 @@ export class AppComponent implements OnInit, OnDestroy {
         .subscribe(() => {
           this.toolbarHidden.set(false);
           this.updateRouteFlags();
+          this.seo.applyFromRouter();
           requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }));
         });
     }

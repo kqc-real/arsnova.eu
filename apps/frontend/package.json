@@ -8,7 +8,7 @@
     "build": "ng build",
     "build:prod": "npm run build:localize",
     "serve:dist": "npx serve dist/browser -s",
-    "build:localize": "ng build --configuration production --localize && node -e \"require('fs').copyFileSync('static-root-index.html', 'dist/browser/index.html')\"",
+    "build:localize": "ng build --configuration production --localize && node scripts/patch-prerender-noscript.mjs && node -e \"require('fs').copyFileSync('static-root-index.html', 'dist/browser/index.html')\"",
     "serve:localize": "npx serve dist/browser -p 4200",
     "serve:localize:api": "node scripts/serve-localized-with-api.mjs",
     "lighthouse:serve": "npm run build:prod && npm run serve:dist",
