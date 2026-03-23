@@ -2286,6 +2286,14 @@
     display: block;
   }
 
+  /* Volle Breite: MDC setzt mat-card-title oft auf shrink-to-fit */
+  .mat-mdc-card-title.session-host__question-title {
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   .mat-mdc-card-content {
     min-width: 0;
     padding: 0 1.5rem 1.25rem;
@@ -2355,10 +2363,16 @@
   line-height: 1.2;
   margin: 0.35rem 0 0;
   padding: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 
   .session-host__question-title-inner {
     display: block;
-    text-wrap: balance;
+    width: 100%;
+    max-width: 100%;
+    /* balance kürzt optisch nutzbare Zeilenbreite; Fließtext soll die Kartenbreite nutzen */
+    text-wrap: wrap;
   }
 }
 

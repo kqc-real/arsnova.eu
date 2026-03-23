@@ -309,22 +309,23 @@ Details: [docs/architecture/decisions/0008-i18n-internationalization.md](archite
 | **fr/it/es (Technikstatus)** | `messages.fr.xlf`, `messages.it.xlf`, `messages.es.xlf` vorhanden (Startbasis, Source=Target) und in `angular.json` eingebunden; Build erzeugt Locale-Ausgaben für alle fünf Sprachen.                                                                                                                                                                                       |
 | **Legal-Seiten**             | DE + EN: `imprint.de.md`, `imprint.en.md`, `privacy.de.md`, `privacy.en.md` in `src/assets/legal/`.                                                                                                                                                                                                                                                                          |
 | **Markierte Bereiche**       | App, Home, Toolbar, Join, Preset-Toast, Session (Host/Vote/Present), Quiz (Liste/New/Edit/Preview/Sync), Help, Feedback, Legal.                                                                                                                                                                                                                                              |
+| **Demo-Quiz (fest)**         | Inhalte pro Sprache: `apps/frontend/src/assets/demo/quiz-demo-showcase.{de,en,fr,es,it}.json`. Auswahl über URL-Locale (`getLocaleFromPath`) bzw. `LOCALE_ID`; `QuizStoreService.ensureDemoQuiz()` ersetzt das Demo bei Sprachwechsel. Übersetzte Texte aus dem Deutschen ableiten: `npm run demo-quiz:locales` im Ordner `apps/frontend`.                                   |
 | **Skripte**                  | `scripts/merge-missing-i18n-en.mjs`: fehlende EN-Targets aus fester TARGET_MAP einfügen. `scripts/add-missing-en-translations.mjs`: nach neuem Extract fehlende trans-units in `messages.en.xlf` mit EN-Targets ergänzen (ID→Target-Map im Skript). Nach Änderungen an UI-Texten: `ng extract-i18n` ausführen, dann ggf. Skript ausführen und neue IDs in die Map aufnehmen. |
 
 ---
 
 ## 10. Kurz-Checkliste für Story 6.2
 
-| Backlog-Kriterium                     | Umsetzung                                                                                                                  |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Sprachen de, en, fr, it, es           | In `i18n.locales` eintragen + Übersetzungsdateien pflegen                                                                  |
-| Browser (default) / Fallback Englisch | Server-Redirect per Accept-Language; Fallback z. B. auf `/en/`                                                             |
-| Sprachwähler in der Nav               | Link/Button zu den Locale-Subpfaden (`/de/`, `/en/`, …) oder Redirect mit Reload                                           |
-| Persistenz der Auswahl                | Cookie oder LocalStorage speichern; beim nächsten Besuch serverseitig oder clientseitig auf gespeicherte Locale redirecten |
-| @angular/localize                     | `ng add @angular/localize`; Templates/Code mit `i18n` und `$localize` markieren                                            |
-| Übersetzungsdateien                   | `ng extract-i18n`; pro Sprache eine Datei (z. B. in `src/locale/` oder `i18n/`)                                            |
-| Quiz-Inhalte nicht übersetzen         | Kein `i18n` an Dozenten-Texten (Fragenstamm, Antworten); nur UI-Texte markieren                                            |
-| Datum/Zahl nach Locale                | DatePipe/DecimalPipe nutzen; LOCALE_ID kommt durch Build pro Locale                                                        |
+| Backlog-Kriterium                     | Umsetzung                                                                                                                                                |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sprachen de, en, fr, it, es           | In `i18n.locales` eintragen + Übersetzungsdateien pflegen                                                                                                |
+| Browser (default) / Fallback Englisch | Server-Redirect per Accept-Language; Fallback z. B. auf `/en/`                                                                                           |
+| Sprachwähler in der Nav               | Link/Button zu den Locale-Subpfaden (`/de/`, `/en/`, …) oder Redirect mit Reload                                                                         |
+| Persistenz der Auswahl                | Cookie oder LocalStorage speichern; beim nächsten Besuch serverseitig oder clientseitig auf gespeicherte Locale redirecten                               |
+| @angular/localize                     | `ng add @angular/localize`; Templates/Code mit `i18n` und `$localize` markieren                                                                          |
+| Übersetzungsdateien                   | `ng extract-i18n`; pro Sprache eine Datei (z. B. in `src/locale/` oder `i18n/`)                                                                          |
+| Quiz-Inhalte nicht übersetzen         | Kein `i18n` an Nutzer-Inhalten (Fragenstamm, Antworten); nur UI-Texte markieren. **Ausnahme:** festes Demo-Quiz (siehe Abschnitt 9b, Zeile „Demo-Quiz“). |
+| Datum/Zahl nach Locale                | DatePipe/DecimalPipe nutzen; LOCALE_ID kommt durch Build pro Locale                                                                                      |
 
 ---
 

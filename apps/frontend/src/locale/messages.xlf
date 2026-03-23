@@ -1285,7 +1285,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">258,261</context>
+          <context context-type="linenumber">259,262</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.pageTitle" datatype="html">
@@ -1313,371 +1313,371 @@
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Im Unterschied zu<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> verbreiteten Angeboten wie Kahoot oder Mentimeter liegt der Schwerpunkt hier auf <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Datenschutz und Kontrolle über die Lehrmaterialien<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: kein Pflichtkonto für dich oder deine Gruppe, <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz-Inhalte bleiben zunächst local-first im Browser<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, das Projekt ist <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Open Source<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, der Betrieb erfolgt über <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>EU-Infrastruktur<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (Host in Deutschland) – nachvollziehbar statt geschlossener Plattform. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">26,33</context>
+          <context context-type="linenumber">26,35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.usp2" datatype="html">
         <source> In einer Veranstaltung verbindest du <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz, Q&amp;A und Blitzlicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> – statt mehrere Tools nebeneinander zu bedienen. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (zwei Abstimmungsrunden mit Diskussionsphase dazwischen) sowie <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>KaTeX<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> und Markdown unterstützen typische Szenarien in Hochschule, Weiterbildung und Seminar – vom spontanen Check bis zur Prüfungsvorbereitung. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">34,39</context>
+          <context context-type="linenumber">36,41</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoTitle" datatype="html">
         <source>Demo-Quiz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">43,44</context>
+          <context context-type="linenumber">45,46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoCardHint" datatype="html">
         <source> Ein vorinstalliertes Beispiel-Quiz zeigt alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen. Du findest es in deiner Quiz-Sammlung („Deine Quiz-Sammlung&quot;) und kannst es dort in der Vorschau öffnen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">45,49</context>
+          <context context-type="linenumber">47,51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoTip" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Tipp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Gib deinen Lernenden vor der ersten echten Session den Link zur Vorschau – so lernen sie Ablauf und Oberfläche kennen, ohne Druck. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">51,54</context>
+          <context context-type="linenumber">53,56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickstartTitle" datatype="html">
         <source>Schnellstart</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">57,58</context>
+          <context context-type="linenumber">59,60</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickstart1" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz anlegen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> „Deine Quiz-Sammlung&quot; öffnen, neues Quiz erstellen, Fragen und Einstellungen festlegen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">60,62</context>
+          <context context-type="linenumber">62,64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickstart2" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Veranstaltung starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In der Quiz-Sammlung „Veranstaltung starten&quot; wählen – ein 6-stelliger Code entsteht. Code oder QR-Code mit deiner Gruppe teilen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">64,66</context>
+          <context context-type="linenumber">66,68</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickstart3" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Live durchführen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen nacheinander freigeben, abstimmen lassen, Ergebnisse live anzeigen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">68,70</context>
+          <context context-type="linenumber">70,72</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostTitle" datatype="html">
         <source>Veranstaltung leiten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">75,76</context>
+          <context context-type="linenumber">77,78</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLead" datatype="html">
         <source> Du startest eine Live-Session, teilst den Code und steuerst Quiz, Q&amp;A und Blitzlicht. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">77,79</context>
+          <context context-type="linenumber">79,81</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostStartStep" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In deiner Quiz-Sammlung eine Veranstaltung starten und festlegen, ob sie mit Quiz oder Q&amp;A beginnt. Dann entsteht ein 6-stelliger Code. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">81,83</context>
+          <context context-type="linenumber">83,85</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLobby" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lobby:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Du siehst, wer beigetreten ist; ein QR-Code zum Beitritt wird angezeigt. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">85,87</context>
+          <context context-type="linenumber">87,89</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostBeamer" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beamer-Ansicht:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Große Darstellung von Frage, Antworten, Countdown und Ergebnissen für die Projektion im Raum. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">89,91</context>
+          <context context-type="linenumber">91,93</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostSteuerung" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Steuerung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit „Nächste Frage&quot; blendest du die Frage ein. Optional zuerst nur den Text (Lesephase), dann „Antworten freigeben&quot;, danach können alle abstimmen. Anschließend „Ergebnis zeigen&quot;. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">93,96</context>
+          <context context-type="linenumber">95,98</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPeer" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Bei Quiz- und Blitzlicht-Fragen: Erst abstimmen lassen → „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) → „Zweite Abstimmung&quot; – Vorher/Nachher-Vergleich zeigt, wie sich die Meinung durch den Austausch verändert hat. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">98,101</context>
+          <context context-type="linenumber">100,103</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostSettings" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Einstellungen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beim Start legst du den Stil („Seriös&quot; oder „Spielerisch&quot;) und die Optionen fest (Rangliste, Sound, Lesephase, Team-Modus, Nicknamen, Timer). Deine Teilnehmenden übernehmen automatisch dein Theme. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">104,107</context>
+          <context context-type="linenumber">106,109</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.blitzTitle" datatype="html">
         <source>Blitzlicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">112,113</context>
+          <context context-type="linenumber">114,115</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackIntro" datatype="html">
         <source> Schnelle Stimmungs- und Wissensabfragen – z. B. vor der Pause, zum Einstieg oder für spontane Checks. Nutzbar im Host-Bereich deiner Live-Session oder direkt von der Startseite. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">114,118</context>
+          <context context-type="linenumber">116,120</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qfMood" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stimmungsbild<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (😊😐😟): Wie geht es den Teilnehmenden? </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">119,121</context>
+          <context context-type="linenumber">121,123</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qfYesNoMaybe" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein / Vielleicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎🤷): Schnelle Zustimmungsabfrage. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">122,124</context>
+          <context context-type="linenumber">124,126</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackYesNo" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ja / Nein<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (👍👎): Klare Zwei-Optionen-Abfrage ohne Mittelweg. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">125,127</context>
+          <context context-type="linenumber">127,129</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackTrueFalseUnknown" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Wahr / Falsch / Weiß nicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✔️✖️❔): Für schnelle Einschätzungen oder Wissenschecks. </source>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Wahr / Falsch / Weiß nicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (✓ / × / ?): Für schnelle Einschätzungen oder Wissenschecks. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">128,130</context>
+          <context context-type="linenumber">130,132</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackLetterOptions" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Mehrstufige Schnellabfragen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (A–D): Drei oder vier feste Optionen für spontane Abstimmungen – ohne eine vollständige Quizfrage zu bauen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">132,134</context>
+          <context context-type="linenumber">134,136</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackStartFlow" datatype="html">
         <source> Du startest die Runde im Host-Bereich deiner Live-Session oder über die Blitzlicht-Karte „Live mit einem Klick&quot; auf der Startseite. Teilnehmende tippen eine Antwort; du siehst die Ergebnisse live als Balkendiagramm. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">137,141</context>
+          <context context-type="linenumber">139,143</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qfPeer" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Erste Runde – Ergebnis nicht auflösen – „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) – „Zweite Abstimmung&quot;. Vorher/Nachher-Vergleich zeigt den Lerneffekt durch den Austausch. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">143,146</context>
+          <context context-type="linenumber">145,148</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qfStop" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Stopp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Abstimmung einfrieren – Teilnehmende sehen „Abstimmung ist pausiert&quot; und können nicht mehr abstimmen, bis du „Fortsetzen&quot; wählst. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">148,150</context>
+          <context context-type="linenumber">150,152</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qfReset" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Zurücksetzen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Alle Stimmen löschen und erneut abstimmen lassen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">152,154</context>
+          <context context-type="linenumber">154,156</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qfNewRound" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Neue Runde:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Neuen Code erzeugen und eine frische Runde starten. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">155,157</context>
+          <context context-type="linenumber">157,159</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qfCopyLink" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Link kopieren:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Beitrittslink in die Zwischenablage kopieren, z. B. zum Teilen per Chat. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">158,160</context>
+          <context context-type="linenumber">160,162</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantsTitle" datatype="html">
         <source>Für deine Teilnehmenden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">165,166</context>
+          <context context-type="linenumber">167,168</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantsLead" datatype="html">
         <source> Kurz erklärt, was du im Unterricht oder Seminar weitergeben kannst: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">167,170</context>
+          <context context-type="linenumber">169,172</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantsJoin" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf arsnova.eu eingeben und „Los geht&apos;s&quot; – funktioniert für Quiz, Q&amp;A und Blitzlicht. Keine Anmeldung nötig. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">171,173</context>
+          <context context-type="linenumber">173,175</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantsNick" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknamen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Je nach deiner Einstellung vorgegebene Namen, eigener Name oder anonym. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">175,177</context>
+          <context context-type="linenumber">177,179</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantsVote" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Abstimmung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Frage erscheint auf dem Gerät, Antwort wählen und absenden. Bei Zeitlimit läuft ein Countdown. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">179,181</context>
+          <context context-type="linenumber">181,183</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionTitle" datatype="html">
         <source>Deine Quiz-Sammlung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">186,187</context>
+          <context context-type="linenumber">188,189</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionLead" datatype="html">
         <source>Hier legst du deine Quizze an und bereitest sie vor.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">187,189</context>
+          <context context-type="linenumber">189,191</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionEditor" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Editor:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Fragen per Drag-and-Drop sortieren, auf- und zuklappen, Vorschau prüfen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">190,192</context>
+          <context context-type="linenumber">192,194</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionTypes" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Fragetypen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple Choice, Single Choice, Freitext, Umfrage, Bewertungsskala – pro Frage optional mit Timer und Schwierigkeitsgrad. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">194,196</context>
+          <context context-type="linenumber">196,198</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionImport" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Über den KI-Prompt kannst du ein Quiz mit deiner bevorzugten KI generieren und direkt importieren – deine Lehrmaterialien werden nicht an arsnova.eu gesendet, du nutzt deine eigene KI. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">198,201</context>
+          <context context-type="linenumber">200,203</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionSync" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Sync-ID oder Sync-Link deine Quiz-Sammlung mit Kolleg:innen teilen oder auf anderen Geräten weiterarbeiten. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">203,205</context>
+          <context context-type="linenumber">205,207</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoQuizHint" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. In der Quiz-Sammlung in der Vorschau öffnen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">207,209</context>
+          <context context-type="linenumber">209,211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.stylesTitle" datatype="html">
         <source>Seriös und Spielerisch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">214,215</context>
+          <context context-type="linenumber">216,217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.stylesLead" datatype="html">
         <source> Zwei Stile für unterschiedliche Situationen – wählbar auf der Startseite und beim Session-Start. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">216,219</context>
+          <context context-type="linenumber">218,221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.styleSerious" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Seriös:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonym, ohne Rangliste – ideal für formative Assessments, Prüfungsvorbereitung und sensible Themen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">221,223</context>
+          <context context-type="linenumber">223,225</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.stylePlayful" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Spielerisch:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Rangliste, Sounds und Anfeuerung – ideal für Auflockerung, Wettbewerbe und motivierende Quizze. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">225,227</context>
+          <context context-type="linenumber">227,229</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.stylesOptions" datatype="html">
         <source> Alle Optionen (Rangliste, Sound, Lesephase, Team, Bonus) lassen sich einzeln an- und ausschalten. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">230,233</context>
+          <context context-type="linenumber">232,235</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.moreTitle" datatype="html">
         <source>Weitere Funktionen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">236,238</context>
+          <context context-type="linenumber">238,240</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.moreBonus" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Bonus-Codes:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Top-Platzierte erhalten einen einlösbaren Code (z. B. für Bonuspunkte). Du siehst die Code-Liste; personenbezogene Daten werden nicht gespeichert. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">239,241</context>
+          <context context-type="linenumber">241,243</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.moreTeams" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Team-Modus:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Deine Teilnehmenden spielen in Teams mit eigenem Team-Leaderboard – z. B. für Gruppenwettbewerbe im Seminar. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">243,245</context>
+          <context context-type="linenumber">245,247</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.moreGamification" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamification:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sound-Effekte, Belohnungseffekte für Top-Plätze, Motivationsmeldungen – im Spielerisch-Modus. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">247,249</context>
+          <context context-type="linenumber">249,251</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.privacyTitle" datatype="html">
         <source>Datenschutz und Technik</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">254,255</context>
+          <context context-type="linenumber">256,257</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.privacyBody" datatype="html">
         <source> arsnova.eu ist kostenlos, Open Source und für den Einsatz an Schulen, Hochschulen und in Weiterbildung gedacht – mit Fokus auf Datenschutz (DSGVO). Quiz-Inhalte werden lokal im Browser gespeichert. Keine Anmeldung nötig, weder für dich noch für deine Teilnehmenden. Als App installierbar (PWA) – z. B. für schnelleren Start auf dem Smartphone. Oberfläche auf Deutsch, Englisch, Französisch, Spanisch und Italienisch. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
-          <context context-type="linenumber">256,260</context>
+          <context context-type="linenumber">258,262</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.line1" datatype="html">
@@ -2434,32 +2434,25 @@
           <context context-type="linenumber">6</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3218489830147697230" datatype="html">
-        <source>1 Frage</source>
+      <trans-unit id="quiz.editHeader.questionCount" datatype="html">
+        <source>{VAR_PLURAL, plural, =1 {1 Frage} other {<x id="INTERPOLATION"/> Fragen}}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">7</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="2685316649628563933" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="{{ questions().length }}"/> Fragen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">7,8</context>
+          <context context-type="linenumber">9,11</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4928437576183373640" datatype="html">
         <source>Titel &amp; Beschreibung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">12</context>
+          <context context-type="linenumber">15</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8953033926734869941" datatype="html">
         <source>Name</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">22</context>
+          <context context-type="linenumber">25</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2470,7 +2463,7 @@
         <source>Gib deinem Quiz einen Namen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">26</context>
+          <context context-type="linenumber">29</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2481,7 +2474,7 @@
         <source>Der Name darf maximal 200 Zeichen lang sein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">29</context>
+          <context context-type="linenumber">32</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2492,7 +2485,7 @@
         <source>Beschreibung (optional)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">36</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2503,7 +2496,7 @@
         <source>Die Beschreibung darf maximal 1000 Zeichen lang sein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">37</context>
+          <context context-type="linenumber">40</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2514,14 +2507,14 @@
         <source>Gespeichert.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">44,45</context>
+          <context context-type="linenumber">47,48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2854123663314832793" datatype="html">
         <source>Speichern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">47,48</context>
+          <context context-type="linenumber">50,51</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.html</context>
@@ -2532,14 +2525,14 @@
         <source>Vorschau öffnen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">52,53</context>
+          <context context-type="linenumber">55,56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8104152103272919854" datatype="html">
         <source>Vorschau</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">54,55</context>
+          <context context-type="linenumber">57,58</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
@@ -2550,11 +2543,11 @@
         <source>Zurück zur Quiz-Liste</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">56,57</context>
+          <context context-type="linenumber">59,60</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">644,645</context>
+          <context context-type="linenumber">652,653</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2562,14 +2555,14 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">310,311</context>
+          <context context-type="linenumber">311,312</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8930526198656004715" datatype="html">
         <source>Zurück</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">58,59</context>
+          <context context-type="linenumber">61,62</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2580,7 +2573,7 @@
         <source>Einstellungen ausblenden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">67,68</context>
+          <context context-type="linenumber">70,71</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2591,7 +2584,7 @@
         <source>Einstellungen anpassen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">69,70</context>
+          <context context-type="linenumber">72,73</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2602,28 +2595,28 @@
         <source>Einstellungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">78</context>
+          <context context-type="linenumber">81</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6568899376509991089" datatype="html">
         <source>Gelten für alle Fragen in diesem Quiz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">79</context>
+          <context context-type="linenumber">82</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5339011327463703957" datatype="html">
         <source> <x id="INTERPOLATION" equiv-text="{{ preset.label }}"/> anwenden </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">91,92</context>
+          <context context-type="linenumber">94,95</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3570378747476250939" datatype="html">
         <source>Spiel &amp; Auswertung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">97</context>
+          <context context-type="linenumber">100</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2638,7 +2631,7 @@
         <source>Rangliste anzeigen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">98</context>
+          <context context-type="linenumber">101</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2649,28 +2642,28 @@
         <source> Belohnungen zeigen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">100</context>
+          <context context-type="linenumber">103</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2355797381776819101" datatype="html">
         <source> Anfeuerung einblenden </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">103</context>
+          <context context-type="linenumber">106</context>
         </context-group>
       </trans-unit>
       <trans-unit id="88521927529972246" datatype="html">
         <source> Emojis erlauben </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">106</context>
+          <context context-type="linenumber">109</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2198730230681840467" datatype="html">
         <source>Teilnahme &amp; Namen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">111</context>
+          <context context-type="linenumber">114</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2685,7 +2678,7 @@
         <source> Eigene Nicks erlauben </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">113</context>
+          <context context-type="linenumber">116</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2696,7 +2689,7 @@
         <source>Anonym teilnehmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">115</context>
+          <context context-type="linenumber">118</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2707,7 +2700,7 @@
         <source>Ablauf &amp; Zeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">119</context>
+          <context context-type="linenumber">122</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2722,7 +2715,7 @@
         <source> Lesephase vor dem Antworten </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">121</context>
+          <context context-type="linenumber">124</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2733,7 +2726,7 @@
         <source>Im Team spielen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">123</context>
+          <context context-type="linenumber">126</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2744,7 +2737,7 @@
         <source>Ton &amp; Musik</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">127</context>
+          <context context-type="linenumber">130</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2759,7 +2752,7 @@
         <source>Sounds abspielen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">128</context>
+          <context context-type="linenumber">131</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2770,7 +2763,7 @@
         <source>Zeitlimit pro Frage in Sekunden (optional)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">133</context>
+          <context context-type="linenumber">136</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2781,7 +2774,7 @@
         <source>Zeitlimit pro Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">140,141</context>
+          <context context-type="linenumber">143,144</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2796,7 +2789,7 @@
         <source>Ohne Wert gibt es kein Zeitlimit.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">145</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2807,7 +2800,7 @@
         <source>Mindestens 5 Sekunden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">147</context>
+          <context context-type="linenumber">150</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2818,7 +2811,7 @@
         <source>Höchstens 300 Sekunden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">153</context>
+          <context context-type="linenumber">156</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2829,7 +2822,7 @@
         <source>Altersgruppe für Namen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">158</context>
+          <context context-type="linenumber">161</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2840,7 +2833,7 @@
         <source>Altersgruppe wählen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">159,160</context>
+          <context context-type="linenumber">162,163</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2855,11 +2848,11 @@
         <source>Anzahl Teams</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">170</context>
+          <context context-type="linenumber">173</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">178,179</context>
+          <context context-type="linenumber">181,182</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2874,7 +2867,7 @@
         <source>Mindestens 2 Teams.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">181</context>
+          <context context-type="linenumber">184</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2885,7 +2878,7 @@
         <source>Höchstens 8 Teams.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">184</context>
+          <context context-type="linenumber">187</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2896,11 +2889,11 @@
         <source>Teams zuweisen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">189</context>
+          <context context-type="linenumber">192</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">190,191</context>
+          <context context-type="linenumber">193,194</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2915,7 +2908,7 @@
         <source>Automatisch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">191</context>
+          <context context-type="linenumber">194</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2926,7 +2919,7 @@
         <source>Manuell</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">192</context>
+          <context context-type="linenumber">195</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2937,7 +2930,7 @@
         <source>Eigene Team-Namen (optional)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">197</context>
+          <context context-type="linenumber">200</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2948,7 +2941,7 @@
         <source>Ein Team pro Zeile</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">204,205</context>
+          <context context-type="linenumber">207,208</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2959,7 +2952,7 @@
         <source>Eigene Team-Namen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">206,207</context>
+          <context context-type="linenumber">209,210</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2970,7 +2963,7 @@
         <source> Leer gelassene Teams erhalten automatisch Namen wie Team A, Team B oder Team C. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">209</context>
+          <context context-type="linenumber">212</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2981,7 +2974,7 @@
         <source>Gib höchstens so viele Namen wie Teams an.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">212</context>
+          <context context-type="linenumber">215</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -2992,7 +2985,7 @@
         <source>Jeder Team-Name darf nur einmal vorkommen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">215</context>
+          <context context-type="linenumber">218</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3003,7 +2996,7 @@
         <source>Jeder Team-Name darf maximal 40 Zeichen lang sein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">218</context>
+          <context context-type="linenumber">221</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3014,7 +3007,7 @@
         <source>So entstehen die Teams</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">224,225</context>
+          <context context-type="linenumber">227,228</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3025,7 +3018,7 @@
         <source>Belohnung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">238,239</context>
+          <context context-type="linenumber">241,242</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3036,7 +3029,7 @@
         <source> Bonus-Codes vergeben </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">240</context>
+          <context context-type="linenumber">243</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3047,7 +3040,7 @@
         <source> Die besten Teilnehmenden erhalten nach dem Quiz einen persoenlichen Code, den sie freiwillig bei dir einreichen koennen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">244,245</context>
+          <context context-type="linenumber">247,248</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3058,7 +3051,7 @@
         <source>Anzahl Top-Plaetze</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">248</context>
+          <context context-type="linenumber">251</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3069,7 +3062,7 @@
         <source>Anzahl Bonus-Codes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">256,257</context>
+          <context context-type="linenumber">259,260</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3080,7 +3073,7 @@
         <source>Wie viele der Bestplatzierten einen Code erhalten (1–50).</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">258</context>
+          <context context-type="linenumber">261</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3091,7 +3084,7 @@
         <source>Mindestens 1.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">260</context>
+          <context context-type="linenumber">263</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3102,7 +3095,7 @@
         <source>Hoechstens 50.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">263</context>
+          <context context-type="linenumber">266</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3113,239 +3106,239 @@
         <source>Einstellungen übernommen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">273,274</context>
+          <context context-type="linenumber">276,277</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7678024627255247069" datatype="html">
         <source>Übernehmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">277,278</context>
+          <context context-type="linenumber">280,281</context>
         </context-group>
       </trans-unit>
       <trans-unit id="341765638334099836" datatype="html">
         <source>Frage bearbeiten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">290,291</context>
+          <context context-type="linenumber">293,294</context>
         </context-group>
       </trans-unit>
       <trans-unit id="884716686888359227" datatype="html">
         <source>Neue Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">292,293</context>
+          <context context-type="linenumber">295,296</context>
         </context-group>
       </trans-unit>
       <trans-unit id="867046407244543093" datatype="html">
         <source> Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX verwenden. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">297</context>
+          <context context-type="linenumber">300</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4611696472883105418" datatype="html">
         <source> Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren&quot;, um die Änderungen zu speichern. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">307</context>
+          <context context-type="linenumber">310</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1577042233775426233" datatype="html">
         <source>Fragetext</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">312</context>
+          <context context-type="linenumber">315</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6191144967749087436" datatype="html">
         <source>Fragetext eingeben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">319,320</context>
+          <context context-type="linenumber">322,323</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4579210211803634368" datatype="html">
         <source> Markdown und KaTeX werden in der Vorschau unten gerendert. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">323</context>
+          <context context-type="linenumber">326</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1245945853792844677" datatype="html">
         <source>Gib einen Fragetext ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">326</context>
+          <context context-type="linenumber">329</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2963862029448330443" datatype="html">
         <source>Der Fragetext darf maximal 2000 Zeichen lang sein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">329</context>
+          <context context-type="linenumber">332</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1182293107570344716" datatype="html">
         <source>Fragetyp</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">335</context>
+          <context context-type="linenumber">338</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7683959047807099271" datatype="html">
         <source>Fragetyp wählen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">336,337</context>
+          <context context-type="linenumber">339,340</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3515317012613638265" datatype="html">
         <source>Schwierigkeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">345</context>
+          <context context-type="linenumber">348</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7107275877750639825" datatype="html">
         <source>Schwierigkeit wählen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">346,347</context>
+          <context context-type="linenumber">349,350</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8205020163645016790" datatype="html">
         <source>Schnellformat</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">357</context>
+          <context context-type="linenumber">360</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5837791681483999515" datatype="html">
         <source>Schnellformat wählen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">361,362</context>
+          <context context-type="linenumber">364,365</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7287117104463920417" datatype="html">
         <source>Überschreibt vorhandene Antworten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">367</context>
+          <context context-type="linenumber">370</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8259238864102475814" datatype="html">
         <source>Skala</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">374</context>
+          <context context-type="linenumber">377</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2146269008725411459" datatype="html">
         <source>Bewertungsskala wählen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">375,376</context>
+          <context context-type="linenumber">378,379</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7544463867005932926" datatype="html">
         <source>Label Minimum (optional)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">382</context>
+          <context context-type="linenumber">385</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1229476588328636113" datatype="html">
         <source>Label Maximum (optional)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">387</context>
+          <context context-type="linenumber">390</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8021687558521014030" datatype="html">
         <source>Option</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">417,418</context>
+          <context context-type="linenumber">420,421</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2856257833786492684" datatype="html">
         <source>Antwort <x id="INTERPOLATION" equiv-text="{{ i + 1 }}"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">422,423</context>
+          <context context-type="linenumber">425,426</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6278157135662238363" datatype="html">
         <source>Gib einen Antworttext ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">435</context>
+          <context context-type="linenumber">438</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2650319028885568688" datatype="html">
         <source>Maximal 500 Zeichen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">441</context>
+          <context context-type="linenumber">444</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8266267788371304686" datatype="html">
         <source>Weitere Antwort</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">462,463</context>
+          <context context-type="linenumber">465,466</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2525684207823121577" datatype="html">
         <source> Hier antworten Teilnehmende frei – keine vorgegebenen Antworten nötig. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">467</context>
+          <context context-type="linenumber">470</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3730214089391253539" datatype="html">
         <source>Live-Vorschau</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">473</context>
+          <context context-type="linenumber">476</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7492260970005034710" datatype="html">
         <source> Formelfehler: <x id="INTERPOLATION" equiv-text="{{ previewKatexError() }}"/> </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">478,479</context>
+          <context context-type="linenumber">481,482</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2863483573986908286" datatype="html">
         <source>Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">482,483</context>
+          <context context-type="linenumber">485,486</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">145,146</context>
+          <context context-type="linenumber">146,147</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3643065623582513222" datatype="html">
         <source>Antworten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">487,488</context>
+          <context context-type="linenumber">490,491</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">161,162</context>
+          <context context-type="linenumber">162,163</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7624133960269641605" datatype="html">
         <source>Abbrechen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">506,507</context>
+          <context context-type="linenumber">509,510</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
@@ -3353,11 +3346,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">120,121</context>
+          <context context-type="linenumber">121,122</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">216,217</context>
+          <context context-type="linenumber">217,218</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
@@ -3368,42 +3361,42 @@
         <source>Aktualisieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">518,519</context>
+          <context context-type="linenumber">521,522</context>
         </context-group>
       </trans-unit>
       <trans-unit id="623302995999546215" datatype="html">
         <source>Hinzufügen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">520,521</context>
+          <context context-type="linenumber">523,524</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3700479510053399162" datatype="html">
         <source>Fragenliste</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">529,530</context>
+          <context context-type="linenumber">532,533</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9015237973110909131" datatype="html">
         <source>Fragen im Quiz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">531,532</context>
+          <context context-type="linenumber">534,535</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8122550761270535954" datatype="html">
         <source>Hinzugefügt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">533,534</context>
+          <context context-type="linenumber">536,537</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3827964072457808965" datatype="html">
         <source>Noch keine Fragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">541,542</context>
+          <context context-type="linenumber">544,545</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
@@ -3414,36 +3407,43 @@
         <source> Füge oben deine erste Frage hinzu, um loszulegen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">543</context>
+          <context context-type="linenumber">546</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quiz.edit.questionListPosition" datatype="html">
+        <source>Frage <x id="INTERPOLATION" equiv-text="{{ question.order + 1 }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">572,573</context>
         </context-group>
       </trans-unit>
       <trans-unit id="535583862630354177" datatype="html">
         <source>Freitext-Antwort</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">589,590</context>
+          <context context-type="linenumber">597,598</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">47,48</context>
+          <context context-type="linenumber">48,49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6920196637619975735" datatype="html">
         <source>Bearbeiten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">622,623</context>
+          <context context-type="linenumber">630,631</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">284,285</context>
+          <context context-type="linenumber">285,286</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4580399730639224598" datatype="html">
         <source>Löschen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">626,627</context>
+          <context context-type="linenumber">634,635</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
@@ -3454,14 +3454,14 @@
         <source>Quiz nicht gefunden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">643,644</context>
+          <context context-type="linenumber">651,652</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6672916435220201136" datatype="html">
         <source>Zur Liste</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">646,647</context>
+          <context context-type="linenumber">654,655</context>
         </context-group>
       </trans-unit>
       <trans-unit id="924826286502636331" datatype="html">
@@ -3499,25 +3499,37 @@
           <context context-type="linenumber">180</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3480695325201508337" datatype="html">
+      <trans-unit id="quiz.difficulty.easy" datatype="html">
         <source>Leicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">196</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
+          <context context-type="linenumber">441</context>
+        </context-group>
       </trans-unit>
-      <trans-unit id="8066600724693093788" datatype="html">
+      <trans-unit id="quiz.difficulty.medium" datatype="html">
         <source>Mittel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">197</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
+          <context context-type="linenumber">443</context>
+        </context-group>
       </trans-unit>
-      <trans-unit id="1193747404035158587" datatype="html">
+      <trans-unit id="quiz.difficulty.hard" datatype="html">
         <source>Schwer</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">198</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
+          <context context-type="linenumber">445</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3898616236407170196" datatype="html">
@@ -4162,11 +4174,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">295,296</context>
+          <context context-type="linenumber">296,297</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">297,299</context>
+          <context context-type="linenumber">298,300</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.edit" datatype="html">
@@ -4507,137 +4519,137 @@
           <context context-type="linenumber">17,18</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="307297549803791885" datatype="html">
+      <trans-unit id="quiz.preview.questionPosition" datatype="html">
         <source> Frage <x id="INTERPOLATION" equiv-text="{{ currentIndex() + 1 }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ questions().length }}"/> </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">42,44</context>
+          <context context-type="linenumber">43,45</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4130226732996002249" datatype="html">
         <source> Skala <x id="INTERPOLATION" equiv-text="{{ slide.question.ratingMin ?? 1 }}"/>–<x id="INTERPOLATION_1" equiv-text="{{ slide.question.ratingMax ?? 5 }}"/> </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">52,53</context>
+          <context context-type="linenumber">53,54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editModeEyebrow" datatype="html">
         <source>Bearbeitungsmodus</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">115,116</context>
+          <context context-type="linenumber">116,117</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editModeTitle" datatype="html">
         <source>Diese Folie bearbeiten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">116,118</context>
+          <context context-type="linenumber">117,119</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editorWarningTitle" datatype="html">
         <source>Hier braucht diese Folie noch etwas Feinschliff</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">128,130</context>
+          <context context-type="linenumber">129,131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editorWarningAnswers" datatype="html">
         <source>Füge mindestens zwei Antwortoptionen hinzu.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">132,134</context>
+          <context context-type="linenumber">133,135</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editorWarningSingleCorrect" datatype="html">
         <source>Wähle genau eine richtige Antwort aus.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">136,138</context>
+          <context context-type="linenumber">137,139</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editorWarningMultipleCorrect" datatype="html">
         <source>Markiere mindestens eine richtige Antwort.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">138,141</context>
+          <context context-type="linenumber">139,142</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.toggleCorrectAria" datatype="html">
         <source>Richtige Antwort umschalten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">177,179</context>
+          <context context-type="linenumber">178,180</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.answerStateCorrect" datatype="html">
         <source>Richtig</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">197,199</context>
+          <context context-type="linenumber">198,200</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.answerStateNeutral" datatype="html">
         <source>Option</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">199,201</context>
+          <context context-type="linenumber">200,202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editorCorrectAnswerHint" datatype="html">
         <source> Nutze die Auswahl links, um richtige Antworten direkt zu markieren. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">207,209</context>
+          <context context-type="linenumber">208,210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7929709873355642466" datatype="html">
         <source>Fertig</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">220,221</context>
+          <context context-type="linenumber">221,222</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4211004050975364742" datatype="html">
         <source>Validierungshinweise</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">232,233</context>
+          <context context-type="linenumber">233,234</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5965994702239827104" datatype="html">
         <source>Vorschau-Steuerung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">248,249</context>
+          <context context-type="linenumber">249,250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6783622772851242408" datatype="html">
         <source>Zurück zur vorherigen Seite</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">255,256</context>
+          <context context-type="linenumber">256,257</context>
         </context-group>
       </trans-unit>
       <trans-unit id="430404089913192829" datatype="html">
         <source>Vorherige Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">262,263</context>
+          <context context-type="linenumber">263,264</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6856503836886083012" datatype="html">
         <source> <x id="INTERPOLATION" equiv-text="{{ currentIndex() + 1 }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ questions().length }}"/> </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">266,268</context>
+          <context context-type="linenumber">267,269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1760524745460515961" datatype="html">
         <source>Nächste Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">274,275</context>
+          <context context-type="linenumber">275,276</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -4648,21 +4660,21 @@
         <source>Editor offen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">301,302</context>
+          <context context-type="linenumber">302,303</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4790760145662687228" datatype="html">
         <source>Nicht gefunden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">309,310</context>
+          <context context-type="linenumber">310,311</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2699333634968608869" datatype="html">
         <source>Zurück zur Liste</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">312,313</context>
+          <context context-type="linenumber">313,314</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8343794034704107656" datatype="html">
@@ -4694,7 +4706,7 @@
         <source>Veranstaltung konnte nicht gestartet werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
-          <context context-type="linenumber">628</context>
+          <context context-type="linenumber">635</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.title" datatype="html">

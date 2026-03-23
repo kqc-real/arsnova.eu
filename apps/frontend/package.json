@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "extract-i18n": "ng extract-i18n --output-path src/locale",
     "sync-i18n": "node scripts/sync-i18n-locales.mjs",
+    "demo-quiz:locales": "node scripts/apply-demo-quiz-locale-strings.mjs",
     "screenshots": "node scripts/capture-screenshots.mjs",
     "serve:ssr:frontend": "node dist/server/server.mjs"
   },

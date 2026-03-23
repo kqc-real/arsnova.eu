@@ -59,7 +59,7 @@
         ]
       },
       {
-        "text": "### Mathe: Analysis – Bestimmtes Integral\n\nDie Funktion $f(x) = x^2 - 4$ hat Nullstellen bei $x = -2$ und $x = 2$. Zwischen den Nullstellen liegt der Graph **vollständig unterhalb** der $x$-Achse.\n\nWas berechnet $\\int_{-2}^{2} f(x)\\,\\mathrm{d}x$?",
+        "text": "### Mathe: Analysis – Bestimmtes Integral\n\nDie Funktion $f(x) = x^2 - 4$ hat Nullstellen bei $x = -2$ und $x = 2$\u2060. Zwischen den Nullstellen liegt der Graph **vollständig unterhalb** der $x$-Achse.\n\nWas berechnet $\\int_{-2}^{2} f(x)\\,\\mathrm{d}x$?",
         "type": "SINGLE_CHOICE",
         "timer": 60,
         "difficulty": "MEDIUM",
@@ -84,7 +84,7 @@
         ]
       },
       {
-        "text": "### Mathe: Selbsteinschätzung – Vektorrechnung\n\nIn der analytischen Geometrie beschreibst du Geraden und Ebenen mit Vektorgleichungen, z. B.:\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nWie sicher fühlst du dich bei Aufgaben zu **Lagebeziehungen** von Geraden und Ebenen?",
+        "text": "### Mathe: Selbsteinschätzung – Vektorrechnung\n\nIn der analytischen Geometrie beschreibst du Geraden und Ebenen mit Vektorgleichungen, z.\u00a0B.:\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nWie sicher fühlst du dich bei Aufgaben zu **Lagebeziehungen** von Geraden und Ebenen?",
         "type": "RATING",
         "timer": 20,
         "difficulty": "EASY",
@@ -154,7 +154,7 @@
         ]
       },
       {
-        "text": "### Biologie: Mendelsche Genetik\n\nBei einem dihybriden Erbgang kreuzt man zwei Individuen, die für beide Gene heterozygot sind ($\\text{AaBb} \\times \\text{AaBb}$).\n\nWelche Aussagen über die **F2-Generation** sind korrekt?\n\n*Mehrere Antworten möglich.*",
+        "text": "### Biologie: Mendelsche Genetik\n\nBei einem dihybriden Erbgang kreuzt man zwei Individuen, die für beide Gene heterozygot sind ($\\text{AaBb} \\times \\text{AaBb}$)\u2060.\n\nWelche Aussagen über die **F2-Generation** sind korrekt?\n\n*Mehrere Antworten möglich.*",
         "type": "MULTIPLE_CHOICE",
         "timer": 60,
         "difficulty": "MEDIUM",

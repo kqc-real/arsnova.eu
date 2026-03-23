@@ -436,9 +436,16 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   difficultyLabel(value: Difficulty): string {
-    if (value === 'EASY') return 'Leicht';
-    if (value === 'HARD') return 'Schwer';
-    return 'Mittel';
+    switch (value) {
+      case 'EASY':
+        return $localize`:@@quiz.difficulty.easy:Leicht`;
+      case 'MEDIUM':
+        return $localize`:@@quiz.difficulty.medium:Mittel`;
+      case 'HARD':
+        return $localize`:@@quiz.difficulty.hard:Schwer`;
+      default:
+        return value;
+    }
   }
 
   answerOptionLabel(index: number): string {

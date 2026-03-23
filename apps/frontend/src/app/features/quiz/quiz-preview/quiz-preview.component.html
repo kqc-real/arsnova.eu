@@ -2,7 +2,11 @@
   <section class="quiz-preview l-stack l-stack--sm">
     @if (questions().length > 0) {
       <header class="quiz-preview__top-bar">
-        <mat-progress-bar mode="determinate" [value]="progressValue()" class="quiz-preview__progress"></mat-progress-bar>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="progressValue()"
+          class="quiz-preview__progress"
+        ></mat-progress-bar>
       </header>
     }
 
@@ -11,7 +15,9 @@
         <mat-card-content class="quiz-preview__empty-content">
           <mat-icon class="quiz-preview__empty-icon">quiz</mat-icon>
           <p class="quiz-preview__empty-title" i18n>Keine Fragen vorhanden</p>
-          <p class="quiz-preview__empty-hint" i18n>Füge zuerst Fragen im Editor hinzu, um die Vorschau zu nutzen.</p>
+          <p class="quiz-preview__empty-hint" i18n>
+            Füge zuerst Fragen im Editor hinzu, um die Vorschau zu nutzen.
+          </p>
           <a mat-button [routerLink]="['../']">
             <mat-icon>edit</mat-icon>
             <span i18n>Zum Editor</span>
@@ -31,22 +37,35 @@
           <mat-card-content>
             <div class="quiz-preview-question__header">
               <div class="quiz-preview-question__meta">
-                <span class="quiz-preview-question__badge">{{ questionTypeLabel(slide.question.type) }}</span>
+                <span class="quiz-preview-question__badge">{{
+                  questionTypeLabel(slide.question.type)
+                }}</span>
                 @if (questionTypeShowsDifficulty(slide.question.type)) {
-                  <span class="quiz-preview-question__badge quiz-preview-question__badge--difficulty">
+                  <span
+                    class="quiz-preview-question__badge quiz-preview-question__badge--difficulty"
+                  >
+                    <mat-icon class="quiz-preview-question__difficulty-icon" aria-hidden="true"
+                      >fitness_center</mat-icon
+                    >
                     {{ difficultyLabel(slide.question.difficulty) }}
                   </span>
                 }
               </div>
-              <p class="quiz-preview-question__position" i18n>
+              <p class="quiz-preview-question__position" i18n="@@quiz.preview.questionPosition">
                 Frage {{ currentIndex() + 1 }} von {{ questions().length }}
               </p>
             </div>
-            <div class="quiz-preview-question__text" [innerHTML]="renderMarkdown(slide.question.text)"></div>
+            <div
+              class="quiz-preview-question__text"
+              [innerHTML]="renderMarkdown(slide.question.text)"
+            ></div>
             @if (slide.question.type === 'FREETEXT') {
-              <p class="quiz-preview-question__text quiz-preview-question__text--hint" i18n>Freitext-Antwort</p>
+              <p class="quiz-preview-question__text quiz-preview-question__text--hint" i18n>
+                Freitext-Antwort
+              </p>
             } @else if (slide.question.type === 'RATING') {
-              @let ratingValues = ratingScaleValues(slide.question.ratingMin ?? 1, slide.question.ratingMax ?? 5);
+              @let ratingValues =
+                ratingScaleValues(slide.question.ratingMin ?? 1, slide.question.ratingMax ?? 5);
               <div class="quiz-preview-question__rating">
                 <p class="quiz-preview-question__rating-meta" i18n>
                   Skala {{ slide.question.ratingMin ?? 1 }}–{{ slide.question.ratingMax ?? 5 }}
@@ -62,8 +81,12 @@
                 </div>
                 @if (slide.question.ratingLabelMin || slide.question.ratingLabelMax) {
                   <p class="quiz-preview-question__rating-labels">
-                    <span [innerHTML]="renderMarkdown(slide.question.ratingLabelMin || 'Min')"></span>
-                    <span [innerHTML]="renderMarkdown(slide.question.ratingLabelMax || 'Max')"></span>
+                    <span
+                      [innerHTML]="renderMarkdown(slide.question.ratingLabelMin || 'Min')"
+                    ></span>
+                    <span
+                      [innerHTML]="renderMarkdown(slide.question.ratingLabelMax || 'Max')"
+                    ></span>
                   </p>
                 }
               </div>
@@ -80,15 +103,16 @@
                       questionTypeHasCorrectAnswers(slide.question.type) && answer.isCorrect
                     "
                   >
-                    <span class="quiz-preview-question__answer-label" aria-hidden="true">{{ answerOptionLabel(i) }}</span>
+                    <span class="quiz-preview-question__answer-label" aria-hidden="true">{{
+                      answerOptionLabel(i)
+                    }}</span>
                     @if (questionTypeHasCorrectAnswers(slide.question.type)) {
-                      <span
-                        class="quiz-preview-question__correct-toggle"
-                        aria-hidden="true"
-                      >
+                      <span class="quiz-preview-question__correct-toggle" aria-hidden="true">
                         <mat-icon class="quiz-preview-question__correct">
                           @if (slide.question.type === 'SINGLE_CHOICE') {
-                            {{ answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked' }}
+                            {{
+                              answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked'
+                            }}
                           } @else {
                             {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
                           }
@@ -112,8 +136,12 @@
           <mat-card-content class="quiz-preview-editor__content">
             <div class="quiz-preview-editor__header">
               <div>
-                <p class="quiz-preview-editor__eyebrow" i18n="@@quizPreview.editModeEyebrow">Bearbeitungsmodus</p>
-                <h2 class="quiz-preview-editor__title" i18n="@@quizPreview.editModeTitle">Diese Folie bearbeiten</h2>
+                <p class="quiz-preview-editor__eyebrow" i18n="@@quizPreview.editModeEyebrow">
+                  Bearbeitungsmodus
+                </p>
+                <h2 class="quiz-preview-editor__title" i18n="@@quizPreview.editModeTitle">
+                  Diese Folie bearbeiten
+                </h2>
               </div>
               <button mat-button type="button" (click)="cancelInlineEditMode()">
                 <mat-icon>close</mat-icon>
@@ -125,17 +153,25 @@
               <div class="quiz-preview-editor__warning" role="alert">
                 <div class="quiz-preview-editor__warning-header">
                   <mat-icon>warning</mat-icon>
-                  <span i18n="@@quizPreview.editorWarningTitle">Hier braucht diese Folie noch etwas Feinschliff</span>
+                  <span i18n="@@quizPreview.editorWarningTitle"
+                    >Hier braucht diese Folie noch etwas Feinschliff</span
+                  >
                 </div>
                 <div class="quiz-preview-editor__warning-list">
                   @if (currentQuestionValidation().needsMoreAnswers) {
-                    <p i18n="@@quizPreview.editorWarningAnswers">Füge mindestens zwei Antwortoptionen hinzu.</p>
+                    <p i18n="@@quizPreview.editorWarningAnswers">
+                      Füge mindestens zwei Antwortoptionen hinzu.
+                    </p>
                   }
                   @if (currentQuestionValidation().needsCorrectAnswer) {
                     @if (question.type === 'SINGLE_CHOICE') {
-                      <p i18n="@@quizPreview.editorWarningSingleCorrect">Wähle genau eine richtige Antwort aus.</p>
+                      <p i18n="@@quizPreview.editorWarningSingleCorrect">
+                        Wähle genau eine richtige Antwort aus.
+                      </p>
                     } @else {
-                      <p i18n="@@quizPreview.editorWarningMultipleCorrect">Markiere mindestens eine richtige Antwort.</p>
+                      <p i18n="@@quizPreview.editorWarningMultipleCorrect">
+                        Markiere mindestens eine richtige Antwort.
+                      </p>
                     }
                   }
                 </div>
@@ -155,7 +191,8 @@
               <div
                 class="quiz-preview-editor__answers"
                 [class.quiz-preview-editor__answers--invalid]="
-                  currentQuestionValidation().needsMoreAnswers || currentQuestionValidation().needsCorrectAnswer
+                  currentQuestionValidation().needsMoreAnswers ||
+                  currentQuestionValidation().needsCorrectAnswer
                 "
               >
                 <p class="quiz-preview-editor__label" i18n>Antworten</p>
@@ -166,7 +203,9 @@
                       questionTypeHasCorrectAnswers(question.type) && answer.isCorrect
                     "
                   >
-                    <span class="quiz-preview-editor__answer-label" aria-hidden="true">{{ answerOptionLabel(i) }}</span>
+                    <span class="quiz-preview-editor__answer-label" aria-hidden="true">{{
+                      answerOptionLabel(i)
+                    }}</span>
                     @if (questionTypeHasCorrectAnswers(question.type)) {
                       <button
                         mat-icon-button
@@ -178,7 +217,9 @@
                       >
                         <mat-icon>
                           @if (question.type === 'SINGLE_CHOICE') {
-                            {{ answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked' }}
+                            {{
+                              answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked'
+                            }}
                           } @else {
                             {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
                           }
@@ -192,7 +233,10 @@
                       (input)="onAnswerDraftChanged(i, answerDraftInput.value)"
                     />
                     @if (questionTypeHasCorrectAnswers(question.type)) {
-                      <span class="quiz-preview-editor__answer-state" [class.quiz-preview-editor__answer-state--correct]="answer.isCorrect">
+                      <span
+                        class="quiz-preview-editor__answer-state"
+                        [class.quiz-preview-editor__answer-state--correct]="answer.isCorrect"
+                      >
                         @if (answer.isCorrect) {
                           <span i18n="@@quizPreview.answerStateCorrect">Richtig</span>
                         } @else {
@@ -259,7 +303,14 @@
         </button>
 
         <div class="quiz-preview__bottom-nav">
-          <button mat-icon-button type="button" (click)="previousQuestion()" [disabled]="currentIndex() === 0" i18n-aria-label aria-label="Vorherige Frage">
+          <button
+            mat-icon-button
+            type="button"
+            (click)="previousQuestion()"
+            [disabled]="currentIndex() === 0"
+            i18n-aria-label
+            aria-label="Vorherige Frage"
+          >
             <mat-icon>chevron_left</mat-icon>
           </button>
           <div class="quiz-preview__bottom-count" i18n>
@@ -279,7 +330,12 @@
 
         @if (!inlineEditMode()) {
           <div class="quiz-preview__bottom-actions">
-            <button mat-button class="quiz-preview__bottom-action" type="button" (click)="enterInlineEditMode()">
+            <button
+              mat-button
+              class="quiz-preview__bottom-action"
+              type="button"
+              (click)="enterInlineEditMode()"
+            >
               <mat-icon>edit</mat-icon>
               <span i18n>Bearbeiten</span>
             </button>
@@ -294,7 +350,9 @@
               aria-label="Starten"
             >
               <mat-icon>{{ liveStartPending() ? 'sync' : 'play_circle' }}</mat-icon>
-              <span class="quiz-preview__valid-action-label" i18n="@@quizList.startSession">Starten</span>
+              <span class="quiz-preview__valid-action-label" i18n="@@quizList.startSession"
+                >Starten</span
+              >
             </button>
           </div>
         } @else {

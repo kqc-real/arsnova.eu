@@ -3,8 +3,20 @@
 } @else if (quiz(); as quizData) {
   <section class="quiz-edit l-stack l-stack--sm">
     <header class="quiz-edit__page-header">
-      <h1 class="quiz-edit__page-title">@if (quizData.name) { {{ quizData.name }} } @else { <span i18n>Neues Quiz</span> }</h1>
-      <p class="quiz-edit__page-meta">@if (questions().length === 1) { <span i18n>1 Frage</span> } @else { <span i18n>{{ questions().length }} Fragen</span> }</p>
+      <h1 class="quiz-edit__page-title">
+        @if (quizData.name) {
+          {{ quizData.name }}
+        } @else {
+          <span i18n>Neues Quiz</span>
+        }
+      </h1>
+      @let headerQuestionCount = questions().length;
+      <p class="quiz-edit__page-meta">
+        <span i18n="@@quiz.editHeader.questionCount">{headerQuestionCount, plural,
+          =1 {1 Frage}
+          other {{{ headerQuestionCount }} Fragen}
+        }</span>
+      </p>
     </header>
 
     <mat-card appearance="outlined" class="quiz-edit__meta-card">
@@ -32,7 +44,9 @@
           <mat-form-field appearance="outline">
             <mat-label i18n>Beschreibung (optional)</mat-label>
             <textarea matInput formControlName="description" rows="3" maxlength="1000"></textarea>
-            <mat-hint align="end">{{ metadataForm.controls.description.value.length }}/1000</mat-hint>
+            <mat-hint align="end"
+              >{{ metadataForm.controls.description.value.length }}/1000</mat-hint
+            >
             @if (metadataForm.controls.description.hasError('maxlength')) {
               <mat-error i18n>Die Beschreibung darf maximal 1000 Zeichen lang sein.</mat-error>
             }
@@ -49,7 +63,13 @@
         </form>
       </mat-card-content>
       <mat-card-actions class="quiz-edit__meta-actions">
-        <a mat-button routerLink="preview" [queryParams]="{ returnTo: 'edit' }" i18n-aria-label aria-label="Vorschau öffnen">
+        <a
+          mat-button
+          routerLink="preview"
+          [queryParams]="{ returnTo: 'edit' }"
+          i18n-aria-label
+          aria-label="Vorschau öffnen"
+        >
           <mat-icon>visibility</mat-icon>
           <span i18n>Vorschau</span>
         </a>
@@ -75,8 +95,10 @@
     @if (showSettings()) {
       <mat-card appearance="outlined" class="quiz-edit__settings-card">
         <mat-card-header class="quiz-edit__card-header">
-        <mat-card-title class="quiz-edit__card-title" i18n>Einstellungen</mat-card-title>
-        <mat-card-subtitle class="quiz-edit__card-subtitle" i18n>Gelten für alle Fragen in diesem Quiz</mat-card-subtitle>
+          <mat-card-title class="quiz-edit__card-title" i18n>Einstellungen</mat-card-title>
+          <mat-card-subtitle class="quiz-edit__card-subtitle" i18n
+            >Gelten für alle Fragen in diesem Quiz</mat-card-subtitle
+          >
         </mat-card-header>
         <mat-card-content>
           <form
@@ -93,189 +115,207 @@
               }
             </div>
 
-          <fieldset class="quiz-edit-form__fieldset">
-            <legend class="quiz-edit-form__legend" i18n>Spiel &amp; Auswertung</legend>
-            <mat-checkbox formControlName="showLeaderboard" i18n>Rangliste anzeigen</mat-checkbox>
-            <mat-checkbox formControlName="enableRewardEffects" i18n>
-              Belohnungen zeigen
-            </mat-checkbox>
-            <mat-checkbox formControlName="enableMotivationMessages" i18n>
-              Anfeuerung einblenden
-            </mat-checkbox>
-            <mat-checkbox formControlName="enableEmojiReactions" i18n>
-              Emojis erlauben
-            </mat-checkbox>
-          </fieldset>
+            <fieldset class="quiz-edit-form__fieldset">
+              <legend class="quiz-edit-form__legend" i18n>Spiel &amp; Auswertung</legend>
+              <mat-checkbox formControlName="showLeaderboard" i18n>Rangliste anzeigen</mat-checkbox>
+              <mat-checkbox formControlName="enableRewardEffects" i18n>
+                Belohnungen zeigen
+              </mat-checkbox>
+              <mat-checkbox formControlName="enableMotivationMessages" i18n>
+                Anfeuerung einblenden
+              </mat-checkbox>
+              <mat-checkbox formControlName="enableEmojiReactions" i18n>
+                Emojis erlauben
+              </mat-checkbox>
+            </fieldset>
 
-          <fieldset class="quiz-edit-form__fieldset">
-            <legend class="quiz-edit-form__legend" i18n>Teilnahme &amp; Namen</legend>
-            <mat-checkbox formControlName="allowCustomNicknames" i18n>
-              Eigene Nicks erlauben
-            </mat-checkbox>
-            <mat-checkbox formControlName="anonymousMode" i18n>Anonym teilnehmen</mat-checkbox>
-          </fieldset>
+            <fieldset class="quiz-edit-form__fieldset">
+              <legend class="quiz-edit-form__legend" i18n>Teilnahme &amp; Namen</legend>
+              <mat-checkbox formControlName="allowCustomNicknames" i18n>
+                Eigene Nicks erlauben
+              </mat-checkbox>
+              <mat-checkbox formControlName="anonymousMode" i18n>Anonym teilnehmen</mat-checkbox>
+            </fieldset>
 
-          <fieldset class="quiz-edit-form__fieldset">
-            <legend class="quiz-edit-form__legend" i18n>Ablauf &amp; Zeit</legend>
-            <mat-checkbox formControlName="readingPhaseEnabled" i18n>
-              Lesephase vor dem Antworten
-            </mat-checkbox>
-            <mat-checkbox formControlName="teamMode" (change)="syncTeamNamesValidation()" i18n>Im Team spielen</mat-checkbox>
-          </fieldset>
+            <fieldset class="quiz-edit-form__fieldset">
+              <legend class="quiz-edit-form__legend" i18n>Ablauf &amp; Zeit</legend>
+              <mat-checkbox formControlName="readingPhaseEnabled" i18n>
+                Lesephase vor dem Antworten
+              </mat-checkbox>
+              <mat-checkbox formControlName="teamMode" (change)="syncTeamNamesValidation()" i18n
+                >Im Team spielen</mat-checkbox
+              >
+            </fieldset>
 
-          <fieldset class="quiz-edit-form__fieldset">
-            <legend class="quiz-edit-form__legend" i18n>Ton &amp; Musik</legend>
-            <mat-checkbox formControlName="enableSoundEffects" i18n>Sounds abspielen</mat-checkbox>
-          </fieldset>
+            <fieldset class="quiz-edit-form__fieldset">
+              <legend class="quiz-edit-form__legend" i18n>Ton &amp; Musik</legend>
+              <mat-checkbox formControlName="enableSoundEffects" i18n
+                >Sounds abspielen</mat-checkbox
+              >
+            </fieldset>
 
-          <div class="quiz-edit-form__grid">
-            <mat-form-field appearance="outline">
-              <mat-label i18n>Zeitlimit pro Frage in Sekunden (optional)</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="defaultTimer"
-                min="5"
-                max="300"
-                i18n-aria-label aria-label="Zeitlimit pro Frage"
-              />
-              <mat-hint i18n>Ohne Wert gibt es kein Zeitlimit.</mat-hint>
-              @if (
-                settingsTimerControl.hasError('min') &&
-                (settingsTimerControl.touched || settingsTimerControl.dirty)
-              ) {
-                <mat-error i18n>Mindestens 5 Sekunden.</mat-error>
-              }
-              @if (
-                settingsTimerControl.hasError('max') &&
-                (settingsTimerControl.touched || settingsTimerControl.dirty)
-              ) {
-                <mat-error i18n>Höchstens 300 Sekunden.</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label i18n>Altersgruppe für Namen</mat-label>
-              <mat-select formControlName="nicknameTheme" i18n-aria-label aria-label="Altersgruppe wählen">
-                @for (theme of nicknameThemeOptions; track theme.value) {
-                  <mat-option [value]="theme.value">{{ theme.label }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-
-          @if (isTeamModeEnabled()) {
             <div class="quiz-edit-form__grid">
               <mat-form-field appearance="outline">
-                <mat-label i18n>Anzahl Teams</mat-label>
+                <mat-label i18n>Zeitlimit pro Frage in Sekunden (optional)</mat-label>
                 <input
                   matInput
                   type="number"
-                  formControlName="teamCount"
-                  min="2"
-                  max="8"
-                  (input)="syncTeamNamesValidation()"
-                  i18n-aria-label aria-label="Anzahl Teams"
+                  formControlName="defaultTimer"
+                  min="5"
+                  max="300"
+                  i18n-aria-label
+                  aria-label="Zeitlimit pro Frage"
                 />
-                @if (teamCountControl.hasError('min')) {
-                  <mat-error i18n>Mindestens 2 Teams.</mat-error>
+                <mat-hint i18n>Ohne Wert gibt es kein Zeitlimit.</mat-hint>
+                @if (
+                  settingsTimerControl.hasError('min') &&
+                  (settingsTimerControl.touched || settingsTimerControl.dirty)
+                ) {
+                  <mat-error i18n>Mindestens 5 Sekunden.</mat-error>
                 }
-                @if (teamCountControl.hasError('max')) {
-                  <mat-error i18n>Höchstens 8 Teams.</mat-error>
+                @if (
+                  settingsTimerControl.hasError('max') &&
+                  (settingsTimerControl.touched || settingsTimerControl.dirty)
+                ) {
+                  <mat-error i18n>Höchstens 300 Sekunden.</mat-error>
                 }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-label i18n>Teams zuweisen</mat-label>
-                <mat-select formControlName="teamAssignment" i18n-aria-label aria-label="Teams zuweisen">
-                  <mat-option value="AUTO" i18n>Automatisch</mat-option>
-                  <mat-option value="MANUAL" i18n>Manuell</mat-option>
+                <mat-label i18n>Altersgruppe für Namen</mat-label>
+                <mat-select
+                  formControlName="nicknameTheme"
+                  i18n-aria-label
+                  aria-label="Altersgruppe wählen"
+                >
+                  @for (theme of nicknameThemeOptions; track theme.value) {
+                    <mat-option [value]="theme.value">{{ theme.label }}</mat-option>
+                  }
                 </mat-select>
               </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Eigene Team-Namen (optional)</mat-label>
-                <textarea
-                  matInput
-                  formControlName="teamNamesText"
-                  rows="4"
-                  (input)="syncTeamNamesValidation()"
-                  i18n-placeholder
-                  placeholder="Ein Team pro Zeile"
-                  i18n-aria-label
-                  aria-label="Eigene Team-Namen"
-                ></textarea>
-                <mat-hint i18n>
-                  Leer gelassene Teams erhalten automatisch Namen wie Team A, Team B oder Team C.
-                </mat-hint>
-                @if (teamNamesTextControl.hasError('tooManyTeamNames')) {
-                  <mat-error i18n>Gib höchstens so viele Namen wie Teams an.</mat-error>
-                }
-                @if (teamNamesTextControl.hasError('duplicateTeamNames')) {
-                  <mat-error i18n>Jeder Team-Name darf nur einmal vorkommen.</mat-error>
-                }
-                @if (teamNamesTextControl.hasError('teamNameTooLong')) {
-                  <mat-error i18n>Jeder Team-Name darf maximal 40 Zeichen lang sein.</mat-error>
-                }
-              </mat-form-field>
             </div>
 
-            <div class="quiz-edit-form__team-preview" aria-live="polite">
-              <p class="quiz-edit-form__team-preview-title" i18n>So entstehen die Teams</p>
-              <ol class="quiz-edit-form__team-preview-list">
-                @for (teamName of teamNamePreview(); track $index) {
-                  <li class="quiz-edit-form__team-preview-item">
-                    <span class="quiz-edit-form__team-preview-index">{{ $index + 1 }}</span>
-                    <span class="quiz-edit-form__team-preview-name">{{ teamName }}</span>
-                  </li>
-                }
-              </ol>
-            </div>
-          }
+            @if (isTeamModeEnabled()) {
+              <div class="quiz-edit-form__grid">
+                <mat-form-field appearance="outline">
+                  <mat-label i18n>Anzahl Teams</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="teamCount"
+                    min="2"
+                    max="8"
+                    (input)="syncTeamNamesValidation()"
+                    i18n-aria-label
+                    aria-label="Anzahl Teams"
+                  />
+                  @if (teamCountControl.hasError('min')) {
+                    <mat-error i18n>Mindestens 2 Teams.</mat-error>
+                  }
+                  @if (teamCountControl.hasError('max')) {
+                    <mat-error i18n>Höchstens 8 Teams.</mat-error>
+                  }
+                </mat-form-field>
 
+                <mat-form-field appearance="outline">
+                  <mat-label i18n>Teams zuweisen</mat-label>
+                  <mat-select
+                    formControlName="teamAssignment"
+                    i18n-aria-label
+                    aria-label="Teams zuweisen"
+                  >
+                    <mat-option value="AUTO" i18n>Automatisch</mat-option>
+                    <mat-option value="MANUAL" i18n>Manuell</mat-option>
+                  </mat-select>
+                </mat-form-field>
 
-          <fieldset class="quiz-edit-form__fieldset">
-            <legend class="quiz-edit-form__legend" i18n>Belohnung</legend>
-            <mat-checkbox formControlName="bonusEnabled" i18n>
-              Bonus-Codes vergeben
-            </mat-checkbox>
-            @if (isBonusEnabled()) {
-              <p class="quiz-edit-form__fieldset-hint" i18n>
-                Die besten Teilnehmenden erhalten nach dem Quiz einen persoenlichen Code,
-                den sie freiwillig bei dir einreichen koennen.
-              </p>
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Anzahl Top-Plaetze</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  formControlName="bonusTokenCount"
-                  min="1"
-                  max="50"
-                  placeholder="3"
-                  i18n-aria-label aria-label="Anzahl Bonus-Codes"
-                />
-                <mat-hint i18n>Wie viele der Bestplatzierten einen Code erhalten (1–50).</mat-hint>
-                @if (bonusTokenCountControl.hasError('min')) {
-                  <mat-error i18n>Mindestens 1.</mat-error>
-                }
-                @if (bonusTokenCountControl.hasError('max')) {
-                  <mat-error i18n>Hoechstens 50.</mat-error>
-                }
-              </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n>Eigene Team-Namen (optional)</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="teamNamesText"
+                    rows="4"
+                    (input)="syncTeamNamesValidation()"
+                    i18n-placeholder
+                    placeholder="Ein Team pro Zeile"
+                    i18n-aria-label
+                    aria-label="Eigene Team-Namen"
+                  ></textarea>
+                  <mat-hint i18n>
+                    Leer gelassene Teams erhalten automatisch Namen wie Team A, Team B oder Team C.
+                  </mat-hint>
+                  @if (teamNamesTextControl.hasError('tooManyTeamNames')) {
+                    <mat-error i18n>Gib höchstens so viele Namen wie Teams an.</mat-error>
+                  }
+                  @if (teamNamesTextControl.hasError('duplicateTeamNames')) {
+                    <mat-error i18n>Jeder Team-Name darf nur einmal vorkommen.</mat-error>
+                  }
+                  @if (teamNamesTextControl.hasError('teamNameTooLong')) {
+                    <mat-error i18n>Jeder Team-Name darf maximal 40 Zeichen lang sein.</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <div class="quiz-edit-form__team-preview" aria-live="polite">
+                <p class="quiz-edit-form__team-preview-title" i18n>So entstehen die Teams</p>
+                <ol class="quiz-edit-form__team-preview-list">
+                  @for (teamName of teamNamePreview(); track $index) {
+                    <li class="quiz-edit-form__team-preview-item">
+                      <span class="quiz-edit-form__team-preview-index">{{ $index + 1 }}</span>
+                      <span class="quiz-edit-form__team-preview-name">{{ teamName }}</span>
+                    </li>
+                  }
+                </ol>
+              </div>
             }
-          </fieldset>
 
-          @if (settingsSubmitError()) {
-            <p class="quiz-edit-form__error" role="alert">{{ settingsSubmitError() }}</p>
-          }
-          @if (settingsSaved()) {
-            <p class="quiz-edit-form__editing-hint" role="status" i18n>Einstellungen übernommen.</p>
-          }
+            <fieldset class="quiz-edit-form__fieldset">
+              <legend class="quiz-edit-form__legend" i18n>Belohnung</legend>
+              <mat-checkbox formControlName="bonusEnabled" i18n>
+                Bonus-Codes vergeben
+              </mat-checkbox>
+              @if (isBonusEnabled()) {
+                <p class="quiz-edit-form__fieldset-hint" i18n>
+                  Die besten Teilnehmenden erhalten nach dem Quiz einen persoenlichen Code, den sie
+                  freiwillig bei dir einreichen koennen.
+                </p>
+                <mat-form-field appearance="outline">
+                  <mat-label i18n>Anzahl Top-Plaetze</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="bonusTokenCount"
+                    min="1"
+                    max="50"
+                    placeholder="3"
+                    i18n-aria-label
+                    aria-label="Anzahl Bonus-Codes"
+                  />
+                  <mat-hint i18n
+                    >Wie viele der Bestplatzierten einen Code erhalten (1–50).</mat-hint
+                  >
+                  @if (bonusTokenCountControl.hasError('min')) {
+                    <mat-error i18n>Mindestens 1.</mat-error>
+                  }
+                  @if (bonusTokenCountControl.hasError('max')) {
+                    <mat-error i18n>Hoechstens 50.</mat-error>
+                  }
+                </mat-form-field>
+              }
+            </fieldset>
 
-          <mat-card-actions class="quiz-edit-form__actions">
-            <button matButton="filled" type="submit" i18n>Übernehmen</button>
-          </mat-card-actions>
+            @if (settingsSubmitError()) {
+              <p class="quiz-edit-form__error" role="alert">{{ settingsSubmitError() }}</p>
+            }
+            @if (settingsSaved()) {
+              <p class="quiz-edit-form__editing-hint" role="status" i18n>
+                Einstellungen übernommen.
+              </p>
+            }
+
+            <mat-card-actions class="quiz-edit-form__actions">
+              <button matButton="filled" type="submit" i18n>Übernehmen</button>
+            </mat-card-actions>
           </form>
         </mat-card-content>
       </mat-card>
@@ -304,7 +344,8 @@
           >
             @if (isEditing()) {
               <p class="quiz-edit-form__editing-hint" i18n>
-                Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren", um die Änderungen zu speichern.
+                Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren", um die Änderungen
+                zu speichern.
               </p>
             }
 
@@ -316,12 +357,11 @@
                 rows="4"
                 maxlength="2000"
                 (input)="onLivePreviewInput()"
-                i18n-aria-label aria-label="Fragetext eingeben"
+                i18n-aria-label
+                aria-label="Fragetext eingeben"
               ></textarea>
               <mat-hint align="end">{{ textControl.value.length }}/2000</mat-hint>
-              <mat-hint i18n>
-                Markdown und KaTeX werden in der Vorschau unten gerendert.
-              </mat-hint>
+              <mat-hint i18n> Markdown und KaTeX werden in der Vorschau unten gerendert. </mat-hint>
               @if (textControl.hasError('required') && (textControl.touched || submitted())) {
                 <mat-error i18n>Gib einen Fragetext ein.</mat-error>
               }
@@ -333,7 +373,12 @@
             <div class="quiz-edit-form__grid">
               <mat-form-field appearance="outline">
                 <mat-label i18n>Fragetyp</mat-label>
-                <mat-select formControlName="type" (selectionChange)="onTypeChanged()" i18n-aria-label aria-label="Fragetyp wählen">
+                <mat-select
+                  formControlName="type"
+                  (selectionChange)="onTypeChanged()"
+                  i18n-aria-label
+                  aria-label="Fragetyp wählen"
+                >
                   @for (option of questionTypeOptions; track option.value) {
                     <mat-option [value]="option.value">{{ option.label }}</mat-option>
                   }
@@ -343,7 +388,11 @@
               @if (showDifficultySelection()) {
                 <mat-form-field appearance="outline">
                   <mat-label i18n>Schwierigkeit</mat-label>
-                  <mat-select formControlName="difficulty" i18n-aria-label aria-label="Schwierigkeit wählen">
+                  <mat-select
+                    formControlName="difficulty"
+                    i18n-aria-label
+                    aria-label="Schwierigkeit wählen"
+                  >
                     @for (option of difficultyOptions; track option.value) {
                       <mat-option [value]="option.value">{{ option.label }}</mat-option>
                     }
@@ -358,7 +407,8 @@
                 <mat-select
                   [value]="null"
                   (selectionChange)="applyScFormat($event.value)"
-                  i18n-aria-label aria-label="Schnellformat wählen"
+                  i18n-aria-label
+                  aria-label="Schnellformat wählen"
                 >
                   @for (format of scFormatOptions; track format.value) {
                     <mat-option [value]="format.value">{{ format.label }}</mat-option>
@@ -372,7 +422,11 @@
               <div class="quiz-edit-form__grid">
                 <mat-form-field appearance="outline">
                   <mat-label i18n>Skala</mat-label>
-                  <mat-select formControlName="ratingMax" i18n-aria-label aria-label="Bewertungsskala wählen">
+                  <mat-select
+                    formControlName="ratingMax"
+                    i18n-aria-label
+                    aria-label="Bewertungsskala wählen"
+                  >
                     <mat-option [value]="5">1 bis 5</mat-option>
                     <mat-option [value]="10">1 bis 10</mat-option>
                   </mat-select>
@@ -402,7 +456,9 @@
                           [attr.aria-label]="'Antwort ' + (i + 1) + ' als richtig markieren'"
                         >
                           <mat-icon>
-                            {{ isAnswerCorrect(i) ? 'radio_button_checked' : 'radio_button_unchecked' }}
+                            {{
+                              isAnswerCorrect(i) ? 'radio_button_checked' : 'radio_button_unchecked'
+                            }}
                           </mat-icon>
                         </button>
                       } @else if (isMultipleChoiceType()) {
@@ -480,7 +536,10 @@
                 }
                 <div class="quiz-edit-form__preview-block">
                   <p class="quiz-edit-form__preview-label" i18n>Frage</p>
-                  <div class="quiz-edit-form__preview-content" [innerHTML]="questionPreviewHtml()"></div>
+                  <div
+                    class="quiz-edit-form__preview-content"
+                    [innerHTML]="questionPreviewHtml()"
+                  ></div>
                 </div>
                 @if (answerPreviewHtml().length > 0) {
                   <div class="quiz-edit-form__preview-block">
@@ -545,7 +604,11 @@
           </mat-card-content>
         </mat-card>
       } @else {
-        <div cdkDropList class="quiz-edit-list__drop-zone" (cdkDropListDropped)="onQuestionDrop($event)">
+        <div
+          cdkDropList
+          class="quiz-edit-list__drop-zone"
+          (cdkDropListDropped)="onQuestionDrop($event)"
+        >
           @for (question of questions(); track question.id) {
             <mat-card
               cdkDrag
@@ -566,9 +629,18 @@
                 <div class="quiz-edit-question__body">
                   <div class="quiz-edit-question__header">
                     <p class="quiz-edit-question__meta">
-                      Frage {{ question.order + 1 }} · {{ questionTypeLabel(question.type) }}
+                      <span i18n="@@quiz.edit.questionListPosition"
+                        >Frage {{ question.order + 1 }}</span
+                      >
+                      · {{ questionTypeLabel(question.type) }}
                       @if (questionTypeShowsDifficulty(question.type)) {
-                        · {{ difficultyLabel(question.difficulty) }}
+                        <span class="quiz-edit-question__difficulty">
+                          ·
+                          <mat-icon class="quiz-edit-question__difficulty-icon" aria-hidden="true"
+                            >fitness_center</mat-icon
+                          >
+                          {{ difficultyLabel(question.difficulty) }}
+                        </span>
                       }
                     </p>
                     <button
@@ -576,27 +648,45 @@
                       type="button"
                       (click)="toggleQuestionExpanded(question.id)"
                       [attr.aria-expanded]="isQuestionExpanded(question.id)"
-                      [attr.aria-label]="isQuestionExpanded(question.id) ? 'Frage zuklappen' : 'Frage aufklappen'"
+                      [attr.aria-label]="
+                        isQuestionExpanded(question.id) ? 'Frage zuklappen' : 'Frage aufklappen'
+                      "
                     >
-                      <mat-icon>{{ isQuestionExpanded(question.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                      <mat-icon>{{
+                        isQuestionExpanded(question.id) ? 'expand_less' : 'expand_more'
+                      }}</mat-icon>
                     </button>
                   </div>
 
                   @if (isQuestionExpanded(question.id)) {
-                    <div class="quiz-edit-question__text" [innerHTML]="renderMarkdown(question.text)"></div>
+                    <div
+                      class="quiz-edit-question__text"
+                      [innerHTML]="renderMarkdown(question.text)"
+                    ></div>
 
                     @if (question.type === 'FREETEXT') {
-                      <p class="quiz-edit-question__text quiz-edit-question__text--hint" i18n>Freitext-Antwort</p>
+                      <p class="quiz-edit-question__text quiz-edit-question__text--hint" i18n>
+                        Freitext-Antwort
+                      </p>
                     } @else if (question.type === 'RATING') {
                       <div class="quiz-edit-question__rating">
-                        @for (step of ratingSteps(question.ratingMin ?? 1, question.ratingMax ?? 5); track step; let first = $first; let last = $last) {
+                        @for (
+                          step of ratingSteps(question.ratingMin ?? 1, question.ratingMax ?? 5);
+                          track step;
+                          let first = $first;
+                          let last = $last
+                        ) {
                           <div class="quiz-edit-question__rating-cell">
                             <span class="quiz-edit-question__rating-step">{{ step }}</span>
                             @if (first && question.ratingLabelMin) {
-                              <span class="quiz-edit-question__rating-label">{{ question.ratingLabelMin }}</span>
+                              <span class="quiz-edit-question__rating-label">{{
+                                question.ratingLabelMin
+                              }}</span>
                             }
                             @if (last && question.ratingLabelMax) {
-                              <span class="quiz-edit-question__rating-label">{{ question.ratingLabelMax }}</span>
+                              <span class="quiz-edit-question__rating-label">{{
+                                question.ratingLabelMax
+                              }}</span>
                             }
                           </div>
                         }
@@ -606,11 +696,26 @@
                         @for (answer of question.answers; track answer.id) {
                           <li>
                             @if (questionTypeHasCorrectAnswers(question.type)) {
-                              <mat-icon class="quiz-edit-question__answer-icon" [class.quiz-edit-question__answer-icon--correct]="answer.isCorrect" aria-hidden="true">
-                                {{ question.type === 'SINGLE_CHOICE' ? (answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked') : (answer.isCorrect ? 'check_box' : 'check_box_outline_blank') }}
+                              <mat-icon
+                                class="quiz-edit-question__answer-icon"
+                                [class.quiz-edit-question__answer-icon--correct]="answer.isCorrect"
+                                aria-hidden="true"
+                              >
+                                {{
+                                  question.type === 'SINGLE_CHOICE'
+                                    ? answer.isCorrect
+                                      ? 'radio_button_checked'
+                                      : 'radio_button_unchecked'
+                                    : answer.isCorrect
+                                      ? 'check_box'
+                                      : 'check_box_outline_blank'
+                                }}
                               </mat-icon>
                             }
-                            <span class="quiz-edit-question__answer-text" [innerHTML]="renderMarkdown(answer.text)"></span>
+                            <span
+                              class="quiz-edit-question__answer-text"
+                              [innerHTML]="renderMarkdown(answer.text)"
+                            ></span>
                           </li>
                         }
                       </ul>

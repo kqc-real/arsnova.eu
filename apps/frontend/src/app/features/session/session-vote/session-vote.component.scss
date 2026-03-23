@@ -939,6 +939,8 @@
 .vote-question {
   margin-bottom: 1.75rem;
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .vote-question__label {
@@ -964,6 +966,10 @@
 }
 
 .vote-question__text {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   font: var(--mat-sys-title-medium);
   color: var(--mat-sys-on-surface);
   line-height: 1.55;

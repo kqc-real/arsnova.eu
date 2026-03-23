@@ -193,9 +193,9 @@ export class QuizEditComponent implements OnDestroy {
   }));
 
   readonly difficultyOptions: Array<{ value: Difficulty; label: string }> = [
-    { value: 'EASY', label: $localize`Leicht` },
-    { value: 'MEDIUM', label: $localize`Mittel` },
-    { value: 'HARD', label: $localize`Schwer` },
+    { value: 'EASY', label: $localize`:@@quiz.difficulty.easy:Leicht` },
+    { value: 'MEDIUM', label: $localize`:@@quiz.difficulty.medium:Mittel` },
+    { value: 'HARD', label: $localize`:@@quiz.difficulty.hard:Schwer` },
   ];
 
   readonly nicknameThemeOptions: Array<{ value: NicknameTheme; label: string }> = [

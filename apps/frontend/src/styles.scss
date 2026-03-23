@@ -604,6 +604,14 @@ html.dark .app-qr-image {
 //    Global scope is required because markdown HTML is injected via [innerHTML].
 // ---------------------------------------------------------------------------
 
+// Alle Container, in denen renderMarkdownWithKatex per [innerHTML] landet (Vorschau, Edit, Host, Vote, …).
+$markdown-katex-flow-hosts:
+  '.session-host__question-title-inner', '.session-host__rich-text', '.vote-question__text',
+  '.vote-answer__text', '.quiz-preview-question__text', '.quiz-preview-question__answer-content',
+  '.quiz-edit-question__text', '.quiz-edit-question__answer-text',
+  '.quiz-edit-form__preview-content', '.quiz-edit-form__preview-answers',
+  '.session-present__qa-text', '.session-present__qa-list-text', '.quiz-list-item__description';
+
 .markdown-katex-error {
   color: var(--mat-sys-error);
   font: var(--mat-sys-body-small);
@@ -710,12 +718,25 @@ html.dark .app-qr-image {
 }
 
 /* Fragetext/Formeln im Rahmen halten + Silbentrennung (z. B. Frage 9) */
-.session-host__question-title-inner,
-.vote-question__text {
-  min-width: 0;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
+@each $host in $markdown-katex-flow-hosts {
+  #{$host} {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+}
+
+/* Weniger „Witwen“/Satzzeichen am Zeilenanfang (z. B. Punkt nach KaTeX) */
+@supports (text-wrap: pretty) {
+  @each $host in $markdown-katex-flow-hosts {
+    #{$host} {
+      text-wrap: pretty;
+    }
+  }
 }
 
 /* KaTeX: line-height kompakt halten; overflow-y: hidden verhindert unerwünschten vertikalen Scrollbalken (v. a. bei overflow-x: auto, siehe GitHub KaTeX #2942) */
@@ -729,36 +750,39 @@ html.dark .app-qr-image {
   margin: 0.75em 0;
 }
 
-/* overflow-x + overflow-y: hidden: bekanntes KaTeX-Problem – nur bei overflow-x: auto erscheint sonst ein vertikaler Scrollbalken (GitHub #2942, SO 67146733) */
-.session-host__question-title-inner .katex,
-.session-host__question-title-inner .katex-display,
-.vote-question__text .katex,
-.vote-question__text .katex-display {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  display: inline-block;
-  vertical-align: middle;
-  scrollbar-gutter: stable;
+/*
+ * KaTeX im Fließtext: äußeres Inline-Math als display:inline + ohne overflow-x:auto – sonst
+ * promoten Browser oft zu inline-block und brechen vor Satzzeichen um (Punkt in der nächsten Zeile).
+ * Zu breite Formeln: horizontaler Scroll am .katex-display-Wrapper; Inline-Formeln nutzen max-width im Fluss.
+ * (overflow-x:auto am Inline-Span: KaTeX #2942 / vertikaler Scrollbalken; hier nur auf Display-Blöcken.)
+ */
+@each $host in $markdown-katex-flow-hosts {
+  #{$host} .katex {
+    max-width: 100%;
+    overflow-x: visible;
+    overflow-y: hidden;
+    display: inline;
+    vertical-align: baseline;
+  }
+
+  #{$host} .katex-display {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  #{$host} .katex-display > .katex {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
 }
 
-.vote-question__text .katex-display,
-.session-host__question-title-inner .katex-display {
-  display: block;
-}
-
-/* Quiz-Beschreibung: einheitliche Zeilenhöhe für Text, KaTeX und Tabellen (innerHTML-Inhalt, daher global) */
-.quiz-list-item__description .katex {
-  line-height: 1.5 !important;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.quiz-list-item__description .katex-display {
-  line-height: 1.5 !important;
-  display: block;
-}
-
+/* Quiz-Beschreibung: Tabellen (innerHTML); KaTeX-Display siehe Schleife oben */
 .quiz-list-item__description table {
   line-height: 1.5;
   width: 100%;

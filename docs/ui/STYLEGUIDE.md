@@ -139,6 +139,7 @@ Regeln:
 - **`innerHTML`-Content:** Styles fuer gerendertes Markdown/KaTeX werden global und klar gescoped definiert (z. B. `.quiz-preview-*`, `.quiz-edit-*`), nicht ueber `::ng-deep`.
 - **Fehlerdarstellung:** `.markdown-katex-error` nutzt Error-Tokens und `body-small`.
 - **Typografie:** Absatz-, Listen-, Heading- und Blockquote-Abstaende fuer gerenderten Content sind explizit definiert.
+- **Bekannte Einschraenkung (vorlaeufig):** Nach Inline-KaTeX (`$...$`) kann ein direkt folgendes Satzzeichen durch Browser-Zeilenumbruch an der HTML-Grenze optisch in die naechste Zeile rutschen (CSS/Unicode-Glue ist dafuer nicht zuverlaessig). **Workaround fuer Autor:innen:** Satzzeichen in die Formel nehmen (z. B. `$\dots.$` oder `\text{.}` am Ende) oder den Satz so formulieren, dass kein Satzzeichen unmittelbar nach `$...$` folgt.
 
 ## Technische Details und Progressive Disclosure (MUSS)
 

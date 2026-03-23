@@ -1,4 +1,12 @@
-import { Injectable, PLATFORM_ID, Signal, computed, inject, signal } from '@angular/core';
+import {
+  Injectable,
+  LOCALE_ID,
+  PLATFORM_ID,
+  Signal,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import * as Y from 'yjs';
 import { IndexeddbPersistence } from 'y-indexeddb';
@@ -19,7 +27,12 @@ import {
   type TeamAssignment,
 } from '@arsnova/shared-types';
 import { getYjsWsUrl } from '../../../core/ws-urls';
-import demoQuizPayload from '../../../../assets/demo/quiz-demo-showcase.json';
+import {
+  getLocaleFromPath,
+  SUPPORTED_LOCALES,
+  type SupportedLocale,
+} from '../../../core/locale-from-path';
+import { getDemoQuizPayload, normalizeDemoQuizLocale } from './demo-quiz-payload';
 
 export type SupportedQuestionType =
   | 'MULTIPLE_CHOICE'
@@ -325,6 +338,9 @@ export type LibrarySharingMode = 'local' | 'shared';
 
 export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
 
+/** Merkt sich, in welcher Sprache das Demo-Quiz zuletzt gesät wurde (für Sprachwechsel / Migration). */
+const DEMO_QUIZ_LOCALE_STORAGE_KEY = 'arsnova-demo-quiz-locale-v1';
+
 @Injectable({ providedIn: 'root' })
 export class QuizStoreService {
   private readonly platformId = inject(PLATFORM_ID);
@@ -357,6 +373,7 @@ export class QuizStoreService {
   private pendingSyncMetadataSnapshot: SyncMetadataSnapshot | null = null;
   private hasPendingSyncMetadataFlush = false;
   private readonly currentSyncDeviceId = this.resolveCurrentSyncDeviceId();
+  private readonly localeId = inject(LOCALE_ID);
   private readonly onPresetUpdated = (): void => {
     this.writePresetSnapshotToYjs();
   };
@@ -886,11 +903,65 @@ export class QuizStoreService {
 
   ensureDemoQuiz(): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (this.quizDocuments().some((q) => q.id === DEMO_QUIZ_ID)) return;
+
+    const locale = this.resolveActiveDemoLocale();
+    const payload = getDemoQuizPayload(locale);
+    const existing = this.getQuizById(DEMO_QUIZ_ID);
+    let lastSeeded = this.readDemoQuizSeededLocale();
+
+    if (existing && lastSeeded === null) {
+      lastSeeded = 'de';
+      this.writeDemoQuizSeededLocale('de');
+    }
+
+    if (!existing) {
+      try {
+        this.importQuiz(payload, DEMO_QUIZ_ID);
+        this.writeDemoQuizSeededLocale(locale);
+      } catch (e) {
+        console.error('[DemoQuiz] Seeding failed:', e);
+      }
+      return;
+    }
+
+    if (lastSeeded !== locale) {
+      try {
+        this.quizDocuments.update((current) => current.filter((q) => q.id !== DEMO_QUIZ_ID));
+        this.importQuiz(payload, DEMO_QUIZ_ID);
+        this.writeDemoQuizSeededLocale(locale);
+      } catch (e) {
+        console.error('[DemoQuiz] Locale refresh failed:', e);
+      }
+    }
+  }
+
+  private resolveActiveDemoLocale(): SupportedLocale {
+    if (isPlatformBrowser(this.platformId)) {
+      const fromPath = getLocaleFromPath();
+      if (fromPath) return fromPath;
+    }
+    return normalizeDemoQuizLocale(String(this.localeId));
+  }
+
+  private readDemoQuizSeededLocale(): SupportedLocale | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
     try {
-      this.importQuiz(demoQuizPayload, DEMO_QUIZ_ID);
-    } catch (e) {
-      console.error('[DemoQuiz] Seeding failed:', e);
+      const raw = localStorage.getItem(DEMO_QUIZ_LOCALE_STORAGE_KEY);
+      if (raw && (SUPPORTED_LOCALES as readonly string[]).includes(raw)) {
+        return raw as SupportedLocale;
+      }
+    } catch {
+      /* ignore */
+    }
+    return null;
+  }
+
+  private writeDemoQuizSeededLocale(locale: SupportedLocale): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    try {
+      localStorage.setItem(DEMO_QUIZ_LOCALE_STORAGE_KEY, locale);
+    } catch {
+      /* ignore */
     }
   }
 
