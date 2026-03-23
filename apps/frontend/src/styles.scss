@@ -2,6 +2,8 @@
 @use 'sass:meta';
 @import 'katex/dist/katex.min.css';
 
+@use 'styles/music-equalizer-global';
+
 // ---------------------------------------------------------------------------
 // 0) Material Icons selbst gehostet (kein Google-Request, kein Tracking)
 // ---------------------------------------------------------------------------

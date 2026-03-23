@@ -1550,6 +1550,20 @@
   background: transparent;
 }
 
+/* MDC mat-icon-button erwartet ~24×24 px Grafik wie mat-icon; sonst kann der
+   Custom-Equalizer in Production (optimiertes CSS) unsichtbar wirken. */
+.session-host__meta-sound-control app-music-equalizer-icon,
+.session-host__live-sound-control app-music-equalizer-icon {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  color: inherit;
+  flex-shrink: 0;
+}
+
 .session-host__meta-sound-control--active {
   background: transparent;
   color: var(--mat-sys-primary);
@@ -1608,6 +1622,15 @@
 
 .session-host__music-phase-toggle-live {
   flex-shrink: 0;
+
+  app-music-equalizer-icon {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+  }
 }
 
 .session-host__music-menu-saved-track {

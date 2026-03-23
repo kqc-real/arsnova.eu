@@ -1,0 +1,40 @@
+// Equalizer-Animation global halten: In Production kann CSS aus verkapselten
+// Component-Styles (esbuild/Optimierung) Keyframes anders behandeln als im Dev-Server.
+// Siehe app-music-equalizer-icon (Host erzwingt Größe in session-host).
+
+.music-equalizer-icon--anim-reset .music-equalizer-icon__bar {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .music-equalizer-icon .music-equalizer-icon__bar {
+    animation: arsnova-music-eq-bar 1.2s ease-in-out infinite;
+  }
+
+  .music-equalizer-icon .music-equalizer-icon__bar--1 {
+    animation-delay: 0ms;
+  }
+
+  .music-equalizer-icon .music-equalizer-icon__bar--2 {
+    animation-delay: 150ms;
+  }
+
+  .music-equalizer-icon .music-equalizer-icon__bar--3 {
+    animation-delay: 300ms;
+  }
+
+  .music-equalizer-icon .music-equalizer-icon__bar--4 {
+    animation-delay: 450ms;
+  }
+}
+
+@keyframes arsnova-music-eq-bar {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
+}

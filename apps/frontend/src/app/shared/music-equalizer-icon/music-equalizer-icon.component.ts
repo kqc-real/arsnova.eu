@@ -78,38 +78,7 @@ const THEME_PRESET_DOM_EVENT = 'arsnova:preset-updated';
         height: 8px;
       }
 
-      .music-equalizer-icon--anim-reset .music-equalizer-icon__bar {
-        animation: none !important;
-      }
-
-      @media (prefers-reduced-motion: no-preference) {
-        .music-equalizer-icon__bar {
-          animation: music-equalizer-bar 1.2s ease-in-out infinite;
-        }
-
-        .music-equalizer-icon__bar--1 {
-          animation-delay: 0ms;
-        }
-        .music-equalizer-icon__bar--2 {
-          animation-delay: 150ms;
-        }
-        .music-equalizer-icon__bar--3 {
-          animation-delay: 300ms;
-        }
-        .music-equalizer-icon__bar--4 {
-          animation-delay: 450ms;
-        }
-      }
-
-      @keyframes music-equalizer-bar {
-        0%,
-        100% {
-          transform: scaleY(0.4);
-        }
-        50% {
-          transform: scaleY(1);
-        }
-      }
+      /* Animation: global in styles/music-equalizer-global.scss (Production-tauglich). */
     `,
   ],
 })
