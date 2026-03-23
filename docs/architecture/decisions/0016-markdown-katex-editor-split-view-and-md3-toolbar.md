@@ -67,6 +67,7 @@ Ein vollständig selbst gebautes **WYSIWYG** (ohne Document-Engine) ist langfris
 ## Referenzen
 
 - Backlog Story **1.7b** (Markdown/KaTeX-Editor mit MD3-Toolbar).
+- [ADR-0017: Markdown-Editor — UI-Geltungsbereich, KI-Import und romanische Labels](./0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) (Abgrenzung: kein JSON-Editor für KI-Paste; Fokus Quiz-Inhalt).
 - [ADR-0005: Angular Material Design](./0005-use-angular-material-design.md)
 - [ADR-0008: Internationalisierung](./0008-i18n-internationalization.md)
 - [ADR-0014: Mobile-first Informationsarchitektur für Host-Views](./0014-mobile-first-information-architecture-for-host-views.md)

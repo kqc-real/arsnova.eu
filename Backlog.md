@@ -360,6 +360,8 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **i18n:** alle neuen UI-Strings in **de/en/fr/es/it** (**ADR-0008**).
     - **Barrierefreiheit:** Dialoge/Sheets mit Fokus und ARIA; kein rein hover-basiertes Bedienkonzept.
     - Architektur und Abgrenzung zu optionalem späteren WYSIWYG-Motor sind in **ADR-0016** festgehalten.
+    - **UI-Geltungsbereich:** Mindestens **Quiz bearbeiten** und **Quiz neu** (Fragetext, Antwortoptionen); **Quiz-Beschreibung** mit derselben Markdown-/KaTeX-Semantik, wenn fachlich gewünscht; optional **Quiz-Vorschau** (Schnellkorrektur) in einer **kompakten** Variante (schmale Zeilen, ggf. Verweis auf Voll-Editor). **Außerhalb** von 1.7b: das **KI-JSON-Pastefeld** in der Quiz-Sammlung — siehe **Story 1.9a** und **ADR-0017**.
+    - **Romanische Locales (fr/es/it):** Toolbar- und andere **kurze Aktionslabels** bewusst **kompakt** formulieren, damit sie auf **Buttons/Chips** auf dem Smartphone nicht übermäßig umbrechen (**ADR-0017**, **ADR-0014**).
 - **Story 1.8 (Quiz exportieren):** 🟡 Als Dozent möchte ich ein Quiz als JSON-Datei exportieren können, damit ich es sichern, teilen oder auf einem anderen Gerät importieren kann.
   - **Akzeptanzkriterien:**
     - Ein "Exportieren"-Button erzeugt eine `.json`-Datei mit allen Quiz-Daten (Name, Beschreibung, Konfiguration, Fragen, Antwortoptionen inkl. `isCorrect`).
@@ -377,6 +379,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 - **Story 1.9a (KI-gestützter Quiz-Import mit Zod-Validierung):** 🟡 Als Dozent möchte ich die vom LLM generierte Quiz-JSON (aus dem Workflow von Story 1.9b) in arsnova.eu importieren können, wobei strikte Zod-Validierung sicherstellt, dass fehlerhafte oder halluzinierte KI-Antworten die App nicht zum Absturz bringen.
   - **Akzeptanzkriterien:**
     - **Import-UI:** In der **Quiz-Sammlung** (`/quiz`) gibt es den aufklappbaren Bereich **„Mit unserem Prompt zum fertigen Quiz“**, in den der Dozent die LLM-Antwort per **Copy & Paste** einfügt (inkl. tolerantem Parsing von Markdown-Codeblock `json` bzw. eingebettetem JSON). Der allgemeine **Importieren**-Button daneben dient dem Datei-Import exportierter JSON (Story 1.9) und kann auch für vom LLM gespeicherte `.json`-Dateien genutzt werden.
+    - **Kein JSON-/Code-Editor-Pflicht:** Das Einfügefeld ist ein **Paste-Kanal** für KI-Ausgabe; ein **dedizierter JSON-Editor** (IDE-ähnlich, Syntax-Highlighting als Pflichtfeature) ist **kein** Liefergegenstand — siehe **ADR-0017**. Qualitätssicherung über **Zod** und verständliche Fehlermeldungen; optionale **leichtgewichtige** Hilfen (z. B. Fence-Stripping) bleiben zulässig.
     - **Strikte Zod-Validierung (Kern-Kriterium):**
       - Das eingefügte JSON wird **nicht** blind mit `JSON.parse()` als `any` in den State übernommen.
       - Es muss durch ein definiertes Zod-Schema (z. B. `quizImportSchema` aus `libs/shared-types/src/schemas.ts`) laufen (mittels `schema.safeParse()`).

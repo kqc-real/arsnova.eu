@@ -6,7 +6,7 @@
 **Zuletzt aktualisiert:** 2026-03-20  
 **Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur
 
-**Status:** Epics 0–5, 7.1, 8, 9 umgesetzt · Epic 6 größtenteils umgesetzt (6.5, 6.6 offen) · geplante Markdown-Stories 1.7a/1.7b siehe [ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung inkl. Admin siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Status:** Epics 0–5, 7.1, 8, 9 umgesetzt · Epic 6 größtenteils umgesetzt (6.5, 6.6 offen) · geplante Markdown-Stories 1.7a/1.7b siehe [ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) (Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung inkl. Admin siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 ## System-Architektur-Diagramm
 
