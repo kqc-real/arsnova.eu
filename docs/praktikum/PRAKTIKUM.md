@@ -6,6 +6,8 @@
 
 Willkommen. Dieses Dokument erklärt **Ziele**, **Ablauf**, **bewertete Leistung** und **praktische Tipps**, damit du dich schnell zurechtfindest und realistisch planen kannst. Die App ist ein **fortlaufendes Forschungs- und Lehrprojekt**; dein Beitrag soll **nachvollziehbar**, **testbar** und **zur Architektur passend** sein.
 
+**Parallel am selben Produkt:** Der **SQM-Praktikumsauftrag** (Qualität, Tests, Reviews, UX, Guidde) steht in **[`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)**; das didaktische **Zwei-Kurse-Modell** in [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
+
 ### Ausführliche Begriffe (Konzept & „intelligente“ Wortwolke)
 
 Für die **schriftliche Konzeption** und die Einordnung von **Syntax, Semantik, Lexik, Morphologie, Stemming, Lemmatisierung, Orthographie, Mehrsprachigkeit** und **semantischer Nähe** gibt es einen **eigenen, ausführlichen Leitfaden** (studierendenfreundlich, mit Beispielen, Tabellen und weiterführenden Links):

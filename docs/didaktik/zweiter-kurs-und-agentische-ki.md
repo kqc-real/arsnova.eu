@@ -2,14 +2,22 @@
 
 > Ein Produkt (arsnova.eu), zwei Kurse arbeiten parallel: Kurs 1 entwickelt, Kurs 2 (Softwarequalitätsmanagement) ist **für die Qualität des Projekts verantwortlich** und arbeitet mit.
 
+### Ausführliche Praktikumsbeschreibung (SQM, studierendenfreundlich)
+
+Für **Lernziele**, **Zeitmodell**, **bewertete Leistung** (Portfolio), **Aufgabenfelder** (Tests, E2E, Lighthouse, Think Aloud, KI-Reader, Guidde), **agentische KI** und **Abgabe-Checkliste**:
+
+**→ [`docs/praktikum/PRAKTIKUM-SQM.md`](../praktikum/PRAKTIKUM-SQM.md)**
+
+Dieses Dokument hier bleibt die **kompakte** Synergie- und Rollenübersicht; Details und Arbeitsanleitung stehen im Praktikumsleitfaden.
+
 ---
 
 ## 1. Modell: Ein Produkt, zwei Rollen
 
-| Rolle | Kurs | Verantwortung |
-|-------|------|----------------|
-| **Entwicklung** | Kurs 1 (z. B. ARS/Entwicklung) | Features bauen: Backlog-Stories umsetzen, tRPC/Frontend/Shared-Types, Repo-Konventionen einhalten. |
-| **Qualitätsverantwortung** | Kurs 2 (SQM) | Qualität des **gleichen** Projekts sichern: Teststrategie, E2E-, Last- und Performancetests, Reviews, DoD, Metriken, Sicherheit, Datenschutz (DSGVO), **UI/UX (Lautes Denken)**, **KI-Reader-Nutzbarkeit**, **Nutzungsanleitung mit Guidde**, Prozesse – **parallel** zur Entwicklung. |
+| Rolle                      | Kurs                           | Verantwortung                                                                                                                                                                                                                                                                          |
+| -------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Entwicklung**            | Kurs 1 (z. B. ARS/Entwicklung) | Features bauen: Backlog-Stories umsetzen, tRPC/Frontend/Shared-Types, Repo-Konventionen einhalten.                                                                                                                                                                                     |
+| **Qualitätsverantwortung** | Kurs 2 (SQM)                   | Qualität des **gleichen** Projekts sichern: Teststrategie, E2E-, Last- und Performancetests, Reviews, DoD, Metriken, Sicherheit, Datenschutz (DSGVO), **UI/UX (Lautes Denken)**, **KI-Reader-Nutzbarkeit**, **Nutzungsanleitung mit Guidde**, Prozesse – **parallel** zur Entwicklung. |
 
 **Synergie:** Beide Kurse arbeiten am **selben Repo**, am **selben Backlog**, an der **selben DoD**. SQM ist nicht „noch ein Nutzer der App“, sondern **interner Partner** mit der Rolle „Qualität“. Kein getrenntes Produkt, sondern geteilte Verantwortung für ein gemeinsames Ergebnis.
 
@@ -44,14 +52,15 @@
 
 Die KI unterstützt **beide** Kurse mit dem **gleichen Projektkontext** (AGENT.md, cursor-context, Backlog), aber mit unterschiedlichen Aufgaben:
 
-| Kurs | Typische KI-Nutzung |
-|------|----------------------|
-| **Kurs 1 (Entwicklung)** | Code nach Backlog/DoD generieren, tRPC + Zod + DTO, Frontend mit Signals; Baby-Steps, Architektur einhalten. |
-| **Kurs 2 (SQM)** | DoD-Check über geänderten Code (Tests vorhanden? DTO eingehalten? isCorrect nie in ACTIVE?), Review-Kommentare vorschlagen, Testfälle oder Teststrategie entwerfen, Checklisten gegen Code prüfen. |
+| Kurs                     | Typische KI-Nutzung                                                                                                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Kurs 1 (Entwicklung)** | Code nach Backlog/DoD generieren, tRPC + Zod + DTO, Frontend mit Signals; Baby-Steps, Architektur einhalten.                                                                                       |
+| **Kurs 2 (SQM)**         | DoD-Check über geänderten Code (Tests vorhanden? DTO eingehalten? isCorrect nie in ACTIVE?), Review-Kommentare vorschlagen, Testfälle oder Teststrategie entwerfen, Checklisten gegen Code prüfen. |
 
 **Gemeinsam:** Beide laden denselben Kontext; die KI „kennt“ das Projekt und die Qualitätsanforderungen. SQM kann die KI gezielt in **agentischer** Form nutzen (mehrstufig): z. B. „Prüfe diesen PR gegen DoD und Backlog, liste Verstöße auf“ oder „Schlage Testfälle für den session-Router vor“.
 
 Konkrete Ansatzpunkte:
+
 - **Cursor Rules:** Eine Rule für SQM-Arbeit (Review-Fokus, DoD, Teststrategie) neben der bestehenden Architektur-Rule.
 - **PR-/DoD-Check:** Manuell („Cursor, prüfe diesen Diff gegen DoD“) oder später automatisiert (z. B. GitHub Action mit LLM), damit SQM konsistent prüfen kann.
 - **Test-/Review-Vorlagen:** Prompts in `docs/vibe-coding/` für „Review-Check für PR“ und „Testfälle für Procedure X“, damit beide Kurse und die KI dieselben Maßstäbe anlegen.
@@ -60,10 +69,10 @@ Konkrete Ansatzpunkte:
 
 ## 4. Kurzfassung
 
-| Aspekt | Inhalt |
-|--------|--------|
-| **Synergie** | Ein Produkt (arsnova.eu). Kurs 1 entwickelt, Kurs 2 (SQM) trägt die **Qualitätsverantwortung** und arbeitet **parallel** mit. |
-| **SQM-Rolle** | Teststrategie, E2E-, Last- und Performancetests, Reviews, DoD, Metriken/Audits, Sicherheit, Datenschutz (DSGVO), **UI/UX (Lautes Denken)**, **KI-Reader-Nutzbarkeit**, **Nutzungsanleitung mit Guidde**, Prozesse – am gleichen Repo und Backlog. |
-| **Agentische KI** | Gemeinsamer Kontext für beide; Entwicklung nutzt KI für Implementierung, SQM für Review, DoD-Check, Tests und Checklisten (inkl. mehrstufige Agent-Nutzung). |
+| Aspekt            | Inhalt                                                                                                                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Synergie**      | Ein Produkt (arsnova.eu). Kurs 1 entwickelt, Kurs 2 (SQM) trägt die **Qualitätsverantwortung** und arbeitet **parallel** mit.                                                                                                                     |
+| **SQM-Rolle**     | Teststrategie, E2E-, Last- und Performancetests, Reviews, DoD, Metriken/Audits, Sicherheit, Datenschutz (DSGVO), **UI/UX (Lautes Denken)**, **KI-Reader-Nutzbarkeit**, **Nutzungsanleitung mit Guidde**, Prozesse – am gleichen Repo und Backlog. |
+| **Agentische KI** | Gemeinsamer Kontext für beide; Entwicklung nutzt KI für Implementierung, SQM für Review, DoD-Check, Tests und Checklisten (inkl. mehrstufige Agent-Nutzung).                                                                                      |
 
-Nächste Schritte (optional): Cursor-Rule für SQM (Review/DoD-Fokus), Review- und Test-Prompt-Vorlagen in `docs/vibe-coding/`, klare Zuordnung von Qualitäts-Stories im Backlog oder in `Backlog-SQM.md` mit Verlinkung zum Haupt-Backlog.
+Nächste Schritte (optional): Cursor-Rule für SQM (Review/DoD-Fokus), Review- und Test-Prompt-Vorlagen in `docs/vibe-coding/`, klare Zuordnung von Qualitäts-Stories im Backlog oder in `Backlog-SQM.md` mit Verlinkung zum Haupt-Backlog. **Ausführlicher Praktikumsleitfaden für Studierende:** [`docs/praktikum/PRAKTIKUM-SQM.md`](../praktikum/PRAKTIKUM-SQM.md).
