@@ -50,3 +50,6 @@ lerna-debug.log*
 # ---------- Nx ----------
 .nx/cache
 .nx/workspace-data
+
+# ---------- Private teaching notes ----------
+docs/_private-dozent/
