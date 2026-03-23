@@ -13,21 +13,25 @@ E-Mail: [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org)
 
 ## 2. Geltungsbereich
 
-Diese Datenschutzerklärung gilt für die Website **https://arsnova.eu** (Informations- und Marketingseite) sowie – soweit dort darauf verwiesen wird – für die Nutzung der Anwendung arsnova.eu (Live-Quiz & Abstimmung). Bei Self-Hosting der Anwendung kann der Verantwortliche ein anderer sein (Ihre Institution); dann gelten die dort bereitgestellten Datenschutzhinweise.
+Für **https://arsnova.eu** (Informations- und Marketingseite) und – soweit im Angebot darauf verwiesen wird – für die Nutzung der Anwendung arsnova.eu (Live-Quiz & Abstimmung) gelten die folgenden Hinweise zum Datenschutz. Bei Self-Hosting der Anwendung kann der Verantwortliche ein anderer sein (Ihre Institution); dann gelten die Datenschutzhinweise, die dort bereitgestellt werden.
 
-## 3. Daten beim Besuch dieser Website
+## 3. Daten beim Besuch von arsnova.eu
 
-Beim Aufruf dieser Website werden durch den betreibenden Server bzw. den Hosting-Anbieter in der Regel automatisch Zugriffsdaten (z. B. IP-Adresse, Datum/Uhrzeit, aufgerufene Seite, übertragene Datenmenge, Browsertyp) in Server-Logs verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Betrieb und an der Sicherheit der Website). Die Speicherdauer richtet sich nach den Vorgaben des Hosting-Anbieters; typischerweise werden Logs nach kurzer Frist gelöscht oder anonymisiert.
+Wenn Sie arsnova.eu aufrufen, verarbeitet der betreibende Server bzw. der Hosting-Anbieter in der Regel automatisch Zugriffsdaten (z. B. IP-Adresse, Datum/Uhrzeit, aufgerufene Seite, übertragene Datenmenge, Browsertyp) in Server-Logs. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Betrieb und an der Sicherheit). Die Speicherdauer richtet sich nach den Vorgaben des Hosting-Anbieters; typischerweise werden Logs nach kurzer Frist gelöscht oder anonymisiert.
 
-Diese Website setzt **keine Cookies** (auch keine Drittanbieter-Cookies) und führt keine Analyse-Tools (z. B. Google Analytics) aus. Schriftarten werden von Google Fonts geladen; dabei werden nach aktuellem Stand keine Cookies gesetzt, jedoch kann Ihr Browser Verbindung zu Servern von Google (USA) aufnehmen. Sofern nicht ausdrücklich anders angegeben, werden keine weiteren eingebetteten Inhalte Dritter (z. B. Karten, Videos) genutzt. Links zu Drittanbietern siehe Abschnitt 4.
+Wir setzen **keine Cookies** (auch keine Drittanbieter-Cookies) und führen keine Analyse-Tools (z. B. Google Analytics) aus. Für die Darstellung nutzen wir **System-Schriftarten**; **Material Icons** liegen auf unserem Server (**kein** Google Fonts, kein Verbindungsaufbau zu Google). Sofern nicht ausdrücklich anders gekennzeichnet, binden wir keine eingebetteten Inhalte Dritter (z. B. Karten, Videos) ein. Links zu Drittanbietern sind in Abschnitt 4 beschrieben.
+
+**Progressive Web App (PWA):** Wenn Sie arsnova.eu installieren oder die Offline-Funktion nutzen, kann Ihr Browser ausgewählte Inhalte lokal zwischenspeichern. Das verkürzt Ladezeiten und kann Inhalte ohne Netzverbindung anzeigen. **Es werden keine Cookies** für Werbe- oder Tracking-Zwecke gesetzt.
 
 ## 4. Verlinkung zu Drittanbietern
 
-Auf dieser Website werden Links zu externen Diensten gesetzt (z. B. GitHub). Beim Klick auf solche Links gelangen Sie auf die Seiten der jeweiligen Anbieter. Dort gelten die Datenschutzerklärungen und Nutzungsbedingungen der jeweiligen Anbieter. Wir haben keinen Einfluss auf deren Datenverarbeitung.
+Auf arsnova.eu finden Sie Links zu externen Diensten (z. B. GitHub). Beim Klick gelangen Sie auf die Seiten der jeweiligen Anbieter. Dort gelten deren Datenschutzerklärungen und Nutzungsbedingungen. Wir haben keinen Einfluss auf deren Datenverarbeitung.
 
 ## 5. Hosting
 
-Website und Anwendung können bei Diensteanbietern (Hosting-Providern) gehostet werden. Dabei können Zugriffsdaten (z. B. IP-Adresse, Zugriffszeit) auf Servern der Anbieter anfallen. Wird in Drittländern (z. B. USA) gehostet, kann eine Übermittlung dorthin erfolgen; dann werden geeignete Garantien (z. B. Standardvertragsklauseln nach Art. 46 DSGVO) vereinbart. Die Informations- und Marketingseite wird ggf. bei GitHub Pages betrieben; Informationen: [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). Die Anwendung arsnova.eu kann auf anderem Wege (z. B. eigener Server, EU-Standort) betrieben werden – der konkrete Anbieter und Speicherort ergeben sich aus dem jeweiligen Angebot.
+arsnova.eu wird von der Hetzner Online GmbH in Deutschland gehostet. Hetzner lässt sich jährlich durch den TÜV Rheinland prüfen, um die Einhaltung der Sicherheitsstandards nach Art. 32 DSGVO zu gewährleisten.
+
+Die Website und die Anwendung unter **https://arsnova.eu** werden bei Hetzner betrieben. Wird die Software **selbst oder durch Dritte** (z. B. Ihre Institution) betrieben, können Zugriffsdaten (z. B. IP-Adresse, Zugriffszeit) auf Servern des jeweiligen Anbieters anfallen. Wird in Drittländern (z. B. USA) gehostet, kann eine Übermittlung dorthin erfolgen; dann werden geeignete Garantien (z. B. Standardvertragsklauseln nach Art. 46 DSGVO) vereinbart. Eine **separate** Projekt-Landingpage (Demo/Marketing) kann zusätzlich über **GitHub Pages** unter einer anderen Domain bereitgestellt werden – nicht die Hauptseite arsnova.eu; Informationen: [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). Der konkrete Anbieter und Speicherort ergeben sich aus dem jeweiligen Angebot.
 
 ## 6. Ihre Rechte
 
@@ -45,20 +49,20 @@ Für Auskünfte und die Ausübung Ihrer Rechte wenden Sie sich bitte an: [klaus.
 
 ## 7. Bereitstellungspflicht
 
-Die Bereitstellung personenbezogener Daten ist weder gesetzlich noch vertraglich vorgeschrieben für den reinen Besuch dieser Informationswebsite. Ohne Ihre Angaben können wir Ihnen jedoch die Website anzeigen und technisch ausliefern; eine Kontaktaufnahme per E-Mail setzt die Angabe einer E-Mail-Adresse voraus.
+Für einen reinen Informationsbesuch ohne Anmeldung sind Sie weder gesetzlich noch vertraglich verpflichtet, personenbezogene Daten anzugeben. Sie können arsnova.eu ohne solche Angaben nutzen; wir können Ihnen die Inhalte anzeigen und technisch ausliefern. Für eine Kontaktaufnahme per E-Mail benötigen wir eine E-Mail-Adresse von Ihnen.
 
 ## 8. Hinweis zur Anwendung arsnova.eu
 
-Die Anwendung arsnova.eu (Live-Quiz, Q&A, Abstimmungen) ist datenschutzfreundlich konzipiert:
+Wenn Sie arsnova.eu für Live-Quiz, Q&A oder Abstimmungen nutzen, ist die Nutzung datenschutzfreundlich gestaltet:
 
-- **Local-First:** Quiz-Inhalte (Fragen, Antworten) werden im Browser des Erstellers lokal gespeichert (IndexedDB/Yjs). Eine dauerhafte serverseitige Speicherung von Quiz-Inhalten erfolgt nicht; beim Start einer Live-Session werden die Daten nur temporär für die Dauer der Session an den Server übertragen.
-- **Speicherung im Browser:** Die Anwendung nutzt Local Storage bzw. IndexedDB für Quiz-Daten, Einstellungen und zuletzt genutzte Session-Codes. Es werden keine Cookies für Tracking oder Analyse gesetzt.
+- **Local-First:** Quiz-Inhalte (Fragen, Antworten) speichern Sie als Ersteller im Browser lokal (IndexedDB/Yjs). Eine dauerhafte serverseitige Speicherung von Quiz-Inhalten erfolgt nicht; beim Start einer Live-Session werden die Daten nur temporär für die Dauer der Session an den Server übertragen.
+- **Speicherung im Browser:** Local Storage und IndexedDB können u. a. Quiz-Daten, Einstellungen, zuletzt genutzte Session-Codes und – bei Feedback-Abstimmungen – eine lokale Kennung zur einmaligen Stimmabgabe enthalten. **Es werden keine Cookies** für Tracking oder Analyse gesetzt.
 - **Betrieb der Live-Session durch den unter Abschnitt 1 genannten Verantwortlichen:** Während einer Session werden u. a. Session-Code, pseudonyme Nicknames (oder im anonymen Modus nur automatisch vergebene Teilnehmer-IDs), Abstimmungen und Punkte verarbeitet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Betrieb der Echtzeit-Anwendung). Es werden keine personenbezogenen Daten ohne Zweckbindung gespeichert.
-- **Bereinigung:** Session-Daten (Abstimmungen, Teilnehmerlisten) werden nach Beendigung der Session bzw. spätestens nach 24 Stunden automatisch bereinigt. Aggregierte Statistiken (z. B. Teilnehmerzahlen) enthalten keine Rückschlüsse auf Einzelpersonen.
-- **Anonymer Modus:** Optional kann ein Modus genutzt werden, in dem keine Nicknames erhoben werden (nur automatische Teilnehmer-IDs), um die Teilnahme besonders datensparsam zu gestalten.
+- **Bereinigung:** Session-Daten (Abstimmungen, Teilnehmerlisten) werden nach Beendigung der Session bzw. spätestens nach 24 Stunden automatisch bereinigt, außer bei gesetzlicher Aufbewahrungspflicht oder administrativ angeordnetem **Legal Hold**. Aggregierte Statistiken (z. B. Teilnehmerzahlen) enthalten keine Rückschlüsse auf Einzelpersonen.
+- **Anonymer Modus:** Optional können Sie einen Modus nutzen, in dem keine Nicknames erhoben werden (nur automatische Teilnehmer-IDs), um die Teilnahme besonders datensparsam zu gestalten.
 
-Bei Self-Hosting der Anwendung kann der Verantwortliche ein anderer sein (Ihre Institution). Dann gelten die dort bereitgestellten Datenschutzhinweise.
+Bei Self-Hosting der Anwendung kann der Verantwortliche ein anderer sein (Ihre Institution). Dann gelten die Datenschutzhinweise, die dort bereitgestellt werden.
 
 ## 9. Änderungen
 
-Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an geänderte Rechtslage oder an die tatsächliche Datenverarbeitung anzugleichen. Die jeweils aktuelle Fassung finden Sie auf dieser Seite.
+Wir passen die Datenschutzhinweise an, wenn sich die Rechtslage oder unsere Datenverarbeitung ändert. Die jeweils aktuelle Fassung finden Sie jederzeit hier auf arsnova.eu.
