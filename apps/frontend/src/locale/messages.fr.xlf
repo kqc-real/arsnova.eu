@@ -68,7 +68,7 @@
       </trans-unit>
       <trans-unit id="804017840391960536" datatype="html">
         <source>App installieren und schneller starten</source>
-        <target>Installez l&apos;application et démarrez plus rapidement</target>
+        <target>Installer l&apos;application pour un démarrage plus rapide</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">42,43</context>
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="seo.descJoin" datatype="html">
         <source>Mit Session-Code einer Live-Veranstaltung beitreten – Quiz, Q&amp;A oder Blitzlicht.</source>
-        <target>Rejoignez un événement en direct avec un code de session : quiz, Q&amp;A ou Blitzlicht.</target>
+        <target>Rejoignez un événement en direct avec un code de session : quiz, Q&amp;A ou Sondage Éclair.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">138</context>
@@ -444,7 +444,7 @@
       </trans-unit>
       <trans-unit id="admin.areaHelp" datatype="html">
         <source> Recherchefenster A/B: laufende Sessions und Nachlaufdaten.</source>
-        <target>Fenêtre de recherche A/B : sessions actives et données de post-session.</target>
+        <target>Recherche A/B : sessions en cours et données post-session.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">49,51</context>
@@ -572,7 +572,7 @@
       </trans-unit>
       <trans-unit id="admin.legalHoldSet" datatype="html">
         <source> Legal Hold 30 Tage setzen</source>
-        <target>Placer une conservation légale (legal hold) de 30 jours</target>
+        <target>Activer la conservation légale (30 jours)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">164,165</context>
@@ -808,7 +808,7 @@
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostPlaceholder" datatype="html">
         <source> Wähle ein Format – in Sekunden siehst du die Stimmung.</source>
-        <target>Choisis un format – en quelques secondes tu vois l&apos;ambiance.</target>
+        <target>Choisis un format – vois l&apos;ambiance en quelques secondes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">16,18</context>
@@ -816,7 +816,7 @@
       </trans-unit>
       <trans-unit id="8359317501063179444" datatype="html">
         <source>Zweite Abstimmung starten</source>
-        <target>Commencer le deuxième vote</target>
+        <target>Lancer le 2e tour</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">71,72</context>
@@ -824,7 +824,7 @@
       </trans-unit>
       <trans-unit id="6560376369763226298" datatype="html">
         <source>Zweite Abstimmung</source>
-        <target>Deuxième vote</target>
+        <target>Deuxième tour</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">74,75</context>
@@ -920,7 +920,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.joinControlAria" datatype="html">
         <source>Beitrittsinformationen öffnen</source>
-        <target>Ouvrir les informations d&apos;adhésion</target>
+        <target>Ouvrir les infos de connexion</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">201,203</context>
@@ -956,7 +956,7 @@
       </trans-unit>
       <trans-unit id="feedback.compareRoundHeadline" datatype="html">
         <source> Jetzt zum Vergleich ein zweites Blitzlicht...</source>
-        <target>Maintenant, un deuxième vote éclair pour comparer...</target>
+        <target>Maintenant, un deuxième Sondage Éclair pour comparer...</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">264,266</context>
@@ -1186,7 +1186,7 @@
       </trans-unit>
       <trans-unit id="feedback.compareRoundQuestion" datatype="html">
         <source> Wie ist deine Einschätzung jetzt?</source>
-        <target>Quelle est ton évaluation maintenant ?</target>
+        <target>Quel est ton avis maintenant ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">85,88</context>
@@ -1194,7 +1194,7 @@
       </trans-unit>
       <trans-unit id="feedback.voteChooseAnswerAria" datatype="html">
         <source>Antwort wählen</source>
-        <target>Choisir la réponse</target>
+        <target>Sélectionner une réponse</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">95,97</context>
@@ -1334,7 +1334,7 @@
       </trans-unit>
       <trans-unit id="27651620808105777" datatype="html">
         <source>Stimmungsbild</source>
-        <target>Image d&apos;humeur</target>
+        <target>Sondage d&apos;humeur</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback.config.ts</context>
           <context context-type="linenumber">96</context>
@@ -1402,7 +1402,7 @@
       </trans-unit>
       <trans-unit id="feedback.titleAbcVoting" datatype="html">
         <source>ABC-Voting</source>
-        <target>Vote ABC</target>
+        <target>Sondage ABC</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback.config.ts</context>
           <context context-type="linenumber">173</context>
@@ -1502,7 +1502,7 @@
       </trans-unit>
       <trans-unit id="help.demoCardHint" datatype="html">
         <source> Ein vorinstalliertes Beispiel-Quiz zeigt alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen. Du findest es in deiner Quiz-Sammlung („Deine Quiz-Sammlung&quot;) und kannst es dort in der Vorschau öffnen.</source>
-        <target>Un quiz d'exemple préinstallé montre tous les formats de questions (choix multiple, texte libre, échelle d'évaluation, etc.) incluant formules KaTeX et Markdown – sans rien créer. Tu le trouves dans ta collection de quiz (« Ta collection de quiz ») et peux l'ouvrir en aperçu.</target>
+        <target>Un quiz d'exemple préinstallé montre tous les formats de questions (choix multiple, texte libre, échelle d'évaluation, etc.) incluant formules KaTeX et Markdown – sans rien créer. Tu le trouves dans ta bibliothèque de quiz (« Ta bibliothèque de quiz ») et peux l'ouvrir en aperçu.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">47,51</context>
@@ -1526,7 +1526,7 @@
       </trans-unit>
       <trans-unit id="help.quickstart1" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz anlegen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> „Deine Quiz-Sammlung&quot; öffnen, neues Quiz erstellen, Fragen und Einstellungen festlegen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Créer un quiz :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ouvrez « Ta collection de quiz », créez un nouveau quiz, définissez les questions et les paramètres.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Créer un quiz :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ouvrez « Ta bibliothèque de quiz », créez un nouveau quiz, définissez les questions et les paramètres.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">62,64</context>
@@ -1534,7 +1534,7 @@
       </trans-unit>
       <trans-unit id="help.quickstart2" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Veranstaltung starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In der Quiz-Sammlung „Veranstaltung starten&quot; wählen – ein 6-stelliger Code entsteht. Code oder QR-Code mit deiner Gruppe teilen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Démarrer l'événement :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sélectionnez « Démarrer l'événement » dans la collection de quiz : un code à 6 chiffres est créé. Partagez le code ou le code QR avec votre groupe.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Démarrer l'événement :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Sélectionnez « Démarrer l'événement » dans la bibliothèque de quiz : un code à 6 chiffres est créé. Partagez le code ou le code QR avec votre groupe.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">66,68</context>
@@ -1566,7 +1566,7 @@
       </trans-unit>
       <trans-unit id="help.hostStartStep" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Session starten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> In deiner Quiz-Sammlung eine Veranstaltung starten und festlegen, ob sie mit Quiz oder Q&amp;A beginnt. Dann entsteht ein 6-stelliger Code.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Démarrer la session :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Démarre un événement dans ta collection de quiz et choisis s’il commence par un quiz ou par Q&amp;A. Cela crée un code à 6 caractères.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Démarrer la session :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Démarre un événement dans ta bibliothèque de quiz et choisis s’il commence par un quiz ou par Q&amp;A. Cela crée un code à 6 caractères.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">83,85</context>
@@ -1758,7 +1758,7 @@
       </trans-unit>
       <trans-unit id="help.collectionTitle" datatype="html">
         <source>Deine Quiz-Sammlung</source>
-        <target>Ta collection de quiz</target>
+        <target>Ta bibliothèque de quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">188,189</context>
@@ -1798,7 +1798,7 @@
       </trans-unit>
       <trans-unit id="help.collectionSync" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Sync-ID oder Sync-Link deine Quiz-Sammlung mit Kolleg:innen teilen oder auf anderen Geräten weiterarbeiten.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Partage ta collection de quiz avec des collègues ou continue sur d'autres appareils à l'aide de l'ID de sync ou du lien de sync.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Partage ta bibliothèque de quiz avec des collègues ou continue sur d'autres appareils à l'aide de l'ID de sync ou du lien de sync.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">205,207</context>
@@ -1806,7 +1806,7 @@
       </trans-unit>
       <trans-unit id="help.demoQuizHint" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Demo-Quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Ein vorinstalliertes Quiz zeigt alle Frageformate mit Beispielen inkl. KaTeX-Formeln und Markdown. In der Quiz-Sammlung in der Vorschau öffnen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz de démo :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Un quiz préinstallé montre tous les formats de questions avec des exemples, y compris les formules KaTeX et Markdown. Ouvre-le directement depuis la page d’accueil via « Jouer à la démo » (carte « Démarrer l’événement ») ou depuis l’aperçu de ta collection de quiz.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz de démo :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Un quiz préinstallé montre tous les formats de questions avec des exemples, y compris les formules KaTeX et Markdown. Ouvre-le directement depuis la page d’accueil via « Jouer à la démo » (carte « Démarrer l’événement ») ou depuis l’aperçu de ta bibliothèque de quiz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">209,211</context>
@@ -2030,7 +2030,7 @@
       </trans-unit>
       <trans-unit id="homeStage.rotate2" datatype="html">
         <source>Blitzlicht in Sekunden.</source>
-        <target>Blitzlicht en quelques secondes.</target>
+        <target>Sondages Éclair en quelques secondes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">43,44</context>
@@ -2038,7 +2038,7 @@
       </trans-unit>
       <trans-unit id="homeStage.rotate3" datatype="html">
         <source> Deine Sammlung, dein Tempo.</source>
-        <target>Ta collection, ton rythme.</target>
+        <target>Ta bibliothèque, ton rythme.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">45,47</context>
@@ -2046,7 +2046,7 @@
       </trans-unit>
       <trans-unit id="homeStage.rotate4" datatype="html">
         <source> Mitmachen, messen, veranstalten – du entscheidest.</source>
-        <target>Participer, lancer un pulse, animer – à toi de choisir.</target>
+        <target>Participer, sonder, animer – à toi de choisir.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">48,50</context>
@@ -2122,7 +2122,7 @@
       </trans-unit>
       <trans-unit id="4819831177672875363" datatype="html">
         <source>Als Dozent anzeigen</source>
-        <target>Afficher en tant que conférencier</target>
+        <target>Passer en vue animateur</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">174,175</context>
@@ -2158,7 +2158,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.primaryCta" datatype="html">
         <source>Letztes Quiz starten</source>
-        <target>Démarrer le dernier quiz</target>
+        <target>Lancer le dernier quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">262,265</context>
@@ -2166,7 +2166,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.libraryCta" datatype="html">
         <source>Deine Quiz-Sammlung</source>
-        <target>Ta collection de quiz</target>
+        <target>Ta bibliothèque de quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">275,278</context>
@@ -2186,7 +2186,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkHint" datatype="html">
         <source> Wenn du hier mit der Quiz-Sammlung von einem anderen Gerät weitermachen willst.</source>
-        <target>Si tu veux continuer ici avec ta collection de quiz depuis un autre appareil.</target>
+        <target>Si tu veux continuer ici avec ta bibliothèque de quiz depuis un autre appareil.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">295,297</context>
@@ -3770,7 +3770,7 @@
       </trans-unit>
       <trans-unit id="3700479510053399162" datatype="html">
         <source>Fragenliste</source>
-        <target>Liste de questions</target>
+        <target>Liste des questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">588,589</context>
@@ -3862,7 +3862,7 @@
       </trans-unit>
       <trans-unit id="6672916435220201136" datatype="html">
         <source>Zur Liste</source>
-        <target>Vers la liste</target>
+        <target>Retour à la liste</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">751,752</context>
@@ -3878,7 +3878,7 @@
       </trans-unit>
       <trans-unit id="4737017620429217247" datatype="html">
         <source>Multiple Choice</source>
-        <target>choix multiple</target>
+        <target>Choix multiples</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">177</context>
@@ -3894,7 +3894,7 @@
       </trans-unit>
       <trans-unit id="8680267345873464947" datatype="html">
         <source>Umfrage</source>
-        <target>Sondage d&apos;opinion</target>
+        <target>Sondage</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">179</context>
@@ -3902,7 +3902,7 @@
       </trans-unit>
       <trans-unit id="5472460529727499985" datatype="html">
         <source>Bewertung (1–5 / 1–10)</source>
-        <target>Note (1-5 / 1-10)</target>
+        <target>Évaluation (1-5 / 1-10)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">180</context>
@@ -3962,7 +3962,7 @@
       </trans-unit>
       <trans-unit id="7626477121022284790" datatype="html">
         <source>Kita</source>
-        <target>Garderie</target>
+        <target>École maternelle</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">203</context>
@@ -3994,7 +3994,7 @@
       </trans-unit>
       <trans-unit id="7176543650453804262" datatype="html">
         <source>Mittelstufe</source>
-        <target>Intermédiaire</target>
+        <target>Collège</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">205</context>
@@ -4026,7 +4026,7 @@
       </trans-unit>
       <trans-unit id="4668229613641280742" datatype="html">
         <source>Benutzerdefiniert</source>
-        <target>Coutume</target>
+        <target>Personnalisé</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">363</context>
@@ -4038,7 +4038,7 @@
       </trans-unit>
       <trans-unit id="705009069021941649" datatype="html">
         <source>Wähle genau eine richtige Antwort aus.</source>
-        <target>Choisissez exactement une bonne réponse.</target>
+        <target>Sélectionne exactement une bonne réponse.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
           <context context-type="linenumber">499</context>
@@ -4090,7 +4090,7 @@
       </trans-unit>
       <trans-unit id="quizList.bonusCodesDialogPrivacyHint" datatype="html">
         <source> Bitte nur privat einsehen – nicht im Hörsaal oder bei Zuschauer:innen sichtbar machen.</source>
-        <target>Veuillez le consulter uniquement en privé – ne le rendez pas visible dans la salle de conférence ou aux téléspectateurs.</target>
+        <target>À consulter en privé uniquement – ne pas afficher sur le projecteur.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
           <context context-type="linenumber">19,23</context>
@@ -4170,7 +4170,7 @@
       </trans-unit>
       <trans-unit id="quizList.liveDialog.title" datatype="html">
         <source>Live vorbereiten</source>
-        <target>Préparer le live</target>
+        <target>Préparer la session</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
           <context context-type="linenumber">38,40</context>
@@ -4194,7 +4194,7 @@
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQuizHint" datatype="html">
         <source> Startet mit „<x id="INTERPOLATION" equiv-text="{{ data.quizName }}"/>“.</source>
-        <target>Questions et résultats</target>
+        <target>Commence par « <x id="INTERPOLATION" equiv-text="{{ data.quizName }}"/> ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
           <context context-type="linenumber">73,74</context>
@@ -4210,7 +4210,7 @@
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQaHint" datatype="html">
         <source> Fragen aus dem Raum</source>
-        <target>Questions de la salle</target>
+        <target>Questions du public</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
           <context context-type="linenumber">106,108</context>
@@ -4226,7 +4226,7 @@
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQuickFeedbackHint" datatype="html">
         <source> Kurze Stimmungsbilder</source>
-        <target>Ambiance rapide</target>
+        <target>Sondages rapides</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
           <context context-type="linenumber">139,142</context>
@@ -4322,7 +4322,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.trigger" datatype="html">
         <source>Mit unserem Prompt zum fertigen Quiz</source>
-        <target>Avec notre prompt jusqu’au quiz prêt</target>
+        <target>Générer un quiz avec notre prompt IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">28,30</context>
@@ -4354,7 +4354,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.title" datatype="html">
         <source> Mit unserem Prompt zum fertigen Quiz</source>
-        <target>Avec notre prompt jusqu’au quiz prêt</target>
+        <target>Générer un quiz avec notre prompt IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">59,61</context>
@@ -4362,7 +4362,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.hint" datatype="html">
         <source> In drei kurzen Schritten kommst du vom KI-Chat direkt zu einem neuen Quiz.</source>
-        <target>En trois étapes, tu passes du chat IA à un nouveau quiz.</target>
+        <target>Transforme une réponse d&apos;IA en quiz prêt à l&apos;emploi en 3 étapes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">62,64</context>
@@ -4378,7 +4378,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepOneTitle" datatype="html">
         <source> Textvorlage kopieren</source>
-        <target>Copier le modèle</target>
+        <target>Copier le modèle de prompt</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">75,77</context>
@@ -4386,7 +4386,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepOneText" datatype="html">
         <source> Öffne deinen KI-Chat und sende dort die Textvorlage ab.</source>
-        <target>Ouvre ton chat IA et envoie-lui le modèle.</target>
+        <target>Ouvre ton chat IA et colle-y la demande.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">78,80</context>
@@ -4426,7 +4426,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepTwoTitle" datatype="html">
         <source> Antwort einfügen</source>
-        <target>Coller la réponse</target>
+        <target>Coller la réponse de l&apos;IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">132,134</context>
@@ -4506,7 +4506,7 @@
       </trans-unit>
       <trans-unit id="quizList.currentDeviceLabel" datatype="html">
         <source>Du arbeitest gerade auf</source>
-        <target>Tu travailles actuellement sur</target>
+        <target>Appareil actuel</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">242,243</context>
@@ -4514,7 +4514,7 @@
       </trans-unit>
       <trans-unit id="quizList.syncPeerCountLabel" datatype="html">
         <source>Auch geöffnet auf</source>
-        <target>Aussi ouvert sur</target>
+        <target>Également ouvert sur</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">246,247</context>
@@ -4554,7 +4554,7 @@
       </trans-unit>
       <trans-unit id="quizList.lastRemoteDeviceLabel" datatype="html">
         <source>Kam von</source>
-        <target>Vient de</target>
+        <target>Reçu de</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">266,267</context>
@@ -5094,7 +5094,7 @@
       </trans-unit>
       <trans-unit id="quizPreview.editorWarningTitle" datatype="html">
         <source>Hier braucht diese Folie noch etwas Feinschliff</source>
-        <target>Cette diapositive a encore besoin d’un peu de finition</target>
+        <target>Cette question a besoin d&apos;ajustements</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">160,162</context>
@@ -5150,7 +5150,7 @@
       </trans-unit>
       <trans-unit id="quizPreview.editorCorrectAnswerHint" datatype="html">
         <source> Nutze die Auswahl links, um richtige Antworten direkt zu markieren.</source>
-        <target>Utilise le sélecteur à gauche pour marquer directement les bonnes réponses.</target>
+        <target>Utilise les boutons à gauche pour marquer les bonnes réponses.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">254,256</context>
@@ -5465,7 +5465,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.frameToggleAria" datatype="html">
         <source>App-Rahmen umschalten</source>
-        <target>Basculer le cadre de l’application</target>
+        <target>Afficher/masquer le cadre</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">46,47</context>
@@ -5477,7 +5477,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.fullscreenToggleAria" datatype="html">
         <source>Vollbild umschalten</source>
-        <target>Basculer en plein écran</target>
+        <target>Activer/désactiver le plein écran</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">62,63</context>
@@ -5497,7 +5497,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.musicMenuHint" datatype="html">
         <source> Startet automatisch je Phase. Stoppt 9 Sek. vor Countdown-Ende. Auswahl wird gespeichert.</source>
-        <target>Pilotable en direct, indépendamment des réglages du quiz.</target>
+        <target>Démarre auto. selon la phase. S&apos;arrête 9s avant la fin. Choix mémorisé.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">81,84</context>
@@ -5521,7 +5521,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.musicControlAria" datatype="html">
         <source>Soundsteuerung öffnen</source>
-        <target>Ouvrir le contrôle du son</target>
+        <target>Contrôles audio</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">194,196</context>
@@ -5557,7 +5557,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.playfulLobbyTeamsLabel" datatype="html">
         <source> Warten auf die anderen...</source>
-        <target>En attendant les autres...</target>
+        <target>En attente des autres...</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">312,314</context>
@@ -5701,7 +5701,7 @@
       </trans-unit>
       <trans-unit id="4578537259986258154" datatype="html">
         <source> Tauscht euch kurz mit eurem Nachbarn aus</source>
-        <target>Discute vite avec ton voisin</target>
+        <target>Discutez avec votre voisin·e</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">611</context>
@@ -5717,7 +5717,7 @@
       </trans-unit>
       <trans-unit id="5596291527944555255" datatype="html">
         <source> Zweite Abstimmung folgt gleich.</source>
-        <target>Le deuxième vote suivra bientôt.</target>
+        <target>Le 2e tour commence bientôt.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">617</context>
