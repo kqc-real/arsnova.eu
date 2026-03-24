@@ -169,28 +169,28 @@ const LOCALES = {
     ],
   },
   fr: {
-    name: 'Tous les formats de questions – quiz de démonstration (lycée / secondaire)',
+    name: 'Tous les formats de questions – Quiz de démonstration (lycée)',
     description:
-      '**Objectif :** Ce quiz montre qu’arsnova.eu prend en charge **deux tours de vote** : d’abord voter, puis discuter, puis revoter. C’est central pour des méthodes comme la *Peer Instruction*.\n\n**Qu’est-ce que la Peer Instruction ?** Une méthode fondée sur les preuves (Eric Mazur, Harvard) : l’enseignant·e pose une question conceptuelle avec distracteurs plausibles. Chacun·e répond seul·e, puis les voisin·es comparent leurs raisonnements et revotent — les idées fausses apparaissent et se clarifient.\n\n**Qu’est-ce que Markdown ?** Du formatage au clavier, sans cliquer. Par ex. `**gras**` → **gras**, `*italique*` → *italique*, `` `code` `` → `code`. Titres avec `#`, listes avec `-` ou `*`. Dans ce quiz, le Markdown apparaît dans les questions et réponses.\n\n**Qu’est-ce que KaTeX ?** Des formules comme dans les manuels. Entourez la formule de dollars : x^2 → $x^2$, une fraction → $\\frac{1}{2}$, f\'(x) → $f\'(x)$. Idéal pour maths, physique, chimie — sans installation, directement dans arsnova.eu.\n\nCe quiz utilise tous les formats de questions d’arsnova.eu. Les items sont regroupés par matière.\n\n| # | Matière | Format | Thème | Idées reçues / remarque |\n|---|---------|--------|-------|---------------------------|\n| 1 | Maths | Choix unique | Changement de signe de $f\'$ et extrema | Minimum au lieu du maximum ; point d’inflexion ($f\'\'$ confondu) ; racine ($f=0$ vs $f\'=0$) |\n| 2 | Maths | Choix unique | Indépendance stochastique | illusion du joueur ; effet « main chaude » |\n| 3 | Maths | Choix unique | Intégrale définie ≠ aire géométrique | Aire positive ; somme vs bilan ; valeur moyenne |\n| 4 | Maths | Échelle | Géométrie vectorielle (positions relatives) | Auto-évaluation |\n| 5 | Physique | Choix unique | Newton 3 – action = réaction | Le plus léger « reçoit » plus ; le plus lourd « pousse » plus ; les forces s’annulent |\n| 6 | Physique | Texte libre | Satellite en orbite | Raisonnement |\n| 7 | Biologie | Choix unique | Sélection vs lamarckisme | Mutation dirigée ; adaptation progressive ; accoutumance |\n| 8 | Biologie | Choix multiples | Croisement dihybride (Mendel) | Toute la F2 hétérozygote ; gènes liés |\n| 9 | Chimie | Choix multiples | Le Chatelier (équilibre) | Le catalyseur déplace l’équilibre |\n| 10 | — | Sondage | Prépa au bac / examens finaux | Stratégies d’apprentissage |\n| 11 | — | Texte libre | Question la plus incertaine | Réflexion |\n| 12 | — | Échelle | Noter ce quiz démo | Appréciation globale |',
+      '**Objectif :** Ce quiz montre qu\'arsnova.eu prend en charge **deux tours de vote** : on vote, on en discute, puis on revote. C\'est central pour des méthodes comme l\'*apprentissage par les pairs* (Peer Instruction).\n\n**Qu\'est-ce que l\'apprentissage par les pairs ?** Une méthode basée sur des preuves (Eric Mazur, Harvard) : l\'enseignant·e pose une question conceptuelle avec des distracteurs plausibles. Chacun·e répond individuellement, puis compare son raisonnement avec son/sa voisin·e avant de revoter — les idées reçues émergent et sont clarifiées ensemble.\n\n**Qu\'est-ce que Markdown ?** Du formatage au clavier, sans utiliser la souris. Par ex. `**gras**` → **gras**, `*italique*` → *italique*, `` `code` `` → `code`. Titres avec `#`, listes avec `-` ou `*`. Dans ce quiz, le Markdown apparaît dans les questions et réponses.\n\n**Qu\'est-ce que KaTeX ?** Des formules comme dans les manuels. Entourez les formules de signes dollar : x^2 → $x^2$, une fraction → $\\frac{1}{2}$, f\'(x) → $f\'(x)$. Idéal pour les maths, la physique et la chimie — aucune installation requise, tout fonctionne directement dans arsnova.eu.\n\nCe quiz utilise tous les formats de questions d\'arsnova.eu. Les items sont regroupés par matière.\n\n| # | Matière | Format | Thème | Idées reçues / remarque |\n|---|---------|--------|-------|---------------------------|\n| 1 | Maths | Choix unique | Changement de signe de $f\'$ et extrema | Min. au lieu du max. ; point d\'inflexion ($f\'\'$ confondu) ; zéro ($f=0$ vs $f\'=0$) |\n| 2 | Maths | Choix unique | Événements indépendants | Illusion du joueur ; effet « main chaude » |\n| 3 | Maths | Choix unique | Intégrale définie ≠ aire géométrique | Aire positive ; somme vs bilan ; valeur moyenne |\n| 4 | Maths | Échelle | Géométrie vectorielle (intersections) | Auto-évaluation |\n| 5 | Physique | Choix unique | Newton 3 – action = réaction | Le plus léger « reçoit » plus ; le plus lourd « pousse » plus ; les forces s\'annulent |\n| 6 | Physique | Texte libre | Satellite en orbite | Raisonnement |\n| 7 | Biologie | Choix unique | Sélection vs lamarckisme | Mutation dirigée ; adaptation progressive ; accoutumance |\n| 8 | Biologie | Choix multiples | Croisement dihybride (Mendel) | Toute la F2 hétérozygote ; gènes liés |\n| 9 | Chimie | Choix multiples | Le Chatelier (équilibre) | Un catalyseur déplace l\'équilibre |\n| 10 | — | Sondage | Préparation aux examens | Stratégies de révision |\n| 11 | — | Texte libre | Question la plus incertaine | Réflexion |\n| 12 | — | Échelle | Évaluer ce quiz démo | Appréciation globale |',
     questions: [
       {
-        text: '### Maths : Analyse – Fonction et dérivée\n\nLa dérivée $f\'(x)$ **change de signe de positif à négatif** en $x_0$.\n\nQue peut-on dire de $f$ en ce point ?',
+        text: '### Maths : Analyse – Fonction et dérivée\n\nLa dérivée $f\'(x)$ **change de signe de positif à négatif** en $x_0$.\n\nQue peut-on affirmer sur $f$ en ce point ?',
         answers: [
           { text: 'La fonction $f$ y admet un maximum local.', isCorrect: true },
           { text: 'La fonction $f$ y admet un minimum local.', isCorrect: false },
           { text: 'La fonction $f$ y admet un point d’inflexion.', isCorrect: false },
-          { text: 'La fonction $f$ y admet une racine.', isCorrect: false },
+          { text: 'La fonction $f$ y admet un zéro.', isCorrect: false },
         ],
       },
       {
-        text: '### Maths : Probabilités – Événements indépendants\n\nUne pièce équilibrée est tombée **pile** cinq fois de suite.\n\nQuelle est la probabilité que le sixième lancer soit **face** ?',
+        text: '### Maths : Probabilités – Événements indépendants\n\nUne pièce équilibrée est tombée sur **pile** cinq fois de suite.\n\nQuelle est la probabilité que le sixième lancer soit **face** ?',
         answers: [
           {
             text: 'Exactement 50 %, car chaque lancer est indépendant des précédents.',
             isCorrect: true,
           },
           {
-            text: 'Plus de 50 %, car après cinq piles, face est « en retard ».',
+            text: 'Plus de 50 %, car face est censé sortir après cinq piles.',
             isCorrect: false,
           },
           {
@@ -204,18 +204,18 @@ const LOCALES = {
         ],
       },
       {
-        text: '### Maths : Analyse – Intégrale définie\n\nLa fonction $f(x) = x^2 - 4$ s’annule en $x = -2$ et $x = 2$\u2060. Entre ces racines, le graphe est **entièrement sous** l’axe des $x$.\n\nQue représente $\\int_{-2}^{2} f(x)\\,\\mathrm{d}x$ ?',
+        text: '### Maths : Analyse – Intégrale définie\n\nLa fonction $f(x) = x^2 - 4$ s’annule en $x = -2$ et $x = 2$\u2060. Entre ces zéros, le graphe est **entièrement sous** l’axe des $x$.\n\nQue calcule $\\int_{-2}^{2} f(x)\\,\\mathrm{d}x$ ?',
         answers: [
           {
             text: 'L’aire algébrique entre le graphe et l’axe des $x$.',
             isCorrect: true,
           },
           {
-            text: 'L’aire géométrique entre le graphe et l’axe des $x$ comme valeur positive.',
+            text: 'La valeur absolue de l\'aire géométrique entre le graphe et l’axe des $x$.',
             isCorrect: false,
           },
           {
-            text: 'La somme de toutes les aires partielles au-dessus et en dessous de l’axe.',
+            text: 'La somme totale des aires au-dessus et en dessous de l’axe.',
             isCorrect: false,
           },
           {
@@ -225,23 +225,23 @@ const LOCALES = {
         ],
       },
       {
-        text: '### Maths : Auto-évaluation – Géométrie vectorielle\n\nEn géométrie analytique, on décrit droites et plans par des équations vectorielles, p. ex. :\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nÀ quel point te sens-tu à l’aise sur les **positions relatives** de droites et plans ?',
+        text: '### Maths : Auto-évaluation – Géométrie vectorielle\n\nEn géométrie analytique, on décrit droites et plans par des équations vectorielles, p. ex. :\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nÀ quel point maîtrises-tu le calcul d\'**intersections** de droites et de plans ?',
         ratingLabelMin: 'Très peu sûr·e',
-        ratingLabelMax: 'Je peux l’expliquer',
+        ratingLabelMax: 'Je saurais l\'expliquer',
       },
       {
-        text: '### Physique : Forces lors d’un choc\n\nUn poids lourd percute de face une petite voiture.\n\nComment se comportent les forces **pendant le choc** sur les deux véhicules ?',
+        text: '### Physique : Forces lors d’un choc\n\nUn camion lourd percute de face une voiture légère.\n\nComment se comportent les forces **pendant le choc** sur les deux véhicules ?',
         answers: [
           {
-            text: 'La force sur la voiture a la même intensité que la force sur le camion.',
+            text: 'La force exercée sur la voiture est égale à celle exercée sur le camion.',
             isCorrect: true,
           },
           {
-            text: 'La force sur la voiture est plus grande que sur le camion.',
+            text: 'La force sur la voiture est plus grande que celle sur le camion.',
             isCorrect: false,
           },
           {
-            text: 'La force sur le camion est plus grande que sur la voiture.',
+            text: 'La force sur le camion est plus grande que celle sur la voiture.',
             isCorrect: false,
           },
           {
@@ -251,13 +251,13 @@ const LOCALES = {
         ],
       },
       {
-        text: '### Physique : Satellite en orbite\n\nUn satellite tourne autour de la Terre sur une orbite circulaire stable sans perdre d’altitude.\n\nExplique avec tes mots pourquoi le satellite ne retombe pas sur la Terre malgré la gravité.\n\n> Indice : pense à l’interaction entre vitesse et gravitation.',
+        text: '### Physique : Satellite en orbite\n\nUn satellite tourne autour de la Terre sur une orbite circulaire stable sans perdre d’altitude.\n\nExplique avec tes mots pourquoi le satellite ne s\'écrase pas sur la Terre malgré la gravité.\n\n> Indice : pense à l’interaction entre vitesse et gravité.',
       },
       {
-        text: '### Biologie : Résistance aux antibiotiques\n\nDans les hôpitaux apparaissent de plus en plus de souches bactériennes résistantes.\n\nQuelle explication décrit correctement l’apparition de la résistance ?',
+        text: '### Biologie : Résistance aux antibiotiques\n\nOn observe de plus en plus de souches bactériennes résistantes dans les hôpitaux.\n\nQuelle explication décrit correctement l’apparition de la résistance ?',
         answers: [
           {
-            text: 'Les bactéries résistantes se multiplient davantage car l’antibiotique tue les autres.',
+            text: 'Les bactéries résistantes se multiplient davantage car l’antibiotique élimine les souches concurrentes.',
             isCorrect: true,
           },
           {
@@ -286,7 +286,7 @@ const LOCALES = {
             isCorrect: true,
           },
           {
-            text: 'Tous les descendants F2 sont hétérozygotes pour les deux gènes.',
+            text: 'Tous les individus de la F2 sont hétérozygotes pour les deux gènes.',
             isCorrect: false,
           },
           {
@@ -305,20 +305,20 @@ const LOCALES = {
         ],
       },
       {
-        text: '### Sondage : Préparation au bac / examens\n\nQuelle **stratégie d’apprentissage** utilises-tu le plus souvent pour te préparer aux examens finaux ?',
+        text: '### Sondage : Préparation aux examens\n\nQuelle **stratégie de révision** utilises-tu le plus souvent pour préparer les examens finaux ?',
         answers: [
-          { text: 'Faire des sujets d’examens des années précédentes', isCorrect: false },
-          { text: 'Rédiger des synthèses et fiches', isCorrect: false },
-          { text: 'Réviser en groupe de travail', isCorrect: false },
+          { text: 'Faire des annales d\'examens', isCorrect: false },
+          { text: 'Faire des fiches de révision', isCorrect: false },
+          { text: 'Réviser en groupe', isCorrect: false },
           { text: 'Regarder des vidéos explicatives et tutoriels', isCorrect: false },
-          { text: 'Utiliser des cartes mémoire et la répétition espacée', isCorrect: false },
+          { text: 'Utiliser des flashcards', isCorrect: false },
         ],
       },
       {
-        text: '### Réflexion\n\nPour quelle question de ce quiz étais-tu **le plus incertain·e** — et pourquoi ?\n\nUtilise ta réponse comme point de départ pour ta prochaine séance d’étude.',
+        text: '### Réflexion\n\nQuelle question de ce quiz t\'a paru la **moins claire** — et pourquoi ?\n\nUtilise ta réponse comme point de départ pour ta prochaine séance de révision.',
       },
       {
-        text: '### Appréciation globale\n\nComment notes-tu ce **quiz démo** dans l’ensemble ?\n\nTiens compte de :\n1. La clarté des questions\n2. La variété des formats\n3. Un niveau de difficulté adapté',
+        text: '### Appréciation globale\n\nComment évalues-tu ce **quiz de démo** dans l’ensemble ?\n\nTiens compte de :\n1. La clarté des questions\n2. La variété des formats\n3. Un niveau de difficulté adapté',
         ratingLabelMin: 'À améliorer',
         ratingLabelMax: 'Excellent',
       },

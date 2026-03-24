@@ -100,7 +100,7 @@
       </trans-unit>
       <trans-unit id="1547876271716599756" datatype="html">
         <source>Impressum</source>
-        <target>imprimer</target>
+        <target>Mentions légales</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">82,83</context>
@@ -108,7 +108,7 @@
       </trans-unit>
       <trans-unit id="4082114936887396529" datatype="html">
         <source>Datenschutz</source>
-        <target>Protection des données</target>
+        <target>Confidentialité</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">86,87</context>
@@ -132,7 +132,7 @@
       </trans-unit>
       <trans-unit id="1136696335453039978" datatype="html">
         <source>Preset: Seriös</source>
-        <target>Préréglage : Sérieux</target>
+        <target>Préréglage : Professionnel</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">128</context>
@@ -348,7 +348,7 @@
       </trans-unit>
       <trans-unit id="seo.titleFeedbackHost" datatype="html">
         <source>Blitzlicht moderieren – arsnova.eu</source>
-        <target>Lampe de poche modérée – arsnova.eu</target>
+        <target>Animer un Sondage Éclair – arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">150</context>
@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="seo.titleFeedbackVote" datatype="html">
         <source>Blitzlicht mitmachen – arsnova.eu</source>
-        <target>Participer au Blitzlicht – arsnova.eu</target>
+        <target>Participer au Sondage Éclair – arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">158</context>
@@ -932,7 +932,7 @@
       </trans-unit>
       <trans-unit id="306838304286854307" datatype="html">
         <source>Beitritt</source>
-        <target>accession</target>
+        <target>Rejoindre</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">204,205</context>
@@ -1614,7 +1614,7 @@
       </trans-unit>
       <trans-unit id="help.blitzTitle" datatype="html">
         <source>Blitzlicht</source>
-        <target>Blitzlicht</target>
+        <target>Sondage Éclair</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">114,115</context>
@@ -1942,7 +1942,7 @@
       </trans-unit>
       <trans-unit id="8330667382540185922" datatype="html">
         <source>Seriös</source>
-        <target>Sérieux</target>
+        <target>Professionnel</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">25,26</context>
@@ -1982,7 +1982,7 @@
       </trans-unit>
       <trans-unit id="6088916262905537020" datatype="html">
         <source>Spielerisch</source>
-        <target>Espiègle</target>
+        <target>Ludique</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">31,32</context>
@@ -2062,7 +2062,7 @@
       </trans-unit>
       <trans-unit id="8867796569409673283" datatype="html">
         <source>Dabei sein</source>
-        <target>Être là</target>
+        <target>Rejoindre</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">61</context>
