@@ -327,6 +327,10 @@ Verbindliche Vorgaben für alle Übersetzungen sind in **ADR-0008** (Abschnitt 4
 
 Details: [docs/architecture/decisions/0008-i18n-internationalization.md](architecture/decisions/0008-i18n-internationalization.md).
 
+### 9a.1 Englische UI-Copy (`en`)
+
+Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf`) gelten zusätzlich die verallgemeinerten **Sprach- und Terminologieregeln** (Host/Session, Gedankenstriche, Fehlermeldungen, SEO, Oxford Comma, XLF-Pflege): **[docs/ui/ENGLISH-UI-COPY.md](ui/ENGLISH-UI-COPY.md)**.
+
 ---
 
 ## 9b. Aktueller Stand (Projekt arsnova.eu)

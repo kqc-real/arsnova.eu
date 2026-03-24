@@ -85,6 +85,7 @@ Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwi
 - **Datums- und Zeitformate** folgen der **Zielsprache/Locale** (z. B. über DatePipe/LOCALE_ID); keine Vermischung von Formaten (z. B. deutsches Datum in englischer UI).
 - **Maßeinheiten, Zahlenformate und Währungen** entsprechen den **Konventionen der Zielsprache** (Dezimaltrennzeichen, Tausendertrennzeichen, Währungssymbol/Position).
 - **Idiomatische Sprache:** Formulierungen sind in der Zielsprache **idiomatisch** (natürlich, nicht wörtlich „übersetzt“). Redewendungen, feste Begriffe (z. B. „Session beitreten“, „Abstimmung“, „Impressum“) und Button-Texte werden so gewählt, wie sie muttersprachliche Nutzer:innen erwarten.
+- **Englisch (`en`):** Für die englischen XLF-Targets gilt zusätzlich **[docs/ui/ENGLISH-UI-COPY.md](../../ui/ENGLISH-UI-COPY.md)** — verbindliche **Copy- und Terminologieregeln** (z. B. _host_ statt _instructor_, _session_ statt _event_, Gedankenstriche, kurze Fehlertexte, Oxford Comma, Abgleich mit Button-Labels, XLF/ICU-Pflege).
 
 #### ICU (Plural / Select) in XLF
 
@@ -96,7 +97,7 @@ Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwi
 - **i18n-Stack:** @angular/localize, Locale als Subpfad, Extract/Merge/Build pro Locale.
 - **State-Verlust:** Siehe Tabelle oben; kritisch sind **Quiz bearbeiten** und **Quiz neu**.
 - **Hinweis-Pflicht:** Auf diesen beiden Seiten muss vor einem Sprachwechsel bei ungespeichertem Inhalt ein **Hinweis an die Nutzer:innen** erscheinen (Dialog mit Erklärung und Bestätigung/Abbrechen oder Deaktivierung der Sprachwahl).
-- **Übersetzungsvorgaben:** Informelle Anrede (Duzen), zeitgemäßer Stil; Deutsch als Referenz für Form und Länge; **visuelle Prüfung zuerst auf Smartphone** (Mobile-First), dann Desktop; bei Bedarf **zwei Übersetzungen** (Mobile kurz / Desktop voll); Datum, Einheiten und idiomatische Formulierungen in der Zielsprache zwingend beachten (Abschnitt 4); **ICU-Schlüsselwörter in XLF nicht übersetzen** (Abschnitt 4, ICU / [I18N-ANGULAR.md](../../I18N-ANGULAR.md) 3.3.1).
+- **Übersetzungsvorgaben:** Informelle Anrede (Duzen), zeitgemäßer Stil; Deutsch als Referenz für Form und Länge; **visuelle Prüfung zuerst auf Smartphone** (Mobile-First), dann Desktop; bei Bedarf **zwei Übersetzungen** (Mobile kurz / Desktop voll); Datum, Einheiten und idiomatische Formulierungen in der Zielsprache zwingend beachten (Abschnitt 4); **ICU-Schlüsselwörter in XLF nicht übersetzen** (Abschnitt 4, ICU / [I18N-ANGULAR.md](../../I18N-ANGULAR.md) 3.3.1); **Englisch:** [ENGLISH-UI-COPY.md](../../ui/ENGLISH-UI-COPY.md).
 
 ## Konsequenzen
 

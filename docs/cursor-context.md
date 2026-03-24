@@ -151,7 +151,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 - **Schema:** prisma/schema.prisma; libs/shared-types/src/schemas.ts (Zod, DTOs).
 - **Router:** apps/backend/src/routers/index.ts, apps/backend/src/routers/\*.ts.
 - **Diagramme:** docs/diagrams/diagrams.md (detailliert), docs/diagrams/architecture-overview.md (Übersicht).
-- **Regeln:** .cursorrules (Pfade, Monorepo, Stack, UX, i18n inkl. stabiler `@@`-IDs); AGENT.md (Arbeitsweise, Baby-Steps, Tests, Leere-Zustände, Layout-`order` vor großen HTML-Umbauten). **UI-Referenz:** `docs/ui/STYLEGUIDE.md` (u. a. leere Listen/Einstieg, Blitzlicht Standalone + Session-Host eingebettet, Platzhalter-Hinweise).
+- **Regeln:** .cursorrules (Pfade, Monorepo, Stack, UX, i18n inkl. stabiler `@@`-IDs); AGENT.md (Arbeitsweise, Baby-Steps, Tests, Leere-Zustände, Layout-`order` vor großen HTML-Umbauten). **UI-Referenz:** `docs/ui/STYLEGUIDE.md` (u. a. leere Listen/Einstieg, Blitzlicht Standalone + Session-Host eingebettet, Platzhalter-Hinweise). **Englische UI-Copy:** `docs/ui/ENGLISH-UI-COPY.md` (Ton, Terminologie, XLF-Ziele für `en`).
 
 Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (neue Epics, neuer Session-Status, neuer Router) einmalig diesen Kontext aktualisieren, damit Context Caching weiterhin den gleichen stabilen Prefix nutzen kann.
 

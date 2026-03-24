@@ -242,6 +242,7 @@ Tokenbasierte Card-Flaeche:
 ### Verbindliche Begriffspaare (MUSS)
 
 - **UI-Sprache:** "Vorschau" statt "Preview", "Tastenkürzel" statt "Hotkeys".
+- **Englisch (`en`):** Konkrete Copy- und Terminologieregeln für `messages.en.xlf` (Host/Session, Interpunktion, Fehlertoast, SEO): **[ENGLISH-UI-COPY.md](ENGLISH-UI-COPY.md)**.
 - **Verstaendlichkeit:** "gueltig" statt "valide".
 - **KI-Import-Texte:** Keine internen Technikbegriffe wie "Schema-Validierung" in Primaertexten; stattdessen nutzerorientierte Formulierungen ("Wir pruefen den Inhalt vor dem Import.").
 
