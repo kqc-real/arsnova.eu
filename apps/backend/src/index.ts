@@ -13,6 +13,7 @@ import { WebSocketServer } from 'ws';
 import { appRouter } from './routers';
 import { getRedis, closeRedis } from './redis';
 import { logger } from './lib/logger';
+import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
 
 const PORT = Number(process.env['PORT']) || 3000;
@@ -106,16 +107,18 @@ if (fs.existsSync(frontendDist)) {
       app.get(new RegExp(`^/${locale}/.+`), (_, res) => res.sendFile(localeIndexPath));
     }
 
-    app.get('/', (_, res) => {
-      if (fs.existsSync(rootIndexPath)) {
-        res.sendFile(rootIndexPath);
-      } else if (fallbackIndexPath) {
-        res.sendFile(fallbackIndexPath);
-      } else {
-        res.status(404).send('Frontend not built');
-      }
+    app.get('/', (req, res) => {
+      const chosen = pickLocaleFromAcceptLanguage(
+        req.headers['accept-language'],
+        availableLocales,
+        fallbackLocale ?? 'de',
+      );
+      const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+      res.set('Vary', 'Accept-Language');
+      res.set('Cache-Control', 'private, no-cache');
+      res.redirect(302, `/${chosen}/${query}`);
     });
-    // Fallback für nicht-lokalisierte SPA-Routen → Root-Index (leitet auf /de/)
+    // Fallback für nicht-lokalisierte SPA-Routen → Root-Index (Client-Sprachwahl / Noscript-Links)
     app.get('*', (_, res) => {
       if (fs.existsSync(rootIndexPath)) {
         res.sendFile(rootIndexPath);

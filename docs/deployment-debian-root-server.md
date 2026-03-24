@@ -469,6 +469,58 @@ sudo nginx -t && sudo systemctl reload nginx
 
 **Frontend-Anpassung:** Das Frontend erkennt automatisch, ob es in Produktion läuft (HTTPS), und nutzt dann die WebSocket-Pfade `wss://<domain>/trpc-ws` und `wss://<domain>/yjs-ws` (konfiguriert in `apps/frontend/src/app/core/ws-urls.ts`). Keine manuelle Anpassung nötig.
 
+### 5.3.1 Root-URL `/` und Sprachwahl (Accept-Language)
+
+**Verhalten in der App:** Für `GET https://arsnova.eu/` (nur `/`, optional mit Query-String) antwortet der Node-Server mit **302** auf `/{locale}/…`, wobei `locale` aus dem Header **`Accept-Language`** gewählt wird (`de`, `en`, `fr`, `it`, `es`; sonst Fallback `de`). Dafür setzt die Antwort **`Vary: Accept-Language`** und **`Cache-Control: private, no-cache`**, damit zwischengespeicherte Weiterleitungen nicht für alle Nutzer gleich aussehen.
+
+**Nginx:** Standardmäßig reicht der Proxy; der Browser-Header wird an den Upstream durchgereicht. Falls irgendwo Header geändert werden, explizit erhalten:
+
+```nginx
+proxy_set_header Accept-Language $http_accept_language;
+```
+
+(Ergänzung innerhalb des bestehenden `location / { … }`-Blocks neben den anderen `proxy_set_header`-Zeilen.)
+
+**Optional – reine Nginx-Lösung (nur wenn du ohne Node-Redirect am `/` arbeiten willst):** Du kannst `map` + `rewrite` nur für exakt `/` nutzen; die Locale-Liste muss dann **doppelt** zur App gepflegt werden (fehleranfällig). Empfehlung: Redirect im Backend belassen (eine Quelle der Wahrheit).
+
+**Cloudflare (Worker, Skizze):** Wenn die Seite hinter Cloudflare liegt und `/` am Edge entscheiden soll, ein Worker nur für `GET` und Pfad `/`:
+
+```javascript
+// Skizze: gleiche Semantik wie pickLocaleFromAcceptLanguage im Backend
+const SUPPORTED = ['de', 'en', 'fr', 'it', 'es'];
+
+function pickLocale(header) {
+  if (!header) return 'de';
+  for (const part of header.split(',')) {
+    const tag = part.split(';')[0].trim().toLowerCase().replace(/_/g, '-').split('-')[0];
+    if (SUPPORTED.includes(tag)) return tag;
+  }
+  return 'de';
+}
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    if (request.method !== 'GET' || url.pathname !== '/') {
+      return fetch(request);
+    }
+    const locale = pickLocale(request.headers.get('Accept-Language'));
+    url.pathname = `/${locale}/`;
+    // Nicht Response.redirect(): so lassen sich Vary/Cache wie am Node-Redirect setzen.
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: url.toString(),
+        Vary: 'Accept-Language',
+        'Cache-Control': 'private, no-cache',
+      },
+    });
+  },
+};
+```
+
+Hinweis: `url.search` bleibt beim Setzen von `pathname` erhalten. **Vary** und **Cache-Control** entsprechen dem Express-Redirect und helfen, dass zwischengespeicherte 302-Antworten nicht sprachfalsch ausgeliefert werden (Edge-Verhalten hängt vom Cloudflare-Setup ab; bei Unsicherheit Worker nur für `/` ohne aggressives Caching nutzen). Ohne Worker leitet Cloudflare an den Ursprung weiter; dann greift weiterhin der **Express-Redirect**.
+
 ### 5.4 Automatische Erneuerung
 
 ```bash

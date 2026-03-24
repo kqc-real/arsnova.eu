@@ -1,12 +1,45 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0;url=/de/">
-  <title>arsnova.eu</title>
-  <script>window.location.href = '/de/' + (window.location.hash || '');</script>
-</head>
-<body>
-  <p>Weiterleitung zu <a href="/de/">/de/</a> …</p>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>arsnova.eu</title>
+    <script>
+      (function () {
+        var supported = ['de', 'en', 'fr', 'it', 'es'];
+        var langs =
+          typeof navigator !== 'undefined' && navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || 'de'];
+        var chosen = 'de';
+        for (var i = 0; i < langs.length; i++) {
+          var base = String(langs[i] || '')
+            .toLowerCase()
+            .replace(/_/g, '-')
+            .split('-')[0];
+          if (supported.indexOf(base) !== -1) {
+            chosen = base;
+            break;
+          }
+        }
+        var tail = (location.search || '') + (location.hash || '');
+        location.replace('/' + chosen + '/' + tail);
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <p>Please choose a language / Bitte Sprache wählen:</p>
+      <ul>
+        <li><a href="/de/">Deutsch</a></li>
+        <li><a href="/en/">English</a></li>
+        <li><a href="/fr/">Français</a></li>
+        <li><a href="/it/">Italiano</a></li>
+        <li><a href="/es/">Español</a></li>
+      </ul>
+    </noscript>
+    <p>
+      Redirecting… <a href="/de/">DE</a> · <a href="/en/">EN</a> · <a href="/fr/">FR</a> ·
+      <a href="/it/">IT</a> · <a href="/es/">ES</a>
+    </p>
+  </body>
 </html>
