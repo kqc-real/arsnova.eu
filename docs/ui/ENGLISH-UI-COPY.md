@@ -6,6 +6,8 @@ This document generalises the copy-editing rules applied to the English XLF targ
 
 **Default variety:** **US English** for spelling (_color_, _center_ when used, _neighbor_ if ever needed) and typical product UI tone. Prefer **clear, conversational** phrasing over formal or “translatorese”.
 
+**Local dev default:** Root **`npm run dev`** serves the **English** bundle (`localize: ["en"]`); open **`http://localhost:4200/en/`**. For German source strings without XLF merge, use **`npm run dev:de`** and **`http://localhost:4200`**. See **`docs/I18N-ANGULAR.md`** (Dev-Server).
+
 ---
 
 ## 1. Product terminology (stay consistent)

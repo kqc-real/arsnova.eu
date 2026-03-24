@@ -13,9 +13,11 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "node scripts/ensure-schema.js && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start -w @arsnova/frontend\"",
+    "dev": "node scripts/ensure-schema.js && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start:en -w @arsnova/frontend\"",
+    "dev:de": "node scripts/ensure-schema.js && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start:de -w @arsnova/frontend\"",
     "dev:backend": "node scripts/ensure-schema.js && npm run dev -w @arsnova/backend",
-    "dev:frontend": "npm run start -w @arsnova/frontend",
+    "dev:frontend": "npm run start:en -w @arsnova/frontend",
+    "dev:frontend:de": "npm run start:de -w @arsnova/frontend",
     "dev:landing": "npm run dev -w @arsnova/landing",
     "build": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/backend && npm run build -w @arsnova/frontend",
     "build:landing": "(cd apps/landing && export NODE_PATH=\"$(cd ../.. && pwd)/node_modules\" && export PUBLIC_GITHUB_REPO=\"${PUBLIC_GITHUB_REPO:-$(node scripts/get-github-repo.mjs 2>/dev/null || echo 'kqc-real/arsnova.eu')}\" && node ../../node_modules/astro/astro.js build)",

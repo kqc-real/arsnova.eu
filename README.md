@@ -129,7 +129,9 @@ Starte Frontend und Backend parallel (oder einzeln: `npm run dev:backend` / `npm
 npm run dev
 ```
 
-Die App ist nun unter `http://localhost:4200` (Frontend) erreichbar; auf der Startseite erscheint das **Server-Status-Widget** (Epic 0.4: aktive Sessions, Teilnehmer, completed Sessions, Status-Indikator). Die tRPC-API läuft auf `http://localhost:3000`; WebSocket-Subscriptions auf Port 3001, Yjs-Sync auf Port 3002.
+Die App ist unter **`http://localhost:4200/en/`** (Frontend, **englische** UI via Angular-`localize`) erreichbar; auf der Startseite erscheint das **Server-Status-Widget** (Epic 0.4: aktive Sessions, Teilnehmer, completed Sessions, Status-Indikator). Die tRPC-API läuft auf `http://localhost:3000`; WebSocket-Subscriptions auf Port 3001, Yjs-Sync auf Port 3002.
+
+**Deutsche UI (Quellsprache, ohne XLF-Merge):** **`npm run dev:de`** und **`http://localhost:4200`** (Root-URL). Nur Frontend: **`npm run dev:frontend:de`**. Details: [docs/I18N-ANGULAR.md](docs/I18N-ANGULAR.md) (Abschnitt Dev-Server).
 
 **Ports belegt?** Wenn `npm run dev` mit `EADDRINUSE` (Port 3000) oder „Port 4200 is already in use“ abbricht, sind die Dev-Ports noch von einem früheren Lauf belegt. Ports freigeben und erneut starten:
 
@@ -138,7 +140,7 @@ npm run free-dev-ports
 npm run dev
 ```
 
-**Hinweis NG0751:** Beim Dev-Start kann die Meldung erscheinen, dass `@defer`-Blöcke mit HMR eager geladen werden. Das ist erwartbar; im Production-Build wird das Server-Status-Widget weiterhin lazy geladen. Zum Testen ohne diese Meldung: `npm run dev:frontend -- --configuration=no-hmr` (dann ohne Hot-Reload).
+**Hinweis NG0751:** Beim Dev-Start kann die Meldung erscheinen, dass `@defer`-Blöcke mit HMR eager geladen werden. Das ist erwartbar; im Production-Build wird das Server-Status-Widget weiterhin lazy geladen. Zum Testen ohne diese Meldung: Englisch (Standard-Dev): `npm run dev:frontend -- --configuration=no-hmr-en`; Deutsch (`dev:de`): `npm run dev:frontend:de -- --configuration=no-hmr`.
 
 **Reload / Deployment:** Damit Reload auf Unterseiten (z. B. `/legal/imprint`) nicht zu einer leeren Seite führt, muss der Server bei allen Client-Routen `index.html` ausliefern (SPA-Fallback). Beim lokalen `ng serve` ist das Standard. Für Production: Bei Vercel wird `apps/frontend/vercel.json` genutzt; bei Nginx/Apache/anderen Hosts eine Rewrite-Regel auf `index.html` setzen.
 
@@ -172,7 +174,7 @@ Die App unterstützt **fünf Sprachen** (`de`, `en`, `fr`, `es`, `it`) über Ang
 
 **Wichtig:** Nur **`serve:localize:api`** liefert tRPC (HTTP + WebSocket) und Yjs-WebSocket mit aus. Ein reines `npm run serve:localize` (statischer Serve ohne Proxy) liefert keine API – Health-Check, Subscriptions und Blitz-Feedback würden fehlschlagen. Details (Proxy-Skript, Ports, Fallstricke) siehe [docs/I18N-ANGULAR.md](./docs/I18N-ANGULAR.md) Abschnitt „Lokalisierter Build lokal“.
 
-**Dev-Server (`ng serve`):** Es wird nur **eine** Locale (Deutsch) gebaut. Locale-Pfade wie `/de/`, `/en/`, `/fr/`, `/es/`, `/it/` funktionieren im Routing, zeigen aber denselben deutschen Inhalt. Für echte Übersetzungen: lokalisierten Build + `serve:localize:api` wie oben.
+**Dev-Server (`ng serve`):** Standard-**`npm run dev`** baut **Englisch** (`development-en`); **`npm run dev:de`** baut **ohne** `localize` (deutsche Quellstrings). Andere Locales (**fr**/**it**/**es**) und Produktionsnähe: lokalisierten Build + `serve:localize:api` wie oben.
 
 ### 5. Production-ähnlich lokal (optional)
 
@@ -200,7 +202,7 @@ npm run start:prod
 cd apps/frontend && SCREENSHOT_URL=http://localhost:3000 npm run screenshots
 ```
 
-**Option B – mit Dev-Server:** Frontend mit `npm run dev:frontend` starten, dann (in anderem Terminal) aus `apps/frontend`: `npm run screenshots`. Default-URL ist dann `http://localhost:4200`.
+**Option B – mit Dev-Server:** Frontend mit `npm run dev:frontend` starten, dann (in anderem Terminal) aus `apps/frontend`: `npm run screenshots`. Default-URL ist dann `http://localhost:4200/en/` (Standard-Dev = englische Locale).
 
 **Option C – nur Static-Serve:** Nach `npm run build:prod -w @arsnova/frontend` erzeugt das Skript beim ersten Aufruf automatisch `dist/browser/index.html` aus `index.csr.html`, damit `npx serve dist/browser -p 4210 -s` die App ausliefert (ohne diese Datei würde `/` eine Verzeichnisliste zeigen). Danach Serve starten und Screenshots mit `SCREENSHOT_URL=http://localhost:4210 npm run screenshots` erzeugen.
 

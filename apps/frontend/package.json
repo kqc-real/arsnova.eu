@@ -5,6 +5,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
+    "start:de": "ng serve --proxy-config proxy.conf.json",
+    "start:en": "ng serve --configuration=development-en --proxy-config proxy.conf.json",
     "build": "ng build",
     "build:prod": "npm run build:localize",
     "serve:dist": "npx serve dist/browser -s",

@@ -230,7 +230,10 @@ Die Top-Toolbar liest die aktuelle Locale aus dem **ersten URL-Segment** (`/de/`
 
 **Hinweis:** Es werden nur die Locales gebaut, die in `angular.json` unter `i18n.locales` eingetragen sind (aktuell: de, en, fr, it, es). Für `fr/it/es` sind technische Übersetzungsdateien vorhanden; die inhaltliche Übersetzung wird schrittweise ergänzt.
 
-**Dev-Server (`ng serve`):** Es wird nur **eine** Locale gebaut (Quellsprache Deutsch). Die Pfade `/de/`, `/en/`, `/fr/`, `/it/`, `/es/` funktionieren (Routing), liefern aber denselben deutschen Inhalt. Um echte Übersetzungen zu sehen: lokalisierten Build ausführen und mit API-Server starten (siehe Abschnitt **„Lokalisierter Build lokal“** unten), z. B. http://localhost:4200/en/.
+**Dev-Server (`ng serve`):** Im Monorepo ist **`npm run dev`** (Root) auf **Englisch** eingestellt: Build-Konfiguration **`development-en`** mit **`localize: ["en"]`**. Im Browser **`http://localhost:4200/en/`** öffnen (analog zu `dist/browser/en` beim lokalisierten Produktionsbuild).
+
+- **Deutsch (Quellsprache, kein `localize`):** **`npm run dev:de`** (Root) bzw. **`npm run dev:frontend:de`** / in `apps/frontend`: **`npm run start`** oder **`npm run start:de`**. Dann **`http://localhost:4200`** (Root) — i18n-Strings kommen direkt aus dem deutschen Quelltext; URL-Segmente `/de/` usw. ändern daran nichts.
+- **Alle Locales / Produktionsnähe:** lokalisierten Build und Proxy wie unten (**„Lokalisierter Build lokal“**), z. B. `http://localhost:4200/en/`.
 
 #### Lokalisierter Build lokal (Schritt für Schritt)
 

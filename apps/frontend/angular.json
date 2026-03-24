@@ -70,6 +70,12 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "development-en": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "localize": ["en"]
             }
           },
           "defaultConfiguration": "development"
@@ -86,8 +92,15 @@
             "development": {
               "buildTarget": "frontend:build:development"
             },
+            "development-en": {
+              "buildTarget": "frontend:build:development-en"
+            },
             "no-hmr": {
               "buildTarget": "frontend:build:development",
+              "hmr": false
+            },
+            "no-hmr-en": {
+              "buildTarget": "frontend:build:development-en",
               "hmr": false
             }
           },

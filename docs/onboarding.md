@@ -46,15 +46,19 @@ npx prisma generate
 ### Entwicklungsserver starten
 
 ```bash
-# Alles auf einmal (Backend + Frontend parallel):
+# Alles auf einmal (Backend + Frontend parallel, UI Englisch):
 npm run dev
 
+# Oberfläche in Quellsprache Deutsch (ohne XLF-Merge):
+npm run dev:de
+
 # Oder einzeln:
-npm run dev:backend    # → http://localhost:3000 (tRPC-API)
-npm run dev:frontend   # → http://localhost:4200 (Angular)
+npm run dev:backend       # → http://localhost:3000 (tRPC-API)
+npm run dev:frontend      # → http://localhost:4200/en/ (Angular, EN)
+npm run dev:frontend:de   # → http://localhost:4200 (Angular, DE-Quelltexte)
 ```
 
-**Funktioniert alles?** Öffne `http://localhost:4200` im Browser. Du solltest die Startseite mit dem **Server-Status-Widget** sehen (Epic 0.4: „X Quiz live · Y Teilnehmer · Z Quizzes durchgeführt" und grün/gelb/roter Status-Indikator). Backend-Health (inkl. Redis) und tRPC laufen auf Port 3000; WebSocket auf 3001, Yjs auf 3002.
+**Funktioniert alles?** Öffne **`http://localhost:4200/en/`** im Browser (Standard-`dev`). Du solltest die Startseite mit dem **Server-Status-Widget** sehen (Epic 0.4: englische UI-Strings, Status-Indikator). Bei **`npm run dev:de`** die Root-URL **`http://localhost:4200`**. Backend-Health (inkl. Redis) und tRPC laufen auf Port 3000; WebSocket auf 3001, Yjs auf 3002.
 
 ### Production-ähnlich lokal (Build + ein Server)
 

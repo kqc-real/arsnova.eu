@@ -3,7 +3,7 @@
  * Erzeugt Screenshots der aktuellen Startseite für die PWA-Manifest.
  *
  * Voraussetzung: Die App wird unter der angegebenen URL ausgeliefert (nicht nur eine Verzeichnisliste).
- * - Dev:  ng serve  →  SCREENSHOT_URL nicht nötig (Default: http://localhost:4200)
+ * - Dev:  ng serve (EN: development-en)  →  SCREENSHOT_URL nicht nötig (Default: http://localhost:4200/en/)
  * - Prod: npm run start:prod  →  SCREENSHOT_URL=http://localhost:3000 npm run screenshots
  * - Oder: Nach Build index.csr.html nach index.html kopieren, dann  npx serve dist/browser -p 4210 -s
  *        und  SCREENSHOT_URL=http://localhost:4210 npm run screenshots
@@ -18,7 +18,7 @@ import { copyFileSync, existsSync } from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const iconsDir = join(__dirname, '..', 'src', 'assets', 'icons');
 const distBrowser = join(__dirname, '..', 'dist', 'browser');
-const BASE_URL = process.env.SCREENSHOT_URL || 'http://localhost:4200';
+const BASE_URL = process.env.SCREENSHOT_URL || 'http://localhost:4200/en/';
 
 async function waitForServer(url, maxAttempts = 30) {
   for (let i = 0; i < maxAttempts; i++) {
@@ -45,7 +45,9 @@ async function main() {
   console.log(`Warte auf ${BASE_URL}…`);
   const ready = await waitForServer(BASE_URL);
   if (!ready) {
-    console.error('App nicht erreichbar. Starte z. B.: ng serve  oder  npm run start:prod  (dann SCREENSHOT_URL=http://localhost:3000).');
+    console.error(
+      'App nicht erreichbar. Starte z. B.: npm run dev:frontend (EN → /en/) oder npm run dev:frontend:de (Root), oder npm run start:prod (dann SCREENSHOT_URL=http://localhost:3000).',
+    );
     process.exit(1);
   }
 
