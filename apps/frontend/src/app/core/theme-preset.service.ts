@@ -1,5 +1,5 @@
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { Subject } from 'rxjs';
 
 /** Muss mit dem Inline-Skript in `index.html` übereinstimmen (FOUC vermeiden). */
@@ -21,25 +21,27 @@ export class ThemePresetService {
   readonly presetChanged$ = this.presetChangedSource.asObservable();
 
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly doc = inject(DOCUMENT);
 
   constructor() {
     this.initFromStorage();
   }
 
   private initFromStorage(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const storedTheme = localStorage.getItem(STORAGE_THEME);
-    if (storedTheme === 'system' || storedTheme === 'dark' || storedTheme === 'light') {
-      this.theme.set(storedTheme);
-    }
+    if (isPlatformBrowser(this.platformId)) {
+      const storedTheme = localStorage.getItem(STORAGE_THEME);
+      if (storedTheme === 'system' || storedTheme === 'dark' || storedTheme === 'light') {
+        this.theme.set(storedTheme);
+      }
 
-    const storedPreset = localStorage.getItem(STORAGE_PRESET);
-    const preset = storedPreset === 'serioes' ? 'serious' : storedPreset; // Migration
-    if (preset === 'serious' || preset === 'spielerisch') {
-      this.preset.set(preset);
-      if (preset !== storedPreset) localStorage.setItem(STORAGE_PRESET, preset);
+      const storedPreset = localStorage.getItem(STORAGE_PRESET);
+      const preset = storedPreset === 'serioes' ? 'serious' : storedPreset; // Migration
+      if (preset === 'serious' || preset === 'spielerisch') {
+        this.preset.set(preset);
+        if (preset !== storedPreset) localStorage.setItem(STORAGE_PRESET, preset);
+      }
     }
-
+    // Auch SSR/Prerender: Klassen am <html>, sonst fehlt preset-playful im statischen HTML → kurz „seriös“.
     this.applyTheme();
     this.applyPreset();
   }
@@ -67,8 +69,8 @@ export class ThemePresetService {
   }
 
   private applyTheme(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const root = document.documentElement;
+    const root = this.doc.documentElement;
+    if (!root) return;
     root.classList.remove('dark', 'light');
     const selected = this.theme();
     if (selected === 'dark') {
@@ -79,8 +81,8 @@ export class ThemePresetService {
   }
 
   private applyPreset(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    const root = document.documentElement;
+    const root = this.doc.documentElement;
+    if (!root) return;
     root.classList.toggle('preset-playful', this.preset() === 'spielerisch');
   }
 }

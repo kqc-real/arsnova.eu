@@ -12,7 +12,11 @@
           else if (t === 'light') document.documentElement.classList.add('light');
           var p = localStorage.getItem('home-preset');
           if (p === 'serioes') p = 'serious';
-          if (p !== 'serious') document.documentElement.classList.add('preset-playful');
+          if (p === 'serious') {
+            document.documentElement.classList.remove('preset-playful');
+          } else {
+            document.documentElement.classList.add('preset-playful');
+          }
         } catch (_e) {
           document.documentElement.classList.add('preset-playful');
         }
@@ -72,6 +76,18 @@
       html.light,
       html.light body {
         background: #faf8ff;
+      }
+      /* LCP-Shell: bei Preset spielerisch näher am Verlauf, sonst wirkt die Toolbar-Kachel seriös. */
+      html.preset-playful .app-shell {
+        background: linear-gradient(
+          145deg,
+          light-dark(#faf8ff, #1c1b1f) 0%,
+          light-dark(#ece6f0, #2b2640) 45%,
+          light-dark(#e8def8, #362b4a) 100%
+        );
+        box-shadow:
+          0 4px 24px -6px light-dark(rgba(103, 80, 164, 0.28), rgba(103, 80, 164, 0.35)),
+          0 2px 1px -1px rgba(0, 0, 0, 0.14);
       }
     </style>
   </head>
