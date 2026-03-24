@@ -9,8 +9,8 @@
         var langs =
           typeof navigator !== 'undefined' && navigator.languages && navigator.languages.length
             ? navigator.languages
-            : [navigator.language || 'de'];
-        var chosen = 'de';
+            : [navigator.language || 'en'];
+        var chosen = 'en';
         for (var i = 0; i < langs.length; i++) {
           var base = String(langs[i] || '')
             .toLowerCase()

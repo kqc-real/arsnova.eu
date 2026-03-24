@@ -47,7 +47,7 @@ if (fs.existsSync(frontendDist)) {
   const availableLocales = supportedLocales.filter((locale) =>
     fs.existsSync(path.join(frontendDist, locale, 'index.html')),
   );
-  const fallbackLocale = availableLocales.includes('de') ? 'de' : (availableLocales[0] ?? null);
+  const fallbackLocale = availableLocales.includes('en') ? 'en' : (availableLocales[0] ?? null);
   const fallbackIndexPath = fallbackLocale
     ? path.join(frontendDist, fallbackLocale, 'index.html')
     : null;
@@ -90,7 +90,7 @@ if (fs.existsSync(frontendDist)) {
     }
 
     // /assets/* aus de/ (lokalisiert: Manifest-Icons werden unter /assets referenziert)
-    app.use('/assets', express.static(path.join(frontendDist, fallbackLocale ?? 'de', 'assets')));
+    app.use('/assets', express.static(path.join(frontendDist, fallbackLocale ?? 'en', 'assets')));
     // Locale-prefixed assets: fallthrough false → fehlende Dateien liefern 404 statt SPA-index
     for (const locale of availableLocales) {
       app.use(
@@ -111,7 +111,7 @@ if (fs.existsSync(frontendDist)) {
       const chosen = pickLocaleFromAcceptLanguage(
         req.headers['accept-language'],
         availableLocales,
-        fallbackLocale ?? 'de',
+        fallbackLocale ?? 'en',
       );
       const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
       res.set('Vary', 'Accept-Language');

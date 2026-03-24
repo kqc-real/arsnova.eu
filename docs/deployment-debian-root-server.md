@@ -471,7 +471,7 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ### 5.3.1 Root-URL `/` und Sprachwahl (Accept-Language)
 
-**Verhalten in der App:** Für `GET https://arsnova.eu/` (nur `/`, optional mit Query-String) antwortet der Node-Server mit **302** auf `/{locale}/…`, wobei `locale` aus dem Header **`Accept-Language`** gewählt wird (`de`, `en`, `fr`, `it`, `es`; sonst Fallback `de`). Dafür setzt die Antwort **`Vary: Accept-Language`** und **`Cache-Control: private, no-cache`**, damit zwischengespeicherte Weiterleitungen nicht für alle Nutzer gleich aussehen.
+**Verhalten in der App:** Für `GET https://arsnova.eu/` (nur `/`, optional mit Query-String) antwortet der Node-Server mit **302** auf `/{locale}/…`, wobei `locale` aus dem Header **`Accept-Language`** gewählt wird (`de`, `en`, `fr`, `it`, `es`; sonst Fallback `en`). Dafür setzt die Antwort **`Vary: Accept-Language`** und **`Cache-Control: private, no-cache`**, damit zwischengespeicherte Weiterleitungen nicht für alle Nutzer gleich aussehen.
 
 **Nginx:** Standardmäßig reicht der Proxy; der Browser-Header wird an den Upstream durchgereicht. Falls irgendwo Header geändert werden, explizit erhalten:
 

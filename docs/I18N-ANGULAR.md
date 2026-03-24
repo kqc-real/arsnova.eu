@@ -225,9 +225,8 @@ Dokumentation: [Deploy multiple locales](https://angular.dev/guide/i18n/deploy) 
 
 Die Top-Toolbar liest die aktuelle Locale aus dem **ersten URL-Segment** (`/de/`, `/en/`, …) und zeigt sie im Sprachmenü an. Beim Wechsel der Sprache (`setLanguage(code)`):
 
-1. **Präferenz** wird in `localStorage` (`home-language`) gespeichert.
-2. **Navigation:** Wenn die aktuelle Pfad-URL bereits eine Locale enthält (z. B. `/en/session/ABC123/host`), wird das erste Segment durch die gewählte Locale ersetzt und die Seite per **vollständigem Reload** geladen (z. B. `/de/session/ABC123/host`). So wird die passende lokalisierte Build-Variante geladen.
-3. **Ohne Locale im Pfad** (z. B. Dev-Server mit `base href="/"`): Redirect auf `/{code}/` bzw. `/{code}{rest}`.
+1. **Navigation:** Wenn die aktuelle Pfad-URL bereits eine Locale enthält (z. B. `/en/session/ABC123/host`), wird das erste Segment durch die gewählte Locale ersetzt und die Seite per **vollständigem Reload** geladen (z. B. `/de/session/ABC123/host`). So wird die passende lokalisierte Build-Variante geladen.
+2. **Ohne Locale im Pfad** (z. B. Dev-Server mit `base href="/"`): Redirect auf `/{code}/` bzw. `/{code}{rest}`.
 
 **Hinweis:** Es werden nur die Locales gebaut, die in `angular.json` unter `i18n.locales` eingetragen sind (aktuell: de, en, fr, it, es). Für `fr/it/es` sind technische Übersetzungsdateien vorhanden; die inhaltliche Übersetzung wird schrittweise ergänzt.
 
@@ -264,6 +263,36 @@ Auf den Routen **Quiz bearbeiten** (`/quiz/:id`) und **Quiz neu** (`/quiz/new`) 
 - **Quiz-Edit** und **Quiz-New** registrieren beim Aktivwerden einen Getter für „Formular dirty“ und melden sich in `ngOnDestroy` wieder ab.
 - Beim Klick auf eine andere Sprache in der Toolbar prüft `setLanguage()` vor dem Redirect, ob `localeGuard.hasUnsavedChanges()` true ist (nur auf diesen Routen).
 - Wenn ja, öffnet sich ein Bestätigungsdialog („Sprache wechseln? Ungespeicherte Änderungen gehen verloren.“) mit **Abbrechen** / **Trotzdem wechseln**; nur bei „Trotzdem wechseln“ erfolgt der Reload auf die neue Locale-URL.
+
+---
+
+### 7c. Verfahren der Sprachauswahl (implementiert)
+
+Die Sprachwahl priorisiert bewusst den **Normalfall**: Die App folgt der Spracheinstellung des Browsers.
+
+1. **URL-Locale hat Vorrang im laufenden Request**  
+   Auf konkreten Pfaden wie `/de/...` oder `/en/...` ist die Sprache bereits eindeutig über die URL festgelegt.
+
+2. **Root-Redirect (`GET /`) im Backend**  
+   Wenn nur `/` aufgerufen wird, wählt der Server die Locale aus **`Accept-Language`** (`de`, `en`, `fr`, `it`, `es`; sonst Fallback auf verfügbare Standard-Locale, typischerweise `en`).
+
+3. **Sprachwechsel in der App**  
+   Die Sprachwahl im Menü navigiert auf die entsprechende Locale-URL. Das gilt für die laufende Sitzung und den aktuellen Pfad.
+
+4. **Keine dauerhafte Präferenzspeicherung**  
+   Die Locale wird **nicht** als Cookie gespeichert. Damit bleibt das Verhalten bei neuen Sitzungen browserbasiert.
+
+5. **Static-Fallback (ohne Node-Backend)**  
+   Die `static-root-index.html` nutzt `navigator.languages` und fällt sonst auf `en` zurück.
+
+6. **Cache-Verhalten beim Root-Redirect**  
+   Der Redirect setzt `Vary: Accept-Language` und `Cache-Control: private, no-cache`, damit Caches keine falsche Sprache global wiederverwenden.
+
+Betroffene Stellen im Code:
+
+- Backend: `apps/backend/src/lib/pick-locale-from-accept-language.ts`, `apps/backend/src/index.ts`
+- Frontend: `apps/frontend/src/app/shared/top-toolbar/top-toolbar.component.ts`
+- Static Fallback: `apps/frontend/static-root-index.html`
 
 ---
 
@@ -316,16 +345,16 @@ Details: [docs/architecture/decisions/0008-i18n-internationalization.md](archite
 
 ## 10. Kurz-Checkliste für Story 6.2
 
-| Backlog-Kriterium                     | Umsetzung                                                                                                                                                |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sprachen de, en, fr, it, es           | In `i18n.locales` eintragen + Übersetzungsdateien pflegen                                                                                                |
-| Browser (default) / Fallback Englisch | Server-Redirect per Accept-Language; Fallback z. B. auf `/en/`                                                                                           |
-| Sprachwähler in der Nav               | Link/Button zu den Locale-Subpfaden (`/de/`, `/en/`, …) oder Redirect mit Reload                                                                         |
-| Persistenz der Auswahl                | Cookie oder LocalStorage speichern; beim nächsten Besuch serverseitig oder clientseitig auf gespeicherte Locale redirecten                               |
-| @angular/localize                     | `ng add @angular/localize`; Templates/Code mit `i18n` und `$localize` markieren                                                                          |
-| Übersetzungsdateien                   | `ng extract-i18n`; pro Sprache eine Datei (z. B. in `src/locale/` oder `i18n/`)                                                                          |
-| Quiz-Inhalte nicht übersetzen         | Kein `i18n` an Nutzer-Inhalten (Fragenstamm, Antworten); nur UI-Texte markieren. **Ausnahme:** festes Demo-Quiz (siehe Abschnitt 9b, Zeile „Demo-Quiz“). |
-| Datum/Zahl nach Locale                | DatePipe/DecimalPipe nutzen; LOCALE_ID kommt durch Build pro Locale                                                                                      |
+| Backlog-Kriterium             | Umsetzung                                                                                                                                                |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sprachen de, en, fr, it, es   | In `i18n.locales` eintragen + Übersetzungsdateien pflegen                                                                                                |
+| Browser (default) / Userwahl  | Root-Redirect per Accept-Language; Sprachmenü wechselt die Locale-URL für die laufende Sitzung                                                           |
+| Sprachwähler in der Nav       | Link/Button zu den Locale-Subpfaden (`/de/`, `/en/`, …) oder Redirect mit Reload                                                                         |
+| Persistenz der Auswahl        | Keine dauerhafte Cookie-Persistenz; neuer Besuch folgt wieder der Browser-Sprache (`Accept-Language`)                                                    |
+| @angular/localize             | `ng add @angular/localize`; Templates/Code mit `i18n` und `$localize` markieren                                                                          |
+| Übersetzungsdateien           | `ng extract-i18n`; pro Sprache eine Datei (z. B. in `src/locale/` oder `i18n/`)                                                                          |
+| Quiz-Inhalte nicht übersetzen | Kein `i18n` an Nutzer-Inhalten (Fragenstamm, Antworten); nur UI-Texte markieren. **Ausnahme:** festes Demo-Quiz (siehe Abschnitt 9b, Zeile „Demo-Quiz“). |
+| Datum/Zahl nach Locale        | DatePipe/DecimalPipe nutzen; LOCALE_ID kommt durch Build pro Locale                                                                                      |
 
 ---
 
