@@ -15,7 +15,7 @@ const LOCALES = {
   en: {
     name: 'All question formats – upper-secondary demo quiz',
     description:
-      '**Purpose:** This quiz shows that arsnova.eu supports **two voting rounds**—first vote, then discuss, then vote again. That is central to modern teaching approaches like Peer Instruction.\n\n**What is Peer Instruction?** An evidence-based teaching method (Eric Mazur, Harvard): the host poses a conceptual question with plausible distractors. Everyone answers alone first; neighbors then compare reasoning and vote again—misconceptions surface and get clarified together.\n\n**What is Markdown?** Formatting from the keyboard, without mouse clicks. You type e.g. `**bold**` → **bold**, `*italic*` → *italic*, `` `code` `` → `code`. Headings with `#`, lists with `-` or `*`. In this quiz you will see Markdown in questions and answers.\n\n**What is KaTeX?** Mathematical notation like in textbooks. Place formulas between dollar signs: x^2 → $x^2$, one half in braces → $\\frac{1}{2}$, f\'(x) → $f\'(x)$. Ideal for math, physics, and chemistry—no install needed; it runs right in arsnova.eu.\n\nThis quiz uses every arsnova.eu question format. Items are grouped by subject.\n\n| # | Subject | Format | Topic | Misconceptions / note |\n|---|---------|--------|-------|------------------------|\n| 1 | Math | Single choice | Sign change of $f\'$ and extrema | Minimum vs maximum; inflection ($f\'\'$ confused); root ($f=0$ vs $f\'=0$) |\n| 2 | Math | Single choice | Stochastic independence | Gambler\'s fallacy; hot-hand |\n| 3 | Math | Single choice | Definite integral ≠ geometric area | Positive area; sum vs net balance; mean value |\n| 4 | Math | Rating | Vector geometry (incidence) | Self-assessment |\n| 5 | Physics | Single choice | Newton 3 – action = reaction | Lighter vehicle feels more force; heavier exerts more; forces “cancel out” |\n| 6 | Physics | Free text | Satellite in orbit | Reasoning |\n| 7 | Biology | Single choice | Selection vs Lamarckism | Directed mutation; gradual adaptation; habituation |\n| 8 | Biology | Multiple choice | Dihybrid cross (Mendel) | All F2 heterozygous; genes linked |\n| 9 | Chemistry | Multiple choice | Le Chatelier (equilibrium) | Catalyst shifts equilibrium |\n| 10 | — | Survey | Final-exam prep | Study strategies |\n| 11 | — | Free text | Least certain question | Reflection |\n| 12 | — | Rating | Rate this demo quiz | Overall rating |',
+      '**Purpose:** This quiz shows that arsnova.eu supports **two voting rounds**—first vote, then discuss, then vote again. That is central to modern teaching approaches like Peer Instruction.\n\n**What is Peer Instruction?** An evidence-based teaching method (Eric Mazur, Harvard): the host poses a conceptual question with plausible distractors. Everyone answers alone first; neighbors then compare reasoning and vote again—misconceptions surface and get clarified together.\n\n**What is Markdown?** Formatting with your keyboard, no mouse needed. You type e.g. `**bold**` → **bold**, `*italic*` → *italic*, `` `code` `` → `code`. Headings with `#`, lists with `-` or `*`. In this quiz you will see Markdown in questions and answers.\n\n**What is KaTeX?** Mathematical notation like in textbooks. Wrap formulas in dollar signs: x^2 → $x^2$, one half in braces → $\\frac{1}{2}$, f\'(x) → $f\'(x)$. Perfect for math, physics, and chemistry—no installation required, it just works in arsnova.eu.\n\nThis quiz uses every arsnova.eu question format. Items are grouped by subject.\n\n| # | Subject | Format | Topic | Misconceptions / note |\n|---|---------|--------|-------|------------------------|\n| 1 | Math | Single choice | Sign change of $f\'$ and extrema | Minimum vs maximum; inflection ($f\'\'$ confused); root ($f=0$ vs $f\'=0$) |\n| 2 | Math | Single choice | Stochastic independence | Gambler\'s fallacy; hot-hand |\n| 3 | Math | Single choice | Definite integral ≠ geometric area | Positive area; sum vs. net balance; mean value |\n| 4 | Math | Rating | Vector geometry (incidence) | Self-assessment |\n| 5 | Physics | Single choice | Newton 3 – action = reaction | Lighter vehicle feels more force; heavier exerts more; forces "cancel out" |\n| 6 | Physics | Free text | Satellite in orbit | Reasoning |\n| 7 | Biology | Single choice | Selection vs Lamarckism | Directed mutation; gradual adaptation; habituation |\n| 8 | Biology | Multiple choice | Dihybrid cross (Mendel) | All F2 are heterozygous; genes are linked |\n| 9 | Chemistry | Multiple choice | Le Chatelier (equilibrium) | A catalyst shifts the equilibrium |\n| 10 | — | Survey | Final-exam prep | Study strategies |\n| 11 | — | Free text | Least certain question | Reflection |\n| 12 | — | Rating | Rate this demo quiz | Overall rating |',
     questions: [
       {
         text: '### Math: Analysis – Function and derivative\n\nThe derivative $f\'(x)$ **changes sign from positive to negative** at $x_0$.\n\nWhat holds for $f$ at that point?',
@@ -27,14 +27,14 @@ const LOCALES = {
         ],
       },
       {
-        text: '### Math: Probability – Independent events\n\nA fair coin has landed **heads** five times in a row.\n\nWhat is the probability that the sixth toss is **tails**?',
+        text: '### Math: Probability – Independent events\n\nA fair coin has come up **heads** five times in a row.\n\nWhat is the probability that the sixth toss is **tails**?',
         answers: [
           {
             text: 'Exactly 50%, because each toss is independent of the previous ones.',
             isCorrect: true,
           },
           {
-            text: 'More than 50%, because tails is “due” after five heads.',
+            text: 'More than 50%, because tails is "due" after five heads.',
             isCorrect: false,
           },
           {
@@ -55,11 +55,11 @@ const LOCALES = {
             isCorrect: true,
           },
           {
-            text: 'The geometric area between the graph and the $x$-axis as a positive value.',
+            text: 'The absolute geometric area between the graph and the $x$-axis.',
             isCorrect: false,
           },
           {
-            text: 'The sum of all partial areas above and below the axis.',
+            text: 'The total area above and below the axis.',
             isCorrect: false,
           },
           {
@@ -71,13 +71,13 @@ const LOCALES = {
       {
         text: '### Math: Self-assessment – Vector geometry\n\nIn analytic geometry you describe lines and planes with vector equations, e.g.:\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nHow confident do you feel on tasks about **incidence** of lines and planes?',
         ratingLabelMin: 'Very unsure',
-        ratingLabelMax: 'Can explain it',
+        ratingLabelMax: 'I can explain it',
       },
       {
         text: '### Physics: Forces in a collision\n\nA heavy truck collides head-on with a light car.\n\nHow do the forces **during the impact** on the two vehicles compare?',
         answers: [
           {
-            text: 'The force on the car is equal in magnitude to the force on the truck.',
+            text: 'The force exerted on the car equals the force on the truck.',
             isCorrect: true,
           },
           {
@@ -89,7 +89,7 @@ const LOCALES = {
             isCorrect: false,
           },
           {
-            text: 'The forces on the two vehicles cancel each other completely.',
+            text: 'The forces on the two vehicles cancel each other out completely.',
             isCorrect: false,
           },
         ],
@@ -101,7 +101,7 @@ const LOCALES = {
         text: '### Biology: Antibiotic resistance\n\nHospitals increasingly see antibiotic-resistant bacterial strains.\n\nWhich explanation correctly describes how resistance arises?',
         answers: [
           {
-            text: 'Resistant bacteria multiply more because the antibiotic kills the others.',
+            text: 'Resistant bacteria multiply faster because the antibiotic kills off the competing strains.',
             isCorrect: true,
           },
           {
@@ -113,7 +113,7 @@ const LOCALES = {
             isCorrect: false,
           },
           {
-            text: 'The strongest bacteria develop tolerance through habituation.',
+            text: 'The strongest bacteria build tolerance through habituation.',
             isCorrect: false,
           },
         ],
@@ -130,11 +130,11 @@ const LOCALES = {
             isCorrect: true,
           },
           {
-            text: 'All F2 offspring are heterozygous for both genes.',
+            text: 'All F2 are heterozygous for both genes.',
             isCorrect: false,
           },
           {
-            text: 'The alleles of both genes are always inherited as one linked unit.',
+            text: 'The alleles of both genes are always inherited as a linked unit.',
             isCorrect: false,
           },
         ],
@@ -151,11 +151,11 @@ const LOCALES = {
       {
         text: '### Survey: Final-exam preparation\n\nWhich **study strategy** do you use most often when preparing for final exams?',
         answers: [
-          { text: 'Working through past exam papers', isCorrect: false },
-          { text: 'Writing summaries and study sheets', isCorrect: false },
-          { text: 'Practicing with a study group', isCorrect: false },
+          { text: 'Doing practice exams', isCorrect: false },
+          { text: 'Making study guides', isCorrect: false },
+          { text: 'Studying with a group', isCorrect: false },
           { text: 'Watching explainer videos and tutorials', isCorrect: false },
-          { text: 'Using flashcards and spaced repetition', isCorrect: false },
+          { text: 'Using flashcards', isCorrect: false },
         ],
       },
       {

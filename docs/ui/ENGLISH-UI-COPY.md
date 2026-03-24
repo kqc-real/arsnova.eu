@@ -21,10 +21,13 @@ This document generalises the copy-editing rules applied to the English XLF targ
 | **leaderboard** (feature/options)                  | _rankings_ as a noun for that feature                                                                                           |
 | **Reveal answers** / **Show results**              | _Release answers_ / _Show result_ — must match **actual button labels** in `messages.en.xlf`                                    |
 | **Privacy policy** (page title, SEO, navigation)   | _Data protection_ as a standalone consumer-facing title (UK/legal tone); body text can still mention GDPR/data handling         |
-| **quiz, Q&A, and Blitzlicht**                      | _quiz, Q&A and Blitzlicht_ — use the **Oxford comma** in lists of three or more items                                           |
+| **quiz, Q&A, and Pulse Check**                     | _quiz, Q&A and Blitzlicht_ — use the **Oxford comma** in lists of three or more items                                           |
 | **6-character** (session code)                     | _6-digit_ when the code is alphanumeric                                                                                         |
+| **Professional** (session preset)                  | _Serious_ — sounds too somber/academic for US corporate settings                                                                |
+| **Gamified** (session preset)                      | _Playful_ — "Gamified" is the standard modern UX terminology for this mode                                                      |
+| **Pulse Check** (feature)                          | _Blitzlicht_ — "Pulse Check" is the standard US equivalent for a quick mood/status poll                                         |
 
-**Blitzlicht** remains a **product name** (no translation).
+**Note:** "Blitzlicht" was previously kept as a German product name, but is now localized to **Pulse Check** for the US market.
 
 ---
 
@@ -33,8 +36,8 @@ This document generalises the copy-editing rules applied to the English XLF targ
 - **Short and direct:** Especially buttons, errors, snackbars, and participant one-liners. Prefer **one clear idea per sentence**.
 - **Contractions in UI:** **Do** use _couldn’t_, _won’t_, _you’re_, _it’s_ where it fits the voice — errors sound less stiff than _could not_ / _will not_.
 - **Errors:** Pattern **“Couldn’t &lt;verb&gt; …”** or **“Couldn’t &lt;verb&gt; the &lt;noun&gt;. Try again.”** instead of passive _X could not be loaded_.
-- **Encouragement (playful mode):** Idiomatic and upbeat; avoid literal renderings of German idioms if English has a natural equivalent (_So close—next round!_ vs _Just missed it - next round_).
-- **Serious mode:** Still friendly, but slightly more neutral; no slang that ages quickly.
+- **Encouragement (Gamified mode):** Idiomatic and upbeat; avoid literal renderings of German idioms if English has a natural equivalent (_So close—next round!_ vs _Just missed it - next round_).
+- **Professional mode:** Still friendly, but slightly more neutral; no slang that ages quickly.
 
 ---
 
@@ -49,7 +52,7 @@ This document generalises the copy-editing rules applied to the English XLF targ
 
 ## 4. Grammar and micro-style
 
-- **Oxford comma** in lists of three or more (_quiz, Q&A, and Blitzlicht_).
+- **Oxford comma** in lists of three or more (_quiz, Q&A, and Pulse Check_).
 - **Agreement:** When separate `trans-units` exist for _one_ vs _many_ (ICU split), keep **has/have** correct (_1 of 10 has voted_ vs _3 of 10 have voted_).
 - **Avoid calques** from German: _operation takes place_, _widespread offers_, _traceable instead of closed platform_ → rewrite as natural English (_runs on_, _mainstream tools_, _transparent, not a walled garden_).
 - **CTAs:** Imperative or _you_-focused (_Share the preview link…_, _Tap “Next question” to begin_).
@@ -74,7 +77,7 @@ This document generalises the copy-editing rules applied to the English XLF targ
 ## 7. Relation to other languages
 
 - **German** remains the **i18n source** in code; English rules apply to **`en`** targets only.
-- Other locales (**fr**, **es**, **it**) should follow the **same product terminology** where those languages have a natural equivalent (_host_, _session_, product name **Blitzlicht**).
+- Other locales (**fr**, **es**, **it**) should follow the **same product terminology** where those languages have a natural equivalent (_host_, _session_, equivalent of **Pulse Check**).
 - Any change that **relabels German UI** (e.g. button text) requires **all five locales** per ADR-0008 — not only English.
 
 ---
@@ -83,6 +86,7 @@ This document generalises the copy-editing rules applied to the English XLF targ
 
 - [ ] Host/session wording; no stray _instructor/lecturer_ unless legally or contextually required
 - [ ] Button quotes match **actual** EN labels
+- [ ] Presets use **Professional** and **Gamified**; Blitzlicht is **Pulse Check**
 - [ ] Oxford comma in triple lists; **Q&A** spelling consistent
 - [ ] No `-` as em dash; **`&apos;`** where we standardise apostrophes
 - [ ] Errors short, with contractions where appropriate

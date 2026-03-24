@@ -68,7 +68,7 @@
       </trans-unit>
       <trans-unit id="804017840391960536" datatype="html">
         <source>App installieren und schneller starten</source>
-        <target>Install app and start faster</target>
+        <target>Install the app for a faster start</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">42,43</context>
@@ -100,7 +100,7 @@
       </trans-unit>
       <trans-unit id="1547876271716599756" datatype="html">
         <source>Impressum</source>
-        <target>Imprint</target>
+        <target>Legal notice</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">82,83</context>
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="7981911571029514989" datatype="html">
         <source>Jetzt mit mehr Schwung!</source>
-        <target>Now with more energy!</target>
+        <target>Now with more momentum!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">125</context>
@@ -132,7 +132,7 @@
       </trans-unit>
       <trans-unit id="1136696335453039978" datatype="html">
         <source>Preset: Seriös</source>
-        <target>Preset: Serious</target>
+        <target>Preset: Professional</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">128</context>
@@ -140,7 +140,7 @@
       </trans-unit>
       <trans-unit id="6151253518820826531" datatype="html">
         <source>Preset: Spielerisch</source>
-        <target>Preset: Playful</target>
+        <target>Preset: Gamified</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">129</context>
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="seo.titleImprint" datatype="html">
         <source>Impressum – arsnova.eu</source>
-        <target>Imprint – arsnova.eu</target>
+        <target>Legal notice – arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">118</context>
@@ -292,7 +292,7 @@
       </trans-unit>
       <trans-unit id="seo.descImprint" datatype="html">
         <source>Impressum und Anbieterkennzeichnung gemäß den gesetzlichen Pflichtangaben.</source>
-        <target>Imprint and provider identification in accordance with the legally required information.</target>
+        <target>Legal notice and provider identification in accordance with statutory requirements.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">122</context>
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="seo.descJoin" datatype="html">
         <source>Mit Session-Code einer Live-Veranstaltung beitreten – Quiz, Q&amp;A oder Blitzlicht.</source>
-        <target>Join a live session with a code—quiz, Q&amp;A, or Blitzlicht.</target>
+        <target>Join a live session with a code—quiz, Q&amp;A, or Pulse Check.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">138</context>
@@ -348,7 +348,7 @@
       </trans-unit>
       <trans-unit id="seo.titleFeedbackHost" datatype="html">
         <source>Blitzlicht moderieren – arsnova.eu</source>
-        <target>Moderate Blitzlicht – arsnova.eu</target>
+        <target>Moderate Pulse Check – arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">150</context>
@@ -356,7 +356,7 @@
       </trans-unit>
       <trans-unit id="seo.descFeedbackHost" datatype="html">
         <source>Schnelle Rückmeldungen in der Veranstaltung einrichten und Ergebnisse live steuern.</source>
-        <target>Run quick polls in a live session and steer results in real time.</target>
+        <target>Run quick pulse checks in a live session and steer results in real time.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">154</context>
@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="seo.titleFeedbackVote" datatype="html">
         <source>Blitzlicht mitmachen – arsnova.eu</source>
-        <target>Join Blitzlicht – arsnova.eu</target>
+        <target>Join Pulse Check – arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">158</context>
@@ -612,7 +612,7 @@
       </trans-unit>
       <trans-unit id="admin.deleteHelp" datatype="html">
         <source> Diese Aktion ist irreversibel. Bitte begründe die Löschung und bestätige mit dem Session-Code.</source>
-        <target>This action cannot be undone. Enter a reason and confirm with the session code.</target>
+        <target>This action cannot be undone. Please provide a reason and confirm using the session code.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">215,216</context>
@@ -772,7 +772,7 @@
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedback" datatype="html">
         <source>Blitzlicht</source>
-        <target>Blitzlicht</target>
+        <target>Pulse Check</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">9,11</context>
@@ -800,7 +800,7 @@
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostTitle" datatype="html">
         <source> Blitzlicht direkt starten</source>
-        <target>Start a Blitzlicht right away</target>
+        <target>Start a Pulse Check right away</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">12,15</context>
@@ -808,7 +808,7 @@
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackHostPlaceholder" datatype="html">
         <source> Wähle ein Format – in Sekunden siehst du die Stimmung.</source>
-        <target>Pick a format – in seconds you&apos;ll see the mood.</target>
+        <target>Choose a format – see the mood in seconds.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">16,18</context>
@@ -956,7 +956,7 @@
       </trans-unit>
       <trans-unit id="feedback.compareRoundHeadline" datatype="html">
         <source> Jetzt zum Vergleich ein zweites Blitzlicht...</source>
-        <target>Now a second quick vote for comparison...</target>
+        <target>Let's do a second round to compare...</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">264,266</context>
@@ -1100,7 +1100,7 @@
       </trans-unit>
       <trans-unit id="feedback.endStandaloneWarning" datatype="html">
         <source>Das Blitzlicht wird beendet. Es werden alle Ergebnisse gelöscht.</source>
-        <target>The quick poll will be ended. All results will be deleted.</target>
+        <target>The Pulse Check will end. All results will be deleted.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.ts</context>
           <context context-type="linenumber">383</context>
@@ -1116,7 +1116,7 @@
       </trans-unit>
       <trans-unit id="feedback.compareRoundFormatHint" datatype="html">
         <source>Formatwechsel gesperrt. In Runde 2 bleibt das aktuelle Blitzlicht-Format aktiv. Für einen Wechsel setze das Blitzlicht zuerst zurück. Dabei werden die Stimmen aus Runde 1 gelöscht.</source>
-        <target>Format change locked. In round 2, the current quick feedback format stays active. To switch, reset quick feedback first. This deletes the votes from round 1.</target>
+        <target>Format locked. Round 2 uses the same Pulse Check format. To switch, reset the Pulse Check first (this clears Round 1 votes).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.ts</context>
           <context context-type="linenumber">423</context>
@@ -1132,7 +1132,7 @@
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackVoteTitle" datatype="html">
         <source> Beim Blitzlicht mitmachen</source>
-        <target>Join the Blitzlicht</target>
+        <target>Join the Pulse Check</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">29,31</context>
@@ -1140,7 +1140,7 @@
       </trans-unit>
       <trans-unit id="sessionTabs.quickFeedbackVotePlaceholder" datatype="html">
         <source> Sobald ein Format startet, kannst du hier in Sekunden deine Einschätzung abgeben.</source>
-        <target>As soon as a format starts, you can share your view here in seconds.</target>
+        <target>Once a format starts, you can share your thoughts here in seconds.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">32,35</context>
@@ -1164,7 +1164,7 @@
       </trans-unit>
       <trans-unit id="feedback.compareRoundVoteHint" datatype="html">
         <source> Gleich kannst du dein zweites Blitzlicht abgeben.</source>
-        <target>You'll be able to cast your second quick vote in a moment.</target>
+        <target>You'll be able to cast your second vote in a moment.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">59,61</context>
@@ -1465,7 +1465,7 @@
       </trans-unit>
       <trans-unit id="help.intro" datatype="html">
         <source> Die Hilfe richtet sich an <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lehrende, Trainer:innen und Seminarleiter:innen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: Du planst Unterricht, Training, Workshops oder Events und willst Interaktion ohne Hürden – Quiz, Q&amp;A und Blitzlicht in einer Session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ohne verpflichtende Anmeldung<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> für dich und deine Gruppe: Du startest, Lernende und Teilnehmende sind mit dabei.</source>
-        <target>These tips are for <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>educators, trainers, and facilitators<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: you run classes, workshops, or events and want smooth interaction—quiz, Q&amp;A, and Blitzlicht in one live session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>No accounts required<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> for you or your audience: you host; learners join in.</target>
+        <target>These tips are for <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>educators, trainers, and facilitators<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: you run classes, workshops, or events and want smooth interaction—quiz, Q&amp;A, and Pulse Check in one live session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>No accounts required<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> for you or your audience: you host; learners join in.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">17,23</context>
@@ -1489,7 +1489,7 @@
       </trans-unit>
       <trans-unit id="help.usp2" datatype="html">
         <source> In einer Veranstaltung verbindest du <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz, Q&amp;A und Blitzlicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> – statt mehrere Tools nebeneinander zu bedienen. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (zwei Abstimmungsrunden mit Diskussionsphase dazwischen) sowie <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>KaTeX<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> und Markdown unterstützen typische Szenarien in Hochschule, Weiterbildung und Seminar – vom spontanen Check bis zur Prüfungsvorbereitung.</source>
-        <target>In one session you combine <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>quiz, Q&amp;A, and Blitzlicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>—no juggling separate tools. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (two votes with a discussion break), plus <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>KaTeX<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> and Markdown, fits lectures, training, and seminars—from a quick pulse check to exam prep.</target>
+        <target>In one session you combine <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>quiz, Q&amp;A, and Pulse Check<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>—no juggling separate tools. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (two votes with a discussion break), plus <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>KaTeX<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> and Markdown, fits lectures, training, and seminars—from a quick pulse check to exam prep.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">36,41</context>
@@ -1561,7 +1561,7 @@
       </trans-unit>
       <trans-unit id="help.hostLead" datatype="html">
         <source> Du startest eine Live-Session, teilst den Code und steuerst Quiz, Q&amp;A und Blitzlicht.</source>
-        <target>You start a live session, share the code, and run the quiz, Q&amp;A, and Blitzlicht.</target>
+        <target>You start a live session, share the code, and run the quiz, Q&amp;A, and Pulse Check.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">79,81</context>
@@ -1617,7 +1617,7 @@
       </trans-unit>
       <trans-unit id="help.blitzTitle" datatype="html">
         <source>Blitzlicht</source>
-        <target>Blitzlicht</target>
+        <target>Pulse Check</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">114,115</context>
@@ -1673,7 +1673,7 @@
       </trans-unit>
       <trans-unit id="help.quickFeedbackStartFlow" datatype="html">
         <source> Du startest die Runde im Host-Bereich deiner Live-Session oder über die Blitzlicht-Karte „Live mit einem Klick&quot; auf der Startseite. Teilnehmende tippen eine Antwort; du siehst die Ergebnisse live als Balkendiagramm.</source>
-        <target>You start the round in the host area of your live session or directly via the Blitzlicht card “Live with one click” on the home page. Participants vote with one tap, and you see the results live as a bar chart.</target>
+        <target>You start the round in the host area of your live session or directly via the Pulse Check card “Live in one click” on the home page. Participants vote with one tap, and you see the results live as a bar chart.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">139,143</context>
@@ -1737,7 +1737,7 @@
       </trans-unit>
       <trans-unit id="help.participantsJoin" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beitreten:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> 6-stelligen Code auf arsnova.eu eingeben und „Los geht&apos;s&quot; – funktioniert für Quiz, Q&amp;A und Blitzlicht. Keine Anmeldung nötig.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Join:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Enter the 6-character code on arsnova.eu and tap “Let&apos;s go”—works for quiz, Q&amp;A, and Blitzlicht. No sign-up required.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Join:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Enter the 6-character code on arsnova.eu and tap “Let&apos;s go”—works for quiz, Q&amp;A, and Pulse Check. No sign-up required.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">173,175</context>
@@ -1817,7 +1817,7 @@
       </trans-unit>
       <trans-unit id="help.stylesTitle" datatype="html">
         <source>Seriös und Spielerisch</source>
-        <target>Serious and playful</target>
+        <target>Professional and gamified</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">216,217</context>
@@ -1833,7 +1833,7 @@
       </trans-unit>
       <trans-unit id="help.styleSerious" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Seriös:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonym, ohne Rangliste – ideal für formative Assessments, Prüfungsvorbereitung und sensible Themen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Serious:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonymous, no leaderboard – ideal for formative assessments, exam prep and sensitive topics.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Professional:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Anonymous, no leaderboard – ideal for formative assessments, exam prep and sensitive topics.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">223,225</context>
@@ -1841,7 +1841,7 @@
       </trans-unit>
       <trans-unit id="help.stylePlayful" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Spielerisch:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Rangliste, Sounds und Anfeuerung – ideal für Auflockerung, Wettbewerbe und motivierende Quizze.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Playful:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Leaderboard, sound effects, and energy—great for icebreakers, team competitions, and high-energy quizzes.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Gamified:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Leaderboard, sound effects, and energy—great for icebreakers, team competitions, and high-energy quizzes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">227,229</context>
@@ -1905,7 +1905,7 @@
       </trans-unit>
       <trans-unit id="homeHero.line1" datatype="html">
         <source>Quiz, Q&amp;A und Blitzlicht –</source>
-        <target>Quiz, Q&amp;A, and Blitzlicht—</target>
+        <target>Quiz, Q&amp;A, and Pulse Check—</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">5,6</context>
@@ -1945,7 +1945,7 @@
       </trans-unit>
       <trans-unit id="8330667382540185922" datatype="html">
         <source>Seriös</source>
-        <target>Serious</target>
+        <target>Professional</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">25,26</context>
@@ -1985,7 +1985,7 @@
       </trans-unit>
       <trans-unit id="6088916262905537020" datatype="html">
         <source>Spielerisch</source>
-        <target>Playful</target>
+        <target>Gamified</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">31,32</context>
@@ -2033,7 +2033,7 @@
       </trans-unit>
       <trans-unit id="homeStage.rotate2" datatype="html">
         <source>Blitzlicht in Sekunden.</source>
-        <target>Blitzlicht in seconds.</target>
+        <target>Pulse Check in seconds.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">43,44</context>
@@ -2137,7 +2137,7 @@
       </trans-unit>
       <trans-unit id="homeFeedbackCard.title" datatype="html">
         <source>Live mit einem Klick</source>
-        <target>Live with one click</target>
+        <target>Live in one click</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">190,192</context>
@@ -4245,7 +4245,7 @@
       </trans-unit>
       <trans-unit id="quizList.liveDialog.subtitle" datatype="html">
         <source> Auftakt und Formate festlegen (Quiz, Q&amp;A, Blitzlicht)</source>
-        <target>Set opening and formats (Quiz, Q&amp;A, Blitzlicht)</target>
+        <target>Set opening and formats (Quiz, Q&amp;A, Pulse Check)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
           <context context-type="linenumber">41,43</context>
@@ -4285,7 +4285,7 @@
       </trans-unit>
       <trans-unit id="quizList.liveDialog.channelQuickFeedback" datatype="html">
         <source>Blitzlicht</source>
-        <target>Blitzlicht</target>
+        <target>Pulse Check</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
           <context context-type="linenumber">133,136</context>
@@ -4389,7 +4389,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.trigger" datatype="html">
         <source>Mit unserem Prompt zum fertigen Quiz</source>
-        <target>From our prompt to a finished quiz</target>
+        <target>Create a quiz instantly with our AI prompt</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">28,30</context>
@@ -4421,7 +4421,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.title" datatype="html">
         <source> Mit unserem Prompt zum fertigen Quiz</source>
-        <target>From our prompt to a finished quiz</target>
+        <target>Generate a quiz with our AI prompt</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">59,61</context>
@@ -4429,7 +4429,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.hint" datatype="html">
         <source> In drei kurzen Schritten kommst du vom KI-Chat direkt zu einem neuen Quiz.</source>
-        <target>Create a new quiz from AI chat in three quick steps.</target>
+        <target>Turn an AI chat response into a ready-to-play quiz in three simple steps.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">62,64</context>
@@ -4445,7 +4445,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepOneTitle" datatype="html">
         <source> Textvorlage kopieren</source>
-        <target>Copy the template</target>
+        <target>Copy the prompt template</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">75,77</context>
@@ -4453,7 +4453,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepOneText" datatype="html">
         <source> Öffne deinen KI-Chat und sende dort die Textvorlage ab.</source>
-        <target>Open your AI chat and send the template there.</target>
+        <target>Open your preferred AI chat and paste the prompt.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">78,80</context>
@@ -4501,7 +4501,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepTwoText" datatype="html">
         <source> Kopiere den JSON-Codeblock aus dem KI-Chat und füge ihn hier ein.</source>
-        <target>Copy the JSON code block from the AI chat and paste it here.</target>
+        <target>Copy the resulting JSON code block from the AI chat and paste it below.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">135,137</context>
@@ -4783,7 +4783,7 @@
       </trans-unit>
       <trans-unit id="quizList.tooltipMinQuestions" datatype="html">
         <source>Für ein Quiz brauchst du mindestens eine Frage.</source>
-        <target>You need at least one question to start a quiz.</target>
+        <target>Add at least one question to start a quiz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">138</context>
@@ -5011,7 +5011,7 @@
       </trans-unit>
       <trans-unit id="quizList.aiImport.failed" datatype="html">
         <source>Import fehlgeschlagen. Prüfe, ob du die komplette Antwort aus dem KI-Chat eingefügt hast.</source>
-        <target>Import failed. Check whether you pasted the full answer from the AI chat.</target>
+        <target>Import failed. Make sure you pasted the complete JSON response from the AI.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">502</context>
@@ -5166,7 +5166,7 @@
       </trans-unit>
       <trans-unit id="quizPreview.editorWarningTitle" datatype="html">
         <source>Hier braucht diese Folie noch etwas Feinschliff</source>
-        <target>This slide still needs a bit of polishing</target>
+        <target>This slide needs a little more work</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">160,162</context>
@@ -5222,7 +5222,7 @@
       </trans-unit>
       <trans-unit id="quizPreview.editorCorrectAnswerHint" datatype="html">
         <source> Nutze die Auswahl links, um richtige Antworten direkt zu markieren.</source>
-        <target>Use the selector on the left to mark correct answers directly.</target>
+        <target>Use the toggles on the left to mark the correct answers.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">254,256</context>
@@ -7072,7 +7072,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.lobbyBadgePlayful" datatype="html">
         <source>Bist dabei – klasse!</source>
-        <target>You&apos;re in—nice!</target>
+        <target>You&apos;re in—awesome!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">21</context>
@@ -7088,7 +7088,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.lobbyWaitTitlePlayful" datatype="html">
         <source>Gleich geht&apos;s los – wir halten dich bereit!</source>
-        <target>Starting soon—we&apos;ll keep this page ready for you.</target>
+        <target>Starting soon—get ready!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">28</context>
@@ -7112,7 +7112,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.lobbyHintQuizSerious" datatype="html">
         <source>Die erste Frage erscheint automatisch – Gerät bereithalten.</source>
-        <target>The first question will appear automatically – have your device ready.</target>
+        <target>The first question will appear automatically. Please have your device ready.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">37</context>
@@ -7136,7 +7136,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.qaActiveTitlePlayful" datatype="html">
         <source>Fragerunde live!</source>
-        <target>Q&amp;A session live!</target>
+        <target>Q&amp;A is live!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">49</context>
@@ -7144,7 +7144,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.qaActiveTitleSerious" datatype="html">
         <source>Fragerunde läuft</source>
-        <target>Q&amp;A round is live</target>
+        <target>Q&amp;A is live</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">51</context>
@@ -7168,7 +7168,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.finishedTitlePlayful" datatype="html">
         <source>Runde aus – stark mitgemacht!</source>
-        <target>Round over – strong participation!</target>
+        <target>Round over – great job!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">63</context>
@@ -7296,7 +7296,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.bonusTitlePlayful" datatype="html">
         <source>Dein Extra-Code</source>
-        <target>Your extra code</target>
+        <target>Your bonus code</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">119</context>
@@ -7344,7 +7344,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.feedbackTitlePlayful" datatype="html">
         <source>Kurz Feedback?</source>
-        <target>Short feedback?</target>
+        <target>Quick feedback?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">140</context>
@@ -7360,7 +7360,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.feedbackOverallPlayful" datatype="html">
         <source>Wie war&apos;s insgesamt?</source>
-        <target>How was it overall?</target>
+        <target>Overall experience?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">147</context>
@@ -7376,7 +7376,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.feedbackQualityPlayful" datatype="html">
         <source>Fragen – fair und klar?</source>
-        <target>Questions – fair and clear?</target>
+        <target>Were the questions fair and clear?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">154</context>
@@ -7384,7 +7384,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.feedbackQualitySerious" datatype="html">
         <source>Qualität der Fragen?</source>
-        <target>Quality of the questions?</target>
+        <target>How was the quality of the questions?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">156</context>
@@ -7392,7 +7392,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.feedbackRepeatPlayful" datatype="html">
         <source>Noch eine Runde?</source>
-        <target>Another round?</target>
+        <target>Up for another round?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">161</context>
@@ -7408,7 +7408,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.feedbackYesPlayful" datatype="html">
         <source>Ja, klar!</source>
-        <target>Yes, sure!</target>
+        <target>Yes, absolutely!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">168</context>
@@ -7440,7 +7440,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.feedbackSubmitPlayful" datatype="html">
         <source>Ab damit!</source>
-        <target>Send it!</target>
+        <target>Submit feedback!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">182</context>
@@ -7600,7 +7600,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.readingTitlePlayful" datatype="html">
         <source>Erst lesen, dann klicken</source>
-        <target>First read, then click</target>
+        <target>Read first, then answer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">252</context>
@@ -7632,7 +7632,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.discussionTitlePlayful" datatype="html">
         <source>Schnell mit dem Nachbarn sprechen</source>
-        <target>Chat briefly with someone next to you</target>
+        <target>Discuss briefly with your neighbor</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">266</context>
@@ -7648,7 +7648,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.discussionHintPlayful" datatype="html">
         <source>Gleiche Meinung? Nice. Unterschiedlich? Kurz gegenchecken – dann geht&apos;s in Runde 2.</source>
-        <target>Same take? Cool. Split? Compare notes quickly—then round 2.</target>
+        <target>Agree? Great. Disagree? Compare notes quickly—then round 2.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">273</context>
@@ -7664,7 +7664,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.discussionNextPlayful" datatype="html">
         <source>Gleich geht&apos;s in die zweite Runde…</source>
-        <target>Round 2 is up next…</target>
+        <target>Round 2 is coming up…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">280</context>
@@ -7696,7 +7696,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.roundBadgePlayful" datatype="html">
         <source>Take 2</source>
-        <target>Take 2</target>
+        <target>Round 2</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">294</context>
@@ -7712,7 +7712,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.allVotedPlayful" datatype="html">
         <source>Alle Stimmen sind da</source>
-        <target>Everyone&apos;s voted</target>
+        <target>Everyone has voted</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">301</context>
@@ -7728,7 +7728,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.submitPlayful" datatype="html">
         <source>Ab damit!</source>
-        <target>Send it!</target>
+        <target>Submit!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">308</context>
@@ -7808,7 +7808,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.sentPlayful" datatype="html">
         <source>Antwort ist durch!</source>
-        <target>Answer is through!</target>
+        <target>Answer sent!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">343</context>
@@ -7904,7 +7904,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.scoreNeutralPlayful" datatype="html">
         <source>Notiert!</source>
-        <target>Take note!</target>
+        <target>Got it!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">385</context>
@@ -7952,7 +7952,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.emojiSentPlayful" datatype="html">
         <source>Emoji ist raus!</source>
-        <target>Emoji is out!</target>
+        <target>Reaction sent!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">406</context>
@@ -8000,7 +8000,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.qaPlaceholderPlayful" datatype="html">
         <source>Los, frag – kurz und klar</source>
-        <target>Go on, ask – briefly and clearly</target>
+        <target>Go ahead, ask – keep it brief and clear</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">427</context>
@@ -8016,7 +8016,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.qaSubmitPlayful" datatype="html">
         <source>Frage raushauen</source>
-        <target>Get the question out</target>
+        <target>Ask question</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">434</context>
@@ -8064,7 +8064,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.qaModerationPlayful" datatype="html">
         <source>Deine Frage schauen wir kurz an, bevor sie live geht.</source>
-        <target>We&apos;ll take a quick look at your question before it goes live.</target>
+        <target>We&apos;ll quickly review your question before it goes live.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">455</context>
@@ -8096,7 +8096,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamLeaderHintPlayful" datatype="html">
         <source>Vorne: <x id="name" equiv-text="leaderName"/> mit <x id="score" equiv-text="leaderScore"/> Punkten – jagt sie ein!</source>
-        <target>Front: <x id="name" equiv-text="leaderName"/> with <x id="score" equiv-text="leaderScore"/> points – chase them down!</target>
+        <target>In the lead: <x id="name" equiv-text="leaderName"/> with <x id="score" equiv-text="leaderScore"/> points – catch up to them!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">468</context>
@@ -8104,7 +8104,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamLeaderHintSerious" datatype="html">
         <source>Vorne liegt <x id="name" equiv-text="leaderName"/> mit <x id="score" equiv-text="leaderScore"/> Punkten.</source>
-        <target><x id="name" equiv-text="leaderName"/> is ahead with <x id="score" equiv-text="leaderScore"/> points.</target>
+        <target><x id="name" equiv-text="leaderName"/> is in the lead with <x id="score" equiv-text="leaderScore"/> points.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">472</context>
@@ -8529,7 +8529,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgWinFin" datatype="html">
         <source>Gemeinsam geschafft: <x id="totalScore" equiv-text="entry.totalScore"/> Punkte und Platz 1.</source>
-        <target>Done together: <x id="totalScore" equiv-text="entry.totalScore"/> points and 1st place.</target>
+        <target>Team effort! <x id="totalScore" equiv-text="entry.totalScore"/> points and 1st place.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">591</context>
@@ -8877,7 +8877,7 @@
       </trans-unit>
       <trans-unit id="5248396144494663799" datatype="html">
         <source>Zu Spielerisch wechseln</source>
-        <target>Switch to playful</target>
+        <target>Switch to Gamified</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.ts</context>
           <context context-type="linenumber">187</context>
@@ -8885,7 +8885,7 @@
       </trans-unit>
       <trans-unit id="8198317009587662224" datatype="html">
         <source>Zu Seriös wechseln</source>
-        <target>Switch to serious</target>
+        <target>Switch to Professional</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.ts</context>
           <context context-type="linenumber">188</context>
@@ -8981,7 +8981,7 @@
       </trans-unit>
       <trans-unit id="5108046665742011223" datatype="html">
         <source>Anonym, ohne Wettbewerb, Fokus auf Inhalte.</source>
-        <target>Anonymous, no scoring—content comes first.</target>
+        <target>Anonymous, no scoring—focus on the content.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.ts</context>
           <context context-type="linenumber">403</context>
@@ -8989,7 +8989,7 @@
       </trans-unit>
       <trans-unit id="9197926712719486690" datatype="html">
         <source>Mit Rangliste, Sounds, Anfeuerung und Countdown auf allen Handys – für mehr Motivation.</source>
-        <target>With leaderboard, sounds, encouragement and countdown on all devices – for more motivation.</target>
+        <target>Leaderboard, sounds, encouragement, and a countdown to boost motivation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.ts</context>
           <context context-type="linenumber">404</context>

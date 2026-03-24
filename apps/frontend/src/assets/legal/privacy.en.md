@@ -1,8 +1,8 @@
-# Privacy policy
+# Privacy Policy
 
-Information pursuant to Art. 13 and 14 GDPR
+Information pursuant to Articles 13 and 14 of the General Data Protection Regulation (GDPR)
 
-## 1. Data controller
+## 1. Data Controller
 
 Prof. Dr. Klaus Quibeldey-Cirkel  
 Juri-Gagarin-Ring 152  
@@ -13,56 +13,56 @@ Email: [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org)
 
 ## 2. Scope
 
-The following privacy information applies to **https://arsnova.eu** (information and marketing site) and, where the offering refers to it, to use of the arsnova.eu application (live quiz & voting). If the application is self-hosted, the data controller may be different (your institution); in that case the privacy information provided there applies.
+This privacy policy applies to **https://arsnova.eu** (our informational and marketing website) and—where indicated—your use of the arsnova.eu application for live quizzes and voting. If the application is self-hosted by your organization or institution, they act as the data controller, and their respective privacy policy applies.
 
-## 3. Data when you visit arsnova.eu
+## 3. Data Collected When Visiting arsnova.eu
 
-When you open arsnova.eu, the operating server or hosting provider typically processes access data (e.g. IP address, date/time, page accessed, data volume, browser type) in server logs. The legal basis is Art. 6(1)(f) GDPR (legitimate interest in operating and securing the service). Retention depends on the hosting provider’s policy; logs are usually deleted or anonymised after a short period.
+When you visit arsnova.eu, the server and hosting provider automatically process standard access data (e.g., your IP address, date and time of the request, pages visited, amount of data transferred, and your browser type) in server logs. The legal basis for this is Art. 6(1)(f) GDPR (our legitimate interest in operating a secure and stable platform). The retention period is determined by our hosting provider; typically, logs are deleted or anonymized shortly after your visit.
 
-We **do not use cookies** (including third-party cookies) and do not run analytics tools (e.g. Google Analytics). Text uses **system fonts**; **Material Icons** are served from our infrastructure (**no** Google Fonts and no connection to Google for fonts). Unless clearly marked otherwise, we do not embed third-party content (e.g. maps, videos). Links to third parties are described in section 4.
+We do **not use any cookies** (including third-party cookies) and do not utilize analytics tools such as Google Analytics. We rely on your device's **system fonts** for text rendering, and **Material Icons** are hosted directly on our servers (**no** connections are made to Google servers). Unless explicitly labeled otherwise, we do not embed third-party content (such as maps or videos). Links to third-party providers are outlined in Section 4.
 
-**Progressive Web App (PWA):** If you install arsnova.eu or use offline features, your browser may cache selected content locally. That speeds up loading and can show content without a network connection. **No cookies** are set for advertising or tracking.
+**Progressive Web App (PWA):** If you install arsnova.eu on your device or use its offline features, your browser may cache specific content locally. This improves loading times and enables offline access. **No cookies** are set for advertising or tracking purposes.
 
-## 4. Links to third parties
+## 4. Links to Third-Party Providers
 
-On arsnova.eu you will find links to external services (e.g. GitHub). Following a link takes you to the respective provider’s site. Their privacy policies and terms of use apply there. We have no influence on their data processing.
+You will find links to external services on arsnova.eu (e.g., GitHub). Clicking these links takes you to the respective provider's website, where their own privacy policies and terms of service apply. We have no control over their data processing activities.
 
 ## 5. Hosting
 
-arsnova.eu is hosted in Germany by Hetzner Online GmbH. Hetzner undergoes annual audits by TÜV Rheinland to help ensure compliance with security standards under Art. 32 GDPR.
+arsnova.eu is hosted by Hetzner Online GmbH in Germany. Hetzner is audited annually by TÜV Rheinland to ensure compliance with stringent security standards under Art. 32 GDPR.
 
-The website and application at **https://arsnova.eu** are operated on Hetzner. If the software is **self-hosted or operated by a third party** (e.g. your institution), access data (e.g. IP address, access time) may be processed on the respective provider’s servers. If hosted in third countries (e.g. USA), data may be transferred there; appropriate safeguards (e.g. standard contractual clauses under Art. 46 GDPR) are then agreed. A **separate** project landing page (demo/marketing) may additionally be provided via **GitHub Pages** under a different URL – not the main arsnova.eu site; see [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). The actual provider and storage location depend on the respective offering.
+The website and application at **https://arsnova.eu** run on Hetzner servers. If the software is hosted **by you or a third party** (e.g., your institution), access data (like IP addresses) may be logged on their respective servers. If the application is hosted in a non-EU country (e.g., the US), data transfers may occur, subject to appropriate safeguards (such as Standard Contractual Clauses per Art. 46 GDPR). A **separate** project landing page (for demos and marketing) may occasionally be hosted via **GitHub Pages** under a different domain—not the main arsnova.eu site; for details, please see the [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). The specific provider and storage location depend on the respective setup.
 
-## 6. Your rights
+## 6. Your Rights
 
-You have the following rights vis-à-vis the data controller, among others:
+You have the following rights regarding the data controller:
 
-- **Access** (Art. 15 GDPR) to your personal data being processed
-- **Rectification** (Art. 16 GDPR) of inaccurate data
-- **Erasure** (Art. 17 GDPR) or **restriction of processing** (Art. 18 GDPR)
-- **Objection** (Art. 21 GDPR) to processing based on Art. 6(1)(f) GDPR
-- **Data portability** (Art. 20 GDPR) where applicable
-- **Withdrawal** of consent (Art. 7(3) GDPR) with effect for the future
-- **Complaint** to a supervisory authority (Art. 77 GDPR)
+- **Access** (Art. 15 GDPR) to your processed personal data.
+- **Rectification** (Art. 16 GDPR) of inaccurate data.
+- **Erasure** (Art. 17 GDPR) or **restriction of processing** (Art. 18 GDPR).
+- **Objection** (Art. 21 GDPR) to processing based on our legitimate interests (Art. 6(1)(f) GDPR).
+- **Data portability** (Art. 20 GDPR), where applicable.
+- **Withdrawal** of consent (Art. 7(3) GDPR) with future effect.
+- **Complaint** to a supervisory data protection authority (Art. 77 GDPR).
 
-For requests and to exercise your rights, please contact: [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org).
+For inquiries or to exercise your rights, please contact: [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org).
 
-## 7. Provision of data
+## 7. Obligation to Provide Data
 
-For a simple informational visit without registration, you are not legally or contractually required to provide personal data. You may use arsnova.eu without such information; we can still display and deliver the content. To contact us by email, we need an email address from you.
+For purely informational visits without creating an account, you are not legally or contractually required to provide any personal data. You can freely use arsnova.eu without submitting personal information, and we will still be able to deliver the content technically. If you reach out to us via email, we obviously require your email address to respond.
 
-## 8. Note on the arsnova.eu application
+## 8. Using the arsnova.eu Application
 
-If you use arsnova.eu for live quiz, Q&A or voting, the experience is designed with privacy in mind:
+When you use arsnova.eu for live quizzes, Q&As, or Pulse Checks, the platform is designed to be highly privacy-friendly:
 
-- **Local-first:** As the creator, you store quiz content (questions, answers) locally in your browser (IndexedDB/Yjs). There is no permanent server-side storage of quiz content; when starting a live session, data is only transferred to the server temporarily for the duration of the session.
-- **Browser storage:** Local Storage and IndexedDB may hold quiz data, settings, recently used session codes and, for feedback voting, a local identifier for one-time vote tracking (no user account). **No cookies** are set for tracking or analytics.
-- **Operation of live sessions (when operated by the controller in section 1):** During a session, session code, pseudonymous nicknames (or in anonymous mode only automatically assigned participant IDs), votes and points are processed. The legal basis is Art. 6(1)(f) GDPR (legitimate interest in operating the real-time application). No personal data is stored without a defined purpose.
-- **Clean-up:** Session data (votes, participant lists) is automatically cleared after the session ends or after 24 hours at the latest, unless a statutory retention obligation or an administrative legal hold applies. Aggregated statistics (e.g. participant counts) do not allow identification of individuals.
-- **Anonymous mode:** You can optionally use a mode where no nicknames are collected (only automatic participant IDs) for particularly data-minimal participation.
+- **Local-First Architecture:** As a host, your quiz content (questions and answers) is stored locally in your browser (via IndexedDB and Yjs). We do not permanently store quiz content on our servers. When you start a live session, the data is only temporarily transmitted to the server for the duration of the session.
+- **Browser Storage:** Local Storage and IndexedDB are used to hold your quiz data, settings, recently used session codes, and—in the case of feedback polls—a local identifier to prevent duplicate voting. **No cookies** are used for tracking or analytics.
+- **Live Sessions Hosted by Us:** During a session hosted via the controller listed in Section 1, we process the session code, pseudonymous nicknames (or auto-generated participant IDs in anonymous mode), votes, and scores. The legal basis for this is Art. 6(1)(f) GDPR (legitimate interest in operating a real-time application). No personal data is stored beyond its strict operational purpose.
+- **Data Cleanup:** Session data (such as votes and participant lists) is automatically purged after the session ends or within 24 hours at the latest, except where statutory retention periods apply or an administrative **Legal Hold** has been initiated. Aggregated statistics (e.g., total participant counts) contain no personally identifiable information.
+- **Anonymous Mode:** You have the option to enable a mode where no nicknames are collected at all (only automated participant IDs), keeping data footprints strictly minimized.
 
 If the application is self-hosted, the data controller may be different (your institution). In that case the privacy information provided there applies.
 
 ## 9. Changes
 
-We update the privacy information when the legal situation or our processing changes. The current version is always available here on arsnova.eu.
+We will update this privacy policy whenever the legal framework or our data processing practices change. You can always find the most current version right here on arsnova.eu.
