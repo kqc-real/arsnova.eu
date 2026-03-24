@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- Öffentliche, prerenderbare App-Routen × Locales (hreflang wie index.html, x-default = de). -->
+  <url>
+    <loc>https://arsnova.eu/de/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://arsnova.eu/de/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://arsnova.eu/en/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://arsnova.eu/fr/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://arsnova.eu/it/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://arsnova.eu/es/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arsnova.eu/de/" />
+  </url>
+  <url>
+    <loc>https://arsnova.eu/de/help</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://arsnova.eu/de/help" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://arsnova.eu/en/help" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://arsnova.eu/fr/help" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://arsnova.eu/it/help" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://arsnova.eu/es/help" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arsnova.eu/de/help" />
+  </url>
+  <url>
+    <loc>https://arsnova.eu/de/quiz</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://arsnova.eu/de/quiz" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://arsnova.eu/en/quiz" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://arsnova.eu/fr/quiz" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://arsnova.eu/it/quiz" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://arsnova.eu/es/quiz" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arsnova.eu/de/quiz" />
+  </url>
+  <url>
+    <loc>https://arsnova.eu/de/legal/imprint</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://arsnova.eu/de/legal/imprint" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://arsnova.eu/en/legal/imprint" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://arsnova.eu/fr/legal/imprint" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://arsnova.eu/it/legal/imprint" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://arsnova.eu/es/legal/imprint" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arsnova.eu/de/legal/imprint" />
+  </url>
+  <url>
+    <loc>https://arsnova.eu/de/legal/privacy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://arsnova.eu/de/legal/privacy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://arsnova.eu/en/legal/privacy" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://arsnova.eu/fr/legal/privacy" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://arsnova.eu/it/legal/privacy" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://arsnova.eu/es/legal/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arsnova.eu/de/legal/privacy" />
+  </url>
+</urlset>

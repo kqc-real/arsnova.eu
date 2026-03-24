@@ -89,6 +89,28 @@ if (fs.existsSync(frontendDist)) {
       });
     }
 
+    let sitemapFile: string | null = null;
+    for (const locale of robotsLocaleOrder) {
+      const candidate = path.join(frontendDist, locale, 'sitemap.xml');
+      if (fs.existsSync(candidate)) {
+        sitemapFile = path.resolve(candidate);
+        break;
+      }
+    }
+    if (!sitemapFile) {
+      const rootSitemap = path.join(frontendDist, 'sitemap.xml');
+      if (fs.existsSync(rootSitemap)) {
+        sitemapFile = path.resolve(rootSitemap);
+      }
+    }
+    if (sitemapFile) {
+      const sitemapPath = sitemapFile;
+      app.get('/sitemap.xml', (_req, res) => {
+        res.type('application/xml; charset=utf-8');
+        res.sendFile(sitemapPath);
+      });
+    }
+
     // /assets/* aus de/ (lokalisiert: Manifest-Icons werden unter /assets referenziert)
     app.use('/assets', express.static(path.join(frontendDist, fallbackLocale ?? 'en', 'assets')));
     // Locale-prefixed assets: fallthrough false → fehlende Dateien liefern 404 statt SPA-index

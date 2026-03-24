@@ -218,6 +218,7 @@ ng build --localize
 - Jede Locale wird aus einem **eigenen Unterpfad** ausgeliefert (z. B. `/de/`, `/en/`).
 - **Spracherkennung:** Serverseitig anhand des `Accept-Language`-Headers auf die passende Locale umleiten (z. B. `/` → `/de/` oder `/en/`).
 - **Sprachwahl in der App:** Navigation zu anderem Subpfad (z. B. von `/de/` zu `/en/`), ggf. mit Reload.
+- **SEO:** `apps/frontend/src/sitemap.xml` listet öffentliche, prerenderbare Routen (Startseite, Hilfe, Quiz-Liste, Impressum, Datenschutz) je Locale mit **`hreflang`**-Alternates; `x-default` entspricht der Startseite **`/de/`** (wie in `index.html`). Die Datei wird wie `robots.txt` in jeden Locale-Ordner des Builds kopiert; das **Backend** liefert **`GET /sitemap.xml`** zentral aus (analog zu `robots.txt`). In **`src/robots.txt`** steht **`Sitemap: https://arsnova.eu/sitemap.xml`**.
 
 Dokumentation: [Deploy multiple locales](https://angular.dev/guide/i18n/deploy) (inkl. Nginx-/Apache-Beispiele).
 
