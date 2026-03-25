@@ -37,10 +37,19 @@ export function localeIdToSupported(localeId: string): SupportedLocale {
 }
 
 /**
- * Effektive UI-/Asset-Locale: &lt;base href&gt;, dann Pfad-Segment, dann optional Build-Locale (`LOCALE_ID`), sonst `de`.
+ * Effektive UI-/Asset-Locale: zuerst explizites Sprachsegment im **pathname** (`/de/quiz` …),
+ * dann &lt;base href&gt; (lokalisierte Ein-Sprachen-Builds ohne Präfix in der URL), dann
+ * optional Build-Locale (`LOCALE_ID`), sonst `de`.
+ *
+ * Pfad vor Base: Der Toolbar-Sprachwechsel setzt `window.location` auf ein anderes Präfix, während
+ * &lt;base href&gt; oft weiter der localize-Build-Sprache entspricht — sonst bliebe z. B. die Demo immer EN.
  */
 export function getEffectiveLocale(fallbackFromBuild?: SupportedLocale): SupportedLocale {
-  return getLocaleFromBaseHref() ?? getLocaleFromPath() ?? fallbackFromBuild ?? 'de';
+  const fromPath = getLocaleFromPath();
+  if (fromPath) return fromPath;
+  const fromBase = getLocaleFromBaseHref();
+  if (fromBase) return fromBase;
+  return fallbackFromBuild ?? 'de';
 }
 
 /**

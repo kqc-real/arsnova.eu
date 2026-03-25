@@ -55,6 +55,16 @@ describe('locale-from-path', () => {
       expect(getEffectiveLocale()).toBe('fr');
     });
 
+    it('bevorzugt Pfad vor base href (Toolbar-Sprachwechsel trotz localize-base /en/)', () => {
+      const base = document.createElement('base');
+      base.setAttribute('href', '/en/');
+      document.head.prepend(base);
+      window.history.pushState({}, '', '/de/quiz');
+      expect(getLocaleFromBaseHref()).toBe('en');
+      expect(getLocaleFromPath()).toBe('de');
+      expect(getEffectiveLocale()).toBe('de');
+    });
+
     it('nutzt Fallback wenn weder base noch Pfad', () => {
       const base = document.createElement('base');
       base.setAttribute('href', '/');
