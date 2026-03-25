@@ -347,7 +347,8 @@ export type LibrarySharingMode = 'local' | 'shared';
 export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
 
 /** Merkt sich, in welcher Sprache das Demo-Quiz zuletzt gesät wurde (für Sprachwechsel / Migration). */
-const DEMO_QUIZ_LOCALE_STORAGE_KEY = 'arsnova-demo-quiz-locale-v1';
+/** v2: v1 konnte fälschlich „de“ speichern, obwohl der Demo-Inhalt noch EN war → Demo blieb bei Sprachwechsel falsch. */
+const DEMO_QUIZ_LOCALE_STORAGE_KEY = 'arsnova-demo-quiz-locale-v2';
 
 @Injectable({ providedIn: 'root' })
 export class QuizStoreService {
@@ -929,12 +930,7 @@ export class QuizStoreService {
     const locale = this.resolveActiveDemoLocale();
     const payload = getDemoQuizPayload(locale);
     const existing = this.getQuizById(DEMO_QUIZ_ID);
-    let lastSeeded = this.readDemoQuizSeededLocale();
-
-    if (existing && lastSeeded === null) {
-      lastSeeded = 'de';
-      this.writeDemoQuizSeededLocale('de');
-    }
+    const lastSeeded = this.readDemoQuizSeededLocale();
 
     if (!existing) {
       try {
@@ -946,7 +942,7 @@ export class QuizStoreService {
       return;
     }
 
-    if (lastSeeded !== locale) {
+    if (lastSeeded === null || lastSeeded !== locale) {
       try {
         this.quizDocuments.update((current) => current.filter((q) => q.id !== DEMO_QUIZ_ID));
         this.importQuiz(payload, DEMO_QUIZ_ID);
