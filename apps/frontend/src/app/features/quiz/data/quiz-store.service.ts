@@ -929,8 +929,11 @@ export class QuizStoreService {
     return this.quizDocuments().find((quiz) => quiz.id === id) ?? null;
   }
 
-  ensureDemoQuiz(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
+  /**
+   * @returns true wenn ein Import/Neu-Seed ausgeführt wurde (für Yjs-Flush nach applyYjsSnapshot).
+   */
+  ensureDemoQuiz(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
 
     const locale = this.resolveActiveDemoLocale();
     const payload = getDemoQuizPayload(locale);
@@ -942,10 +945,11 @@ export class QuizStoreService {
       try {
         this.importQuiz(payload, DEMO_QUIZ_ID);
         this.writeDemoQuizSeedFingerprint(expectedFp);
+        return true;
       } catch (e) {
         console.error('[DemoQuiz] Seeding failed:', e);
+        return false;
       }
-      return;
     }
 
     if (storedFp !== expectedFp) {
@@ -953,10 +957,14 @@ export class QuizStoreService {
         this.quizDocuments.update((current) => current.filter((q) => q.id !== DEMO_QUIZ_ID));
         this.importQuiz(payload, DEMO_QUIZ_ID);
         this.writeDemoQuizSeedFingerprint(expectedFp);
+        return true;
       } catch (e) {
         console.error('[DemoQuiz] Locale refresh failed:', e);
+        return false;
       }
     }
+
+    return false;
   }
 
   private resolveActiveDemoLocale(): SupportedLocale {
@@ -1190,6 +1198,7 @@ export class QuizStoreService {
     if (raw === this.lastSerializedQuizDocuments && this.lastSerializedRoomId === this.syncRoomId())
       return;
 
+    let demoReseeded = false;
     try {
       const parsed = JSON.parse(raw) as unknown;
       const validQuizzes = normalizeStoredQuizzes(parsed);
@@ -1201,9 +1210,10 @@ export class QuizStoreService {
       if (lastRemoteChangedQuiz) {
         this.recordRemoteSync(lastRemoteChangedQuiz);
       }
-      this.ensureDemoQuiz();
+      demoReseeded = this.ensureDemoQuiz();
+      // Nicht den alten Yjs-Rohstring spiegeln: ensureDemoQuiz kann importiert haben — sonst LS + Fingerprint widerspricht dem Inhalt.
       if (hadDemoQuiz) {
-        this.persistLocalMirror(raw);
+        this.persistLocalMirror(this.serializeQuizDocuments());
       } else {
         this.persistToStorage();
       }
@@ -1211,6 +1221,12 @@ export class QuizStoreService {
       // Ignore malformed CRDT payload and keep current in-memory state.
     } finally {
       this.isApplyingYjsSnapshot = false;
+      // Während isApplyingYjsSnapshot ist writeYjsSnapshot no-op; nach Demo-Neu-Import muss Yjs/IndexedDB nachziehen.
+      if (demoReseeded && this.yRoot && isPlatformBrowser(this.platformId)) {
+        const serialized = this.serializeQuizDocuments();
+        this.updateSerializedQuizCache(this.syncRoomId(), serialized);
+        this.writeYjsSnapshot(serialized);
+      }
     }
   }
 
