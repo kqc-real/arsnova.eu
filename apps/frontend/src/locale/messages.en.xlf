@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="7981911571029514989" datatype="html">
         <source>Jetzt mit mehr Schwung!</source>
-        <target>Now with more momentum!</target>
+        <target>Now faster and smoother!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.ts</context>
           <context context-type="linenumber">125</context>
@@ -444,7 +444,7 @@
       </trans-unit>
       <trans-unit id="admin.areaHelp" datatype="html">
         <source> Recherchefenster A/B: laufende Sessions und Nachlaufdaten.</source>
-        <target>Research window A/B: active sessions and post-session retention data.</target>
+        <target>Lookup window A/B: active sessions and post-session retention data.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">49,51</context>
@@ -492,7 +492,7 @@
       </trans-unit>
       <trans-unit id="admin.listEmpty" datatype="html">
         <source> Keine Sessions im Recherchefenster gefunden.</source>
-        <target>No sessions found in the research window.</target>
+        <target>No sessions found in this view.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">96,97</context>
@@ -500,7 +500,7 @@
       </trans-unit>
       <trans-unit id="admin.retentionPrefix" datatype="html">
         <source>Fenster:</source>
-        <target>Window:</target>
+        <target>Retention window:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">110,111</context>
@@ -508,7 +508,7 @@
       </trans-unit>
       <trans-unit id="admin.detailTitle" datatype="html">
         <source>Session-Detail</source>
-        <target>Session detail</target>
+        <target>Session details</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">122,123</context>
@@ -540,7 +540,7 @@
       </trans-unit>
       <trans-unit id="admin.metaWindowLabel" datatype="html">
         <source>Fenster:</source>
-        <target>Window:</target>
+        <target>Retention window:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">139,140</context>
@@ -588,7 +588,7 @@
       </trans-unit>
       <trans-unit id="admin.exportPdf" datatype="html">
         <source> Behördenauszug (PDF) exportieren</source>
-        <target>Export authority summary (PDF)</target>
+        <target>Export compliance report (PDF)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">190,191</context>
@@ -956,7 +956,7 @@
       </trans-unit>
       <trans-unit id="feedback.compareRoundHeadline" datatype="html">
         <source> Jetzt zum Vergleich ein zweites Blitzlicht...</source>
-        <target>Let's do a second round to compare...</target>
+        <target>Let's run a second Pulse Check to compare...</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">264,266</context>
@@ -1204,7 +1204,7 @@
       </trans-unit>
       <trans-unit id="feedback.voteChooseMoodAria" datatype="html">
         <source>Abstimmung wählen</source>
-        <target>Choose vote</target>
+        <target>Cast your vote</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.html</context>
           <context context-type="linenumber">116,118</context>
