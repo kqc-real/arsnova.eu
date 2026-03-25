@@ -32,10 +32,14 @@ import {
 import { getYjsWsUrl } from '../../../core/ws-urls';
 import {
   getEffectiveLocale,
+  getHomeLanguagePreference,
+  getLocaleFromPath,
   localeIdToSupported,
+  parseLeadingLocaleFromPathOrUrl,
   type SupportedLocale,
 } from '../../../core/locale-from-path';
 import {
+  detectCanonicalDemoLocaleForTitle,
   getDemoQuizPayload,
   getDemoQuizSeedFingerprint,
   normalizeDemoQuizLocale,
@@ -941,6 +945,18 @@ export class QuizStoreService {
     const existing = this.getQuizById(DEMO_QUIZ_ID);
     const storedFp = this.readDemoQuizSeedFingerprint();
 
+    const reseedDemoFromPayload = (): boolean => {
+      try {
+        this.quizDocuments.update((current) => current.filter((q) => q.id !== DEMO_QUIZ_ID));
+        this.importQuiz(payload, DEMO_QUIZ_ID);
+        this.writeDemoQuizSeedFingerprint(expectedFp);
+        return true;
+      } catch (e) {
+        console.error('[DemoQuiz] Reseed failed:', e);
+        return false;
+      }
+    };
+
     if (!existing) {
       try {
         this.importQuiz(payload, DEMO_QUIZ_ID);
@@ -952,26 +968,39 @@ export class QuizStoreService {
       }
     }
 
+    const titleLocale = detectCanonicalDemoLocaleForTitle(existing.name);
+    if (titleLocale !== null && titleLocale !== locale) {
+      return reseedDemoFromPayload();
+    }
+
     if (storedFp !== expectedFp) {
-      try {
-        this.quizDocuments.update((current) => current.filter((q) => q.id !== DEMO_QUIZ_ID));
-        this.importQuiz(payload, DEMO_QUIZ_ID);
-        this.writeDemoQuizSeedFingerprint(expectedFp);
-        return true;
-      } catch (e) {
-        console.error('[DemoQuiz] Locale refresh failed:', e);
-        return false;
-      }
+      return reseedDemoFromPayload();
     }
 
     return false;
   }
 
   private resolveActiveDemoLocale(): SupportedLocale {
-    if (isPlatformBrowser(this.platformId)) {
-      return getEffectiveLocale(localeIdToSupported(String(this.localeId)));
+    if (!isPlatformBrowser(this.platformId)) {
+      return normalizeDemoQuizLocale(String(this.localeId));
     }
-    return normalizeDemoQuizLocale(String(this.localeId));
+
+    const fromPath = getLocaleFromPath();
+    const fromRouter = parseLeadingLocaleFromPathOrUrl(this.router.url);
+    if (fromPath && fromRouter && fromPath !== fromRouter) {
+      return fromPath;
+    }
+    const fromSegment = fromPath ?? fromRouter;
+    if (fromSegment) {
+      return fromSegment;
+    }
+
+    const fromSaved = getHomeLanguagePreference();
+    if (fromSaved) {
+      return fromSaved;
+    }
+
+    return getEffectiveLocale(localeIdToSupported(String(this.localeId)));
   }
 
   private readDemoQuizSeedFingerprint(): string | null {

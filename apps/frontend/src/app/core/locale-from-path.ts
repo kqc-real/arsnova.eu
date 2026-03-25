@@ -5,12 +5,37 @@
 export const SUPPORTED_LOCALES = ['de', 'en', 'fr', 'it', 'es'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
+/** Muss mit der Toolbar (`TopToolbarComponent`) übereinstimmen. */
+export const HOME_LANGUAGE_LOCAL_STORAGE_KEY = 'home-language';
+
 const LOCALE_REGEX = /^\/(de|en|fr|it|es)(?:\/|$)/;
 
 export function getLocaleFromPath(): SupportedLocale | null {
   if (typeof window === 'undefined') return null;
   const match = window.location.pathname.match(LOCALE_REGEX);
   return match ? (match[1] as SupportedLocale) : null;
+}
+
+/** Erkennt `/de/quiz` auch in `Router.url` (kann kurz von `location.pathname` abweichen). */
+export function parseLeadingLocaleFromPathOrUrl(pathOrUrl: string): SupportedLocale | null {
+  if (!pathOrUrl) return null;
+  const pathOnly = pathOrUrl.split(/[?#]/)[0] ?? '';
+  const withSlash = pathOnly.startsWith('/') ? pathOnly : `/${pathOnly}`;
+  const m = withSlash.match(LOCALE_REGEX);
+  return m ? (m[1] as SupportedLocale) : null;
+}
+
+export function getHomeLanguagePreference(): SupportedLocale | null {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(HOME_LANGUAGE_LOCAL_STORAGE_KEY);
+    if (raw && (SUPPORTED_LOCALES as readonly string[]).includes(raw)) {
+      return raw as SupportedLocale;
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
 }
 
 /**

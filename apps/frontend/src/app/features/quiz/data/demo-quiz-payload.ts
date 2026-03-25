@@ -41,3 +41,20 @@ export function getDemoQuizSeedFingerprint(locale: SupportedLocale): string {
   const n = typeof p.quiz?.name === 'string' ? p.quiz.name : '';
   return `${locale}|${v}|${n}`;
 }
+
+export function getDemoQuizExpectedTitle(locale: SupportedLocale): string {
+  const payload = PAYLOADS[locale] ?? PAYLOADS.de;
+  const p = payload as DemoExportShape;
+  return typeof p.quiz?.name === 'string' ? p.quiz.name.trim() : '';
+}
+
+/** Wenn der gespeicherte Titel exakt der kanonische Showcase-Titel einer Sprache ist → welche. */
+export function detectCanonicalDemoLocaleForTitle(title: string): SupportedLocale | null {
+  const t = title.trim();
+  if (!t) return null;
+  for (const loc of SUPPORTED_LOCALES) {
+    const n = getDemoQuizExpectedTitle(loc);
+    if (n && n === t) return loc;
+  }
+  return null;
+}

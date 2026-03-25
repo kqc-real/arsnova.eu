@@ -1,9 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   getEffectiveLocale,
+  getHomeLanguagePreference,
   getLocaleFromBaseHref,
   getLocaleFromPath,
+  HOME_LANGUAGE_LOCAL_STORAGE_KEY,
   localeIdToSupported,
+  parseLeadingLocaleFromPathOrUrl,
   resolveAssetUrlFromBase,
 } from './locale-from-path';
 
@@ -96,6 +99,22 @@ describe('locale-from-path', () => {
   describe('localeIdToSupported', () => {
     it('normalisiert en-US', () => {
       expect(localeIdToSupported('en-US')).toBe('en');
+    });
+  });
+
+  describe('parseLeadingLocaleFromPathOrUrl', () => {
+    it('erkennt Locale in Router-URL', () => {
+      expect(parseLeadingLocaleFromPathOrUrl('/it/help')).toBe('it');
+      expect(parseLeadingLocaleFromPathOrUrl('fr/quiz')).toBe('fr');
+    });
+  });
+
+  describe('getHomeLanguagePreference', () => {
+    it('liest gespeicherte Toolbar-Sprache', () => {
+      localStorage.setItem(HOME_LANGUAGE_LOCAL_STORAGE_KEY, 'es');
+      expect(getHomeLanguagePreference()).toBe('es');
+      localStorage.removeItem(HOME_LANGUAGE_LOCAL_STORAGE_KEY);
+      expect(getHomeLanguagePreference()).toBeNull();
     });
   });
 });

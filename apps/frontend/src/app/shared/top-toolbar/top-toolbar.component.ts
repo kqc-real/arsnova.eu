@@ -14,14 +14,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import { LocaleSwitchGuardService } from '../../core/locale-switch-guard.service';
-import { getLocaleFromPath, SUPPORTED_LOCALES } from '../../core/locale-from-path';
+import {
+  getLocaleFromPath,
+  HOME_LANGUAGE_LOCAL_STORAGE_KEY,
+  SUPPORTED_LOCALES,
+} from '../../core/locale-from-path';
 import { localizePath } from '../../core/locale-router';
 import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../confirm-leave-dialog/confirm-leave-dialog.component';
-
-const STORAGE_LANG = 'home-language';
 
 @Component({
   selector: 'app-top-toolbar',
@@ -82,7 +84,7 @@ export class TopToolbarComponent {
           fromPath !== 'de' && document.documentElement.getAttribute('lang') === 'de',
         );
       } else {
-        const stored = localStorage.getItem(STORAGE_LANG);
+        const stored = localStorage.getItem(HOME_LANGUAGE_LOCAL_STORAGE_KEY);
         if (stored && SUPPORTED_LOCALES.includes(stored as (typeof SUPPORTED_LOCALES)[number])) {
           this.language.set(stored as 'de' | 'en' | 'fr' | 'it' | 'es');
         }
@@ -96,7 +98,7 @@ export class TopToolbarComponent {
       this.closeControlsMenu();
       return;
     }
-    localStorage.setItem(STORAGE_LANG, code);
+    localStorage.setItem(HOME_LANGUAGE_LOCAL_STORAGE_KEY, code);
     this.closeControlsMenu();
 
     const doRedirect = (): void => {

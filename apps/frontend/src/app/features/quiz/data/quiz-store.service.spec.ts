@@ -600,4 +600,37 @@ describe('QuizStoreService', () => {
       'Alle Frageformate – Quiz aus der Oberstufe',
     );
   });
+
+  it('Demo-Quiz: kanonischer EN-Titel bei DE-URL → Neu-Import trotz passendem Fingerprint', () => {
+    const roomId = '00000000-0000-4000-8000-000000000077';
+    localStorage.setItem('quiz-sync-room-id', roomId);
+    localStorage.setItem(
+      `${QUIZ_STORAGE_KEY}:${roomId}`,
+      JSON.stringify([
+        {
+          id: DEMO_QUIZ_ID,
+          name: 'All question formats – high school demo quiz',
+          description: null,
+          motifImageUrl: null,
+          createdAt: '2026-03-08T12:00:00.000Z',
+          updatedAt: '2026-03-08T12:00:00.000Z',
+          settings: defaultSettings,
+          questions: [],
+        },
+      ]),
+    );
+    localStorage.setItem('arsnova-demo-quiz-seed-fp-v1', getDemoQuizSeedFingerprint('de'));
+
+    window.history.pushState({}, '', '/de/quiz');
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), { provide: LOCALE_ID, useValue: 'de' }],
+    });
+
+    const service = TestBed.inject(QuizStoreService);
+    expect(service.getQuizById(DEMO_QUIZ_ID)?.name).toBe(
+      'Alle Frageformate – Quiz aus der Oberstufe',
+    );
+  });
 });
