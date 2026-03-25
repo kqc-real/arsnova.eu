@@ -1,41 +1,24 @@
--- Vollständiges Schema aus prisma/schema.prisma (Prisma migrate diff --from-empty --to-schema).
--- Ersetzt die frühere, lückenhafte Kette: die erste Migration wies auf "Quiz" ohne vorherige CREATE TABLE.
+-- Vollständiges Schema aus prisma/schema.prisma.
+-- Idempotent: leere DB und bestehende DBs (alte Migrationen / db push).
 --
--- Bereits deployte Umgebungen mit alten Einträgen in _prisma_migrations: nicht diese Datei erneut ausführen;
--- stattdessen Migration-Historie angleichen (z. B. Einmal-SQL aus diff gegen Live-DB oder Support von Prisma).
+-- Nach fehlgeschlagenem ersten Lauf (P3018): auf dem Server einmal
+--   npx prisma migrate resolve --rolled-back 20250220100000_baseline_schema
+-- (im App-Container wie deploy.sh Schritt 4), dann Commit deployen und erneut `migrate deploy`.
 
--- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
--- CreateEnum
-CREATE TYPE "QuestionType" AS ENUM ('MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'FREETEXT', 'SURVEY', 'RATING');
+-- Enums (PostgreSQL: kein CREATE TYPE IF NOT EXISTS für ENUM)
+DO $$ BEGIN CREATE TYPE "QuestionType" AS ENUM ('MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'FREETEXT', 'SURVEY', 'RATING'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "Difficulty" AS ENUM ('EASY', 'MEDIUM', 'HARD'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "SessionStatus" AS ENUM ('LOBBY', 'QUESTION_OPEN', 'ACTIVE', 'PAUSED', 'RESULTS', 'DISCUSSION', 'FINISHED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "NicknameTheme" AS ENUM ('NOBEL_LAUREATES', 'KINDERGARTEN', 'PRIMARY_SCHOOL', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "TeamAssignment" AS ENUM ('AUTO', 'MANUAL'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "SessionType" AS ENUM ('QUIZ', 'Q_AND_A'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "QaVoteDirection" AS ENUM ('UP', 'DOWN'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "QaQuestionStatus" AS ENUM ('PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED', 'DELETED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "AdminAuditAction" AS ENUM ('SESSION_DELETE', 'EXPORT_FOR_AUTHORITIES'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- CreateEnum
-CREATE TYPE "Difficulty" AS ENUM ('EASY', 'MEDIUM', 'HARD');
-
--- CreateEnum
-CREATE TYPE "SessionStatus" AS ENUM ('LOBBY', 'QUESTION_OPEN', 'ACTIVE', 'PAUSED', 'RESULTS', 'DISCUSSION', 'FINISHED');
-
--- CreateEnum
-CREATE TYPE "NicknameTheme" AS ENUM ('NOBEL_LAUREATES', 'KINDERGARTEN', 'PRIMARY_SCHOOL', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL');
-
--- CreateEnum
-CREATE TYPE "TeamAssignment" AS ENUM ('AUTO', 'MANUAL');
-
--- CreateEnum
-CREATE TYPE "SessionType" AS ENUM ('QUIZ', 'Q_AND_A');
-
--- CreateEnum
-CREATE TYPE "QaVoteDirection" AS ENUM ('UP', 'DOWN');
-
--- CreateEnum
-CREATE TYPE "QaQuestionStatus" AS ENUM ('PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED', 'DELETED');
-
--- CreateEnum
-CREATE TYPE "AdminAuditAction" AS ENUM ('SESSION_DELETE', 'EXPORT_FOR_AUTHORITIES');
-
--- CreateTable
-CREATE TABLE "Quiz" (
+CREATE TABLE IF NOT EXISTS "Quiz" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -59,12 +42,10 @@ CREATE TABLE "Quiz" (
     "preset" TEXT NOT NULL DEFAULT 'PLAYFUL',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "Quiz_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Question" (
+CREATE TABLE IF NOT EXISTS "Question" (
     "id" TEXT NOT NULL,
     "text" TEXT NOT NULL,
     "type" "QuestionType" NOT NULL,
@@ -76,22 +57,18 @@ CREATE TABLE "Question" (
     "ratingLabelMax" TEXT,
     "quizId" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
-
     CONSTRAINT "Question_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "AnswerOption" (
+CREATE TABLE IF NOT EXISTS "AnswerOption" (
     "id" TEXT NOT NULL,
     "text" TEXT NOT NULL,
     "isCorrect" BOOLEAN NOT NULL,
     "questionId" TEXT NOT NULL,
-
     CONSTRAINT "AnswerOption_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Session" (
+CREATE TABLE IF NOT EXISTS "Session" (
     "id" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "type" "SessionType" NOT NULL DEFAULT 'QUIZ',
@@ -112,33 +89,27 @@ CREATE TABLE "Session" (
     "legalHoldReason" TEXT,
     "legalHoldSetAt" TIMESTAMP(3),
     "answerDisplayOrder" JSONB,
-
     CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Participant" (
+CREATE TABLE IF NOT EXISTS "Participant" (
     "id" TEXT NOT NULL,
     "nickname" TEXT NOT NULL,
     "sessionId" TEXT NOT NULL,
     "teamId" TEXT,
     "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "Participant_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Team" (
+CREATE TABLE IF NOT EXISTS "Team" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "color" TEXT,
     "sessionId" TEXT NOT NULL,
-
     CONSTRAINT "Team_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Vote" (
+CREATE TABLE IF NOT EXISTS "Vote" (
     "id" TEXT NOT NULL,
     "sessionId" TEXT NOT NULL,
     "participantId" TEXT NOT NULL,
@@ -151,21 +122,17 @@ CREATE TABLE "Vote" (
     "streakBonus" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
     "round" INTEGER NOT NULL DEFAULT 1,
     "votedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "Vote_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "VoteAnswer" (
+CREATE TABLE IF NOT EXISTS "VoteAnswer" (
     "id" TEXT NOT NULL,
     "voteId" TEXT NOT NULL,
     "answerOptionId" TEXT NOT NULL,
-
     CONSTRAINT "VoteAnswer_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "BonusToken" (
+CREATE TABLE IF NOT EXISTS "BonusToken" (
     "id" TEXT NOT NULL,
     "token" TEXT NOT NULL,
     "sessionId" TEXT NOT NULL,
@@ -175,12 +142,10 @@ CREATE TABLE "BonusToken" (
     "totalScore" INTEGER NOT NULL,
     "rank" INTEGER NOT NULL,
     "generatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "BonusToken_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "SessionFeedback" (
+CREATE TABLE IF NOT EXISTS "SessionFeedback" (
     "id" TEXT NOT NULL,
     "sessionId" TEXT NOT NULL,
     "participantId" TEXT NOT NULL,
@@ -188,12 +153,10 @@ CREATE TABLE "SessionFeedback" (
     "questionQualityRating" INTEGER,
     "wouldRepeat" BOOLEAN,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "SessionFeedback_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "QaQuestion" (
+CREATE TABLE IF NOT EXISTS "QaQuestion" (
     "id" TEXT NOT NULL,
     "text" TEXT NOT NULL,
     "upvoteCount" INTEGER NOT NULL DEFAULT 0,
@@ -201,22 +164,18 @@ CREATE TABLE "QaQuestion" (
     "sessionId" TEXT NOT NULL,
     "participantId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "QaQuestion_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "QaUpvote" (
+CREATE TABLE IF NOT EXISTS "QaUpvote" (
     "id" TEXT NOT NULL,
     "qaQuestionId" TEXT NOT NULL,
     "participantId" TEXT NOT NULL,
     "direction" "QaVoteDirection" NOT NULL DEFAULT 'UP',
-
     CONSTRAINT "QaUpvote_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "AdminAuditLog" (
+CREATE TABLE IF NOT EXISTS "AdminAuditLog" (
     "id" TEXT NOT NULL,
     "action" "AdminAuditAction" NOT NULL,
     "sessionId" TEXT NOT NULL,
@@ -224,120 +183,61 @@ CREATE TABLE "AdminAuditLog" (
     "adminIdentifier" TEXT,
     "reason" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "AdminAuditLog_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE INDEX "Question_quizId_order_idx" ON "Question"("quizId", "order");
+-- Bestehende Tabellen aus älteren Deploys: fehlende Spalten nachziehen
+ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "motifImageUrl" TEXT;
+ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "teamNames" TEXT[] DEFAULT ARRAY[]::TEXT[];
+ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "preset" TEXT NOT NULL DEFAULT 'PLAYFUL';
+ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "readingPhaseEnabled" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "currentRound" INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldUntil" TIMESTAMP(3);
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldReason" TEXT;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldSetAt" TIMESTAMP(3);
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "answerDisplayOrder" JSONB;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "qaModerationMode" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "quickFeedbackEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Vote" ADD COLUMN IF NOT EXISTS "round" INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE "Vote" ADD COLUMN IF NOT EXISTS "streakCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Vote" ADD COLUMN IF NOT EXISTS "streakBonus" DOUBLE PRECISION NOT NULL DEFAULT 1.0;
 
--- CreateIndex
-CREATE UNIQUE INDEX "Session_code_key" ON "Session"("code");
+CREATE INDEX IF NOT EXISTS "Question_quizId_order_idx" ON "Question"("quizId", "order");
+CREATE UNIQUE INDEX IF NOT EXISTS "Session_code_key" ON "Session"("code");
+CREATE INDEX IF NOT EXISTS "Session_status_startedAt_id_idx" ON "Session"("status", "startedAt", "id");
+CREATE INDEX IF NOT EXISTS "Session_status_endedAt_idx" ON "Session"("status", "endedAt");
+CREATE INDEX IF NOT EXISTS "Session_legalHoldUntil_idx" ON "Session"("legalHoldUntil");
+CREATE UNIQUE INDEX IF NOT EXISTS "Participant_sessionId_nickname_key" ON "Participant"("sessionId", "nickname");
+CREATE UNIQUE INDEX IF NOT EXISTS "Team_sessionId_name_key" ON "Team"("sessionId", "name");
+CREATE INDEX IF NOT EXISTS "Vote_sessionId_questionId_round_idx" ON "Vote"("sessionId", "questionId", "round");
+CREATE INDEX IF NOT EXISTS "Vote_participantId_votedAt_idx" ON "Vote"("participantId", "votedAt");
+CREATE UNIQUE INDEX IF NOT EXISTS "Vote_sessionId_participantId_questionId_round_key" ON "Vote"("sessionId", "participantId", "questionId", "round");
+CREATE UNIQUE INDEX IF NOT EXISTS "VoteAnswer_voteId_answerOptionId_key" ON "VoteAnswer"("voteId", "answerOptionId");
+CREATE UNIQUE INDEX IF NOT EXISTS "BonusToken_token_key" ON "BonusToken"("token");
+CREATE INDEX IF NOT EXISTS "BonusToken_generatedAt_idx" ON "BonusToken"("generatedAt");
+CREATE UNIQUE INDEX IF NOT EXISTS "SessionFeedback_sessionId_participantId_key" ON "SessionFeedback"("sessionId", "participantId");
+CREATE INDEX IF NOT EXISTS "QaQuestion_sessionId_status_createdAt_idx" ON "QaQuestion"("sessionId", "status", "createdAt");
+CREATE INDEX IF NOT EXISTS "QaQuestion_sessionId_participantId_idx" ON "QaQuestion"("sessionId", "participantId");
+CREATE UNIQUE INDEX IF NOT EXISTS "QaUpvote_qaQuestionId_participantId_key" ON "QaUpvote"("qaQuestionId", "participantId");
+CREATE INDEX IF NOT EXISTS "AdminAuditLog_createdAt_idx" ON "AdminAuditLog"("createdAt");
+CREATE INDEX IF NOT EXISTS "AdminAuditLog_sessionCode_createdAt_idx" ON "AdminAuditLog"("sessionCode", "createdAt");
 
--- CreateIndex
-CREATE INDEX "Session_status_startedAt_id_idx" ON "Session"("status", "startedAt", "id");
-
--- CreateIndex
-CREATE INDEX "Session_status_endedAt_idx" ON "Session"("status", "endedAt");
-
--- CreateIndex
-CREATE INDEX "Session_legalHoldUntil_idx" ON "Session"("legalHoldUntil");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Participant_sessionId_nickname_key" ON "Participant"("sessionId", "nickname");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Team_sessionId_name_key" ON "Team"("sessionId", "name");
-
--- CreateIndex
-CREATE INDEX "Vote_sessionId_questionId_round_idx" ON "Vote"("sessionId", "questionId", "round");
-
--- CreateIndex
-CREATE INDEX "Vote_participantId_votedAt_idx" ON "Vote"("participantId", "votedAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Vote_sessionId_participantId_questionId_round_key" ON "Vote"("sessionId", "participantId", "questionId", "round");
-
--- CreateIndex
-CREATE UNIQUE INDEX "VoteAnswer_voteId_answerOptionId_key" ON "VoteAnswer"("voteId", "answerOptionId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "BonusToken_token_key" ON "BonusToken"("token");
-
--- CreateIndex
-CREATE INDEX "BonusToken_generatedAt_idx" ON "BonusToken"("generatedAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "SessionFeedback_sessionId_participantId_key" ON "SessionFeedback"("sessionId", "participantId");
-
--- CreateIndex
-CREATE INDEX "QaQuestion_sessionId_status_createdAt_idx" ON "QaQuestion"("sessionId", "status", "createdAt");
-
--- CreateIndex
-CREATE INDEX "QaQuestion_sessionId_participantId_idx" ON "QaQuestion"("sessionId", "participantId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "QaUpvote_qaQuestionId_participantId_key" ON "QaUpvote"("qaQuestionId", "participantId");
-
--- CreateIndex
-CREATE INDEX "AdminAuditLog_createdAt_idx" ON "AdminAuditLog"("createdAt");
-
--- CreateIndex
-CREATE INDEX "AdminAuditLog_sessionCode_createdAt_idx" ON "AdminAuditLog"("sessionCode", "createdAt");
-
--- AddForeignKey
-ALTER TABLE "Question" ADD CONSTRAINT "Question_quizId_fkey" FOREIGN KEY ("quizId") REFERENCES "Quiz"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AnswerOption" ADD CONSTRAINT "AnswerOption_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Session" ADD CONSTRAINT "Session_quizId_fkey" FOREIGN KEY ("quizId") REFERENCES "Quiz"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Participant" ADD CONSTRAINT "Participant_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Participant" ADD CONSTRAINT "Participant_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Team" ADD CONSTRAINT "Team_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Vote" ADD CONSTRAINT "Vote_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Vote" ADD CONSTRAINT "Vote_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Vote" ADD CONSTRAINT "Vote_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "VoteAnswer" ADD CONSTRAINT "VoteAnswer_voteId_fkey" FOREIGN KEY ("voteId") REFERENCES "Vote"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "VoteAnswer" ADD CONSTRAINT "VoteAnswer_answerOptionId_fkey" FOREIGN KEY ("answerOptionId") REFERENCES "AnswerOption"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BonusToken" ADD CONSTRAINT "BonusToken_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BonusToken" ADD CONSTRAINT "BonusToken_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SessionFeedback" ADD CONSTRAINT "SessionFeedback_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SessionFeedback" ADD CONSTRAINT "SessionFeedback_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "QaQuestion" ADD CONSTRAINT "QaQuestion_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "QaQuestion" ADD CONSTRAINT "QaQuestion_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "QaUpvote" ADD CONSTRAINT "QaUpvote_qaQuestionId_fkey" FOREIGN KEY ("qaQuestionId") REFERENCES "QaQuestion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "QaUpvote" ADD CONSTRAINT "QaUpvote_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "Question" ADD CONSTRAINT "Question_quizId_fkey" FOREIGN KEY ("quizId") REFERENCES "Quiz"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "AnswerOption" ADD CONSTRAINT "AnswerOption_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "Session" ADD CONSTRAINT "Session_quizId_fkey" FOREIGN KEY ("quizId") REFERENCES "Quiz"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "Participant" ADD CONSTRAINT "Participant_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "Participant" ADD CONSTRAINT "Participant_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "Team" ADD CONSTRAINT "Team_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "Vote" ADD CONSTRAINT "Vote_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "Vote" ADD CONSTRAINT "Vote_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "Vote" ADD CONSTRAINT "Vote_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "VoteAnswer" ADD CONSTRAINT "VoteAnswer_voteId_fkey" FOREIGN KEY ("voteId") REFERENCES "Vote"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "VoteAnswer" ADD CONSTRAINT "VoteAnswer_answerOptionId_fkey" FOREIGN KEY ("answerOptionId") REFERENCES "AnswerOption"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "BonusToken" ADD CONSTRAINT "BonusToken_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "BonusToken" ADD CONSTRAINT "BonusToken_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "SessionFeedback" ADD CONSTRAINT "SessionFeedback_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "SessionFeedback" ADD CONSTRAINT "SessionFeedback_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "QaQuestion" ADD CONSTRAINT "QaQuestion_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "QaQuestion" ADD CONSTRAINT "QaQuestion_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "QaUpvote" ADD CONSTRAINT "QaUpvote_qaQuestionId_fkey" FOREIGN KEY ("qaQuestionId") REFERENCES "QaQuestion"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "QaUpvote" ADD CONSTRAINT "QaUpvote_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
