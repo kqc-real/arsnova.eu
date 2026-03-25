@@ -8,6 +8,8 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs';
 import * as Y from 'yjs';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { WebsocketProvider } from 'y-websocket';
@@ -380,6 +382,7 @@ export class QuizStoreService {
   private hasPendingSyncMetadataFlush = false;
   private readonly currentSyncDeviceId = this.resolveCurrentSyncDeviceId();
   private readonly localeId = inject(LOCALE_ID);
+  private readonly router = inject(Router);
   private readonly onPresetUpdated = (): void => {
     this.writePresetSnapshotToYjs();
   };
@@ -414,6 +417,12 @@ export class QuizStoreService {
     this.initYjsPersistence(roomId);
     if (isPlatformBrowser(this.platformId)) {
       globalThis.addEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
+      // Demo-Quiz-Sprache an URL-Segment koppeln (/de/quiz → /en/quiz ohne Reload).
+      this.router.events
+        .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+        .subscribe(() => {
+          this.ensureDemoQuiz();
+        });
     }
   }
 

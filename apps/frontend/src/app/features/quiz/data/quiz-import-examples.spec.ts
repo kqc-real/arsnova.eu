@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { QuizExport } from '@arsnova/shared-types';
 import { DEMO_QUIZ_ID, QUIZ_STORAGE_KEY, QuizStoreService } from './quiz-store.service';
@@ -67,7 +68,9 @@ const fixtures: FixtureExpectation[] = [
 describe('Quiz example imports (all formats)', () => {
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [provideRouter([])],
+    });
   });
 
   it('importiert alle Beispiel-Quizzes und prüft fragetyp-spezifische Regeln', () => {
