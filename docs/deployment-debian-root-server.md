@@ -335,8 +335,9 @@ upstream app_ws_yjs {
 >
 > # HTTPS – verschlüsselter Zugang + WebSocket-Proxy
 > server {
->     listen 443 ssl http2;
->     listen [::]:443 ssl http2;
+>     listen 443 ssl;
+>     listen [::]:443 ssl;
+>     http2 on;
 >     server_name arsnova.eu www.arsnova.eu;
 >
 >     ssl_certificate     /etc/letsencrypt/live/arsnova.eu/fullchain.pem;
@@ -404,9 +405,11 @@ server {
 }
 
 # HTTPS – verschlüsselter Zugang + WebSocket-Proxy
+# Ab Nginx 1.25.1: HTTP/2 mit „http2 on;“ statt „listen … http2“ (sonst Deprecation-Warnung).
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
     server_name arsnova.eu www.arsnova.eu;
 
     # TLS-Zertifikate (von Certbot in Schritt 5.2 generiert)
