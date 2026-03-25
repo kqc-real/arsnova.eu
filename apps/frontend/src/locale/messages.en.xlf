@@ -943,11 +943,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.joinMenuLead" datatype="html">
-        <source> Gehe auf</source>
+        <source>Gehe auf</source>
         <target>Go to</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
-          <context context-type="linenumber">226,227</context>
+          <context context-type="linenumber">225,226</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -1465,7 +1465,7 @@
       </trans-unit>
       <trans-unit id="help.intro" datatype="html">
         <source> Die Hilfe richtet sich an <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lehrende, Trainer:innen und Seminarleiter:innen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: Du planst Unterricht, Training, Workshops oder Events und willst Interaktion ohne Hürden – Quiz, Q&amp;A und Blitzlicht in einer Session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ohne verpflichtende Anmeldung<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> für dich und deine Gruppe: Du startest, Lernende und Teilnehmende sind mit dabei.</source>
-        <target>These tips are for <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>educators, trainers, and facilitators<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: you run classes, workshops, or events and want smooth interaction—quiz, Q&amp;A, and Pulse Check in one live session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>No accounts required<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> for you or your audience: you host; learners join in.</target>
+        <target>This guide is for <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>educators, trainers, and facilitators<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>. If you run classes, workshops, or events and want smooth interaction—quizzes, Q&amp;As, and Pulse Checks all in one live session—you&apos;re in the right place. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>No accounts required<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> for you or your audience: you just host, and your participants join in.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">17,23</context>
@@ -1489,7 +1489,7 @@
       </trans-unit>
       <trans-unit id="help.usp2" datatype="html">
         <source> In einer Veranstaltung verbindest du <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz, Q&amp;A und Blitzlicht<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> – statt mehrere Tools nebeneinander zu bedienen. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (zwei Abstimmungsrunden mit Diskussionsphase dazwischen) sowie <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>KaTeX<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> und Markdown unterstützen typische Szenarien in Hochschule, Weiterbildung und Seminar – vom spontanen Check bis zur Prüfungsvorbereitung.</source>
-        <target>In one session you combine <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>quiz, Q&amp;A, and Pulse Check<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>—no juggling separate tools. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (two votes with a discussion break), plus <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>KaTeX<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> and Markdown, fits lectures, training, and seminars—from a quick pulse check to exam prep.</target>
+        <target>Combine <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>quizzes, Q&amp;As, and Pulse Checks<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> in a single session—no juggling separate tools. Features like <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (two voting rounds with a discussion break in between), along with <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>KaTeX<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> and Markdown support, are perfect for lectures, training, and seminars—from a quick pulse check to full exam prep.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">36,41</context>
@@ -1505,7 +1505,7 @@
       </trans-unit>
       <trans-unit id="help.demoCardHint" datatype="html">
         <source> Ein vorinstalliertes Beispiel-Quiz zeigt alle Frageformate (Multiple Choice, Freitext, Bewertungsskala usw.) inkl. KaTeX-Formeln und Markdown – ohne etwas anlegen zu müssen. Du findest es in deiner Quiz-Sammlung („Deine Quiz-Sammlung&quot;) und kannst es dort in der Vorschau öffnen.</source>
-        <target>A preinstalled sample quiz shows all question types (multiple choice, free text, rating scale, etc.) including KaTeX formulas and Markdown—without having to create anything. You&apos;ll find it in your quiz library (&quot;Your quiz library&quot;) and can open it there in preview.</target>
+        <target>A pre-installed demo quiz covers all question formats (multiple choice, free text, rating scale, etc.) including KaTeX formulas and Markdown—no setup required. You&apos;ll find it in &quot;Your quiz library&quot; where you can open it in preview mode.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">47,51</context>
@@ -1529,7 +1529,7 @@
       </trans-unit>
       <trans-unit id="help.quickstart1" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz anlegen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> „Deine Quiz-Sammlung&quot; öffnen, neues Quiz erstellen, Fragen und Einstellungen festlegen.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Create quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Open &quot;Your quiz library&quot;, create a new quiz, define questions and settings.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Create a quiz:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Head over to &quot;Your quiz library&quot;, create a new quiz, and set up your questions and settings.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">62,64</context>
@@ -1585,7 +1585,7 @@
       </trans-unit>
       <trans-unit id="help.hostBeamer" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Beamer-Ansicht:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Große Darstellung von Frage, Antworten, Countdown und Ergebnissen für die Projektion im Raum.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Projector view:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Large display of question, answers, countdown and results for room projection.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Projector view:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> A large display of the question, answers, countdown, and results—perfect for presenting to the room.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">91,93</context>
@@ -1593,7 +1593,7 @@
       </trans-unit>
       <trans-unit id="help.hostSteuerung" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Steuerung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit „Nächste Frage&quot; blendest du die Frage ein. Optional zuerst nur den Text (Lesephase), dann „Antworten freigeben&quot;, danach können alle abstimmen. Anschließend „Ergebnis zeigen&quot;.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Control:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Use “Next question” to show the prompt. Optionally run a reading phase (text only), then “Reveal answers,” then everyone can vote. Finish with “Show results.”</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Controls:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Use &quot;Next question&quot; to show the prompt. You can optionally run a reading phase (text only), then tap &quot;Reveal answers&quot; so everyone can vote. Finish up with &quot;Show results&quot;.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">95,98</context>
@@ -1729,7 +1729,7 @@
       </trans-unit>
       <trans-unit id="help.participantsLead" datatype="html">
         <source> Kurz erklärt, was du im Unterricht oder Seminar weitergeben kannst:</source>
-        <target>Short lines you can share with your class or seminar group:</target>
+        <target>Quick instructions you can share with your audience:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">169,172</context>
@@ -1745,7 +1745,7 @@
       </trans-unit>
       <trans-unit id="help.participantsNick" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknamen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Je nach deiner Einstellung vorgegebene Namen, eigener Name oder anonym.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknames:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Depending on your settings, predefined names, your own name or anonymous.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Nicknames:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Depending on your settings, participants will use predefined names, their own names, or stay entirely anonymous.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">177,179</context>
@@ -1753,7 +1753,7 @@
       </trans-unit>
       <trans-unit id="help.participantsVote" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Abstimmung:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Frage erscheint auf dem Gerät, Antwort wählen und absenden. Bei Zeitlimit läuft ein Countdown.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Vote:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Question appears on the device, select answer and send. If there is a time limit, a countdown starts.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Voting:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> The question will appear on their device. They just select an answer and submit. If there&apos;s a time limit, a countdown will run.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">181,183</context>
@@ -1785,7 +1785,7 @@
       </trans-unit>
       <trans-unit id="help.collectionTypes" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Fragetypen:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple Choice, Single Choice, Freitext, Umfrage, Bewertungsskala – pro Frage optional mit Timer und Schwierigkeitsgrad.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Question types:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple choice, single choice, free text, survey, rating scale – per question optionally with timer and difficulty.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Question types:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Multiple choice, single choice, free text, survey, and rating scale. You can optionally set a timer and difficulty for each individual question.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">196,198</context>
@@ -1793,7 +1793,7 @@
       </trans-unit>
       <trans-unit id="help.collectionImport" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Über den KI-Prompt kannst du ein Quiz mit deiner bevorzugten KI generieren und direkt importieren – deine Lehrmaterialien werden nicht an arsnova.eu gesendet, du nutzt deine eigene KI.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Import or export quizzes as JSON. Use the AI prompt to generate a quiz with your preferred AI and import it—nothing goes to arsnova.eu, you use your own AI.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Import or export quizzes as JSON. You can also use the AI prompt to generate a quiz with your favorite AI and paste it right in—your teaching materials never leave your device, you just use your own AI.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">200,203</context>
@@ -1801,7 +1801,7 @@
       </trans-unit>
       <trans-unit id="help.collectionSync" datatype="html">
         <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Sync-ID oder Sync-Link deine Quiz-Sammlung mit Kolleg:innen teilen oder auf anderen Geräten weiterarbeiten.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Share your quiz library with colleagues or continue working on other devices using Sync ID or Sync Link.</target>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Share your quiz library with colleagues or pick up where you left off on other devices using a Sync ID or Sync Link.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">205,207</context>

@@ -222,9 +222,8 @@
               >
                 <div class="feedback-host__join-menu-panel" (click)="$event.stopPropagation()">
                   <div class="feedback-host__join-menu-head">
-                    <p class="feedback-host__join-menu-lead" i18n="@@sessionHost.joinMenuLead">
-                      Gehe auf
-                    </p>
+                    <!-- prettier-ignore -->
+                    <p class="feedback-host__join-menu-lead" i18n="@@sessionHost.joinMenuLead">Gehe auf</p>
                     <p class="feedback-host__join-menu-origin">{{ joinOriginForMenu() }}</p>
                   </div>
                   @if (qrDataUrl()) {
