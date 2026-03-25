@@ -2821,12 +2821,12 @@
         <target>https://…</target>
       </trans-unit>
       <trans-unit id="quizForm.motifImageUrlAria" datatype="html">
-        <source>HTTPS-URL zu einem Motivbild</source>
-        <target>URL HTTPS vers une image de motif</target>
+        <source>HTTPS-URL oder Pfad zu einem Motivbild (beginnend mit /)</source>
+        <target>URL HTTPS ou chemin vers une image de motif (commençant par /)</target>
       </trans-unit>
       <trans-unit id="quizForm.motifImageUrlHint" datatype="html">
-        <source>Nur HTTPS-URLs, z. B. ein Bild auf deiner Website.</source>
-        <target>Uniquement des URL HTTPS, par ex. une image sur ton site.</target>
+        <source>HTTPS von extern, oder Pfad ab / auf dieser Website (z. B. /assets/demo/bild.svg).</source>
+        <target>HTTPS depuis un site externe, ou chemin commençant par / sur ce site (ex. /assets/demo/image.svg).</target>
       </trans-unit>
       <trans-unit id="quizForm.motifImageUrlErrorMax" datatype="html">
         <source>Die URL darf maximal 1024 Zeichen lang sein.</source>

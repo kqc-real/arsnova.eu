@@ -20,6 +20,7 @@ import {
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TEAM_COUNT,
   MOTIF_IMAGE_URL_MAX_LENGTH,
+  MotifImageUrlSchema,
   QUIZ_PRESETS,
   type NicknameTheme,
   type QuizPreset,
@@ -254,13 +255,14 @@ export class QuizNewComponent implements OnInit, OnDestroy {
 function motifImageUrlOptionalHttpsValidator(control: AbstractControl): ValidationErrors | null {
   const v = String(control.value ?? '').trim();
   if (!v) return null;
+  if (MotifImageUrlSchema.safeParse(v).success) return null;
   try {
     const u = new URL(v);
     if (u.protocol !== 'https:') return { motifHttps: true };
-    return null;
   } catch {
     return { motifUrl: true };
   }
+  return { motifUrl: true };
 }
 
 function parseTeamNamesText(value: string): string[] {

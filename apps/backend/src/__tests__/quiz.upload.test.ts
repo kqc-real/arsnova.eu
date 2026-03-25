@@ -128,6 +128,38 @@ describe('quiz.upload (Story 2.1a)', () => {
     expect(prismaMock.quiz.create.mock.calls[0]![0].data.motifImageUrl).toBeNull();
   });
 
+  it('speichert motifImageUrl als root-relativen Asset-Pfad', async () => {
+    const input = {
+      name: 'Mit lokalem Motiv',
+      motifImageUrl: '/assets/demo/brainstorming.svg' as const,
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      questions: [
+        {
+          text: 'Frage',
+          type: 'SINGLE_CHOICE' as const,
+          difficulty: 'MEDIUM' as const,
+          order: 0,
+          answers: [{ text: 'A', isCorrect: true }],
+        },
+      ],
+    };
+
+    await caller.upload(input);
+
+    expect(prismaMock.quiz.create.mock.calls[0]![0].data.motifImageUrl).toBe(
+      '/assets/demo/brainstorming.svg',
+    );
+  });
+
   it('übernimmt readingPhaseEnabled (default true)', async () => {
     const input = {
       name: 'Quiz',

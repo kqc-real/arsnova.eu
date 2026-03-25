@@ -103,11 +103,24 @@ export const DEFAULT_TIMER_SECONDS = 60;
 /** Obergrenze Motivbild-URL (typische Bild-URLs; lange signierte CDN-Links bleiben i. d. R. darunter). */
 export const MOTIF_IMAGE_URL_MAX_LENGTH = 1024;
 
-/** HTTPS-Bild-URL für optionales Quiz-Motivbild (Host, Quiz-Kanal). */
+/**
+ * Optionales Quiz-Motivbild (Host, Quiz-Kanal): HTTPS-URL oder root-relativer Pfad
+ * (z. B. `/assets/demo/bild.svg` für gebündelte Angular-Assets).
+ */
 export const MotifImageUrlSchema = z
   .string()
   .max(MOTIF_IMAGE_URL_MAX_LENGTH)
   .superRefine((val, ctx) => {
+    if (val.startsWith('/')) {
+      if (val.startsWith('//') || val.includes('..') || val.includes('\\') || /\s/.test(val)) {
+        ctx.addIssue({ code: 'custom', message: 'Ungültiger relativer Bildpfad.' });
+        return;
+      }
+      if (!/^\/[a-zA-Z0-9/_\-.%+]+$/.test(val)) {
+        ctx.addIssue({ code: 'custom', message: 'Ungültiger relativer Bildpfad.' });
+      }
+      return;
+    }
     try {
       const u = new URL(val);
       if (u.protocol !== 'https:') {

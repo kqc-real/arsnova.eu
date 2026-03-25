@@ -2526,7 +2526,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizForm.motifImageUrlAria" datatype="html">
-        <source>HTTPS-URL zu einem Motivbild</source>
+        <source>HTTPS-URL oder Pfad zu einem Motivbild (beginnend mit /)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">67,69</context>
@@ -2537,7 +2537,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizForm.motifImageUrlHint" datatype="html">
-        <source>Nur HTTPS-URLs, z. B. ein Bild auf deiner Website.</source>
+        <source>HTTPS von extern, oder Pfad ab / auf dieser Website (z. B. /assets/demo/bild.svg).</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">70,72</context>

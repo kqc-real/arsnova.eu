@@ -56,10 +56,11 @@
           i18n-placeholder="@@quizForm.motifImageUrlPlaceholder"
           placeholder="https://…"
           i18n-aria-label="@@quizForm.motifImageUrlAria"
-          aria-label="HTTPS-URL zu einem Motivbild"
+          aria-label="HTTPS-URL oder Pfad zu einem Motivbild (beginnend mit /)"
         />
         <mat-hint i18n="@@quizForm.motifImageUrlHint" align="start"
-          >Nur HTTPS-URLs, z. B. ein Bild auf deiner Website.</mat-hint
+          >HTTPS von extern, oder Pfad ab / auf dieser Website (z. B.
+          /assets/demo/bild.svg).</mat-hint
         >
         <mat-hint align="end"
           >{{ motifImageUrlControl.value.length }}/{{ motifImageUrlMaxLength }}</mat-hint
