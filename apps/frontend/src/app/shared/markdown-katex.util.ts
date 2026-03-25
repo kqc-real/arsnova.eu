@@ -54,6 +54,15 @@ export function renderMarkdownWithKatex(source: string): MarkdownRenderResult {
 function parseMarkdownEscapingInlineHtml(source: string): string {
   const renderer = new marked.Renderer();
   renderer.html = ({ text }) => escapeHtml(text);
+  /** `alt` allein löst keinen Hover-Tooltip aus; `title` schon (optional explizit in `![](url "title")`). */
+  renderer.image = ({ href, title, text }): string => {
+    const hrefEsc = escapeHtml(href);
+    const altEsc = escapeHtml(text);
+    const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
+    const tooltip = hasTitle ? String(title).trim() : text;
+    const titleEsc = escapeHtml(tooltip);
+    return `<img src="${hrefEsc}" alt="${altEsc}" title="${titleEsc}" />`;
+  };
   return marked.parse(source, { renderer }) as string;
 }
 

@@ -31,15 +31,17 @@
           matInput
           formControlName="description"
           rows="3"
-          maxlength="1000"
+          maxlength="5000"
           i18n-aria-label
           aria-label="Quiz-Beschreibung"
         ></textarea>
-        <mat-hint align="end">{{ descriptionControl.value.length }}/1000</mat-hint>
+        <mat-hint align="end">{{ descriptionControl.value.length }}/5000</mat-hint>
         @if (
           descriptionControl.hasError('maxlength') && (descriptionControl.touched || submitted())
         ) {
-          <mat-error i18n>Die Beschreibung darf maximal 1000 Zeichen lang sein.</mat-error>
+          <mat-error i18n="@@quizEdit.descriptionMaxLengthError"
+            >Die Beschreibung darf maximal 5000 Zeichen lang sein.</mat-error
+          >
         }
       </mat-form-field>
 

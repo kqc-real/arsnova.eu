@@ -40,4 +40,15 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).toContain('$...$');
     expect(html).not.toContain('katex');
   });
+
+  it('setzt bei Markdown-Bildern title für Hover-Tooltip (Fallback: Alt-Text)', () => {
+    const html = renderMarkdownWithoutKatex('![Kurzinfo](assets/demo/x.svg)');
+    expect(html).toMatch(/alt="Kurzinfo"/);
+    expect(html).toMatch(/title="Kurzinfo"/);
+  });
+
+  it('nutzt optionalen Markdown-Bildtitel als title-Attribut', () => {
+    const html = renderMarkdownWithoutKatex('![a](b.svg "Expliziter Titel")');
+    expect(html).toMatch(/title="Expliziter Titel"/);
+  });
 });

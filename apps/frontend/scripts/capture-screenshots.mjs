@@ -46,7 +46,7 @@ async function main() {
   const ready = await waitForServer(BASE_URL);
   if (!ready) {
     console.error(
-      'App nicht erreichbar. Starte z. B.: npm run dev:frontend (EN → /en/) oder npm run dev:frontend:de (Root), oder npm run start:prod (dann SCREENSHOT_URL=http://localhost:3000).',
+      'App nicht erreichbar. Starte z. B.: npm run dev:frontend (DE, Root) oder npm run dev:frontend:en (/en/), oder npm run start:prod (dann SCREENSHOT_URL=http://localhost:3000).',
     );
     process.exit(1);
   }

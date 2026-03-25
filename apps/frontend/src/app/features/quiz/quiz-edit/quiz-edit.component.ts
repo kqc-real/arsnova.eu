@@ -258,7 +258,7 @@ export class QuizEditComponent implements OnDestroy {
       validators: [Validators.required, Validators.maxLength(200)],
     }),
     description: this.formBuilder.control('', {
-      validators: [Validators.maxLength(1000)],
+      validators: [Validators.maxLength(5000)],
     }),
   });
 

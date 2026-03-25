@@ -2800,9 +2800,9 @@
           <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8645035101864809177" datatype="html">
-        <source>Die Beschreibung darf maximal 1000 Zeichen lang sein.</source>
-        <target>La descripción puede tener un máximo de 1000 caracteres.</target>
+      <trans-unit id="quizEdit.descriptionMaxLengthError" datatype="html">
+        <source>Die Beschreibung darf maximal 5000 Zeichen lang sein.</source>
+        <target>La descripción puede tener un máximo de 5000 caracteres.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">51</context>
@@ -2964,28 +2964,40 @@
           <context context-type="linenumber">67</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6991540885968863848" datatype="html">
-        <source> Belohnungen zeigen</source>
+      <trans-unit id="quizSettings.showRewardEffects" datatype="html">
+        <source>Belohnungen zeigen</source>
         <target>Mostrar recompensas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">122</context>
+          <context context-type="linenumber">121</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">68</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2355797381776819101" datatype="html">
-        <source> Anfeuerung einblenden</source>
+      <trans-unit id="quizSettings.showEncouragement" datatype="html">
+        <source>Anfeuerung einblenden</source>
         <target>Mostrar ánimos</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">125</context>
+          <context context-type="linenumber">124</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">71</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="88521927529972246" datatype="html">
-        <source> Emojis erlauben</source>
+      <trans-unit id="quizSettings.allowEmojiReactions" datatype="html">
+        <source>Emojis erlauben</source>
         <target>Permitir emojis</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">128</context>
+          <context context-type="linenumber">127</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">74</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2198730230681840467" datatype="html">

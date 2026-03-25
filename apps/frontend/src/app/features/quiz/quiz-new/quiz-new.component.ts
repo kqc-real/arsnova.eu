@@ -78,7 +78,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
 
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(200)]],
-    description: ['', [Validators.maxLength(1000)]],
+    description: ['', [Validators.maxLength(5000)]],
     showLeaderboard: [true],
     allowCustomNicknames: [true],
     defaultTimer: this.formBuilder.control<number | null>(null, {

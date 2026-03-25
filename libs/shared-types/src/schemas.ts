@@ -107,7 +107,7 @@ export const DEFAULT_TIMER_SECONDS = 60;
 /** Schema für die Erstellung eines neuen Quizzes */
 export const CreateQuizInputSchema = z.object({
   name: z.string().min(1, { error: 'Quiz-Name darf nicht leer sein' }).max(200),
-  description: z.string().max(1000).optional(),
+  description: z.string().max(5000).optional(),
   showLeaderboard: z.boolean().optional().default(true),
   allowCustomNicknames: z.boolean().optional().default(true),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
@@ -153,7 +153,7 @@ export type AddQuestionInput = z.infer<typeof AddQuestionInputSchema>;
 /** Schema für den Quiz-Upload beim Live-Schalten (Story 2.1a) */
 export const QuizUploadInputSchema = z.object({
   name: z.string().min(1).max(200),
-  description: z.string().max(1000).optional(),
+  description: z.string().max(5000).optional(),
   showLeaderboard: z.boolean(),
   allowCustomNicknames: z.boolean(),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),

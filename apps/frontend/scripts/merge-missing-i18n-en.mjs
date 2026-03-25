@@ -99,7 +99,7 @@ const TARGET_MAP = {
   '8259238864102475814': 'Scale',
   '8266267788371304686': 'Another answer',
   '8606357587641495734': 'Background music',
-  '8645035101864809177': 'Description may be at most 1000 characters.',
+  'quizEdit.descriptionMaxLengthError': 'Description may be at most 5000 characters.',
   '8651032424782410006': 'AI JSON',
   '867046407244543093': ' Choose a question type and add answers. You can use Markdown and KaTeX. ',
   '8768083855656807358': 'Give your quiz a name.',

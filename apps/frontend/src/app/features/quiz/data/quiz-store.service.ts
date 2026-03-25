@@ -645,7 +645,7 @@ export class QuizStoreService {
       throw new Error('Quiz muss mindestens eine Frage enthalten.');
     }
 
-    const UPLOAD_DESCRIPTION_MAX = 1000;
+    const UPLOAD_DESCRIPTION_MAX = 5000;
     const description =
       document.description && document.description.length > UPLOAD_DESCRIPTION_MAX
         ? document.description.slice(0, UPLOAD_DESCRIPTION_MAX - 3) + '...'

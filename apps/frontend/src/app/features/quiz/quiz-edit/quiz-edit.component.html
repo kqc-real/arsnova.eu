@@ -43,12 +43,14 @@
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label i18n>Beschreibung (optional)</mat-label>
-            <textarea matInput formControlName="description" rows="3" maxlength="1000"></textarea>
+            <textarea matInput formControlName="description" rows="3" maxlength="5000"></textarea>
             <mat-hint align="end"
-              >{{ metadataForm.controls.description.value.length }}/1000</mat-hint
+              >{{ metadataForm.controls.description.value.length }}/5000</mat-hint
             >
             @if (metadataForm.controls.description.hasError('maxlength')) {
-              <mat-error i18n>Die Beschreibung darf maximal 1000 Zeichen lang sein.</mat-error>
+              <mat-error i18n="@@quizEdit.descriptionMaxLengthError"
+                >Die Beschreibung darf maximal 5000 Zeichen lang sein.</mat-error
+              >
             }
           </mat-form-field>
           @if (metadataSubmitError()) {
