@@ -62,6 +62,8 @@ describe('session.getInfo (ADR-0009)', () => {
 
     const result = await caller.getInfo({ code: 'abc123' });
 
+    expect(typeof result.serverTime).toBe('string');
+    expect(Number.isNaN(Date.parse(result.serverTime))).toBe(false);
     expect(result.channels).toEqual({
       quiz: { enabled: true },
       qa: {
@@ -92,6 +94,8 @@ describe('session.getInfo (ADR-0009)', () => {
 
     const result = await caller.getInfo({ code: 'ABC123' });
 
+    expect(typeof result.serverTime).toBe('string');
+    expect(Number.isNaN(Date.parse(result.serverTime))).toBe(false);
     expect(result.channels).toEqual({
       quiz: { enabled: false },
       qa: {

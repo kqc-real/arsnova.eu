@@ -38,6 +38,7 @@ import type {
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { remainingCountdownSeconds } from '../session-countdown.util';
+import { recordServerTimeIso } from '../session-server-clock';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 
@@ -669,7 +670,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           timer?: number | null;
           preset?: string;
           currentRound?: number;
+          serverTime?: string;
         }) => {
+          if (data.serverTime) {
+            recordServerTimeIso(data.serverTime);
+          }
           const prevRound = this.currentRound();
           const newRound = data.currentRound ?? 1;
           this.status.set(data.status as SessionStatus);
@@ -719,6 +724,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private async loadSessionInfo(): Promise<void> {
     try {
       const session = await trpc.session.getInfo.query({ code: this.code });
+      recordServerTimeIso(session.serverTime);
       this.sessionId.set(session.id);
       this.status.set(session.status as SessionStatus);
       this.sessionSettings.set(session);
@@ -767,6 +773,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.lastSessionInfoRetryAt = now;
     try {
       const session = await trpc.session.getInfo.query({ code: this.code });
+      recordServerTimeIso(session.serverTime);
       const nextStatus = session.status as SessionStatus;
       const prevStatus = this.status();
       this.sessionId.set(session.id);

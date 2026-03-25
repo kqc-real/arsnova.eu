@@ -14,6 +14,7 @@ import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-
 import { localizeCommands } from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
 import { getNicknameList } from './nickname-themes';
+import { recordServerTimeIso } from '../session/session-server-clock';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
@@ -186,6 +187,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     this.error.set(null);
     try {
       const session = await trpc.session.getInfo.query({ code: this.code });
+      recordServerTimeIso(session.serverTime);
       if (session.status === 'FINISHED') {
         this.errorSessionFinished.set(true);
         this.error.set($localize`Diese Session ist bereits beendet.`);
@@ -232,6 +234,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     if (this.joining() || this.loading()) return;
     try {
       const session = await trpc.session.getInfo.query({ code: this.code });
+      recordServerTimeIso(session.serverTime);
       if (session.status === 'FINISHED') {
         this.session.set(session);
         this.errorSessionFinished.set(true);
@@ -303,6 +306,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         nickname,
         teamId: this.selectedTeamId().trim() || undefined,
       });
+      recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
@@ -336,6 +340,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         nickname: nickname.slice(0, 30),
         teamId: this.selectedTeamId().trim() || undefined,
       });
+      recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname.slice(0, 30));

@@ -31,6 +31,7 @@ vi.mock('../../core/trpc.client', () => ({
           code: 'TEST01',
           type: 'QUIZ',
           status: 'LOBBY',
+          serverTime: new Date().toISOString(),
           quizName: 'Test',
           title: null,
           participantCount: 0,

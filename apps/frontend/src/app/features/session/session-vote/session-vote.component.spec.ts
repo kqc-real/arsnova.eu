@@ -57,6 +57,8 @@ vi.mock('../../../core/trpc.client', () => ({
   },
 }));
 
+const MOCK_SERVER_TIME = '2026-03-24T12:00:00.000Z';
+
 describe('SessionVoteComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -131,6 +133,7 @@ describe('SessionVoteComponent', () => {
   it('zeigt im Ergebnisflow den Team-Fortschritt mit eigener Hervorhebung', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'RESULTS',
@@ -177,6 +180,7 @@ describe('SessionVoteComponent', () => {
   it('zeigt nach Session-Ende den kollektiven Team-Abschluss', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'FINISHED',
@@ -207,6 +211,7 @@ describe('SessionVoteComponent', () => {
   it('zeigt bei aktiver Q&A-Session einen neutralen Wartezustand', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'Q_AND_A',
       status: 'ACTIVE',
@@ -232,6 +237,7 @@ describe('SessionVoteComponent', () => {
   it('zeigt Kanal-Tabs für Quiz, Q&A und Blitzlicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'LOBBY',
@@ -262,6 +268,7 @@ describe('SessionVoteComponent', () => {
   it('zeigt im Blitzlicht-Tab den laufenden Rundenzustand', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'ACTIVE',
@@ -300,6 +307,7 @@ describe('SessionVoteComponent', () => {
   it('sendet im Fragen-Tab eine neue Frage', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'LOBBY',

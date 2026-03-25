@@ -3,7 +3,13 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { SessionPresentComponent } from './session-present.component';
 
-const { liveQueryMock, getInfoQueryMock, getTeamLeaderboardQueryMock, qaListQueryMock, quickFeedbackResultsQueryMock } = vi.hoisted(() => ({
+const {
+  liveQueryMock,
+  getInfoQueryMock,
+  getTeamLeaderboardQueryMock,
+  qaListQueryMock,
+  quickFeedbackResultsQueryMock,
+} = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
@@ -37,10 +43,13 @@ vi.mock('../../../core/trpc.client', () => ({
   },
 }));
 
+const MOCK_SERVER_TIME = '2026-03-24T12:00:00.000Z';
+
 describe('SessionPresentComponent', () => {
   beforeEach(() => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'ACTIVE',
@@ -98,6 +107,7 @@ describe('SessionPresentComponent', () => {
   it('zeigt im Teammodus eine Siegerkarte auf der Beamer-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'FINISHED',
@@ -145,6 +155,7 @@ describe('SessionPresentComponent', () => {
   it('zeigt eine angepinnte Frage prominent in der Presenter-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'ACTIVE',
@@ -188,6 +199,7 @@ describe('SessionPresentComponent', () => {
   it('zeigt aktive Fragen als sichtbare Q&A-Warteschlange in der Presenter-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'ACTIVE',
@@ -241,6 +253,7 @@ describe('SessionPresentComponent', () => {
   it('zeigt laufendes Blitzlicht in der Presenter-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
       status: 'ACTIVE',

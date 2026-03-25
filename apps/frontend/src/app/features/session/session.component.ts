@@ -5,6 +5,7 @@ import { MatIcon } from '@angular/material/icon';
 import { filter } from 'rxjs';
 import { trpc } from '../../core/trpc.client';
 import type { SessionInfoDTO } from '@arsnova/shared-types';
+import { recordServerTimeIso } from './session-server-clock';
 
 /**
  * Session-Shell (Epic 2 + 3). Child-Routes: host, present, vote. Redirect '' → host.
@@ -29,9 +30,9 @@ export class SessionComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.updateHostRoute();
-    this.sub = this.router.events.pipe(
-      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-    ).subscribe(() => this.updateHostRoute());
+    this.sub = this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(() => this.updateHostRoute());
 
     const code = this.route.snapshot.paramMap.get('code') ?? '';
     if (code.length !== 6) {
@@ -42,10 +43,13 @@ export class SessionComponent implements OnInit, OnDestroy {
     try {
       const info = await trpc.health.check.query();
       if (info.status !== 'ok') throw new Error('Backend nicht erreichbar');
+      recordServerTimeIso(info.timestamp);
       const session = await trpc.session.getInfo.query({ code: code.toUpperCase() });
+      recordServerTimeIso(session.serverTime);
       this.session.set(session);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : $localize`Nicht gefunden. Code prüfen oder neu eingeben.`;
+      const msg =
+        e instanceof Error ? e.message : $localize`Nicht gefunden. Code prüfen oder neu eingeben.`;
       this.error.set(msg);
     } finally {
       this.loading.set(false);

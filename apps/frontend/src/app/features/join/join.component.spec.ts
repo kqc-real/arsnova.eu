@@ -12,6 +12,7 @@ const mockSession = {
   code: 'ABC123',
   type: 'QUIZ' as const,
   status: 'LOBBY' as const,
+  serverTime: '2026-03-24T12:00:00.000Z',
   quizName: 'Test-Quiz',
   title: null as string | null,
   participantCount: 5,
@@ -36,8 +37,22 @@ vi.mock('../../core/trpc.client', () => ({
         }),
       },
       getTeams: { query: vi.fn().mockResolvedValue({ teams: [], teamCount: 0 }) },
-      getParticipants: { query: vi.fn().mockResolvedValue({ participants: [], participantCount: 0 }) },
-      join: { mutate: vi.fn().mockResolvedValue({ id: 'sess-1', code: 'ABC123', type: 'QUIZ', status: 'LOBBY', quizName: 'Test-Quiz', title: null, participantCount: 6, participantId: 'part-1' }) },
+      getParticipants: {
+        query: vi.fn().mockResolvedValue({ participants: [], participantCount: 0 }),
+      },
+      join: {
+        mutate: vi.fn().mockResolvedValue({
+          id: 'sess-1',
+          code: 'ABC123',
+          type: 'QUIZ',
+          status: 'LOBBY',
+          serverTime: '2026-03-24T12:00:00.000Z',
+          quizName: 'Test-Quiz',
+          title: null,
+          participantCount: 6,
+          participantId: 'part-1',
+        }),
+      },
     },
   },
 }));
@@ -46,8 +61,14 @@ describe('JoinComponent', () => {
   beforeEach(() => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue(mockSession);
     vi.mocked(trpc.session.getTeams.query).mockResolvedValue({ teams: [], teamCount: 0 });
-    vi.mocked(trpc.session.getParticipants.query).mockResolvedValue({ participants: [], participantCount: 0 });
-    vi.mocked(trpc.session.join.mutate).mockResolvedValue({ ...mockSession, participantId: 'part-1' });
+    vi.mocked(trpc.session.getParticipants.query).mockResolvedValue({
+      participants: [],
+      participantCount: 0,
+    });
+    vi.mocked(trpc.session.join.mutate).mockResolvedValue({
+      ...mockSession,
+      participantId: 'part-1',
+    });
     TestBed.configureTestingModule({
       imports: [JoinComponent],
       providers: [
@@ -62,7 +83,10 @@ describe('JoinComponent', () => {
     });
   });
 
-  function createWithCode(code: string): { fixture: ReturnType<typeof TestBed.createComponent<JoinComponent>>; comp: JoinComponent } {
+  function createWithCode(code: string): {
+    fixture: ReturnType<typeof TestBed.createComponent<JoinComponent>>;
+    comp: JoinComponent;
+  } {
     TestBed.overrideProvider(ActivatedRoute, {
       useValue: {
         snapshot: { paramMap: { get: (key: string) => (key === 'code' ? code : null) } },
@@ -95,7 +119,9 @@ describe('JoinComponent', () => {
   });
 
   it('zeigt Fehlermeldung wenn getInfo fehlschlägt', async () => {
-    vi.mocked(trpc.session.getInfo.query).mockRejectedValueOnce(new Error('Session nicht gefunden.'));
+    vi.mocked(trpc.session.getInfo.query).mockRejectedValueOnce(
+      new Error('Session nicht gefunden.'),
+    );
 
     const { fixture, comp } = createWithCode('XYZ999'); // 6 Zeichen, damit getInfo aufgerufen wird
     fixture.detectChanges();
@@ -107,7 +133,10 @@ describe('JoinComponent', () => {
   });
 
   it('zeigt Fehler wenn Session FINISHED', async () => {
-    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({ ...mockSession, status: 'FINISHED' as const });
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      status: 'FINISHED' as const,
+    });
 
     const { fixture, comp } = createWithCode('ABC123');
     fixture.detectChanges();
@@ -148,6 +177,7 @@ describe('JoinComponent', () => {
       code: 'ABC123',
       type: 'Q_AND_A',
       status: 'LOBBY',
+      serverTime: '2026-03-24T12:00:00.000Z',
       quizName: null,
       title: 'Offene Fragen',
       participantCount: 3,
@@ -176,7 +206,10 @@ describe('JoinComponent', () => {
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 50));
 
-    expect(trpc.session.join.mutate).toHaveBeenCalledWith({ code: 'ABC123', nickname: 'Ada Yonath' });
+    expect(trpc.session.join.mutate).toHaveBeenCalledWith({
+      code: 'ABC123',
+      nickname: 'Ada Yonath',
+    });
     expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
   });
 

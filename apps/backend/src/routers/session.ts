@@ -566,11 +566,13 @@ export const sessionRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       const q = session.quiz;
+      const serverTime = new Date().toISOString();
       return {
         id: session.id,
         code: session.code,
         type: session.type,
         status: session.status,
+        serverTime,
         quizName: q?.name ?? null,
         quizMotifImageUrl: q?.motifImageUrl ?? null,
         title: session.title ?? null,
@@ -792,7 +794,7 @@ export const sessionRouter = router({
               session.quiz?.preset as 'PLAYFUL' | 'SERIOUS' | undefined,
             )
           : null;
-      const payload: {
+      const payloadBase: {
         status: string;
         currentQuestion: number | null;
         activeAt?: string;
@@ -809,10 +811,10 @@ export const sessionRouter = router({
           timer: currentTimer,
         }),
       };
-      const json = JSON.stringify(payload);
+      const json = JSON.stringify(payloadBase);
       if (json !== lastJson) {
         lastJson = json;
-        yield payload;
+        yield { ...payloadBase, serverTime: new Date().toISOString() };
       }
       const pollMs = FAST_STATUS_POLL_SET.has(session.status)
         ? STATUS_SUBSCRIPTION_FAST_POLL_MS
@@ -1583,11 +1585,13 @@ export const sessionRouter = router({
             message: 'Dieser Nickname ist in dieser Session bereits vergeben.',
           });
         });
+      const serverTime = new Date().toISOString();
       return {
         id: session.id,
         code: session.code,
         type: session.type,
         status: session.status,
+        serverTime,
         quizName: session.quiz?.name ?? null,
         quizMotifImageUrl: session.quiz?.motifImageUrl ?? null,
         title: session.title ?? null,

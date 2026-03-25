@@ -7,8 +7,21 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 import { WordCloudComponent } from './word-cloud.component';
 import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
-import { feedbackDisplayIcon, feedbackDisplayLabel, feedbackTitle, MOOD_OPTIONS, YESNO_OPTIONS, ABCD_OPTIONS } from '../../feedback/feedback.config';
-import type { QaQuestionDTO, QuickFeedbackResult, SessionInfoDTO, TeamLeaderboardEntryDTO } from '@arsnova/shared-types';
+import {
+  feedbackDisplayIcon,
+  feedbackDisplayLabel,
+  feedbackTitle,
+  MOOD_OPTIONS,
+  YESNO_OPTIONS,
+  ABCD_OPTIONS,
+} from '../../feedback/feedback.config';
+import type {
+  QaQuestionDTO,
+  QuickFeedbackResult,
+  SessionInfoDTO,
+  TeamLeaderboardEntryDTO,
+} from '@arsnova/shared-types';
+import { recordServerTimeIso } from '../session-server-clock';
 
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
@@ -36,12 +49,22 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
-  readonly showPinnedQaQuestion = computed(() => this.pinnedQaQuestion() !== null && !this.showTeamFinish());
-  readonly showQaQueue = computed(() => this.presenterQaQuestions().length > 0 && !this.showTeamFinish());
-  readonly showQuickFeedbackCard = computed(() => this.quickFeedbackResult() !== null && !this.showTeamFinish());
+  readonly showPinnedQaQuestion = computed(
+    () => this.pinnedQaQuestion() !== null && !this.showTeamFinish(),
+  );
+  readonly showQaQueue = computed(
+    () => this.presenterQaQuestions().length > 0 && !this.showTeamFinish(),
+  );
+  readonly showQuickFeedbackCard = computed(
+    () => this.quickFeedbackResult() !== null && !this.showTeamFinish(),
+  );
   readonly showTeamFinish = computed(() => {
     const session = this.session();
-    return session?.teamMode === true && session.status === 'FINISHED' && this.teamLeaderboard().length > 0;
+    return (
+      session?.teamMode === true &&
+      session.status === 'FINISHED' &&
+      this.teamLeaderboard().length > 0
+    );
   });
   readonly winningTeam = computed(() => this.teamLeaderboard()[0] ?? null);
   readonly teamLeaderboardMaxScore = computed(() =>
@@ -158,9 +181,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private async refreshSessionMeta(): Promise<void> {
     try {
       const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
+      recordServerTimeIso(session.serverTime);
       this.session.set(session);
       if (session.teamMode && session.status === 'FINISHED') {
-        const teamEntries = await trpc.session.getTeamLeaderboard.query({ code: this.code.toUpperCase() });
+        const teamEntries = await trpc.session.getTeamLeaderboard.query({
+          code: this.code.toUpperCase(),
+        });
         this.teamLeaderboard.set(teamEntries);
       } else {
         this.teamLeaderboard.set([]);
@@ -212,7 +238,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
     try {
       const questions = await trpc.qa.list.query({ sessionId });
-      const visibleQuestions = questions.filter((question) => question.status === 'PINNED' || question.status === 'ACTIVE');
+      const visibleQuestions = questions.filter(
+        (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
+      );
       const pinned = visibleQuestions.find((question) => question.status === 'PINNED') ?? null;
       const queue = visibleQuestions.filter((question) => question.status === 'ACTIVE');
       this.pinnedQaQuestion.set(pinned);
@@ -231,7 +259,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const result = await trpc.quickFeedback.results.query({ sessionCode: this.code.toUpperCase() });
+      const result = await trpc.quickFeedback.results.query({
+        sessionCode: this.code.toUpperCase(),
+      });
       this.quickFeedbackResult.set(result);
     } catch {
       this.quickFeedbackResult.set(null);

@@ -537,6 +537,8 @@ export const SessionInfoDTOSchema = z.object({
   code: z.string(),
   type: SessionTypeEnum,
   status: SessionStatusEnum,
+  /** ISO-8601-Serverzeit bei dieser Antwort (Client-Uhrenoffset für Countdown-Sync). */
+  serverTime: z.string(),
   quizName: z.string().nullable(),
   /** Optionales Motivbild (HTTPS-URL), nur Host Quiz-Kanal. */
   quizMotifImageUrl: z.union([MotifImageUrlSchema, z.null()]).optional(),

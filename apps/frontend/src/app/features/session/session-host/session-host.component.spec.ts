@@ -6,6 +6,7 @@ import { SessionHostComponent } from './session-host.component';
 const unsubscribeMock = vi.fn();
 
 const {
+  healthCheckQueryMock,
   getInfoQueryMock,
   getParticipantsQueryMock,
   getTeamsQueryMock,
@@ -20,6 +21,7 @@ const {
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
 } = vi.hoisted(() => ({
+  healthCheckQueryMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
   getParticipantsQueryMock: vi.fn(),
   getTeamsQueryMock: vi.fn(),
@@ -37,6 +39,9 @@ const {
 
 vi.mock('../../../core/trpc.client', () => ({
   trpc: {
+    health: {
+      check: { query: healthCheckQueryMock },
+    },
     session: {
       getInfo: { query: getInfoQueryMock },
       getParticipants: { query: getParticipantsQueryMock },
@@ -86,6 +91,12 @@ describe('SessionHostComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     unsubscribeMock.mockClear();
+    healthCheckQueryMock.mockResolvedValue({
+      status: 'ok',
+      timestamp: '2026-03-24T12:00:00.000Z',
+      version: '0.1.0',
+      redis: 'ok',
+    });
     getInfoQueryMock.mockResolvedValue({ ...defaultSession });
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
     onParticipantJoinedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));

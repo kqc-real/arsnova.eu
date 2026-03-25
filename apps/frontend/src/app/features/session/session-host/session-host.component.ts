@@ -66,6 +66,7 @@ import type {
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { remainingCountdownSeconds } from '../session-countdown.util';
+import { recordServerTimeIso } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 
@@ -685,6 +686,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.code.length !== 6) return;
     try {
       const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
+      recordServerTimeIso(session.serverTime);
       this.session.set(session);
       this.syncQaTitleDraftFromSession();
       await this.refreshParticipantsPayload();
@@ -705,6 +707,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.refreshCurrentQuestionForHost();
     this.syncMusic();
     this.pollTimer = setInterval(() => {
+      void this.refreshServerClockSkew();
       void this.refreshParticipantsPayload();
       void this.refreshLiveFreetext();
       void this.refreshCurrentQuestionForHost();
@@ -729,12 +732,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.statusSub = trpc.session.onStatusChanged.subscribe(
         { code: this.code.toUpperCase() },
         {
-          onData: (data) =>
+          onData: (data) => {
+            if (data.serverTime) {
+              recordServerTimeIso(data.serverTime);
+            }
             this.statusUpdate.set({
               status: data.status as SessionStatusUpdate['status'],
               currentQuestion: data.currentQuestion,
               activeAt: data.activeAt,
-            }),
+            });
+          },
           onError: () => {},
         },
       );
@@ -768,6 +775,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.document.removeEventListener('click', this.unlockListener);
     this.document.removeEventListener('keydown', this.unlockListener);
   };
+
+  /** Periodische Kalibrierung gegen die Serverzeit (Health), falls keine Status-Events kommen. */
+  private async refreshServerClockSkew(): Promise<void> {
+    try {
+      const h = await trpc.health.check.query();
+      recordServerTimeIso(h.timestamp);
+    } catch {
+      /* ignorieren */
+    }
+  }
 
   ngOnDestroy(): void {
     this.suppressJoinMenuAutopen = true;
