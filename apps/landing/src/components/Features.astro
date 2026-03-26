@@ -2,43 +2,63 @@
 const features = [
   {
     title: 'Eine Startseite für alle',
-    description: 'Dozenten und Teilnehmer nutzen dieselbe URL – arsnova.eu. Kein getrenntes „Create“ vs. „Join“, keine zweite Adresse. Einfach die URL weitergeben, jeder kann Quizze erstellen oder mitmachen. Demokratisch und leicht merkbar.',
+    description: 'Dozenten und Teilnehmer nutzen dieselbe URL – arsnova.eu. Kein getrenntes „Create“ vs. „Join“. Einfach weitergeben: Quizze erstellen, Session starten oder per Code beitreten.',
     icon: 'single',
   },
   {
-    title: 'Stil wählen',
-    description: 'Du wählst den Stil: Seriös (anonym, Fokus auf Inhalt) oder Spielerisch (Rangliste, Sounds, Anfeuerung). Kita bis Uni, ein Tool für alle.',
+    title: 'Stil & Session-Setup',
+    description: 'Presets Seriös oder Spielerisch: Rangliste, Sounds, Lesephase, Timer, Nicknames, optionaler Team-Modus und anonymer Modus – du konfigurierst, Teilnehmende sehen den gewählten Stil.',
     icon: 'toggle',
   },
   {
-    title: 'Bonus-Option für die Besten',
-    description: 'Top-Platzierte erhalten einen einlösbaren Code, den sie bei dir einlösen (z. B. für Bonuspunkte oder Anerkennung). Die Einlösung liegt bei dir – du entscheidest, ob und wie du den Code anerkennst.',
-    icon: 'academic',
-  },
-  {
-    title: 'Datenschutz zuerst',
-    description: 'Quiz-Inhalte liegen nicht dauerhaft auf dem Server. Local-First mit Yjs: 100 % DSGVO-konform, anonymer Modus, Stil Seriös verfügbar.',
-    icon: 'shield',
-  },
-  {
-    title: 'Zero-Account',
-    description: 'Du startest sofort. Kein Login, keine Registrierung. 6-stelliger Code und QR: Teilnehmende sind in Sekunden dabei.',
+    title: 'Live-Session ohne Hürden',
+    description: 'Zero-Account: 6-stelliger Code und QR-Code, Lobby, Presenter- und Beamer-Ansicht, Countdown, Echtzeit-Feedback und Ergebnis-Visualisierung. Rate-Limits schützen den Betrieb.',
     icon: 'bolt',
   },
   {
-    title: 'Echtzeit-Kollaboration',
-    description: 'Gemeinsam am Quiz arbeiten mit Yjs – mehrere Autor:innen gleichzeitig, Sync in Echtzeit. Markdown & KaTeX für MINT, Lesephase, Schwierigkeitsstufen.',
+    title: 'Fragetypen & Inhalte',
+    description: 'Multiple- und Single-Choice, Freitext, Umfrage, Rating-Skala; Antworten und Lösungen, Quiz-Preview und Schnellkorrektur. Markdown und KaTeX für Formeln und MINT.',
+    icon: 'book',
+  },
+  {
+    title: 'Didaktik jenseits klassischer Quizze',
+    description: 'Zwei-Phasen-Anzeige (Lesephase), Peer Instruction mit zweiter Abstimmung und Vorher/Nachher, interaktive Word Cloud inklusive Export.',
+    icon: 'tools',
+  },
+  {
+    title: 'Q&A-Modus',
+    description: 'Neben Live-Quiz: Fragen einreichen, Upvoting und Sortierung, Moderation durch die Lehrperson – für Diskussion und Klärungsbedarf in derselben Plattform.',
+    icon: 'qa',
+  },
+  {
+    title: 'Motivation & Spielraum',
+    description: 'Leaderboard mit Punktesystem, Answer Streak, persönliche Scorecard, Sounds, Hintergrundmusik, Emoji-Reaktionen und Bonus-Code für Top-Platzierungen (Einlösung bei dir).',
+    icon: 'trophy',
+  },
+  {
+    title: 'Gemeinsam erstellen & synchronisieren',
+    description: 'Yjs: mehrere Autor:innen parallel, Multi-Device-Sync und Sync per Link. Quiz exportieren und importieren (JSON), inkl. Preset- und Options-Transfer.',
     icon: 'collab',
   },
   {
-    title: 'Self-Hosting',
-    description: 'Self-Hosted per Docker. Open Source, keine Abo-Kosten. WCAG 2.1 AA, Mobile-First, Dark-Mode.',
-    icon: 'server',
+    title: 'KI-Workflow ohne Material auf unserem Server',
+    description: 'KI-gestützter Quiz-Import: du nutzt ein externes LLM mit schema-getreuer Ausgabe (Zod-Validierung). Lehrmaterialien landen nicht bei arsnova.eu – Zero-Knowledge beim Inhalt.',
+    icon: 'ai',
   },
   {
-    title: 'KI-Quiz ohne Datenpreisgabe',
-    description: 'Quiz aus Präsentation oder Skript per externem LLM (z. B. ChatGPT) – du lädst nur im Chatbot hoch, arsnova.eu sieht keine Lehrmaterialien. Zero-Knowledge, schema-getreu (Zod), geplant in Story 1.9a/1.9b.',
-    icon: 'ai',
+    title: 'Mehrsprachigkeit & Erscheinungsbild',
+    description: 'Oberfläche auf Deutsch, Englisch, Französisch, Spanisch und Italienisch. Dark-, Light- und System-Theme, Mobile-First; Barrierefreiheit wird fortlaufend auf WCAG 2.1 AA ausgerichtet.',
+    icon: 'globe',
+  },
+  {
+    title: 'Datenschutz & Datenminimalismus',
+    description: 'Local-First für Quiz-Inhalte; bei Live-Sessions nur temporäre Kopie auf dem Server, anschließend Bereinigung. DSGVO-orientiert, Data-Stripping (z. B. keine Lösungen an Teilnehmende während der Frage).',
+    icon: 'shield',
+  },
+  {
+    title: 'Self-Hosting & Betrieb',
+    description: 'Open Source, Docker-Compose, Redis und PostgreSQL. Optionaler Admin-Pfad: Sessions und Inhalte inspizieren, rechtssicher löschen, Behördenauszug (PDF/JSON) mit Audit-Log.',
+    icon: 'server',
   },
 ];
 ---
@@ -46,7 +66,7 @@ const features = [
 <section id="features" class="border-b border-slate-700 bg-slate-800/50 px-4 py-16 sm:px-6 sm:py-24" aria-labelledby="features-heading">
   <div class="mx-auto max-w-6xl">
     <h2 id="features-heading" class="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Warum arsnova.eu?</h2>
-    <p class="mt-3 max-w-2xl text-lg text-slate-400">Die führende europäische Alternative zu Kahoot & Mentimeter – kostenlos, Local-First, mit Stil-Auswahl, Bonus-Option und KI-Quiz ohne Datenpreisgabe. Ohne Kompromisse bei Datenschutz und Didaktik.</p>
+    <p class="mt-3 max-w-2xl text-lg text-slate-400">Der Funktionsumfang aus dem Produkt-Backlog (Epics 0–6, 7, 8, 9): Live-Quiz, Q&A, Team- und Preset-Optionen, Word Cloud, Peer Instruction, Import/Export, KI-Workflow ohne Inhalts-Upload an uns, Mehrsprachen-UI und Admin für Betreiber – kostenlos und Open Source.</p>
     <ul class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3" role="list">
       {features.map((f) => (
         <li class="rounded-2xl border border-slate-600 bg-slate-800/80 p-6 transition hover:border-brand-500/50 hover:bg-slate-800">
@@ -59,6 +79,11 @@ const features = [
             {f.icon === 'server' && '📦'}
             {f.icon === 'ai' && '🤖'}
             {f.icon === 'single' && '🔗'}
+            {f.icon === 'book' && '📚'}
+            {f.icon === 'tools' && '🧭'}
+            {f.icon === 'qa' && '💬'}
+            {f.icon === 'trophy' && '🏆'}
+            {f.icon === 'globe' && '🌍'}
           </div>
           <h3 class="mt-4 font-display text-lg font-semibold text-white">{f.title}</h3>
           <p class="mt-2 text-slate-400">{f.description}</p>

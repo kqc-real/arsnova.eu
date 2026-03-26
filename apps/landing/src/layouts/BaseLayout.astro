@@ -12,7 +12,7 @@ const { title, description, canonical, noindex = false } = Astro.props;
 /** Base path für Links (z. B. /arsnova.eu/ bei GitHub Pages) */
 const base = (typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL) || '/';
 const site = 'https://arsnova.eu';
-const fullTitle = title === 'Start' ? 'arsnova.eu – Führende Alternative zu Kahoot & Mentimeter. Live-Quiz, 100 % DSGVO, kostenlos.' : `${title} · arsnova.eu`;
+const fullTitle = title === 'Start' ? 'arsnova.eu – Live-Quiz, Q&A & Abstimmung. Alternative zu Kahoot & Mentimeter, Open Source, DSGVO-orientiert.' : `${title} · arsnova.eu`;
 const url = canonical ? new URL(canonical, site).href : site;
 const ogImage = new URL('/og.png', site).href;
 ---
@@ -51,12 +51,27 @@ const ogImage = new URL('/og.png', site).href;
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'arsnova.eu',
-      description: 'Führende europäische Alternative zu Kahoot & Mentimeter. Kostenlos, DSGVO-konform, Local-First, kein Account. Stil Seriös/Spielerisch, Bonus-Code, KaTeX, Lesephase, KI-Quiz ohne Datenpreisgabe. Open Source, Self-Hosted, WCAG 2.1 AA.',
+      description: 'Live-Quiz, Q&A und Abstimmung. Kostenlos, Open Source, DSGVO-orientiert, Local-First, kein Account. Presets, Team-Modus, Word Cloud, Peer Instruction, Import/Export, Yjs-Sync, KI-Import per externem LLM, fünf Sprachen, Docker Self-Host, Admin mit Audit.',
       url: site,
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'Web',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-      featureList: ['Live-Quiz', 'Abstimmungen', 'DSGVO-konform', 'Local-First', 'Self-Hosted', 'KaTeX', 'Lesephase', 'KI-Quiz Zero-Knowledge', 'WCAG 2.1 AA', 'Bonus-Code für Top-Plätze'],
+      featureList: [
+        'Live-Quiz und Abstimmungen',
+        'Q&A mit Moderation',
+        'Lobby, Presenter, QR/Code',
+        'Fragetypen MC/SC/Freitext/Umfrage/Rating',
+        'Markdown und KaTeX',
+        'Lesephase und Peer Instruction',
+        'Word Cloud mit Export',
+        'Team-Modus und Presets',
+        'Leaderboard, Streak, Bonus-Code',
+        'Import/Export und Yjs-Sync',
+        'KI-Import extern, Zod-validiert',
+        'UI in fünf Sprachen',
+        'Docker Self-Host und Admin-Audit',
+        'Local-First, DSGVO-orientiert',
+      ],
     })} />
   </head>
   <body class="min-h-screen overflow-x-hidden bg-slate-900 text-slate-100 font-sans antialiased">
