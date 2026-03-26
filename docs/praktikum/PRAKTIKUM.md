@@ -10,7 +10,7 @@ Willkommen. Dieses Dokument erklärt **Ziele**, **Ablauf**, **bewertete Leistung
 
 **Kurs 3 (Data Analytics, nicht zwingend parallel):** NLP und **Modellwahl/Prompting** für die **Intelligente Moderationshilfe** (Wortwolke & Q&A) auf **selbst gehosteten** Modellen — **`PRAKTIKUM-DATA-ANALYTICS.md`** · Einordnung `docs/didaktik/dritter-kurs-data-analytics-nlp.md`.
 
-### Ausführliche Begriffe (Konzept & Intelligente Moderationshilfe)
+## Ausführliche Begriffe (Konzept & Intelligente Moderationshilfe)
 
 Für die **schriftliche Konzeption** und die Einordnung von **Syntax, Semantik, Lexik, Morphologie, Stemming, Lemmatisierung, Orthographie, Mehrsprachigkeit** und **semantischer Nähe** gibt es einen **eigenen, ausführlichen Leitfaden** (studierendenfreundlich, mit Beispielen, Tabellen und weiterführenden Links):
 
@@ -35,6 +35,8 @@ Technisch (für deine Orientierung):
 | Produkt-Backlog          | [`Backlog.md`](../../Backlog.md) im Repo-Root                                    |
 
 **Erste Schritte:** [`docs/onboarding.md`](../onboarding.md), [`AGENT.md`](../../AGENT.md) (Arbeitsweise mit KI im Editor), [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
+
+**Offene User Stories — didaktische Reihenfolge** (wenn jede Person alle Stories durchläuft, KI codiert, Studi steuert): [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md).
 
 ---
 
@@ -73,7 +75,7 @@ Eine **studentenfreundliche**, aber **fachlich klare** Ausarbeitung (ca. **3–6
 
 ### 4.2 Umsetzung (Code)
 
-**Mindestumfang: Feature-Set „Intelligente Moderationshilfe“**
+#### Mindestumfang: Feature-Set „Intelligente Moderationshilfe“
 
 > **Hinweis zur Synergie:** Während du in diesem Entwicklungs-Praktikum die **technische Produktintegration** (tRPC, Zod, Angular-UI) der Moderationshilfe baust, fokussiert sich das Data-Analytics-Praktikum (Kurs 3) auf das **NLP-Konzept, Prompt-Design und die Modellwahl** für genau diese Features. Siehe dazu **`PRAKTIKUM-DATA-ANALYTICS.md`**.
 
