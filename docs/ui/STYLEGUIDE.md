@@ -239,6 +239,18 @@ Tokenbasierte Card-Flaeche:
 - **Session-Code (Startseite):** Sichtbar nur zentrierte Bezeichnung **Session-Code**; Details (6 Zeichen) in **aria-label** des Overlays.
 - **Server-Status:** "Verbunden" / "Keine Verbindung" (statt "Server erreichbar/nicht erreichbar"). "Nochmal versuchen" (statt "Erneut verbinden").
 
+### Micro-Copy: Natuerlichkeit, Geraet, Denglisch (Empfehlung)
+
+Leitplanken aus der Teilnehmer-Session (Preset **Ernst** / **Spielerisch**); zentrale Texte u. a. in `apps/frontend/src/app/features/session/session-vote/session-vote-participant-copy.ts`.
+
+- **System vs. Nutzer:** Keine anthropomorphe Fuehrung durch die Software (z. B. nicht „wir halten dich bereit“). Klarer: direkte Aufforderung an die Person („mach dich bereit“) oder sachliche Beschreibung des naechsten Schritts.
+- **Grammatik auch locker:** Kurze Zeilen duerfen trotzdem grammatisch vollstaendig sein (z. B. „Kurzes Feedback?“ statt abgehacktem „Kurz Feedback?“).
+- **Standardsprache statt Slang:** Regionale oder holprige Wendungen wie „geht’s auf“ (im Sinne von „erscheint“) vermeiden; neutral: „es erscheint …“, „wird angezeigt …“.
+- **Geraeteneutral:** Wo moeglich Aufgaben statt Eingabegeraet benennen (z. B. „abstimmen“ statt „klicken“), damit Touch und Maus gleichermassen passen.
+- **„Wir“ / „uns“ vorsichtig:** Formulierungen wie „Bei uns steht:“ koennen Team-Kontext suggerieren; bei Einzelspielerinnen unklar. Bevorzugt Du-Ansprache („Du sagst:“) oder neutrales Label („Deine Eingabe:“).
+- **Denglisch vermeiden:** Unnoetige Anglizismen in deutscher UI reduzieren (z. B. „Vote“ in Labels → „Wahl“ oder „Abstimmung“ je nach Kontext).
+- **Spielerisch ohne Ueberdrehung:** Duzen, kurze Saetze, leichte Energie – aber klar; keine unnoetigen Anglizismen und kein derbes oder jugendsprachliches Marketing in Produkt-Strings (z. B. englischsprachiges „Take 2“, „abfeuern“, „raushauen“). **Ernst** bleibt sachlich und klar; gleiche Information darf knapper formuliert sein.
+
 ### Verbindliche Begriffspaare (MUSS)
 
 - **UI-Sprache:** "Vorschau" statt "Preview", "Tastenkürzel" statt "Hotkeys".

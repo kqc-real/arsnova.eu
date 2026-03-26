@@ -25,7 +25,7 @@ export function voteLobbyBadge(playful: boolean): string {
 
 export function voteLobbyWaitTitle(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.lobbyWaitTitlePlayful:Gleich geht's los – wir halten dich bereit!`;
+    return $localize`:@@sessionVote.lobbyWaitTitlePlayful:Gleich geht's los – mach dich bereit!`;
   }
   return $localize`:@@sessionVote.lobbyWaitTitleSerious:Warte auf den Start durch den Dozenten`;
 }
@@ -60,7 +60,7 @@ export function voteQaActiveHint(playful: boolean): string {
 
 export function voteFinishedHeroTitle(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.finishedTitlePlayful:Runde aus – stark mitgemacht!`;
+    return $localize`:@@sessionVote.finishedTitlePlayful:Geschafft – toll mitgemacht!`;
   }
   return $localize`:@@sessionVote.finishedTitleSerious:Session beendet`;
 }
@@ -137,7 +137,7 @@ export function voteBonusHint(playful: boolean): string {
 
 export function voteFeedbackTitle(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.feedbackTitlePlayful:Kurz Feedback?`;
+    return $localize`:@@sessionVote.feedbackTitlePlayful:Kurzes Feedback?`;
   }
   return $localize`:@@sessionVote.feedbackTitleSerious:Deine Meinung zählt`;
 }
@@ -179,7 +179,7 @@ export function voteFeedbackRepeatNo(playful: boolean): string {
 
 export function voteFeedbackSubmit(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.feedbackSubmitPlayful:Ab damit!`;
+    return $localize`:@@sessionVote.feedbackSubmitPlayful:Absenden!`;
   }
   return $localize`:@@sessionVote.feedbackSubmitSerious:Bewertung absenden`;
 }
@@ -249,7 +249,7 @@ export function voteLastQuestionBadge(playful: boolean): string {
 
 export function voteReadingTitle(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.readingTitlePlayful:Erst lesen, dann klicken`;
+    return $localize`:@@sessionVote.readingTitlePlayful:Erst lesen, dann abstimmen`;
   }
   return $localize`:@@sessionVote.readingTitleSerious:Lesephase`;
 }
@@ -270,7 +270,7 @@ export function voteDiscussionTitle(playful: boolean): string {
 
 export function voteDiscussionHint(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.discussionHintPlayful:Gleiche Meinung? Nice. Unterschiedlich? Kurz gegenchecken – dann geht's in Runde 2.`;
+    return $localize`:@@sessionVote.discussionHintPlayful:Gleiche Meinung? Super. Unterschiedlich? Kurz austauschen – dann geht's in Runde 2.`;
   }
   return $localize`:@@sessionVote.discussionHintSerious:Gleiche Antwort? Prima. Verschiedene Meinung? Überzeugt euch gegenseitig.`;
 }
@@ -284,14 +284,14 @@ export function voteDiscussionNext(playful: boolean): string {
 
 export function voteRound2Banner(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.round2BannerPlayful:Runde 2 – hat sich was gedreht nach dem Gespräch?`;
+    return $localize`:@@sessionVote.round2BannerPlayful:Runde 2 – hat sich deine Meinung nach dem Gespräch geändert?`;
   }
   return $localize`:@@sessionVote.round2BannerSerious:2. Runde – hat die Diskussion deine Meinung geändert?`;
 }
 
 export function voteRoundBadge(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.roundBadgePlayful:Take 2`;
+    return $localize`:@@sessionVote.roundBadgePlayful:2. Runde`;
   }
   return $localize`:@@sessionVote.roundBadgeSerious:2. Runde`;
 }
@@ -305,7 +305,7 @@ export function voteAllVotedLabel(playful: boolean): string {
 
 export function voteSubmitCta(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.submitPlayful:Ab damit!`;
+    return $localize`:@@sessionVote.submitPlayful:Absenden!`;
   }
   return $localize`:@@sessionVote.submitSerious:Absenden`;
 }
@@ -319,7 +319,7 @@ export function voteFreetextPlaceholder(playful: boolean): string {
 
 export function voteFreetextOwnPrefix(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.freetextOwnPlayful:Bei uns steht:`;
+    return $localize`:@@sessionVote.freetextOwnPlayful:Du sagst:`;
   }
   return $localize`:@@sessionVote.freetextOwnSerious:Deine Antwort:`;
 }
@@ -333,14 +333,14 @@ export function voteFreetextEmpty(playful: boolean): string {
 
 export function voteRatingResultPrefix(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.ratingResultPrefixPlayful:Dein Vote:`;
+    return $localize`:@@sessionVote.ratingResultPrefixPlayful:Deine Wahl:`;
   }
   return $localize`:@@sessionVote.ratingResultPrefixSerious:Deine Bewertung:`;
 }
 
 export function voteSentLabel(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.sentPlayful:Antwort ist durch!`;
+    return $localize`:@@sessionVote.sentPlayful:Antwort gesendet!`;
   }
   return $localize`:@@sessionVote.sentSerious:Antwort gesendet`;
 }
@@ -375,7 +375,7 @@ export function voteScorecardCorrect(playful: boolean): string {
 
 export function voteScorecardWrong(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.scoreWrongPlayful:✗ Nicht getroffen`;
+    return $localize`:@@sessionVote.scoreWrongPlayful:✗ Leider daneben`;
   }
   return $localize`:@@sessionVote.scoreWrongSerious:✗ Falsch`;
 }
@@ -389,21 +389,21 @@ export function voteScorecardNeutral(playful: boolean): string {
 
 export function voteEmojiBarLabel(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.emojiLabelPlayful:Reaktion abfeuern`;
+    return $localize`:@@sessionVote.emojiLabelPlayful:Schnell reagieren`;
   }
   return $localize`:@@sessionVote.emojiLabelSerious:Schnell reagieren`;
 }
 
 export function voteEmojiBarHint(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.emojiHintPlayful:Tippe ein Emoji – beim Dozenten geht's anonym auf (wenn aktiv).`;
+    return $localize`:@@sessionVote.emojiHintPlayful:Tippe ein Emoji – es erscheint anonym beim Dozenten (wenn aktiv).`;
   }
   return $localize`:@@sessionVote.emojiHintSerious:Tippe auf ein Symbol – deine Reaktion erscheint anonym beim Dozenten (optional).`;
 }
 
 export function voteEmojiSent(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.emojiSentPlayful:Emoji ist raus!`;
+    return $localize`:@@sessionVote.emojiSentPlayful:Emoji gesendet!`;
   }
   return $localize`:@@sessionVote.emojiSentSerious:Reaktion gesendet`;
 }
@@ -424,21 +424,21 @@ export function voteQaFormLabel(playful: boolean): string {
 
 export function voteQaPlaceholder(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.qaPlaceholderPlayful:Los, frag – kurz und klar`;
+    return $localize`:@@sessionVote.qaPlaceholderPlayful:Stell deine Frage – kurz und klar`;
   }
   return $localize`:@@sessionVote.qaPlaceholderSerious:Schreibe deine Frage hier`;
 }
 
 export function voteQaSubmit(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.qaSubmitPlayful:Frage raushauen`;
+    return $localize`:@@sessionVote.qaSubmitPlayful:Frage stellen`;
   }
   return $localize`:@@sessionVote.qaSubmitSerious:Frage senden`;
 }
 
 export function voteQaEmpty(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.qaEmptyPlayful:Noch leer – starte die erste Frage!`;
+    return $localize`:@@sessionVote.qaEmptyPlayful:Noch leer – stell als Erste:r eine Frage!`;
   }
   return $localize`:@@sessionVote.qaEmptySerious:Noch keine Fragen – stell die erste!`;
 }
@@ -465,7 +465,7 @@ export function voteFeedbackSnack(playful: boolean): string {
 }
 
 export function voteTeamLeaderHintPlayful(leaderName: string, leaderScore: number): string {
-  return $localize`:@@sessionVote.teamLeaderHintPlayful:Vorne: ${leaderName}:name: mit ${leaderScore}:score: Punkten – jagt sie ein!`;
+  return $localize`:@@sessionVote.teamLeaderHintPlayful:Vorne liegt ${leaderName}:name: mit ${leaderScore}:score: Punkten – bleibt dran!`;
 }
 
 export function voteTeamLeaderHintSerious(leaderName: string, leaderScore: number): string {

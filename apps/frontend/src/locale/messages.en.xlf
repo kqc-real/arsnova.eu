@@ -7124,7 +7124,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.lobbyWaitTitlePlayful" datatype="html">
-        <source>Gleich geht&apos;s los – wir halten dich bereit!</source>
+        <source>Gleich geht&apos;s los – mach dich bereit!</source>
         <target>Starting soon—get ready!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
@@ -7204,8 +7204,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.finishedTitlePlayful" datatype="html">
-        <source>Runde aus – stark mitgemacht!</source>
-        <target>Round over – great job!</target>
+        <source>Geschafft – toll mitgemacht!</source>
+        <target>Well done – great work!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">63</context>
@@ -7380,7 +7380,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.feedbackTitlePlayful" datatype="html">
-        <source>Kurz Feedback?</source>
+        <source>Kurzes Feedback?</source>
         <target>Quick feedback?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
@@ -7476,8 +7476,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.feedbackSubmitPlayful" datatype="html">
-        <source>Ab damit!</source>
-        <target>Submit feedback!</target>
+        <source>Absenden!</source>
+        <target>Submit!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">182</context>
@@ -7636,8 +7636,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.readingTitlePlayful" datatype="html">
-        <source>Erst lesen, dann klicken</source>
-        <target>Read first, then answer</target>
+        <source>Erst lesen, dann abstimmen</source>
+        <target>Read first, then vote</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">252</context>
@@ -7684,8 +7684,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.discussionHintPlayful" datatype="html">
-        <source>Gleiche Meinung? Nice. Unterschiedlich? Kurz gegenchecken – dann geht&apos;s in Runde 2.</source>
-        <target>Agree? Great. Disagree? Compare notes real quick—then round 2.</target>
+        <source>Gleiche Meinung? Super. Unterschiedlich? Kurz austauschen – dann geht&apos;s in Runde 2.</source>
+        <target>Same take? Great. Different? Chat briefly—then round 2.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">273</context>
@@ -7716,8 +7716,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.round2BannerPlayful" datatype="html">
-        <source>Runde 2 – hat sich was gedreht nach dem Gespräch?</source>
-        <target>Round 2 – did anything change after chatting?</target>
+        <source>Runde 2 – hat sich deine Meinung nach dem Gespräch geändert?</source>
+        <target>Round 2 – did your view change after the discussion?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">287</context>
@@ -7732,7 +7732,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.roundBadgePlayful" datatype="html">
-        <source>Take 2</source>
+        <source>2. Runde</source>
         <target>Round 2</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
@@ -7764,7 +7764,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.submitPlayful" datatype="html">
-        <source>Ab damit!</source>
+        <source>Absenden!</source>
         <target>Submit!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
@@ -7796,8 +7796,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.freetextOwnPlayful" datatype="html">
-        <source>Bei uns steht:</source>
-        <target>We have:</target>
+        <source>Du sagst:</source>
+        <target>You said:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">322</context>
@@ -7828,8 +7828,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.ratingResultPrefixPlayful" datatype="html">
-        <source>Dein Vote:</source>
-        <target>Your vote:</target>
+        <source>Deine Wahl:</source>
+        <target>Your choice:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">336</context>
@@ -7844,7 +7844,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.sentPlayful" datatype="html">
-        <source>Antwort ist durch!</source>
+        <source>Antwort gesendet!</source>
         <target>Answer sent!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
@@ -7924,8 +7924,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.scoreWrongPlayful" datatype="html">
-        <source>✗ Nicht getroffen</source>
-        <target>✗ Missed it!</target>
+        <source>✗ Leider daneben</source>
+        <target>✗ Not quite</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">378</context>
@@ -7956,8 +7956,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.emojiLabelPlayful" datatype="html">
-        <source>Reaktion abfeuern</source>
-        <target>Fire reaction</target>
+        <source>Schnell reagieren</source>
+        <target>React quickly</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">392</context>
@@ -7972,8 +7972,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.emojiHintPlayful" datatype="html">
-        <source>Tippe ein Emoji – beim Dozenten geht&apos;s anonym auf (wenn aktiv).</source>
-        <target>Send an emoji—it shows up anonymously for the host (if enabled).</target>
+        <source>Tippe ein Emoji – es erscheint anonym beim Dozenten (wenn aktiv).</source>
+        <target>Tap an emoji—it appears anonymously for the host (if enabled).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">399</context>
@@ -7988,8 +7988,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.emojiSentPlayful" datatype="html">
-        <source>Emoji ist raus!</source>
-        <target>Reaction sent!</target>
+        <source>Emoji gesendet!</source>
+        <target>Emoji sent!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">406</context>
@@ -8036,8 +8036,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.qaPlaceholderPlayful" datatype="html">
-        <source>Los, frag – kurz und klar</source>
-        <target>Go ahead, ask – keep it brief and clear</target>
+        <source>Stell deine Frage – kurz und klar</source>
+        <target>Ask your question – keep it brief and clear</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">427</context>
@@ -8052,8 +8052,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.qaSubmitPlayful" datatype="html">
-        <source>Frage raushauen</source>
-        <target>Ask away!</target>
+        <source>Frage stellen</source>
+        <target>Ask question</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">434</context>
@@ -8068,8 +8068,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.qaEmptyPlayful" datatype="html">
-        <source>Noch leer – starte die erste Frage!</source>
-        <target>Still empty—be the first to ask!</target>
+        <source>Noch leer – stell als Erste:r eine Frage!</source>
+        <target>Still empty—ask the first question!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">441</context>
@@ -8132,8 +8132,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamLeaderHintPlayful" datatype="html">
-        <source>Vorne: <x id="name" equiv-text="leaderName"/> mit <x id="score" equiv-text="leaderScore"/> Punkten – jagt sie ein!</source>
-        <target>In the lead: <x id="name" equiv-text="leaderName"/> with <x id="score" equiv-text="leaderScore"/> points – catch up to them!</target>
+        <source>Vorne liegt <x id="name" equiv-text="leaderName"/> mit <x id="score" equiv-text="leaderScore"/> Punkten – bleibt dran!</source>
+        <target><x id="name" equiv-text="leaderName"/> is in the lead with <x id="score" equiv-text="leaderScore"/> points—keep going!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">468</context>

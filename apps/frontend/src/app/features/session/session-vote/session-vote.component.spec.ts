@@ -201,7 +201,7 @@ describe('SessionVoteComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Runde aus – stark mitgemacht!');
+    expect(text).toContain('Geschafft – toll mitgemacht!');
     expect(text).toContain('Zurück zur Startseite');
     expect(text).toContain('Euer Team');
     expect(text).toContain('Team-Sieg!');
