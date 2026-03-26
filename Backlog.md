@@ -95,13 +95,14 @@
 | 8    | 8.4   | Dozenten-Moderation                                    | 🟢   | ✅ Fertig |
 | 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen            | 🟡   | ⬜ Offen  |
 | 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                | 🟡   | ⬜ Offen  |
+| 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)          | 🟡   | ⬜ Offen  |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren             | 🟡   | ✅ Fertig |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                | 🟡   | ✅ Fertig |
 | 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft          | 🟡   | ✅ Fertig |
 
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 26 · 🟡 Should: 42 · 🟢 Could: 14 = **82 Storys gesamt**
+> **Statistik:** 🔴 Must: 26 · 🟡 Should: 43 · 🟢 Could: 14 = **83 Storys gesamt**
 
 ---
 
@@ -1064,7 +1065,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ## Epic 8: Q&A-Modus (Rolle: Dozent & Student)
 
-> **Verifizierung Epic 8 (2026-03-13):** Der bisherige Kernumfang 8.1–8.4 ist umgesetzt. Offen: Story 8.5 (delegierbare Moderation), Story 8.6 (Kontroversitäts-Score, Spezifikation [`docs/features/controversy-score.md`](docs/features/controversy-score.md)).  
+> **Verifizierung Epic 8 (2026-03-13):** Der bisherige Kernumfang 8.1–8.4 ist umgesetzt. Offen: Story 8.5 (delegierbare Moderation), Story 8.6 (Kontroversitäts-Score), Story 8.7 („Beste Fragen“, Wilson-Score) — Spezifikation und Hintergrund [`docs/features/controversy-score.md`](docs/features/controversy-score.md).  
 > Backend-Checks: `npm run test -w @arsnova/backend -- qa session.start-qa` ✅.  
 > Frontend-Checks: Spec-Abdeckung für Host-, Vote-, Present- und eingebettete Blitz-Feedback-Flows vorhanden ✅.  
 > Laufzeit-Review: `BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend` ✅, inklusive automatischem Fallback auf bestehende Unified-Session bei Session-Rate-Limit.
@@ -1109,6 +1110,9 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Sicherheits- und Integrationstests decken unzulässige Rolleneskalation ausdrücklich ab.
 - **Story 8.6 (Q&A: Kontroversitäts-Score & Sortierung):** 🟡 Als Dozent oder Moderator einer Live-Veranstaltung möchte ich Fragen im Q&A nach Kontroversität (ausgeglichene Up- und Downvotes) sortieren können, damit polarisierende Themen sichtbar werden und nicht nur durch hohe Upvote-Zahlen dominieren.
   - **Details:** Formel, Sortier-Tie-Breaker, UI-Schwellen, Testfälle und Beispiel-SQL: [`docs/features/controversy-score.md`](docs/features/controversy-score.md).
+- **Story 8.7 (Q&A: Sortierung „Beste Fragen“, Wilson-Score):** 🟡 Als Dozent oder Moderator einer Live-Veranstaltung möchte ich Fragen im Q&A optional nach statistisch belastbarer Zustimmung sortieren können („Beste Fragen“, untere Grenze des Wilson-Konfidenzintervalls), damit Einzelstimmen mit scheinbar 100 % nicht über Fragen mit vielen, fast einhelligen Stimmen rutschen.
+  - **Details:** Hintergrund, Wilson-Formel, Beispiel-SQL und Abgrenzung zu Story 8.6: [`docs/features/controversy-score.md`](docs/features/controversy-score.md) (Abschnitte „Best Questions“ / Wilson und Entwicklernotizen).
+  - **Hinweis:** Sortier-UI (Dropdown o. Ä.) kann mit Story 8.6 gemeinsam geplant werden; technisch eigenständiges Scoring und Tests.
 
 ---
 
