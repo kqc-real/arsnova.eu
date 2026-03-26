@@ -67,7 +67,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     return i18nSessionCodeAria(code);
   }
 
-  /** Nur die Namensliste, die der Dozent für das Quiz vorgegeben hat (nicknameTheme aus Session/Quiz). */
+  /** Nur die Namensliste, die der Host fürs Quiz vorgegeben hat (nicknameTheme aus Session/Quiz). */
   readonly nicknameOptions = computed(() => {
     const s = this.session();
     if (!s || s.type !== 'QUIZ') return [];
@@ -75,14 +75,14 @@ export class JoinComponent implements OnInit, OnDestroy {
     return [...getNicknameList(theme, this.locale)];
   });
 
-  /** Liste anzeigen nur wenn Dozent keine eigenen Nicks erlaubt und Quiz eine Namensliste (nicknameTheme) vorgegeben hat. */
+  /** Liste anzeigen nur wenn der Host keine eigenen Nicks erlaubt und Quiz eine Namensliste (nicknameTheme) vorgegeben hat. */
   readonly showNicknameList = computed(() => {
     const s = this.session();
     if (!s || s.allowCustomNicknames === true) return false;
     return this.nicknameOptions().length > 0;
   });
 
-  /** Eigenes Namensfeld nur wenn Dozent eigene Nicks erlaubt (Preset: eigener Name). */
+  /** Eigenes Namensfeld nur wenn der Host eigene Nicks erlaubt (Preset: eigener Name). */
   readonly showCustomNickname = computed(() => {
     const s = this.session();
     return s?.type === 'Q_AND_A' || s?.allowCustomNicknames === true;
@@ -217,7 +217,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Session-Info und Teilnehmer periodisch nachziehen, damit Änderungen des Dozenten (z. B. Namensliste) beim Client ankommen. */
+  /** Session-Info und Teilnehmer periodisch nachziehen, damit Änderungen des Hosts (z. B. Namensliste) beim Client ankommen. */
   private startSessionPoll(): void {
     if (this.pollTimer) return;
     this.pollTimer = setInterval(() => void this.refreshSession(), SESSION_POLL_MS);

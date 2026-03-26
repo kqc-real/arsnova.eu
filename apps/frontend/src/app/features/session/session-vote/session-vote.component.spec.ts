@@ -534,7 +534,7 @@ describe('SessionVoteComponent', () => {
 
     expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
     const [message, , opts] = snackBarOpenMock.mock.calls[0]!;
-    expect(message).toMatch(/Dozent|host|docente|intervenant/i);
+    expect(message).toMatch(/Moderation|host|modération|moderación|moderatore/i);
     expect(opts).toMatchObject({ duration: 8000 });
     fixture.destroy();
   });

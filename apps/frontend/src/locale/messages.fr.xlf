@@ -1461,8 +1461,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.intro" datatype="html">
-        <source> Diese Anleitung ist für <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lehrende, Trainer:innen und Seminarleiter:innen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> gedacht: Du planst Unterricht, Training, Workshops oder Events und willst Interaktion ohne Hürden – Quiz, Q&amp;A und Blitzlicht in einer Session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ohne verpflichtende Anmeldung<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> für dich und deine Gruppe: Du startest, Lernende und Teilnehmende sind mit dabei. </source>
-        <target>Ce guide est destiné aux <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>enseignants, formateurs et responsables de séminaire<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> : vous préparez cours, formation, ateliers ou événements et voulez une interaction sans friction — quiz, Q&amp;A et Blitzlicht dans une même session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sans inscription obligatoire<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> pour vous ni votre groupe : vous lancez la session, les apprenants et les participant·es rejoignent.</target>
+        <source> Diese Anleitung ist für <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Lehrende, Trainer:innen und Seminarleiter:innen<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> gedacht: Du planst Unterricht, Training, Workshops oder Events und willst Interaktion ohne Hürden – Quiz, Q&amp;A und Blitzlicht in einer Session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Ohne verpflichtende Anmeldung<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> für dich und deine Gruppe: Du startest, Teilnehmende sind mit dabei. </source>
+        <target>Ce guide est destiné aux <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>enseignants, formateurs et responsables de séminaire<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> : vous préparez cours, formation, ateliers ou événements et voulez une interaction sans friction — quiz, Q&amp;A et Blitzlicht dans une même session. <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sans inscription obligatoire<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> pour vous ni votre groupe : vous lancez la session et les participant·es rejoignent.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">17,23</context>
@@ -1477,8 +1477,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.usp1" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Im Unterschied zu<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> verbreiteten Angeboten wie Kahoot oder Mentimeter liegt der Schwerpunkt hier auf <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Datenschutz und Kontrolle über die Lehrmaterialien<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: kein Pflichtkonto für dich oder deine Gruppe, <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz-Inhalte bleiben zunächst local-first im Browser<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, das Projekt ist <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Open Source<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, der Betrieb erfolgt über <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>EU-Infrastruktur<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (Host in Deutschland) – nachvollziehbar statt geschlossener Plattform.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Contrairement à<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> des offres répandues comme Kahoot ou Mentimeter, l’accent est mis sur la <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>protection des données et le contrôle des ressources pédagogiques<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> : pas de compte obligatoire pour vous ou votre groupe, <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>les contenus de quiz restent d’abord local-first dans le navigateur<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, le projet est <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>open source<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, l’exploitation s’appuie sur une <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>infrastructure européenne<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (hébergement en Allemagne) — transparent plutôt qu’une plateforme fermée.</target>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Im Unterschied zu<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> verbreiteten Angeboten wie Kahoot oder Mentimeter liegt der Schwerpunkt hier auf <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Datenschutz und Kontrolle über deine Präsentationen und Inhalte<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>: kein Pflichtkonto für dich oder deine Gruppe, <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Quiz-Inhalte bleiben zunächst local-first im Browser<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, das Projekt ist <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Open Source<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, der Betrieb erfolgt über <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>EU-Infrastruktur<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (Host in Deutschland) – nachvollziehbar statt geschlossener Plattform.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Contrairement à<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> des offres répandues comme Kahoot ou Mentimeter, l’accent est mis sur la <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>protection des données et le contrôle de vos présentations et contenus<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> : pas de compte obligatoire pour vous ou votre groupe, <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>les contenus de quiz restent d’abord local-first dans le navigateur<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, le projet est <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>open source<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/>, l’exploitation s’appuie sur une <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>infrastructure européenne<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (hébergement en Allemagne) — transparent plutôt qu’une plateforme fermée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">26,35</context>
@@ -1509,8 +1509,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.demoTip" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Tipp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Gib deinen Lernenden vor der ersten echten Session den Link zur Vorschau – so lernen sie Ablauf und Oberfläche kennen, ohne Druck.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Conseil :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Donnez à vos apprenants le lien vers l'aperçu avant la première vraie session : ils apprendront ainsi à connaître le processus et l'interface sans pression.</target>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Tipp:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Gib deiner Gruppe bzw. deinen Teilnehmenden vor der ersten echten Session den Link zur Vorschau – so können sie Ablauf und Oberfläche kennenlernen, ohne Druck.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Conseil :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Partagez le lien d’aperçu avec votre groupe ou vos participant·es avant la première vraie session : ils pourront découvrir le déroulé et l’interface sans pression.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">53,56</context>
@@ -1597,8 +1597,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPeer" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Bei Quiz- und Blitzlicht-Fragen: Erst abstimmen lassen → „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) → „Zweite Abstimmung&quot; – Vorher/Nachher-Vergleich zeigt, wie sich die Meinung durch den Austausch verändert hat.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Instruction par les pairs (doubles tours) :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Pour le quiz et le Blitzlicht : vote d’abord → lancez la « phase de discussion » (« discutez avec votre voisin ») → « deuxième vote » — le avant/après montre comment les avis évoluent après l’échange.</target>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Bei Quiz- und Blitzlicht-Fragen: Erst abstimmen lassen → „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) → „Zweite Abstimmung&quot; – Vorher/Nachher-Vergleich zeigt, wie sich das Stimmungsbild durch den Austausch verändert hat.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Instruction par les pairs (doubles tours) :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Pour le quiz et le Blitzlicht : vote d’abord → lancez la « phase de discussion » (« discutez avec votre voisin ») → « deuxième vote » — le avant/après montre comment la photo d’ambiance évolue après l’échange.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">100,103</context>
@@ -1677,8 +1677,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.qfPeer" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Erste Runde – Ergebnis nicht auflösen – „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) – „Zweite Abstimmung&quot;. Vorher/Nachher-Vergleich zeigt den Lerneffekt durch den Austausch.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Instruction par les pairs (doubles tours) :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Premier tour - Ne pas résoudre le résultat - Démarrer la "phase de discussion" ("Discutez avec votre voisin") - "Deuxième vote". La comparaison avant/après montre l’effet d’apprentissage grâce à l’échange.</target>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Peer Instruction (Doppelrunden):<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Erste Runde – Ergebnis nicht auflösen – „Diskussionsphase&quot; starten („Diskutiert mit eurem Nachbarn&quot;) – „Zweite Abstimmung&quot;. Vorher/Nachher-Vergleich zeigt, wie sich das Stimmungsbild durch den Austausch verändert hat.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Instruction par les pairs (doubles tours) :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Premier tour - Ne pas résoudre le résultat - Démarrer la "phase de discussion" ("Discutez avec votre voisin") - "Deuxième vote". La comparaison avant/après montre comment la photo d’ambiance évolue grâce à l’échange.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">145,148</context>
@@ -1725,8 +1725,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantsLead" datatype="html">
-        <source> Kurze Anleitungen, die du direkt mit deiner Gruppe teilen kannst: </source>
-        <target>Courtes consignes que vous pouvez partager directement avec votre groupe :</target>
+        <source> Kurze Anleitungen, die du direkt in deiner Veranstaltung teilen kannst: </source>
+        <target>Courtes consignes que vous pouvez partager directement pendant votre événement :</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">169,172</context>
@@ -1789,8 +1789,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionImport" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Nutze den KI-Prompt, um Fragen mit deiner bevorzugten KI zu generieren und direkt einzufügen – deine Lehrmaterialien verlassen dabei niemals dein Gerät, da du deine eigene KI nutzt. </source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / export :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Importez ou exportez des quiz en JSON. Utilisez l’invite IA pour générer des questions avec votre IA préférée et les insérer directement — vos supports pédagogiques ne quittent jamais votre appareil, car vous utilisez votre propre IA.</target>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Nutze den KI-Prompt, um Fragen mit deiner bevorzugten KI zu generieren und direkt einzufügen – deine Präsentationen und Inhalte verlassen dabei niemals dein Gerät, da du deine eigene KI nutzt. </source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / export :<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Importez ou exportez des quiz en JSON. Utilisez l’invite IA pour générer des questions avec votre IA préférée et les insérer directement — vos présentations et contenus ne quittent jamais votre appareil, car vous utilisez votre propre IA.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">200,203</context>
@@ -2120,8 +2120,8 @@
           <context context-type="linenumber">162,163</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4819831177672875363" datatype="html">
-        <source>Als Dozent anzeigen</source>
+      <trans-unit id="sessionEntry.showHostLink" datatype="html">
+        <source>Als Host anzeigen</source>
         <target>Passer en vue animateur</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
@@ -7056,8 +7056,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.lobbyWaitTitleSerious" datatype="html">
-        <source>Warte auf den Start durch den Dozenten</source>
-        <target>Attendez que le conférencier commence</target>
+        <source>Warte auf den Start durch die Moderation</source>
+        <target>En attente du démarrage par l’animation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">30</context>
@@ -7288,16 +7288,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.bonusHintPlayful" datatype="html">
-        <source>Schick den Code per Mail an deine Lehrperson, wenn du Bonuspunkte willst. Du bleibst anonym, bis du ihn einreichst.</source>
-        <target>Envoyez le code à votre professeur si vous souhaitez des points bonus. Vous restez anonyme jusqu&apos;à ce que vous le soumettiez.</target>
+        <source>Schick den Code per Mail an die Moderation, wenn du Bonuspunkte willst. Du bleibst anonym, bis du ihn einreichst.</source>
+        <target>Envoyez le code par mail à l’animation si vous souhaitez des points bonus. Vous restez anonyme jusqu’à ce que vous le soumettiez.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">133</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.bonusHintSerious" datatype="html">
-        <source>Sende diesen Code per E-Mail an deinen Dozenten, um Bonuspunkte zu erhalten. Deine Anonymität bleibt gewahrt, solange du den Code nicht einreichst.</source>
-        <target>Envoie ce code par e-mail à ton enseignant pour obtenir des points bonus. Ton anonymat est préservé tant que tu ne soumets pas le code.</target>
+        <source>Sende diesen Code per E-Mail an die Moderation, um Bonuspunkte zu erhalten. Deine Anonymität bleibt gewahrt, solange du den Code nicht einreichst.</source>
+        <target>Envoie ce code par e-mail à l’animation pour obtenir des points bonus. Ton anonymat est préservé tant que tu ne soumets pas le code.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">135</context>
@@ -7896,16 +7896,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.emojiHintPlayful" datatype="html">
-        <source>Tippe ein Emoji – es erscheint anonym beim Dozenten (wenn aktiv).</source>
-        <target>Tape un émoji – il apparaît de façon anonyme pour l’enseignant·e (si activé).</target>
+        <source>Tippe ein Emoji – es erscheint anonym bei der Moderation (wenn aktiv).</source>
+        <target>Tape un émoji – il apparaît de façon anonyme pour l’animation (si activé).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">399</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.emojiHintSerious" datatype="html">
-        <source>Tippe auf ein Symbol – deine Reaktion erscheint anonym beim Dozenten (optional).</source>
-        <target>Appuie sur un symbole — ta réaction apparaîtra anonymement chez l’enseignant (optionnel).</target>
+        <source>Tippe auf ein Symbol – deine Reaktion erscheint anonym bei der Moderation (optional).</source>
+        <target>Appuie sur un symbole — ta réaction apparaîtra anonymement pour l’animation (optionnel).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">401</context>
@@ -8628,32 +8628,32 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackModeratorRemovedOwn" datatype="html">
-        <source>Der Dozent hat deine Frage entfernt.</source>
-        <target>L’intervenant a retiré ta question.</target>
+        <source>Die Moderation hat deine Frage entfernt.</source>
+        <target>La modération a retiré ta question.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">1163</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackModeratorRemovedOwnMany" datatype="html">
-        <source>Der Dozent hat deine Fragen entfernt.</source>
-        <target>L’intervenant a retiré tes questions.</target>
+        <source>Die Moderation hat deine Fragen entfernt.</source>
+        <target>La modération a retiré tes questions.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">1163</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackModeratorRemovedOther" datatype="html">
-        <source>Eine Frage wurde vom Dozenten entfernt.</source>
-        <target>Une question a été retirée par l’intervenant.</target>
+        <source>Eine Frage wurde von der Moderation entfernt.</source>
+        <target>Une question a été retirée par la modération.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">1163</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.snackModeratorRemovedOthersMany" datatype="html">
-        <source>Mehrere Fragen wurden vom Dozenten entfernt.</source>
-        <target>Plusieurs questions ont été retirées par l’intervenant.</target>
+        <source>Mehrere Fragen wurden von der Moderation entfernt.</source>
+        <target>Plusieurs questions ont été retirées par la modération.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">1163</context>

@@ -1177,13 +1177,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (ownRemoved.length > 0) {
       msg =
         ownRemoved.length > 1
-          ? $localize`:@@sessionQa.snackModeratorRemovedOwnMany:Der Dozent hat deine Fragen entfernt.`
-          : $localize`:@@sessionQa.snackModeratorRemovedOwn:Der Dozent hat deine Frage entfernt.`;
+          ? $localize`:@@sessionQa.snackModeratorRemovedOwnMany:Die Moderation hat deine Fragen entfernt.`
+          : $localize`:@@sessionQa.snackModeratorRemovedOwn:Die Moderation hat deine Frage entfernt.`;
     } else if (otherRemoved.length > 0) {
       msg =
         otherRemoved.length > 1
-          ? $localize`:@@sessionQa.snackModeratorRemovedOthersMany:Mehrere Fragen wurden vom Dozenten entfernt.`
-          : $localize`:@@sessionQa.snackModeratorRemovedOther:Eine Frage wurde vom Dozenten entfernt.`;
+          ? $localize`:@@sessionQa.snackModeratorRemovedOthersMany:Mehrere Fragen wurden von der Moderation entfernt.`
+          : $localize`:@@sessionQa.snackModeratorRemovedOther:Eine Frage wurde von der Moderation entfernt.`;
     }
 
     if (msg) {

@@ -234,8 +234,8 @@ Tokenbasierte Card-Flaeche:
 
 - **Gedankenstriche:** In der UI sparsam einsetzen – wirken schnell akademisch oder schwer. Stattdessen Komma, Doppelpunkt oder Punkt (z. B. „Kita bis Uni …“ statt „… Zielgruppe – von …“).
 - **Duzen:** In der gesamten App (Hilfe, Hinweise, Buttons, Fehlermeldungen) wird die Nutzerin/der Nutzer mit **Du** angesprochen – einheitlich fuer alle Rollen (Veranstaltende und Teilnehmende). Entspricht dem Vorgehen vieler Lern- und Umfrage-Apps (z. B. Mentimeter, Kahoot!, Slido). Formelles "Sie" nur in rechtlichen Texten (Impressum, Datenschutz), wo ueblich.
-- **Rollenbezeichnungen:** "Mitmachen" (statt "Teilnehmer/in"), "Veranstalten" (statt "Lehrperson"). Aktivierend, rollenunabhaengig.
-- **CTAs:** Handlungsauffordernd mit klarem Nutzen: "Los geht's" (statt "Beitreten"), "Neues Quiz starten" (statt "Session erstellen"), Begriffe zur **Quiz-Sammlung** statt generisch „Bibliothek“, "Fragerunde" (statt "Q&A").
+- **Rollenbezeichnungen:** "Mitmachen" (statt "Teilnehmer/in"), "Veranstalten" (statt "Lehrperson"). Aktivierend, rollenunabhaengig. **Teilnehmer-Perspektive (Live):** Steuernde als **Moderation** oder **Host** benennen, nicht als Dozent/Lehrperson (siehe unten „Zielgruppenneutrale Copy“). Kurzlinks z. B. **„Als Host anzeigen“** (`@@sessionEntry.showHostLink`).
+- **CTAs:** Handlungsauffordernd mit klarem Nutzen: "Los geht's" (statt "Beitreten"), "Neues Quiz starten" (statt "Session erstellen"), Begriffe zur **Quiz-Sammlung** statt generisch „Bibliothek“, "Fragerunde" (statt "Q&A"). **Hinweis:** Das Wort **Quiz** ist im Produkt fest verankert; breitere Begriffe (z. B. „Interaktionen“, „Fragerunde“ als Navigation) nur bei einer **eigenen Story** mit durchgaengigem i18n – nicht punktuell mischen.
 - **Session-Code (Startseite):** Sichtbar nur zentrierte Bezeichnung **Session-Code**; Details (6 Zeichen) in **aria-label** des Overlays.
 - **Server-Status:** "Verbunden" / "Keine Verbindung" (statt "Server erreichbar/nicht erreichbar"). "Nochmal versuchen" (statt "Erneut verbinden").
 
@@ -250,6 +250,17 @@ Leitplanken aus der Teilnehmer-Session (Preset **Ernst** / **Spielerisch**); zen
 - **„Wir“ / „uns“ vorsichtig:** Formulierungen wie „Bei uns steht:“ koennen Team-Kontext suggerieren; bei Einzelspielerinnen unklar. Bevorzugt Du-Ansprache („Du sagst:“) oder neutrales Label („Deine Eingabe:“).
 - **Denglisch vermeiden:** Unnoetige Anglizismen in deutscher UI reduzieren (z. B. „Vote“ in Labels → „Wahl“ oder „Abstimmung“ je nach Kontext).
 - **Spielerisch ohne Ueberdrehung:** Duzen, kurze Saetze, leichte Energie – aber klar; keine unnoetigen Anglizismen und kein derbes oder jugendsprachliches Marketing in Produkt-Strings (z. B. englischsprachiges „Take 2“, „abfeuern“, „raushauen“). **Ernst** bleibt sachlich und klar; gleiche Information darf knapper formuliert sein.
+
+### Zielgruppenneutrale Copy (Schule, Hochschule, Training, Business)
+
+Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie Unternehmenskontext (z. B. Townhall, Retro). UI-Texte sollen **nicht** nur Hörsaal/Klassenzimmer implizieren.
+
+- **Teilnehmende Ansicht (Vote, Fragerunde, Bonus, Emoji):** Formulierungen wie „Warte auf den Start durch die **Moderation**“, „Code an die **Moderation**“, „anonym bei der **Moderation**“; Snacks bei entfernten Fragen: **„Die Moderation hat … entfernt“** (nicht Dozent/Lehrperson). Referenz: `session-vote-participant-copy.ts`, Snacks in `session-vote.component.ts`.
+- **Host-Seite / Fehlerpfade:** Kurz und klar **Host** nutzen, wo es um die Steuerungs-Ansicht geht (z. B. Link bei beendeter Session).
+- **Hilfe und erklaerende Texte:** Zielgruppe beschreiben mit **Lehrende, Trainer:innen, Seminarleiter:innen** (wie im Intro) – dort bewusst breit. Bei Tipps und Anleitungen **Gruppe** und **Teilnehmende** bevorzugen, wenn es nicht explizit um Lernende geht; **Veranstaltung** statt nur „Unterricht“/„Seminar“, wo der Kontext allgemein ist. Referenz: `help.component.html`.
+- **Datenschutz / KI / Import:** Statt **Lehrmaterialien** eher **Präsentationen und Inhalte** (Inhalte verlassen das Geraet nicht über die Plattform-KI, sondern ueber die gewaehlte KI des Nutzers).
+- **Peer Instruction (Doppelrunden):** In Erklaertexten den Vorher/Nachher-Vergleich so beschreiben, dass er auch **ohne** klassischen „Lerneffekt“ Sinn ergibt – z. B. **Stimmungsbild** / Meinungsverteilung nach Austausch (nicht nur didaktischer Lerngewinn). Referenz: Hilfe-Abschnitte Host und Blitzlicht.
+- **i18n:** Neue oder geaenderte deutsche UI-Strings dieser Kategorie wie ueblich in **allen** Locale-Dateien (`messages.xlf`, `en`, `fr`, `es`, `it`) nachziehen; feste IDs (`@@…`) beibehalten, wo vorhanden.
 
 ### Verbindliche Begriffspaare (MUSS)
 
