@@ -1921,7 +1921,7 @@
       </trans-unit>
       <trans-unit id="homeHero.line2" datatype="html">
         <source>live in einer App</source>
-        <target>live in one app</target>
+        <target>all in one place</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">6,8</context>
