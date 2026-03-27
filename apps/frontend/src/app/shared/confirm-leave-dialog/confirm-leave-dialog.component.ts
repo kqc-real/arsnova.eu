@@ -74,6 +74,20 @@ export interface ConfirmLeaveDialogData {
         color: var(--mat-sys-on-surface-variant);
         line-height: 1.7;
       }
+
+      @media (max-width: 28rem) {
+        mat-dialog-actions {
+          flex-direction: column-reverse;
+          align-items: stretch;
+          gap: 0.5rem;
+          padding-inline: 1rem;
+          padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+        }
+
+        mat-dialog-actions .mat-mdc-button-base {
+          width: 100%;
+        }
+      }
     `,
   ],
 })

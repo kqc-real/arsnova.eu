@@ -437,6 +437,48 @@ html.dark .cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
   }
 }
 
+/* MOTD-Archiv (Toolbar): Hintergrund wie Home-MOTD-Overlay (Blur, kein Blur bei reduced-motion) */
+.cdk-overlay-backdrop.motd-archive-dialog-backdrop {
+  background: color-mix(in srgb, var(--mat-sys-scrim) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cdk-overlay-backdrop.motd-archive-dialog-backdrop {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* MOTD-Archiv: MD3-Dialog-Surface (wie Status-Hilfe, typische Dialog-Ecke) */
+.cdk-overlay-pane.motd-archive-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level3);
+  /* Mehr Luft um Titel „Nachrichten-Archiv“ und Inhalt (Mobile-first) */
+  padding: 1.25rem 1.25rem 1.5rem;
+}
+
+@media (min-width: 600px) {
+  .cdk-overlay-pane.motd-archive-dialog-panel .mat-mdc-dialog-surface {
+    padding: 1.5rem 1.75rem 1.75rem;
+  }
+}
+
+.cdk-overlay-pane.motd-archive-dialog-panel .mat-mdc-dialog-content {
+  max-height: min(72dvh, 28rem);
+  /* Horizontales Padding übernimmt die Surface; vertikal etwas Abstand unter dem Titel */
+  padding-inline: 0;
+  padding-block: 0.75rem 0;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level3);
+}
+
 /* Session-Host: QR-Dialog mittig (Viewport-Overlay); Feedback-Host: CDK-Overlay */
 .cdk-overlay-pane.feedback-host__join-popover-pane,
 .session-host__join-viewport-overlay__surface {
@@ -529,7 +571,7 @@ html.dark .app-qr-image {
 }
 
 .app-status-help-dialog-panel .mat-mdc-dialog-surface {
-  border-radius: var(--mat-sys-corner-large);
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
   border: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-high);
   box-shadow: var(--mat-sys-level3);
@@ -948,4 +990,39 @@ $markdown-katex-flow-hosts:
   margin: 0.65rem 0;
   border: 0;
   border-top: 1px solid color-mix(in srgb, var(--mat-sys-outline) 22%, transparent);
+}
+
+// ---------------------------------------------------------------------------
+// Material Dialog & Snack Bar – gemeinsame UX (Viewport, Safe Area, Scroll)
+// ---------------------------------------------------------------------------
+
+.cdk-overlay-pane.mat-mdc-dialog-panel {
+  max-width: calc(
+    100vw - 1rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)
+  ) !important;
+}
+
+.mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  max-height: min(
+    88dvh,
+    calc(100vh - 1.25rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
+  box-sizing: border-box;
+}
+
+.mat-mdc-dialog-container .mat-mdc-dialog-content {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mat-mdc-dialog-container .mat-mdc-dialog-surface,
+  .cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}
+
+.mat-mdc-snack-bar-container {
+  margin: 0 0.5rem max(0.75rem, env(safe-area-inset-bottom, 0px)) !important;
+  max-width: min(100vw - 1rem, 40rem) !important;
 }

@@ -6,7 +6,7 @@
 >
 > **Nächster Fokus:** Epic 6 (Theming, i18n, Impressum/Datenschutz, Mobile-First, Barrierefreiheit) — parallel ab Epic 0 möglich.
 >
-> **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ⬜ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`; in der Lehre oft **vollständig durch Lehrperson** live, siehe Epic-10-Abschnitt unten)
+> **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
 ---
 
@@ -99,14 +99,14 @@
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren             | 🟡   | ✅ Fertig |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                | 🟡   | ✅ Fertig |
 | 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft          | 🟡   | ✅ Fertig |
-| 10   | 10.1  | MOTD: Datenmodell, Migration, Zod/DTOs                 | 🟡   | ⬜ Offen  |
-| 10   | 10.2  | MOTD: Öffentliche Read-API + Rate-Limiting             | 🟡   | ⬜ Offen  |
-| 10   | 10.3  | MOTD: Admin tRPC (CRUD, Templates, Zeitsteuerung)      | 🟡   | ⬜ Offen  |
-| 10   | 10.4  | MOTD: Admin-UI (CMS-light, Markdown, Vorschau)         | 🟡   | ⬜ Offen  |
-| 10   | 10.5  | MOTD: Startseiten-Overlay + localStorage               | 🟡   | ⬜ Offen  |
-| 10   | 10.6  | MOTD: Interaktionen (Ack, Dismiss, Feedback, API)      | 🟡   | ⬜ Offen  |
-| 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte     | 🟡   | ⬜ Offen  |
-| 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)           | 🟡   | ⬜ Offen  |
+| 10   | 10.1  | MOTD: Datenmodell, Migration, Zod/DTOs                 | 🟡   | ✅ Fertig |
+| 10   | 10.2  | MOTD: Öffentliche Read-API + Rate-Limiting             | 🟡   | ✅ Fertig |
+| 10   | 10.3  | MOTD: Admin tRPC (CRUD, Templates, Zeitsteuerung)      | 🟡   | ✅ Fertig |
+| 10   | 10.4  | MOTD: Admin-UI (CMS-light, Markdown, Vorschau)         | 🟡   | ✅ Fertig |
+| 10   | 10.5  | MOTD: Startseiten-Overlay + localStorage               | 🟡   | ✅ Fertig |
+| 10   | 10.6  | MOTD: Interaktionen (Ack, Dismiss, Feedback, API)      | 🟡   | ✅ Fertig |
+| 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte     | 🟡   | ✅ Fertig |
+| 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)           | 🟡   | ✅ Fertig |
 
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
@@ -1188,7 +1188,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 >
 > **Didaktik (Lehre):** Epic 10 dient in **Fallstudie Software Engineering** und **Software-Qualitätsmanagement** als **gemeinsames Referenz-Feature**: Die **Lehrperson implementiert Epic 10 vollständig** (10.1–10.8) in den **Anfangsvorlesungen** mit **KI-Agenten**, **live am Beamer**, und gibt **parallel Mini-Inputs** zu Werkzeugen (**VS Code**, **Git**, **GitHub**) und Projekttechnologien (**TypeScript**, **PostgreSQL**, **Prisma**, **tRPC**, **Redis** u. a.). **Studierende** bearbeiten **danach** die **User Stories der anderen Epics** ([`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](docs/praktikum/STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0); SQM begleitet deren Arbeit — MOTD als Referenzcode, nicht als studierendenpflichtiges Epic.
 >
-> **Status:** ⬜ Offen (Stories 10.1–10.8)
+> **Status:** ✅ Fertig (Stories 10.1–10.8, Stand Produktcode)
 
 ### Implementierungsreihenfolge (empfohlen)
 
@@ -1203,7 +1203,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ---
 
-- **Story 10.1 (MOTD: Datenmodell, Migration, Zod/DTOs):** ⬜ Als Entwickler:in möchte ich ein persistiertes Datenmodell für MOTDs und Vorlagen sowie Zod-Schemas und DTOs in `@arsnova/shared-types`, damit Backend und Frontend typisiert und migrationsfähig arbeiten können.
+- **Story 10.1 (MOTD: Datenmodell, Migration, Zod/DTOs):** ✅ Als Entwickler:in möchte ich ein persistiertes Datenmodell für MOTDs und Vorlagen sowie Zod-Schemas und DTOs in `@arsnova/shared-types`, damit Backend und Frontend typisiert und migrationsfähig arbeiten können.
   - **Akzeptanzkriterien:**
     - Prisma-Modelle für **MOTD** und **Template** (inkl. mehrsprachige Inhaltsfelder oder normalisierte Locale-Zeilen), Indizes für Abfrage nach Zeitfenster und Priorität.
     - Zod-Input/Output-Schemas für alle späteren `motd.*`- und `admin.motd.*`-Prozeduren vorbereitet oder in dieser Story vollständig angelegt.
@@ -1211,7 +1211,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Migration ausführbar; keine Breaking Changes an bestehenden Epics ohne Absprache.
   - **Abhängigkeiten:** Keine fachliche Abhängigkeit zu anderen Epics; technisch ADR-0018.
 
-- **Story 10.2 (MOTD: Öffentliche Read-API + Rate-Limiting):** ⬜ Als Nutzer:in möchte ich die aktuelle MOTD und eine Archivliste **ohne Login** abrufen können, damit die Startseite und das Archiv funktionieren — ohne Überlastung durch Missbrauch.
+- **Story 10.2 (MOTD: Öffentliche Read-API + Rate-Limiting):** ✅ Als Nutzer:in möchte ich die aktuelle MOTD und eine Archivliste **ohne Login** abrufen können, damit die Startseite und das Archiv funktionieren — ohne Überlastung durch Missbrauch.
   - **Akzeptanzkriterien:**
     - tRPC-Queries (z. B. `motd.getCurrent`, `motd.listArchive`) mit Locale-Parameter und Pagination für Archiv.
     - Auslieferung nur von **freigegebenen** Archiv-Einträgen; aktive MOTD nur innerhalb `startsAt`/`endsAt` und passendem Status.
@@ -1219,7 +1219,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Rate-Limiting** auf öffentlichen MOTD-Endpunkten dokumentiert und getestet.
   - **Abhängigkeiten:** 10.1.
 
-- **Story 10.3 (MOTD: Admin tRPC — CRUD, Templates, Zeitsteuerung):** ⬜ Als Admin möchte ich MOTDs und Vorlagen anlegen, bearbeiten, planen und archivieren können, damit die Plattform-Kommunikation vollständig serverseitig steuerbar ist.
+- **Story 10.3 (MOTD: Admin tRPC — CRUD, Templates, Zeitsteuerung):** ✅ Als Admin möchte ich MOTDs und Vorlagen anlegen, bearbeiten, planen und archivieren können, damit die Plattform-Kommunikation vollständig serverseitig steuerbar ist.
   - **Akzeptanzkriterien:**
     - Alle Schreibzugriffe nur über **`adminProcedure`** (analog Epic 9).
     - Felder: Status (`draft`/`scheduled`/`published` o. ä.), `startsAt`/`endsAt` (UTC), `priority`, `visibleInArchive`, mehrsprachige Markdown-Inhalte, optionale Template-Referenz.
@@ -1227,7 +1227,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Validierung: maximale Textlänge, erlaubter Markdown-Umfang (Schutz vor Abuse).
   - **Abhängigkeiten:** 10.1, 10.2 (Read kann zum Testen genutzt werden).
 
-- **Story 10.4 (MOTD: Admin-UI — CMS-light, Markdown-Editor, Vorschau):** ⬜ Als Admin möchte ich ein schlankes UI unter `/admin`, um MOTDs und Templates mit Markdown zu pflegen und eine **gerätebezogene Vorschau** zu sehen, damit ich Inhalte ohne Deploy veröffentlichen kann.
+- **Story 10.4 (MOTD: Admin-UI — CMS-light, Markdown-Editor, Vorschau):** ✅ Als Admin möchte ich ein schlankes UI unter `/admin`, um MOTDs und Templates mit Markdown zu pflegen und eine **gerätebezogene Vorschau** zu sehen, damit ich Inhalte ohne Deploy veröffentlichen kann.
   - **Akzeptanzkriterien:**
     - Eingabe **pro Locale** (de/en/fr/es/it) mit klarer Fallback-Dokumentation in der UI.
     - Markdown-Editor im Umfang **minimalistisch** aber bedienbar; Vorschau entspricht **Endnutzer-Rendering** (soweit technisch identisch).
@@ -1235,7 +1235,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Angular: Signals, Standalone, `@if`/`@for`; kein `BehaviorSubject` für UI-State.
   - **Abhängigkeiten:** 10.3.
 
-- **Story 10.5 (MOTD: Startseiten-Overlay + localStorage):** ⬜ Als Nutzer:in möchte ich eine aktive MOTD auf der **Startseite** in einem **mobile-first Overlay** sehen und sie schließen können, wobei mein Gerät merkt, welche Version ich schon gesehen habe — ohne Account.
+- **Story 10.5 (MOTD: Startseiten-Overlay + localStorage):** ✅ Als Nutzer:in möchte ich eine aktive MOTD auf der **Startseite** in einem **mobile-first Overlay** sehen und sie schließen können, wobei mein Gerät merkt, welche Version ich schon gesehen habe — ohne Account.
   - **Akzeptanzkriterien:**
     - Overlay erscheint nur bei gültiger MOTD; **Schließen-Button**; optional **Swipe-to-dismiss** zusätzlich; Escape und fokussierbare Steuerung.
     - `localStorage`-Schema mit **MOTD-ID + Version/Hash**; Namespace versionierbar (`arsnova-motd-v1`).
@@ -1243,7 +1243,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Kein Layout-Bruch ab 320 px Breite.
   - **Abhängigkeiten:** 10.2.
 
-- **Story 10.6 (MOTD: Interaktionen — Kenntnisnahme, Dismiss-Typen, Feedback, API):** ⬜ Als Betreiber möchte ich optional **aggregierte Signale** (Zur-Kenntnis-genommen, Daumen, Dismiss-Art), damit wir Wirksamkeit messen können — ohne personenbezogene Tracking-Profile.
+- **Story 10.6 (MOTD: Interaktionen — Kenntnisnahme, Dismiss-Typen, Feedback, API):** ✅ Als Betreiber möchte ich optional **aggregierte Signale** (Zur-Kenntnis-genommen, Daumen, Dismiss-Art), damit wir Wirksamkeit messen können — ohne personenbezogene Tracking-Profile.
   - **Akzeptanzkriterien:**
     - UI: Button **„Zur Kenntnis genommen“** (o. ä., i18n), **Daumen hoch/runter** (optional einblendbar), Unterscheidung **Dismiss per Close vs. Swipe** wenn technisch sinnvoll (Events).
     - Optional: öffentliche **Mutation** `motd.recordInteraction` mit strengem Rate-Limit; nur Aggregation auf dem Server; **kein** Zuordnen zu Personen.
@@ -1251,7 +1251,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Datenschutz: keine PII in Telemetrie; Hinweis in Feature-Doku bei Bedarf ergänzt.
   - **Abhängigkeiten:** 10.5, 10.2.
 
-- **Story 10.7 (MOTD: Header-Icon, Archiv, Lazy Load):** ⬜ Als Nutzer:in möchte ich über ein **Nachrichten-Icon** im App-Header vergangene, vom Betreiber **freigegebene** MOTDs nachlesen können — ohne die Startseite zu verlassen.
+- **Story 10.7 (MOTD: Header-Icon, Archiv, Lazy Load):** ✅ Als Nutzer:in möchte ich über ein **Nachrichten-Icon** im App-Header vergangene, vom Betreiber **freigegebene** MOTDs nachlesen können — ohne die Startseite zu verlassen.
   - **Akzeptanzkriterien:**
     - Icon nur sinnvoll sichtbar (kein toter Button: ausblenden/deaktivieren wenn weder aktive MOTD noch Archiv-Einträge — gemäß Feature-Doku).
     - Archiv lädt Inhalte **lazy** beim Öffnen; Markdown-Rendering konsistent mit Overlay.
@@ -1259,7 +1259,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Vollständige **UI-i18n** (alle Locales).
   - **Abhängigkeiten:** 10.2, 10.5; inhaltlich auf 10.6 aufsetzbar (Reihenfolge mit 10.6 abstimmbar).
 
-- **Story 10.8 (MOTD: Härtung — Sanitize, A11y, Audit, Tests):** ⬜ Als Team möchte wir MOTD **produktionssicher** abschließen: XSS-Schutz, Audit-Spuren für Admin-Änderungen, Tests und dokumentierte Betriebsparameter.
+- **Story 10.8 (MOTD: Härtung — Sanitize, A11y, Audit, Tests):** ✅ Als Team möchte wir MOTD **produktionssicher** abschließen: XSS-Schutz, Audit-Spuren für Admin-Änderungen, Tests und dokumentierte Betriebsparameter.
   - **Akzeptanzkriterien:**
     - Markdown-Output durch **Sanitize-Pipeline** wie im restlichen Produkt; **ADR-0015** bei Bildern eingehalten.
     - **Leichtes Audit** für relevante Admin-Aktionen (mindestens: Veröffentlichung, Archiv-Sichtbarkeit, Löschen — Metadaten ohne Pflicht-Volltext im Log).

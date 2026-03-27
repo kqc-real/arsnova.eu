@@ -144,6 +144,8 @@ npm run dev
 
 **Reload / Deployment:** Damit Reload auf Unterseiten (z. B. `/legal/imprint`) nicht zu einer leeren Seite führt, muss der Server bei allen Client-Routen `index.html` ausliefern (SPA-Fallback). Beim lokalen `ng serve` ist das Standard. Für Production: Bei Vercel wird `apps/frontend/vercel.json` genutzt; bei Nginx/Apache/anderen Hosts eine Rewrite-Regel auf `index.html` setzen.
 
+**MOTD (Message of the Day, Epic 10) lokal testen:** Nach `npm run prisma:push` optional **`npm run seed:dev-motd`** ausführen — legt eine **veröffentlichte** Test-Meldung in Postgres an (Overlay auf der Startseite, Archiv-Icon in der Toolbar). Wird das Overlay nicht mehr angezeigt, **`localStorage`-Eintrag `arsnova-motd-v1`** im Browser löschen oder das Seed-Skript erneut ausführen (gleiche MOTD-ID wird ersetzt). **Textvorlagen für den Admin-Bereich:** **`npm run seed:motd-templates`** legt drei Standardvorlagen (Wartung, Feature, Spende) mit professionellem Wording in allen fünf Sprachen an (Upsert per fester ID). Details: [docs/features/motd.md](docs/features/motd.md).
+
 ### 4. Lokalisierter Build (i18n) lokal testen (optional)
 
 Die App unterstützt **fünf Sprachen** (`de`, `en`, `fr`, `es`, `it`) über Angular i18n; jede Locale hat einen eigenen Build (z. B. `dist/browser/de`, `dist/browser/en`, ...). Deutsch ist Referenzsprache; UI-Texte werden in allen Zielsprachen synchron gepflegt. Damit du die lokalisierten Varianten **mit funktionierender API und WebSockets** testen kannst, ist ein **eigener Proxy-Server** nötig (nicht nur `npx serve`):

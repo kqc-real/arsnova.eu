@@ -1,0 +1,133 @@
+<h2 mat-dialog-title class="admin-motd-tpl-dialog__title">
+  @if (isEdit()) {
+    <span i18n="@@admin.motd.dialogTplEditTitle">Textvorlage bearbeiten</span>
+  } @else {
+    <span i18n="@@admin.motd.dialogTplNewTitle">Neue Textvorlage</span>
+  }
+</h2>
+
+<mat-dialog-content class="admin-motd-tpl-dialog__content">
+  @if (loading()) {
+    <div class="admin-motd-tpl-dialog__loading">
+      <mat-progress-spinner color="primary" diameter="40" mode="indeterminate" />
+    </div>
+  } @else {
+    @if (error(); as err) {
+      <p class="admin-motd-tpl-dialog__error" role="alert">{{ err }}</p>
+    }
+
+    <mat-form-field
+      appearance="outline"
+      class="admin-motd-tpl-dialog__field admin-motd-tpl-dialog__field--full"
+    >
+      <mat-label i18n="@@admin.motd.tplName">Anzeigename</mat-label>
+      <input matInput [value]="tplName()" (input)="tplName.set($any($event.target).value)" />
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="admin-motd-tpl-dialog__field admin-motd-tpl-dialog__field--full"
+    >
+      <mat-label i18n="@@admin.motd.tplDescription">Interne Beschreibung (optional)</mat-label>
+      <textarea
+        matInput
+        rows="2"
+        [value]="tplDescription()"
+        (input)="tplDescription.set($any($event.target).value)"
+      ></textarea>
+    </mat-form-field>
+
+    <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeDe">Deutsch (Markdown)</h3>
+    <mat-form-field
+      appearance="outline"
+      class="admin-motd-tpl-dialog__field admin-motd-tpl-dialog__field--full"
+    >
+      <textarea
+        matInput
+        rows="5"
+        [value]="tplMdDe()"
+        (input)="tplMdDe.set($any($event.target).value); updatePreview()"
+      ></textarea>
+    </mat-form-field>
+
+    <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeEn">Englisch</h3>
+    <mat-form-field
+      appearance="outline"
+      class="admin-motd-tpl-dialog__field admin-motd-tpl-dialog__field--full"
+    >
+      <textarea
+        matInput
+        rows="4"
+        [value]="tplMdEn()"
+        (input)="tplMdEn.set($any($event.target).value)"
+      ></textarea>
+    </mat-form-field>
+
+    <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeFr">Französisch</h3>
+    <mat-form-field
+      appearance="outline"
+      class="admin-motd-tpl-dialog__field admin-motd-tpl-dialog__field--full"
+    >
+      <textarea
+        matInput
+        rows="4"
+        [value]="tplMdFr()"
+        (input)="tplMdFr.set($any($event.target).value)"
+      ></textarea>
+    </mat-form-field>
+
+    <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeEs">Spanisch</h3>
+    <mat-form-field
+      appearance="outline"
+      class="admin-motd-tpl-dialog__field admin-motd-tpl-dialog__field--full"
+    >
+      <textarea
+        matInput
+        rows="4"
+        [value]="tplMdEs()"
+        (input)="tplMdEs.set($any($event.target).value)"
+      ></textarea>
+    </mat-form-field>
+
+    <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeIt">Italienisch</h3>
+    <mat-form-field
+      appearance="outline"
+      class="admin-motd-tpl-dialog__field admin-motd-tpl-dialog__field--full"
+    >
+      <textarea
+        matInput
+        rows="4"
+        [value]="tplMdIt()"
+        (input)="tplMdIt.set($any($event.target).value)"
+      ></textarea>
+    </mat-form-field>
+
+    <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.previewTitle">
+      Vorschau (Deutsch)
+    </h3>
+    @if (previewHtml(); as html) {
+      <div class="admin-motd-tpl-dialog__preview markdown-body" [innerHTML]="html"></div>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="admin-motd-tpl-dialog__actions">
+  <button
+    mat-button
+    type="button"
+    (click)="cancel()"
+    [disabled]="saving()"
+    i18n="@@admin.motd.tplCancel"
+  >
+    Abbrechen
+  </button>
+  <button
+    mat-flat-button
+    type="button"
+    [disabled]="saving() || loading()"
+    (click)="save()"
+    i18n="@@admin.motd.tplSave"
+  >
+    Speichern
+  </button>
+</mat-dialog-actions>

@@ -1,10 +1,18 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
-import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
+import {
+  MatCard,
+  MatCardContent,
+  MatCardHeader,
+  MatCardSubtitle,
+  MatCardTitle,
+} from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { trpc } from '../../core/trpc.client';
+import { AdminMotdPanelComponent } from './admin-motd-panel.component';
 import { getAdminToken, setAdminToken } from '../../core/trpc.client';
 import type { AdminSessionDetailDTO, AdminSessionSummaryDTO } from '@arsnova/shared-types';
 
@@ -20,11 +28,15 @@ import type { AdminSessionDetailDTO, AdminSessionSummaryDTO } from '@arsnova/sha
     MatCardContent,
     MatCardHeader,
     MatCardTitle,
+    MatCardSubtitle,
     MatButton,
     MatProgressSpinner,
     MatFormField,
     MatLabel,
     MatInput,
+    MatTabGroup,
+    MatTab,
+    AdminMotdPanelComponent,
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',

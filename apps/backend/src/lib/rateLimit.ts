@@ -12,6 +12,11 @@ export const RATE_LIMIT_ENV = {
   sessionCodeLockoutSeconds: Number(process.env['RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS']) || 60,
   voteRequestsPerSecond: Number(process.env['RATE_LIMIT_VOTE_REQUESTS_PER_SECOND']) || 1,
   sessionCreatePerHour: Number(process.env['RATE_LIMIT_SESSION_CREATE_PER_HOUR']) || 10,
+  /** MOTD öffentliche API (Epic 10): Anfragen pro IP pro Minute */
+  motdGetCurrentPerMinute: Number(process.env['RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE']) || 120,
+  motdListArchivePerMinute: Number(process.env['RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE']) || 60,
+  motdRecordInteractionPerMinute:
+    Number(process.env['RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE']) || 40,
 } as const;
 
 function isLoopbackIp(ip: string): boolean {
@@ -167,9 +172,21 @@ export async function checkSessionCreateRate(ip: string): Promise<{
   remaining: number;
   retryAfterSeconds?: number;
 }> {
+  return checkSlidingWindow(`sessioncreate:${ip}`, RATE_LIMIT_ENV.sessionCreatePerHour, 3600);
+}
+
+export async function checkMotdGetCurrentRate(ip: string) {
+  return checkSlidingWindow(`motd:getCurrent:${ip}`, RATE_LIMIT_ENV.motdGetCurrentPerMinute, 60);
+}
+
+export async function checkMotdListArchiveRate(ip: string) {
+  return checkSlidingWindow(`motd:listArchive:${ip}`, RATE_LIMIT_ENV.motdListArchivePerMinute, 60);
+}
+
+export async function checkMotdRecordInteractionRate(ip: string) {
   return checkSlidingWindow(
-    `sessioncreate:${ip}`,
-    RATE_LIMIT_ENV.sessionCreatePerHour,
-    3600,
+    `motd:recordInteraction:${ip}`,
+    RATE_LIMIT_ENV.motdRecordInteractionPerMinute,
+    60,
   );
 }

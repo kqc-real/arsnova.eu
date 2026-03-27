@@ -941,7 +941,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         cancelLabel: $localize`Zurück zur Session`,
         onCancelUserGesture: () => this.tryEnterHostFullscreenFromUserGesture(),
       } satisfies ConfirmLeaveDialogData,
-      width: '26rem',
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
       autoFocus: 'dialog',
     });
 

@@ -314,3 +314,89 @@ enum AdminAuditAction {
   SESSION_DELETE         // Story 9.2: Session inkl. Quiz-Daten gelöscht
   EXPORT_FOR_AUTHORITIES // Story 9.3: Auszug für Behörden exportiert
 }
+
+// ─── MOTD / Plattform-Kommunikation (Epic 10) ─────────────────────────────────
+
+enum MotdStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+model MotdTemplate {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  markdownDe   String   @default("") @db.Text
+  markdownEn   String   @default("") @db.Text
+  markdownFr   String   @default("") @db.Text
+  markdownEs   String   @default("") @db.Text
+  markdownIt   String   @default("") @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  motds        Motd[]
+}
+
+model Motd {
+  id               String     @id @default(uuid())
+  status           MotdStatus @default(DRAFT)
+  priority         Int        @default(0)
+  startsAt         DateTime
+  endsAt           DateTime
+  visibleInArchive Boolean    @default(false)
+  contentVersion   Int        @default(1)
+  templateId       String?
+  template         MotdTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  locales          MotdLocale[]
+  interaction      MotdInteractionCounter?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([status, startsAt, endsAt])
+  @@index([visibleInArchive, endsAt])
+}
+
+model MotdLocale {
+  id       String @id @default(uuid())
+  motdId   String
+  motd     Motd   @relation(fields: [motdId], references: [id], onDelete: Cascade)
+  locale   String // de | en | fr | es | it (validiert via Zod)
+  markdown String @db.Text
+
+  @@unique([motdId, locale])
+  @@index([motdId])
+}
+
+model MotdInteractionCounter {
+  motdId       String @id
+  motd         Motd   @relation(fields: [motdId], references: [id], onDelete: Cascade)
+  ackCount     Int    @default(0)
+  thumbUp      Int    @default(0)
+  thumbDown    Int    @default(0)
+  dismissClose Int    @default(0)
+  dismissSwipe Int    @default(0)
+}
+
+enum MotdAuditAction {
+  MOTD_CREATE
+  MOTD_UPDATE
+  MOTD_DELETE
+  MOTD_PUBLISH
+  MOTD_ARCHIVE_VISIBILITY
+  MOTD_TEMPLATE_CREATE
+  MOTD_TEMPLATE_UPDATE
+  MOTD_TEMPLATE_DELETE
+}
+
+model MotdAuditLog {
+  id              String          @id @default(uuid())
+  action          MotdAuditAction
+  motdId          String
+  adminIdentifier String?
+  metadataJson    String?         @db.Text
+  createdAt       DateTime        @default(now())
+
+  @@index([motdId, createdAt])
+  @@index([createdAt])
+}

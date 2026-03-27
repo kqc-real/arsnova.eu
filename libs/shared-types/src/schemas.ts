@@ -1349,3 +1349,238 @@ export const SessionFeedbackSummarySchema = z.object({
   wouldRepeatNo: z.number(),
 });
 export type SessionFeedbackSummary = z.infer<typeof SessionFeedbackSummarySchema>;
+
+// ─── MOTD / Plattform-Kommunikation (Epic 10) ───────────────────────────────
+
+/** UI-Locales (ADR-0008) — synchron mit Angular-Builds */
+export const AppLocaleEnum = z.enum(['de', 'en', 'fr', 'es', 'it']);
+export type AppLocale = z.infer<typeof AppLocaleEnum>;
+
+/** Fallback-Kette wenn Übersetzung fehlt: angefragte Locale → de → en → rest */
+export const MOTD_LOCALE_FALLBACK_ORDER: AppLocale[] = ['de', 'en', 'fr', 'es', 'it'];
+
+export const MotdStatusEnum = z.enum(['DRAFT', 'SCHEDULED', 'PUBLISHED', 'ARCHIVED']);
+export type MotdStatus = z.infer<typeof MotdStatusEnum>;
+
+export const MotdAuditActionEnum = z.enum([
+  'MOTD_CREATE',
+  'MOTD_UPDATE',
+  'MOTD_DELETE',
+  'MOTD_PUBLISH',
+  'MOTD_ARCHIVE_VISIBILITY',
+  'MOTD_TEMPLATE_CREATE',
+  'MOTD_TEMPLATE_UPDATE',
+  'MOTD_TEMPLATE_DELETE',
+]);
+export type MotdAuditAction = z.infer<typeof MotdAuditActionEnum>;
+
+export const MotdInteractionKindEnum = z.enum([
+  'ACK',
+  'THUMB_UP',
+  'THUMB_DOWN',
+  'DISMISS_CLOSE',
+  'DISMISS_SWIPE',
+]);
+export type MotdInteractionKind = z.infer<typeof MotdInteractionKindEnum>;
+
+/** Max. Markdown-Länge pro Sprache (Schutz vor Abuse) */
+export const MOTD_MARKDOWN_MAX_LENGTH = 16000;
+
+const motdMarkdownField = z.string().max(MOTD_MARKDOWN_MAX_LENGTH);
+
+export const MotdLocaleBodiesSchema = z.object({
+  de: motdMarkdownField.optional().default(''),
+  en: motdMarkdownField.optional().default(''),
+  fr: motdMarkdownField.optional().default(''),
+  es: motdMarkdownField.optional().default(''),
+  it: motdMarkdownField.optional().default(''),
+});
+export type MotdLocaleBodies = z.infer<typeof MotdLocaleBodiesSchema>;
+
+/** Öffentlich: aktive oder Archiv-MOTD (nur aufgelöster Markdown, kein HTML vom Server) */
+export const MotdPublicDTOSchema = z.object({
+  id: z.uuid(),
+  contentVersion: z.number().int().min(1),
+  markdown: z.string(),
+  endsAt: z.string(),
+});
+export type MotdPublicDTO = z.infer<typeof MotdPublicDTOSchema>;
+
+export const MotdGetCurrentInputSchema = z.object({
+  locale: AppLocaleEnum,
+});
+export type MotdGetCurrentInput = z.infer<typeof MotdGetCurrentInputSchema>;
+
+export const MotdGetCurrentOutputSchema = z.object({
+  motd: MotdPublicDTOSchema.nullable(),
+});
+export type MotdGetCurrentOutput = z.infer<typeof MotdGetCurrentOutputSchema>;
+
+export const MotdListArchiveInputSchema = z.object({
+  locale: AppLocaleEnum,
+  cursor: z.string().uuid().optional(),
+  pageSize: z.number().int().min(1).max(50).default(20),
+});
+export type MotdListArchiveInput = z.infer<typeof MotdListArchiveInputSchema>;
+
+export const MotdArchiveItemDTOSchema = z.object({
+  id: z.uuid(),
+  contentVersion: z.number().int().min(1),
+  markdown: z.string(),
+  endsAt: z.string(),
+});
+export type MotdArchiveItemDTO = z.infer<typeof MotdArchiveItemDTOSchema>;
+
+export const MotdListArchiveOutputSchema = z.object({
+  items: z.array(MotdArchiveItemDTOSchema),
+  nextCursor: z.uuid().nullable(),
+});
+export type MotdListArchiveOutput = z.infer<typeof MotdListArchiveOutputSchema>;
+
+/** Header: ob Nachrichten-Icon sinnvoll ist */
+export const MotdHeaderStateInputSchema = z.object({
+  locale: AppLocaleEnum,
+  /** Client-Wasserzeichen: MOTDs mit späterem `endsAt` gelten als ungelesen (globales Archiv). */
+  archiveSeenUpToEndsAtIso: z.string().optional(),
+});
+export type MotdHeaderStateInput = z.infer<typeof MotdHeaderStateInputSchema>;
+
+export const MotdHeaderStateOutputSchema = z.object({
+  hasActiveOverlay: z.boolean(),
+  hasArchiveEntries: z.boolean(),
+  /** Anzahl MOTDs, die ins Nutzer-Archiv zählen (gleiche Filterlogik wie listArchive, ohne leere Markdown-Fallbacks). */
+  archiveCount: z.number().int().min(0),
+  /** Spätestes Archiv-Ende (ISO); null wenn kein Eintrag. Für „Alles als gelesen“ auf dem Client. */
+  archiveMaxEndsAtIso: z.string().nullable(),
+  /** Ungelesen relativ zu `archiveSeenUpToEndsAtIso`; ohne gültiges Wasserzeichen = `archiveCount`. */
+  archiveUnreadCount: z.number().int().min(0),
+});
+export type MotdHeaderStateOutput = z.infer<typeof MotdHeaderStateOutputSchema>;
+
+export const MotdRecordInteractionInputSchema = z.object({
+  motdId: z.uuid(),
+  contentVersion: z.number().int().min(1),
+  kind: MotdInteractionKindEnum,
+});
+export type MotdRecordInteractionInput = z.infer<typeof MotdRecordInteractionInputSchema>;
+
+export const MotdRecordInteractionOutputSchema = z.object({ ok: z.literal(true) });
+export type MotdRecordInteractionOutput = z.infer<typeof MotdRecordInteractionOutputSchema>;
+
+// --- Admin: Templates ---
+
+export const AdminMotdTemplateListItemDTOSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  updatedAt: z.string(),
+});
+export type AdminMotdTemplateListItemDTO = z.infer<typeof AdminMotdTemplateListItemDTOSchema>;
+
+export const AdminMotdTemplateDTOSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  markdownDe: z.string(),
+  markdownEn: z.string(),
+  markdownFr: z.string(),
+  markdownEs: z.string(),
+  markdownIt: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type AdminMotdTemplateDTO = z.infer<typeof AdminMotdTemplateDTOSchema>;
+
+export const AdminMotdTemplateCreateInputSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(2000).optional(),
+  markdownDe: motdMarkdownField.optional().default(''),
+  markdownEn: motdMarkdownField.optional().default(''),
+  markdownFr: motdMarkdownField.optional().default(''),
+  markdownEs: motdMarkdownField.optional().default(''),
+  markdownIt: motdMarkdownField.optional().default(''),
+});
+export type AdminMotdTemplateCreateInput = z.infer<typeof AdminMotdTemplateCreateInputSchema>;
+
+export const AdminMotdTemplateUpdateInputSchema = z.object({
+  id: z.uuid(),
+  name: z.string().trim().min(1).max(200).optional(),
+  description: z.string().trim().max(2000).optional().nullable(),
+  markdownDe: motdMarkdownField.optional(),
+  markdownEn: motdMarkdownField.optional(),
+  markdownFr: motdMarkdownField.optional(),
+  markdownEs: motdMarkdownField.optional(),
+  markdownIt: motdMarkdownField.optional(),
+});
+export type AdminMotdTemplateUpdateInput = z.infer<typeof AdminMotdTemplateUpdateInputSchema>;
+
+// --- Admin: MOTDs ---
+
+/** Aggregierte Nutzerreaktionen auf eine MOTD (Epic 10, öffentliches recordInteraction). */
+export const AdminMotdInteractionStatsSchema = z.object({
+  ackCount: z.number().int().nonnegative(),
+  thumbUp: z.number().int().nonnegative(),
+  thumbDown: z.number().int().nonnegative(),
+  dismissClose: z.number().int().nonnegative(),
+  dismissSwipe: z.number().int().nonnegative(),
+});
+export type AdminMotdInteractionStats = z.infer<typeof AdminMotdInteractionStatsSchema>;
+
+export const AdminMotdListItemDTOSchema = z.object({
+  id: z.uuid(),
+  status: MotdStatusEnum,
+  priority: z.number().int(),
+  startsAt: z.string(),
+  endsAt: z.string(),
+  visibleInArchive: z.boolean(),
+  contentVersion: z.number().int(),
+  templateId: z.uuid().nullable(),
+  updatedAt: z.string(),
+  interaction: AdminMotdInteractionStatsSchema,
+});
+export type AdminMotdListItemDTO = z.infer<typeof AdminMotdListItemDTOSchema>;
+
+export const AdminMotdDetailDTOSchema = z.object({
+  id: z.uuid(),
+  status: MotdStatusEnum,
+  priority: z.number().int(),
+  startsAt: z.string(),
+  endsAt: z.string(),
+  visibleInArchive: z.boolean(),
+  contentVersion: z.number().int(),
+  templateId: z.uuid().nullable(),
+  locales: MotdLocaleBodiesSchema,
+  interaction: AdminMotdInteractionStatsSchema,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type AdminMotdDetailDTO = z.infer<typeof AdminMotdDetailDTOSchema>;
+
+export const AdminMotdCreateInputSchema = z.object({
+  status: MotdStatusEnum.default('DRAFT'),
+  priority: z.number().int().min(0).max(1_000_000).default(0),
+  startsAt: z.string().datetime(),
+  endsAt: z.string().datetime(),
+  visibleInArchive: z.boolean().default(false),
+  templateId: z.uuid().optional().nullable(),
+  locales: MotdLocaleBodiesSchema,
+});
+export type AdminMotdCreateInput = z.infer<typeof AdminMotdCreateInputSchema>;
+
+export const AdminMotdUpdateInputSchema = z.object({
+  id: z.uuid(),
+  status: MotdStatusEnum.optional(),
+  priority: z.number().int().min(0).max(1_000_000).optional(),
+  startsAt: z.string().datetime().optional(),
+  endsAt: z.string().datetime().optional(),
+  visibleInArchive: z.boolean().optional(),
+  templateId: z.uuid().optional().nullable(),
+  locales: MotdLocaleBodiesSchema.optional(),
+});
+export type AdminMotdUpdateInput = z.infer<typeof AdminMotdUpdateInputSchema>;
+
+export const AdminMotdIdInputSchema = z.object({ id: z.uuid() });
+export type AdminMotdIdInput = z.infer<typeof AdminMotdIdInputSchema>;
+
+export const AdminMotdTemplateListOutputSchema = z.array(AdminMotdTemplateListItemDTOSchema);
+export const AdminMotdListOutputSchema = z.array(AdminMotdListItemDTOSchema);

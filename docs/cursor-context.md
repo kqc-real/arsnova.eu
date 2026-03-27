@@ -81,7 +81,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 
 ## 8. tRPC-Router und zentrale Procedures
 
-- **appRouter** (apps/backend/src/routers/index.ts): health, quiz, session, vote, qa, quickFeedback, admin.
+- **appRouter** (apps/backend/src/routers/index.ts): health, quiz, session, vote, qa, quickFeedback, **motd** (öffentlich: `getCurrent`, `listArchive`, `getHeaderState`, `recordInteraction`), admin (inkl. verschachtelt **`admin.motd.*`** für MOTD/Templates, Epic 10 ✅).
 - **health:** check, ggf. stats (Story 0.4).
 - **quiz:** upload (QuizUploadInputSchema), getById, list, etc.
 - **session:** create (CreateSessionInputSchema), getInfo (per code), join (JoinSessionInputSchema), nextQuestion, revealAnswers (Story 2.6), revealResults, end; Subscriptions: onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed, onResultsRevealed, onPersonalResult; getBonusTokens, getLeaderboard; getExportData (Story 4.7: GetExportDataInputSchema → SessionExportDTO).

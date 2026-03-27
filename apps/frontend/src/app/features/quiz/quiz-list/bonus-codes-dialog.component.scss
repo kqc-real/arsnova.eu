@@ -55,9 +55,16 @@
 
 .bonus-codes-dialog__body {
   min-width: min(100%, 520px);
-  max-height: min(68vh, 540px);
+  max-height: min(65dvh, 540px);
   padding-top: 0.25rem;
   padding-bottom: 0.5rem;
+}
+
+.bonus-codes-dialog__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-inline: -0.125rem;
+  padding-inline: 0.125rem;
 }
 
 .bonus-codes-dialog__hint-box {

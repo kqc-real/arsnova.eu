@@ -1,6 +1,7 @@
 /**
  * Backend-Einstieg: Express + tRPC WebSocket + Yjs WebSocket (Story 0.1, 0.2, 0.3)
  */
+import './load-env';
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';

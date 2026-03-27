@@ -28,6 +28,7 @@ import {
   verifyAdminSecret,
 } from '../lib/adminAuth';
 import { prisma } from '../db';
+import { adminMotdRouter } from './adminMotd';
 
 const DEFAULT_LEGAL_HOLD_DAYS = 30;
 const MIN_LEGAL_HOLD_DAYS = 1;
@@ -229,9 +230,8 @@ function renderMarkdownKatexToPlainText(input: string | null | undefined): strin
   const withBlockMath = source.replace(/\$\$([\s\S]+?)\$\$/g, (_, expression: string) =>
     renderExpression(expression, true),
   );
-  const withInlineMath = withBlockMath.replace(
-    /\$([^$\n]+?)\$/g,
-    (_, expression: string) => renderExpression(expression, false),
+  const withInlineMath = withBlockMath.replace(/\$([^$\n]+?)\$/g, (_, expression: string) =>
+    renderExpression(expression, false),
   );
 
   const renderer = new marked.Renderer();
@@ -265,14 +265,16 @@ function buildAuthorityPdf(payload: AuthorityExportPayload, payloadHash: string)
   doc.info.Author = 'arsnova.eu';
   doc.fontSize(18).text('Behoerdenauszug (Admin)', { underline: true });
   doc.moveDown(0.5);
-  doc.fontSize(10)
+  doc
+    .fontSize(10)
     .text(`Export-ID: ${payload.exportId}`)
     .text(`Erzeugt am: ${payload.generatedAt}`)
     .text(`Schema-Version: ${payload.schemaVersion}`)
     .text(`Referenz-Hash (JSON): ${payloadHash}`);
   doc.moveDown(0.8);
   doc.fontSize(13).text('Session');
-  doc.fontSize(10)
+  doc
+    .fontSize(10)
     .text(`Code: ${payload.session.code}`)
     .text(`ID: ${payload.session.id}`)
     .text(`Typ: ${payload.session.type}`)
@@ -306,8 +308,9 @@ function buildAuthorityPdf(payload: AuthorityExportPayload, payloadHash: string)
       }
     }
     if (aggregate.ratingDistribution) {
-      const entries = Object.entries(aggregate.ratingDistribution)
-        .sort((a, b) => Number(a[0]) - Number(b[0]));
+      const entries = Object.entries(aggregate.ratingDistribution).sort(
+        (a, b) => Number(a[0]) - Number(b[0]),
+      );
       for (const [rating, count] of entries) {
         doc.text(`- Rating ${rating}: ${count}`);
       }
@@ -317,23 +320,28 @@ function buildAuthorityPdf(payload: AuthorityExportPayload, payloadHash: string)
     }
   }
   doc.moveDown(0.8);
-  doc.fontSize(9).text(
-    'Datensparsamkeit: Dieser Auszug enthaelt keine Nicknames, IP-Adressen oder andere personenbezogene Daten.',
-  );
+  doc
+    .fontSize(9)
+    .text(
+      'Datensparsamkeit: Dieser Auszug enthaelt keine Nicknames, IP-Adressen oder andere personenbezogene Daten.',
+    );
   return toBufferFromPdf(doc);
 }
 
-function buildAuthorityAggregates(questions: Array<{
-  id: string;
-  order: number;
-  type: string;
-  answers: Array<{ id: string; text: string; isCorrect: boolean }>;
-}>, votes: Array<{
-  questionId: string;
-  ratingValue: number | null;
-  freeText: string | null;
-  selectedAnswers: Array<{ answerOptionId: string }>;
-}>): AuthorityQuestionAggregate[] {
+function buildAuthorityAggregates(
+  questions: Array<{
+    id: string;
+    order: number;
+    type: string;
+    answers: Array<{ id: string; text: string; isCorrect: boolean }>;
+  }>,
+  votes: Array<{
+    questionId: string;
+    ratingValue: number | null;
+    freeText: string | null;
+    selectedAnswers: Array<{ answerOptionId: string }>;
+  }>,
+): AuthorityQuestionAggregate[] {
   return questions.map((question) => {
     const votesForQuestion = votes.filter((vote) => vote.questionId === question.id);
     const base: AuthorityQuestionAggregate = {
@@ -342,7 +350,11 @@ function buildAuthorityAggregates(questions: Array<{
       totalResponses: votesForQuestion.length,
     };
 
-    if (question.type === 'SINGLE_CHOICE' || question.type === 'MULTIPLE_CHOICE' || question.type === 'SURVEY') {
+    if (
+      question.type === 'SINGLE_CHOICE' ||
+      question.type === 'MULTIPLE_CHOICE' ||
+      question.type === 'SURVEY'
+    ) {
       const counts = new Map<string, number>();
       for (const answer of question.answers) {
         counts.set(answer.id, 0);
@@ -372,7 +384,9 @@ function buildAuthorityAggregates(questions: Array<{
     }
 
     if (question.type === 'FREETEXT') {
-      base.freeTextResponseCount = votesForQuestion.filter((vote) => (vote.freeText?.trim() ?? '').length > 0).length;
+      base.freeTextResponseCount = votesForQuestion.filter(
+        (vote) => (vote.freeText?.trim() ?? '').length > 0,
+      ).length;
     }
 
     return base;
@@ -380,6 +394,8 @@ function buildAuthorityAggregates(questions: Array<{
 }
 
 export const adminRouter = router({
+  motd: adminMotdRouter,
+
   /** Admin-Login (MVP: Shared Secret). */
   login: publicProcedure
     .input(AdminLoginInputSchema)
@@ -405,14 +421,12 @@ export const adminRouter = router({
     .query(() => ({ authenticated: true as const })),
 
   /** Admin-Logout (Token invalidieren). */
-  logout: adminProcedure
-    .output(AdminWhoAmIOutputSchema)
-    .mutation(async ({ ctx }) => {
-      if (ctx.adminToken) {
-        await invalidateAdminSessionToken(ctx.adminToken);
-      }
-      return { authenticated: true as const };
-    }),
+  logout: adminProcedure.output(AdminWhoAmIOutputSchema).mutation(async ({ ctx }) => {
+    if (ctx.adminToken) {
+      await invalidateAdminSessionToken(ctx.adminToken);
+    }
+    return { authenticated: true as const };
+  }),
 
   /** Session-Liste für Admin (nur Recherchefenster A/B). */
   listSessions: adminProcedure
@@ -665,11 +679,13 @@ export const adminRouter = router({
             where: { quizId: existing.quizId },
           });
           if (stillReferenced === 0) {
-            await tx.quiz.delete({
-              where: { id: existing.quizId },
-            }).catch(() => {
-              // Best effort: Falls Quiz parallel entfernt wurde, ist die Session trotzdem gelöscht.
-            });
+            await tx.quiz
+              .delete({
+                where: { id: existing.quizId },
+              })
+              .catch(() => {
+                // Best effort: Falls Quiz parallel entfernt wurde, ist die Session trotzdem gelöscht.
+              });
           }
         }
 

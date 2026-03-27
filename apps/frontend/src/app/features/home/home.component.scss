@@ -1032,9 +1032,8 @@ mat-card-actions.l-stack {
     box-shadow: var(--mat-sys-level2);
   }
   @media (prefers-reduced-motion: no-preference) {
-    .home-main {
-      perspective: 1200px;
-    }
+    /* Kein perspective auf .home-main: WebKit/Safari kann Grid-Inhalt nach Compositing „ausblenden“
+       (nur Toolbar/Footer sichtbar, kurzer Flash). Hover-Transforms sind 2D und brauchen das nicht. */
     .home-card {
       transition:
         transform 0.25s ease,
@@ -1469,5 +1468,129 @@ mat-card-actions.l-stack {
       max-width: 56rem;
       justify-content: center;
     }
+  }
+}
+
+/* MOTD-Overlay (Epic 10): über Toolbar/Inhalt */
+.home-motd-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
+    max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+}
+
+@media (min-width: 600px) {
+  .home-motd-layer {
+    align-items: center;
+    padding: max(1.5rem, env(safe-area-inset-top, 0px)) max(1.5rem, env(safe-area-inset-right, 0px))
+      max(1.5rem, env(safe-area-inset-bottom, 0px)) max(1.5rem, env(safe-area-inset-left, 0px));
+  }
+}
+
+.home-motd-backdrop,
+.home-motd-sheet {
+  pointer-events: auto;
+}
+
+.home-motd-backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--mat-sys-scrim) 45%, transparent);
+}
+
+/* Kein backdrop-filter: WebKit kann damit bei fixed Overlays die darunterliegende Seite
+   fehlerhaft wegcompositen (Safari: Startseiten-Hauptbereich leer). Nur Scrim. */
+
+.home-motd-sheet {
+  position: relative;
+  z-index: 1;
+  width: min(36rem, 100%);
+  max-height: min(78dvh, 28rem);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem max(1.1rem, calc(0.25rem + env(safe-area-inset-bottom, 0px)));
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  box-shadow: var(--mat-sys-level3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-motd-sheet {
+    animation: home-motd-sheet-in 0.22s ease-out;
+  }
+}
+
+@keyframes home-motd-sheet-in {
+  from {
+    transform: translateY(10px);
+    opacity: 0.88;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.home-motd-sheet__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.home-motd-sheet__title {
+  margin: 0;
+  padding: 0.125rem 0 0;
+  font: var(--mat-sys-headline-small);
+  color: var(--mat-sys-on-surface);
+}
+
+.home-motd-sheet__body {
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  color: var(--mat-sys-on-surface);
+}
+
+.home-motd-sheet__body.markdown-body :first-child {
+  margin-top: 0;
+}
+
+.home-motd-sheet__body.markdown-body :last-child {
+  margin-bottom: 0;
+}
+
+.home-motd-sheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.home-motd-sheet__thumbs {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+
+.home-motd-sheet__hint {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-motd-sheet__hint {
+    display: none;
   }
 }

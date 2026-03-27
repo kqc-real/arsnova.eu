@@ -6,6 +6,7 @@ import { voteRouter } from './vote';
 import { quickFeedbackRouter } from './quickFeedback';
 import { qaRouter } from './qa';
 import { adminRouter } from './admin';
+import { motdRouter } from './motd';
 
 /**
  * Der zentrale App-Router.
@@ -20,6 +21,7 @@ export const appRouter = router({
   qa: qaRouter,
   quickFeedback: quickFeedbackRouter,
   admin: adminRouter,
+  motd: motdRouter,
 });
 
 /** Der exportierte Typ für den tRPC-Client im Frontend */

@@ -1,0 +1,348 @@
+<mat-card appearance="outlined" class="admin-motd">
+  <mat-card-header>
+    <mat-card-title i18n="@@admin.motd.title">Startseiten-Meldungen</mat-card-title>
+    <mat-card-subtitle i18n="@@admin.motd.cardSubtitle">
+      Kurz MOTD: sichtbar für Nutzer auf der Startseite nach Zeitplan und Priorität.
+    </mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <p class="admin-help" i18n="@@admin.motd.help">
+      Pro Sprache Markdown. Datum und Uhrzeit gibst du in deiner lokalen Zeit ein; gespeichert wird
+      in UTC.
+    </p>
+    @if (loading()) {
+      <mat-progress-spinner diameter="32" mode="indeterminate" />
+    } @else {
+      <div class="admin-motd__actions">
+        <button mat-flat-button type="button" (click)="newMotd()" i18n="@@admin.motd.new">
+          Neue Meldung
+        </button>
+        <button
+          matButton="tonal"
+          type="button"
+          (click)="reload()"
+          i18n="@@admin.motd.reload"
+          matTooltip="Holt Meldungen und Textvorlagen erneut vom Server. Das ist nicht dasselbe wie „Speichern“: Das Formular wird dabei nicht auf den Server geschrieben."
+          i18n-matTooltip="@@admin.motd.reloadTooltip"
+          i18n-aria-label="@@admin.motd.reloadAria"
+          aria-label="Meldungen und Vorlagen vom Server neu laden"
+        >
+          Liste neu laden
+        </button>
+      </div>
+      @if (error(); as err) {
+        <p class="admin-error" role="alert">{{ err }}</p>
+      }
+      @if (info(); as inf) {
+        <p class="admin-info">{{ inf }}</p>
+      }
+
+      <mat-accordion class="admin-motd__accordion" multi>
+        <mat-expansion-panel class="admin-motd__expansion" [expanded]="false">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="admin-motd__expansion-title">
+              <span i18n="@@admin.motd.tplSectionTitle">Textvorlagen</span>
+              <span class="admin-motd__expander-count">({{ templates().length }})</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="admin-motd__templates">
+            <p class="admin-help admin-motd__tpl-help" i18n="@@admin.motd.tplSectionHelp">
+              Wiederverwendbare Textbausteine in allen Sprachen; in Meldungen über „Vorlage
+              übernehmen“ nutzbar. Beispielvorlagen für Wartung, Feature und Spende liefert das
+              Setup-Skript im Repository (siehe README).
+            </p>
+            <div class="admin-motd__tpl-actions">
+              <button
+                mat-flat-button
+                type="button"
+                (click)="openNewTemplateDialog()"
+                i18n="@@admin.motd.tplNew"
+              >
+                Neue Vorlage
+              </button>
+            </div>
+            <ul class="admin-motd__tpl-items">
+              @for (t of templates(); track t.id) {
+                <li class="admin-motd__tpl-item">
+                  <div class="admin-motd__tpl-copy">
+                    <span class="admin-motd__tpl-name">{{ t.name }}</span>
+                    @if (t.description) {
+                      <span class="admin-motd__tpl-desc">{{ t.description }}</span>
+                    }
+                    <span class="admin-motd__tpl-meta">{{ t.updatedAt.slice(0, 16) }}</span>
+                  </div>
+                  <div class="admin-motd__tpl-buttons">
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      (click)="openEditTemplateDialog(t.id)"
+                      i18n="@@admin.motd.edit"
+                    >
+                      Bearbeiten
+                    </button>
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      (click)="deleteTemplate(t.id)"
+                      i18n="@@admin.motd.delete"
+                    >
+                      Löschen
+                    </button>
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        </mat-expansion-panel>
+
+        <mat-expansion-panel class="admin-motd__expansion" [expanded]="false">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="admin-motd__expansion-title">
+              <span i18n="@@admin.motd.listTitle">Vorhandene Meldungen</span>
+              <span class="admin-motd__expander-count">({{ motds().length }})</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="admin-motd__list">
+            <ul class="admin-motd__items">
+              @for (m of motds(); track m.id) {
+                <li>
+                  <span class="admin-motd__item-meta" i18n="@@admin.motd.listItemMeta"
+                    >{{ m.status }} · v{{ m.contentVersion }} · Priorität {{ m.priority }}</span
+                  >
+                  <span class="admin-motd__item-dates"
+                    >{{ m.startsAt.slice(0, 16) }} – {{ formatMotdListEndsAt(m.endsAt) }}</span
+                  >
+                  <span class="admin-help admin-motd__stats" i18n="@@admin.motd.statsLine">
+                    Nutzerreaktionen (Zähler): Verstanden {{ m.interaction.ackCount }}, Daumen hoch
+                    {{ m.interaction.thumbUp }}, Daumen runter {{ m.interaction.thumbDown }},
+                    Overlay geschlossen {{ m.interaction.dismissClose }}, Wegwischen
+                    {{ m.interaction.dismissSwipe }}
+                  </span>
+                  <button
+                    matButton="tonal"
+                    type="button"
+                    (click)="editMotd(m.id)"
+                    i18n="@@admin.motd.edit"
+                  >
+                    Bearbeiten
+                  </button>
+                  <button
+                    matButton="tonal"
+                    type="button"
+                    (click)="deleteMotd(m.id)"
+                    i18n="@@admin.motd.delete"
+                  >
+                    Löschen
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+
+      <div class="admin-motd__form">
+        <h3 class="admin-motd__sub" i18n="@@admin.motd.formTitle">Bearbeitung</h3>
+        @if (motdInteractionStats(); as st) {
+          <p class="admin-help admin-motd__stats-detail" i18n="@@admin.motd.statsDetail">
+            Nutzerreaktionen (Zähler): Verstanden {{ st.ackCount }}, Daumen hoch {{ st.thumbUp }},
+            Daumen runter {{ st.thumbDown }}, Overlay geschlossen {{ st.dismissClose }}, Wegwischen
+            {{ st.dismissSwipe }}
+          </p>
+        }
+        <mat-form-field appearance="outline" class="admin-field">
+          <mat-label i18n="@@admin.motd.status">Status</mat-label>
+          <mat-select [value]="status()" (selectionChange)="status.set($event.value)">
+            <mat-option value="DRAFT" i18n="@@admin.motd.statusDraft">Entwurf</mat-option>
+            <mat-option value="SCHEDULED" i18n="@@admin.motd.statusScheduled">Geplant</mat-option>
+            <mat-option value="PUBLISHED" i18n="@@admin.motd.statusPublished"
+              >Veröffentlicht</mat-option
+            >
+            <mat-option value="ARCHIVED" i18n="@@admin.motd.statusArchived">Archiviert</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="admin-field">
+          <mat-label i18n="@@admin.motd.priority">Priorität</mat-label>
+          <input
+            matInput
+            type="number"
+            [min]="motdPriorityMin"
+            [max]="motdPriorityMax"
+            step="1"
+            [value]="priority()"
+            (input)="onPriorityInput($any($event.target).value)"
+          />
+        </mat-form-field>
+        <p class="admin-help admin-motd__priority-hint" i18n="@@admin.motd.priorityHint">
+          Höhere Zahl wird zuerst gezeigt, wenn mehrere Meldungen zur gleichen Zeit aktiv sind.
+        </p>
+        <p class="admin-help admin-motd__priority-range" i18n="@@admin.motd.priorityRangeHint">
+          Erlaubter Bereich: 0 bis 1.000.000.
+        </p>
+        @if (showDevMotdSeedHint) {
+          <p class="admin-help admin-motd__priority-hint-dev" i18n="@@admin.motd.priorityHintDev">
+            Nur lokale Entwicklung: Eine Test-Meldung aus
+            <code>npm run seed:dev-motd</code> wird auf der Startseite hinter deinen eigenen
+            veröffentlichten Meldungen mit Priorität 0 oder höher einsortiert (feste technische ID).
+          </p>
+        }
+        <div class="admin-motd__datetime-block admin-motd__datetime-block--one-line">
+          <div class="admin-motd__datetime-row admin-motd__datetime-row--all">
+            <span
+              class="admin-motd__datetime-legend admin-motd__datetime-legend--inline"
+              i18n="@@admin.motd.starts"
+              >Start (lokal)</span
+            >
+            <mat-form-field appearance="outline" class="admin-field admin-motd__datetime-date">
+              <mat-label i18n="@@admin.motd.fieldDate">Datum</mat-label>
+              <mat-datepicker #startDatePicker [touchUi]="true" />
+              <input
+                matInput
+                [matDatepicker]="startDatePicker"
+                [max]="startDateMax()"
+                [ngModel]="startAt()"
+                (ngModelChange)="onStartDateModelChange($event)"
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="startDatePicker" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="admin-field admin-motd__datetime-time">
+              <mat-label i18n="@@admin.motd.fieldTime">Uhrzeit</mat-label>
+              <mat-timepicker #startTimePicker interval="15m" />
+              <input
+                matInput
+                [matTimepicker]="startTimePicker"
+                [max]="startTimeMax()"
+                [ngModel]="startAt()"
+                (ngModelChange)="onStartTimeModelChange($event)"
+              />
+              <mat-timepicker-toggle matIconSuffix [for]="startTimePicker" />
+            </mat-form-field>
+            <span class="admin-motd__datetime-gap" aria-hidden="true"></span>
+            <span
+              class="admin-motd__datetime-legend admin-motd__datetime-legend--inline"
+              i18n="@@admin.motd.ends"
+              >Ende (lokal)</span
+            >
+            <mat-form-field appearance="outline" class="admin-field admin-motd__datetime-date">
+              <mat-label i18n="@@admin.motd.fieldDate">Datum</mat-label>
+              <mat-datepicker #endDatePicker [touchUi]="true" />
+              <input
+                matInput
+                [matDatepicker]="endDatePicker"
+                [min]="endDateMin()"
+                [ngModel]="endAt()"
+                (ngModelChange)="onEndDateModelChange($event)"
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="endDatePicker" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="admin-field admin-motd__datetime-time">
+              <mat-label i18n="@@admin.motd.fieldTime">Uhrzeit</mat-label>
+              <mat-timepicker #endTimePicker interval="15m" />
+              <input
+                matInput
+                [matTimepicker]="endTimePicker"
+                [min]="endTimeMin()"
+                [ngModel]="endAt()"
+                (ngModelChange)="onEndTimeModelChange($event)"
+              />
+              <mat-timepicker-toggle matIconSuffix [for]="endTimePicker" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="admin-motd__check">
+          <mat-checkbox
+            [checked]="visibleInArchive()"
+            (change)="visibleInArchive.set($event.checked)"
+          >
+            <span i18n="@@admin.motd.visibleArchive">Im Nutzer-Archiv sichtbar</span>
+          </mat-checkbox>
+          <p class="admin-motd__hint" i18n="@@admin.motd.visibleArchiveHint">
+            Erscheint im Archiv-Dialog während der Laufzeit und nach Ende der Meldung (nicht bei
+            Entwürfen).
+          </p>
+        </div>
+        <mat-form-field appearance="outline" class="admin-field admin-field--full">
+          <mat-label i18n="@@admin.motd.template">Vorlage übernehmen</mat-label>
+          <mat-select [value]="templateId()" (selectionChange)="templateId.set($event.value || '')">
+            <mat-option value="" i18n="@@admin.motd.noTemplate">— keine —</mat-option>
+            @for (t of templates(); track t.id) {
+              <mat-option [value]="t.id">{{ t.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button
+          matButton="tonal"
+          type="button"
+          (click)="applyTemplate()"
+          i18n="@@admin.motd.applyTemplate"
+        >
+          Vorlage in Felder laden
+        </button>
+
+        <h4 class="admin-motd__locale" i18n="@@admin.motd.localeDe">Deutsch (Markdown)</h4>
+        <mat-form-field appearance="outline" class="admin-field admin-field--full">
+          <textarea
+            matInput
+            rows="4"
+            [value]="mdDe()"
+            (input)="mdDe.set($any($event.target).value); updatePreview()"
+          ></textarea>
+        </mat-form-field>
+        <h4 class="admin-motd__locale" i18n="@@admin.motd.localeEn">Englisch</h4>
+        <mat-form-field appearance="outline" class="admin-field admin-field--full">
+          <textarea
+            matInput
+            rows="3"
+            [value]="mdEn()"
+            (input)="mdEn.set($any($event.target).value)"
+          ></textarea>
+        </mat-form-field>
+        <h4 class="admin-motd__locale" i18n="@@admin.motd.localeFr">Französisch</h4>
+        <mat-form-field appearance="outline" class="admin-field admin-field--full">
+          <textarea
+            matInput
+            rows="3"
+            [value]="mdFr()"
+            (input)="mdFr.set($any($event.target).value)"
+          ></textarea>
+        </mat-form-field>
+        <h4 class="admin-motd__locale" i18n="@@admin.motd.localeEs">Spanisch</h4>
+        <mat-form-field appearance="outline" class="admin-field admin-field--full">
+          <textarea
+            matInput
+            rows="3"
+            [value]="mdEs()"
+            (input)="mdEs.set($any($event.target).value)"
+          ></textarea>
+        </mat-form-field>
+        <h4 class="admin-motd__locale" i18n="@@admin.motd.localeIt">Italienisch</h4>
+        <mat-form-field appearance="outline" class="admin-field admin-field--full">
+          <textarea
+            matInput
+            rows="3"
+            [value]="mdIt()"
+            (input)="mdIt.set($any($event.target).value)"
+          ></textarea>
+        </mat-form-field>
+
+        <h4 class="admin-motd__locale" i18n="@@admin.motd.previewTitle">Vorschau (Deutsch)</h4>
+        @if (previewHtml(); as html) {
+          <div class="admin-motd__preview markdown-body" [innerHTML]="html"></div>
+        }
+
+        <div class="admin-motd__save">
+          <button
+            class="admin-motd__save-btn"
+            mat-flat-button
+            type="button"
+            [disabled]="saving()"
+            (click)="saveMotd()"
+            i18n="@@admin.motd.save"
+          >
+            Speichern
+          </button>
+        </div>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

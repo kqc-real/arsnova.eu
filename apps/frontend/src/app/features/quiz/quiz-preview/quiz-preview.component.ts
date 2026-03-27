@@ -251,8 +251,8 @@ export class QuizPreviewComponent implements OnDestroy {
     if (!quiz || this.questions().length === 0 || this.liveStartPending()) return;
 
     const dialogRef = this.dialog.open(LiveSessionDialogComponent, {
-      width: '32rem',
-      maxWidth: 'calc(100vw - 2rem)',
+      width: 'min(32rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
       autoFocus: false,
       panelClass: 'live-session-dialog-panel',
       backdropClass: 'live-session-dialog-backdrop',

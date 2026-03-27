@@ -336,4 +336,77 @@
       </mat-card-actions>
     </mat-card>
   </main>
+
+  @if (motd()) {
+    <div class="home-motd-layer">
+      <div class="home-motd-backdrop" aria-hidden="true" (click)="onMotdBackdropClick()"></div>
+      <div
+        class="home-motd-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="home-motd-title"
+        aria-describedby="home-motd-body"
+        (click)="onMotdSheetClick($event)"
+        (touchstart)="onMotdTouchStart($event)"
+        (touchend)="onMotdTouchEnd($event)"
+      >
+        <div class="home-motd-sheet__head">
+          <h2 id="home-motd-title" class="home-motd-sheet__title" i18n="@@motd.overlayTitle">
+            Aktuelle Meldung
+          </h2>
+          <button
+            #motdCloseBtn
+            type="button"
+            matIconButton
+            (click)="dismissMotdOverlay('DISMISS_CLOSE')"
+            i18n-aria-label="@@motd.overlayCloseAria"
+            aria-label="Meldung schließen"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        @if (motdBodyHtml(); as body) {
+          <div
+            id="home-motd-body"
+            class="home-motd-sheet__body markdown-body"
+            [innerHTML]="body"
+          ></div>
+        }
+        <div class="home-motd-sheet__actions">
+          <button mat-flat-button type="button" (click)="ackMotd()" i18n="@@motd.ack">
+            Zur Kenntnis genommen
+          </button>
+          <div class="home-motd-sheet__thumbs">
+            <button
+              matIconButton
+              type="button"
+              [disabled]="thumbUpRecorded()"
+              (click)="thumbMotd(true)"
+              i18n-matTooltip="@@motd.thumbUpTooltip"
+              matTooltip="Hilfreich"
+              i18n-aria-label="@@motd.thumbUpAria"
+              aria-label="Hilfreich"
+            >
+              <mat-icon>thumb_up</mat-icon>
+            </button>
+            <button
+              matIconButton
+              type="button"
+              [disabled]="thumbDownRecorded()"
+              (click)="thumbMotd(false)"
+              i18n-matTooltip="@@motd.thumbDownTooltip"
+              matTooltip="Nicht hilfreich"
+              i18n-aria-label="@@motd.thumbDownAria"
+              aria-label="Nicht hilfreich"
+            >
+              <mat-icon>thumb_down</mat-icon>
+            </button>
+          </div>
+        </div>
+        <p class="home-motd-sheet__hint" i18n="@@motd.swipeHint">
+          Nach unten wischen schließt die Meldung.
+        </p>
+      </div>
+    </div>
+  }
 </div>

@@ -45,26 +45,28 @@
             <span class="bonus-codes-dialog__session-date">· {{ s.endedAt | date: 'short' }}</span>
           }
         </h3>
-        <table class="bonus-codes-dialog__table" role="table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th i18n>Nickname</th>
-              <th i18n>Code</th>
-              <th i18n>Punkte</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (t of s.tokens; track t.token) {
+        <div class="bonus-codes-dialog__table-wrap">
+          <table class="bonus-codes-dialog__table" role="table">
+            <thead>
               <tr>
-                <td>{{ t.rank }}</td>
-                <td>{{ t.nickname }}</td>
-                <td class="bonus-codes-dialog__code">{{ t.token }}</td>
-                <td>{{ t.totalScore | number }}</td>
+                <th>#</th>
+                <th i18n>Nickname</th>
+                <th i18n>Code</th>
+                <th i18n>Punkte</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (t of s.tokens; track t.token) {
+                <tr>
+                  <td>{{ t.rank }}</td>
+                  <td>{{ t.nickname }}</td>
+                  <td class="bonus-codes-dialog__code">{{ t.token }}</td>
+                  <td>{{ t.totalScore | number }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </section>
     }
 

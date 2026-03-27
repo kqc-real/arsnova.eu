@@ -520,8 +520,8 @@ export class QuizListComponent implements OnInit {
     await this.clearLiveStartShortcut();
 
     const dialogRef = this.dialog.open(LiveSessionDialogComponent, {
-      width: '32rem',
-      maxWidth: 'calc(100vw - 2rem)',
+      width: 'min(32rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
       autoFocus: false,
       panelClass: 'live-session-dialog-panel',
       backdropClass: 'live-session-dialog-backdrop',
@@ -550,8 +550,9 @@ export class QuizListComponent implements OnInit {
     const sid = quiz.lastServerQuizId;
     if (!sid) return;
     this.dialog.open(BonusCodesDialogComponent, {
-      width: 'min(560px, calc(100vw - 24px))',
-      maxHeight: 'min(90vh, 720px)',
+      width: 'min(35rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      maxHeight: 'min(90dvh, calc(100vh - 2rem))',
       autoFocus: false,
       data: { serverQuizId: sid, quizName: quiz.name },
     });

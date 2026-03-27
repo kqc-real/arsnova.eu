@@ -92,6 +92,11 @@
   min-width: 0;
 }
 
+/* MatBadge am Campaign-Icon darf nicht abgeschnitten werden */
+.top-toolbar__motd-btn {
+  overflow: visible;
+}
+
 .top-toolbar__home-link {
   display: inline-flex;
   align-items: center;

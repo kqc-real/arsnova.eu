@@ -25,6 +25,9 @@ import {
   recordFailedSessionCodeAttempt,
   checkVoteRate,
   checkSessionCreateRate,
+  checkMotdGetCurrentRate,
+  checkMotdListArchiveRate,
+  checkMotdRecordInteractionRate,
   RATE_LIMIT_ENV,
 } from '../lib/rateLimit';
 
@@ -35,6 +38,9 @@ describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
     expect(RATE_LIMIT_ENV.sessionCodeLockoutSeconds).toBe(60);
     expect(RATE_LIMIT_ENV.voteRequestsPerSecond).toBe(1);
     expect(RATE_LIMIT_ENV.sessionCreatePerHour).toBe(10);
+    expect(RATE_LIMIT_ENV.motdGetCurrentPerMinute).toBe(120);
+    expect(RATE_LIMIT_ENV.motdListArchivePerMinute).toBe(60);
+    expect(RATE_LIMIT_ENV.motdRecordInteractionPerMinute).toBe(40);
   });
 });
 
@@ -184,5 +190,48 @@ describe('checkSessionCreateRate (Story 2.1a)', () => {
 
     expect(result.allowed).toBe(false);
     expect(result.remaining).toBe(0);
+  });
+});
+
+describe('MOTD öffentliche API (Epic 10) – Sliding-Window pro IP', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    redisMock.get.mockResolvedValue(null);
+  });
+
+  it('checkMotdGetCurrentRate blockiert bei Erreichen des Minuten-Limits', async () => {
+    redisMock.zcard.mockResolvedValue(RATE_LIMIT_ENV.motdGetCurrentPerMinute);
+    redisMock.zrange.mockResolvedValue([]);
+
+    const result = await checkMotdGetCurrentRate('203.0.113.7');
+
+    expect(result.allowed).toBe(false);
+    expect(result.remaining).toBe(0);
+    expect(redisMock.zremrangebyscore).toHaveBeenCalled();
+  });
+
+  it('checkMotdListArchiveRate nutzt eigenen Redis-Key pro IP', async () => {
+    redisMock.zcard.mockResolvedValue(0);
+
+    await checkMotdListArchiveRate('198.51.100.2');
+
+    expect(redisMock.zadd).toHaveBeenCalledWith(
+      'rl:motd:listArchive:198.51.100.2',
+      expect.any(Number),
+      expect.any(String),
+    );
+  });
+
+  it('checkMotdRecordInteractionRate erlaubt Aufruf unterhalb des Limits', async () => {
+    redisMock.zcard.mockResolvedValue(0);
+
+    const result = await checkMotdRecordInteractionRate('192.0.2.1');
+
+    expect(result.allowed).toBe(true);
+    expect(redisMock.zadd).toHaveBeenCalledWith(
+      'rl:motd:recordInteraction:192.0.2.1',
+      expect.any(Number),
+      expect.any(String),
+    );
   });
 });

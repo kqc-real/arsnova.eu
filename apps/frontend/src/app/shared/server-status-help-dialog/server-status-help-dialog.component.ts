@@ -1,11 +1,17 @@
 import { Component } from '@angular/core';
-import { MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
+import { MatButton } from '@angular/material/button';
+import {
+  MatDialogActions,
+  MatDialogClose,
+  MatDialogContent,
+  MatDialogTitle,
+} from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-server-status-help-dialog',
   standalone: true,
-  imports: [MatDialogTitle, MatDialogContent, MatIcon],
+  imports: [MatDialogTitle, MatDialogContent, MatDialogActions, MatButton, MatDialogClose, MatIcon],
   template: `
     <h2 mat-dialog-title class="status-help-dialog__title" i18n="@@app.footer.statusHelpTitle">
       Server-Status erklärt
@@ -16,30 +22,46 @@ import { MatIcon } from '@angular/material/icon';
       </p>
       <ul class="status-help-dialog__legend" role="list">
         <li>
-          <span class="status-help-dialog__dot status-help-dialog__dot--healthy" aria-hidden="true"></span>
+          <span
+            class="status-help-dialog__dot status-help-dialog__dot--healthy"
+            aria-hidden="true"
+          ></span>
           <span i18n="@@app.footer.statusLegendHealthy">Gesund</span>
         </li>
         <li>
-          <span class="status-help-dialog__dot status-help-dialog__dot--busy" aria-hidden="true"></span>
+          <span
+            class="status-help-dialog__dot status-help-dialog__dot--busy"
+            aria-hidden="true"
+          ></span>
           <span i18n="@@app.footer.statusLegendBusy">Ausgelastet</span>
         </li>
         <li>
-          <span class="status-help-dialog__dot status-help-dialog__dot--overloaded" aria-hidden="true"></span>
+          <span
+            class="status-help-dialog__dot status-help-dialog__dot--overloaded"
+            aria-hidden="true"
+          ></span>
           <span i18n="@@app.footer.statusLegendOverloaded">Überlastet</span>
         </li>
         <li>
-          <span class="status-help-dialog__dot status-help-dialog__dot--unknown" aria-hidden="true"></span>
+          <span
+            class="status-help-dialog__dot status-help-dialog__dot--unknown"
+            aria-hidden="true"
+          ></span>
           <span i18n="@@app.footer.statusLegendUnknown">Keine Live-Daten</span>
         </li>
       </ul>
       <ul class="status-help-dialog__list" role="list">
         <li>
           <mat-icon aria-hidden="true">play_circle</mat-icon>
-          <span i18n="@@app.footer.statusHelpLiveSessions">Live-Sessions (aktuell aktive Veranstaltungen)</span>
+          <span i18n="@@app.footer.statusHelpLiveSessions"
+            >Live-Sessions (aktuell aktive Veranstaltungen)</span
+          >
         </li>
         <li>
           <mat-icon aria-hidden="true">bolt</mat-icon>
-          <span i18n="@@app.footer.statusHelpBlitz">Blitz-Runden (laufende Quick-Feedback-Runden)</span>
+          <span i18n="@@app.footer.statusHelpBlitz"
+            >Blitz-Runden (laufende Quick-Feedback-Runden)</span
+          >
         </li>
         <li>
           <mat-icon aria-hidden="true">group</mat-icon>
@@ -51,6 +73,11 @@ import { MatIcon } from '@angular/material/icon';
         </li>
       </ul>
     </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" mat-dialog-close i18n="@@app.footer.statusHelpClose">
+        Schließen
+      </button>
+    </mat-dialog-actions>
   `,
   styles: `
     .status-help-dialog__title {
@@ -63,11 +90,16 @@ import { MatIcon } from '@angular/material/icon';
 
     .status-help-dialog__content {
       margin: 0;
-      padding: 0 1rem 1rem !important;
+      padding: 0 1rem 0.5rem !important;
       display: grid;
       gap: 0.7rem;
       overflow: visible;
       max-height: none;
+    }
+
+    mat-dialog-actions {
+      padding: 0 1rem 1rem;
+      margin: 0;
     }
 
     .status-help-dialog__copy {

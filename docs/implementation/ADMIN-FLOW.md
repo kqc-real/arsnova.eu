@@ -32,6 +32,7 @@ Hinweis:
 
 - Ohne `ADMIN_SECRET` liefert der Backend-Login: `Admin-Authentifizierung ist nicht konfiguriert.`
 - Änderungen an `.env` werden erst nach Backend-Neustart wirksam.
+- Beim Start lädt das Backend automatisch eine `.env` im **aktuellen Arbeitsverzeichnis** oder **zwei Ebenen darüber** (Monorepo-Root), sofern die Datei existiert. Üblich: `cp .env.example .env` im Repo-Root.
 
 ### 2.2 Laufende Dienste
 
@@ -53,7 +54,7 @@ Alle geschützten Admin-Prozeduren (`admin.listSessions`, `admin.getSessionDetai
 3. Backend erstellt ein opakes Token, speichert es in Redis mit TTL.
 4. Client sendet dieses Token bei weiteren Requests als Header:
    - `x-admin-token: <token>`  
-   oder
+     oder
    - `Authorization: Bearer <token>`
 5. `adminProcedure` validiert das Token zentral gegen Redis.
 
@@ -141,13 +142,13 @@ curl -s -X POST "http://localhost:3000/trpc/admin.deleteSession" \
 
 ## 6. Troubleshooting
 
-| Symptom | Ursache | Lösung |
-|---|---|---|
-| `Admin-Authentifizierung ist nicht konfiguriert.` | `ADMIN_SECRET` fehlt im Backend-Prozess | `.env` prüfen, Backend neu starten |
-| `Unexpected token 'B', "Backend ni"... is not valid JSON` | Proxy liefert Klartext-Fehler statt JSON (Backend nicht erreichbar) | Backend starten, Proxy-Ziel (`/trpc -> :3000`) prüfen |
-| Login klappt, aber `deleteSession` schlägt mit `UNAUTHORIZED` fehl | Token fehlt/ist falsch/abgelaufen/gegen falschen Port verwendet | `admin.whoami` mit demselben Token testen, Header prüfen |
-| Delete-Button in UI bleibt deaktiviert | Bestätigungscode stimmt nicht mit Session-Code überein | Exakten 6-stelligen Session-Code eingeben |
-| Löschen/Export nicht möglich wegen Retention | Session ist bereits `PURGED` | Erwartetes Verhalten; keine Daten mehr verfügbar |
+| Symptom                                                            | Ursache                                                             | Lösung                                                   |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------- | -------------------------------------------------------- |
+| `Admin-Authentifizierung ist nicht konfiguriert.`                  | `ADMIN_SECRET` fehlt im Backend-Prozess                             | `.env` prüfen, Backend neu starten                       |
+| `Unexpected token 'B', "Backend ni"... is not valid JSON`          | Proxy liefert Klartext-Fehler statt JSON (Backend nicht erreichbar) | Backend starten, Proxy-Ziel (`/trpc -> :3000`) prüfen    |
+| Login klappt, aber `deleteSession` schlägt mit `UNAUTHORIZED` fehl | Token fehlt/ist falsch/abgelaufen/gegen falschen Port verwendet     | `admin.whoami` mit demselben Token testen, Header prüfen |
+| Delete-Button in UI bleibt deaktiviert                             | Bestätigungscode stimmt nicht mit Session-Code überein              | Exakten 6-stelligen Session-Code eingeben                |
+| Löschen/Export nicht möglich wegen Retention                       | Session ist bereits `PURGED`                                        | Erwartetes Verhalten; keine Daten mehr verfügbar         |
 
 ## 7. Sicherheitsnotizen
 

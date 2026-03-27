@@ -2,15 +2,18 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  HostListener,
   OnDestroy,
   OnInit,
   ViewChild,
   PLATFORM_ID,
+  LOCALE_ID,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -24,13 +27,27 @@ import {
   MatCardTitle,
 } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import { localizeCommands, localizePath } from '../../core/locale-router';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 import { QUICK_FEEDBACK_PRESET_CHIPS } from '../feedback/feedback.config';
-import type { QuickFeedbackType } from '@arsnova/shared-types';
+import type {
+  AppLocale,
+  MotdInteractionKind,
+  MotdPublicDTO,
+  QuickFeedbackType,
+} from '@arsnova/shared-types';
+import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
+import {
+  hasMotdInteractionRecorded,
+  isMotdDismissedForVersion,
+  markMotdDismissed,
+  markMotdInteractionRecorded,
+} from '../../core/motd-storage';
+import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 
 @Component({
   selector: 'app-home',
@@ -48,6 +65,7 @@ import type { QuickFeedbackType } from '@arsnova/shared-types';
     MatCardTitle,
     MatIcon,
     MatIconButton,
+    MatTooltip,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
@@ -100,6 +118,28 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   });
   readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly localeId = inject(LOCALE_ID);
+  private readonly sanitizer = inject(DomSanitizer);
+  @ViewChild('motdCloseBtn') private readonly motdCloseBtn?: ElementRef<HTMLButtonElement>;
+
+  /** Aktive MOTD (Epic 10); nur Browser, nach getCurrent. */
+  readonly motd = signal<MotdPublicDTO | null>(null);
+  readonly motdBodyHtml = signal<SafeHtml | null>(null);
+  /** Erzwingt Neuablesung der MOTD-Interaktions-Flags aus localStorage. */
+  private readonly motdInteractionRev = signal(0);
+  private motdTouchStartY = 0;
+
+  readonly thumbUpRecorded = computed(() => {
+    this.motdInteractionRev();
+    const m = this.motd();
+    return m ? hasMotdInteractionRecorded(m.id, m.contentVersion, 'THUMB_UP') : false;
+  });
+
+  readonly thumbDownRecorded = computed(() => {
+    this.motdInteractionRev();
+    const m = this.motd();
+    return m ? hasMotdInteractionRecorded(m.id, m.contentVersion, 'THUMB_DOWN') : false;
+  });
 
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
@@ -176,7 +216,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         setTimeout(() => void this.validateRecentSessions(), 500);
       }
+      // MOTD: bald nach erstem Paint, ohne langes Idle-Warten (max. ~400 ms)
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => void this.loadMotdOverlay(), { timeout: 400 });
+      } else {
+        setTimeout(() => void this.loadMotdOverlay(), 50);
+      }
     }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydownMotd(e: KeyboardEvent): void {
+    if (!this.motd()) return;
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    void this.dismissMotdOverlay('DISMISS_CLOSE');
   }
 
   /** Entfernt Sessions, die nicht mehr besucht werden können (cron gelöscht, beendet). */
@@ -433,6 +487,103 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.clearSessionCodeAndFocusStart();
     } finally {
       this.isJoining.set(false);
+    }
+  }
+
+  private async loadMotdOverlay(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
+    try {
+      const { motd } = await trpc.motd.getCurrent.query({ locale });
+      if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
+        return;
+      }
+      this.motd.set(motd);
+      const html = renderMarkdownWithoutKatex(motd.markdown);
+      this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
+      setTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
+    } catch {
+      /* Rate-Limit / Offline: kein Overlay */
+    }
+  }
+
+  private clearMotdOverlay(): void {
+    this.motd.set(null);
+    this.motdBodyHtml.set(null);
+  }
+
+  onMotdBackdropClick(): void {
+    void this.dismissMotdOverlay('DISMISS_CLOSE');
+  }
+
+  onMotdSheetClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
+
+  onMotdTouchStart(event: TouchEvent): void {
+    if (
+      typeof matchMedia !== 'undefined' &&
+      matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+    const t = event.touches[0];
+    if (t) this.motdTouchStartY = t.clientY;
+  }
+
+  onMotdTouchEnd(event: TouchEvent): void {
+    if (
+      typeof matchMedia !== 'undefined' &&
+      matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+    const t = event.changedTouches[0];
+    if (!t) return;
+    const dy = t.clientY - this.motdTouchStartY;
+    if (dy > 88) {
+      void this.dismissMotdOverlay('DISMISS_SWIPE');
+    }
+  }
+
+  async dismissMotdOverlay(
+    kind: Extract<MotdInteractionKind, 'DISMISS_CLOSE' | 'DISMISS_SWIPE'>,
+  ): Promise<void> {
+    const m = this.motd();
+    if (!m) return;
+    await this.tryRecordMotdInteraction(kind);
+    markMotdDismissed(m.id, m.contentVersion);
+    this.clearMotdOverlay();
+  }
+
+  async ackMotd(): Promise<void> {
+    const m = this.motd();
+    if (!m) return;
+    await this.tryRecordMotdInteraction('ACK');
+    markMotdDismissed(m.id, m.contentVersion);
+    this.clearMotdOverlay();
+  }
+
+  async thumbMotd(up: boolean): Promise<void> {
+    const m = this.motd();
+    if (!m) return;
+    await this.tryRecordMotdInteraction(up ? 'THUMB_UP' : 'THUMB_DOWN');
+  }
+
+  private async tryRecordMotdInteraction(kind: MotdInteractionKind): Promise<void> {
+    const m = this.motd();
+    if (!m) return;
+    if (hasMotdInteractionRecorded(m.id, m.contentVersion, kind)) return;
+    try {
+      await trpc.motd.recordInteraction.mutate({
+        motdId: m.id,
+        contentVersion: m.contentVersion,
+        kind,
+      });
+      markMotdInteractionRecorded(m.id, m.contentVersion, kind);
+      this.motdInteractionRev.update((n) => n + 1);
+    } catch {
+      /* optional: still allow dismiss */
     }
   }
 

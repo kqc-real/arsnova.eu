@@ -49,6 +49,21 @@
           <mat-icon>home</mat-icon>
         </a>
       }
+      @if (motdToolbarIcon()) {
+        <button
+          type="button"
+          matIconButton
+          class="top-toolbar__icon-btn top-toolbar__motd-btn"
+          (click)="openMotdArchive()"
+          [matTooltip]="motdToolbarArchiveTooltip()"
+          [attr.aria-label]="motdArchiveAriaLabel()"
+          [matBadge]="motdArchiveBadgeText()"
+          [matBadgeHidden]="motdArchiveCount() === 0"
+          matBadgePosition="above after"
+        >
+          <mat-icon>campaign</mat-icon>
+        </button>
+      }
     </div>
 
     <button

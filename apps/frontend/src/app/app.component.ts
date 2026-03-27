@@ -329,9 +329,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.dialog.open(ServerStatusHelpDialogComponent, {
       panelClass: 'app-status-help-dialog-panel',
       autoFocus: false,
-      restoreFocus: true,
-      width: 'min(40rem, calc(100vw - 1rem))',
-      maxWidth: 'min(42rem, calc(100vw - 1rem))',
+      width: 'min(40rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
     });
   }
 

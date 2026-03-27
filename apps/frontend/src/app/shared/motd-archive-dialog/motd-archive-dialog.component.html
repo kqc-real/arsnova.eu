@@ -1,0 +1,82 @@
+<div class="motd-archive">
+  <div class="motd-archive__head">
+    <h2 mat-dialog-title i18n="@@motd.archiveTitle">Nachrichten-Archiv</h2>
+    <button
+      matIconButton
+      type="button"
+      mat-dialog-close
+      i18n-aria-label="@@motd.archiveCloseAria"
+      aria-label="Schließen"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="motd-archive__scroll">
+    @if (loading()) {
+      <div class="motd-archive__loading">
+        <mat-progress-spinner color="primary" diameter="40" mode="indeterminate" />
+      </div>
+    } @else if (error(); as err) {
+      <p class="motd-archive__error" role="alert">{{ err }}</p>
+    } @else {
+      @if (archiveMaxEndsAtIso()) {
+        <div class="motd-archive__actions">
+          <span
+            class="motd-archive__mark-all-wrap"
+            i18n-matTooltip="@@motd.archiveMarkAllReadDisabled"
+            matTooltip="Alle Meldungen sind bereits als gelesen markiert."
+            matTooltipPosition="below"
+            [matTooltipDisabled]="archiveUnreadCount() > 0"
+          >
+            <button
+              mat-stroked-button
+              type="button"
+              i18n="@@motd.archiveMarkAllRead"
+              [disabled]="archiveUnreadCount() === 0"
+              (click)="markArchiveAllRead()"
+            >
+              Alles als gelesen markieren
+            </button>
+          </span>
+        </div>
+      }
+      @if (items().length === 0) {
+        <p class="motd-archive__empty" i18n="@@motd.archiveEmpty">Keine archivierten Meldungen.</p>
+      } @else {
+        <ul class="motd-archive__list">
+          @for (it of items(); track it.id) {
+            <li class="motd-archive__item">
+              <p class="motd-archive__meta">{{ formatArchiveDate(it.endsAt) }}</p>
+              @if (htmlById()[it.id]; as safe) {
+                <div class="motd-archive__body markdown-body" [innerHTML]="safe"></div>
+              }
+            </li>
+          }
+        </ul>
+      }
+      @if (nextCursor()) {
+        <div class="motd-archive__load-more" [attr.aria-busy]="loadingMore() ? 'true' : null">
+          <button
+            matButton="tonal"
+            type="button"
+            i18n="@@motd.archiveLoadMore"
+            [disabled]="loadingMore()"
+            (click)="loadMoreArchive()"
+          >
+            Weitere Meldungen laden
+          </button>
+          @if (loadingMore()) {
+            <mat-progress-spinner
+              class="motd-archive__load-more-spinner"
+              color="primary"
+              diameter="28"
+              mode="indeterminate"
+              aria-hidden="true"
+            />
+          }
+        </div>
+      }
+    }
+  </mat-dialog-content>
+</div>

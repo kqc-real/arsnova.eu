@@ -25,6 +25,10 @@ vi.mock('../../core/trpc.client', () => ({
       results: { query: vi.fn().mockRejectedValue(new Error('not found')) },
       create: { mutate: vi.fn().mockRejectedValue(new Error('not available')) },
     },
+    motd: {
+      getCurrent: { query: vi.fn().mockResolvedValue({ motd: null }) },
+      recordInteraction: { mutate: vi.fn().mockResolvedValue({ ok: true }) },
+    },
     session: {
       getInfo: {
         query: vi.fn().mockResolvedValue({
