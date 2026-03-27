@@ -6,7 +6,11 @@
 
 Willkommen. Dieses Dokument erklärt **Ziele**, **Ablauf**, **bewertete Leistung** und **praktische Tipps**, damit du dich schnell zurechtfindest und realistisch planen kannst. Die App ist ein **fortlaufendes Forschungs- und Lehrprojekt**; dein Beitrag soll **nachvollziehbar**, **testbar** und **zur Architektur passend** sein.
 
+**Du kennst Git, VS Code, npm oder Begriffe wie tRPC/Prisma noch nicht?** Start mit **[`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)** (Landkarte + Links), dann [`docs/onboarding.md`](../onboarding.md) zum Aufsetzen der Umgebung.
+
 **Parallel am selben Produkt:** Der **SQM-Praktikumsauftrag** (Qualität, Tests, Reviews, UX, Guidde) steht in **[`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)**; das didaktische **Zwei-Kurse-Modell** in [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
+
+**Fallstudie Software Engineering + SQM — gemeinsames Vorlesungsbeispiel:** [**Epic 10 (MOTD)**](../../Backlog.md) wird von der **Lehrperson vollständig** (10.1–10.8) mit **KI-Agenten** in den **Anfangsvorlesungen live am Beamer** umgesetzt; **parallel** gibt es **Inputs** zu **VS Code, Git, GitHub** und zu **Projekttechnologien** (TypeScript, PostgreSQL, Prisma, tRPC, Redis …). **Studierende** arbeiten **danach** an **Stories aus anderen Epics** ([`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) Abschnitt 0 und 3; Spezifikation [`docs/features/motd.md`](../features/motd.md)).
 
 **Kurs 3 (Data Analytics, nicht zwingend parallel):** NLP und **Modellwahl/Prompting** für die **Intelligente Moderationshilfe** (Wortwolke & Q&A) auf **selbst gehosteten** Modellen — **`PRAKTIKUM-DATA-ANALYTICS.md`** · Einordnung `docs/didaktik/dritter-kurs-data-analytics-nlp.md`.
 

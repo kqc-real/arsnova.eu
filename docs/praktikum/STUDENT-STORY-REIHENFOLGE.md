@@ -1,10 +1,24 @@
 # Didaktische Reihenfolge: Offene User Stories (KI codiert, Studi steuert)
 
 **Zielgruppe:** Betreuende, Studierende im Praktikum  
-**Voraussetzung:** Jede Person soll **jede offene Story** aus dem Produkt-Backlog **einmal** umsetzen (oder: durch den vollständigen Katalog gehen). Die **Reihenfolge** ist dann entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn die **Codierung überwiegend durch KI-Unterstützung** erfolgt und der Studi **überwacht, steuert und abnimmt**.
+**Voraussetzung:** Jede Person soll **jede offene Story** aus dem Produkt-Backlog **einmal** umsetzen (oder: durch den vollständigen Katalog gehen) — **mit Ausnahme von Epic 10 (MOTD)**, wenn dieses gemäß Abschnitt 0 **vollständig durch die Lehrperson** in den Anfangsvorlesungen umgesetzt wird; dann üben Studierende an **anderen Epics**. Die **Reihenfolge** ist entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn die **Codierung überwiegend durch KI-Unterstützung** erfolgt und der Studi **überwacht, steuert und abnimmt**.
 
 **Referenz:** [`Backlog.md`](../../Backlog.md) (Status ⬜ Offen).  
-**Stand dieser Empfehlung:** 2026-03-26 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
+**Stand dieser Empfehlung:** 2026-03-27 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
+
+---
+
+## 0. Sonderfall: Epic 10 (MOTD) — Vorlesungsreferenz, nicht Studierenden-Auftrag
+
+**Epic 10** ([`Backlog.md`](../../Backlog.md) — _MOTD / Plattform-Kommunikation_) wird in der **Fallstudie Software Engineering** und im **Software-Qualitätsmanagement** als **gemeinsames Referenz-Feature** genutzt: Es zeigt **Ende-zu-Ende**, wie Spezifikation ([`docs/features/motd.md`](../features/motd.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md)), Stack und Abnahme im Projekt zusammenspielen.
+
+**Ablauf (verbindliches didaktisches Modell):**
+
+1. **Erste Vorlesungstermine (Anfang der Veranstaltung):** Die **Lehrperson setzt Epic 10 vollständig** (Stories **10.1–10.8**) mit **KI-Agenten** um — **live am Beamer**. Studierende **bearbeiten Epic 10 nicht** als Pflichtauftrag.
+2. **Parallel dazu (Mini-Vorlesungen / Inputs):** Während der live gezeigten Umsetzung vermittelt die Lehrperson **Entwicklungswerkzeuge** (z. B. **VS Code**, **Git**, **GitHub**) und **Technologien aus arsnova.eu** (z. B. **TypeScript**, **PostgreSQL**, **Prisma**, **tRPC**, **Redis**, Angular/Monorepo — konkrete Schwerpunkte nach Terminplan).
+3. **Danach:** Studierende starten mit der Umsetzung der **User Stories aus den anderen Epics** — in der **Reihenfolge der Tabelle in Abschnitt 3** (KI codiert, Studi steuert, Abnahme wie unten). **SQM** begleitet **diese** PRs/Stories (Reviews, Tests, DoD, Risiko, A11y). Das fertige MOTD-Feature dient als **gemeinsame Code- und Prozessreferenz** (Lesen, Vergleich, ggf. einzelne Review-Übungen), nicht als paralleler Implementierungs-Backlog für Studierende.
+
+Verknüpfung Synergie beider Kurse: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
 
 ---
 
@@ -29,9 +43,9 @@
 
 ---
 
-## 3. Empfohlene Reihenfolge (alle offenen Stories)
+## 3. Empfohlene Reihenfolge (offene Stories für Studierende)
 
-Die folgende Tabelle ist die **Standard-Reihenfolge** für die **zeitlich aufeinanderfolgende** Vergabe (Ticket 1 → 2 → … → 14).
+Die folgende Tabelle listet **alle aktuell offenen Stories außer Epic 10** (MOTD). Sie ist die **Standard-Reihenfolge** für die **zeitlich aufeinanderfolgende** Vergabe an Studierende **nach** dem Vorlesungsblock Epic 10 (siehe Abschnitt 0): Ticket 1 → 2 → … → 14.
 
 | Nr. | Story     | Titel (Kurz)                         | Didaktischer Schwerpunkt                       | Warum an dieser Stelle                                                                                                                                                                                                     |
 | --- | --------- | ------------------------------------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -88,12 +102,14 @@ Erlaubt, wenn **begründet**, z. B.:
 
 ## 7. Verknüpfungen
 
-| Dokument                                                                 | Inhalt                                          |
-| ------------------------------------------------------------------------ | ----------------------------------------------- |
-| [`Backlog.md`](../../Backlog.md)                                         | Story-Liste, Status, Akzeptanzkriterien         |
-| [`docs/features/controversy-score.md`](../features/controversy-score.md) | Kontroversität (8.6), Wilson (8.7), Hintergrund |
-| [`docs/praktikum/PRAKTIKUM.md`](./PRAKTIKUM.md)                          | Rahmen Praktikum, Bewertung, Ablauf             |
-| [`AGENT.md`](../../AGENT.md)                                             | Arbeitsweise mit KI im Editor                   |
+| Dokument                                                                 | Inhalt                                                          |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| [`Backlog.md`](../../Backlog.md)                                         | Story-Liste, Status, Akzeptanzkriterien                         |
+| [`docs/features/controversy-score.md`](../features/controversy-score.md) | Kontroversität (8.6), Wilson (8.7), Hintergrund                 |
+| [`docs/praktikum/PRAKTIKUM.md`](./PRAKTIKUM.md)                          | Rahmen Praktikum, Bewertung, Ablauf                             |
+| [`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)           | **Pflicht-Orientierung** bei fehlender Tool-/Stack-Vorerfahrung |
+| [`docs/features/motd.md`](../features/motd.md)                           | MOTD, Epic 10 (Lehrperson live; Studis andere Epics)            |
+| [`AGENT.md`](../../AGENT.md)                                             | Arbeitsweise mit KI im Editor                                   |
 
 ---
 

@@ -6,6 +6,8 @@
 
 **Wichtig:** Dieser Kurs muss **nicht** parallel zu den Praktika **Entwicklung** ([`PRAKTIKUM.md`](./PRAKTIKUM.md)) und **SQM** ([`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)) laufen. Er kann **danach**, **davor** (Konzeptphase) oder in einem **eigenen Semester** stattfinden — siehe [`docs/didaktik/dritter-kurs-data-analytics-nlp.md`](../didaktik/dritter-kurs-data-analytics-nlp.md).
 
+**Programmiergrundlagen ohne Erfahrung mit dem arsnova.eu-Stack?** Für die **Einordnung** von Monorepo, tRPC und Zod (wenn du mit Kurs 1 sprichst): **[`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)** — dein Schwerpunkt bleibt NLP/Analytics (siehe Abschnitt 8 in diesem Dokument).
+
 ## Inhaltsverzeichnis
 
 - [Praktikum Data Analytics und NLP (Kurs 3) — Intelligente Moderationshilfe](#praktikum-data-analytics-und-nlp-kurs-3--intelligente-moderationshilfe)

@@ -22,6 +22,8 @@
 
 Willkommen. Dieses Dokument ist die **studierendenfreundliche Arbeitsgrundlage** für dein SQM-Praktikum auf **derselben Codebasis** wie der Entwicklungskurs. Du bist **kein** „externer Tester am fertigen Produkt“, sondern **Qualitätspartner:in** im laufenden Projekt.
 
+**Wenig Vorerfahrung mit Git, GitHub, Pull Requests oder dem Tech-Stack?** Lies **[`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)** (Abschnitt zu SQM) und richte die Umgebung wie in [`docs/onboarding.md`](../onboarding.md) ein — für Reviews brauchst du den Code lokal oder zumindest lesbar auf GitHub.
+
 ### Kurzmodell der Synergie (ein Produkt, zwei Rollen)
 
 Das **didaktische Modell** (Rollen, Synergie, agentische KI) steht kompakt hier:
@@ -31,6 +33,8 @@ Das **didaktische Modell** (Rollen, Synergie, agentische KI) steht kompakt hier:
 Der **Entwicklungs-Praktikumsauftrag** (Feature-Fokus, z. B. intelligente Wortwolke) liegt hier:
 
 **→ [`PRAKTIKUM.md`](./PRAKTIKUM.md)**
+
+**Gemeinsames Vorlesungsbeispiel mit Fallstudie SE:** [**Epic 10 (MOTD)**](../../Backlog.md) wird von der **Lehrperson vollständig** mit KI live am Beamer umgesetzt (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) Abschnitt 0, [`docs/features/motd.md`](../features/motd.md)). **Studierende** in SQM üben **Reviews, Tests und Qualität** an den **PRs zu anderen Epics**; das fertige MOTD kann als **Referenz** dienen (Architektur, DoD).
 
 **Kurs 3 (Data Analytics, NLP/Prompting, nicht zwingend parallel):**
 
