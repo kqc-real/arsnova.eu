@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { homeMetaDescription } from '@/config/seo';
 import Hero from '../components/Hero.astro';
 import Features from '../components/Features.astro';
 import Trust from '../components/Trust.astro';
@@ -9,7 +10,7 @@ import Cta from '../components/Cta.astro';
 
 <BaseLayout
   title="Start"
-  description="arsnova.eu – Quizzen, abstimmen und Q&amp;A, live. Eine URL für Lehrende und Teilnehmende: Code, QR, Lobby, Presenter/Beamer. Fragetypen von MC bis Rating, Markdown/KaTeX, Lesephase, Peer Instruction, Word Cloud, Team-Modus, Rangliste, Bonus-Code. Import/Export, Yjs-Sync, KI-Workflow ohne Inhalts-Upload an uns. Fünf Sprachen, Docker Self-Host, optional Admin mit Audit. Open Source, kostenlos, DSGVO-orientiert."
+  description={homeMetaDescription}
 >
   <Hero />
   <Features />

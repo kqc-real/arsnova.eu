@@ -8,12 +8,12 @@ Dieses Dokument ordnet **arsnova.eu** (dieses Repo) in die Geschichte und das Ö
 
 Das ARSnova-Projekt entstand 2012 an der **Technischen Hochschule Mittelhessen (THM)** unter Leitung von Prof. Dr. Klaus Quibeldey-Cirkel. Die Softwarefamilie hat sich in mehrere Stränge aufgefächert:
 
-| Produkt | Primärfunktion | Status (Stand 2024/25) | Bezug |
-|--------|----------------|------------------------|-------|
-| **ARSnova** (arsnova.app / arsnova.eu) | Live-Feedback, JiTT, Peer Instruction | Eingestellt (Online-Dienst beendet) | Ursprungs-F&E THM; funktionaler Nachfolger: Particify |
-| **arsnova.click** | Gamifizierte Quiz-App (Kahoot!-Alternative) | Aktiv; eigenständig und als „fester Bestandteil“ in **frag.jetzt** integriert | F&E THM |
-| **Particify** | Kommerzielles ARS (Voting, Q&A, Quiz) | Aktiv, SaaS + Open Source | Spin-off 2020 der ARSnova-Hauptentwickler |
-| **frag.jetzt** | KI-gestützte Q&A- und Lernplattform | Aktiv, aktueller F&E-Fokus THM | Domain **arsnova.eu** verweist hierauf; enthält arsnova.click |
+| Produkt                                | Primärfunktion                              | Status (Stand 2024/25)                                                        | Bezug                                                         |
+| -------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **ARSnova** (arsnova.app / arsnova.eu) | Live-Feedback, JiTT, Peer Instruction       | Eingestellt (Online-Dienst beendet)                                           | Ursprungs-F&E THM; funktionaler Nachfolger: Particify         |
+| **arsnova.click**                      | Gamifizierte Quiz-App (Kahoot!-Alternative) | Aktiv; eigenständig und als „fester Bestandteil“ in **frag.jetzt** integriert | F&E THM                                                       |
+| **Particify**                          | Kommerzielles ARS (Voting, Q&A, Quiz)       | Aktiv, SaaS + Open Source                                                     | Spin-off 2020 der ARSnova-Hauptentwickler                     |
+| **frag.jetzt**                         | KI-gestützte Q&A- und Lernplattform         | Aktiv, aktueller F&E-Fokus THM                                                | Domain **arsnova.eu** verweist hierauf; enthält arsnova.click |
 
 **Wichtig:** Die Publikations- und Entwicklungsgeschichte von **arsnova.click** gehört zum akademischen Strang (THM / frag.jetzt), nicht zum kommerziellen Particify.
 
@@ -33,7 +33,7 @@ Dieses Repo ist eine **eigenständige, moderne Neuimplementierung** einer Live-Q
 
 - **Gleiche Prinzipien:** Zero-Knowledge (Quiz-Inhalte nicht dauerhaft auf dem Server), Gamification, Bonus-Code für Top-Plätze, Presets Seriös/Spielerisch, didaktische Kontrolle (Lesephase, Schwierigkeit).
 - **Neuer Stack:** Yjs (CRDT) + IndexedDB statt reinem Local Storage; tRPC, PostgreSQL, Redis; Zod-Validierung; KI-Quiz-Import über externes LLM (Zero-Knowledge) statt integrierter Cloud-KI.
-- **Positionierung:** Führende europäische, DSGVO-konforme und kostenlose Alternative zu Kahoot, Mentimeter und Slido; erste Wahl für Hochschulen und Bildungsträger.
+- **Positionierung:** Europäische Alternative zu Mentimeter, Kahoot und Slido – interaktive Sessions, Quiz und Feedback, Made in Europe, ARSnova-Tradition seit 2012; DSGVO-konform, kostenlos, Open Source; erste Wahl für Schule, Uni und Business.
 
 Die Deep Research (PDF) beschreibt die **Herkunft** und **wissenschaftliche Einbettung**; dieses Repo setzt die **technische und produktive Weiterentwicklung** mit heutigen Architekturentscheidungen um.
 

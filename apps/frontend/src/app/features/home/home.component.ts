@@ -141,6 +141,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return m ? hasMotdInteractionRecorded(m.id, m.contentVersion, 'THUMB_DOWN') : false;
   });
 
+  /** Nur eine Daumen-Bewertung pro Meldung/Version (Up und Down schließen sich aus). */
+  readonly motdThumbVoteDone = computed(() => {
+    this.motdInteractionRev();
+    const m = this.motd();
+    if (!m) return false;
+    return (
+      hasMotdInteractionRecorded(m.id, m.contentVersion, 'THUMB_UP') ||
+      hasMotdInteractionRecorded(m.id, m.contentVersion, 'THUMB_DOWN')
+    );
+  });
+
   isValidSessionCode = computed(() => /^[A-Z0-9]{6}$/.test(this.sessionCode()));
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
   readonly quickFeedbackPresetChips = QUICK_FEEDBACK_PRESET_CHIPS;
@@ -567,6 +578,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   async thumbMotd(up: boolean): Promise<void> {
     const m = this.motd();
     if (!m) return;
+    if (
+      hasMotdInteractionRecorded(m.id, m.contentVersion, 'THUMB_UP') ||
+      hasMotdInteractionRecorded(m.id, m.contentVersion, 'THUMB_DOWN')
+    ) {
+      return;
+    }
     await this.tryRecordMotdInteraction(up ? 'THUMB_UP' : 'THUMB_DOWN');
   }
 

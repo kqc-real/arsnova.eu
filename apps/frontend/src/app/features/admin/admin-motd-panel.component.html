@@ -113,7 +113,7 @@
                     >{{ m.startsAt.slice(0, 16) }} – {{ formatMotdListEndsAt(m.endsAt) }}</span
                   >
                   <span class="admin-help admin-motd__stats" i18n="@@admin.motd.statsLine">
-                    Nutzerreaktionen (Zähler): Verstanden {{ m.interaction.ackCount }}, Daumen hoch
+                    Nutzerreaktionen (Zähler): Alles klar {{ m.interaction.ackCount }}, Daumen hoch
                     {{ m.interaction.thumbUp }}, Daumen runter {{ m.interaction.thumbDown }},
                     Overlay geschlossen {{ m.interaction.dismissClose }}, Wegwischen
                     {{ m.interaction.dismissSwipe }}
@@ -145,7 +145,7 @@
         <h3 class="admin-motd__sub" i18n="@@admin.motd.formTitle">Bearbeitung</h3>
         @if (motdInteractionStats(); as st) {
           <p class="admin-help admin-motd__stats-detail" i18n="@@admin.motd.statsDetail">
-            Nutzerreaktionen (Zähler): Verstanden {{ st.ackCount }}, Daumen hoch {{ st.thumbUp }},
+            Nutzerreaktionen (Zähler): Alles klar {{ st.ackCount }}, Daumen hoch {{ st.thumbUp }},
             Daumen runter {{ st.thumbDown }}, Overlay geschlossen {{ st.dismissClose }}, Wegwischen
             {{ st.dismissSwipe }}
           </p>

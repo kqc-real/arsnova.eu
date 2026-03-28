@@ -1480,6 +1480,8 @@ mat-card-actions.l-stack {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
     max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
 }
@@ -1510,7 +1512,6 @@ mat-card-actions.l-stack {
   position: relative;
   z-index: 1;
   width: min(36rem, 100%);
-  max-height: min(78dvh, 28rem);
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   display: flex;
@@ -1583,14 +1584,12 @@ mat-card-actions.l-stack {
   gap: 0.15rem;
 }
 
-.home-motd-sheet__hint {
-  margin: 0;
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
+/* Nach Daumen-Entscheidung: gewählte Taste hervorheben, andere zurücknehmen */
+.home-motd-sheet__thumb-btn--chosen.mat-mdc-icon-button[disabled] {
+  color: var(--mat-sys-primary);
+  opacity: 1;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .home-motd-sheet__hint {
-    display: none;
-  }
+.home-motd-sheet__thumb-btn.mat-mdc-icon-button[disabled]:not(.home-motd-sheet__thumb-btn--chosen) {
+  opacity: 0.35;
 }

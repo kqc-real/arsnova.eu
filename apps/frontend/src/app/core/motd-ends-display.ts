@@ -6,7 +6,8 @@ export const MOTD_LONG_RUNNING_END_UTC_YEAR = 2090;
 export type MotdEndDisplayMode = 'archive' | 'admin';
 
 /**
- * Zeigt `endsAt` menschenlesbar; sehr späte Enden (Willkommens-MOTD) als kurzer Text statt „31.12.2099“.
+ * Zeigt `endsAt` menschenlesbar; sehr späte Enden (Willkommens-MOTD) im Admin als „Fortlaufend“
+ * statt „31.12.2099“. Im News-Archiv entfällt die Zeile (redundant zum Inhalt).
  */
 export function formatMotdEndsAtForDisplay(
   iso: string,
@@ -18,6 +19,9 @@ export function formatMotdEndsAtForDisplay(
     return iso.length >= 16 ? iso.slice(0, 16) : iso;
   }
   if (d.getUTCFullYear() >= MOTD_LONG_RUNNING_END_UTC_YEAR) {
+    if (mode === 'archive') {
+      return '';
+    }
     return $localize`:@@motd.archiveDateLongRunning:Fortlaufend`;
   }
   if (mode === 'archive') {

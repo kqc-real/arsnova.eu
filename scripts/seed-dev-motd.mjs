@@ -5,8 +5,7 @@
  *
  * Priorität -100 (unter Admin-Standard 0), damit echte / Feature-MOTDs mit getCurrent zuerst kommen.
  *
- * Inhalt synchron mit prisma/migrations/20260327170000_motd_welcome_message/migration.sql
- * und prisma/migrations/20260328103000_motd_welcome_copy_optimize/migration.sql halten.
+ * Text-Updates für bestehende DBs: prisma/migrations/20260329120000_motd_welcome_copy_v4/migration.sql
  *
  * Nutzung: DATABASE_URL gesetzt oder Default localhost (wie ensure-schema.js).
  *   node scripts/seed-dev-motd.mjs
@@ -22,21 +21,21 @@ const DEV_MOTD_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 /** Start sichtbar ab Go-Live-Datum; endsAt mittags UTC, damit MEZ nicht 01.01.2100 anzeigt */
 const STARTS = new Date('2026-03-24T00:00:00.000Z');
 const ENDS = new Date('2099-12-31T12:00:00.000Z');
-const CONTENT_VERSION = 3;
+const CONTENT_VERSION = 4;
 
 const markdownDe = `# Willkommen bei arsnova.eu
 
-Schön, dass du da bist! arsnova.eu ist zurück – im neuen Design, mit starken Features und der Zuverlässigkeit, die du von einem erstklassigen Audience-Response-System erwartest.
+Schön, dass du da bist! arsnova.eu ist zurück – im neuen Design, mit smarten Features und der gewohnten Zuverlässigkeit eines erstklassigen Audience-Response-Systems.
 
-Wir vereinen das Beste aus frag.jetzt und arsnova.click: Eine moderne, datenschutzkonforme Alternative zu Kahoot oder Mentimeter für interaktive Sessions, Quizze und mehr – barrierearm, mehrsprachig und Made in Germany.
+Der Name ist Programm: ARS steht für Audience Response System, nova für das Neue. Als Pioniere seit 2012 vereinen wir das Beste aus frag.jetzt und arsnova.click. Ob Grundschule, Uni, Event oder Business: Wir sind die moderne, DSGVO-konforme Antwort auf Kahoot oder Mentimeter – barrierearm, mehrsprachig und Made in Europe – arsnova.eu.
 
 Viel Spaß beim Entdecken – bereit für deine nächste Session?`;
 
 const markdownEn = `# Welcome to arsnova.eu
 
-Great to have you here! arsnova.eu is back – with a fresh look, powerful features, and the reliability you expect from a top-tier audience response system.
+Great to have you here! arsnova.eu is back – featuring a fresh look, powerful features, and the reliability you expect from a top-tier Audience Response System.
 
-We've merged frag.jetzt and arsnova.click into a seamless, privacy-first alternative to Kahoot or Mentimeter. It's your modern platform for interactive sessions and quizzes – fully accessible, multilingual, and secure by design.
+The name says it all: ARS for Audience Response System, nova for the new. As pioneers since 2012, we've merged frag.jetzt and arsnova.click to define the "new art" of interaction. From primary schools and universities to corporate events and business: we are your privacy-first alternative to Kahoot or Mentimeter – fully accessible, multilingual, and Made in Europe – arsnova.eu.
 
 Enjoy exploring – and here's to your next session!`;
 
@@ -44,25 +43,25 @@ const markdownFr = `# Bienvenue sur arsnova.eu
 
 Ravi de vous accueillir ! arsnova.eu fait peau neuve : un design moderne, des fonctionnalités inédites et la fiabilité d'un système d'interaction d'excellence.
 
-Le meilleur de frag.jetzt et arsnova.click réuni : une alternative sérieuse à Kahoot ou Mentimeter pour vos sessions interactives et quiz – accessible, multilingue et strictement respectueuse de la protection des données (RGPD).
+Notre nom est notre mission : ARS pour Audience Response System, nova pour le renouveau. Pionniers depuis 2012, nous créons « l'art nouveau » de l'interaction numérique. De l'école primaire à l'université, des événements au monde de l'entreprise : découvrez l'alternative souveraine à Kahoot ou Mentimeter – accessible, multilingue et Made in Europe – arsnova.eu.
 
 Bonne découverte – prêt pour votre prochaine session ?`;
 
 const markdownEs = `# Bienvenido a arsnova.eu
 
-¡Qué bueno tenerte por aquí! arsnova.eu ha vuelto con un diseño renovado, funciones avanzadas y la fiabilidad de un sistema de participación de audiencia de primer nivel.
+¡Qué bueno tenerte por aquí! arsnova.eu ha vuelto con un diseño renovado, funciones avanzadas y la fiabilidad de un sistema de participación de primer nivel.
 
-Lo mejor de frag.jetzt y arsnova.click en una sola plataforma: la alternativa a Kahoot o Mentimeter que prioriza la privacidad. Crea sesiones interactivas y cuestionarios de forma accesible, multilingüe y segura.
+Nuestro nombre lo explica todo: ARS (Audience Response System) y nova (nuevo). Pioneros desde 2012, lideramos el "nuevo arte" de la interacción digital. Desde la escuela primaria hasta la universidad, eventos o empresas: somos la alternativa moderna a Kahoot o Mentimeter que prioriza la privacidad – accesible, multilingüe y Made in Europe – arsnova.eu.
 
 ¡Diviértete descubriendo las novedades y disfruta de tu próxima sesión!`;
 
 const markdownIt = `# Benvenuti su arsnova.eu
 
-È un piacere averti qui! arsnova.eu è tornato: con una veste grafica rinnovata, nuove potenti funzioni e l'affidabilità di un sistema di Audience Response professionale.
+È un piacere averti qui! arsnova.eu è tornato: con una veste grafica rinnovata, nuove potenti funzioni e l'affidabilità di un sistema professionale.
 
-Abbiamo unito il meglio di frag.jetzt e arsnova.click in un'unica piattaforma moderna. L'alternativa a Kahoot o Mentimeter focalizzata sulla privacy: per sessioni interattive e quiz – inclusiva, multilingue e sicura.
+Il nome dice tutto: ARS per Audience Response System, nova per il nuovo. Pionieri dal 2012, innoviamo l'interazione unendo il meglio di frag.jetzt e arsnova.click. Dalla scuola primaria all'università, dagli eventi al business: l'alternativa moderna a Kahoot o Mentimeter che protegge i tuoi dati – inclusiva, multilingue e Made in Europe – arsnova.eu.
 
-Buon divertimento nell'esplorare le novità – pronti per la tua prossima sessione?`;
+Buon divertimento – pronti per la tua prossima sessione?`;
 
 async function main() {
   const connectionString = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;

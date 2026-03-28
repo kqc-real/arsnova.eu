@@ -1,6 +1,6 @@
 <div class="motd-archive">
   <div class="motd-archive__head">
-    <h2 mat-dialog-title i18n="@@motd.archiveTitle">Nachrichten-Archiv</h2>
+    <h2 mat-dialog-title i18n="@@motd.archiveTitle">News-Archiv</h2>
     <button
       matIconButton
       type="button"
@@ -47,7 +47,10 @@
         <ul class="motd-archive__list">
           @for (it of items(); track it.id) {
             <li class="motd-archive__item">
-              <p class="motd-archive__meta">{{ formatArchiveDate(it.endsAt) }}</p>
+              @let archiveMeta = formatArchiveDate(it.endsAt);
+              @if (archiveMeta) {
+                <p class="motd-archive__meta">{{ archiveMeta }}</p>
+              }
               @if (htmlById()[it.id]; as safe) {
                 <div class="motd-archive__body markdown-body" [innerHTML]="safe"></div>
               }

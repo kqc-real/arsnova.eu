@@ -69,7 +69,7 @@ export class MotdArchiveDialogComponent implements OnInit {
   /** motd id → sanitized preview html */
   readonly htmlById = signal<Record<string, SafeHtml>>({});
 
-  /** `endsAt` (ISO-UTC) als Datum oder „Fortlaufend“ bei technisch weitem Ende (z. B. Willkommens-MOTD). */
+  /** `endsAt` (ISO-UTC) als Datum; bei technisch weitem Ende im Archiv leer (Admin: „Fortlaufend“). */
   formatArchiveDate(iso: string): string {
     return formatMotdEndsAtForDisplay(iso, ARCHIVE_DATE_LOCALE[this.data.locale], 'archive');
   }

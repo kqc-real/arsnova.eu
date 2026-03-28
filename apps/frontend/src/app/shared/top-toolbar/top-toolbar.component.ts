@@ -104,24 +104,24 @@ export class TopToolbarComponent implements OnInit {
   readonly motdArchiveAriaLabel = computed(() => {
     const n = this.motdArchiveCount();
     if (n <= 0) {
-      return $localize`:@@motd.toolbarArchiveAria:Nachrichten und Archiv`;
+      return $localize`:@@motd.toolbarArchiveAria:News und Archiv`;
     }
     if (n === 1) {
-      return $localize`:@@motd.toolbarArchiveAriaOne:Nachrichten und Archiv, eine ungelesene Meldung`;
+      return $localize`:@@motd.toolbarArchiveAriaOne:News und Archiv, eine ungelesene Meldung`;
     }
-    return $localize`:@@motd.toolbarArchiveAriaCount:Nachrichten und Archiv, ${n}:INTERPOLATION: ungelesene Meldungen`;
+    return $localize`:@@motd.toolbarArchiveAriaCount:News und Archiv, ${n}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   /** Kurzinfo beim Hover (unterscheidet ungelesene Meldungen). */
   readonly motdToolbarArchiveTooltip = computed(() => {
     const n = this.motdArchiveCount();
     if (n <= 0) {
-      return $localize`:@@motd.toolbarArchiveTooltip:Nachrichten und Archiv`;
+      return $localize`:@@motd.toolbarArchiveTooltip:News und Archiv`;
     }
     if (n === 1) {
-      return $localize`:@@motd.toolbarArchiveTooltipUnreadOne:Nachrichten und Archiv · 1 ungelesene Meldung`;
+      return $localize`:@@motd.toolbarArchiveTooltipUnreadOne:News und Archiv · 1 ungelesene Meldung`;
     }
-    return $localize`:@@motd.toolbarArchiveTooltipUnreadCount:Nachrichten und Archiv · ${n}:INTERPOLATION: ungelesene Meldungen`;
+    return $localize`:@@motd.toolbarArchiveTooltipUnreadCount:News und Archiv · ${n}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   /** true wenn URL-Locale ≠ de, aber nur ein Build (z. B. Dev) → Hinweis anzeigen. */

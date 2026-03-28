@@ -374,13 +374,21 @@
         }
         <div class="home-motd-sheet__actions">
           <button mat-flat-button type="button" (click)="ackMotd()" i18n="@@motd.ack">
-            Zur Kenntnis genommen
+            Alles klar!
           </button>
-          <div class="home-motd-sheet__thumbs">
+          <div
+            class="home-motd-sheet__thumbs"
+            role="group"
+            i18n-aria-label="@@motd.thumbGroupAria"
+            aria-label="Bewertung der Meldung"
+          >
             <button
               matIconButton
               type="button"
-              [disabled]="thumbUpRecorded()"
+              class="home-motd-sheet__thumb-btn"
+              [class.home-motd-sheet__thumb-btn--chosen]="thumbUpRecorded()"
+              [disabled]="motdThumbVoteDone()"
+              [attr.aria-pressed]="motdThumbVoteDone() && thumbUpRecorded() ? 'true' : null"
               (click)="thumbMotd(true)"
               i18n-matTooltip="@@motd.thumbUpTooltip"
               matTooltip="Hilfreich"
@@ -392,7 +400,10 @@
             <button
               matIconButton
               type="button"
-              [disabled]="thumbDownRecorded()"
+              class="home-motd-sheet__thumb-btn"
+              [class.home-motd-sheet__thumb-btn--chosen]="thumbDownRecorded()"
+              [disabled]="motdThumbVoteDone()"
+              [attr.aria-pressed]="motdThumbVoteDone() && thumbDownRecorded() ? 'true' : null"
               (click)="thumbMotd(false)"
               i18n-matTooltip="@@motd.thumbDownTooltip"
               matTooltip="Nicht hilfreich"
@@ -403,9 +414,6 @@
             </button>
           </div>
         </div>
-        <p class="home-motd-sheet__hint" i18n="@@motd.swipeHint">
-          Nach unten wischen schließt die Meldung.
-        </p>
       </div>
     </div>
   }

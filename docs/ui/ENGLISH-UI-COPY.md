@@ -64,6 +64,7 @@ This document generalises the copy-editing rules applied to the English XLF targ
 
 - **Titles:** _Privacy policy – arsnova.eu_ (not _Data protection_) for parity with user expectations and `descPrivacy`.
 - **Descriptions:** Benefit-led, scannable; **em dash** or tight clauses; avoid bureaucratic phrasing (_how we handle personal data_ beats _processing of personal data_ when space allows).
+- **Home (`@@seo.titleHome` / `@@seo.descHome`), aligned with `apps/landing/src/config/seo.ts`:** EN title _arsnova.eu | The European Alternative to Mentimeter & Kahoot_; EN description _Interactive sessions, quizzes & live feedback – Made in Europe. The privacy-first ARS since 2012 for schools, universities, and business. Discover more!_ — FR/ES/IT targets live in the respective XLF files.
 
 ---
 

@@ -64,12 +64,10 @@ describe('MotdArchiveDialogComponent', () => {
     expect(s).toContain('4');
   });
 
-  it('formatArchiveDate zeigt Fortlaufend statt Jahreszahl 2099+', () => {
+  it('formatArchiveDate ist bei 2099+ leer (kein „Fortlaufend“-Label im Archiv)', () => {
     configureDialog();
     const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
-    expect(fixture.componentInstance.formatArchiveDate('2099-12-31T12:00:00.000Z')).toBe(
-      'Fortlaufend',
-    );
+    expect(fixture.componentInstance.formatArchiveDate('2099-12-31T12:00:00.000Z')).toBe('');
   });
 
   it('lädt Archiv per listArchive und setzt items', async () => {

@@ -59,11 +59,11 @@ export function resolveSeoForPath(pathRest: string): SeoRoutePayload {
 }
 
 function seoTitleHome(): string {
-  return $localize`:@@seo.titleHome:arsnova.eu – Live-Quiz & Abstimmung`;
+  return $localize`:@@seo.titleHome:arsnova.eu | Die europäische Alternative zu Mentimeter & Kahoot`;
 }
 
 function seoDescHome(): string {
-  return $localize`:@@seo.descHome:Kostenlose, DSGVO-konforme Live-Quiz- und Abstimmungsplattform für Hochschulen, Schulen, Events und Business.`;
+  return $localize`:@@seo.descHome:Interaktive Sessions, Quiz & Feedback – Made in Europe. Seit 2012 die DSGVO-konforme Lösung für Schule, Uni & Business. Jetzt arsnova.eu entdecken!`;
 }
 
 function seoTitleQuizList(): string {

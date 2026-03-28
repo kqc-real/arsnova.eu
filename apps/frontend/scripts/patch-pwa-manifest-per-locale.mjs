@@ -10,37 +10,37 @@ const LOCALES = ['de', 'en', 'fr', 'it', 'es'];
 
 const MANIFEST_I18N = {
   de: {
-    name: 'arsnova.eu – Live-Quiz & Abstimmung',
+    name: 'arsnova.eu | Die europäische Alternative zu Mentimeter & Kahoot',
     description:
-      'Kostenlose, DSGVO-konforme Live-Quiz- und Abstimmungsplattform für Hochschulen, Schulen, Events und Business.',
+      'Interaktive Sessions, Quiz & Feedback – Made in Europe. Seit 2012 die DSGVO-konforme Lösung für Schule, Uni & Business. Jetzt arsnova.eu entdecken!',
     screenshotWide: 'arsnova.eu – Desktop Ansicht',
     screenshotNarrow: 'arsnova.eu – Mobile Ansicht',
   },
   en: {
-    name: 'arsnova.eu – Live quiz & voting',
+    name: 'arsnova.eu | The European Alternative to Mentimeter & Kahoot',
     description:
-      'Free, GDPR-compliant live quiz and voting platform for universities, schools, events, and business.',
+      'Interactive sessions, quizzes & live feedback – Made in Europe. The privacy-first ARS since 2012 for schools, universities, and business. Discover more!',
     screenshotWide: 'arsnova.eu – Desktop view',
     screenshotNarrow: 'arsnova.eu – Mobile view',
   },
   fr: {
-    name: 'arsnova.eu – Quiz en direct et vote',
+    name: "arsnova.eu | L'alternative européenne à Mentimeter et Kahoot",
     description:
-      'Quiz en direct et plateforme de vote gratuits et conformes au RGPD pour les universités, les écoles, les événements et les entreprises.',
+      "Sessions interactives, quiz et sondages – Made in Europe. La solution RGPD pour l'enseignement et les entreprises depuis 2012. Essayez arsnova.eu !",
     screenshotWide: 'arsnova.eu – Vue bureau',
     screenshotNarrow: 'arsnova.eu – Vue mobile',
   },
   es: {
-    name: 'arsnova.eu – Prueba en vivo y votación',
+    name: 'arsnova.eu | La alternativa europea a Mentimeter y Kahoot',
     description:
-      'Plataforma gratuita de votación y cuestionarios en vivo que cumple con el RGPD para universidades, escuelas, eventos y empresas.',
+      'Sesiones interactivas, quizzes y feedback – Made in Europe. La solución de privacidad para educación y empresas desde 2012. ¡Prueba arsnova.eu!',
     screenshotWide: 'arsnova.eu – Vista de escritorio',
     screenshotNarrow: 'arsnova.eu – Vista móvil',
   },
   it: {
-    name: 'arsnova.eu – Quiz e votazioni dal vivo',
+    name: "arsnova.eu | L'alternativa europea a Mentimeter e Kahoot",
     description:
-      'Piattaforma di votazione e quiz live gratuita e conforme al GDPR per università, scuole, eventi e aziende.',
+      'Sessioni interattive, quiz e feedback live – Made in Europe. La soluzione sicura per scuole, università e business dal 2012. Scopri arsnova.eu!',
     screenshotWide: 'arsnova.eu – Vista desktop',
     screenshotNarrow: 'arsnova.eu – Vista mobile',
   },

@@ -171,16 +171,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="seo.titleHome" datatype="html">
-        <source>arsnova.eu – Live-Quiz &amp; Abstimmung</source>
-        <target>arsnova.eu – Quiz e votazioni dal vivo</target>
+        <source>arsnova.eu | Die europäische Alternative zu Mentimeter &amp; Kahoot</source>
+        <target>arsnova.eu | L&apos;alternativa europea a Mentimeter e Kahoot</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">62</context>
         </context-group>
       </trans-unit>
       <trans-unit id="seo.descHome" datatype="html">
-        <source>Kostenlose, DSGVO-konforme Live-Quiz- und Abstimmungsplattform für Hochschulen, Schulen, Events und Business.</source>
-        <target>Piattaforma di votazione e quiz live gratuita e conforme al GDPR per università, scuole, eventi e aziende.</target>
+        <source>Interaktive Sessions, Quiz &amp; Feedback – Made in Europe. Seit 2012 die DSGVO-konforme Lösung für Schule, Uni &amp; Business. Jetzt arsnova.eu entdecken!</source>
+        <target>Sessioni interattive, quiz e feedback live – Made in Europe. La soluzione sicura per scuole, università e business dal 2012. Scopri arsnova.eu!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">66</context>
@@ -475,7 +475,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.statsLine" datatype="html">
-        <source> Nutzerreaktionen (Zähler): Verstanden <x id="INTERPOLATION" equiv-text="{{ m.interaction.ackCount }}"/>, Daumen hoch <x id="INTERPOLATION_1" equiv-text="{{ m.interaction.thumbUp }}"/>, Daumen runter <x id="INTERPOLATION_2" equiv-text="{{ m.interaction.thumbDown }}"/>, Overlay geschlossen <x id="INTERPOLATION_3" equiv-text="{{ m.interaction.dismissClose }}"/>, Wegwischen <x id="INTERPOLATION_4" equiv-text="{{ m.interaction.dismissSwipe }}"/> </source>
+        <source> Nutzerreaktionen (Zähler): Alles klar <x id="INTERPOLATION" equiv-text="{{ m.interaction.ackCount }}"/>, Daumen hoch <x id="INTERPOLATION_1" equiv-text="{{ m.interaction.thumbUp }}"/>, Daumen runter <x id="INTERPOLATION_2" equiv-text="{{ m.interaction.thumbDown }}"/>, Overlay geschlossen <x id="INTERPOLATION_3" equiv-text="{{ m.interaction.dismissClose }}"/>, Wegwischen <x id="INTERPOLATION_4" equiv-text="{{ m.interaction.dismissSwipe }}"/> </source>
         <target> Reazioni utenti (conteggi): Ho capito <x id="INTERPOLATION" equiv-text="{{ m.interaction.ackCount }}"/>, pollice su <x id="INTERPOLATION_1" equiv-text="{{ m.interaction.thumbUp }}"/>, pollice giù <x id="INTERPOLATION_2" equiv-text="{{ m.interaction.thumbDown }}"/>, overlay chiuso <x id="INTERPOLATION_3" equiv-text="{{ m.interaction.dismissClose }}"/>, chiusura con swipe <x id="INTERPOLATION_4" equiv-text="{{ m.interaction.dismissSwipe }}"/> </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
@@ -507,7 +507,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.statsDetail" datatype="html">
-        <source> Nutzerreaktionen (Zähler): Verstanden <x id="INTERPOLATION" equiv-text="{{ st.ackCount }}"/>, Daumen hoch <x id="INTERPOLATION_1" equiv-text="{{ st.thumbUp }}"/>, Daumen runter <x id="INTERPOLATION_2" equiv-text="{{ st.thumbDown }}"/>, Overlay geschlossen <x id="INTERPOLATION_3" equiv-text="{{ st.dismissClose }}"/>, Wegwischen <x id="INTERPOLATION_4" equiv-text="{{ st.dismissSwipe }}"/> </source>
+        <source> Nutzerreaktionen (Zähler): Alles klar <x id="INTERPOLATION" equiv-text="{{ st.ackCount }}"/>, Daumen hoch <x id="INTERPOLATION_1" equiv-text="{{ st.thumbUp }}"/>, Daumen runter <x id="INTERPOLATION_2" equiv-text="{{ st.thumbDown }}"/>, Overlay geschlossen <x id="INTERPOLATION_3" equiv-text="{{ st.dismissClose }}"/>, Wegwischen <x id="INTERPOLATION_4" equiv-text="{{ st.dismissSwipe }}"/> </source>
         <target> Reazioni utenti (conteggi): Ho capito <x id="INTERPOLATION" equiv-text="{{ st.ackCount }}"/>, pollice su <x id="INTERPOLATION_1" equiv-text="{{ st.thumbUp }}"/>, pollice giù <x id="INTERPOLATION_2" equiv-text="{{ st.thumbDown }}"/>, overlay chiuso <x id="INTERPOLATION_3" equiv-text="{{ st.dismissClose }}"/>, chiusura con swipe <x id="INTERPOLATION_4" equiv-text="{{ st.dismissSwipe }}"/> </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
@@ -2825,8 +2825,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.ack" datatype="html">
-        <source> Zur Kenntnis genommen</source>
-        <target>Notato</target>
+        <source>Alles klar!</source>
+        <target>Va bene!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">376,377</context>
@@ -2838,6 +2838,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">385,386</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="motd.thumbGroupAria" datatype="html">
+        <source>Bewertung der Meldung</source>
+        <target>Valuta il messaggio</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">379,380</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.thumbUpAria" datatype="html">
@@ -2862,14 +2870,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">399,401</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="motd.swipeHint" datatype="html">
-        <source> Nach unten wischen schließt die Meldung.</source>
-        <target>Scorrendo verso il basso si chiude il messaggio.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">406,408</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2862374619655540985" datatype="html">
@@ -9380,8 +9380,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.archiveTitle" datatype="html">
-        <source>Nachrichten-Archiv</source>
-        <target>Archivio notizie</target>
+        <source>News-Archiv</source>
+        <target>Archivio News</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/motd-archive-dialog/motd-archive-dialog.component.html</context>
           <context context-type="linenumber">3,5</context>
@@ -9976,7 +9976,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveTooltip" datatype="html">
-        <source>Nachrichten und Archiv</source>
+        <source>News und Archiv</source>
         <target>Notizie e archivi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.html</context>
@@ -9984,7 +9984,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveTooltipUnreadOne" datatype="plaintext">
-        <source>Nachrichten und Archiv · 1 ungelesene Meldung</source>
+        <source>News und Archiv · 1 ungelesene Meldung</source>
         <target>Notizie e archivio · 1 messaggio non letto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
@@ -9992,7 +9992,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveTooltipUnreadCount" datatype="plaintext">
-        <source>Nachrichten und Archiv · <x id="INTERPOLATION" equiv-text="{{ n }}"/> ungelesene Meldungen</source>
+        <source>News und Archiv · <x id="INTERPOLATION" equiv-text="{{ n }}"/> ungelesene Meldungen</source>
         <target>Notizie e archivio · <x id="INTERPOLATION" equiv-text="{{ n }}"/> messaggi non letti</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
@@ -10000,7 +10000,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveAria" datatype="html">
-        <source>Nachrichten und Archiv</source>
+        <source>News und Archiv</source>
         <target>Notizie e archivi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.html</context>
@@ -10008,7 +10008,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveAriaOne" datatype="plaintext">
-        <source>Nachrichten und Archiv, eine ungelesene Meldung</source>
+        <source>News und Archiv, eine ungelesene Meldung</source>
         <target>Notizie e archivio, un messaggio non letto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
@@ -10016,7 +10016,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.toolbarArchiveAriaCount" datatype="plaintext">
-        <source>Nachrichten und Archiv, <x id="INTERPOLATION" equiv-text="{{ n }}"/> ungelesene Meldungen</source>
+        <source>News und Archiv, <x id="INTERPOLATION" equiv-text="{{ n }}"/> ungelesene Meldungen</source>
         <target>Notizie e archivio, <x id="INTERPOLATION" equiv-text="{{ n }}"/> messaggi non letti</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
