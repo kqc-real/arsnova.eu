@@ -26,7 +26,10 @@ import type {
   AdminMotdTemplateListItemDTO,
 } from '@arsnova/shared-types';
 import { firstValueFrom } from 'rxjs';
-import { formatMotdEndsAtForDisplay } from '../../core/motd-ends-display';
+import {
+  formatMotdAdminDateTimeForDisplay,
+  formatMotdEndsAtForDisplay,
+} from '../../core/motd-ends-display';
 import { trpc } from '../../core/trpc.client';
 import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 import { AdminMotdTemplateDialogComponent } from './admin-motd-template-dialog.component';
@@ -84,6 +87,7 @@ export class AdminMotdPanelComponent implements OnInit {
   readonly saving = signal(false);
   /** Aggregierte Nutzerreaktionen zur aktuell bearbeiteten MOTD (aus get/save/list). */
   readonly motdInteractionStats = signal<AdminMotdInteractionStats | null>(null);
+  readonly resettingMotdStats = signal(false);
 
   readonly status = signal<'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'ARCHIVED'>('DRAFT');
   readonly priority = signal(0);
@@ -124,10 +128,22 @@ export class AdminMotdPanelComponent implements OnInit {
     }
   }
 
+  /** Listenansicht: Start in App-Locale (wie Ende, ohne Roh-ISO `2026-03-27T14:41`). */
+  formatMotdListStartsAt(iso: string): string {
+    const bcp = ADMIN_MOTD_DATE_LOCALE[String(this.appLocaleId)] ?? 'de-DE';
+    return formatMotdAdminDateTimeForDisplay(iso, bcp);
+  }
+
   /** Listenansicht: Ende ohne Jahreszahl 2099 als „Fortlaufend“ (siehe `motd-ends-display`). */
   formatMotdListEndsAt(iso: string): string {
     const bcp = ADMIN_MOTD_DATE_LOCALE[String(this.appLocaleId)] ?? 'de-DE';
     return formatMotdEndsAtForDisplay(iso, bcp, 'admin');
+  }
+
+  /** Textvorlagen-Liste: `updatedAt` konsistent zur MOTD-Liste. */
+  formatTplUpdatedAt(iso: string): string {
+    const bcp = ADMIN_MOTD_DATE_LOCALE[String(this.appLocaleId)] ?? 'de-DE';
+    return formatMotdAdminDateTimeForDisplay(iso, bcp);
   }
 
   newMotd(): void {
@@ -174,6 +190,47 @@ export class AdminMotdPanelComponent implements OnInit {
         this.msg(e, $localize`:@@admin.motd.errorGet:MOTD konnte nicht geladen werden.`),
       );
     }
+  }
+
+  /** Zurücksetzen der Server-Zähler für eine MOTD (Liste oder Formular „Bearbeitung“). */
+  async resetMotdInteractionStatsById(motdId: string): Promise<void> {
+    if (this.resettingMotdStats()) {
+      return;
+    }
+    if (
+      !globalThis.confirm(
+        $localize`:@@admin.motd.confirmResetStats:Nutzerreaktionen (Zähler) für diese Meldung auf null setzen?`,
+      )
+    ) {
+      return;
+    }
+    this.error.set(null);
+    this.resettingMotdStats.set(true);
+    try {
+      const d = await trpc.admin.motd.motdResetInteractionStats.mutate({ id: motdId });
+      if (this.editingId() === motdId) {
+        this.motdInteractionStats.set(d.interaction);
+      }
+      this.info.set($localize`:@@admin.motd.resetStatsDone:Nutzerreaktionen zurückgesetzt.`);
+      await this.reload();
+    } catch (e) {
+      this.error.set(
+        this.msg(
+          e,
+          $localize`:@@admin.motd.errorResetStats:Zähler konnten nicht zurückgesetzt werden.`,
+        ),
+      );
+    } finally {
+      this.resettingMotdStats.set(false);
+    }
+  }
+
+  async resetMotdInteractionStats(): Promise<void> {
+    const id = this.editingId();
+    if (!id) {
+      return;
+    }
+    await this.resetMotdInteractionStatsById(id);
   }
 
   async deleteMotd(id: string): Promise<void> {

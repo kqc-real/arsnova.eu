@@ -477,6 +477,152 @@ html.dark .cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
   border: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-high);
   box-shadow: var(--mat-sys-level3);
+  padding: 1.25rem 1.25rem 1.25rem;
+  max-width: min(42rem, calc(100vw - 2rem));
+  box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+  .cdk-overlay-pane.admin-motd-template-dialog-panel .mat-mdc-dialog-surface {
+    padding: 1.5rem 1.75rem 1.5rem;
+  }
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel .mat-mdc-dialog-content {
+  max-height: min(72dvh, 38rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0.35rem 0 0.25rem !important;
+  margin: 0 !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel .mat-mdc-dialog-title {
+  padding: 0 0 0.35rem !important;
+  margin: 0 !important;
+}
+
+/* MOTD-Vorlage-Dialog: Markdown in [innerHTML] — kein View-Encapsulation für Kindknoten */
+.cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body {
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  :first-child {
+  margin-top: 0;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  :last-child {
+  margin-bottom: 0;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body p {
+  margin: 0.45rem 0;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body h1,
+.cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body h2,
+.cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body h3,
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  h4 {
+  margin: 0.75rem 0 0.4rem;
+  font: var(--mat-sys-title-medium);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--mat-sys-on-surface);
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  h1:first-child,
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  h2:first-child,
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  h3:first-child {
+  margin-top: 0;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body ul,
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  ol {
+  margin: 0.4rem 0 0.5rem;
+  padding-inline-start: 1.35rem;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  li {
+  margin: 0.2rem 0;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body a {
+  color: var(--mat-sys-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: var(--mat-sys-corner-extra-small, 4px);
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  pre {
+  margin: 0.55rem 0;
+  padding: 0.65rem 0.75rem;
+  overflow-x: auto;
+  border-radius: var(--mat-sys-corner-small);
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  pre
+  code {
+  padding: 0;
+  background: none;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  blockquote {
+  margin: 0.55rem 0;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 3px solid var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  strong {
+  font-weight: 600;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  hr {
+  margin: 0.75rem 0;
+  border: none;
+  border-block-start: 1px solid var(--mat-sys-outline-variant);
 }
 
 /* Session-Host: QR-Dialog mittig (Viewport-Overlay); Feedback-Host: CDK-Overlay */

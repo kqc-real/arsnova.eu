@@ -466,12 +466,60 @@
           <context context-type="linenumber">24,25</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.motd.listEmpty" datatype="html">
+        <source>Noch keine Meldungen angelegt.</source>
+        <target>No messages created yet.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">48</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.motd.listItemMeta" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ m.status }}"/> · v<x id="INTERPOLATION_1" equiv-text="{{ m.contentVersion }}"/> · Priorität <x id="INTERPOLATION_2" equiv-text="{{ m.priority }}"/></source>
         <target><x id="INTERPOLATION" equiv-text="{{ m.status }}"/> · v<x id="INTERPOLATION_1" equiv-text="{{ m.contentVersion }}"/> · Priority <x id="INTERPOLATION_2" equiv-text="{{ m.priority }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
           <context context-type="linenumber">66,67</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.listRowReset" datatype="html">
+        <source>Nutzerreaktionen zurücksetzen</source>
+        <target>Reset user reactions</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">66</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.listRowResetAria" datatype="html">
+        <source>Nutzerreaktionen für diese Meldung zurücksetzen</source>
+        <target>Reset user reactions for this message</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">75</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.listRowEdit" datatype="html">
+        <source>Bearbeiten</source>
+        <target>Edit</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.listRowDelete" datatype="html">
+        <source>Löschen</source>
+        <target>Delete</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">91</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.listRowActionsAria" datatype="html">
+        <source>Aktionen für diese Meldung</source>
+        <target>Actions for this message</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.statsLine" datatype="html">
@@ -513,6 +561,40 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
           <context context-type="linenumber">88,91</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.resetStats" datatype="html">
+        <source>Nutzerreaktionen zurücksetzen</source>
+        <target>Reset user reactions</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">147</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.resetStatsTooltip" datatype="html">
+        <source>Setzt alle Zähler (Alles klar, Daumen, Schließen, Wegwischen) für diese Meldung auf null. Betrifft nur Server-Statistik, nicht Nutzer-localStorage.</source>
+        <target>Sets all counters (Got it, thumbs, close, swipe) for this message to zero. Server-side stats only; does not change users&apos; localStorage.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">150</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.resetStatsAria" datatype="html">
+        <source>Nutzerreaktionen für diese Meldung zurücksetzen</source>
+        <target>Reset user reactions for this message</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.resetStatsNeedEdit" datatype="html">
+        <source>
+          Zum Zurücksetzen der Zähler zuerst die Meldung in der Liste oben mit „Bearbeiten“ öffnen.
+        </source>
+        <target>To reset counters, open the message from the list above with &quot;Edit&quot; first.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.html</context>
+          <context context-type="linenumber">192</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.status" datatype="html">
@@ -723,6 +805,22 @@
           <context context-type="linenumber">108,109</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.motd.previewHintTpl" datatype="html">
+        <source>Entspricht der Darstellung auf der Startseite (Markdown, ohne Formeln).</source>
+        <target>Matches how it appears on the home page (Markdown, no formulas).</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-template-dialog.component.html</context>
+          <context context-type="linenumber">58</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.previewSectionAria" datatype="html">
+        <source>Vorschau-Bereich</source>
+        <target>Preview area</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-template-dialog.component.html</context>
+          <context context-type="linenumber">52</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.motd.save" datatype="html">
         <source> Speichern</source>
         <target>Save</target>
@@ -769,6 +867,30 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.ts</context>
           <context context-type="linenumber">136</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.confirmResetStats" datatype="html">
+        <source>Nutzerreaktionen (Zähler) für diese Meldung auf null setzen?</source>
+        <target>Reset user reaction counts for this message to zero?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.ts</context>
+          <context context-type="linenumber">186</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.resetStatsDone" datatype="html">
+        <source>Nutzerreaktionen zurückgesetzt.</source>
+        <target>User reactions reset.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.ts</context>
+          <context context-type="linenumber">200</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.motd.errorResetStats" datatype="html">
+        <source>Zähler konnten nicht zurückgesetzt werden.</source>
+        <target>Could not reset counters.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin-motd-panel.component.ts</context>
+          <context context-type="linenumber">207</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.motd.saved" datatype="html">

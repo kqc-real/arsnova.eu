@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -48,14 +48,19 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
   readonly tplMdFr = signal('');
   readonly tplMdEs = signal('');
   readonly tplMdIt = signal('');
-  readonly previewHtml = signal<SafeHtml | null>(null);
+
+  /** Live aus DE (Fallback EN); `innerHTML` liegt außerhalb des Encapsulation-Scopes → Typo in `styles.scss`. */
+  readonly previewHtml = computed<SafeHtml>(() => {
+    const raw = this.tplMdDe().trim() || this.tplMdEn().trim() || '…';
+    const html = renderMarkdownWithoutKatex(raw);
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  });
 
   readonly isEdit = (): boolean => this.data.templateId !== null;
 
   async ngOnInit(): Promise<void> {
     const id = this.data.templateId;
     if (!id) {
-      this.updatePreview();
       return;
     }
     this.loading.set(true);
@@ -69,7 +74,6 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
       this.tplMdFr.set(t.markdownFr);
       this.tplMdEs.set(t.markdownEs);
       this.tplMdIt.set(t.markdownIt);
-      this.updatePreview();
     } catch (e) {
       this.error.set(
         this.msg(e, $localize`:@@admin.motd.errorTplLoad:Vorlage konnte nicht geladen werden.`),
@@ -126,12 +130,6 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
     } finally {
       this.saving.set(false);
     }
-  }
-
-  updatePreview(): void {
-    const raw = this.tplMdDe().trim() || this.tplMdEn().trim() || '…';
-    const html = renderMarkdownWithoutKatex(raw);
-    this.previewHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
   }
 
   private msg(e: unknown, fallback: string): string {

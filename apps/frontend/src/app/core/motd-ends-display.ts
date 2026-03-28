@@ -6,6 +6,20 @@ export const MOTD_LONG_RUNNING_END_UTC_YEAR = 2090;
 export type MotdEndDisplayMode = 'archive' | 'admin';
 
 /**
+ * Admin-Liste / Formular: ein ISO-Zeitpunkt als kurzes Datum + Uhrzeit (App-Locale).
+ */
+export function formatMotdAdminDateTimeForDisplay(iso: string, intlLocale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    return iso.length >= 16 ? iso.slice(0, 16) : iso;
+  }
+  return new Intl.DateTimeFormat(intlLocale, {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(d);
+}
+
+/**
  * Datumszeile im News-Archiv: `startsAt` (Veröffentlichung), ohne „Fortlaufend“-Sonderlogik.
  */
 export function formatMotdArchiveStartsAtForDisplay(iso: string, intlLocale: string): string {
@@ -38,8 +52,5 @@ export function formatMotdEndsAtForDisplay(
   if (mode === 'archive') {
     return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'medium' }).format(d);
   }
-  return new Intl.DateTimeFormat(intlLocale, {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(d);
+  return formatMotdAdminDateTimeForDisplay(iso, intlLocale);
 }

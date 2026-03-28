@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "MotdAuditAction" ADD VALUE 'MOTD_RESET_INTERACTION_STATS';

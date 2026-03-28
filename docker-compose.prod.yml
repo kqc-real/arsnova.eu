@@ -1,6 +1,12 @@
 # =============================================================================
 # arsnova.eu – Produktion (Debian Root-Server)
-# Verwendung: docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+# Voraussetzung: `.env.production` liegt im selben Verzeichnis wie diese Datei (nicht im Git).
+# Start: docker compose -f docker-compose.prod.yml up -d
+# (Optional weiterhin: --env-file .env.production, falls die Datei woanders liegt.)
+#
+# Hinweis: Früher wurden Secrets per `environment: ADMIN_SECRET: ${ADMIN_SECRET}` eingespeist.
+# Ohne `docker compose --env-file …` war `${ADMIN_SECRET}` leer und hat den Admin-Login gebrochen.
+# `env_file` lädt die Werte zuverlässig direkt aus `.env.production` in den Container.
 # Ports nur auf 127.0.0.1 gebunden → Nginx als einziger Einstieg (TLS, Reverse Proxy)
 # =============================================================================
 
@@ -9,10 +15,8 @@ services:
     image: postgres:16-alpine
     container_name: arsnova-v3-postgres
     restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env.production
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -44,19 +48,19 @@ services:
       dockerfile: Dockerfile
     container_name: arsnova-v3-app
     restart: always
+    env_file:
+      - .env.production
     ports:
       - "127.0.0.1:3000:3000"
       - "127.0.0.1:3001:3001"
       - "127.0.0.1:3002:3002"
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL}
+      # Fixe Laufzeitwerte; DATABASE_URL, REDIS_URL, JWT_SECRET, ADMIN_* kommen aus `.env.production`
       PORT: "3000"
       HOST: "0.0.0.0"
       WS_PORT: "3001"
       YJS_WS_PORT: "3002"
       NODE_ENV: "production"
-      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       postgres:
         condition: service_healthy

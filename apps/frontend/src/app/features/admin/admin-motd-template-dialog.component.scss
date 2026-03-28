@@ -1,28 +1,32 @@
 .admin-motd-tpl-dialog__title {
   margin: 0;
+  padding: 0.125rem 0 0;
   font: var(--mat-sys-headline-small);
   color: var(--mat-sys-on-surface);
-  padding: 0.25rem 0 0;
+  letter-spacing: var(--mat-sys-headline-small-tracking, normal);
 }
 
 .admin-motd-tpl-dialog__content {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  min-width: min(100%, 36rem);
-  max-height: min(70dvh, 32rem);
-  padding-top: 0.25rem !important;
+  gap: 0.65rem;
+  min-width: min(100%, 38rem);
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .admin-motd-tpl-dialog__loading {
   display: flex;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 2.25rem 1rem;
 }
 
 .admin-motd-tpl-dialog__error {
-  margin: 0 0 0.5rem;
-  color: var(--mat-sys-error);
+  margin: 0 0 0.35rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--mat-sys-corner-small);
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
   font: var(--mat-sys-body-medium);
   line-height: 1.45;
 }
@@ -32,33 +36,65 @@
 }
 
 .admin-motd-tpl-dialog__locale {
-  margin: 0.75rem 0 0.25rem;
+  margin: 0.85rem 0 0.2rem;
   font: var(--mat-sys-title-small);
   font-weight: 600;
   color: var(--mat-sys-on-surface-variant);
+  letter-spacing: 0.006em;
 }
 
 .admin-motd-tpl-dialog__locale:first-of-type {
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
 }
 
-.admin-motd-tpl-dialog__preview {
-  margin: 0 0 0.5rem;
-  padding: 0.875rem 1rem;
+/* Vorschau direkt nach DE: MD3 „surface container“ + klar abgesetzter Block */
+.admin-motd-tpl-dialog__preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-block: 0.35rem 0.5rem;
+  padding: 0.85rem 1rem 1rem;
   border-radius: var(--mat-sys-corner-medium);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 75%, transparent);
+  outline-offset: -1px;
   background: var(--mat-sys-surface-container-low);
-  font: var(--mat-sys-body-medium);
-  line-height: 1.5;
+}
+
+.admin-motd-tpl-dialog__preview-heading {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+  font-weight: 600;
   color: var(--mat-sys-on-surface);
-  max-height: min(36dvh, 14rem);
+}
+
+.admin-motd-tpl-dialog__preview-hint {
+  margin: 0 0 0.25rem;
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+/* Sichtbarer Scrollbereich; Typografie für dynamisches HTML in styles.scss (Overlay-Selektor) */
+.admin-motd-tpl-dialog__preview {
+  flex-shrink: 0;
+  min-height: 5.5rem;
+  max-height: min(32dvh, 16rem);
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--mat-sys-corner-small);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 65%, transparent);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 .admin-motd-tpl-dialog__actions {
-  padding: 0.5rem 1rem 1rem !important;
+  padding-block: 0.75rem 0.25rem !important;
+  padding-inline: 0 !important;
   margin: 0 !important;
   gap: 0.5rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }

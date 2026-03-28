@@ -37,7 +37,81 @@
         <p class="admin-info">{{ inf }}</p>
       }
 
+      <!-- Wie Textvorlagen im Accordion; Panel standardmäßig offen, damit Zeilenaktionen nicht „fehlen“. -->
       <mat-accordion class="admin-motd__accordion" multi>
+        <mat-expansion-panel class="admin-motd__expansion" [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="admin-motd__expansion-title">
+              <span i18n="@@admin.motd.listTitle">Vorhandene Meldungen</span>
+              <span class="admin-motd__expander-count">({{ motds().length }})</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="admin-motd__list-panel-body">
+            @if (motds().length === 0) {
+              <p class="admin-help" i18n="@@admin.motd.listEmpty">Noch keine Meldungen angelegt.</p>
+            } @else {
+              <div class="admin-motd__list">
+                <ul class="admin-motd__items">
+                  @for (m of motds(); track m.id) {
+                    <li>
+                      <span class="admin-motd__item-meta" i18n="@@admin.motd.listItemMeta"
+                        >{{ m.status }} · v{{ m.contentVersion }} · Priorität {{ m.priority }}</span
+                      >
+                      <span class="admin-motd__item-dates"
+                        >{{ formatMotdListStartsAt(m.startsAt) }} –
+                        {{ formatMotdListEndsAt(m.endsAt) }}</span
+                      >
+                      <span class="admin-help admin-motd__stats" i18n="@@admin.motd.statsLine">
+                        Nutzerreaktionen (Zähler): Alles klar {{ m.interaction.ackCount }}, Daumen
+                        hoch {{ m.interaction.thumbUp }}, Daumen runter
+                        {{ m.interaction.thumbDown }}, Overlay geschlossen
+                        {{ m.interaction.dismissClose }}, Wegwischen
+                        {{ m.interaction.dismissSwipe }}
+                      </span>
+                      <div
+                        class="admin-motd__item-actions"
+                        role="group"
+                        i18n-aria-label="@@admin.motd.listRowActionsAria"
+                        aria-label="Aktionen für diese Meldung"
+                      >
+                        <button
+                          type="button"
+                          class="admin-motd__list-action-btn admin-motd__list-action-btn--reset"
+                          [disabled]="resettingMotdStats()"
+                          (click)="resetMotdInteractionStatsById(m.id)"
+                          i18n="@@admin.motd.listRowReset"
+                          i18n-matTooltip="@@admin.motd.resetStatsTooltip"
+                          matTooltip="Setzt alle Zähler (Alles klar, Daumen, Schließen, Wegwischen) für diese Meldung auf null. Betrifft nur Server-Statistik, nicht Nutzer-localStorage."
+                          i18n-aria-label="@@admin.motd.listRowResetAria"
+                          aria-label="Nutzerreaktionen für diese Meldung zurücksetzen"
+                        >
+                          Nutzerreaktionen zurücksetzen
+                        </button>
+                        <button
+                          type="button"
+                          class="admin-motd__list-action-btn"
+                          (click)="editMotd(m.id)"
+                          i18n="@@admin.motd.listRowEdit"
+                        >
+                          Bearbeiten
+                        </button>
+                        <button
+                          type="button"
+                          class="admin-motd__list-action-btn admin-motd__list-action-btn--delete"
+                          (click)="deleteMotd(m.id)"
+                          i18n="@@admin.motd.listRowDelete"
+                        >
+                          Löschen
+                        </button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        </mat-expansion-panel>
+
         <mat-expansion-panel class="admin-motd__expansion" [expanded]="false">
           <mat-expansion-panel-header>
             <mat-panel-title class="admin-motd__expansion-title">
@@ -69,7 +143,7 @@
                     @if (t.description) {
                       <span class="admin-motd__tpl-desc">{{ t.description }}</span>
                     }
-                    <span class="admin-motd__tpl-meta">{{ t.updatedAt.slice(0, 16) }}</span>
+                    <span class="admin-motd__tpl-meta">{{ formatTplUpdatedAt(t.updatedAt) }}</span>
                   </div>
                   <div class="admin-motd__tpl-buttons">
                     <button
@@ -94,61 +168,45 @@
             </ul>
           </div>
         </mat-expansion-panel>
-
-        <mat-expansion-panel class="admin-motd__expansion" [expanded]="false">
-          <mat-expansion-panel-header>
-            <mat-panel-title class="admin-motd__expansion-title">
-              <span i18n="@@admin.motd.listTitle">Vorhandene Meldungen</span>
-              <span class="admin-motd__expander-count">({{ motds().length }})</span>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <div class="admin-motd__list">
-            <ul class="admin-motd__items">
-              @for (m of motds(); track m.id) {
-                <li>
-                  <span class="admin-motd__item-meta" i18n="@@admin.motd.listItemMeta"
-                    >{{ m.status }} · v{{ m.contentVersion }} · Priorität {{ m.priority }}</span
-                  >
-                  <span class="admin-motd__item-dates"
-                    >{{ m.startsAt.slice(0, 16) }} – {{ formatMotdListEndsAt(m.endsAt) }}</span
-                  >
-                  <span class="admin-help admin-motd__stats" i18n="@@admin.motd.statsLine">
-                    Nutzerreaktionen (Zähler): Alles klar {{ m.interaction.ackCount }}, Daumen hoch
-                    {{ m.interaction.thumbUp }}, Daumen runter {{ m.interaction.thumbDown }},
-                    Overlay geschlossen {{ m.interaction.dismissClose }}, Wegwischen
-                    {{ m.interaction.dismissSwipe }}
-                  </span>
-                  <button
-                    matButton="tonal"
-                    type="button"
-                    (click)="editMotd(m.id)"
-                    i18n="@@admin.motd.edit"
-                  >
-                    Bearbeiten
-                  </button>
-                  <button
-                    matButton="tonal"
-                    type="button"
-                    (click)="deleteMotd(m.id)"
-                    i18n="@@admin.motd.delete"
-                  >
-                    Löschen
-                  </button>
-                </li>
-              }
-            </ul>
-          </div>
-        </mat-expansion-panel>
       </mat-accordion>
 
       <div class="admin-motd__form">
         <h3 class="admin-motd__sub" i18n="@@admin.motd.formTitle">Bearbeitung</h3>
         @if (motdInteractionStats(); as st) {
-          <p class="admin-help admin-motd__stats-detail" i18n="@@admin.motd.statsDetail">
-            Nutzerreaktionen (Zähler): Alles klar {{ st.ackCount }}, Daumen hoch {{ st.thumbUp }},
-            Daumen runter {{ st.thumbDown }}, Overlay geschlossen {{ st.dismissClose }}, Wegwischen
-            {{ st.dismissSwipe }}
-          </p>
+          <div class="admin-motd__stats-block">
+            <p class="admin-help admin-motd__stats-detail" i18n="@@admin.motd.statsDetail">
+              Nutzerreaktionen (Zähler): Alles klar {{ st.ackCount }}, Daumen hoch {{ st.thumbUp }},
+              Daumen runter {{ st.thumbDown }}, Overlay geschlossen {{ st.dismissClose }},
+              Wegwischen
+              {{ st.dismissSwipe }}
+            </p>
+            <!-- Immer sichtbar wenn Zähler angezeigt werden (kein @if(editingId): sonst fehlt der Button bei Zustands-Lücken). -->
+            <div class="admin-motd__stats-reset">
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="!editingId() || resettingMotdStats()"
+                (click)="resetMotdInteractionStats()"
+                i18n="@@admin.motd.resetStats"
+                i18n-matTooltip="@@admin.motd.resetStatsTooltip"
+                matTooltip="Setzt alle Zähler (Alles klar, Daumen, Schließen, Wegwischen) für diese Meldung auf null. Betrifft nur Server-Statistik, nicht Nutzer-localStorage."
+                i18n-aria-label="@@admin.motd.resetStatsAria"
+                aria-label="Nutzerreaktionen für diese Meldung zurücksetzen"
+              >
+                Nutzerreaktionen zurücksetzen
+              </button>
+              @if (!editingId()) {
+                <p
+                  class="admin-help admin-motd__stats-reset-hint"
+                  i18n="@@admin.motd.resetStatsNeedEdit"
+                >
+                  Zum Zurücksetzen der Zähler zuerst die Meldung in der Liste oben mit „Bearbeiten“
+                  öffnen.
+                </p>
+              }
+            </div>
+          </div>
         }
         <mat-form-field appearance="outline" class="admin-field">
           <mat-label i18n="@@admin.motd.status">Status</mat-label>

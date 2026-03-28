@@ -46,9 +46,23 @@
         matInput
         rows="5"
         [value]="tplMdDe()"
-        (input)="tplMdDe.set($any($event.target).value); updatePreview()"
+        (input)="tplMdDe.set($any($event.target).value)"
       ></textarea>
     </mat-form-field>
+
+    <section
+      class="admin-motd-tpl-dialog__preview-section"
+      i18n-aria-label="@@admin.motd.previewSectionAria"
+      aria-label="Vorschau-Bereich"
+    >
+      <h3 class="admin-motd-tpl-dialog__preview-heading" i18n="@@admin.motd.previewTitle">
+        Vorschau (Deutsch)
+      </h3>
+      <p class="admin-motd-tpl-dialog__preview-hint" i18n="@@admin.motd.previewHintTpl">
+        Entspricht der Darstellung auf der Startseite (Markdown, ohne Formeln).
+      </p>
+      <div class="admin-motd-tpl-dialog__preview markdown-body" [innerHTML]="previewHtml()"></div>
+    </section>
 
     <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeEn">Englisch</h3>
     <mat-form-field
@@ -101,19 +115,12 @@
         (input)="tplMdIt.set($any($event.target).value)"
       ></textarea>
     </mat-form-field>
-
-    <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.previewTitle">
-      Vorschau (Deutsch)
-    </h3>
-    @if (previewHtml(); as html) {
-      <div class="admin-motd-tpl-dialog__preview markdown-body" [innerHTML]="html"></div>
-    }
   }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="admin-motd-tpl-dialog__actions">
   <button
-    mat-button
+    matButton="text"
     type="button"
     (click)="cancel()"
     [disabled]="saving()"
@@ -122,7 +129,7 @@
     Abbrechen
   </button>
   <button
-    mat-flat-button
+    matButton="filled"
     type="button"
     [disabled]="saving() || loading()"
     (click)="save()"

@@ -18,6 +18,7 @@ import {
   MotdLocaleBodiesSchema,
 } from '@arsnova/shared-types';
 import { createHash } from 'crypto';
+import type { MotdAuditAction } from '@prisma/client';
 import { prisma } from '../db';
 import { adminProcedure, router } from '../trpc';
 
@@ -29,15 +30,7 @@ function shortAdminId(token: string | undefined): string | null {
 }
 
 async function logMotdAudit(
-  action:
-    | 'MOTD_CREATE'
-    | 'MOTD_UPDATE'
-    | 'MOTD_DELETE'
-    | 'MOTD_PUBLISH'
-    | 'MOTD_ARCHIVE_VISIBILITY'
-    | 'MOTD_TEMPLATE_CREATE'
-    | 'MOTD_TEMPLATE_UPDATE'
-    | 'MOTD_TEMPLATE_DELETE',
+  action: MotdAuditAction,
   motdId: string,
   adminToken: string | undefined,
   metadata?: Record<string, unknown>,
@@ -408,5 +401,34 @@ export const adminMotdRouter = router({
       await prisma.motd.delete({ where: { id: input.id } });
       await logMotdAudit('MOTD_DELETE', input.id, ctx.adminToken);
       return undefined;
+    }),
+
+  /** Setzt aggregierte Nutzerreaktionen (ACK, Daumen, Dismiss) für eine MOTD auf null – ohne contentVersion zu ändern. */
+  motdResetInteractionStats: adminProcedure
+    .input(AdminMotdIdInputSchema)
+    .output(AdminMotdDetailDTOSchema)
+    .mutation(async ({ ctx, input }) => {
+      const existing = await prisma.motd.findUnique({ where: { id: input.id } });
+      if (!existing) throw new TRPCError({ code: 'NOT_FOUND', message: 'MOTD nicht gefunden.' });
+      await prisma.motdInteractionCounter.deleteMany({ where: { motdId: input.id } });
+      await logMotdAudit('MOTD_RESET_INTERACTION_STATS', input.id, ctx.adminToken);
+      const full = await prisma.motd.findUniqueOrThrow({
+        where: { id: input.id },
+        include: { locales: true, interaction: true },
+      });
+      return AdminMotdDetailDTOSchema.parse({
+        id: full.id,
+        status: full.status,
+        priority: full.priority,
+        startsAt: full.startsAt.toISOString(),
+        endsAt: full.endsAt.toISOString(),
+        visibleInArchive: full.visibleInArchive,
+        contentVersion: full.contentVersion,
+        templateId: full.templateId,
+        locales: rowsToBodies(full.locales),
+        interaction: interactionStatsDto(full.interaction),
+        createdAt: full.createdAt.toISOString(),
+        updatedAt: full.updatedAt.toISOString(),
+      });
     }),
 });
