@@ -6,6 +6,7 @@
  * Priorität -100 (unter Admin-Standard 0), damit echte / Feature-MOTDs mit getCurrent zuerst kommen.
  *
  * Text-Updates für bestehende DBs: prisma/migrations/20260329120000_motd_welcome_copy_v4/migration.sql
+ * Making-of-MOTD (6 Monate, nach Willkommen): 20260329140000_motd_making_of_ai (id …bbbbbbbb…).
  *
  * Nutzung: DATABASE_URL gesetzt oder Default localhost (wie ensure-schema.js).
  *   node scripts/seed-dev-motd.mjs

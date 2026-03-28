@@ -33,6 +33,7 @@
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "seed:dev-motd": "node scripts/seed-dev-motd.mjs",
+    "seed:motd-making-of": "npx prisma db execute --file prisma/migrations/20260329140000_motd_making_of_ai/migration.sql && npx prisma db execute --file prisma/migrations/20260331100000_motd_making_of_align_start/migration.sql && npx prisma db execute --file prisma/migrations/20260331150000_motd_making_of_greeting_line/migration.sql && npx prisma db execute --file prisma/migrations/20260331160000_motd_making_of_herstellungskosten/migration.sql && npx prisma db execute --file prisma/migrations/20260331170000_motd_making_of_openhub_active/migration.sql",
     "seed:motd-archive-demo": "node scripts/seed-motd-archive-demo.mjs",
     "seed:motd-templates": "node scripts/seed-motd-templates.mjs",
     "setup:dev": "npm run docker:up:dev && npm run prisma:push && npm run prisma:generate && npm run build -w @arsnova/shared-types",

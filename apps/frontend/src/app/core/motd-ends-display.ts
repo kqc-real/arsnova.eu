@@ -6,6 +6,17 @@ export const MOTD_LONG_RUNNING_END_UTC_YEAR = 2090;
 export type MotdEndDisplayMode = 'archive' | 'admin';
 
 /**
+ * Datumszeile im News-Archiv: `startsAt` (Veröffentlichung), ohne „Fortlaufend“-Sonderlogik.
+ */
+export function formatMotdArchiveStartsAtForDisplay(iso: string, intlLocale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    return iso.length >= 16 ? iso.slice(0, 16) : iso;
+  }
+  return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'medium' }).format(d);
+}
+
+/**
  * Zeigt `endsAt` menschenlesbar; sehr späte Enden (Willkommens-MOTD) im Admin als „Fortlaufend“
  * statt „31.12.2099“. Im News-Archiv entfällt die Zeile (redundant zum Inhalt).
  */

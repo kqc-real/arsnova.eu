@@ -3,6 +3,9 @@
  * Wird im Docker-Entrypoint vor dem App-Start ausgeführt.
  * Nutzt `pg` direkt, damit das Script unabhängig vom Prisma-Client-Setup läuft.
  */
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const { Client } = require('pg');
 
 const DEFAULT_DATABASE_URL =
@@ -142,6 +145,55 @@ const statements = [
   `ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "legalHoldSetAt" TIMESTAMP(3)`,
 ];
 
+/**
+ * Making-of-MOTD (Epic 10): SQL wie in prisma/migrations — idempotent (ON CONFLICT).
+ * Ohne `prisma migrate` fehlte die zweite Meldung bei reinem `npm run dev` + ensure-schema.
+ */
+function seedMotdMakingOfSql() {
+  const root = path.join(__dirname, '..');
+  const files = [
+    'prisma/migrations/20260329140000_motd_making_of_ai/migration.sql',
+    'prisma/migrations/20260331100000_motd_making_of_align_start/migration.sql',
+    'prisma/migrations/20260331150000_motd_making_of_greeting_line/migration.sql',
+    'prisma/migrations/20260331160000_motd_making_of_herstellungskosten/migration.sql',
+    'prisma/migrations/20260331170000_motd_making_of_openhub_active/migration.sql',
+  ];
+  let applied = 0;
+  for (const rel of files) {
+    const abs = path.join(root, rel);
+    if (!fs.existsSync(abs)) {
+      console.warn(`>>> MOTD Making-of: Datei fehlt (${rel}).`);
+      continue;
+    }
+    try {
+      execSync(`npx prisma db execute --file "${abs}"`, {
+        cwd: root,
+        stdio: 'pipe',
+        encoding: 'utf8',
+        env: process.env,
+      });
+      applied++;
+    } catch (e) {
+      const out =
+        (e.stderr && e.stderr.toString()) ||
+        (e.stdout && e.stdout.toString()) ||
+        e.message ||
+        String(e);
+      if (/relation .+ does not exist/i.test(out)) {
+        console.warn(
+          '>>> MOTD Making-of: übersprungen (MOTD-Tabellen fehlen — `npx prisma migrate deploy` oder `db push`).',
+        );
+        return;
+      }
+      console.warn('>>> MOTD Making-of optional:', out.trim().slice(0, 500));
+      return;
+    }
+  }
+  if (applied === files.length) {
+    console.log('>>> MOTD Making-of: SQL angewendet (Archiv + Overlay-Kette).');
+  }
+}
+
 async function main() {
   const client = createClient();
   await client.connect();
@@ -166,6 +218,10 @@ async function main() {
 
   await client.end();
   console.log(`>>> ensure-schema: ${ok} OK, ${skipped} übersprungen, ${failed} Fehler`);
+
+  if (failed === 0) {
+    seedMotdMakingOfSql();
+  }
 
   if (failed > 0) {
     process.exit(1);

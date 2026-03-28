@@ -68,6 +68,15 @@ export function markMotdDismissed(motdId: string, contentVersion: number): void 
   writeMotdClientStorage(cur);
 }
 
+/** Für `motd.getCurrent` / `getHeaderState`: lokal dismissierte Overlay-MOTDs (nächste Priorität). */
+export function motdDismissedPairsForApi(): { motdId: string; contentVersion: number }[] {
+  const dismissed = readMotdClientStorage().dismissed;
+  return Object.entries(dismissed).map(([motdId, contentVersion]) => ({
+    motdId,
+    contentVersion,
+  }));
+}
+
 export function interactionStorageKey(
   motdId: string,
   contentVersion: number,

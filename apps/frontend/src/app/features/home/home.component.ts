@@ -46,6 +46,7 @@ import {
   isMotdDismissedForVersion,
   markMotdDismissed,
   markMotdInteractionRecorded,
+  motdDismissedPairsForApi,
 } from '../../core/motd-storage';
 import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 
@@ -505,7 +506,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
     try {
-      const { motd } = await trpc.motd.getCurrent.query({ locale });
+      const dismissed = motdDismissedPairsForApi();
+      const { motd } = await trpc.motd.getCurrent.query({
+        locale,
+        ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
+      });
       if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
         return;
       }
@@ -565,6 +570,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.tryRecordMotdInteraction(kind);
     markMotdDismissed(m.id, m.contentVersion);
     this.clearMotdOverlay();
+    await this.loadMotdOverlay();
   }
 
   async ackMotd(): Promise<void> {
@@ -573,6 +579,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.tryRecordMotdInteraction('ACK');
     markMotdDismissed(m.id, m.contentVersion);
     this.clearMotdOverlay();
+    await this.loadMotdOverlay();
   }
 
   async thumbMotd(up: boolean): Promise<void> {

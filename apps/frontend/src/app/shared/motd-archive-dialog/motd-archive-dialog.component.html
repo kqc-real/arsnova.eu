@@ -47,7 +47,7 @@
         <ul class="motd-archive__list">
           @for (it of items(); track it.id) {
             <li class="motd-archive__item">
-              @let archiveMeta = formatArchiveDate(it.endsAt);
+              @let archiveMeta = formatArchiveDate(it.startsAt);
               @if (archiveMeta) {
                 <p class="motd-archive__meta">{{ archiveMeta }}</p>
               }

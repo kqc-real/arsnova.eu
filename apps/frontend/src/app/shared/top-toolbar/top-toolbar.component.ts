@@ -41,7 +41,7 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../confirm-leave-dialog/confirm-leave-dialog.component';
-import { getMotdArchiveSeenUpToEndsAtIso } from '../../core/motd-storage';
+import { getMotdArchiveSeenUpToEndsAtIso, motdDismissedPairsForApi } from '../../core/motd-storage';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
 
 @Component({
@@ -235,9 +235,11 @@ export class TopToolbarComponent implements OnInit {
     const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
     try {
       const seen = getMotdArchiveSeenUpToEndsAtIso();
+      const dismissed = motdDismissedPairsForApi();
       const s = await trpc.motd.getHeaderState.query({
         locale,
         ...(seen ? { archiveSeenUpToEndsAtIso: seen } : {}),
+        ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
       });
       this.motdToolbarIcon.set(s.hasActiveOverlay || s.hasArchiveEntries);
       this.motdArchiveCount.set(s.archiveUnreadCount);

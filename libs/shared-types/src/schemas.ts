@@ -1406,8 +1406,16 @@ export const MotdPublicDTOSchema = z.object({
 });
 export type MotdPublicDTO = z.infer<typeof MotdPublicDTOSchema>;
 
+/** Lokal als gelesen/dismissed markierte Overlay-MOTD (pro ID max. bestätigte `contentVersion`). */
+export const MotdOverlayDismissedPairSchema = z.object({
+  motdId: z.string().uuid(),
+  contentVersion: z.number().int().min(1),
+});
+export type MotdOverlayDismissedPair = z.infer<typeof MotdOverlayDismissedPairSchema>;
+
 export const MotdGetCurrentInputSchema = z.object({
   locale: AppLocaleEnum,
+  overlayDismissedUpTo: z.array(MotdOverlayDismissedPairSchema).max(32).optional(),
 });
 export type MotdGetCurrentInput = z.infer<typeof MotdGetCurrentInputSchema>;
 
@@ -1427,6 +1435,8 @@ export const MotdArchiveItemDTOSchema = z.object({
   id: z.uuid(),
   contentVersion: z.number().int().min(1),
   markdown: z.string(),
+  /** Veröffentlichungs-/Startzeitpunkt (Anzeige im Archiv). */
+  startsAt: z.string(),
   endsAt: z.string(),
 });
 export type MotdArchiveItemDTO = z.infer<typeof MotdArchiveItemDTOSchema>;
@@ -1442,6 +1452,7 @@ export const MotdHeaderStateInputSchema = z.object({
   locale: AppLocaleEnum,
   /** Client-Wasserzeichen: MOTDs mit späterem `endsAt` gelten als ungelesen (globales Archiv). */
   archiveSeenUpToEndsAtIso: z.string().optional(),
+  overlayDismissedUpTo: z.array(MotdOverlayDismissedPairSchema).max(32).optional(),
 });
 export type MotdHeaderStateInput = z.infer<typeof MotdHeaderStateInputSchema>;
 

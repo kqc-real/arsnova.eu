@@ -16,9 +16,10 @@ import { trpc } from '../../core/trpc.client';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
 import {
   getMotdArchiveSeenUpToEndsAtIso,
+  motdDismissedPairsForApi,
   setMotdArchiveSeenUpToEndsAtIso,
 } from '../../core/motd-storage';
-import { formatMotdEndsAtForDisplay } from '../../core/motd-ends-display';
+import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
 import { renderMarkdownWithoutKatex } from '../markdown-katex.util';
 
 export type MotdArchiveDialogData = { locale: AppLocale };
@@ -69,9 +70,9 @@ export class MotdArchiveDialogComponent implements OnInit {
   /** motd id → sanitized preview html */
   readonly htmlById = signal<Record<string, SafeHtml>>({});
 
-  /** `endsAt` (ISO-UTC) als Datum; bei technisch weitem Ende im Archiv leer (Admin: „Fortlaufend“). */
+  /** `startsAt` (ISO-UTC) als Veröffentlichungsdatum im Archiv. */
   formatArchiveDate(iso: string): string {
-    return formatMotdEndsAtForDisplay(iso, ARCHIVE_DATE_LOCALE[this.data.locale], 'archive');
+    return formatMotdArchiveStartsAtForDisplay(iso, ARCHIVE_DATE_LOCALE[this.data.locale]);
   }
 
   markArchiveAllRead(): void {
@@ -93,9 +94,11 @@ export class MotdArchiveDialogComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     const seen = getMotdArchiveSeenUpToEndsAtIso();
+    const dismissed = motdDismissedPairsForApi();
     const headerInput = {
       locale: this.data.locale,
       ...(seen ? { archiveSeenUpToEndsAtIso: seen } : {}),
+      ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
     };
     const [stateResult, listResult] = await Promise.allSettled([
       trpc.motd.getHeaderState.query(headerInput),

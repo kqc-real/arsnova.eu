@@ -91,6 +91,37 @@ describe('motd router', () => {
     );
   });
 
+  it('getCurrent überspringt per overlayDismissedUpTo gemeldete MOTD (nächste Priorität)', async () => {
+    const welcomeId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    prismaMock.motd.findMany.mockResolvedValue([
+      {
+        id: welcomeId,
+        priority: -100,
+        contentVersion: 4,
+        startsAt: new Date('2026-06-01T00:00:00.000Z'),
+        endsAt: new Date('2026-06-20T00:00:00.000Z'),
+        locales: [{ locale: 'de', markdown: 'Willkommen' }],
+      },
+      {
+        id: M2,
+        priority: -110,
+        contentVersion: 1,
+        startsAt: new Date('2026-06-01T00:00:00.000Z'),
+        endsAt: new Date('2026-06-20T00:00:00.000Z'),
+        locales: [{ locale: 'de', markdown: 'Making-of' }],
+      },
+    ]);
+    const caller = motdRouter.createCaller(ctx);
+    const first = await caller.getCurrent({ locale: 'de' });
+    expect(first.motd?.id).toBe(welcomeId);
+    const second = await caller.getCurrent({
+      locale: 'de',
+      overlayDismissedUpTo: [{ motdId: welcomeId, contentVersion: 4 }],
+    });
+    expect(second.motd?.id).toBe(M2);
+    expect(second.motd?.markdown).toBe('Making-of');
+  });
+
   it('getCurrent stellt Dev-Seed-MOTD (feste ID) hinter eigene Meldungen', async () => {
     prismaMock.motd.findMany.mockResolvedValue([
       {

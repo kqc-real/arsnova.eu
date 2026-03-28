@@ -6,6 +6,7 @@ import {
   markMotdDismissed,
   markMotdInteractionRecorded,
   hasMotdInteractionRecorded,
+  motdDismissedPairsForApi,
   setMotdArchiveSeenUpToEndsAtIso,
 } from './motd-storage';
 
@@ -18,6 +19,14 @@ describe('motd-storage', () => {
     expect(isMotdDismissedForVersion('00000000-0000-4000-8000-000000000001', 2)).toBe(true);
     expect(isMotdDismissedForVersion('00000000-0000-4000-8000-000000000001', 1)).toBe(true);
     expect(isMotdDismissedForVersion('00000000-0000-4000-8000-000000000001', 3)).toBe(false);
+  });
+
+  it('motdDismissedPairsForApi liefert Paare aus dismissed', () => {
+    expect(motdDismissedPairsForApi()).toEqual([]);
+    markMotdDismissed('00000000-0000-4000-8000-000000000099', 5);
+    expect(motdDismissedPairsForApi()).toEqual([
+      { motdId: '00000000-0000-4000-8000-000000000099', contentVersion: 5 },
+    ]);
   });
 
   it('Archiv-Wasserzeichen wird gelesen und geschrieben', () => {

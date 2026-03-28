@@ -58,7 +58,35 @@ function motdArchiveListWhere(now: Date): Prisma.MotdWhereInput {
   };
 }
 
-async function fetchCurrentMotdDto(locale: AppLocale, at: Date): Promise<MotdPublicDTO | null> {
+type OverlayDismissedPair = { motdId: string; contentVersion: number };
+
+function mergeOverlayDismissedMap(
+  pairs: OverlayDismissedPair[] | undefined,
+): Map<string, number> | null {
+  if (!pairs?.length) return null;
+  const m = new Map<string, number>();
+  for (const p of pairs) {
+    const cur = m.get(p.motdId) ?? 0;
+    if (p.contentVersion > cur) m.set(p.motdId, p.contentVersion);
+  }
+  return m;
+}
+
+function isMotdSkippedByClientDismiss(
+  id: string,
+  contentVersion: number,
+  dismissed: Map<string, number> | null,
+): boolean {
+  const v = dismissed?.get(id);
+  return typeof v === 'number' && v >= contentVersion;
+}
+
+async function fetchCurrentMotdDto(
+  locale: AppLocale,
+  at: Date,
+  overlayDismissedUpTo?: OverlayDismissedPair[],
+): Promise<MotdPublicDTO | null> {
+  const dismissedMap = mergeOverlayDismissedMap(overlayDismissedUpTo);
   const rows = await prisma.motd.findMany({
     where: {
       status: 'PUBLISHED',
@@ -75,6 +103,7 @@ async function fetchCurrentMotdDto(locale: AppLocale, at: Date): Promise<MotdPub
     return b.startsAt.getTime() - a.startsAt.getTime();
   });
   for (const row of rows) {
+    if (isMotdSkippedByClientDismiss(row.id, row.contentVersion, dismissedMap)) continue;
     const map = localesToMap(row.locales);
     const markdown = resolveMotdMarkdown(map, locale);
     if (!markdown.trim()) continue;
@@ -106,7 +135,7 @@ export const motdRouter = router({
           cause: { retryAfterSeconds: limit.retryAfterSeconds },
         });
       }
-      const motd = await fetchCurrentMotdDto(input.locale, new Date());
+      const motd = await fetchCurrentMotdDto(input.locale, new Date(), input.overlayDismissedUpTo);
       return { motd };
     }),
 
@@ -170,6 +199,7 @@ export const motdRouter = router({
             id: m.id,
             contentVersion: m.contentVersion,
             markdown,
+            startsAt: m.startsAt.toISOString(),
             endsAt: m.endsAt.toISOString(),
           };
         })
@@ -199,9 +229,10 @@ export const motdRouter = router({
       const seenRaw = input.archiveSeenUpToEndsAtIso;
       const seen = seenRaw && !Number.isNaN(new Date(seenRaw).getTime()) ? new Date(seenRaw) : null;
 
+      const dismissed = input.overlayDismissedUpTo;
       const results = seen
         ? await Promise.all([
-            fetchCurrentMotdDto(input.locale, now),
+            fetchCurrentMotdDto(input.locale, now, dismissed),
             prisma.motd.count({ where: archiveWhere }),
             prisma.motd.aggregate({
               where: archiveWhere,
@@ -212,7 +243,7 @@ export const motdRouter = router({
             }),
           ])
         : await Promise.all([
-            fetchCurrentMotdDto(input.locale, now),
+            fetchCurrentMotdDto(input.locale, now, dismissed),
             prisma.motd.count({ where: archiveWhere }),
             prisma.motd.aggregate({
               where: archiveWhere,

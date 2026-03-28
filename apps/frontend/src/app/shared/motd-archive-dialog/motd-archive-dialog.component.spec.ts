@@ -64,10 +64,11 @@ describe('MotdArchiveDialogComponent', () => {
     expect(s).toContain('4');
   });
 
-  it('formatArchiveDate ist bei 2099+ leer (kein „Fortlaufend“-Label im Archiv)', () => {
+  it('formatArchiveDate zeigt auch sehr spätes Start-Datum (kein endsAt-„Fortlaufend“-Leerstring)', () => {
     configureDialog();
     const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
-    expect(fixture.componentInstance.formatArchiveDate('2099-12-31T12:00:00.000Z')).toBe('');
+    const s = fixture.componentInstance.formatArchiveDate('2099-12-31T12:00:00.000Z');
+    expect(s).toContain('2099');
   });
 
   it('lädt Archiv per listArchive und setzt items', async () => {
@@ -84,6 +85,7 @@ describe('MotdArchiveDialogComponent', () => {
           id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
           contentVersion: 1,
           markdown: 'Hallo',
+          startsAt: '2026-01-10T10:00:00.000Z',
           endsAt: '2026-01-15T18:00:00.000Z',
         },
       ],
@@ -117,12 +119,14 @@ describe('MotdArchiveDialogComponent', () => {
           id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
           contentVersion: 1,
           markdown: 'Hallo',
+          startsAt: '2026-02-01T12:00:00.000Z',
           endsAt: '2026-03-01T12:00:00.000Z',
         },
         {
           id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
           contentVersion: 1,
           markdown: 'Neu',
+          startsAt: '2026-03-15T12:00:00.000Z',
           endsAt: '2026-04-01T12:00:00.000Z',
         },
       ],
@@ -152,6 +156,7 @@ describe('MotdArchiveDialogComponent', () => {
             id: id1,
             contentVersion: 1,
             markdown: 'A',
+            startsAt: '2025-12-15T00:00:00.000Z',
             endsAt: '2026-01-01T00:00:00.000Z',
           },
         ],
@@ -163,6 +168,7 @@ describe('MotdArchiveDialogComponent', () => {
             id: id2,
             contentVersion: 1,
             markdown: 'B',
+            startsAt: '2025-11-20T00:00:00.000Z',
             endsAt: '2025-12-01T00:00:00.000Z',
           },
         ],
