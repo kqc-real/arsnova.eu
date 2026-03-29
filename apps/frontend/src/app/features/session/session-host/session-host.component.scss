@@ -555,6 +555,22 @@
   line-height: 1.08;
 }
 
+.session-host__join-menu-copy-link {
+  justify-self: stretch;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  box-sizing: border-box;
+
+  mat-icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+}
+
 .session-host__join-menu-qr-wrap {
   display: flex;
   justify-content: center;
@@ -617,7 +633,46 @@
   padding: 0.25rem;
 }
 
+/* Desktop: Overlay und Karte luftiger, Abstand zur Tab-/App-Leiste */
 @media (min-width: 840px) {
+  .session-host__join-viewport-overlay {
+    padding: max(2.25rem, calc(env(safe-area-inset-top, 0px) + 6.75rem))
+      max(2.25rem, env(safe-area-inset-right, 0px)) max(2.5rem, env(safe-area-inset-bottom, 0px))
+      max(2.25rem, env(safe-area-inset-left, 0px));
+    box-sizing: border-box;
+  }
+
+  .session-host__join-viewport-overlay__surface.session-host__join-menu-panel {
+    width: min(28rem, calc(100vw - 4.5rem));
+    gap: 1.45rem;
+    padding: 1.65rem 1.85rem 2rem;
+    border-radius: calc(var(--mat-sys-corner-extra-large) + 0.15rem);
+  }
+
+  .session-host__join-menu-head {
+    gap: 0.55rem;
+    padding-block: 0.35rem 0.45rem;
+  }
+
+  .session-host__join-menu-qr-wrap {
+    padding: 0.65rem 0 0.85rem;
+  }
+
+  .session-host__join-menu-qr--viewport-overlay {
+    width: min(22rem, calc(100vw - 5rem)) !important;
+    max-width: min(56vmin, 26rem) !important;
+    padding: 0.45rem;
+  }
+
+  .session-host__join-viewport-overlay__close {
+    top: 0.45rem;
+    right: 0.45rem;
+  }
+
+  .session-host__join-menu-copy-link {
+    margin-top: 0.15rem;
+  }
+
   .session-host__live-join-control,
   .session-host__live-sound-control {
     display: inline-flex;

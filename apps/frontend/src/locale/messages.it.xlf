@@ -6359,6 +6359,38 @@
           <context context-type="linenumber">264,266</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.copyJoinLinkButton" datatype="html">
+        <source>Session-Link kopieren</source>
+        <target>Copia link della sessione</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">300,301</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.copyJoinLinkAria" datatype="html">
+        <source>Session-Link kopieren</source>
+        <target>Copia link della sessione</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">293,295</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.copyJoinLinkSuccess" datatype="html">
+        <source>Session-Link kopiert.</source>
+        <target>Link della sessione copiato.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">686</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.copyJoinLinkFailed" datatype="html">
+        <source>Kopieren fehlgeschlagen. Bitte versuche es noch einmal.</source>
+        <target>Copia non riuscita. Riprova.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">693</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.quizMotifImageAlt" datatype="html">
         <source>Motivbild zum Quiz</source>
         <target>Immagine di motivo del quiz</target>

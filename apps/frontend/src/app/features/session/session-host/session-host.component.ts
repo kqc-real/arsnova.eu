@@ -36,6 +36,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
@@ -230,6 +231,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly sound = inject(SoundService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
   private readonly requestedInitialTab = this.route.snapshot?.queryParamMap?.get('tab') ?? null;
@@ -668,6 +670,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ? this.document.defaultView.location.origin
         : '';
     return origin ? `${origin}/join/${this.code}` : `/join/${this.code}`;
+  }
+
+  async copyJoinLinkToClipboard(event?: Event): Promise<void> {
+    event?.stopPropagation();
+    const url = this.joinUrl;
+    const clipboard = this.document.defaultView?.navigator.clipboard;
+    try {
+      if (!clipboard) {
+        throw new Error('clipboard unavailable');
+      }
+      await clipboard.writeText(url);
+      this.snackBar.open($localize`:@@sessionHost.copyJoinLinkSuccess:Session-Link kopiert.`, '', {
+        duration: 2500,
+      });
+    } catch {
+      this.snackBar.open(
+        $localize`:@@sessionHost.copyJoinLinkFailed:Kopieren fehlgeschlagen. Bitte versuche es noch einmal.`,
+        '',
+        { duration: 4000 },
+      );
+    }
   }
 
   toggleJoinInfoPopover(): void {

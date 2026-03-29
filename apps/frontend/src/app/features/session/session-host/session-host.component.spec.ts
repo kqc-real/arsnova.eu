@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionHostComponent } from './session-host.component';
 
@@ -121,6 +122,7 @@ describe('SessionHostComponent', () => {
       imports: [SessionHostComponent],
       providers: [
         provideRouter([]),
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
         {
           provide: ActivatedRoute,
           useValue: {

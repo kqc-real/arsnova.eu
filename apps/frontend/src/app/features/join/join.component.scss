@@ -1,5 +1,15 @@
+/* Wie admin-page: mehr Luft unter der App-Toolbar (global .l-page + first-child margin reicht hier oft knapp). */
 .join-page {
-  padding-top: 1.5rem;
+  padding-top: 1.65rem;
+
+  @media (min-width: 600px) {
+    padding-top: 2.35rem;
+  }
+
+  @media (min-width: 840px) {
+    padding-top: 3.1rem;
+    padding-bottom: 0.35rem;
+  }
 }
 
 .join-card {
@@ -116,7 +126,10 @@
     border-color: var(--mat-sys-outline-variant);
 
     @media (prefers-reduced-motion: no-preference) {
-      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+      transition:
+        transform 160ms ease,
+        border-color 160ms ease,
+        background-color 160ms ease;
     }
 
     &:hover {
@@ -132,13 +145,21 @@
 
   &__team-card--suggested {
     border-color: color-mix(in srgb, var(--mat-sys-tertiary) 48%, var(--mat-sys-outline-variant));
-    background: color-mix(in srgb, var(--mat-sys-tertiary-container) 22%, var(--mat-sys-surface-container-low));
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-tertiary-container) 22%,
+      var(--mat-sys-surface-container-low)
+    );
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
   }
 
   &__team-card--selected {
     border-color: var(--mat-sys-primary);
-    background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-low));
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-primary) 10%,
+      var(--mat-sys-surface-container-low)
+    );
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
 
     @media (prefers-reduced-motion: no-preference) {
@@ -216,15 +237,53 @@
   }
 }
 
+@media (min-width: 840px) {
+  .join-page .join-card mat-card-content {
+    padding: 1.65rem 1.75rem 1.85rem;
+  }
+
+  .join-card {
+    &__title {
+      margin-bottom: 1.5rem;
+    }
+
+    &__session {
+      margin-bottom: 1.75rem;
+      padding: 1.2rem 0 1.35rem;
+    }
+
+    &__nickname-group {
+      margin-bottom: 1.25rem;
+    }
+
+    &__submit {
+      margin-top: 1.35rem;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @keyframes join-team-selected-pop {
-    0% { transform: scale(0.98); }
-    65% { transform: scale(1.02); }
-    100% { transform: scale(1); }
+    0% {
+      transform: scale(0.98);
+    }
+    65% {
+      transform: scale(1.02);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 
   @keyframes join-playful-badge-pulse {
-    0%, 100% { transform: translateY(0); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
-    50% { transform: translateY(-1px); box-shadow: 0 0.35rem 1rem color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent); }
+    0%,
+    100% {
+      transform: translateY(0);
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    }
+    50% {
+      transform: translateY(-1px);
+      box-shadow: 0 0.35rem 1rem color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
+    }
   }
 }

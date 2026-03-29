@@ -288,6 +288,17 @@
                   />
                 </div>
               }
+              <button
+                mat-stroked-button
+                type="button"
+                class="session-host__join-menu-copy-link"
+                (click)="copyJoinLinkToClipboard($event)"
+                i18n-aria-label="@@sessionHost.copyJoinLinkAria"
+                aria-label="Session-Link kopieren"
+              >
+                <mat-icon aria-hidden="true">content_copy</mat-icon>
+                <span i18n="@@sessionHost.copyJoinLinkButton">Session-Link kopieren</span>
+              </button>
               <p
                 class="session-host__join-menu-origin session-host__join-menu-origin--code"
                 [attr.aria-label]="sessionCodeDisplayAria(s.code)"

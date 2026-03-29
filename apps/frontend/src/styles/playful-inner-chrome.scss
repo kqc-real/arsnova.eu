@@ -235,6 +235,13 @@ html.preset-playful {
       0 1px 0 color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
   }
 
+  @media (min-width: 840px) {
+    .join-page .join-card--lobby .join-card__session {
+      margin-bottom: 1.65rem;
+      padding: 1.2rem 1.35rem 1.35rem;
+    }
+  }
+
   // --- Welle 3: Quiz-Vorschau, Sync ---
   .quiz-preview mat-card.quiz-preview__empty-card,
   .quiz-preview mat-card.quiz-preview-editor,
