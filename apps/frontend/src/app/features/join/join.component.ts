@@ -3,9 +3,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatFormField } from '@angular/material/form-field';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { MatSelect } from '@angular/material/select';
+import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { trpc } from '../../core/trpc.client';
 import type { SessionInfoDTO, TeamDTO } from '@arsnova/shared-types';
@@ -14,6 +14,10 @@ import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-
 import { localizeCommands } from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
 import { getNicknameList } from './nickname-themes';
+import {
+  findKindergartenNicknameEmoji,
+  kindergartenEmojiAtIndex,
+} from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
@@ -34,8 +38,10 @@ const SESSION_POLL_MS = 3000;
     MatIcon,
     RouterLink,
     MatFormField,
+    MatLabel,
     MatInput,
     MatSelect,
+    MatSelectTrigger,
     MatOption,
   ],
   templateUrl: './join.component.html',
@@ -82,6 +88,38 @@ export class JoinComponent implements OnInit, OnDestroy {
     return this.nicknameOptions().length > 0;
   });
 
+  /** Kindergarten-Liste: große Tier-Emoji in Auswahl und (nach Join) in der Lobby. */
+  readonly isKindergartenNicknameTheme = computed(() => {
+    const s = this.session();
+    return s?.type === 'QUIZ' && (s.nicknameTheme ?? 'NOBEL_LAUREATES') === 'KINDERGARTEN';
+  });
+
+  readonly kindergartenEmojiForSelected = computed((): string | null => {
+    if (!this.isKindergartenNicknameTheme()) return null;
+    const nick = this.selectedNickname().trim();
+    return nick ? findKindergartenNicknameEmoji(nick) : null;
+  });
+
+  readonly nicknameSelectPanelClass = computed((): string[] =>
+    this.isKindergartenNicknameTheme() ? ['join-nickname-select-panel'] : [],
+  );
+
+  kindergartenEmojiForOptionIndex(index: number): string {
+    if (!this.isKindergartenNicknameTheme()) return '';
+    return kindergartenEmojiAtIndex(index) ?? '';
+  }
+
+  /** Barrierefreie Beschriftung der Option (bei Kita inkl. Emoji-Info für Screenreader). */
+  nicknameOptionAriaLabel(option: string, index: number): string {
+    const taken = this.isTaken(option) ? ` ${this.takenSuffix()}` : '';
+    if (!this.isKindergartenNicknameTheme()) {
+      return `${option}${taken}`;
+    }
+    const em = kindergartenEmojiAtIndex(index) ?? '';
+    const prefix = em ? `${em} ` : '';
+    return `${prefix}${option}${taken}`;
+  }
+
   /** Eigenes Namensfeld nur wenn der Host eigene Nicks erlaubt (Preset: eigener Name). */
   readonly showCustomNickname = computed(() => {
     const s = this.session();
@@ -127,7 +165,7 @@ export class JoinComponent implements OnInit, OnDestroy {
 
   readonly effectiveNickname = computed(() => {
     if (this.session()?.anonymousMode === true) {
-      return `Teilnehmer #${(this.session()?.participantCount ?? 0) + 1}`;
+      return `Teilnehmende #${(this.session()?.participantCount ?? 0) + 1}`;
     }
     const custom = this.customNickname().trim();
     if (custom.length > 0) return custom;
@@ -135,9 +173,9 @@ export class JoinComponent implements OnInit, OnDestroy {
   });
 
   /** i18n: participant count label (singular). */
-  participantSingular = () => $localize`Teilnehmer`;
+  participantSingular = () => $localize`:@@join.participantCountOne:Teilnehmende`;
   /** i18n: participant count label (plural). */
-  participantPlural = () => $localize`Teilnehmende`;
+  participantPlural = () => $localize`:@@join.participantCountMany:Teilnehmende`;
   /** i18n: joining in progress. */
   joiningLabel = () => $localize`Wird beigetreten…`;
   /** i18n: join now button. */
@@ -300,7 +338,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   private async joinAnonymous(session: SessionInfoDTO): Promise<void> {
     this.joining.set(true);
     try {
-      const nickname = `Teilnehmer #${session.participantCount + 1}`;
+      const nickname = `Teilnehmende #${session.participantCount + 1}`;
       const result = await trpc.session.join.mutate({
         code: this.code,
         nickname,

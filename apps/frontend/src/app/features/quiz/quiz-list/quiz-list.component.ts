@@ -20,6 +20,7 @@ import {
   type QuizPreset,
   type TeamAssignment,
 } from '@arsnova/shared-types';
+import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { localizeCommands } from '../../../core/locale-router';
 import {
@@ -36,8 +37,6 @@ import {
 } from '../../../shared/markdown-katex.util';
 import { LiveSessionDialogComponent } from './live-session-dialog.component';
 import { BonusCodesDialogComponent } from './bonus-codes-dialog.component';
-
-const PRESET_OPTIONS_STORAGE_PREFIX = 'home-preset-options-';
 
 /**
  * Quiz-Liste (Epic 1).
@@ -420,7 +419,7 @@ export class QuizListComponent implements OnInit {
     };
 
     try {
-      const presetKey = PRESET_OPTIONS_STORAGE_PREFIX + this.themePreset.preset();
+      const presetKey = homePresetOptionsKeyForQuizPreset(preset);
       const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
       const parsed = raw ? (JSON.parse(raw) as unknown) : null;
       const entry = PresetStorageEntrySchema.safeParse(parsed);
@@ -693,7 +692,7 @@ export class QuizListComponent implements OnInit {
 
       if (options.includeQuiz) {
         let payload = this.quizStore.getUploadPayload(options.quizId);
-        const presetKey = PRESET_OPTIONS_STORAGE_PREFIX + this.themePreset.preset();
+        const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
         try {
           const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
           const parsed = raw ? (JSON.parse(raw) as unknown) : null;
@@ -703,13 +702,10 @@ export class QuizListComponent implements OnInit {
             /** Fehlender Chip-Schlüssel = Quiz-Wert behalten (wie Quiz-Vorschau). */
             const optionEnabled = (id: string, fallback: boolean) =>
               id in storedOptions ? storedOptions[id] === true : fallback;
-            const nameMode = entry.data.nameMode;
             const effectiveTeamMode = optionEnabled('teamMode', false) || payload.teamMode;
             payload = {
               ...payload,
-              nicknameTheme: entry.data.nicknameThemeValue,
-              allowCustomNicknames: nameMode === 'allowCustomNicknames',
-              anonymousMode: nameMode === 'anonymousMode',
+              // Namensliste / Anonymität: immer aus dem Quiz (Snackbar-Preset überschreibt das nicht).
               showLeaderboard: optionEnabled('showLeaderboard', payload.showLeaderboard),
               enableRewardEffects: optionEnabled(
                 'enableRewardEffects',

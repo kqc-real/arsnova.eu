@@ -633,4 +633,44 @@ describe('QuizStoreService', () => {
       'Alle Frageformate – Quiz aus der Oberstufe',
     );
   });
+
+  it('getUploadPayload: Kita in localStorage schlägt Nobel im RAM (neueres updatedAt, z. B. Yjs/Tab)', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({
+      name: 'Live-Merge',
+      settings: { nicknameTheme: 'KINDERGARTEN' },
+    });
+    service.addQuestion(created.id, {
+      text: 'Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const roomId = localStorage.getItem('quiz-sync-room-id');
+    expect(roomId).toBeTruthy();
+    service.updateQuizSettings(created.id, { nicknameTheme: 'NOBEL_LAUREATES' });
+
+    const storageKey = `${QUIZ_STORAGE_KEY}:${roomId}`;
+    const raw = localStorage.getItem(storageKey);
+    expect(raw).toBeTruthy();
+    const arr = JSON.parse(raw ?? '[]') as Record<string, unknown>[];
+    const idx = arr.findIndex(
+      (e) => e && typeof e === 'object' && (e as { id?: string }).id === created.id,
+    );
+    expect(idx).toBeGreaterThanOrEqual(0);
+    const entry = arr[idx] as Record<string, unknown>;
+    const prevSettings = entry['settings'] as Record<string, unknown>;
+    arr[idx] = {
+      ...entry,
+      settings: { ...prevSettings, nicknameTheme: 'KINDERGARTEN' },
+      updatedAt: '2020-01-01T00:00:00.000Z',
+    };
+    localStorage.setItem(storageKey, JSON.stringify(arr));
+
+    const payload = service.getUploadPayload(created.id);
+    expect(payload.nicknameTheme).toBe('KINDERGARTEN');
+  });
 });

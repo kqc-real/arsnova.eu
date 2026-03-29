@@ -22,10 +22,26 @@
     </div>
   }
 
-  @if (playerNickname()) {
-    <div class="vote-player-badge" role="status">
-      <mat-icon class="vote-player-badge__icon" aria-hidden="true">person</mat-icon>
-      <span class="vote-player-badge__name">{{ playerNickname() }}</span>
+  @if (showCompactPlayerBadge()) {
+    <div
+      class="vote-player-badge"
+      [class.vote-player-badge--kindergarten]="playerKindergartenEmoji()"
+      role="status"
+      [attr.aria-label]="playerBadgeAriaLabel()"
+    >
+      @if (!playerKindergartenEmoji()) {
+        <mat-icon class="vote-player-badge__icon" aria-hidden="true">person</mat-icon>
+      }
+      @if (playerKindergartenEmoji(); as kEmoji) {
+        <span class="vote-player-badge__kita-id">
+          <span class="vote-player-badge__emoji" aria-hidden="true">{{ kEmoji }}</span>
+          <span class="vote-player-badge__name vote-player-badge__name--kita">{{
+            playerNickname()
+          }}</span>
+        </span>
+      } @else {
+        <span class="vote-player-badge__name">{{ playerNickname() }}</span>
+      }
       @if (playerTeamName()) {
         <span class="vote-player-badge__sep" aria-hidden="true">·</span>
         @if (playerTeamColor()) {
@@ -103,8 +119,29 @@
   }
 
   @if (showPrimaryLiveView()) {
+    @if (kitaIdentityHeroEmoji(); as kitaEmoji) {
+      <div class="vote-kita-hero-host">
+        <div class="vote-lobby__kita-hero" role="group" [attr.aria-label]="playerBadgeAriaLabel()">
+          <span class="vote-lobby__kita-emoji" aria-hidden="true">{{ kitaEmoji }}</span>
+          <p class="vote-lobby__kita-identity">
+            <span class="vote-lobby__kita-nick">{{ playerNickname() }}</span>
+            @if (playerTeamName()) {
+              <span class="vote-lobby__kita-sep" aria-hidden="true">·</span>
+              @if (playerTeamColor()) {
+                <span
+                  class="vote-lobby__kita-team-dot"
+                  [style.background]="playerTeamColor()"
+                  aria-hidden="true"
+                ></span>
+              }
+              <span class="vote-lobby__kita-team">{{ playerTeamName() }}</span>
+            }
+          </p>
+        </div>
+      </div>
+    }
     @if (isLobby()) {
-      <div class="vote-lobby">
+      <div class="vote-lobby" [class.vote-lobby--kindergarten]="playerKindergartenEmoji()">
         <p class="vote-lobby__badge" role="status">{{ vpc.voteLobbyBadge(isPlayfulPreset()) }}</p>
         <p
           class="vote-lobby__code"
@@ -139,25 +176,31 @@
         <section
           class="vote-finished-hero"
           aria-labelledby="finished-heading"
-          [class.vote-finished-hero--rank1]="personalRank() === 1"
-          [class.vote-finished-hero--rank2]="personalRank() === 2"
-          [class.vote-finished-hero--rank3]="personalRank() === 3"
+          [class.vote-finished-hero--muted]="finishedHeroCardMuted()"
+          [class.vote-finished-hero--rank1]="finishedHeroIsCelebration() && personalRank() === 1"
+          [class.vote-finished-hero--rank2]="finishedHeroIsCelebration() && personalRank() === 2"
+          [class.vote-finished-hero--rank3]="finishedHeroIsCelebration() && personalRank() === 3"
         >
-          <mat-icon class="vote-finished-hero__icon" aria-hidden="true">emoji_events</mat-icon>
+          <mat-icon class="vote-finished-hero__icon" aria-hidden="true">{{
+            finishedHeroMatIcon()
+          }}</mat-icon>
           <h1 class="vote-finished-hero__title" id="finished-heading">
-            {{ vpc.voteFinishedHeroTitle(isPlayfulPreset()) }}
+            {{ finishedHeroTitle() }}
           </h1>
           @if (personalResultLoaded()) {
-            <div class="vote-finished-hero__stats">
-              <div class="vote-finished-hero__stat">
-                <span class="vote-finished-hero__stat-value">{{
-                  personalRank() === 0 ? '—' : '#' + personalRank()
-                }}</span>
-                <span class="vote-finished-hero__stat-label">{{
-                  vpc.voteFinishedRankLabel(isPlayfulPreset())
-                }}</span>
-              </div>
-              <span class="vote-finished-hero__divider" aria-hidden="true"></span>
+            <div
+              class="vote-finished-hero__stats"
+              [class.vote-finished-hero__stats--solo]="!finishedHeroShowsRank()"
+            >
+              @if (finishedHeroShowsRank()) {
+                <div class="vote-finished-hero__stat">
+                  <span class="vote-finished-hero__stat-value">#{{ personalRank() }}</span>
+                  <span class="vote-finished-hero__stat-label">{{
+                    vpc.voteFinishedRankLabel(isPlayfulPreset())
+                  }}</span>
+                </div>
+                <span class="vote-finished-hero__divider" aria-hidden="true"></span>
+              }
               <div class="vote-finished-hero__stat">
                 <span class="vote-finished-hero__stat-value">{{ personalScore() | number }}</span>
                 <span class="vote-finished-hero__stat-label">{{
@@ -178,7 +221,7 @@
           <section
             class="vote-team-reward"
             aria-labelledby="team-reward-heading-finished"
-            [class.vote-team-reward--leader]="ownTeam.rank === 1"
+            [class.vote-team-reward--leader]="ownTeam.rank === 1 && teamScoreboardHasPoints()"
             [class.vote-team-reward--finished]="true"
           >
             @if (showTeamRewardConfetti()) {
@@ -207,7 +250,9 @@
             </p>
             <div class="vote-team-reward__stats">
               <div class="vote-team-reward__stat">
-                <span class="vote-team-reward__stat-value">#{{ ownTeam.rank }}</span>
+                <span class="vote-team-reward__stat-value">{{
+                  teamRewardRankDisplay(ownTeam.rank)
+                }}</span>
                 <span class="vote-team-reward__stat-label">{{
                   vpc.voteTeamStatRank(isPlayfulPreset())
                 }}</span>
@@ -231,13 +276,21 @@
                   <li
                     class="vote-team-reward__board-item"
                     [class.vote-team-reward__board-item--own]="entry.teamName === ownTeam.teamName"
-                    [class.vote-team-reward__board-item--rank1]="entry.rank === 1"
-                    [class.vote-team-reward__board-item--rank2]="entry.rank === 2"
-                    [class.vote-team-reward__board-item--rank3]="entry.rank === 3"
+                    [class.vote-team-reward__board-item--rank1]="
+                      teamScoreboardHasPoints() && entry.rank === 1
+                    "
+                    [class.vote-team-reward__board-item--rank2]="
+                      teamScoreboardHasPoints() && entry.rank === 2
+                    "
+                    [class.vote-team-reward__board-item--rank3]="
+                      teamScoreboardHasPoints() && entry.rank === 3
+                    "
                     [attr.aria-label]="teamStandingAriaLabel(entry)"
                   >
                     <div class="vote-team-reward__board-head">
-                      <span class="vote-team-reward__board-rank">#{{ entry.rank }}</span>
+                      <span class="vote-team-reward__board-rank">{{
+                        teamRewardRankDisplay(entry.rank)
+                      }}</span>
                       <span class="vote-team-reward__board-name">
                         <span
                           class="vote-team-reward__dot"
@@ -769,7 +822,7 @@
           <section
             class="vote-team-reward"
             aria-labelledby="team-reward-heading-results"
-            [class.vote-team-reward--leader]="ownTeam.rank === 1"
+            [class.vote-team-reward--leader]="ownTeam.rank === 1 && teamScoreboardHasPoints()"
           >
             @if (showTeamRewardConfetti()) {
               <div class="vote-confetti" aria-hidden="true">
@@ -797,7 +850,9 @@
             </p>
             <div class="vote-team-reward__stats">
               <div class="vote-team-reward__stat">
-                <span class="vote-team-reward__stat-value">#{{ ownTeam.rank }}</span>
+                <span class="vote-team-reward__stat-value">{{
+                  teamRewardRankDisplay(ownTeam.rank)
+                }}</span>
                 <span class="vote-team-reward__stat-label">{{
                   vpc.voteTeamStatRank(isPlayfulPreset())
                 }}</span>
@@ -824,7 +879,9 @@
                     [attr.aria-label]="teamStandingAriaLabel(entry)"
                   >
                     <div class="vote-team-reward__board-head">
-                      <span class="vote-team-reward__board-rank">#{{ entry.rank }}</span>
+                      <span class="vote-team-reward__board-rank">{{
+                        teamRewardRankDisplay(entry.rank)
+                      }}</span>
                       <span class="vote-team-reward__board-name">
                         <span
                           class="vote-team-reward__dot"

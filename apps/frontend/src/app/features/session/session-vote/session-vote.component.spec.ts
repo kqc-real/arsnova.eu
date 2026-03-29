@@ -178,6 +178,70 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('behauptet bei 0 Team-Punkten für alle nicht „Ihr führt gerade“', async () => {
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: 'Rot',
+        teamColor: '#1E88E5',
+        totalScore: 0,
+        memberCount: 3,
+        averageScore: 0,
+      },
+      {
+        rank: 2,
+        teamName: 'Blau',
+        teamColor: '#43A047',
+        totalScore: 0,
+        memberCount: 3,
+        averageScore: 0,
+      },
+    ]);
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: true,
+      enableRewardEffects: true,
+      preset: 'PLAYFUL',
+      enableEmojiReactions: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 1,
+      text: 'Frage',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'a1', text: 'A', isCorrect: true },
+        { id: 'a2', text: 'B', isCorrect: false },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await (
+      fixture.componentInstance as unknown as { refreshQuestion: () => Promise<void> }
+    ).refreshQuestion();
+    await (
+      fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
+    ).loadTeamRewardState();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const inst = fixture.componentInstance;
+    expect(inst.teamRewardTitle()).toContain('Zeigt, was in euch steckt');
+    expect(inst.teamRewardMessage()).toContain('Mit richtigen Antworten');
+    expect(inst.teamRewardRankDisplay(1)).toBe('\u2014');
+    expect((fixture.nativeElement.textContent as string).includes('Ihr führt gerade')).toBe(false);
+    fixture.destroy();
+  });
+
   it('zeigt nach Session-Ende den kollektiven Team-Abschluss', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -197,6 +261,12 @@ describe('SessionVoteComponent', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
     await fixture.whenStable();
+    await (
+      fixture.componentInstance as unknown as { loadPersonalResult: () => Promise<void> }
+    ).loadPersonalResult();
+    await (
+      fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
+    ).loadTeamRewardState();
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 

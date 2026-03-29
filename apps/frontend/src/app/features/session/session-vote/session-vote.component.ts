@@ -39,6 +39,7 @@ import type {
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
+import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 
@@ -241,6 +242,23 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly personalScore = signal<number | null>(null);
   readonly bonusToken = signal<string | null>(null);
   readonly personalResultLoaded = signal(false);
+
+  /** Pokal-Titel/Icon nur bei echten Punkten und gültigem Einzel-Rang (> 0). */
+  readonly finishedHeroIsCelebration = computed(() => {
+    if (!this.personalResultLoaded()) return false;
+    const score = this.personalScore() ?? 0;
+    const rank = this.personalRank() ?? 0;
+    return score > 0 && rank > 0;
+  });
+
+  readonly finishedHeroShowsRank = computed(() => {
+    const r = this.personalRank();
+    return this.personalResultLoaded() && r !== null && r > 0;
+  });
+
+  readonly finishedHeroCardMuted = computed(
+    () => this.personalResultLoaded() && !this.finishedHeroIsCelebration(),
+  );
   readonly playerNickname = signal<string | null>(null);
   readonly participantTeam = signal<ParticipantDTO | null>(null);
   readonly sessionTeams = signal<TeamDTO[]>([]);
@@ -251,6 +269,30 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!teamName) return null;
     const team = this.sessionTeams().find((t) => t.name === teamName);
     return team?.color ?? null;
+  });
+
+  readonly isKindergartenQuizNickname = computed(() => {
+    const session = this.sessionSettings();
+    return (
+      session.type === 'QUIZ' &&
+      (session.nicknameTheme ?? 'NOBEL_LAUREATES') === 'KINDERGARTEN' &&
+      session.anonymousMode !== true
+    );
+  });
+
+  readonly playerKindergartenEmoji = computed((): string | null => {
+    if (!this.isKindergartenQuizNickname()) return null;
+    const nick = this.playerNickname()?.trim();
+    return nick ? findKindergartenNicknameEmoji(nick) : null;
+  });
+
+  readonly playerBadgeAriaLabel = computed(() => {
+    const nick = this.playerNickname()?.trim() ?? '';
+    const team = this.playerTeamName()?.trim();
+    if (team) {
+      return `${nick}, ${team}`;
+    }
+    return nick;
   });
 
   /** Story 5.6: Persönliche Scorecard pro Frage */
@@ -296,6 +338,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly isResults = computed(() => this.status() === 'RESULTS');
   readonly isLobby = computed(() => this.status() === 'LOBBY');
   readonly isFinished = computed(() => this.status() === 'FINISHED');
+
+  /**
+   * Kita-Quiz: immer großes Tier-Emoji wie in der Wartelobby — kein kompaktes Badge oben.
+   */
+  readonly showCompactPlayerBadge = computed(() => {
+    if (!this.playerNickname()) return false;
+    if (this.playerKindergartenEmoji()) return false;
+    return true;
+  });
+
+  /**
+   * Emoji für das große Kita-Icon im Live-Quiz (Lobby bis inkl. RESULTS), sonst null.
+   * Abschlussseite (FINISHED) nutzt die eigene Hero-Karte.
+   */
+  readonly kitaIdentityHeroEmoji = computed((): string | null => {
+    if (!this.showPrimaryLiveView() || !this.playerNickname()?.trim() || this.isFinished()) {
+      return null;
+    }
+    return this.playerKindergartenEmoji();
+  });
   readonly liveParticipantCount = computed(() => this.sessionSettings().participantCount ?? 0);
 
   readonly hasAnswers = computed(() => {
@@ -376,6 +438,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
   );
+  /** Höchster Team-Score (ohne Mindestwert); 0 = noch keine Team-Punkte vergeben. */
+  readonly teamLeaderboardTopScore = computed(() => {
+    const board = this.teamLeaderboard();
+    if (board.length === 0) return 0;
+    return Math.max(...board.map((e) => e.totalScore));
+  });
+  readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
   readonly visibleTeamLeaderboard = computed(() => {
     const leaderboard = this.teamLeaderboard();
     const ownEntry = this.ownTeamEntry();
@@ -392,6 +461,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.showTeamRewardCard() &&
       this.sessionSettings().enableRewardEffects === true &&
       this.isPlayfulPreset() &&
+      this.teamScoreboardHasPoints() &&
       this.ownTeamEntry()?.rank === 1,
   );
 
@@ -574,14 +644,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!entry) {
       return '';
     }
+    const anyTeamScored = this.teamScoreboardHasPoints();
     if (this.isFinished()) {
-      return entry.rank === 1
+      return entry.rank === 1 && anyTeamScored
         ? $localize`:@@sessionVote.teamRewardTitleWinFin:Team-Sieg!`
         : $localize`:@@sessionVote.teamRewardTitleFinishedOther:Im Ziel`;
     }
-    return entry.rank === 1
-      ? $localize`:@@sessionVote.teamRewardTitleLeading:Ihr führt gerade`
-      : $localize`:@@sessionVote.teamRewardTitleChasing:Weitermachen`;
+    if (entry.totalScore <= 0) {
+      return anyTeamScored
+        ? $localize`:@@sessionVote.teamRewardTitleChasingZero:Jetzt nachlegen – ihr holt das noch!`
+        : $localize`:@@sessionVote.teamRewardTitleAllZero:Zeigt, was in euch steckt!`;
+    }
+    if (entry.rank === 1 && anyTeamScored) {
+      return $localize`:@@sessionVote.teamRewardTitleLeading:Ihr führt gerade`;
+    }
+    return $localize`:@@sessionVote.teamRewardTitleChasing:Weitermachen`;
   }
 
   teamRewardMessage(): string {
@@ -589,16 +666,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!entry) {
       return '';
     }
+    const anyTeamScored = this.teamScoreboardHasPoints();
     if (this.isFinished()) {
-      if (entry.rank === 1) {
+      if (entry.rank === 1 && anyTeamScored) {
         return $localize`:@@sessionVote.teamRewardMsgWinFin:Gemeinsam geschafft: ${entry.totalScore}:totalScore: Punkte und Platz 1.`;
+      }
+      if (!anyTeamScored) {
+        return $localize`:@@sessionVote.teamRewardMsgFinishedAllZero:Quiz beendet – es wurden keine Team-Punkte vergeben.`;
+      }
+      if (entry.totalScore <= 0) {
+        return $localize`:@@sessionVote.teamRewardMsgFinishedOwnZero:Quiz beendet – ihr habt keine Team-Punkte gesammelt.`;
       }
       return $localize`:@@sessionVote.teamRewardMsgFinishedOther:Ihr beendet mit ${entry.totalScore}:totalScore: Punkten auf Platz ${entry.rank}:teamRank:.`;
     }
-    if (entry.rank === 1) {
-      if (entry.totalScore === 0) {
-        return $localize`:@@sessionVote.teamRewardMsgLeadingZero:Noch ohne Punkte – trotzdem seid ihr vorn.`;
+    if (entry.totalScore <= 0) {
+      if (!anyTeamScored) {
+        return $localize`:@@sessionVote.teamRewardMsgAllZero:Mit richtigen Antworten sammelt ihr Punkte fürs Team.`;
       }
+      return $localize`:@@sessionVote.teamRewardMsgChasing:Aktuell Platz ${entry.rank}:teamRank: mit ${entry.totalScore}:totalScore: Punkten.`;
+    }
+    if (entry.rank === 1 && anyTeamScored) {
       return $localize`:@@sessionVote.teamRewardMsgLeading:Mit ${entry.totalScore}:totalScore: Punkten führt ihr.`;
     }
     return $localize`:@@sessionVote.teamRewardMsgChasing:Aktuell Platz ${entry.rank}:teamRank: mit ${entry.totalScore}:totalScore: Punkten.`;
@@ -610,12 +697,45 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!ownEntry || !leader || leader.teamName === ownEntry.teamName) {
       return null;
     }
+    if (leader.totalScore <= 0) {
+      return null;
+    }
     return this.isPlayfulPreset()
       ? vpc.voteTeamLeaderHintPlayful(leader.teamName, leader.totalScore)
       : vpc.voteTeamLeaderHintSerious(leader.teamName, leader.totalScore);
   }
 
+  finishedHeroTitle(): string {
+    const playful = this.isPlayfulPreset();
+    if (!this.personalResultLoaded()) {
+      return playful
+        ? $localize`:@@sessionVote.finishedTitlePlayfulLoading:Ergebnis wird geladen…`
+        : vpc.voteFinishedHeroTitle(false);
+    }
+    if (!this.finishedHeroIsCelebration()) {
+      return playful
+        ? $localize`:@@sessionVote.finishedTitlePlayfulNeutral:Das war's – danke fürs Mitmachen!`
+        : vpc.voteFinishedHeroTitle(false);
+    }
+    return vpc.voteFinishedHeroTitle(playful);
+  }
+
+  finishedHeroMatIcon(): string {
+    if (!this.personalResultLoaded()) {
+      return 'hourglass_top';
+    }
+    return this.finishedHeroIsCelebration() ? 'emoji_events' : 'task_alt';
+  }
+
+  /** Sichtbarer Team-Rang (#n) oder Gedankenstrich, solange die Wertung noch ohne Punkte ist. */
+  teamRewardRankDisplay(rank: number): string {
+    return this.teamScoreboardHasPoints() ? `#${rank}` : '\u2014';
+  }
+
   teamStandingAriaLabel(entry: TeamLeaderboardEntryDTO): string {
+    if (!this.teamScoreboardHasPoints()) {
+      return $localize`:@@sessionVote.teamStandingNoRank:${entry.teamName}:teamName: mit ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
+    }
     return $localize`Platz ${entry.rank}:teamRank:: ${entry.teamName}:teamName: mit ${entry.totalScore}:totalScore: Punkten`;
   }
 
@@ -1036,7 +1156,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     if (!participantId && this.code) {
       try {
-        const autoNickname = `Teilnehmer #${Math.floor(Math.random() * 9000) + 1000}`;
+        const autoNickname = `Teilnehmende #${Math.floor(Math.random() * 9000) + 1000}`;
         const join = await trpc.session.join.mutate({
           code: this.code,
           nickname: autoNickname,

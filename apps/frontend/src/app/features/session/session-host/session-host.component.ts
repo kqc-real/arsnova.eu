@@ -70,6 +70,7 @@ import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
+import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 
 const ANSWER_COLORS = [
   '#1565c0',
@@ -249,7 +250,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly feedbackSummary = signal<SessionFeedbackSummary | null>(null);
   /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
   readonly currentQuestionForHost = signal<HostCurrentQuestionDTO | null>(null);
-  /** Emoji-Reaktionen der Teilnehmer in der Ergebnis-Phase (Story 5.8). */
+  /** Emoji-Reaktionen der Teilnehmenden in der Ergebnis-Phase (Story 5.8). */
   readonly emojiReactions = signal<{ reactions: Record<string, number>; total: number } | null>(
     null,
   );
@@ -283,6 +284,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
   );
+  readonly teamLeaderboardTopScore = computed(() => {
+    const board = this.teamLeaderboard();
+    if (board.length === 0) return 0;
+    return Math.max(...board.map((e) => e.totalScore));
+  });
+  readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
   readonly channels = computed(() => {
     const session = this.session();
     return {
@@ -1175,11 +1182,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** i18n: Singular label for participant count. */
   participantLabelSingular(): string {
-    return $localize`Teilnehmer`;
+    return $localize`:@@sessionHost.participantCountOne:Teilnehmende`;
   }
   /** i18n: Plural label for participant count. */
   participantLabelPlural(): string {
-    return $localize`Teilnehmende`;
+    return $localize`:@@sessionHost.participantCountMany:Teilnehmende`;
   }
 
   teamMemberLabel(count: number): string {
@@ -1188,6 +1195,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   lobbyTeamEmptyLabel(): string {
     return $localize`Noch niemand in diesem Team.`;
+  }
+
+  /** Kindergarten-Preset: großes Tier-Emoji vor dem gespeicherten Nickname (Lobby). */
+  lobbyKindergartenEmoji(nickname: string): string | null {
+    const s = this.session();
+    if (!s || s.nicknameTheme !== 'KINDERGARTEN' || s.anonymousMode === true) {
+      return null;
+    }
+    return findKindergartenNicknameEmoji(nickname);
   }
 
   /** i18n: Feedback rating count (singular). */
@@ -1274,6 +1290,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const max = this.teamLeaderboardMaxScore();
     const percentage = max <= 0 ? 0 : Math.max(10, Math.round((totalScore / max) * 100));
     return `${percentage}%`;
+  }
+
+  /** #n nur wenn die Team-Wertung Punkte hat; sonst Gedankenstrich (kein fiktiver Rang bei 0). */
+  teamLeaderboardRankDisplay(rank: number): string {
+    return this.teamScoreboardHasPoints() ? `#${rank}` : '\u2014';
   }
 
   private async refreshLobbyTeams(): Promise<void> {
@@ -1966,7 +1987,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.exportExporting.set(true);
     try {
       const data = await trpc.session.getExportData.query({ sessionId: sid });
-      const rows: string[] = [$localize`Frage Nr.;Fragentext;Typ;Teilnehmer;Ø Punkte;Details`];
+      const rows: string[] = [$localize`Frage Nr.;Fragentext;Typ;Teilnehmende;Ø Punkte;Details`];
 
       for (const q of data.questions) {
         let details = '';

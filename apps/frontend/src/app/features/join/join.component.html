@@ -115,21 +115,57 @@
 
         @if (showNicknameList()) {
           <div class="join-card__nickname-group">
-            <mat-form-field appearance="outline" class="join-card__field">
+            <mat-form-field
+              appearance="outline"
+              class="join-card__field"
+              [class.join-card__field--kindergarten-nick]="isKindergartenNicknameTheme()"
+            >
+              @if (isKindergartenNicknameTheme()) {
+                <mat-label i18n="@@join.nicknameSelectLabelKita">Kita</mat-label>
+              } @else {
+                <mat-label i18n="@@join.nicknameSelectLabelFromList">Name aus Liste</mat-label>
+              }
               <mat-select
                 [value]="selectedNickname()"
                 (valueChange)="selectedNickname.set($event)"
-                i18n-placeholder
-                placeholder="Namen auswählen"
+                [panelClass]="nicknameSelectPanelClass()"
               >
+                <mat-select-trigger>
+                  @if (selectedNickname()) {
+                    @if (isKindergartenNicknameTheme()) {
+                      @if (kindergartenEmojiForSelected(); as em) {
+                        <span
+                          class="join-card__nick-emoji join-card__nick-emoji--trigger-only"
+                          aria-hidden="true"
+                          >{{ em }}</span
+                        >
+                      }
+                    } @else {
+                      <span>{{ selectedNickname() }}</span>
+                    }
+                  }
+                </mat-select-trigger>
                 <mat-option value="" i18n>— Bitte wählen —</mat-option>
-                @for (opt of nicknameOptions(); track opt) {
+                @for (opt of nicknameOptions(); track opt; let idx = $index) {
                   <mat-option
                     [value]="opt"
                     [disabled]="isTaken(opt)"
                     [class.join-card__option--taken]="isTaken(opt)"
+                    [attr.aria-label]="nicknameOptionAriaLabel(opt, idx)"
                   >
-                    {{ opt }}{{ isTaken(opt) ? ' ' + takenSuffix() : '' }}
+                    @if (isKindergartenNicknameTheme()) {
+                      <span
+                        class="join-card__nick-emoji join-card__nick-emoji--option-only"
+                        aria-hidden="true"
+                        >{{ kindergartenEmojiForOptionIndex(idx) }}</span
+                      >
+                    } @else {
+                      <span class="join-card__nick-option">
+                        <span class="join-card__nick-option-text"
+                          >{{ opt }}{{ isTaken(opt) ? ' ' + takenSuffix() : '' }}</span
+                        >
+                      </span>
+                    }
                   </mat-option>
                 }
               </mat-select>

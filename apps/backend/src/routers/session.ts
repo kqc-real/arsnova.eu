@@ -48,6 +48,7 @@ import {
   SendEmojiReactionInputSchema,
   EMOJI_REACTIONS,
   DEFAULT_TEAM_COUNT,
+  NicknameThemeEnum,
 } from '@arsnova/shared-types';
 import { questionCountsTowardsTotalQuestions, questionAffectsStreak } from '../lib/quizScoring';
 
@@ -418,7 +419,7 @@ async function generateBonusTokens(session: {
     token: generateBonusCode(),
     sessionId: session.id,
     participantId: entry.pid,
-    nickname: nicknameById.get(entry.pid) ?? `Teilnehmer #${i + 1}`,
+    nickname: nicknameById.get(entry.pid) ?? `Teilnehmende #${i + 1}`,
     quizName: session.quiz!.name,
     totalScore: entry.totalScore,
     rank: i + 1,
@@ -541,35 +542,38 @@ export const sessionRouter = router({
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
         include: {
-          quiz: {
-            select: {
-              name: true,
-              nicknameTheme: true,
-              allowCustomNicknames: true,
-              anonymousMode: true,
-              showLeaderboard: true,
-              enableSoundEffects: true,
-              enableRewardEffects: true,
-              enableMotivationMessages: true,
-              enableEmojiReactions: true,
-              readingPhaseEnabled: true,
-              defaultTimer: true,
-              backgroundMusic: true,
-              teamMode: true,
-              teamCount: true,
-              teamAssignment: true,
-              bonusTokenCount: true,
-              preset: true,
-              motifImageUrl: true,
-            },
-          },
           _count: { select: { participants: true } },
         },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      const q = session.quiz;
+      const q =
+        session.quizId !== null
+          ? await prisma.quiz.findUnique({
+              where: { id: session.quizId },
+              select: {
+                name: true,
+                nicknameTheme: true,
+                allowCustomNicknames: true,
+                anonymousMode: true,
+                showLeaderboard: true,
+                enableSoundEffects: true,
+                enableRewardEffects: true,
+                enableMotivationMessages: true,
+                enableEmojiReactions: true,
+                readingPhaseEnabled: true,
+                defaultTimer: true,
+                backgroundMusic: true,
+                teamMode: true,
+                teamCount: true,
+                teamAssignment: true,
+                bonusTokenCount: true,
+                preset: true,
+                motifImageUrl: true,
+              },
+            })
+          : null;
       const serverTime = new Date().toISOString();
       return {
         id: session.id,
@@ -583,7 +587,10 @@ export const sessionRouter = router({
         channels: buildSessionChannels(session),
         participantCount: session._count.participants,
         ...(q && {
-          nicknameTheme: q.nicknameTheme ?? 'NOBEL_LAUREATES',
+          nicknameTheme: (() => {
+            const nt = NicknameThemeEnum.safeParse(q.nicknameTheme);
+            return nt.success ? nt.data : 'NOBEL_LAUREATES';
+          })(),
           allowCustomNicknames: q.allowCustomNicknames,
           anonymousMode: q.anonymousMode,
           showLeaderboard: q.showLeaderboard,

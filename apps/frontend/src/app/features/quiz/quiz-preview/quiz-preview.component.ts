@@ -22,7 +22,7 @@ import {
   type Difficulty,
 } from '@arsnova/shared-types';
 import { firstValueFrom } from 'rxjs';
-import { ThemePresetService } from '../../../core/theme-preset.service';
+import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import { trpc } from '../../../core/trpc.client';
 import {
   DEMO_QUIZ_ID,
@@ -35,8 +35,6 @@ import { LiveSessionDialogComponent } from '../quiz-list/live-session-dialog.com
 import { localizeCommands } from '../../../core/locale-router';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
-
-const PRESET_OPTIONS_STORAGE_PREFIX = 'home-preset-options-';
 
 /**
  * Quiz-Preview & Schnellkorrektur (Epic 1).
@@ -55,7 +53,6 @@ export class QuizPreviewComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly quizStore = inject(QuizStoreService);
-  private readonly themePreset = inject(ThemePresetService);
   private readonly dialog = inject(MatDialog);
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
   private animationTimer: ReturnType<typeof setTimeout> | null = null;
@@ -548,7 +545,7 @@ export class QuizPreviewComponent implements OnDestroy {
 
       if (options.includeQuiz) {
         let payload = this.quizStore.getUploadPayload(this.id);
-        const presetKey = PRESET_OPTIONS_STORAGE_PREFIX + this.themePreset.preset();
+        const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
         try {
           const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
           const parsed = raw ? (JSON.parse(raw) as unknown) : null;
@@ -558,13 +555,10 @@ export class QuizPreviewComponent implements OnDestroy {
             /** Wie quiz-list: fehlender Chip = Quiz-Wert behalten, nicht false. */
             const optionEnabled = (id: string, fallback: boolean) =>
               id in storedOptions ? storedOptions[id] === true : fallback;
-            const nameMode = entry.data.nameMode;
             const effectiveTeamMode = optionEnabled('teamMode', false) || payload.teamMode;
             payload = {
               ...payload,
-              nicknameTheme: entry.data.nicknameThemeValue,
-              allowCustomNicknames: nameMode === 'allowCustomNicknames',
-              anonymousMode: nameMode === 'anonymousMode',
+              // Namensliste / Anonymität: immer aus dem Quiz (Snackbar-Preset überschreibt das nicht).
               showLeaderboard: optionEnabled('showLeaderboard', payload.showLeaderboard),
               enableRewardEffects: optionEnabled(
                 'enableRewardEffects',

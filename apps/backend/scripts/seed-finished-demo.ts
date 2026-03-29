@@ -198,7 +198,7 @@ async function main(): Promise<void> {
         token: generateBonusCode(),
         sessionId: session.id,
         participantId: pid,
-        nickname: nicknameById.get(pid) ?? `Teilnehmer #${i + 1}`,
+        nickname: nicknameById.get(pid) ?? `Teilnehmende #${i + 1}`,
         quizName: quiz.name,
         totalScore,
         rank: i + 1,
@@ -229,7 +229,7 @@ async function main(): Promise<void> {
   console.log('  Host-Ansicht:  /session/' + SESSION_CODE + '/host');
   console.log('  Join-URL:      /join (Code ' + SESSION_CODE + ' eingeben)');
   console.log(
-    '  Teilnehmer:    ' + participants.length + ', Top ' + BONUS_TOKEN_TOP + ' mit Bonus-Code.',
+    '  Teilnehmende:    ' + participants.length + ', Top ' + BONUS_TOKEN_TOP + ' mit Bonus-Code.',
   );
   console.log('');
 }

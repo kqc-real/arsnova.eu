@@ -520,6 +520,13 @@ html.preset-playful {
       inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 10%, transparent);
   }
 
+  /* Kita-Tier-Emoji: ohne Kartenhintergrund, nur freistehendes Symbol + Text. */
+  .vote-page .vote-player-badge--kindergarten {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
   .vote-page .vote-countdown:not(.vote-countdown--urgent) {
     border: 2px solid color-mix(in srgb, var(--mat-sys-primary) 38%, var(--mat-sys-outline-variant));
     box-shadow:

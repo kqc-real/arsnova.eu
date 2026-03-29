@@ -66,6 +66,35 @@ describe('quiz.upload (Story 2.1a)', () => {
     expect(createCall.data.motifImageUrl).toBeNull();
   });
 
+  it('speichert nicknameTheme KINDERGARTEN', async () => {
+    const input = {
+      name: 'Kita',
+      showLeaderboard: true,
+      allowCustomNicknames: false,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'KINDERGARTEN' as const,
+      questions: [
+        {
+          text: 'Frage',
+          type: 'SINGLE_CHOICE' as const,
+          difficulty: 'MEDIUM' as const,
+          order: 0,
+          answers: [{ text: 'A', isCorrect: true }],
+        },
+      ],
+    };
+
+    await caller.upload(input);
+
+    expect(prismaMock.quiz.create.mock.calls[0]![0].data.nicknameTheme).toBe('KINDERGARTEN');
+  });
+
   it('speichert motifImageUrl (HTTPS)', async () => {
     const input = {
       name: 'Mit Motiv',

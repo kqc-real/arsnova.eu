@@ -383,7 +383,18 @@
                       @if (!s.anonymousMode && team.participants.length > 0) {
                         <ul class="session-lobby__team-members" role="list">
                           @for (nickname of team.participants; track nickname) {
-                            <li class="session-lobby__team-member">{{ nickname }}</li>
+                            <li class="session-lobby__team-member">
+                              @if (lobbyKindergartenEmoji(nickname); as em) {
+                                <span
+                                  class="session-lobby__nick-emoji session-lobby__nick-emoji--host-lobby"
+                                  aria-hidden="true"
+                                  >{{ em }}</span
+                                >
+                                <span class="sr-only">{{ nickname }}</span>
+                              } @else {
+                                <span>{{ nickname }}</span>
+                              }
+                            </li>
                           }
                         </ul>
                       } @else if (!s.anonymousMode) {
@@ -397,7 +408,18 @@
             @if (!s.teamMode && !s.anonymousMode && payload && payload.participants.length > 0) {
               <ul class="session-lobby__list" role="list" i18n-aria-label aria-label="Teilnehmende">
                 @for (p of payload.participants; track p.id) {
-                  <li class="session-lobby__list-item">{{ p.nickname }}</li>
+                  <li class="session-lobby__list-item">
+                    @if (lobbyKindergartenEmoji(p.nickname); as em) {
+                      <span
+                        class="session-lobby__nick-emoji session-lobby__nick-emoji--host-lobby"
+                        aria-hidden="true"
+                        >{{ em }}</span
+                      >
+                      <span class="sr-only">{{ p.nickname }}</span>
+                    } @else {
+                      <span>{{ p.nickname }}</span>
+                    }
+                  </li>
                 }
               </ul>
             }
@@ -476,7 +498,18 @@
                           <span aria-hidden="true">🏆</span>
                           <span i18n="@@sessionHost.leaderboardWinnerLabel">Vorn liegt</span>
                         </p>
-                        <p class="session-host__leaderboard-winner-name">{{ leader.nickname }}</p>
+                        <p class="session-host__leaderboard-winner-name">
+                          @if (lobbyKindergartenEmoji(leader.nickname); as em) {
+                            <span
+                              class="session-host__kindergarten-emoji session-host__kindergarten-emoji--winner"
+                              aria-hidden="true"
+                              >{{ em }}</span
+                            >
+                            <span class="sr-only">{{ leader.nickname }}</span>
+                          } @else {
+                            {{ leader.nickname }}
+                          }
+                        </p>
                         <p
                           class="session-host__leaderboard-winner-meta"
                           i18n="@@sessionHost.leaderboardWinnerMeta"
@@ -515,7 +548,18 @@
                                   {{ entry.rank }}
                                 }
                               </td>
-                              <td class="session-host__lb-col--name">{{ entry.nickname }}</td>
+                              <td class="session-host__lb-col--name">
+                                @if (lobbyKindergartenEmoji(entry.nickname); as em) {
+                                  <span
+                                    class="session-host__kindergarten-emoji session-host__kindergarten-emoji--table"
+                                    aria-hidden="true"
+                                    >{{ em }}</span
+                                  >
+                                  <span class="sr-only">{{ entry.nickname }}</span>
+                                } @else {
+                                  {{ entry.nickname }}
+                                }
+                              </td>
                               <td class="session-host__lb-col--score">
                                 {{ entry.totalScore | number }}
                               </td>
@@ -543,10 +587,16 @@
                       @for (entry of teamLeaderboard(); track entry.rank) {
                         <li
                           class="session-host__team-bar-item"
-                          [class.session-host__team-bar-item--top3]="entry.rank <= 3"
+                          [class.session-host__team-bar-item--top3]="
+                            teamScoreboardHasPoints() && entry.rank <= 3
+                          "
                         >
                           <div class="session-host__team-bar-head">
-                            <span class="session-host__team-bar-rank">#{{ entry.rank }}</span>
+                            <span
+                              class="session-host__team-bar-rank"
+                              [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
+                              >{{ teamLeaderboardRankDisplay(entry.rank) }}</span
+                            >
                             <span class="session-host__team-bar-name">
                               <span
                                 class="session-host__team-bar-dot"
@@ -555,7 +605,7 @@
                               {{ entry.teamName }}
                             </span>
                             <span class="session-host__team-bar-meta">
-                              {{ entry.memberCount }} <span i18n>Mitglieder</span> ·
+                              {{ teamMemberLabel(entry.memberCount) }} ·
                               {{ entry.totalScore | number }}
                             </span>
                           </div>
@@ -576,7 +626,7 @@
                   <section class="session-host__feedback-card" aria-labelledby="feedback-heading">
                     <h2 class="session-host__feedback-summary-title" id="feedback-heading">
                       <mat-icon aria-hidden="true">rate_review</mat-icon>
-                      <span i18n>Feedback der Teilnehmer</span>
+                      <span i18n>Feedback der Teilnehmenden</span>
                     </h2>
                     <div class="session-host__feedback-hero">
                       <span class="session-host__feedback-hero-label" i18n>Gesamtbewertung</span>
@@ -1170,7 +1220,9 @@
                 >
                   <p class="session-host__emoji-reactions-title" id="emoji-reactions-heading">
                     <mat-icon aria-hidden="true">emoji_emotions</mat-icon>
-                    <span i18n>Reaktionen der Teilnehmer</span>
+                    <span i18n="@@sessionHost.emojiReactionsTitle"
+                      >Reaktionen der Teilnehmenden</span
+                    >
                     @if (emojiNewCount() > 0) {
                       <span
                         class="session-host__emoji-new-badge"
@@ -1224,7 +1276,18 @@
                             {{ entry.rank }}.
                           }
                         </span>
-                        <span class="session-host__interim-name">{{ entry.nickname }}</span>
+                        <span class="session-host__interim-name">
+                          @if (lobbyKindergartenEmoji(entry.nickname); as em) {
+                            <span
+                              class="session-host__kindergarten-emoji session-host__kindergarten-emoji--interim"
+                              aria-hidden="true"
+                              >{{ em }}</span
+                            >
+                            <span class="sr-only">{{ entry.nickname }}</span>
+                          } @else {
+                            {{ entry.nickname }}
+                          }
+                        </span>
                         <span class="session-host__interim-score" i18n
                           >{{ entry.totalScore | number }} Pkt.</span
                         >
@@ -1249,14 +1312,17 @@
                   <ol class="session-host__interim-list" role="list">
                     @for (entry of teamLeaderboard(); track entry.rank) {
                       <li class="session-host__interim-item">
-                        <span class="session-host__interim-rank">
-                          @if (entry.rank === 1) {
+                        <span
+                          class="session-host__interim-rank"
+                          [attr.aria-hidden]="entry.totalScore <= 0 ? 'true' : null"
+                        >
+                          @if (entry.totalScore > 0 && entry.rank === 1) {
                             🥇
-                          } @else if (entry.rank === 2) {
+                          } @else if (entry.totalScore > 0 && entry.rank === 2) {
                             🥈
-                          } @else if (entry.rank === 3) {
+                          } @else if (entry.totalScore > 0 && entry.rank === 3) {
                             🥉
-                          } @else {
+                          } @else if (entry.totalScore > 0) {
                             {{ entry.rank }}.
                           }
                         </span>

@@ -18,6 +18,7 @@ import {
   CreateQuizInputSchema,
   DifficultyEnum,
   MotifImageUrlSchema,
+  NicknameThemeEnum,
   QuizImportSchema,
   QuizExportSchema,
   QuizUploadInputSchema,
@@ -119,6 +120,66 @@ export interface QuizSummary {
   hasBonus: boolean;
   /** Server-Quiz-ID nach letztem quiz.upload (Bonus-Codes in der Sammlung). */
   lastServerQuizId: string | null;
+}
+
+/**
+ * Für Live-Upload: Namensliste aus RAM vs. localStorage zusammenführen.
+ * Wenn genau eine Seite eine „spezielle“ Liste hat (nicht Nobel), gewinnt diese —
+ * auch wenn der andere Stand ein neueres updatedAt hat (typisch: RAM durch Yjs/Tab veraltet, LS noch Kita).
+ */
+function pickNameParticipationSettings(
+  mem: QuizDocument,
+  ls: QuizDocument,
+): Pick<QuizSettings, 'nicknameTheme' | 'allowCustomNicknames' | 'anonymousMode'> {
+  const themeMem = NicknameThemeEnum.safeParse(mem.settings.nicknameTheme).success
+    ? mem.settings.nicknameTheme
+    : ('NOBEL_LAUREATES' as NicknameTheme);
+  const themeLs = NicknameThemeEnum.safeParse(ls.settings.nicknameTheme).success
+    ? ls.settings.nicknameTheme
+    : ('NOBEL_LAUREATES' as NicknameTheme);
+  const memRich = themeMem !== 'NOBEL_LAUREATES';
+  const lsRich = themeLs !== 'NOBEL_LAUREATES';
+  const memT = Date.parse(mem.updatedAt);
+  const lsT = Date.parse(ls.updatedAt);
+
+  if (memRich && !lsRich) {
+    return {
+      nicknameTheme: themeMem,
+      allowCustomNicknames: mem.settings.allowCustomNicknames,
+      anonymousMode: mem.settings.anonymousMode,
+    };
+  }
+  if (!memRich && lsRich) {
+    return {
+      nicknameTheme: themeLs,
+      allowCustomNicknames: ls.settings.allowCustomNicknames,
+      anonymousMode: ls.settings.anonymousMode,
+    };
+  }
+  if (memRich && lsRich && themeMem !== themeLs) {
+    return memT >= lsT
+      ? {
+          nicknameTheme: themeMem,
+          allowCustomNicknames: mem.settings.allowCustomNicknames,
+          anonymousMode: mem.settings.anonymousMode,
+        }
+      : {
+          nicknameTheme: themeLs,
+          allowCustomNicknames: ls.settings.allowCustomNicknames,
+          anonymousMode: ls.settings.anonymousMode,
+        };
+  }
+  return memT >= lsT
+    ? {
+        nicknameTheme: themeMem,
+        allowCustomNicknames: mem.settings.allowCustomNicknames,
+        anonymousMode: mem.settings.anonymousMode,
+      }
+    : {
+        nicknameTheme: themeLs,
+        allowCustomNicknames: ls.settings.allowCustomNicknames,
+        anonymousMode: ls.settings.anonymousMode,
+      };
 }
 
 export interface AddQuizQuestionInput {
@@ -661,12 +722,60 @@ export class QuizStoreService {
     return parsed.data;
   }
 
+  /** Liest ein normalisiertes Quiz aus dem Browser-Spiegel (gleicher Sync-Raum). */
+  private readNormalizedQuizFromLocalStorage(quizId: string): QuizDocument | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    const roomId = this.syncRoomId();
+    if (!roomId) return null;
+    try {
+      const storageKey = this.storageKeyForRoom(roomId);
+      const raw =
+        globalThis.localStorage.getItem(storageKey) ??
+        globalThis.localStorage.getItem(QUIZ_STORAGE_LEGACY_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) return null;
+      const entry = parsed.find(
+        (item) => item && typeof item === 'object' && (item as { id?: string }).id === quizId,
+      );
+      if (!entry || typeof entry !== 'object') return null;
+      return normalizeStoredQuiz(entry);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Baut den effektiven Quiz-Datensatz für Live-Upload: Fragen/Metadaten vom neueren Stand (RAM vs. LS),
+   * Namensliste/Anonymität per pickNameParticipationSettings (Kita gewinnt gegen veraltetes Nobel im RAM).
+   */
+  private composeQuizDocumentForLiveUpload(quizId: string): QuizDocument | null {
+    const memDoc = this.getQuizById(quizId);
+    if (!memDoc) return null;
+    const lsDoc = this.readNormalizedQuizFromLocalStorage(quizId);
+    if (!lsDoc) return memDoc;
+    const memT = Date.parse(memDoc.updatedAt);
+    const lsT = Date.parse(lsDoc.updatedAt);
+    const base =
+      lsT > memT
+        ? { ...lsDoc, settings: { ...lsDoc.settings } }
+        : { ...memDoc, settings: { ...memDoc.settings } };
+    const namePick = pickNameParticipationSettings(memDoc, lsDoc);
+    return {
+      ...base,
+      settings: {
+        ...base.settings,
+        ...namePick,
+      },
+    };
+  }
+
   /**
    * Erzeugt das Upload-Payload für quiz.upload (Story 2.1a – Live schalten).
    * Validiert gegen QuizUploadInputSchema; wirft bei ungültigen Daten.
    */
   getUploadPayload(quizId: string): QuizUploadInput {
-    const document = this.getQuizById(quizId);
+    const document = this.composeQuizDocumentForLiveUpload(quizId);
     if (!document) {
       throw new Error('Quiz nicht gefunden.');
     }
@@ -1691,10 +1800,11 @@ function normalizeStoredQuizSettings(value: unknown): QuizSettings {
           : undefined,
       teamNames: readStringArray(candidate['teamNames']),
       backgroundMusic: readStringOrNull(candidate['backgroundMusic']),
-      nicknameTheme:
-        typeof candidate['nicknameTheme'] === 'string'
-          ? (candidate['nicknameTheme'] as NicknameTheme)
-          : undefined,
+      nicknameTheme: (() => {
+        if (typeof candidate['nicknameTheme'] !== 'string') return undefined;
+        const parsedTheme = NicknameThemeEnum.safeParse(candidate['nicknameTheme']);
+        return parsedTheme.success ? parsedTheme.data : undefined;
+      })(),
       bonusTokenCount: readNumberOrNull(candidate['bonusTokenCount']),
       readingPhaseEnabled: readBoolean(candidate['readingPhaseEnabled']),
       preset:

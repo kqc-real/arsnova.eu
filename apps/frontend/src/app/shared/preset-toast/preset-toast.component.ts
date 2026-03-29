@@ -19,9 +19,8 @@ import {
   type PresetConfigExport,
   type PresetStorageEntry,
 } from '@arsnova/shared-types';
+import { homePresetOptionsStorageKey } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
-
-const PRESET_OPTIONS_STORAGE_PREFIX = 'home-preset-options-';
 const PRESET_UPDATED_EVENT = 'arsnova:preset-updated';
 const HOME_THEME_STORAGE_KEY = 'home-theme';
 const HOME_PRESET_STORAGE_KEY = 'home-preset';
@@ -297,7 +296,7 @@ export class PresetToastComponent implements OnInit {
         nicknameThemeValue: this.nicknameThemeValue(),
         teamCountValue: this.teamCountValue(),
       };
-      const key = PRESET_OPTIONS_STORAGE_PREFIX + this.themePreset.preset();
+      const key = homePresetOptionsStorageKey(this.themePreset.preset());
       localStorage.setItem(key, JSON.stringify(payload));
       globalThis.dispatchEvent(new Event(PRESET_UPDATED_EVENT));
     } catch {
@@ -363,11 +362,11 @@ export class PresetToastComponent implements OnInit {
       }
 
       localStorage.setItem(
-        PRESET_OPTIONS_STORAGE_PREFIX + 'serious',
+        homePresetOptionsStorageKey('serious'),
         JSON.stringify(parsed.data.presets.serious),
       );
       localStorage.setItem(
-        PRESET_OPTIONS_STORAGE_PREFIX + 'spielerisch',
+        homePresetOptionsStorageKey('spielerisch'),
         JSON.stringify(parsed.data.presets.spielerisch),
       );
       localStorage.setItem(HOME_THEME_STORAGE_KEY, parsed.data.theme);
@@ -418,7 +417,7 @@ export class PresetToastComponent implements OnInit {
     let teamCount = DEFAULT_TEAM_COUNT;
 
     try {
-      const key = PRESET_OPTIONS_STORAGE_PREFIX + preset;
+      const key = homePresetOptionsStorageKey(preset);
       const raw = localStorage.getItem(key);
       const parsed = raw ? JSON.parse(raw) : null;
       const parsedEntry = PresetStorageEntrySchema.safeParse(parsed);

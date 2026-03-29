@@ -41,10 +41,16 @@
           @for (entry of teamLeaderboard(); track entry.rank) {
             <li
               class="session-present__team-board-item"
-              [class.session-present__team-board-item--winner]="entry.rank === 1"
+              [class.session-present__team-board-item--winner]="
+                teamScoreboardHasPoints() && entry.rank === 1
+              "
             >
               <div class="session-present__team-board-head">
-                <span class="session-present__team-board-rank">#{{ entry.rank }}</span>
+                <span
+                  class="session-present__team-board-rank"
+                  [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
+                  >{{ teamLeaderboardRankDisplay(entry.rank) }}</span
+                >
                 <span class="session-present__team-board-name">
                   <span
                     class="session-present__team-board-dot"

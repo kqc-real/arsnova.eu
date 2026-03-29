@@ -1496,12 +1496,50 @@
 }
 
 .session-lobby__team-member {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   padding: 0.4rem 0.8rem;
   border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, var(--mat-sys-surface));
   font: var(--mat-sys-body-small);
   font-weight: 500;
   color: var(--mat-sys-on-surface);
+}
+
+.session-lobby__nick-emoji {
+  font-size: 1.45rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+@media (min-width: 600px) {
+  .session-lobby__nick-emoji {
+    font-size: 1.65rem;
+  }
+}
+
+/* Kita: sehr große Symbole in der Host-Lobby (Teamliste / flache Liste). */
+.session-lobby__nick-emoji--host-lobby {
+  font-size: 3.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+@media (min-width: 600px) {
+  .session-lobby__nick-emoji--host-lobby {
+    font-size: 5.25rem;
+  }
+}
+
+.session-lobby__team-member:has(.session-lobby__nick-emoji--host-lobby),
+.session-lobby__list-item:has(.session-lobby__nick-emoji--host-lobby) {
+  padding: 0;
+  padding-block: 0.35rem;
+  min-height: auto;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .session-lobby__team-empty {
@@ -1523,6 +1561,9 @@
 }
 
 .session-lobby__list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   padding: 0.6rem 0;
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface);
@@ -1994,6 +2035,25 @@
   text-wrap: balance;
 }
 
+.session-host__kindergarten-emoji {
+  line-height: 1;
+  display: inline-block;
+}
+
+.session-host__kindergarten-emoji--winner {
+  font-size: clamp(3.25rem, 9vw, 5.5rem);
+}
+
+.session-host__kindergarten-emoji--table {
+  font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+  vertical-align: middle;
+}
+
+.session-host__kindergarten-emoji--interim {
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  vertical-align: middle;
+}
+
 .session-host__leaderboard-winner-meta {
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
@@ -2236,7 +2296,7 @@
 }
 
 // ---------------------------------------------------------------------------
-// Emoji-Reaktionen der Teilnehmer (Story 5.8)
+// Emoji-Reaktionen der Teilnehmenden (Story 5.8)
 // ---------------------------------------------------------------------------
 .session-host__emoji-reactions {
   width: 100%;

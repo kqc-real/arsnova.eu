@@ -1255,7 +1255,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="admin.metaParticipantsLabel" datatype="html">
-        <source>Teilnehmer:</source>
+        <source>Teilnehmende:</source>
         <target>Partecipanti:</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
@@ -3176,6 +3176,22 @@
           <context context-type="linenumber">34,35</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="join.nicknameSelectLabelKita" datatype="html">
+        <source>Kita</source>
+        <target>Scuola dell&apos;infanzia</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.html</context>
+          <context context-type="linenumber">124,126</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="join.nicknameSelectLabelFromList" datatype="html">
+        <source>Name aus Liste</source>
+        <target>Nome dall&apos;elenco</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.html</context>
+          <context context-type="linenumber">126,128</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="1642161175573058778" datatype="html">
         <source>Namen auswählen</source>
         <target>Seleziona nome</target>
@@ -3200,32 +3216,44 @@
           <context context-type="linenumber">147,148</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4390142580215117191" datatype="html">
-        <source>Teilnehmer</source>
+      <trans-unit id="join.participantCountOne" datatype="html">
+        <source>Teilnehmende</source>
         <target>Partecipante</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
-          <context context-type="linenumber">138</context>
+          <context context-type="linenumber">178</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="join.participantCountMany" datatype="html">
+        <source>Teilnehmende</source>
+        <target>partecipanti</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1154</context>
+          <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
+          <context context-type="linenumber">180</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8910738092876515625" datatype="html">
         <source>Teilnehmende</source>
         <target>partecipanti</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
-          <context context-type="linenumber">140</context>
-        </context-group>
-        <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">387,388</context>
+          <context context-type="linenumber">409,410</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.participantCountOne" datatype="html">
+        <source>Teilnehmende</source>
+        <target>Partecipante</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1158</context>
+          <context context-type="linenumber">1179</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.participantCountMany" datatype="html">
+        <source>Teilnehmende</source>
+        <target>partecipanti</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1183</context>
         </context-group>
       </trans-unit>
       <trans-unit id="333141918113055287" datatype="html">
@@ -6543,12 +6571,12 @@
           <context context-type="linenumber">547,548</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6215465524597168467" datatype="html">
-        <source>Feedback der Teilnehmer</source>
-        <target>Feedback dei partecipanti</target>
+      <trans-unit id="5866404944747657974" datatype="html">
+        <source>Feedback der Teilnehmenden</source>
+        <target>Feedback delle persone partecipanti</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">568,569</context>
+          <context context-type="linenumber">623,624</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1119356355830423969" datatype="html">
@@ -6695,12 +6723,12 @@
           <context context-type="linenumber">1145</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7551442306572220694" datatype="html">
-        <source>Reaktionen der Teilnehmer</source>
-        <target>Reazioni dei partecipanti</target>
+      <trans-unit id="sessionHost.emojiReactionsTitle" datatype="html">
+        <source>Reaktionen der Teilnehmenden</source>
+        <target>Reazioni delle persone partecipanti</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1162,1163</context>
+          <context context-type="linenumber">1217,1218</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.emojiBadgeNew" datatype="html">
@@ -7627,12 +7655,12 @@
           <context context-type="linenumber">1783</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8755717135730514101" datatype="html">
-        <source>Frage Nr.;Fragentext;Typ;Teilnehmer;Ø Punkte;Details</source>
-        <target>N. domanda;Testo domanda;Tipo;Partecipante;Ø Punti;Dettagli</target>
+      <trans-unit id="4853654203361181522" datatype="html">
+        <source>Frage Nr.;Fragentext;Typ;Teilnehmende;Ø Punkte;Details</source>
+        <target>N. domanda;Testo domanda;Tipo;Partecipanti;Ø Punti;Dettagli</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1945</context>
+          <context context-type="linenumber">1979</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1234284807882172595" datatype="html">
@@ -7977,6 +8005,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.finishedTitlePlayfulLoading" datatype="html">
+        <source>Ergebnis wird geladen…</source>
+        <target>Caricamento del risultato…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">720</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.finishedTitlePlayfulNeutral" datatype="html">
+        <source>Das war's – danke fürs Mitmachen!</source>
+        <target>Finito — grazie per aver partecipato!</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">726</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.finishedRankPlayful" datatype="html">
@@ -9323,6 +9367,22 @@
           <context context-type="linenumber">584</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.teamRewardTitleAllZero" datatype="html">
+        <source>Zeigt, was in euch steckt!</source>
+        <target>Mostrate di cosa siete capaci!</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">625</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamRewardTitleChasingZero" datatype="html">
+        <source>Jetzt nachlegen – ihr holt das noch!</source>
+        <target>Recuperate terreno—potete ancora farcela!</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">627</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgWinFin" datatype="html">
         <source>Gemeinsam geschafft: <x id="totalScore" equiv-text="entry.totalScore"/> Punkte und Platz 1.</source>
         <target>Fatto insieme: <x id="totalScore" equiv-text="entry.totalScore"/> punti e 1° posto.</target>
@@ -9339,12 +9399,28 @@
           <context context-type="linenumber">596</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionVote.teamRewardMsgLeadingZero" datatype="html">
-        <source>Noch ohne Punkte – trotzdem seid ihr vorn.</source>
-        <target>Ancora nessun punto, ma sei ancora avanti.</target>
+      <trans-unit id="sessionVote.teamRewardMsgFinishedAllZero" datatype="html">
+        <source>Quiz beendet – es wurden keine Team-Punkte vergeben.</source>
+        <target>Quiz finito: nessun team ha raccolto punti di squadra.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
-          <context context-type="linenumber">600</context>
+          <context context-type="linenumber">662</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamRewardMsgFinishedOwnZero" datatype="html">
+        <source>Quiz beendet – ihr habt keine Team-Punkte gesammelt.</source>
+        <target>Quiz finito: il vostro team non ha raccolto punti di squadra.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">665</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamRewardMsgAllZero" datatype="html">
+        <source>Mit richtigen Antworten sammelt ihr Punkte fürs Team.</source>
+        <target>Le risposte giuste valgono punti per il vostro team.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">648</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgLeading" datatype="html">
@@ -9361,6 +9437,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">604</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamStandingNoRank" datatype="html">
+        <source><x id="teamName" equiv-text="entry.teamName"/> mit <x id="totalScore" equiv-text="entry.totalScore"/> Team-Punkten, noch ohne Rang</source>
+        <target><x id="teamName" equiv-text="entry.teamName"/> con <x id="totalScore" equiv-text="entry.totalScore"/> punti di team — ancora senza classifica</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">670</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2056726732284037224" datatype="html">

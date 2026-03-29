@@ -67,6 +67,22 @@ describe('QuizEditComponent', () => {
     });
   });
 
+  it('synchronisiert nicknameTheme in den Store ohne Einstellungen-Übernehmen', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    mockStore.updateQuizSettings.mockClear();
+    component.settingsForm.controls.nicknameTheme.setValue('KINDERGARTEN');
+    expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({
+        nicknameTheme: 'KINDERGARTEN',
+        allowCustomNicknames: true,
+        anonymousMode: false,
+      }),
+    );
+  });
+
   it('fügt bei gültigen Daten eine Frage hinzu', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

@@ -70,6 +70,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
   );
+  readonly teamLeaderboardTopScore = computed(() => {
+    const board = this.teamLeaderboard();
+    if (board.length === 0) return 0;
+    return Math.max(...board.map((e) => e.totalScore));
+  });
+  readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
   readonly quickFeedbackEntries = computed(() => {
     const data = this.quickFeedbackResult();
     if (!data) {
@@ -118,6 +124,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   teamMemberLabel(count: number): string {
     return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
+  }
+
+  teamLeaderboardRankDisplay(rank: number): string {
+    return this.teamScoreboardHasPoints() ? `#${rank}` : '\u2014';
   }
 
   winningTeamLabel(entry: TeamLeaderboardEntryDTO | null): string | null {

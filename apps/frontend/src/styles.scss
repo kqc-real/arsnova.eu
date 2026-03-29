@@ -409,6 +409,24 @@ html {
 // 4b) Dialog Overlays
 // ---------------------------------------------------------------------------
 
+/* Join: Kindergarten-Nicknamen — Select-Panel im Overlay (höhere Zeilen, große Emoji). */
+.join-nickname-select-panel.mat-mdc-select-panel {
+  min-width: min(22rem, calc(100vw - 2rem)) !important;
+}
+
+.join-nickname-select-panel .mat-mdc-option {
+  min-height: 3.35rem;
+}
+
+.join-nickname-select-panel .mat-mdc-option .mdc-list-item__primary-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  white-space: normal;
+  line-height: 1.3;
+}
+
 .cdk-overlay-backdrop.live-session-dialog-backdrop {
   background: color-mix(in srgb, var(--mat-sys-scrim) 38%, transparent);
   backdrop-filter: blur(8px);

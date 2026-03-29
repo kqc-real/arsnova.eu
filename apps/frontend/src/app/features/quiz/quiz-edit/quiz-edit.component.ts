@@ -8,6 +8,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import {
   AbstractControl,
@@ -28,6 +29,7 @@ import {
   CdkDropList,
 } from '@angular/cdk/drag-drop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { debounceTime, merge } from 'rxjs';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MatCard,
@@ -284,6 +286,17 @@ export class QuizEditComponent implements OnDestroy {
       this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
       this.patchSettingsForm(quiz.settings);
     }
+    merge(
+      this.settingsForm.controls.nicknameTheme.valueChanges,
+      this.settingsForm.controls.allowCustomNicknames.valueChanges,
+      this.settingsForm.controls.anonymousMode.valueChanges,
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.persistNameSettingsFromFormToStore());
+    this.settingsForm.valueChanges.pipe(debounceTime(450), takeUntilDestroyed()).subscribe(() => {
+      if (!this.quiz() || this.settingsForm.invalid) return;
+      this.syncAllSettingsFromFormToStore();
+    });
     this.scheduleLivePreview();
     this.localeGuard.register(
       () => this.form.dirty || this.settingsForm.dirty || this.metadataForm.dirty,
@@ -378,17 +391,21 @@ export class QuizEditComponent implements OnDestroy {
 
   applySettingsPreset(preset: QuizPreset): void {
     const values = QUIZ_PRESETS[preset];
-    this.settingsForm.patchValue({
-      showLeaderboard: values.showLeaderboard ?? true,
-      enableSoundEffects: values.enableSoundEffects ?? true,
-      enableRewardEffects: values.enableRewardEffects ?? true,
-      enableMotivationMessages: values.enableMotivationMessages ?? true,
-      enableEmojiReactions: values.enableEmojiReactions ?? true,
-      anonymousMode: values.anonymousMode ?? false,
-      readingPhaseEnabled: values.readingPhaseEnabled ?? false,
-      defaultTimer: values.defaultTimer ?? null,
-      preset,
-    });
+    this.settingsForm.patchValue(
+      {
+        showLeaderboard: values.showLeaderboard ?? true,
+        enableSoundEffects: values.enableSoundEffects ?? true,
+        enableRewardEffects: values.enableRewardEffects ?? true,
+        enableMotivationMessages: values.enableMotivationMessages ?? true,
+        enableEmojiReactions: values.enableEmojiReactions ?? true,
+        anonymousMode: values.anonymousMode ?? false,
+        readingPhaseEnabled: values.readingPhaseEnabled ?? false,
+        defaultTimer: values.defaultTimer ?? null,
+        preset,
+      },
+      { emitEvent: false },
+    );
+    this.syncAllSettingsFromFormToStore();
   }
 
   hasAnswerOptions(): boolean {
@@ -732,30 +749,57 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   private patchSettingsForm(settings: QuizSettings): void {
-    this.settingsForm.setValue({
-      showLeaderboard: settings.showLeaderboard,
-      allowCustomNicknames: settings.allowCustomNicknames,
-      defaultTimer: settings.defaultTimer,
-      enableSoundEffects: settings.enableSoundEffects,
-      enableRewardEffects: settings.enableRewardEffects,
-      enableMotivationMessages: settings.enableMotivationMessages,
-      enableEmojiReactions: settings.enableEmojiReactions,
-      anonymousMode: settings.anonymousMode,
-      readingPhaseEnabled: settings.readingPhaseEnabled,
-      teamMode: settings.teamMode,
-      teamCount: settings.teamCount ?? DEFAULT_TEAM_COUNT,
-      teamAssignment: settings.teamAssignment,
-      teamNamesText: settings.teamNames.join('\n'),
-      nicknameTheme: settings.nicknameTheme,
-      bonusEnabled:
-        settings.bonusTokenCount !== null &&
-        settings.bonusTokenCount !== undefined &&
-        settings.bonusTokenCount > 0,
-      bonusTokenCount: settings.bonusTokenCount ?? DEFAULT_BONUS_TOKEN_COUNT,
-      preset: settings.preset,
-    });
+    this.settingsForm.setValue(
+      {
+        showLeaderboard: settings.showLeaderboard,
+        allowCustomNicknames: settings.allowCustomNicknames,
+        defaultTimer: settings.defaultTimer,
+        enableSoundEffects: settings.enableSoundEffects,
+        enableRewardEffects: settings.enableRewardEffects,
+        enableMotivationMessages: settings.enableMotivationMessages,
+        enableEmojiReactions: settings.enableEmojiReactions,
+        anonymousMode: settings.anonymousMode,
+        readingPhaseEnabled: settings.readingPhaseEnabled,
+        teamMode: settings.teamMode,
+        teamCount: settings.teamCount ?? DEFAULT_TEAM_COUNT,
+        teamAssignment: settings.teamAssignment,
+        teamNamesText: settings.teamNames.join('\n'),
+        nicknameTheme: settings.nicknameTheme,
+        bonusEnabled:
+          settings.bonusTokenCount !== null &&
+          settings.bonusTokenCount !== undefined &&
+          settings.bonusTokenCount > 0,
+        bonusTokenCount: settings.bonusTokenCount ?? DEFAULT_BONUS_TOKEN_COUNT,
+        preset: settings.preset,
+      },
+      { emitEvent: false },
+    );
     this.settingsForm.markAsPristine();
     this.settingsForm.markAsUntouched();
+  }
+
+  /** Namensliste / Anonymität: sofort in den Store (Live-Start liest nur den Store, nicht nur das Formular). */
+  private persistNameSettingsFromFormToStore(): void {
+    if (!this.quiz()) return;
+    try {
+      this.quizStore.updateQuizSettings(this.id, {
+        nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
+        allowCustomNicknames: this.settingsForm.controls.allowCustomNicknames.value,
+        anonymousMode: this.settingsForm.controls.anonymousMode.value,
+      });
+    } catch {
+      /* z. B. Demo-Quiz gesperrt */
+    }
+  }
+
+  /** Nach Preset-Chips: gesamte Einstellungen wie bei „Übernehmen“ in den Store. */
+  private syncAllSettingsFromFormToStore(): void {
+    if (!this.quiz()) return;
+    try {
+      this.quizStore.updateQuizSettings(this.id, this.readSettingsFromForm());
+    } catch {
+      /* ungültige Team-/Bonus-Kombination — Nutzer kann „Übernehmen“ nutzen */
+    }
   }
 
   private readSettingsFromForm(): QuizSettings {

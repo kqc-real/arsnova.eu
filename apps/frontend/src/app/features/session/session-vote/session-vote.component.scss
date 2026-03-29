@@ -43,6 +43,56 @@
   font-weight: 500;
 }
 
+.vote-player-badge__kita-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.vote-player-badge__name--kita {
+  max-width: 9rem;
+}
+
+/* Kita: wie Join (nick-emoji--trigger) – kein Chip, kleines Tier-Icon in einer Textzeile */
+.vote-player-badge--kindergarten {
+  padding: 0;
+  margin: 0 auto 0.65rem;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  font-weight: 500;
+}
+
+.vote-player-badge--kindergarten .vote-player-badge__emoji {
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.vote-player-badge__emoji {
+  font-size: 1.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+@media (min-width: 600px) {
+  .vote-player-badge__emoji {
+    font-size: 2.15rem;
+  }
+
+  .vote-player-badge--kindergarten .vote-player-badge__emoji {
+    font-size: 1.75rem;
+  }
+
+  .vote-player-badge__name--kita {
+    max-width: 11rem;
+  }
+}
+
 .vote-player-badge__sep {
   opacity: 0.4;
   flex-shrink: 0;
@@ -861,12 +911,90 @@
   }
 }
 
+// Kita-Identität über dem Live-Quiz (Lobby + Fragen): wie Wartelobby, ohne Box/Hintergrund
+.vote-kita-hero-host {
+  text-align: center;
+  max-width: 28rem;
+  margin: 0 auto 0.5rem;
+  padding: 0.75rem 1rem 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.vote-kita-hero-host .vote-lobby__kita-hero {
+  margin-bottom: 0;
+}
+
 // Lobby (Einwahlphase)
 .vote-lobby {
   text-align: center;
   padding: 2rem 1rem 3rem;
   max-width: 28rem;
   margin: 0 auto;
+}
+
+.vote-lobby--kindergarten {
+  padding-top: 0.35rem;
+}
+
+.vote-lobby__kita-hero {
+  margin: 0 0 0.25rem;
+}
+
+/* Kita-Lobby: großes Tier-Emoji zentriert (wie ursprünglich), darunter Name · Team – ohne Rahmen */
+.vote-lobby__kita-emoji {
+  display: block;
+  margin: 0 auto;
+  font-size: clamp(4.25rem, 20vw, 8rem);
+  line-height: 1;
+}
+
+.vote-lobby__kita-identity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.45rem;
+  margin: 0.5rem 0 1.1rem;
+  padding: 0 0.75rem;
+  font: var(--mat-sys-title-medium);
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+  line-height: 1.35;
+}
+
+.vote-lobby__kita-nick {
+  min-width: 0;
+  max-width: min(100%, 14rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vote-lobby__kita-team {
+  min-width: 0;
+  max-width: min(100%, 12rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vote-lobby__kita-sep {
+  opacity: 0.42;
+  font-weight: 500;
+}
+
+.vote-lobby__kita-team-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.vote-lobby--kindergarten .vote-lobby__badge {
+  margin-top: 0;
 }
 
 .vote-lobby__badge {
@@ -2170,6 +2298,18 @@
     color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
 }
 
+.vote-finished-hero--muted {
+  background: var(--mat-sys-surface-container-low);
+  border-color: var(--mat-sys-outline-variant);
+  box-shadow: 0 0.35rem 1rem color-mix(in srgb, black 6%, transparent);
+}
+
+.vote-finished-hero--muted .vote-finished-hero__icon {
+  color: var(--mat-sys-on-surface-variant);
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+  box-shadow: none;
+}
+
 .vote-finished-hero__icon {
   display: inline-flex;
   align-items: center;
@@ -2208,6 +2348,14 @@
   border-radius: var(--mat-sys-corner-full, 9999px);
   background: color-mix(in srgb, var(--mat-sys-surface) 90%, var(--mat-sys-surface-container-low));
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-outline-variant));
+}
+
+.vote-finished-hero--muted .vote-finished-hero__stats {
+  border-color: var(--mat-sys-outline-variant);
+}
+
+.vote-finished-hero__stats--solo {
+  padding-inline: 1.75rem;
 }
 
 .vote-finished-hero__stat {
