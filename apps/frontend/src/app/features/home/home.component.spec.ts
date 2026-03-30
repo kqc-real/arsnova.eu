@@ -113,6 +113,22 @@ describe('HomeComponent', () => {
     });
   });
 
+  describe('Session-Code-Segmente (Template)', () => {
+    it('zeigt grünen Haken nur bei gültigem 6-stelligem Code', () => {
+      const fixture = TestBed.createComponent(HomeComponent);
+      const el = fixture.nativeElement as HTMLElement;
+      fixture.detectChanges();
+
+      fixture.componentInstance.sessionCode.set('ABC12');
+      fixture.detectChanges();
+      expect(el.querySelector('.home-code-segment__check')).toBeNull();
+
+      fixture.componentInstance.sessionCode.set('ABC123');
+      fixture.detectChanges();
+      expect(el.querySelector('.home-code-segment__check')).not.toBeNull();
+    });
+  });
+
   describe('onSessionCodeInput', () => {
     it('normalisiert Eingabe zu Großbuchstaben', () => {
       const comp = createComponent();

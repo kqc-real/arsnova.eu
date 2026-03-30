@@ -867,6 +867,11 @@ mat-card-actions.l-stack {
 }
 
 .home-code-segment {
+  position: relative;
+  z-index: 1;
+  /* Volllflächiges transparentes Input liegt darunter; Segmente müssen darüber
+     liegen, damit Erfolgszustand (grüner Rand, Haken) mit der 6. Ziffer sichtbar ist. */
+  pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -883,6 +888,35 @@ mat-card-actions.l-stack {
   transition:
     border-color 0.15s,
     background 0.15s;
+}
+
+.home-code-segment__check {
+  position: absolute;
+  right: 0.1rem;
+  bottom: 0.1rem;
+  width: 0.85rem !important;
+  height: 0.85rem !important;
+  font-size: 0.85rem !important;
+  line-height: 0.85rem !important;
+  color: var(--app-color-success-fg, #4caf50);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes home-segment-check-in {
+    from {
+      opacity: 0;
+      transform: scale(0.65);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .home-code-segment__check {
+    animation: home-segment-check-in 0.22s ease;
+  }
 }
 
 .home-code-segment--active {
@@ -945,6 +979,7 @@ mat-card-actions.l-stack {
 .home-code-segments__input {
   position: absolute;
   inset: 0;
+  z-index: 0;
   opacity: 0;
   width: 100%;
   height: 100%;
@@ -983,6 +1018,15 @@ mat-card-actions.l-stack {
     width: 3rem;
     height: 3.5rem;
     font-size: 1.5rem;
+  }
+
+  .home-code-segment__check {
+    right: 0.12rem;
+    bottom: 0.12rem;
+    width: 0.95rem !important;
+    height: 0.95rem !important;
+    font-size: 0.95rem !important;
+    line-height: 0.95rem !important;
   }
 }
 
@@ -1431,6 +1475,15 @@ mat-card-actions.l-stack {
       height: 4rem;
       font-size: 1.65rem;
       border-radius: var(--mat-sys-corner-large);
+    }
+
+    .home-card--stage-main#participant-entry .home-code-segment__check {
+      right: 0.15rem;
+      bottom: 0.15rem;
+      width: 1.05rem !important;
+      height: 1.05rem !important;
+      font-size: 1.05rem !important;
+      line-height: 1.05rem !important;
     }
 
     .home-card--stage-side .home-card__title {

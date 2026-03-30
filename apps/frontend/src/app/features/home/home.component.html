@@ -145,8 +145,12 @@
                   codeInputFocused() && sessionCode().length === slot
                 "
                 [class.home-code-segment--filled]="sessionCode().length > slot"
-                >{{ sessionCode()[slot] }}</span
               >
+                {{ sessionCode()[slot] }}
+                @if (slot === 5 && isValidSessionCode()) {
+                  <mat-icon class="home-code-segment__check" aria-hidden="true">check</mat-icon>
+                }
+              </span>
             }
             <input
               #sessionCodeInput
