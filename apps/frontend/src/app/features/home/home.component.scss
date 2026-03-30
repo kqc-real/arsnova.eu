@@ -1313,7 +1313,6 @@ mat-card-actions.l-stack {
     }
   }
 
-  /* Gleiche Flächen-Sprache wie .home-spotlight-panel (Session-Code-Bereich) */
   .home-step-trail {
     grid-column: 1 / -1;
     display: flex;
@@ -1322,8 +1321,19 @@ mat-card-actions.l-stack {
     justify-content: center;
     gap: 0.35rem 0.45rem;
     margin: 0.35rem 0 0.1rem;
-    padding: 0.65rem 1rem;
+    padding: 0 0.5rem;
+  }
+
+  /* Pro Chip: gleiche Fläche wie .home-spotlight-panel (Session-Code-Karte) */
+  .home-step-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.65rem;
     border-radius: var(--mat-sys-corner-extra-large);
+    font: var(--mat-sys-label-medium);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--mat-sys-on-surface);
     background: color-mix(
       in srgb,
       var(--mat-sys-surface) 78%,
@@ -1335,29 +1345,12 @@ mat-card-actions.l-stack {
       0 1px 0 color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
   }
 
-  .home-step-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.2rem 0.6rem;
-    border-radius: var(--mat-sys-corner-full);
-    font: var(--mat-sys-label-medium);
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    color: var(--mat-sys-on-surface);
-    background: color-mix(
-      in srgb,
-      var(--mat-sys-surface) 72%,
-      var(--mat-sys-primary-container) 28%
-    );
-    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
-  }
-
   .home-step-trail__arrow {
     font-size: 0.9rem;
     font-weight: 600;
-    color: color-mix(in srgb, var(--mat-sys-primary) 55%, var(--mat-sys-on-surface-variant));
+    color: var(--mat-sys-on-surface-variant);
     line-height: 1;
-    opacity: 0.92;
+    opacity: 0.85;
   }
 
   @media (min-width: 600px) {
@@ -1369,7 +1362,10 @@ mat-card-actions.l-stack {
     .home-step-trail {
       grid-row: 3;
       margin-top: 0.25rem;
-      padding: 0.75rem 1.1rem;
+    }
+
+    .home-step-chip {
+      padding: 0.32rem 0.75rem;
     }
 
     .home-hero-band
@@ -1381,10 +1377,6 @@ mat-card-actions.l-stack {
   }
 
   @media (min-width: 960px) {
-    .home-step-trail {
-      padding: 0.95rem 1.25rem;
-    }
-
     .home-hero-band
       + .home-stage-rotator
       + .home-step-trail
