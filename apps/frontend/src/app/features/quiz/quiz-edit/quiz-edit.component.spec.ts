@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizEditComponent } from './quiz-edit.component';
 import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service';
@@ -37,6 +39,12 @@ describe('QuizEditComponent', () => {
     questions: [],
   };
 
+  const matDialogMock = {
+    open: vi.fn(() => ({
+      afterClosed: () => of(true),
+    })),
+  };
+
   const mockStore = {
     getQuizById: vi.fn((id: string) => (id === QUIZ_ID ? quiz : null)),
     addQuestion: vi.fn(),
@@ -50,6 +58,10 @@ describe('QuizEditComponent', () => {
   beforeEach(() => {
     quiz.questions = [];
     vi.clearAllMocks();
+    matDialogMock.open.mockReset();
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of(true),
+    }));
     TestBed.configureTestingModule({
       imports: [QuizEditComponent],
       providers: [
@@ -64,6 +76,7 @@ describe('QuizEditComponent', () => {
           },
         },
         { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: matDialogMock },
       ],
     });
   });
@@ -265,13 +278,103 @@ describe('QuizEditComponent', () => {
     expect(component.isNewQuestionFormPanelExpanded()).toBe(false);
   });
 
-  it('löscht eine vorhandene Frage', () => {
+  it('rendert Markdown und KaTeX in der Fragenkarten-Zusammenfassung', () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: '**Warm-up:** Was ist $2+2$?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        order: 0,
+        enabled: true,
+        answers: [
+          {
+            id: '79b35123-ff7f-4ff8-b8bf-a2ca695f57d4',
+            text: '4',
+            isCorrect: true,
+          },
+          {
+            id: '7f87b192-df9b-45ce-af85-9a44ef0f4b44',
+            text: '5',
+            isCorrect: false,
+          },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const summary = (fixture.nativeElement as HTMLElement).querySelector(
+      '.quiz-edit-question__summary',
+    );
+    expect(summary).toBeTruthy();
+    expect(summary!.innerHTML).toContain('<strong>Warm-up:</strong>');
+    expect(summary!.innerHTML).toContain('katex');
+  });
+
+  it('löscht eine vorhandene Frage nach Bestätigung im Dialog', async () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Test',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        order: 0,
+        enabled: true,
+        answers: [],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
 
     component.deleteQuestion(QUESTION_ID);
 
+    expect(matDialogMock.open).toHaveBeenCalled();
+    await fixture.whenStable();
     expect(mockStore.deleteQuestion).toHaveBeenCalledWith(QUIZ_ID, QUESTION_ID);
+  });
+
+  it('löscht keine Frage, wenn der Dialog abgebrochen wird', async () => {
+    matDialogMock.open.mockImplementationOnce(() => ({
+      afterClosed: () => of(false),
+    }));
+
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Test',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        order: 0,
+        enabled: true,
+        answers: [],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    mockStore.deleteQuestion.mockClear();
+
+    component.deleteQuestion(QUESTION_ID);
+
+    await fixture.whenStable();
+    expect(mockStore.deleteQuestion).not.toHaveBeenCalled();
   });
 
   it('normalisiert bei Single Choice auf genau eine korrekte Antwort', () => {

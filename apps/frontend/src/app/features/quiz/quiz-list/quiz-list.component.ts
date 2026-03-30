@@ -38,6 +38,10 @@ import {
 import { LiveSessionDialogComponent } from './live-session-dialog.component';
 import { BonusCodesDialogComponent } from './bonus-codes-dialog.component';
 import { LastSessionFeedbackDialogComponent } from './last-session-feedback-dialog.component';
+import {
+  ConfirmLeaveDialogComponent,
+  type ConfirmLeaveDialogData,
+} from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 
 /**
  * Quiz-Liste (Epic 1).
@@ -302,19 +306,32 @@ export class QuizListComponent implements OnInit {
       this.actionInfo.set($localize`„${quizName}“ ist gerade live und kann nicht gelöscht werden.`);
       return;
     }
-    const confirmed = globalThis.confirm(
-      $localize`„${quizName}“ wirklich löschen? Das lässt sich nicht rückgängig machen.`,
-    );
-    if (!confirmed) return;
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@quizList.deleteQuizDialogTitle:Quiz löschen?`,
+        message: $localize`:@@quizList.deleteQuizDialogMessage:Das Quiz „${quizName}“ wird aus deiner Sammlung entfernt.`,
+        consequences: [
+          $localize`:@@quiz.deleteIrreversible:Das lässt sich nicht rückgängig machen.`,
+        ],
+        confirmLabel: $localize`:@@quizList.deleteQuizConfirm:Löschen`,
+        cancelLabel: $localize`:@@quizList.deleteQuizCancel:Abbrechen`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      autoFocus: 'dialog',
+    });
 
-    try {
-      this.quizStore.deleteQuiz(quizId);
-      this.actionInfo.set($localize`„${quizName}“ wurde gelöscht.`);
-    } catch (error) {
-      this.actionError.set(
-        error instanceof Error ? error.message : $localize`Löschen fehlgeschlagen.`,
-      );
-    }
+    firstValueFrom(dialogRef.afterClosed()).then((confirmed) => {
+      if (confirmed !== true) return;
+      try {
+        this.quizStore.deleteQuiz(quizId);
+        this.actionInfo.set($localize`„${quizName}“ wurde gelöscht.`);
+      } catch (error) {
+        this.actionError.set(
+          error instanceof Error ? error.message : $localize`Löschen fehlgeschlagen.`,
+        );
+      }
+    });
   }
 
   exportQuiz(quizId: string): void {

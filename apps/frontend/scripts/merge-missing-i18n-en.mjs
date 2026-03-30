@@ -59,7 +59,7 @@ const TARGET_MAP = {
   '3856389466227560114': ' Start import ',
   '4150250960798262494': ' Add your first question above to get started. ',
   '4435703504669117699': 'Settings',
-  '4579210211803634368': ' Markdown and KaTeX are rendered in the preview below. ',
+  'quiz.edit.markdownKatexPreviewHint': 'Below in the preview: Markdown, KaTeX.',
   '4580399730639224598': 'Delete',
   '4611696472883105418': ' You are editing an existing question. Click "Update" to save changes. ',
   'quizSettings.pseudonymParticipation': 'Join with a pseudonym…',

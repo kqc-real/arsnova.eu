@@ -59,7 +59,7 @@ import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util
     MatSelect,
   ],
   templateUrl: './quiz-new.component.html',
-  styleUrl: './quiz-new.component.scss',
+  styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-new.component.scss'],
 })
 export class QuizNewComponent implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);

@@ -29,16 +29,10 @@ import {
   CdkDropList,
 } from '@angular/cdk/drag-drop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { debounceTime, merge } from 'rxjs';
+import { debounceTime, firstValueFrom, merge } from 'rxjs';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import {
-  MatCard,
-  MatCardActions,
-  MatCardContent,
-  MatCardHeader,
-  MatCardSubtitle,
-  MatCardTitle,
-} from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
+import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
@@ -73,6 +67,10 @@ import {
   focusAndScrollElement,
   focusFirstInvalidField,
 } from '../../../shared/focus-invalid-field.util';
+import {
+  ConfirmLeaveDialogComponent,
+  type ConfirmLeaveDialogData,
+} from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 
 type AnswerFormGroup = FormGroup<{
   text: FormControl<string>;
@@ -133,9 +131,6 @@ type QuizMetadataFormGroup = FormGroup<{
     MatCard,
     MatCardActions,
     MatCardContent,
-    MatCardHeader,
-    MatCardSubtitle,
-    MatCardTitle,
     MatCheckbox,
     MatExpansionModule,
     MatError,
@@ -152,7 +147,7 @@ type QuizMetadataFormGroup = FormGroup<{
     CdkDragPlaceholder,
   ],
   templateUrl: './quiz-edit.component.html',
-  styleUrl: './quiz-edit.component.scss',
+  styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-edit.component.scss'],
 })
 export class QuizEditComponent implements OnDestroy {
   private readonly document = inject(DOCUMENT);
@@ -161,6 +156,7 @@ export class QuizEditComponent implements OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly quizStore = inject(QuizStoreService);
   private readonly localeGuard = inject(LocaleSwitchGuardService);
+  private readonly dialog = inject(MatDialog);
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   /** Synchron zu MotifImageUrlSchema / maxlength im Metadaten-Formular. */
@@ -692,11 +688,6 @@ export class QuizEditComponent implements OnDestroy {
     return Array.from({ length: max - min + 1 }, (_, i) => min + i);
   }
 
-  firstLine(text: string): string {
-    const line = text.split('\n').find((l) => l.trim().length > 0) ?? text;
-    return line.replace(/^#{1,6}\s+/, '').trim();
-  }
-
   onQuestionFormPanelOpenedChange(opened: boolean): void {
     this.questionFormPanelOpen.set(opened);
   }
@@ -747,15 +738,40 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   deleteQuestion(questionId: string): void {
-    try {
-      this.quizStore.deleteQuestion(this.id, questionId);
-      if (this.editingQuestionId() === questionId) {
-        this.cancelEditing();
+    const doc = this.quiz();
+    if (!doc) return;
+    const question = doc.questions.find((q) => q.id === questionId);
+    if (!question) return;
+
+    const position = question.order + 1;
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@quiz.edit.deleteQuestionDialogTitle:Frage löschen?`,
+        message: $localize`:@@quiz.edit.deleteQuestionDialogMessage:Frage ${position} wird dauerhaft aus dem Quiz entfernt.`,
+        consequences: [
+          $localize`:@@quiz.deleteIrreversible:Das lässt sich nicht rückgängig machen.`,
+        ],
+        confirmLabel: $localize`:@@quiz.edit.deleteQuestionConfirm:Löschen`,
+        cancelLabel: $localize`:@@quiz.edit.deleteQuestionCancel:Abbrechen`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      autoFocus: 'dialog',
+    });
+
+    firstValueFrom(dialogRef.afterClosed()).then((confirmed) => {
+      if (confirmed !== true) return;
+      try {
+        this.quizStore.deleteQuestion(this.id, questionId);
+        if (this.editingQuestionId() === questionId) {
+          this.cancelEditing();
+        }
+        this.submitError.set(null);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : $localize`Löschen fehlgeschlagen.`;
+        this.submitError.set(message);
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : $localize`Löschen fehlgeschlagen.`;
-      this.submitError.set(message);
-    }
+    });
   }
 
   onQuestionDrop(event: CdkDragDrop<unknown>): void {

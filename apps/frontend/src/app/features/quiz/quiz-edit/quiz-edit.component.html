@@ -2,27 +2,39 @@
   <router-outlet />
 } @else if (quiz(); as quizData) {
   <section class="quiz-edit l-stack l-stack--md">
-    <header class="quiz-edit__page-header">
-      <h1 class="quiz-edit__page-title">
-        @if (quizData.name) {
-          {{ quizData.name }}
-        } @else {
-          <span i18n>Neues Quiz</span>
-        }
-      </h1>
-      @let headerQuestionCount = questions().length;
-      <p class="quiz-edit__page-meta">
-        <span i18n="@@quiz.editHeader.questionCount">{headerQuestionCount, plural,
-          =1 {1 Frage}
-          other {{{ headerQuestionCount }} Fragen}
-        }</span>
-      </p>
+    <header class="quiz-edit__page-head dialog-title-header dialog-title-header--page">
+      <span class="dialog-title-header__icon" aria-hidden="true">
+        <mat-icon>edit_square</mat-icon>
+      </span>
+      <div class="dialog-title-header__copy">
+        <h1 class="dialog-title-header__heading">
+          @if (quizData.name) {
+            {{ quizData.name }}
+          } @else {
+            <span i18n>Neues Quiz</span>
+          }
+        </h1>
+        @let headerQuestionCount = questions().length;
+        <p class="dialog-title-header__sub">
+          <span i18n="@@quiz.editHeader.questionCount">{headerQuestionCount, plural,
+            =1 {1 Frage}
+            other {{{ headerQuestionCount }} Fragen}
+          }</span>
+        </p>
+      </div>
     </header>
 
     <mat-card appearance="outlined" class="quiz-edit__meta-card">
-      <mat-card-header class="quiz-edit__card-header">
-        <mat-card-title class="quiz-edit__card-title" i18n>Titel &amp; Beschreibung</mat-card-title>
-      </mat-card-header>
+      <div class="quiz-edit__meta-card-head dialog-title-header">
+        <span class="dialog-title-header__icon" aria-hidden="true">
+          <mat-icon>article</mat-icon>
+        </span>
+        <div class="dialog-title-header__copy">
+          <h2 class="dialog-title-header__heading" i18n="@@quizEdit.metaCardTitle">
+            Titel &amp; Beschreibung
+          </h2>
+        </div>
+      </div>
       <mat-card-content>
         <form
           #metadataFormElement
@@ -141,12 +153,19 @@
 
     @if (showSettings()) {
       <mat-card appearance="outlined" class="quiz-edit__settings-card">
-        <mat-card-header class="quiz-edit__card-header">
-          <mat-card-title class="quiz-edit__card-title" i18n>Einstellungen</mat-card-title>
-          <mat-card-subtitle class="quiz-edit__card-subtitle" i18n
-            >Gelten für alle Fragen in diesem Quiz</mat-card-subtitle
-          >
-        </mat-card-header>
+        <div class="quiz-edit__settings-card-head dialog-title-header">
+          <span class="dialog-title-header__icon" aria-hidden="true">
+            <mat-icon>tune</mat-icon>
+          </span>
+          <div class="dialog-title-header__copy">
+            <h2 class="dialog-title-header__heading" i18n="@@quizSettings.sectionTitle">
+              Einstellungen
+            </h2>
+            <p class="dialog-title-header__sub" i18n="@@quizSettings.scopeAllQuestions">
+              Gelten für alle Fragen in diesem Quiz
+            </p>
+          </div>
+        </div>
         <mat-card-content>
           <form
             #settingsFormElement
@@ -423,11 +442,20 @@
             (expandedChange)="onQuestionFormPanelOpenedChange($event)"
           >
             <mat-expansion-panel-header>
-              <mat-panel-title class="quiz-edit__form-title">
-                <span i18n>Neue Frage</span>
+              <mat-panel-title class="quiz-edit__new-question-panel-title">
+                <span
+                  class="dialog-title-header__icon quiz-edit__new-question-icon"
+                  aria-hidden="true"
+                >
+                  <mat-icon>playlist_add</mat-icon>
+                </span>
+                <span i18n="@@quiz.edit.newQuestionTitle">Neue Frage</span>
               </mat-panel-title>
             </mat-expansion-panel-header>
-            <p class="quiz-edit__form-subtitle" i18n="@@quiz.edit.questionFormSubtitle">
+            <p
+              class="quiz-edit__form-subtitle dialog-title-header__sub"
+              i18n="@@quiz.edit.questionFormSubtitle"
+            >
               Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX verwenden.
             </p>
             <ng-container *ngTemplateOutlet="questionEditorFormTpl" />
@@ -462,7 +490,9 @@
             aria-label="Fragetext eingeben"
           ></textarea>
           <mat-hint align="end">{{ textControl.value.length }}/2000</mat-hint>
-          <mat-hint i18n> Markdown und KaTeX werden in der Vorschau unten gerendert. </mat-hint>
+          <mat-hint i18n="@@quiz.edit.markdownKatexPreviewHint"
+            >Unten in der Vorschau: Markdown, KaTeX.</mat-hint
+          >
           @if (textControl.hasError('required') && (textControl.touched || submitted())) {
             <mat-error i18n>Gib einen Fragetext ein.</mat-error>
           }
@@ -624,9 +654,16 @@
         }
 
         <mat-card appearance="outlined" class="quiz-edit-form__preview">
-          <mat-card-header class="quiz-edit__card-header">
-            <mat-card-title class="quiz-edit__card-title" i18n>Live-Vorschau</mat-card-title>
-          </mat-card-header>
+          <div class="quiz-edit-form__preview-head dialog-title-header">
+            <span class="dialog-title-header__icon" aria-hidden="true">
+              <mat-icon>visibility</mat-icon>
+            </span>
+            <div class="dialog-title-header__copy">
+              <h3 class="dialog-title-header__heading" i18n="@@quiz.edit.livePreviewCardTitle">
+                Live-Vorschau
+              </h3>
+            </div>
+          </div>
           <mat-card-content class="l-stack l-stack--xs">
             @if (previewKatexError()) {
               <p class="quiz-edit-form__error" role="alert" i18n>
@@ -683,11 +720,20 @@
     </ng-template>
 
     <section class="quiz-edit-list l-stack l-stack--md" i18n-aria-label aria-label="Fragenliste">
-      <div class="quiz-edit-list__header">
-        <h2 class="quiz-edit-list__title" i18n>Fragen im Quiz</h2>
-        @if (questionAddedFeedback()) {
-          <span class="quiz-edit-list__feedback" role="status" i18n>Hinzugefügt</span>
-        }
+      <div class="quiz-edit-list__page-head dialog-title-header dialog-title-header--page">
+        <span class="dialog-title-header__icon" aria-hidden="true">
+          <mat-icon>format_list_numbered</mat-icon>
+        </span>
+        <div class="dialog-title-header__copy">
+          <div class="quiz-edit-list__title-row">
+            <h2 class="dialog-title-header__heading" i18n="@@quiz.edit.questionsListTitle">
+              Fragen im Quiz
+            </h2>
+            @if (questionAddedFeedback()) {
+              <span class="quiz-edit-list__feedback" role="status" i18n>Hinzugefügt</span>
+            }
+          </div>
+        </div>
       </div>
 
       @if (questions().length === 0) {
@@ -787,19 +833,26 @@
                           </button>
                         </div>
                       }
-                      <h3
-                        class="quiz-edit-question__inline-editor-title"
-                        i18n="@@quiz.edit.editQuestionTitle"
-                      >
-                        Frage bearbeiten
-                      </h3>
-                      <p
-                        class="quiz-edit-question__inline-editor-subtitle"
-                        i18n="@@quiz.edit.questionFormSubtitle"
-                      >
-                        Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX
-                        verwenden.
-                      </p>
+                      <div class="quiz-edit-question__inline-editor-head dialog-title-header">
+                        <span class="dialog-title-header__icon" aria-hidden="true">
+                          <mat-icon>edit_note</mat-icon>
+                        </span>
+                        <div class="dialog-title-header__copy">
+                          <h3
+                            class="dialog-title-header__heading"
+                            i18n="@@quiz.edit.editQuestionTitle"
+                          >
+                            Frage bearbeiten
+                          </h3>
+                          <p
+                            class="dialog-title-header__sub"
+                            i18n="@@quiz.edit.questionFormSubtitle"
+                          >
+                            Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und
+                            KaTeX verwenden.
+                          </p>
+                        </div>
+                      </div>
                       <ng-container *ngTemplateOutlet="questionEditorFormTpl" />
                     </div>
                   } @else if (isQuestionExpanded(question.id)) {
@@ -895,7 +948,10 @@
                       </button>
                     </div>
                   } @else {
-                    <p class="quiz-edit-question__summary">{{ firstLine(question.text) }}</p>
+                    <div
+                      class="quiz-edit-question__summary"
+                      [innerHTML]="renderMarkdown(question.text)"
+                    ></div>
                     <div class="quiz-edit-question__summary-actions">
                       <button mat-button type="button" (click)="editQuestion(question.id)">
                         <mat-icon>edit</mat-icon>

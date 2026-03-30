@@ -97,7 +97,20 @@
       </div>
 
       @if (showSettings()) {
-        <mat-card appearance="outlined">
+        <mat-card appearance="outlined" class="quiz-form__settings-card">
+          <div class="quiz-form__settings-head dialog-title-header">
+            <span class="dialog-title-header__icon" aria-hidden="true">
+              <mat-icon>tune</mat-icon>
+            </span>
+            <div class="dialog-title-header__copy">
+              <h2 class="dialog-title-header__heading" i18n="@@quizSettings.sectionTitle">
+                Einstellungen
+              </h2>
+              <p class="dialog-title-header__sub" i18n="@@quizSettings.scopeAllQuestions">
+                Gelten für alle Fragen in diesem Quiz
+              </p>
+            </div>
+          </div>
           <mat-card-content class="l-stack l-stack--sm">
             <div class="quiz-form__preset-actions">
               @for (preset of presetOptions; track preset.value) {
