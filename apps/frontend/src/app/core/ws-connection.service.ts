@@ -14,7 +14,8 @@ export class WsConnectionService implements OnDestroy {
   constructor() {
     this.unsubscribe = onWsStateChange((s) => {
       this.state.set(s);
-      this.disconnected.set(s !== 'connected');
+      /** `idle` = tRPC Lazy-Mode ohne offene WS (kein Fehler) — kein Banner. */
+      this.disconnected.set(s === 'reconnecting' || s === 'disconnected');
     });
   }
 

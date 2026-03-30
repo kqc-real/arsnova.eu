@@ -24,10 +24,11 @@ function retryDelayMs(attempt: number): number {
 }
 
 /** Connection state observable for UI feedback (Story 4.3). */
-export type WsConnectionState = 'connected' | 'disconnected' | 'reconnecting';
+export type WsConnectionState = 'connected' | 'disconnected' | 'reconnecting' | 'idle';
 type StateListener = (state: WsConnectionState) => void;
 const stateListeners = new Set<StateListener>();
-let currentWsState: WsConnectionState = isBrowser ? 'disconnected' : 'connected';
+/** Browser + Lazy-WS: tRPC startet in `idle` (noch keine Subscription). */
+let currentWsState: WsConnectionState = isBrowser ? 'idle' : 'connected';
 
 export function getWsConnectionState(): WsConnectionState {
   return currentWsState;
@@ -63,14 +64,30 @@ const wsClient = isBrowser
       retryDelayMs,
       /** Erst bei erster Subscription verbinden – vermeidet Konsolen-Fehler ohne Backend (z. B. Lighthouse). */
       lazy: { enabled: true, closeMs: 60_000 },
-      onOpen() {
-        setWsState('connected');
-      },
-      onClose() {
-        setWsState('reconnecting');
-      },
     })
   : null;
+
+/**
+ * UI-Status aus tRPC `connectionState` ableiten (nicht nur WS onClose):
+ * Nach Lazy-Close ohne Subscriptions bleibt der Client `idle` — kein „Reconnect läuft“.
+ */
+if (wsClient) {
+  wsClient.connectionState.subscribe({
+    next(cs) {
+      if (cs.state === 'idle') {
+        setWsState('idle');
+        return;
+      }
+      if (cs.state === 'pending') {
+        setWsState('connected');
+        return;
+      }
+      if (cs.state === 'connecting') {
+        setWsState(cs.error !== null ? 'reconnecting' : 'disconnected');
+      }
+    },
+  });
+}
 
 /**
  * tRPC-Client für das Angular-Frontend.
