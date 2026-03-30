@@ -14,10 +14,20 @@
       <mat-card appearance="outlined" class="quiz-preview__empty-card">
         <mat-card-content class="quiz-preview__empty-content">
           <mat-icon class="quiz-preview__empty-icon">quiz</mat-icon>
-          <p class="quiz-preview__empty-title" i18n>Keine Fragen vorhanden</p>
-          <p class="quiz-preview__empty-hint" i18n>
-            Füge zuerst Fragen im Editor hinzu, um die Vorschau zu nutzen.
-          </p>
+          @if (quizHasStoredQuestions()) {
+            <p class="quiz-preview__empty-title" i18n="@@quiz.preview.allQuestionsDisabledTitle">
+              Alle Fragen sind deaktiviert
+            </p>
+            <p class="quiz-preview__empty-hint" i18n="@@quiz.preview.allQuestionsDisabledHint">
+              Aktiviere mindestens eine Frage in der Bearbeitung, um die Vorschau und den Live-Start
+              zu nutzen.
+            </p>
+          } @else {
+            <p class="quiz-preview__empty-title" i18n>Keine Fragen vorhanden</p>
+            <p class="quiz-preview__empty-hint" i18n>
+              Füge zuerst Fragen im Editor hinzu, um die Vorschau zu nutzen.
+            </p>
+          }
           <a mat-button [routerLink]="['../']">
             <mat-icon>edit</mat-icon>
             <span i18n>Zum Editor</span>

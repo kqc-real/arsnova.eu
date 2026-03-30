@@ -67,6 +67,7 @@ describe('QuizStoreService', () => {
             type: 'MULTIPLE_CHOICE',
             difficulty: 'MEDIUM',
             order: 0,
+            enabled: true,
             answers: [
               {
                 id: 'ec21ad56-d90e-4a7e-9590-75caebc945dd',
@@ -428,6 +429,60 @@ describe('QuizStoreService', () => {
     expect(imported.name).toBe('Export Quiz');
     expect(imported.questions[0]?.type).toBe('RATING');
     expect(imported.questions[0]?.ratingMax).toBe(10);
+  });
+
+  it('exportiert enabled:false und stellt den Zustand nach Import wieder her', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Enable-Flag' });
+    service.addQuestion(created.id, {
+      text: 'Aus',
+      type: 'FREETEXT',
+      difficulty: 'MEDIUM',
+      answers: [],
+    });
+    service.addQuestion(created.id, {
+      text: 'An',
+      type: 'FREETEXT',
+      difficulty: 'MEDIUM',
+      answers: [],
+    });
+    const doc = service.getQuizById(created.id)!;
+    service.setQuestionEnabled(created.id, doc.questions[0]!.id, false);
+
+    const exported = service.exportQuiz(created.id);
+    const ausExport = exported.quiz.questions.find((q) => q.text === 'Aus');
+    expect(ausExport).toBeTruthy();
+    expect((ausExport as { enabled?: boolean }).enabled).toBe(false);
+
+    const imported = service.importQuiz(exported);
+    const aus = imported.questions.find((q) => q.text === 'Aus');
+    expect(aus?.enabled).toBe(false);
+    const an = imported.questions.find((q) => q.text === 'An');
+    expect(an?.enabled).toBe(true);
+  });
+
+  it('getUploadPayload: deaktivierte Fragen fehlen, Reihenfolge wird neu nummeriert', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Live-Filter' });
+    service.addQuestion(created.id, {
+      text: 'Skip',
+      type: 'FREETEXT',
+      difficulty: 'MEDIUM',
+      answers: [],
+    });
+    service.addQuestion(created.id, {
+      text: 'Keep',
+      type: 'FREETEXT',
+      difficulty: 'MEDIUM',
+      answers: [],
+    });
+    const doc = service.getQuizById(created.id)!;
+    service.setQuestionEnabled(created.id, doc.questions[0]!.id, false);
+
+    const payload = service.getUploadPayload(created.id);
+    expect(payload.questions).toHaveLength(1);
+    expect(payload.questions[0]?.text).toBe('Keep');
+    expect(payload.questions[0]?.order).toBe(0);
   });
 
   it('liefert verständliche Feldpfade bei KI-Import-Validierungsfehlern', () => {

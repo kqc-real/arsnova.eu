@@ -39,6 +39,7 @@ describe('QuizPreviewComponent', () => {
         type: 'RATING',
         difficulty: 'MEDIUM',
         order: 0,
+        enabled: true,
         answers: [],
         ratingMin: 1,
         ratingMax: 5,
@@ -51,6 +52,7 @@ describe('QuizPreviewComponent', () => {
         type: 'SINGLE_CHOICE',
         difficulty: 'EASY',
         order: 1,
+        enabled: true,
         answers: [
           {
             id: 'a1cfb5f1-42a8-4312-9f95-ec7ae4e9be34',
@@ -132,6 +134,7 @@ describe('QuizPreviewComponent', () => {
       type: 'SURVEY',
       difficulty: 'HARD',
       order: 0,
+      enabled: true,
       answers: [
         { id: 's1', text: 'Sehr hilfreich', isCorrect: false },
         { id: 's2', text: 'Teilweise hilfreich', isCorrect: false },

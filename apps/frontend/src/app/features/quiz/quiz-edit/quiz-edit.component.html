@@ -53,7 +53,7 @@
               >
             }
           </mat-form-field>
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" floatLabel="always">
             <mat-label i18n="@@quizForm.motifImageUrlLabel">Motivbild (optional)</mat-label>
             <input
               matInput
@@ -62,14 +62,10 @@
               [maxlength]="motifImageUrlMaxLength"
               autocomplete="off"
               i18n-placeholder="@@quizForm.motifImageUrlPlaceholder"
-              placeholder="https://…"
+              placeholder="Nur HTTPS, z. B. https://…"
               i18n-aria-label="@@quizForm.motifImageUrlAria"
-              aria-label="HTTPS-URL oder Pfad zu einem Motivbild (beginnend mit /)"
+              aria-label="HTTPS-URL zum Motivbild (optional)"
             />
-            <mat-hint i18n="@@quizForm.motifImageUrlHint" align="start"
-              >HTTPS von extern, oder Pfad ab / auf dieser Website (z. B.
-              /assets/demo/bild.svg).</mat-hint
-            >
             <mat-hint align="end"
               >{{ metadataForm.controls.motifImageUrl.value.length }}/{{
                 motifImageUrlMaxLength
@@ -119,14 +115,27 @@
     </mat-card>
 
     <div class="quiz-edit__settings-toggle">
-      <button mat-button type="button" (click)="showSettings.set(!showSettings())">
-        <mat-icon>{{ showSettings() ? 'expand_less' : 'tune' }}</mat-icon>
-        @if (showSettings()) {
+      @if (showSettings()) {
+        <button
+          mat-button
+          type="button"
+          class="quiz-edit__settings-toggle-btn quiz-edit__settings-toggle-btn--secondary"
+          (click)="showSettings.set(false)"
+        >
+          <mat-icon>expand_less</mat-icon>
           <span i18n>Einstellungen ausblenden</span>
-        } @else {
+        </button>
+      } @else {
+        <button
+          matButton="filled"
+          type="button"
+          class="quiz-edit__settings-toggle-btn quiz-edit__settings-toggle-btn--primary"
+          (click)="showSettings.set(true)"
+        >
+          <mat-icon>tune</mat-icon>
           <span i18n>Einstellungen anpassen</span>
-        }
-      </button>
+        </button>
+      }
       <span class="quiz-edit__preset-chip">{{ settingsPresetLabel() }}</span>
     </div>
 
@@ -376,269 +385,273 @@
       </mat-card>
     }
 
-    <mat-card appearance="outlined" class="quiz-edit__form-card">
-      <mat-card-content>
-        <mat-expansion-panel class="quiz-edit__form-expander" [expanded]="false">
-          <mat-expansion-panel-header>
-            <mat-panel-title class="quiz-edit__form-title">
-              @if (isEditing()) {
-                <span i18n>Frage bearbeiten</span>
-              } @else {
-                <span i18n>Neue Frage</span>
-              }
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <p class="quiz-edit__form-subtitle" i18n>
-            Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX verwenden.
-          </p>
-          <form
-            #questionFormElement
-            class="quiz-edit-form l-stack l-stack--sm"
-            [formGroup]="form"
-            (ngSubmit)="addQuestion()"
+    @if (!isEditing()) {
+      <mat-card appearance="outlined" class="quiz-edit__form-card">
+        <mat-card-content>
+          <mat-expansion-panel
+            class="quiz-edit__form-expander"
+            [expanded]="isNewQuestionFormPanelExpanded()"
+            (expandedChange)="onQuestionFormPanelOpenedChange($event)"
           >
-            @if (isEditing()) {
-              <p class="quiz-edit-form__editing-hint" i18n>
-                Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren", um die Änderungen
-                zu speichern.
-              </p>
-            }
+            <mat-expansion-panel-header>
+              <mat-panel-title class="quiz-edit__form-title">
+                <span i18n>Neue Frage</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <p class="quiz-edit__form-subtitle" i18n="@@quiz.edit.questionFormSubtitle">
+              Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX verwenden.
+            </p>
+            <ng-container *ngTemplateOutlet="questionEditorFormTpl" />
+          </mat-expansion-panel>
+        </mat-card-content>
+      </mat-card>
+    }
 
+    <ng-template #questionEditorFormTpl>
+      <form
+        #questionFormElement
+        class="quiz-edit-form l-stack l-stack--sm"
+        [formGroup]="form"
+        (ngSubmit)="addQuestion()"
+      >
+        @if (isEditing()) {
+          <p class="quiz-edit-form__editing-hint" i18n>
+            Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren", um die Änderungen zu
+            speichern.
+          </p>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n>Fragetext</mat-label>
+          <textarea
+            matInput
+            formControlName="text"
+            rows="4"
+            maxlength="2000"
+            (input)="onLivePreviewInput()"
+            i18n-aria-label
+            aria-label="Fragetext eingeben"
+          ></textarea>
+          <mat-hint align="end">{{ textControl.value.length }}/2000</mat-hint>
+          <mat-hint i18n> Markdown und KaTeX werden in der Vorschau unten gerendert. </mat-hint>
+          @if (textControl.hasError('required') && (textControl.touched || submitted())) {
+            <mat-error i18n>Gib einen Fragetext ein.</mat-error>
+          }
+          @if (textControl.hasError('maxlength') && (textControl.touched || submitted())) {
+            <mat-error i18n>Der Fragetext darf maximal 2000 Zeichen lang sein.</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="quiz-edit-form__grid">
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Fragetyp</mat-label>
+            <mat-select
+              formControlName="type"
+              (selectionChange)="onTypeChanged()"
+              i18n-aria-label
+              aria-label="Fragetyp wählen"
+            >
+              @for (option of questionTypeOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (showDifficultySelection()) {
             <mat-form-field appearance="outline">
-              <mat-label i18n>Fragetext</mat-label>
-              <textarea
-                matInput
-                formControlName="text"
-                rows="4"
-                maxlength="2000"
-                (input)="onLivePreviewInput()"
+              <mat-label i18n>Schwierigkeit</mat-label>
+              <mat-select
+                formControlName="difficulty"
                 i18n-aria-label
-                aria-label="Fragetext eingeben"
-              ></textarea>
-              <mat-hint align="end">{{ textControl.value.length }}/2000</mat-hint>
-              <mat-hint i18n> Markdown und KaTeX werden in der Vorschau unten gerendert. </mat-hint>
-              @if (textControl.hasError('required') && (textControl.touched || submitted())) {
-                <mat-error i18n>Gib einen Fragetext ein.</mat-error>
+                aria-label="Schwierigkeit wählen"
+              >
+                @for (option of difficultyOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+        </div>
+
+        @if (isSingleChoiceType()) {
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Schnellformat</mat-label>
+            <mat-select
+              [value]="null"
+              (selectionChange)="applyScFormat($event.value)"
+              i18n-aria-label
+              aria-label="Schnellformat wählen"
+            >
+              @for (format of scFormatOptions; track format.value) {
+                <mat-option [value]="format.value">{{ format.label }}</mat-option>
               }
-              @if (textControl.hasError('maxlength') && (textControl.touched || submitted())) {
-                <mat-error i18n>Der Fragetext darf maximal 2000 Zeichen lang sein.</mat-error>
-              }
+            </mat-select>
+            <mat-hint i18n>Überschreibt vorhandene Antworten.</mat-hint>
+          </mat-form-field>
+        }
+
+        @if (hasRatingConfig()) {
+          <div class="quiz-edit-form__grid">
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Skala</mat-label>
+              <mat-select
+                formControlName="ratingMax"
+                i18n-aria-label
+                aria-label="Bewertungsskala wählen"
+              >
+                <mat-option [value]="5">1 bis 5</mat-option>
+                <mat-option [value]="10">1 bis 10</mat-option>
+              </mat-select>
             </mat-form-field>
 
-            <div class="quiz-edit-form__grid">
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Fragetyp</mat-label>
-                <mat-select
-                  formControlName="type"
-                  (selectionChange)="onTypeChanged()"
-                  i18n-aria-label
-                  aria-label="Fragetyp wählen"
-                >
-                  @for (option of questionTypeOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Label Minimum (optional)</mat-label>
+              <input matInput formControlName="ratingLabelMin" maxlength="50" />
+            </mat-form-field>
+          </div>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Label Maximum (optional)</mat-label>
+            <input matInput formControlName="ratingLabelMax" maxlength="50" />
+          </mat-form-field>
+        }
 
-              @if (showDifficultySelection()) {
-                <mat-form-field appearance="outline">
-                  <mat-label i18n>Schwierigkeit</mat-label>
-                  <mat-select
-                    formControlName="difficulty"
-                    i18n-aria-label
-                    aria-label="Schwierigkeit wählen"
-                  >
-                    @for (option of difficultyOptions; track option.value) {
-                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-              }
-            </div>
-
-            @if (isSingleChoiceType()) {
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Schnellformat</mat-label>
-                <mat-select
-                  [value]="null"
-                  (selectionChange)="applyScFormat($event.value)"
-                  i18n-aria-label
-                  aria-label="Schnellformat wählen"
-                >
-                  @for (format of scFormatOptions; track format.value) {
-                    <mat-option [value]="format.value">{{ format.label }}</mat-option>
-                  }
-                </mat-select>
-                <mat-hint i18n>Überschreibt vorhandene Antworten.</mat-hint>
-              </mat-form-field>
-            }
-
-            @if (hasRatingConfig()) {
-              <div class="quiz-edit-form__grid">
-                <mat-form-field appearance="outline">
-                  <mat-label i18n>Skala</mat-label>
-                  <mat-select
-                    formControlName="ratingMax"
-                    i18n-aria-label
-                    aria-label="Bewertungsskala wählen"
-                  >
-                    <mat-option [value]="5">1 bis 5</mat-option>
-                    <mat-option [value]="10">1 bis 10</mat-option>
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label i18n>Label Minimum (optional)</mat-label>
-                  <input matInput formControlName="ratingLabelMin" maxlength="50" />
-                </mat-form-field>
-              </div>
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Label Maximum (optional)</mat-label>
-                <input matInput formControlName="ratingLabelMax" maxlength="50" />
-              </mat-form-field>
-            }
-
-            @if (hasAnswerOptions()) {
-              <div formArrayName="answers" class="quiz-edit-answers l-stack l-stack--sm">
-                @for (answer of answersArray.controls; track $index; let i = $index) {
-                  <div class="quiz-edit-answer" [formGroupName]="i">
-                    <div class="quiz-edit-answer__selector">
-                      @if (isSingleChoiceType()) {
-                        <button
-                          mat-icon-button
-                          type="button"
-                          (click)="setSingleCorrect(i)"
-                          [attr.aria-label]="'Antwort ' + (i + 1) + ' als richtig markieren'"
-                        >
-                          <mat-icon>
-                            {{
-                              isAnswerCorrect(i) ? 'radio_button_checked' : 'radio_button_unchecked'
-                            }}
-                          </mat-icon>
-                        </button>
-                      } @else if (isMultipleChoiceType()) {
-                        <mat-checkbox
-                          [checked]="isAnswerCorrect(i)"
-                          (change)="toggleMultipleCorrect(i, $event.checked)"
-                          [attr.aria-label]="'Antwort ' + (i + 1) + ' richtig'"
-                        >
-                          Richtig
-                        </mat-checkbox>
-                      } @else {
-                        <span class="quiz-edit-answer__survey-hint" i18n>Option</span>
-                      }
-                    </div>
-
-                    <mat-form-field appearance="outline" class="quiz-edit-answer__field">
-                      <mat-label i18n>Antwort {{ i + 1 }}</mat-label>
-                      <input
-                        matInput
-                        formControlName="text"
-                        maxlength="500"
-                        (input)="onLivePreviewInput()"
-                        aria-label="Antworttext eingeben"
-                      />
-                      <mat-hint align="end">{{ answerTextControl(i).value.length }}/500</mat-hint>
-                      @if (
-                        answerTextControl(i).hasError('required') &&
-                        (answerTextControl(i).touched || submitted())
-                      ) {
-                        <mat-error i18n>Gib einen Antworttext ein.</mat-error>
-                      }
-                      @if (
-                        answerTextControl(i).hasError('maxlength') &&
-                        (answerTextControl(i).touched || submitted())
-                      ) {
-                        <mat-error i18n>Maximal 500 Zeichen.</mat-error>
-                      }
-                    </mat-form-field>
-
+        @if (hasAnswerOptions()) {
+          <div formArrayName="answers" class="quiz-edit-answers l-stack l-stack--sm">
+            @for (answer of answersArray.controls; track $index; let i = $index) {
+              <div class="quiz-edit-answer" [formGroupName]="i">
+                <div class="quiz-edit-answer__selector">
+                  @if (isSingleChoiceType()) {
                     <button
                       mat-icon-button
                       type="button"
-                      class="quiz-edit-answer__remove"
-                      [disabled]="!canRemoveAnswer()"
-                      (click)="removeAnswer(i)"
-                      [attr.aria-label]="'Antwort ' + (i + 1) + ' entfernen'"
+                      (click)="setSingleCorrect(i)"
+                      [attr.aria-label]="'Antwort ' + (i + 1) + ' als richtig markieren'"
                     >
-                      <mat-icon>delete</mat-icon>
+                      <mat-icon>
+                        {{ isAnswerCorrect(i) ? 'radio_button_checked' : 'radio_button_unchecked' }}
+                      </mat-icon>
                     </button>
-                  </div>
-                }
-              </div>
+                  } @else if (isMultipleChoiceType()) {
+                    <mat-checkbox
+                      [checked]="isAnswerCorrect(i)"
+                      (change)="toggleMultipleCorrect(i, $event.checked)"
+                      [attr.aria-label]="'Antwort ' + (i + 1) + ' richtig'"
+                    >
+                      Richtig
+                    </mat-checkbox>
+                  } @else {
+                    <span class="quiz-edit-answer__survey-hint" i18n>Option</span>
+                  }
+                </div>
 
-              <div class="quiz-edit-form__answer-actions">
-                <button mat-button type="button" (click)="addAnswer()" [disabled]="!canAddAnswer()">
-                  <mat-icon>add</mat-icon>
-                  <span i18n>Weitere Antwort</span>
+                <mat-form-field appearance="outline" class="quiz-edit-answer__field">
+                  <mat-label i18n>Antwort {{ i + 1 }}</mat-label>
+                  <input
+                    matInput
+                    formControlName="text"
+                    maxlength="500"
+                    (input)="onLivePreviewInput()"
+                    aria-label="Antworttext eingeben"
+                  />
+                  <mat-hint align="end">{{ answerTextControl(i).value.length }}/500</mat-hint>
+                  @if (
+                    answerTextControl(i).hasError('required') &&
+                    (answerTextControl(i).touched || submitted())
+                  ) {
+                    <mat-error i18n>Gib einen Antworttext ein.</mat-error>
+                  }
+                  @if (
+                    answerTextControl(i).hasError('maxlength') &&
+                    (answerTextControl(i).touched || submitted())
+                  ) {
+                    <mat-error i18n>Maximal 500 Zeichen.</mat-error>
+                  }
+                </mat-form-field>
+
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="quiz-edit-answer__remove"
+                  [disabled]="!canRemoveAnswer()"
+                  (click)="removeAnswer(i)"
+                  [attr.aria-label]="'Antwort ' + (i + 1) + ' entfernen'"
+                >
+                  <mat-icon>delete</mat-icon>
                 </button>
               </div>
-            } @else {
-              <p class="quiz-edit-form__editing-hint" i18n>
-                Hier antworten Teilnehmende frei – keine vorgegebenen Antworten nötig.
+            }
+          </div>
+
+          <div class="quiz-edit-form__answer-actions">
+            <button mat-button type="button" (click)="addAnswer()" [disabled]="!canAddAnswer()">
+              <mat-icon>add</mat-icon>
+              <span i18n>Weitere Antwort</span>
+            </button>
+          </div>
+        } @else {
+          <p class="quiz-edit-form__editing-hint" i18n>
+            Hier antworten Teilnehmende frei – keine vorgegebenen Antworten nötig.
+          </p>
+        }
+
+        <mat-card appearance="outlined" class="quiz-edit-form__preview">
+          <mat-card-header class="quiz-edit__card-header">
+            <mat-card-title class="quiz-edit__card-title" i18n>Live-Vorschau</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="l-stack l-stack--xs">
+            @if (previewKatexError()) {
+              <p class="quiz-edit-form__error" role="alert" i18n>
+                Formelfehler: {{ previewKatexError() }}
               </p>
             }
-
-            <mat-card appearance="outlined" class="quiz-edit-form__preview">
-              <mat-card-header class="quiz-edit__card-header">
-                <mat-card-title class="quiz-edit__card-title" i18n>Live-Vorschau</mat-card-title>
-              </mat-card-header>
-              <mat-card-content class="l-stack l-stack--xs">
-                @if (previewKatexError()) {
-                  <p class="quiz-edit-form__error" role="alert" i18n>
-                    Formelfehler: {{ previewKatexError() }}
-                  </p>
-                }
-                <div class="quiz-edit-form__preview-block">
-                  <p class="quiz-edit-form__preview-label" i18n>Frage</p>
-                  <div
-                    class="quiz-edit-form__preview-content"
-                    [innerHTML]="questionPreviewHtml()"
-                  ></div>
-                </div>
-                @if (answerPreviewHtml().length > 0) {
-                  <div class="quiz-edit-form__preview-block">
-                    <p class="quiz-edit-form__preview-label" i18n>Antworten</p>
-                    <ol class="quiz-edit-form__preview-answers">
-                      @for (answerHtml of answerPreviewHtml(); track $index) {
-                        <li [innerHTML]="answerHtml"></li>
-                      }
-                    </ol>
-                  </div>
-                }
-              </mat-card-content>
-            </mat-card>
-
-            @if (submitError()) {
-              <p class="quiz-edit-form__error" role="alert">{{ submitError() }}</p>
-            }
-
-            <mat-card-actions class="quiz-edit-form__actions">
-              @if (isEditing()) {
-                <button mat-button type="button" (click)="cancelEditing()">
-                  <mat-icon>close</mat-icon>
-                  <span i18n>Abbrechen</span>
-                </button>
-              }
-              <button matButton="filled" type="submit">
-                <mat-icon>
-                  @if (isEditing()) {
-                    save
-                  } @else {
-                    playlist_add
+            <div class="quiz-edit-form__preview-block">
+              <p class="quiz-edit-form__preview-label" i18n>Frage</p>
+              <div
+                class="quiz-edit-form__preview-content"
+                [innerHTML]="questionPreviewHtml()"
+              ></div>
+            </div>
+            @if (answerPreviewHtml().length > 0) {
+              <div class="quiz-edit-form__preview-block">
+                <p class="quiz-edit-form__preview-label" i18n>Antworten</p>
+                <ol class="quiz-edit-form__preview-answers">
+                  @for (answerHtml of answerPreviewHtml(); track $index) {
+                    <li [innerHTML]="answerHtml"></li>
                   }
-                </mat-icon>
-                @if (isEditing()) {
-                  <span i18n>Aktualisieren</span>
-                } @else {
-                  <span i18n>Hinzufügen</span>
-                }
-              </button>
-            </mat-card-actions>
-          </form>
-        </mat-expansion-panel>
-      </mat-card-content>
-    </mat-card>
+                </ol>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        @if (submitError()) {
+          <p class="quiz-edit-form__error" role="alert">{{ submitError() }}</p>
+        }
+
+        <mat-card-actions class="quiz-edit-form__actions">
+          @if (isEditing()) {
+            <button mat-button type="button" (click)="cancelEditing()">
+              <mat-icon>close</mat-icon>
+              <span i18n>Abbrechen</span>
+            </button>
+          }
+          <button matButton="filled" type="submit">
+            <mat-icon>
+              @if (isEditing()) {
+                save
+              } @else {
+                playlist_add
+              }
+            </mat-icon>
+            @if (isEditing()) {
+              <span i18n>Aktualisieren</span>
+            } @else {
+              <span i18n>Hinzufügen</span>
+            }
+          </button>
+        </mat-card-actions>
+      </form>
+    </ng-template>
 
     <section class="quiz-edit-list l-stack l-stack--sm" i18n-aria-label aria-label="Fragenliste">
       <div class="quiz-edit-list__header">
@@ -667,9 +680,11 @@
           @for (question of questions(); track question.id) {
             <mat-card
               cdkDrag
+              [cdkDragDisabled]="editingQuestionId() === question.id"
               appearance="outlined"
               class="quiz-edit-question"
               [class.quiz-edit-question--editing]="editingQuestionId() === question.id"
+              [class.quiz-edit-question--disabled]="question.enabled === false"
             >
               <div class="quiz-edit-question__placeholder" *cdkDragPlaceholder></div>
               <mat-card-content class="quiz-edit-question__content">
@@ -697,23 +712,68 @@
                           {{ difficultyLabel(question.difficulty) }}
                         </span>
                       }
+                      @if (question.enabled === false) {
+                        <span
+                          class="quiz-edit-question__disabled-badge"
+                          i18n="@@quiz.edit.questionDisabledBadge"
+                          >Deaktiviert</span
+                        >
+                      }
                     </p>
-                    <button
-                      class="quiz-edit-question__expand-btn"
-                      type="button"
-                      (click)="toggleQuestionExpanded(question.id)"
-                      [attr.aria-expanded]="isQuestionExpanded(question.id)"
-                      [attr.aria-label]="
-                        isQuestionExpanded(question.id) ? 'Frage zuklappen' : 'Frage aufklappen'
-                      "
-                    >
-                      <mat-icon>{{
-                        isQuestionExpanded(question.id) ? 'expand_less' : 'expand_more'
-                      }}</mat-icon>
-                    </button>
+                    @if (editingQuestionId() !== question.id) {
+                      <button
+                        class="quiz-edit-question__expand-btn"
+                        type="button"
+                        (click)="toggleQuestionExpanded(question.id)"
+                        [attr.aria-expanded]="isQuestionExpanded(question.id)"
+                        [attr.aria-label]="
+                          isQuestionExpanded(question.id) ? 'Frage zuklappen' : 'Frage aufklappen'
+                        "
+                      >
+                        <mat-icon>{{
+                          isQuestionExpanded(question.id) ? 'expand_less' : 'expand_more'
+                        }}</mat-icon>
+                      </button>
+                    }
                   </div>
 
-                  @if (isQuestionExpanded(question.id)) {
+                  @if (editingQuestionId() === question.id) {
+                    <div class="quiz-edit-question__inline-editor">
+                      @if (question.enabled === false) {
+                        <div class="quiz-edit-question__inline-disabled-banner l-stack l-stack--xs">
+                          <p
+                            class="quiz-edit-question__inline-disabled-text"
+                            i18n="@@quiz.edit.inlineDisabledHint"
+                          >
+                            Diese Frage ist deaktiviert und erscheint nicht in der Vorschau und im
+                            Live-Quiz.
+                          </p>
+                          <button
+                            matButton="tonal"
+                            type="button"
+                            (click)="setQuestionEnabledFlag(question.id, true)"
+                          >
+                            <mat-icon>visibility</mat-icon>
+                            <span i18n="@@quiz.edit.activateQuestion">Aktivieren</span>
+                          </button>
+                        </div>
+                      }
+                      <h3
+                        class="quiz-edit-question__inline-editor-title"
+                        i18n="@@quiz.edit.editQuestionTitle"
+                      >
+                        Frage bearbeiten
+                      </h3>
+                      <p
+                        class="quiz-edit-question__inline-editor-subtitle"
+                        i18n="@@quiz.edit.questionFormSubtitle"
+                      >
+                        Wähle einen Fragetyp und füge Antworten hinzu. Du kannst Markdown und KaTeX
+                        verwenden.
+                      </p>
+                      <ng-container *ngTemplateOutlet="questionEditorFormTpl" />
+                    </div>
+                  } @else if (isQuestionExpanded(question.id)) {
                     <div
                       class="quiz-edit-question__text"
                       [innerHTML]="renderMarkdown(question.text)"
@@ -781,6 +841,25 @@
                         <mat-icon>edit</mat-icon>
                         <span i18n>Bearbeiten</span>
                       </button>
+                      @if (question.enabled !== false) {
+                        <button
+                          mat-button
+                          type="button"
+                          (click)="setQuestionEnabledFlag(question.id, false)"
+                        >
+                          <mat-icon>visibility_off</mat-icon>
+                          <span i18n="@@quiz.edit.deactivateQuestion">Deaktivieren</span>
+                        </button>
+                      } @else {
+                        <button
+                          mat-button
+                          type="button"
+                          (click)="setQuestionEnabledFlag(question.id, true)"
+                        >
+                          <mat-icon>visibility</mat-icon>
+                          <span i18n="@@quiz.edit.activateQuestion">Aktivieren</span>
+                        </button>
+                      }
                       <button mat-button type="button" (click)="deleteQuestion(question.id)">
                         <mat-icon>delete</mat-icon>
                         <span i18n>Löschen</span>
@@ -788,6 +867,31 @@
                     </div>
                   } @else {
                     <p class="quiz-edit-question__summary">{{ firstLine(question.text) }}</p>
+                    <div class="quiz-edit-question__summary-actions">
+                      <button mat-button type="button" (click)="editQuestion(question.id)">
+                        <mat-icon>edit</mat-icon>
+                        <span i18n>Bearbeiten</span>
+                      </button>
+                      @if (question.enabled !== false) {
+                        <button
+                          mat-button
+                          type="button"
+                          (click)="setQuestionEnabledFlag(question.id, false)"
+                        >
+                          <mat-icon>visibility_off</mat-icon>
+                          <span i18n="@@quiz.edit.deactivateQuestion">Deaktivieren</span>
+                        </button>
+                      } @else {
+                        <button
+                          mat-button
+                          type="button"
+                          (click)="setQuestionEnabledFlag(question.id, true)"
+                        >
+                          <mat-icon>visibility</mat-icon>
+                          <span i18n="@@quiz.edit.activateQuestion">Aktivieren</span>
+                        </button>
+                      }
+                    </div>
                   }
                 </div>
               </mat-card-content>

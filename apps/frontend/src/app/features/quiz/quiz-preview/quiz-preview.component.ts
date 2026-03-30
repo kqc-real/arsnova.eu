@@ -69,10 +69,12 @@ export class QuizPreviewComponent implements OnDestroy {
   readonly liveStartPending = signal(false);
   readonly liveStartError = signal<string | null>(null);
   readonly quiz = computed(() => this.quizStore.getQuizById(this.id));
+  /** Gespeicherte Fragen (inkl. deaktivierter) – für leere Vorschau mit Hinweis */
+  readonly quizHasStoredQuestions = computed(() => (this.quiz()?.questions.length ?? 0) > 0);
   readonly questions = computed(() => {
     const quiz = this.quiz();
     if (!quiz) return [];
-    return [...quiz.questions].sort((a, b) => a.order - b.order);
+    return [...quiz.questions].filter((q) => q.enabled !== false).sort((a, b) => a.order - b.order);
   });
   readonly currentQuestion = computed(() => this.questions()[this.currentIndex()] ?? null);
   readonly animatedCurrentQuestion = computed(() => {

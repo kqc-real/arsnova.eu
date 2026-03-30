@@ -45,7 +45,7 @@
         }
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" floatLabel="always">
         <mat-label i18n="@@quizForm.motifImageUrlLabel">Motivbild (optional)</mat-label>
         <input
           matInput
@@ -54,14 +54,10 @@
           [maxlength]="motifImageUrlMaxLength"
           autocomplete="off"
           i18n-placeholder="@@quizForm.motifImageUrlPlaceholder"
-          placeholder="https://…"
+          placeholder="Nur HTTPS, z. B. https://…"
           i18n-aria-label="@@quizForm.motifImageUrlAria"
-          aria-label="HTTPS-URL oder Pfad zu einem Motivbild (beginnend mit /)"
+          aria-label="HTTPS-URL zum Motivbild (optional)"
         />
-        <mat-hint i18n="@@quizForm.motifImageUrlHint" align="start"
-          >HTTPS von extern, oder Pfad ab / auf dieser Website (z. B.
-          /assets/demo/bild.svg).</mat-hint
-        >
         <mat-hint align="end"
           >{{ motifImageUrlControl.value.length }}/{{ motifImageUrlMaxLength }}</mat-hint
         >

@@ -44,6 +44,7 @@ describe('QuizEditComponent', () => {
     updateQuizMetadata: vi.fn(),
     updateQuizSettings: vi.fn(),
     deleteQuestion: vi.fn(),
+    setQuestionEnabled: vi.fn(),
   };
 
   beforeEach(() => {
@@ -180,6 +181,7 @@ describe('QuizEditComponent', () => {
         type: 'SINGLE_CHOICE',
         difficulty: 'EASY',
         order: 0,
+        enabled: true,
         answers: [
           {
             id: '79b35123-ff7f-4ff8-b8bf-a2ca695f57d4',
@@ -192,6 +194,10 @@ describe('QuizEditComponent', () => {
             isCorrect: false,
           },
         ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
       },
     ];
 
@@ -216,6 +222,47 @@ describe('QuizEditComponent', () => {
       ],
     });
     expect(component.editingQuestionId()).toBeNull();
+  });
+
+  it('blendet das Panel „Neue Frage“ aus und aktiviert den Bearbeitungsmodus', () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Alte Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        order: 0,
+        enabled: true,
+        answers: [
+          {
+            id: '79b35123-ff7f-4ff8-b8bf-a2ca695f57d4',
+            text: 'Alt A',
+            isCorrect: true,
+          },
+          {
+            id: '7f87b192-df9b-45ce-af85-9a44ef0f4b44',
+            text: 'Alt B',
+            isCorrect: false,
+          },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.questionFormPanelOpen.set(true);
+    expect(component.isNewQuestionFormPanelExpanded()).toBe(true);
+
+    component.editQuestion(QUESTION_ID);
+
+    expect(component.isEditing()).toBe(true);
+    expect(component.isNewQuestionFormPanelExpanded()).toBe(false);
   });
 
   it('löscht eine vorhandene Frage', () => {
@@ -450,6 +497,7 @@ describe('QuizEditComponent', () => {
         type: 'SINGLE_CHOICE',
         difficulty: 'MEDIUM',
         order: 0,
+        enabled: true,
         answers: [
           {
             id: '1f013086-724d-4c5f-8354-53b3dcda4f27',

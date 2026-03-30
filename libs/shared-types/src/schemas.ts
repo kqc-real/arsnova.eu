@@ -739,6 +739,8 @@ const ExportedQuestionSchema = z.object({
   ratingMax: z.number().nullable().optional(), // Nur bei RATING
   ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING
   ratingLabelMax: z.string().nullable().optional(), // Nur bei RATING
+  /** false = in lokaler Bibliothek behalten, aber nicht in Live/Vorschau */
+  enabled: z.boolean().optional().default(true),
 });
 
 /** Schema für das gesamte Quiz-Export-Format */

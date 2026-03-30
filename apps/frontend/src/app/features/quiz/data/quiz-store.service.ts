@@ -65,6 +65,8 @@ export interface QuizQuestion {
   type: SupportedQuestionType;
   difficulty: Difficulty;
   order: number;
+  /** false: nicht in Vorschau/Live-Upload; bleibt in der Liste zum späteren Aktivieren */
+  enabled: boolean;
   answers: QuizAnswer[];
   ratingMin: number | null;
   ratingMax: number | null;
@@ -710,6 +712,7 @@ export class QuizStoreService {
           ratingMax: question.ratingMax,
           ratingLabelMin: question.ratingLabelMin,
           ratingLabelMax: question.ratingLabelMax,
+          enabled: question.enabled !== false,
         })),
       },
     };
@@ -783,6 +786,16 @@ export class QuizStoreService {
       throw new Error('Quiz muss mindestens eine Frage enthalten.');
     }
 
+    const activeQuestions = [...document.questions]
+      .filter((q) => q.enabled !== false)
+      .sort((a, b) => a.order - b.order);
+
+    if (activeQuestions.length === 0) {
+      throw new Error(
+        $localize`:@@quizStore.uploadNeedsActiveQuestion:Mindestens eine aktive Frage ist für den Live-Start nötig.`,
+      );
+    }
+
     const UPLOAD_DESCRIPTION_MAX = 5000;
     const description =
       document.description && document.description.length > UPLOAD_DESCRIPTION_MAX
@@ -810,11 +823,11 @@ export class QuizStoreService {
       bonusTokenCount: document.settings.bonusTokenCount ?? undefined,
       readingPhaseEnabled: document.settings.readingPhaseEnabled,
       preset: document.settings.preset,
-      questions: document.questions.map((q) => ({
+      questions: activeQuestions.map((q, index) => ({
         text: q.text,
         type: q.type,
         difficulty: q.difficulty,
-        order: q.order,
+        order: index,
         answers: q.answers.map((a) => ({ text: a.text, isCorrect: a.isCorrect })),
         ratingMin: q.ratingMin ?? undefined,
         ratingMax: q.ratingMax ?? undefined,
@@ -879,6 +892,7 @@ export class QuizStoreService {
           type: question.type,
           difficulty: question.difficulty,
           order: index,
+          enabled: question.enabled !== false,
           answers: question.answers.map((answer) => ({
             id: generateUuid(),
             text: answer.text,
@@ -916,6 +930,7 @@ export class QuizStoreService {
       type: parsed.type,
       difficulty: parsed.difficulty,
       order: document.questions.length,
+      enabled: true,
       answers: parsed.answers.map((answer) => ({
         id: generateUuid(),
         text: answer.text,
@@ -1032,6 +1047,30 @@ export class QuizStoreService {
         const questions = quiz.questions
           .filter((question) => question.id !== questionId)
           .map((question, index) => ({ ...question, order: index }));
+        return { ...quiz, updatedAt, ...this.currentQuizUpdateSource(), questions };
+      }),
+    );
+    this.persistToStorage();
+  }
+
+  setQuestionEnabled(quizId: string, questionId: string, enabled: boolean): void {
+    const document = this.getQuizById(quizId);
+    if (!document) {
+      throw new Error('Quiz nicht gefunden.');
+    }
+
+    const questionIndex = document.questions.findIndex((question) => question.id === questionId);
+    if (questionIndex < 0) {
+      throw new Error('Frage nicht gefunden.');
+    }
+
+    const updatedAt = new Date().toISOString();
+    this.quizDocuments.update((current) =>
+      current.map((quiz) => {
+        if (quiz.id !== quizId) return quiz;
+        const questions = [...quiz.questions];
+        const q = questions[questionIndex]!;
+        questions[questionIndex] = { ...q, enabled };
         return { ...quiz, updatedAt, ...this.currentQuizUpdateSource(), questions };
       }),
     );
@@ -1906,12 +1945,16 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
       ? storedOrder
       : fallbackOrder;
 
+  const enabledRaw = candidate['enabled'];
+  const enabled = enabledRaw !== false;
+
   return {
     id,
     text: parsed.data.text,
     type: parsed.data.type as SupportedQuestionType,
     difficulty: parsed.data.difficulty,
     order,
+    enabled,
     answers,
     ratingMin: parsed.data.type === 'RATING' ? (parsed.data.ratingMin ?? 1) : null,
     ratingMax: parsed.data.type === 'RATING' ? (parsed.data.ratingMax ?? 5) : null,

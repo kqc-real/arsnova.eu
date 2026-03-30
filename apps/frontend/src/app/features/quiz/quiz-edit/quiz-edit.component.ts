@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   ElementRef,
@@ -124,6 +124,7 @@ type QuizMetadataFormGroup = FormGroup<{
   imports: [
     RouterLink,
     RouterOutlet,
+    NgTemplateOutlet,
     ReactiveFormsModule,
     MatButton,
     MatIconButton,
@@ -222,6 +223,11 @@ export class QuizEditComponent implements OnDestroy {
     return [...quiz.questions].sort((a, b) => a.order - b.order);
   });
   readonly isEditing = computed(() => this.editingQuestionId() !== null);
+  /** Panel „Neue Frage“ (oben); beim Inline-Bearbeiten ausgeblendet. */
+  readonly questionFormPanelOpen = signal(false);
+  readonly isNewQuestionFormPanelExpanded = computed(
+    () => !this.isEditing() && this.questionFormPanelOpen(),
+  );
 
   readonly form: QuestionFormGroup = this.formBuilder.group({
     text: this.formBuilder.control('', {
@@ -666,6 +672,10 @@ export class QuizEditComponent implements OnDestroy {
     return line.replace(/^#{1,6}\s+/, '').trim();
   }
 
+  onQuestionFormPanelOpenedChange(opened: boolean): void {
+    this.questionFormPanelOpen.set(opened);
+  }
+
   editQuestion(questionId: string): void {
     const question = this.questions().find((entry) => entry.id === questionId);
     if (!question) return;
@@ -687,10 +697,10 @@ export class QuizEditComponent implements OnDestroy {
     this.scheduleLivePreview();
 
     requestAnimationFrame(() => {
-      this.questionFormElement?.nativeElement?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+      const el = this.questionFormElement?.nativeElement;
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     });
   }
 
@@ -698,6 +708,17 @@ export class QuizEditComponent implements OnDestroy {
     this.editingQuestionId.set(null);
     this.resetQuestionForm('SINGLE_CHOICE');
     this.submitted.set(false);
+  }
+
+  setQuestionEnabledFlag(questionId: string, enabled: boolean): void {
+    try {
+      this.quizStore.setQuestionEnabled(this.id, questionId, enabled);
+      this.submitError.set(null);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : $localize`Frage konnte nicht aktualisiert werden.`;
+      this.submitError.set(message);
+    }
   }
 
   deleteQuestion(questionId: string): void {
