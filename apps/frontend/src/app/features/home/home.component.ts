@@ -50,6 +50,9 @@ import {
 } from '../../core/motd-storage';
 import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 
+/** Nach `load` warten, damit Hero/LCP zuerst stabil sind; Overlay-Text sonst oft neuer LCP. */
+const MOTD_FETCH_DELAY_AFTER_LOAD_MS = 2_000;
+
 @Component({
   selector: 'app-home',
   imports: [
@@ -129,6 +132,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Erzwingt Neuablesung der MOTD-Interaktions-Flags aus localStorage. */
   private readonly motdInteractionRev = signal(0);
   private motdTouchStartY = 0;
+  private motdLoadCancelled = false;
+  /** Browser: `window.setTimeout` liefert hier `number` (Node-Typings: `Timeout`). */
+  private motdDeferredLoadHandle: number | null = null;
+  private motdLoadOnWindowLoad: (() => void) | null = null;
 
   readonly thumbUpRecorded = computed(() => {
     this.motdInteractionRev();
@@ -213,6 +220,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.motdLoadCancelled = true;
+    if (this.motdDeferredLoadHandle !== null) {
+      clearTimeout(this.motdDeferredLoadHandle);
+      this.motdDeferredLoadHandle = null;
+    }
+    if (this.motdLoadOnWindowLoad) {
+      window.removeEventListener('load', this.motdLoadOnWindowLoad);
+      this.motdLoadOnWindowLoad = null;
+    }
     this.focusService.registerInput(undefined);
     if (typeof document !== 'undefined') {
       document.removeEventListener('keydown', this.keydownListener, true);
@@ -228,12 +244,42 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         setTimeout(() => void this.validateRecentSessions(), 500);
       }
-      // MOTD: bald nach erstem Paint, ohne langes Idle-Warten (max. ~400 ms)
-      if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(() => void this.loadMotdOverlay(), { timeout: 400 });
-      } else {
-        setTimeout(() => void this.loadMotdOverlay(), 50);
-      }
+      this.scheduleMotdOverlayForLcp();
+    }
+  }
+
+  /**
+   * MOTD erst nach window `load` + Pause laden (LCP: großes Overlay sonst später als größtes Element).
+   * Anschließend `requestIdleCallback` mit großem Timeout — kein Eingreifen in die ersten ~2 s.
+   */
+  private scheduleMotdOverlayForLcp(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const afterDelayThenIdle = (): void => {
+      if (this.motdLoadCancelled) return;
+      this.motdDeferredLoadHandle = window.setTimeout(() => {
+        this.motdDeferredLoadHandle = null;
+        if (this.motdLoadCancelled) return;
+        if (typeof requestIdleCallback !== 'undefined') {
+          requestIdleCallback(
+            () => {
+              if (!this.motdLoadCancelled) void this.loadMotdOverlay();
+            },
+            { timeout: 12_000 },
+          );
+        } else {
+          window.setTimeout(() => {
+            if (!this.motdLoadCancelled) void this.loadMotdOverlay();
+          }, 0);
+        }
+      }, MOTD_FETCH_DELAY_AFTER_LOAD_MS);
+    };
+
+    if (typeof document !== 'undefined' && document.readyState === 'complete') {
+      afterDelayThenIdle();
+    } else {
+      this.motdLoadOnWindowLoad = afterDelayThenIdle;
+      window.addEventListener('load', this.motdLoadOnWindowLoad, { once: true });
     }
   }
 
@@ -504,6 +550,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async loadMotdOverlay(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+    if (this.motdLoadCancelled) return;
     const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
     try {
       const dismissed = motdDismissedPairsForApi();
@@ -511,6 +558,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         locale,
         ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
       });
+      if (this.motdLoadCancelled) return;
       if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
         return;
       }
