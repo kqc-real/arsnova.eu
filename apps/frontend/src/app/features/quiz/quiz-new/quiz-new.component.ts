@@ -19,6 +19,7 @@ import { MatSelect } from '@angular/material/select';
 import {
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TEAM_COUNT,
+  DEFAULT_TIMER_SECONDS,
   MOTIF_IMAGE_URL_MAX_LENGTH,
   MotifImageUrlSchema,
   QUIZ_PRESETS,
@@ -26,6 +27,7 @@ import {
   type QuizPreset,
   type TeamAssignment,
 } from '@arsnova/shared-types';
+import { mergeTimerPresetOptions } from '../default-timer-presets';
 import { QuizStoreService, type QuizSettings } from '../data/quiz-store.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
@@ -129,6 +131,26 @@ export class QuizNewComponent implements OnInit, OnDestroy {
 
   isBonusEnabled(): boolean {
     return this.form.controls.bonusEnabled.value;
+  }
+
+  /** Sichtbar wenn vorgegebene Pseudonym-Listen genutzt werden (nicht reiner Anonym-Modus). */
+  isNicknameThemeSectionVisible(): boolean {
+    return !this.form.controls.anonymousMode.value;
+  }
+
+  defaultTimerSelectOptions(): number[] {
+    return mergeTimerPresetOptions(this.defaultTimerControl.value);
+  }
+
+  onDefaultTimerEnabledChange(checked: boolean): void {
+    const c = this.defaultTimerControl;
+    if (checked) {
+      if (c.value === null) {
+        c.setValue(DEFAULT_TIMER_SECONDS);
+      }
+    } else {
+      c.setValue(null);
+    }
   }
 
   ngOnInit(): void {

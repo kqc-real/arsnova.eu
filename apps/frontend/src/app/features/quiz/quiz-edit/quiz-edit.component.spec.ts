@@ -453,12 +453,13 @@ describe('QuizEditComponent', () => {
     const component = fixture.componentInstance;
     component.showSettings.set(true);
     fixture.detectChanges();
-    const timerInput = fixture.nativeElement.querySelector(
-      '.quiz-edit__settings-card input[formcontrolname="defaultTimer"]',
-    ) as HTMLInputElement;
-    const focusSpy = vi.spyOn(timerInput, 'focus');
-
     component.settingsForm.controls.defaultTimer.setValue(1);
+    fixture.detectChanges();
+    const timerSelect = fixture.nativeElement.querySelector(
+      '.quiz-edit__settings-card [formcontrolname="defaultTimer"]',
+    ) as HTMLElement;
+    const focusSpy = vi.spyOn(timerSelect, 'focus');
+
     component.saveSettings();
 
     expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();

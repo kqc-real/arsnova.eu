@@ -1,7 +1,7 @@
 @if (isPreviewActive()) {
   <router-outlet />
 } @else if (quiz(); as quizData) {
-  <section class="quiz-edit l-stack l-stack--sm">
+  <section class="quiz-edit l-stack l-stack--md">
     <header class="quiz-edit__page-header">
       <h1 class="quiz-edit__page-title">
         @if (quizData.name) {
@@ -26,7 +26,7 @@
       <mat-card-content>
         <form
           #metadataFormElement
-          class="quiz-edit-form l-stack l-stack--sm"
+          class="quiz-edit-form l-stack l-stack--md"
           [formGroup]="metadataForm"
           (ngSubmit)="saveMetadata()"
         >
@@ -150,7 +150,7 @@
         <mat-card-content>
           <form
             #settingsFormElement
-            class="quiz-edit-form l-stack l-stack--sm"
+            class="quiz-edit-form l-stack l-stack--md"
             [formGroup]="settingsForm"
             (ngSubmit)="saveSettings()"
           >
@@ -191,6 +191,45 @@
                 i18n="@@quizSettings.allowEmojiReactions"
                 >Emojis erlauben</mat-checkbox
               >
+              <mat-checkbox
+                i18n="@@quizForm.defaultTimerEnabled"
+                [checked]="settingsTimerControl.value !== null"
+                (change)="onDefaultTimerEnabledChange($event.checked)"
+                >Zeitlimit</mat-checkbox
+              >
+              @if (settingsTimerControl.value !== null) {
+                <div class="quiz-edit-form__default-timer quiz-edit-form__default-timer--nested">
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@quizForm.defaultTimerSecondsLabel"
+                      >Sekunden pro Frage</mat-label
+                    >
+                    <mat-select
+                      formControlName="defaultTimer"
+                      i18n-aria-label="@@quizForm.defaultTimerSecondsAria"
+                      aria-label="Sekunden pro Frage auswählen"
+                    >
+                      @for (sec of defaultTimerSelectOptions(); track sec) {
+                        <mat-option [value]="sec">
+                          {{ sec }}
+                          <span i18n="@@quizForm.timerSecondsSuffix">Sekunden</span>
+                        </mat-option>
+                      }
+                    </mat-select>
+                    @if (
+                      settingsTimerControl.hasError('min') &&
+                      (settingsTimerControl.touched || settingsTimerControl.dirty)
+                    ) {
+                      <mat-error i18n>Mindestens 5 Sekunden.</mat-error>
+                    }
+                    @if (
+                      settingsTimerControl.hasError('max') &&
+                      (settingsTimerControl.touched || settingsTimerControl.dirty)
+                    ) {
+                      <mat-error i18n>Höchstens 300 Sekunden.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              }
             </fieldset>
 
             <fieldset class="quiz-edit-form__fieldset">
@@ -198,7 +237,30 @@
               <mat-checkbox formControlName="allowCustomNicknames" i18n>
                 Eigene Nicks erlauben
               </mat-checkbox>
-              <mat-checkbox formControlName="anonymousMode" i18n>Anonym teilnehmen</mat-checkbox>
+              <mat-checkbox
+                i18n="@@quizSettings.pseudonymParticipation"
+                [checked]="!settingsForm.controls.anonymousMode.value"
+                (change)="settingsForm.controls.anonymousMode.setValue(!$event.checked)"
+                >Mit einem Pseudonym teilnehmen…</mat-checkbox
+              >
+              @if (isNicknameThemeSectionVisible()) {
+                <div class="quiz-edit-form__nickname-theme quiz-edit-form__nickname-theme--nested">
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n="@@quizForm.nicknameThemePseudonymLabel"
+                      >Altersgruppe für Pseudonyme</mat-label
+                    >
+                    <mat-select
+                      formControlName="nicknameTheme"
+                      i18n-aria-label="@@quizForm.nicknameThemePseudonymAria"
+                      aria-label="Altersgruppe für Pseudonyme wählen"
+                    >
+                      @for (theme of nicknameThemeOptions; track theme.value) {
+                        <mat-option [value]="theme.value">{{ theme.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              }
             </fieldset>
 
             <fieldset class="quiz-edit-form__fieldset">
@@ -209,6 +271,88 @@
               <mat-checkbox formControlName="teamMode" (change)="syncTeamNamesValidation()" i18n
                 >Im Team spielen</mat-checkbox
               >
+              @if (isTeamModeEnabled()) {
+                <div class="quiz-edit-form__team-section quiz-edit-form__team-section--nested">
+                  <div class="quiz-edit-form__grid quiz-edit-form__grid--team-block">
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n>Anzahl Teams</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        formControlName="teamCount"
+                        min="2"
+                        max="8"
+                        (input)="syncTeamNamesValidation()"
+                        i18n-aria-label
+                        aria-label="Anzahl Teams"
+                      />
+                      @if (teamCountControl.hasError('min')) {
+                        <mat-error i18n>Mindestens 2 Teams.</mat-error>
+                      }
+                      @if (teamCountControl.hasError('max')) {
+                        <mat-error i18n>Höchstens 8 Teams.</mat-error>
+                      }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n>Zuweisen</mat-label>
+                      <mat-select
+                        formControlName="teamAssignment"
+                        i18n-aria-label
+                        aria-label="Zuweisen"
+                      >
+                        <mat-option value="AUTO" i18n>Automatisch</mat-option>
+                        <mat-option value="MANUAL" i18n>Manuell</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label i18n>Eigene Team-Namen (optional)</mat-label>
+                      <textarea
+                        matInput
+                        formControlName="teamNamesText"
+                        rows="4"
+                        (input)="syncTeamNamesValidation()"
+                        i18n-placeholder
+                        placeholder="Ein Team pro Zeile"
+                        i18n-aria-label
+                        aria-label="Eigene Team-Namen"
+                      ></textarea>
+                      <mat-hint i18n="@@quizForm.teamNamesAutoHint"
+                        >Ohne Eintrag: Team A, B, C …</mat-hint
+                      >
+                      @if (teamNamesTextControl.hasError('tooManyTeamNames')) {
+                        <mat-error i18n>Gib höchstens so viele Namen wie Teams an.</mat-error>
+                      }
+                      @if (teamNamesTextControl.hasError('duplicateTeamNames')) {
+                        <mat-error i18n>Jeder Team-Name darf nur einmal vorkommen.</mat-error>
+                      }
+                      @if (teamNamesTextControl.hasError('teamNameTooLong')) {
+                        <mat-error i18n
+                          >Jeder Team-Name darf maximal 40 Zeichen lang sein.</mat-error
+                        >
+                      }
+                    </mat-form-field>
+
+                    <div class="quiz-edit-form__team-preview" aria-live="polite">
+                      <p
+                        class="quiz-edit-form__team-preview-title"
+                        i18n="@@quizForm.teamPreviewHeading"
+                      >
+                        Team-Vorschau
+                      </p>
+                      <ol class="quiz-edit-form__team-preview-list">
+                        @for (teamName of teamNamePreview(); track $index) {
+                          <li class="quiz-edit-form__team-preview-item">
+                            <span class="quiz-edit-form__team-preview-index">{{ $index + 1 }}</span>
+                            <span class="quiz-edit-form__team-preview-name">{{ teamName }}</span>
+                          </li>
+                        }
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              }
             </fieldset>
 
             <fieldset class="quiz-edit-form__fieldset">
@@ -217,121 +361,6 @@
                 >Sounds abspielen</mat-checkbox
               >
             </fieldset>
-
-            <div class="quiz-edit-form__grid">
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Zeitlimit pro Frage in Sekunden (optional)</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  formControlName="defaultTimer"
-                  min="5"
-                  max="300"
-                  i18n-aria-label
-                  aria-label="Zeitlimit pro Frage"
-                />
-                <mat-hint i18n>Ohne Wert gibt es kein Zeitlimit.</mat-hint>
-                @if (
-                  settingsTimerControl.hasError('min') &&
-                  (settingsTimerControl.touched || settingsTimerControl.dirty)
-                ) {
-                  <mat-error i18n>Mindestens 5 Sekunden.</mat-error>
-                }
-                @if (
-                  settingsTimerControl.hasError('max') &&
-                  (settingsTimerControl.touched || settingsTimerControl.dirty)
-                ) {
-                  <mat-error i18n>Höchstens 300 Sekunden.</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label i18n>Altersgruppe für Namen</mat-label>
-                <mat-select
-                  formControlName="nicknameTheme"
-                  i18n-aria-label
-                  aria-label="Altersgruppe wählen"
-                >
-                  @for (theme of nicknameThemeOptions; track theme.value) {
-                    <mat-option [value]="theme.value">{{ theme.label }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-
-            @if (isTeamModeEnabled()) {
-              <div class="quiz-edit-form__grid">
-                <mat-form-field appearance="outline">
-                  <mat-label i18n>Anzahl Teams</mat-label>
-                  <input
-                    matInput
-                    type="number"
-                    formControlName="teamCount"
-                    min="2"
-                    max="8"
-                    (input)="syncTeamNamesValidation()"
-                    i18n-aria-label
-                    aria-label="Anzahl Teams"
-                  />
-                  @if (teamCountControl.hasError('min')) {
-                    <mat-error i18n>Mindestens 2 Teams.</mat-error>
-                  }
-                  @if (teamCountControl.hasError('max')) {
-                    <mat-error i18n>Höchstens 8 Teams.</mat-error>
-                  }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label i18n>Teams zuweisen</mat-label>
-                  <mat-select
-                    formControlName="teamAssignment"
-                    i18n-aria-label
-                    aria-label="Teams zuweisen"
-                  >
-                    <mat-option value="AUTO" i18n>Automatisch</mat-option>
-                    <mat-option value="MANUAL" i18n>Manuell</mat-option>
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label i18n>Eigene Team-Namen (optional)</mat-label>
-                  <textarea
-                    matInput
-                    formControlName="teamNamesText"
-                    rows="4"
-                    (input)="syncTeamNamesValidation()"
-                    i18n-placeholder
-                    placeholder="Ein Team pro Zeile"
-                    i18n-aria-label
-                    aria-label="Eigene Team-Namen"
-                  ></textarea>
-                  <mat-hint i18n>
-                    Leer gelassene Teams erhalten automatisch Namen wie Team A, Team B oder Team C.
-                  </mat-hint>
-                  @if (teamNamesTextControl.hasError('tooManyTeamNames')) {
-                    <mat-error i18n>Gib höchstens so viele Namen wie Teams an.</mat-error>
-                  }
-                  @if (teamNamesTextControl.hasError('duplicateTeamNames')) {
-                    <mat-error i18n>Jeder Team-Name darf nur einmal vorkommen.</mat-error>
-                  }
-                  @if (teamNamesTextControl.hasError('teamNameTooLong')) {
-                    <mat-error i18n>Jeder Team-Name darf maximal 40 Zeichen lang sein.</mat-error>
-                  }
-                </mat-form-field>
-              </div>
-
-              <div class="quiz-edit-form__team-preview" aria-live="polite">
-                <p class="quiz-edit-form__team-preview-title" i18n>So entstehen die Teams</p>
-                <ol class="quiz-edit-form__team-preview-list">
-                  @for (teamName of teamNamePreview(); track $index) {
-                    <li class="quiz-edit-form__team-preview-item">
-                      <span class="quiz-edit-form__team-preview-index">{{ $index + 1 }}</span>
-                      <span class="quiz-edit-form__team-preview-name">{{ teamName }}</span>
-                    </li>
-                  }
-                </ol>
-              </div>
-            }
 
             <fieldset class="quiz-edit-form__fieldset">
               <legend class="quiz-edit-form__legend" i18n>Belohnung</legend>
@@ -410,7 +439,7 @@
     <ng-template #questionEditorFormTpl>
       <form
         #questionFormElement
-        class="quiz-edit-form l-stack l-stack--sm"
+        class="quiz-edit-form l-stack l-stack--md"
         [formGroup]="form"
         (ngSubmit)="addQuestion()"
       >
@@ -516,7 +545,7 @@
         }
 
         @if (hasAnswerOptions()) {
-          <div formArrayName="answers" class="quiz-edit-answers l-stack l-stack--sm">
+          <div formArrayName="answers" class="quiz-edit-answers l-stack l-stack--md">
             @for (answer of answersArray.controls; track $index; let i = $index) {
               <div class="quiz-edit-answer" [formGroupName]="i">
                 <div class="quiz-edit-answer__selector">
@@ -653,7 +682,7 @@
       </form>
     </ng-template>
 
-    <section class="quiz-edit-list l-stack l-stack--sm" i18n-aria-label aria-label="Fragenliste">
+    <section class="quiz-edit-list l-stack l-stack--md" i18n-aria-label aria-label="Fragenliste">
       <div class="quiz-edit-list__header">
         <h2 class="quiz-edit-list__title" i18n>Fragen im Quiz</h2>
         @if (questionAddedFeedback()) {

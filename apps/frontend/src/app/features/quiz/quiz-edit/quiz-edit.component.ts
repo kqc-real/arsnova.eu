@@ -49,6 +49,7 @@ import { MatSelect } from '@angular/material/select';
 import {
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TEAM_COUNT,
+  DEFAULT_TIMER_SECONDS,
   MOTIF_IMAGE_URL_MAX_LENGTH,
   MotifImageUrlSchema,
   QUIZ_PRESETS,
@@ -59,6 +60,7 @@ import {
   type ScFormat,
   type TeamAssignment,
 } from '@arsnova/shared-types';
+import { mergeTimerPresetOptions } from '../default-timer-presets';
 import {
   DEMO_QUIZ_ID,
   QuizStoreService,
@@ -371,6 +373,26 @@ export class QuizEditComponent implements OnDestroy {
 
   isTeamModeEnabled(): boolean {
     return this.settingsForm.controls.teamMode.value;
+  }
+
+  /** Sichtbar wenn vorgegebene Pseudonym-Listen genutzt werden (nicht reiner Anonym-Modus). */
+  isNicknameThemeSectionVisible(): boolean {
+    return !this.settingsForm.controls.anonymousMode.value;
+  }
+
+  defaultTimerSelectOptions(): number[] {
+    return mergeTimerPresetOptions(this.settingsTimerControl.value);
+  }
+
+  onDefaultTimerEnabledChange(checked: boolean): void {
+    const c = this.settingsTimerControl;
+    if (checked) {
+      if (c.value === null) {
+        c.setValue(DEFAULT_TIMER_SECONDS);
+      }
+    } else {
+      c.setValue(null);
+    }
   }
 
   isBonusEnabled(): boolean {

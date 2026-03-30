@@ -68,7 +68,7 @@ export const PRESET_OPTION_IDS = [
   },
   {
     id: 'defaultTimer',
-    label: $localize`Zeitlimit pro Frage`,
+    label: $localize`:@@quizForm.defaultTimerLabel:Zeitlimit pro Frage`,
     icon: 'timer',
     categoryId: 'flow' as CategoryId,
   },
