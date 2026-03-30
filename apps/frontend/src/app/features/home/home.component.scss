@@ -453,6 +453,11 @@
   box-shadow: var(--mat-sys-level2);
 }
 
+/* Anker aus Hero-Host-Zeile: nicht unter fixer Toolbar verschwinden */
+#host-quick-feedback {
+  scroll-margin-top: 4.5rem;
+}
+
 .home-card#participant-entry {
   display: flex;
   flex-direction: column;

@@ -37,6 +37,13 @@
 
       <p class="home-hero-host-row">
         <a
+          href="#host-quick-feedback"
+          class="home-hero-host-link"
+          i18n="@@sessionTabs.quickFeedback"
+          >Blitzlicht</a
+        >
+        <span class="home-hero-host-sep" aria-hidden="true">·</span>
+        <a
           [routerLink]="localizedPath('/quiz/new')"
           class="home-hero-host-link"
           (mouseenter)="preloadQuiz()"
@@ -219,7 +226,11 @@
       </mat-card-actions>
     </mat-card>
 
-    <mat-card appearance="raised" class="home-card home-card--feedback home-card--stage-side">
+    <mat-card
+      appearance="raised"
+      id="host-quick-feedback"
+      class="home-card home-card--feedback home-card--stage-side"
+    >
       <mat-card-header>
         <mat-card-subtitle>
           <span class="home-card__icon-wrap">
