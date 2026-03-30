@@ -11,6 +11,7 @@ const {
   currentQuestionQueryMock,
   quickFeedbackResultsQueryMock,
   getParticipantsQueryMock,
+  getTeamsQueryMock,
   getTeamLeaderboardQueryMock,
   getPersonalResultQueryMock,
   getHasSubmittedFeedbackQueryMock,
@@ -27,6 +28,7 @@ const {
   currentQuestionQueryMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
   getParticipantsQueryMock: vi.fn(),
+  getTeamsQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
   getPersonalResultQueryMock: vi.fn(),
   getHasSubmittedFeedbackQueryMock: vi.fn(),
@@ -46,6 +48,7 @@ vi.mock('../../../core/trpc.client', () => ({
       onStatusChanged: { subscribe: statusChangedSubscribeMock },
       getCurrentQuestionForStudent: { query: currentQuestionQueryMock },
       getParticipants: { query: getParticipantsQueryMock },
+      getTeams: { query: getTeamsQueryMock },
       getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
       getPersonalResult: { query: getPersonalResultQueryMock },
       getHasSubmittedFeedback: { query: getHasSubmittedFeedbackQueryMock },
@@ -83,6 +86,7 @@ describe('SessionVoteComponent', () => {
         },
       ],
     });
+    getTeamsQueryMock.mockResolvedValue({ teams: [], teamCount: 0 });
     getTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
@@ -176,6 +180,17 @@ describe('SessionVoteComponent', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
     await fixture.whenStable();
+    // ngOnInit → loadSessionInfo (inkl. getTeams) läuft asynchron; ohne Warten kann
+    // loadTeamRewardState zu früh teamMode=false sehen und die Leaderboard-Signale leeren (CI-Flake).
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        const inst = fixture.componentInstance;
+        expect(inst.status()).toBe('RESULTS');
+        expect(inst.sessionSettings().teamMode).toBe(true);
+      },
+      { timeout: 5000, interval: 10 },
+    );
     // refreshQuestion wird erst beim Polling (alle 2s) aufgerufen – manuell auslösen
     await (
       fixture.componentInstance as unknown as { refreshQuestion: () => Promise<void> }
@@ -241,6 +256,15 @@ describe('SessionVoteComponent', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
     await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        const inst = fixture.componentInstance;
+        expect(inst.status()).toBe('RESULTS');
+        expect(inst.sessionSettings().teamMode).toBe(true);
+      },
+      { timeout: 5000, interval: 10 },
+    );
     await (
       fixture.componentInstance as unknown as { refreshQuestion: () => Promise<void> }
     ).refreshQuestion();
