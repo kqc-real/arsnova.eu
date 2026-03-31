@@ -25,89 +25,100 @@
     </header>
 
     <mat-card appearance="outlined" class="quiz-edit__meta-card">
-      <div class="quiz-edit__meta-card-head dialog-title-header">
-        <span class="dialog-title-header__icon" aria-hidden="true">
-          <mat-icon>article</mat-icon>
-        </span>
-        <div class="dialog-title-header__copy">
-          <h2 class="dialog-title-header__heading" i18n="@@quizEdit.metaCardTitle">
-            Titel &amp; Beschreibung
-          </h2>
-        </div>
-      </div>
-      <mat-card-content>
-        <form
-          #metadataFormElement
-          class="quiz-edit-form l-stack l-stack--md"
-          [formGroup]="metadataForm"
-          (ngSubmit)="saveMetadata()"
-        >
-          <mat-form-field appearance="outline">
-            <mat-label i18n>Name</mat-label>
-            <input matInput formControlName="name" maxlength="200" />
-            <mat-hint align="end">{{ metadataForm.controls.name.value.length }}/200</mat-hint>
-            @if (metadataForm.controls.name.hasError('required')) {
-              <mat-error i18n>Gib deinem Quiz einen Namen.</mat-error>
-            }
-            @if (metadataForm.controls.name.hasError('maxlength')) {
-              <mat-error i18n>Der Name darf maximal 200 Zeichen lang sein.</mat-error>
-            }
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label i18n>Beschreibung (optional)</mat-label>
-            <textarea matInput formControlName="description" rows="3" maxlength="5000"></textarea>
-            <mat-hint align="end"
-              >{{ metadataForm.controls.description.value.length }}/5000</mat-hint
+      <mat-expansion-panel
+        class="quiz-edit__meta-expansion-panel"
+        [expanded]="metadataPanelExpanded()"
+        (expandedChange)="metadataPanelExpanded.set($event)"
+      >
+        <mat-expansion-panel-header>
+          <mat-panel-title class="quiz-edit__meta-panel-title">
+            <span class="dialog-title-header__icon quiz-edit__meta-panel-icon" aria-hidden="true">
+              <mat-icon>article</mat-icon>
+            </span>
+            <span class="quiz-edit__meta-panel-heading" i18n="@@quizEdit.metaCardTitle"
+              >Titel &amp; Beschreibung</span
             >
-            @if (metadataForm.controls.description.hasError('maxlength')) {
-              <mat-error i18n="@@quizEdit.descriptionMaxLengthError"
-                >Die Beschreibung darf maximal 5000 Zeichen lang sein.</mat-error
+            @if ((metadataForm.controls.name.value ?? '').trim(); as metaTitle) {
+              <span class="quiz-edit__meta-panel-quiz-name" [attr.title]="metaTitle">{{
+                metaTitle
+              }}</span>
+            }
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-card-content class="quiz-edit__meta-expansion-body">
+          <form
+            #metadataFormElement
+            class="quiz-edit-form l-stack l-stack--md"
+            [formGroup]="metadataForm"
+            (ngSubmit)="saveMetadata()"
+          >
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Name</mat-label>
+              <input matInput formControlName="name" maxlength="200" />
+              <mat-hint align="end">{{ metadataForm.controls.name.value.length }}/200</mat-hint>
+              @if (metadataForm.controls.name.hasError('required')) {
+                <mat-error i18n>Gib deinem Quiz einen Namen.</mat-error>
+              }
+              @if (metadataForm.controls.name.hasError('maxlength')) {
+                <mat-error i18n>Der Name darf maximal 200 Zeichen lang sein.</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Beschreibung (optional)</mat-label>
+              <textarea matInput formControlName="description" rows="3" maxlength="5000"></textarea>
+              <mat-hint align="end"
+                >{{ metadataForm.controls.description.value.length }}/5000</mat-hint
               >
-            }
-          </mat-form-field>
-          <mat-form-field appearance="outline" floatLabel="always">
-            <mat-label i18n="@@quizForm.motifImageUrlLabel">Motivbild (optional)</mat-label>
-            <input
-              matInput
-              formControlName="motifImageUrl"
-              type="url"
-              [maxlength]="motifImageUrlMaxLength"
-              autocomplete="off"
-              i18n-placeholder="@@quizForm.motifImageUrlPlaceholder"
-              placeholder="Nur HTTPS, z. B. https://…"
-              i18n-aria-label="@@quizForm.motifImageUrlAria"
-              aria-label="HTTPS-URL zum Motivbild (optional)"
-            />
-            <mat-hint align="end"
-              >{{ metadataForm.controls.motifImageUrl.value.length }}/{{
-                motifImageUrlMaxLength
-              }}</mat-hint
-            >
-            @if (metadataForm.controls.motifImageUrl.hasError('maxlength')) {
-              <mat-error i18n="@@quizForm.motifImageUrlErrorMax"
-                >Die URL darf maximal 1024 Zeichen lang sein.</mat-error
+              @if (metadataForm.controls.description.hasError('maxlength')) {
+                <mat-error i18n="@@quizEdit.descriptionMaxLengthError"
+                  >Die Beschreibung darf maximal 5000 Zeichen lang sein.</mat-error
+                >
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" floatLabel="always">
+              <mat-label i18n="@@quizForm.motifImageUrlLabel">Motivbild (optional)</mat-label>
+              <input
+                matInput
+                formControlName="motifImageUrl"
+                type="url"
+                [maxlength]="motifImageUrlMaxLength"
+                autocomplete="off"
+                i18n-placeholder="@@quizForm.motifImageUrlPlaceholder"
+                placeholder="Nur HTTPS, z. B. https://…"
+                i18n-aria-label="@@quizForm.motifImageUrlAria"
+                aria-label="HTTPS-URL zum Motivbild (optional)"
+              />
+              <mat-hint align="end"
+                >{{ metadataForm.controls.motifImageUrl.value.length }}/{{
+                  motifImageUrlMaxLength
+                }}</mat-hint
               >
+              @if (metadataForm.controls.motifImageUrl.hasError('maxlength')) {
+                <mat-error i18n="@@quizForm.motifImageUrlErrorMax"
+                  >Die URL darf maximal 1024 Zeichen lang sein.</mat-error
+                >
+              }
+              @if (metadataForm.controls.motifImageUrl.hasError('motifHttps')) {
+                <mat-error i18n="@@quizForm.motifImageUrlErrorHttps"
+                  >Nur HTTPS-Links sind erlaubt.</mat-error
+                >
+              }
+              @if (metadataForm.controls.motifImageUrl.hasError('motifUrl')) {
+                <mat-error i18n="@@quizForm.motifImageUrlErrorInvalid">Ungültige URL.</mat-error>
+              }
+            </mat-form-field>
+            @if (metadataSubmitError()) {
+              <p class="quiz-edit-form__error" role="alert">{{ metadataSubmitError() }}</p>
             }
-            @if (metadataForm.controls.motifImageUrl.hasError('motifHttps')) {
-              <mat-error i18n="@@quizForm.motifImageUrlErrorHttps"
-                >Nur HTTPS-Links sind erlaubt.</mat-error
-              >
+            @if (metadataSaved()) {
+              <p class="quiz-edit-form__editing-hint" role="status" i18n>Gespeichert.</p>
             }
-            @if (metadataForm.controls.motifImageUrl.hasError('motifUrl')) {
-              <mat-error i18n="@@quizForm.motifImageUrlErrorInvalid">Ungültige URL.</mat-error>
-            }
-          </mat-form-field>
-          @if (metadataSubmitError()) {
-            <p class="quiz-edit-form__error" role="alert">{{ metadataSubmitError() }}</p>
-          }
-          @if (metadataSaved()) {
-            <p class="quiz-edit-form__editing-hint" role="status" i18n>Gespeichert.</p>
-          }
-          <mat-card-actions class="quiz-edit-form__actions">
-            <button matButton="filled" type="submit" i18n>Speichern</button>
-          </mat-card-actions>
-        </form>
-      </mat-card-content>
+            <mat-card-actions class="quiz-edit-form__actions">
+              <button matButton="filled" type="submit" i18n>Speichern</button>
+            </mat-card-actions>
+          </form>
+        </mat-card-content>
+      </mat-expansion-panel>
       <mat-card-actions class="quiz-edit__meta-actions">
         <a
           mat-button

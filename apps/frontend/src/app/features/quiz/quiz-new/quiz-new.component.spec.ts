@@ -78,7 +78,9 @@ describe('QuizNewComponent', () => {
         preset: 'PLAYFUL',
       }),
     });
-    expect(navigateSpy).toHaveBeenCalledWith(['quiz', '928f0bb8-bfd8-442b-9f2e-a7544628a92f']);
+    expect(navigateSpy).toHaveBeenCalledWith(['quiz', '928f0bb8-bfd8-442b-9f2e-a7544628a92f'], {
+      queryParams: { from: 'new' },
+    });
   });
 
   it('erstellt kein Quiz bei ungültigem Formular', async () => {

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizEditComponent } from './quiz-edit.component';
@@ -71,6 +71,7 @@ describe('QuizEditComponent', () => {
           useValue: {
             snapshot: {
               paramMap: convertToParamMap({ id: QUIZ_ID }),
+              queryParamMap: convertToParamMap({}),
               firstChild: null,
             },
           },
@@ -79,6 +80,50 @@ describe('QuizEditComponent', () => {
         { provide: MatDialog, useValue: matDialogMock },
       ],
     });
+  });
+
+  it('hält das Panel „Neue Frage“ bei leerem Quiz zunächst geschlossen', () => {
+    quiz.questions = [];
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    expect(component.questionFormPanelOpen()).toBe(false);
+    expect(component.isNewQuestionFormPanelExpanded()).toBe(false);
+  });
+
+  it('klappt die Metadaten-Karte nach Neuanlage (from=new) zu und entfernt den Query-Parameter', async () => {
+    quiz.questions = [];
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [QuizEditComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({ id: QUIZ_ID }),
+              queryParamMap: convertToParamMap({ from: 'new' }),
+              firstChild: null,
+            },
+          },
+        },
+        { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: matDialogMock },
+      ],
+    });
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    expect(fixture.componentInstance.metadataPanelExpanded()).toBe(false);
+    await Promise.resolve();
+    expect(navigateSpy).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { from: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      }),
+    );
   });
 
   it('synchronisiert nicknameTheme in den Store ohne Einstellungen-Übernehmen', () => {

@@ -6,10 +6,98 @@
   word-break: break-word;
 }
 
-.quiz-edit__meta-card-head.dialog-title-header,
 .quiz-edit__settings-card-head.dialog-title-header {
   padding: 1rem 1rem 0.5rem;
   box-sizing: border-box;
+}
+
+/* Ohne ::ng-deep greifen Regeln für .mat-content nicht (liegt im Mat-Header, kein Host-_ngcontent). */
+:host ::ng-deep .quiz-edit__meta-expansion-panel.mat-expansion-panel {
+  box-shadow: none;
+  background: transparent;
+  border-radius: 0;
+
+  .mat-expansion-panel-header {
+    padding-inline: 1.25rem !important;
+    /* Abstand zwischen Titelzeile (Icon + Text + Quiz-Name) und Auf/Zu-Chevron */
+    gap: 1rem;
+  }
+
+  .mat-expansion-panel-header .mat-expansion-indicator {
+    flex-shrink: 0;
+  }
+
+  .mat-expansion-panel-header .mat-content {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    align-items: center;
+  }
+
+  /* Nur noch eine Spalte (Titel inkl. Quiz-Name); Material-Margin entfernen */
+  .mat-expansion-panel-header .mat-expansion-panel-header-title {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    min-width: 0;
+    align-items: center;
+  }
+}
+
+.quiz-edit__meta-expansion-body {
+  padding-block: 0 0.5rem;
+}
+
+/* Eine Zeile: Icon + Überschrift + Quiz-Name → align-items: center wirkt auf alle gleich */
+.quiz-edit__meta-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--mat-sys-on-surface);
+}
+
+.quiz-edit__meta-panel-icon.dialog-title-header__icon {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin-top: 0;
+
+  mat-icon {
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+.quiz-edit__meta-panel-heading {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.25;
+  font: var(--mat-sys-title-large);
+  font-weight: 600;
+}
+
+.quiz-edit__meta-panel-quiz-name {
+  flex: 1 1 0;
+  min-width: 0;
+  margin-left: auto;
+  padding-left: 1rem;
+  text-align: end;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--mat-sys-title-small);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .quiz-edit__description {

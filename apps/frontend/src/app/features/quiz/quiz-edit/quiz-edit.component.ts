@@ -20,7 +20,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, RouterLink, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, RouterOutlet } from '@angular/router';
 import {
   CdkDrag,
   CdkDragDrop,
@@ -152,6 +152,7 @@ type QuizMetadataFormGroup = FormGroup<{
 export class QuizEditComponent implements OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly quizStore = inject(QuizStoreService);
@@ -224,11 +225,13 @@ export class QuizEditComponent implements OnDestroy {
     return [...quiz.questions].sort((a, b) => a.order - b.order);
   });
   readonly isEditing = computed(() => this.editingQuestionId() !== null);
-  /** Panel „Neue Frage“ (oben); beim Inline-Bearbeiten ausgeblendet. */
+  /** Panel „Neue Frage“ (oben); Standard eingeklappt, beim Inline-Bearbeiten ausgeblendet. */
   readonly questionFormPanelOpen = signal(false);
   readonly isNewQuestionFormPanelExpanded = computed(
     () => !this.isEditing() && this.questionFormPanelOpen(),
   );
+  /** Metadaten-Karte; nach Schritt „Quiz neu“ (from=new) sofort eingeklappt – Initialwert aus URL, nicht erst im Constructor. */
+  readonly metadataPanelExpanded = signal(this.route.snapshot.queryParamMap?.get('from') !== 'new');
 
   readonly form: QuestionFormGroup = this.formBuilder.group({
     text: this.formBuilder.control('', {
@@ -292,6 +295,16 @@ export class QuizEditComponent implements OnDestroy {
     if (quiz) {
       this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
       this.patchSettingsForm(quiz.settings);
+    }
+    if (this.route.snapshot.queryParamMap?.get('from') === 'new') {
+      queueMicrotask(() => {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { from: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      });
     }
     merge(
       this.settingsForm.controls.nicknameTheme.valueChanges,

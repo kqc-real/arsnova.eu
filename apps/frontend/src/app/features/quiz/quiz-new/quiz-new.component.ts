@@ -267,7 +267,9 @@ export class QuizNewComponent implements OnInit, OnDestroy {
           : null,
         settings: this.readSettingsFromForm(),
       });
-      await this.router.navigate(localizeCommands(['quiz', created.id]));
+      await this.router.navigate(localizeCommands(['quiz', created.id]), {
+        queryParams: { from: 'new' },
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erstellen fehlgeschlagen.';
       this.submitError.set(message);
