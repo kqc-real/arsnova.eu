@@ -119,6 +119,7 @@
               [routerLink]="localizedPath('/news-archive')"
               [attr.aria-label]="footerNewsArchiveAria()"
             >
+              <!-- prettier-ignore -->
               <mat-icon
                 class="app-footer__icon"
                 aria-hidden="false"
@@ -126,8 +127,7 @@
                 [matBadgeHidden]="motdHeaderState.archiveUnreadCount() === 0"
                 [matBadgeOverlap]="false"
                 matBadgePosition="before"
-                >newspaper</mat-icon
-              >
+              >newspaper</mat-icon>
               <span class="app-footer__link-text" i18n="@@app.footer.newsArchive">News-Archiv</span>
             </a>
             <a
