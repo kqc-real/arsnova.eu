@@ -271,5 +271,35 @@
         Deutsch, Englisch, Französisch, Spanisch und Italienisch.
       </p>
     </section>
+
+    @if (!serverStatsLoading() && !serverStatsError()) {
+      <section class="help-section--stats" aria-labelledby="help-stats-heading">
+        <h2 id="help-stats-heading" i18n="@@help.statsTitle">Rekordteilnahme</h2>
+        <div class="help-stats__figure" aria-live="polite">
+          <div class="help-stats__number">{{ maxParticipantsRecord() }}</div>
+          <div class="help-stats__unit" i18n="@@help.statsUnit">Teilnehmende</div>
+        </div>
+        @if (recordUpdatedFormatted(); as dateLabel) {
+          <p class="help-stats__asof">
+            <time
+              [attr.datetime]="maxParticipantsStatisticUpdatedAtIso() ?? undefined"
+              i18n="@@help.statsAsOf"
+            >
+              Gemessen am {{ dateLabel }}
+            </time>
+          </p>
+        }
+        <p class="help-stats__hint" i18n="@@help.statsHint">
+          Bisher höchste Teilnehmerzahl in einer einzelnen Live-Session auf diesem Server – nur
+          aggregiert, ohne Namen oder andere personenbezogene Daten.
+        </p>
+        @if (statsUsesDevDemoValues()) {
+          <p class="help-stats__dev-demo" i18n="@@help.statsDevDemoNote">
+            Zahl und Zeitstempel sind Beispieldaten (nur Entwicklungsmodus, solange kein echter
+            Rekord aus der API kommt).
+          </p>
+        }
+      </section>
+    }
   </article>
 </div>

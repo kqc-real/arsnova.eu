@@ -696,6 +696,10 @@ export const ServerStatsDTOSchema = z.object({
   totalParticipants: z.number(),
   completedSessions: z.number(),
   activeBlitzRounds: z.number(),
+  /** Höchste je in einer Session registrierte Teilnehmerzahl (Joins, plattformweit). */
+  maxParticipantsSingleSession: z.number().int().min(0),
+  /** ISO-8601: letzte Aktualisierung dieser Kennzahl (`PlatformStatistic.updatedAt`), sonst null. */
+  maxParticipantsStatisticUpdatedAt: z.string().datetime().nullable(),
   serverStatus: z.enum(['healthy', 'busy', 'overloaded']),
 });
 

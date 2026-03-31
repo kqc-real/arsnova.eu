@@ -78,19 +78,26 @@ async function fetchHealthCheck() {
 /** Server-Statistik für Startseite (Story 0.4). Bei nicht erreichbarer DB: Fallback (0 Werte), keine Prisma-Fehler. */
 async function fetchServerStats() {
   try {
-    const [activeSessions, completedSessions, totalParticipants, blitzKeys] = await Promise.all([
-      prisma.session.count({ where: { status: { in: [...ACTIVE_SESSION_STATUSES] } } }),
-      prisma.session.count({ where: { status: 'FINISHED' } }),
-      prisma.participant.count({
-        where: { session: { status: { in: [...ACTIVE_SESSION_STATUSES] } } },
-      }),
-      countActiveBlitzRounds(),
-    ]);
+    const [activeSessions, completedSessions, totalParticipants, blitzKeys, platformRow] =
+      await Promise.all([
+        prisma.session.count({ where: { status: { in: [...ACTIVE_SESSION_STATUSES] } } }),
+        prisma.session.count({ where: { status: 'FINISHED' } }),
+        prisma.participant.count({
+          where: { session: { status: { in: [...ACTIVE_SESSION_STATUSES] } } },
+        }),
+        countActiveBlitzRounds(),
+        prisma.platformStatistic.findUnique({
+          where: { id: 'default' },
+          select: { maxParticipantsSingleSession: true, updatedAt: true },
+        }),
+      ]);
     return {
       activeSessions,
       totalParticipants,
       completedSessions,
       activeBlitzRounds: blitzKeys,
+      maxParticipantsSingleSession: platformRow?.maxParticipantsSingleSession ?? 0,
+      maxParticipantsStatisticUpdatedAt: platformRow?.updatedAt?.toISOString() ?? null,
       serverStatus: getServerStatus(activeSessions),
     };
   } catch {
@@ -99,6 +106,8 @@ async function fetchServerStats() {
       totalParticipants: 0,
       completedSessions: 0,
       activeBlitzRounds: 0,
+      maxParticipantsSingleSession: 0,
+      maxParticipantsStatisticUpdatedAt: null,
       serverStatus: 'healthy' as const,
     };
   }

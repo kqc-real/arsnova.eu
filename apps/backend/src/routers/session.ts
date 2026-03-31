@@ -53,6 +53,7 @@ import {
   NicknameThemeEnum,
 } from '@arsnova/shared-types';
 import { questionCountsTowardsTotalQuestions, questionAffectsStreak } from '../lib/quizScoring';
+import { updateMaxParticipantsSingleSession } from '../lib/platformStatistic';
 
 /**
  * In-Memory-Store für Emoji-Reaktionen (Story 5.8).
@@ -1679,6 +1680,8 @@ export const sessionRouter = router({
             message: 'Dieser Nickname ist in dieser Session bereits vergeben.',
           });
         });
+      const newParticipantCount = session._count.participants + 1;
+      void updateMaxParticipantsSingleSession(newParticipantCount);
       const serverTime = new Date().toISOString();
       return {
         id: session.id,
@@ -1690,7 +1693,7 @@ export const sessionRouter = router({
         quizMotifImageUrl: session.quiz?.motifImageUrl ?? null,
         title: session.title ?? null,
         channels: buildSessionChannels(session),
-        participantCount: session._count.participants + 1,
+        participantCount: newParticipantCount,
         participantId: participant.id,
         teamId: assignedTeamId ?? null,
         teamName: assignedTeamName,

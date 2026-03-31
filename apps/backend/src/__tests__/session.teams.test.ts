@@ -17,6 +17,7 @@ const { prismaMock, isSessionCodeLockedOutMock, recordFailedSessionCodeAttemptMo
       vote: {
         findMany: vi.fn(),
       },
+      $executeRaw: vi.fn().mockResolvedValue(1),
     },
     isSessionCodeLockedOutMock: vi.fn(),
     recordFailedSessionCodeAttemptMock: vi.fn(),
@@ -95,6 +96,7 @@ describe('session team mode (Story 7.1)', () => {
 
     const result = await caller.join({ code: 'ABC123', nickname: 'Ada', teamId: undefined });
 
+    expect(prismaMock.$executeRaw).toHaveBeenCalled();
     expect(prismaMock.participant.create).toHaveBeenCalledWith({
       data: {
         sessionId: SESSION_ID,
@@ -130,6 +132,7 @@ describe('session team mode (Story 7.1)', () => {
 
     const result = await caller.join({ code: 'ABC123', nickname: 'Ada', teamId: TEAM_A_ID });
 
+    expect(prismaMock.$executeRaw).toHaveBeenCalled();
     expect(prismaMock.participant.create).toHaveBeenCalledWith({
       data: {
         sessionId: SESSION_ID,

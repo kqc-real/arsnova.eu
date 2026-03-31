@@ -124,6 +124,13 @@ model Participant {
   @@unique([sessionId, nickname]) // Kein doppelter Nickname pro Session
 }
 
+// Singleton-Zeile: plattformweite Kennzahlen (höchste Teilnehmerzahl je Session)
+model PlatformStatistic {
+  id                          String @id // fest: "default"
+  maxParticipantsSingleSession Int   @default(0)
+  updatedAt                   DateTime @updatedAt
+}
+
 // Ein Team in einer Live-Session (Story 7.1)
 model Team {
   id           String        @id @default(uuid())

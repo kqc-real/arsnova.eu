@@ -15,6 +15,7 @@ vi.mock('../db', () => ({
   prisma: {
     session: { count: vi.fn() },
     participant: { count: vi.fn() },
+    platformStatistic: { findUnique: vi.fn() },
   },
 }));
 
@@ -59,12 +60,19 @@ describe('health.footerBundle', () => {
     vi.mocked(pingRedis).mockResolvedValue(true);
     vi.mocked(prisma.session.count).mockResolvedValue(0);
     vi.mocked(prisma.participant.count).mockResolvedValue(0);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+      id: 'default',
+      updatedAt: new Date(),
+      maxParticipantsSingleSession: 42,
+    });
 
     const result = await caller.footerBundle(undefined);
 
     expect(result.check.status).toBe('ok');
     expect(result.check.redis).toBe('ok');
     expect(result.stats.activeSessions).toBe(0);
+    expect(result.stats.maxParticipantsSingleSession).toBe(42);
+    expect(result.stats.maxParticipantsStatisticUpdatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(result.stats.serverStatus).toBe('healthy');
   });
 });
@@ -77,12 +85,15 @@ describe('health.stats', () => {
   it('liefert Initialwerte (0) wenn keine Sessions existieren', async () => {
     vi.mocked(prisma.session.count).mockResolvedValue(0);
     vi.mocked(prisma.participant.count).mockResolvedValue(0);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
 
     const result = await caller.stats(undefined);
 
     expect(result.activeSessions).toBe(0);
     expect(result.totalParticipants).toBe(0);
     expect(result.completedSessions).toBe(0);
+    expect(result.maxParticipantsSingleSession).toBe(0);
+    expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
     expect(result.serverStatus).toBe('healthy');
   });
 
@@ -91,18 +102,29 @@ describe('health.stats', () => {
       .mockResolvedValueOnce(10) // activeSessions (not FINISHED)
       .mockResolvedValueOnce(5); // completedSessions (FINISHED)
     vi.mocked(prisma.participant.count).mockResolvedValue(42);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+      id: 'default',
+      updatedAt: new Date(),
+      maxParticipantsSingleSession: 100,
+    });
 
     const result = await caller.stats(undefined);
 
     expect(result.activeSessions).toBe(10);
     expect(result.totalParticipants).toBe(42);
     expect(result.completedSessions).toBe(5);
+    expect(result.maxParticipantsSingleSession).toBe(100);
     expect(result.serverStatus).toBe('healthy');
   });
 
   it('berechnet serverStatus "busy" bei 50–199 aktiven Sessions', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(100).mockResolvedValueOnce(50);
     vi.mocked(prisma.participant.count).mockResolvedValue(500);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+      id: 'default',
+      updatedAt: new Date(),
+      maxParticipantsSingleSession: 0,
+    });
 
     const result = await caller.stats(undefined);
 
@@ -113,6 +135,11 @@ describe('health.stats', () => {
   it('berechnet serverStatus "overloaded" bei >= 200 aktiven Sessions', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(250).mockResolvedValueOnce(1000);
     vi.mocked(prisma.participant.count).mockResolvedValue(3000);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+      id: 'default',
+      updatedAt: new Date(),
+      maxParticipantsSingleSession: 0,
+    });
 
     const result = await caller.stats(undefined);
 
@@ -123,6 +150,11 @@ describe('health.stats', () => {
   it('exponiert keine personenbezogenen Daten – nur aggregierte Zahlen', async () => {
     vi.mocked(prisma.session.count).mockResolvedValue(0);
     vi.mocked(prisma.participant.count).mockResolvedValue(0);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+      id: 'default',
+      updatedAt: new Date(),
+      maxParticipantsSingleSession: 0,
+    });
 
     const result = await caller.stats(undefined);
 
@@ -133,6 +165,8 @@ describe('health.stats', () => {
         'totalParticipants',
         'completedSessions',
         'activeBlitzRounds',
+        'maxParticipantsSingleSession',
+        'maxParticipantsStatisticUpdatedAt',
         'serverStatus',
       ]),
     );
