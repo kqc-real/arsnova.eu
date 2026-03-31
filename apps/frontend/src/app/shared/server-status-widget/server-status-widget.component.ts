@@ -2,13 +2,16 @@
  * Server-Status-Widget (Story 0.4).
  * Zeigt aggregierte Kennzahlen und Status-Indikator; Polling alle 30s (nur wenn Verbindung ok).
  */
+import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
+  PLATFORM_ID,
   SimpleChanges,
+  inject,
   signal,
 } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
@@ -22,6 +25,8 @@ import type { ServerStatsDTO } from '@arsnova/shared-types';
   styleUrls: ['./server-status-widget.component.scss'],
 })
 export class ServerStatusWidgetComponent implements OnInit, OnChanges, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
+
   /** Wenn false, wird „Keine Verbindung“ angezeigt statt „Gerade aktiv“ / „Wird geladen…“. */
   @Input() connectionOk = true;
   /** Erste Kennzahlen vom Parent (health.footerBundle); vermeidet zweiten parallelen Request beim ersten Render. */
@@ -61,7 +66,7 @@ export class ServerStatusWidgetComponent implements OnInit, OnChanges, OnDestroy
   }
 
   ngOnInit(): void {
-    if (this.connectionOk) this.startPolling();
+    if (isPlatformBrowser(this.platformId) && this.connectionOk) this.startPolling();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -69,11 +74,11 @@ export class ServerStatusWidgetComponent implements OnInit, OnChanges, OnDestroy
       this.stats.set(this.initialStats);
     }
     if (changes['connectionOk']) {
-      if (this.connectionOk) {
+      if (this.connectionOk && isPlatformBrowser(this.platformId)) {
         this.startPolling();
       } else {
         this.stopPolling();
-        this.stats.set(null);
+        if (!this.connectionOk) this.stats.set(null);
       }
     }
   }

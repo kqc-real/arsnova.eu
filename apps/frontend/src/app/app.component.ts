@@ -74,6 +74,11 @@ export class AppComponent implements OnInit, OnDestroy {
   isOnline = signal(true);
   updateAvailable = signal(false);
   apiStatus = signal<string | null>(null);
+  /**
+   * Erst true, nachdem die erste Footer-Health-Abfrage im Browser beendet ist.
+   * Solange false (SSR/Prerender + kurz beim Laden): kein „Keine Verbindung“ im HTML — sonst wirkt die Seite für Crawler/KI offline.
+   */
+  footerHealthCheckDone = signal(false);
   /** Erste Server-Stats aus health.footerBundle (kein zweiter sofortiger stats-Request im Widget). */
   footerStats = signal<ServerStatsDTO | null>(null);
   apiRetrying = signal(false);
@@ -140,6 +145,10 @@ export class AppComponent implements OnInit, OnDestroy {
   footerRetryLabel = computed(() =>
     this.apiRetrying() ? $localize`Verbinde…` : $localize`Nochmal versuchen`,
   );
+  /** Widget: vor Health-Check „Wird geladen…“, danach echtes Online/Offline. */
+  footerConnectionOk = computed(() => !this.footerHealthCheckDone() || !!this.apiStatus());
+  /** Offline-Styling + Retry nur nach abgeschlossenem Check und fehlgeschlagenem API-Status. */
+  footerShowApiOffline = computed(() => this.footerHealthCheckDone() && !this.apiStatus());
   isImmersiveHostView = computed(() => this.hostDisplayMode.immersiveHostActive());
 
   ngOnInit(): void {
@@ -362,11 +371,14 @@ export class AppComponent implements OnInit, OnDestroy {
     } catch {
       this.apiStatus.set(null);
       this.footerStats.set(null);
+    } finally {
+      this.footerHealthCheckDone.set(true);
     }
   }
 
   async retryApiConnection(): Promise<void> {
     this.apiRetrying.set(true);
+    this.footerHealthCheckDone.set(false);
     await this.checkApiConnection();
     this.apiRetrying.set(false);
   }

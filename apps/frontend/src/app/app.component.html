@@ -134,11 +134,14 @@
         </div>
         <div
           class="app-footer__status-line"
-          [class.app-footer__status-line--offline]="!apiStatus()"
+          [class.app-footer__status-line--offline]="footerShowApiOffline()"
+          [attr.data-footer-api-state]="
+            footerHealthCheckDone() ? (apiStatus() ? 'ok' : 'offline') : 'pending'
+          "
         >
           <app-server-status-widget
             class="app-footer__status-widget"
-            [connectionOk]="!!apiStatus()"
+            [connectionOk]="footerConnectionOk()"
             [initialStats]="footerStats()"
             [compact]="true"
           />
@@ -151,7 +154,7 @@
           >
             <mat-icon>help</mat-icon>
           </button>
-          @if (!apiStatus()) {
+          @if (footerShowApiOffline()) {
             <button
               matButton
               class="app-footer__status-action"

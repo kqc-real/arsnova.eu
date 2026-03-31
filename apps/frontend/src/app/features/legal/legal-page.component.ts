@@ -59,11 +59,6 @@ export class LegalPageComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (typeof document === 'undefined') {
-        this.loading.set(false);
-        return;
-      }
-
       const locale: SupportedLocale = getEffectiveLocale(localeIdToSupported(this.localeId));
 
       const tryLoad = (lang: SupportedLocale) => {
