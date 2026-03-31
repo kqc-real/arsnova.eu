@@ -523,6 +523,15 @@ html.dark .cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
   margin: 0 !important;
 }
 
+/* Markdown (MOTD-Overlay, News-Archiv, Dialog, Admin-Vorschau): Bilder an Inhaltsbreite */
+.markdown-body img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  box-sizing: border-box;
+}
+
 /* MOTD-Vorlage-Dialog: Markdown in [innerHTML] — kein View-Encapsulation für Kindknoten */
 .cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body {
   font: var(--mat-sys-body-medium);
