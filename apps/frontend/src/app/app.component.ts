@@ -123,6 +123,8 @@ export class AppComponent implements OnInit, OnDestroy {
   );
   private lastScrollY = 0;
   private static readonly HIDE_SCROLL_THRESHOLD_PX = 80;
+  /** Erstes NavigationEnd = Bootstrap; kein Scroll-Reset — sonst kurzer Sprung „richtig → nach oben“ nach dem ersten Layout. */
+  private pendingInitialNavigationEnd = true;
 
   presetSnackbarIcon = computed(() =>
     this.themePreset.preset() === 'serious' ? 'work' : 'celebration',
@@ -161,9 +163,25 @@ export class AppComponent implements OnInit, OnDestroy {
           this.toolbarHidden.set(false);
           this.updateRouteFlags();
           this.seo.applyFromRouter();
-          requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }));
+          /* Nur bei Folge-Navigationen: #main-content scrollen (nicht window). Erstes Event überspringen — vermeidet sichtbares „Zucken“. */
+          if (this.pendingInitialNavigationEnd) {
+            this.pendingInitialNavigationEnd = false;
+          } else {
+            requestAnimationFrame(() => this.scrollPrimaryScrollContainerToTop());
+          }
         });
     }
+  }
+
+  /** Layout: sichtbarer Inhalt scrollt in `#main-content` (.app-main), nicht auf document/window. */
+  private scrollPrimaryScrollContainerToTop(): void {
+    const el = document.getElementById('main-content');
+    if (el) {
+      el.scrollTop = 0;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }
 
   ngOnDestroy(): void {

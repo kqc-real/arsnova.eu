@@ -52,6 +52,7 @@ import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 
 @Component({
   selector: 'app-home',
+  host: { class: 'route-home' },
   imports: [
     RouterLink,
     MatBadge,
@@ -205,7 +206,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.focusService.registerInput(this.sessionCodeInput);
-    setTimeout(() => this.sessionCodeInput?.nativeElement.focus(), 100);
+    // preventScroll: vermeidet Scroll des #main-content zum Code-Feld (kurze Viewports).
+    setTimeout(() => this.sessionCodeInput?.nativeElement.focus({ preventScroll: true }), 100);
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', this.keydownListener, true);
       document.addEventListener('keyup', this.keyupListener, true);

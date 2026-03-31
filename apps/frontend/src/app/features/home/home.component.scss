@@ -1,13 +1,16 @@
-/* Etwas mehr Luft Toolbar → Hero: +0.25rem zum globalen .l-page:first-child margin-top (styles.scss). */
-:host .l-page:first-child {
-  margin-top: 0.25rem;
+/* Startseite: eigenes .l-page-Spacing (Host-Klasse überschreibt globales margin-top). */
+:host.route-home .l-page:first-child {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem 1.5rem;
 
   @media (min-width: 600px) {
-    margin-top: 1.25rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem 1.5rem;
   }
 
   @media (min-width: 840px) {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
+    padding: 1rem 2rem 1.5rem;
   }
 }
 
@@ -152,6 +155,15 @@
   @media (min-width: 600px) {
     margin-top: 1rem;
   }
+}
+
+.home-hero-channels {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  vertical-align: baseline;
 }
 
 .home-hero-break-mobile {
@@ -1680,7 +1692,8 @@ mat-card-actions.l-stack {
   position: fixed;
   inset: 0;
   z-index: 1200;
-  pointer-events: none;
+  /* auto: sonst kann iOS den Layer bei pointer-events:none nicht zuverlässig scrollen */
+  pointer-events: auto;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -1695,6 +1708,20 @@ mat-card-actions.l-stack {
     align-items: center;
     padding: max(1.5rem, env(safe-area-inset-top, 0px)) max(1.5rem, env(safe-area-inset-right, 0px))
       max(1.5rem, env(safe-area-inset-bottom, 0px)) max(1.5rem, env(safe-area-inset-left, 0px));
+  }
+
+  .home-motd-sheet {
+    max-height: min(
+      36rem,
+      calc(100dvh - 3rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+    );
+    max-height: min(
+      36rem,
+      calc(
+        min(100dvh, 100svh) -
+          3rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+      )
+    );
   }
 }
 
@@ -1716,11 +1743,23 @@ mat-card-actions.l-stack {
   position: relative;
   z-index: 1;
   width: min(36rem, 100%);
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  /* Ohne max-height wächst das Sheet über den Viewport; Touch-Scroll bleibt oft am Kind hängen →
+     oberer Text nicht erreichbar. Scroll nur im Body (flex + min-height:0). */
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-height: 0;
+  max-height: min(
+    36rem,
+    calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
+  max-height: min(
+    36rem,
+    calc(
+      min(100dvh, 100svh) - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    )
+  );
+  overflow: hidden;
   padding: 1rem 1.1rem max(1.1rem, calc(0.25rem + env(safe-area-inset-bottom, 0px)));
   border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
   border: 1px solid var(--mat-sys-outline-variant);
@@ -1752,6 +1791,7 @@ mat-card-actions.l-stack {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .home-motd-sheet__title-header.dialog-title-header {
@@ -1765,6 +1805,12 @@ mat-card-actions.l-stack {
 }
 
 .home-motd-sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   font: var(--mat-sys-body-medium);
   line-height: 1.5;
   overflow-wrap: break-word;
@@ -1784,6 +1830,7 @@ mat-card-actions.l-stack {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1rem;
+  flex-shrink: 0;
 }
 
 .home-motd-sheet__thumbs {

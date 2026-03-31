@@ -2658,12 +2658,36 @@
           <context context-type="linenumber">267,271</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeHero.line1" datatype="html">
-        <source>Quiz, Q&amp;A und Blitzlicht –</source>
-        <target>Quiz, Q&amp;A e sondaggio rapido - </target>
+      <trans-unit id="homeHero.channelQuiz" datatype="html">
+        <source>Quiz</source>
+        <target>Quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">5,6</context>
+          <context context-type="linenumber">5,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHero.channelQa" datatype="html">
+        <source>Q&amp;A</source>
+        <target>Q&amp;A</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">5,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHero.channelBlitzlicht" datatype="html">
+        <source>Blitzlicht</source>
+        <target>sondaggio rapido</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">5,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHero.line1Dash" datatype="html">
+        <source> – </source>
+        <target> – </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">5,13</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.line2" datatype="html">
@@ -2671,7 +2695,7 @@
         <target>in diretta in un&apos;unica app</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">6,8</context>
+          <context context-type="linenumber">13,15</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4642582109589985725" datatype="html">

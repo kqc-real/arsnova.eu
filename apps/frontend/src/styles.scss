@@ -218,6 +218,8 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  /* Höhenkette für app-root: 100% statt nur 100dvh — bei kurzen Fenstern/mobile Chrome stabiler */
+  height: 100%;
 }
 
 body {
@@ -383,24 +385,24 @@ html {
   margin-inline: auto;
 }
 
-/* Abstand Toolbar → erstes Inhaltselement: wenn Route mit .l-page/.l-section startet (z. B. Quiz), global, da außerhalb App-Encapsulation. */
-.app-main > *:has(> .l-page:first-child),
-.app-main > *:has(> .l-section:first-child) {
+/* Abstand Toolbar → erstes Inhaltselement: Routed Component ist Kind von .app-main__content, .l-page/.l-section dessen erstes Kind. */
+.app-main__content:has(> * > .l-page:first-child),
+.app-main__content:has(> * > .l-section:first-child) {
   margin-top: 0;
 }
-.app-main > * > .l-page:first-child,
-.app-main > * > .l-section:first-child {
+.app-main__content > * > .l-page:first-child,
+.app-main__content > * > .l-section:first-child {
   margin-top: 1rem;
 }
 @media (min-width: 600px) {
-  .app-main > * > .l-page:first-child,
-  .app-main > * > .l-section:first-child {
+  .app-main__content > * > .l-page:first-child,
+  .app-main__content > * > .l-section:first-child {
     margin-top: 1.25rem;
   }
 }
 @media (min-width: 840px) {
-  .app-main > * > .l-page:first-child,
-  .app-main > * > .l-section:first-child {
+  .app-main__content > * > .l-page:first-child,
+  .app-main__content > * > .l-section:first-child {
     margin-top: 1.5rem;
   }
 }
