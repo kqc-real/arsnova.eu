@@ -38,7 +38,7 @@
             <span class="quiz-edit__meta-panel-heading" i18n="@@quizEdit.metaCardTitle"
               >Titel &amp; Beschreibung</span
             >
-            @if ((metadataForm.controls.name.value ?? '').trim(); as metaTitle) {
+            @if (metadataForm.controls.name.value.trim(); as metaTitle) {
               <span class="quiz-edit__meta-panel-quiz-name" [attr.title]="metaTitle">{{
                 metaTitle
               }}</span>

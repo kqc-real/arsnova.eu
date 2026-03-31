@@ -51,19 +51,32 @@
       @if (items().length === 0) {
         <p class="motd-archive__empty" i18n="@@motd.archiveEmpty">Keine archivierten Meldungen.</p>
       } @else {
-        <ul class="motd-archive__list">
+        <mat-accordion class="motd-archive__accordion" [multi]="true">
           @for (it of items(); track it.id) {
-            <li class="motd-archive__item">
-              @let archiveMeta = formatArchiveDate(it.startsAt);
-              @if (archiveMeta) {
-                <p class="motd-archive__meta">{{ archiveMeta }}</p>
-              }
+            @let archiveMeta = formatArchiveDate(it.startsAt);
+            <mat-expansion-panel class="motd-archive__panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="motd-archive__panel-title">
+                  <span
+                    class="motd-archive__panel-title-text"
+                    [attr.title]="archiveItemTitle(it.id)"
+                    >{{ archiveItemTitle(it.id) }}</span
+                  >
+                </mat-panel-title>
+                @if (archiveMeta) {
+                  <mat-panel-description class="motd-archive__panel-meta">
+                    <span class="motd-archive__panel-meta-text" [attr.title]="archiveMeta">{{
+                      archiveMeta
+                    }}</span>
+                  </mat-panel-description>
+                }
+              </mat-expansion-panel-header>
               @if (htmlById()[it.id]; as safe) {
                 <div class="motd-archive__body markdown-body" [innerHTML]="safe"></div>
               }
-            </li>
+            </mat-expansion-panel>
           }
-        </ul>
+        </mat-accordion>
       }
       @if (nextCursor()) {
         <div class="motd-archive__load-more" [attr.aria-busy]="loadingMore() ? 'true' : null">

@@ -9,6 +9,13 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import {
+  MatAccordion,
+  MatExpansionPanel,
+  MatExpansionPanelDescription,
+  MatExpansionPanelHeader,
+  MatExpansionPanelTitle,
+} from '@angular/material/expansion';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import type { AppLocale, MotdArchiveItemDTO } from '@arsnova/shared-types';
@@ -20,6 +27,7 @@ import {
   setMotdArchiveSeenUpToEndsAtIso,
 } from '../../core/motd-storage';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
+import { splitMotdArchiveFirstAtxHeading } from '../../core/motd-archive-split.util';
 import { renderMarkdownWithoutKatex } from '../markdown-katex.util';
 
 export type MotdArchiveDialogData = { locale: AppLocale };
@@ -45,6 +53,11 @@ const ARCHIVE_DATE_LOCALE: Record<AppLocale, string> = {
     MatIcon,
     MatProgressSpinner,
     MatTooltip,
+    MatAccordion,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+    MatExpansionPanelDescription,
   ],
   templateUrl: './motd-archive-dialog.component.html',
   styleUrls: ['../styles/dialog-title-header.scss', './motd-archive-dialog.component.scss'],
@@ -67,12 +80,32 @@ export class MotdArchiveDialogComponent implements OnInit {
   /** Ungelesen relativ zum Client-Wasserzeichen. */
   readonly archiveUnreadCount = signal(0);
 
-  /** motd id → sanitized preview html */
+  /** motd id → Anzeige-Titel (Markdown-Überschrift oder Fallback) */
+  readonly titleById = signal<Record<string, string>>({});
+  /** motd id → sanitized preview html (ohne führende ATX-Überschrift, falls vorhanden) */
   readonly htmlById = signal<Record<string, SafeHtml>>({});
+
+  private readonly archiveItemFallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archiv-Meldung`;
 
   /** `startsAt` (ISO-UTC) als Veröffentlichungsdatum im Archiv. */
   formatArchiveDate(iso: string): string {
     return formatMotdArchiveStartsAtForDisplay(iso, ARCHIVE_DATE_LOCALE[this.data.locale]);
+  }
+
+  /** Stabiler Template-Zugriff für strictTemplates (Record-Index). */
+  archiveItemTitle(id: string): string {
+    return this.titleById()[id] ?? this.archiveItemFallbackTitle;
+  }
+
+  private buildArchiveRender(it: MotdArchiveItemDTO): { title: string; html: SafeHtml } {
+    const { title: atxTitle, bodyMarkdown } = splitMotdArchiveFirstAtxHeading(it.markdown);
+    const displayTitle = atxTitle ?? this.archiveItemFallbackTitle;
+    const mdForBody =
+      atxTitle !== null ? (bodyMarkdown.trim().length > 0 ? bodyMarkdown : '\n') : it.markdown;
+    return {
+      title: displayTitle,
+      html: this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithoutKatex(mdForBody)),
+    };
   }
 
   markArchiveAllRead(): void {
@@ -115,12 +148,14 @@ export class MotdArchiveDialogComponent implements OnInit {
       const first = listResult.value;
       this.items.set(first.items);
       this.nextCursor.set(first.nextCursor);
+      const titles: Record<string, string> = {};
       const map: Record<string, SafeHtml> = {};
       for (const it of first.items) {
-        map[it.id] = this.sanitizer.bypassSecurityTrustHtml(
-          renderMarkdownWithoutKatex(it.markdown),
-        );
+        const { title, html } = this.buildArchiveRender(it);
+        titles[it.id] = title;
+        map[it.id] = html;
       }
+      this.titleById.set(titles);
       this.htmlById.set(map);
     } else {
       const e = listResult.reason;
@@ -152,12 +187,21 @@ export class MotdArchiveDialogComponent implements OnInit {
       });
       this.items.update((prev) => [...prev, ...page.items]);
       this.nextCursor.set(page.nextCursor);
+      const rendered = page.items.map((it) => {
+        const r = this.buildArchiveRender(it);
+        return { id: it.id, title: r.title, html: r.html };
+      });
+      this.titleById.update((prevTitles) => {
+        const nextT = { ...prevTitles };
+        for (const r of rendered) {
+          nextT[r.id] = r.title;
+        }
+        return nextT;
+      });
       this.htmlById.update((prev) => {
         const next = { ...prev };
-        for (const it of page.items) {
-          next[it.id] = this.sanitizer.bypassSecurityTrustHtml(
-            renderMarkdownWithoutKatex(it.markdown),
-          );
+        for (const r of rendered) {
+          next[r.id] = r.html;
         }
         return next;
       });
