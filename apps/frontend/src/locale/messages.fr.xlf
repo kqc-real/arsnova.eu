@@ -6337,10 +6337,6 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">353</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2058</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="523492152856026511" datatype="html">
         <source>„<x id="PH" equiv-text="imported.name"/>“ wurde importiert.</source>
@@ -7685,12 +7681,76 @@
           <context context-type="linenumber">973</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.leaveEndSessionFailed" datatype="html">
-        <source>Session konnte nicht beendet werden. Prüfe die Verbindung und versuche es erneut.</source>
-        <target>La session n&apos;a pas pu être terminée. Vérifiez la connexion et réessayez.</target>
+      <trans-unit id="sessionHost.steeringCalloutTitle" datatype="html">
+        <source>Das ist gerade nicht angekommen</source>
+        <target>Ça n’est pas passé tout de suite</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">987</context>
+          <context context-type="linenumber">970</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutBody" datatype="html">
+        <source>Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf „Nochmal probieren“ – meist reicht das.</source>
+        <target>Pas de stress, ça arrive (petit à-coup ou Wi‑Fi capricieux). Compte jusqu’à trois, puis appuie sur « Réessayer » — en général ça suffit.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">971</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutAria" datatype="html">
+        <source>Hinweis: Etwas ist in der Session schiefgegangen</source>
+        <target>À savoir : un petit souci avec ta session</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutRetry" datatype="html">
+        <source>Nochmal probieren</source>
+        <target>Réessayer</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutDismiss" datatype="html">
+        <source>Okay</source>
+        <target>OK</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutQaTitle" datatype="html">
+        <source>Mit den Fragen klappt es gerade nicht</source>
+        <target>Avec les questions, ça bloque un instant</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">977</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutQaBody" datatype="html">
+        <source>Hier ist nichts kaputt – es hat nur gerade nicht geklappt. Kurz durchatmen, 2–3 Sekunden warten, dann „Nochmal probieren“ – oft läuft es gleich wieder.</source>
+        <target>Rien n’est cassé, ça n’a juste pas marché cette fois. Respire un coup, attends 2–3 secondes, puis « Réessayer » — souvent ça repart.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">978</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportTitle" datatype="html">
+        <source>Die Tabelle war noch nicht bereit</source>
+        <target>Le tableau n’était pas encore prêt</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">985</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportBody" datatype="html">
+        <source>Die Übersicht zum Herunterladen ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.</source>
+        <target>Le fichier à télécharger n’est pas passé cette fois. Attends quelques secondes et appuie sur « Réessayer » — le deuxième essai fait souvent l’affaire.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">986</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.musicPreviewStopAria" datatype="html">
@@ -8181,22 +8241,6 @@
           <context context-type="linenumber">1538</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.qaTitleSaveError" datatype="html">
-        <source>Titel konnte nicht gespeichert werden.</source>
-        <target>Le titre n'a pas pu être enregistré.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1663</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionQa.hostLoadError" datatype="html">
-        <source>Fragen konnten nicht geladen werden.</source>
-        <target>Impossible de charger les questions.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1760</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionQa.moderationEnabled" datatype="html">
         <source>Vorab-Moderation aktiviert.</source>
         <target>Pré-modération activée.</target>
@@ -8211,14 +8255,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1798</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionQa.moderationToggleError" datatype="html">
-        <source>Moderation konnte nicht umgeschaltet werden.</source>
-        <target>Impossible de changer le mode de modération.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1802</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.moderationApproved" datatype="html">
@@ -8251,14 +8287,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1838</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionQa.moderationError" datatype="html">
-        <source>Moderationsaktion konnte nicht ausgeführt werden.</source>
-        <target>Impossible d’exécuter l’action de modération.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1842</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4853654203361181522" datatype="html">

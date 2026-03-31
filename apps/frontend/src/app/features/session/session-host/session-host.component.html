@@ -7,6 +7,42 @@
   [class.session-host--immersive]="isImmersiveMode()"
 >
   @if (session(); as s) {
+    @if (hostSteeringCallout(); as steer) {
+      <div
+        class="session-host__steering-callout app-live-channel-shell"
+        role="alert"
+        aria-live="assertive"
+        i18n-aria-label="@@sessionHost.steeringCalloutAria"
+        aria-label="Hinweis: Etwas ist in der Session schiefgegangen"
+      >
+        <mat-icon class="session-host__steering-callout-icon" aria-hidden="true"
+          >local_fire_department</mat-icon
+        >
+        <div class="session-host__steering-callout-body">
+          <p class="session-host__steering-callout-title">{{ steer.title }}</p>
+          <p class="session-host__steering-callout-text">{{ steer.body }}</p>
+        </div>
+        <div class="session-host__steering-callout-actions">
+          <button
+            mat-flat-button
+            color="warn"
+            type="button"
+            (click)="steer.retry()"
+            i18n="@@sessionHost.steeringCalloutRetry"
+          >
+            Nochmal probieren
+          </button>
+          <button
+            mat-button
+            type="button"
+            (click)="dismissHostSteeringCallout()"
+            i18n="@@sessionHost.steeringCalloutDismiss"
+          >
+            Okay
+          </button>
+        </div>
+      </div>
+    }
     @if (showChannelTabs()) {
       <div class="session-channel-tabs-shell">
         <mat-button-toggle-group
@@ -1579,9 +1615,6 @@
                 </div>
               </div>
 
-              @if (qaError(); as error) {
-                <p class="session-channel-card__error" role="alert">{{ error }}</p>
-              }
               @if (qaInfo(); as info) {
                 <p class="session-channel-card__info" role="status">{{ info }}</p>
               }

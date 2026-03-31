@@ -845,6 +845,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.statusSub = trpc.session.onStatusChanged.subscribe(
       { code: this.code },
       {
+        onError: () => {
+          /* Nach Deploy/Netz: sofortiger HTTP-Resync, nicht nur 2s-Polling */
+          this.lastSessionInfoRetryAt = 0;
+          void this.refreshSessionInfoFallback();
+          void this.refreshQuestion();
+        },
         onData: (data: {
           status: string;
           currentQuestion: number | null;
@@ -950,7 +956,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           this.setQaQuestionsAnimated(data);
           this.qaError.set(null);
         },
-        onError: () => {},
+        onError: () => {
+          this.lastSessionInfoRetryAt = 0;
+          void this.refreshSessionInfoFallback();
+          void this.refreshQaQuestions();
+        },
       },
     );
   }

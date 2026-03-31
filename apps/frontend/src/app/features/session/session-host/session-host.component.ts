@@ -20,7 +20,7 @@ import {
   computed,
   effect,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -152,6 +152,12 @@ const ALL_MUSIC_TRACKS: ReadonlyArray<{ value: HostMusicTrack; label: string }> 
 ];
 const ALL_MUSIC_TRACK_VALUES = ALL_MUSIC_TRACKS.map((t) => t.value);
 
+type HostSteeringCalloutState = {
+  title: string;
+  body: string;
+  retry: () => void;
+};
+
 function musicTracksForPhase(
   phase: MusicPhase,
 ): ReadonlyArray<{ value: HostMusicTrack; label: string }> {
@@ -208,9 +214,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Live-Status für Steuerung (Story 2.3). */
   readonly statusUpdate = signal<SessionStatusUpdate | null>(null);
   readonly controlPending = signal(false);
+  /** Auffälliger Hinweis bei fehlgeschlagenen Host-Steuer-Mutationen (Netz/Server). */
+  readonly hostSteeringCallout = signal<HostSteeringCalloutState | null>(null);
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
-  readonly qaError = signal<string | null>(null);
   readonly qaInfo = signal<string | null>(null);
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
   readonly qaSeenQuestionIds = signal<Set<string>>(new Set());
@@ -227,6 +234,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly themePreset = inject(ThemePresetService);
   readonly sound = inject(SoundService);
@@ -777,7 +785,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             this.participantsPayload.set(data);
             void this.refreshLobbyTeams();
           },
-          onError: () => {},
+          onError: () => this.burstHostFallbackAfterWsGap(),
         },
       );
       this.statusSub = trpc.session.onStatusChanged.subscribe(
@@ -793,7 +801,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               activeAt: data.activeAt,
             });
           },
-          onError: () => {},
+          onError: () => this.burstHostFallbackAfterWsGap(),
         },
       );
 
@@ -803,9 +811,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           {
             onData: (data) => {
               this.qaQuestions.set(data);
-              this.qaError.set(null);
+              this.dismissHostSteeringCallout();
             },
-            onError: () => {},
+            onError: () => this.burstHostFallbackAfterWsGap(),
           },
         );
       }
@@ -826,6 +834,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.document.removeEventListener('click', this.unlockListener);
     this.document.removeEventListener('keydown', this.unlockListener);
   };
+
+  /** Ein Poll-Zyklus ohne auf das Intervall zu warten (z. B. nach WS-Subscription-Fehler beim Deploy). */
+  private burstHostFallbackAfterWsGap(): void {
+    void this.refreshServerClockSkew();
+    void this.refreshParticipantsPayload();
+    void this.refreshLiveFreetext();
+    void this.refreshCurrentQuestionForHost();
+    void this.refreshEmojiReactions();
+    void this.refreshLobbyTeams();
+    void this.refreshQuickFeedbackResult();
+    this.syncMusic();
+  }
 
   /** Periodische Kalibrierung gegen die Serverzeit (Health), falls keine Status-Events kommen. */
   private async refreshServerClockSkew(): Promise<void> {
@@ -939,6 +959,45 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return status !== null && status !== 'FINISHED';
   }
 
+  dismissHostSteeringCallout(): void {
+    this.hostSteeringCallout.set(null);
+  }
+
+  private openHostSteeringCalloutForSteeringFailure(retry: () => void): void {
+    this.hostSteeringCallout.set({
+      title: $localize`:@@sessionHost.steeringCalloutTitle:Das ist gerade nicht angekommen`,
+      body: $localize`:@@sessionHost.steeringCalloutBody:Kein Stress – so was passiert manchmal (kurzer Ruckler oder instabiles WLAN). Warte zwei, drei Sekunden und tippe auf „Nochmal probieren“ – meist reicht das.`,
+      retry,
+    });
+  }
+
+  private openHostSteeringCalloutForQaFailure(retry: () => void): void {
+    this.hostSteeringCallout.set({
+      title: $localize`:@@sessionHost.steeringCalloutQaTitle:Mit den Fragen klappt es gerade nicht`,
+      body: $localize`:@@sessionHost.steeringCalloutQaBody:Hier ist nichts kaputt – es hat nur gerade nicht geklappt. Kurz durchatmen, 2–3 Sekunden warten, dann „Nochmal probieren“ – oft läuft es gleich wieder.`,
+      retry,
+    });
+  }
+
+  private openHostSteeringCalloutForExportFailure(retry: () => void): void {
+    this.hostSteeringCallout.set({
+      title: $localize`:@@sessionHost.steeringCalloutExportTitle:Die Tabelle war noch nicht bereit`,
+      body: $localize`:@@sessionHost.steeringCalloutExportBody:Die Übersicht zum Herunterladen ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.`,
+      retry,
+    });
+  }
+
+  private async retryEndSessionAndNavigateHome(): Promise<void> {
+    if (!this.code) return;
+    try {
+      await trpc.session.end.mutate({ code: this.code.toUpperCase() });
+      await this.router.navigateByUrl(this.localizedPath('/'));
+      this.dismissHostSteeringCallout();
+    } catch {
+      /* Hinweis bleibt, bis Retry klappt oder die Person schließt. */
+    }
+  }
+
   /**
    * CanDeactivate-Guard-Hook: zeigt einen Bestätigungsdialog,
    * wenn die Session noch läuft.
@@ -983,10 +1042,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       try {
         await trpc.session.end.mutate({ code: this.code.toUpperCase() });
       } catch {
-        this.snackBar.open(
-          $localize`:@@sessionHost.leaveEndSessionFailed:Session konnte nicht beendet werden. Prüfe die Verbindung und versuche es erneut.`,
-          undefined,
-          { duration: 6000 },
+        this.openHostSteeringCalloutForSteeringFailure(
+          () => void this.retryEndSessionAndNavigateHome(),
         );
         return false;
       }
@@ -1638,7 +1695,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     this.qaTitleSaving.set(true);
-    this.qaError.set(null);
     try {
       const result = await trpc.session.updateQaTitle.mutate({
         code: this.code.toUpperCase(),
@@ -1658,10 +1714,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
       this.syncQaTitleDraftFromSession();
       this.qaTitleEditing.set(false);
+      this.dismissHostSteeringCallout();
     } catch {
-      this.qaError.set(
-        $localize`:@@sessionHost.qaTitleSaveError:Titel konnte nicht gespeichert werden.`,
-      );
+      this.openHostSteeringCalloutForQaFailure(() => void this.saveQaHostTitle());
     } finally {
       this.qaTitleSaving.set(false);
     }
@@ -1691,6 +1746,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (result.status === 'ACTIVE') {
         this.startCountdown(this.currentQuestionForHost()?.timer, result.activeAt);
       }
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.nextQuestion());
     } finally {
       this.controlPending.set(false);
     }
@@ -1703,6 +1761,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const result = await trpc.session.startQa.mutate({ code: this.code.toUpperCase() });
       this.statusUpdate.set(result);
       this.currentQuestionForHost.set(null);
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.startQa());
     } finally {
       this.controlPending.set(false);
     }
@@ -1755,9 +1816,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const questions = await trpc.qa.list.query({ sessionId, moderatorView: true });
       this.qaQuestions.set(questions);
-      this.qaError.set(null);
+      this.dismissHostSteeringCallout();
     } catch {
-      this.qaError.set($localize`:@@sessionQa.hostLoadError:Fragen konnten nicht geladen werden.`);
+      this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
     }
   }
 
@@ -1797,10 +1858,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ? $localize`:@@sessionQa.moderationEnabled:Vorab-Moderation aktiviert.`
           : $localize`:@@sessionQa.moderationDisabled:Vorab-Moderation deaktiviert.`,
       );
+      this.dismissHostSteeringCallout();
     } catch {
-      this.qaError.set(
-        $localize`:@@sessionQa.moderationToggleError:Moderation konnte nicht umgeschaltet werden.`,
-      );
+      this.openHostSteeringCalloutForQaFailure(() => void this.toggleQaModeration());
     }
   }
 
@@ -1818,7 +1878,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     pending.add(questionId);
     this.qaPendingQuestionIds.set(pending);
-    this.qaError.set(null);
     this.qaInfo.set(null);
 
     try {
@@ -1837,9 +1896,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               ? $localize`:@@sessionQa.moderationArchived:Frage archiviert.`
               : $localize`:@@sessionQa.moderationDeleted:Frage entfernt.`,
       );
+      this.dismissHostSteeringCallout();
     } catch {
-      this.qaError.set(
-        $localize`:@@sessionQa.moderationError:Moderationsaktion konnte nicht ausgeführt werden.`,
+      this.openHostSteeringCalloutForQaFailure(
+        () => void this.moderateQaQuestion(questionId, action),
       );
     } finally {
       const remaining = new Set(this.qaPendingQuestionIds());
@@ -1858,6 +1918,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.statusUpdate.set(result);
       await this.refreshCurrentQuestionForHost();
       this.startCountdown(this.currentQuestionForHost()?.timer, result.activeAt);
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.revealAnswers());
     } finally {
       this.controlPending.set(false);
     }
@@ -1873,6 +1936,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const result = await trpc.session.revealResults.mutate({ code: this.code.toUpperCase() });
       this.statusUpdate.set(result);
       await this.refreshCurrentQuestionForHost();
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.revealResults());
     } finally {
       this.controlPending.set(false);
     }
@@ -1888,6 +1954,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const result = await trpc.session.startDiscussion.mutate({ code: this.code.toUpperCase() });
       this.statusUpdate.set(result);
       await this.refreshCurrentQuestionForHost();
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.startDiscussion());
     } finally {
       this.controlPending.set(false);
     }
@@ -1903,6 +1972,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.statusUpdate.set(result);
       await this.refreshCurrentQuestionForHost();
       this.startCountdown(this.currentQuestionForHost()?.timer, result.activeAt);
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.startSecondRound());
     } finally {
       this.controlPending.set(false);
     }
@@ -2054,8 +2126,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       a.click();
       URL.revokeObjectURL(url);
       this.exportStatus.set($localize`Ergebnis-CSV exportiert.`);
+      this.dismissHostSteeringCallout();
     } catch {
-      this.exportStatus.set($localize`Export fehlgeschlagen.`);
+      this.openHostSteeringCalloutForExportFailure(() => void this.exportSessionResultsCsv());
     } finally {
       this.exportExporting.set(false);
     }
@@ -2070,6 +2143,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const result = await trpc.session.end.mutate({ code: this.code.toUpperCase() });
       this.statusUpdate.set(result);
       this.currentQuestionForHost.set(null);
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.endSession());
     } finally {
       this.controlPending.set(false);
     }

@@ -15,10 +15,15 @@ const {
   getCurrentQuestionForHostQueryMock,
   getLeaderboardQueryMock,
   getTeamLeaderboardQueryMock,
+  getExportDataQueryMock,
   qaListQueryMock,
   qaModerateMutateMock,
+  qaToggleModerationMutateMock,
   qaOnQuestionsUpdatedSubscribeMock,
+  nextQuestionMutateMock,
   startQaMutateMock,
+  endMutateMock,
+  updateQaTitleMutateMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
 } = vi.hoisted(() => ({
@@ -30,10 +35,15 @@ const {
   getCurrentQuestionForHostQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
+  getExportDataQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
   qaModerateMutateMock: vi.fn(),
+  qaToggleModerationMutateMock: vi.fn(),
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
+  nextQuestionMutateMock: vi.fn(),
   startQaMutateMock: vi.fn(),
+  endMutateMock: vi.fn(),
+  updateQaTitleMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
 }));
@@ -51,14 +61,22 @@ vi.mock('../../../core/trpc.client', () => ({
       getCurrentQuestionForHost: { query: getCurrentQuestionForHostQueryMock },
       getLeaderboard: { query: getLeaderboardQueryMock },
       getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
+      getExportData: { query: getExportDataQueryMock },
+      nextQuestion: { mutate: nextQuestionMutateMock },
       startQa: { mutate: startQaMutateMock },
+      end: { mutate: endMutateMock },
+      updateQaTitle: { mutate: updateQaTitleMutateMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
     },
     qa: {
       list: { query: qaListQueryMock },
       moderate: { mutate: qaModerateMutateMock },
+      toggleModeration: { mutate: qaToggleModerationMutateMock },
       onQuestionsUpdated: { subscribe: qaOnQuestionsUpdatedSubscribeMock },
+    },
+    quickFeedback: {
+      results: { query: vi.fn().mockResolvedValue({ totalVotes: 0, options: [] }) },
     },
   },
 }));
@@ -72,6 +90,7 @@ const defaultSession = {
   code: 'ABC123',
   type: 'QUIZ' as const,
   status: 'LOBBY' as const,
+  serverTime: '2026-03-24T12:00:00.000Z',
   quizName: 'Demo Quiz',
   quizMotifImageUrl: null as string | null,
   title: null,
@@ -114,6 +133,27 @@ describe('SessionHostComponent', () => {
       status: 'ACTIVE',
       currentQuestion: null,
       currentRound: 1,
+    });
+    nextQuestionMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: null,
+      currentRound: 1,
+      activeAt: null,
+    });
+    endMutateMock.mockResolvedValue({
+      status: 'FINISHED',
+      currentQuestion: null,
+      activeAt: null,
+    });
+    updateQaTitleMutateMock.mockResolvedValue({
+      title: 'Titel',
+      qaTitle: 'Titel',
+    });
+    qaToggleModerationMutateMock.mockResolvedValue({ enabled: true });
+    getExportDataQueryMock.mockResolvedValue({
+      sessionCode: 'ABC123',
+      questions: [],
+      bonusTokens: [],
     });
   });
 
@@ -591,5 +631,196 @@ describe('SessionHostComponent', () => {
     expect(text).toContain('Ada');
     expect(text).toContain('Grace');
     fixture.destroy();
+  });
+
+  describe('Host-Steering-Callout bei Störfällen', () => {
+    const steeringTitle = 'Das ist gerade nicht angekommen';
+    const qaCalloutTitle = 'Mit den Fragen klappt es gerade nicht';
+    const exportCalloutTitle = 'Die Tabelle war noch nicht bereit';
+
+    const calloutEl = (fixture: ReturnType<typeof setup>) =>
+      fixture.nativeElement.querySelector('.session-host__steering-callout') as HTMLElement | null;
+
+    it('zeigt nach fehlgeschlagenem startQa den Steuerungs-Callout mit beruhigendem Titel', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        type: 'Q_AND_A',
+        quizName: null,
+        title: 'Offene Fragen',
+        status: 'LOBBY',
+      });
+      startQaMutateMock.mockRejectedValueOnce(new Error('network'));
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      await component.startQa();
+      fixture.detectChanges();
+
+      expect(component.hostSteeringCallout()).not.toBeNull();
+      expect(component.hostSteeringCallout()?.title).toContain(steeringTitle);
+      expect(calloutEl(fixture)?.textContent ?? '').toContain(steeringTitle);
+      expect(startQaMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+      fixture.destroy();
+    });
+
+    it('zeigt nach fehlgeschlagenem nextQuestion den Steuerungs-Callout', async () => {
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
+      nextQuestionMutateMock.mockRejectedValueOnce(new Error('timeout'));
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await fixture.componentInstance.nextQuestion();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.hostSteeringCallout()?.title).toContain(steeringTitle);
+      expect(nextQuestionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+      fixture.destroy();
+    });
+
+    it('zeigt nach fehlgeschlagener Q&A-Moderation den Q&A-Callout', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Testfrage',
+          upvoteCount: 0,
+          status: 'PENDING',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]);
+      qaModerateMutateMock.mockRejectedValueOnce(new Error('moderate failed'));
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise((r) => setTimeout(r, 50));
+
+      const component = fixture.componentInstance;
+      component.activeChannel.set('qa');
+      await component.moderateQaQuestion('44444444-4444-4444-8444-444444444444', 'APPROVE');
+      fixture.detectChanges();
+
+      expect(component.hostSteeringCallout()?.title).toContain(qaCalloutTitle);
+      fixture.destroy();
+    });
+
+    it('zeigt nach fehlgeschlagenem Laden der Fragenliste den Q&A-Callout', async () => {
+      qaListQueryMock.mockRejectedValueOnce(new Error('list failed'));
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, title: 'Fragen', moderationMode: false },
+          quickFeedback: { enabled: false },
+        },
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      // Zoneless TestBed: whenStable wartet nicht auf die volle async-ngOnInit-Kette; kurz entkoppeln.
+      await new Promise((r) => setTimeout(r, 0));
+      fixture.detectChanges();
+
+      expect(qaListQueryMock).toHaveBeenCalledWith({
+        sessionId: defaultSession.id,
+        moderatorView: true,
+      });
+      expect(fixture.componentInstance.hostSteeringCallout()?.title).toContain(qaCalloutTitle);
+      fixture.destroy();
+    });
+
+    it('zeigt nach fehlgeschlagenem Ergebnis-Export den Export-Callout', async () => {
+      getExportDataQueryMock.mockRejectedValueOnce(new Error('export query failed'));
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.hostSteeringCallout()?.title).toContain(exportCalloutTitle);
+      fixture.destroy();
+    });
+
+    it('schließt den Callout bei „Okay“ und führt Retry erneut aus', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        type: 'Q_AND_A',
+        quizName: null,
+        title: 'Offene Fragen',
+        status: 'LOBBY',
+      });
+      startQaMutateMock.mockRejectedValueOnce(new Error('first')).mockResolvedValueOnce({
+        status: 'ACTIVE',
+        currentQuestion: null,
+        currentRound: 1,
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      await component.startQa();
+      fixture.detectChanges();
+
+      expect(component.hostSteeringCallout()).not.toBeNull();
+
+      const dismissBtn = Array.from(fixture.nativeElement.querySelectorAll('button')).find(
+        (b) => (b.textContent ?? '').trim() === 'Okay',
+      ) as HTMLButtonElement | undefined;
+      expect(dismissBtn).toBeDefined();
+      dismissBtn!.click();
+      fixture.detectChanges();
+      expect(component.hostSteeringCallout()).toBeNull();
+
+      await component.startQa();
+      fixture.detectChanges();
+      expect(startQaMutateMock).toHaveBeenCalledTimes(2);
+      expect(component.hostSteeringCallout()).toBeNull();
+      fixture.destroy();
+    });
+
+    it('führt über „Nochmal probieren“ die gleiche Aktion erneut aus', async () => {
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
+      nextQuestionMutateMock.mockRejectedValueOnce(new Error('first')).mockResolvedValueOnce({
+        status: 'ACTIVE',
+        currentQuestion: null,
+        currentRound: 1,
+        activeAt: null,
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      await component.nextQuestion();
+      fixture.detectChanges();
+
+      const retryBtn = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
+        (b.textContent ?? '').includes('Nochmal probieren'),
+      ) as HTMLButtonElement | undefined;
+      expect(retryBtn).toBeDefined();
+      retryBtn!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(nextQuestionMutateMock).toHaveBeenCalledTimes(2);
+      expect(component.hostSteeringCallout()).toBeNull();
+      fixture.destroy();
+    });
   });
 });

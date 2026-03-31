@@ -201,6 +201,7 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 - **Skripte:** npm run build im Monorepo-Root baut alle Apps; apps/backend und apps/frontend haben eigene build-Skripte; Prisma generate und migrate vor Backend-Start.
 - **Lokaler Alltags-Dev:** `npm run dev` startet Frontend mit **englischem** i18n-Bundle (Browser: **`http://localhost:4200/en/`**). Deutsche Quelltexte ohne `localize`: **`npm run dev:de`** → **`http://localhost:4200`**. Siehe README Abschnitt 3 und [docs/I18N-ANGULAR.md](I18N-ANGULAR.md).
 - **Umgebungen:** Entwicklung (localhost), optional Staging/Produktion; keine Secrets im Repo; .env-Beispiele in .env.example dokumentieren.
+- **Deploy vs. laufende Sessions:** Kanonischer Session-/Vote-Stand in **PostgreSQL**; WebSocket-Reconnect mit Backoff + Jitter, HTTP-Fallback-Polling und Resync bei Subscription-Fehlern (`trpc.client.ts`, Session-Host/Vote). Kurzüberblick: [docs/deployment-debian-root-server.md](deployment-debian-root-server.md) § 7.1.
 
 ### 18.1 Lokaler Production-ähnlicher Aufbau und Start
 

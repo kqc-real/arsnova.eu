@@ -35,9 +35,13 @@ if (isBrowser) {
 
 /**
  * Exponential Backoff: 500ms → 1s → 2s → 4s → max 10s (Story 4.3).
+ * Zufalls-Jitter (0–349ms) entkoppelt Reconnects nach Deploy — weniger Lastspitze auf dem Server.
+ * Nach Deploy: siehe docs/deployment-debian-root-server.md § 7.1.
  */
 function retryDelayMs(attempt: number): number {
-  return Math.min(500 * Math.pow(2, attempt), 10_000);
+  const base = Math.min(500 * Math.pow(2, attempt), 10_000);
+  const jitter = Math.floor(Math.random() * 350);
+  return base + jitter;
 }
 
 /** Connection state observable for UI feedback (Story 4.3). */
