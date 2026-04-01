@@ -1,172 +1,303 @@
-<!-- markdownlint-disable MD013 MD022 MD032 -->
+<!-- markdownlint-disable MD013 MD022 MD024 MD032 -->
 
-# Fallstudie Software Engineering — Beschreibung der sechs Abschlussvorträge
+# Fallstudie Software Engineering – Beschreibung der sechs Abschlussvorträge
 
 **Kontext:** Fallstudie **arsnova.eu** · **Zielgruppe:** Studierende nach dem Bearbeiten der **didaktischen 13-Ticket-Reihenfolge** (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md))  
-**Zweck:** Orientierung für **Inhalt und Abgrenzung** der Prüfungsleistung — nicht Ersatz für Betreuungsvorgaben der Lehrveranstaltung.
+**Zweck:** Dieses Dokument hilft euch dabei, euer Thema klar abzugrenzen, sinnvoll zu gewichten und mit belastbaren Repo-Bezügen vorzubereiten. Es ersetzt keine Prüfungsabsprachen mit der Betreuung.  
+**Backlog-Stand:** 93 Stories (79 erledigt, 14 offen) – bei größeren Änderungen in [`Backlog.md`](../../Backlog.md) bitte Themenabgrenzungen und Beispiele neu prüfen.
 
 ---
 
-## 1. Einleitung: Vortrag, Handout und Zusammenspiel der sechs Themen
+## 1. Was ihr vorbereitet
 
-### 1.1 Was ihr vorlegt
+### 1.1 Format der Prüfungsleistung
 
-**Ablauf:** Es sind **sechs getrennte Einzeltermine** — **je Thema ein eigener Termin**, **je Termin genau eine vortragende Person**. Es gibt **keinen** gemeinsamen Gruppenvortrag in einem einzigen Zeitfenster.
+Die sechs Abschlussvorträge sind **sechs getrennte Einzeltermine**. Pro Termin gibt es **genau ein Thema** und **genau eine vortragende Person**. Es handelt sich also **nicht** um einen gemeinsamen Gruppenblock mit sechs Kurzbeiträgen.
 
-| Bestandteil                 | Typische Ausgestaltung                                                                                                                                                                                          |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Unterrichtseinheit (UE)** | **45 Minuten** pro Termin — das ist **eine** klassische UE für **einen** Abschlussvortrag inklusive Nachbesprechung.                                                                                            |
-| **Einzelvortrag**           | In der Regel **ca. 20 Minuten** reiner Vortrag durch **die eine** zum Thema zugewiesene Person.                                                                                                                 |
-| **Diskussion und Feedback** | Der **Rest der 45 Minuten** (rund **25 Minuten**) für Fragen, Diskussion und Rückmeldung mit der Betreuung und der Gruppe — Umfang nach Vorgabe der **Betreuung**.                                              |
-| **Handout**                 | **Eine** DIN-A4-Seite **oder** ein DIN-A3-Blatt — Umfang und Form legt die Veranstaltung fest; inhaltlich weiterhin **sechs gleichwertige Teile** (je Person ein Abschnitt), die zusammen das Projekt abbilden. |
+| Bestandteil                 | Typische Ausgestaltung                                                                  |
+| --------------------------- | --------------------------------------------------------------------------------------- |
+| **Unterrichtseinheit (UE)** | **45 Minuten** pro Termin für Vortrag, Rückfragen und Feedback                          |
+| **Einzelvortrag**           | meist **ca. 20 Minuten** strukturierter Vortrag                                         |
+| **Diskussion und Feedback** | restliche Zeit für Nachfragen, Einordnung und Rückmeldung durch Betreuung und Gruppe    |
+| **Handout**                 | **eine** DIN-A4-Seite oder **ein** DIN-A3-Blatt mit einem klaren Themenblock pro Person |
 
-**Rechnung über alle Themen:** **6 × 45 Minuten** = **sechs Unterrichtseinheiten** für die gesamte Reihe der Abschlussvorträge (Thema 1 bis Thema 6).
-
-**Ein Thema, eine Person:** Jedes der **sechs Themen** wird **nur von einer Person** bearbeitet — Recherche, Struktur, **Einzelvortrag** und zugehöriger Abschnitt im Handout liegen **ausschließlich** bei dieser Person. **Keine** geteilten Themen und **keine** Doppelbesetzung.
+Über alle Themen hinweg ergibt das **6 x 45 Minuten** und damit eine vollständige Vortragsreihe zur Fallstudie.
 
 ### 1.2 Was das Handout leisten soll
 
-- **Ein gemeinsames Bild:** Die **sechs Teile** (je Thema eine Person) ergeben **zusammen** die Fallstudie **arsnova.eu** aus **softwaretechnischer** Sicht — ohne Lücken und ohne große Überschneidungen.
-- **Gleiche Wertschätzung:** Sechs **gleich große** inhaltliche Bereiche (auf einem A3 z. B. **Raster 3×2** oder **2×3**; auf A4 **eng gesetzt** oder bewusst kürzer pro Feld).
-- **Kein Story-Katalog:** Das Handout **ersetzt keine** Aufzählung der 13 Tickets; es zeigt **Architektur, Stack und Entwicklungsprozess**, nicht „was wir in Story X gemacht haben“.
+Das Handout soll **nicht** die 13 Tickets nacherzählen. Es soll zeigen, wie aus euren sechs Einzelthemen **ein gemeinsames softwaretechnisches Bild** von arsnova.eu entsteht.
 
-### 1.3 Vortrag und Handout: dieselbe Logik
+- Jedes Thema bekommt ungefähr **gleich viel Platz**.
+- Jedes Thema benennt **Stack**, **Architekturmuster**, **ein konkretes Repo-Beispiel** und **eine reflektierte KI-Erfahrung**.
+- Jedes Thema grenzt sich sichtbar von den Nachbarthemen ab.
 
-Im **Einzelvortrag** wie auf dem Handout gilt: **Pro Thema ein klarer Block** — (a) **welche Bausteine des Stacks** ihr ansprecht, (b) **welches Architekturmuster** ihr damit verbindet, (c) **wie der KI-gestützte Ablauf** in diesem Bereich aussieht und **wo Menschen** prüfen müssen. Was zu einem Thema **nicht** gehört, steht unten bei jedem Thema explizit — damit sich die **sechs Vortragenden** inhaltlich nicht überschneiden.
+Ein einfaches und belastbares Muster pro Handout-Feld ist:
 
----
+1. Warum dieses Thema im Projekt wichtig ist.
+2. Welche Bausteine aus dem Repo dazugehören.
+3. Welche typische Arbeitsweise oder welches Muster ihr daran zeigen könnt.
+4. Welche Grenze zu den anderen fünf Vorträgen gilt.
 
-## 2. Überdeckung des Projekts (alle sechs Themen zusammen)
+### 1.3 Logik für Vortrag und Handout
 
-Gemeinsam sollen die sechs Themen mindestens abdecken:
+Vortrag und Handout sollten derselben Linie folgen:
 
-| Schicht                                         | Abgedeckt durch |
-| ----------------------------------------------- | --------------- |
-| Typisierte API und gemeinsame Verträge          | Thema 1         |
-| Monorepo-Struktur und Zuschnitt der Apps        | Thema 2         |
-| Sicherheit und Datenminimierung am Backend      | Thema 3         |
-| Frontend-Technologie und UI-/i18n-Regeln        | Thema 4         |
-| Persistenz, Infrastruktur, Laufzeitverhalten    | Thema 5         |
-| Qualitätssicherung, CI und KI im Arbeitsprozess | Thema 6         |
+- **Was gehört fachlich zu meinem Thema?**
+- **Wo sieht man das im Repo?**
+- **Welche typische Engineering-Entscheidung steckt dahinter?**
+- **Wo war KI hilfreich, wo musste sie korrigiert werden?**
 
----
+Wenn ihr diese vier Fragen sauber beantwortet, wirkt euer Thema weder beliebig noch ausufernd.
 
-## Thema 1 — Typisierte Schnittstellen: Zod, `shared-types`, tRPC
+### 1.4 Ein gemeinsames Beispiel, das viele Schichten verbindet
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält dazu den **Einzelvortrag** (in der zugehörigen **45-Minuten-UE**).
-
-### Was dieses Thema umfasst
-
-- **`libs/shared-types`:** Zod-Schemas als **einzige** verbindliche Beschreibung der tRPC-Ein- und -Ausgaben.
-- **tRPC:** Prozeduren als durchgängige API; **kein** paralleles REST-Modell in der Fallstudie.
-- **Architekturmuster:** **Schema-first** — Änderungen an Schnittstellen beginnen am Schema, nicht am zufälligen JSON.
-- **KI-gestützter Prozess:** z. B. Vorschläge für Schema und Prozedur-Skelette; **menschliche** Pflicht: Abgleich mit bestehenden Routern, Edge Cases, `Backlog`-Akzeptanzkriterien und laufende **Typprüfung**.
-
-### Was dieses Thema bewusst nicht umfasst
-
-- **Konkrete Domänenlogik** einzelner Features (Q&A, Sync, …) — nur soweit sie **Beispiele** für Verträge sind.
-- **UI-Komponenten** und **CSS** — gehören zu Thema 4.
-- **Datenbankschema und Migrationen** im Detail — gehören zu Thema 5.
-- **Deployment** und Serverbetrieb.
+Wenn ihr ein durchgehendes Beispiel braucht, eignet sich **Epic 10 / MOTD** sehr gut: [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md). Daran lassen sich Verträge, Paketgrenzen, Berechtigungen, i18n, Persistenz und Tests entlang einer einzigen Funktionskette erklären.
 
 ---
 
-## Thema 2 — Monorepo: Workspaces, `apps/*`, `libs`, Abhängigkeiten
+## 2. Was die sechs Vorträge zusammen abdecken sollen
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält dazu den **Einzelvortrag** (in der zugehörigen **45-Minuten-UE**).
+Die sechs Themen sollen zusammen mindestens diese Schichten verständlich machen:
 
-### Was dieses Thema umfasst
-
-- **npm Workspaces:** ein Repo, mehrere Pakete; sinnvolle **Grenzen** zwischen `apps/frontend`, `apps/backend` und `libs/shared-types` (bzw. weitere `libs`, falls genutzt).
-- **Architekturmuster:** klare **Importrichtungen**; Änderungen **paketweise** nachvollziehbar; PRs, die nicht „alles auf einmal“ vermischen.
-- **KI-gestützter Prozess:** KI erzeugt oft **querliegende** Änderungen — eure Erfahrung: **Diffs pro Paket** lesen, Zyklen und falsche Abhängigkeiten erkennen; kleine Schritte, **CI grün** halten.
-
-### Was dieses Thema bewusst nicht umfasst
-
-- **Inhalt** der Zod-Schemas — Kern von **Thema 1**; hier nur **Struktur und Ordnung** der Pakete.
-- **Sicherheitslogik** von DTOs — **Thema 3**.
-- **Detaillierte** CI-Job-Definition — **Thema 6** (hier nur: „Monorepo beeinflusst, wie wir bauen und testen“).
+| Schicht                                              | Abgedeckt durch | Typische Repo-Quellen                                                                                                                                                                                                                                    |
+| ---------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Typisierte Verträge und API-Schnittstellen           | Thema 1         | `libs/shared-types/src/schemas.ts`, Router in `apps/backend/src/routers/`, [ADR-0003](../architecture/decisions/0003-use-trpc-for-api.md)                                                                                                                |
+| Struktur des Monorepos und Paketgrenzen              | Thema 2         | Root-`package.json`, `tsconfig.json`, Paketdateien in `apps/` und `libs/`, [Handbuch](../architecture/handbook.md)                                                                                                                                       |
+| Sicherheit, Rollen und Datenminimierung              | Thema 3         | [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md), Router-Logik, DTO-Tests, [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md)                                                                                          |
+| Angular-Frontend, UI-Regeln und i18n                 | Thema 4         | `apps/frontend/src/`, [ADR-0002](../architecture/decisions/0002-use-angular-signals-for-ui-state.md), [ADR-0005](../architecture/decisions/0005-use-angular-material-design.md), [ADR-0008](../architecture/decisions/0008-i18n-internationalization.md) |
+| Persistenz, Migrationen und Laufzeitverhalten        | Thema 5         | `prisma/schema.prisma`, `prisma/migrations/`, [`ENVIRONMENT.md`](../ENVIRONMENT.md), Backend-Libs                                                                                                                                                        |
+| Qualitätssicherung, CI und KI-gestützte Arbeitsweise | Thema 6         | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml), [`TESTING.md`](../TESTING.md), [`CONTRIBUTING.md`](../../CONTRIBUTING.md), [`AGENT.md`](../../AGENT.md)                                                                                    |
 
 ---
 
-## Thema 3 — Sicherheit und Schutz sensibler Daten: DTO, Stripping, Berechtigung
+## Thema 1 – Typisierte Schnittstellen: Zod, `shared-types`, tRPC
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält dazu den **Einzelvortrag** (in der zugehörigen **45-Minuten-UE**).
+**Warum dieses Thema zählt:** Dieses Thema erklärt, warum arsnova.eu nicht aus lose verkabelten JSON-Objekten besteht. Wer diesen Vortrag übernimmt, zeigt, wie aus einem Schema ein Vertrag wird, der Frontend und Backend zusammenhält.
 
-### Was dieses Thema umfasst
+### Was ihr zeigen solltet
 
-- **Pattern:** **Data-Stripping** / **DTO** — dem Client nur geben, was für die Rolle und den Kontext erlaubt ist; **keine** Geheimnisse im Browser.
-- **Backend-Rolle:** tRPC-Prozeduren mit **klarer Berechtigung** (z. B. Host-only); Session- und Rollenkontext **serverseitig**.
-- **KI-gestützter Prozess:** KI neigt zu **vollständigen Objekten** oder vereinfachtem Zugriff — **Review** sensibler Stellen bleibt menschlich; KI eher für **Checklisten** und strukturiertes Lesen von Diffs, nicht für blindes Vertrauen.
+- Zod-Schemas in `libs/shared-types` als verbindliche Beschreibung von Ein- und Ausgaben
+- tRPC als transportierte API-Logik ohne separates REST-Nebenmodell
+- das Muster **Schema zuerst, danach Router und UI-Anbindung**
+- ein konkretes Beispiel dafür, wie eine Änderung am Schema mehrere Schichten berührt
 
-### Was dieses Thema bewusst nicht umfasst
+### Guter Einstieg im Repo
 
-- **Vollständiges** Bedrohungsmodell oder Penetrationstests — nur **projektrelevante** Prinzipien.
-- **Angular-spezifische** Patterns — **Thema 4**.
-- **Redis/WebSocket-Implementierungsdetails** — Kurzverweis möglich, Tiefe bei **Thema 5**.
+- `libs/shared-types/src/schemas.ts`
+- `apps/backend/src/routers/`
+- [ADR-0003](../architecture/decisions/0003-use-trpc-for-api.md)
+- [Architektur-Handbuch](../architecture/handbook.md)
 
----
+### Anknüpfung an eure Tickets
 
-## Thema 4 — Frontend: Angular, Signals, Material 3, i18n
+Besonders passend sind Tickets, in denen ihr Eingaben, Antworten oder Rückgabeformen erweitert habt, zum Beispiel bei neuen Fragetypen, Q&A-Funktionen oder Admin-Fällen. Genau dort merkt man, ob ein Vertrag sauber gepflegt ist.
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält dazu den **Einzelvortrag** (in der zugehörigen **45-Minuten-UE**).
+### KI-Reflexion
 
-### Was dieses Thema umfasst
+Beschreibt eine Stelle, an der die KI euch zwar schnell ein Schema oder einen Router-Vorschlag geliefert hat, ihr aber selbst prüfen musstet, ob Feldnamen, Validierung und Rückgabetypen wirklich zu den bestehenden Konventionen passen.
 
-- **Stack:** Angular (Standalone Components, **Signals**), Angular Material 3; UI nach Projektregeln (`@if` / `@for`, kein **RxJS** für reinen UI-State in der Fallstudie).
-- **Pattern:** **ADR-0008** — neue oder geänderte **sichtbare** UI-Texte in **fünf** Sprachen; keine „nur Deutsch“-Abkürzung in der Abgabe.
-- **KI-gestützter Prozess:** Risiko **veralteter oder fremder** Angular-Muster; Abgleich mit **Projektregeln** und Styleguide; Generierung → **Review** → Tests/manuelle Checks.
+### Was bewusst nicht dazugehört
 
-### Was dieses Thema bewusst nicht umfasst
-
-- **Backend-Implementierung** von tRPC — **Thema 1** (Vertrag) und **Thema 3** (Berechtigung) grenzen ein, **ohne** Router-Code hier im Detail vorzutragen.
-- **Vitest/CI** — **Thema 6** (außer dem Satz: Frontend hat `*.spec.ts` neben dem Code).
-
----
-
-## Thema 5 — Persistenz und Laufzeit: Prisma, Redis, Backend-Realität
-
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält dazu den **Einzelvortrag** (in der zugehörigen **45-Minuten-UE**).
-
-### Was dieses Thema umfasst
-
-- **Prisma:** Schema, Migrationen als **verbindliche** Spur der Datenstruktur; Zusammenhang mit dem, was **über tRPC** exponiert wird (nicht alles Modell ist für den Client gedacht — siehe **Thema 3**).
-- **Redis** und Realtime: **kurz** und **sachlich** — wofür die Infrastruktur da ist, nicht jede Zeile Code.
-- **Architekturmuster:** Daten- und Laufzeitverhalten **gemeinsam** denken; Performance- und Korrektheitsfragen nicht nur im Frontend lösen wollen.
-- **KI-gestützter Prozess:** Hilfreich bei **lokalen** Funktionen; **schwach** bei globalem Nebenwirkungsbild — Absicherung durch **Tests**, lokales Laufen, CI.
-
-### Was dieses Thema bewusst nicht umfasst
-
-- **Vollständige** Wiederholung von **Thema 1** (Zod) — nur der **Bezug** „was persistiert wird vs. was im Vertrag steht“.
-- **Deployment-Produktion** (siehe separates Deployment-Dokument, falls Thema in der Veranstaltung).
+- tiefere UI-Gestaltung und Angular-Komponenten
+- Datenbankmodellierung und Migrationen im Detail
+- CI-Organisation als Hauptthema
 
 ---
 
-## Thema 6 — Qualität, CI und KI im Entwicklungsprozess
+## Thema 2 – Monorepo: Workspaces, `apps/*`, `libs`, Abhängigkeiten
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält dazu den **Einzelvortrag** (in der zugehörigen **45-Minuten-UE**).
+**Warum dieses Thema zählt:** Dieses Thema macht sichtbar, warum Zusammenarbeit in arsnova.eu überhaupt beherrschbar bleibt. Ihr zeigt hier nicht nur Ordnerstrukturen, sondern die Logik dahinter: Was darf wo liegen, was wird gemeinsam genutzt und wie verhindert das Repo unübersichtliche Änderungen?
 
-### Was dieses Thema umfasst
+### Was ihr zeigen solltet
 
-- **Stack:** Vitest (Frontend/Backend), GitHub Actions / CI wie im Repo; **`npm test`**, typische Pipeline-Schritte **auf Projektebene**.
-- **Pattern:** **Definition of Done** und Erwartungen aus `Backlog.md` / `CONTRIBUTING.md`; wiederkehrender Ablauf **Spezifikation → Schema → Code → Tests** (vgl. [`AGENT.md`](../../AGENT.md)).
-- **KI-gestützter Prozess:** KI als **Werkzeug in der Kette** — wo sie Zeit spart (Skizzen, Refactors, Testideen), wo **Nacharbeit** nötig ist (falsche Annahmen, fehlende Übersetzungen, instabile Tests); **Reflexion** als Teil der Fallstudie.
+- die Rolle von npm Workspaces und Paketgrenzen
+- die Aufgabenteilung zwischen `apps/frontend`, `apps/backend` und `libs/shared-types`
+- typische Import- und Abhängigkeitsrichtungen
+- warum kleine, paketklare Änderungen wartbarer sind als Misch-PRs
 
-### Was dieses Thema bewusst nicht umfasst
+### Guter Einstieg im Repo
 
-- **Erneute** vollständige Auflistung aller **Architektur-Patterns** aus Thema 1–5 — hier **Querschnitt** und **Prozess**, keine Dublette.
-- **Einzelstory-Abnahmen** — nur als **Beispiele**, wenn sie den **Prozess** illustrieren.
+- Root-`package.json`
+- Root-`tsconfig.json`
+- `apps/frontend/package.json`
+- `apps/backend/package.json`
+- `libs/shared-types/package.json`
+- [Architektur-Handbuch](../architecture/handbook.md)
+
+### Anknüpfung an eure Tickets
+
+Relevant sind besonders Tickets, bei denen ihr gleichzeitig Frontend, Backend und gemeinsame Typen anfassen musstet. Dort sieht man direkt, ob Paketgrenzen helfen oder ob sie unterlaufen werden.
+
+### KI-Reflexion
+
+Gute Frage für eure Reflexion: Hat die KI euch einmal eine Änderung vorgeschlagen, die technisch funktionierte, aber die Paketgrenzen unsauber gemacht hätte? Dann zeigt genau, wie ihr das im Diff erkannt und wieder aufgeräumt habt.
+
+### Was bewusst nicht dazugehört
+
+- inhaltliche Detailerklärung einzelner Zod-Schemas
+- tiefere Sicherheitslogik einzelner Rollen oder DTOs
+- vollständige CI-Pipeline-Erklärung
+
+---
+
+## Thema 3 – Sicherheit und Schutz sensibler Daten: DTO, Stripping, Berechtigung
+
+**Warum dieses Thema zählt:** Dieses Thema eignet sich besonders gut, um zu zeigen, was saubere Softwareentwicklung von naiver Datenweitergabe unterscheidet. Ihr macht sichtbar, dass Sicherheit in arsnova.eu nicht nur ein Zusatz ist, sondern Teil des Architekturdenkens.
+
+### Was ihr zeigen solltet
+
+- das Prinzip **nur die Daten an den Client geben, die dort wirklich gebraucht werden**
+- DTOs und Data-Stripping als bewusstes Muster
+- serverseitige Rollen- und Berechtigungslogik
+- ehrliche Einordnung von Zielbild und aktuellem Umsetzungsstand
+
+### Guter Einstieg im Repo
+
+- `apps/backend/src/__tests__/dto-security.test.ts`
+- `apps/backend/src/routers/session.ts`
+- [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
+- [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md)
+
+### Anknüpfung an eure Tickets
+
+Besonders passend sind Data-Stripping-, Rollen- oder Moderations-Themen. Auch Admin-Funktionen oder Host-Rechte liefern anschauliche Beispiele dafür, wie technische Entscheidungen direkt mit Sicherheitsniveau zusammenhängen.
+
+### KI-Reflexion
+
+Stark ist hier eine konkrete Erfahrung, bei der die KI euch zu viele Felder zurückgeben wollte oder Berechtigungen zu grob modelliert hat. Genau diese Korrekturleistung gehört in den Vortrag.
+
+### Was bewusst nicht dazugehört
+
+- vollständige Pentesting- oder Threat-Modeling-Diskussion
+- Frontend-spezifische UI-Muster
+- Infrastrukturdetails, sofern sie nicht direkt für Sicherheit nötig sind
+
+---
+
+## Thema 4 – Frontend: Angular, Signals, Material 3, i18n
+
+**Warum dieses Thema zählt:** Hier geht es um die sichtbare und erlebbare Seite des Projekts. Dieses Thema ist nicht nur für Design-Interessierte spannend, sondern für alle, die verstehen wollen, wie technische Regeln, UI-Konsistenz und Mehrsprachigkeit im Alltag zusammenwirken.
+
+### Was ihr zeigen solltet
+
+- Angular mit Standalone Components und Signals als Projektstil
+- Material 3 als UI-Basis
+- die i18n-Regel, sichtbare Texte konsequent in mehreren Sprachen mitzudenken
+- ein Beispiel dafür, wie Frontend-Regeln Entwicklungsentscheidungen beeinflussen
+
+### Guter Einstieg im Repo
+
+- `apps/frontend/src/app/`
+- `apps/frontend/src/assets/i18n/` oder die aktuelle Lokalisierungsstruktur im Frontend
+- [ADR-0002](../architecture/decisions/0002-use-angular-signals-for-ui-state.md)
+- [ADR-0005](../architecture/decisions/0005-use-angular-material-design.md)
+- [ADR-0008](../architecture/decisions/0008-i18n-internationalization.md)
+- [`I18N-ANGULAR.md`](../I18N-ANGULAR.md)
+
+### Anknüpfung an eure Tickets
+
+Alle Tickets mit sichtbaren Oberflächen, Barrierefreiheit, neuen UI-Texten oder Interaktionsmustern passen hier gut. Besonders ergiebig sind Fälle, in denen eine kleine UI-Änderung plötzlich i18n, States und Tests mitberührt hat.
+
+### KI-Reflexion
+
+Typisch ist hier, dass KI alte Angular-Muster oder projektfremde Vorschläge produziert. Ein guter Vortrag benennt nicht nur das Problem, sondern zeigt, wie ihr es an Projektregeln, Reviews oder Tests erkannt habt.
+
+### Was bewusst nicht dazugehört
+
+- tiefe Router- oder Vertragslogik aus dem Backend
+- detailreiche Test- und CI-Erklärung
+- Datenbankperspektive
+
+---
+
+## Thema 5 – Persistenz und Laufzeit: Prisma, Redis, Backend-Realität
+
+**Warum dieses Thema zählt:** Dieses Thema bringt die Ebene ins Spiel, auf der viele gute Ideen erst belastbar werden müssen. Ihr zeigt hier, wie Datenmodelle, Migrationen und Laufzeitmechanismen dafür sorgen, dass Features nicht nur lokal funktionieren, sondern im System stabil bleiben.
+
+### Was ihr zeigen solltet
+
+- Prisma-Schema als verbindliche Datenmodellbeschreibung
+- Migrationen als nachvollziehbare Entwicklungsschritte
+- Redis oder andere Laufzeitkomponenten als Teil des Gesamtverhaltens
+- die Verbindung zwischen Persistenz, Cleanup, Realtime und Korrektheit
+
+### Guter Einstieg im Repo
+
+- `prisma/schema.prisma`
+- `prisma/migrations/`
+- `apps/backend/src/lib/`
+- [`ENVIRONMENT.md`](../ENVIRONMENT.md)
+- [Architektur-Handbuch](../architecture/handbook.md)
+- [`GLOSSAR.md`](../GLOSSAR.md)
+
+### Anknüpfung an eure Tickets
+
+Passend sind alle Tickets mit neuen Feldern, neuen Tabellen, Änderungen an Antworttypen oder Aufräumlogik. Gerade dort wird deutlich, dass Datenhaltung nie nur ein Nebenprodukt des Frontends ist.
+
+### KI-Reflexion
+
+Ein guter Reflexionspunkt ist eine Stelle, an der die KI zwar schnell Code für eine lokale Funktion erzeugt hat, aber Nebenwirkungen im Gesamtsystem übersehen hat, etwa Cleanup, Cascade-Effekte oder fehlende Migrationen.
+
+### Was bewusst nicht dazugehört
+
+- erneute Grundsatzerklärung von Zod und tRPC
+- Deployment als eigener Schwerpunkt
+- reine UI-Betrachtung ohne Bezug zur Laufzeit
+
+---
+
+## Thema 6 – Qualität, CI und KI im Entwicklungsprozess
+
+**Warum dieses Thema zählt:** Dieses Thema ist der Querschnitt über alles andere. Es zeigt, wie aus Ideen belastbare Änderungen werden und wie das Projekt verhindert, dass schneller Code wichtiger wird als richtiger Code. Genau hier lässt sich KI-Nutzung besonders glaubwürdig und praxisnah reflektieren.
+
+### Was ihr zeigen solltet
+
+- die Rolle von Tests, Typecheck, Linting und CI als Qualitätstore
+- den typischen Ablauf von Spezifikation über Implementierung bis zur Absicherung
+- die Bedeutung von kleinen Schritten, prüfbaren Diffs und Reviewbarkeit
+- konkrete Beispiele dafür, wie KI in diesen Ablauf eingebettet wurde
+
+### Guter Einstieg im Repo
+
+- [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+- [`TESTING.md`](../TESTING.md)
+- [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
+- [`AGENT.md`](../../AGENT.md)
+- Testdateien in `apps/backend/src/__tests__/` und `apps/frontend/src/`
+
+### Anknüpfung an eure Tickets
+
+Im Grunde passt jedes Ticket, bei dem etwas erst nach Tests, Review oder CI wirklich fertig war. Besonders gut funktionieren Beispiele, in denen der erste KI-Vorschlag noch nicht tragfähig war und erst durch Nacharbeit sauber wurde.
+
+### KI-Reflexion
+
+Dieser Vortrag gewinnt, wenn ihr beide Seiten zeigt: Wo KI euch Zeit gespart hat und wo ihr bewusst bremsen musstet, weil Annahmen falsch waren, Übersetzungen fehlten oder Tests instabil geworden wären.
+
+### Was bewusst nicht dazugehört
+
+- komplette Wiederholung der Architekturthemen 1 bis 5
+- reine Story-Nacherzählung ohne Prozessbezug
+- allgemeine KI-Meinungen ohne Projektbeispiel
 
 ---
 
 ## 3. Kurz-Checkliste vor der Abgabe
 
-- [ ] Sechs Personen, **je ein Thema**, ohne Doppelungen — **nur eine Person** pro Thema (Erarbeitung **und** Einzelvortrag).
-- [ ] **Sechs Termine** à **45 Minuten** (je **eine UE**): **ca. 20 Min.** Vortrag + **Diskussion und Feedback** im restlichen Zeitfenster — mit **Betreuung** abstimmen.
-- [ ] Handout: **sechs gleichwertige Felder**, zusammen **vollständiges** softwaretechnisches Bild von arsnova.eu.
-- [ ] Pro Thema klar: **Stack + Muster + KI-Prozess**; **Abgrenzung** beachtet (siehe „bewusst nicht umfasst“).
-- [ ] Kein Ersatz für die **Betreuungsvorgaben** der konkreten Prüfung — bei Widerspruch gilt die **Veranstaltung**.
+### Formales
+
+- [ ] Sechs Personen, sechs Themen, keine Doppelbesetzungen
+- [ ] Pro Thema ein Einzeltermin mit klarer Zeitplanung
+- [ ] Ein Handout mit sechs gleichwertigen Themenfeldern
+- [ ] Absprachen der Betreuung vor der Endfassung eingearbeitet
+
+### Inhaltlich
+
+- [ ] Jedes Thema erklärt seinen Mehrwert für das Gesamtprojekt
+- [ ] Jedes Thema bezieht sich auf konkrete Repo-Dateien, ADRs oder Dokuquellen
+- [ ] Jedes Thema enthält mindestens ein greifbares Beispiel aus euren Tickets
+- [ ] Jedes Thema enthält eine ehrliche KI-Reflexion mit Nutzen und Korrekturanteil
+- [ ] Vortrag und Handout grenzen sich sichtbar von den anderen fünf Themen ab
 
 ---
 
-_Stand: 2026-04-01 · Datei: `Fallstudie-Software-Engineering-Beschreibung-6-Abschlussvortraege.md` · Bei Änderungen am Stack oder an Prüfungsformaten dieses Dokument und Verweise in [`docs/README.md`](../README.md) anpassen._
+_Stand: 2026-04-01 · Datei: `Fallstudie-Software-Engineering-Beschreibung-6-Abschlussvortraege.md` · Bei größeren Änderungen am Stack oder an der Prüfungsform dieses Dokument und die Verweise in [`docs/README.md`](../README.md) mitprüfen._

@@ -1,152 +1,230 @@
-<!-- markdownlint-disable MD013 MD022 MD032 -->
+<!-- markdownlint-disable MD013 MD022 MD024 MD032 -->
 
-# Softwarequalitätsmanagement — Beschreibung der vier Referate (Fallstudie arsnova.eu)
+# Softwarequalitätsmanagement – Beschreibung der vier Referate
 
-**Kontext:** Kurs **Softwarequalitätsmanagement** am Projekt **arsnova.eu** · **Zielgruppe:** Studierende nach dem Bearbeiten der **didaktischen 13-Ticket-Reihenfolge** in Verbindung mit dem SQM-Praktikum (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md), [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md))  
-**Zweck:** Orientierung für **Inhalt und Abgrenzung** der Referate — nicht Ersatz für Betreuungsvorgaben der Lehrveranstaltung.
-
----
-
-## 1. Einleitung: Referat, Handout und schriftliche Ausarbeitung
-
-### 1.1 Was ihr vorlegt
-
-**Ablauf:** Es sind **vier getrennte Einzeltermine** — **je Thema ein eigener Termin**, **je Termin genau eine vortragende Person**. Es gibt **keinen** gemeinsamen Gruppenvortrag in einem einzigen Zeitfenster.
-
-| Bestandteil                   | Typische Ausgestaltung                                                                                                                                                                                                                                                        |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Unterrichtseinheit (UE)**   | **45 Minuten** pro Termin — **eine** klassische UE für **ein** Referat inklusive Nachbesprechung.                                                                                                                                                                             |
-| **Einzelreferat**             | In der Regel **ca. 20 Minuten** Vortrag durch **die eine** zum Thema zugewiesene Person.                                                                                                                                                                                      |
-| **Diskussion und Feedback**   | Der **Rest der 45 Minuten** (rund **25 Minuten**) für Fragen, Diskussion und Rückmeldung — Umfang nach Vorgabe der **Betreuung**.                                                                                                                                             |
-| **Handout**                   | **Eine** DIN-A4-Seite **oder** ein DIN-A3-Blatt; **vier gleichwertige** inhaltliche Bereiche (je Person ein Abschnitt), die zusammen die **Qualitätssicht** auf das Projekt abbilden.                                                                                         |
-| **Schriftliche Ausarbeitung** | In der Regel **ca. 7–10 DIN-A4-Seiten**, erstellt mit **LaTeX** (Abgabe typischerweise als **PDF** plus **Quellen**, falls verlangt). Ob der Umfang **je Person** oder **für die Gruppe insgesamt** gilt, legt die **Betreuung** fest — bei Unklarheit **vor Abgabe** klären. |
-
-**Rechnung über alle Themen:** **4 × 45 Minuten** = **vier Unterrichtseinheiten** für die gesamte Referatsreihe (Thema 1 bis Thema 4).
-
-**Ein Thema, eine Person:** Jedes der **vier Themen** wird **nur von einer Person** bearbeitet — Recherche, **Einzelreferat**, Handout-Abschnitt und den **ihrem Thema zugeordneten Teil** der schriftlichen Ausarbeitung (soweit nicht eine **gemeinsame** Arbeit verlangt wird). **Keine** geteilten Themen und **keine** Doppelbesetzung.
-
-### 1.2 Querschnitt statt Einzelticket
-
-Die **vier Referatsthemen** sind **querschnittlich** angelegt: Sie greifen **über alle bearbeiteten Tickets hinweg** typische **Qualitätsfragen** auf — nicht „Story 5.4a“, sondern z. B. „Wie haben wir Tests **über Features hinweg** priorisiert?“. **Einzelstorys** dürfen **als Beispiele** vorkommen, **nicht** als Katalog der 13 Tickets.
-
-### 1.3 Referat, Handout und schriftliche Arbeit: dieselbe Logik
-
-**Pro Thema ein klarer Block:**
-
-- **Qualitätsziele** und **messbare bzw. nachweisbare** Kriterien (was wollt ihr im Projekt abgesichert wissen?).
-- **Vorgehen und Methoden** (Tests, Reviews, Messungen, Nutzertests …) **im Kontext arsnova.eu** (`docs/TESTING.md`, `Backlog.md` DoD, [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md), …).
-- **Rolle von Werkzeugen und KI** (z. B. Testvorschläge, Review-Unterstützung) — **immer** mit **Verifikation** durch Menschen, CI oder reproduzierbare Nachweise.
-
-Was zu einem Thema **nicht** gehört, steht bei jedem Thema unter **„bewusst nicht umfasst“**.
+**Kontext:** Kurs **Softwarequalitätsmanagement** in der Fallstudie **arsnova.eu** · **Zielgruppe:** Studierende nach dem Bearbeiten der didaktischen Ticket-Reihenfolge und der SQM-Aufgaben (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) und [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md))  
+**Zweck:** Dieses Dokument gibt euch eine klare, eigenständige Orientierung für Themenwahl, Abgrenzung, Nachweise und Gewichtung der vier Referate. Es ersetzt keine Vorgaben der Betreuung.  
+**Backlog-Stand:** 93 Stories (79 erledigt, 14 offen) – bei größeren Änderungen in [`Backlog.md`](../../Backlog.md) bitte Beispiele, Begriffe und Nachweise aktualisieren.
 
 ---
 
-## 2. Überdeckung des Projekts (alle vier Themen zusammen)
+## 1. Was ihr vorbereitet
 
-Gemeinsam sollen die vier Themen die **Softwarequalität** der Fallstudie **arsnova.eu** aus **SQM-Sicht** abdecken — ergänzend zur technischen Entwicklungsfokussierung der FSE-Vorträge:
+### 1.1 Format der Prüfungsleistung
 
-| Qualitätsdimension (SQM)                           | Abgedeckt durch |
-| -------------------------------------------------- | --------------- |
-| Testen, Automatisierung, CI                        | Thema 1         |
-| Reviews, DoD, Qualität im PR-Prozess               | Thema 2         |
-| Performance, Last, Sicherheit der Lieferkette      | Thema 3         |
-| Nutzerqualität, Methodik, Inklusion, Dokumentation | Thema 4         |
+Die vier Referate sind **vier getrennte Einzeltermine**. Pro Termin gibt es **genau ein Thema** und **genau eine vortragende Person**.
 
----
+| Bestandteil                   | Typische Ausgestaltung                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------ |
+| **Unterrichtseinheit (UE)**   | **45 Minuten** pro Termin                                                                  |
+| **Einzelreferat**             | meist **ca. 20 Minuten** Vortrag                                                           |
+| **Diskussion und Feedback**   | restliche Zeit für Fragen, Einordnung und Rückmeldung                                      |
+| **Handout**                   | **eine** DIN-A4-Seite oder **ein** DIN-A3-Blatt mit vier klar getrennten Themenblöcken     |
+| **Schriftliche Ausarbeitung** | in der Regel **ca. 7 bis 10 Seiten** in LaTeX, sofern die Betreuung nichts anderes vorgibt |
 
-## Thema 1 — Teststrategie, Automatisierung und CI
+### 1.2 Was an SQM hier wichtig ist
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält das **Einzelreferat** (in der zugehörigen **45-Minuten-UE**).
+Diese vier Themen sind **querschnittlich** angelegt. Ihr sollt also nicht einzelne Stories nacherzählen, sondern erklären, **wie Qualität im Projekt geplant, sichtbar gemacht, geprüft und verbessert wird**.
 
-### Was dieses Thema umfasst
+Einzelne Tickets dürfen dabei als Beispiele dienen. Hilfreich sind sie aber nur dann, wenn sie eine größere Qualitätsfrage illustrieren, zum Beispiel Testbarkeit, Reviewbarkeit, Performance oder Nutzungsqualität.
 
-- **Testpyramide und Priorisierung:** Was wird **unit**-nah, was **integration**s- oder **router**-nah mit Vitest geprüft — **über** konkrete Features hinweg.
-- **CI als Qualitätstor:** Rolle der Pipeline (z. B. [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)), `npm test` — was muss **grün** sein, bevor ihr Qualität bejaht?
-- **Referenz:** [`docs/TESTING.md`](../TESTING.md), DoD-Stellen im [`Backlog.md`](../../Backlog.md) zu Tests.
-- **KI im SQM-Prozess:** z. B. Vorschläge für Testfälle oder Specs — **immer** gegen reales Verhalten und bestehende Konventionen prüfen.
+### 1.3 Was Handout, Vortrag und Ausarbeitung gemeinsam brauchen
 
-### Was dieses Thema bewusst nicht umfasst
+Jedes Thema sollte dieselben vier Fragen beantworten:
 
-- **Detaillierte** Review-Kriterien ohne Testbezug — **Thema 2**.
-- **Lighthouse/Last** als Messgröße — **Thema 3**.
-- **Think-Aloud-Auswertung** — **Thema 4**.
+1. Welches Qualitätsziel steht im Mittelpunkt?
+2. Woran sieht man dieses Ziel konkret im Projekt?
+3. Mit welchen Methoden, Artefakten oder Messungen wurde daran gearbeitet?
+4. Wo war KI hilfreich und wo musste sie durch Menschen, Tests oder Reviews korrigiert werden?
 
----
+### 1.4 Technischer Kurzkontext für SQM
 
-## Thema 2 — Reviews, Definition of Done und Qualität im Pull Request
+Damit die Referate für sich selbst stehen, hier der nötige Projektkontext in kompakter Form:
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält das **Einzelreferat** (in der zugehörigen **45-Minuten-UE**).
-
-### Was dieses Thema umfasst
-
-- **DoD:** Wo steht sie, wie wird sie im **PR** sichtbar — Verknüpfung mit [`Backlog.md`](../../Backlog.md), [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
-- **Review-Inhalte:** sachliche PR-Prüfung — u. a. Zod/tRPC-Konsistenz, DTO/Stripping, **kein** blindes „LGTM“; optional Review-Checklisten (z. B. [`docs/ui/PR-CHECKLIST-UI.md`](../ui/PR-CHECKLIST-UI.md) wo passend).
-- **Prozess:** Wie organisiert ihr **Reviews** in der Gruppe, wer prüft was, wie geht ihr mit **KI-generierten** Diffs um?
-- **KI im SQM-Prozess:** z. B. Diff-Zusammenfassung oder Checklisten — **kein** Ersatz für eigenes Lesen; spekulative Sicherheitshinweise **verifizieren**.
-
-### Was dieses Thema bewusst nicht umfasst
-
-- **Vollständige** Wiederholung der **Testautomatisierung** — **Thema 1** (Verweis reicht).
-- **npm audit / Lighthouse** — **Thema 3**.
+- arsnova.eu ist ein Monorepo mit Frontend, Backend und gemeinsamen Typen.
+- Im Frontend wird Angular eingesetzt.
+- Das Backend nutzt tRPC, Prisma und weitere Node-basierte Komponenten.
+- Getestet wird vor allem mit Vitest; abgesichert wird zusätzlich über Typecheck, Linting und CI.
+- Qualitätsfragen zeigen sich deshalb nie nur in einer Datei, sondern fast immer über mehrere Schichten hinweg.
 
 ---
 
-## Thema 3 — Messbare nicht-funktionale Qualität: Performance, Last, Sicherheit der Lieferkette
+## 2. Was die vier Referate zusammen abdecken sollen
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält das **Einzelreferat** (in der zugehörigen **45-Minuten-UE**).
+Die vier Themen sollen zusammen ein in sich geschlossenes SQM-Bild des Projekts liefern:
 
-### Was dieses Thema umfasst
-
-- **Performance und Profiling:** z. B. Lighthouse, Build-/Ladeaspekte, Mobile-First — **messbar** oder **nachvollziehbar** dokumentiert (Vorher/Nachher oder Routenvergleich).
-- **Last und Skalierung:** Bezug zu Projekt-Vorgaben (z. B. Story **0.7**, ADR-0013) — **planerisch** oder **pilotiert**, je nachdem was ihr im Kurs umsetzen konntet.
-- **Sicherheit der Lieferkette:** `npm audit`, Umgang mit **high/critical** im Sinne der Projektziele; **keine** öffentliche Detail-Diskussion von Exploits ohne Betreuung.
-- **Referenz:** [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md).
-- **KI im SQM-Prozess:** z. B. Interpretation von Audit-Output — **gegen** offizielle Quellen und Team abgleichen.
-
-### Was dieses Thema bewusst nicht umfasst
-
-- **Vollständiges** Threat Modeling oder Pentesting — nur **projektrelevante** Maßnahmen.
-- **Detaillierte** UX-Methodik — **Thema 4**.
+| Qualitätsdimension                                           | Abgedeckt durch | Typische Repo-Quellen                                                                                                            |
+| ------------------------------------------------------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Teststrategie, Automatisierung, reproduzierbare Absicherung  | Thema 1         | [`TESTING.md`](../TESTING.md), [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml), Testdateien in Frontend und Backend |
+| Reviews, Definition of Done, Merge-Qualität                  | Thema 2         | [`CONTRIBUTING.md`](../../CONTRIBUTING.md), [`Backlog.md`](../../Backlog.md), Pull-Request-nahe Doku                             |
+| Nicht-funktionale Qualität: Performance, Last, Supply Chain  | Thema 3         | [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md), Lighthouse- oder Audit-Artefakte, relevante Architektur-ADRs                  |
+| Nutzerqualität, Barrierefreiheit, Methodik und Dokumentation | Thema 4         | SQM-Praktikumsdoku, Nutzungs- und A11y-Artefakte, Projekt- und Kursdokumentation                                                 |
 
 ---
 
-## Thema 4 — Nutzer- und Nutzungsqualität: Methodik, Inklusion, Dokumentation
+## Thema 1 – Teststrategie, Automatisierung und CI
 
-**Verantwortliche Person:** genau **eine** fest zugewiesene Person — **nur sie** bearbeitet das Thema und **nur sie** hält das **Einzelreferat** (in der zugehörigen **45-Minuten-UE**).
+**Warum dieses Thema zählt:** Dieses Thema ist der direkteste Nachweis dafür, dass Qualität im Projekt nicht behauptet, sondern geprüft wird. Ihr zeigt hier, wie aus Anforderungen belastbare Tests werden und warum eine grüne Pipeline mehr ist als nur ein Haken im Workflow.
 
-### Was dieses Thema umfasst
+### Was ihr zeigen solltet
 
-- **Qualitative Methoden:** z. B. **Think Aloud** — Planung, Durchführung, **anonymisierte** Auswertung, **konkrete** Verbesserungsfolgen (siehe auch Story **6.6** im Backlog als mögliche Schnittmenge).
-- **Barrierefreiheit und wahrnehmbare Qualität:** z. B. Lighthouse A11y, Tastaturbedienung — **Querschnitt**, nicht ein einzelnes Pixel-Thema.
-- **Nutzungsqualität mit KI-Readern** (falls im Praktikum bearbeitet): Testmatrix, Findings.
-- **Nutzungsanleitung / Guidde** (falls umgesetzt): Zielgruppe, abgedeckte Flows.
-- **DSGVO / Datensparsamkeit:** **Überblick** aus QM-Sicht, Verweis auf [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md) — **keine** Rechtsberatung.
-- **KI im SQM-Prozess:** z. B. Entwurf von Aufgaben für Nutzertests — **Pilotierung** mit echten Testpersonen bleibt maßgeblich.
+- welche Arten von Tests im Projekt sinnvoll eingesetzt werden
+- wie zwischen schnellen lokalen Checks und stärkeren Integrationsprüfungen unterschieden wird
+- welche Rolle CI als Qualitätstor spielt
+- wie Testbarkeit schon bei der Implementierung mitgedacht wird
 
-### Was dieses Thema bewusst nicht umfasst
+### Guter Einstieg im Repo
 
-- **Erneute** technische Tiefenabstecher in **tRPC/Zod** — höchstens **kurz** zur Einordnung von A11y oder Texten (sonst Überschneidung mit FSE).
-- **Detaillierte** CI- oder Vitest-Pipeline — **Thema 1**.
+- [`TESTING.md`](../TESTING.md)
+- [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+- `apps/backend/src/__tests__/`
+- `apps/frontend/src/`
+- relevante DoD-Hinweise in [`Backlog.md`](../../Backlog.md)
+
+### Anknüpfung an eure Tickets
+
+Passend sind alle Tickets, bei denen ihr neue Tests gebraucht, bestehende Tests erweitert oder CI-Fehler aufgelöst habt. Gerade an solchen Stellen zeigt sich, ob ein Team Qualität nur behauptet oder praktisch absichert.
+
+### KI-Reflexion
+
+Spannend ist hier die Frage, ob KI euch eher beim Formulieren von Testideen geholfen hat oder ob sie euch auch schon falsche Sicherheit gegeben hat. Gute Referate benennen beides.
+
+### Was bewusst nicht dazugehört
+
+- reine Review-Organisation ohne Testbezug
+- ausschließlich UX-Methoden oder Think-Aloud-Auswertung
+- tiefe Diskussion einzelner Sicherheitslücken ohne Bezug zur Absicherung
+
+---
+
+## Thema 2 – Reviews, Definition of Done und Qualität im Pull Request
+
+**Warum dieses Thema zählt:** Dieses Thema zeigt, wie Qualität sozial organisiert wird. Nicht jedes Problem fällt im Test auf, manches wird erst im Review sichtbar. Genau deshalb ist dieses Thema so wichtig: Ihr erklärt, wie das Projekt verhindert, dass fachlich oder technisch schwache Änderungen einfach durchrutschen.
+
+### Was ihr zeigen solltet
+
+- welche Rolle die Definition of Done spielt
+- welche typischen Review-Fragen im Projekt sinnvoll sind
+- wie Pull Requests strukturiert sein müssen, damit sie überhaupt gut reviewbar werden
+- wie mit KI-generierten Diffs verantwortungsvoll umgegangen wird
+
+### Guter Einstieg im Repo
+
+- [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
+- [`Backlog.md`](../../Backlog.md)
+- [`AGENT.md`](../../AGENT.md)
+- projektspezifische Checklisten oder Review-Hinweise in der Doku
+
+### Anknüpfung an eure Tickets
+
+Besonders geeignet sind Tickets, bei denen ein erster Vorschlag noch zu groß, zu unpräzise oder zu riskant war und erst durch Review, Zuschnitt oder Nachbesserung tragfähig geworden ist.
+
+### KI-Reflexion
+
+Hier ist eine ehrliche Beobachtung besonders stark: Hat euch KI beim Zusammenfassen, Strukturieren oder Formulieren geholfen, aber zugleich dazu verleitet, einen Diff zu schnell als plausibel zu akzeptieren? Genau diese Spannung ist SQM-relevant.
+
+### Was bewusst nicht dazugehört
+
+- vollständige Wiederholung der Testpipeline
+- ausführliche Lighthouse- oder Audit-Auswertung
+- reine Architekturerklärung ohne Qualitätsprozess
+
+---
+
+## Thema 3 – Messbare nicht-funktionale Qualität: Performance, Last, Sicherheit der Lieferkette
+
+**Warum dieses Thema zählt:** Dieses Thema eignet sich besonders gut, um Qualität messbar zu machen. Hier könnt ihr zeigen, dass Softwarequalität nicht bei Korrektheit endet, sondern auch Reaktionsgeschwindigkeit, Belastbarkeit und einen verantwortungsvollen Umgang mit Abhängigkeiten umfasst.
+
+### Was ihr zeigen solltet
+
+- wie Performance oder Ladeverhalten beobachtet oder verbessert wurden
+- welche Rolle Lasttests, Skalierungsüberlegungen oder technische Grenzen spielen
+- wie mit Abhängigkeiten, Audits und Lieferkettenrisiken umgegangen wird
+- wie man Ergebnisse nachvollziehbar dokumentiert statt nur zu behaupten
+
+### Guter Einstieg im Repo
+
+- [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
+- Lighthouse- oder A11y-Reports im Frontend-Kontext
+- relevante Architektur- oder Betriebsdokumentation in `docs/`
+- Hinweise zu Last oder Infrastruktur in [`Backlog.md`](../../Backlog.md) und der Architekturdoku
+
+### Anknüpfung an eure Tickets
+
+Geeignet sind alle Arbeiten, bei denen ihr messbare Verbesserungen oder Risiken gesehen habt: Performance-Checks, Audit-Funde, Skalierungsfragen oder technische Schulden mit qualitativer Relevanz.
+
+### KI-Reflexion
+
+Eine gute Reflexionsfrage lautet hier: Hat KI euch geholfen, Messwerte oder Audit-Output schneller zu strukturieren, aber nicht sauber genug einzuordnen? Dann zeigt, warum menschliche Bewertung unverzichtbar bleibt.
+
+### Was bewusst nicht dazugehört
+
+- komplette Sicherheitsanalyse im Sinne eines Penetrationstests
+- detaillierte UX-Methodik
+- bloße Tool-Aufzählung ohne Nachweis oder Einordnung
+
+---
+
+## Thema 4 – Nutzerqualität, Barrierefreiheit, Methodik und Dokumentation
+
+**Warum dieses Thema zählt:** Dieses Thema gibt euch die Chance zu zeigen, dass gute Software nicht nur technisch korrekt, sondern auch verstehbar, zugänglich und im Nutzungskontext sinnvoll sein muss. Gerade hier wird sichtbar, ob Qualität wirklich bei den Menschen ankommt, die das System verwenden.
+
+### Was ihr zeigen solltet
+
+- qualitative Methoden wie Think Aloud oder andere nutzungsnahe Verfahren
+- Barrierefreiheit als echte Qualitätsdimension und nicht als Nachtrag
+- Nutzungsdokumentation, Einführungshilfen oder Guiding-Artefakte als Teil der Produktqualität
+- den Zusammenhang von Beobachtung, Feedback und konkreter Verbesserung
+
+### Guter Einstieg im Repo
+
+- [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)
+- A11y- oder Lighthouse-Artefakte im Frontend-Bereich
+- relevante didaktische oder methodische Dokumente in `docs/didaktik/`
+- [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md) dort, wo Datenschutz und Datensparsamkeit die Nutzung berühren
+
+### Anknüpfung an eure Tickets
+
+Passend sind alle Arbeiten, bei denen ihr echte Nutzungsprobleme, Zugangsbarrieren, Missverständnisse oder Dokumentationslücken gesehen und verbessert habt. Solche Beispiele machen das Thema konkret und glaubwürdig.
+
+### KI-Reflexion
+
+Interessant ist hier vor allem, ob KI euch bei Leitfäden, Testskripten oder Auswertungsstrukturen geholfen hat, während die eigentliche Qualitätsaussage erst durch echte Beobachtungen und menschliche Interpretation entstanden ist.
+
+### Was bewusst nicht dazugehört
+
+- tiefe Backend- oder Datenbankerklärungen ohne Nutzungsbezug
+- vollständige CI- oder Teststrategie-Wiederholung
+- reine Theorie ohne Projektbeispiel
 
 ---
 
 ## 3. Kurz-Checkliste vor der Abgabe
 
-- [ ] Vier Personen, **je ein Thema**, ohne Doppelungen — **nur eine Person** pro Thema (Erarbeitung **und** Einzelreferat).
-- [ ] **Vier Termine** à **45 Minuten** (je **eine UE**): **ca. 20 Min.** Referat + **Diskussion und Feedback** — mit **Betreuung** abstimmen.
-- [ ] Handout: **vier gleichwertige Felder**, zusammen **vollständiges** SQM-Bild der Fallstudie.
-- [ ] Schriftliche Ausarbeitung: **ca. 7–10 Seiten**, **LaTeX** — Umfang **je Person** vs. **Gruppe** mit **Betreuung** geklärt.
-- [ ] Pro Thema klar: **Qualitätsziele + Methoden + Nachweis**; **Abgrenzung** beachtet (siehe „bewusst nicht umfasst“).
-- [ ] Kein Ersatz für die **Betreuungsvorgaben** der konkreten Prüfung — bei Widerspruch gilt die **Veranstaltung**.
+### Formales
+
+- [ ] Vier Personen, vier Themen, keine Doppelbesetzungen
+- [ ] Pro Thema ein klar strukturierter Einzeltermin
+- [ ] Ein Handout mit vier gleichwertigen Themenblöcken
+- [ ] Umfang und Form der schriftlichen Ausarbeitung mit der Betreuung geklärt
+
+### Inhaltlich
+
+- [ ] Jedes Thema hat ein klares Qualitätsziel
+- [ ] Jedes Thema zeigt konkrete Nachweise, Artefakte oder Messpunkte
+- [ ] Jedes Thema bezieht sich sichtbar auf Repo-Dateien oder Projektdokumentation
+- [ ] Jedes Thema enthält mindestens ein Beispiel aus euren eigenen Arbeiten
+- [ ] Jedes Thema enthält eine reflektierte KI-Passage mit Nutzen und Grenzen
 
 ---
 
-## 4. Literatur im Repo (Orientierung)
+## 4. Orientierung im Repo
 
-- [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md) — Aufgabenfelder, Abgabe, 10-Block-Plan
-- [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md) — Synergie FSE/SQM
-- [`docs/TESTING.md`](../TESTING.md), [`Backlog.md`](../../Backlog.md), [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
+- [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md) für Aufgaben, Aufbau und Praktikumsrahmen
+- [`TESTING.md`](../TESTING.md) für Test- und CI-Grundlagen
+- [`SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md) für sicherheitsnahe Qualitätsaspekte
+- [`Backlog.md`](../../Backlog.md) und [`CONTRIBUTING.md`](../../CONTRIBUTING.md) für DoD, Prozess und Reviewbezug
 
 ---
 
-_Stand: 2026-04-01 · Datei: `Softwarequalitaetsmanagement-Beschreibung-4-Referate.md` · Bei Änderungen an Prüfungsformaten dieses Dokument und Verweise in [`docs/README.md`](../README.md) anpassen._
+_Stand: 2026-04-01 · Datei: `Softwarequalitaetsmanagement-Beschreibung-4-Referate.md` · Bei größeren Änderungen an Prüfungsform, Repo-Struktur oder Projektprozess dieses Dokument und seine Verweise mitprüfen._
