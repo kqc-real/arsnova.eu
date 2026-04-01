@@ -1,6 +1,6 @@
 # Projekt-Kontext: arsnova.eu (Stable Reference for AI)
 
-Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konventionen und Backlog. Es wird für Context Caching (Claude Opus 4.6) als stabiler Prefix genutzt. Nur bei größeren Architektur- oder Backlog-Änderungen anpassen.
+Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konventionen und Backlog. Es wird für Context Caching (Claude Opus 4.6) als stabiler Prefix genutzt. Nur bei größeren Architektur- oder Backlog-Änderungen anpassen. **Letzte inhaltliche Pflege:** 2026-04-01 (Epic 9/10, `PlatformStatistic`, MOTD-Rate-Limits, CI-Deploy-Gates, Präzisierung Redis vs. Subscription-Polling).
 
 ---
 
@@ -27,7 +27,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 
 - **Kommunikation:** Ausschließlich tRPC (Queries, Mutations, Subscriptions). Kein REST.
 - **Datenbank:** PostgreSQL über Prisma ORM.
-- **Echtzeit:** Redis Pub/Sub; tRPC-WebSocket für Subscriptions.
+- **Echtzeit:** Redis (Rate-Limits, Blitzlicht-Keys u. a.); tRPC-WebSocket für Subscriptions (viele Session-/Q&A-Pfade: **Polling** in den Subscription-Generatoren gegen PostgreSQL, nicht Redis-Pub/Sub pro Event).
 - **Quiz-Inhalte (Local-First):** Yjs (CRDTs), IndexedDB, y-websocket für Multi-Device-Sync.
 - **Frontend-State:** Nur Angular Signals (`signal`, `computed`, `effect`). Kein RxJS für UI-State (kein BehaviorSubject); RxJS nur für asynchrone Streams (z. B. tRPC-Subscriptions, Debouncing).
 - **UI:** Standalone Components, Control Flow `@if`/`@for`, Angular Material 3, tokenbasiertes Theming und SCSS-Patterns. Keine NgModules, kein Tailwind.
@@ -75,6 +75,8 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **Team:** name, color, sessionId; Relation: participants.
 - **QaQuestion:** text, upvoteCount, status (QaQuestionStatus), sessionId, participantId; Relation: upvotes (QaUpvote).
 - **QaUpvote:** qaQuestionId, participantId.
+- **MOTD (Epic 10):** u. a. Motd, MotdTemplate, MotdLocale, MotdInteractionCounter, MotdAuditLog — öffentliche Lesepfade über `motdRouter`, Schreibzugriff nur `admin.motd.*` (siehe ADR-0018).
+- **PlatformStatistic:** z. B. eine Zeile `id = default`, Feld `maxParticipantsSingleSession` (Rekord; Anzeige in `health.stats` / Hilfe).
 - **Enums:** QuestionType (MULTIPLE_CHOICE, SINGLE_CHOICE, FREETEXT, SURVEY, RATING), Difficulty (EASY, MEDIUM, HARD), SessionStatus (LOBBY, QUESTION_OPEN, ACTIVE, PAUSED, RESULTS, FINISHED), NicknameTheme, TeamAssignment, SessionType (QUIZ, Q_AND_A), QaQuestionStatus (PENDING, ACTIVE, PINNED, ARCHIVED, DELETED).
 
 ---
@@ -82,7 +84,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 ## 8. tRPC-Router und zentrale Procedures
 
 - **appRouter** (apps/backend/src/routers/index.ts): health, quiz, session, vote, qa, quickFeedback, **motd** (öffentlich: `getCurrent`, `listArchive`, `getHeaderState`, `recordInteraction`), admin (inkl. verschachtelt **`admin.motd.*`** für MOTD/Templates, Epic 10 ✅).
-- **health:** check, ggf. stats (Story 0.4).
+- **health:** check, stats (Story 0.4, inkl. `maxParticipantsSingleSession` / `PlatformStatistic`), footerBundle (Check+Stats parallel), ping (Subscription-Heartbeat).
 - **quiz:** upload (QuizUploadInputSchema), getById, list, etc.
 - **session:** create (CreateSessionInputSchema), getInfo (per code), join (JoinSessionInputSchema), nextQuestion, revealAnswers (Story 2.6), revealResults, end; Subscriptions: onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed, onResultsRevealed, onPersonalResult; getBonusTokens, getLeaderboard; getExportData (Story 4.7: GetExportDataInputSchema → SessionExportDTO).
 - **vote:** submit (SubmitVoteInputSchema).
@@ -114,10 +116,12 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **Epic 3 – Teilnahme & Abstimmung:** Beitreten (3.1), Nicknames (3.2), Frage empfangen (3.3a), Abstimmung (3.3b), Echtzeit-Feedback (3.4), Countdown (3.5), Anonymer Modus (3.6).
 - **Epic 4 – Auswertung & Cleanup:** Leaderboard (4.1), Server aufräumen (4.2), WebSocket Reconnection (4.3), Ergebnis-Visualisierung (4.4), Freitext-Auswertung (4.5), Bonus-Token (4.6), Ergebnis-Export für Dozenten (4.7).
 - **Epic 5 – Gamification & UX:** Sound (5.1), Hintergrundmusik (5.3), Belohnungseffekte (5.4), Answer Streak (5.5), Scorecard (5.6), Motivationsmeldungen (5.7), Emoji-Reaktionen (5.8).
-- **Epic 6 – Theming, i18n, Rechtliches, A11y:** Dark/Light/System (6.1), i18n (6.2), Impressum & Datenschutz (6.3), Mobile-First (6.4), Barrierefreiheit (6.5).
-- **Epic 7 – Team-Modus (Could):** Team-Modus (7.1).
-- **Epic 8 – Q&A (Could):** Q&A starten (8.1), Fragen einreichen (8.2), Upvoting (8.3), Moderation (8.4).
-- **Blitzlicht:** Als Startseiten-Shortcut und als Session-Kanal integriert; Vergleichsrunde und Formatwechsel folgen ADR-0010.
+- **Epic 6 – Theming, i18n, Rechtliches, A11y:** Dark/Light/System (6.1), i18n (6.2), Impressum & Datenschutz (6.3), Mobile-First (6.4); **offen:** Barrierefreiheit Abschluss (6.5), Thinking Aloud / UX-Umsetzung (6.6).
+- **Epic 7 – Team-Modus:** Team-Modus (7.1) ✅.
+- **Epic 8 – Q&A:** Q&A starten (8.1), Fragen einreichen (8.2), Upvoting (8.3), Moderation (8.4); weitere Stories 8.5–8.7 siehe Backlog.
+- **Epic 9 – Admin:** Inspektion, rechtskonforme Löschung, Behördenexport, Audit ✅.
+- **Epic 10 – MOTD / Plattform-Kommunikation:** Datenmodell, öffentliche API + Rate-Limits, Admin-CRUD, UI, Overlay, Archiv, i18n, Härtung ✅ (ADR-0018).
+- **Blitzlicht:** Als Startseiten-Shortcut und als Session-Kanal integriert; ADR-0010.
 
 Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1 → 2 → 3 → 4 → 5; Epic 6 parallel ab 0.
 
@@ -171,7 +175,7 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 
 - tRPC: Eingaben immer über Zod parse; bei Validierungsfehlern typische tRPC-Zod-Fehler zurückgeben. Keine rohen Prisma- oder DB-Fehler an den Client durchreichen.
 - Session-Code: 6-stellig, case-insensitive Abgleich; getInfo und join mit klaren Fehlermeldungen (Session nicht gefunden, bereits beigetreten, Nickname vergeben).
-- Rate-Limiting (Story 0.5): vote.submit und ggf. session.join begrenzen; Redis-basiert; Fehlerantwort mit Retry-After oder Hinweis auf Limit.
+- Rate-Limiting (Story 0.5, Epic 10): Session-Code, Votes, Session-Create, **MOTD-Öffentliche-API** (`motd.getCurrent` / `listArchive` / `recordInteraction`) pro IP; Redis-basiert; konfigurierbar über Env (`docs/ENVIRONMENT.md`); Fehlerantwort mit Retry-After oder Hinweis auf Limit.
 
 ---
 
@@ -191,6 +195,7 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 - DTO-Schemas: SessionInfoDTOSchema, QuestionPreviewDTOSchema, QuestionStudentDTOSchema, QuestionRevealedDTOSchema (AnswerOptionRevealedDTO), LeaderboardEntryDTOSchema, PersonalScorecardDTOSchema, BonusTokenListDTO, SessionExportDTOSchema (Story 4.7); ParticipantDTO, QuizExportSchema.
 - Presets: QUIZ_PRESETS (PLAYFUL, SERIOUS) mit readingPhaseEnabled, defaultTimer, anonymousMode etc.
 - **Live-Start (`quiz.upload`):** Payload aus `getUploadPayload` (Quiz); Home-Preset überschreibt nur boolesche Chips, deren Schlüssel **explizit** in `localStorage` `options` steht (`id in options`). Fehlender Schlüssel → Quiz-Wert. Details: `docs/features/preset-modes.md` § Live-Start.
+- **MOTD (Epic 10):** u. a. `MotdGetCurrentInputSchema`, `MotdPublicDTOSchema`; `ServerStatsDTOSchema` enthält u. a. `maxParticipantsSingleSession`; Admin-MOTD unter `admin.motd.*`.
 - Typen: Alle via z.infer von den genannten Schemas exportieren; keine Duplikate als interface, außer wo für API-Kompatibilität nötig.
 
 ---
@@ -215,6 +220,6 @@ Für einen **lokal production-ähnlichen** Lauf (optimierter Frontend-Build, ein
 
 ### 18.2 Lokalisierter Build (i18n) lokal testen
 
-Für **mehrsprachige Builds** (de/en) mit funktionierender API und WebSockets: Backend starten (`npm run dev -w @arsnova/backend`), dann `npm run build:localize -w @arsnova/frontend` und `npm run serve:localize:api -w @arsnova/frontend`. Der Proxy (`scripts/serve-localized-with-api.mjs`) auf Port 4200 leitet `/trpc`, `/trpc-ws`, `/yjs-ws` ans Backend (3000, 3001, 3002) weiter. **Stand i18n:** EN vollständig (~580 Messages); Legal-Seiten als `imprint.en.md`/`privacy.en.md`. Details: README Abschnitt 4, [docs/I18N-ANGULAR.md](I18N-ANGULAR.md) „Lokalisierter Build lokal“, [docs/implementation/I18N-PLAN.md](implementation/I18N-PLAN.md).
+Für **mehrsprachige Builds** (**de, en, fr, es, it** — vgl. `angular.json`) mit funktionierender API und WebSockets: Backend starten (`npm run dev -w @arsnova/backend`), dann `npm run build:localize -w @arsnova/frontend` und `npm run serve:localize:api -w @arsnova/frontend`. Der Proxy (`scripts/serve-localized-with-api.mjs`) auf Port 4200 leitet `/trpc`, `/trpc-ws`, `/yjs-ws` ans Backend (3000, 3001, 3002) weiter. **Stand i18n:** Fünf UI-Locales gepflegt (XLF); Legal pro Locale als Markdown. Details: README Abschnitt „Lokalisierter Build“, [docs/I18N-ANGULAR.md](I18N-ANGULAR.md) „Lokalisierter Build lokal“, [docs/implementation/I18N-PLAN.md](implementation/I18N-PLAN.md).
 
 - **Cursor/Context Caching:** Dieses Dokument (docs/cursor-context.md) dient als stabiler Kontextblock. Bei Nutzung von Claude Opus 4.6 mit Prompt Caching sollte es als Prefix eingebunden werden (z. B. über .cursor/rules mit alwaysApply). Mindestlänge für Cache bei Opus 4.6: 4096 Tokens; diese Datei ist dafür ausgelegt.

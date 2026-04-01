@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus:** Epic 6 (Theming, i18n, Impressum/Datenschutz, Mobile-First, Barrierefreiheit) — parallel ab Epic 0 möglich.
+> **Nächster Fokus (Auswahl offener Storys):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Last- & Performance-Tests), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre (FSE):** Greenfield-Vorlesung **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -108,9 +108,11 @@
 | 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte     | 🟡   | ✅ Fertig |
 | 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)           | 🟡   | ✅ Fertig |
 
+> **Repo-Abgleich (Codebase 2026-04-01):** Die **⬜-Storys** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; Host-/Presenter-Zugang nicht wie in **2.1c** durch serverseitige Token-Prozeduren abgesichert; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmer je Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
+>
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 26 · 🟡 Should: 51 · 🟢 Could: 14 = **91 Storys gesamt**
+> **Statistik:** 🔴 Must: 28 · 🟡 Should: 54 · 🟢 Could: 11 = **93 Storys gesamt** (**79** ✅ Fertig · **14** ⬜ Offen)
 
 ---
 
@@ -173,7 +175,8 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 ## Epic 0: Infrastruktur & Plattform (Rolle: Entwickler)
 
 > **Verifizierung im laufenden Betrieb:** 2025-02-23 — Prisma validate ✅, tsc (shared-types, backend, frontend) ✅, Vitest (health + rateLimit, 21 Tests) ✅, ESLint ✅. Docker/Redis via docker-compose.yml und Health-Check-Code geprüft; Frontend wsLink/httpBatchLink und ServerStatusWidget geprüft; CI-Workflow und README-Badge geprüft.  
-> **Build + Laufbetrieb (2025-02-23):** `npm run build` ✅ (inkl. Fix Session-Template @else). `docker compose up -d postgres redis` ✅, `prisma db push` ✅. Backend gestartet: `health.check` → redis=ok ✅, `health.stats` → activeSessions/totalParticipants/completedSessions/serverStatus ✅, WebSocket-Server (Story 0.2) erreichbar ✅, Frontend `ng serve` + Startseite mit Status-Widget erreichbar ✅.
+> **Build + Laufbetrieb (2025-02-23):** `npm run build` ✅ (inkl. Fix Session-Template @else). `docker compose up -d postgres redis` ✅, `prisma db push` ✅. Backend gestartet: `health.check` → redis=ok ✅, `health.stats` → activeSessions/totalParticipants/completedSessions/serverStatus ✅, WebSocket-Server (Story 0.2) erreichbar ✅, Frontend `ng serve` + Startseite mit Status-Widget erreichbar ✅.  
+> **Ergänzung Plattform-Rekord (2026-04-01):** `health.stats` liefert zusätzlich den historischen Höchstwert **max. gleichzeitige Teilnehmer in einer Session** (`maxParticipantsSingleSession`, Zeitstempel `maxParticipantsStatisticUpdatedAt`) aus der Tabelle `PlatformStatistic` (atomare Aktualisierung u. a. beim Join, `apps/backend/src/lib/platformStatistic.ts`); die Hilfe-Seite zeigt den Wert. Migration: `20260401110000_platform_statistic_max_participants`.
 
 - **Story 0.1 (Redis-Setup):** 🔴 Als Entwickler möchte ich eine funktionierende Redis-Instanz (via Docker Compose) haben, damit Echtzeit-Features darauf aufbauen können.
   - **Akzeptanzkriterien:**
@@ -261,7 +264,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 1: Quiz-Verwaltung (Rolle: Dozent / Ersteller)
 
-> **Verifizierung Epic 1 (2026-03-09):** Status aller Storys 1.1–1.15 auf **✅ Fertig** gesetzt.  
+> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01):** Die **nummerierten** Kern-Storys **1.1–1.15** (ohne Buchstaben-Zusätze) sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben die Erweiterungen **1.2d**, **1.6c**, **1.6d**, **1.7a**, **1.7b**, **1.14a** (dort ⬜).  
 > Frontend-Checks: `npm run typecheck -w @arsnova/frontend` ✅, `npm run test -w @arsnova/frontend -- src/app/features/quiz` ✅ (54/54).  
 > Ergänzend abgeschlossen: Styleguide-/DoD-Nacharbeiten (Lesbarkeit/Spacing, Wording-Konsistenz, deutsches Datumsformat `de-DE`, Fehlerfokus auf erstes ungültiges Feld, Entfernung fragiler `::ng-deep`-Selektoren im Quiz-Feature, Preview-Interaktions- und Markdown/KaTeX-Rendering-Korrekturen).
 
@@ -375,6 +378,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Schließen** der Ansicht: Backdrop-Tap, Schließen-Steuerung und **Escape** (Desktop); **Fokus** und **ARIA** für Barrierefreiheit.
     - **i18n:** UI-Strings (z. B. Schließen, optionaler Hinweis) in **de/en/fr/es/it** (ADR-0008).
     - Architekturentscheidung und Policy sind in **ADR-0015** festgehalten.
+  - **Didaktik (Lehre):** Greenfield-Vorlesung **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md). Studierende setzen **1.7a** im Praktikum **nicht** parallel um, wenn die Vorlesung diese Story abdeckt ([`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](docs/praktikum/STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0).
 - **Story 1.7b (Markdown/KaTeX-Editor mit MD3-Toolbar):** 🟡 Als Dozent:in möchte ich Fragen- und Antworttexte in einem **Split-View** bearbeiten (**Markdown-Quelle** + **Live-Vorschau** mit KaTeX) und Formatierungen, Links, **externe Bild-URLs** und Formeln **per Klick auf eine eigene Material-3-Toolbar** einfügen, damit die Bearbeitung auf dem **Smartphone** nutzbar bleibt und dieselbe Darstellung wie in der **Live-Session** zuverlässig widerspiegelt wird.
   - **Akzeptanzkriterien:**
     - **Split-View:** Markdown-Quelltext und Vorschau sind gleichzeitig nutzbar; die Vorschau aktualisiert sich mit **Debouncing** (z. B. ≤ 300 ms) wie bei Story 1.7.
@@ -1186,7 +1190,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 >
 > **Architektur & Gesamtspezifikation:** [ADR-0018](docs/architecture/decisions/0018-message-of-the-day-platform-communication.md) · [docs/features/motd.md](docs/features/motd.md)
 >
-> **Didaktik (Lehre):** Epic 10 dient in **Fallstudie Software Engineering** und **Software-Qualitätsmanagement** als **gemeinsames Referenz-Feature**: Die **Lehrperson implementiert Epic 10 vollständig** (10.1–10.8) in den **Anfangsvorlesungen** mit **KI-Agenten**, **live am Beamer**, und gibt **parallel Mini-Inputs** zu Werkzeugen (**VS Code**, **Git**, **GitHub**) und Projekttechnologien (**TypeScript**, **PostgreSQL**, **Prisma**, **tRPC**, **Redis** u. a.). **Studierende** bearbeiten **danach** die **User Stories der anderen Epics** ([`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](docs/praktikum/STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0); SQM begleitet deren Arbeit — MOTD als Referenzcode, nicht als studierendenpflichtiges Epic.
+> **Didaktik (Lehre):** Die **erste Vorlesung** in **Fallstudie Software Engineering** ist die **Greenfield-Demo Story 1.7a** (Markdown-Bilder: URL + Lightbox) in **3×45 Minuten** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md). **Epic 10 (MOTD)** dient **optional** als **zweites** Referenzbeispiel (Spec [`docs/features/motd.md`](docs/features/motd.md), **ADR-0018**, fertiger Code); **Studierende** starten mit der Reihenfolge in [`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](docs/praktikum/STUDENT-STORY-REIHENFOLGE.md) (Abschnitt 3), nicht mit 1.7a, sofern diese in der Vorlesung abgedeckt wird.
 >
 > **Status:** ✅ Fertig (Stories 10.1–10.8, Stand Produktcode)
 

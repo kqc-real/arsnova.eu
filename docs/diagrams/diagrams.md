@@ -3,7 +3,7 @@
 # Diagramme: arsnova.eu
 
 Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.
-**Stand:** 2026-03-20 · **Epics 0–5, 7.1, 8, 9 umgesetzt;** Epic 6 größtenteils umgesetzt (**6.5 Barrierefreiheit** und **6.6 Thinking Aloud** noch offen). Geplante Markdown-Erweiterungen: Stories **1.7a** / **1.7b** ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Stand:** 2026-04-01 · **Epics 0–5, 7.1, 8, 9, 10 (MOTD) umgesetzt;** Epic 6 größtenteils umgesetzt (**6.5 Barrierefreiheit** und **6.6 Thinking Aloud** noch offen). Plattformstatistik Rekordteilnehmer in `health.stats` (`PlatformStatistic`). Geplante Markdown-Erweiterungen: Stories **1.7a** / **1.7b** ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 > **VS Code:** Mermaid wird in der Standard-Markdown-Vorschau nicht gerendert. Bitte die Erweiterung **„Markdown Preview Mermaid Support“** (`bierner.markdown-mermaid`) installieren. Siehe [README.md](./README.md) in diesem Ordner.
 
@@ -32,6 +32,7 @@ graph LR
         qa[qaRouter]
         quickfb[quickFeedbackRouter]
         admin[adminRouter - Epic 9]
+        motd[motdRouter - Epic 10]
     end
 
     subgraph Modules["Domain/Infra-Module"]
@@ -64,6 +65,7 @@ graph LR
     trpcmw --> qa
     trpcmw --> quickfb
     trpcmw --> admin
+    trpcmw --> motd
 
     session --> scoring
     session --> cleanup
@@ -72,6 +74,7 @@ graph LR
     qa --> ratelimit
     quickfb --> ratelimit
     admin --> adminauth
+    motd --> ratelimit
 
     session --> prevdto
     session --> studdto
@@ -95,6 +98,7 @@ graph LR
     QA[qaRouter]
     QUICKFB[quickFeedbackRouter]
     ADMIN[adminRouter]
+    MOTD[motdRouter]
     CLEANUP[sessionCleanup]
     RATELIMIT[rateLimit]
     SCORING[quizScoring]
@@ -110,6 +114,7 @@ graph LR
     VOTE --> RATELIMIT
     QA --> RATELIMIT
     QUICKFB --> RATELIMIT
+    MOTD --> RATELIMIT
 
     SCORING --> PG
     CLEANUP --> PG
@@ -119,6 +124,7 @@ graph LR
     SESSION --> WSS
     ADMIN --> PG
     ADMIN --> CLEANUP
+    MOTD --> PG
     REDIS --> WSS
     BACKEND_PROC -.-> YWS
 

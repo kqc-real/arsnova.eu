@@ -2,9 +2,9 @@
 
 # Tests & CI — Referenz
 
-**Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“.
+**Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-03-20 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+**Stand:** 2026-04-01 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22**; Jobs: `build`, `typecheck`, `lint`, `audit` informational, `test`, `docker`, optional `deploy`)
 
 ---
 
@@ -33,15 +33,15 @@ Workspace-spezifisch:
 
 Auslöser: **Push** und **Pull Request** auf `main`.
 
-| Job / Phase                                | Inhalt                                                                                                                           |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| **build** (Node 22)                        | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend) |
-| **typecheck** (Node 22, parallel zu build) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)       |
-| **lint**                                   | `npm run lint` (nach build)                                                                                                      |
-| **audit**                                  | `npm audit --audit-level=high` (informational, blockiert nicht)                                                                  |
-| **test**                                   | `npm test` (nach build)                                                                                                          |
-| **docker**                                 | Docker-Image-Build (ohne Push), nach build                                                                                       |
-| **deploy**                                 | Nur bei Push auf konfigurierten Branch + `DEPLOY_ENABLED`; nach lint, test, docker, typecheck                                    |
+| Job / Phase                                | Inhalt                                                                                                                                                                         |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **build** (Node 22)                        | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** i18n-Locales laut `angular.json`)    |
+| **typecheck** (Node 22, parallel zu build) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                     |
+| **lint**                                   | `npm run lint` (nach build)                                                                                                                                                    |
+| **audit**                                  | `npm audit --audit-level=high` (informational, blockiert nicht)                                                                                                                |
+| **test**                                   | `npm test` (nach build)                                                                                                                                                        |
+| **docker**                                 | Docker-Image-Build (ohne Push), nach build                                                                                                                                     |
+| **deploy**                                 | Nur bei Push auf `main` (oder `DEPLOY_BRANCH`) **und** Repository-Variable `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `docker`, `typecheck`** (alle müssen grün sein) |
 
 Matrix aktuell **eine** Node-Version (**22**).
 
@@ -61,7 +61,7 @@ Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
 
 ## Wo Tests liegen
 
-- **Backend:** `apps/backend/src/__tests__/*.test.ts`, Vitest.
+- **Backend:** `apps/backend/src/__tests__/*.test.ts`, Vitest (u. a. Session, Vote, Rate-Limit, **MOTD/Admin-MOTD** — Epic 10).
 - **Frontend:** `*.spec.ts` neben Komponenten/Services (Angular/Vitest), siehe [AGENT.md](../AGENT.md).
 
 ---

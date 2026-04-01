@@ -1,6 +1,6 @@
 # Preset-Modi (Session-Voreinstellungen)
 
-> **Stand:** 2026-03-21 · Abgleich mit `ThemePresetService`, `preset-toast.component.ts`, `PresetStorageEntrySchema` (`@arsnova/shared-types`)
+> **Stand:** 2026-04-01 · Abgleich mit `ThemePresetService`, `preset-toast.component.ts`, `PresetStorageEntrySchema` (`@arsnova/shared-types`)
 
 Die Preset-Modi sind ein zentrales Unterscheidungsmerkmal von arsnova.eu. Sie erlauben es Dozenten, mit **einem Klick** eine komplette Session-Konfiguration zu laden – optimiert für den jeweiligen Einsatzzweck. Kein langwieriges Zusammenklicken einzelner Optionen, kein versehentliches Vergessen eines Toggles.
 
@@ -200,11 +200,11 @@ Namensmodus, `nicknameThemeValue` und `teamCountValue` kommen weiterhin aus dem 
 
 ```mermaid
 graph TD
-    HC["HomeComponent<br/><small>features/home</small>"]
-    PTC["PresetToastComponent<br/><small>shared/preset-toast</small>"]
-    TPS["ThemePresetService<br/><small>core/theme-preset.service</small>"]
-    LS["localStorage<br/><small>home-preset, home-preset-options-*</small>"]
-    ST["@arsnova/shared-types<br/><small>PresetStorageEntrySchema, NicknameThemeEnum</small>"]
+    HC["HomeComponent<br/>features/home"]
+    PTC["PresetToastComponent<br/>shared/preset-toast"]
+    TPS["ThemePresetService<br/>core/theme-preset.service"]
+    LS["localStorage<br/>home-preset, home-preset-options-*"]
+    ST["@arsnova/shared-types<br/>PresetStorageEntrySchema, NicknameThemeEnum"]
 
     HC -->|"presetToastVisible signal"| PTC
     PTC -->|"closed output"| HC

@@ -2,7 +2,7 @@
 
 **Zielgruppe:** Du kannst **grundlegend programmieren** (z. B. Variablen, Schleifen, Funktionen in einer Hochschulsprache), kennst aber **noch nicht** die **Entwicklungswerkzeuge** und **Projekttechnologien** von arsnova.eu.
 
-**Zweck dieses Dokuments:** Eine **Landkarte** — was es gibt, **wofür** es im Projekt da ist, und **wo** du es dir aneignest. Es ersetzt **keine** ausführlichen Tutorials; die Verlinkungen und die **Vorlesung** (Epic 10 live am Beamer) ergänzen es.
+**Zweck dieses Dokuments:** Eine **Landkarte** — was es gibt, **wofür** es im Projekt da ist, und **wo** du es dir aneignest. Es ersetzt **keine** ausführlichen Tutorials; die Verlinkungen und die **Vorlesung** (**Greenfield-Demo Story 1.7a**, 3×45 Min., siehe [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md) und [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) Abschnitt 0) ergänzen es.
 
 **Als Nächstes nach dem Lesen:** Praktisches Setup Schritt für Schritt: [`docs/onboarding.md`](../onboarding.md).
 
@@ -16,7 +16,7 @@
 | **Software-Qualitätsmanagement**                  | [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)                                                                                                   | Wie oben, plus: **Pull Request** auf GitHub verstehen, **Tests** als Sicherheitsnetz (grün/rot), **Diff** in der UI lesen.                                                             |
 | **Data Analytics / NLP** (Kurs 3)                 | [`PRAKTIKUM-DATA-ANALYTICS.md`](./PRAKTIKUM-DATA-ANALYTICS.md), [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](./BEGRIFFE-FREITEXT-UND-SEMANTIK.md) | Schwerpunkt **Python/NLP/Modelle**; **Monorepo und tRPC** nur soweit nötig, um mit Kurs 1 zu sprechen — Abschnitt 8 in `PRAKTIKUM-DATA-ANALYTICS.md`.                                  |
 
-**In der Vorlesung:** Die Lehrperson setzt **Epic 10 (MOTD)** live mit KI-Agenten um und erklärt **parallel** Werkzeuge (VS Code, Git, GitHub) und Stack-Bausteine — siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0.
+**In der Vorlesung:** Die Lehrperson zeigt **Story 1.7a** (Markdown-Bilder + Lightbox) als **Greenfield** mit KI-Agent (**3×45 Min.**) und erklärt **parallel** Werkzeuge (VS Code, Git, GitHub) und Stack-Bausteine — siehe [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md) und [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0.
 
 ---
 
@@ -68,7 +68,7 @@
 
 1. Dieses Dokument **einmal durchlesen** (Orientierung).
 2. [`docs/onboarding.md`](../onboarding.md) — Umgebung **wirklich aufsetzen**, bis `npm run dev` läuft.
-3. **Vorlesung** Epic 10 mitverfolgen (Zusammenspiel Stack + KI-Agent).
+3. **Vorlesung** zur Greenfield-Demo **1.7a** mitverfolgen (Ablauf 3×45 Min.; Zusammenspiel Stack + KI-Agent).
 4. Erste **User Story** aus [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) mit Betreuung starten; bei Begriffen **hierher zurück** oder offizielle Docs öffnen.
 
 ---
@@ -82,4 +82,4 @@ Bei **Lücken in der Veranstaltung:** Betreuung ansprechen — diese Datei soll 
 
 ---
 
-**Stand:** 2026-03-27
+**Stand:** 2026-04-01 (Greenfield-Vorlesung 1.7a, 3×45 Min.)

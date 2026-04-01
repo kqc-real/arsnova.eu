@@ -236,4 +236,4 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 
 ---
 
-_Stand: 2026-03-23 · Pflege: bei Änderungen am Kursmodell dieses Dokument und Verweise in `docs/README.md` / `PRAKTIKUM.md` anpassen._
+_Stand: 2026-04-01 · Pflege: bei Änderungen am Kursmodell dieses Dokument und Verweise in `docs/README.md` / `PRAKTIKUM.md` anpassen._

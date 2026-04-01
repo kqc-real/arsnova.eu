@@ -1,7 +1,7 @@
 # Server-Status-Widget (Story 0.4)
 
 > **Zielgruppe:** Product Owner, Entwickler  
-> **Stand:** 2026-03-20 (Abgleich mit `health.ts` `stats`, `server-status-widget.component.ts`, `app.component.html` / `app.component.ts`)
+> **Stand:** 2026-04-01 (Abgleich mit `health.ts` `stats` inkl. `PlatformStatistic` / `maxParticipantsSingleSession`, `server-status-widget.component.ts`, `app.component.html` / `app.component.ts`)
 
 ## Was zeigt das Widget?
 
@@ -15,6 +15,8 @@ Kennzahlen und ein farbiger Status-Dot dargestellt. Der Footer (inkl. Widget) wi
 | Blitz-Runden           | ⚡ bolt         | Laufende Blitzlicht-/Quick-Feedback-Runden (Redis `qf:*`, siehe Backend) |
 | Teilnehmende           | 👥 group        | Personen in aktiven Sessions                                             |
 | Abgeschlossene Quizzes | ✅ check_circle | Sessions mit Status `FINISHED`                                           |
+
+Zusätzlich liefert **`health.stats`** (und ggf. `footerBundle`) die Felder **`maxParticipantsSingleSession`** und **`maxParticipantsStatisticUpdatedAt`** aus **`PlatformStatistic`** — genutzt u. a. im **Hilfe-Dialog** zur Plattform-Rekord-Anzeige, nicht als fünfte Kennzahl im kompakten Footer.
 
 ### Status-Dot (Ampel)
 
@@ -79,10 +81,11 @@ sequenceDiagram
     Router ->> DB: session.count(aktive Status)
     Router ->> DB: session.count(FINISHED)
     Router ->> DB: participant.count(Session aktiv)
+    Router ->> DB: platformStatistic.findUnique (Rekord max. Teilnehmer je Session)
     Router ->> Cache: SCAN MATCH qf:* (ohne Keys mit :voters:)
   end
 
-  DB -->> Router: counts
+  DB -->> Router: counts + PlatformStatistic
   Cache -->> Router: Set-Größe activeBlitzRounds
 
   Router ->> Router: getServerStatus(activeSessions)

@@ -1,7 +1,7 @@
 # Bonus-Codes (Story 4.6)
 
 > **Zielgruppe:** Product Owner, Entwickler  
-> **Stand:** 2026-03-20 (Abgleich mit `session.ts` `nextQuestion` / `session.end`, `generateBonusTokens`, `getPersonalResult`, `getBonusTokens`, `sessionCleanup.ts`)
+> **Stand:** 2026-04-01 (Abgleich mit `session.ts` `nextQuestion` / `session.end`, `generateBonusTokens`, `getPersonalResult`, `getBonusTokens`, `sessionCleanup.ts`)
 
 ## Konzept
 

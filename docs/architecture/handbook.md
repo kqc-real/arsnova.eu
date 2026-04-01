@@ -2,14 +2,14 @@
 
 # 🏛️ Architektur-Handbuch: arsnova.eu
 
-**Zuletzt aktualisiert:** 2026-03-20  
+**Zuletzt aktualisiert:** 2026-04-01  
 **Rolle:** Living Documentation (Documentation as Code)
 
-**Produktstatus (Stand 2026-03):**
+**Produktstatus (Stand 2026-04):**
 
-- Produktionsreif umgesetzt: Epics 0-5, 8 und 9.
-- Plattform: Epic 6 weitgehend umgesetzt; offen: **6.5** (Abschlussprüfung Barrierefreiheit / WCAG) und **6.6** (UX-Testreihen _Thinking Aloud_ inkl. Umsetzung der Befunde — siehe `Backlog.md`, Story 6.6, und `docs/EPIC6-AC-PRUEFUNG.md`).
-- Ebenfalls umgesetzt: Epic 7.1 Team-Modus.
+- Produktionsreif umgesetzt: Epics **0–5**, **7.1** (Team-Modus), **8**, **9** (Admin: Inspektion, Löschung, Behördenexport, Audit) und **10** (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`).
+- Plattform: Epic **6** im Kern umgesetzt (Theme, i18n, Legal, Responsive); offen: **6.5** (Abschlussprüfung Barrierefreiheit / WCAG) und **6.6** (UX-Testreihen _Thinking Aloud_ inkl. Umsetzung der Befunde — siehe `Backlog.md`, Story 6.6, und `docs/EPIC6-AC-PRUEFUNG.md`).
+- **Plattformstatistik:** Rekord **max. Teilnehmer je Session** (`PlatformStatistic`, u. a. in `health.stats` und Hilfe-Dialog).
 
 ## 1. Einleitung & Philosophie
 
@@ -26,7 +26,7 @@ Wir setzen auf einen modernen, stark typisierten TypeScript-Stack (Full-Stack), 
 - **Frontend:** Angular (v21) mit **Signals** (Zustandsverwaltung), **Standalone Components** und **Angular Material 3** (tokenbasiert, ohne Tailwind).
 - **Backend:** Node.js API mit **tRPC** (für typsichere Aufrufe und WebSocket-Subscriptions).
 - **Datenbank (Persistenz):** **PostgreSQL** angebunden über **Prisma ORM**.
-- **Echtzeit-Broker (Flüchtig):** **Redis** (Pub/Sub für Abstimmungen).
+- **Echtzeit-Broker (Flüchtig):** **Redis** (Rate-Limiting, Blitzlicht-/Session-Code-Zustand, Sliding-Windows). Live-Updates in Sessions laufen über **tRPC-WebSocket-Subscriptions** (Implementierung im Backend über intervalbasiertes **Polling** gegen PostgreSQL in den Subscription-Generatoren — kein zentraler Redis-Pub/Sub-Pfad für jedes Frage-Event).
 - **Offline & Sync Engine:** **Yjs** (CRDTs für die Local-First Speicherung im Browser).
 
 ---
@@ -73,6 +73,8 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 - [ADR-0011: Delegierbare Moderatorrolle für Live-Sessions](./decisions/0011-delegated-moderator-role-for-live-sessions.md)
 - [ADR-0015: Markdown-Bilder nur per URL und Lightbox-Ansicht](./decisions/0015-markdown-images-url-only-and-lightbox.md)
 - [ADR-0016: Markdown/KaTeX-Editor — Split-View und eigene MD3-Toolbar](./decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)
+- [ADR-0017: Markdown-Editor — UI-Umfang vs. KI-Import-Paste-Feld](./decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md)
+- [ADR-0018: Message of the Day / Plattform-Kommunikation (MOTD)](./decisions/0018-message-of-the-day-platform-communication.md)
 
 **Vertiefende Architektur-Dokumente:**
 
@@ -85,7 +87,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 
 ## 5. Datenmodell (Single Source of Truth)
 
-Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopien, Teilnehmer, Votes, Bonus-Token, Q&A und Session-Kanaele wie Blitzlicht wird zentral über Prisma verwaltet. Das aktuelle Schema findet sich in `prisma/schema.prisma`.
+Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopien, Teilnehmer, Votes, Bonus-Token, Q&A, Session-Kanäle wie Blitzlicht sowie **MOTD** (Meldungen, Vorlagen, Locale-Texte, Interaktionszähler, Audit) und **`PlatformStatistic`** (u. a. Rekordteilnehmer je Session) wird zentral über Prisma verwaltet. Das aktuelle Schema findet sich in `prisma/schema.prisma`.
 
 **Hinweis zur Anonymität:** Die App ist bewusst **accountfrei**. Es gibt kein User-/Account-Modell. Dozenten und Studierende nutzen die App ohne Registrierung. Die Zuordnung Quiz ↔ Dozent erfolgt ausschließlich über Local-First (Yjs/IndexedDB) im Browser; der Server speichert keine Nutzerkonten.
 
@@ -95,11 +97,11 @@ Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopie
 
 Der produktive Rollout erfolgt ueber GitHub Actions (`.github/workflows/ci.yml`) mit klaren Gates:
 
-1. Build & Validate
+1. Build & Validate (inkl. `typecheck`-Job)
 2. Lint
 3. Tests
 4. Docker-Build
-5. Deploy-Job, nur bei Push auf Deploy-Branch und `DEPLOY_ENABLED=true`
+5. Deploy-Job, nur bei Push auf `main` (oder `DEPLOY_BRANCH`) **und** Repository-Variable `DEPLOY_ENABLED=true`; **Voraussetzung:** Jobs `lint`, `test`, `docker`, `typecheck` erfolgreich
 
 Der Deploy-Job ist auf **production** als GitHub Environment gebunden und fuehrt serverseitig `scripts/deploy.sh` aus.
 

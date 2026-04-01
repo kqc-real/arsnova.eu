@@ -34,7 +34,7 @@ Der **Entwicklungs-Praktikumsauftrag** (Feature-Fokus, z. B. intelligente Wortwo
 
 **→ [`PRAKTIKUM.md`](./PRAKTIKUM.md)**
 
-**Gemeinsames Vorlesungsbeispiel mit Fallstudie SE:** [**Epic 10 (MOTD)**](../../Backlog.md) wird von der **Lehrperson vollständig** mit KI live am Beamer umgesetzt (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) Abschnitt 0, [`docs/features/motd.md`](../features/motd.md)). **Studierende** in SQM üben **Reviews, Tests und Qualität** an den **PRs zu anderen Epics**; das fertige MOTD kann als **Referenz** dienen (Architektur, DoD).
+**Erste Vorlesung mit Fallstudie SE:** **Greenfield-Demo** [**Story 1.7a**](../../Backlog.md) (Markdown-Bilder + Lightbox) in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md). **Studierende** in SQM üben **Reviews, Tests und Qualität** an den **PRs** zu den Stories in [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) (Abschnitt 3). **Epic 10 (MOTD)** optional als **zusätzliche** Referenz ([`docs/features/motd.md`](../features/motd.md)).
 
 **Kurs 3 (Data Analytics, NLP/Prompting, nicht zwingend parallel):**
 
@@ -331,4 +331,4 @@ Du nutzt einen KI-Chat: „Finde Sicherheitslücken in diesem Diff.“ Die KI be
 
 ---
 
-_Stand: 2026-03-23 · Pflege bei Änderungen am SQM-Setup: dieses Dokument, Verweis in `docs/README.md` und ggf. in `docs/didaktik/zweiter-kurs-und-agentische-ki.md`._
+_Stand: 2026-04-01 · Pflege bei Änderungen am SQM-Setup: dieses Dokument, Verweis in `docs/README.md` und ggf. in `docs/didaktik/zweiter-kurs-und-agentische-ki.md`._

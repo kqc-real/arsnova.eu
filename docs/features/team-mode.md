@@ -1,7 +1,7 @@
 # Team-Modus (Story 7.1)
 
 > **Zielgruppe:** Product Owner, Entwickler  
-> **Stand:** 2026-03-20 (Abgleich mit `apps/backend/src/routers/session.ts`: `ensureSessionTeams`, `join`, `getTeamLeaderboard`)
+> **Stand:** 2026-04-01 (Abgleich mit `apps/backend/src/routers/session.ts`: `ensureSessionTeams`, `join`, `getTeamLeaderboard`)
 
 ## Konzept
 

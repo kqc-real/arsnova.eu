@@ -11,25 +11,28 @@
 
 Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise liest:
 
-| Variable                                     | Erforderlich | Standard / Beispiel        | Zweck                                                                                                                                   |
-| -------------------------------------------- | ------------ | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                               | ja (für DB)  | siehe `.env.example`       | PostgreSQL-Verbindung (Prisma)                                                                                                          |
-| `REDIS_URL`                                  | nein         | `redis://localhost:6379`   | Redis (Pub/Sub, Rate-Limit, Blitzlicht-State)                                                                                           |
-| `PORT`                                       | nein         | `3000`                     | HTTP-API (Express + tRPC)                                                                                                               |
-| `HOST`                                       | nein         | —                          | In Docker/Compose oft `0.0.0.0` (HTTP-Server); wird auch als Default für den Yjs-Child genutzt, wenn `YJS_WS_HOST` fehlt                |
-| `WS_PORT`                                    | nein         | `3001`                     | WebSocket-Server (tRPC-Subscriptions)                                                                                                   |
-| `YJS_WS_PORT`                                | nein         | `3002`                     | y-websocket-Relay (Quiz-Sync)                                                                                                           |
-| `YJS_WS_HOST`                                | nein         | siehe `HOST` / `127.0.0.1` | Bind-Adresse des Yjs-Childs (`@y/websocket-server`). **Nicht** nur `127.0.0.1` in Docker, sonst scheitert `wss://…/yjs-ws` hinter Nginx |
-| `NODE_ENV`                                   | nein         | —                          | `production` u. a. für CORS/Static; `development` für lokale Defaults                                                                   |
-| `RATE_LIMIT_SESSION_CODE_ATTEMPTS`           | nein         | `5`                        | Fehlversuche Session-Code pro IP                                                                                                        |
-| `RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES`     | nein         | `5`                        | Zeitfenster (Minuten)                                                                                                                   |
-| `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS`    | nein         | `60`                       | Sperre nach zu vielen Fehlversuchen                                                                                                     |
-| `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND`        | nein         | `1`                        | Vote-Throttling pro IP                                                                                                                  |
-| `RATE_LIMIT_SESSION_CREATE_PER_HOUR`         | nein         | `10`                       | Session-Erstellungen pro IP und Stunde                                                                                                  |
-| `RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST` | nein         | —                          | Wenn gesetzt: Bypass-Logik für Session-Create-Limit (siehe `rateLimit.ts`)                                                              |
-| `ADMIN_SECRET`                               | für `/admin` | —                          | Shared Secret für Admin-Login (Epic 9); in Prod **stark setzen**                                                                        |
-| `ADMIN_SESSION_TTL_SECONDS`                  | nein         | `28800` (8 h)              | Admin-Session-TTL                                                                                                                       |
-| `ADMIN_LEGAL_HOLD_DEFAULT_DAYS`              | nein         | `30`                       | Default-Tage für Legal-Hold-Angaben (Admin)                                                                                             |
+| Variable                                        | Erforderlich | Standard / Beispiel        | Zweck                                                                                                                                   |
+| ----------------------------------------------- | ------------ | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                  | ja (für DB)  | siehe `.env.example`       | PostgreSQL-Verbindung (Prisma)                                                                                                          |
+| `REDIS_URL`                                     | nein         | `redis://localhost:6379`   | Redis (Pub/Sub, Rate-Limit, Blitzlicht-State)                                                                                           |
+| `PORT`                                          | nein         | `3000`                     | HTTP-API (Express + tRPC)                                                                                                               |
+| `HOST`                                          | nein         | —                          | In Docker/Compose oft `0.0.0.0` (HTTP-Server); wird auch als Default für den Yjs-Child genutzt, wenn `YJS_WS_HOST` fehlt                |
+| `WS_PORT`                                       | nein         | `3001`                     | WebSocket-Server (tRPC-Subscriptions)                                                                                                   |
+| `YJS_WS_PORT`                                   | nein         | `3002`                     | y-websocket-Relay (Quiz-Sync)                                                                                                           |
+| `YJS_WS_HOST`                                   | nein         | siehe `HOST` / `127.0.0.1` | Bind-Adresse des Yjs-Childs (`@y/websocket-server`). **Nicht** nur `127.0.0.1` in Docker, sonst scheitert `wss://…/yjs-ws` hinter Nginx |
+| `NODE_ENV`                                      | nein         | —                          | `production` u. a. für CORS/Static; `development` für lokale Defaults                                                                   |
+| `RATE_LIMIT_SESSION_CODE_ATTEMPTS`              | nein         | `5`                        | Fehlversuche Session-Code pro IP                                                                                                        |
+| `RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES`        | nein         | `5`                        | Zeitfenster (Minuten)                                                                                                                   |
+| `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS`       | nein         | `60`                       | Sperre nach zu vielen Fehlversuchen                                                                                                     |
+| `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND`           | nein         | `1`                        | Vote-Throttling pro IP                                                                                                                  |
+| `RATE_LIMIT_SESSION_CREATE_PER_HOUR`            | nein         | `10`                       | Session-Erstellungen pro IP und Stunde                                                                                                  |
+| `RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST`    | nein         | —                          | Wenn gesetzt: Bypass-Logik für Session-Create-Limit (siehe `rateLimit.ts`)                                                              |
+| `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE`        | nein         | `120`                      | MOTD `getCurrent` — Anfragen pro IP und Minute (Epic 10, `motd.ts` / `rateLimit.ts`)                                                    |
+| `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE`       | nein         | `60`                       | MOTD `listArchive` — pro IP und Minute                                                                                                  |
+| `RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE` | nein         | `40`                       | MOTD `recordInteraction` — pro IP und Minute                                                                                            |
+| `ADMIN_SECRET`                                  | für `/admin` | —                          | Shared Secret für Admin-Login (Epic 9); in Prod **stark setzen**                                                                        |
+| `ADMIN_SESSION_TTL_SECONDS`                     | nein         | `28800` (8 h)              | Admin-Session-TTL                                                                                                                       |
+| `ADMIN_LEGAL_HOLD_DEFAULT_DAYS`                 | nein         | `30`                       | Default-Tage für Legal-Hold-Angaben (Admin)                                                                                             |
 
 ### `JWT_SECRET` (`.env.example`)
 
@@ -52,6 +55,7 @@ Zusätzlich zu den Backend-Variablen (angepasste Hosts: `postgres`, `redis` im N
 | WebSocket hängt                                                | `WS_PORT` frei, Frontend-Proxy auf gleichen WS-Port                                                              |
 | Quiz-Sync zwischen Geräten tot / `wss://…/yjs-ws` schlägt fehl | Container: `HOST=0.0.0.0` oder `YJS_WS_HOST=0.0.0.0`, Nginx `location /yjs-ws` → `127.0.0.1:3002`, Prozess läuft |
 | Admin-Login scheitert                                          | `ADMIN_SECRET` gesetzt und mit Eingabe übereinstimmend                                                           |
+| MOTD/API 429 (Too Many Requests)                               | `RATE_LIMIT_MOTD_*` anpassen oder Last prüfen; öffentliche MOTD-Pfade sind bewusst rate-limited                  |
 
 ---
 
@@ -61,4 +65,4 @@ Zusätzlich zu den Backend-Variablen (angepasste Hosts: `postgres`, `redis` im N
 - [cursor-context.md](cursor-context.md) — Ports und Stack-Kurzreferenz
 - [README.md](../README.md) — `npm run dev`, Docker-Hinweise
 
-**Stand:** 2026-03-20 — bei neuen `process.env`-Lesern diese Tabelle und `.env.example` mitziehen.
+**Stand:** 2026-04-01 — zuletzt ergänzt: **MOTD-Rate-Limits** (Epic 10, `apps/backend/src/lib/rateLimit.ts`). **`PlatformStatistic`** / Rekordteilnehmer je Session werden in der DB gepflegt, nicht über Env. Bei neuen `process.env`-Lesern diese Tabelle und [`.env.example`](../.env.example) mitziehen.

@@ -3,10 +3,10 @@
 # 🏗️ Architektur-Übersicht: arsnova.eu
 
 **Erstellt:** 2026-02-20  
-**Zuletzt aktualisiert:** 2026-03-20  
+**Zuletzt aktualisiert:** 2026-04-01  
 **Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur
 
-**Status:** Epics 0–5, 7.1, 8, 9 umgesetzt · Epic 6 größtenteils umgesetzt (6.5, 6.6 offen) · geplante Markdown-Stories 1.7a/1.7b siehe [ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) (Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung inkl. Admin siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Status:** Epics 0–5, 7.1, 8, 9, **10 (MOTD)** umgesetzt · Epic 6 größtenteils umgesetzt (6.5, 6.6 offen) · Plattformstatistik Rekordteilnehmer (`PlatformStatistic`) in `health.stats` · geplante Markdown-Stories 1.7a/1.7b siehe [ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) (Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung inkl. Admin und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 ## System-Architektur-Diagramm
 
@@ -24,7 +24,7 @@ graph LR
         subgraph "Backend - Node.js + tRPC (Epic 0 ✅)"
             BE[Express Server<br/>Port 3000]
             TRPC["tRPC Router<br/>/trpc"]
-            ROUTERS[Router Layer<br/>health · quiz · session · vote · qa · quickFeedback · admin]
+            ROUTERS[Router Layer<br/>health · quiz · session · vote · qa · quickFeedback · admin · motd]
             SERVICES[Domain/Infra Layer<br/>quizScoring · rateLimit · sessionCleanup · adminAuth]
             DTO[DTO Layer<br/>Data Stripping<br/>QuestionPreviewDTO<br/>QuestionStudentDTO<br/>QuestionRevealedDTO]
         end
@@ -35,7 +35,7 @@ graph LR
     end
 
     subgraph "Datenbanken & Storage (Epic 0.1 ✅)"
-        PG[(PostgreSQL<br/>Prisma ORM<br/>Sessions · Votes<br/>Participants)]
+        PG[(PostgreSQL<br/>Prisma ORM<br/>Sessions · Votes · Participants<br/>MOTD · PlatformStatistic)]
         REDIS[(Redis<br/>Pub/Sub · Rate-Limit<br/>Docker Compose)]
         IDB[(IndexedDB<br/>Yjs CRDT<br/>Local-First Quizzes)]
     end

@@ -470,4 +470,4 @@ Bei Fragen zur **Umsetzung in der Codebasis** siehe [`PRAKTIKUM.md`](./PRAKTIKUM
 
 ---
 
-_Stand: 2026-03-23 · Übungsaufgaben mit Musterlösungen ergänzt · Ergänzungen willkommen (Pull Request oder Absprache mit der Betreuung)._
+_Stand: 2026-04-01 · Didaktischer Kern unverändert gültig. **Produktbezug:** Freitext/Wortwolke im Live-System weiterhin vor allem **lexikalisch** (Story 1.14); semantische Bündelung / ADR-0012 bleiben **Backlog** — siehe [Backlog.md](../../Backlog.md) Story **1.14a** und [PRAKTIKUM-DATA-ANALYTICS.md](PRAKTIKUM-DATA-ANALYTICS.md). Übungsaufgaben mit Musterlösungen · Ergänzungen willkommen (Pull Request oder Absprache mit der Betreuung)._

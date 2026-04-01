@@ -3,7 +3,7 @@
 # Quiz-Sammlung – Synchronisierung
 
 **Zielgruppe:** Entwicklerinnen, Entwickler und technisch interessierte Personen  
-**Stand:** 2026-03-20  
+**Stand:** 2026-04-01  
 **Status:** Living Document
 
 ## 1. Zweck

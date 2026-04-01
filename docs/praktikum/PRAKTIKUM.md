@@ -10,7 +10,7 @@ Willkommen. Dieses Dokument erklärt **Ziele**, **Ablauf**, **bewertete Leistung
 
 **Parallel am selben Produkt:** Der **SQM-Praktikumsauftrag** (Qualität, Tests, Reviews, UX, Guidde) steht in **[`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)**; das didaktische **Zwei-Kurse-Modell** in [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
 
-**Fallstudie Software Engineering + SQM — gemeinsames Vorlesungsbeispiel:** [**Epic 10 (MOTD)**](../../Backlog.md) wird von der **Lehrperson vollständig** (10.1–10.8) mit **KI-Agenten** in den **Anfangsvorlesungen live am Beamer** umgesetzt; **parallel** gibt es **Inputs** zu **VS Code, Git, GitHub** und zu **Projekttechnologien** (TypeScript, PostgreSQL, Prisma, tRPC, Redis …). **Studierende** arbeiten **danach** an **Stories aus anderen Epics** ([`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) Abschnitt 0 und 3; Spezifikation [`docs/features/motd.md`](../features/motd.md)).
+**Fallstudie Software Engineering + SQM — erste Vorlesung(en):** **Greenfield-Demo** [**Story 1.7a**](../../Backlog.md) (Markdown-Bilder: URL + Lightbox) in **3×45 Minuten** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md): Lehrperson und **KI-Agent** setzen live um, was im Stack üblich ist (Angular, ADR-0015, i18n); **parallel** Mini-Inputs zu **VS Code, Git, GitHub** und **Projekttechnologien**. **Studierende** bearbeiten **1.7a nicht** parallel als Praktikums-Ticket (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) Abschnitt 0) und starten danach mit der **Reihenfolge in Abschnitt 3**. **Epic 10 (MOTD)** bleibt optional **zweites** Referenzbeispiel (fertiger Code: [`docs/features/motd.md`](../features/motd.md)).
 
 **Kurs 3 (Data Analytics, nicht zwingend parallel):** NLP und **Modellwahl/Prompting** für die **Intelligente Moderationshilfe** (Wortwolke & Q&A) auf **selbst gehosteten** Modellen — **`PRAKTIKUM-DATA-ANALYTICS.md`** · Einordnung `docs/didaktik/dritter-kurs-data-analytics-nlp.md`.
 
@@ -214,4 +214,4 @@ Bei der **Betreuung** vor Ort; im Repo bei inhaltlichen Regeln zusätzlich `docs
 
 ---
 
-_Stand: 2026-03-23 · Pflege: bei Änderungen am Praktikumsauftrag dieses Dokument und die Verweise in `docs/README.md` anpassen._
+_Stand: 2026-04-01 · Pflege: bei Änderungen am Praktikumsauftrag dieses Dokument und die Verweise in `docs/README.md` anpassen._

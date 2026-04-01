@@ -1,7 +1,7 @@
 # Blitzlicht · tRPC `quickFeedback` (API-Referenz)
 
 > **Zielgruppe:** Entwickler  
-> **Stand:** 2026-03-20 · Abgleich mit `apps/backend/src/routers/quickFeedback.ts`
+> **Stand:** 2026-04-01 · Abgleich mit `apps/backend/src/routers/quickFeedback.ts`
 
 In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [BLITZLICHT-GUIDELINES](../ui/BLITZLICHT-GUIDELINES.md)). Technisch liegt die Domäne im tRPC-Router **`quickFeedback`** (kein Prisma; Zustand in **Redis**, TTL ca. 30 Min.).
 

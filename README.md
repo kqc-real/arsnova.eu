@@ -13,12 +13,13 @@
 > **Quizzen, abstimmen – gemeinsam und live.**  
 > Ein modernes, kostenloses und 100 % DSGVO-konformes Audience-Response-System – ohne Anmeldung, Open Source. Entwickelt im Rahmen des Hochschul-Moduls „Software Engineering & Vibe Coding“.
 
-## ✅ Aktueller Entwicklungsstand (März 2026)
+## ✅ Aktueller Entwicklungsstand (April 2026)
 
-- **Produktionsreif umgesetzt:** Epics **0–5** und **8**, sowie **Epic 9 (Admin)**.
-- **Plattform-Qualität:** Epic **6** ist weitgehend umgesetzt; **6.5 Barrierefreiheit (Abschlussprüfung)** bleibt offen.
-- **In Arbeit:** Epic **6.5 Barrierefreiheit (Abschlussprüfung)**.
-- **Neu in Epic 9:** Admin-Inspektion, rechtssichere Löschung, Behördenexport (PDF/JSON) inkl. Audit-Log und Admin-Flow-Dokumentation.
+- **Produktionsreif umgesetzt:** Epics **0–5**, **7.1 (Team-Modus)**, **8**, **9 (Admin)** und **10 (MOTD / Plattform-Kommunikation, ADR-0018)** — siehe [`Backlog.md`](./Backlog.md).
+- **Plattform-Qualität:** Epic **6** ist im Kern umgesetzt (Theme, i18n, Legal, Responsive); **6.5 Barrierefreiheit (Abschlussprüfung)** und **6.6 Thinking Aloud** sind noch offen.
+- **Offene Storys (Auswahl):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Lasttests), **1.7a/1.7b** (Markdown-Erweiterungen), **8.5–8.7** (Q&A) — vollständige Liste im Backlog.
+- **Plattform-Statistik:** Rekord **max. Teilnehmer je Session** wird serverseitig gepflegt und in `health.stats` sowie auf der Hilfe-Seite genutzt (`PlatformStatistic`, siehe Backlog „Repo-Abgleich“).
+- **Lehre (FSE):** Greenfield-Vorlesung **Story 1.7a** in **3×45 Min.** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md); Epic 10 bleibt optional als **Referenzcode**, kein Ersatz für 1.7a.
 
 ## 📖 Über das Projekt
 
@@ -318,7 +319,7 @@ Nachdem die App lokal läuft, empfiehlt sich diese Lesereihenfolge:
 7. **[ADRs](./docs/architecture/decisions/)** – bisherige Architekturentscheidungen (Signals, tRPC, Yjs)
 8. **[Vibe-Coding-Szenario](./docs/vibe-coding/vibe-coding-szenario.md)** – so funktioniert die Zusammenarbeit mit der KI
 
-> **Tipp (aktueller Fokus):** Epics **0–5**, **7.1**, **8** und **9** sind umgesetzt. Für die nächste Iteration liegt der Schwerpunkt auf **6.5 Barrierefreiheit (Abschlussprüfung)**. Vor Umsetzung erst Story im [Backlog](./Backlog.md) prüfen, dann mit `AGENT.md` und `docs/cursor-context.md` arbeiten.
+> **Tipp (aktueller Fokus):** Epics **0–5**, **7.1**, **8**, **9** und **10** sind umgesetzt. Nächste Prioritäten siehe [Backlog](./Backlog.md) (u. a. **6.5**/**6.6**, **2.1c**, **0.7**, **1.7a**/**1.7b**). Vor Umsetzung Story prüfen, dann mit `AGENT.md` und `docs/cursor-context.md` arbeiten.
 
 ## 🔄 Zurücksetzen auf einen bekannten Zustand
 
@@ -326,10 +327,10 @@ Nachdem die App lokal läuft, empfiehlt sich diese Lesereihenfolge:
 
 Falls etwas schiefgeht oder du komplett neu anfangen möchtest, setze auf den Rücksprung-Tag zurück:
 
-| Tag            | Beschreibung                                                                       |
-| -------------- | ---------------------------------------------------------------------------------- |
-| **`v0-epic0`** | Stand nach Epic 0, Routen für Epic 1 vorstrukturiert (empfohlener Rücksprungpunkt) |
-| **`epic-9`**   | Aktueller Stand inkl. Admin-Flow (Stories 9.1–9.3)                                 |
+| Tag            | Beschreibung                                                                                          |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| **`v0-epic0`** | Stand nach Epic 0, Routen für Epic 1 vorstrukturiert (empfohlener Rücksprungpunkt)                    |
+| **`epic-9`**   | Stand inkl. Admin-Flow (Stories 9.1–9.3); für aktuellen Stand mit MOTD/Epic 10: `main` oder neuer Tag |
 
 ```bash
 git fetch --tags

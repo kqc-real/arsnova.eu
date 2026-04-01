@@ -117,15 +117,13 @@ Aktualisierung von [`ROUTES_AND_STORIES.md`](../ROUTES_AND_STORIES.md) bei Umset
 
 Umsetzung in **Epic 10**, Stories **10.1–10.8**, Reihenfolge siehe [`Backlog.md`](../../Backlog.md).
 
-## 8a. Didaktik: Referenz-Feature für FSE und SQM
+## 8a. Didaktik: Erste Vorlesung = Greenfield 1.7a; MOTD = optionale Zusatzreferenz
 
-Epic 10 unterstützt **Fallstudie Software Engineering** und **Software-Qualitätsmanagement** als **durchgängiges Vorlesungsbeispiel**:
+Die **erste Vorlesung** in **Fallstudie Software Engineering** ist die **Greenfield-Demo** [**Story 1.7a**](../../Backlog.md) (Markdown-Bilder: URL + Lightbox) in **3×45 Minuten** — siehe [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md). Dort arbeiten Lehrperson und **KI-Agent** ein **noch zu implementierendes** Feature aus dem Backlog ein; **Studierende** übernehmen **1.7a** danach **nicht** als Pflicht-Praktikumsstory ([`STUDENT-STORY-REIHENFOLGE.md`](../praktikum/STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0).
 
-- **Lehrperson:** Setzt **Epic 10 vollständig** (Stories **10.1–10.8**) mit **KI-Agenten** in den **Anfangsvorlesungen** um — **live am Beamer** — anhand dieser Spezifikation, ADR-0018 und Backlog.
-- **Parallel:** **Mini-Vorlesungen** zu **Werkzeugen** (VS Code, Git, GitHub) und **Stack** des Projekts (TypeScript, PostgreSQL, Prisma, tRPC, Redis, Frontend/Monorepo — nach Terminplan).
-- **Studierende:** **Kein** Pflicht-Implementierungsauftrag für Epic 10; sie beginnen **danach** mit **User Stories aus anderen Epics** (didaktische Reihenfolge: [`STUDENT-STORY-REIHENFOLGE.md`](../praktikum/STUDENT-STORY-REIHENFOLGE.md), Abschnitt 3). **SQM** arbeitet an **deren** PRs; das fertige MOTD dient als **Referenz** (Architektur, Tests, DoD-Vorbild).
+**Epic 10 (MOTD)** bleibt ein **gutes zweites** Vorlesungs- oder Selbstlernbeispiel: Der **Produktcode** enthält Epic 10 **vollständig** (10.1–10.8 ✅). Nutzbar als **Architektur- und Prozessreferenz** (diese Spezifikation, **ADR-0018**, `motd`-Router, Admin-UI) — **optional** mit KI zum Erkunden bestehenden Codes; **kein** Ersatz für die 1.7a-Greenfield-Demo.
 
-Detaillierte Einordnung: [`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](../praktikum/STUDENT-STORY-REIHENFOLGE.md) (Abschnitt 0); Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
+Synergie: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
 
 ## 9. Betrieb: zweite MOTD sichtbar, Migrationen
 
@@ -135,9 +133,10 @@ Detaillierte Einordnung: [`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](../prak
 
 ## 10. Changelog dieses Dokuments
 
-| Datum      | Änderung                                                                             |
-| ---------- | ------------------------------------------------------------------------------------ |
-| 2026-03-27 | Erstfassung (Abstimmung mit ADR-0018 und Epic 10).                                   |
-| 2026-03-27 | Abschnitt 8a: Studienvehikel FSE + SQM, Vorlesungsdemo, Studierendenphase.           |
-| 2026-03-27 | Abschnitt 8a: Klarstellung — Epic 10 nur Lehrperson live; Studis andere Epics.       |
-| 2026-03-31 | Abschnitt 9: Betrieb (Kette, Migrationen, Zeitfenster); Nummerierung Changelog → 10. |
+| Datum      | Änderung                                                                                                                                                                                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-03-27 | Erstfassung (Abstimmung mit ADR-0018 und Epic 10).                                                                                                                                                                                 |
+| 2026-03-27 | Abschnitt 8a: Studienvehikel FSE + SQM, Vorlesungsdemo, Studierendenphase.                                                                                                                                                         |
+| 2026-03-27 | Abschnitt 8a: Klarstellung — Epic 10 nur Lehrperson live; Studis andere Epics.                                                                                                                                                     |
+| 2026-03-31 | Abschnitt 9: Betrieb (Kette, Migrationen, Zeitfenster); Nummerierung Changelog → 10.                                                                                                                                               |
+| 2026-04-01 | Abschnitt 8a: **Erste Vorlesung FSE** = Greenfield **1.7a** (3×45 Min., [`greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md)); Epic 10/MOTD nur **optional** zweite Referenz (Produktcode fertig). |

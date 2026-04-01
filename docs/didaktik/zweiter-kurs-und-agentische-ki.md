@@ -46,14 +46,13 @@ Dieses Dokument hier bleibt die **kompakte** Synergie- und Rollenübersicht; Det
 - **Paralleler Rhythmus:** SQM arbeitet nicht „nach dem Release“, sondern **mit**: z. B. Review nach jedem PR, Testkonzept pro Epic, laufende Metriken.
 - **Eine Codebasis:** Beide Kurse committen ins gleiche Repo; SQM fügt Tests, CI-Erweiterungen, Checklisten und Docs hinzu, ohne die Feature-Entwicklung zu duplizieren.
 
-### 2.3 Gemeinsames Vorlesungsbeispiel: Epic 10 (MOTD)
+### 2.3 Erste Vorlesung: Greenfield-Demo Story 1.7a (3×45 Min.)
 
-In **Fallstudie Software Engineering** und **Software-Qualitätsmanagement** dient **Epic 10** (_MOTD / Plattform-Kommunikation_) als **Referenz-Feature**, das die **Lehrperson vollständig** (Stories **10.1–10.8**) mit **KI-Agenten** in den **Anfangsvorlesungen live am Beamer** umsetzt — ergänzt um **Mini-Inputs** zu **VS Code, Git, GitHub** und zu **Stack-Themen** (TypeScript, PostgreSQL, Prisma, tRPC, Redis …).
+In **Fallstudie Software Engineering** (und für SQM als Beobachtungs-/Review-Kontext) ist die **erste** gemeinsame Vorlesungseinheit eine **Greenfield-Demo**: [**Story 1.7a**](../../Backlog.md) (_Markdown-Bilder: nur URL + Lightbox_) wird in **3×45 Minuten** (135 Min.) von der **Lehrperson** mit **KI-Agenten** live im Repo umgesetzt — Leitfaden [`greenfield-demo-1-7a-vorlesung.md`](./greenfield-demo-1-7a-vorlesung.md), ADR-0015, Backlog-Akzeptanzkriterien.
 
-- **Studierende** implementieren **Epic 10 nicht** als Pflicht; sie arbeiten **danach** an **User Stories aus anderen Epics** (Entwicklungskurs mit KI, Studi steuert).
-- **SQM** begleitet **diese** Arbeit (Reviews, Tests, DoD, Risiko, A11y); das fertige MOTD ist **gemeinsame Referenz** im Repo, kein paralleler studentischer Implementierungsstrom für Epic 10.
-
-Einordnung: [`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](../praktikum/STUDENT-STORY-REIHENFOLGE.md) (Abschnitt 0), [`docs/features/motd.md`](../features/motd.md), ADR-0018.
+- **Studierende** setzen **1.7a nicht** parallel als Praktikums-Ticket um; sie arbeiten **danach** an den **anderen offenen Stories** ([`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](../praktikum/STUDENT-STORY-REIHENFOLGE.md), Abschnitt 3).
+- **SQM** begleitet die **PRs zu diesen Stories** (Reviews, Tests, DoD, Risiko, A11y).
+- **Epic 10 (MOTD)** bleibt **optional** als **zweites** Referenzbeispiel (Produktcode fertig, Spec/ADR-0018/Code lesen) — [`docs/features/motd.md`](../features/motd.md); ersetzt **nicht** die 1.7a-Greenfield-Demo.
 
 ---
 
