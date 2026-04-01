@@ -43,7 +43,9 @@ describe('buildMotdArchiveItemDisplay', () => {
       startsAt: '2026-01-01T00:00:00.000Z',
       endsAt: '2026-01-02T00:00:00.000Z',
     };
-    const r = buildMotdArchiveItemDisplay(it, mockSanitizer, 'FB');
+    const r = buildMotdArchiveItemDisplay(it, mockSanitizer, 'FB', {
+      assetOrigin: 'https://arsnova.eu',
+    });
     expect(r.title).toBe('FB');
   });
 });

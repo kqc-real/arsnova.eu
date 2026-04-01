@@ -11,6 +11,7 @@ import type { AppLocale, MotdArchiveItemDTO } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service';
 import { setMotdArchiveSeenUpToEndsAtIso } from '../../core/motd-storage';
+import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
 import type { NewsArchiveInitialModel } from './news-archive-initial';
@@ -120,7 +121,9 @@ export class NewsArchivePageComponent {
       this.items.update((prev) => [...prev, ...page.items]);
       this.nextCursor.set(page.nextCursor);
       const rendered = page.items.map((it) =>
-        buildMotdArchiveItemDisplay(it, this.sanitizer, this.archiveItemFallbackTitle),
+        buildMotdArchiveItemDisplay(it, this.sanitizer, this.archiveItemFallbackTitle, {
+          assetOrigin: resolveMotdAssetOrigin(),
+        }),
       );
       this.titleById.update((prevTitles) => {
         const nextT = { ...prevTitles };

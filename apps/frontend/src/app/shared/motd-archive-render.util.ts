@@ -1,7 +1,10 @@
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import type { MotdArchiveItemDTO } from '@arsnova/shared-types';
 import { splitMotdArchiveFirstAtxHeading } from '../core/motd-archive-split.util';
-import { renderMarkdownWithoutKatex } from './markdown-katex.util';
+import {
+  absolutizeMarkdownHtmlRootAssetImgSrc,
+  renderMarkdownWithoutKatex,
+} from './markdown-katex.util';
 
 export type BuildMotdArchiveItemDisplayOptions = {
   /**
@@ -9,6 +12,8 @@ export type BuildMotdArchiveItemDisplayOptions = {
    * Öffentliche Archiv-Seite zeigt den Titel bereits vollständig im Eintragskopf — typ. false.
    */
   repeatTitleInMarkdownBody?: boolean;
+  /** z. B. `resolveMotdAssetOrigin()` — absolute `img`-URLs für Banner unter `/assets/…`. */
+  assetOrigin?: string;
 };
 
 /**
@@ -35,8 +40,13 @@ export function buildMotdArchiveItemDisplay(
       mdForBody = bodyOnly ? bodyOnly : '\n';
     }
   }
+  let rendered = renderMarkdownWithoutKatex(mdForBody);
+  const origin = options?.assetOrigin?.trim();
+  if (origin) {
+    rendered = absolutizeMarkdownHtmlRootAssetImgSrc(rendered, origin);
+  }
   return {
     title: displayTitle,
-    html: sanitizer.bypassSecurityTrustHtml(renderMarkdownWithoutKatex(mdForBody)),
+    html: sanitizer.bypassSecurityTrustHtml(rendered),
   };
 }

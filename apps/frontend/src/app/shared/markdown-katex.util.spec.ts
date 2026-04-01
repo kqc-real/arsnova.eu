@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { renderMarkdownWithKatex, renderMarkdownWithoutKatex } from './markdown-katex.util';
+import {
+  absolutizeMarkdownHtmlRootAssetImgSrc,
+  renderMarkdownWithKatex,
+  renderMarkdownWithoutKatex,
+} from './markdown-katex.util';
 
 describe('renderMarkdownWithKatex', () => {
   it('rendert Markdown und KaTeX-Inline-Ausdrücke', () => {
@@ -50,5 +54,11 @@ describe('renderMarkdownWithoutKatex', () => {
   it('nutzt optionalen Markdown-Bildtitel als title-Attribut', () => {
     const html = renderMarkdownWithoutKatex('![a](b.svg "Expliziter Titel")');
     expect(html).toMatch(/title="Expliziter Titel"/);
+  });
+
+  it('absolutizeMarkdownHtmlRootAssetImgSrc setzt MOTD-Banner auf volle Origin-URL', () => {
+    const raw = '<p><img src="/assets/images/AI-REVOLUTION.png" alt="" title="" /></p>';
+    const out = absolutizeMarkdownHtmlRootAssetImgSrc(raw, 'https://arsnova.eu');
+    expect(out).toContain('src="https://arsnova.eu/assets/images/AI-REVOLUTION.png"');
   });
 });

@@ -71,6 +71,16 @@ export function renderMarkdownWithoutKatex(source: string): string {
   return parseMarkdownEscapingInlineHtml(source ?? '');
 }
 
+/**
+ * Ersetzt `src="/assets/…"` durch absolute URLs, damit MOTD-Bilder in `[innerHTML]` zuverlässig
+ * von der Site-Root geladen werden (lokalisiertes `&lt;base href="/de/"&gt;` o. ä.).
+ */
+export function absolutizeMarkdownHtmlRootAssetImgSrc(html: string, origin: string): string {
+  const base = origin.replace(/\/$/, '');
+  if (!base) return html;
+  return html.replace(/src="\/(assets\/[^"]+)"/g, `src="${base}/$1"`);
+}
+
 function mathPlaceholder(index: number): string {
   return `KATEXPLACEHOLDERTOKEN${index}`;
 }

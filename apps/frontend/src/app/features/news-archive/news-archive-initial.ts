@@ -1,6 +1,7 @@
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import type { AppLocale, MotdArchiveItemDTO } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
+import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { getMotdArchiveSeenUpToEndsAtIso, motdDismissedPairsForApi } from '../../core/motd-storage';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
 
@@ -57,7 +58,9 @@ export async function loadNewsArchivePageModel(
     items = first.items;
     nextCursor = first.nextCursor;
     for (const it of first.items) {
-      const { title, html } = buildMotdArchiveItemDisplay(it, sanitizer, fallbackTitle);
+      const { title, html } = buildMotdArchiveItemDisplay(it, sanitizer, fallbackTitle, {
+        assetOrigin: resolveMotdAssetOrigin(),
+      });
       titleById[it.id] = title;
       htmlById[it.id] = html;
     }

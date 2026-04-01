@@ -26,6 +26,7 @@ import {
   motdDismissedPairsForApi,
   setMotdArchiveSeenUpToEndsAtIso,
 } from '../../core/motd-storage';
+import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
 import { buildMotdArchiveItemDisplay } from '../motd-archive-render.util';
 
@@ -99,6 +100,7 @@ export class MotdArchiveDialogComponent implements OnInit {
   private buildArchiveRender(it: MotdArchiveItemDTO): { title: string; html: SafeHtml } {
     return buildMotdArchiveItemDisplay(it, this.sanitizer, this.archiveItemFallbackTitle, {
       repeatTitleInMarkdownBody: true,
+      assetOrigin: resolveMotdAssetOrigin(),
     });
   }
 

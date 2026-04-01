@@ -48,7 +48,11 @@ import {
   markMotdInteractionRecorded,
   motdDismissedPairsForApi,
 } from '../../core/motd-storage';
-import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
+import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
+import {
+  absolutizeMarkdownHtmlRootAssetImgSrc,
+  renderMarkdownWithoutKatex,
+} from '../../shared/markdown-katex.util';
 
 @Component({
   selector: 'app-home',
@@ -517,7 +521,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
       this.motd.set(motd);
-      const html = renderMarkdownWithoutKatex(motd.markdown);
+      const html = absolutizeMarkdownHtmlRootAssetImgSrc(
+        renderMarkdownWithoutKatex(motd.markdown),
+        resolveMotdAssetOrigin(),
+      );
       this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
       setTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
     } catch {
