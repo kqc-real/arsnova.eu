@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Legt eine aktive PUBLISHED-MOTD mit Bannerbild an (Markdown: assets/images/AI-REVOLUTION.png).
+ * Legt eine aktive PUBLISHED-MOTD mit Bannerbild an (Markdown: /assets/images/AI-REVOLUTION.png).
  * Feste ID — bei erneutem Aufruf wird der Eintrag ersetzt.
  *
  * Voraussetzung: Datei apps/frontend/src/assets/images/AI-REVOLUTION.png (wird mit dem Frontend gebaut).
@@ -22,31 +22,31 @@ const markdownDe = `# KI-Revolution
 
 Die Entwicklung von arsnova.eu im Wandel der Zeit — ein Bild sagt mehr als tausend Tokens.
 
-![](assets/images/AI-REVOLUTION.png)`;
+![](/assets/images/AI-REVOLUTION.png)`;
 
 const markdownEn = `# The AI revolution
 
 How arsnova.eu is evolving — one image speaks more than a thousand tokens.
 
-![](assets/images/AI-REVOLUTION.png)`;
+![](/assets/images/AI-REVOLUTION.png)`;
 
 const markdownFr = `# Révolution de l’IA
 
 L’évolution d’arsnova.eu — une image vaut mille tokens.
 
-![](assets/images/AI-REVOLUTION.png)`;
+![](/assets/images/AI-REVOLUTION.png)`;
 
 const markdownEs = `# Revolución de la IA
 
 La evolución de arsnova.eu: una imagen vale más que mil tokens.
 
-![](assets/images/AI-REVOLUTION.png)`;
+![](/assets/images/AI-REVOLUTION.png)`;
 
 const markdownIt = `# Rivoluzione dell’IA
 
 L’evoluzione di arsnova.eu — un’immagine vale più di mille token.
 
-![](assets/images/AI-REVOLUTION.png)`;
+![](/assets/images/AI-REVOLUTION.png)`;
 
 async function main() {
   const connectionString = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;

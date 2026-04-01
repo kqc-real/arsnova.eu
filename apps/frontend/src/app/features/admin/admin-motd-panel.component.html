@@ -10,6 +10,12 @@
       Pro Sprache Markdown. Datum und Uhrzeit gibst du in deiner lokalen Zeit ein; gespeichert wird
       in UTC.
     </p>
+    <p class="admin-help" i18n="@@admin.motd.imageAssetHelp">
+      Bilder aus dem gebündelten Frontend: im Markdown <code>![](/assets/images/…)</code> mit
+      führendem Schrägstrich (Webroot) verwenden — nicht den lokalen Ordner
+      <code>apps/frontend/src/…</code>. Die Datei muss unter <code>src/assets/</code> liegen und im
+      Deployment enthalten sein.
+    </p>
     @if (loading()) {
       <mat-progress-spinner diameter="32" mode="indeterminate" />
     } @else {
@@ -342,8 +348,9 @@
           <textarea
             matInput
             rows="4"
-            [value]="mdDe()"
-            (input)="mdDe.set($any($event.target).value); updatePreview()"
+            name="motdMdDe"
+            [ngModel]="mdDe()"
+            (ngModelChange)="mdDe.set($event); updatePreview()"
           ></textarea>
         </mat-form-field>
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeEn">Englisch</h4>
@@ -351,8 +358,9 @@
           <textarea
             matInput
             rows="3"
-            [value]="mdEn()"
-            (input)="mdEn.set($any($event.target).value)"
+            name="motdMdEn"
+            [ngModel]="mdEn()"
+            (ngModelChange)="mdEn.set($event)"
           ></textarea>
         </mat-form-field>
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeFr">Französisch</h4>
@@ -360,8 +368,9 @@
           <textarea
             matInput
             rows="3"
-            [value]="mdFr()"
-            (input)="mdFr.set($any($event.target).value)"
+            name="motdMdFr"
+            [ngModel]="mdFr()"
+            (ngModelChange)="mdFr.set($event)"
           ></textarea>
         </mat-form-field>
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeEs">Spanisch</h4>
@@ -369,8 +378,9 @@
           <textarea
             matInput
             rows="3"
-            [value]="mdEs()"
-            (input)="mdEs.set($any($event.target).value)"
+            name="motdMdEs"
+            [ngModel]="mdEs()"
+            (ngModelChange)="mdEs.set($event)"
           ></textarea>
         </mat-form-field>
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeIt">Italienisch</h4>
@@ -378,8 +388,9 @@
           <textarea
             matInput
             rows="3"
-            [value]="mdIt()"
-            (input)="mdIt.set($any($event.target).value)"
+            name="motdMdIt"
+            [ngModel]="mdIt()"
+            (ngModelChange)="mdIt.set($event)"
           ></textarea>
         </mat-form-field>
 
