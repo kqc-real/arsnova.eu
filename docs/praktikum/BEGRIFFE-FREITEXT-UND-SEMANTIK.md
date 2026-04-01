@@ -2,9 +2,9 @@
 
 # Freitext, Sprache und „intelligente“ Auswertung — ein ausführlicher Leitfaden für Studierende
 
-Dieses Dokument ist **didaktisch** geschrieben: Du brauchst **keine** Vorlesung „Einführung in die Linguistik“ absolviert zu haben. Ziel ist, dass du **Begriffe wie Syntax, Semantik, Lexik, Stemming** sicher einordnen kannst — und verstehst, **warum** eine einfache Wortzähl-Wortwolke und ein **LLM-gestütztes Bündeln** von Antworten **unterschiedliche Probleme** lösen.
+Dieses Dokument ist **didaktisch** geschrieben: Du brauchst **keine** Vorlesung „Einführung in die Linguistik“ absolviert zu haben. Ziel ist, dass du **Begriffe wie Syntax, Semantik, Lexik, Stemming** sicher einordnen kannst — und verstehst, **warum** eine einfache, rein lexikalische Wortwolke und ein **LLM-gestütztes Bündeln** von Antworten **unterschiedliche Probleme** lösen.
 
-**Bezug zum Praktikum:** In arsnova.eu werden Freitextantworten u. a. für eine **Wortwolke** genutzt (heute stark **lexikalisch**: Wörter zählen). Eure Aufgabe denkt **semantisch** und **lexikonisch** weiter: ähnliche **Bedeutungen** und **Schreibweisen** sollen sinnvoll zusammengeführt werden — unterstützt durch ein **selbst gehostetes Sprachmodell**.
+**Bezug zum Praktikum:** In arsnova.eu werden Freitextantworten u. a. für eine **Wortwolke** genutzt (heute stark **lexikalisch**: Wörter zählen). Eure Aufgabe denkt **semantisch** und **lexikalisch** weiter: ähnliche **Bedeutungen** und **Schreibweisen** sollen sinnvoll zusammengeführt werden — unterstützt durch ein **selbst gehostetes Sprachmodell**.
 
 ---
 
@@ -109,12 +109,12 @@ Zwei große Bereiche:
 
 **Beispiele:**
 
-- „Der Student **beantwortet** die Frage.“ (Standard-Wortstellung Deutsch)
-- „**Beantwortet** der Student die Frage?“ (Verb an zweiter Stelle im Aussagesatz — anders als Englisch)
+- „Die Person **beantwortet** die Frage.“ (Verbzweitstellung im Aussagesatz)
+- „**Beantwortet** die Person die Frage?“ (Verb-Erststellung im Fragesatz)
 
 **Bezug Informatik / Compiler:** In der Informatik heißt „Syntax“ oft: **formale Regeln**, ob ein Text **wohlgeformt** ist (Klammern, JSON). Bei **natürlicher Sprache** ist Syntax **weicher** — es gibt mehrere gültige Formen und **Umgangssprache**.
 
-**Für eine Wortwolke:** Reine **Syntax** ist selten der Haupthebel — außer du **pars**t Sätze, um z. B. nur **Substantive** zu zeigen. Das ist ein **eigenes Feature** (POS-Tagging), nicht dasselbe wie „semantische Wolke“.
+**Für eine Wortwolke:** Reine **Syntax** ist selten der Haupthebel — außer du **parst** Sätze, um z. B. nur **Substantive** zu zeigen. Das ist ein **eigenes Feature** (POS-Tagging), nicht dasselbe wie „semantische Wolke“.
 
 **Weiterlesen:** [Britannica: Linguistics (Syntax/Morphology)](https://www.britannica.com/science/linguistics/Morphology)
 
@@ -134,7 +134,7 @@ Zwei große Bereiche:
 
 - **Wissensressourcen** (Thesauri, WordNet-artige Netze — stark sprachabhängig)
 - **Statistik auf großen Textmengen** (Wörter treten in ähnlichen Kontexten auf)
-- **Neuronalen Sprachmodellen** (Embeddings, Transformer), die **numerische Repräsentationen** von Text lernen
+- **neuronale Sprachmodelle** (Embeddings, Transformer), die **numerische Repräsentationen** von Text lernen
 - **LLMs**, die Text **generieren oder strukturieren** — mit allen Stärken und Risiken (Halluzination, Bias)
 
 **Weiterlesen:** [Wikipedia: Lexical semantics](https://en.wikipedia.org/wiki/Lexical_semantics)
@@ -411,7 +411,7 @@ _Hier die **Orientierung** — deine Antwort kann anders formuliert sein, sollte
 ### Zu Aufgabe 1
 
 - **(a) Syntax** — Es geht um **Wortstellung** im Satz (Struktur der Wortfolge).
-- **(b) Semantik** (lexikalische Semantik / Begriffsbeziehung) — _Hund_ ist ein \*_Hypersäugetier_ unter _Säugetier_ (Hyperonymie).
+- **(b) Semantik** (lexikalische Semantik / Begriffsbeziehung) — _Hund_ ist ein **Hyponym** zu _Säugetier_; _Säugetier_ ist das **Hyperonym**.
 - **(c) Morphologie** — Zerlegung in **Morpheme** / Wortinterne Struktur.
 - **(d) Pragmatik** — Bedeutung hängt von **Situation, Tonfall, Kontext** ab (nicht nur vom Wortlaut).
 
@@ -470,4 +470,4 @@ Bei Fragen zur **Umsetzung in der Codebasis** siehe [`PRAKTIKUM.md`](./PRAKTIKUM
 
 ---
 
-_Stand: 2026-04-01 · Didaktischer Kern unverändert gültig. **Produktbezug:** Freitext/Wortwolke im Live-System weiterhin vor allem **lexikalisch** (Story 1.14); semantische Bündelung / ADR-0012 bleiben **Backlog** — siehe [Backlog.md](../../Backlog.md) Story **1.14a** und [PRAKTIKUM-DATA-ANALYTICS.md](PRAKTIKUM-DATA-ANALYTICS.md). Übungsaufgaben mit Musterlösungen · Ergänzungen willkommen (Pull Request oder Absprache mit der Betreuung)._
+_Stand: 2026-04-01 · Didaktischer Kern unverändert gültig. **Produktbezug:** Freitext/Wortwolke im Live-System ist weiterhin vor allem **lexikalisch** (Story 1.14). Semantische Bündelung bleibt ein **offenes Thema**. Davon getrennt ist die Layout-Weiterentwicklung der Word Cloud in Story **1.14a** und [ADR-0012](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md) beschrieben. Übungsaufgaben mit Musterlösungen · Ergänzungen willkommen (Pull Request oder Absprache mit der Betreuung)._

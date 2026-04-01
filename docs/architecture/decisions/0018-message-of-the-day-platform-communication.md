@@ -17,7 +17,7 @@ Ohne klare Architekturentscheidung drohen: XSS durch Markdown, unklare Trennung 
 ### 1. Abgrenzung zu anderen Bereichen
 
 - **Epic 9 (Admin):** Bleibt **Session-Recherche, Löschung, Behördenexport**. MOTD ist **kein** Teil der Session-Administration, nutzt aber **dieselbe Admin-Authentifizierung** (`adminProcedure`, bestehendes Admin-Token-Modell). MOTD-Verwaltung lebt unter **`/admin`** als eigener Bereich oder Unterroute (siehe Feature-Doku).
-- **Quiz-Inhalte:** MOTD-Texte sind **Betreiber-Inhalte**, nicht Dozenten-Quiz — sie unterliegen der **eigenen** redaktionellen i18n-Strategie (siehe unten), nicht der Regel „Quiz nicht übersetzen“ ([ADR-0008](./0008-i18n-internationalization.md)).
+- **Quiz-Inhalte:** MOTD-Texte sind **Betreiber-Inhalte**, nicht Quiz-Inhalte der Lehrperson — sie unterliegen der **eigenen** redaktionellen i18n-Strategie (siehe unten), nicht der Regel „Quiz nicht übersetzen“ ([ADR-0008](./0008-i18n-internationalization.md)).
 
 ### 2. Persistenz: Postgres (Prisma) als Quelle der Wahrheit
 
@@ -26,9 +26,9 @@ Ohne klare Architekturentscheidung drohen: XSS durch Markdown, unklare Trennung 
 
 ### 3. API: tRPC mit Zod in `@arsnova/shared-types`
 
-- **Öffentliche Lesende Endpunkte** (ohne Login): z. B. Abruf der **aktuell gültigen** MOTD für die gewählte Locale, sowie **paginierte Archivliste** nur für Einträge, die der Admin als **im Archiv sichtbar** markiert hat.
+- **Öffentliche Lesende Endpunkte** (ohne Login): Abruf der **aktuell gültigen** MOTD für die gewählte Locale, `getHeaderState` für Header-/Archivindikatoren sowie **paginierte Archivliste** nur für Einträge, die der Admin als **im Archiv sichtbar** markiert hat.
 - **Schreibende Admin-Endpunkte:** nur `adminProcedure` — CRUD für MOTDs und Templates, Setzen von Zeiträumen, Status (z. B. Entwurf / geplant / veröffentlicht), Archiv-Flag, Priorität.
-- **Optionale öffentliche Mutation** für **aggregierte Interaktionen** (z. B. Daumen, Kenntnisnahme-Event): streng **rate-limited**, **keine** personenbezogenen Profile; höchstens anonyme, zusammengefasste Zählung. **„Gesehen“ / Dismiss** kann **primär clientseitig** über `localStorage` erfolgen (kein Muss für Server-Call).
+- **Optionale öffentliche Mutation** für **aggregierte Interaktionen** (z. B. Daumen, Kenntnisnahme-Event): streng **rate-limited**, **keine** personenbezogenen Profile; höchstens anonyme, zusammengefasste Zählung. Im aktuellen Frontend bleiben Dismiss-/Interaktionsinformationen zusätzlich clientseitig in `localStorage`, werden aber für Zählungen auch an die öffentliche `recordInteraction`-Mutation gemeldet.
 
 Konkrete Prozedurnamen und DTOs: siehe [`docs/features/motd.md`](../../features/motd.md).
 
@@ -44,12 +44,12 @@ Konkrete Prozedurnamen und DTOs: siehe [`docs/features/motd.md`](../../features/
 ### 6. Mehrsprachige MOTD-Inhalte (redaktionell)
 
 - Pro MOTD werden **Felder pro Locale** geführt: **de, en, fr, es, it** — analog zu den App-Locales ([ADR-0008](./0008-i18n-internationalization.md)).
-- **Fallback-Kette** bei fehlendem Feld: dokumentierte Reihenfolge (z. B. aktuelle UI-Locale → Deutsch → Englisch), damit nie ein leerer Overlay-Body bei teilweise gepflegten Übersetzungen entsteht, sofern mindestens eine Sprache befüllt ist.
+- **Fallback-Kette** bei fehlendem Feld: aktuelle UI-Locale → danach die definierte Reihenfolge `de → en → fr → es → it` (ohne Duplikat der bereits angefragten Locale), damit nie ein leerer Overlay-Body bei teilweise gepflegten Übersetzungen entsteht, sofern mindestens eine Sprache befüllt ist.
 
 ### 7. Clientzustand: localStorage
 
-- **„Overlay nicht erneut zeigen“** wird an **`motdId` + Inhaltsversion/`contentHash`** gebunden, nicht nur an „es gab ein Overlay“, damit inhaltliche Änderungen erneute Anzeige ermöglichen.
-- **Schema-versioniertes** JSON unter stabilem Key-Präfix (z. B. `arsnova-motd-v1`), damit Migrationen möglich sind.
+- **„Overlay nicht erneut zeigen“** wird an **`motdId` + `contentVersion`** gebunden, nicht nur an „es gab ein Overlay“, damit inhaltliche Änderungen erneute Anzeige ermöglichen.
+- **Schema-versioniertes** JSON unter stabilem Key **`arsnova-motd-v1`**, damit Migrationen möglich sind.
 
 ### 8. UX- und A11y-Pflichten (Kurz)
 

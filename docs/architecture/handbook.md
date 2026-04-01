@@ -9,13 +9,13 @@
 
 - Produktionsreif umgesetzt: Epics **0–5**, **7.1** (Team-Modus), **8**, **9** (Admin: Inspektion, Löschung, Behördenexport, Audit) und **10** (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`).
 - Plattform: Epic **6** im Kern umgesetzt (Theme, i18n, Legal, Responsive); offen: **6.5** (Abschlussprüfung Barrierefreiheit / WCAG) und **6.6** (UX-Testreihen _Thinking Aloud_ inkl. Umsetzung der Befunde — siehe `Backlog.md`, Story 6.6, und `docs/EPIC6-AC-PRUEFUNG.md`).
-- **Plattformstatistik:** Rekord **max. Teilnehmer je Session** (`PlatformStatistic`, u. a. in `health.stats` und Hilfe-Dialog).
+- **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`, u. a. in `health.stats` und Hilfe-Dialog).
 
 ## 1. Einleitung & Philosophie
 
-Dieses Handbuch beschreibt die Softwarearchitektur von **arsnova.eu**. Wir folgen dem Prinzip der **"Living Documentation"**. Dieses Dokument und alle dazugehörigen Architekturentscheidungen (ADRs) leben direkt im Git-Repository. Sie entwickeln sich parallel zum Code weiter.
+Dieses Handbuch beschreibt die Softwarearchitektur von **arsnova.eu**. Wir folgen dem Prinzip der **"Living Documentation"**. Dieses Dokument und alle dazugehörigen Architekturentscheidungen (ADRs) liegen direkt im Git-Repository und entwickeln sich parallel zum Code weiter.
 
-Das Hauptziel dieses Systems ist es, ein hochperformantes Audience-Response-System (Quiz-App für Hörsäle) zu schaffen, dessen absoluter **USP (Unique Selling Proposition)** die **100 %ige DSGVO-Konformität** ist. Das System operiert serverseitig als "Zero-Knowledge"-Infrastruktur bezüglich der geistigen Eigentümer (Fragen) der Dozenten.
+Das Hauptziel dieses Systems ist es, ein hochperformantes Audience-Response-System (Quiz-App für Hörsäle) zu schaffen, das konsequent **datensparsam** und **DSGVO-orientiert** aufgebaut ist. Die Quiz-Sammlung ist so gestaltet, dass Inhalte von Lehrenden standardmäßig **nicht dauerhaft serverseitig** gespeichert werden.
 
 ---
 
@@ -37,7 +37,7 @@ Um die Ziele des Projekts zu erreichen, müssen alle Entwickler folgende drei ar
 
 ### 3.1 Local-First & Zero-Knowledge (Die Yjs-Engine)
 
-Die **Quiz-Sammlung** der Dozenten (in der UI: **Deine Quiz-Sammlung**, Route `/quiz`) wird _nicht dauerhaft_ auf dem Server gespeichert. Wenn ein Dozent ein Quiz erstellt, lebt dieses als **CRDT-Dokument (Conflict-free Replicated Data Type)** über `Yjs` primär in der lokalen IndexedDB seines Browsers. Das Backend dient für die Quiz-Erstellung lediglich als "dummer" WebSocket-Relay-Server, um E2E-verschlüsselte Deltas (Änderungen) zwischen den Endgeräten des Dozenten (z.B. PC und iPad) zu synchronisieren. Damit der Dozent dasselbe Quiz auf einem anderen Gerät öffnen kann, erhält er einen **Sync-Link** bzw. **Sync-Code** (Story 1.6a); nur wer diesen Key hat, kann das Quiz bearbeiten oder live steuern. Der Session-Beitrittscode für Studenten gewährt keinen Zugriff auf die Quiz-Bearbeitung. Beim **Start einer Live-Session** wird eine **Kopie** des gewählten Quiz an den Server übermittelt (Quiz-Upload, Story 2.1a); diese Kopie wird nur für die Dauer der Session in PostgreSQL gehalten. Die dauerhafte "Single Source of Truth" der Quiz-Inhalte bleibt die lokale Yjs/IndexedDB des Dozenten.
+Die **Quiz-Sammlung** der Lehrenden (in der UI: **Deine Quiz-Sammlung**, Route `/quiz`) wird _nicht dauerhaft_ auf dem Server gespeichert. Wenn eine Lehrperson ein Quiz erstellt, lebt dieses als **CRDT-Dokument (Conflict-free Replicated Data Type)** über `Yjs` primär in der lokalen IndexedDB ihres Browsers. Das Backend dient für die Quiz-Erstellung als WebSocket-Relay-Server, um Deltas (Änderungen) zwischen den Endgeräten der Lehrperson (z. B. PC und iPad) zu synchronisieren. Damit dieselbe Person ein Quiz auf einem anderen Gerät öffnen kann, erhält sie einen **Sync-Link** bzw. **Sync-Code** (Story 1.6a); nur wer diesen Schlüssel hat, kann das Quiz bearbeiten oder live steuern. Der Session-Beitrittscode für Teilnehmende gewährt keinen Zugriff auf die Quiz-Bearbeitung. Beim **Start einer Live-Session** wird eine **Kopie** des gewählten Quiz an den Server übermittelt (Quiz-Upload, Story 2.1a); diese Kopie wird nur für die Dauer der Session in PostgreSQL gehalten. Die dauerhafte "Single Source of Truth" der Quiz-Inhalte bleibt die lokale Yjs/IndexedDB der Lehrperson.
 
 **KI-gestützter Quiz-Import (externes LLM):** System-Prompt kopieren und LLM-Antwort einfügen geschieht in derselben **Quiz-Sammlung**; der Prompt bezieht Preset und Optionen aus der Startseite bzw. dem `localStorage` der Preset-Optionen (nicht aus einem einzelnen Listen-Quiz). Vertrag und Pfade: [ADR-0007](./decisions/0007-prompt-architecture-ki-quiz.md).
 
@@ -49,7 +49,7 @@ Wir verzichten auf klassische REST-Schnittstellen und das manuelle Schreiben von
 
 ### 3.3 Security & Data-Stripping (Das DTO-Pattern)
 
-Während einer Live-Sitzung müssen die Fragen an die Smartphones der Studenten gesendet werden. Das Backend lädt die Daten und **muss zwingend** ein DTO (Data Transfer Object) anwenden, bevor die Daten über WebSockets versendet werden. Lösungsrelevante Felder wie `isCorrect` werden serverseitig restlos entfernt, um clientseitiges Cheating, etwa über Chrome DevTools, auszuschließen.
+Während einer Live-Sitzung müssen die Fragen an die Smartphones der Teilnehmenden gesendet werden. Das Backend lädt die Daten und **muss zwingend** ein DTO (Data Transfer Object) anwenden, bevor die Daten über WebSockets versendet werden. Lösungsrelevante Felder wie `isCorrect` werden serverseitig entfernt, um clientseitiges Cheating, etwa über Chrome DevTools, auszuschließen.
 
 ---
 
@@ -87,23 +87,23 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 
 ## 5. Datenmodell (Single Source of Truth)
 
-Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopien, Teilnehmer, Votes, Bonus-Token, Q&A, Session-Kanäle wie Blitzlicht sowie **MOTD** (Meldungen, Vorlagen, Locale-Texte, Interaktionszähler, Audit) und **`PlatformStatistic`** (u. a. Rekordteilnehmer je Session) wird zentral über Prisma verwaltet. Das aktuelle Schema findet sich in `prisma/schema.prisma`.
+Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopien, Teilnehmende, Votes, Bonus-Token, Q&A, Session-Kanäle wie Blitzlicht sowie **MOTD** (Meldungen, Vorlagen, Locale-Texte, Interaktionszähler, Audit) und **`PlatformStatistic`** (u. a. Rekordteilnehmende je Session) wird zentral über Prisma verwaltet. Das aktuelle Schema findet sich in `prisma/schema.prisma`.
 
-**Hinweis zur Anonymität:** Die App ist bewusst **accountfrei**. Es gibt kein User-/Account-Modell. Dozenten und Studierende nutzen die App ohne Registrierung. Die Zuordnung Quiz ↔ Dozent erfolgt ausschließlich über Local-First (Yjs/IndexedDB) im Browser; der Server speichert keine Nutzerkonten.
+**Hinweis zur Anonymität:** Die App ist bewusst **accountfrei**. Es gibt kein User-/Account-Modell. Lehrende und Teilnehmende nutzen die App ohne Registrierung. Die Zuordnung Quiz ↔ Lehrperson erfolgt ausschließlich über Local-First (Yjs/IndexedDB) im Browser; der Server speichert keine Nutzerkonten.
 
 ---
 
 ## 6. Betrieb, CI/CD und Production-Deployment
 
-Der produktive Rollout erfolgt ueber GitHub Actions (`.github/workflows/ci.yml`) mit klaren Gates:
+Der produktive Rollout erfolgt über GitHub Actions (`.github/workflows/ci.yml`) mit klaren Gates:
 
 1. Build & Validate (inkl. `typecheck`-Job)
 2. Lint
 3. Tests
 4. Docker-Build
-5. Deploy-Job, nur bei Push auf `main` (oder `DEPLOY_BRANCH`) **und** Repository-Variable `DEPLOY_ENABLED=true`; **Voraussetzung:** Jobs `lint`, `test`, `docker`, `typecheck` erfolgreich
+5. Deploy-Job, nur bei Push auf `main` (oder `DEPLOY_BRANCH`) **und** Repository-Variable `DEPLOY_ENABLED=true`; **Voraussetzung:** Die Jobs `lint`, `test`, `docker` und `typecheck` waren erfolgreich.
 
-Der Deploy-Job ist auf **production** als GitHub Environment gebunden und fuehrt serverseitig `scripts/deploy.sh` aus.
+Der Deploy-Job ist an **production** als GitHub Environment gebunden und führt serverseitig `scripts/deploy.sh` aus.
 
 ### 6.1 Deploy-Ablauf (serverseitig)
 
@@ -151,7 +151,7 @@ Leitregel für neue Features:
 - dann innerhalb dieses Rahmens den Hotpath optimieren
 - Optimierungen bevorzugen, die **ohne Sicherheitsabbau** wirken
 
-Grundprinzip fuer neue Features:
+Grundprinzip für neue Features:
 
 - erst bestehende Subscription-Pfade nutzen
 - Polling nur als Fallback

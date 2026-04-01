@@ -2,7 +2,7 @@
 
 # Praktikum Softwarequalitätsmanagement (SQM) am Projekt arsnova.eu
 
-**Für Studierende** · **Kurs 2** (parallel zur Entwicklung) · **Umfang:** in der Regel **10 Termine à 4 Stunden** (ca. **40 Stunden** Planungsgröße — exakte Vorgabe gibt die **Betreuung** in der Veranstaltung)
+**Für Studierende** · **Umfang:** in der Regel **10 Termine à 4 Stunden** (ca. **40 Stunden** Planungsgröße — exakte Vorgabe gibt die **Betreuung** in der Veranstaltung)
 
 ## Inhaltsverzeichnis
 
@@ -20,25 +20,17 @@
 12. [Literatur](#12-literatur--links-im-repo)
 13. [Übungsaufgaben](#13-übungsaufgaben)
 
-Willkommen. Dieses Dokument ist die **studierendenfreundliche Arbeitsgrundlage** für dein SQM-Praktikum auf **derselben Codebasis** wie der Entwicklungskurs. Du bist **kein** „externer Tester am fertigen Produkt“, sondern **Qualitätspartner:in** im laufenden Projekt.
+Willkommen. Dieses Dokument ist die **Arbeitsgrundlage** für dein SQM-Praktikum an **arsnova.eu**. Du bist **kein** „externer Tester am fertigen Produkt“, sondern arbeitest mit einem klaren Qualitätsauftrag im laufenden Projekt.
 
 **Wenig Vorerfahrung mit Git, GitHub, Pull Requests oder dem Tech-Stack?** Lies **[`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)** (Abschnitt zu SQM) und richte die Umgebung wie in [`docs/onboarding.md`](../onboarding.md) ein — für Reviews brauchst du den Code lokal oder zumindest lesbar auf GitHub.
 
-### Kurzmodell der Synergie (ein Produkt, zwei Rollen)
+### Einstieg und Produktkontext
 
-Das **didaktische Modell** (Rollen, Synergie, agentische KI) steht kompakt hier:
+Wenn dir für Reviews noch Produktkontext fehlt, starte mit diesen Dokumenten:
 
-**→ [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md)**
-
-Der **Entwicklungs-Praktikumsauftrag** (Feature-Fokus, z. B. intelligente Wortwolke) liegt hier:
-
-**→ [`PRAKTIKUM.md`](./PRAKTIKUM.md)**
-
-**Erste Vorlesung mit Fallstudie SE:** **Greenfield-Demo** [**Story 1.7a**](../../Backlog.md) (Markdown-Bilder + Lightbox) in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md). **Studierende** in SQM üben **Reviews, Tests und Qualität** an den **PRs** zu den Stories in [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) (Abschnitt 3). **Epic 10 (MOTD)** optional als **zusätzliche** Referenz ([`docs/features/motd.md`](../features/motd.md)).
-
-**Kurs 3 (Data Analytics, NLP/Prompting, nicht zwingend parallel):**
-
-**→ [`PRAKTIKUM-DATA-ANALYTICS.md`](./PRAKTIKUM-DATA-ANALYTICS.md)** · [`docs/didaktik/dritter-kurs-data-analytics-nlp.md`](../didaktik/dritter-kurs-data-analytics-nlp.md)
+- [`README.md`](../../README.md)
+- [`Backlog.md`](../../Backlog.md)
+- [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md)
 
 ---
 
@@ -51,7 +43,7 @@ Eine **Web-App** für **Live-Quiz**, **Abstimmungen**, **Freitext**, **Q&A** u. 
 | Frontend                 | `apps/frontend/` — Angular (Standalone, Signals), Angular Material 3                             |
 | Backend                  | `apps/backend/` — Node.js, tRPC, Prisma, Redis                                                   |
 | Gemeinsame API-Typen     | `libs/shared-types/` — Zod (verbindlich für tRPC)                                                |
-| Architektur-Kurzreferenz | [`docs/cursor-context.md`](../cursor-context.md)                                                 |
+| Architektur-Kurzreferenz | [`docs/architecture/handbook.md`](../architecture/handbook.md)                                   |
 | Produkt-Backlog          | [`Backlog.md`](../../Backlog.md)                                                                 |
 | Tests & CI               | [`docs/TESTING.md`](../TESTING.md), [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
 
@@ -74,7 +66,7 @@ Du trägst **mit**, dass das **gemeinsame** Produkt **messbar** und **nachvollzi
 - **Datenschutz (DSGVO)** anhand der Projektregeln (Datensparsamkeit, Session-Lebensdauer, siehe [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)).
 - **UI/UX: Lautes Denken (Think Aloud)** — Planung, Durchführung, Auswertung, **konkrete** Verbesserungsvorschläge.
 - **Nutzbarkeit mit KI-Readern** (Browser-/Extension-Reader auf kritischen Flows).
-- **Nutzungsanleitung** mit **Guidde** (geführte Tutorials für Dozent:innen / Teilnehmende).
+- **Nutzungsanleitung** mit **Guidde** (geführte Tutorials für Lehrende und Teilnehmende).
 - **Prozesse** (Review-Rhythmus, Definition „qualitätsseitig abgenommen“, Checklisten).
 
 **Wichtig:** Du **blockierst** die Entwicklung nicht unnötig — du **machst Qualität sichtbar** und **hilfst**, Fehler **früh** zu finden.
@@ -96,7 +88,7 @@ Nach dem Praktikum kannst du typischerweise:
 
 ## 4. Zeitmodell: 10 × 4 Stunden (Orientierung)
 
-Die **40 Stunden** sind eine **Richtgröße**. Zeit für **Lesen**, **Gespräche mit dem Entwicklungskurs**, **Reviews** und **Auswertung** ist **explizit** eingeplant — nicht jede Stunde ist „nur Code“.
+Die **40 Stunden** sind eine **Richtgröße**. Zeit für **Lesen**, **Reviews**, **Abstimmung mit der Betreuung** und **Auswertung** ist **explizit** eingeplant — nicht jede Stunde ist „nur Code“.
 
 **Empfehlung:** Pro Block **3–5 Sätze Protokoll**: Ziel, Erreichtes, Blocker, nächster Schritt.
 
@@ -113,7 +105,7 @@ Eine **klare**, **studentenverständliche** Ausarbeitung (oft **4–8 Seiten** i
 1. **Qualitätsziele** für arsnova.eu in **deinem** Praktikumszeitraum (messbar oder überprüfbar formulieren).
 2. **Teststrategie** (Was wird **automatisch** geprüft? Was **manuell**? Warum?)
 3. **Risiken** (z. B. WebSocket, viele Teilnehmer, Datenschutz, Mobile) und **wie** ihr sie **adressiert**.
-4. **Zusammenarbeit** mit dem **Entwicklungskurs** (Kommunikation, PRs, Backlog).
+4. **Zusammenarbeit im Projektkontext** (Kommunikation, PRs, Backlog).
 5. **Abgrenzung:** Was ist in **40 h** **realistisch** — was ist **Ausblick**?
 
 ### 5.2 Praktische Artefakte (Portfolio)
@@ -177,13 +169,13 @@ Kurzer Abschnitt (**1–3 Seiten**):
 
 ### 6.5 Reviews & DoD
 
-- **DoD:** Abschnitt in [`Backlog.md`](../../Backlog.md) und [`docs/cursor-context.md`](../cursor-context.md).
+- **DoD:** Abschnitt in [`Backlog.md`](../../Backlog.md) und die Arbeitsregeln in [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 - **Sicherheits-Denke:** [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md), DTO-Stripping.
 - **UI-Review:** [`docs/ui/PR-CHECKLIST-UI.md`](../ui/PR-CHECKLIST-UI.md), [`docs/ui/STYLEGUIDE.md`](../ui/STYLEGUIDE.md).
 
 ### 6.6 Think Aloud (Lautes Denken)
 
-- **Vorbereitung:** Aufgaben für Dozent:innen- und Teilnehmer-Perspektive, **keine** Führung durch die Testperson.
+- **Vorbereitung:** Aufgaben aus Sicht von Lehrenden und Teilnehmenden, **keine** Führung durch die Testperson.
 - **Dokumentation:** Kurzprotokoll, **Zitate** (anonymisiert), **Priorisierung** der Findings.
 
 ### 6.7 KI-Reader / Vorlese-Assistenten
@@ -207,11 +199,9 @@ Die KI „ersetzt“ **kein** Review — sie **unterstützt** Lesen und Struktur
 | PR gegen DoD          | „Liste Verstöße gegen DTO-Stripping und Zod-Pflicht anhand dieses Diffs.“           | Ja                    |
 | Testfälle             | „Schlage Vitest-Fälle für Router X vor; keine Implementierung ohne meine Freigabe.“ | Ja                    |
 | Checkliste            | „Erstelle Review-Checkliste für Angular-Signals + tRPC-Frontend.“                   | Ja                    |
-| Think-Aloud-Leitfaden | „Entwurf Aufgabenstellung für Erstnutzer:innen (Dozent) in 5 Schritten.“            | Ja                    |
+| Think-Aloud-Leitfaden | „Entwirf eine Aufgabenstellung für Erstnutzer:innen in 5 Schritten.“                | Ja                    |
 
-**Gemeinsamer Kontext:** [`AGENT.md`](../../AGENT.md), [`docs/cursor-context.md`](../cursor-context.md) — gleiche Quellen wie der Entwicklungskurs, **andere** Aufgabenstellung.
-
-Optional (Ausblick im didaktischen Dokument): **Cursor Rule** nur für SQM-Fokus — siehe [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
+**Nützlicher Kontext:** [`AGENT.md`](../../AGENT.md), [`docs/architecture/handbook.md`](../architecture/handbook.md).
 
 ---
 
@@ -253,8 +243,7 @@ Orientierung — **exakte Gewichtung** durch die Betreuung:
 **Darf ich Feature-Code ändern?**  
 Nur in **Absprache** oder wenn ihr **gemeinsam** im PR arbeitet. SQM-Fokus: **Qualität**, nicht „nebenbei umbauen“.
 
-**Was, wenn der Entwicklungskurs langsamer ist?**  
-Dann **vertiefst** du Reviews, Metriken, Docs, E2E-Infrastruktur — **ohne** künstlich Features zu fordern.
+**Was, wenn gerade wenige PRs oder Features vorliegen?** Dann **vertiefst** du Reviews, Metriken, Dokumentation und E2E-Infrastruktur — **ohne** künstlich neue Features zu fordern.
 
 **Muss ich alles aus Abschnitt 6 machen?**  
 Nein — du wählst mit der Betreuung ein **schlankes**, **beweisbares** Paket.
@@ -276,8 +265,7 @@ Sofort an die **Betreuung**; keine öffentlichen Issue-Details zu **Exploits** o
 
 ## 12. Literatur / Links im Repo
 
-- [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md) — Synergie-Modell
-- [`PRAKTIKUM.md`](./PRAKTIKUM.md) — Paralleler Entwicklungs-Praktikumsauftrag
+- [`README.md`](../../README.md) — Produktüberblick und Setup-Einstieg
 - [`docs/TESTING.md`](../TESTING.md) — Befehle, CI
 - [`Backlog.md`](../../Backlog.md) — DoD, Story **0.7**, **6.5**, **6.6**
 - [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
@@ -307,7 +295,7 @@ Nenne **zwei** konkrete **Risiken** für arsnova.eu (z. B. WebSocket bricht ab, 
 
 ### Aufgabe 3 — Think Aloud (Kurzplan)
 
-Du willst **Dozent:innen** beim **ersten** Session-Start beobachten. Skizziere in **fünf Stichpunkten**, wie du **Aufgabe**, **Einführung**, **Beobachtung**, **Nachgespräch** und **Datenschutz** planst (keine Namen in der öffentlichen Abgabe).
+Du willst **Lehrende** beim **ersten** Session-Start beobachten. Skizziere in **fünf Stichpunkten**, wie du **Aufgabe**, **Einführung**, **Beobachtung**, **Nachgespräch** und **Datenschutz** planst (keine Namen in der öffentlichen Abgabe).
 
 ---
 
@@ -331,4 +319,4 @@ Du nutzt einen KI-Chat: „Finde Sicherheitslücken in diesem Diff.“ Die KI be
 
 ---
 
-_Stand: 2026-04-01 · Pflege bei Änderungen am SQM-Setup: dieses Dokument, Verweis in `docs/README.md` und ggf. in `docs/didaktik/zweiter-kurs-und-agentische-ki.md`._
+_Stand: 2026-04-01 · Pflege bei Änderungen am SQM-Setup: dieses Dokument und Verweis in `docs/README.md` anpassen._

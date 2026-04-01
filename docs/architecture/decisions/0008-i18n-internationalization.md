@@ -22,9 +22,9 @@ Die App soll mehrsprachig nutzbar sein (Backlog Epic 6, Story 6.2). Dafür sind 
 - **Format Übersetzungsdateien:** Entsprechend der Angular-CLI-Empfehlung wird das **Standardformat XLIFF** verwendet (`ng extract-i18n` ohne `--format` erzeugt `.xlf`, XLIFF 1.2). Damit sind Meaning/Description für Übersetzer:innen voll unterstützt. Abweichung auf JSON oder ARB nur, wenn externes Tooling oder CI das zwingend verlangt.
 - **Locale = Subpfad:** Jede unterstützte Sprache wird unter einem eigenen Pfad ausgeliefert (z. B. `/de/`, `/en/`, `/fr/`). Sprachwechsel = Navigation zu diesem Subpfad (in der Regel mit vollständigem Reload).
 - **Unterstützte Sprachen (Backlog 6.2):** Deutsch (de), Englisch (en), Französisch (fr), Italienisch (it), Spanisch (es). Quellsprache im Code: Deutsch (sourceLocale).
-- **Sprachwahl:** Ein Sprachwähler (z. B. in der Top-Toolbar) ermöglicht die Auswahl; die gewählte Locale wird in der URL abgebildet. Die Auswahl wird in `localStorage` persistiert und beim nächsten Besuch serverseitig oder clientseitig für Redirect genutzt.
-- **Browser-Default:** Beim ersten Besuch ohne gespeicherte Präferenz wird die Sprache aus dem `Accept-Language`-Header abgeleitet; Fallback: Englisch.
-- **Quiz-Inhalte:** Fragenstamm und Antworten (Dozenten-Inhalte) werden **nicht** übersetzt; sie bleiben in der vom Dozenten eingegebenen Sprache. Nur die **UI-Texte** (Buttons, Labels, Fehlermeldungen, Platzhalter, rechtliche Seiten) werden übersetzt.
+- **Sprachwahl:** Ein Sprachwähler (z. B. in der Top-Toolbar) ermöglicht die Auswahl; die gewählte Locale wird in der URL abgebildet. Die Auswahl wird zusätzlich in `localStorage` persistiert. **Wichtig für den Ist-Stand:** Der serverseitige Root-Redirect nutzt derzeit **`Accept-Language`**, nicht die gespeicherte Präferenz.
+- **Browser-Default:** Beim Root-Aufruf `/` wird die Sprache aus dem `Accept-Language`-Header abgeleitet; Fallback im aktuellen Backend-/Static-Root-Verhalten: **Englisch**, sofern keine passende Locale gefunden wird.
+- **Quiz-Inhalte:** Fragenstamm und Antworten (Inhalte der Lehrperson) werden **nicht** übersetzt; sie bleiben in der von der Lehrperson eingegebenen Sprache. Nur die **UI-Texte** (Buttons, Labels, Fehlermeldungen, Platzhalter, rechtliche Seiten) werden übersetzt.
 - **Datum und Zahlen:** DatePipe, DecimalPipe, PercentPipe und CurrencyPipe nutzen die jeweilige Build-Locale (LOCALE_ID); keine zusätzliche Konfiguration nötig.
 - **Rechtliche Seiten (Impressum, Datenschutz):** Inhalte werden pro Locale bereitgestellt (z. B. Markdown-Dateien pro Sprache oder Einträge in den Übersetzungsdateien); Routen bleiben sprachneutral (`/legal/imprint`, `/legal/privacy`).
 
@@ -111,7 +111,7 @@ Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwi
 ### Negativ / Risiken
 
 - Sprachwechsel bedeutet Reload; Nutzer:innen auf Quiz Edit/New müssen explizit gewarnt werden, sonst droht Verlust ungespeicherter Arbeit.
-- Entwicklungs-Server (`ng serve`) unterstützt nur eine Locale gleichzeitig; zum Testen mehrerer Sprachen sind mehrere Builds oder Konfigurationen nötig.
+- Entwicklungs-Server (`ng serve`) unterstützt nur eine Locale gleichzeitig; im aktuellen Repo sind dafür primär **Deutsch** und **Englisch** als Dev-Varianten hinterlegt. Für alle fünf Locales braucht es den lokalisierten Build.
 
 ## Alternativen (geprüft)
 
@@ -122,4 +122,4 @@ Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwi
 
 ## Implementierungsstand (Projekt arsnova.eu)
 
-Stand 2026-03-12: Alle UI-Texte für **de** und **en** markiert; `messages.en.xlf` vollständig (~580 trans-units). Legal-Seiten als Markdown pro Locale (`imprint.en.md`, `privacy.en.md`). Build `ng build --localize` ohne fehlende Übersetzungen. Details: [I18N-PLAN.md](../../implementation/I18N-PLAN.md), [I18N-ANGULAR.md](../../I18N-ANGULAR.md).
+Stand 2026-04-01: `sourceLocale` ist **de**; zusätzliche Locales **en, fr, it, es** sind in `angular.json` eingebunden. `build:localize` erzeugt alle fünf Locale-Ausgaben und läuft im Repo mit zusätzlichen Post-Build-Schritten (`noscript`, `sitemap`, `manifest`, `ngsw`). Der Sprachwechsel nutzt Redirect auf die Locale-URL; auf **Quiz bearbeiten** und **Quiz neu** schützt ein Confirm-Dialog vor Verlust ungespeicherter Änderungen. Der Root-Dev-Start (`npm run dev`) liefert aktuell **Deutsch**, `dev:en` die englische Einsprachen-Variante. Details: [I18N-PLAN.md](../../implementation/I18N-PLAN.md), [I18N-ANGULAR.md](../../I18N-ANGULAR.md).

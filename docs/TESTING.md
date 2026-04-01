@@ -33,15 +33,15 @@ Workspace-spezifisch:
 
 Auslöser: **Push** und **Pull Request** auf `main`.
 
-| Job / Phase                                | Inhalt                                                                                                                                                                         |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **build** (Node 22)                        | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** i18n-Locales laut `angular.json`)    |
-| **typecheck** (Node 22, parallel zu build) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                     |
-| **lint**                                   | `npm run lint` (nach build)                                                                                                                                                    |
-| **audit**                                  | `npm audit --audit-level=high` (informational, blockiert nicht)                                                                                                                |
-| **test**                                   | `npm test` (nach build)                                                                                                                                                        |
-| **docker**                                 | Docker-Image-Build (ohne Push), nach build                                                                                                                                     |
-| **deploy**                                 | Nur bei Push auf `main` (oder `DEPLOY_BRANCH`) **und** Repository-Variable `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `docker`, `typecheck`** (alle müssen grün sein) |
+| Job / Phase                                | Inhalt                                                                                                                                                                                                                              |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **build** (Node 22)                        | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`; das Workflow-Label `de/en` ist derzeit veraltet) |
+| **typecheck** (Node 22, parallel zu build) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                                                                          |
+| **lint**                                   | `npm run lint` (nach build)                                                                                                                                                                                                         |
+| **audit**                                  | `npm audit --audit-level=high` (informational, blockiert nicht)                                                                                                                                                                     |
+| **test**                                   | `npm test` (nach build)                                                                                                                                                                                                             |
+| **docker**                                 | Docker-Image-Build (ohne Push), nach build                                                                                                                                                                                          |
+| **deploy**                                 | Nur bei Push auf `main` (oder `DEPLOY_BRANCH`) **und** Repository-Variable `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `docker`, `typecheck`** (alle müssen grün sein)                                                      |
 
 Matrix aktuell **eine** Node-Version (**22**).
 
@@ -56,6 +56,8 @@ Matrix aktuell **eine** Node-Version (**22**).
 | `lighthouse:a11y`           | Lighthouse A11y (lokal)     |
 
 Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
+
+`npm run build:localize -w @arsnova/frontend` ist im Repo kein nackter Angular-Build: Nach `ng build --configuration production --localize` folgen noch Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, die lokalisierten `ngsw.json` und die Root-`index.html`.
 
 ---
 

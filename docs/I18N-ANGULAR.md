@@ -1,6 +1,6 @@
 # i18n in Angular (offizieller Weg) — Umsetzungshinweise für Story 6.2
 
-Recherche basierend auf der **offiziellen Angular-Dokumentation** (angular.dev). Der beschriebene Ansatz gilt für **Angular 17+** (inkl. v21/v22); die i18n-API ist stabil.
+Recherche basierend auf der **offiziellen Angular-Dokumentation** (angular.dev) und auf dem **aktuellen Repo-Stand** von `arsnova.eu`. Der beschriebene Ansatz gilt allgemein ab **Angular 17+**; im Repo läuft derzeit **Angular 21**.
 
 ---
 
@@ -19,7 +19,9 @@ Recherche basierend auf der **offiziellen Angular-Dokumentation** (angular.dev).
 
 ## 1b. Sprachwechsel: Was passiert, wo geht State verloren?
 
-**Aktuell (ohne i18n):** Der Sprachwähler in der Top-Toolbar speichert nur die Präferenz in `localStorage` (`home-language`). Es gibt **keinen** Reload und **keinen** Seitenwechsel – der sichtbare Inhalt ändert sich nicht, es geht **kein** State verloren.
+**Aktueller Repo-Stand:** `arsnova.eu` nutzt bereits Locale-Subpfade (`/de/`, `/en/`, `/fr/`, `/it/`, `/es/`) und einen Toolbar-Sprachwechsel mit Redirect. Die Präferenz wird zusätzlich in `localStorage` (`home-language`) gespeichert. In den lokalisierten Builds wechselt der Sprachwähler also tatsächlich die URL und lädt die jeweilige Build-Variante neu.
+
+**Wichtig für die Entwicklung:** Das Standard-Dev-Setup (`npm run dev`, `npm run dev:de`, `npm run start`, `npm run start:de`) liefert nur die **deutsche** Quell-Locale aus. Eine andere URL-Locale ohne passenden Einsprachen-Build zeigt daher nur einen Hinweis, aber keinen echten Sprachwechsel. Für Englisch gibt es `npm run dev:en` bzw. `npm run start:en`; für alle Locales den lokalisierten Build plus Proxy (siehe unten).
 
 **Mit @angular/localize (Locale = Subpfad):** Sprachwechsel bedeutet in der Regel **Navigation auf eine andere URL** (z. B. `/de/session/ABC123/host` → `/en/session/ABC123/host`). Das wird oft als **vollständiger Seiten-Reload** umgesetzt (neues Dokument, App neu gebootet). Dann gilt:
 
@@ -168,7 +170,6 @@ Unter dem Projekt (z. B. `apps/frontend`) im **`options`-Block** des **`build`-T
 "i18n": {
   "sourceLocale": "de",
   "locales": {
-    "de": {},
     "en": {
       "translation": "src/locale/messages.en.xlf"
     },
@@ -186,17 +187,16 @@ Unter dem Projekt (z. B. `apps/frontend`) im **`options`-Block** des **`build`-T
 "localize": true
 ```
 
-- **sourceLocale:** Die Sprache, in der der Quellcode geschrieben ist (z. B. `de`).
-- **locales:** Map von Locale-IDs auf Übersetzungsdateien; für die Quellsprache kann `{}` reichen (keine separate Übersetzungsdatei nötig).
+- **sourceLocale:** Die Sprache, in der der Quellcode geschrieben ist (im Repo: `de`).
+- **locales:** Map der **zusätzlichen** Locales auf Übersetzungsdateien. Die Quellsprache `de` steht im aktuellen `angular.json` **nicht** noch einmal unter `locales`, sondern nur als `sourceLocale`.
 - **localize: true:** Es wird ein Build pro definierter Locale erzeugt.
 
-**Development:** `ng serve` unterstützt nur **eine** Locale. Für lokales Testen z. B.:
+**Development:** `ng serve` unterstützt nur **eine** Locale pro Lauf. Im Repo sind aktuell zwei Serve-Modi hinterlegt:
 
-```json
-"localize": ["de"]
-```
+- **Standard / Deutsch:** `start`, `start:de`, Root-`dev`, Root-`dev:de` → `frontend:build:development` (Quell-Locale `de`, kein `localize`-Subpfad).
+- **Englisch:** `start:en`, Root-`dev:en` → `frontend:build:development-en` mit `localize: ["en"]`.
 
-oder eine Konfiguration z. B. `"fr": { "localize": ["fr"] }` und dann `ng serve --configuration=fr`.
+Weitere Sprachen werden lokal über `build:localize` plus `serve:localize:api` getestet, nicht über eigene `ng serve`-Konfigurationen.
 
 ---
 
@@ -210,6 +210,8 @@ ng build --localize
 - Der CLI setzt für jede Variante u. a.:
   - `lang` auf `<html>`
   - `baseHref` (z. B. `/de/`, `/en/`) über die Locale-Konfiguration (`subPath` o. ä.).
+
+**Repo-Spezifik:** In `arsnova.eu` läuft der Produktionspfad über `npm run build:localize -w @arsnova/frontend`. Nach dem Angular-Build folgen noch Repo-spezifische Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, `ngsw.json` und die Root-`index.html`.
 
 ---
 
@@ -229,14 +231,15 @@ Die Top-Toolbar liest die aktuelle Locale aus dem **ersten URL-Segment** (`/de/`
 1. **Navigation:** Wenn die aktuelle Pfad-URL bereits eine Locale enthält (z. B. `/en/session/ABC123/host`), wird das erste Segment durch die gewählte Locale ersetzt und die Seite per **vollständigem Reload** geladen (z. B. `/de/session/ABC123/host`). So wird die passende lokalisierte Build-Variante geladen.
 2. **Ohne Locale im Pfad** (z. B. Dev-Server mit `base href="/"`): Redirect auf `/{code}/` bzw. `/{code}{rest}`.
 
-**Hinweis:** Es werden nur die Locales gebaut, die in `angular.json` unter `i18n.locales` eingetragen sind (aktuell: de, en, fr, it, es). Für `fr/it/es` sind technische Übersetzungsdateien vorhanden; die inhaltliche Übersetzung wird schrittweise ergänzt.
+**Hinweis:** Gebaut werden die Quell-Locale **de** plus die in `angular.json` unter `i18n.locales` eingetragenen zusätzlichen Locales **en, fr, it, es**. Für `fr/it/es` sind Übersetzungsdateien vorhanden; die inhaltliche Pflege bleibt ein laufender Arbeitsstand.
 
-**Dev-Server (`ng serve`):** Im Monorepo ist **`npm run dev`** (Root) auf **Englisch** eingestellt: Build-Konfiguration **`development-en`** mit **`localize: ["en"]`**. Im Browser **`http://localhost:4200/en/`** öffnen (analog zu `dist/browser/en` beim lokalisierten Produktionsbuild).
+**Dev-Server (`ng serve`):** Im Monorepo ist **`npm run dev`** (Root) standardmäßig auf **Deutsch** eingestellt: Frontend `start:de`, also die Quell-Locale ohne lokalisierten Subpfad. Für eine echte englische Einsprachen-Variante gibt es **`npm run dev:en`** bzw. **`npm run start:en`**.
 
 - **Deutsch (Quellsprache, kein `localize`):** **`npm run dev:de`** (Root) bzw. **`npm run dev:frontend:de`** / in `apps/frontend`: **`npm run start`** oder **`npm run start:de`**. Dann **`http://localhost:4200`** (Root) — i18n-Strings kommen direkt aus dem deutschen Quelltext; URL-Segmente `/de/` usw. ändern daran nichts.
+- **Englisch (Einsprachen-Dev-Build):** **`npm run dev:en`** (Root) bzw. in `apps/frontend` **`npm run start:en`**. Dann ist der Build lokalisiert; abhängig von `base href` und Dev-Server landet man effektiv im englischen Kontext.
 - **Alle Locales / Produktionsnähe:** lokalisierten Build und Proxy wie unten (**„Lokalisierter Build lokal“**), z. B. `http://localhost:4200/en/`.
 - **Legal-Markdown (`imprint.*.md` / `privacy.*.md`):** Locale und Asset-URL kommen aus **`locale-from-path.ts`**:
-  - **`getEffectiveLocale(fallback)`** — Reihenfolge: Locale aus **`base href`** (z. B. `/en/` bei `ng serve` mit `localize`), sonst erstes URL-Segment (`/de/…`), sonst **`fallback`** aus dem Build (**`inject(LOCALE_ID)`**, vorher mit **`localeIdToSupported()`** normalisieren, z. B. `en-US` → `en`), sonst **`de`**. So bleiben Impressum/Datenschutz auch auf **localhost** konsistent mit der gebauten Sprache, wenn der **pathname** nur `/legal/…` ist und weder Base noch Pfad ein Locale tragen.
+  - **`getEffectiveLocale(fallback)`** — Reihenfolge im aktuellen Code: zuerst explizites Locale-Segment im **Pfad** (`/de/…`), dann Locale aus **`base href`** (z. B. `/en/` bei `ng serve` mit `localize`), dann **`fallback`** aus dem Build (**`inject(LOCALE_ID)`**, vorher mit **`localeIdToSupported()`** normalisieren, z. B. `en-US` → `en`), sonst **`de`**. So bleiben Impressum/Datenschutz auch auf **localhost** konsistent mit der gebauten Sprache, wenn der `pathname` nur `/legal/…` ist.
   - **`resolveAssetUrlFromBase('assets/legal/…')`** — baut die **absolute** GET-URL wie der Browser relativ zu **`base href`** (statt `origin + baseHref + "/assets/…"` per Stringkonkatenation). Vermeidet 404 auf den `*.en.md`-Dateien und damit den früheren **Deutsch-Fallback** durch fehlgeschlagene Requests.
 
 #### Lokalisierter Build lokal (Schritt für Schritt)
@@ -286,8 +289,8 @@ Die Sprachwahl priorisiert bewusst den **Normalfall**: Die App folgt der Sprache
 3. **Sprachwechsel in der App**  
    Die Sprachwahl im Menü navigiert auf die entsprechende Locale-URL. Das gilt für die laufende Sitzung und den aktuellen Pfad.
 
-4. **Keine dauerhafte Präferenzspeicherung**  
-   Die Locale wird **nicht** als Cookie gespeichert. Damit bleibt das Verhalten bei neuen Sitzungen browserbasiert.
+4. **Lokale Präferenzspeicherung im Browser**
+   Die Toolbar speichert die gewählte Sprache zusätzlich in `localStorage` (`home-language`). Der serverseitige Root-Redirect wertet diese Präferenz derzeit **nicht** aus; ein frischer Aufruf von `/` bleibt also browser- bzw. `Accept-Language`-basiert.
 
 5. **Static-Fallback (ohne Node-Backend)**  
    Die `static-root-index.html` nutzt `navigator.languages` und fällt sonst auf `en` zurück.
@@ -318,7 +321,7 @@ Betroffene Stellen im Code:
   - Entweder: Pro Locale eigene Markdown-Dateien (z. B. `imprint.de.md`, `imprint.en.md`) und im Frontend die aktuelle Locale (z. B. aus Pfad oder einer Locale-Service) verwenden, um die richtige Datei zu laden.
   - Oder: Inhalte in die jeweilige Übersetzungsdatei (XLIFF/JSON) legen und über `$localize`/Template ausgeben.
 
-**Umsetzung (Phase 5.1):** `LegalPageComponent` liest die Locale über `getLocaleFromPath()` (aus `core/locale-from-path.ts`) und lädt `assets/legal/{slug}.{locale}.md`. Bei 404 wird auf `{slug}.de.md` zurückgefallen. **Vorhanden:** `imprint.de.md`, `imprint.en.md`, `privacy.de.md`, `privacy.en.md`; für fr, it, es können weitere Dateien ergänzt werden.
+**Umsetzung (aktueller Stand):** `LegalPageComponent` liest die Locale über `getEffectiveLocale()` (aus `core/locale-from-path.ts`) und lädt die Dateien relativ zur aktuellen `base href` über `resolveAssetUrlFromBase()`. Bei 404 wird auf `{slug}.de.md` zurückgefallen. **Vorhanden:** `imprint.de.md`, `imprint.en.md`, `privacy.de.md`, `privacy.en.md`; für fr, it, es können weitere Dateien ergänzt werden.
 
 ---
 
@@ -349,7 +352,7 @@ Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf
 | **fr/it/es (Technikstatus)** | `messages.fr.xlf`, `messages.it.xlf`, `messages.es.xlf` vorhanden (Startbasis, Source=Target) und in `angular.json` eingebunden; Build erzeugt Locale-Ausgaben für alle fünf Sprachen.                                                                                                                                                                                       |
 | **Legal-Seiten**             | DE + EN: `imprint.de.md`, `imprint.en.md`, `privacy.de.md`, `privacy.en.md` in `src/assets/legal/`.                                                                                                                                                                                                                                                                          |
 | **Markierte Bereiche**       | App, Home, Toolbar, Join, Preset-Toast, Session (Host/Vote/Present), Quiz (Liste/New/Edit/Preview/Sync), Help, Feedback, Legal.                                                                                                                                                                                                                                              |
-| **Demo-Quiz (fest)**         | Inhalte pro Sprache: `apps/frontend/src/assets/demo/quiz-demo-showcase.{de,en,fr,es,it}.json`. Auswahl über URL-Locale (`getLocaleFromPath`) bzw. `LOCALE_ID`; `QuizStoreService.ensureDemoQuiz()` ersetzt das Demo bei Sprachwechsel. Übersetzte Texte aus dem Deutschen ableiten: `npm run demo-quiz:locales` im Ordner `apps/frontend`.                                   |
+| **Demo-Quiz (fest)**         | Inhalte pro Sprache: `apps/frontend/src/assets/demo/quiz-demo-showcase.{de,en,fr,es,it}.json`. Auswahl über die effektive Locale (`getEffectiveLocale(...)`) bzw. `LOCALE_ID`; `QuizStoreService.ensureDemoQuiz()` ersetzt das Demo bei Sprachwechsel. Übersetzte Texte aus dem Deutschen ableiten: `npm run demo-quiz:locales` im Ordner `apps/frontend`.                   |
 | **Skripte**                  | `scripts/merge-missing-i18n-en.mjs`: fehlende EN-Targets aus fester TARGET_MAP einfügen. `scripts/add-missing-en-translations.mjs`: nach neuem Extract fehlende trans-units in `messages.en.xlf` mit EN-Targets ergänzen (ID→Target-Map im Skript). Nach Änderungen an UI-Texten: `ng extract-i18n` ausführen, dann ggf. Skript ausführen und neue IDs in die Map aufnehmen. |
 
 ---
@@ -358,10 +361,10 @@ Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf
 
 | Backlog-Kriterium             | Umsetzung                                                                                                                                                |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sprachen de, en, fr, it, es   | In `i18n.locales` eintragen + Übersetzungsdateien pflegen                                                                                                |
+| Sprachen de, en, fr, it, es   | `sourceLocale: de` setzen, zusätzliche Locales in `i18n.locales` eintragen und Übersetzungsdateien pflegen                                               |
 | Browser (default) / Userwahl  | Root-Redirect per Accept-Language; Sprachmenü wechselt die Locale-URL für die laufende Sitzung                                                           |
 | Sprachwähler in der Nav       | Link/Button zu den Locale-Subpfaden (`/de/`, `/en/`, …) oder Redirect mit Reload                                                                         |
-| Persistenz der Auswahl        | Keine dauerhafte Cookie-Persistenz; neuer Besuch folgt wieder der Browser-Sprache (`Accept-Language`)                                                    |
+| Persistenz der Auswahl        | Toolbar speichert die Auswahl in `localStorage`; ein frischer Root-Aufruf `/` folgt weiterhin der Browser-Sprache (`Accept-Language`)                    |
 | @angular/localize             | `ng add @angular/localize`; Templates/Code mit `i18n` und `$localize` markieren                                                                          |
 | Übersetzungsdateien           | `ng extract-i18n`; pro Sprache eine Datei (z. B. in `src/locale/` oder `i18n/`)                                                                          |
 | Quiz-Inhalte nicht übersetzen | Kein `i18n` an Nutzer-Inhalten (Fragenstamm, Antworten); nur UI-Texte markieren. **Ausnahme:** festes Demo-Quiz (siehe Abschnitt 9b, Zeile „Demo-Quiz“). |
@@ -382,4 +385,4 @@ Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf
 
 ---
 
-_Stand: Recherche für Angular v21/v22; Dokumentation unter https://angular.dev/guide/i18n._
+_Stand: 2026-04-01. Repo-Abgleich mit Angular 21 und Dokumentation unter https://angular.dev/guide/i18n._

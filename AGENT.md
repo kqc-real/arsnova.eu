@@ -1,6 +1,6 @@
-# 🤖 AGENT.md - arsnova.eu (Vibe Coding Guidelines)
+# AGENT.md – arsnova.eu
 
-**Hallo KI-Assistent!** Dieses Dokument **ergänzt** die [.cursorrules](.cursorrules) (Projektstruktur, Monorepo-Regeln, Stack, DTO-Pattern). Cursor lädt .cursorrules automatisch; dieses Dokument beschreibt **Arbeitsweise und Qualität**.
+Dieses Dokument **ergänzt** die [.cursorrules](.cursorrules) (Projektstruktur, Monorepo-Regeln, Stack, DTO-Pattern). Cursor lädt `.cursorrules` automatisch; dieses Dokument beschreibt **Arbeitsweise und Qualitätsmaßstäbe**.
 
 ## 🔗 Basis: .cursorrules
 
@@ -12,14 +12,14 @@ Für Pfade (`apps/backend`, `apps/frontend`, `libs/shared-types`), strikte Monor
 - Wenn der Nutzer ein Feature anfragt (z.B. "Erstelle das Leaderboard"), frage nach, ob zuerst **Backend** (tRPC-Endpoint + DTO in `libs/shared-types`) oder **Frontend** (Angular UI) umgesetzt werden soll – so bleibt die tRPC-Typsicherheit gewahrt.
 - Liefere Code, der **sofort kompiliert** und **gut kommentiert** ist.
 - Liefer bei jeder Story die **DoD-Tests mit** (siehe Abschnitt „Test-Regel: Tests gehören zur Story“).
-- Bevor du eine Story als fertig markierst: einen einfachen **tRPC-Integrationstest** generieren, der das DTO-Stripping (z.B. kein `isCorrect` an Studenten in ACTIVE) verifiziert, sofern die Story Frage-Auslieferung betrifft.
+- Bevor du eine Story als fertig markierst: einen einfachen **tRPC-Integrationstest** generieren, der das DTO-Stripping verifiziert (z. B. kein `isCorrect` an Teilnehmende im Status `ACTIVE`), sofern die Story Frage-Auslieferung betrifft.
 
 ### Scroll- und Layout-Debugging
 
 - Bei Scroll-, Overlay- oder "Inhalt ist da, aber nicht erreichbar"-Fehlern in Live-Ansichten **nicht mehrfach blind per Komponenten-CSS nachjustieren**.
-- Frueh den **tatsaechlichen Scrollcontainer** im Browser pruefen (`app-main`, eingebettete Panels, Dialog-Content, Listen-Container) und nicht nur die betroffene Komponente.
-- Immer auch auf **fixed/sticky Ueberlagerungen** achten (Toolbar, Channel-Tabs, Live-Banner, Floating Controls). Das sichtbare Problem sitzt oft in der Kombination aus globalem Layout und eingebettetem Feature.
-- **Mobile und Desktop getrennt pruefen**: unterschiedliche Top-Offsets, Banner-Hoehen und Zentrierungsregeln koennen auf einer Plattform funktionieren und auf der anderen scheitern.
+- Früh den **tatsächlichen Scrollcontainer** im Browser prüfen (`app-main`, eingebettete Panels, Dialog-Content, Listen-Container) und nicht nur die betroffene Komponente.
+- Immer auch auf **fixed/sticky-Überlagerungen** achten (Toolbar, Channel-Tabs, Live-Banner, Floating Controls). Das sichtbare Problem sitzt oft in der Kombination aus globalem Layout und eingebettetem Feature.
+- **Mobile und Desktop getrennt prüfen**: unterschiedliche Top-Offsets, Banner-Höhen und Zentrierungsregeln können auf einer Plattform funktionieren und auf der anderen scheitern.
 
 ## 🧪 Unit-Tests (Angular Style Guide)
 
@@ -42,11 +42,11 @@ Für Pfade (`apps/backend`, `apps/frontend`, `libs/shared-types`), strikte Monor
 
 ## 🎨 Design-Leitplanken (aus UX-Audit)
 
-Die folgenden Patterns wurden als verbindlich etabliert und MUESSEN bei Aenderungen an der Startseite oder aehnlichen Seiten eingehalten werden:
+Die folgenden Patterns wurden als verbindlich etabliert und **müssen** bei Änderungen an der Startseite oder ähnlichen Seiten eingehalten werden:
 
 ### Eingabe-Patterns
 
-- **Segment-Input fuer Codes:** Session-Codes werden als 6 einzelne Segment-Boxen dargestellt, NICHT als mat-form-field. Ein transparenter Overlay-`<input>` faengt Tastatur/Paste ab. Zustaende (leer, aktiv, gefuellt, valide) ueber CSS-Klassen, nicht ueber Material-States.
+- **Segment-Input für Codes:** Session-Codes werden als 6 einzelne Segment-Boxen dargestellt, nicht als `mat-form-field`. Ein transparentes Overlay-`<input>` fängt Tastatur und Paste ab. Zustände (leer, aktiv, gefüllt, valide) werden über CSS-Klassen gesteuert, nicht über Material-States.
 
 ### Feedback-Patterns
 
@@ -56,8 +56,8 @@ Die folgenden Patterns wurden als verbindlich etabliert und MUESSEN bei Aenderun
 
 ### Hierarchie und Layout
 
-- **1 Primary CTA pro Karte:** Maximal ein gefuellter (`matButton`) Button pro logischem Bereich. Sekundaere Aktionen als `matButton="tonal"` in einer `home-cta-row` (Flex-Row mit Gap).
-- **Mobile-Akzent:** Auf < 600 px erhaelt die primaere Einstiegskarte einen farbigen Top-Border.
+- **1 Primary CTA pro Karte:** Maximal ein gefüllter (`matButton`) Button pro logischem Bereich. Sekundäre Aktionen als `matButton="tonal"` in einer `home-cta-row` (Flex-Row mit Gap).
+- **Mobile-Akzent:** Auf `< 600 px` erhält die primäre Einstiegskarte einen farbigen oberen Rand.
 - **Visuelle Reihenfolge vs. DOM:** Wenn Inhalt logisch an einem Ort bleiben soll, aber **wichtiger Inhalt zuerst** erscheinen muss (z. B. Ergebnisse vor Steuerung), zuerst **Flexbox-`order` oder Modifier-Klassen** pruefen – nicht sofort grosses HTML umschichten (siehe STYLEGUIDE: Blitzlicht Standalone + eingebettet).
 
 ### Leere Zustaende (Listen, Tabs)
@@ -70,20 +70,20 @@ Die folgenden Patterns wurden als verbindlich etabliert und MUESSEN bei Aenderun
 
 ### Bedingte Sichtbarkeit
 
-- **Abhaengige Optionen:** Chips oder UI-Elemente, die von einem Parent abhaengen (z. B. "Teams zuweisen" haengt von "In Teams spielen" ab), werden komplett ausgeblendet (nicht nur disabled), solange der Parent inaktiv ist. Pattern: `isOptionVisible(id)` prueft `OPTION_REQUIRES_PARENT_ON`-Map.
+- **Abhängige Optionen:** Chips oder UI-Elemente, die von einer übergeordneten Option abhängen (z. B. „Teams zuweisen“ hängt von „In Teams spielen“ ab), werden komplett ausgeblendet und nicht nur deaktiviert, solange die übergeordnete Option inaktiv ist. Pattern: `isOptionVisible(id)` prüft die `OPTION_REQUIRES_PARENT_ON`-Map.
 
 ### Wording
 
-- Nutze aktivierende, rollenunabhaengige Bezeichnungen ("Mitmachen", "Veranstalten", "Los geht's"). Vermeide formelle Rollenbezeichnungen ("Teilnehmer/in", "Lehrperson") und technische Begriffe ("Session erstellen", "Server erreichbar"). Vollstaendige Wording-Referenz in `docs/ui/STYLEGUIDE.md`.
+- Nutze aktivierende, rollenunabhängige Bezeichnungen („Mitmachen“, „Veranstalten“, „Los geht's“). Vermeide unnötig formelle Rollenbezeichnungen und technische Begriffe in nutzerseitigen UI-Texten. Vollständige Wording-Referenz in `docs/ui/STYLEGUIDE.md`.
 
 ## 🌐 i18n / Übersetzungen (ADR-0008)
 
 Bei Arbeit an UI-Texten, Übersetzungsdateien oder mehrsprachiger Darstellung gelten die Vorgaben aus **ADR-0008** und `docs/I18N-ANGULAR.md`:
 
 - **Technik:** @angular/localize, Locale als Subpfad; Quellsprache Deutsch. Quiz-Inhalte (Fragen, Antworten) werden NICHT übersetzt – nur UI-Texte.
-- **Verbindliche Sync-Regel (5 Sprachen):** Neue oder geänderte deutschsprachige UI-Texte MUESSEN sofort in `en`, `fr`, `es`, `it` nachgezogen werden (gleiches PR/gleicher Commit). Dazu gehören auch ARIA-Texte, Platzhalter, Fehlermeldungen, Help-Texte und rechtliche Seiten.
+- **Verbindliche Sync-Regel (5 Sprachen):** Neue oder geänderte deutschsprachige UI-Texte **müssen** sofort in `en`, `fr`, `es`, `it` nachgezogen werden (gleiches PR / gleicher Commit). Dazu gehören auch ARIA-Texte, Platzhalter, Fehlermeldungen, Hilfetexte und rechtliche Seiten.
 - **Definition unvollständig:** Eine Story mit geänderten DE-UI-Texten ist nicht done, solange `messages.en.xlf`, `messages.fr.xlf`, `messages.es.xlf`, `messages.it.xlf` (und bei Legal-Inhalten `imprint/privacy.{locale}.md`) nicht synchron aktualisiert sind.
-- **Stabile Message-IDs:** Neue oder haeufig angepasste UI-Strings im Template mit `i18n="@@feature.key"` (bzw. `$localize`:@@…:) markieren, damit XLF-`trans-unit`-IDs beim Copy-Update nachvollziehbar bleiben; alte, ungenutzte Einheiten entfernen.
+- **Stabile Message-IDs:** Neue oder häufig angepasste UI-Strings im Template mit `i18n="@@feature.key"` (bzw. `$localize`:@@…:) markieren, damit XLF-`trans-unit`-IDs bei Copy-Updates nachvollziehbar bleiben; alte, ungenutzte Einheiten entfernen.
 - **Sprachstil:** Informelle Anrede (Duzen) und zeitgemäßer Stil in allen Sprachen.
 - **Referenz Deutsch:** Deutscher Quelltext ist Maßstab für Form und Länge; Übersetzungen sollen die vorgegebene Kürze/Struktur wahren.
 - **Visuelle Prüfung, Mobile-First:** Darstellung mit Übersetzungen **zuerst auf Smartphone** prüfen, dann Desktop. Längere Texte können Strukturbrüche verursachen → kürzere Formulierung oder Layout anpassen; bei Bedarf **zwei Varianten** (Mobile kurz / Desktop voll).

@@ -11,15 +11,15 @@
 [![Documentation: ADRs](<https://img.shields.io/badge/Docs-ADRs%20(DaC)-007A8A.svg?style=flat-square>)](./docs/architecture/)
 
 > **Quizzen, abstimmen – gemeinsam und live.**  
-> Ein modernes, kostenloses und 100 % DSGVO-konformes Audience-Response-System – ohne Anmeldung, Open Source. Entwickelt im Rahmen des Hochschul-Moduls „Software Engineering & Vibe Coding“.
+> Ein modernes, kostenloses Audience-Response-System für datensparsame, DSGVO-orientierte Lehre – ohne Anmeldung, Open Source. Entwickelt im Rahmen des Hochschul-Moduls „Software Engineering & Vibe Coding“.
 
 ## ✅ Aktueller Entwicklungsstand (April 2026)
 
 - **Produktionsreif umgesetzt:** Epics **0–5**, **7.1 (Team-Modus)**, **8**, **9 (Admin)** und **10 (MOTD / Plattform-Kommunikation, ADR-0018)** — siehe [`Backlog.md`](./Backlog.md).
 - **Plattform-Qualität:** Epic **6** ist im Kern umgesetzt (Theme, i18n, Legal, Responsive); **6.5 Barrierefreiheit (Abschlussprüfung)** und **6.6 Thinking Aloud** sind noch offen.
-- **Offene Storys (Auswahl):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Lasttests), **1.7a/1.7b** (Markdown-Erweiterungen), **8.5–8.7** (Q&A) — vollständige Liste im Backlog.
+- **Offene Stories (Auswahl):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Lasttests), **1.7a/1.7b** (Markdown-Erweiterungen), **8.5–8.7** (Q&A) — vollständige Liste im Backlog.
 - **Plattform-Statistik:** Rekord **max. Teilnehmer je Session** wird serverseitig gepflegt und in `health.stats` sowie auf der Hilfe-Seite genutzt (`PlatformStatistic`, siehe Backlog „Repo-Abgleich“).
-- **Lehre (FSE):** Greenfield-Vorlesung **Story 1.7a** in **3×45 Min.** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md); Epic 10 bleibt optional als **Referenzcode**, kein Ersatz für 1.7a.
+- **Lehre:** Greenfield-Demo **Story 1.7a** in **3×45 Min.** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md); Epic 10 bleibt optionales **Referenzbeispiel**, kein Ersatz für 1.7a.
 
 ## 📖 Über das Projekt
 
@@ -190,7 +190,7 @@ npm run build:prod    # shared-types + Backend + Frontend (Production) bauen
 npm run start:prod    # Backend starten (gibt Port 3000 ggf. automatisch frei)
 ```
 
-Die App ist dann unter **http://localhost:3000** erreichbar (Backend liefert das gebaute Frontend aus). Bei hartnäckig belegtem Port vorher: `npm run free-port-3000`. Anderen Port nutzen: `PORT=3010 npm run start:prod` → dann **http://localhost:3010**. Details (Gzip, Pre-Render, Fallbacks) siehe [docs/cursor-context.md](./docs/cursor-context.md) Abschnitt 18.1.
+Die App ist dann unter **http://localhost:3000** erreichbar (Backend liefert das gebaute Frontend aus). Bei hartnäckig belegtem Port vorher: `npm run free-port-3000`. Anderen Port nutzen: `PORT=3010 npm run start:prod` → dann **http://localhost:3010**.
 
 ### 6. Screenshots für die PWA-Manifest (optional)
 
@@ -289,7 +289,7 @@ DEPLOY_BRANCH=main ./scripts/deploy.sh
 
 Dieses Projekt wird im "Vibe Coding"-Modus entwickelt. Du agierst als Architekt, die KI (z.B. GitHub Copilot, Cursor, Gemini) übernimmt die Code-Generierung.
 
-**WICHTIG:** Lade zu Beginn deiner Programmier-Session immer die Datei `AGENT.md` in den Kontext deiner KI, damit diese sich an die strengen Architektur- und Sicherheitsregeln (z.B. das Data-Stripping von Lösungen) hält. Für **umfassenden Projekt-Kontext** (Struktur, Stack, Backlog, DoD, ~4k Tokens) und optional **Context Caching** (Claude Opus 4.6): `@docs/cursor-context.md` in die erste Nachricht einbinden. Die Cursor-Regel unter `.cursor/rules/core.mdc` verweist darauf automatisch.
+**Wenn du mit KI arbeitest:** Lade zu Beginn einer Coding-Session `AGENT.md` in den Kontext deiner KI, damit Architektur- und Sicherheitsregeln eingehalten werden (z. B. DTO-/Data-Stripping). Für **komplexere** Aufgaben mit viel Projektkontext kannst du zusätzlich `docs/cursor-context.md` einbinden. Die Cursor-Regel unter `.cursor/rules/core.mdc` verweist darauf automatisch.
 
 **Übergabe an Studis:** Siehe [CONTRIBUTING.md](./CONTRIBUTING.md) – Onboarding, Story-Wahl, DoD-Check vor PR, Branch/PR-Konventionen.
 
@@ -310,16 +310,16 @@ Wichtige Einstiege:
 
 Nachdem die App lokal läuft, empfiehlt sich diese Lesereihenfolge:
 
-1. **[CONTRIBUTING.md](./CONTRIBUTING.md)** – Mitwirken, Story-Wahl, DoD vor PR (Einstieg für Studis)
-2. **[AGENT.md](./AGENT.md)** – die KI-Leitplanken (immer zuerst in den Kontext laden!)
-3. **[docs/cursor-context.md](./docs/cursor-context.md)** – stabile Projektreferenz für KI (~4k Tokens; für Context Caching: `@docs/cursor-context.md` laden)
-4. **[Backlog.md](./Backlog.md)** – alle Storys mit Prioritäten und Definition of Done
-5. **[Architektur-Handbuch](./docs/architecture/handbook.md)** – Konzepte, Stack und Regeln
-6. **[Diagramme](./docs/diagrams/diagrams.md)** – Mermaid-Diagramme (Komponenten, Sequenz, ER, …)
-7. **[ADRs](./docs/architecture/decisions/)** – bisherige Architekturentscheidungen (Signals, tRPC, Yjs)
-8. **[Vibe-Coding-Szenario](./docs/vibe-coding/vibe-coding-szenario.md)** – so funktioniert die Zusammenarbeit mit der KI
+1. **[CONTRIBUTING.md](./CONTRIBUTING.md)** – Mitwirken, Story-Wahl, DoD vor PR
+2. **[Backlog.md](./Backlog.md)** – Stories mit Prioritäten und Definition of Done
+3. **[Architektur-Handbuch](./docs/architecture/handbook.md)** – Konzepte, Stack und Regeln
+4. **[Diagramme](./docs/diagrams/diagrams.md)** – Mermaid-Diagramme (Komponenten, Sequenz, ER, …)
+5. **[ADRs](./docs/architecture/decisions/)** – bisherige Architekturentscheidungen (Signals, tRPC, Yjs)
+6. **[AGENT.md](./AGENT.md)** – KI-Leitplanken für KI-gestützte Arbeit
+7. **[docs/cursor-context.md](./docs/cursor-context.md)** – verdichtete Projektreferenz für komplexere KI-Sessions
+8. **[Vibe-Coding-Szenario](./docs/vibe-coding/vibe-coding-szenario.md)** – Zusammenarbeit mit der KI
 
-> **Tipp (aktueller Fokus):** Epics **0–5**, **7.1**, **8**, **9** und **10** sind umgesetzt. Nächste Prioritäten siehe [Backlog](./Backlog.md) (u. a. **6.5**/**6.6**, **2.1c**, **0.7**, **1.7a**/**1.7b**). Vor Umsetzung Story prüfen, dann mit `AGENT.md` und `docs/cursor-context.md` arbeiten.
+> **Tipp (aktueller Fokus):** Epics **0–5**, **7.1**, **8**, **9** und **10** sind umgesetzt. Nächste Prioritäten siehe [Backlog](./Backlog.md) (u. a. **6.5**/**6.6**, **2.1c**, **0.7**, **1.7a**/**1.7b**). Vor der Umsetzung zuerst Story und DoD lesen; bei KI-gestützter Arbeit anschließend mit `AGENT.md` arbeiten.
 
 ## 🔄 Zurücksetzen auf einen bekannten Zustand
 

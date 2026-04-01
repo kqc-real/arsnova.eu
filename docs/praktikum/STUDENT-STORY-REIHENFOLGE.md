@@ -1,25 +1,21 @@
-# Didaktische Reihenfolge: Offene User Stories (KI codiert, Studi steuert)
+# Didaktische Reihenfolge: Offene User Stories
 
 **Zielgruppe:** Betreuende, Studierende im Praktikum  
-**Voraussetzung:** Jede Person soll **jede offene Story** aus dem Produkt-Backlog **einmal** umsetzen (oder: durch den vollständigen Katalog gehen) — **ausgenommen** die Story **1.7a**, wenn diese in der **Greenfield-Vorlesung** (3×45 Min.) von der **Lehrperson** mit KI-Agent live umgesetzt wird; siehe [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md). **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** (Referenzcode, optional in späteren Sitzungen). Die **Reihenfolge** ist entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn die **Codierung überwiegend durch KI-Unterstützung** erfolgt und der Studi **überwacht, steuert und abnimmt**.
+**Voraussetzung:** Jede Person soll **jede offene Story** aus dem Produkt-Backlog **einmal** umsetzen oder den vollständigen Katalog durchlaufen — **ausgenommen** die Story **1.7a**, wenn diese in der **Greenfield-Demo** (3×45 Min.) von der **Lehrperson** mit KI-Agent live umgesetzt wird; siehe [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md). **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. Die **Reihenfolge** ist entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn die **Umsetzung überwiegend mit KI-Unterstützung** erfolgt und die studierende Person **überwacht, steuert und abnimmt**.
 
 **Referenz:** [`Backlog.md`](../../Backlog.md) (Status ⬜ Offen).  
 **Stand dieser Empfehlung:** 2026-04-01 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
 
 ---
 
-## 0. Vorlesung: Greenfield 1.7a — Studierende setzen diese Story nicht parallel um
+## 0. Einstieg: Greenfield 1.7a — diese Story wird nicht parallel umgesetzt
 
-**Fallstudie Software Engineering** beginnt mit einer **Greenfield-Demo** am Beamer: **Story 1.7a** (Markdown-Bilder: nur URL + Lightbox) — **3×45 Minuten** (135 Min.), Leitfaden: [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md).
+Der Einstieg beginnt mit einer **Greenfield-Demo** am Beamer: **Story 1.7a** (Markdown-Bilder: nur URL + Lightbox) — **3×45 Minuten** (135 Min.), Leitfaden: [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md).
 
 - **Lehrperson** und **KI-Agent** zeigen **Ende-zu-Ende**: Backlog-Akzeptanzkriterien → [ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md) → Angular/Markdown-Pipeline → Lightbox → i18n/Tests (soweit in der Zeit reicht).
 - **Parallel:** Mini-Inputs **VS Code**, **Git**, **GitHub**, **Stack** (TypeScript, Angular, Monorepo — nach Terminplan).
-- **Studierende** bearbeiten **1.7a nicht** als eigene Praktikums-Story, wenn die Vorlesung diese Story **inhaltlich abdeckt** (Merge/DoD können außerhalb der 135 Min. nachgezogen werden).
+- **Studierende** bearbeiten **1.7a nicht** als eigene Praktikums-Story, wenn die Demo diese Story **inhaltlich abdeckt** (Merge/DoD können außerhalb der 135 Min. nachgezogen werden).
 - **Epic 10 (MOTD)** dient **optional** als **zweites** Referenzbeispiel (fertiger Full-Stack-Strang: Spec, ADR-0018, `motd`-Router) — **nicht** Ersatz für die 1.7a-Greenfield-Demo.
-
-**SQM** begleitet ab dem **Praktikumsstart** die **PRs zu den Stories aus Abschnitt 3** (Reviews, Tests, DoD, Risiko, A11y).
-
-Verknüpfung Synergie beider Kurse: [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
 
 ---
 
@@ -38,7 +34,7 @@ Verknüpfung Synergie beider Kurse: [`docs/didaktik/zweiter-kurs-und-agentische-
 
 ## 2. Rollenklärung (didaktisch)
 
-- **Studi:** Versteht die Story, zerlegt in Schritte, formuliert Aufträge an die KI, **liest Diff und Tests**, führt manuelle Checks aus, dokumentiert kurz das Ergebnis.
+- **Studierende Person:** Versteht die Story, zerlegt sie in Schritte, formuliert Aufträge an die KI, **liest Diff und Tests**, führt manuelle Checks aus und dokumentiert kurz das Ergebnis.
 - **KI:** Implementiert nach Vorgabe; **kein Ersatz** für Abnahme gegen Backlog und DoD.
 - **Betreuung:** Reihenfolge durchsetzen oder begründet abweichen; bei Security-/A11y-Stories zusätzliche Review-Luke einplanen.
 
@@ -46,7 +42,7 @@ Verknüpfung Synergie beider Kurse: [`docs/didaktik/zweiter-kurs-und-agentische-
 
 ## 3. Empfohlene Reihenfolge (offene Stories für Studierende)
 
-Die folgende Tabelle listet **alle aktuell offenen Stories**, die **Studierende** im Kursverlauf umsetzen — **ohne** Epic 10 (MOTD) und **ohne 1.7a**, sofern diese in der **Greenfield-Vorlesung** durch die Lehrperson abgedeckt wird.
+Die folgende Tabelle listet **alle aktuell offenen Stories**, die **Studierende** im Kursverlauf umsetzen — **ohne** Epic 10 (MOTD) und **ohne 1.7a**, sofern diese in der **Greenfield-Demo** durch die Lehrperson abgedeckt wird.
 
 **Standard-Reihenfolge** nach dem Vorlesungsblock (Abschnitt 0): Ticket **1 → … → 13**.
 
@@ -81,7 +77,7 @@ Zur Orientierung für die Betreuung — nicht separate „Pflicht“, sondern **
 
 ---
 
-## 5. Abnahme-Checkliste pro Story (für den Studi)
+## 5. Abnahme-Checkliste pro Story
 
 Kurz und wiederholbar — unabhängig von der Story-Nummer:
 
@@ -117,4 +113,4 @@ Erlaubt, wenn **begründet**, z. B.:
 
 ---
 
-_Diese Datei beschreibt eine **didaktische** Empfehlung; die fachliche Priorisierung im Produkt bleibt im Backlog und bei Product Owner / Leitung._
+_Diese Datei beschreibt eine **didaktische** Empfehlung; die fachliche Priorisierung im Produkt bleibt im Backlog und bei Product Owner bzw. Projektleitung._

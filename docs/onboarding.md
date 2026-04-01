@@ -2,7 +2,7 @@
 
 # 🎓 Onboarding: arsnova.eu
 
-Willkommen im Entwickler-Team von **arsnova.eu**! Dieses Dokument hilft dir als Informatikstudierende/r, das Projekt zu verstehen, die Entwicklungsumgebung aufzusetzen und produktiv mitzuarbeiten.
+Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als Studierende oder Studierender dabei, das Projekt zu verstehen, die Entwicklungsumgebung aufzusetzen und produktiv mitzuarbeiten.
 
 **Noch keine Erfahrung mit Git, VS Code, Docker, npm oder dem Stack (tRPC, Prisma, Angular)?** Lies zuerst die kompakte Landkarte für Studierende: **[`docs/praktikum/EINSTIEG-TOOLS-UND-STACK.md`](praktikum/EINSTIEG-TOOLS-UND-STACK.md)** — danach kehrst du hierher zurück und arbeitest den Quickstart ab.
 
@@ -71,7 +71,7 @@ npm run build:prod    # Backend + Frontend für Production bauen
 npm run start:prod    # Port 3000 freigeben, Backend starten (liefert Frontend aus)
 ```
 
-Im Browser **`http://localhost:3000`** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **`http://localhost:3010`**. Details (Gzip, Pre-Render, Fallbacks) siehe **`docs/cursor-context.md`** Abschnitt 18.1.
+Im Browser **`http://localhost:3000`** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **`http://localhost:3010`**. Für den Einstieg reicht das; Details zu Auslieferung, Gzip und Fallbacks stehen im Root-[`README.md`](../README.md).
 
 ---
 
@@ -114,7 +114,7 @@ arsnova.eu/
 │   └── diagrams/             # Mermaid-Architekturdiagramme
 ├── docker-compose.yml        # PostgreSQL + Redis
 ├── AGENT.md                  # ⚠️ KI-Coding-Regeln (Pflichtlektüre!)
-├── Backlog.md                # Alle User-Storys mit Akzeptanzkriterien
+├── Backlog.md                # Alle User Stories mit Akzeptanzkriterien
 └── package.json              # Root: npm Workspaces + globale Scripts
 ```
 
@@ -136,15 +136,15 @@ arsnova.eu/
 
 Das System ist nach dem **Local-First**-Prinzip entworfen:
 
-- **Zero-Knowledge:** Der Server speichert Quiz-Inhalte _niemals dauerhaft_. Die „Single Source of Truth" für Quizzes ist die lokale Browser-Datenbank des Dozenten.
-- **Datensouveränität:** Das geistige Eigentum (die Fragen) verbleibt beim Dozenten – keine Cloud, kein Account-Zwang.
+- **Zero-Knowledge / Local-First:** Die dauerhafte Quelle für Quizzes ist die lokale Browser-Datenbank der Lehrperson. Für laufende Sessions wird serverseitig nur die temporär nötige Kopie gehalten.
+- **Datensouveränität:** Das geistige Eigentum (die Fragen) verbleibt bei der Lehrperson — keine zentrale Quiz-Cloud, kein Account-Zwang.
 - **Relay-Modell:** Das Backend fungiert als _flüchtiger Vermittler_ für Live-Daten während einer Hörsaal-Sitzung.
 
 ---
 
 ## 4. Aktueller Stand vs. Ziel-Architektur
 
-> **Epics 0–5, 7.1, 8, 9 und 10 (MOTD) sind umgesetzt.** Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind die Living Docs in `docs/diagrams/` und die ADRs maßgeblich. Offene Storys: [`Backlog.md`](../Backlog.md).
+> **Epics 0–5, 7.1, 8, 9 und 10 (MOTD) sind umgesetzt.** Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind die Living Docs in `docs/diagrams/` und die ADRs maßgeblich. Offene Stories: [`Backlog.md`](../Backlog.md).
 
 ### Was bereits funktioniert (✅ Implementiert – Stand: 2026-04-01)
 
@@ -274,7 +274,7 @@ Das Frontend nutzt modernste Angular-Features:
 - **PostgreSQL:** Live-Session-Daten (Sessions, Participants, Votes). Docker Compose.
 - **Redis (✅):** Health-Check, Rate-Limiting (`ioredis`), vorbereitet für Pub/Sub in Epics 2–4.
 - **WebSocket (Port 3001):** tRPC-Subscriptions (z. B. `health.ping`).
-- **y-websocket (Port 3002):** Yjs-Relay für Dozenten-Multi-Device-Sync.
+- **y-websocket (Port 3002):** Yjs-Relay für den Multi-Device-Sync der Lehrperson.
 
 ---
 
@@ -282,17 +282,17 @@ Das Frontend nutzt modernste Angular-Features:
 
 > Dieser Ablauf beschreibt das aktuelle Referenzmodell. Details dazu stehen in `docs/diagrams/diagrams.md`, `ADR-0009` und `ADR-0010`.
 
-1. **Quiz-Upload:** Der Dozent wählt ein Quiz aus seiner lokalen IndexedDB. Das Frontend sendet eine Kopie via `quiz.upload` (Zod-validiert) an das Backend.
+1. **Quiz-Upload:** Die Lehrperson wählt ein Quiz aus ihrer lokalen IndexedDB. Das Frontend sendet eine Kopie via `quiz.upload` (Zod-validiert) an das Backend.
 2. **Session-Initialisierung:** Das Backend speichert die Quiz-Kopie in PostgreSQL, generiert einen 6-stelligen Code und registriert ihn in Redis.
-3. **Lobby-Phase:** Studenten treten mit dem Code bei. Das Backend erstellt einen `Participant`-Eintrag und informiert den Dozenten in Echtzeit via Redis Pub/Sub → tRPC Subscription.
+3. **Lobby-Phase:** Teilnehmende treten mit dem Code bei. Das Backend erstellt einen `Participant`-Eintrag und informiert die Lehrperson in Echtzeit via Redis Pub/Sub → tRPC Subscription.
 4. **Frage-Aktivierung (Security):**
-   - Der Dozent klickt „Nächste Frage".
+   - Die Lehrperson klickt „Nächste Frage“.
    - Das Backend setzt den Status auf `ACTIVE`.
    - Das **DTO-Stripping** entfernt `isCorrect` aus den Antwortoptionen.
-   - Die gefilterten Daten (`QuestionStudentDTO`) werden via tRPC Subscription an alle Studenten-Smartphones gepusht.
-5. **Abstimmung:** Studenten senden ihre Votes. Der ScoringService berechnet Punkte basierend auf Korrektheit, Antwortzeit und Schwierigkeitsgrad.
-6. **Auflösung:** Der Dozent beendet die Frage (Status → `RESULTS`). _Erst jetzt_ sendet das Backend das vollständige Objekt (`QuestionRevealedDTO` inkl. `isCorrect`) an die Studenten.
-7. **Parallele Live-Kanaele:** Innerhalb derselben Session koennen zusaetzlich `Q&A` und `Blitzlicht` aktiv sein. Blitzlicht ist sowohl im Session-Kanal als auch direkt ueber die Startseite verfuegbar.
+   - Die gefilterten Daten (`QuestionStudentDTO`) werden via tRPC Subscription an die Geräte aller Teilnehmenden gepusht.
+5. **Abstimmung:** Teilnehmende senden ihre Votes. Der ScoringService berechnet Punkte basierend auf Korrektheit, Antwortzeit und Schwierigkeitsgrad.
+6. **Auflösung:** Die Lehrperson beendet die Frage (Status → `RESULTS`). _Erst jetzt_ sendet das Backend das vollständige Objekt (`QuestionRevealedDTO` inkl. `isCorrect`) an die Teilnehmenden.
+7. **Parallele Live-Kanäle:** Innerhalb derselben Session können zusätzlich `Q&A` und `Blitzlicht` aktiv sein. Blitzlicht ist sowohl im Session-Kanal als auch direkt über die Startseite verfügbar.
 
 ---
 
@@ -300,14 +300,14 @@ Das Frontend nutzt modernste Angular-Features:
 
 > Diese Regeln sind ausführlich in [`AGENT.md`](../AGENT.md) beschrieben. Hier die Kurzfassung:
 
-| Regel                                  | Beschreibung                                                                                 |
-| -------------------------------------- | -------------------------------------------------------------------------------------------- |
-| **Kein `any`**                         | TypeScript-Typen immer aus `@arsnova/shared-types` importieren                               |
-| **Signals statt RxJS**                 | Für UI-State ausschließlich Angular Signals verwenden. RxJS nur für WebSocket-Streams        |
-| **Security First**                     | Neues Feld an einer Frage? → Prüfen, ob es im `QuestionStudentDTO` entfernt werden muss      |
-| **Standalone Components**              | Keine `NgModules`. Neue `@if`/`@for` Control-Flow-Syntax, kein `*ngIf`/`*ngFor`              |
-| **Angular Material 3 + SCSS-Patterns** | Styling ueber Material-Komponenten, Design-Tokens und zentrale SCSS-Patterns (ohne Tailwind) |
-| **ADRs schreiben**                     | Architekturentscheidungen als ADR in `docs/architecture/decisions/` dokumentieren            |
+| Regel                                  | Beschreibung                                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **Kein `any`**                         | TypeScript-Typen immer aus `@arsnova/shared-types` importieren                              |
+| **Signals statt RxJS**                 | Für UI-State ausschließlich Angular Signals verwenden. RxJS nur für WebSocket-Streams       |
+| **Security First**                     | Neues Feld an einer Frage? → Prüfen, ob es im `QuestionStudentDTO` entfernt werden muss     |
+| **Standalone Components**              | Keine `NgModules`. Neue `@if`/`@for` Control-Flow-Syntax, kein `*ngIf`/`*ngFor`             |
+| **Angular Material 3 + SCSS-Patterns** | Styling über Material-Komponenten, Design-Tokens und zentrale SCSS-Patterns (ohne Tailwind) |
+| **ADRs schreiben**                     | Architekturentscheidungen als ADR in `docs/architecture/decisions/` dokumentieren           |
 
 ---
 
@@ -316,7 +316,7 @@ Das Frontend nutzt modernste Angular-Features:
 | Dokument                                                                  | Inhalt                                                                        |
 | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [`AGENT.md`](../AGENT.md)                                                 | KI-Coding-Regeln und Architektur-Leitplanken                                  |
-| [`Backlog.md`](../Backlog.md)                                             | Alle User-Storys mit Priorität und Akzeptanzkriterien                         |
+| [`Backlog.md`](../Backlog.md)                                             | Alle User Stories mit Priorität und Akzeptanzkriterien                        |
 | [`docs/architecture/handbook.md`](architecture/handbook.md)               | Ausführliches Architektur-Handbuch                                            |
 | [`docs/README.md`](README.md)                                             | Doku-Landkarte nach Rolle und Thema                                           |
 | [`docs/ENVIRONMENT.md`](ENVIRONMENT.md)                                   | Umgebungsvariablen (Backend, Rate-Limits, Admin)                              |
@@ -358,14 +358,14 @@ npm install
 | **tRPC**           | TypeScript Remote Procedure Call – Framework für typsichere API-Kommunikation ohne REST-Boilerplate. Frontend und Backend teilen sich die Typen direkt.                              |
 | **Zod**            | TypeScript-Validierungsbibliothek. Definiert Schemas, die sowohl zur Laufzeit (Eingabevalidierung) als auch zur Compile-Zeit (Typen) genutzt werden.                                 |
 | **Prisma**         | ORM (Object-Relational Mapping) für Node.js. Übersetzt TypeScript-Objekte in SQL-Queries. Das Schema in `schema.prisma` definiert die Datenbankstruktur.                             |
-| **DTO**            | Data Transfer Object – ein gefiltertes Datenobjekt, das nur die Felder enthält, die der Empfänger sehen darf. Zentral für die Sicherheit (kein `isCorrect` für Studenten).           |
+| **DTO**            | Data Transfer Object – ein gefiltertes Datenobjekt, das nur die Felder enthält, die der Empfänger sehen darf. Zentral für die Sicherheit (kein `isCorrect` für Teilnehmende).        |
 | **CRDT**           | Conflict-free Replicated Data Type – Datenstruktur, die parallele Änderungen auf mehreren Geräten automatisch und ohne Konflikte zusammenführt. Verwendet über die Bibliothek Yjs.   |
 | **Yjs**            | JavaScript-Bibliothek für CRDTs. Speichert Daten in IndexedDB (Browser-Datenbank) und synchronisiert Änderungen als kleine „Deltas" über WebSockets.                                 |
 | **Pub/Sub**        | Publish/Subscribe – Messaging-Muster, bei dem ein Sender (Publisher) Nachrichten veröffentlicht und alle registrierten Empfänger (Subscribers) diese erhalten. Umgesetzt über Redis. |
 | **ADR**            | Architecture Decision Record – kurzes Dokument, das eine technische Entscheidung, ihre Begründung und Alternativen festhält. Liegt unter `docs/architecture/decisions/`.             |
 | **Subscription**   | tRPC-Mechanismus für Echtzeit-Kommunikation über WebSockets. Der Client registriert sich für Events, die der Server aktiv pusht (z. B. „neuer Teilnehmer beigetreten").              |
 | **IndexedDB**      | Browsereigene NoSQL-Datenbank für große Datenmengen. Wird hier von Yjs genutzt, um Quizzes lokal zu persistieren – auch nach Browser-Neustart.                                       |
-| **Data-Stripping** | Sicherheitsmechanismus: Das Backend entfernt sensible Felder (z. B. `isCorrect`) aus Objekten, _bevor_ sie an Studenten gesendet werden – verhindert Schummeln via DevTools.         |
+| **Data-Stripping** | Sicherheitsmechanismus: Das Backend entfernt sensible Felder (z. B. `isCorrect`) aus Objekten, _bevor_ sie an Teilnehmende gesendet werden – verhindert Schummeln via DevTools.      |
 
 ---
 

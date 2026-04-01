@@ -4,28 +4,36 @@
 
 **Status:** Accepted  
 **Datum:** 2026-03-04  
-**Entscheider:** Projektteam  
+**Entscheider:** Projektteam
 
 ## Kontext
 
-Die App ist für Dozenten und Teilnehmer **accountfrei**; Sessions und Quiz-Daten werden über Codes und Tokens gesteuert. Es braucht klare Regeln:
+Die App ist für Lehrende und Teilnehmende **accountfrei**; Sessions und Quiz-Daten werden über Codes und Tokens gesteuert. Es braucht klare Regeln:
 
 1. **Rollen in der URL:** Wer ist wo? Ohne klare Trennung könnte jemand durch bloßes Aufrufen einer URL (z. B. `/session/ABC123/host`) Host-Rechte erlangen.
-2. **Admin-Rolle:** Für rechtliche und operative Kontrolle (Inspektion, Löschen, Auszug für Behörden) wird eine **Admin-Rolle** benötigt – ohne Einführung von Nutzerkonten für normale User.
+2. **Admin-Rolle:** Für rechtliche und operative Kontrolle (Inspektion, Löschen, Auszug für Behörden) wird eine **Admin-Rolle** benötigt – ohne Einführung von Nutzerkonten für normale Nutzende.
 3. **Einheitliche Routen:** Alle Routen sollen englisch, kurz und prägnant sein; an der URL soll erkennbar sein, wo man ist und welche Rolle man hat.
+
+## Implementierungsstatus im Repo (Stand 2026-04-01)
+
+- **Routenstruktur:** `host`, `present`, `vote`, `join`, `admin`, `help`, `news-archive`, `legal/*` sind im Angular-Router vorhanden.
+- **Admin-Modell:** Das Admin-Secret mit opakem Session-Token in Redis und zentraler `adminProcedure` ist umgesetzt.
+- **Host-Modell:** Das in dieser ADR beschriebene **Host-Token-Zielbild** ist im aktuellen Backend noch **nicht** vollständig umgesetzt; zentrale Session-Steuerung läuft derzeit noch nicht über eine eigene `hostProcedure`.
+- **`/session/:code` ohne Segment:** Der aktuelle Router leitet schlicht auf `host` um; der in dieser ADR beschriebene kontextabhängige Redirect ist noch kein Ist-Stand.
+- **Moderator-Route:** Als Zielbild beschrieben, aber im aktuellen Frontend-Router noch nicht als eigene Route vorhanden.
 
 ## Entscheidung
 
 ### 1. Rollen und Routen (URL-Struktur)
 
-| Rolle | URL-Segment(e) | Bedeutung |
-| --- | --- | --- |
-| **Host** | `/session/:code/host` | Dozent: Steuerung, Lobby |
-| **Present** | `/session/:code/present` | Dozent: Beamer/Projektion |
-| **Moderator** | `/session/:code/moderate` | Delegierte Live-Moderation mit eingeschränkten Rechten |
-| **Join** | `/join/:code` | Teilnehmer: Einstieg (QR-Ziel), Nickname, dann Redirect auf Vote |
-| **Vote** | `/session/:code/vote` | Teilnehmer: Abstimmung, Scorecard |
-| **Admin** | `/admin` | Admin: Dashboard, Session-Code-Eingabe, Liste, Detail, Löschen, Export |
+| Rolle         | URL-Segment(e)            | Bedeutung                                                                                            |
+| ------------- | ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Host**      | `/session/:code/host`     | Lehrperson: Steuerung, Lobby                                                                         |
+| **Present**   | `/session/:code/present`  | Lehrperson: Beamer/Projektion                                                                        |
+| **Moderator** | `/session/:code/moderate` | Delegierte Live-Moderation mit eingeschränkten Rechten (Zielbild; aktuell nicht als Route umgesetzt) |
+| **Join**      | `/join/:code`             | Teilnehmende: Einstieg (QR-Ziel), Nickname, dann Redirect auf Vote                                   |
+| **Vote**      | `/session/:code/vote`     | Teilnehmende: Abstimmung, Scorecard                                                                  |
+| **Admin**     | `/admin`                  | Admin: Dashboard, Session-Code-Eingabe, Liste, Detail, Löschen, Export                               |
 
 - **`/session/:code`** ohne Segment: Redirect auf `.../host` (wenn Host-Token) oder `/join/:code` (wenn unklar), damit keine mehrdeutige URL bleibt.
 - QR-Code (Story 2.1b) verweist auf **`/join/:code`**.
@@ -49,13 +57,13 @@ Zusätzliche delegierte Rollen wie **Presenter** und **Moderator** bauen auf der
 ### 3. Admin-Rolle und -Credentials
 
 - **Admin** ist eine **Betreiber-Rolle** (Plattform, Support, rechtliche Verantwortung). Keine Selbstregistrierung.
-- **Credentials:** Ein **geheimer Admin-Schlüssel** (z. B. Passphrase/API-Key) wird in der **Server-Umgebung** konfiguriert (`ADMIN_SECRET` o. ä.). Der **Betreiber** teilt ihn **out-of-band** nur berechtigten Admins mit.
-- **Login:** Beim Aufruf von `/admin` erscheint eine **Login-Seite**. Der Admin gibt den Schlüssel ein; Backend vergleicht mit dem konfigurierten Wert und vergibt bei Übereinstimmung ein **Session-Token** (z. B. JWT oder opaker Token in Redis mit TTL). Das Frontend speichert es (z. B. sessionStorage) und sendet es bei jedem Admin-tRPC-Aufruf mit. Keine Admin-Benutzerdatenbank im MVP.
+- **Credentials:** Ein **geheimer Admin-Schlüssel** wird in der **Server-Umgebung** konfiguriert (`ADMIN_SECRET`). Der **Betreiber** teilt ihn **out-of-band** nur berechtigten Admins mit.
+- **Login:** Beim Aufruf von `/admin` erscheint eine **Login-Seite**. Der Admin gibt den Schlüssel ein; Backend vergleicht mit dem konfigurierten Wert und vergibt bei Übereinstimmung ein **opakes Session-Token in Redis mit TTL**. Das Frontend speichert es in `sessionStorage` und sendet es bei jedem Admin-tRPC-Aufruf mit. Keine Admin-Benutzerdatenbank im MVP.
 
 ### 4. Absicherung der Admin-Route
 
 - **URL `/admin`:** Jede:r kann `/admin` im Browser **aufrufen** (die URL ist nicht geheim). **Ohne** gültiges Admin-Session-Token wird **nur die Login-Maske** angezeigt – kein Dashboard, keine Session-Daten.
-- **Frontend:** Route Guard (z. B. Angular `CanActivateFn`) bzw. Admin-Komponente: Ohne Token nur Login-UI auf derselben Route; mit gültigem Token wird das Admin-Dashboard (Session-Liste, Code-Eingabe, Detail, Löschen, Export) gerendert. Jeder Admin-tRPC-Aufruf sendet das Token mit (z. B. Header `Authorization: Bearer <token>`).
+- **Frontend:** Route Guard **oder** komponenteninterne Prüfung: Ohne Token nur Login-UI auf derselben Route; mit gültigem Token wird das Admin-Dashboard (Session-Liste, Code-Eingabe, Detail, Löschen, Export) gerendert. Jeder Admin-tRPC-Aufruf sendet das Token mit (z. B. Header `Authorization: Bearer <token>` oder `x-admin-token`).
 - **Backend:** **Jede** Admin-Prozedur prüft das Token (z. B. zentrale **adminProcedure**-Middleware); ungültig/fehlend → `UNAUTHORIZED`. Sicherheit liegt auf Token-Prüfung, nicht auf Geheimhaltung der URL.
 
 ### 5. Admin: Session-Lookup per Code
@@ -71,7 +79,7 @@ Zusätzliche delegierte Rollen wie **Presenter** und **Moderator** bauen auf der
 ### Positiv
 
 - Klare Trennung der Rollen in der URL; keine Rechtevergabe durch bloßes Aufrufen einer Adresse.
-- Host- und Admin-Zugriff sind tokenbasiert und serverseitig prüfbar; Frontend-Guards verbessern UX und verhindern Anzeige geschützter UI.
+- Admin-Zugriff ist tokenbasiert und serverseitig prüfbar; für den Host gilt dies als Zielbild derselben Architektur.
 - Presenter- und Moderator-Delegation werden möglich, ohne Vollzugriff auf die Session preiszugeben.
 - Admin-Rolle passt zur accountfreien Architektur: ein gemeinsamer Schlüssel in der Server-Config, keine Nutzerdatenbank für Admins.
 - Einheitliche, englische und kurze Routen; gute Orientierung für Entwicklung und Nutzung.
@@ -86,7 +94,7 @@ Zusätzliche delegierte Rollen wie **Presenter** und **Moderator** bauen auf der
 
 - **Rolle nur per URL „verstecken“:** Sicherheit durch Unkenntnis der Admin-URL – abgelehnt; Sicherheit soll auf Credentials/Token beruhen, nicht auf Geheimhaltung der Route.
 - **Account-basierte Admin-Anmeldung:** Würde eine Nutzerverwaltung für Admins erfordern; für MVP bewusst vermieden zugunsten eines einzelnen konfigurierbaren Admin-Secrets.
-- **Host-Rechte über Session-Code:** Wer den 6-stelligen Code kennt, könnte Host sein – abgelehnt, da Teilnehmer den Code ebenfalls kennen; Host-Token bleibt exklusiv bei Session-Erstellung.
+- **Host-Rechte über Session-Code:** Wer den 6-stelligen Code kennt, könnte Host sein – abgelehnt, da Teilnehmende den Code ebenfalls kennen; Host-Token bleibt exklusiv bei Session-Erstellung.
 
 ---
 

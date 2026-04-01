@@ -1,6 +1,6 @@
-# Mitwirken an arsnova.eu (Handover an Studis / Vibe Coding)
+# Mitwirken an arsnova.eu
 
-Dieses Projekt wird im **Vibe-Coding-Modus** weiterentwickelt: Ihr übernehmt die Architektur- und Produktrolle, die KI (Cursor, Copilot, o. Ä.) unterstützt bei der Umsetzung. Damit die Übergabe reibungslos läuft, hier die wichtigsten Schritte.
+Dieses Projekt wird **KI-gestützt** weiterentwickelt: Ihr übernehmt Architektur- und Produktverantwortung, die KI (Cursor, Copilot, o. Ä.) unterstützt bei der Umsetzung. Damit die Zusammenarbeit reibungslos läuft, hier die wichtigsten Schritte.
 
 ---
 
@@ -11,15 +11,15 @@ Dieses Projekt wird im **Vibe-Coding-Modus** weiterentwickelt: Ihr übernehmt di
    **Variablen:** [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) · **Doku-Überblick:** [docs/README.md](docs/README.md) · **Tests/CI:** [docs/TESTING.md](docs/TESTING.md) · **Sicherheit:** [docs/SECURITY-OVERVIEW.md](docs/SECURITY-OVERVIEW.md).
 2. **Pflichtlektüre (vor der ersten Story):**
    - [AGENT.md](AGENT.md) – Regeln für die KI (Baby-Steps, Signals, DTO-Stripping, Styling). **Immer zuerst in den KI-Kontext laden.**
-   - [Backlog.md](Backlog.md) – Storys, Prioritäten (🔴 Must, 🟡 Should, 🟢 Could), Definition of Done (DoD).
-   - Optional, für umfassenden KI-Kontext: [docs/cursor-context.md](docs/cursor-context.md) (z. B. `@docs/cursor-context.md` in Cursor).
+   - [Backlog.md](Backlog.md) – Stories, Prioritäten (🔴 Must, 🟡 Should, 🟢 Could), Definition of Done (DoD).
+   - Optional für komplexere KI-Sessions: [docs/cursor-context.md](docs/cursor-context.md).
 3. **Vibe-Coding-Beispiele:** [docs/vibe-coding/vibe-coding-szenario.md](docs/vibe-coding/vibe-coding-szenario.md), [docs/vibe-coding/Beispiel-Prompt.md](docs/vibe-coding/Beispiel-Prompt.md).
 
 ---
 
 ## 2. Story wählen & umsetzen
 
-- **Empfehlung:** Mit einer **🔴 Must-Story** aus Epic 1 oder 2 starten, die noch **⬜ Offen** ist (z. B. 1.1 Quiz erstellen).
+- **Empfehlung:** Mit einer **🔴 Must-Story** starten, die noch **⬜ Offen** ist.
 - **Reihenfolge:** Backlog-Text inkl. Akzeptanzkriterien lesen → Schema/DoD prüfen → **Backend oder Frontend zuerst** mit der KI umsetzen (Baby-Steps), dann die andere Seite – so bleibt die tRPC-Typsicherheit erhalten.
 - **Shared Types:** Neue/geänderte tRPC-Ein- und -Ausgaben zuerst in `libs/shared-types/src/schemas.ts` (Zod) anlegen, dann in Backend und Frontend nutzen.
 
@@ -38,7 +38,7 @@ Dieses Projekt wird im **Vibe-Coding-Modus** weiterentwickelt: Ihr übernehmt di
 
 - **Branch:** z. B. `feature/1.1-quiz-erstellen` oder `feature/2.4-data-stripping` (Epic/Story + Kurzbeschreibung).
 - **PR:** Beschreibung mit verknüpfter Story (z. B. „Closes Epic 1, Story 1.1“), kurze Zusammenfassung der Änderungen. CI (Build, Lint, Tests) muss grün sein.
-- **Review:** Dozent oder Team prüft gegen DoD und PR-Checkliste.
+- **Review:** Betreuung oder Team prüft gegen DoD und PR-Checkliste.
 
 ---
 
@@ -50,4 +50,4 @@ Dieses Projekt wird im **Vibe-Coding-Modus** weiterentwickelt: Ihr übernehmt di
 
 ---
 
-Viel Erfolg beim Umsetzen der Backlog-Ziele. 🚀
+Viel Erfolg beim Umsetzen der Backlog-Ziele.

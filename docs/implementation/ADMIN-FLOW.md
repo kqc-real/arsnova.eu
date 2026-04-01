@@ -69,13 +69,17 @@ Alle geschützten Admin-Prozeduren (`admin.listSessions`, `admin.getSessionDetai
 ## 4. Admin-Flow in der UI
 
 1. Route öffnen: `/admin` (lokal meist `/de/admin`).
-2. Admin-Schlüssel eingeben und anmelden.
-3. Sessions laden (Liste oder Code-Lookup).
-4. Session-Detail öffnen.
-5. Optional:
+2. Ohne gültiges Token rendert die `AdminComponent` auf derselben Route die Login-Maske.
+3. Admin-Schlüssel eingeben und anmelden.
+4. Token wird unter `arsnova-admin-token` in `sessionStorage` gespeichert.
+5. Sessions laden (Liste oder Code-Lookup).
+6. Session-Detail öffnen.
+7. Optional:
    - Legal Hold setzen/lösen
    - Behördenexport starten (PDF/JSON)
    - Session endgültig löschen
+
+**Wichtig:** Im aktuellen Frontend gibt es dafür **keinen separaten Angular-Route-Guard**; das Gating passiert komponentenintern plus serverseitig über `adminProcedure`.
 
 ### 4.1 Lösch-Flow (Story 9.2)
 
@@ -96,49 +100,37 @@ Zusätzliche Sicherheits-/Bedienregeln:
 
 ## 5. API-Kurzreferenz (tRPC)
 
+Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per `curl` ist zu beachten, dass tRPCs HTTP-Transportdetails je nach Client-/Batch-Konfiguration sperrig sind; für reproduzierbare manuelle Tests daher bevorzugt das Frontend oder einen kleinen tRPC-Client verwenden.
+
 ## 5.1 Login
 
-```bash
-curl -s -X POST "http://localhost:3000/trpc/admin.login" \
-  -H "content-type: application/json" \
-  --data '{"secret":"<ADMIN_SECRET>"}'
-```
-
-Erwartete Antwort (verkürzt):
-
-```json
-{
-  "result": {
-    "data": {
-      "token": "...",
-      "expiresAt": "..."
-    }
-  }
-}
-```
+- Procedure: `admin.login`
+- Input: `secret`
+- Output: `token`, `expiresAt`
 
 ## 5.2 Session prüfen (`whoami`)
 
-```bash
-curl -s "http://localhost:3000/trpc/admin.whoami?input=%7B%7D" \
-  -H "x-admin-token: <TOKEN>"
-```
+- Procedure: `admin.whoami`
+- Erfordert gültiges Admin-Token
+- Output: `{ authenticated: true }`
 
 ## 5.3 Sessions laden
 
-```bash
-curl -s "http://localhost:3000/trpc/admin.listSessions?input=%7B%22page%22%3A1%2C%22pageSize%22%3A25%7D" \
-  -H "x-admin-token: <TOKEN>"
-```
+- Procedure: `admin.listSessions`
+- Input: `page`, `pageSize`, optional Filter `status`, `type`, `code`
+- Output: paginierte Session-Liste innerhalb des Recherchefensters
 
 ## 5.4 Session löschen
 
-```bash
-curl -s -X POST "http://localhost:3000/trpc/admin.deleteSession" \
-  -H "content-type: application/json" \
-  -H "x-admin-token: <TOKEN>" \
-  --data '{"sessionId":"<SESSION_ID>","reason":"<optional>"}'
-```
+- Procedure: `admin.deleteSession`
+- Input: `sessionId`, optional `reason`
+- Output: `deleted`, `sessionId`, `sessionCode`
+
+## 5.5 Export
+
+- Procedure: `admin.exportForAuthorities`
+- Input: `sessionId`, Format (`PDF` oder `JSON`)
+- Output: Export-Metadaten plus Nutzdaten/Dateiinhalt gemäß DTO
 
 ## 6. Troubleshooting
 

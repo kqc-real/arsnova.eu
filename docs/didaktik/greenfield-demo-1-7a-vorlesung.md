@@ -1,8 +1,8 @@
-# Greenfield-Vorlesung: Story 1.7a (Markdown-Bilder, URL + Lightbox)
+# Greenfield-Demo: Story 1.7a (Markdown-Bilder, URL + Lightbox)
 
-**Zielgruppe:** Lehrende (Fallstudie Software Engineering)  
+**Zielgruppe:** Lehrende; für Studierende als Vorbereitungs- und Nachlesedokument geeignet.
 **Umfang:** **3 × 45 Minuten** = **135 Minuten** Gesamtzeit (eine Unterrichtseinheit pro Block; Pausen extra).  
-**Zielbild:** Studierende sehen **live**, wie mit **KI-Agenten** ein **abgegrenztes** Product-Feature aus dem [`Backlog.md`](../../Backlog.md) von Spezifikation bis lauffähigem UI umgesetzt wird — im **echten** Monorepo (`@arsnova/shared-types` wo nötig, Angular, ADR-0015, ADR-0008).
+**Zielbild:** Studierende sehen **live**, wie mit **KI-Agenten** ein **abgegrenztes** Feature aus dem [`Backlog.md`](../../Backlog.md) von Spezifikation bis lauffähigem UI umgesetzt wird — im **echten** Monorepo (`@arsnova/shared-types` wo nötig, Angular, ADR-0015, ADR-0008).
 
 **Story:** [`Backlog.md` — Story 1.7a](../../Backlog.md) (Abschnitt Epic 1).  
 **Architektur:** [ADR-0015: Markdown-Bilder, nur URL + Lightbox](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md).
@@ -13,8 +13,8 @@
 
 ## Leitlinien für die Zeitschiene (realistisch)
 
-- **Vollständige Erfüllung** aller Akzeptanzkriterien in 135 Minuten ist **ambitioniert**; planbar ist ein **vertikaler Kern**: HTTPS-only Bilder, Lightbox, **mindestens zwei** Markdown-Kontexte, **Start** i18n für Dialog-Strings.
-- **Rest** (alle Views, alle Sprachen, A11y-Feinschliff, Specs): **Hausaufgabe der Lehrperson** bis zur nächsten Sitzung oder explizit **nicht** Teil der Demo — transparent kommunizieren.
+- **Vollständige Erfüllung** aller Akzeptanzkriterien in 135 Minuten ist **ambitioniert**; planbar ist ein **vertikaler Kern**: Bilder nur mit `https://`-URL, Lightbox, **mindestens zwei** Markdown-Kontexte, **Beginn** der i18n für Dialog-Strings.
+- **Rest** (alle Views, alle Sprachen, A11y-Feinschliff, Tests): **Hausaufgabe der Lehrperson** bis zur nächsten Sitzung oder explizit **nicht** Teil der Demo — transparent kommunizieren.
 - **Branch:** Von Anfang an in einem **Feature-Branch** arbeiten; nach der Demo: PR, CI, Merge mit Betreuung — Vorbild für Studierende.
 
 ---
@@ -50,8 +50,8 @@
 | Minute (ca.) | Inhalt                                                                                                                                                                          |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0–15         | **Weitere Views:** Weitere **mindestens eine** der Pflicht-Ansichten aus dem Backlog anbinden (Vote, Present, Host — je nachdem was in Block 2 noch fehlt).                     |
-| 15–30        | **i18n:** Schließen-Label und ggf. Dialog-Titel mit `$localize` / `@@…` — **alle fünf** XLF-Dateien anfassen oder „ein String als Muster + Rest als Hausaufgabe“ kommunizieren. |
-| 20–35        | **A11y kurz:** Fokus ins Modal, Escape schließt, `aria-modal` (was der Backlog verlangt).                                                                                       |
+| 15–25        | **i18n:** Schließen-Label und ggf. Dialog-Titel mit `$localize` / `@@…` — **alle fünf** XLF-Dateien anfassen oder „ein String als Muster + Rest als Hausaufgabe“ kommunizieren. |
+| 25–35        | **A11y kurz:** Fokus ins Modal, Escape schließt, `aria-modal` (was der Backlog verlangt).                                                                                       |
 | 35–45        | **Tests:** mindestens **ein** sinnvoller Unit-Test (Renderer oder Komponente); **CI** grün — oder als offenes Ziel für die nächste Woche.                                       |
 
 **Mini-Input:** Monorepo (`libs/shared-types` nur wenn für die Story nötig; bei reinem Frontend ggf. entfallen).

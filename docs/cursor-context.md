@@ -6,7 +6,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 
 ## 1. Identität und Rolle
 
-- **Projekt:** arsnova.eu – interaktive Quiz- und Abstimmungsplattform (Live-Sessions, Dozent/Student-Rollen).
+- **Projekt:** arsnova.eu – interaktive Quiz- und Abstimmungsplattform (Live-Sessions, Rollen für Lehrende und Teilnehmende).
 - **KI-Rolle:** Lead-Architekt / Senior Full-Stack; Entscheidungen an Monorepo-Regeln und Backlog ausrichten.
 - **Artefakte:** Backlog.md (Storys, DoD), Prisma-Schema, Zod-Schemas in libs/shared-types, Diagramme in docs/diagrams/.
 - **Hintergrund (ARSnova-Ökosystem):** Dieses Repo ist eine moderne Neuimplementierung im Geiste von arsnova.click (THM) und der ARSnova-Tradition (Zero-Knowledge, Gamification, Bonus-Code, Didaktik). Genealogie, Didaktik und technische Grundlagen: **docs/background-arsnova-ecosystem.md**; vollständige Publikationsanalyse: **docs/deep-research-arsnova.click/ARSnova-Recherche.pdf**.
@@ -45,7 +45,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 ## 5. Sicherheit und Data-Stripping (kritisch)
 
 - **DTO-Pattern:** Daten werden serverseitig durch DTOs gefiltert, bevor sie an Clients gehen. Kein direktes Durchreichen von Prisma-Modellen.
-- **isCorrect:** Das Feld `AnswerOption.isCorrect` (richtige Lösung) darf **niemals** im Session-Status `ACTIVE` an Studenten gesendet werden. Erst nach Wechsel zu `RESULTS` und Auflösung durch den Dozenten werden Lösungen sichtbar (QuestionRevealedDTO, AnswerOptionRevealedDTO).
+- **isCorrect:** Das Feld `AnswerOption.isCorrect` (richtige Lösung) darf **niemals** im Session-Status `ACTIVE` an Teilnehmende gesendet werden. Erst nach Wechsel zu `RESULTS` und Auflösung durch die Lehrperson werden Lösungen sichtbar (QuestionRevealedDTO, AnswerOptionRevealedDTO).
 - **DTOs nach Phase:**
   - `QUESTION_OPEN` (Lesephase, Story 2.6): QuestionPreviewDTO – nur Fragenstamm, keine Antwortoptionen.
   - `ACTIVE`: QuestionStudentDTO – Frage inkl. Antwortoptionen, **ohne** isCorrect.
@@ -56,8 +56,8 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 
 ## 6. Session-Lifecycle und Status
 
-- **SessionStatus (Prisma enum):** LOBBY → QUESTION_OPEN (optional, Lesephase) → ACTIVE → RESULTS → PAUSED → (wieder QUESTION_OPEN/ACTIVE oder FINISHED).
-- **Lesephase (Story 2.6):** Bei `readingPhaseEnabled=true` zeigt „Nächste Frage“ zuerst nur den Fragenstamm (QUESTION_OPEN, QuestionPreviewDTO); Dozent klickt „Antworten freigeben“ → ACTIVE, dann QuestionStudentDTO / onAnswersRevealed. Bei `readingPhaseEnabled=false` wechselt „Nächste Frage“ direkt zu ACTIVE.
+- **SessionStatus (Prisma enum):** LOBBY → QUESTION_OPEN (optional, Lesephase) → ACTIVE → RESULTS → PAUSED / DISCUSSION → (wieder QUESTION_OPEN/ACTIVE oder FINISHED).
+- **Lesephase (Story 2.6):** Bei `readingPhaseEnabled=true` zeigt „Nächste Frage“ zuerst nur den Fragenstamm (QUESTION_OPEN, QuestionPreviewDTO); die Lehrperson klickt „Antworten freigeben“ → ACTIVE, dann QuestionStudentDTO / onAnswersRevealed. Bei `readingPhaseEnabled=false` wechselt „Nächste Frage“ direkt zu ACTIVE.
 - **Wichtige tRPC-Events:** onQuestionRevealed, onAnswersRevealed (bei Lesephase), onResultsRevealed, onStatusChanged, onParticipantJoined, onPersonalResult (Scorecard, Bonus-Token).
 
 ---
@@ -77,7 +77,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **QaUpvote:** qaQuestionId, participantId.
 - **MOTD (Epic 10):** u. a. Motd, MotdTemplate, MotdLocale, MotdInteractionCounter, MotdAuditLog — öffentliche Lesepfade über `motdRouter`, Schreibzugriff nur `admin.motd.*` (siehe ADR-0018).
 - **PlatformStatistic:** z. B. eine Zeile `id = default`, Feld `maxParticipantsSingleSession` (Rekord; Anzeige in `health.stats` / Hilfe).
-- **Enums:** QuestionType (MULTIPLE_CHOICE, SINGLE_CHOICE, FREETEXT, SURVEY, RATING), Difficulty (EASY, MEDIUM, HARD), SessionStatus (LOBBY, QUESTION_OPEN, ACTIVE, PAUSED, RESULTS, FINISHED), NicknameTheme, TeamAssignment, SessionType (QUIZ, Q_AND_A), QaQuestionStatus (PENDING, ACTIVE, PINNED, ARCHIVED, DELETED).
+- **Enums:** QuestionType (MULTIPLE_CHOICE, SINGLE_CHOICE, FREETEXT, SURVEY, RATING), Difficulty (EASY, MEDIUM, HARD), SessionStatus (LOBBY, QUESTION_OPEN, ACTIVE, PAUSED, RESULTS, DISCUSSION, FINISHED), NicknameTheme, TeamAssignment, SessionType (QUIZ, Q_AND_A), QaQuestionStatus (PENDING, ACTIVE, PINNED, ARCHIVED, DELETED).
 
 ---
 
@@ -86,24 +86,24 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **appRouter** (apps/backend/src/routers/index.ts): health, quiz, session, vote, qa, quickFeedback, **motd** (öffentlich: `getCurrent`, `listArchive`, `getHeaderState`, `recordInteraction`), admin (inkl. verschachtelt **`admin.motd.*`** für MOTD/Templates, Epic 10 ✅).
 - **health:** check, stats (Story 0.4, inkl. `maxParticipantsSingleSession` / `PlatformStatistic`), footerBundle (Check+Stats parallel), ping (Subscription-Heartbeat).
 - **quiz:** upload (QuizUploadInputSchema), getById, list, etc.
-- **session:** create (CreateSessionInputSchema), getInfo (per code), join (JoinSessionInputSchema), nextQuestion, revealAnswers (Story 2.6), revealResults, end; Subscriptions: onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed, onResultsRevealed, onPersonalResult; getBonusTokens, getLeaderboard; getExportData (Story 4.7: GetExportDataInputSchema → SessionExportDTO).
+- **session:** create (CreateSessionInputSchema), getInfo (per code), join (JoinSessionInputSchema), nextQuestion, revealAnswers (Story 2.6), revealResults, startDiscussion, startSecondRound, end; Subscriptions: onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed, onResultsRevealed, onPersonalResult; getBonusTokens, getLeaderboard; getExportData (Story 4.7: GetExportDataInputSchema → SessionExportDTO).
 - **vote:** submit (SubmitVoteInputSchema).
-- **qa:** submitQuestion, upvote, moderate (Dozent), etc.
+- **qa:** submitQuestion, upvote, moderate (Lehrperson/Moderation), etc.
 - Alle Ein-/Ausgaben über Zod-Schemas aus libs/shared-types (CreateSessionInputSchema, QuizUploadInputSchema, SubmitVoteInputSchema, JoinSessionInputSchema, SessionInfoDTOSchema, QuestionPreviewDTO, QuestionStudentDTO, QuestionRevealedDTO, PersonalScorecardDTO, LeaderboardEntryDTO, BonusTokenListDTO, SessionExportDTO, GetExportDataInputSchema, etc.).
 
 ---
 
 ## 9. Frontend-Routen und Komponenten (Überblick)
 
-- **App-Verzeichnis (Angular-konform):** `apps/frontend/src/app/` ist nach Feature-Bereichen organisiert: **core/** (App-weite Singletons: ws-urls, trpc.client, theme-preset.service), **shared/** (wiederverwendbare UI: preset-toast, server-status-widget), **features/** (pro Route/Feature: home, quiz, session, legal, help). Keine typbasierten Ordner wie `components/` oder `services/` (Angular Style Guide).
-- **Routen:** / (Home), /quiz (Quiz-Verwaltung), /session/:code/host (Dozent-Steuerung), /session/:code/present, /session/:code/vote, /join/:code, /feedback/:code, /feedback/:code/vote, /legal (Impressum, Datenschutz).
-- **Host = Beamer (gespiegelt):** Übliche Laptops haben nur einen Bildschirmausgang; was der Dozent sieht, wird 1:1 per HDMI auf den Beamer gespiegelt. **Die Host-Ansicht (/session/:code/host) ist daher die einzige Projektions-Ansicht** – alles (Lobby, Frage, Steuerung) spielt sich in diesem View ab. Sie ist beamer-tauglich gestaltet; **nichts wird verraten**, was der Dozent nicht freigegeben hat (z. B. korrekte Antworten erst nach „Ergebnis zeigen“). Story 2.5 (Beamer-Ansicht) bedeutet: diese Host-Ansicht ist die Beamer-Ansicht; eine separate Route /present ist optional (z. B. gleicher Inhalt in Vollbild-Tab).
-- **Home:** HomePageComponent in features/home (inkl. Segment-Code-Input, Snackbar, Blitzlicht-Schnellstart, Status-Dot im Brand-SVG), PresetToastComponent in shared.
-- **Quiz:** QuizListComponent, QuizEditorComponent, QuizConfigComponent, QuestionEditorComponent, AnswerEditorComponent, QuizPreviewComponent, ImportExportComponent.
-- **Session (Dozent):** LobbyComponent, QuizControlComponent, BeamerViewComponent, QaModeratorComponent, FeedbackHostComponent, BonusTokenListComponent; Beamer: ResultChartComponent, WordcloudComponent, RatingHistogramComponent, LeaderboardComponent, EmojiOverlayComponent, QrCodeComponent, CountdownComponent.
-- **Student:** NicknameSelectComponent, VotingViewComponent, FeedbackVoteComponent, AnswerButtonsComponent, McToggleButtonsComponent, RatingScaleComponent, FreetextInputComponent, ScorecardComponent, BonusTokenDisplay, MotivationMessageComponent, EmojiBarComponent, QaStudentComponent, CountdownComponent.
-- **Shared:** PresetToastComponent, ServerStatusWidgetComponent; (geplant: HeaderComponent, FooterComponent, ThemeSwitcherComponent, CountdownComponent, MarkdownKatexComponent, ConfirmDialogComponent).
-- **Core:** trpc (core/trpc.client: im Browser wsLink+httpBatchLink, bei SSR nur httpBatchLink), ThemePresetService (core/theme-preset.service), ws-urls (core/ws-urls); (geplant: YjsService, Guards, Interceptors).
+- **App-Verzeichnis (Angular-konform):** `apps/frontend/src/app/` ist nach Feature-Bereichen organisiert: **core/** (App-weite Singletons und Plattformlogik, z. B. `trpc.client`, Locale-, MOTD- und Theme-Dienste), **shared/** (wiederverwendbare UI wie `preset-toast`, `server-status-widget`, `top-toolbar`), **features/** (pro Route/Feature, u. a. `home`, `quiz`, `session`, `feedback`, `join`, `legal`, `help`, `admin`). Keine typbasierten Ordner wie `components/` oder `services/` (Angular Style Guide).
+- **Routen:** `/` (Home), `/quiz`, `/session/:code/host`, `/session/:code/present`, `/session/:code/vote`, `/join/:code`, `/feedback/:code`, `/feedback/:code/vote`, `/admin`, `/help`, `/news-archive`, `/legal/imprint`, `/legal/privacy`; zusätzlich mit Locale-Präfixen wie `/de/...`.
+- **Host vs. Present:** Beide Routen existieren. `/session/:code/host` ist die Steuerungsansicht der Lehrperson; `/session/:code/present` ist die gesonderte Projektions-/Beameransicht. Bei gespiegeltem Setup kann faktisch trotzdem die Host-Ansicht projiziert werden; architektonisch sind es im aktuellen Router aber **zwei** getrennte Views.
+- **Home:** `HomeComponent` in `features/home` (Session-Code-Input, Schnellstart/Presets, MOTD-Overlay, Status-/Hilfelinks); ergänzend `PresetToastComponent` in `shared`.
+- **Quiz:** routed über `QuizComponent`; zentrale Teilansichten sind u. a. `QuizListComponent`, `QuizNewComponent`, `QuizEditComponent`, `QuizPreviewComponent`, `QuizSyncComponent` sowie `quiz-store.service.ts` als fachlicher Kern.
+- **Session (Lehrperson):** u. a. `SessionHostComponent`, `SessionPresentComponent`, `FeedbackHostComponent`; zugehörige Präsentations-/Visualisierungsbausteine liegen vor allem unter `features/session/session-present`.
+- **Teilnehmende:** u. a. `JoinComponent`, `SessionVoteComponent`, `FeedbackVoteComponent`; teilnehmerspezifische Interaktionslogik lebt hauptsächlich in `features/session/session-vote` und `features/feedback`.
+- **Shared:** u. a. `PresetToastComponent`, `ServerStatusWidgetComponent`, `TopToolbarComponent`, `MotdArchiveDialogComponent`, `ConnectionBannerComponent`, `ConfirmLeaveDialogComponent`, `CountdownFingersComponent`.
+- **Core:** `trpc.client`, `ws-urls`, `theme-preset.service`, `locale-router`, `locale-switch-guard.service`, `motd-storage`, `motd-header-state.service`; browser-/SSR-spezifische Trennung passiert hier zentral.
 - **SSR/Prerender:** HttpClient mit `withFetch()`; localStorage/requestIdleCallback nur in Komponenten mit `isPlatformBrowser(PLATFORM_ID)` (z. B. HomeComponent); tRPC-WebSocket nur im Browser.
 
 ---
@@ -114,7 +114,7 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **Epic 1 – Quiz-Erstellung:** Quiz anlegen (1.1), Fragentypen MC/SC (1.2a), Freitext/Umfrage (1.2b), Rating (1.2c), Antworten & Lösungen (1.3), Sitzungs-Konfiguration (1.4), Local-First (1.5), Yjs Sync (1.6), Sync-Link (1.6a), Preset/Optionen-Sync (1.6b), Markdown/KaTeX (1.7), Markdown-Editor-Umfang vs. KI-Paste siehe **ADR-0017**, Export/Import (1.8/1.9), Bearbeiten/Löschen (1.10), Presets (1.11), SC-Schnellformate (1.12), Preview (1.13), Word Cloud interaktiv + Export (1.14).
 - **Epic 2 – Session-Steuerung:** Quiz-Upload & Session-ID (2.1a), QR-Code (2.1b), Lobby (2.2), Präsentations-Steuerung (2.3), Data-Stripping (2.4), Beamer (2.5), Zwei-Phasen-Frageanzeige/Lesephase (2.6).
 - **Epic 3 – Teilnahme & Abstimmung:** Beitreten (3.1), Nicknames (3.2), Frage empfangen (3.3a), Abstimmung (3.3b), Echtzeit-Feedback (3.4), Countdown (3.5), Anonymer Modus (3.6).
-- **Epic 4 – Auswertung & Cleanup:** Leaderboard (4.1), Server aufräumen (4.2), WebSocket Reconnection (4.3), Ergebnis-Visualisierung (4.4), Freitext-Auswertung (4.5), Bonus-Token (4.6), Ergebnis-Export für Dozenten (4.7).
+- **Epic 4 – Auswertung & Cleanup:** Leaderboard (4.1), Server aufräumen (4.2), WebSocket Reconnection (4.3), Ergebnis-Visualisierung (4.4), Freitext-Auswertung (4.5), Bonus-Token (4.6), Ergebnis-Export für Lehrende (4.7).
 - **Epic 5 – Gamification & UX:** Sound (5.1), Hintergrundmusik (5.3), Belohnungseffekte (5.4), Answer Streak (5.5), Scorecard (5.6), Motivationsmeldungen (5.7), Emoji-Reaktionen (5.8).
 - **Epic 6 – Theming, i18n, Rechtliches, A11y:** Dark/Light/System (6.1), i18n (6.2), Impressum & Datenschutz (6.3), Mobile-First (6.4); **offen:** Barrierefreiheit Abschluss (6.5), Thinking Aloud / UX-Umsetzung (6.6).
 - **Epic 7 – Team-Modus:** Team-Modus (7.1) ✅.
@@ -129,7 +129,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 
 ## 11. Definition of Done (Kernpunkte)
 
-- Code kompiliert (tsc --noEmit Backend, Frontend, shared-types); kein `any`; alle tRPC-Ein-/Ausgaben über Zod aus shared-types; DTO-Pattern eingehalten; isCorrect nie in ACTIVE an Studenten.
+- Code kompiliert (tsc --noEmit Backend, Frontend, shared-types); kein `any`; alle tRPC-Ein-/Ausgaben über Zod aus shared-types; DTO-Pattern eingehalten; isCorrect nie in ACTIVE an Teilnehmende.
 - Tests: mind. ein Unit-Test pro tRPC-Mutation/Query; automatisierter Test für QuestionStudentDTO ohne isCorrect in ACTIVE und für QuestionRevealedDTO mit isCorrect in RESULTS.
 - Frontend: nur Standalone + Signals, @if/@for, Mobile-First, Touch-Targets >=44px, Tastatur, Dark/Light, reduced-motion, Lighthouse A11y >=90. Micro-Interactions immer in `@media (prefers-reduced-motion: no-preference)`. UX-Patterns (Segment-Input, Snackbar, Conditional Chips) siehe `docs/ui/STYLEGUIDE.md`.
 - Barrierefreiheit: semantisches HTML, aria-label/aria-live, Farbunabhängigkeit (Icons/Text für Richtig/Falsch).
@@ -151,7 +151,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 
 - **Backlog:** Backlog.md (Repo-Root) – vor Story-Start prüfen.
 - **Hintergrund / Ökosystem:** docs/background-arsnova-ecosystem.md (Kurzüberblick ARSnova-Familie, Bezug zu diesem Repo); docs/deep-research-arsnova.click/ARSnova-Recherche.pdf (Deep Research zu arsnova.click, Genealogie, Publikationen).
-- **Mitwirken / Handover:** CONTRIBUTING.md – Einstieg für Studis (Setup, Story-Wahl, DoD vor PR, Branch/PR); bei Fragen zu Workflow oder „wie starte ich?“ darauf verweisen.
+- **Mitwirken / Handover:** CONTRIBUTING.md – Einstieg für Studierende (Setup, Story-Wahl, DoD vor PR, Branch/PR); bei Fragen zu Workflow oder „wie starte ich?“ darauf verweisen.
 - **Schema:** prisma/schema.prisma; libs/shared-types/src/schemas.ts (Zod, DTOs).
 - **Router:** apps/backend/src/routers/index.ts, apps/backend/src/routers/\*.ts.
 - **Diagramme:** docs/diagrams/diagrams.md (detailliert), docs/diagrams/architecture-overview.md (Übersicht).
@@ -204,7 +204,7 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 
 - **Docker Compose:** PostgreSQL, Redis, Backend (Port 3000), Frontend (Port 4200 oder gebaut und ausgeliefert); Umgebungsvariablen für DB_URL, REDIS_URL; Backend und Frontend im selben Netzwerk.
 - **Skripte:** npm run build im Monorepo-Root baut alle Apps; apps/backend und apps/frontend haben eigene build-Skripte; Prisma generate und migrate vor Backend-Start.
-- **Lokaler Alltags-Dev:** `npm run dev` startet Frontend mit **englischem** i18n-Bundle (Browser: **`http://localhost:4200/en/`**). Deutsche Quelltexte ohne `localize`: **`npm run dev:de`** → **`http://localhost:4200`**. Siehe README Abschnitt 3 und [docs/I18N-ANGULAR.md](I18N-ANGULAR.md).
+- **Lokaler Alltags-Dev:** `npm run dev` startet Frontend standardmäßig mit der **deutschen** Quell-Locale (**`http://localhost:4200`**). Die englische Einsprachen-Variante startet mit **`npm run dev:en`**. Siehe README Abschnitt 3 und [docs/I18N-ANGULAR.md](I18N-ANGULAR.md).
 - **Umgebungen:** Entwicklung (localhost), optional Staging/Produktion; keine Secrets im Repo; .env-Beispiele in .env.example dokumentieren.
 - **Deploy vs. laufende Sessions:** Kanonischer Session-/Vote-Stand in **PostgreSQL**; WebSocket-Reconnect mit Backoff + Jitter, HTTP-Fallback-Polling und Resync bei Subscription-Fehlern (`trpc.client.ts`, Session-Host/Vote). Kurzüberblick: [docs/deployment-debian-root-server.md](deployment-debian-root-server.md) § 7.1.
 

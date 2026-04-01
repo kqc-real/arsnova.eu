@@ -8,11 +8,7 @@ Willkommen. Dieses Dokument erklärt **Ziele**, **Ablauf**, **bewertete Leistung
 
 **Du kennst Git, VS Code, npm oder Begriffe wie tRPC/Prisma noch nicht?** Start mit **[`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)** (Landkarte + Links), dann [`docs/onboarding.md`](../onboarding.md) zum Aufsetzen der Umgebung.
 
-**Parallel am selben Produkt:** Der **SQM-Praktikumsauftrag** (Qualität, Tests, Reviews, UX, Guidde) steht in **[`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)**; das didaktische **Zwei-Kurse-Modell** in [`docs/didaktik/zweiter-kurs-und-agentische-ki.md`](../didaktik/zweiter-kurs-und-agentische-ki.md).
-
-**Fallstudie Software Engineering + SQM — erste Vorlesung(en):** **Greenfield-Demo** [**Story 1.7a**](../../Backlog.md) (Markdown-Bilder: URL + Lightbox) in **3×45 Minuten** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md): Lehrperson und **KI-Agent** setzen live um, was im Stack üblich ist (Angular, ADR-0015, i18n); **parallel** Mini-Inputs zu **VS Code, Git, GitHub** und **Projekttechnologien**. **Studierende** bearbeiten **1.7a nicht** parallel als Praktikums-Ticket (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) Abschnitt 0) und starten danach mit der **Reihenfolge in Abschnitt 3**. **Epic 10 (MOTD)** bleibt optional **zweites** Referenzbeispiel (fertiger Code: [`docs/features/motd.md`](../features/motd.md)).
-
-**Kurs 3 (Data Analytics, nicht zwingend parallel):** NLP und **Modellwahl/Prompting** für die **Intelligente Moderationshilfe** (Wortwolke & Q&A) auf **selbst gehosteten** Modellen — **`PRAKTIKUM-DATA-ANALYTICS.md`** · Einordnung `docs/didaktik/dritter-kurs-data-analytics-nlp.md`.
+**Einstieg in die Fallstudie:** Die erste Sitzung beginnt mit einer **Greenfield-Demo** zu [**Story 1.7a**](../../Backlog.md) (Markdown-Bilder: URL + Lightbox) in **3×45 Minuten** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md). Dabei setzt die Lehrperson mit **KI-Agent** live einen überschaubaren Feature-Strang um und ordnet parallel Werkzeuge und Projektstruktur ein. **Studierende** bearbeiten **1.7a** danach **nicht** zusätzlich als Praktikums-Ticket, sofern die Demo die Story inhaltlich abdeckt (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0).
 
 ## Ausführliche Begriffe (Konzept & Intelligente Moderationshilfe)
 
@@ -35,12 +31,12 @@ Technisch (für deine Orientierung):
 | Frontend                 | `apps/frontend/` — **Angular** (Standalone, **Signals**), **Angular Material 3** |
 | Backend                  | `apps/backend/` — **Node.js**, **tRPC**, **Prisma**, Redis                       |
 | Gemeinsame API-Typen     | `libs/shared-types/` — **Zod**-Schemas (verbindlich für tRPC)                    |
-| Architektur-Kurzreferenz | [`docs/cursor-context.md`](../cursor-context.md)                                 |
+| Architektur-Kurzreferenz | [`docs/architecture/handbook.md`](../architecture/handbook.md)                   |
 | Produkt-Backlog          | [`Backlog.md`](../../Backlog.md) im Repo-Root                                    |
 
 **Erste Schritte:** [`docs/onboarding.md`](../onboarding.md), [`AGENT.md`](../../AGENT.md) (Arbeitsweise mit KI im Editor), [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 
-**Offene User Stories — didaktische Reihenfolge** (wenn jede Person alle Stories durchläuft, KI codiert, Studi steuert): [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md).
+**Offene User Stories — didaktische Reihenfolge** (wenn jede Person alle Stories durchläuft und KI-gestützt umsetzt): [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md).
 
 ---
 
@@ -70,7 +66,7 @@ Die **40 Stunden** sind eine **Richtgröße**. Nicht jede Stunde muss „Code sc
 
 Eine **studentenfreundliche**, aber **fachlich klare** Ausarbeitung (ca. **3–6 Seiten** reichen, plus Abbildungen/Schema):
 
-1. **Problem:** Warum reicht eine rein **lexikalische** Wortwolke (Token zählen) für Lehrkontexte oft nicht? Was soll durch **semantische / lexikonische Angleichung** besser werden?
+1. **Problem:** Warum reicht eine rein **lexikalische** Wortwolke (Token zählen) für Lehrkontexte oft nicht? Was soll durch **semantische / lexikalische Angleichung** besser werden?
 2. **Zielbild:** Was ist ein **Kanontoken** / **Themenlabel**? Wie entstehen **Gewichte** (z. B. Anzahl zugrunde liegender Antworten)?
 3. **Datenfluss:** Welche **Rohdaten** (Freitextantworten, Q&A-Fragentexte) gehen **wohin**? **Wer** darf die Funktion auslösen (typisch: **nur Host**)?
 4. **Externes LLM:** Aufruf **serverseitig**; **kein API-Key im Frontend**. Timeout, Fehlerfälle, **keine unnötige Protokollierung** personenbezogener Inhalte (siehe auch [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)).
@@ -81,11 +77,9 @@ Eine **studentenfreundliche**, aber **fachlich klare** Ausarbeitung (ca. **3–6
 
 #### Mindestumfang: Feature-Set „Intelligente Moderationshilfe“
 
-> **Hinweis zur Synergie:** Während du in diesem Entwicklungs-Praktikum die **technische Produktintegration** (tRPC, Zod, Angular-UI) der Moderationshilfe baust, fokussiert sich das Data-Analytics-Praktikum (Kurs 3) auf das **NLP-Konzept, Prompt-Design und die Modellwahl** für genau diese Features. Siehe dazu **`PRAKTIKUM-DATA-ANALYTICS.md`**.
-
 | Teil                                                   | Inhalt                                                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A) Intelligente / semantische Wortwolke (Freitext)** | Auf Basis der **Freitextantworten** einer laufenden Auswertung: Anbindung an eure **selbst gehostete LLM-API** zur **Bündelung** ähnlicher Aussagen (semantisch und/oder lexikonisch). Darstellung in der **Host-** (und ggf. **Present-**)Ansicht, **ohne** die bestehende einfache Wolke zwanghaft zu entfernen (z. B. Umschalter oder zweite Karte). |
+| **A) Intelligente / semantische Wortwolke (Freitext)** | Auf Basis der **Freitextantworten** einer laufenden Auswertung: Anbindung an eure **selbst gehostete LLM-API** zur **Bündelung** ähnlicher Aussagen (semantisch und/oder lexikalisch). Darstellung in der **Host-** (und ggf. **Present-**)Ansicht, **ohne** die bestehende einfache Wolke zwanghaft zu entfernen (z. B. Umschalter oder zweite Karte). |
 | **B) Q&A: Zusammenfassung + semantische Aufbereitung** | Aus den **Q&A-Fragentexten** einer Session (serverseitig lesbar): **kurze Zusammenfassung** für die Lehrperson plus **thematische Schlagwörter** oder **kleine semantische Wolke** — Umfang im Konzept festlegen, damit es in 40 h realistisch bleibt.                                                                                                  |
 
 **Qualitätsanforderungen:**
@@ -187,7 +181,7 @@ Nein als Pflicht. **Lesbarkeit** und **korrekte Aggregation** zählen mehr als P
 Ja, sobald **neue** UI-Texte dazukommen (**ADR-0008**). Reine Fehlermeldungen vom Server ggf. als i18n-fähige Codes + Übersetzung im Client — im Konzept kurz festlegen.
 
 **Wo frage ich nach?**  
-Bei der **Betreuung** vor Ort; im Repo bei inhaltlichen Regeln zusätzlich `docs/cursor-context.md` und `Backlog.md`.
+Bei der **Betreuung** vor Ort; im Repo bei inhaltlichen Regeln zusätzlich [`Backlog.md`](../../Backlog.md) und das [Architektur-Handbuch](../architecture/handbook.md).
 
 ---
 

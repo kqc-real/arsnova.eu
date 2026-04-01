@@ -2,21 +2,24 @@
 
 **Zielgruppe:** Du kannst **grundlegend programmieren** (z. B. Variablen, Schleifen, Funktionen in einer Hochschulsprache), kennst aber **noch nicht** die **Entwicklungswerkzeuge** und **Projekttechnologien** von arsnova.eu.
 
-**Zweck dieses Dokuments:** Eine **Landkarte** — was es gibt, **wofür** es im Projekt da ist, und **wo** du es dir aneignest. Es ersetzt **keine** ausführlichen Tutorials; die Verlinkungen und die **Vorlesung** (**Greenfield-Demo Story 1.7a**, 3×45 Min., siehe [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md) und [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) Abschnitt 0) ergänzen es.
+**Zweck dieses Dokuments:** Eine **Landkarte** — was es gibt, **wofür** es im Projekt da ist, und **wo** du es dir aneignest. Es ersetzt **keine** ausführlichen Tutorials; die verlinkten Dokumente und die jeweilige Einführungsveranstaltung ergänzen es.
 
 **Als Nächstes nach dem Lesen:** Praktisches Setup Schritt für Schritt: [`docs/onboarding.md`](../onboarding.md).
 
 ---
 
-## 1. Die drei Kurse und was du voraussetzen solltest
+## 1. Was du am Anfang können solltest
 
-| Kurs                                              | Typische Dokumente                                                                                                                         | Mindest-Orientierung (ohne sofort tiefe Beherrschung)                                                                                                                                  |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Fallstudie Software Engineering** (Entwicklung) | [`PRAKTIKUM.md`](./PRAKTIKUM.md), [`AGENT.md`](../../AGENT.md), [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md)           | **Git** (klonen, Branch, Commit), **VS Code** (Ordner öffnen, Terminal), **npm** (`npm install`, Scripts), **Lesen** von TypeScript-Dateien; Rest kommt über Vorlesung + Story-Arbeit. |
-| **Software-Qualitätsmanagement**                  | [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)                                                                                                   | Wie oben, plus: **Pull Request** auf GitHub verstehen, **Tests** als Sicherheitsnetz (grün/rot), **Diff** in der UI lesen.                                                             |
-| **Data Analytics / NLP** (Kurs 3)                 | [`PRAKTIKUM-DATA-ANALYTICS.md`](./PRAKTIKUM-DATA-ANALYTICS.md), [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](./BEGRIFFE-FREITEXT-UND-SEMANTIK.md) | Schwerpunkt **Python/NLP/Modelle**; **Monorepo und tRPC** nur soweit nötig, um mit Kurs 1 zu sprechen — Abschnitt 8 in `PRAKTIKUM-DATA-ANALYTICS.md`.                                  |
+Für den Einstieg reicht eine **solide Grundorientierung**. Du musst zu Beginn **nicht** den gesamten Stack beherrschen.
 
-**In der Vorlesung:** Die Lehrperson zeigt **Story 1.7a** (Markdown-Bilder + Lightbox) als **Greenfield** mit KI-Agent (**3×45 Min.**) und erklärt **parallel** Werkzeuge (VS Code, Git, GitHub) und Stack-Bausteine — siehe [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md) und [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0.
+- **Git:** Repository klonen, Status prüfen, Änderungen committen.
+- **VS Code oder vergleichbarer Editor:** Projektordner öffnen, Suche nutzen, Terminal starten.
+- **npm:** Abhängigkeiten installieren und Skripte ausführen (`npm install`, `npm run dev`).
+- **TypeScript lesen:** Du musst am Anfang nicht alles schreiben können, aber Dateien und Typen grob einordnen können.
+
+Welche **weiteren** Dokumente für deine Veranstaltung Pflicht sind, sagt dir die **Betreuung**. Dieses Dokument ist die gemeinsame Landkarte für den technischen Einstieg.
+
+**Je nach Veranstaltung:** Die Lehrperson kann den Einstieg über eine **Greenfield-Demo** zu **Story 1.7a** ergänzen. Das hilft beim Überblick über Repo, Werkzeuge und Arbeitsweise, ersetzt aber **nicht** das praktische Setup.
 
 ---
 
@@ -60,7 +63,7 @@
 | **Zod**                       | **Validierung** und Typen für API-Eingaben/-Ausgaben in `libs/shared-types`.                                                | [Zod](https://zod.dev) (Englisch); Regel im Projekt: Schemas **zuerst** in shared-types.                                                                      |
 | **Prisma**                    | **Datenbankzugriff** und Schema in `prisma/schema.prisma` (Tabellen, Beziehungen).                                          | [Prisma — Getting Started](https://www.prisma.io/docs/getting-started) (Englisch); lokal: `npx prisma db push`, `npx prisma studio`.                          |
 | **PostgreSQL**                | **Relationale Datenbank** für persistente Serverdaten.                                                                      | Du bedienst sie über Prisma; SQL-Grundlagen helfen langfristig (optional).                                                                                    |
-| **Redis**                     | **Schneller Speicher** für Sessions, Rate-Limits, Echtzeit-Hilfsdaten — nicht der Ort für MOTD-Dauerdaten (siehe ADR-0018). | Im Kurs: wissen, dass der Stack Redis **braucht** (Docker); Details bei Bedarf in `docs/cursor-context.md`.                                                   |
+| **Redis**                     | **Schneller Speicher** für Sessions, Rate-Limits, Echtzeit-Hilfsdaten — nicht der Ort für MOTD-Dauerdaten (siehe ADR-0018). | Im Kurs reicht zunächst: wissen, dass der Stack Redis **braucht** (Docker). Tiefer einsteigen kannst du später über das Architektur-Handbuch.                 |
 
 ---
 
@@ -68,8 +71,8 @@
 
 1. Dieses Dokument **einmal durchlesen** (Orientierung).
 2. [`docs/onboarding.md`](../onboarding.md) — Umgebung **wirklich aufsetzen**, bis `npm run dev` läuft.
-3. **Vorlesung** zur Greenfield-Demo **1.7a** mitverfolgen (Ablauf 3×45 Min.; Zusammenspiel Stack + KI-Agent).
-4. Erste **User Story** aus [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) mit Betreuung starten; bei Begriffen **hierher zurück** oder offizielle Docs öffnen.
+3. Die **kursinterne Einführungsveranstaltung** oder die dazugehörige Pflichtlektüre verfolgen.
+4. Mit dem **ersten Arbeitspaket** deiner Veranstaltung starten; bei Begriffen **hierher zurück** oder offizielle Docs öffnen.
 
 ---
 
@@ -82,4 +85,4 @@ Bei **Lücken in der Veranstaltung:** Betreuung ansprechen — diese Datei soll 
 
 ---
 
-**Stand:** 2026-04-01 (Greenfield-Vorlesung 1.7a, 3×45 Min.)
+**Stand:** 2026-04-01

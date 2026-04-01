@@ -1,16 +1,14 @@
 <!-- markdownlint-disable MD013 MD022 MD032 -->
 
-# Praktikum Data Analytics und NLP (Kurs 3) — Intelligente Moderationshilfe
+# Praktikum Data Analytics und NLP — Intelligente Moderationshilfe
 
-**Für Studierende** · **Kurs 3 (Data Analytics)** · **Umfang:** in der Regel **10 Termine à 4 Stunden** (ca. **40 Stunden** Planungsgröße — exakte Vorgabe gibt die **Betreuung** in der Veranstaltung)
+**Für Studierende** · **Umfang:** in der Regel **10 Termine à 4 Stunden** (ca. **40 Stunden** Planungsgröße — exakte Vorgabe gibt die **Betreuung** in der Veranstaltung)
 
-**Wichtig:** Dieser Kurs muss **nicht** parallel zu den Praktika **Entwicklung** ([`PRAKTIKUM.md`](./PRAKTIKUM.md)) und **SQM** ([`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md)) laufen. Er kann **danach**, **davor** (Konzeptphase) oder in einem **eigenen Semester** stattfinden — siehe [`docs/didaktik/dritter-kurs-data-analytics-nlp.md`](../didaktik/dritter-kurs-data-analytics-nlp.md).
-
-**Programmiergrundlagen ohne Erfahrung mit dem arsnova.eu-Stack?** Für die **Einordnung** von Monorepo, tRPC und Zod (wenn du mit Kurs 1 sprichst): **[`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)** — dein Schwerpunkt bleibt NLP/Analytics (siehe Abschnitt 8 in diesem Dokument).
+**Programmiergrundlagen ohne Erfahrung mit dem arsnova.eu-Stack?** Für die **Einordnung** von Monorepo, tRPC und Zod genügt **[`EINSTIEG-TOOLS-UND-STACK.md`](./EINSTIEG-TOOLS-UND-STACK.md)** — dein Schwerpunkt bleibt NLP/Analytics (siehe Abschnitt 8 in diesem Dokument).
 
 ## Inhaltsverzeichnis
 
-- [Praktikum Data Analytics und NLP (Kurs 3) — Intelligente Moderationshilfe](#praktikum-data-analytics-und-nlp-kurs-3--intelligente-moderationshilfe)
+- [Praktikum Data Analytics und NLP — Intelligente Moderationshilfe](#praktikum-data-analytics-und-nlp--intelligente-moderationshilfe)
   - [Inhaltsverzeichnis](#inhaltsverzeichnis)
   - [1. Was ist das Ziel?](#1-was-ist-das-ziel)
   - [2. Deine Rolle](#2-deine-rolle)
@@ -37,9 +35,7 @@
 
 In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Token zählen, Stopwörter, siehe `word-cloud.util.ts`). **Geplant** ist eine **intelligentere** Auswertung: ähnliche **Bedeutungen** und **Formulierungen** sollen **sinnvoll gebündelt** werden (Kanontoken, Themenlabels, nachvollziehbare Gewichte).
 
-> **Hinweis zur Synergie:** Während du hier (Kurs 3) das **Modell, die Prompts und die Daten-Pipeline** entwirfst, baut das Entwicklungspraktikum (Kurs 1) die zugehörigen Benutzeroberflächen und Backend-Routen (tRPC) in die Plattform ein. Die genauen Entwicklungs-Gegenstücke der _Moderationshilfe_ findest du drüben in **`PRAKTIKUM.md`** unter Punkt 4.2.
-
-**Dein Praktikum (Kurs 3)** fokussiert **Data Analytics und NLP**:
+**Dein Praktikum** fokussiert **Data Analytics und NLP**:
 
 - Du arbeitest **primär** an **Auswahl**, **Konfiguration** und **Prompting** eines **selbst gehosteten** Sprachmodells (On-Prem, Hochschul-Infrastruktur — Endpoint und Richtlinien gibt die Betreuung vor).
 - Du **vergleichst** das mit **leichtgewichtigen** Ansätzen: **spaCy** (Pipeline, Lemmata, Entitäten) und **mehrsprachige Encoder** wie **mBERT** bzw. gängige **multilingual Sentence-Transformer** (Embeddings für Ähnlichkeit und Clustering) — als **Baseline**, **Vorstufe** oder **Hybrid** (z. B. erst filtern/normalisieren, dann LLM).
@@ -72,14 +68,14 @@ Nach dem Praktikum kannst du typischerweise:
 - **NLP-Pipeline vs. generatives LLM** sauber **abgrenzen** und **kombinieren** (Vorverarbeitung, Clustering, Zusammenfassung, Bündeln).
 - **Selbst gehostete** Open-Weight-Modelle **auswählen** (Kriterien: Latenz, RAM/VRAM, Sprachabdeckung, Lizenz, Halluzinationsrisiko).
 - **Prompts** so gestalten, dass die Ausgabe **strukturiert** und **validierbar** ist (JSON-Schema, Felder für Kanontoken, Gewichte, Kurzbegründung).
-- **Risiken** benennen: Datenschutz (Freitext!), **keine** unnötige Speicherung sensibler Inhalte, Timeout und Fallback (z. B. Rückfall auf lexikalische Wolke — siehe Entwicklungs-Praktikum).
+- **Risiken** benennen: Datenschutz (Freitext!), **keine** unnötige Speicherung sensibler Inhalte, Timeout und Fallback (z. B. Rückfall auf eine lexikalische Wolke).
 - **Mehrsprachigkeit** einordnen: Deutsch/Englisch in der Lehre, gemischte Antworten, ob **ein** mehrsprachiges Modell reicht oder **pro Sprache** getrennte Pfade nötig sind.
 
 ---
 
 ## 4. Zeitmodell
 
-Wie in den anderen Praktika: **40 h** als Richtgröße; Zeit für **Lesen**, **Experimente**, **Fehleranalyse** und **Dokumentation** ist **Teil der Leistung**.
+Die **40 Stunden** sind eine Richtgröße; Zeit für **Lesen**, **Experimente**, **Fehleranalyse** und **Dokumentation** ist **Teil der Leistung**.
 
 **Empfehlung:** Pro Block **3–5 Sätze Protokoll**: Hypothese, Experiment, Ergebnis, nächster Schritt.
 
@@ -99,7 +95,7 @@ Die Betreuung legt **Gewichtung** und **Mindesttiefe** fest. Orientierung:
 4. **Prompt-Strategie:** Wie steuerst du **Konsistenz**, **Sprache**, **keine erfundenen Antworten** (nur aus Eingabeliste bündeln)? Wie sieht ein **Few-Shot** aus?
 5. **Baseline:** Was leisten **spaCy** und/oder **mBERT** (oder vergleichbarer multilingual Encoder) **ohne** generatives LLM — und **wo** lohnt das LLM?
 6. **Evaluierung:** Wie prüfst du „gut genug“? (Beispiele, Fehlerklassen, ggf. einfache Kennzahl.)
-7. **Abgrenzung:** Was ist in **40 h** realistisch; was ist Ausblick für Kurs 1 (Integration in tRPC/Zod)?
+7. **Abgrenzung:** Was ist in **40 h** realistisch, und was wäre ein sinnvoller Ausblick für eine spätere Produktintegration?
 
 ### 5.2 Praktische Artefakte (Portfolio)
 
@@ -113,7 +109,7 @@ Die Betreuung legt **Gewichtung** und **Mindesttiefe** fest. Orientierung:
 | **Notebook / Skript**     | Reproduzierbare Pipeline: Eingabe CSV/JSON → Ausgabe strukturiert; spaCy- und/oder Embedding-Schritt dokumentiert      |
 | **Testkorpus**            | Kleine, **DSGVO-sichere** Liste (synthetisch oder stark anonymisiert) mit **erwarteten** Bündeln als Referenz          |
 
-**Hinweis:** Vollständige **Produktintegration** (tRPC, Angular, 5 Sprachen) ist **Sache von Kurs 1** — es sei denn, die Betreuung vereinbart explizit eine Schnittstelle.
+**Hinweis:** Vollständige **Produktintegration** (tRPC, Angular, 5 Sprachen) ist **nicht** Kern dieses Praktikums — es sei denn, die Betreuung vereinbart explizit eine Schnittstelle.
 
 ---
 
@@ -155,13 +151,13 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 
 ## 8. Bezug zur Codebasis
 
-| Thema               | Wo im Repo (Orientierung)                                                                                                                              |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Lexikalische Wolke  | `apps/frontend/.../word-cloud.util.ts`, `word-cloud.component.ts`                                                                                      |
-| Architektur Wolke   | [`docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md) |
-| Produkt-Stories     | [`Backlog.md`](../../Backlog.md) — u. a. **1.14**, **1.14a**                                                                                           |
-| Entwicklungsauftrag | [`PRAKTIKUM.md`](./PRAKTIKUM.md) (Integration Host, tRPC, Zod)                                                                                         |
-| Sicherheit          | [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)                                                                                                 |
+| Thema              | Wo im Repo (Orientierung)                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Lexikalische Wolke | `apps/frontend/.../word-cloud.util.ts`, `word-cloud.component.ts`                                                                                      |
+| Architektur Wolke  | [`docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md) |
+| Produkt-Stories    | [`Backlog.md`](../../Backlog.md) — u. a. **1.14**, **1.14a**                                                                                           |
+| Produktintegration | ggf. spätere Anbindung über tRPC, Zod und UI; in diesem Praktikum nur zur Einordnung relevant                                                          |
+| Sicherheit         | [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)                                                                                                 |
 
 ---
 
@@ -197,8 +193,7 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 
 ## 11. FAQ
 
-**Muss ich ins Angular-Backend einbauen?**  
-Nur wenn die Betreuung das **explizit** verlangt. Standard: **Analytics-Artefakte** + Konzept; Integration ist **Kurs 1**.
+**Muss ich in Frontend oder Backend integrieren?** Nur wenn die Betreuung das **explizit** verlangt. Standard: **Analytics-Artefakte** + Konzept; vollständige Produktintegration ist **nicht** der Kern dieses Praktikums.
 
 **Reicht nur spaCy ohne LLM?**  
 Als **alleinige** Praktikumsleistung **nein** — der Schwerpunkt ist **LLM auf selbst gehosteter Infrastruktur**. spaCy (und ggf. mBERT) dienen dem **Vergleich** und der **Methodenkompetenz**.
@@ -226,9 +221,6 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 ## 13. Literatur / Links im Repo
 
 - [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](./BEGRIFFE-FREITEXT-UND-SEMANTIK.md)
-- [`PRAKTIKUM.md`](./PRAKTIKUM.md) — Entwicklungspraktikum (Integration)
-- [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md) — Qualität parallel zum Produkt
-- [`docs/didaktik/dritter-kurs-data-analytics-nlp.md`](../didaktik/dritter-kurs-data-analytics-nlp.md)
 - [`docs/SECURITY-OVERVIEW.md`](../SECURITY-OVERVIEW.md)
 - [`docs/vibe-coding/`](../vibe-coding/) — optional für Prompt-Stil und Arbeitsablauf
 
@@ -236,4 +228,4 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 
 ---
 
-_Stand: 2026-04-01 · Pflege: bei Änderungen am Kursmodell dieses Dokument und Verweise in `docs/README.md` / `PRAKTIKUM.md` anpassen._
+_Stand: 2026-04-01 · Pflege: bei Änderungen am Praktikumsmodell dieses Dokument und Verweise in `docs/README.md` anpassen._

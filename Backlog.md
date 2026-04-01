@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Storys):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Last- & Performance-Tests), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre (FSE):** Greenfield-Vorlesung **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Last- & Performance-Tests), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -57,7 +57,7 @@
 | 2    | 2.5   | Beamer-Ansicht / Presenter-Mode                        | 🔴   | ✅ Fertig |
 | 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)                   | 🟡   | ✅ Fertig |
 | 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher)   | 🟡   | ✅ Fertig |
-| 2    | 2.8   | Produktives Smartphone-Hosting fuer Live-Sessions      | 🔴   | ✅ Fertig |
+| 2    | 2.8   | Produktives Smartphone-Hosting für Live-Sessions       | 🔴   | ✅ Fertig |
 | 3    | 3.1   | Beitreten                                              | 🔴   | ✅ Fertig |
 | 3    | 3.2   | Nicknames                                              | 🟡   | ✅ Fertig |
 | 3    | 3.3a  | Frage empfangen                                        | 🔴   | ✅ Fertig |
@@ -72,7 +72,7 @@
 | 4    | 4.4   | Ergebnis-Visualisierung                                | 🔴   | ✅ Fertig |
 | 4    | 4.5   | Freitext-Auswertung                                    | 🟡   | ✅ Fertig |
 | 4    | 4.6   | Bonus-Code für Top-Platzierungen                       | 🟡   | ✅ Fertig |
-| 4    | 4.7   | Ergebnis-Export für Dozenten (anonym)                  | 🟡   | ✅ Fertig |
+| 4    | 4.7   | Ergebnis-Export für Lehrende (anonym)                  | 🟡   | ✅ Fertig |
 | 4    | 4.8   | Session-Bewertung durch Teilnehmende                   | 🟡   | ✅ Fertig |
 | 5    | 5.1   | Sound-Effekte                                          | 🟡   | ✅ Fertig |
 | 5    | 5.3   | Hintergrundmusik                                       | 🟢   | ✅ Fertig |
@@ -92,7 +92,7 @@
 | 8    | 8.1   | Q&A-Session starten                                    | 🟢   | ✅ Fertig |
 | 8    | 8.2   | Fragen einreichen                                      | 🟢   | ✅ Fertig |
 | 8    | 8.3   | Upvoting & Sortierung                                  | 🟢   | ✅ Fertig |
-| 8    | 8.4   | Dozenten-Moderation                                    | 🟢   | ✅ Fertig |
+| 8    | 8.4   | Moderation durch Lehrende                              | 🟢   | ✅ Fertig |
 | 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen            | 🟡   | ⬜ Offen  |
 | 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                | 🟡   | ⬜ Offen  |
 | 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)          | 🟡   | ⬜ Offen  |
@@ -108,11 +108,11 @@
 | 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte     | 🟡   | ✅ Fertig |
 | 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)           | 🟡   | ✅ Fertig |
 
-> **Repo-Abgleich (Codebase 2026-04-01):** Die **⬜-Storys** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; Host-/Presenter-Zugang nicht wie in **2.1c** durch serverseitige Token-Prozeduren abgesichert; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmer je Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
+> **Repo-Abgleich (Codebase 2026-04-01):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; Host-/Presenter-Zugang nicht wie in **2.1c** durch serverseitige Token-Prozeduren abgesichert; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 28 · 🟡 Should: 54 · 🟢 Could: 11 = **93 Storys gesamt** (**79** ✅ Fertig · **14** ⬜ Offen)
+> **Statistik:** 🔴 Must: 28 · 🟡 Should: 54 · 🟢 Could: 11 = **93 Stories gesamt** (**79** ✅ Fertig · **14** ⬜ Offen)
 
 ---
 
@@ -126,7 +126,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 - Kein `any`-Typ im gesamten Code (Regel aus AGENT.md §3).
 - Alle tRPC-Endpunkte validieren Ein-/Ausgaben über Zod-Schemas aus `@arsnova/shared-types`.
 - Das DTO-Pattern ist eingehalten: Daten werden serverseitig durch DTOs gefiltert, bevor sie an Clients gesendet werden.
-- `isCorrect` wird **niemals** im Status `ACTIVE` an Studenten übertragen (Data-Stripping-Regel, Story 2.4).
+- `isCorrect` wird **niemals** im Status `ACTIVE` an Teilnehmende übertragen (Data-Stripping-Regel, Story 2.4).
 
 ### Tests
 
@@ -148,7 +148,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 ### Barrierefreiheit (WCAG 2.1 AA)
 
 - Semantisches HTML (`<label>`, `<button>`, Überschriften-Hierarchie).
-- `aria-label` / `aria-live` für dynamische Inhalte (Countdown, Teilnehmerzahl, Feedback).
+- `aria-label` / `aria-live` für dynamische Inhalte (Countdown, Zahl der Teilnehmenden, Feedback).
 - Farbunabhängigkeit: Richtig/Falsch zusätzlich über Icons (✓/✗) und Text kommuniziert.
 
 ### Datenschutz (DSGVO)
@@ -176,7 +176,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 > **Verifizierung im laufenden Betrieb:** 2025-02-23 — Prisma validate ✅, tsc (shared-types, backend, frontend) ✅, Vitest (health + rateLimit, 21 Tests) ✅, ESLint ✅. Docker/Redis via docker-compose.yml und Health-Check-Code geprüft; Frontend wsLink/httpBatchLink und ServerStatusWidget geprüft; CI-Workflow und README-Badge geprüft.  
 > **Build + Laufbetrieb (2025-02-23):** `npm run build` ✅ (inkl. Fix Session-Template @else). `docker compose up -d postgres redis` ✅, `prisma db push` ✅. Backend gestartet: `health.check` → redis=ok ✅, `health.stats` → activeSessions/totalParticipants/completedSessions/serverStatus ✅, WebSocket-Server (Story 0.2) erreichbar ✅, Frontend `ng serve` + Startseite mit Status-Widget erreichbar ✅.  
-> **Ergänzung Plattform-Rekord (2026-04-01):** `health.stats` liefert zusätzlich den historischen Höchstwert **max. gleichzeitige Teilnehmer in einer Session** (`maxParticipantsSingleSession`, Zeitstempel `maxParticipantsStatisticUpdatedAt`) aus der Tabelle `PlatformStatistic` (atomare Aktualisierung u. a. beim Join, `apps/backend/src/lib/platformStatistic.ts`); die Hilfe-Seite zeigt den Wert. Migration: `20260401110000_platform_statistic_max_participants`.
+> **Ergänzung Plattform-Rekord (2026-04-01):** `health.stats` liefert zusätzlich den historischen Höchstwert **max. gleichzeitige Teilnehmende in einer Session** (`maxParticipantsSingleSession`, Zeitstempel `maxParticipantsStatisticUpdatedAt`) aus der Tabelle `PlatformStatistic` (atomare Aktualisierung u. a. beim Join, `apps/backend/src/lib/platformStatistic.ts`); die Hilfe-Seite zeigt den Wert. Migration: `20260401110000_platform_statistic_max_participants`.
 
 - **Story 0.1 (Redis-Setup):** 🔴 Als Entwickler möchte ich eine funktionierende Redis-Instanz (via Docker Compose) haben, damit Echtzeit-Features darauf aufbauen können.
   - **Akzeptanzkriterien:**
@@ -187,14 +187,14 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - [x] WebSocket-Server läuft parallel zum HTTP-Server.
     - [x] Ein Test-Subscription-Endpoint (`health.ping`) sendet alle 5s ein Heartbeat-Event.
     - [x] Frontend-tRPC-Client nutzt `wsLink` für Subscriptions und `httpBatchLink` für Queries/Mutations.
-- **Story 0.3 (Yjs WebSocket-Provider):** 🟡 Als Entwickler möchte ich einen Yjs-WebSocket-Provider im Backend einrichten, damit Dozenten ihre Quizzes zwischen Geräten (PC ↔ iPad) synchronisieren können.
+- **Story 0.3 (Yjs WebSocket-Provider):** 🟡 Als Entwickler möchte ich einen Yjs-WebSocket-Provider im Backend einrichten, damit Lehrende ihre Quizzes zwischen Geräten (PC ↔ iPad) synchronisieren können.
   - **Akzeptanzkriterien:**
     - [x] `y-websocket`-Server ist im Backend integriert.
     - [x] Ein Yjs-Dokument kann von zwei Browser-Tabs synchron gehalten werden.
 - **Story 0.4 (Server-Status-Indikator):** 🟡 Als Besucher der Startseite möchte ich auf einen Blick sehen, wie ausgelastet der Server ist, damit ich die aktuelle Nutzung einschätzen kann.
   - **Akzeptanzkriterien:**
-    - [x] tRPC-Query `health.stats` liefert: Anzahl laufender Quizzes, Gesamtzahl aktiver Teilnehmer, Server-Status (`healthy` / `busy` / `overloaded`).
-    - [x] Die Startseite zeigt die Werte als kompaktes Status-Widget an (z.B. "3 Quizzes live · 142 Teilnehmer · 1.247 Quizzes durchgeführt").
+    - [x] tRPC-Query `health.stats` liefert: Anzahl laufender Quizzes, Gesamtzahl aktiver Teilnehmender, Server-Status (`healthy` / `busy` / `overloaded`).
+    - [x] Die Startseite zeigt die Werte als kompaktes Status-Widget an (z. B. „3 Quizzes live · 142 Teilnehmende · 1.247 Quizzes durchgeführt“).
     - [x] Ein farbiger Indikator visualisiert den Server-Status: grün (healthy), gelb (busy), rot (overloaded).
     - [x] Schwellwerte für Status: `healthy` < 50 Sessions, `busy` < 200 Sessions, `overloaded` ≥ 200 Sessions.
     - [x] Anzahl bisher durchgeführter Quizzes (`completedSessions`) wird als Gesamtstatistik angezeigt.
@@ -233,18 +233,18 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Freitext-Eingaben mit Live-Auswertung / Word-Cloud
       - Q&A-Fragen einreichen und moderieren
       - Reconnect-Szenarien bei unterbrochener WebSocket-Verbindung
-      - optional Sync-Szenarien fuer Quiz-Sammlung auf mehreren Clients
-    - Es gibt definierte Laststufen, z. B. klein, mittel und hoch, die mit festen Profilen wiederholbar gestartet werden koennen.
-    - Fuer jede Laststufe werden zentrale Metriken erfasst, mindestens:
+      - optionale Sync-Szenarien für Quiz-Sammlungen auf mehreren Clients
+    - Es gibt definierte Laststufen, z. B. klein, mittel und hoch, die mit festen Profilen wiederholbar gestartet werden können.
+    - Für jede Laststufe werden zentrale Metriken erfasst, mindestens:
       - Zeit bis Join erfolgreich abgeschlossen ist
-      - Latenz fuer Session-Statuswechsel
+      - Latenz für Session-Statuswechsel
       - Latenz bis ein Vote oder Freitext-Eintrag in Host/Presenter sichtbar wird
       - Fehlerrate / Timeout-Rate
       - Reconnect-Dauer nach Verbindungsabbruch
       - CPU- und Speicherverhalten von Frontend und Backend, soweit praktikabel
     - Es gibt klare Schwellwerte oder Zielkorridore, ab wann ein Szenario als bestanden, degradiert oder fehlgeschlagen gilt.
     - Die Tests liefern maschinenlesbare Ergebnisse und eine für Entwickler:innen gut lesbare Zusammenfassung.
-    - Ergebnisse koennen zwischen Läufen verglichen werden, damit Performance-Regressionen sichtbar werden.
+    - Ergebnisse können zwischen Läufen verglichen werden, damit Performance-Regressionen sichtbar werden.
     - E2E-Lasttests sind von funktionalen Standardtests getrennt, damit normale CI-Laufzeiten nicht unnötig explodieren.
     - Für Pull-Requests gibt es mindestens einen leichten Smoke-/Performance-Check; schwerere Lasttests dürfen zeitgesteuert, manuell oder auf dedizierten Branches laufen.
     - Die Testdaten und Szenarien sind deterministisch genug, dass Ergebnisse nicht durch Zufall stark schwanken.
@@ -257,64 +257,64 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Session-Start
     - Die Dokumentation beschreibt, wie die Lasttests gestartet werden, welche Infrastruktur benötigt wird und wie Resultate zu interpretieren sind.
     - Neue Performance-Erkenntnisse aus diesen Tests fliessen in Backlog, ADRs oder Optimierungsstories zurück.
-    - **Architekturvorgabe:** Die Tool-Auswahl und Rollentrennung folgen ADR-0013; `k6` ist der Standard fuer protokollnahe Lasttests, `Artillery` fuer Realtime- und E2E-nahe Lastszenarien, `Playwright` bleibt funktionale Browser-Referenz und `autocannon` ist nur ein lokales Entwicklerwerkzeug fuer Hotspots.
+    - **Architekturvorgabe:** Die Tool-Auswahl und Rollentrennung folgen ADR-0013; `k6` ist der Standard für protokollnahe Lasttests, `Artillery` für Realtime- und E2E-nahe Lastszenarien, `Playwright` bleibt funktionale Browser-Referenz und `autocannon` ist nur ein lokales Entwicklerwerkzeug für Hotspots.
   - **Abhängigkeiten:** Story 0.2 (tRPC WebSocket-Adapter), Story 0.5 (Rate-Limiting), Story 0.6 (CI/CD), Story 2.1a (Session-Start), Story 2.2 (Lobby), Story 3.1 (Join), Story 3.3b (Abstimmung), Story 4.5 (Freitext-Auswertung), Story 8.1–8.4 (Q&A), optional Story 1.6/1.6a/1.6b/1.6d (Sync), ADR-0013.
 
 ---
 
-## Epic 1: Quiz-Verwaltung (Rolle: Dozent / Ersteller)
+## Epic 1: Quiz-Verwaltung (Rolle: Lehrperson / Ersteller:in)
 
-> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01):** Die **nummerierten** Kern-Storys **1.1–1.15** (ohne Buchstaben-Zusätze) sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben die Erweiterungen **1.2d**, **1.6c**, **1.6d**, **1.7a**, **1.7b**, **1.14a** (dort ⬜).  
+> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01):** Die **nummerierten** Kern-Stories **1.1–1.15** (ohne Buchstaben-Zusätze) sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben die Erweiterungen **1.2d**, **1.6c**, **1.6d**, **1.7a**, **1.7b**, **1.14a** (dort ⬜).
 > Frontend-Checks: `npm run typecheck -w @arsnova/frontend` ✅, `npm run test -w @arsnova/frontend -- src/app/features/quiz` ✅ (54/54).  
 > Ergänzend abgeschlossen: Styleguide-/DoD-Nacharbeiten (Lesbarkeit/Spacing, Wording-Konsistenz, deutsches Datumsformat `de-DE`, Fehlerfokus auf erstes ungültiges Feld, Entfernung fragiler `::ng-deep`-Selektoren im Quiz-Feature, Preview-Interaktions- und Markdown/KaTeX-Rendering-Korrekturen).
 
-- **Story 1.1 (Quiz erstellen):** 🔴 Als Dozent möchte ich ein neues Quiz anlegen und benennen können.
+- **Story 1.1 (Quiz erstellen):** 🔴 Als Lehrperson möchte ich ein neues Quiz anlegen und benennen können.
   - **Akzeptanzkriterien:**
     - Ein Formular (Name, optionale Beschreibung) erstellt ein neues Quiz.
     - Das Quiz erscheint in einer lokalen Quiz-Liste.
     - Name darf nicht leer sein und max. 200 Zeichen haben.
-- **Story 1.2a (Fragentypen: MC & SC):** 🔴 Als Dozent möchte ich Multiple-Choice- und Single-Choice-Fragen hinzufügen können.
+- **Story 1.2a (Fragentypen: MC & SC):** 🔴 Als Lehrperson möchte ich Multiple-Choice- und Single-Choice-Fragen hinzufügen können.
   - **Akzeptanzkriterien:**
     - Frage-Formular mit Typ-Auswahl (MC/SC) und mindestens 2 Antwortoptionen.
     - MC erlaubt mehrere korrekte Antworten, SC genau eine.
     - Fragen werden in der Quiz-Ansicht sortiert angezeigt.
     - Fragenstamm und Antwortoptionen unterstützen Markdown & KaTeX (siehe Story 1.7).
     - Pro Frage kann ein Schwierigkeitsgrad (EASY / MEDIUM / HARD) ausgewählt werden (default: MEDIUM).
-- **Story 1.2b (Fragentypen: Freitext & Umfrage):** 🟡 Als Dozent möchte ich Freitext- und Umfrage-Fragen hinzufügen können.
+- **Story 1.2b (Fragentypen: Freitext & Umfrage):** 🟡 Als Lehrperson möchte ich Freitext- und Umfrage-Fragen hinzufügen können.
   - **Akzeptanzkriterien:**
     - Freitext-Fragen haben keine vordefinierten Antwortoptionen.
     - Umfrage-Fragen haben Optionen, aber kein `isCorrect`-Flag.
     - Freitext- und Umfrage-Fragen werden im Leaderboard-Scoring (Story 4.1) nicht gewertet — sie vergeben 0 Punkte und zählen nicht zur `totalQuestions`-Summe.
-- **Story 1.2c (Fragentyp: Rating-Skala):** 🟡 Als Dozent möchte ich eine Bewertungsskala-Frage (1–5 oder 1–10) stellen können, um Meinungsbilder und Zufriedenheitswerte zu erheben.
+- **Story 1.2c (Fragentyp: Rating-Skala):** 🟡 Als Lehrperson möchte ich eine Bewertungsskala-Frage (1–5 oder 1–10) stellen können, um Meinungsbilder und Zufriedenheitswerte zu erheben.
   - **Akzeptanzkriterien:**
     - Neuer Fragentyp `RATING` in der Typ-Auswahl.
-    - Der Dozent konfiguriert die Skala: Minimum (default: 1), Maximum (5 oder 10), optionale Labels für Min/Max (z.B. „Stimme gar nicht zu" / „Stimme voll zu").
-    - Auf dem Studenten-Gerät wird die Skala als horizontale Reihe von Sternen, Zahlen oder Punkten dargestellt (1 Tap = Auswahl).
+    - Die Lehrperson konfiguriert die Skala: Minimum (default: 1), Maximum (5 oder 10), optionale Labels für Min/Max (z.B. „Stimme gar nicht zu" / „Stimme voll zu").
+    - Auf dem Teilnehmenden-Gerät wird die Skala als horizontale Reihe von Sternen, Zahlen oder Punkten dargestellt (1 Tap = Auswahl).
     - RATING-Fragen werden **nicht** gescored (wie SURVEY) — 0 Punkte, kein `isCorrect`.
     - **Ergebnis-Visualisierung:** Histogramm (Balkendiagramm der Häufigkeiten pro Stufe) + Durchschnittswert + Standardabweichung.
     - Prisma: Neues Feld `Vote.ratingValue Int?` für den gewählten Skalenwert. Neues Feld `Question.ratingMin`, `Question.ratingMax`, `Question.ratingLabelMin`, `Question.ratingLabelMax`.
-- **Story 1.2d (Numerische Schätzfrage – Toleranz, Zwei-Runden-Option, detaillierte Statistik):** 🟡 Als Dozent möchte ich **numerische Schätzfragen** stellen können, bei denen ich **Zahlentyp** (ganzzahlig / Dezimal mit maximaler Nachkommastellenanzahl), **Referenzwert** und **Toleranzband** für die Wertung „richtig“ vorgebe; optional mit **zwei Abstimmungsrunden** inkl. Diskussionsphase (analog Peer Instruction); als Host möchte ich nach Freigabe der Ergebnisse eine **beamer-taugliche Visualisierung** und eine **detaillierte statistische Auswertung beider Runden** sehen – **ohne** vorherigen Herdeneffekt durch Live-Verteilungen.
+- **Story 1.2d (Numerische Schätzfrage – Toleranz, Zwei-Runden-Option, detaillierte Statistik):** 🟡 Als Lehrperson möchte ich **numerische Schätzfragen** stellen können, bei denen ich **Zahlentyp** (ganzzahlig / Dezimal mit maximaler Nachkommastellenanzahl), **Referenzwert** und **Toleranzband** für die Wertung „richtig“ vorgebe; optional mit **zwei Abstimmungsrunden** inkl. Diskussionsphase (analog Peer Instruction). Als Host möchte ich nach Freigabe der Ergebnisse eine **beamer-taugliche Visualisierung** und eine **detaillierte statistische Auswertung beider Runden** sehen – **ohne** vorherigen Herdeneffekt durch Live-Verteilungen.
   - **Akzeptanzkriterien:**
-    - **Fragentyp & Editor (Dozent):** Neuer Fragentyp (Arbeitsname z. B. `NUMERIC_ESTIMATE` o. Ä.) in `@arsnova/shared-types` (Zod) und Quiz-Editor: Konfiguration mindestens von **Referenzwert** \(V\), **Toleranz** (mindestens **absolut** ±Δ; optional **relativ** in % mit klar dokumentierter Kombinationsregel, z. B. max. beider Bänder oder nur eines), **numerischer Eingabetyp** (**Ganzzahl** vs. **Dezimal** mit **max. Nachkommastellen**), optional **Min/Max** der erlaubten Eingabe (Plausibilität, nicht Lösungsverrat). Fragentext weiterhin Markdown/KaTeX (Story 1.7) wo fachlich passend.
-    - **Teilnehmer-UI:** Eingabefeld, das den konfigurierten Typ erzwingt (z. B. `step`, Validierung); **Normalisierung** von Eingaben (Komma/Punkt) einheitlich Client + Server. Ungültige Eingaben: verständliche Fehlermeldung, kein stiller Vote.
-    - **Wertung:** Antwort gilt als **richtig**, wenn der geparste Zahlenwert \(x\) **innerhalb des Toleranzbands** um \(V\) liegt; sonst falsch. Server ist maßgeblich; `isCorrect` wird gemäß Data-Stripping **nicht** während `ACTIVE` an Studierende geleakt (Story 2.4).
-    - **Zwei-Runden-Option (Pflicht-Feature des Typs):** Gleiches fachliches Muster wie **Peer Instruction** (Story 2.7): **Runde 1** → optionale **Diskussionsphase** (Host-Steuerung) → **Runde 2**; **getrennte Speicherung** der Werte pro Runde, **zuordenbar** zur **Teilnehmer-Identität** (z. B. `participantId` / bestehendes Vote-Modell), damit **paarweise** Auswertung möglich ist. Ohne aktivierte zweite Runde verhält sich die Frage wie **eine** Schätzrunde (Abwärtskompatibilität des Flows).
+    - **Fragentyp & Editor (Lehrperson):** Neuer Fragentyp (Arbeitsname z. B. `NUMERIC_ESTIMATE` o. Ä.) in `@arsnova/shared-types` (Zod) und Quiz-Editor: Konfiguration mindestens von **Referenzwert** \(V\), **Toleranz** (mindestens **absolut** ±Δ; optional **relativ** in % mit klar dokumentierter Kombinationsregel, z. B. max. beider Bänder oder nur eines), **numerischer Eingabetyp** (**Ganzzahl** vs. **Dezimal** mit **max. Nachkommastellen**), optional **Min/Max** der erlaubten Eingabe (Plausibilität, nicht Lösungsverrat). Fragentext weiterhin Markdown/KaTeX (Story 1.7), wo fachlich passend.
+    - **Teilnehmenden-UI:** Eingabefeld, das den konfigurierten Typ erzwingt (z. B. `step`, Validierung); **Normalisierung** von Eingaben (Komma/Punkt) einheitlich auf Client und Server. Ungültige Eingaben: verständliche Fehlermeldung, kein stiller Vote.
+    - **Wertung:** Antwort gilt als **richtig**, wenn der geparste Zahlenwert \(x\) **innerhalb des Toleranzbands** um \(V\) liegt; sonst falsch. Der Server ist maßgeblich; `isCorrect` wird gemäß Data-Stripping **nicht** während `ACTIVE` an Teilnehmende übertragen (Story 2.4).
+    - **Zwei-Runden-Option (Pflicht-Feature des Typs):** Gleiches fachliches Muster wie **Peer Instruction** (Story 2.7): **Runde 1** → optionale **Diskussionsphase** (Host-Steuerung) → **Runde 2**; **getrennte Speicherung** der Werte pro Runde, **zuordenbar** zur **Teilnehmenden-Identität** (z. B. `participantId` / bestehendes Vote-Modell), damit **paarweise** Auswertung möglich ist. Ohne aktivierte zweite Runde verhält sich die Frage wie **eine** Schätzrunde (Abwärtskompatibilität des Flows).
     - **Herdeneffekt / Vorab-Visualisierung:** **Während** die Abstimmung läuft und **bis zur definierten Ergebnisfreischaltung** (Host-Aktion oder Statuswechsel analog bestehender Ergebnislogik): **keine** Histogramme, **keine** animierten Balken und **keine** aggregierte Verteilung, aus der Schätzlagen erkennbar wären (weder für Studierende noch in einer für den Saal sichtbaren Form). **Erlaubt** sind nur **neutrale** Fortschrittsanzeigen (z. B. „n von N haben abgestimmt“) ohne Wertachse/Buckets.
     - **Host-Screen nach Freigabe:** **Histogramm** (große, lesbare Balken; sinnvolles Binning), **Referenzlinie** für \(V\), **visuelles Toleranzband**, optional Balken **im Band** vs. **außerhalb** farblich differenziert; **Kennzahlenzeile** (mindestens **n**, **Median**, **Mittelwert**, **Anteil im Toleranzband** in %). Darstellung **beamer-tauglich** (Kontrast, keine Mikrotypografie-Abhängigkeit).
     - **Animationen:** **Balken-Animationen** (Höhe wachsen o. Ä.) **nur nach** Ergebnisfreischaltung, **nicht** davor. **`prefers-reduced-motion: reduce`:** keine oder stark reduzierte Bewegung (Projekt-Styleguide / ADR-konform).
     - **Detaillierte statistische Analyse beider Runden:** Nach Freigabe (bzw. in dedizierter Auswertungs-/Export-Ansicht) **mindestens** je Runde: **n** gültige Abgaben, **Mittelwert**, **Median**, **Standardabweichung**, **IQR** (oder Quartile), **Min/Max**, **Anteil im Toleranzband**, **mittlerer absoluter Fehler** \(|x - V|\) (optional **mittlerer relativer Fehler** nur wenn \(V \neq 0\) und definiert). **Vergleich R1 → R2:** Differenz der Lagemaße, Differenz des Anteils im Band (Prozentpunkte). **Paarweise Auswertung** (gleiche Person): Anzahl **näher an \(V\)**, **weiter weg**, **unverändert** (mit Toleranz für Gleichheit); Verteilung von \(\Delta x = x_2 - x_1\) (z. B. kleines Histogramm oder aggregierte Zählung). Ohne Paarzuordnung: nur **unabhängiger** Vergleich der beiden Verteilungen kennzeichnen.
     - **Datenschutz / Anzeige:** In der **Live-Host-Ansicht** nur **aggregierte** Kennzahlen und Histogramme **ohne** Zuordnung zu Namen; keine öffentliche Liste aller Einzelwerte mit Personenbezug.
-    - **Backend & API:** Neues bzw. erweitertes Modell in Prisma + tRPC; **alle** Ein-/Ausgaben über Zod in `@arsnova/shared-types`; DTO/Data-Stripping für Studierende einhalten. Integration in Session-/Vote-Flow (Stories **2.3**, **2.7**, **3.3a/b**, **4.1**, **4.4**) sowie Export (Story **4.7**) soweit fachlich nötig **spezifizieren und umsetzen**.
+    - **Backend & API:** Neues bzw. erweitertes Modell in Prisma + tRPC; **alle** Ein-/Ausgaben über Zod in `@arsnova/shared-types`; DTO/Data-Stripping für Teilnehmende einhalten. Integration in Session-/Vote-Flow (Stories **2.3**, **2.7**, **3.3a/b**, **4.1**, **4.4**) sowie Export (Story **4.7**) soweit fachlich nötig **spezifizieren und umsetzen**.
     - **Tests:** Unit-Tests für Toleranzlogik, Parsing, Rundung/Grenzfälle (\(V=0\), leere Runde 2); mindestens ein Integrationstest-Pfad für Zwei-Runden-Speicherung; Frontend-Specs für kritische Validierung wo sinnvoll.
-    - **i18n (ADR-0008):** Alle neuen UI-Strings (Dozent, Host, Studierende, Fehlermeldungen) in **de, en, fr, es, it**.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings (Lehrperson, Host, Teilnehmende, Fehlermeldungen) in **de, en, fr, es, it**.
   - **Abhängigkeiten:** Story **1.7** (Markdown/KaTeX), Story **1.3** (Antwortlogik ggf. erweitern; klären ob Antwortoptionen entfallen), Story **2.7** (Peer-Instruction-/Zweirunden-Flow als fachliches Vorbild), Story **3.3b** (Abstimmung), Story **4.1** / **4.4** (Scoring & Visualisierung), Story **2.4** (Data-Stripping).
-- **Story 1.3 (Antworten & Lösungen):** 🔴 Als Dozent möchte ich Antwortmöglichkeiten definieren und korrekte Antworten markieren können.
+- **Story 1.3 (Antworten & Lösungen):** 🔴 Als Lehrperson möchte ich Antwortmöglichkeiten definieren und korrekte Antworten markieren können.
   - **Akzeptanzkriterien:**
     - Antworten können hinzugefügt, bearbeitet und gelöscht werden.
     - Mindestens eine Antwort muss als korrekt markiert sein (außer bei SURVEY/FREETEXT).
     - `isCorrect`-Felder werden primär lokal im Browser gespeichert (Yjs/IndexedDB).
     - Beim Live-Schalten (Story 2.1a) werden `isCorrect`-Felder einmalig an den Server übertragen, damit das serverseitige Scoring (Story 4.1) möglich ist. Sie werden dort nur temporär für die Dauer der Session vorgehalten.
-- **Story 1.4 (Sitzungs-Konfiguration):** 🟡 Als Dozent möchte ich globale Einstellungen für mein Quiz festlegen können.
+- **Story 1.4 (Sitzungs-Konfiguration):** 🟡 Als Lehrperson möchte ich globale Einstellungen für mein Quiz festlegen können.
   - **Akzeptanzkriterien:**
     - Toggle für `showLeaderboard` (default: an).
     - Toggle für `allowCustomNicknames` (default: an).
@@ -323,63 +323,62 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Toggle für `enableSoundEffects` (default: an; siehe Story 5.1).
     - Toggle für `enableRewardEffects` (default: an; siehe Story 5.4).
     - Auswahl der Hintergrundmusik (`backgroundMusic`, optional; siehe Story 5.3).
-- **Story 1.5 (Local-First Speicherung):** 🔴 Als Dozent möchte ich, dass mein Quiz automatisch lokal in meinem Browser (IndexedDB via Yjs) gespeichert wird, ohne Account-Zwang.
+- **Story 1.5 (Local-First Speicherung):** 🔴 Als Lehrperson möchte ich, dass mein Quiz automatisch lokal in meinem Browser (IndexedDB via Yjs) gespeichert wird, ohne Account-Zwang.
   - **Akzeptanzkriterien:**
     - Quiz-Daten werden als Yjs-Dokument in IndexedDB persistiert.
     - Nach Browser-Neustart sind alle Quizzes sichtbar.
     - Kein Server-Roundtrip nötig zum Speichern.
-- **Story 1.6 (Yjs Multi-Device-Sync):** 🟢 Als Dozent möchte ich mein Quiz auf mehreren Geräten synchron bearbeiten können.
+- **Story 1.6 (Yjs Multi-Device-Sync):** 🟢 Als Lehrperson möchte ich mein Quiz auf mehreren Geräten synchron bearbeiten können.
   - **Akzeptanzkriterien:**
     - Änderungen auf Gerät A erscheinen in <2s auf Gerät B.
     - Konflikte werden automatisch via CRDT aufgelöst.
     - Abhängig von Story 0.3.
     - UX für „Quiz auf anderem Gerät öffnen“ siehe Story 1.6a.
-- **Story 1.6a (Quiz auf anderem Gerät öffnen – Sync-Key/Link):** 🟡 Als Dozent möchte ich einen persönlichen Sync-Link oder Sync-Code für ein Quiz erhalten, damit ich dasselbe Quiz auf einem anderen Gerät (z. B. Tablet) öffnen, weiterbearbeiten oder von dort aus live schalten kann – ohne dass Teilnehmer (Session-Code) das Quiz bearbeiten können.
+- **Story 1.6a (Quiz auf anderem Gerät öffnen – Sync-Key/Link):** 🟡 Als Lehrperson möchte ich einen persönlichen Sync-Link oder Sync-Code für ein Quiz erhalten, damit ich dasselbe Quiz auf einem anderen Gerät (z. B. Tablet) öffnen, weiterbearbeiten oder von dort aus live schalten kann – ohne dass Teilnehmende über den Session-Code das Quiz bearbeiten können.
   - **Akzeptanzkriterien:**
     - In der Quiz-Detailansicht bzw. im Editor gibt es eine Option **„Auf anderem Gerät öffnen“** (oder vergleichbar), die einen **Sync-Link** (URL mit Dokument-ID) und/oder einen kurzen **Sync-Code** (z. B. zum Abtippen) sowie optional einen **QR-Code** anzeigt.
     - Der Sync-Link enthält die Yjs-Dokument-ID (Room-Name); wer den Link öffnet, verbindet sich mit demselben Yjs-Dokument und sieht das Quiz zur Bearbeitung bzw. zur Session-Steuerung (wie auf dem ersten Gerät).
     - Auf dem anderen Gerät: Nutzer gibt die App-URL ein, öffnet den Sync-Link (oder scannt den QR-Code / gibt den Sync-Code ein) und gelangt zum **gleichen Quiz** (Bearbeitung, Preview, ggf. Session starten/steuern). Kein erneutes Anlegen des Quiz nötig.
-    - **Trennung von Session-Code:** Der 6-stellige Session-Beitrittscode (für Studenten) wird nicht als Sync-Key verwendet und gewährt keinen Zugriff auf die Quiz-Bearbeitung. Nur wer den Sync-Link/Code hat, kann das Quiz bearbeiten oder live steuern.
+    - **Trennung von Session-Code:** Der 6-stellige Session-Beitrittscode (für Teilnehmende) wird nicht als Sync-Key verwendet und gewährt keinen Zugriff auf die Quiz-Bearbeitung. Nur wer den Sync-Link/Code hat, kann das Quiz bearbeiten oder live steuern.
     - Abhängig von Story 1.6 (Yjs Multi-Device-Sync) und Story 0.3 (y-websocket).
-- **Story 1.6b (Preset & Optionen beim Sync mitführen):** 🟢 Als Dozent möchte ich beim Synchronisieren mit einem anderen Client (Sync-Link/Key, Story 1.6/1.6a) auch meine **Preset- und Optionen-Einstellungen** (Seriös/Spielerisch, alle Toast-Optionen wie Leaderboard, Sound, Lesephase, Team, …) mitgeführt haben, damit auf dem anderen Gerät dieselben Voreinstellungen ankommen und nicht auf Standard zurückfallen.
+- **Story 1.6b (Preset & Optionen beim Sync mitführen):** 🟢 Als Lehrperson möchte ich beim Synchronisieren mit einem anderen Client (Sync-Link/Key, Story 1.6/1.6a) auch meine **Preset- und Optionen-Einstellungen** (Seriös/Spielerisch, alle Toast-Optionen wie Leaderboard, Sound, Lesephase, Team, …) mitgeführt haben, damit auf dem anderen Gerät dieselben Voreinstellungen ankommen und nicht auf Standard zurückfallen.
   - **Akzeptanzkriterien:**
     - Preset (home-preset) und Optionen (home-preset-options) werden nicht nur in localStorage gehalten, sondern zusätzlich in einem **kleinen Yjs-Dokument** (z. B. „Preferences“) persistiert, das über den **gleichen Sync-Kanal** wie das Quiz (oder einen abgeleiteten Room) synchronisiert wird.
     - Beim Öffnen eines Sync-Links auf dem anderen Client werden diese Einstellungen übernommen (Preset-Anzeige, Optionen-Chips); bei Konflikt gewinnt „last write“ oder CRDT-Merge (z. B. einzelne Optionen als Y-Map).
     - Ohne aktiven Sync bleibt das bisherige Verhalten (nur localStorage); mit Sync werden Änderungen an Preset/Optionen ins Yjs-Dokument geschrieben und so auf andere Clients übertragen.
     - Abhängig von Story 1.6 bzw. 1.6a (Sync-Link/Key muss vorhanden sein).
-- **Story 1.6c (Sync-Sicherheit härten):** 🔴 Als Dozent möchte ich, dass geteilte Quiz-Sammlungen sicherer geöffnet werden können, damit ein versehentlich weitergegebener oder missverstandener Sync-Zugang nicht stillschweigend Vollzugriff gewährt.
+- **Story 1.6c (Sync-Sicherheit härten):** 🔴 Als Lehrperson möchte ich, dass geteilte Quiz-Sammlungen sicherer geöffnet werden können, damit ein versehentlich weitergegebener oder missverstandener Sync-Zugang nicht stillschweigend Vollzugriff gewährt.
   - **Akzeptanzkriterien:**
     - Die UI erklärt klar, dass der **Sync-Link** der eigentliche Zugriffsschlüssel ist.
     - Die aktuell verkürzte Anzeige der **Sync-ID** wird fachlich bereinigt: entweder nur noch als Anzeigehilfe oder durch einen echten, technisch auflösbaren Kurzcode ersetzt.
     - Für Sync-Raum-Zugriffe existiert ein Schutzkonzept gegen Missbrauch (mindestens Rate-Limit oder gleichwertige Begrenzung auf Relay-/Proxy-Ebene).
     - Ein Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** ist konzipiert und dokumentiert.
     - Herkunfts- und Geräteangaben werden im UI und in der Doku ausdrücklich als **Vertrauenssignale**, nicht als manipulationssichere Sicherheitsnachweise beschrieben.
-- **Story 1.6d (Sync-Performance & Skalierung optimieren):** 🟡 Als Dozent möchte ich, dass die Synchronisierung meiner Quiz-Sammlung auch bei größeren Sammlungen und mehreren Geräten flüssig bleibt, damit Bearbeitung und Gerätewechsel nicht durch spürbare Verzögerungen ausgebremst werden.
+- **Story 1.6d (Sync-Performance & Skalierung optimieren):** 🟡 Als Lehrperson möchte ich, dass die Synchronisierung meiner Quiz-Sammlung auch bei größeren Sammlungen und mehreren Geräten flüssig bleibt, damit Bearbeitung und Gerätewechsel nicht durch spürbare Verzögerungen ausgebremst werden.
   - **Akzeptanzkriterien:**
     - Kurzfristige Optimierungen reduzieren unnötige Vollserialisierung und bündeln lokale Persistenzvorgänge.
     - Für größere Sammlungen werden Messpunkte dokumentiert oder implementiert (z. B. Snapshot-Größe, Dauer von Mirror-/Yjs-Writes, Anzahl von Writes pro Aktion).
     - Der Legacy-Mirror in `localStorage` ist auf seine Notwendigkeit geprüft und kann perspektivisch reduziert oder entfernt werden.
     - Ein technischer Zielpfad für eine granularere Yjs-Modellierung (`Y.Map`/`Y.Array` statt JSON-Blob) ist dokumentiert.
     - Die Architektur-Dokumentation benennt klar, welche Quick Wins bereits umgesetzt sind und welche Skalierungsmaßnahmen noch offen bleiben.
-- **Story 1.7 (Markdown & KaTeX):** 🔴 Als Dozent möchte ich im Fragenstamm und in den Antwortoptionen Markdown und KaTeX-Formeln verwenden können, damit ich mathematische und formatierte Inhalte ansprechend darstellen kann.
+- **Story 1.7 (Markdown & KaTeX):** 🔴 Als Lehrperson möchte ich im Fragenstamm und in den Antwortoptionen Markdown und KaTeX-Formeln verwenden können, damit ich mathematische und formatierte Inhalte ansprechend darstellen kann.
   - **Akzeptanzkriterien:**
     - Fragenstamm (`Question.text`) und Antworttext (`AnswerOption.text`) akzeptieren Markdown-Syntax (Fett, Kursiv, Listen, Code-Blöcke, Bilder).
     - KaTeX-Auszeichnungen (Inline `$...$` und Block `$$...$$`) werden als gerenderte Formeln angezeigt.
     - Beim Bearbeiten einer Frage zeigt eine Live-Preview den gerenderten Markdown- und KaTeX-Inhalt neben dem Editor an.
     - Die Preview aktualisiert sich bei jeder Tastatureingabe (Debounce ≤300ms).
     - Ungültige KaTeX-Syntax zeigt eine lesbare Fehlermeldung in der Preview statt zu crashen.
-    - Die gerenderte Darstellung wird auch den Studenten in der Live-Session korrekt angezeigt (Story 3.3a).
+    - Die gerenderte Darstellung wird auch den Teilnehmenden in der Live-Session korrekt angezeigt (Story 3.3a).
     - Verwendete Libraries: `marked` (Markdown) + `katex` (Mathematik), kein serverseitiges Rendering nötig.
-- **Story 1.7a (Markdown-Bilder: nur URL + Lightbox):** 🟡 Als Dozent:in bzw. als Teilnehmer:in möchte ich Bilder in Markdown-Fragen nur über **externe HTTPS-URLs** einbinden und ein eingebettetes Bild per **Tap/Klick in einer großen Ansicht** sehen (wie in gängigen Messenger-Apps), damit **Datenschutz** gewahrt bleibt und Bilder auf dem **Smartphone** gut erkennbar sind.
+- **Story 1.7a (Markdown-Bilder: nur URL + Lightbox):** 🟡 Als Lehrperson bzw. als Teilnehmende:r möchte ich Bilder in Markdown-Fragen nur über **externe HTTPS-URLs** einbinden und ein eingebettetes Bild per **Tap/Klick in einer großen Ansicht** sehen (wie in gängigen Messenger-Apps), damit **Datenschutz** gewahrt bleibt und Bilder auf dem **Smartphone** gut erkennbar sind.
   - **Akzeptanzkriterien:**
     - Es gibt **keinen** Bild-Upload und **keine** Speicherung von Bilddateien auf arsnova.eu-Servern für Quiz-/Session-Markdown-Inhalte; im Markdown bleiben nur **URL-Strings** (z. B. `![Alt](https://…)`).
     - **Nur sichere Bild-URLs** werden gerendert (Mindeststandard: **`https:`**; unsichere oder verbotene Schemata wie `data:`/`javascript:` für Bilder werden nicht ausgeführt — siehe **ADR-0015**).
-    - In allen relevanten **Markdown-Render-Ansichten** (mindestens: Live-Preview beim Quiz bearbeiten, Teilnehmer-Ansicht Vote, Present, Host bei gerendertem Fragentext) öffnet ein **Klick/Tap auf das Bild** eine **große Overlay-Ansicht** (z. B. Material-Dialog): Bild zentriert, maximal sichtbar, abgedunkelter Hintergrund.
+    - In allen relevanten **Markdown-Render-Ansichten** (mindestens: Live-Preview beim Quiz bearbeiten, Teilnehmenden-Ansicht Vote, Present, Host bei gerendertem Fragentext) öffnet ein **Klick/Tap auf das Bild** eine **große Overlay-Ansicht** (z. B. Material-Dialog): Bild zentriert, maximal sichtbar, abgedunkelter Hintergrund.
     - **Schließen** der Ansicht: Backdrop-Tap, Schließen-Steuerung und **Escape** (Desktop); **Fokus** und **ARIA** für Barrierefreiheit.
     - **i18n:** UI-Strings (z. B. Schließen, optionaler Hinweis) in **de/en/fr/es/it** (ADR-0008).
     - Architekturentscheidung und Policy sind in **ADR-0015** festgehalten.
-  - **Didaktik (Lehre):** Greenfield-Vorlesung **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md). Studierende setzen **1.7a** im Praktikum **nicht** parallel um, wenn die Vorlesung diese Story abdeckt ([`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](docs/praktikum/STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0).
-- **Story 1.7b (Markdown/KaTeX-Editor mit MD3-Toolbar):** 🟡 Als Dozent:in möchte ich Fragen- und Antworttexte in einem **Split-View** bearbeiten (**Markdown-Quelle** + **Live-Vorschau** mit KaTeX) und Formatierungen, Links, **externe Bild-URLs** und Formeln **per Klick auf eine eigene Material-3-Toolbar** einfügen, damit die Bearbeitung auf dem **Smartphone** nutzbar bleibt und dieselbe Darstellung wie in der **Live-Session** zuverlässig widerspiegelt wird.
+- **Story 1.7b (Markdown/KaTeX-Editor mit MD3-Toolbar):** 🟡 Als Lehrperson möchte ich Fragen- und Antworttexte in einem **Split-View** bearbeiten (**Markdown-Quelle** + **Live-Vorschau** mit KaTeX) und Formatierungen, Links, **externe Bild-URLs** und Formeln **per Klick auf eine eigene Material-3-Toolbar** einfügen, damit die Bearbeitung auf dem **Smartphone** nutzbar bleibt und dieselbe Darstellung wie in der **Live-Session** zuverlässig widerspiegelt wird.
   - **Akzeptanzkriterien:**
     - **Split-View:** Markdown-Quelltext und Vorschau sind gleichzeitig nutzbar; die Vorschau aktualisiert sich mit **Debouncing** (z. B. ≤ 300 ms) wie bei Story 1.7.
     - **Gemeinsame Logik:** Vorschau nutzt dieselbe **Markdown-/KaTeX- und Sanitize-Strategie** wie die bestehende Session-/Preview-Darstellung (kein „zweites, stilles“ Rendering ohne Abgleich).
@@ -392,40 +391,40 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Architektur und Abgrenzung zu optionalem späteren WYSIWYG-Motor sind in **ADR-0016** festgehalten.
     - **UI-Geltungsbereich:** Mindestens **Quiz bearbeiten** und **Quiz neu** (Fragetext, Antwortoptionen); **Quiz-Beschreibung** mit derselben Markdown-/KaTeX-Semantik, wenn fachlich gewünscht; optional **Quiz-Vorschau** (Schnellkorrektur) in einer **kompakten** Variante (schmale Zeilen, ggf. Verweis auf Voll-Editor). **Außerhalb** von 1.7b: das **KI-JSON-Pastefeld** in der Quiz-Sammlung — siehe **Story 1.9a** und **ADR-0017**.
     - **Romanische Locales (fr/es/it):** Toolbar- und andere **kurze Aktionslabels** bewusst **kompakt** formulieren, damit sie auf **Buttons/Chips** auf dem Smartphone nicht übermäßig umbrechen (**ADR-0017**, **ADR-0014**).
-- **Story 1.8 (Quiz exportieren):** 🟡 Als Dozent möchte ich ein Quiz als JSON-Datei exportieren können, damit ich es sichern, teilen oder auf einem anderen Gerät importieren kann.
+- **Story 1.8 (Quiz exportieren):** 🟡 Als Lehrperson möchte ich ein Quiz als JSON-Datei exportieren können, damit ich es sichern, teilen oder auf einem anderen Gerät importieren kann.
   - **Akzeptanzkriterien:**
     - Ein "Exportieren"-Button erzeugt eine `.json`-Datei mit allen Quiz-Daten (Name, Beschreibung, Konfiguration, Fragen, Antwortoptionen inkl. `isCorrect`).
     - Das Export-Format enthält eine Schema-Version (`exportVersion`), um spätere Migrationen zu ermöglichen.
     - Markdown- und KaTeX-Auszeichnungen bleiben als Rohtext im Export erhalten.
     - Der Export erfolgt rein clientseitig (Download aus IndexedDB/Yjs, kein Server-Roundtrip).
     - Der Dateiname enthält den Quiz-Namen und ein Datum (z.B. `Mathe-Quiz_2026-02-18.json`).
-- **Story 1.9 (Quiz importieren):** 🟡 Als Dozent möchte ich eine zuvor exportierte JSON-Datei importieren können, um ein Quiz wiederherzustellen oder von Kollegen zu übernehmen.
+- **Story 1.9 (Quiz importieren):** 🟡 Als Lehrperson möchte ich eine zuvor exportierte JSON-Datei importieren können, um ein Quiz wiederherzustellen oder von Kolleg:innen zu übernehmen.
   - **Akzeptanzkriterien:**
     - Ein "Importieren"-Button öffnet einen Datei-Dialog für `.json`-Dateien.
     - Die Datei wird gegen das Export-Schema (Zod) validiert; bei Fehlern wird eine verständliche Meldung angezeigt.
     - Das importierte Quiz erhält eine neue ID (kein Überschreiben bestehender Quizzes).
     - Das Quiz wird nach dem Import sofort in der lokalen Quiz-Liste angezeigt (Yjs/IndexedDB).
     - Der Import erfolgt rein clientseitig (kein Server-Roundtrip).
-- **Story 1.9a (KI-gestützter Quiz-Import mit Zod-Validierung):** 🟡 Als Dozent möchte ich die vom LLM generierte Quiz-JSON (aus dem Workflow von Story 1.9b) in arsnova.eu importieren können, wobei strikte Zod-Validierung sicherstellt, dass fehlerhafte oder halluzinierte KI-Antworten die App nicht zum Absturz bringen.
+- **Story 1.9a (KI-gestützter Quiz-Import mit Zod-Validierung):** 🟡 Als Lehrperson möchte ich die vom LLM generierte Quiz-JSON (aus dem Workflow von Story 1.9b) in arsnova.eu importieren können, wobei strikte Zod-Validierung sicherstellt, dass fehlerhafte oder halluzinierte KI-Antworten die App nicht zum Absturz bringen.
   - **Akzeptanzkriterien:**
-    - **Import-UI:** In der **Quiz-Sammlung** (`/quiz`) gibt es den aufklappbaren Bereich **„Mit unserem Prompt zum fertigen Quiz“**, in den der Dozent die LLM-Antwort per **Copy & Paste** einfügt (inkl. tolerantem Parsing von Markdown-Codeblock `json` bzw. eingebettetem JSON). Der allgemeine **Importieren**-Button daneben dient dem Datei-Import exportierter JSON (Story 1.9) und kann auch für vom LLM gespeicherte `.json`-Dateien genutzt werden.
+    - **Import-UI:** In der **Quiz-Sammlung** (`/quiz`) gibt es den aufklappbaren Bereich **„Mit unserem Prompt zum fertigen Quiz“**, in den die Lehrperson die LLM-Antwort per **Copy & Paste** einfügt (inkl. tolerantem Parsing von Markdown-Codeblock `json` bzw. eingebettetem JSON). Der allgemeine **Importieren**-Button daneben dient dem Datei-Import exportierter JSON (Story 1.9) und kann auch für vom LLM gespeicherte `.json`-Dateien genutzt werden.
     - **Kein JSON-/Code-Editor-Pflicht:** Das Einfügefeld ist ein **Paste-Kanal** für KI-Ausgabe; ein **dedizierter JSON-Editor** (IDE-ähnlich, Syntax-Highlighting als Pflichtfeature) ist **kein** Liefergegenstand — siehe **ADR-0017**. Qualitätssicherung über **Zod** und verständliche Fehlermeldungen; optionale **leichtgewichtige** Hilfen (z. B. Fence-Stripping) bleiben zulässig.
     - **Strikte Zod-Validierung (Kern-Kriterium):**
       - Das eingefügte JSON wird **nicht** blind mit `JSON.parse()` als `any` in den State übernommen.
       - Es muss durch ein definiertes Zod-Schema (z. B. `quizImportSchema` aus `libs/shared-types/src/schemas.ts`) laufen (mittels `schema.safeParse()`).
       - Die Validierung prüft rekursiv, ob alle Pflichtfelder vorhanden sind (z. B. korrekter `QuestionType` aus dem Enum, Vorhandensein des `isCorrect`-Flags bei den Antworten).
-    - **Fehlerbehandlung (Graceful Degradation):** Wenn die KI das Format verfehlt hat (Zod wirft einen Fehler), stürzt die App nicht ab. Stattdessen liest das Frontend den `ZodError` aus und zeigt dem Dozenten eine verständliche Fehlermeldung an (z. B. „Fehler im Import: Bei Frage 2 fehlt das Feld ‚isCorrect‘“).
-    - **Yjs-Integration:** Nur wenn `safeParse().success` wahr ist, wird das typsichere Objekt in ein lokales Yjs-CRDT-Dokument transformiert, in der IndexedDB gespeichert und dem Dashboard des Dozenten hinzugefügt.
+    - **Fehlerbehandlung (Graceful Degradation):** Wenn die KI das Format verfehlt hat (Zod wirft einen Fehler), stürzt die App nicht ab. Stattdessen liest das Frontend den `ZodError` aus und zeigt der Lehrperson eine verständliche Fehlermeldung an (z. B. „Fehler im Import: Bei Frage 2 fehlt das Feld ‚isCorrect‘“).
+    - **Yjs-Integration:** Nur wenn `safeParse().success` wahr ist, wird das typsichere Objekt in ein lokales Yjs-CRDT-Dokument transformiert, in der IndexedDB gespeichert und dem Dashboard der Lehrperson hinzugefügt.
   - **Abhängigkeiten:** Story 1.9 (Quiz importieren, gleiches Import-Schema/Wiederverwendung), Story 1.5 (Local-First/Yjs). Das Zod-Schema für den KI-Import kann das gleiche wie für den regulären Import sein oder eine explizite Variante `quizImportSchema` in `libs/shared-types`.
-- **Story 1.9b (KI-Systemprompt – kontextbasiert, schema-getreu):** 🟡 Als Dozent möchte ich einen KI-Systemprompt in der App kopieren können, der meine **Quiz-Vorgaben** (Preset, Nickname-Theme, Schwierigkeit, Live-Optionen) widerspiegelt, damit das LLM ein schema-konformes Quiz erzeugen kann – inkl. Anleitung für Kontext-Upload (RAG) bei Präsentation/Skript.
+- **Story 1.9b (KI-Systemprompt – kontextbasiert, schema-getreu):** 🟡 Als Lehrperson möchte ich einen KI-Systemprompt in der App kopieren können, der meine **Quiz-Vorgaben** (Preset, Nickname-Theme, Schwierigkeit, Live-Optionen) widerspiegelt, damit das LLM ein schema-konformes Quiz erzeugen kann – inkl. Anleitung für Kontext-Upload (RAG) bei Präsentation/Skript.
   - **Akzeptanzkriterien:**
-    - **Platzierung:** Der Zugang **„Mit unserem Prompt zum fertigen Quiz“** (Textvorlage kopieren) liegt in der **Quiz-Sammlung** (`/quiz`), dort wo der Dozent ohnehin Quizzes verwaltet und importiert. (Nicht zwingend auf der Startseite.)
+    - **Platzierung:** Der Zugang **„Mit unserem Prompt zum fertigen Quiz“** (Textvorlage kopieren) liegt in der **Quiz-Sammlung** (`/quiz`), dort wo die Lehrperson ohnehin Quizzes verwaltet und importiert. (Nicht zwingend auf der Startseite.)
     - **Kontext-Einbindung:** Der Prompt enthält die **aktuellen Werte** aus dem **Startseiten-Preset** (`ThemePresetService`: spielerisch/seriös) und – gespeichert – aus den **Preset-Optionen** im `localStorage` (gleiche Quelle wie Preset-Toast auf der Startseite). Er spiegelt **nicht** das gerade fokussierte Quiz in der Liste wider. Vollständiger Vertrag: **ADR-0007**.
     - **Schema-Treue:** Der Prompt-Text (`buildKiQuizSystemPrompt` in `apps/frontend/src/app/shared/ki-quiz-prompt.ts`, siehe ADR-0007) beschreibt **exakt** das von `quizImportSchema` erwartete JSON-Format: erforderliche Felder, erlaubte Enums (`QuestionType`, etc.), `isCorrect` bei Antwortoptionen, Struktur für Fragen und Optionen. Das Ziel ist, dass typische LLM-Ausgaben nach Feintuning **ohne Nachbearbeitung** die Zod-Validierung (Story 1.9a) bestehen.
-    - **RAG-Anleitung:** Der Prompt weist den Dozenten an, bei Bedarf **Lehrmaterial (Präsentation, Skript, PDF)** per Kontext-Upload (Datei/URL) im Chatbot bereitzustellen, und das LLM an, das Quiz **aus diesem Kontext** zu erzeugen – so ist ein präsentations-/skriptbasiertes Quiz (wie bei Mentimeter) abgedeckt, ohne Upload zu arsnova.eu.
+    - **RAG-Anleitung:** Der Prompt weist die Lehrperson an, bei Bedarf **Lehrmaterial (Präsentation, Skript, PDF)** per Kontext-Upload (Datei/URL) im Chatbot bereitzustellen, und das LLM an, das Quiz **aus diesem Kontext** zu erzeugen – so ist ein präsentations-/skriptbasiertes Quiz (wie bei Mentimeter) abgedeckt, ohne Upload zu arsnova.eu.
     - **Wartbarkeit:** Der Prompt-Inhalt ist als **versionierbares Artefakt** im Frontend-Modul `ki-quiz-prompt.ts` (plus Spec) gepflegt, sodass Iterationen für bessere Schema-Konformität (Feintuning) ohne Änderung der Import-Logik (1.9a) möglich sind.
   - **Abhängigkeiten:** Story 1.11 (Preset & Optionen), damit Preset/Zielgruppe/Optionen in der UI verfügbar sind; Story 1.9a (Import) kann parallel oder danach umgesetzt werden – der Prompt wird von 1.9a nur genutzt (Copy), nicht implementiert.
-- **Story 1.10 (Quiz bearbeiten & löschen):** 🔴 Als Dozent möchte ich ein bestehendes Quiz umbenennen, bearbeiten und löschen können, damit ich meine Quiz-Sammlung pflegen kann.
+- **Story 1.10 (Quiz bearbeiten & löschen):** 🔴 Als Lehrperson möchte ich ein bestehendes Quiz umbenennen, bearbeiten und löschen können, damit ich meine Quiz-Sammlung pflegen kann.
   - **Akzeptanzkriterien:**
     - In der Quiz-Liste gibt es pro Quiz ein Kontextmenü (⋮) mit Optionen: „Bearbeiten", „Duplizieren", „Löschen".
     - **Bearbeiten:** Öffnet das Quiz im Editor — alle Felder (Name, Beschreibung, Konfiguration, Fragen, Antworten) sind änderbar. Änderungen werden sofort lokal gespeichert (Yjs/IndexedDB).
@@ -433,12 +432,12 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Löschen:** Zeigt einen Bestätigungsdialog ("Quiz ‹Name› wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."). Nach Bestätigung wird das Yjs-Dokument aus IndexedDB entfernt.
     - Ein Quiz, das gerade live ist (offene Session), kann nicht gelöscht werden — der Löschen-Button ist ausgegraut mit Tooltip-Hinweis.
     - Alle Operationen erfolgen rein clientseitig (Local-First).
-- **Story 1.11 (Quiz-Presets):** 🟡 Als Dozent möchte ich beim Erstellen eines Quizzes ein Preset auswählen können, das alle Gamification-Einstellungen auf einmal setzt, damit ich schnell zwischen spielerischem und seriösem Modus wechseln kann.
+- **Story 1.11 (Quiz-Presets):** 🟡 Als Lehrperson möchte ich beim Erstellen eines Quizzes ein Preset auswählen können, das alle Gamification-Einstellungen auf einmal setzt, damit ich schnell zwischen spielerischem und seriösem Modus wechseln kann.
   - **Akzeptanzkriterien:**
     - Es gibt **zwei** Presets in der Quiz-Konfiguration:
       - **🎮 Spielerisch** (default): setzt `showLeaderboard=true`, `enableSoundEffects=true`, `enableRewardEffects=true`, `enableMotivationMessages=true`, `enableEmojiReactions=true`, `anonymousMode=false`.
       - **🎓 Seriös**: setzt `showLeaderboard=false`, `enableSoundEffects=false`, `enableRewardEffects=false`, `enableMotivationMessages=false`, `enableEmojiReactions=false`, `anonymousMode=true`, `defaultTimer=null` (offene Antwortphase).
-    - **Einzeloptionen sind auswählbar:** Jede Option kann unabhängig an- oder abgewählt bzw. gesetzt werden; die UI bietet pro Option einen klaren Toggle oder Eingabefeld. Nach Auswahl eines Presets kann der Dozent jede Einzeloption überschreiben. Die gewählten **Einzelwerte werden gespeichert** — im Quiz-Dokument (Yjs) und damit persistent (Local-First, Sync über Yjs).
+    - **Einzeloptionen sind auswählbar:** Jede Option kann unabhängig an- oder abgewählt bzw. gesetzt werden; die UI bietet pro Option einen klaren Toggle oder ein Eingabefeld. Nach Auswahl eines Presets kann die Lehrperson jede Einzeloption überschreiben. Die gewählten **Einzelwerte werden gespeichert** — im Quiz-Dokument (Yjs) und damit persistent (Local-First, Sync über Yjs).
     - Das Preset dient nur als Komfortfunktion zum einmaligen Vorsetzen der Werte; **maßgeblich und gespeichert sind die Einzelwerte** (über Yjs), nicht das Preset selbst.
     - Ein visueller Hinweis (Badge „Spielerisch" / „Seriös") zeigt an, welchem Preset die aktuelle Konfiguration entspricht. Wenn Einzelwerte abweichen, wird „Benutzerdefiniert" angezeigt.
     - **Bedeutung der Einzeloptionen** (alle Quiz-Konfigurationsoptionen, auswählbar; Referenz: Prisma Quiz, CreateQuizInput):
@@ -452,14 +451,14 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - **anonymousMode** — Anonymer Modus (keine Nickname-Auswahl, automatische IDs) (ja/nein).
       - **readingPhaseEnabled** — Lesephase: Frage zuerst lesen, dann „Antworten freigeben" (Story 2.6) (ja/nein).
       - **nicknameTheme** — Thema für vordefinierte Nicknames, z. B. Nobelpreisträger, Tiere (Story 3.2) (Auswahl).
-      - **teamMode** — Team-Modus: Teilnehmer in Teams (Story 7.1) (ja/nein).
+      - **teamMode** — Team-Modus: Teilnehmende in Teams (Story 7.1) (ja/nein).
       - **teamCount** — Anzahl Teams bei Team-Modus (2–8, nur bei teamMode=true).
       - **teamAssignment** — Zuweisung zu Teams: automatisch oder manuell (Story 7.1) (Auswahl).
       - **backgroundMusic** — Hintergrundmusik in Lobby/Countdown (Story 5.3): Track-Name oder aus (optional).
       - **bonusTokenCount** — Anzahl Top-Plätze mit Bonus-Code (1–50, null = deaktiviert) (Story 4.6). In der UI: „Bonus-Code für Top-Plätze“.
     - **Preset-Optionen-Chips (UI):** Der Zustand jeder Option (an/aus) wird in der Preset-Toast-UI farblich hervorgehoben: „an“ in Grün (Ampel), „aus“ in Rot — bessere Scanbarkeit ohne Abhängigkeit von der Chip-Highlight-Farbe allein.
     - Presets sind auch beim Bearbeiten (Story 1.10) verfügbar.
-- **Story 1.12 (SC-Schnellformate):** 🟡 Als Dozent möchte ich beim Erstellen einer Single-Choice-Frage aus vorkonfigurierten Antwortformaten wählen können, damit ich häufig benötigte Formate mit einem Klick einfügen kann.
+- **Story 1.12 (SC-Schnellformate):** 🟡 Als Lehrperson möchte ich beim Erstellen einer Single-Choice-Frage aus vorkonfigurierten Antwortformaten wählen können, damit ich häufig benötigte Formate mit einem Klick einfügen kann.
   - **Akzeptanzkriterien:**
     - Wenn der Fragentyp `SINGLE_CHOICE` gewählt ist, erscheint über dem Antwort-Editor eine Dropdown-Leiste **„Schnellformat"** mit folgenden Optionen:
       - **Ja / Nein** → 2 Antwortoptionen: „Ja", „Nein"
@@ -468,17 +467,17 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - **Wahr / Falsch** → 2 Antwortoptionen: „Wahr", „Falsch"
       - **A / B / C / D** → 4 Antwortoptionen: „A", „B", „C", „D"
     - Bei Auswahl eines Formats werden die bestehenden Antwortoptionen **ersetzt** (nach Bestätigungsdialog, falls bereits Antworten vorhanden sind).
-    - Der Dozent muss danach mindestens eine Antwort als korrekt (`isCorrect`) markieren — das Schnellformat setzt keine Lösung voraus.
-    - Nach dem Einfügen kann der Dozent die Antworttexte frei bearbeiten, weitere Optionen ergänzen oder entfernen.
+    - Die Lehrperson muss danach mindestens eine Antwort als korrekt (`isCorrect`) markieren — das Schnellformat setzt keine Lösung voraus.
+    - Nach dem Einfügen kann die Lehrperson die Antworttexte frei bearbeiten, weitere Optionen ergänzen oder entfernen.
     - Die Schnellformate sind als Konstante `SC_FORMAT_PRESETS` in `@arsnova/shared-types` definiert und werden bei i18n (Story 6.2) lokalisiert.
     - Das Dropdown ist nur bei `SINGLE_CHOICE` sichtbar — bei anderen Fragentypen wird es ausgeblendet.
     - Das Feature ist rein clientseitig (kein Server-Roundtrip, keine Datenbankänderung).
-- **Story 1.13 (Quiz-Preview & Schnellkorrektur):** 🟡 Als Dozent möchte ich mein Quiz vor dem Live-Schalten in einer Vorschau durchblättern und dabei Fehler direkt per Inline-Bearbeitung korrigieren können, damit ich Tippfehler und falsche Markierungen schnell finde und behebe — unterstützt durch Hotkeys für flüssige Navigation.
+- **Story 1.13 (Quiz-Preview & Schnellkorrektur):** 🟡 Als Lehrperson möchte ich mein Quiz vor dem Live-Schalten in einer Vorschau durchblättern und dabei Fehler direkt per Inline-Bearbeitung korrigieren können, damit ich Tippfehler und falsche Markierungen schnell finde und behebe — unterstützt durch Hotkeys für flüssige Navigation.
   - **Akzeptanzkriterien:**
     - In der Quiz-Detailansicht gibt es einen **„Preview"-Button** (Augen-Icon 👁️), der den Preview-Modus öffnet.
     - **Vollbild-Preview:**
-      - Jede Frage wird so angezeigt, wie sie später auf dem Studenten-Gerät erscheinen würde (Markdown/KaTeX gerendert, Antwort-Buttons mit Farb- und Formencodierung △○□◇).
-      - Die korrekte(n) Antwort(en) werden zusätzlich mit einem grünen Häkchen (✓) markiert, damit der Dozent die Lösung sofort sieht.
+      - Jede Frage wird so angezeigt, wie sie später auf dem Teilnehmenden-Gerät erscheinen würde (Markdown/KaTeX gerendert, Antwort-Buttons mit Farb- und Formencodierung △○□◇).
+      - Die korrekte(n) Antwort(en) werden zusätzlich mit einem grünen Häkchen (✓) markiert, damit die Lehrperson die Lösung sofort sieht.
       - Bei RATING-Fragen wird die Skala mit Labels angezeigt; bei FREETEXT-Fragen ein Platzhalter-Textfeld.
       - Am oberen Rand: Fortschrittsbalken (z. B. „Frage 3 / 12") + Fragentyp-Badge (MC/SC/Freitext/Rating/Umfrage) + Schwierigkeits-Badge (Easy/Medium/Hard).
     - **Hotkey-Navigation (Tastatursteuerung):**
@@ -507,55 +506,55 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Wenn keine Probleme: ✅ „Alle Fragen valide — bereit zum Live-Schalten".
     - Das Feature ist rein clientseitig (kein Server-Roundtrip).
     - Abhängigkeiten: Story 1.7 (Markdown/KaTeX), Story 1.2a–c (Fragentypen), Story 1.5 (Local-First).
-- **Story 1.14 (Word Cloud – interaktiv + Export):** 🟡 Als Dozent möchte ich Freitext-Antworten als interaktive Word-Cloud sehen und die Auswertung exportieren können, damit ich auf Mentimeter-Niveau präsentieren und Ergebnisse für Nachbereitung oder Lehrevaluation nutzen kann.
+- **Story 1.14 (Word Cloud – interaktiv + Export):** 🟡 Als Lehrperson möchte ich Freitext-Antworten als interaktive Word-Cloud sehen und die Auswertung exportieren können, damit ich auf Mentimeter-Niveau präsentieren und Ergebnisse für Nachbereitung oder Lehrevaluation nutzen kann.
   - **Akzeptanzkriterien:**
-    - **Interaktive Word-Cloud:** In Beamer-Ansicht (Story 2.5) und Dozenten-Steuerung wird bei FREETEXT-Fragen mit mindestens einer Antwort eine Word-Cloud angezeigt; Begriffe werden nach Häufigkeit skaliert (Stopwörter optional ausblendbar).
+    - **Interaktive Word-Cloud:** In Beamer-Ansicht (Story 2.5) und Host-Steuerung wird bei FREETEXT-Fragen mit mindestens einer Antwort eine Word-Cloud angezeigt; Begriffe werden nach Häufigkeit skaliert (Stopwörter optional ausblendbar).
     - Klick auf einen Begriff hebt ihn hervor oder filtert die zugehörigen Antworten in einer Liste (Toggle); Tooltip zeigt exakte Anzahl.
     - Word-Cloud aktualisiert sich live bei eingehenden Votes (Echtzeit, konsistent mit Story 4.5).
-    - **Export:** Dozent kann pro Frage oder für die gesamte Session exportieren:
+    - **Export:** Die Lehrperson kann pro Frage oder für die gesamte Session exportieren:
       - **CSV:** Alle Freitext-Antworten (aggregiert: Text, Anzahl), ohne Nicknames; optional Bonus-Code-Liste (Story 4.6) in separatem Export.
       - **Bild/PNG (optional):** Screenshot der Word-Cloud oder der Ergebnis-Visualisierung für eine Frage.
-    - Export ist nur für den Dozenten zugänglich (kein Studenten-Zugriff); Daten nur aggregiert bzw. pseudonym (Bonus-Code-Liste), DSGVO-konform.
+    - Export ist nur für die Lehrperson zugänglich (kein Zugriff für Teilnehmende); Daten nur aggregiert bzw. pseudonym (Bonus-Code-Liste), DSGVO-konform.
     - Abhängigkeiten: Story 4.5 (Freitext-Auswertung), Story 2.5 (Beamer), Story 4.4 (Ergebnis-Visualisierung).
-- **Story 1.14a (Word Cloud 2.0 – echtes Layout + Premium-UX):** 🟡 Als Dozent möchte ich Freitext-Antworten in einer echten, dichten und praesentationstauglichen Word-Cloud sehen, damit arsnova.eu bei Live-Freitext mindestens so stark wie Kahoot oder Mentimeter wirkt und in Lesbarkeit, Interaktion und Export sichtbar darueber liegt.
+- **Story 1.14a (Word Cloud 2.0 – echtes Layout + Premium-UX):** 🟡 Als Lehrperson möchte ich Freitext-Antworten in einer echten, dichten und präsentationstauglichen Word-Cloud sehen, damit arsnova.eu bei Live-Freitext mindestens so stark wie Kahoot oder Mentimeter wirkt und in Lesbarkeit, Interaktion und Export sichtbar darüber liegt.
   - **Akzeptanzkriterien:**
-    - **Layout-Engine:** Die Word-Cloud verwendet eine echte Layout-Engine mit Kollisionspruefung und Spiralplatzierung; die bisherige `flex-wrap`-Tag-Cloud wird fuer Host/Presenter durch ein echtes Cloud-Layout ersetzt.
-    - **Wichtigstes Wort zentral:** Das haeufigste oder eines der haeufigsten Woerter wird sichtbar dominanter und moeglichst zentral platziert; die visuelle Hierarchie ist fuer einen Beamer aus mehreren Metern Entfernung erkennbar.
-    - **Dichte statt Liste:** Die Darstellung nutzt die verfuegbare Flaeche deutlich besser als die bisherige Tag-Cloud; sie wirkt wie eine echte Wortwolke und nicht wie eine umbrochene Begriffsliste.
-    - **Mindestens Benchmark-Niveau:** Die Standarddarstellung ist in wahrgenommener Qualitaet, Lesbarkeit und visueller Dichte mindestens auf dem Niveau von Kahoot oder Mentimeter.
-    - **Zielbild besser als Benchmark:** In mindestens zwei Bereichen ist die Darstellung sichtbar besser als typische Standard-Word-Clouds von Kahoot oder Mentimeter, z. B. bei Live-Aktualisierung ohne visuelle Unruhe, Interaktion, Exportqualitaet, Filterung oder Responsiveness.
-    - **Live-Update ohne Chaos:** Neue Freitext-Antworten fuehren zu einer stabilen Neuberechnung; bereits platzierte Woerter springen nicht bei jedem Update chaotisch ueber die Flaeche, sondern veraendern sich fuer Nutzer:innen nachvollziehbar.
-    - **Animierter, aber ruhiger Uebergang:** Wenn Woerter ihre Position oder Groesse aendern, erfolgen diese Aenderungen weich und visuell ruhig; bei `prefers-reduced-motion` werden Animationen reduziert oder deaktiviert.
-    - **Skalierung:** Die Schriftgroesse wird nicht nur linear vergroessert, sondern so skaliert, dass Unterschiede zwischen seltenen, mittleren und sehr haeufigen Begriffen auch bei vielen Eintraegen gut erkennbar bleiben.
-    - **Farblogik:** Die Cloud verwendet eine projektkonforme Farb- und Kontrastlogik; Farben duerfen die Hierarchie unterstuetzen, aber nie die Lesbarkeit schwaechen.
-    - **Rotation konfigurierbar:** Wortrotation ist technisch moeglich und konfigurierbar; Standard bleibt nur dann ohne Rotation, wenn dies nach UX-Pruefung klar besser lesbar ist.
-    - **Padding konfigurierbar:** Wortabstaende, Mindestpadding und maximale Dichte sind konfigurierbar, damit die Darstellung je nach Host-, Presenter- oder Exportkontext feinjustiert werden kann.
-    - **Groesse adaptiv:** Die Word-Cloud passt sich an verschiedene Viewports und Seitenverhaeltnisse an, ohne dass die Layoutqualitaet auf Mobilgeraeten, Laptops oder Projektionsflaechen sichtbar kollabiert.
-    - **Presenter und Host konsistent:** Host- und Presenter-Ansicht nutzen dieselbe fachliche Aggregation und dasselbe Layoutprinzip; Unterschiede duerfen nur bewusst in Dichte, Bedienelementen oder Rahmung bestehen.
+    - **Layout-Engine:** Die Word-Cloud verwendet eine echte Layout-Engine mit Kollisionsprüfung und Spiralplatzierung; die bisherige `flex-wrap`-Tag-Cloud wird für Host/Presenter durch ein echtes Cloud-Layout ersetzt.
+    - **Wichtigstes Wort zentral:** Das häufigste oder eines der häufigsten Wörter wird sichtbar dominanter und möglichst zentral platziert; die visuelle Hierarchie ist für einen Beamer aus mehreren Metern Entfernung erkennbar.
+    - **Dichte statt Liste:** Die Darstellung nutzt die verfügbare Fläche deutlich besser als die bisherige Tag-Cloud; sie wirkt wie eine echte Wortwolke und nicht wie eine umbrochene Begriffsliste.
+    - **Mindestens Benchmark-Niveau:** Die Standarddarstellung ist in wahrgenommener Qualität, Lesbarkeit und visueller Dichte mindestens auf dem Niveau von Kahoot oder Mentimeter.
+    - **Zielbild besser als Benchmark:** In mindestens zwei Bereichen ist die Darstellung sichtbar besser als typische Standard-Word-Clouds von Kahoot oder Mentimeter, z. B. bei Live-Aktualisierung ohne visuelle Unruhe, Interaktion, Exportqualität, Filterung oder Responsiveness.
+    - **Live-Update ohne Chaos:** Neue Freitext-Antworten führen zu einer stabilen Neuberechnung; bereits platzierte Wörter springen nicht bei jedem Update chaotisch über die Fläche, sondern verändern sich für Nutzer:innen nachvollziehbar.
+    - **Animierter, aber ruhiger Übergang:** Wenn Wörter ihre Position oder Größe ändern, erfolgen diese Änderungen weich und visuell ruhig; bei `prefers-reduced-motion` werden Animationen reduziert oder deaktiviert.
+    - **Skalierung:** Die Schriftgröße wird nicht nur linear vergrößert, sondern so skaliert, dass Unterschiede zwischen seltenen, mittleren und sehr häufigen Begriffen auch bei vielen Einträgen gut erkennbar bleiben.
+    - **Farblogik:** Die Cloud verwendet eine projektkonforme Farb- und Kontrastlogik; Farben dürfen die Hierarchie unterstützen, aber nie die Lesbarkeit schwächen.
+    - **Rotation konfigurierbar:** Wortrotation ist technisch möglich und konfigurierbar; Standard bleibt nur dann ohne Rotation, wenn dies nach UX-Prüfung klar besser lesbar ist.
+    - **Padding konfigurierbar:** Wortabstände, Mindestpadding und maximale Dichte sind konfigurierbar, damit die Darstellung je nach Host-, Presenter- oder Exportkontext feinjustiert werden kann.
+    - **Größe adaptiv:** Die Word-Cloud passt sich an verschiedene Viewports und Seitenverhältnisse an, ohne dass die Layoutqualität auf Mobilgeräten, Laptops oder Projektionsflächen sichtbar kollabiert.
+    - **Presenter und Host konsistent:** Host- und Presenter-Ansicht nutzen dieselbe fachliche Aggregation und dasselbe Layoutprinzip; Unterschiede dürfen nur bewusst in Dichte, Bedienelementen oder Rahmung bestehen.
     - **Echte Interaktion:** Klick oder Fokus auf ein Wort markiert es sichtbar und filtert die zugrundeliegenden Antworten; das aktive Wort kann wieder deaktiviert werden.
-    - **Exakte Mengen sichtbar:** Fuer jedes Wort ist die genaue Haeufigkeit per Tooltip, Overlay oder Fokuszustand klar erkennbar.
-    - **Stopwoerter professionell:** Stopwoerter koennen ein- und ausgeblendet werden; das Umschalten fuehrt zu einer nachvollziehbaren, konsistenten Neuberechnung statt zu einem kompletten visuellen Neustart.
-    - **Semantische Robustheit:** Tokenisierung, Stopwortlogik und Mindestwortlaenge bleiben getrennt vom Layout und koennen spaeter ohne Austausch der Layout-Engine erweitert werden.
-    - **Lexikonform per NLP:** Woerter werden vor der Aggregation ueber geeignete NLP-Komponenten in ihre moeglichst fehlerfreie Lexikonform ueberfuehrt, damit Beugungen, Flexionen und naheliegende Wortformen nicht als getrennte Begriffe erscheinen.
-    - **Aehnliche Woerter zusammenfassen:** Fachlich gleichartige Wortformen wie Singular/Plural, konjugierte Verbformen oder flektierte Adjektive koennen auf einen gemeinsamen Begriff aggregiert und als ein Wort in der Cloud dargestellt werden; als Referenz fuer die Qualitaet gilt ein Ansatz mit NLP-Bausteinen auf dem Niveau von spaCy.
-    - **Viele verschiedene Eintraege:** Bei einer Testmenge mit vielen heterogenen Freitext-Antworten bleibt die Darstellung lesbar und praesentierbar; die Ansicht darf nicht in eine ungeordnete Mikrotext-Flaeche kippen.
-    - **Viele Dubletten:** Bei stark haeufigen Wiederholungen wird die Dominanz weniger Leitbegriffe deutlich sichtbar, ohne dass seltenere, relevante Woerter vollstaendig untergehen.
-    - **Begrenzung mit Qualitaetsregel:** Wenn aufgrund der Flaeche oder Dichte nicht alle Woerter gerendert werden koennen, werden die wichtigsten Woerter priorisiert; verworfene Woerter fuehren nicht zu einem inkonsistenten oder kaputten Layout.
-    - **Leere und fruehe Zustaende:** Bei noch keinen oder sehr wenigen Antworten zeigt die UI einen hochwertigen leeren bzw. fruehen Zustand und wechselt sauber in die eigentliche Cloud.
-    - **Export in Praesentationsqualitaet:** PNG- oder SVG-Export liefert eine hochwertige, ruhige und beamergeeignete Grafik; der Export ist kein bloesser Screenshot einer instabilen Zwischenansicht.
+    - **Exakte Mengen sichtbar:** Für jedes Wort ist die genaue Häufigkeit per Tooltip, Overlay oder Fokuszustand klar erkennbar.
+    - **Stopwörter professionell:** Stopwörter können ein- und ausgeblendet werden; das Umschalten führt zu einer nachvollziehbaren, konsistenten Neuberechnung statt zu einem kompletten visuellen Neustart.
+    - **Semantische Robustheit:** Tokenisierung, Stopwortlogik und Mindestwortlänge bleiben getrennt vom Layout und können später ohne Austausch der Layout-Engine erweitert werden.
+    - **Lexikonform per NLP:** Wörter werden vor der Aggregation über geeignete NLP-Komponenten in ihre möglichst fehlerfreie Lexikonform überführt, damit Beugungen, Flexionen und naheliegende Wortformen nicht als getrennte Begriffe erscheinen.
+    - **Ähnliche Wörter zusammenfassen:** Fachlich gleichartige Wortformen wie Singular/Plural, konjugierte Verbformen oder flektierte Adjektive können auf einen gemeinsamen Begriff aggregiert und als ein Wort in der Cloud dargestellt werden; als Referenz für die Qualität gilt ein Ansatz mit NLP-Bausteinen auf dem Niveau von spaCy.
+    - **Viele verschiedene Einträge:** Bei einer Testmenge mit vielen heterogenen Freitext-Antworten bleibt die Darstellung lesbar und präsentierbar; die Ansicht darf nicht in eine ungeordnete Mikrotext-Fläche kippen.
+    - **Viele Dubletten:** Bei stark häufigen Wiederholungen wird die Dominanz weniger Leitbegriffe deutlich sichtbar, ohne dass seltenere, relevante Wörter vollständig untergehen.
+    - **Begrenzung mit Qualitätsregel:** Wenn aufgrund der Fläche oder Dichte nicht alle Wörter gerendert werden können, werden die wichtigsten Wörter priorisiert; verworfene Wörter führen nicht zu einem inkonsistenten oder kaputten Layout.
+    - **Leere und frühe Zustände:** Bei noch keinen oder sehr wenigen Antworten zeigt die UI einen hochwertigen leeren bzw. frühen Zustand und wechselt sauber in die eigentliche Cloud.
+    - **Export in Präsentationsqualität:** PNG- oder SVG-Export liefert eine hochwertige, ruhige und beamergeeignete Grafik; der Export ist kein bloßer Screenshot einer instabilen Zwischenansicht.
     - **Export und Live-Ansicht konsistent:** Die Exportdarstellung entspricht in Hierarchie und Wortanordnung plausibel der Live-Ansicht oder nutzt bewusst ein hochwertigeres statisches Layout desselben Datenstands.
-    - **Barrierefreiheit:** Die wichtigsten Informationen der Cloud bleiben nicht nur visuell zugreifbar; es gibt eine textuelle Alternative oder assistive Darstellung fuer Haeufigkeiten und gefilterte Antworten.
-    - **Tastaturbedienung:** Interaktive Woerter sind per Tastatur erreichbar; Fokuszustand und Aktivierung sind sichtbar und sinnvoll.
-    - **Performance im Live-Betrieb:** Die Layoutberechnung bleibt fuer typische Live-Szenarien performant genug, dass Host und Presenter waehrend eingehender Antworten reaktiv bleiben.
-    - **Messbare Qualitaetsprobe:** Vor Abschluss der Story wird die neue Darstellung mit mehreren realistischen Demo-Datensaetzen geprueft, darunter:
+    - **Barrierefreiheit:** Die wichtigsten Informationen der Cloud bleiben nicht nur visuell zugreifbar; es gibt eine textuelle Alternative oder assistive Darstellung für Häufigkeiten und gefilterte Antworten.
+    - **Tastaturbedienung:** Interaktive Wörter sind per Tastatur erreichbar; Fokuszustand und Aktivierung sind sichtbar und sinnvoll.
+    - **Performance im Live-Betrieb:** Die Layoutberechnung bleibt für typische Live-Szenarien performant genug, dass Host und Presenter während eingehender Antworten reaktiv bleiben.
+    - **Messbare Qualitätsprobe:** Vor Abschluss der Story wird die neue Darstellung mit mehreren realistischen Demo-Datensätzen geprüft, darunter:
       - viele unterschiedliche kurze Antworten
       - viele Wiederholungen weniger Begriffe
       - gemischte deutsche und englische Begriffe
       - sehr lange Einzelbegriffe
     - **Architekturvorgabe:** Die Umsetzung folgt ADR-0012; `d3-cloud` wird als Layout-Engine in eine eigene Angular-Komponente gekapselt und nicht als unkontrolliertes Fremd-Widget direkt in die UI eingebaut.
-  - **Abhaengigkeiten:** Story 1.14 (bestehende Word-Cloud), Story 4.5 (Freitext-Auswertung), Story 2.5 (Beamer / Presenter), Story 6.4 (Responsive), Story 6.5 (Barrierefreiheit), ADR-0012.
-- **Story 1.15 (Preset-Konfiguration exportieren & importieren):** 🟢 Als Dozent möchte ich meine Preset-Konfiguration (Seriös/Spielerisch inkl. aller Optionen) als Datei exportieren und auf einem anderen Gerät/Browser importieren können, damit ich meine Einstellungen geräteübergreifend nutzen kann — ohne Account und ohne serverseitige Speicherung.
-  - **Motivation:** Presets werden im `localStorage` des Browsers gespeichert und sind damit an ein Gerät/einen Browser gebunden. Für Dozenten, die zwischen Laptop und Tablet wechseln, geht die individuelle Konfiguration verloren. Diese Story bietet eine einfache, Zero-Knowledge-konforme Lösung.
+  - **Abhängigkeiten:** Story 1.14 (bestehende Word-Cloud), Story 4.5 (Freitext-Auswertung), Story 2.5 (Beamer / Presenter), Story 6.4 (Responsive), Story 6.5 (Barrierefreiheit), ADR-0012.
+- **Story 1.15 (Preset-Konfiguration exportieren & importieren):** 🟢 Als Lehrperson möchte ich meine Preset-Konfiguration (Seriös/Spielerisch inkl. aller Optionen) als Datei exportieren und auf einem anderen Gerät/Browser importieren können, damit ich meine Einstellungen geräteübergreifend nutzen kann — ohne Account und ohne serverseitige Speicherung.
+  - **Motivation:** Presets werden im `localStorage` des Browsers gespeichert und sind damit an ein Gerät bzw. einen Browser gebunden. Für Lehrende, die zwischen Laptop und Tablet wechseln, geht die individuelle Konfiguration verloren. Diese Story bietet eine einfache, Zero-Knowledge-konforme Lösung.
   - **Akzeptanzkriterien:**
     - In der Preset-Toast-UI gibt es zwei neue Buttons: **„Exportieren"** (Download-Icon) und **„Importieren"** (Upload-Icon).
     - **Export:** Erzeugt eine `.json`-Datei mit allen Preset-Daten beider Presets (Seriös + Spielerisch): Optionszustand, Namensmodus, Nickname-Theme, Teamanzahl, aktives Preset, Theme (Dark/Light/System). Dateiname: `arsnova-presets_{datum}.json`.
@@ -566,22 +565,22 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ---
 
-## Epic 2: Live-Sitzung & Lobby (Rolle: Dozent)
+## Epic 2: Live-Sitzung & Lobby (Rolle: Lehrperson)
 
 > **Verifizierung (Commit-Historie):** Der bisherige Kernumfang 2.1a–2.8 ist umgesetzt. Offen: Story 2.1c für tokenbasierten Host-/Presenter-Zugang.
 
-- **Story 2.1a (Session-ID generieren & Quiz-Upload):** 🔴 Als Dozent möchte ich ein Quiz live schalten können, wodurch eine 6-stellige Session-ID generiert wird und die Quizdaten an den Server übertragen werden.
+- **Story 2.1a (Session-ID generieren & Quiz-Upload):** 🔴 Als Lehrperson möchte ich ein Quiz live schalten können, wodurch eine 6-stellige Session-ID generiert wird und die Quizdaten an den Server übertragen werden.
   - **Akzeptanzkriterien:**
     - tRPC-Mutation `session.create` erstellt eine Session mit eindeutigem 6-stelligem Code.
     - Session-Status ist initial `LOBBY`.
     - Session ist über `Session`-Modell in der Datenbank persistiert.
     - Das lokale Quiz (Fragen, Antwortoptionen inkl. `isCorrect`, Konfiguration) wird beim Live-Schalten einmalig an den Server übertragen und in PostgreSQL gespeichert.
-    - `isCorrect`-Daten verbleiben ausschließlich serverseitig und werden **niemals** während der Frage-Phase an Studenten gesendet (siehe Story 2.4).
-- **Story 2.1b (QR-Code):** 🟢 Als Dozent möchte ich einen QR-Code angezeigt bekommen, der den Beitritts-Link enthält.
+    - `isCorrect`-Daten verbleiben ausschließlich serverseitig und werden **niemals** während der Frage-Phase an Teilnehmende gesendet (siehe Story 2.4).
+- **Story 2.1b (QR-Code):** 🟢 Als Lehrperson möchte ich einen QR-Code angezeigt bekommen, der den Beitritts-Link enthält.
   - **Akzeptanzkriterien:**
     - QR-Code encodiert `{baseUrl}/join/{sessionCode}`.
     - QR-Code ist auf Beamer-Auflösung lesbar.
-- **Story 2.1c (Host-/Presenter-Zugang mit Session-Token härten):** 🔴 Als Dozent möchte ich, dass eine laufende Veranstaltung nur mit passenden Session-Tokens gesteuert oder angezeigt werden kann, damit weder Teilnehmende noch Dritte allein über den Session-Code Host-Rechte erhalten.
+- **Story 2.1c (Host-/Presenter-Zugang mit Session-Token härten):** 🔴 Als Lehrperson möchte ich, dass eine laufende Veranstaltung nur mit passenden Session-Tokens gesteuert oder angezeigt werden kann, damit weder Teilnehmende noch Dritte allein über den Session-Code Host-Rechte erhalten.
   - **Akzeptanzkriterien:**
     - `session.create` liefert mindestens ein **Host-Token** zurück; optional zusätzlich ein separates **Presenter-Token** oder einen Presenter-Link.
     - Der 6-stellige **Session-Code** bleibt ausschließlich Join-Zugang für Teilnehmende und reicht **nicht** für `/session/:code/host` oder geschützte Host-Prozeduren.
@@ -589,113 +588,113 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Die Presenter-Ansicht ist als **read-only** abgesichert: Sie zeigt Live-Inhalte, kann aber keine Session steuern.
     - Tokens werden serverseitig nur gehasht gespeichert, sind an die Session gebunden und mindestens für die Laufzeit der Session gültig.
     - Ohne gültiges Token zeigen Host-/Presenter-Routen eine klare Zugriffsfehlermeldung oder leiten in einen sicheren Einstieg um.
-- **Story 2.2 (Lobby-Ansicht):** 🔴 Als Dozent möchte ich in Echtzeit sehen, wie viele und welche Studenten meiner Lobby beigetreten sind.
+- **Story 2.2 (Lobby-Ansicht):** 🔴 Als Lehrperson möchte ich in Echtzeit sehen, wie viele und welche Teilnehmenden meiner Lobby beigetreten sind.
   - **Akzeptanzkriterien:**
-    - tRPC-Subscription `session.onParticipantJoined` pusht neue Teilnehmer in Echtzeit.
-    - Teilnehmer-Liste zeigt Nicknames an.
-    - Teilnehmeranzahl wird live aktualisiert.
-- **Story 2.3 (Präsentations-Steuerung):** 🔴 Als Dozent möchte ich den Ablauf steuern (Frage öffnen, Antworten freigeben, Ergebnisse auflösen).
+    - tRPC-Subscription `session.onParticipantJoined` pusht neue Teilnehmende in Echtzeit.
+    - Die Teilnehmenden-Liste zeigt Nicknames an.
+    - Die Zahl der Teilnehmenden wird live aktualisiert.
+- **Story 2.3 (Präsentations-Steuerung):** 🔴 Als Lehrperson möchte ich den Ablauf steuern (Frage öffnen, Antworten freigeben, Ergebnisse auflösen).
   - **Akzeptanzkriterien:**
     - Buttons: "Nächste Frage" → "Antworten freigeben" → "Ergebnis zeigen".
     - Session-Status-Wechsel: `LOBBY → QUESTION_OPEN → ACTIVE → RESULTS → PAUSED → …` (Details siehe Story 2.6).
     - Wenn `readingPhaseEnabled=false`: Der Status `QUESTION_OPEN` wird übersprungen — "Nächste Frage" wechselt direkt zu `ACTIVE` (bisheriges Verhalten).
     - Alle verbundenen Clients werden via Subscription über Statuswechsel informiert.
-- **Story 2.4 (Security / Data-Stripping):** 🔴 Als Dozent möchte ich absolut sicher sein, dass die `isCorrect`-Lösungsflags _während der Frage-Phase_ nicht an die Browser der Studenten gesendet werden.
+- **Story 2.4 (Security / Data-Stripping):** 🔴 Als Lehrperson möchte ich absolut sicher sein, dass die `isCorrect`-Lösungsflags _während der Frage-Phase_ nicht an die Browser der Teilnehmenden gesendet werden.
   - **Akzeptanzkriterien:**
     - Das DTO `QuestionStudentDTO` enthält kein `isCorrect`-Feld — es wird bei jeder Frage-Auslieferung serverseitig entfernt.
-    - `isCorrect`-Daten dürfen erst **nach expliziter Auflösung durch den Dozenten** (Statuswechsel zu `RESULTS`) an die Studenten übertragen werden (siehe Story 3.4).
+    - `isCorrect`-Daten dürfen erst **nach expliziter Auflösung durch die Lehrperson** (Statuswechsel zu `RESULTS`) an die Teilnehmenden übertragen werden (siehe Story 3.4).
     - Ein automatisierter Test verifiziert, dass das ausgehende JSON im Status `ACTIVE` kein `isCorrect` enthält.
     - Ein separater Test bestätigt, dass `isCorrect` im Status `RESULTS` korrekt mitgesendet wird.
     - Code-Review-Checkliste dokumentiert die Stripping-Regel.
-- **Story 2.5 (Beamer-Ansicht = Host-Ansicht):** 🔴 Als Dozent sehe ich genau das auf dem Beamer, was auf meinem Laptop angezeigt wird (gespiegelt). Es gibt keinen zweiten Bildschirmausgang – die **Host-Ansicht ist die Beamer-Ansicht**.
-  - **Kontext:** Sobald der Dozent die Live-Session startet, spielt sich alles in diesem einen View ab (/session/:code/host). Der Beamer darf nichts verraten, was der Dozent nicht freigegeben hat (z. B. korrekte Antworten erst nach Klick auf „Ergebnis zeigen“).
+- **Story 2.5 (Beamer-Ansicht = Host-Ansicht):** 🔴 Als Lehrperson sehe ich genau das auf dem Beamer, was auf meinem Laptop angezeigt wird (gespiegelt). Es gibt keinen zweiten Bildschirmausgang – die **Host-Ansicht ist die Beamer-Ansicht**.
+  - **Kontext:** Sobald die Lehrperson die Live-Session startet, spielt sich alles in diesem einen View ab (`/session/:code/host`). Der Beamer darf nichts verraten, was die Lehrperson nicht freigegeben hat (z. B. korrekte Antworten erst nach Klick auf „Ergebnis zeigen“).
   - **Akzeptanzkriterien:**
     - Die Host-Ansicht ist die einzige Projektions-Ansicht; keine separate „Beamer-Route“ erforderlich (Route `/session/:code/present` optional, z. B. gleicher Inhalt für Vollbild-Tab).
-    - Beamer-tauglich: große Schrift wo nötig (≥ 24px Basis für Fragentext), hoher Kontrast, Fokus auf Inhalt (Lobby: Code, QR, Teilnehmer; Frage: Stamm + Optionen; Steuerung: ein klarer Button).
+    - Beamer-tauglich: große Schrift wo nötig (≥ 24px Basis für Fragentext), hoher Kontrast, Fokus auf Inhalt (Lobby: Code, QR, Teilnehmende; Frage: Stamm + Optionen; Steuerung: ein klarer Button).
     - **Nichts verraten:** Korrekte Antworten (grün/Häkchen) werden in der Host-Ansicht erst im Status `RESULTS` angezeigt (bereits umgesetzt).
     - **Lobby-Phase:** Session-Code, QR-Code (2.1b), Live-Teilnehmerliste (2.2).
     - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Nur Fragenstamm (großformatig); Antwortoptionen ausgeblendet; Hinweis „Warte auf Freigabe…“ (Story 2.6).
     - **Frage-Phase (`ACTIVE`):** Fragenstamm, Antwortoptionen ohne Lösungsmarkierung, Countdown (Story 3.5), Live-Abstimmungsbalken.
     - **Ergebnis-Phase (`RESULTS`):** Ergebnis-Visualisierung (Story 4.4), optional Leaderboard-Zwischenstand.
     - **End-Phase (`FINISHED`):** finales Leaderboard (Story 4.1), Belohnungseffekte (Story 5.4).
-    - Statuswechsel via tRPC-Subscription; Dozent kann F11 für Browser-Vollbild nutzen.
-- **Story 2.6 (Zwei-Phasen-Frageanzeige / Lesephase):** 🟡 Als Dozent möchte ich, dass beim Freigeben einer Frage zunächst nur der Fragenstamm angezeigt wird (Lesephase), damit die Studierenden die Frage in Ruhe und vollständig lesen können, bevor die Antwortoptionen erscheinen und der Countdown beginnt.
-  - **Didaktische Begründung:** In klassischen Quiz-Apps erscheinen Frage und Antworten gleichzeitig. Studierende springen dann oft direkt zu den Antworten, ohne die Frage gründlich zu lesen — insbesondere bei komplexen Fragen mit Formeln oder längeren Texten. Die Zwei-Phasen-Anzeige fördert **kognitives Processing** und reduziert impulsives Raten.
+    - Statuswechsel via tRPC-Subscription; die Lehrperson kann F11 für Browser-Vollbild nutzen.
+- **Story 2.6 (Zwei-Phasen-Frageanzeige / Lesephase):** 🟡 Als Lehrperson möchte ich, dass beim Freigeben einer Frage zunächst nur der Fragenstamm angezeigt wird (Lesephase), damit die Teilnehmenden die Frage in Ruhe und vollständig lesen können, bevor die Antwortoptionen erscheinen und der Countdown beginnt.
+  - **Didaktische Begründung:** In klassischen Quiz-Apps erscheinen Frage und Antworten gleichzeitig. Teilnehmende springen dann oft direkt zu den Antworten, ohne die Frage gründlich zu lesen — insbesondere bei komplexen Fragen mit Formeln oder längeren Texten. Die Zwei-Phasen-Anzeige fördert **kognitives Processing** und reduziert impulsives Raten.
   - **Akzeptanzkriterien:**
     - Neuer Session-Status `QUESTION_OPEN` zwischen `LOBBY`/`PAUSED` und `ACTIVE`.
     - **Status-Flow (erweitert):** `LOBBY → QUESTION_OPEN → ACTIVE → RESULTS → PAUSED → QUESTION_OPEN → … → FINISHED`.
     - **Phase 1 (`QUESTION_OPEN`):**
-      - Auf Beamer und Studenten-Geräten wird **nur der Fragenstamm** angezeigt (Markdown/KaTeX gerendert), ohne Antwortoptionen.
+      - Auf Beamer und Teilnehmenden-Geräten wird **nur der Fragenstamm** angezeigt (Markdown/KaTeX gerendert), ohne Antwortoptionen.
       - Kein Countdown läuft. Abstimmung ist nicht möglich.
       - Beamer: Frage großformatig zentriert, dezenter Hinweis „Gleich geht's los…".
-      - Studenten-Gerät: Frage wird angezeigt, Hinweis „Lies die Frage — Antworten folgen gleich."
+      - Teilnehmenden-Gerät: Frage wird angezeigt, Hinweis „Lies die Frage — Antworten folgen gleich.“
       - Neues DTO `QuestionPreviewDTO` wird gesendet (enthält `id`, `text`, `type`, `difficulty`, `order` — **keine** `answers`).
     - **Phase 2 (Übergang zu `ACTIVE`):**
-      - Der Dozent klickt den Button „Antworten freigeben" (Story 2.3).
+      - Die Lehrperson klickt den Button „Antworten freigeben“ (Story 2.3).
       - Backend wechselt Status von `QUESTION_OPEN` → `ACTIVE`.
       - tRPC-Subscription `session.onAnswersRevealed` pusht die Antwortoptionen (`QuestionStudentDTO` ohne `isCorrect`).
-      - Auf Beamer und Studenten-Geräten erscheinen die Antwort-Buttons mit Einblende-Animation (Slide-Up, 200 ms).
+      - Auf Beamer und Teilnehmenden-Geräten erscheinen die Antwort-Buttons mit Einblende-Animation (Slide-Up, 200 ms).
       - Der Countdown beginnt (Story 3.5).
     - **Konfigurierbar:** Neues Quiz-Konfigurationsfeld `readingPhaseEnabled` (default: `true`).
       - Wenn `true`: Zwei-Phasen-Flow wie oben beschrieben.
       - Wenn `false`: „Nächste Frage" wechselt direkt zu `ACTIVE` (Frage + Antworten + Countdown gleichzeitig — bisheriges Verhalten).
     - Das Feature ist in beiden Presets (Story 1.11) konfiguriert: **Spielerisch** → `readingPhaseEnabled=false`, **Seriös** → `readingPhaseEnabled=true`.
-    - **Security:** Während `QUESTION_OPEN` werden weder `isCorrect` noch die Antwortoptionen an Studenten gesendet — das DTO-Stripping (Story 2.4) greift bereits in dieser Phase.
+    - **Security:** Während `QUESTION_OPEN` werden weder `isCorrect` noch die Antwortoptionen an Teilnehmende gesendet — das DTO-Stripping (Story 2.4) greift bereits in dieser Phase.
     - **Barrierefreiheit:** Der Übergang von Phase 1 zu Phase 2 wird via `aria-live="polite"` angekündigt, damit Screenreader-Nutzer den Wechsel mitbekommen.
   - **Abhängigkeiten:** Story 2.3 (Steuerung), Story 2.4 (Security), Story 2.5 (Beamer), Story 3.3a (Frage empfangen), Story 3.5 (Countdown).
-- **Story 2.7 (Peer Instruction – zweite Abstimmung, Vorher/Nachher):** ✅ Fertig – Als Dozent möchte ich die Methode **Peer Instruction** (Eric Mazur) umsetzen können: **Zwei Abstimmrunden** mit Zwischendiskussion, wobei die erste Runde für die Dauer der Session gespeichert und mit der zweiten Runde verglichen wird, damit der Lernerfolg durch Peer-Diskussion sichtbar wird.
+- **Story 2.7 (Peer Instruction – zweite Abstimmung, Vorher/Nachher):** ✅ Fertig – Als Lehrperson möchte ich die Methode **Peer Instruction** (Eric Mazur) umsetzen können: **Zwei Abstimmrunden** mit Zwischendiskussion, wobei die erste Runde für die Dauer der Session gespeichert und mit der zweiten Runde verglichen wird, damit der Lernerfolg durch Peer-Diskussion sichtbar wird.
   - **Hintergrund (Peer Instruction):** Konzeptfrage bzw. Abstimmungsthema stellen → **erste Abstimmung** (individuell) → kurze **Peer-Diskussion** (Sitznachbarn überzeugen) → **zweite Abstimmung** (revidierte Antwort) → Auflösung. Die Vergleichsanzeige Vorher/Nachher macht den Effekt der Diskussion deutlich.
   - **Zwei Anwendungsfälle:** (1) **Blitz-Feedback:** Peer Instruction erfolgt mit **zwei Blitz-Feedback-Runden** desselben Typs (z. B. Stimmungsbild, ja/nein/vielleicht oder ABCD): erste Runde starten → Ergebnis nicht auflösen, Hinweis „Diskutiert mit eurem Nachbarn“ → zweite Runde (gleicher Code/Session) → Vorher/Nachher-Anzeige. (2) **Quiz:** Optional bei MC/SC-Fragen zwei Abstimmrunden pro Frage mit Diskussionsphase dazwischen (wie unten).
   - **Akzeptanzkriterien:**
-    - **Blitz-Feedback (Hauptfall):** In einer Blitz-Feedback-Session können **zwei Runden** derselben Abstimmung durchgeführt werden. Die **erste Runde** wird gespeichert; nach Aufforderung zur Diskussion (ohne Auflösung) startet der Dozent die **zweite Runde** (weiterhin derselbe Session-Code). Nach der zweiten Runde wird ein **Doppel-Balkendiagramm (Vorher/Nachher)** angezeigt. Beide Runden bleiben nur für die Dauer der Session gespeichert.
-    - **Quiz (optional):** Der Dozent kann bei MC/SC-Fragen optional „Peer Instruction“ aktivieren. Dann: Zwei getrennte Abstimmphasen pro Frage; zwischen den Phasen keine Auflösung, nur Aufforderung zur Diskussion (z. B. „Tauscht euch mit eurem Nachbarn aus – zweite Abstimmung gleich.“).
+    - **Blitz-Feedback (Hauptfall):** In einer Blitz-Feedback-Session können **zwei Runden** derselben Abstimmung durchgeführt werden. Die **erste Runde** wird gespeichert; nach der Aufforderung zur Diskussion (ohne Auflösung) startet die Lehrperson die **zweite Runde** (weiterhin derselbe Session-Code). Nach der zweiten Runde wird ein **Doppel-Balkendiagramm (Vorher/Nachher)** angezeigt. Beide Runden bleiben nur für die Dauer der Session gespeichert.
+    - **Quiz (optional):** Die Lehrperson kann bei MC/SC-Fragen optional „Peer Instruction“ aktivieren. Dann: zwei getrennte Abstimmungsphasen pro Frage; zwischen den Phasen keine Auflösung, nur die Aufforderung zur Diskussion (z. B. „Tauscht euch mit euren Nachbarinnen und Nachbarn aus – zweite Abstimmung gleich.“).
     - **Erste Abstimmung:** Wie bisher (Story 3.3b) – Teilnehmende geben ihre erste Antwort ab. Diese **erste Runde** wird **pro Frage und Session** serverseitig gespeichert (z. B. `Vote.round = 1` oder separates Aggregat „Round1“). Nach Ende der ersten Runde wechselt die UI in eine **Diskussionsphase** (Beamer: Hinweis „Diskutiert mit eurem Nachbarn“; Teilnehmende sehen keine Auflösung).
-    - **Zweite Abstimmung:** Dozent startet die zweite Runde (z. B. Button „Zweite Abstimmung“). Teilnehmende können **neu abstimmen** (ggf. gleiche oder geänderte Antwort). Zweite Runde wird ebenfalls gespeichert (`round = 2` bzw. „Round2“). Danach erfolgt die normale Auflösung (Ergebnis anzeigen, Story 4.4).
+    - **Zweite Abstimmung:** Die Lehrperson startet die zweite Runde (z. B. Button „Zweite Abstimmung“). Teilnehmende können **neu abstimmen** (ggf. gleiche oder geänderte Antwort). Die zweite Runde wird ebenfalls gespeichert (`round = 2` bzw. „Round2“). Danach erfolgt die normale Auflösung (Ergebnis anzeigen, Story 4.4).
     - **Speicherdauer:** Die Daten der ersten Runde werden nur **für die Dauer der Session** vorgehalten (z. B. Redis/Prisma wie andere Votes). Nach Session-Ende (Story 4.2) werden sie mit gelöscht – kein dauerhafter Vergleich über Sessions hinweg.
     - **Anzeige Vorher/Nachher:** In der Ergebnisphase (`RESULTS`) wird bei Peer-Instruction-Fragen eine **Vergleichsdarstellung** angezeigt:
       - **Doppel-Balkendiagramm (oder vergleichbar):** Pro Antwortoption zwei Balken nebeneinander oder übereinander: **Vorher** (erste Runde) und **Nachher** (zweite Runde), z. B. farblich unterschieden (Vorher: dezent/grau, Nachher: kräftig/primary). So ist auf einen Blick sichtbar, wie sich die Verteilung durch die Diskussion geändert hat.
       - Alternative/Ergänzung: Zusätzliche Kennzahlen (z. B. „Richtig in Runde 1: 45 % → Runde 2: 72 %“) für schnelle Einordnung.
-    - **Beamer & Dozenten-Steuerung:** Die Vorher/Nachher-Visualisierung erscheint in der Beamer-Ansicht (Story 2.5) und in der Dozenten-Ergebnisansicht. Barrierefrei: Balken mit `aria-label`/`role`, sinnvolle Kontraste (Story 6.5).
+    - **Beamer & Host-Steuerung:** Die Vorher/Nachher-Visualisierung erscheint in der Beamer-Ansicht (Story 2.5) und in der Ergebnisansicht der Lehrperson. Barrierefrei: Balken mit `aria-label`/`role`, sinnvolle Kontraste (Story 6.5).
   - **Abhängigkeiten:** Story 2.3 (Steuerung), Story 2.5 (Beamer), Story 3.3b (Abstimmung), Story 4.4 (Ergebnis-Visualisierung), Story 4.2 (Session-Cleanup für Speicherdauer).
-- **Story 2.8 (Produktives Smartphone-Hosting fuer Live-Sessions):** 🔴 Als Dozent moechte ich eine laufende Veranstaltung komplett und verlaesslich auf meinem Smartphone hosten koennen, damit Quiz, Q&A und Blitzlicht auch ohne Desktop oder Beamer in echten Live-Situationen professionell steuerbar sind.
-  - **Kontext:** Smartphone-Hosting ist kein Test- oder Fallback-Szenario, sondern ein echter Kernanwendungsfall, z. B. fuer Outdoor-Events, Seminare ohne Beamer, spontane Kleingruppenformate oder Lehrsituationen ohne Laptop. Das Produktversprechen lautet daher nicht nur "responsive", sondern "live hostbar ohne Desktop".
+- **Story 2.8 (Produktives Smartphone-Hosting für Live-Sessions):** 🔴 Als Lehrperson möchte ich eine laufende Veranstaltung komplett und verlässlich auf meinem Smartphone hosten können, damit Quiz, Q&A und Blitzlicht auch ohne Desktop oder Beamer in echten Live-Situationen professionell steuerbar sind.
+  - **Kontext:** Smartphone-Hosting ist kein Test- oder Fallback-Szenario, sondern ein echter Kernanwendungsfall, z. B. für Outdoor-Events, Seminare ohne Beamer, spontane Kleingruppenformate oder Lehrsituationen ohne Laptop. Das Produktversprechen lautet daher nicht nur „responsive“, sondern „live hostbar ohne Desktop“.
   - **Akzeptanzkriterien:**
-    - **Produktiver Primaermodus:** Die Host-Ansicht ist auf Smartphone ein vollwertiger produktiver Bedienmodus; Start, Steuerung, Kanalwechsel und Session-Ende sind ohne Desktop moeglich.
-    - **Gleiche Rolle, gleiche Route:** Es gibt keine eigene Mobile-Host-Rolle und keine separate Mobile-Route; dieselbe Host-Funktionalitaet wird ueber responsive Informationsarchitektur fuer Smartphone nutzbar gemacht.
+    - **Produktiver Primärmodus:** Die Host-Ansicht ist auf Smartphones ein vollwertiger produktiver Bedienmodus; Start, Steuerung, Kanalwechsel und Session-Ende sind ohne Desktop möglich.
+    - **Gleiche Rolle, gleiche Route:** Es gibt keine eigene Mobile-Host-Rolle und keine separate Mobile-Route; dieselbe Host-Funktionalität wird über responsive Informationsarchitektur für Smartphones nutzbar gemacht.
     - **Desktop bleibt stabil:** Desktop- und Beamer-Ansicht werden nicht verschlechtert; mobile Anpassungen erfolgen gezielt unter `@media`-Breakpoints.
-    - **Obere Steuerzone mobil vereinfacht:** Kanal-Tabs, Live-Banner, Session-Code, Status, Join-/Sound-Aktionen und Zusatz-Controls sind auf Smartphone so priorisiert, dass die obere Zone kompakt, ruhig und ohne visuelle Ueberladung bedienbar bleibt.
-    - **Natuerliche Scrollbarkeit:** Jede mobile Host-Ansicht ist vollstaendig scrollbar; wichtige Aktionen oder Informationen werden nicht durch konkurrierende `fixed`-/`sticky`-/`dvh`-Konstruktionen abgeschnitten oder ueberlagert.
-    - **Safe-Area sauber:** iPhone- und Android-Safe-Areas sowie Browser-Chrome werden in Hoehen- und Padding-Logik beruecksichtigt.
+    - **Obere Steuerzone mobil vereinfacht:** Kanal-Tabs, Live-Banner, Session-Code, Status, Join-/Sound-Aktionen und Zusatz-Controls sind auf Smartphones so priorisiert, dass die obere Zone kompakt, ruhig und ohne visuelle Überladung bedienbar bleibt.
+    - **Natürliche Scrollbarkeit:** Jede mobile Host-Ansicht ist vollständig scrollbar; wichtige Aktionen oder Informationen werden nicht durch konkurrierende `fixed`-/`sticky`-/`dvh`-Konstruktionen abgeschnitten oder überlagert.
+    - **Safe Area sauber:** iPhone- und Android-Safe-Areas sowie Browser-Chrome werden in Höhen- und Padding-Logik berücksichtigt.
     - **Quiz mobil steuerbar:** In laufenden Quiz-Sessions sind Frage, Status, Countdown, primäre Steueraktion und Folgeaktionen auf Smartphone ohne horizontales Scrollen und ohne gequetschte Toolbar bedienbar.
     - **Q&A mobil steuerbar:** Fragenliste, Moderationsstatus, Votes und Moderationsaktionen bleiben auf Smartphone lesbar, scrollbar und fingerfreundlich; Moderationsaktionen sind ohne Fehlbedienung erreichbar.
     - **Blitzlicht mobil steuerbar:** Startzustand, Rundenergebnis, Vergleichsrunde und Reset-/Ende-Aktionen sind auf Smartphone klar gegliedert; Aktionsbereiche und Ergebnisbalken kollabieren nicht visuell.
-    - **Ergebnis-Views mobil robust:** Leaderboard, Freitext-/Word-Cloud-Rahmung, Bewertungs- und Auswertungsansichten bleiben auf Smartphone strukturiert, mit angenehmen Abstaenden und klarer visueller Hierarchie.
-    - **Einheitliche mobile IA:** Quiz, Q&A, Blitzlicht und Ergebnisansichten folgen auf Smartphone einem konsistenten Layoutsystem mit einspaltiger Haupthierarchie, vergleichbaren Kartenbreiten und abgestimmten Abstaenden.
+    - **Ergebnisansichten mobil robust:** Leaderboard, Freitext-/Word-Cloud-Rahmung, Bewertungs- und Auswertungsansichten bleiben auf Smartphones strukturiert, mit angenehmen Abständen und klarer visueller Hierarchie.
+    - **Einheitliche mobile IA:** Quiz, Q&A, Blitzlicht und Ergebnisansichten folgen auf Smartphones einem konsistenten Layoutsystem mit einspaltiger Haupthierarchie, vergleichbaren Kartenbreiten und abgestimmten Abständen.
     - **Touch-Ziele:** Alle interaktiven Hauptelemente in der mobilen Host-Ansicht erreichen mindestens 44 × 44 px und sind mit dem Daumen sicher bedienbar.
-    - **Keine horizontale Ueberforderung:** Auf 320 px Breite gibt es in der Host-Ansicht kein unbeabsichtigtes horizontales Scrollen.
-    - **Kanalwechsel bleiben ruhig:** Beim Wechsel zwischen Quiz, Q&A und Blitzlicht verschieben sich Hauptkarten und Widgets nicht stoerend; der Layoutfluss bleibt stabil.
-    - **Performance im Live-Betrieb:** Die mobile Host-Ansicht bleibt auch bei verbundenen Teilnehmenden, Live-Updates und Kanalwechseln reaktiv genug fuer den Echtbetrieb.
-    - **Echte Geraetepruefung:** Vor Abschluss der Story wird die Host-Ansicht auf realen Smartphones in produktnahen Sessions fuer mindestens folgende Szenarien geprueft:
+    - **Keine horizontale Überforderung:** Auf 320 px Breite gibt es in der Host-Ansicht kein unbeabsichtigtes horizontales Scrollen.
+    - **Kanalwechsel bleiben ruhig:** Beim Wechsel zwischen Quiz, Q&A und Blitzlicht verschieben sich Hauptkarten und Widgets nicht störend; der Layoutfluss bleibt stabil.
+    - **Performance im Live-Betrieb:** Die mobile Host-Ansicht bleibt auch bei verbundenen Teilnehmenden, Live-Updates und Kanalwechseln reaktiv genug für den Echtbetrieb.
+    - **Echte Geräteprüfung:** Vor Abschluss der Story wird die Host-Ansicht auf realen Smartphones in produktnahen Sessions für mindestens folgende Szenarien geprüft:
       - Quiz live starten und mehrere Fragen steuern
       - zwischen Quiz, Q&A und Blitzlicht wechseln
-      - Blitzlicht starten, zuruecksetzen und beenden
+      - Blitzlicht starten, zurücksetzen und beenden
       - Q&A moderieren
       - Session ohne Desktop beenden
     - **Architekturvorgabe:** Umsetzung und Priorisierung folgen ADR-0014; Smartphone-Hosting wird als mobile Informationsarchitektur und als produktives USP-Feature behandelt, nicht als reine Responsive-Korrektur.
-  - **Abhängigkeiten:** Story 2.3 (Praesentations-Steuerung), Story 2.5 (Beamer-/Host-Ansicht), Story 2.7 (Kanalwechsel und Vergleichsrunden), Story 4.4 (Ergebnis-Visualisierung), Story 6.4 (Mobile-First & Responsive), Story 6.5 (Barrierefreiheit), ADR-0014.
+  - **Abhängigkeiten:** Story 2.3 (Präsentations-Steuerung), Story 2.5 (Beamer-/Host-Ansicht), Story 2.7 (Kanalwechsel und Vergleichsrunden), Story 4.4 (Ergebnis-Visualisierung), Story 6.4 (Mobile-First & Responsive), Story 6.5 (Barrierefreiheit), ADR-0014.
 
 ---
 
-## Epic 3: Teilnahme & Abstimmung (Rolle: Student) ✅ abgeschlossen
+## Epic 3: Teilnahme & Abstimmung (Rolle: Teilnehmende:r) ✅ abgeschlossen
 
-- **Story 3.1 (Beitreten):** 🔴 Als Student möchte ich über die Eingabe des Session-Codes sofort und ohne Registrierung in die Quiz-Lobby gelangen.
+- **Story 3.1 (Beitreten):** 🔴 Als Teilnehmende:r möchte ich über die Eingabe des Session-Codes sofort und ohne Registrierung in die Quiz-Lobby gelangen.
   - **Akzeptanzkriterien:**
     - Eingabefeld für 6-stelligen Code.
     - Bei gültigem Code → Weiterleitung zur Lobby.
     - Bei ungültigem/abgelaufenem Code → Fehlermeldung.
-- **Story 3.2 (Nicknames):** 🟡 Als Student möchte ich einen Nicknamen aus einer themenbezogenen Liste auswählen oder (falls erlaubt) frei eingeben können.
+- **Story 3.2 (Nicknames):** 🟡 Als Teilnehmende:r möchte ich einen Nicknamen aus einer themenbezogenen Liste auswählen oder, falls erlaubt, frei eingeben können.
   - **Akzeptanzkriterien:**
-    - Der Dozent wählt in der Quiz-Konfiguration ein Nickname-Thema (`nicknameTheme`):
+    - Die Lehrperson wählt in der Quiz-Konfiguration ein Nickname-Thema (`nicknameTheme`):
       - **Nobelpreisträger** (default) – z.B. "Marie Curie", "Albert Einstein", "Ada Yonath" (mind. 50 Namen).
       - **Kita** – Tiere & Farben, z.B. "Blauer Elefant", "Rotes Einhorn" (mind. 50 Kombinationen).
       - **Grundschule** – Märchenfiguren, z.B. "Rotkäppchen", "Rumpelstilzchen" (mind. 50 Namen).
@@ -706,27 +705,27 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Falls `allowCustomNicknames=false`: Nur die ausgewählte Themenliste ist verfügbar.
     - Die Listen werden rein clientseitig bereitgestellt (statische Arrays, kein Server-Roundtrip).
     - Doppelte Nicknames in derselben Session werden abgelehnt (DB-Constraint).
-- **Story 3.6 (Anonymer Modus):** 🟡 Als Dozent möchte ich einen anonymen Modus aktivieren können, bei dem keine Nicknames angezeigt werden, damit die Teilnahme psychologisch druckfrei ist.
+- **Story 3.6 (Anonymer Modus):** 🟡 Als Lehrperson möchte ich einen anonymen Modus aktivieren können, bei dem keine Nicknames angezeigt werden, damit die Teilnahme psychologisch druckfrei ist.
   - **Akzeptanzkriterien:**
     - Neues Quiz-Konfigurationsfeld `anonymousMode` (default: false; wird automatisch durch Preset „Seriös" aktiviert, Story 1.11).
     - Wenn aktiviert:
-      - Studenten erhalten beim Beitreten eine automatisch generierte ID (z.B. „Teilnehmer #7") — kein Nickname-Auswahlschritt.
-      - In der Lobby (Story 2.2) wird nur die **Teilnehmerzahl** angezeigt, keine Namensliste.
+      - Teilnehmende erhalten beim Beitreten eine automatisch generierte ID (z. B. „Teilnehmer #7“) — kein Nickname-Auswahlschritt.
+      - In der Lobby (Story 2.2) wird nur die **Zahl der Teilnehmenden** angezeigt, keine Namensliste.
       - Im Leaderboard (Story 4.1) und auf der Beamer-Ansicht werden **keine** individuellen Einträge angezeigt — nur aggregierte Ergebnisse (Durchschnittspunkte, Verteilung der richtigen Antworten).
       - Die persönliche Scorecard (Story 5.6) wird trotzdem auf dem eigenen Gerät angezeigt (ist privat).
     - Wenn deaktiviert: Nickname-Auswahl wie gewohnt (Story 3.2).
     - DSGVO-Vorteil: Im anonymen Modus werden keine pseudonymisierten Daten erhoben — vollständig datensparsam.
-- **Story 3.3a (Frage empfangen):** 🔴 Als Student möchte ich die aktuell freigegebene Frage auf meinem Gerät in Echtzeit sehen.
+- **Story 3.3a (Frage empfangen):** 🔴 Als Teilnehmende:r möchte ich die aktuell freigegebene Frage auf meinem Gerät in Echtzeit sehen.
   - **Akzeptanzkriterien:**
     - tRPC-Subscription `session.onQuestionRevealed` pusht die aktuelle Frage.
     - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Nur der Fragenstamm wird angezeigt (`QuestionPreviewDTO`, ohne Antwortoptionen). Antwort-Buttons und Countdown sind ausgeblendet. Hinweistext: „Lies die Frage — Antworten folgen gleich."
     - **Antwortphase (`ACTIVE`):** Die Antwortoptionen werden eingeblendet, der Countdown startet. Die vollständige Frage wird als `QuestionStudentDTO` (ohne `isCorrect`) angezeigt.
     - Wenn `readingPhaseEnabled=false`: Die Lesephase entfällt — die Frage wird sofort mit Antwortoptionen angezeigt (bisheriges Verhalten).
     - Fragenstamm und Antwortoptionen werden mit Markdown & KaTeX korrekt gerendert (siehe Story 1.7).
-- **Story 3.3b (Abstimmung abgeben):** 🔴 Als Student möchte ich performant abstimmen können.
+- **Story 3.3b (Abstimmung abgeben):** 🔴 Als Teilnehmende:r möchte ich performant abstimmen können.
   - **Akzeptanzkriterien:**
     - tRPC-Mutation `vote.submit` nimmt die Stimme entgegen.
-    - Nur eine Stimme pro Frage und Teilnehmer (DB-Constraint).
+    - Nur eine Stimme pro Frage und teilnehmender Person (DB-Constraint).
     - Visuelles Feedback: "Antwort gesendet ✓".
   - **UI-Vorgaben (Abstimm-Buttons):**
     - **Daumen-Erreichbarkeit:** Buttons liegen im unteren Bildschirmdrittel (Thumb Zone) und haben eine Mindestgröße von 48 × 48 px (WCAG 2.5.8 Target Size).
@@ -745,21 +744,21 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Beamer-Ansicht (Story 2.5):** Buttons werden als 2×2-Grid dargestellt (bei ≤ 4 Optionen) mit großer Schrift (≥ 28 px) für Lesbarkeit auf Distanz. Ab 5 Optionen wird auf ein einspaltige Liste umgestellt.
     - **MC-Auswahl:** Bei Multiple Choice sind Buttons als Toggles realisiert (Antippen = ausgewählt, erneutes Antippen = abgewählt). Ausgewählte Buttons zeigen einen farbigen Rahmen + Häkchen-Icon. Der „Absenden"-Button erscheint erst, wenn ≥ 1 Option gewählt ist.
     - **Freitext (FREETEXT):** Statt Buttons wird ein vollbreites Textfeld mit „Absenden"-Button angezeigt. Platzhaltertext: „Deine Antwort…".
-- **Story 3.4 (Echtzeit-Feedback):** 🟡 Als Student möchte ich nach der Auflösung durch den Dozenten sofort sehen, ob meine Antwort richtig war.
+- **Story 3.4 (Echtzeit-Feedback):** 🟡 Als Teilnehmende:r möchte ich nach der Auflösung durch die Lehrperson sofort sehen, ob meine Antwort richtig war.
   - **Akzeptanzkriterien:**
     - tRPC-Subscription `session.onResultsRevealed` sendet die korrekten Antworten.
     - Eigene Antwort wird grün (richtig) oder rot (falsch) markiert.
-    - `isCorrect` wird erst NACH expliziter Auflösung durch den Dozenten übertragen (Statuswechsel `ACTIVE → RESULTS`). Dies steht nicht im Widerspruch zu Story 2.4, die das Stripping nur während der Frage-Phase (`ACTIVE`) fordert.
-- **Story 3.5 (Countdown-Anzeige):** 🔴 Als Student möchte ich einen gut sichtbaren Countdown-Zähler auf meinem Gerät sehen, damit ich weiß, wie viel Zeit mir noch bleibt.
+    - `isCorrect` wird erst NACH expliziter Auflösung durch die Lehrperson übertragen (Statuswechsel `ACTIVE → RESULTS`). Dies steht nicht im Widerspruch zu Story 2.4, die das Stripping nur während der Frage-Phase (`ACTIVE`) fordert.
+- **Story 3.5 (Countdown-Anzeige):** 🔴 Als Teilnehmende:r möchte ich einen gut sichtbaren Countdown-Zähler auf meinem Gerät sehen, damit ich weiß, wie viel Zeit mir noch bleibt.
   - **Akzeptanzkriterien:**
     - Der Countdown startet erst mit dem Statuswechsel zu `ACTIVE` (d. h. nach der Lesephase, Story 2.6). Während `QUESTION_OPEN` wird **kein** Countdown angezeigt.
     - Countdown wird als großer, zentraler Zähler auf dem Client-Gerät (Smartphone) angezeigt.
-    - Auf der Beamer-Ansicht (Dozent) wird der Countdown zusätzlich als Kreisdiagramm / Fortschrittsbalken dargestellt.
+    - Auf der Beamer-Ansicht der Lehrperson wird der Countdown zusätzlich als Kreisdiagramm / Fortschrittsbalken dargestellt.
     - Countdown synchronisiert sich über den Server-Timestamp (kein Client-Drift).
     - Die letzten 5 Sekunden werden visuell hervorgehoben (rot, pulsierend).
     - Nach Ablauf wird die Eingabe automatisch gesperrt.
-    - Falls kein Timer gesetzt ist, wird kein Countdown angezeigt (offene Antwortphase, Dozent beendet manuell).
-- **Story 3.5a (Countdown Finger-Anzeige, letzte 6 Sekunden):** 🟡 Als Dozent/Teilnehmende möchte ich in den letzten 6 Sekunden des Countdowns die animierte Finger-Countdown-Anzeige (5 → 0) sehen, damit der Zeitablauf spielerisch und einheitlich sichtbar ist.
+    - Falls kein Timer gesetzt ist, wird kein Countdown angezeigt (offene Antwortphase, die Lehrperson beendet manuell).
+- **Story 3.5a (Countdown Finger-Anzeige, letzte 6 Sekunden):** 🟡 Als Lehrperson oder Teilnehmende:r möchte ich in den letzten 6 Sekunden des Countdowns die animierte Finger-Countdown-Anzeige (5 → 0) sehen, damit der Zeitablauf spielerisch und einheitlich sichtbar ist.
   - **Akzeptanzkriterien:**
     - Sobald der Countdown die letzten 6 Sekunden erreicht, wird die Finger-Countdown-Animation (wie im Preset-Toast „Spielerisch“) eingeblendet.
     - **Beamer-Ansicht (Story 2.5):** Die Animation wird in **Vollansicht** (groß, zentral oder prominent) angezeigt, sodass sie im Saal gut erkennbar ist.
@@ -771,9 +770,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ---
 
-## Epic 4: Auswertung & Aufräumen (System & Dozent)
+## Epic 4: Auswertung & Aufräumen (System & Lehrperson)
 
-- **Story 4.1 (Leaderboard mit Punktesystem):** ✅ Als Dozent möchte ich am Ende des Quizzes ein differenziertes Ranking sehen, das Schwierigkeit und Antwortgeschwindigkeit berücksichtigt.
+- **Story 4.1 (Leaderboard mit Punktesystem):** ✅ Als Lehrperson möchte ich am Ende des Quizzes ein differenziertes Ranking sehen, das Schwierigkeit und Antwortgeschwindigkeit berücksichtigt.
   - **Akzeptanzkriterien:**
     - Leaderboard zeigt Rang, Nickname, Gesamtpunkte und Anzahl richtiger Antworten.
     - **Punkteformel:** `score = difficultyMultiplier × timeBonus`
@@ -785,7 +784,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Sortierung: Höchste Gesamtpunktzahl zuerst; bei Gleichstand entscheidet die kürzere Gesamtantwortzeit.
     - Wird nur angezeigt, wenn `showLeaderboard=true` konfiguriert ist.
     - Nach jeder Frage kann optional ein Zwischenstand (Top 5) eingeblendet werden.
-- **Story 4.2 (Server aufräumen):** ✅ Als System möchte ich, dass die flüchtigen Abstimmungsdaten (Redis) vom Server gelöscht werden, sobald der Dozent die Live-Session beendet.
+- **Story 4.2 (Server aufräumen):** ✅ Als System möchte ich, dass die flüchtigen Abstimmungsdaten (Redis) vom Server gelöscht werden, sobald die Lehrperson die Live-Session beendet.
   - **Akzeptanzkriterien:**
     - `session.end`-Mutation setzt Status auf `FINISHED` und löscht Redis-Keys.
     - Votes bleiben in PostgreSQL für spätere Leaderboard-Auswertung erhalten.
@@ -795,7 +794,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Frontend erkennt Verbindungsabbruch und zeigt Hinweis an.
     - Automatischer Reconnect-Versuch (Exponential Backoff).
     - Nach Reconnect wird der aktuelle Session-Zustand synchronisiert.
-- **Story 4.4 (Ergebnis-Visualisierung):** ✅ Als Dozent möchte ich die Abstimmungsergebnisse nach jeder Frage als anschauliche Grafik auf dem Beamer sehen.
+- **Story 4.4 (Ergebnis-Visualisierung):** ✅ Als Lehrperson möchte ich die Abstimmungsergebnisse nach jeder Frage als anschauliche Grafik auf dem Beamer sehen.
   - **Akzeptanzkriterien:**
     - **MC/SC-Fragen:** Horizontales Balkendiagramm — ein Balken pro Antwortoption, Länge proportional zur Anzahl Votes, absolute Zahl + Prozentwert als Label.
     - Korrekte Antworten werden nach Auflösung grün hervorgehoben, falsche rot (+ Icons ✓/✗ für Farbunabhängigkeit, Story 6.5).
@@ -803,15 +802,15 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **FREETEXT-Fragen:** Antworten werden als scrollbare Liste angezeigt; bei ≥ 10 identischen Antworten zusätzlich als Wordcloud (Story 4.5).
     - Animation: Balken wachsen von 0 auf Endwert (300 ms ease-out). Bei `prefers-reduced-motion` wird die Animation übersprungen.
     - Diagramm skaliert responsive (Mobile: vertikal gestapelt, Beamer: horizontal).
-    - Wird sowohl in der Beamer-Ansicht (Story 2.5) als auch auf den Studenten-Geräten angezeigt.
-- **Story 4.5 (Freitext-Auswertung):** ✅ Als Dozent möchte ich die eingegangenen Freitext-Antworten gebündelt einsehen können, um offene Fragen auszuwerten.
+    - Wird sowohl in der Beamer-Ansicht (Story 2.5) als auch auf den Geräten der Teilnehmenden angezeigt.
+- **Story 4.5 (Freitext-Auswertung):** ✅ Als Lehrperson möchte ich die eingegangenen Freitext-Antworten gebündelt einsehen können, um offene Fragen auszuwerten.
   - **Akzeptanzkriterien:**
     - Alle Freitext-Antworten werden in einer sortierbaren Liste angezeigt (alphabetisch / nach Häufigkeit).
     - Identische oder sehr ähnliche Antworten werden gruppiert mit Anzahl-Badge.
     - Bei ≥ 10 eindeutigen Antworten wird eine Wordcloud als alternative Darstellung angeboten.
-    - Der Dozent kann einzelne Antworten auf dem Beamer hervorheben (Klick → vergrößerte Anzeige).
+    - Die Lehrperson kann einzelne Antworten auf dem Beamer hervorheben (Klick → vergrößerte Anzeige).
     - Datenschutz: Freitext-Antworten werden **nicht** mit Nicknames verknüpft dargestellt (anonyme Auswertung, konsistent mit DSGVO-Prinzip der Datensparsamkeit).
-- **Story 4.6 (Bonus-Code für Top-Platzierungen):** ✅ Als Dozent möchte ich den besten Studenten im Leaderboard einen individuellen Bonus-Code ausstellen können, den diese per E-Mail zur Einlösung von Bonuspunkten oder Anerkennung durch die Lehrperson einreichen, damit herausragende Leistungen belohnt werden — ohne die Anonymität der restlichen Teilnehmer zu gefährden.
+- **Story 4.6 (Bonus-Code für Top-Platzierungen):** ✅ Als Lehrperson möchte ich den bestplatzierten Teilnehmenden im Leaderboard einen individuellen Bonus-Code ausstellen können, den diese per E-Mail zur Einlösung von Bonuspunkten oder Anerkennung einreichen, damit herausragende Leistungen belohnt werden — ohne die Anonymität der übrigen Teilnehmenden zu gefährden.
   - **Hinweis Wording:** In der gesamten UI wird „Bonus-Code“ bzw. „Code“ verwendet (nicht „Token“); technisch bleibt das Datenmodell `BonusToken`/`bonusTokenCount` unverändert.
   - **Akzeptanzkriterien:**
     - In der Quiz-Konfiguration (Story 1.4) gibt es ein neues optionales Feld `**bonusTokenCount`\*\* (`Int?, 1–50, default: null`). Wenn gesetzt, erhalten die Top X im finalen Leaderboard automatisch einen Code.
@@ -819,108 +818,108 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Beim Beenden der Session (`session.end`) werden für die Top X Plätze kryptografisch sichere, einmalige Codes generiert (`crypto.randomUUID()` oder `nanoid`, 12 Zeichen, z. B. `BNS-A3F7-K2M9`).
       - Jeder Code wird als `BonusToken`-Datensatz in PostgreSQL gespeichert mit: `token`, `sessionId`, `participantId`, `nickname` (Snapshot), `quizName` (Snapshot), `totalScore`, `rank`, `generatedAt`.
       - Codes sind nach Generierung unveränderlich (kein Update, keine Regeneration).
-    - **Studenten-Ansicht:**
-      - Die Top-X-Studenten sehen auf ihrer finalen Scorecard (Story 5.6) zusätzlich einen hervorgehobenen Bereich: **„🎓 Dein Bonus-Code: `BNS-A3F7-K2M9`"**.
+    - **Ansicht der Teilnehmenden:**
+      - Die Top-X-Teilnehmenden sehen auf ihrer finalen Scorecard (Story 5.6) zusätzlich einen hervorgehobenen Bereich: **„🎓 Dein Bonus-Code: `BNS-A3F7-K2M9`“**.
       - Ein „Kopieren"-Button kopiert den Code in die Zwischenablage (`navigator.clipboard.writeText`).
-      - Ein erklärender Hinweis: _„Sende diesen Code per E-Mail an deinen Dozenten, um Bonuspunkte zu erhalten. Deine Anonymität bleibt gewahrt, solange du den Code nicht einreichst."_
-      - Der Code wird **nur** dem jeweiligen Studenten angezeigt (individuell per tRPC-Subscription `session.onPersonalResult`, kein Broadcast).
-      - Studenten, die nicht in den Top X sind, sehen keinen Bonus-Code-Bereich.
-    - **Dozenten-Ansicht (Bonus-Code-Liste):**
-      - Nach Beendigung der Session kann der Dozent über einen neuen tRPC-Query `**session.getBonusTokens({ sessionId })`\*\* die vollständige Liste der ausgegebenen Codes abrufen.
+      - Ein erklärender Hinweis: _„Sende diesen Code per E-Mail an deine Lehrperson, um Bonuspunkte zu erhalten. Deine Anonymität bleibt gewahrt, solange du den Code nicht einreichst.“_
+      - Der Code wird **nur** der jeweils berechtigten teilnehmenden Person angezeigt (individuell per tRPC-Subscription `session.onPersonalResult`, kein Broadcast).
+      - Teilnehmende, die nicht in den Top X sind, sehen keinen Bonus-Code-Bereich.
+    - **Ansicht der Lehrperson (Bonus-Code-Liste):**
+      - Nach Beendigung der Session kann die Lehrperson über einen neuen tRPC-Query `**session.getBonusTokens({ sessionId })`\*\* die vollständige Liste der ausgegebenen Codes abrufen.
       - Die Liste enthält pro Eintrag: Code, Pseudonym (Nickname), Quiz-Name, erreichte Punkte, Ranking-Platz, Datum.
       - Die Liste ist als Tabelle dargestellt und kann als **CSV exportiert** werden (clientseitiger Download).
-      - Der Dozent sieht **keine** echten Namen oder E-Mail-Adressen — nur Pseudonyme.
+      - Die Lehrperson sieht **keine** echten Namen oder E-Mail-Adressen — nur Pseudonyme.
     - **Verifizierungs-Workflow (außerhalb der App):**
-      - Studenten senden ihren Code per E-Mail an den Dozenten.
-      - Der Dozent gleicht den Code mit der CSV-/Tabellenliste ab und schreibt anhand der Absender-Mailadresse Bonuspunkte gut.
+      - Teilnehmende senden ihren Code per E-Mail an die Lehrperson.
+      - Die Lehrperson gleicht den Code mit der CSV-/Tabellenliste ab und schreibt anhand der Absender-Mailadresse Bonuspunkte gut.
       - Die App selbst speichert keine E-Mail-Adressen (DSGVO-konform, Prinzip der Datensparsamkeit).
     - **Anonymitätsgarantie:**
-      - Die Zuordnung Code → reale Person ist **nur** möglich, wenn der Student seinen Code freiwillig per E-Mail einreicht.
-      - Studenten, die nicht einreichen, bleiben vollständig anonym — auch gegenüber dem Dozenten.
-      - Im anonymen Modus (Story 3.6) werden Codes dennoch generiert (Pseudonym = „Teilnehmer #7"), da die Einreichung per E-Mail die freiwillige De-Anonymisierung darstellt.
+      - Die Zuordnung Code → reale Person ist **nur** möglich, wenn eine teilnehmende Person ihren Code freiwillig per E-Mail einreicht.
+      - Teilnehmende, die nicht einreichen, bleiben vollständig anonym — auch gegenüber der Lehrperson.
+      - Im anonymen Modus (Story 3.6) werden Codes dennoch generiert (Pseudonym = „Teilnehmer #7“), da die Einreichung per E-Mail die freiwillige De-Anonymisierung darstellt.
     - **Gültigkeit & Cleanup:**
       - Bonus-Codes (BonusToken-Datensätze) bleiben 90 Tage in der Datenbank gespeichert, danach werden sie automatisch gelöscht (Erweiterung von Story 4.2).
-      - Codes sind nicht übertragbar — der Dozent prüft den Absender der E-Mail eigenverantwortlich.
+      - Codes sind nicht übertragbar — die Lehrperson prüft den Absender der E-Mail eigenverantwortlich.
     - **Abhängigkeiten:** Story 4.1 (Leaderboard), Story 5.6 (Persönliche Scorecard).
-- **Story 4.7 (Ergebnis-Export für Dozenten – anonym):** ✅ Als Dozent möchte ich nach Ende einer Session die Auswertung anonym als Datei (CSV/PDF) herunterladen können, damit ich die Ergebnisse für Nachbereitung, Lehrevaluation oder Akkreditierung nutzen kann — ohne personenbezogene Daten.
+- **Story 4.7 (Ergebnis-Export für Lehrende – anonym):** ✅ Als Lehrperson möchte ich nach Ende einer Session die Auswertung anonym als Datei (CSV/PDF) herunterladen können, damit ich die Ergebnisse für Nachbereitung, Lehrevaluation oder Akkreditierung nutzen kann — ohne personenbezogene Daten.
   - **Akzeptanzkriterien:**
-    - Nach Beendigung der Session (Status `FINISHED`) steht in der Dozenten-Ansicht ein Button **„Ergebnis exportieren“** zur Verfügung.
-    - **CSV-Export (mindestens):** Enthält pro Zeile aggregierte Daten, z. B.: Session-ID, Quiz-Name, Datum, pro Frage: Fragentext (Kurz), Fragentyp, Anzahl Teilnehmer, Verteilung der Antworten (Anzahl pro Option bzw. bei Freitext: aggregierte Begriffe/Häufigkeiten), Durchschnittspunktzahl pro Frage, keine Nicknames und keine personenbezogenen Daten.
+    - Nach Beendigung der Session (Status `FINISHED`) steht in der Ansicht der Lehrperson ein Button **„Ergebnis exportieren“** zur Verfügung.
+    - **CSV-Export (mindestens):** Enthält pro Zeile aggregierte Daten, z. B.: Session-ID, Quiz-Name, Datum, pro Frage: Fragentext (Kurz), Fragentyp, Zahl der Teilnehmenden, Verteilung der Antworten (Anzahl pro Option bzw. bei Freitext: aggregierte Begriffe/Häufigkeiten), Durchschnittspunktzahl pro Frage, keine Nicknames und keine personenbezogenen Daten.
     - Optional: **PDF-Export** mit gleichen Inhalten in lesbarer Form (z. B. Deckblatt, pro Frage eine Seite mit Balkendiagramm-Beschreibung oder Word-Cloud-Text).
     - Bonus-Code-Liste (Story 4.6) kann in den Export einbezogen werden (Code, Rang, Punkte, Pseudonym) — entspricht der bereits in Story 4.6 beschriebenen CSV-Funktion; kein Widerspruch zur Anonymität, da Zuordnung nur über freiwillige E-Mail-Einreichung.
     - Export erfolgt clientseitig (Generierung im Browser) oder über einen tRPC-Query, der nur aggregierte/anonymisierte Daten zurückgibt; keine Speicherung der Export-Datei auf dem Server.
     - **tRPC & Schemas (bei serverseitiger Variante):** Query `session.getExportData` mit `GetExportDataInputSchema` (sessionId); Rückgabe `SessionExportDTO` (sessionId, sessionCode, quizName, finishedAt, participantCount, questions[], bonusTokens?). Siehe `libs/shared-types/src/schemas.ts` (SessionExportDTOSchema, QuestionExportEntrySchema, OptionDistributionEntrySchema, FreetextAggregateEntrySchema).
     - DSGVO: Export enthält ausschließlich anonymisierte bzw. aggregierte Daten; Hinweis in der UI: „Export für Dokumentation und Evaluation – keine personenbezogenen Daten“.
     - Abhängigkeiten: Story 4.1 (Leaderboard), Story 4.4 (Ergebnis-Visualisierung), Story 4.5 (Freitext-Auswertung), Story 4.6 (Bonus-Code-Liste).
-- **Story 4.8 (Session-Bewertung durch Teilnehmende):** ✅ Als Teilnehmende möchte ich am Ende einer Session das Quiz bewerten können (z. B. Qualität der Fragen, hat mir gefallen, sollen wir solche Quizze regelmäßig machen?), damit Dozent und alle Beteiligten ein gemeinsames Stimmungsbild sehen.
+- **Story 4.8 (Session-Bewertung durch Teilnehmende):** ✅ Als Teilnehmende:r möchte ich am Ende einer Session das Quiz bewerten können (z. B. Qualität der Fragen, hat mir gefallen, sollen wir solche Quizze regelmäßig machen?), damit Lehrperson und alle Beteiligten ein gemeinsames Stimmungsbild sehen.
   - **Akzeptanzkriterien:**
     - Nach Beendigung der Session (Status `FINISHED`) können Teilnehmende auf ihrem Gerät eine **kurze Bewertung** abgeben (einmalig pro Person pro Session).
-    - **Aufforderung zur Teilnahme:** Auf dem Teilnehmenden-Gerät erscheint eine deutliche Einladung, das Quiz zu bewerten und sich an der Umfrage zu beteiligen (z. B. „Deine Meinung zählt — bewerte das Quiz“ bzw. „Beteilige dich an der Umfrage“). Auf der Beamer-Ansicht kann der Dozent optional einen ähnlichen Aufruf anzeigen (z. B. „Jetzt abstimmen: Wie hat euch das Quiz gefallen?“), um die Beteiligung zu steigern.
+    - **Aufforderung zur Teilnahme:** Auf dem Teilnehmenden-Gerät erscheint eine deutliche Einladung, das Quiz zu bewerten und sich an der Umfrage zu beteiligen (z. B. „Deine Meinung zählt — bewerte das Quiz“ bzw. „Beteilige dich an der Umfrage“). Auf der Beamer-Ansicht kann die Lehrperson optional einen ähnlichen Aufruf anzeigen (z. B. „Jetzt abstimmen: Wie hat euch das Quiz gefallen?“), um die Beteiligung zu steigern.
     - **Bewertung per Sterne oder aufsteigende Emojis:** Die Bewertung erfolgt über **Sterne** (z. B. 1–5 Sterne) oder **aufsteigende Emojis** (z. B. 😞 → 🙂 → 😊), nicht über lange Skalen oder viele Einzelfragen. Mindestens: „Wie hat dir das Quiz gefallen?“ (Sterne/Emojis); optional „Qualität der Fragen?“ und „Sollen wir solche Quizze regelmäßig durchführen?“ (ebenfalls Sterne/Emojis). **Keine Freitext-Box** — nur vordefinierte Sterne/Emojis (vermindert Missbrauch).
-    - Die **aggregierte Auswertung** (Durchschnitte, Verteilungen) ist **für alle sichtbar**: Dozent sieht sie in der Steuerungs- und Beamer-Ansicht, Teilnehmende sehen sie auf ihrem Gerät (z. B. nach Abgabe oder auf Knopfdruck „Ergebnis anzeigen“). Keine personenbezogene Zuordnung — nur Summen und Häufigkeiten.
+    - Die **aggregierte Auswertung** (Durchschnitte, Verteilungen) ist **für alle sichtbar**: Die Lehrperson sieht sie in der Steuerungs- und Beamer-Ansicht, Teilnehmende sehen sie auf ihrem Gerät (z. B. nach Abgabe oder auf Knopfdruck „Ergebnis anzeigen“). Keine personenbezogene Zuordnung — nur Summen und Häufigkeiten.
     - Im Preset **Spielerisch** kann die Session-Bewertung prominent angeboten werden (z. B. direkt nach „Quiz beendet“); im Preset **Seriös** optional oder dezenter (z. B. Link „Feedback geben“).
     - **Datenmodell:** Neue Entität oder Erweiterung (z. B. `SessionFeedback` mit sessionId, participantId optional anonym, Bewertungsitems, aggregierte Auswertung serverseitig berechnet). Speicherung nur bis zum Session-Cleanup (Story 4.2); Export in Story 4.7 kann Session-Bewertung anonym mit einbeziehen.
-    - **tRPC:** Mutation zum Abgeben der Bewertung (z. B. `session.submitSessionFeedback`); Query oder Subscription für aggregierte Bewertung (z. B. `session.getSessionFeedbackSummary`), für Dozent und Teilnehmende gleichermaßen abrufbar.
+    - **tRPC:** Mutation zum Abgeben der Bewertung (z. B. `session.submitSessionFeedback`); Query oder Subscription für aggregierte Bewertung (z. B. `session.getSessionFeedbackSummary`), für Lehrperson und Teilnehmende gleichermaßen abrufbar.
     - Abhängigkeiten: Story 4.2 (Session-Ende/Cleanup), Story 4.4 (Ergebnis-Visualisierung für Darstellung der Auswertung).
 
 ---
 
-## Epic 5: Gamification & Audio-Effekte (Rolle: Dozent & Student) ✅ abgeschlossen
+## Epic 5: Gamification & Audio-Effekte (Rolle: Lehrperson & Teilnehmende:r) ✅ abgeschlossen
 
 > **Tag:** `epic-5` · UX-Verbesserungen (Phasen-Labels, Lesephase-Banner, Letzte-Frage-Hinweis, Richtig-Badge, KaTeX-Scrollbar, Join/Diskussion) sind in den Session-Features integriert.
 
-- **Story 5.1 (Sound-Effekte):** 🟡 Als Dozent möchte ich, dass bei bestimmten Quiz-Events automatisch Sound-Effekte abgespielt werden, um die Atmosphäre im Hörsaal zu steigern.
+- **Story 5.1 (Sound-Effekte):** 🟡 Als Lehrperson möchte ich, dass bei bestimmten Quiz-Events automatisch Sound-Effekte abgespielt werden, um die Atmosphäre im Hörsaal zu steigern.
   - **Akzeptanzkriterien:**
     - Ein Gong/Pfiff ertönt, wenn das Quiz endet (`SessionStatus.FINISHED`).
     - Ein kurzer Sound signalisiert den Start einer neuen Frage (`SessionStatus.ACTIVE`).
     - Ein Tick-Sound begleitet die letzten 5 Sekunden des Countdowns.
-    - Der Dozent kann Sounds global an/aus schalten (Quiz-Konfiguration `enableSoundEffects`, default: an).
+    - Die Lehrperson kann Sounds global an/aus schalten (Quiz-Konfiguration `enableSoundEffects`, default: an).
     - Sound-Dateien liegen unter **`apps/frontend/src/assets/sound`** und werden als statische Assets gebundelt (kein Server-Roundtrip).
     - Sounds werden über die Web Audio API abgespielt und respektieren die Browser-Autoplay-Policy (erster Klick aktiviert Audio-Context).
 - ~~\*\*Story 5.2~~ → verschoben nach Story 3.5\*\* _(Countdown-Anzeige gehört zur Kern-Abstimmung, nicht zur Gamification — siehe Epic 3)_
-- **Story 5.3 (Hintergrundmusik):** 🟢 Als Dozent möchte ich eine Hintergrundmusik während der Lobby- und Countdown-Phase abspielen können, um eine spielerische Stimmung zu erzeugen.
+- **Story 5.3 (Hintergrundmusik):** 🟢 Als Lehrperson möchte ich eine Hintergrundmusik während der Lobby- und Countdown-Phase abspielen können, um eine spielerische Stimmung zu erzeugen.
   - **Akzeptanzkriterien:**
-    - Der Dozent kann aus mindestens 3 vordefinierten Musik-Tracks wählen (z.B. "Entspannt", "Spannend", "Episch").
-    - Musik wird nur auf dem Beamer/Dozenten-Gerät abgespielt, **nicht** auf den Smartphones der Studenten.
+    - Die Lehrperson kann aus mindestens 3 vordefinierten Musik-Tracks wählen (z. B. „Entspannt“, „Spannend“, „Episch“).
+    - Musik wird nur auf dem Beamer-/Host-Gerät abgespielt, **nicht** auf den Smartphones der Teilnehmenden.
     - Musik stoppt automatisch, wenn eine Frage aufgelöst wird (`SessionStatus.RESULTS`).
-    - Lautstärkeregler (0–100 %) in der Dozenten-Ansicht.
+    - Lautstärkeregler (0–100 %) in der Ansicht der Lehrperson.
     - Musik-Dateien liegen unter **`apps/frontend/src/assets/sound`** (z.B. `lobby/`), sind lizenzfrei und werden als Assets gebundelt.
     - Konfigurierbar pro Quiz (`backgroundMusic: string | null`).
-- **Story 5.4 (Belohnungseffekte bei Platzierung):** 🟡 Als Student möchte ich bei einer vorderen Platzierung im Leaderboard eine visuelle Belohnung sehen, damit der Wettbewerb motivierend wird.
+- **Story 5.4 (Belohnungseffekte bei Platzierung):** 🟡 Als Teilnehmende:r möchte ich bei einer vorderen Platzierung im Leaderboard eine visuelle Belohnung sehen, damit der Wettbewerb motivierend wird.
   - **Akzeptanzkriterien:**
     - **Platz 1:** Konfetti-Animation + Gold-Pokal-Icon + Fanfare-Sound.
     - **Platz 2:** Silber-Medaillen-Icon + kurzer Jubel-Sound.
     - **Platz 3:** Bronze-Medaillen-Icon + kurzer Applaus-Sound.
     - Animationen werden per CSS-Keyframes / Canvas (`canvas-confetti`) realisiert – keine schweren Libraries.
     - Effekte werden sowohl auf dem Beamer als auch auf den Smartphones der Top-3 angezeigt.
-    - Effekte können vom Dozenten deaktiviert werden (`enableRewardEffects`, default: an).
+    - Effekte können von der Lehrperson deaktiviert werden (`enableRewardEffects`, default: an).
     - Bei `prefers-reduced-motion: reduce` werden Animationen deaktiviert; nur statische Icons und Text werden angezeigt (konsistent mit Story 6.5).
     - Abhängig von Story 4.1 (Leaderboard).
-- **Story 5.4a (Foyer-Einflug im Preset Spielerisch):** 🟡 Als Teilnehmende:r möchte ich im Preset `Spielerisch` waehrend der Connecting-Phase sehen, wie bunte Teilnehmer-Chips in das Foyer einfliegen, damit der Einstieg lebendig, motivierend und unverwechselbar wirkt.
+- **Story 5.4a (Foyer-Einflug im Preset Spielerisch):** 🟡 Als Teilnehmende:r möchte ich im Preset `Spielerisch` während der Connecting-Phase sehen, wie bunte Teilnehmenden-Chips in das Foyer einfliegen, damit der Einstieg lebendig, motivierend und unverwechselbar wirkt.
   - **Akzeptanzkriterien:**
-    - **Nur im Preset `Spielerisch`:** Der Effekt ist standardmaessig nur aktiv, wenn das Quiz bzw. die Live-Session im Preset `Spielerisch` laeuft; im Preset `Serioes` erscheint keine verspielte Einflug-Animation.
-    - **Connecting-Phase klar definiert:** Der Effekt wird waehrend des Verbindens bzw. beim Uebergang in Lobby/Foyer gezeigt, nicht waehrend aktiver Fragen oder Ergebnisphasen.
-    - **Eigenstaendiger Stil:** Die Animation darf an die Lebendigkeit von Kahoot erinnern, muss aber einen klar eigenen Stil von arsnova.eu haben; sie ist keine optische Kopie bestehender Produkte.
-    - **Teilnehmer als Chips:** Jeder neu beitretende Teilnehmende wird als farbiger Chip visualisiert; der Chip kann Initiale, Icon, Pseudonym oder ein abstrahiertes Teilnehmer-Symbol tragen.
+    - **Nur im Preset `Spielerisch`:** Der Effekt ist standardmäßig nur aktiv, wenn das Quiz bzw. die Live-Session im Preset `Spielerisch` läuft; im Preset `Seriös` erscheint keine verspielte Einflug-Animation.
+    - **Connecting-Phase klar definiert:** Der Effekt wird während des Verbindens bzw. beim Übergang in Lobby/Foyer gezeigt, nicht während aktiver Fragen oder Ergebnisphasen.
+    - **Eigenständiger Stil:** Die Animation darf an die Lebendigkeit von Kahoot erinnern, muss aber einen klar eigenen Stil von arsnova.eu haben; sie ist keine optische Kopie bestehender Produkte.
+    - **Teilnehmende als Chips:** Jede neu beitretende Person wird als farbiger Chip visualisiert; der Chip kann Initiale, Icon, Pseudonym oder ein abstrahiertes Teilnehmenden-Symbol tragen.
     - **Mehrere Farben gleichzeitig:** Die Chips verwenden mehrere deutlich unterscheidbare, themenkonforme Farben und erzeugen dadurch ein lebendiges, aber nicht chaotisches Gesamtbild.
-    - **Einflugbewegung ins Foyer:** Neue Chips bewegen sich sichtbar von ausserhalb oder vom Rand in den Foyer-Bereich hinein und kommen dort in einer ruhigen Endposition an.
-    - **Kein wildes Durcheinander:** Auch bei vielen fast gleichzeitigen Joins bleibt die Bewegung lesbar; Chips duerfen sich nicht stoerend ueberlagern oder hektisch unkontrolliert springen.
+    - **Einflugbewegung ins Foyer:** Neue Chips bewegen sich sichtbar von außerhalb oder vom Rand in den Foyer-Bereich hinein und kommen dort in einer ruhigen Endposition an.
+    - **Kein wildes Durcheinander:** Auch bei vielen fast gleichzeitigen Joins bleibt die Bewegung lesbar; Chips dürfen sich nicht störend überlagern oder hektisch unkontrolliert springen.
     - **Host-Lobby profitiert sichtbar:** In der Host-Lobby wird der Effekt klar sichtbar, damit die Lehrperson den lebendigen Zulauf ins Foyer wahrnimmt.
-    - **Beamer-tauglich:** Wenn die Lobby auf dem Beamer gezeigt wird, ist der Effekt grosszuegig, kontrastreich und aus der Distanz gut erkennbar.
-    - **Teilnehmenden-Geraet mit passendem Feedback:** Auf dem Smartphone der beitretenden Person gibt es einen kleineren, passenden Ankunftsmoment oder eine Bestaetigung, die den erfolgreichen Eintritt ins Foyer spielerisch bestaetigt.
-    - **Ruhender Endzustand:** Nach dem Einflug bleiben Chips stabil im Foyer sichtbar oder gehen in eine geordnete Lobby-Darstellung ueber; es bleibt kein permanent unruhiges Herumfliegen bestehen.
-    - **Skalierung bei vielen Joins:** Bei steigender Teilnehmerzahl skaliert die Darstellung sauber, z. B. ueber kleinere Chips, Clustering oder reduzierte Bewegungsdauer, ohne unlesbar zu werden.
-    - **Keine Behinderung zentraler Lobby-Infos:** Session-Code, QR-Code, Join-Link, Teamkarten oder Teilnehmerzahl bleiben trotz Animation klar lesbar und bedienbar.
+    - **Beamer-tauglich:** Wenn die Lobby auf dem Beamer gezeigt wird, ist der Effekt großzügig, kontrastreich und aus der Distanz gut erkennbar.
+    - **Teilnehmenden-Gerät mit passendem Feedback:** Auf dem Smartphone der beitretenden Person gibt es einen kleineren, passenden Ankunftsmoment oder eine Bestätigung, die den erfolgreichen Eintritt ins Foyer spielerisch bestätigt.
+    - **Ruhender Endzustand:** Nach dem Einflug bleiben Chips stabil im Foyer sichtbar oder gehen in eine geordnete Lobby-Darstellung über; es bleibt kein permanent unruhiges Herumfliegen bestehen.
+    - **Skalierung bei vielen Joins:** Bei steigender Zahl Teilnehmender skaliert die Darstellung sauber, z. B. über kleinere Chips, Clustering oder reduzierte Bewegungsdauer, ohne unlesbar zu werden.
+    - **Keine Behinderung zentraler Lobby-Infos:** Session-Code, QR-Code, Join-Link, Teamkarten oder die Zahl der Teilnehmenden bleiben trotz Animation klar lesbar und bedienbar.
     - **Designsystem-konform:** Form, Farbe, Schatten, Bewegung und Timing passen zu Material 3 und zum visuellen Stil der Startseite bzw. des Presets `Spielerisch`.
-    - **Konfigurierbar ueber bestehende Effektlogik:** Der Effekt respektiert vorhandene Effekt-Schalter wie `enableRewardEffects` oder eine gleichwertige dedizierte Option fuer Lobby-Mikrointeraktionen.
+    - **Konfigurierbar über bestehende Effektlogik:** Der Effekt respektiert vorhandene Effekt-Schalter wie `enableRewardEffects` oder eine gleichwertige dedizierte Option für Lobby-Mikrointeraktionen.
     - **`prefers-reduced-motion`:** Bei reduzierter Bewegung wird der Einflug stark vereinfacht oder durch eine statische, sanfte Einblendung ersetzt.
-    - **Performant im Live-Betrieb:** Auch bei vielen schnellen Beitritten bleibt die Lobby flüssig; Animationen duerfen das UI nicht spürbar blockieren.
-    - **Team-Modus kompatibel:** Wenn Team-Modus aktiv ist, duerfen Chips farblich oder gruppierend mit Teamkarten zusammenspielen, ohne die Team-Erkennbarkeit zu verschlechtern.
-    - **Anonymitaet gewahrt:** Im anonymen oder serioesen Kontext werden keine zusaetzlichen personenbezogenen Signale sichtbar gemacht; der Effekt arbeitet mit den ohnehin zulaessigen Anzeigeformen.
-    - **Sound optional, nicht zwingend:** Ein kurzer verspielter Join-Sound ist optional moeglich, darf aber nur abgespielt werden, wenn Soundeffekte aktiv sind und die Browser-Policy das erlaubt.
-    - **Testfaelle fuer Qualitaet:** Die Story gilt erst als abgeschlossen, wenn die Lobby mit wenigen, mittleren und vielen parallelen Joins visuell geprueft wurde und der Effekt in allen drei Faellen motivierend statt stoerend wirkt.
-  - **Abhaengigkeiten:** Story 2.2 (Lobby-Ansicht), Story 1.11 (Preset `Spielerisch`), Story 5.1 (Sound-Effekte, optional), Story 6.4 (Responsive), Story 6.5 (Barrierefreiheit).
-- **Story 5.5 (Answer Streak — Serienbonus):** 🟡 Als Student möchte ich für aufeinanderfolgende richtige Antworten einen steigenden Bonus erhalten, damit ich für Konstanz belohnt werde.
+    - **Performant im Live-Betrieb:** Auch bei vielen schnellen Beitritten bleibt die Lobby flüssig; Animationen dürfen das UI nicht spürbar blockieren.
+    - **Team-Modus kompatibel:** Wenn Team-Modus aktiv ist, dürfen Chips farblich oder gruppierend mit Teamkarten zusammenspielen, ohne die Team-Erkennbarkeit zu verschlechtern.
+    - **Anonymität gewahrt:** Im anonymen oder seriösen Kontext werden keine zusätzlichen personenbezogenen Signale sichtbar gemacht; der Effekt arbeitet mit den ohnehin zulässigen Anzeigeformen.
+    - **Sound optional, nicht zwingend:** Ein kurzer verspielter Join-Sound ist optional möglich, darf aber nur abgespielt werden, wenn Soundeffekte aktiv sind und die Browser-Policy das erlaubt.
+    - **Testfälle für Qualität:** Die Story gilt erst als abgeschlossen, wenn die Lobby mit wenigen, mittleren und vielen parallelen Joins visuell geprüft wurde und der Effekt in allen drei Fällen motivierend statt störend wirkt.
+  - **Abhängigkeiten:** Story 2.2 (Lobby-Ansicht), Story 1.11 (Preset `Spielerisch`), Story 5.1 (Sound-Effekte, optional), Story 6.4 (Responsive), Story 6.5 (Barrierefreiheit).
+- **Story 5.5 (Answer Streak — Serienbonus):** 🟡 Als Teilnehmende:r möchte ich für aufeinanderfolgende richtige Antworten einen steigenden Bonus erhalten, damit ich für Konstanz belohnt werde.
   - **Akzeptanzkriterien:**
     - Für jede weitere korrekte Antwort in Folge steigt der Streak-Zähler: 2er-Streak = ×1.1, 3er-Streak = ×1.2, 4er-Streak = ×1.3, 5+ = ×1.5 (Multiplikator auf den Frage-Score).
     - Bei einer falschen Antwort oder keiner Antwort wird der Streak auf 0 zurückgesetzt.
@@ -929,9 +928,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Der aktuelle Streak-Zähler wird auf der persönlichen Scorecard (Story 5.6) angezeigt.
     - Auf dem Beamer wird bei Streaks ≥ 3 ein Flammen-Icon (🔥) neben dem Nickname im Leaderboard-Zwischenstand angezeigt.
     - Streak-Daten werden serverseitig berechnet (kein Client-Vertrauen) und im `Vote`-Modell als `streakCount` gespeichert.
-- **Story 5.6 (Persönliche Scorecard):** 🔴 Als Student möchte ich nach jeder Frage eine persönliche Ergebniskarte auf meinem Smartphone sehen, die mir zeigt, wie ich abgeschnitten habe.
+- **Story 5.6 (Persönliche Scorecard):** 🔴 Als Teilnehmende:r möchte ich nach jeder Frage eine persönliche Ergebniskarte auf meinem Smartphone sehen, die mir zeigt, wie ich abgeschnitten habe.
   - **Akzeptanzkriterien:**
-    - Nach der Auflösung (Status `RESULTS`) wird auf dem Studenten-Gerät eine Scorecard eingeblendet mit:
+    - Nach der Auflösung (Status `RESULTS`) wird auf dem Gerät der teilnehmenden Person eine Scorecard eingeblendet mit:
       - Ergebnis: ✓ Richtig / ✗ Falsch (+ korrekte Antwort bei Falsch).
       - Punkte für diese Frage (Score + Streak-Bonus aufgeschlüsselt).
       - Aktueller Streak-Zähler mit Flammen-Animation bei ≥ 3 (🔥).
@@ -940,7 +939,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Die Scorecard wird als Overlay/Bottom-Sheet angezeigt und verschwindet automatisch, wenn die nächste Frage beginnt.
     - Bei SURVEY/FREETEXT-Fragen: Scorecard zeigt nur „Antwort registriert" + aktuellen Rang (keine Punkte).
     - tRPC-Subscription `session.onPersonalResult` liefert die Daten individuell pro Participant (kein Broadcast der Einzelergebnisse an alle).
-- **Story 5.7 (Motivationsmeldungen):** 🟡 Als Student möchte ich kontextbezogene Motivationsmeldungen auf meiner Scorecard sehen, die mich anfeuern.
+- **Story 5.7 (Motivationsmeldungen):** 🟡 Als Teilnehmende:r möchte ich kontextbezogene Motivationsmeldungen auf meiner Scorecard sehen, die mich anfeuern.
   - **Akzeptanzkriterien:**
     - Meldungen werden basierend auf dem Kontext ausgewählt:
       - **Richtig + schnell (Top 25% Antwortzeit):** „Blitzschnell! ⚡"
@@ -952,22 +951,22 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - **Rangaufstieg:** „{rankChange} Plätze aufgestiegen! 🚀"
     - Meldungen werden rein clientseitig aus den Scorecard-Daten generiert (kein Server-Roundtrip).
     - Meldungen werden in der jeweils gewählten App-Sprache angezeigt (i18n, Story 6.2).
-    - Der Dozent kann Motivationsmeldungen global an/aus schalten (Quiz-Konfiguration, neues Feld `enableMotivationMessages`, default: an).
-- **Story 5.8 (Emoji-Reaktionen in Ergebnis-Phase):** 🟢 Als Student möchte ich in der Ergebnis-Phase mit Emoji-Reaktionen reagieren können, um die Stimmung im Hörsaal zu äußern.
+    - Die Lehrperson kann Motivationsmeldungen global an/aus schalten (Quiz-Konfiguration, neues Feld `enableMotivationMessages`, default: an).
+- **Story 5.8 (Emoji-Reaktionen in Ergebnis-Phase):** 🟢 Als Teilnehmende:r möchte ich in der Ergebnis-Phase mit Emoji-Reaktionen reagieren können, um die Stimmung im Hörsaal zu äußern.
   - **Akzeptanzkriterien:**
-    - Nach der Auflösung (Status `RESULTS`) erscheint auf dem Studenten-Gerät eine Emoji-Leiste mit 5 vordefinierten Reaktionen: 👏 🎉 😮 😂 😢.
+    - Nach der Auflösung (Status `RESULTS`) erscheint auf dem Gerät der teilnehmenden Person eine Emoji-Leiste mit 5 vordefinierten Reaktionen: 👏 🎉 😮 😂 😢.
     - Ein Tap auf ein Emoji sendet die Reaktion an den Server (tRPC-Mutation `session.react`).
     - Auf der Beamer-Ansicht (Story 2.5) werden eingehende Reaktionen als aufsteigende Emoji-Blasen am rechten Bildschirmrand animiert (ähnlich Instagram Live).
-    - Maximal 1 Reaktion pro Student pro Frage (Entprellung).
+    - Maximal 1 Reaktion pro teilnehmender Person pro Frage (Entprellung).
     - Reaktionen werden **nicht** persistiert (nur Redis/In-Memory, flüchtig).
-    - Emoji-Reaktionen können vom Dozenten deaktiviert werden (Quiz-Konfiguration, neues Feld `enableEmojiReactions`, default: an).
+    - Emoji-Reaktionen können von der Lehrperson deaktiviert werden (Quiz-Konfiguration, neues Feld `enableEmojiReactions`, default: an).
     - Bei `prefers-reduced-motion` werden Blasen ohne Animation angezeigt (statische Liste statt Aufsteigen).
 
 ---
 
 ## Epic 6: Theming & Barrierefreiheit (Rolle: Alle Nutzer) — abgeschlossen
 
-Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobile-First und Barrierefreiheit**. Alle Stories zielen auf Nutzer:innen aller Rollen (Dozent, Student, Gast). Keine Abhängigkeit von Epic 5; kann parallel ab Epic 0 umgesetzt werden.
+Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobile-First und Barrierefreiheit**. Alle Stories zielen auf Nutzer:innen aller Rollen (Lehrperson, Teilnehmende, Gast). Keine Abhängigkeit von Epic 5; kann parallel ab Epic 0 umgesetzt werden.
 
 **Stand:** Stories 6.1 (Theme), 6.2 (i18n inkl. Locale-Formatierung für Datum/Zahlen), 6.3 (Impressum/Datenschutz) und 6.4 (Mobile-First/PWA) sind umgesetzt; Akzeptanzkriterien geprüft (siehe `docs/EPIC6-AC-PRUEFUNG.md`). Story 6.5 bleibt als fortlaufender Qualitäts-Checkpoint (WCAG-Audit) über den Projektverlauf bestehen und blockiert den Epic-Abschluss nicht. Story 6.6 ergänzt **qualitative UX-Testreihen** (Thinking Aloud) und die **konkrete Umsetzung** der daraus abgeleiteten UI/UX-Anpassungen.
 
@@ -989,7 +988,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Die Auswahl wird im `localStorage` persistiert und beim nächsten Besuch wiederhergestellt.
     - Internationalisierung wird über Angulars eingebautes i18n (`@angular/localize`) mit XLIFF umgesetzt.
     - Alle UI-Texte (Buttons, Labels, Fehlermeldungen, Platzhalter) werden über Übersetzungsdateien (`src/locale/messages.*.xlf`) bereitgestellt.
-    - Quiz-Inhalte (Fragenstamm, Antworten) werden **nicht** übersetzt — sie bleiben in der vom Dozenten eingegebenen Sprache.
+    - Quiz-Inhalte (Fragenstamm, Antworten) werden **nicht** übersetzt — sie bleiben in der von der Lehrperson eingegebenen Sprache.
     - Datums- und Zahlenformate passen sich der gewählten Locale an (`DatePipe`, `DecimalPipe`).
   - **Verifizierung:** Locales `de/en/fr/es/it` in `angular.json` aktiv; `messages.en.xlf`, `messages.fr.xlf`, `messages.es.xlf`, `messages.it.xlf` vorhanden und build-fähig (`npm run build:localize`). Sprachwähler und Locale-Subpfade aktiv (`/de`, `/en`, `/fr`, `/es`, `/it`); UI-Texte inkl. ARIA/Status in Templates und `$localize` markiert.
 - **Story 6.3 (Impressum & Datenschutzerklärung):** 🔴 Als Nutzer möchte ich ein Impressum und eine Datenschutzerklärung einsehen können, damit die App den gesetzlichen Anforderungen (TMG, DSGVO) entspricht.
@@ -1002,13 +1001,13 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Beide Seiten sind ohne Login erreichbar.
     - Inhalte werden in der aktuell gewählten Sprache angezeigt (abhängig von Story 6.2; Fallback: Deutsch).
   - **Verifizierung:** Footer-Links, Routen, Markdown in `assets/legal/` vollständig; Inhalte verfügbar für `de/en/fr/es/it` (`imprint.{locale}.md`, `privacy.{locale}.md`) mit Fallback auf `de`.
-- **Story 6.4 (Mobile-First & Responsive Design):** 🔴 Als Student möchte ich die App auf meinem Smartphone komfortabel bedienen können, da ich im Hörsaal primär mein Handy nutze.
+- **Story 6.4 (Mobile-First & Responsive Design):** 🔴 Als Teilnehmende:r möchte ich die App auf meinem Smartphone komfortabel bedienen können, da ich im Hörsaal primär mein Handy nutze.
   - **Akzeptanzkriterien:**
     - Alle Ansichten werden **Mobile-First** entwickelt: Basis-Layout für Smartphones (≤ 640px), erweitert für Tablets (≥ 768px) und Desktop/Beamer (≥ 1024px).
     - Responsive Breakpoints (640px, 768px, 1024px, 1280px) werden konsequent genutzt — keine festen Pixelbreiten.
     - Touch-Targets (Buttons, Antwortoptionen) sind mindestens 44×44px groß (Apple HIG / WCAG 2.5.5).
     - Abstimmungsbuttons sind auf Smartphones als vollbreite, gestapelte Karten dargestellt (einfaches Antippen).
-    - Beamer-Ansicht des Dozenten nutzt die volle Breite (`lg`+) mit großer Schrift, Countdown und Leaderboard.
+    - Die Beamer-Ansicht der Lehrperson nutzt die volle Breite (`lg`+) mit großer Schrift, Countdown und Leaderboard.
     - Kein horizontales Scrollen auf Viewports ≥ 320px.
     - Viewport-Meta-Tag ist korrekt gesetzt (`width=device-width, initial-scale=1`).
     - PWA-fähig: `manifest.json` mit Icon-Set, damit die App zum Homescreen hinzugefügt werden kann.
@@ -1017,7 +1016,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
   - **Akzeptanzkriterien:**
     - **Tastaturnavigation:** Alle interaktiven Elemente (Buttons, Inputs, Antwortoptionen, Dropdown-Menüs) sind per `Tab`-Taste erreichbar und per `Enter`/`Space` aktivierbar.
     - **Fokus-Management:** Ein sichtbarer Fokusring (`focus-visible`) ist auf allen interaktiven Elementen vorhanden. Nach Seitenwechsel, Modal-Öffnung oder Theme-/Sprachumschaltung auf der Startseite wird der Fokus programmatisch auf das erste relevante Element (z. B. Session-Code-Eingabe) gesetzt.
-    - **Screenreader-Support:** Alle Bilder haben `alt`-Texte, alle Icons haben `aria-label`. Dynamische Statusänderungen (Countdown, Teilnehmerzahl, Antwort-Feedback) werden über `aria-live`-Regionen kommuniziert.
+    - **Screenreader-Support:** Alle Bilder haben `alt`-Texte, alle Icons haben `aria-label`. Dynamische Statusänderungen (Countdown, Zahl der Teilnehmenden, Antwort-Feedback) werden über `aria-live`-Regionen kommuniziert.
     - **Semantisches HTML:** Überschriften-Hierarchie (`h1`–`h6`) ist korrekt. Formulare nutzen `<label>`-Elemente mit `for`-Attribut. Listen nutzen `<ul>`/`<ol>`.
     - **ARIA-Rollen:** Custom-Komponenten (Theme-Switcher, Sprachwähler, Quiz-Steuerung) verwenden korrekte ARIA-Rollen (`role="tablist"`, `role="dialog"`, etc.).
     - **Farbunabhängigkeit:** Richtig/Falsch-Feedback nutzt neben Farbe (grün/rot) auch Icons (✓/✗) und Text, damit farbenblinde Nutzer es erkennen können.
@@ -1034,7 +1033,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
   - **Abgrenzung:** Ergänzt, ersetzt nicht **Story 6.5** (systematische Barrierefreiheit/WCAG); beide können sich überschneiden (z. B. wenn Tester:innen auf Kontrast oder Fokus stoßen).
 
   - **Akzeptanzkriterien:**
-    - Es liegt ein **schriftlicher Testplan** vor: Zielgruppe (mindestens Rollen **Dozent/Host** und **Teilnehmende**), **Geräte** (mindestens ein Smartphone-Viewport gemäß Mobile-First), **Kernflows** (z. B. Startseite → Session-Code, Join, typische Vote-/Host-Schritte, mindestens ein Quiz-Pfad), Aufgabenformulierung und Erfolgskriterien pro Task.
+    - Es liegt ein **schriftlicher Testplan** vor: Zielgruppe (mindestens Rollen **Lehrperson/Host** und **Teilnehmende**), **Geräte** (mindestens ein Smartphone-Viewport gemäß Mobile-First), **Kernflows** (z. B. Startseite → Session-Code, Join, typische Vote-/Host-Schritte, mindestens ein Quiz-Pfad), Aufgabenformulierung und Erfolgskriterien pro Task.
     - Es wird mindestens **eine Testreihe** durchgeführt mit **mindestens drei** unterschiedlichen Testpersonen (oder gleichwertig dokumentierte mehrere Termine), Methode und Rahmen sind den Teilnehmenden vorher erklärt.
     - Aus jeder Sitzung entsteht ein **kurzes Protokoll** (Problemstelle, Zitat oder Paraphrase, Schweregrad); daraus wird ein **Auswertungsdokument** mit **priorisierter Maßnahmenliste** (Umsetzungsempfehlungen inkl. betroffene Bereiche/Dateien wo möglich).
     - Für **jede Maßnahme** aus der priorisierten Liste wird entschieden und nachverfolgt: **umgesetzt** (PR/Commit referenziert), **zurückgestellt** mit Begründung, oder **bewusst abgelehnt** mit Begründung — sodass keine „toten“ Befunde ohne Status bleiben.
@@ -1043,13 +1042,13 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ---
 
-## Epic 7: Team-Modus (Rolle: Dozent & Student) ✅ abgeschlossen
+## Epic 7: Team-Modus (Rolle: Lehrperson & Teilnehmende:r) ✅ abgeschlossen
 
-- **Story 7.1 (Team-Modus):** 🟢 Als Dozent möchte ich optional einen Team-Modus aktivieren können, bei dem Studenten in Gruppen gegeneinander antreten.
+- **Story 7.1 (Team-Modus):** 🟢 Als Lehrperson möchte ich optional einen Team-Modus aktivieren können, bei dem Teilnehmende in Gruppen gegeneinander antreten.
   - **Akzeptanzkriterien:**
     - In der Quiz-Konfiguration (Story 1.4) gibt es ein neues Feld `teamMode` (default: aus).
-    - Wenn aktiviert, definiert der Dozent die Anzahl der Teams (2–8) und optional Team-Namen (default: „Team A", „Team B", …).
-    - Beim Beitreten (Story 3.1) wird jeder Student automatisch einem Team zugewiesen (Round-Robin) oder wählt ein Team aus einer Liste (konfigurierbar via `teamAssignment: 'AUTO' | 'MANUAL'`).
+    - Wenn aktiviert, definiert die Lehrperson die Anzahl der Teams (2–8) und optional Team-Namen (default: „Team A“, „Team B“, …).
+    - Beim Beitreten (Story 3.1) wird jede teilnehmende Person automatisch einem Team zugewiesen (Round-Robin) oder wählt ein Team aus einer Liste (konfigurierbar via `teamAssignment: 'AUTO' | 'MANUAL'`).
     - **Team-Leaderboard:** Neben dem individuellen Leaderboard (Story 4.1) wird ein Team-Leaderboard angezeigt — Gesamtpunkte des Teams = Summe aller Mitglieder-Scores.
     - Auf der Beamer-Ansicht werden Teams mit farbigen Bannern und kumulierten Balkendiagrammen dargestellt.
     - Team-Belohnungseffekte (Story 5.4): Das Gewinnerteam erhält eine kollektive Konfetti-Animation.
@@ -1066,7 +1065,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - `session/:code/vote` zeigt in `RESULTS` und `FINISHED` einen kollektiven Team-Moment mit eigener Teamkarte, Teamrang, Team-Punkten und kompakter Team-Topliste.
   - **Verifizierung bisher:**
     - Backend: Team-Initialisierung, Auto-/Manual-Join und Team-Leaderboard sind durch Unit-Tests abgedeckt.
-    - Frontend: Join-, Quiz-, Host-, Present- und Vote-Specs decken Teamwahl, Teamvorschau, Lobby/Leaderboard, Beamer-Finale und kollektiven Teilnehmer-Reward ab.
+    - Frontend: Join-, Quiz-, Host-, Present- und Vote-Specs decken Teamwahl, Teamvorschau, Lobby/Leaderboard, Beamer-Finale und kollektive Belohnungen für Teilnehmende ab.
     - Lokalisierung: Alle neuen Teammodus-Texte sind in `de`, `en`, `fr`, `es`, `it` nachgezogen; `extract-i18n` und `build:localize` laufen erfolgreich.
     - Laufzeit-Review: Echte Multi-Client-Captures aus dem lokalisierten Build wurden nach dem UX-Feinschliff erneuert (`runtime-02-join-manual.png`, `runtime-03-host-lobby-fixed.png`, `runtime-05-join-auto.png`, `runtime-06-present-finale.png`); der frühere Lobby-Befund bleibt als Vergleich in `runtime-03-host-lobby.png` erhalten.
   - **Abschluss / DoD:**
@@ -1075,44 +1074,44 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ---
 
-## Epic 8: Q&A-Modus (Rolle: Dozent & Student)
+## Epic 8: Q&A-Modus (Rolle: Lehrperson & Teilnehmende:r)
 
 > **Verifizierung Epic 8 (2026-03-13):** Der bisherige Kernumfang 8.1–8.4 ist umgesetzt. Offen: Story 8.5 (delegierbare Moderation), Story 8.6 (Kontroversitäts-Score), Story 8.7 („Beste Fragen“, Wilson-Score) — Spezifikation und Hintergrund [`docs/features/controversy-score.md`](docs/features/controversy-score.md).  
 > Backend-Checks: `npm run test -w @arsnova/backend -- qa session.start-qa` ✅.  
 > Frontend-Checks: Spec-Abdeckung für Host-, Vote-, Present- und eingebettete Blitz-Feedback-Flows vorhanden ✅.  
 > Laufzeit-Review: `BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend` ✅, inklusive automatischem Fallback auf bestehende Unified-Session bei Session-Rate-Limit.
 
-- **Story 8.1 (Q&A-Session starten):** 🟢 Als Dozent möchte ich eine Q&A-Session starten können, in der Studenten Fragen stellen und die besten Fragen hochvoten können — als interaktive Alternative zur klassischen Fragenrunde.
+- **Story 8.1 (Q&A-Session starten):** 🟢 Als Lehrperson möchte ich eine Q&A-Session starten können, in der Teilnehmende Fragen stellen und die besten Fragen hochvoten können — als interaktive Alternative zur klassischen Fragenrunde.
   - **Akzeptanzkriterien:**
     - Q&A wird gemäß ADR-0009 als Live-Kanal innerhalb derselben Veranstaltung gestartet; Quiz, Fragen und Blitz-Feedback teilen sich einen Session-Code.
-    - Der Dozent kann beim Live-Schalten festlegen, mit welchem Kanal die Session startet, und Q&A zusätzlich aktivieren.
-    - Der Dozent legt optional einen Titel / ein Thema für den Q&A-Kanal fest.
-    - Studenten treten einmal über denselben Session-Code bei (Story 3.1) und wechseln anschließend in derselben Session-Shell zwischen den Kanälen.
+    - Die Lehrperson kann beim Live-Schalten festlegen, mit welchem Kanal die Session startet, und Q&A zusätzlich aktivieren.
+    - Die Lehrperson legt optional einen Titel oder ein Thema für den Q&A-Kanal fest.
+    - Teilnehmende treten einmal über denselben Session-Code bei (Story 3.1) und wechseln anschließend in derselben Session-Shell zwischen den Kanälen.
     - Prisma/DTOs modellieren Q&A als Session-Funktion (`qaEnabled`, `qaTitle`, `qaModerationMode`) im bestehenden Session-Modell.
-- **Story 8.2 (Fragen einreichen):** 🟢 Als Student möchte ich eine Frage an den Dozenten einreichen können.
+- **Story 8.2 (Fragen einreichen):** 🟢 Als Teilnehmende:r möchte ich eine Frage an die Lehrperson einreichen können.
   - **Akzeptanzkriterien:**
     - Eingabefeld für Freitext (max. 500 Zeichen) + „Absenden"-Button.
     - Fragen werden anonym eingereicht (kein Nickname sichtbar) — konsistent mit dem seriösen Modus (Story 3.6).
     - Markdown wird in Fragen unterstützt (Story 1.7).
-    - Maximal 3 Fragen pro Student pro Session (Spam-Schutz).
-    - Fragen erscheinen sofort im Teilnehmer-Tab und in der Host-Moderation; freigegebene bzw. hervorgehobene Fragen sind auf der Presenter-Ansicht sichtbar.
-- **Story 8.3 (Upvoting & Sortierung):** 🟢 Als Student möchte ich die Fragen anderer Studenten upvoten können, damit die relevantesten Fragen nach oben wandern.
+    - Maximal 3 Fragen pro teilnehmender Person pro Session (Spam-Schutz).
+    - Fragen erscheinen sofort im Teilnehmenden-Tab und in der Host-Moderation; freigegebene bzw. hervorgehobene Fragen sind auf der Presenter-Ansicht sichtbar.
+- **Story 8.3 (Upvoting & Sortierung):** 🟢 Als Teilnehmende:r möchte ich die Fragen anderer Teilnehmender upvoten können, damit die relevantesten Fragen nach oben wandern.
   - **Akzeptanzkriterien:**
     - Jede Frage hat einen Upvote-Button (👍 / ▲) mit aktueller Stimmenanzahl.
-    - Maximal 1 Upvote pro Student pro Frage (Toggle: erneuter Tap entfernt den Upvote).
+    - Maximal 1 Upvote pro teilnehmender Person pro Frage (Toggle: erneuter Tap entfernt den Upvote).
     - Fragen werden in Echtzeit nach Upvote-Anzahl sortiert (höchste zuerst).
     - tRPC-Subscription `qa.onQuestionsUpdated` pusht die aktuelle Fragenliste.
     - Prisma: Neues Modell `QaUpvote` mit `@@unique([qaQuestionId, participantId])` für Upvote-Toggle.
-- **Story 8.4 (Dozenten-Moderation):** 🟢 Als Dozent möchte ich eingereichte Fragen moderieren können.
+- **Story 8.4 (Moderation durch Lehrende):** 🟢 Als Lehrperson möchte ich eingereichte Fragen moderieren können.
   - **Akzeptanzkriterien:**
-    - Der Dozent kann Fragen:
+    - Die Lehrperson kann Fragen:
       - **Hervorheben** (Pin) — fixiert die Frage oben auf der Beamer-Ansicht als „Wird gerade beantwortet".
       - **Archivieren** — entfernt die Frage aus der aktiven Liste (als „Beantwortet" markiert).
-      - **Löschen** — entfernt unangemessene Fragen (nur für Dozent sichtbar).
-    - Optional: Vorab-Moderation — Fragen erscheinen erst nach Freigabe durch den Dozenten (`moderationMode: boolean`, default: aus).
+      - **Löschen** — entfernt unangemessene Fragen (nur für die Lehrperson sichtbar).
+    - Optional: Vorab-Moderation — Fragen erscheinen erst nach Freigabe durch die Lehrperson (`moderationMode: boolean`, default: aus).
     - Host- und Presenter-Ansicht zeigen neue Fragen bzw. aktive Warteschlangen sichtbar an (Badge/Highlight/Queue), ohne die Session-Shell zu verlassen.
     - Prisma: Neues Modell `QaQuestion` mit Feldern `id`, `sessionId`, `participantId` (Autor, für 3-Fragen-Limit), `text`, `upvoteCount`, `status` (PENDING/ACTIVE/PINNED/ARCHIVED/DELETED), `createdAt`.
-- **Story 8.5 (Delegierbare Q&A-Moderation für Tutor:innen):** 🟡 Als Dozent möchte ich Q&A-Moderation an Tutor:innen delegieren können, damit eine zweite Person eingehende Fragen parallel sichten und freigeben kann, ohne Vollzugriff auf die Veranstaltung zu erhalten.
+- **Story 8.5 (Delegierbare Q&A-Moderation für Tutor:innen):** 🟡 Als Lehrperson möchte ich Q&A-Moderation an Tutor:innen delegieren können, damit eine zweite Person eingehende Fragen parallel sichten und freigeben kann, ohne Vollzugriff auf die Veranstaltung zu erhalten.
   - **Akzeptanzkriterien:**
     - Aus der laufenden Session kann ein **Moderator-Link** oder **Moderator-Token** erzeugt werden.
     - Moderator:innen dürfen Q&A-Fragen listen, freigeben, pinnen, archivieren und löschen, aber **keine** Quiz-Steuerung, keine Blitzlicht-Steuerung und kein Session-Ende auslösen.
@@ -1120,9 +1119,9 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Der Moderatorzugang ist widerrufbar oder neu generierbar, falls ein Link versehentlich weitergegeben wurde.
     - Die UI macht klar unterscheidbar, ob ein Gerät als **Host**, **Presenter** oder **Moderator:in** verbunden ist.
     - Sicherheits- und Integrationstests decken unzulässige Rolleneskalation ausdrücklich ab.
-- **Story 8.6 (Q&A: Kontroversitäts-Score & Sortierung):** 🟡 Als Dozent oder Moderator einer Live-Veranstaltung möchte ich Fragen im Q&A nach Kontroversität (ausgeglichene Up- und Downvotes) sortieren können, damit polarisierende Themen sichtbar werden und nicht nur durch hohe Upvote-Zahlen dominieren.
+- **Story 8.6 (Q&A: Kontroversitäts-Score & Sortierung):** 🟡 Als Lehrperson oder Moderator:in einer Live-Veranstaltung möchte ich Fragen im Q&A nach Kontroversität (ausgeglichene Up- und Downvotes) sortieren können, damit polarisierende Themen sichtbar werden und nicht nur durch hohe Upvote-Zahlen dominieren.
   - **Details:** Formel, Sortier-Tie-Breaker, UI-Schwellen, Testfälle und Beispiel-SQL: [`docs/features/controversy-score.md`](docs/features/controversy-score.md).
-- **Story 8.7 (Q&A: Sortierung „Beste Fragen“, Wilson-Score):** 🟡 Als Dozent oder Moderator einer Live-Veranstaltung möchte ich Fragen im Q&A optional nach statistisch belastbarer Zustimmung sortieren können („Beste Fragen“, untere Grenze des Wilson-Konfidenzintervalls), damit Einzelstimmen mit scheinbar 100 % nicht über Fragen mit vielen, fast einhelligen Stimmen rutschen.
+- **Story 8.7 (Q&A: Sortierung „Beste Fragen“, Wilson-Score):** 🟡 Als Lehrperson oder Moderator:in einer Live-Veranstaltung möchte ich Fragen im Q&A optional nach statistisch belastbarer Zustimmung sortieren können („Beste Fragen“, untere Grenze des Wilson-Konfidenzintervalls), damit Einzelstimmen mit scheinbar 100 % nicht über Fragen mit vielen, fast einhelligen Stimmen rutschen.
   - **Details:** Hintergrund, Wilson-Formel, Beispiel-SQL und Abgrenzung zu Story 8.6: [`docs/features/controversy-score.md`](docs/features/controversy-score.md) (Abschnitte „Best Questions“ / Wilson und Entwicklernotizen).
   - **Hinweis:** Sortier-UI (Dropdown o. Ä.) kann mit Story 8.6 gemeinsam geplant werden; technisch eigenständiges Scoring und Tests.
 
@@ -1131,7 +1130,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 ## Epic 9: Admin (Rechtliche & operative Kontrolle)
 
 > **Rolle:** Admin/Betreiber (z. B. Plattform-Betreiber, Support, rechtliche Verantwortliche).  
-> **Hintergrund:** Die App ist accountfrei für Dozenten und Teilnehmer. Auf dem Server liegen jedoch alle **live geschalteten** Sessions inkl. der beim Start hochgeladenen Quiz-Daten (Story 2.1a). Für Meldungen strafrechtlich relevanter Quiz-Inhalte, behördliche Anfragen (z. B. Staatsanwaltschaft) oder Löschpflichten braucht es eine **Admin-Rolle** mit strikter Autorisierung und Nachvollziehbarkeit.
+> **Hintergrund:** Die App ist accountfrei für Lehrende und Teilnehmende. Auf dem Server liegen jedoch alle **live geschalteten** Sessions inkl. der beim Start hochgeladenen Quiz-Daten (Story 2.1a). Für Meldungen strafrechtlich relevanter Quiz-Inhalte, behördliche Anfragen (z. B. Staatsanwaltschaft) oder Löschpflichten braucht es eine **Admin-Rolle** mit strikter Autorisierung und Nachvollziehbarkeit.
 >
 > **Status:** ✅ Abgeschlossen (Stories 9.1, 9.2, 9.3 umgesetzt)
 
@@ -1153,11 +1152,11 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
   - **Weiter recherchierbar:** nur Admin-Audit-Metadaten (wer, wann, welche Aktion, welche Session-ID/-Code, optional Grund) ohne Inhaltsdump.
 - **PII-Regel über alle Fenster:** Nicknames, IP-Adressen und andere personenbezogene Daten sind **standardmäßig nicht Teil** von Admin-Ansicht/Export; nur bei expliziter Rechtsgrundlage in einem separaten, dokumentierten Sonderprozess.
 
-- **Story 9.1 (Admin: Sessions & Quiz-Inhalte inspizieren):** ✅ Als Admin möchte ich alle auf dem Server gespeicherten Sessions einsehen und die zugehörigen Quiz-Inhalte (Fragen, Antworten, Metadaten) sowie Session-Verlauf (Teilnehmerzahl, Status, Zeitraum) inspizieren können, damit ich bei Meldungen oder Anfragen den Kontext prüfen kann.
+- **Story 9.1 (Admin: Sessions & Quiz-Inhalte inspizieren):** ✅ Als Admin möchte ich alle auf dem Server gespeicherten Sessions einsehen und die zugehörigen Quiz-Inhalte (Fragen, Antworten, Metadaten) sowie den Session-Verlauf (Zahl der Teilnehmenden, Status, Zeitraum) inspizieren können, damit ich bei Meldungen oder Anfragen den Kontext prüfen kann.
   - **Akzeptanzkriterien:**
     - **Admin-Autorisierung:** Zugriff nur mit gültiger Admin-Authentifizierung (z. B. Admin-Token/API-Key aus Umgebung oder separates Admin-Login). Die Admin-Rolle wird **nicht** durch die URL verliehen — wer `/admin` aufruft ohne gültige Admin-Credentials, erhält „Zugriff verweigert“; alle Admin-tRPC-Prozeduren prüfen die Admin-Berechtigung serverseitig.
     - **Code-Eingabe (Session-Lookup):** Im Admin-Bereich (Panel/Dashboard) gibt es eine **Eingabe für den 6-stelligen Session-Code**. Der Admin kann den Code (z. B. aus einer Meldung oder behördlichen Anfrage) eingeben und damit direkt die zugehörigen Session- und Quiz-Daten abrufen. Bei gültigem Code wird die Session-Detail-Ansicht inkl. Quiz-Inhalt angezeigt; bei ungültigem/abgelaufenem Code eine klare Fehlermeldung. Technisch: tRPC `admin.getSessionByCode({ code })` oder Nutzung von `getSessionDetail` mit Code; UI: z. B. prominentes Suchfeld/Code-Eingabe oben im Dashboard.
-    - **Session-Liste:** Admin kann eine paginierte/filterbare Liste aller Sessions abrufen (tRPC `admin.listSessions`): Session-Code, Status, Quiz-Name (falls vorhanden), Typ (QUIZ/Q_AND_A), Zeitraum (startedAt, endedAt), Teilnehmeranzahl. Filter optional: Status, Zeitraum, Code.
+    - **Session-Liste:** Admin kann eine paginierte/filterbare Liste aller Sessions abrufen (tRPC `admin.listSessions`): Session-Code, Status, Quiz-Name (falls vorhanden), Typ (QUIZ/Q_AND_A), Zeitraum (`startedAt`, `endedAt`), Zahl der Teilnehmenden. Filter optional: Status, Zeitraum, Code.
     - **Session-Detail:** Admin kann zu einer Session die vollständigen Metadaten sowie das bei Session-Start hochgeladene Quiz (Fragen, Antwortoptionen inkl. `isCorrect`) einsehen (read-only). Keine Änderung über diese Ansicht. Erreichbar sowohl über die Code-Eingabe als auch über Klick auf einen Eintrag in der Session-Liste.
     - **Zeitfenster-Grenze:** Session-Liste und Session-Detail zeigen nur Sessions in **Fenster A/B** (laufend oder bis max. 24h nach `endedAt`). Für **Fenster C** wird eine klare Meldung gezeigt (z. B. „Sessiondaten wurden gemäß Aufbewahrungsregel bereinigt.“).
     - **Route:** Eigene Route `/admin` (oder `/admin/sessions`) — nur erreichbar, wenn Admin authentifiziert ist. **Absicherung:** Frontend Route Guard prüft Admin-Session-Token (fehlt/ungültig → Login anzeigen oder Redirect); Backend: jede Admin-Prozedur prüft Token (z. B. zentrale `adminProcedure`-Middleware), sonst `UNAUTHORIZED`. Details: `docs/ROUTES_AND_STORIES.md` Abschnitt „Absicherung der Admin-Route“.
@@ -1173,9 +1172,9 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Keine Wiederherstellung:** Nach Löschung sind die Daten nicht wiederherstellbar; Hinweis in der UI.
   - **Abhängigkeiten:** Story 9.1 (Admin-Zugang, Session-Liste/Detail).
 
-- **Story 9.3 (Admin: Auszug für Behörden/Staatsanwaltschaft):** ✅ Als Admin möchte ich zu einer Session einen vollständigen, maschinenlesbaren Auszug (z. B. JSON oder PDF) erzeugen können, der alle relevanten Inhalte (Quiz-Name, Fragen, Antwortoptionen, Session-Metadaten, Teilnehmer-Anzahl, ggf. aggregierte Abstimmungsergebnisse — **keine** personenbezogenen Daten wie Nicknames, sofern nicht rechtlich gefordert) enthält, damit ich Anfragen von Behörden oder Staatsanwaltschaft (z. B. bezichtigter Quiz-Inhalt) erfüllen kann.
+- **Story 9.3 (Admin: Auszug für Behörden/Staatsanwaltschaft):** ✅ Als Admin möchte ich zu einer Session einen vollständigen, maschinenlesbaren Auszug (z. B. JSON oder PDF) erzeugen können, der alle relevanten Inhalte (Quiz-Name, Fragen, Antwortoptionen, Session-Metadaten, Zahl der Teilnehmenden, ggf. aggregierte Abstimmungsergebnisse — **keine** personenbezogenen Daten wie Nicknames, sofern nicht rechtlich gefordert) enthält, damit ich Anfragen von Behörden oder Staatsanwaltschaft (z. B. bezichtigter Quiz-Inhalt) erfüllen kann.
   - **Akzeptanzkriterien:**
-    - **Export-Funktion:** In der Admin-Session-Detail-Ansicht (Story 9.1) ein Button „Auszug für Behörden exportieren“. Erzeugt ein strukturiertes Exportpaket (z. B. JSON mit Schema-Version) mit: Session-ID, -Code, Status, Zeitraum, Quiz-Name, alle Fragen inkl. Text und Antwortoptionen (inkl. Kennzeichnung korrekt/falsch), Session-Typ, Teilnehmeranzahl, aggregierte Ergebnisdaten (wie in Story 4.7). Optional: zweites Format PDF für lesbare Übermittlung.
+    - **Export-Funktion:** In der Admin-Session-Detail-Ansicht (Story 9.1) ein Button „Auszug für Behörden exportieren“. Erzeugt ein strukturiertes Exportpaket (z. B. JSON mit Schema-Version) mit: Session-ID, -Code, Status, Zeitraum, Quiz-Name, alle Fragen inkl. Text und Antwortoptionen (inkl. Kennzeichnung korrekt/falsch), Session-Typ, Zahl der Teilnehmenden, aggregierte Ergebnisdaten (wie in Story 4.7). Optional: zweites Format PDF für lesbare Übermittlung.
     - **Zeitfenster-Grenze:** Export ist nur in **Fenster A/B** verfügbar. In **Fenster C** ist kein Export mehr möglich; UI zeigt eindeutige Begründung („Daten bereits bereinigt“).
     - **DSGVO/Recht:** Der Export enthält bewusst **keine** Nicknames, IP-Adressen oder anderen personenbezogenen Daten, sofern nicht durch Rechtsgrund (z. B. Durchsuchungsbeschluss) explizit gefordert. Hinweis in der UI: „Nur für berechtigte Anfragen verwenden; Datensparsamkeit beachten.“
     - **Audit:** Export-Vorgänge können im gleichen Audit-Log wie Löschungen erfasst werden (wer, wann, welche Session).
@@ -1189,8 +1188,6 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 > **Hintergrund:** Ankündigungen (Wartung, Features, Spenden u. a.) sollen **zur Laufzeit** steuerbar, **mehrsprachig**, **zeitfensterbasiert** und mit **Archiv** sowie **Nutzerinteraktionen** nutzbar sein — getrennt von Epic 9 (Session-Inspektion/Löschung/Behördenexport).
 >
 > **Architektur & Gesamtspezifikation:** [ADR-0018](docs/architecture/decisions/0018-message-of-the-day-platform-communication.md) · [docs/features/motd.md](docs/features/motd.md)
->
-> **Didaktik (Lehre):** Die **erste Vorlesung** in **Fallstudie Software Engineering** ist die **Greenfield-Demo Story 1.7a** (Markdown-Bilder: URL + Lightbox) in **3×45 Minuten** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md). **Epic 10 (MOTD)** dient **optional** als **zweites** Referenzbeispiel (Spec [`docs/features/motd.md`](docs/features/motd.md), **ADR-0018**, fertiger Code); **Studierende** starten mit der Reihenfolge in [`docs/praktikum/STUDENT-STORY-REIHENFOLGE.md`](docs/praktikum/STUDENT-STORY-REIHENFOLGE.md) (Abschnitt 3), nicht mit 1.7a, sofern diese in der Vorlesung abgedeckt wird.
 >
 > **Status:** ✅ Fertig (Stories 10.1–10.8, Stand Produktcode)
 
@@ -1263,10 +1260,10 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Vollständige **UI-i18n** (alle Locales).
   - **Abhängigkeiten:** 10.2, 10.5; inhaltlich auf 10.6 aufsetzbar (Reihenfolge mit 10.6 abstimmbar).
 
-- **Story 10.8 (MOTD: Härtung — Sanitize, A11y, Audit, Tests):** ✅ Als Team möchte wir MOTD **produktionssicher** abschließen: XSS-Schutz, Audit-Spuren für Admin-Änderungen, Tests und dokumentierte Betriebsparameter.
+- **Story 10.8 (MOTD: Härtung — Sanitize, A11y, Audit, Tests):** ✅ Als Team möchten wir MOTD **produktionssicher** abschließen: XSS-Schutz, Audit-Spuren für Admin-Änderungen, Tests und dokumentierte Betriebsparameter.
   - **Akzeptanzkriterien:**
     - Markdown-Output durch **Sanitize-Pipeline** wie im restlichen Produkt; **ADR-0015** bei Bildern eingehalten.
     - **Leichtes Audit** für relevante Admin-Aktionen (mindestens: Veröffentlichung, Archiv-Sichtbarkeit, Löschen — Metadaten ohne Pflicht-Volltext im Log).
     - Unit-Tests für Auswahl-Logik, DTOs, Rate-Limits; Frontend-Specs für Overlay und Archiv; DoD aus `Backlog.md` eingehalten.
-    - `docs/ROUTES_AND_STORIES.md` und ggf. `docs/cursor-context.md` bei Bedarf um MOTD-Routen/ Router ergänzt.
+    - `docs/ROUTES_AND_STORIES.md` und bei Bedarf die Architektur-Dokumentation werden um MOTD-Routen und Router ergänzt.
   - **Abhängigkeiten:** 10.4–10.7 (inhaltlich Querschnitt nach abgeschlossenen Kern-Stories).
