@@ -31,13 +31,26 @@ const MOTD_ACTIVE_FETCH_CAP = 32;
 
 /**
  * Feste ID der dauerhaften Willkommens-MOTD (Migration `motd_welcome_message` + `seed-dev-motd.mjs`).
- * Alte Seeds nutzten oft priority 100 — ohne effectiveOverlayPriority würde sie Admin-Meldungen überlagern.
+ * Alte Seeds nutzten oft priority 100 — ohne Sonderlogik würde die Sortierung inkonsistent wirken.
  */
 const DEV_SEED_MOTD_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
-/** Effektive Priorität: Willkommens-MOTD rangiert unter jeder eigenen Meldung mit priority ≥ 0. */
-function effectiveOverlayPriority(id: string, priority: number): number {
-  if (id === DEV_SEED_MOTD_ID) return Math.min(priority, 0) - 1;
+/**
+ * Solange die Willkommens-MOTD (aktuelle Version) nicht per Client als erledigt gemeldet ist,
+ * soll sie vor allen anderen aktiven Overlays erscheinen (Onboarding).
+ * Danach: niedrigste effektive Priorität, damit Betriebsmeldungen nicht dauerhaft „hinter“ ihr stehen bleiben.
+ */
+const WELCOME_FIRST_OVERLAY_PRIORITY_BOOST = 1_000_000;
+
+function effectiveOverlayPriority(
+  id: string,
+  priority: number,
+  welcomeNotYetDismissed: boolean,
+): number {
+  if (id === DEV_SEED_MOTD_ID) {
+    if (welcomeNotYetDismissed) return WELCOME_FIRST_OVERLAY_PRIORITY_BOOST + priority;
+    return Math.min(priority, 0) - 1;
+  }
   return priority;
 }
 
@@ -96,9 +109,13 @@ async function fetchCurrentMotdDto(
     take: MOTD_ACTIVE_FETCH_CAP,
     include: { locales: true },
   });
+  const welcomeRow = rows.find((r) => r.id === DEV_SEED_MOTD_ID);
+  const welcomeNotYetDismissed =
+    welcomeRow !== undefined &&
+    !isMotdSkippedByClientDismiss(welcomeRow.id, welcomeRow.contentVersion, dismissedMap);
   rows.sort((a, b) => {
-    const pa = effectiveOverlayPriority(a.id, a.priority);
-    const pb = effectiveOverlayPriority(b.id, b.priority);
+    const pa = effectiveOverlayPriority(a.id, a.priority, welcomeNotYetDismissed);
+    const pb = effectiveOverlayPriority(b.id, b.priority, welcomeNotYetDismissed);
     if (pb !== pa) return pb - pa;
     return b.startsAt.getTime() - a.startsAt.getTime();
   });
@@ -119,7 +136,8 @@ async function fetchCurrentMotdDto(
 
 export const motdRouter = router({
   /**
-   * Liefert höchstens eine aktive Overlay-MOTD (PUBLISHED, Zeitfenster, Priorität).
+   * Liefert höchstens eine aktive Overlay-MOTD (PUBLISHED, Zeitfenster).
+   * Reihenfolge: ungelesene Willkommens-MOTD zuerst; sonst `priority` DESC, dann `startsAt` DESC.
    * Rate-Limit: gleicher Schlüssel wie `getHeaderState` (`checkMotdGetCurrentRate`).
    */
   getCurrent: publicProcedure

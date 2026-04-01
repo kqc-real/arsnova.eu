@@ -122,10 +122,11 @@ describe('motd router', () => {
     expect(second.motd?.markdown).toBe('Making-of');
   });
 
-  it('getCurrent stellt Dev-Seed-MOTD (feste ID) hinter eigene Meldungen', async () => {
+  it('getCurrent: Willkommens-MOTD (feste ID) zuerst solange nicht dismissed; danach andere Priorität', async () => {
+    const welcomeId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     prismaMock.motd.findMany.mockResolvedValue([
       {
-        id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        id: welcomeId,
         priority: 100,
         contentVersion: 1,
         startsAt: new Date('2026-06-01T00:00:00.000Z'),
@@ -142,9 +143,15 @@ describe('motd router', () => {
       },
     ]);
     const caller = motdRouter.createCaller(ctx);
-    const result = await caller.getCurrent({ locale: 'de' });
-    expect(result.motd?.id).toBe(M2);
-    expect(result.motd?.markdown).toBe('Feature-Text');
+    const first = await caller.getCurrent({ locale: 'de' });
+    expect(first.motd?.id).toBe(welcomeId);
+    expect(first.motd?.markdown).toBe('Dev-Text');
+    const second = await caller.getCurrent({
+      locale: 'de',
+      overlayDismissedUpTo: [{ motdId: welcomeId, contentVersion: 1 }],
+    });
+    expect(second.motd?.id).toBe(M2);
+    expect(second.motd?.markdown).toBe('Feature-Text');
   });
 
   it('getCurrent überspringt MOTD ohne nutzbaren Text und nimmt nächste Priorität', async () => {

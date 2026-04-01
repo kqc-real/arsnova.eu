@@ -34,7 +34,7 @@ Konkrete Prozedurnamen und DTOs: siehe [`docs/features/motd.md`](../../features/
 
 ### 4. Konfliktregel bei mehreren gültigen MOTDs
 
-- Pro Zeitpunkt gilt **höchstens eine sichtbare Overlay-MOTD** auf der Startseite: Auswahl nach **`priority` DESC**, dann **`startsAt` DESC** (oder feste Sekundärregel in der Feature-Doku). Überlappende Einträge sind im Admin zu vermeiden; die Regel garantiert deterministisches Verhalten.
+- Pro Zeitpunkt gilt **höchstens eine sichtbare Overlay-MOTD** auf der Startseite: die **Willkommens-MOTD** (feste ID) hat **Vorrang**, solange die Nutzer:in die aktuelle Inhaltsversion noch nicht per Client (Dismiss) bestätigt hat; sonst Auswahl nach **`priority` DESC**, dann **`startsAt` DESC** (Details in der Feature-Doku). Überlappende Einträge sind im Admin zu vermeiden; die Regel garantiert deterministisches Verhalten.
 
 ### 5. Inhalt: Markdown mit Produkt-Sanitizing
 
