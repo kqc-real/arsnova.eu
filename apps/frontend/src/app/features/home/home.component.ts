@@ -51,6 +51,7 @@ import {
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
+  appendMotdContentVersionToAssetImgSrc,
   renderMarkdownWithoutKatex,
 } from '../../shared/markdown-katex.util';
 
@@ -521,9 +522,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
       this.motd.set(motd);
-      const html = absolutizeMarkdownHtmlRootAssetImgSrc(
-        renderMarkdownWithoutKatex(motd.markdown),
-        resolveMotdAssetOrigin(),
+      const html = appendMotdContentVersionToAssetImgSrc(
+        absolutizeMarkdownHtmlRootAssetImgSrc(
+          renderMarkdownWithoutKatex(motd.markdown),
+          resolveMotdAssetOrigin(),
+        ),
+        motd.contentVersion,
       );
       this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
       setTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);

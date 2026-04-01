@@ -3,6 +3,7 @@ import type { MotdArchiveItemDTO } from '@arsnova/shared-types';
 import { splitMotdArchiveFirstAtxHeading } from '../core/motd-archive-split.util';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
+  appendMotdContentVersionToAssetImgSrc,
   renderMarkdownWithoutKatex,
 } from './markdown-katex.util';
 
@@ -45,6 +46,7 @@ export function buildMotdArchiveItemDisplay(
   if (origin) {
     rendered = absolutizeMarkdownHtmlRootAssetImgSrc(rendered, origin);
   }
+  rendered = appendMotdContentVersionToAssetImgSrc(rendered, it.contentVersion);
   return {
     title: displayTitle,
     html: sanitizer.bypassSecurityTrustHtml(rendered),

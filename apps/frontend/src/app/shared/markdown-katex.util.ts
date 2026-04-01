@@ -81,6 +81,30 @@ export function absolutizeMarkdownHtmlRootAssetImgSrc(html: string, origin: stri
   return html.replace(/src="\/(assets\/[^"]+)"/g, `src="${base}/$1"`);
 }
 
+/**
+ * Hängt `cv=&lt;contentVersion&gt;` an MOTD-Bilder unter `/assets/…` an.
+ * Der PWA-Service-Worker cached `assets/**` — gleiche URL kann nach Updates einen veralteten
+ * Cache-Treffer liefern; neues `contentVersion` (z. B. nach Admin-Speichern) erzwingt einen frischen Fetch.
+ */
+export function appendMotdContentVersionToAssetImgSrc(
+  html: string,
+  contentVersion: number,
+): string {
+  const cv = String(contentVersion);
+  const bump = (url: string): string => {
+    if (/[?&]cv=\d+/.test(url)) return url;
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}cv=${cv}`;
+  };
+  let out = html.replace(/src="(https?:\/\/[^"]+\/assets\/[^"]+)"/gi, (_full, url: string) => {
+    return `src="${bump(url)}"`;
+  });
+  out = out.replace(/src="(\/assets\/[^"]+)"/gi, (_full, path: string) => {
+    return `src="${bump(path)}"`;
+  });
+  return out;
+}
+
 function mathPlaceholder(index: number): string {
   return `KATEXPLACEHOLDERTOKEN${index}`;
 }

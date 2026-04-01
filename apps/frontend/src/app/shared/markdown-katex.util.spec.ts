@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
+  appendMotdContentVersionToAssetImgSrc,
   renderMarkdownWithKatex,
   renderMarkdownWithoutKatex,
 } from './markdown-katex.util';
@@ -60,5 +61,16 @@ describe('renderMarkdownWithoutKatex', () => {
     const raw = '<p><img src="/assets/images/AI-REVOLUTION.png" alt="" title="" /></p>';
     const out = absolutizeMarkdownHtmlRootAssetImgSrc(raw, 'https://arsnova.eu');
     expect(out).toContain('src="https://arsnova.eu/assets/images/AI-REVOLUTION.png"');
+  });
+
+  it('appendMotdContentVersionToAssetImgSrc hängt cv an /assets/-Bilder (PWA-Cache-Bust)', () => {
+    const raw = '<p><img src="https://arsnova.eu/assets/images/AI-REVOLUTION.png" alt="" /></p>';
+    const out = appendMotdContentVersionToAssetImgSrc(raw, 8);
+    expect(out).toContain('src="https://arsnova.eu/assets/images/AI-REVOLUTION.png?cv=8"');
+  });
+
+  it('appendMotdContentVersionToAssetImgSrc verdoppelt cv nicht', () => {
+    const raw = '<img src="https://x/assets/a.png?cv=3" alt="" />';
+    expect(appendMotdContentVersionToAssetImgSrc(raw, 99)).toBe(raw);
   });
 });
