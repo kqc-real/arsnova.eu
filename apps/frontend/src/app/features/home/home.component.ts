@@ -7,7 +7,6 @@ import {
   OnInit,
   ViewChild,
   PLATFORM_ID,
-  LOCALE_ID,
   computed,
   inject,
   signal,
@@ -34,21 +33,15 @@ import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.ser
 import { localizeCommands, localizePath } from '../../core/locale-router';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 import { QUICK_FEEDBACK_PRESET_CHIPS } from '../feedback/feedback.config';
-import type {
-  AppLocale,
-  MotdInteractionKind,
-  MotdPublicDTO,
-  QuickFeedbackType,
-} from '@arsnova/shared-types';
-import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
+import type { MotdInteractionKind, MotdPublicDTO, QuickFeedbackType } from '@arsnova/shared-types';
 import {
   hasMotdInteractionRecorded,
   isMotdDismissedForVersion,
   markMotdDismissed,
   markMotdInteractionRecorded,
-  motdDismissedPairsForApi,
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
+import { MotdCurrentService } from '../../core/motd-current.service';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
   appendMotdContentVersionToAssetImgSrc,
@@ -125,8 +118,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   });
   readonly hasHostedQuiz = computed(() => this.latestHostedQuizId() !== null);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly localeId = inject(LOCALE_ID);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly motdCurrent = inject(MotdCurrentService);
   @ViewChild('motdCloseBtn') private readonly motdCloseBtn?: ElementRef<HTMLButtonElement>;
 
   /** Aktive MOTD (Epic 10); nur Browser, nach getCurrent. */
@@ -135,11 +128,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Erzwingt Neuablesung der MOTD-Interaktions-Flags aus localStorage. */
   private readonly motdInteractionRev = signal(0);
   private motdTouchStartY = 0;
-  /** Schutz gegen ungewollte Request-Loops (z. B. Reload-/Reinit-Kaskaden): niemals parallel + Cooldown. */
-  private motdLoadInFlight: Promise<void> | null = null;
-  private motdLastLoadAtMs = 0;
-  private static readonly MOTD_MIN_LOAD_INTERVAL_MS = 1500;
-
   readonly thumbUpRecorded = computed(() => {
     this.motdInteractionRev();
     const m = this.motd();
@@ -515,40 +503,20 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async loadMotdOverlay(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (this.motdLoadInFlight) return this.motdLoadInFlight;
-    const now = Date.now();
-    if (now - this.motdLastLoadAtMs < HomeComponent.MOTD_MIN_LOAD_INTERVAL_MS) {
+    const motd = await this.motdCurrent.getCurrent();
+    if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
       return;
     }
-    this.motdLastLoadAtMs = now;
-    const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
-    this.motdLoadInFlight = (async () => {
-      try {
-        const dismissed = motdDismissedPairsForApi();
-        const { motd } = await trpc.motd.getCurrent.query({
-          locale,
-          ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
-        });
-        if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
-          return;
-        }
-        this.motd.set(motd);
-        const html = appendMotdContentVersionToAssetImgSrc(
-          absolutizeMarkdownHtmlRootAssetImgSrc(
-            renderMarkdownWithoutKatex(motd.markdown),
-            resolveMotdAssetOrigin(),
-          ),
-          motd.contentVersion,
-        );
-        this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
-        setTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
-      } catch {
-        /* Rate-Limit / Offline: kein Overlay */
-      }
-    })().finally(() => {
-      this.motdLoadInFlight = null;
-    });
-    return this.motdLoadInFlight;
+    this.motd.set(motd);
+    const html = appendMotdContentVersionToAssetImgSrc(
+      absolutizeMarkdownHtmlRootAssetImgSrc(
+        renderMarkdownWithoutKatex(motd.markdown),
+        resolveMotdAssetOrigin(),
+      ),
+      motd.contentVersion,
+    );
+    this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
+    setTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
   }
 
   private clearMotdOverlay(): void {
@@ -598,6 +566,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.tryRecordMotdInteraction(kind);
     markMotdDismissed(m.id, m.contentVersion);
     this.clearMotdOverlay();
+    this.motdCurrent.invalidate();
     await this.loadMotdOverlay();
   }
 
@@ -607,6 +576,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.tryRecordMotdInteraction('ACK');
     markMotdDismissed(m.id, m.contentVersion);
     this.clearMotdOverlay();
+    this.motdCurrent.invalidate();
     await this.loadMotdOverlay();
   }
 
