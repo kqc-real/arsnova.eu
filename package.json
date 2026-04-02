@@ -13,10 +13,10 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "node scripts/ensure-schema.js && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start:de -w @arsnova/frontend\"",
-    "dev:de": "node scripts/ensure-schema.js && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start:de -w @arsnova/frontend\"",
-    "dev:en": "node scripts/ensure-schema.js && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start:en -w @arsnova/frontend\"",
-    "dev:backend": "node scripts/ensure-schema.js && npm run dev -w @arsnova/backend",
+    "dev": "node scripts/ensure-schema.js && node scripts/free-dev-ports.mjs && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start:de -w @arsnova/frontend\"",
+    "dev:de": "node scripts/ensure-schema.js && node scripts/free-dev-ports.mjs && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start:de -w @arsnova/frontend\"",
+    "dev:en": "node scripts/ensure-schema.js && node scripts/free-dev-ports.mjs && concurrently -n backend,frontend -c blue,green \"npm run dev -w @arsnova/backend\" \"npm run start:en -w @arsnova/frontend\"",
+    "dev:backend": "node scripts/ensure-schema.js && node scripts/free-dev-ports.mjs --ports=3000,3001,3002 && npm run dev -w @arsnova/backend",
     "dev:frontend": "npm run start:de -w @arsnova/frontend",
     "dev:frontend:en": "npm run start:en -w @arsnova/frontend",
     "dev:frontend:de": "npm run start:de -w @arsnova/frontend",

@@ -2,11 +2,21 @@
 /**
  * Gibt die Ports für npm run dev frei (3000, 3001, 3002, 4200).
  * Nützlich wenn EADDRINUSE oder "Port already in use" auftritt.
+ *
+ * Optional: nur Backend-Ports — z. B. vor dev:backend:
+ *   node scripts/free-dev-ports.mjs --ports=3000,3001,3002
  */
 import { execSync } from 'child_process';
 import { platform } from 'os';
 
-const PORTS = [3000, 3001, 3002, 4200];
+const portsArg = process.argv.find((a) => a.startsWith('--ports='));
+const PORTS = portsArg
+  ? portsArg
+      .slice('--ports='.length)
+      .split(',')
+      .map((s) => Number.parseInt(s.trim(), 10))
+      .filter((n) => Number.isFinite(n) && n > 0)
+  : [3000, 3001, 3002, 4200];
 
 function freePort(port) {
   try {
@@ -27,4 +37,4 @@ function freePort(port) {
 for (const port of PORTS) {
   freePort(port);
 }
-console.log('Dev-Ports (3000, 3001, 3002, 4200) bereit für npm run dev.');
+console.log(`Dev-Ports (${PORTS.join(', ')}) bereit.`);
