@@ -1,4 +1,14 @@
-import { Component, LOCALE_ID, OnInit, inject, isDevMode, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  LOCALE_ID,
+  OnInit,
+  QueryList,
+  ViewChildren,
+  inject,
+  isDevMode,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import {
@@ -73,6 +83,11 @@ export class AdminMotdPanelComponent implements OnInit {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly dialog = inject(MatDialog);
   private readonly appLocaleId = inject(LOCALE_ID);
+
+  /** MOTD-Markdown-Textareas: vor „Speichern“ DOM → Signal, falls NgModel hinter dem sichtbaren Text hängt. */
+  @ViewChildren('motdMdTa') private readonly motdMdTextareas!: QueryList<
+    ElementRef<HTMLTextAreaElement>
+  >;
 
   /** Hinweis zu `seed:dev-motd` nur lokal — in Produktion nicht anzeigen. */
   readonly showDevMotdSeedHint = isDevMode();
@@ -258,6 +273,7 @@ export class AdminMotdPanelComponent implements OnInit {
     this.error.set(null);
     this.info.set(null);
     try {
+      this.syncMotdMarkdownSignalsFromDom();
       const locales = {
         de: this.mdDe(),
         en: this.mdEn(),
@@ -315,6 +331,42 @@ export class AdminMotdPanelComponent implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /** Liest die fünf Markdown-Felder aus dem DOM in die Signals (Quelle der Wahrheit vor dem Server-Call). */
+  private syncMotdMarkdownFromDom(): void {
+    const list = this.motdMdTextareas;
+    if (!list?.length) return;
+    for (const ref of list) {
+      const el = ref.nativeElement;
+      const loc = el.getAttribute('data-motd-locale');
+      if (!loc) continue;
+      const v = el.value;
+      switch (loc) {
+        case 'de':
+          this.mdDe.set(v);
+          break;
+        case 'en':
+          this.mdEn.set(v);
+          break;
+        case 'fr':
+          this.mdFr.set(v);
+          break;
+        case 'es':
+          this.mdEs.set(v);
+          break;
+        case 'it':
+          this.mdIt.set(v);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  private syncMotdMarkdownSignalsFromDom(): void {
+    this.syncMotdMarkdownFromDom();
+    this.updatePreview();
   }
 
   applyTemplate(): void {

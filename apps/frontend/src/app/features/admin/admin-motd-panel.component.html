@@ -346,9 +346,11 @@
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeDe">Deutsch (Markdown)</h4>
         <mat-form-field appearance="outline" class="admin-field admin-field--full">
           <textarea
+            #motdMdTa
             matInput
             rows="4"
             name="motdMdDe"
+            data-motd-locale="de"
             [ngModel]="mdDe()"
             (ngModelChange)="mdDe.set($event); updatePreview()"
           ></textarea>
@@ -356,9 +358,11 @@
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeEn">Englisch</h4>
         <mat-form-field appearance="outline" class="admin-field admin-field--full">
           <textarea
+            #motdMdTa
             matInput
             rows="3"
             name="motdMdEn"
+            data-motd-locale="en"
             [ngModel]="mdEn()"
             (ngModelChange)="mdEn.set($event)"
           ></textarea>
@@ -366,9 +370,11 @@
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeFr">Französisch</h4>
         <mat-form-field appearance="outline" class="admin-field admin-field--full">
           <textarea
+            #motdMdTa
             matInput
             rows="3"
             name="motdMdFr"
+            data-motd-locale="fr"
             [ngModel]="mdFr()"
             (ngModelChange)="mdFr.set($event)"
           ></textarea>
@@ -376,9 +382,11 @@
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeEs">Spanisch</h4>
         <mat-form-field appearance="outline" class="admin-field admin-field--full">
           <textarea
+            #motdMdTa
             matInput
             rows="3"
             name="motdMdEs"
+            data-motd-locale="es"
             [ngModel]="mdEs()"
             (ngModelChange)="mdEs.set($event)"
           ></textarea>
@@ -386,9 +394,11 @@
         <h4 class="admin-motd__locale" i18n="@@admin.motd.localeIt">Italienisch</h4>
         <mat-form-field appearance="outline" class="admin-field admin-field--full">
           <textarea
+            #motdMdTa
             matInput
             rows="3"
             name="motdMdIt"
+            data-motd-locale="it"
             [ngModel]="mdIt()"
             (ngModelChange)="mdIt.set($event)"
           ></textarea>

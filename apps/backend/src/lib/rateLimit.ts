@@ -6,14 +6,25 @@ import { getRedis } from '../redis';
 
 const PREFIX = 'rl:';
 
+/** Vollständiger Redis-Schlüssel (wie `checkSlidingWindow`) — für Logs bei 429. */
+export function redisKeyMotdGetCurrent(ip: string): string {
+  return `${PREFIX}motd:getCurrent:${ip}`;
+}
+export function redisKeyMotdListArchive(ip: string): string {
+  return `${PREFIX}motd:listArchive:${ip}`;
+}
+export function redisKeyMotdRecordInteraction(ip: string): string {
+  return `${PREFIX}motd:recordInteraction:${ip}`;
+}
+
 export const RATE_LIMIT_ENV = {
   sessionCodeAttempts: Number(process.env['RATE_LIMIT_SESSION_CODE_ATTEMPTS']) || 5,
   sessionCodeWindowMinutes: Number(process.env['RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES']) || 5,
   sessionCodeLockoutSeconds: Number(process.env['RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS']) || 60,
   voteRequestsPerSecond: Number(process.env['RATE_LIMIT_VOTE_REQUESTS_PER_SECOND']) || 1,
   sessionCreatePerHour: Number(process.env['RATE_LIMIT_SESSION_CREATE_PER_HOUR']) || 10,
-  /** MOTD öffentliche API (Epic 10): Anfragen pro IP pro Minute */
-  motdGetCurrentPerMinute: Number(process.env['RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE']) || 120,
+  /** MOTD öffentliche API (Epic 10): Anfragen pro IP pro Minute (`getCurrent` + `getHeaderState` teilen sich das Limit) */
+  motdGetCurrentPerMinute: Number(process.env['RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE']) || 600,
   motdListArchivePerMinute: Number(process.env['RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE']) || 60,
   motdRecordInteractionPerMinute:
     Number(process.env['RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE']) || 40,
@@ -30,6 +41,22 @@ function isLoopbackIp(ip: string): boolean {
  */
 export function shouldBypassSessionCreateRate(ip: string): boolean {
   const override = process.env['RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST'];
+  if (override === 'true') {
+    return isLoopbackIp(ip);
+  }
+  if (override === 'false') {
+    return false;
+  }
+  return process.env['NODE_ENV'] !== 'production' && isLoopbackIp(ip);
+}
+
+/**
+ * MOTD `getCurrent` / `getHeaderState`: gleicher Bypass wie Session-Create (Prerender/Dev von 127.0.0.1
+ * sonst schnell 429 trotz „keiner Last“ — viele Anfragen teilen eine Loopback-IP).
+ * `RATE_LIMIT_MOTD_GET_CURRENT_BYPASS_LOCALHOST=true|false` überschreibt.
+ */
+export function shouldBypassMotdGetCurrentRate(ip: string): boolean {
+  const override = process.env['RATE_LIMIT_MOTD_GET_CURRENT_BYPASS_LOCALHOST'];
   if (override === 'true') {
     return isLoopbackIp(ip);
   }
@@ -81,7 +108,7 @@ export async function checkSlidingWindow(
     }
     const oldest = await redis.zrange(redisKey, 0, 0, 'WITHSCORES');
     const retryAfter = oldest.length
-      ? Math.ceil((Number(oldest[0]) + windowSeconds * 1000 - now) / 1000)
+      ? Math.ceil((Number(oldest[1]) + windowSeconds * 1000 - now) / 1000)
       : windowSeconds;
     return {
       allowed: false,

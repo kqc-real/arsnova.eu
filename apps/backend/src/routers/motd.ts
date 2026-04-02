@@ -15,14 +15,21 @@ import {
   MotdRecordInteractionOutputSchema,
 } from '@arsnova/shared-types';
 import { prisma } from '../db';
+import { logger } from '../lib/logger';
 import { pickLocaleFromAcceptLanguage } from '../lib/pick-locale-from-accept-language';
 import { localesToMap, resolveMotdMarkdown } from '../lib/motdMarkdown';
 import {
+  RATE_LIMIT_ENV,
   checkMotdGetCurrentRate,
   checkMotdListArchiveRate,
   checkMotdRecordInteractionRate,
+  redisKeyMotdGetCurrent,
+  redisKeyMotdListArchive,
+  redisKeyMotdRecordInteraction,
+  shouldBypassMotdGetCurrentRate,
 } from '../lib/rateLimit';
-import { getClientIp, publicProcedure, router, type Context } from '../trpc';
+import { publicProcedure, resolveClientIp, router, type Context } from '../trpc';
+import type { ResolvedClientIp } from '../trpc';
 
 /**
  * Obergrenze gleichzeitig aktiver PUBLISHED-MOTDs für die Overlay-Auswahl (Sortierung im Speicher).
@@ -148,6 +155,25 @@ async function fetchCurrentMotdDto(
   return null;
 }
 
+/** Belegt bei jedem MOTD-429: welche IP, welcher Redis-Schlüssel, welches Limit — ohne Raten. */
+function logMotdRateLimit429(
+  procedure: 'getCurrent' | 'getHeaderState' | 'listArchive' | 'recordInteraction',
+  resolved: ResolvedClientIp,
+  redisKey: string,
+  limitPerMinute: number,
+  retryAfterSeconds: number | undefined,
+): void {
+  logger.warn('motd:rate_limit_429', {
+    event: 'motd_rate_limit_429',
+    procedure,
+    clientIp: resolved.ip,
+    ipSource: resolved.source,
+    limitPerMinute,
+    redisKey,
+    retryAfterSeconds: retryAfterSeconds ?? null,
+  });
+}
+
 export const motdRouter = router({
   /**
    * Liefert höchstens eine aktive Overlay-MOTD (PUBLISHED, Zeitfenster).
@@ -158,14 +184,24 @@ export const motdRouter = router({
     .input(MotdGetCurrentInputSchema)
     .output(MotdGetCurrentOutputSchema)
     .query(async ({ ctx, input }) => {
-      const ip = getClientIp(ctx);
-      const limit = await checkMotdGetCurrentRate(ip);
-      if (!limit.allowed) {
-        throw new TRPCError({
-          code: 'TOO_MANY_REQUESTS',
-          message: 'Zu viele Anfragen. Bitte kurz warten.',
-          cause: { retryAfterSeconds: limit.retryAfterSeconds },
-        });
+      const resolved = resolveClientIp(ctx.req);
+      const ip = resolved.ip;
+      if (!shouldBypassMotdGetCurrentRate(ip)) {
+        const limit = await checkMotdGetCurrentRate(ip);
+        if (!limit.allowed) {
+          logMotdRateLimit429(
+            'getCurrent',
+            resolved,
+            redisKeyMotdGetCurrent(ip),
+            RATE_LIMIT_ENV.motdGetCurrentPerMinute,
+            limit.retryAfterSeconds,
+          );
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Zu viele Anfragen. Bitte kurz warten.',
+            cause: { retryAfterSeconds: limit.retryAfterSeconds },
+          });
+        }
       }
       const locale = resolveMotdLocale(input.locale, ctx);
       const motd = await fetchCurrentMotdDto(locale, new Date(), input.overlayDismissedUpTo);
@@ -180,9 +216,17 @@ export const motdRouter = router({
     .input(MotdListArchiveInputSchema)
     .output(MotdListArchiveOutputSchema)
     .query(async ({ ctx, input }) => {
-      const ip = getClientIp(ctx);
+      const resolved = resolveClientIp(ctx.req);
+      const ip = resolved.ip;
       const limit = await checkMotdListArchiveRate(ip);
       if (!limit.allowed) {
+        logMotdRateLimit429(
+          'listArchive',
+          resolved,
+          redisKeyMotdListArchive(ip),
+          RATE_LIMIT_ENV.motdListArchivePerMinute,
+          limit.retryAfterSeconds,
+        );
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',
           message: 'Zu viele Anfragen. Bitte kurz warten.',
@@ -249,14 +293,24 @@ export const motdRouter = router({
     .input(MotdHeaderStateInputSchema)
     .output(MotdHeaderStateOutputSchema)
     .query(async ({ ctx, input }) => {
-      const ip = getClientIp(ctx);
-      const limit = await checkMotdGetCurrentRate(ip);
-      if (!limit.allowed) {
-        throw new TRPCError({
-          code: 'TOO_MANY_REQUESTS',
-          message: 'Zu viele Anfragen. Bitte kurz warten.',
-          cause: { retryAfterSeconds: limit.retryAfterSeconds },
-        });
+      const resolved = resolveClientIp(ctx.req);
+      const ip = resolved.ip;
+      if (!shouldBypassMotdGetCurrentRate(ip)) {
+        const limit = await checkMotdGetCurrentRate(ip);
+        if (!limit.allowed) {
+          logMotdRateLimit429(
+            'getHeaderState',
+            resolved,
+            redisKeyMotdGetCurrent(ip),
+            RATE_LIMIT_ENV.motdGetCurrentPerMinute,
+            limit.retryAfterSeconds,
+          );
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Zu viele Anfragen. Bitte kurz warten.',
+            cause: { retryAfterSeconds: limit.retryAfterSeconds },
+          });
+        }
       }
       const now = new Date();
       const locale = resolveMotdLocale(input.locale, ctx);
@@ -308,9 +362,17 @@ export const motdRouter = router({
     .input(MotdRecordInteractionInputSchema)
     .output(MotdRecordInteractionOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const ip = getClientIp(ctx);
+      const resolved = resolveClientIp(ctx.req);
+      const ip = resolved.ip;
       const limit = await checkMotdRecordInteractionRate(ip);
       if (!limit.allowed) {
+        logMotdRateLimit429(
+          'recordInteraction',
+          resolved,
+          redisKeyMotdRecordInteraction(ip),
+          RATE_LIMIT_ENV.motdRecordInteractionPerMinute,
+          limit.retryAfterSeconds,
+        );
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',
           message: 'Zu viele Anfragen. Bitte kurz warten.',

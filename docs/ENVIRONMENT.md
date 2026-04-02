@@ -21,13 +21,15 @@ Variablen, die der Node-Backend-Prozess unter `apps/backend` typischerweise lies
 | `YJS_WS_PORT`                                   | nein         | `3002`                     | y-websocket-Relay (Quiz-Sync)                                                                                                                |
 | `YJS_WS_HOST`                                   | nein         | siehe `HOST` / `127.0.0.1` | Bind-Adresse des Yjs-Childs (`@y/websocket-server`). **Nicht** nur `127.0.0.1` in Docker, sonst scheitert `wss://…/yjs-ws` hinter Nginx      |
 | `NODE_ENV`                                      | nein         | —                          | `production` u. a. für CORS/Static; `development` für lokale Defaults                                                                        |
+| `TRUST_PROXY_HOPS`                              | nein         | `0`                        | `1` setzen, wenn Express **hinter** Nginx/Proxy läuft — dann `req.ip` und Rate-Limit pro **echtem** Client (nicht nur Proxy-IP)              |
 | `RATE_LIMIT_SESSION_CODE_ATTEMPTS`              | nein         | `5`                        | Fehlversuche Session-Code pro IP                                                                                                             |
 | `RATE_LIMIT_SESSION_CODE_WINDOW_MINUTES`        | nein         | `5`                        | Zeitfenster (Minuten)                                                                                                                        |
 | `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS`       | nein         | `60`                       | Sperre nach zu vielen Fehlversuchen                                                                                                          |
 | `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND`           | nein         | `1`                        | Vote-Throttling pro Teilnehmenden-ID                                                                                                         |
 | `RATE_LIMIT_SESSION_CREATE_PER_HOUR`            | nein         | `10`                       | Session-Erstellungen pro IP und Stunde                                                                                                       |
 | `RATE_LIMIT_SESSION_CREATE_BYPASS_LOCALHOST`    | nein         | —                          | Optionaler Override für den Localhost-Bypass des Session-Create-Limits; ohne Override ist localhost in Nicht-Prod standardmäßig ausgenommen  |
-| `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE`        | nein         | `120`                      | MOTD `getCurrent` — Anfragen pro IP und Minute (Epic 10, `motd.ts` / `rateLimit.ts`)                                                         |
+| `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE`        | nein         | `600`                      | MOTD `getCurrent` + `getHeaderState` (gemeinsames Limit) — Anfragen pro IP und Minute (Epic 10, `motd.ts` / `rateLimit.ts`)                  |
+| `RATE_LIMIT_MOTD_GET_CURRENT_BYPASS_LOCALHOST`  | nein         | —                          | Wie Session-Create: optional `true`\|`false`; ohne Override ist **Loopback** in Nicht-Prod für MOTD-Read-Limits ausgenommen (Prerender/Dev)  |
 | `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE`       | nein         | `60`                       | MOTD `listArchive` — pro IP und Minute                                                                                                       |
 | `RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE` | nein         | `40`                       | MOTD `recordInteraction` — pro IP und Minute                                                                                                 |
 | `ADMIN_SECRET`                                  | für `/admin` | —                          | Shared Secret für Admin-Login (Epic 9); in Prod **stark setzen**                                                                             |
@@ -48,14 +50,33 @@ Zusätzlich zu den Backend-Variablen (angepasste Hosts: `postgres`, `redis` im N
 
 ## Schnelldiagnose
 
-| Symptom                                                           | Prüfen                                                                                                           |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Prisma-Fehler / keine DB                                          | `DATABASE_URL`, Container `postgres`, `npx prisma db push`                                                       |
-| Rate-Limits, Admin-Session oder Blitzlicht verhalten sich seltsam | `REDIS_URL`, Container `redis`                                                                                   |
-| tRPC-WebSocket hängt                                              | `WS_PORT` frei, Frontend-Proxy auf gleichen WS-Port                                                              |
-| Quiz-Sync zwischen Geräten tot / `wss://…/yjs-ws` schlägt fehl    | Container: `HOST=0.0.0.0` oder `YJS_WS_HOST=0.0.0.0`, Nginx `location /yjs-ws` → `127.0.0.1:3002`, Prozess läuft |
-| Admin-Login scheitert                                             | `ADMIN_SECRET` gesetzt und mit Eingabe übereinstimmend                                                           |
-| MOTD/API 429 (Too Many Requests)                                  | `RATE_LIMIT_MOTD_*` anpassen oder Last prüfen; öffentliche MOTD-Pfade sind bewusst rate-limited                  |
+| Symptom                                                           | Prüfen                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Prisma-Fehler / keine DB                                          | `DATABASE_URL`, Container `postgres`, `npx prisma db push`                                                                                                                                                                            |
+| Rate-Limits, Admin-Session oder Blitzlicht verhalten sich seltsam | `REDIS_URL`, Container `redis`                                                                                                                                                                                                        |
+| tRPC-WebSocket hängt                                              | `WS_PORT` frei, Frontend-Proxy auf gleichen WS-Port                                                                                                                                                                                   |
+| Quiz-Sync zwischen Geräten tot / `wss://…/yjs-ws` schlägt fehl    | Container: `HOST=0.0.0.0` oder `YJS_WS_HOST=0.0.0.0`, Nginx `location /yjs-ws` → `127.0.0.1:3002`, Prozess läuft                                                                                                                      |
+| Admin-Login scheitert                                             | `ADMIN_SECRET` gesetzt und mit Eingabe übereinstimmend                                                                                                                                                                                |
+| MOTD/API 429 (Too Many Requests)                                  | **Beleg:** Backend-Log `motd:rate_limit_429` mit `clientIp`, `ipSource` (woher die IP kam), `redisKey`, `limitPerMinute`. Redis: `ZCARD <redisKey>` — Anzahl der Einträge im 60s-Fenster (siehe `apps/backend/src/lib/rateLimit.ts`). |
+
+### MOTD 429 / „keine Last, aber 429“ – Vorgehen (belegbar)
+
+1. **Backend-Log suchen**: `motd:rate_limit_429` (Event-Objekt).
+2. **IP-Quelle prüfen (`ipSource`)**:
+   - `x-forwarded-for` / `x-real-ip`: Reverse-Proxy liefert Client-IP mit.
+   - `express-req-ip`: Express hat bereits eine IP entschieden (nur korrekt, wenn Proxy-Setup passt).
+   - `socket`: direkte Verbindung, kein Proxy-Header.
+3. **Redis-Schlüssel prüfen (`redisKey`)**:
+
+```bash
+redis-cli ZCARD "<redisKey>"
+redis-cli TTL "<redisKey>"
+```
+
+4. **Wenn alle Clients in einen Bucket fallen**:
+   - `TRUST_PROXY_HOPS=1` setzen (typisch hinter Nginx) und Backend neu starten.
+5. **Wenn es ein Trigger-/Loop-Problem im Client ist**:
+   - Frontend hat Schutz gegen Request-Stürme (in-flight dedupe + Mindestabstand) in `apps/frontend/src/app/core/motd-header-state.service.ts`.
 
 ---
 

@@ -37,11 +37,26 @@ vi.mock('../db', () => ({
   prisma: prismaMock,
 }));
 
-vi.mock('../lib/rateLimit', () => ({
-  checkMotdGetCurrentRate: motdRateMocks.checkMotdGetCurrentRate,
-  checkMotdListArchiveRate: motdRateMocks.checkMotdListArchiveRate,
-  checkMotdRecordInteractionRate: motdRateMocks.checkMotdRecordInteractionRate,
+const loggerMock = vi.hoisted(() => ({
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
 }));
+
+vi.mock('../lib/logger', () => ({
+  logger: loggerMock,
+}));
+
+vi.mock('../lib/rateLimit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/rateLimit')>();
+  return {
+    ...actual,
+    checkMotdGetCurrentRate: motdRateMocks.checkMotdGetCurrentRate,
+    checkMotdListArchiveRate: motdRateMocks.checkMotdListArchiveRate,
+    checkMotdRecordInteractionRate: motdRateMocks.checkMotdRecordInteractionRate,
+    shouldBypassMotdGetCurrentRate: vi.fn().mockReturnValue(false),
+  };
+});
 
 import { motdRouter } from '../routers/motd';
 
@@ -53,6 +68,7 @@ describe('motd router', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-06-15T12:00:00.000Z'));
     vi.clearAllMocks();
+    loggerMock.warn.mockClear();
     redisMock.zcard.mockResolvedValue(0);
     motdRateMocks.checkMotdGetCurrentRate.mockResolvedValue({ allowed: true, remaining: 50 });
     motdRateMocks.checkMotdListArchiveRate.mockResolvedValue({ allowed: true, remaining: 30 });
@@ -267,6 +283,16 @@ describe('motd router', () => {
       code: 'TOO_MANY_REQUESTS',
     });
     expect(prismaMock.motd.findMany).not.toHaveBeenCalled();
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      'motd:rate_limit_429',
+      expect.objectContaining({
+        procedure: 'getCurrent',
+        clientIp: '0.0.0.0',
+        ipSource: 'missing-req',
+        redisKey: 'rl:motd:getCurrent:0.0.0.0',
+        retryAfterSeconds: 12,
+      }),
+    );
   });
 
   it('listArchive wirft TOO_MANY_REQUESTS wenn Rate-Limit greift', async () => {

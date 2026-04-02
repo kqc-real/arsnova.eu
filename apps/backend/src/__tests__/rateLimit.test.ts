@@ -38,7 +38,7 @@ describe('RATE_LIMIT_ENV – Umgebungsvariablen-Defaults (Story 0.5)', () => {
     expect(RATE_LIMIT_ENV.sessionCodeLockoutSeconds).toBe(60);
     expect(RATE_LIMIT_ENV.voteRequestsPerSecond).toBe(1);
     expect(RATE_LIMIT_ENV.sessionCreatePerHour).toBe(10);
-    expect(RATE_LIMIT_ENV.motdGetCurrentPerMinute).toBe(120);
+    expect(RATE_LIMIT_ENV.motdGetCurrentPerMinute).toBe(600);
     expect(RATE_LIMIT_ENV.motdListArchivePerMinute).toBe(60);
     expect(RATE_LIMIT_ENV.motdRecordInteractionPerMinute).toBe(40);
   });
@@ -208,6 +208,19 @@ describe('MOTD öffentliche API (Epic 10) – Sliding-Window pro IP', () => {
     expect(result.allowed).toBe(false);
     expect(result.remaining).toBe(0);
     expect(redisMock.zremrangebyscore).toHaveBeenCalled();
+  });
+
+  it('checkSlidingWindow berechnet retryAfterSeconds aus ZRANGE WITHSCORES (score)', async () => {
+    const now = Date.now();
+    vi.spyOn(Date, 'now').mockReturnValue(now);
+    redisMock.zcard.mockResolvedValue(10);
+    // ioredis: [member, score]
+    redisMock.zrange.mockResolvedValue([`${now - 59_000}:0.123`, String(now - 59_000)]);
+
+    const r = await checkSlidingWindow('motd:getCurrent:203.0.113.7', 10, 60);
+    expect(r.allowed).toBe(false);
+    expect(r.retryAfterSeconds).toBeGreaterThan(0);
+    expect(Number.isFinite(r.retryAfterSeconds)).toBe(true);
   });
 
   it('checkMotdListArchiveRate nutzt eigenen Redis-Key pro IP', async () => {

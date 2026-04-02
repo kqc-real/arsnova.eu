@@ -26,6 +26,11 @@ getRedis();
 
 const app = express();
 const isProduction = process.env['NODE_ENV'] === 'production';
+/** Hinter Nginx/Proxy: `X-Forwarded-For` / `req.ip` korrekt (Rate-Limit pro echtem Client). */
+const trustProxyHops = Number(process.env['TRUST_PROXY_HOPS'] ?? 0);
+if (Number.isFinite(trustProxyHops) && trustProxyHops > 0) {
+  app.set('trust proxy', trustProxyHops);
+}
 app.use(compression());
 app.use(cors(isProduction ? {} : { origin: 'http://localhost:4200' }));
 app.use(

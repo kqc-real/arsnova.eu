@@ -26,6 +26,15 @@ export class MotdHeaderStateService {
   /** Entprellt: mehrere Routenwechsel / Visibility-Events → eine Abfrage. */
   private readonly passiveRefresh$ = new Subject<void>();
 
+  /**
+   * Schutz gegen Request-Loops (z. B. mehrfach registrierte Listener nach Hot-Reload / unerwartete Trigger-Kaskaden):
+   * - niemals parallel dieselbe Query mehrfach starten
+   * - minimale Pause zwischen zwei Requests
+   */
+  private inFlight: Promise<void> | null = null;
+  private lastRefreshAtMs = 0;
+  private static readonly MIN_REFRESH_INTERVAL_MS = 1500;
+
   /** Aktive Meldung oder Archiv-Einträge → Campaign-Icon in der Toolbar. */
   readonly motdToolbarIcon = signal(false);
 
@@ -51,23 +60,38 @@ export class MotdHeaderStateService {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
-    try {
-      const seen = getMotdArchiveSeenUpToEndsAtIso();
-      const dismissed = motdDismissedPairsForApi();
-      const s = await trpc.motd.getHeaderState.query({
-        locale,
-        ...(seen ? { archiveSeenUpToEndsAtIso: seen } : {}),
-        ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
-      });
-      this.motdToolbarIcon.set(s.hasActiveOverlay || s.hasArchiveEntries);
-      this.archiveUnreadCount.set(s.archiveUnreadCount);
-      this.archiveTotalCount.set(s.archiveCount);
-    } catch {
-      this.motdToolbarIcon.set(false);
-      this.archiveUnreadCount.set(0);
-      this.archiveTotalCount.set(0);
+    if (this.inFlight) {
+      return this.inFlight;
     }
+    const now = Date.now();
+    if (now - this.lastRefreshAtMs < MotdHeaderStateService.MIN_REFRESH_INTERVAL_MS) {
+      return;
+    }
+    this.lastRefreshAtMs = now;
+
+    const locale = getEffectiveLocale(localeIdToSupported(this.localeId)) as AppLocale;
+    this.inFlight = (async () => {
+      try {
+        const seen = getMotdArchiveSeenUpToEndsAtIso();
+        const dismissed = motdDismissedPairsForApi();
+        const s = await trpc.motd.getHeaderState.query({
+          locale,
+          ...(seen ? { archiveSeenUpToEndsAtIso: seen } : {}),
+          ...(dismissed.length ? { overlayDismissedUpTo: dismissed } : {}),
+        });
+        this.motdToolbarIcon.set(s.hasActiveOverlay || s.hasArchiveEntries);
+        this.archiveUnreadCount.set(s.archiveUnreadCount);
+        this.archiveTotalCount.set(s.archiveCount);
+      } catch {
+        this.motdToolbarIcon.set(false);
+        this.archiveUnreadCount.set(0);
+        this.archiveTotalCount.set(0);
+      }
+    })().finally(() => {
+      this.inFlight = null;
+    });
+
+    return this.inFlight;
   }
 
   private readonly onVisibilityChange = (): void => {
