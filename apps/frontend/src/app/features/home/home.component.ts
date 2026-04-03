@@ -30,6 +30,10 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
+import {
+  localizeKnownServerMessage,
+  sessionNotFoundUiMessage,
+} from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 import { QUICK_FEEDBACK_PRESET_CHIPS } from '../feedback/feedback.config';
@@ -475,15 +479,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       await this.router.navigate(localizeCommands(['join', code]));
     } catch (err: unknown) {
       this.removeRecentSessionCode(code);
-      const msg =
+      const raw =
         err &&
         typeof err === 'object' &&
         'message' in err &&
         typeof (err as { message: string }).message === 'string'
           ? (err as { message: string }).message
-          : $localize`Session nicht gefunden.`;
+          : sessionNotFoundUiMessage();
       this.joinErrorSessionFinished.set(false);
-      this.joinError.set(msg);
+      this.joinError.set(localizeKnownServerMessage(raw));
       this.triggerShake();
       this.clearSessionCodeAndFocusStart();
     } finally {

@@ -11,6 +11,10 @@ import { trpc } from '../../core/trpc.client';
 import type { SessionInfoDTO, TeamDTO } from '@arsnova/shared-types';
 import type { NicknameTheme } from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
+import {
+  localizeKnownServerMessage,
+  sessionNotFoundUiMessage,
+} from '../../core/localize-known-server-message';
 import { localizeCommands } from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
 import { getNicknameList } from './nickname-themes';
@@ -241,15 +245,15 @@ export class JoinComponent implements OnInit, OnDestroy {
       await this.loadParticipants();
       this.startSessionPoll();
     } catch (err: unknown) {
-      const msg =
+      const raw =
         err &&
         typeof err === 'object' &&
         'message' in err &&
         typeof (err as { message: string }).message === 'string'
           ? (err as { message: string }).message
-          : $localize`Session nicht gefunden.`;
+          : sessionNotFoundUiMessage();
       this.errorSessionFinished.set(false);
-      this.error.set(msg);
+      this.error.set(localizeKnownServerMessage(raw));
     } finally {
       this.loading.set(false);
     }
@@ -351,7 +355,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
-      const msg =
+      const raw =
         err &&
         typeof err === 'object' &&
         'message' in err &&
@@ -359,7 +363,7 @@ export class JoinComponent implements OnInit, OnDestroy {
           ? (err as { message: string }).message
           : $localize`Beitritt fehlgeschlagen.`;
       this.errorSessionFinished.set(false);
-      this.error.set(msg);
+      this.error.set(localizeKnownServerMessage(raw));
     } finally {
       this.joining.set(false);
       this.loading.set(false);
@@ -385,7 +389,7 @@ export class JoinComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
-      const msg =
+      const raw =
         err &&
         typeof err === 'object' &&
         'message' in err &&
@@ -393,7 +397,7 @@ export class JoinComponent implements OnInit, OnDestroy {
           ? (err as { message: string }).message
           : $localize`Beitritt fehlgeschlagen.`;
       this.errorSessionFinished.set(false);
-      this.error.set(msg);
+      this.error.set(localizeKnownServerMessage(raw));
     } finally {
       this.joining.set(false);
     }

@@ -3386,16 +3386,20 @@
           <context context-type="linenumber">279</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6177333666796822326" datatype="html">
+      <trans-unit id="session.notFound" datatype="html">
         <source>Session nicht gefunden.</source>
         <target>Sessione non trovata.</target>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
-          <context context-type="linenumber">497</context>
+          <context context-type="linenumber">485</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
-          <context context-type="linenumber">250</context>
+          <context context-type="linenumber">251</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6963223548875970688" datatype="html">
