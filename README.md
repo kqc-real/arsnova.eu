@@ -329,20 +329,19 @@ Nachdem die App lokal läuft, empfiehlt sich diese Lesereihenfolge:
 
 **Nur Port-Konflikte (EADDRINUSE / „Port already in use“):** Vor erneutem `npm run dev` die Dev-Ports freigeben: `npm run free-dev-ports`, danach `npm run dev`.
 
-Falls etwas schiefgeht oder du komplett neu anfangen möchtest, setze auf den Rücksprung-Tag zurück:
-
-| Tag            | Beschreibung                                                                                          |
-| -------------- | ----------------------------------------------------------------------------------------------------- |
-| **`v0-epic0`** | Stand nach Epic 0, Routen für Epic 1 vorstrukturiert (empfohlener Rücksprungpunkt)                    |
-| **`epic-9`**   | Stand inkl. Admin-Flow (Stories 9.1–9.3); für aktuellen Stand mit MOTD/Epic 10: `main` oder neuer Tag |
+Falls etwas schiefgeht oder du komplett neu anfangen moechtest, setze dein lokales Repo auf den aktuellen
+Remote-Stand zurueck:
 
 ```bash
-git fetch --tags
-git reset --hard v0-epic0
-npm install
+git fetch origin --prune
+git switch main
+git reset --hard origin/main
+npm run clean:generated
+npm ci
 ```
 
 > **Achtung:** `git reset --hard` löscht alle nicht-committeten Änderungen unwiderruflich. Committe oder stashe deine Arbeit vorher, falls du sie behalten willst.
+> Wenn du gezielt einen historischen Stand brauchst, prufe vorher die vorhandenen Tags mit `git tag --list` statt von festen Tag-Namen auszugehen.
 
 ---
 

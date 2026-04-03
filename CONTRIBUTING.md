@@ -46,7 +46,7 @@ Dieses Projekt wird **KI-gestützt** weiterentwickelt: Ihr übernehmt Architektu
 
 - **Technik/Architektur:** [docs/README.md](docs/README.md), [docs/architecture/handbook.md](docs/architecture/handbook.md), [docs/architecture/decisions/](docs/architecture/decisions/) (ADRs).
 - **UI/Design:** [docs/ui/STYLEGUIDE.md](docs/ui/STYLEGUIDE.md), [docs/ui/TOKENS.md](docs/ui/TOKENS.md), ADR 0005 (Material 3 ohne Tailwind).
-- **Zurücksetzen:** `git reset --hard v0-epic0` (Stand nach Epic 0), siehe [README.md](README.md#-zurücksetzen-auf-einen-bekannten-zustand).
+- **Zurücksetzen:** `git fetch origin --prune && git switch main && git reset --hard origin/main`, optional danach `npm run clean:generated && npm ci`; Details siehe [README.md](README.md#-zurücksetzen-auf-einen-bekannten-zustand).
 
 ---
 

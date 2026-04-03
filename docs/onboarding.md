@@ -343,15 +343,16 @@ Das Frontend nutzt modernste Angular-Features:
 
 Falls die Umgebung kaputt geht oder du einen sauberen Ausgangspunkt brauchst:
 
-| Git-Tag           | Beschreibung                                                                                   |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| **`v0-epic0`**    | Stand nach Epic 0 (Redis, WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD) – **empfohlen** |
-| **`v0-baseline`** | Nur Projekt-Skeleton (vor Epic 0)                                                              |
-
 ```bash
-git reset --hard v0-epic0
-npm install
+git fetch origin --prune
+git switch main
+git reset --hard origin/main
+npm run clean:generated
+npm ci
 ```
+
+Wenn du bewusst auf einen historischen Zwischenstand zurueckspringen willst, pruefe erst die im Repo
+wirklich vorhandenen Tags mit `git tag --list` und waehle dann einen passenden Referenzpunkt.
 
 ---
 
