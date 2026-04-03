@@ -181,7 +181,10 @@ const wss = new WebSocketServer({ port: WS_PORT });
 const wsHandler = applyWSSHandler({
   wss,
   router: appRouter,
-  createContext: async ({ req }) => ({ req }),
+  createContext: async ({ req, info }) => ({
+    req,
+    connectionParams: info.connectionParams,
+  }),
 });
 logger.info(`   WebSocket (tRPC): ws://localhost:${WS_PORT}`);
 

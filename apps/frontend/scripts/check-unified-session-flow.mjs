@@ -214,11 +214,22 @@ async function main() {
     if (!sessionCode) {
       await host.goto(`${BASE_URL}/quiz/new`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
       await host.locator('input').first().fill(quizName);
-      await host.getByRole('button', { name: 'Quiz erstellen' }).click();
+      await host.locator('form').first().locator('button[type="submit"]').click();
       await host.waitForTimeout(1_000);
-      await host.locator("textarea[aria-label='Fragetext eingeben']").fill(SMOKE_QUESTIONS.editorPrompt);
-      await host.locator("input[aria-label='Antworttext eingeben']").nth(0).fill(SMOKE_QUESTIONS.editorCorrectAnswer);
-      await host.locator("input[aria-label='Antworttext eingeben']").nth(1).fill(SMOKE_QUESTIONS.editorDistractor);
+      const continueToQuestions = host.getByRole('button', { name: /Weiter zu den Fragen/i });
+      if (await continueToQuestions.isVisible().catch(() => false)) {
+        await continueToQuestions.click();
+        await host.waitForTimeout(800);
+      }
+      await host.locator("textarea[aria-label='Fragetext eingeben']:visible").first().fill(SMOKE_QUESTIONS.editorPrompt);
+      await host
+        .locator("input[aria-label='Antworttext eingeben']:visible")
+        .nth(0)
+        .fill(SMOKE_QUESTIONS.editorCorrectAnswer);
+      await host
+        .locator("input[aria-label='Antworttext eingeben']:visible")
+        .nth(1)
+        .fill(SMOKE_QUESTIONS.editorDistractor);
       await host.getByRole('button', { name: /Hinzufügen/ }).click();
       await host.waitForTimeout(1_200);
       const editorText = await visibleText(host);

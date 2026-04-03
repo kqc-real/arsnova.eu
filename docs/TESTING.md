@@ -52,6 +52,7 @@ Matrix: **zwei** LTS-Versionen (**20** und **22**), `fail-fast: false`.
 | Befehl (Frontend-Workspace) | Zweck                       |
 | --------------------------- | --------------------------- |
 | `check:viewport`            | Viewport 320px-Smoke        |
+| `smoke:host-present-auth`   | Host/Present-Auth-Smoke     |
 | `smoke:quiz-sync`           | Quiz-Sync-Flow-Skript       |
 | `smoke:unified-session`     | Unified-Session-Flow-Skript |
 | `lighthouse:a11y`           | Lighthouse A11y (lokal)     |

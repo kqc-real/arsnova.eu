@@ -15,6 +15,7 @@ import {
 import { getTrpcWsUrl } from './ws-urls';
 
 const isBrowser = globalThis.window !== undefined;
+const SUPPORTED_LOCALES = new Set(['de', 'en', 'fr', 'it', 'es']);
 
 /** SSR/Prerender: relatives `/trpc` in Node nicht zuverlässig – öffentliche Produktions-API als Fallback. */
 const DEFAULT_PRERENDER_TRPC_URL = 'https://arsnova.eu/trpc';
@@ -36,30 +37,56 @@ const ADMIN_TOKEN_STORAGE_KEY = 'arsnova-admin-token';
 let adminToken: string | null = null;
 let pendingHostSessionCode: string | null = null;
 
-function resolveRouteHostSessionCode(): string | null {
-  if (!isBrowser) return null;
-
-  const sessionHostMatch = /\/(?:de|en|fr|it|es\/)?session\/([a-zA-Z0-9]{6})\/host(?:\/|$)/.exec(
-    globalThis.window.location.pathname,
-  );
-  if (sessionHostMatch?.[1]) {
-    return normalizeHostSessionCode(sessionHostMatch[1]);
+function getRouteSegments(): string[] {
+  if (!isBrowser) {
+    return [];
   }
 
-  return null;
+  const segments = globalThis.window.location.pathname.split('/').filter(Boolean);
+  if (segments[0] && SUPPORTED_LOCALES.has(segments[0])) {
+    return segments.slice(1);
+  }
+  return segments;
+}
+
+function normalizeRouteCode(
+  code: string | undefined,
+  normalize: (value: string) => string,
+): string | null {
+  if (!code || !/^[a-zA-Z0-9]{6}$/.test(code)) {
+    return null;
+  }
+  return normalize(code);
+}
+
+function resolveRouteHostSessionCode(): string | null {
+  const segments = getRouteSegments();
+  if (segments[0] !== 'session') {
+    return null;
+  }
+
+  if (segments[2] !== 'host' && segments[2] !== 'present') {
+    return null;
+  }
+
+  return normalizeRouteCode(segments[1], normalizeHostSessionCode);
 }
 
 function resolveRouteFeedbackCode(): string | null {
-  if (!isBrowser) return null;
-
-  const feedbackHostMatch = /\/(?:de|en|fr|it|es\/)?feedback\/([a-zA-Z0-9]{6})(?:\/|$)/.exec(
-    globalThis.window.location.pathname,
-  );
-  if (feedbackHostMatch?.[1]) {
-    return normalizeFeedbackCode(feedbackHostMatch[1]);
+  const segments = getRouteSegments();
+  if (segments[0] !== 'feedback') {
+    return null;
   }
 
-  return null;
+  return normalizeRouteCode(segments[1], normalizeFeedbackCode);
+}
+
+function resolveActiveHostToken(): string | null {
+  const hostSessionCode = resolveRouteHostSessionCode() ?? pendingHostSessionCode;
+  if (!hostSessionCode) {
+    return null;
+  }
+  return getHostToken(hostSessionCode);
 }
 
 function createTrpcHeaders(): Record<string, string> {
@@ -69,12 +96,9 @@ function createTrpcHeaders(): Record<string, string> {
     headers['x-admin-token'] = adminToken;
   }
 
-  const hostSessionCode = resolveRouteHostSessionCode() ?? pendingHostSessionCode;
-  if (hostSessionCode) {
-    const hostToken = getHostToken(hostSessionCode);
-    if (hostToken) {
-      headers['x-host-token'] = hostToken;
-    }
+  const hostToken = resolveActiveHostToken();
+  if (hostToken) {
+    headers['x-host-token'] = hostToken;
   }
 
   const feedbackCode = resolveRouteFeedbackCode();
@@ -86,6 +110,15 @@ function createTrpcHeaders(): Record<string, string> {
   }
 
   return headers;
+}
+
+function createWsConnectionParams(): Record<string, string> | null {
+  const hostToken = resolveActiveHostToken();
+  if (!hostToken) {
+    return null;
+  }
+
+  return { 'x-host-token': hostToken };
 }
 
 if (isBrowser) {
@@ -153,6 +186,7 @@ export function clearPendingHostSessionCode(): void {
 const wsClient = isBrowser
   ? createWSClient({
       url: getTrpcWsUrl(),
+      connectionParams: createWsConnectionParams,
       retryDelayMs,
       /** Erst bei erster Subscription verbinden – vermeidet Konsolen-Fehler ohne Backend (z. B. Lighthouse). */
       lazy: { enabled: true, closeMs: 60_000 },

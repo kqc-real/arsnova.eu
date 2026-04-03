@@ -30,6 +30,10 @@ vi.mock('../lib/hostAuth', () => ({
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
+const wsCaller = sessionRouter.createCaller({
+  req: undefined,
+  connectionParams: { 'x-host-token': 'host-token-123' },
+});
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const QUESTION_ID = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
 const ACTIVE_QUIZ_ID = '11111111-1111-4111-8111-111111111111';
@@ -133,6 +137,30 @@ describe('session.getLiveFreetext', () => {
     expect(result.responses).toEqual([]);
     expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
   });
+
+  it('akzeptiert Host-Tokens aus WebSocket-Connection-Params', async () => {
+    extractHostTokenMock.mockReturnValue(null);
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      currentQuestion: 1,
+      quiz: {
+        questions: [
+          {
+            id: QUESTION_ID,
+            order: 1,
+            type: 'FREETEXT',
+            text: 'Was war heute hilfreich?',
+          },
+        ],
+      },
+    });
+    prismaMock.vote.findMany.mockResolvedValue([{ freeText: ' Live ueber WS ' }]);
+
+    const result = await wsCaller.getLiveFreetext({ code: 'ABC123' });
+
+    expect(result.responses).toEqual(['Live ueber WS']);
+    expect(isHostSessionTokenValidMock).toHaveBeenCalledWith('ABC123', 'host-token-123');
+  });
 });
 
 describe('session.getActiveQuizIds', () => {
@@ -183,6 +211,8 @@ describe('session.getActiveQuizIds', () => {
 describe('session.getFreetextSessionExport', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    extractHostTokenMock.mockReturnValue('host-token-123');
+    isHostSessionTokenValidMock.mockResolvedValue(true);
   });
 
   it('aggregiert Freitextantworten pro Frage für Session-Export', async () => {
