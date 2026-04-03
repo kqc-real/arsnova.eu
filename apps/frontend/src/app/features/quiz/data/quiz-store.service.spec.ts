@@ -590,6 +590,26 @@ describe('QuizStoreService', () => {
     expect(() => service.activateSyncRoom('abc')).toThrowError('Ungültige Sync-ID.');
   });
 
+  it('leert lokale Quizdaten beim Wechsel in einen unbekannten geteilten Sync-Raum', () => {
+    const service = TestBed.inject(QuizStoreService);
+    service.createQuiz({ name: 'Lokales Quiz' });
+
+    service.activateSyncRoom('00000000-0000-4000-8000-000000000123', { markShared: true });
+
+    expect(service.quizzes()).toEqual([]);
+    expect(service.getDemoQuizId()).toBeNull();
+  });
+
+  it('seedet das Demo-Quiz nicht in geteilte Bibliotheken', () => {
+    const service = TestBed.inject(QuizStoreService);
+
+    service.activateSyncRoom('00000000-0000-4000-8000-000000000124', { markShared: true });
+
+    expect(service.ensureDemoQuiz()).toBe(false);
+    expect(service.quizzes()).toEqual([]);
+    expect(service.getDemoQuizId()).toBeNull();
+  });
+
   it('Demo-Quiz: fehlender Seed-Fingerprint oder alter Locale-Only-Key → Neu-Import passend zur Locale', () => {
     const roomId = '00000000-0000-4000-8000-000000000099';
     localStorage.setItem('quiz-sync-room-id', roomId);

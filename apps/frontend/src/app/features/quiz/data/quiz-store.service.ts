@@ -1093,6 +1093,7 @@ export class QuizStoreService {
    */
   ensureDemoQuiz(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
+    if (this.librarySharingMode() === 'shared') return false;
 
     const locale = this.resolveActiveDemoLocale();
     const payload = getDemoQuizPayload(locale);
@@ -1223,7 +1224,11 @@ export class QuizStoreService {
       const legacyRaw =
         !raw && allowLegacyFallback ? localStorage.getItem(QUIZ_STORAGE_LEGACY_KEY) : null;
       const sourceRaw = raw ?? legacyRaw;
-      if (!sourceRaw) return;
+      if (!sourceRaw) {
+        this.quizDocuments.set([]);
+        this.updateSerializedQuizCache(roomId, '[]');
+        return;
+      }
 
       const parsed = JSON.parse(sourceRaw) as unknown;
       const validQuizzes = normalizeStoredQuizzes(parsed);
