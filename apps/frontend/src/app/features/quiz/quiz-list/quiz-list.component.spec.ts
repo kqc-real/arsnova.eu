@@ -137,8 +137,10 @@ describe('QuizListComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Geteilte Quiz-Sammlung');
     expect(text).toContain('Hier siehst du, ob deine Quiz-Sammlung auf dem neuesten Stand ist');
+    expect(text).toContain('Diese Angaben helfen nur bei der Orientierung');
+    expect(text).toContain('Entscheidend bleibt der Sync-Link');
     expect(text).toContain('Verbunden');
-    expect(text).toContain('Sync-ID: SYNCROOM');
+    expect(text).toContain('Sync-Kurzcode (Anzeigehilfe): SYNCROOM');
     expect(text).toContain('Du arbeitest gerade auf');
     expect(text).toContain('Mac · Firefox');
     expect(text).toContain('Gerade 1 weiteres Gerät aktiv');

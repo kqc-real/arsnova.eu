@@ -240,7 +240,6 @@
         }
       </mat-card-actions>
     </mat-card>
-
     <mat-card
       appearance="raised"
       id="host-quick-feedback"
@@ -350,16 +349,18 @@
             (click)="toggleSyncLinkEntry()"
             [attr.aria-expanded]="syncLinkVisible()"
             i18n-aria-label="@@homeHostCard.syncLinkCta"
-            aria-label="Sync-Code einfügen"
+            aria-label="Sync-Link öffnen"
           >
             <mat-icon class="home-cta__icon">devices</mat-icon>
-            <span i18n="@@homeHostCard.syncLinkCta">Sync-Code einfügen</span>
+            <span i18n="@@homeHostCard.syncLinkCta">Sync-Link öffnen</span>
           </button>
         </div>
         @if (syncLinkVisible()) {
           <div class="home-sync-entry">
             <p class="home-card__hint home-sync-entry__hint" i18n="@@homeHostCard.syncLinkHint">
-              Wenn du hier mit der Quiz-Sammlung von einem anderen Gerät weitermachen willst.
+              Wenn du hier mit einer freigegebenen Quiz-Sammlung von einem anderen Gerät
+              weitermachen willst, nutze am besten den Sync-Link. Der Link ist der eigentliche
+              Zugriffsschlüssel.
             </p>
             <label
               class="home-sync-entry__label"

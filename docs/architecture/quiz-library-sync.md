@@ -3,7 +3,7 @@
 # Quiz-Sammlung – Synchronisierung
 
 **Zielgruppe:** Entwicklerinnen, Entwickler und technisch interessierte Personen  
-**Stand:** 2026-04-01  
+**Stand:** 2026-04-03  
 **Status:** Living Document
 
 ## 1. Zweck
@@ -14,7 +14,7 @@ Im Zentrum stehen drei Anforderungen:
 
 - **Local-First:** Die dauerhafte Quelle der Quiz-Sammlung liegt im Browser, nicht auf dem Server.
 - **Zero-Knowledge:** Der Server speichert keine dauerhafte Kopie der Sammlung.
-- **Multi-Device-Sync ohne Account:** Eine Quiz-Sammlung kann über Sync-Link oder Sync-ID auf mehreren Geräten genutzt werden.
+- **Multi-Device-Sync ohne Account:** Eine Quiz-Sammlung kann über Sync-Link oder technische Sync-ID auf mehreren Geräten genutzt werden.
 
 Dieses Dokument ergänzt insbesondere:
 
@@ -26,7 +26,8 @@ Dieses Dokument ergänzt insbesondere:
 
 - **Quiz-Sammlung:** Die lokal gehaltene Sammlung aller Quizzes eines Geräts.
 - **Sync-Raum:** Der logische Yjs-Raum, in dem mehrere Geräte dieselbe Sammlung teilen.
-- **Sync-ID:** Die technische Raum-ID, aus der im UI ein kurzer Code abgeleitet wird.
+- **Sync-ID:** Die technische Raum-ID des Sync-Raums.
+- **Sync-Kurzcode:** Ein aus der Sync-ID abgeleiteter, verkürzter UI-Wert. Er dient nur als Anzeigehilfe und ist kein eigener Sicherheits- oder Auflösungsmechanismus.
 - **Sync-Link:** URL auf `quiz/sync/:docId`, über die ein Gerät gezielt in einen Sync-Raum einsteigt.
 - **Origin / Ursprungsgerät:** Das Gerät, auf dem eine Sammlung erstmals bewusst für andere Geräte freigegeben wurde.
 - **Remote-Änderung:** Eine Änderung, die über Yjs von einem anderen Gerät übernommen wird.
@@ -321,6 +322,12 @@ Für Eingaben und Fehlbedienungen existieren bereits grundlegende Schutzmechanis
 - Ungültige Werte werden früh zurückgewiesen und nicht an den Store übergeben.
 - Die Raum-ID-Erzeugung basiert auf `crypto.randomUUID()` sofern verfügbar.
 
+Zusätzlich ist der UI-Stand per 2026-04-03 fachlich nachgeschärft:
+
+- Der **Sync-Link** wird in den relevanten UI-Flächen ausdrücklich als eigentlicher Zugriffsschlüssel benannt.
+- Der verkürzte UI-Wert wird nicht mehr als eigenständige Sync-ID kommuniziert, sondern als **Sync-Kurzcode (Anzeigehilfe)**.
+- Geräte- und Herkunftsinformationen werden in UI und Doku ausdrücklich als **Vertrauenssignale** beschrieben.
+
 ### 12.3 Sicherheitsgrenzen des aktuellen Modells
 
 Trotz dieser Validierung gibt es klare Grenzen:
@@ -356,6 +363,14 @@ Nicht Ziel des aktuellen Modells ist:
 
 #### Stufe A: kurzfristig
 
+Stand 2026-04-03:
+
+- **UI-Semantik des Sync-Links geschärft**
+- **Kurz-ID als Anzeigehilfe gekennzeichnet**
+- **Vertrauenssignal-Wording in UI und Doku nachgezogen**
+
+Damit ist Stufe A inhaltlich weitgehend vorbereitet, aber die Story 1.6c insgesamt noch nicht erledigt, weil die serverseitigen Schutz- und Missbrauchsmaßnahmen weiter offen sind.
+
 - **Sync-Link als primären Zugangspfad kommunizieren**  
   Die UI sollte klar sagen, dass der Link selbst der Zugriffsschlüssel ist.
 
@@ -384,11 +399,11 @@ Nicht Ziel des aktuellen Modells ist:
 
 ### 12.6 Empfehlung für weitere Entwicklung
 
-Die nächste sinnvolle Sicherheitsinvestition ist nicht ein Vollumbau, sondern:
+Nach der UI-Nachschärfung ist die nächste sinnvolle Sicherheitsinvestition nicht ein Vollumbau, sondern:
 
-1. UI-Semantik des Links schärfen
-2. kurze Sync-ID fachlich bereinigen
-3. danach Share-Token und Rotation konzipieren
+1. Missbrauchsschutz für Sync-Raum-Zugriffe ergänzen
+2. Share-Token und Rotation konzipieren
+3. serverseitige Prüfpfade für die Share-Auflösung priorisieren
 
 So bleibt das Feature verständlich und gewinnt schrittweise an Schutz, ohne den Local-First-Ansatz aufzugeben.
 

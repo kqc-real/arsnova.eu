@@ -327,6 +327,18 @@ describe('HomeComponent', () => {
   });
 
   describe('openSyncLink', () => {
+    it('erklaert im Sync-Hinweis, dass der Link der Zugriffsschluessel ist', () => {
+      const fixture = TestBed.createComponent(HomeComponent);
+      const comp = fixture.componentInstance;
+
+      comp.toggleSyncLinkEntry();
+      fixture.detectChanges();
+
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).toContain('nutze am besten den Sync-Link');
+      expect(text).toContain('Der Link ist der eigentliche Zugriffsschlüssel.');
+    });
+
     it('aktiviert mit kompletter Sync-URL den Raum und oeffnet die Quiz-Sammlung', async () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);

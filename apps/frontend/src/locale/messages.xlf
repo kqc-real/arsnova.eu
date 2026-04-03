@@ -2314,7 +2314,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionSync" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit Sync-ID oder Sync-Link deine Quiz-Sammlung mit Kolleg:innen teilen oder auf anderen Geräten weiterarbeiten. </source>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Sync:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Mit dem Sync-Link deine Quiz-Sammlung mit Kolleg:innen teilen oder auf anderen Geräten weiterarbeiten. Wer den Link hat, kann die Sammlung öffnen. Die Geräteangaben helfen nur bei der Orientierung. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">214,216</context>
@@ -2767,7 +2767,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkCta" datatype="html">
-        <source>Sync-Code einfügen</source>
+        <source>Sync-Link öffnen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">353,355</context>
@@ -2778,7 +2778,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkHint" datatype="html">
-        <source> Wenn du hier mit der Quiz-Sammlung von einem anderen Gerät weitermachen willst. </source>
+        <source> Wenn du hier mit einer freigegebenen Quiz-Sammlung von einem anderen Gerät weitermachen willst, nutze am besten den Sync-Link. Der Link ist der eigentliche Zugriffsschlüssel. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">362,364</context>
@@ -5314,14 +5314,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.sharedLibraryHint" datatype="html">
-        <source> Hier siehst du, ob deine Quiz-Sammlung auf dem neuesten Stand ist und von welchem Gerät Änderungen kamen. </source>
+        <source> Hier siehst du, ob deine Quiz-Sammlung auf dem neuesten Stand ist und von welchem Gerät Änderungen kamen. Diese Angaben helfen nur bei der Orientierung. Entscheidend bleibt der Sync-Link. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">243,245</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.sharedLibraryCode" datatype="html">
-        <source> Sync-ID: <x id="INTERPOLATION" equiv-text="{{ syncCode() }}"/> </source>
+        <source> Sync-Kurzcode (Anzeigehilfe): <x id="INTERPOLATION" equiv-text="{{ syncCode() }}"/> </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">247,248</context>
@@ -6074,21 +6074,21 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.introSecondary" datatype="html">
-        <source> Nutze dafür einfach die Sync-ID oder den Sync-Link. </source>
+        <source> Der Sync-Link ist der eigentliche Zugriffsschlüssel. Wer ihn hat, kann diese Sammlung auf einem anderen Gerät öffnen und bearbeiten. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">17,19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.codeAria" datatype="html">
-        <source>Sync-ID</source>
+        <source>Sync-Kurzcode (Anzeigehilfe)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">19,20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.codeLabel" datatype="html">
-        <source>Deine Sync-ID</source>
+        <source>Dein Sync-Kurzcode</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">20,21</context>
@@ -6105,7 +6105,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizSync.copyCode" datatype="html">
-        <source>Sync-ID kopieren</source>
+        <source>Kurzcode kopieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">35,37</context>
@@ -6125,15 +6125,15 @@
           <context context-type="linenumber">43,44</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8046827149586451284" datatype="html">
-        <source> Sync-ID: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
+      <trans-unit id="quizSync.fullId" datatype="html">
+        <source> Vollständige Sync-ID: <x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/><x id="INTERPOLATION" equiv-text="{{ docId }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">45,47</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3678643526863782940" datatype="html">
-        <source> Sync-Link: <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;quiz-sync__link&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ syncLink() }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
+      <trans-unit id="quizSync.accessKeyLink" datatype="html">
+        <source> Sync-Link (Zugriffsschlüssel): <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;quiz-sync__link&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ syncLink() }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-sync/quiz-sync.component.html</context>
           <context context-type="linenumber">48,50</context>

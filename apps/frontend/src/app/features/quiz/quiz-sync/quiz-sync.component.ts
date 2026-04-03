@@ -30,7 +30,7 @@ export class QuizSyncComponent {
   readonly copyStatus = signal<string | null>(null);
   readonly syncCode = computed(() =>
     this.docId
-      .replace(/[^a-zA-Z0-9]/g, '')
+      .replaceAll(/[^a-zA-Z0-9]/g, '')
       .slice(0, 8)
       .toUpperCase(),
   );
@@ -61,7 +61,7 @@ export class QuizSyncComponent {
   }
 
   async copySyncCode(): Promise<void> {
-    await this.copyText(this.syncCode(), 'Sync-Code wurde kopiert.');
+    await this.copyText(this.syncCode(), 'Kurzcode wurde kopiert.');
   }
 
   private async copyText(value: string, successMessage: string): Promise<void> {

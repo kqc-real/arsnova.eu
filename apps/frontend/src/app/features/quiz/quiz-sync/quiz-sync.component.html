@@ -14,10 +14,15 @@
       Öffne deine Quiz-Sammlung auf einem anderen Gerät oder teile sie mit Kolleginnen und Kollegen.
     </p>
     <p class="quiz-sync__text" i18n="@@quizSync.introSecondary">
-      Nutze dafür einfach die Sync-ID oder den Sync-Link.
+      Der Sync-Link ist der eigentliche Zugriffsschlüssel. Wer ihn hat, kann diese Sammlung auf
+      einem anderen Gerät öffnen und bearbeiten.
     </p>
-    <div class="quiz-sync__code-box" i18n-aria-label="@@quizSync.codeAria" aria-label="Sync-ID">
-      <p class="quiz-sync__code-label" i18n="@@quizSync.codeLabel">Deine Sync-ID</p>
+    <div
+      class="quiz-sync__code-box"
+      i18n-aria-label="@@quizSync.codeAria"
+      aria-label="Sync-Kurzcode (Anzeigehilfe)"
+    >
+      <p class="quiz-sync__code-label" i18n="@@quizSync.codeLabel">Dein Sync-Kurzcode</p>
       <p class="quiz-sync__code-value">{{ syncCode() }}</p>
     </div>
     <p class="quiz-sync__text" i18n>
@@ -32,7 +37,7 @@
     <div class="quiz-sync__actions">
       <button mat-button type="button" (click)="copySyncCode()">
         <mat-icon>pin</mat-icon>
-        <span i18n="@@quizSync.copyCode">Sync-ID kopieren</span>
+        <span i18n="@@quizSync.copyCode">Kurzcode kopieren</span>
       </button>
       <button mat-button type="button" (click)="copySyncLink()">
         <mat-icon>link</mat-icon>
@@ -41,11 +46,11 @@
     </div>
     <details class="quiz-sync__details">
       <summary i18n="@@quizSync.more">Mehr anzeigen</summary>
-      <p class="quiz-sync__text" i18n>
-        Sync-ID: <strong>{{ docId }}</strong>
+      <p class="quiz-sync__text" i18n="@@quizSync.fullId">
+        Vollständige Sync-ID: <strong>{{ docId }}</strong>
       </p>
-      <p class="quiz-sync__text" i18n>
-        Sync-Link: <span class="quiz-sync__link">{{ syncLink() }}</span>
+      <p class="quiz-sync__text" i18n="@@quizSync.accessKeyLink">
+        Sync-Link (Zugriffsschlüssel): <span class="quiz-sync__link">{{ syncLink() }}</span>
       </p>
     </details>
     <div class="quiz-sync__footer">
