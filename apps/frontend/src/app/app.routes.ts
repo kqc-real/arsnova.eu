@@ -19,8 +19,19 @@ import { newsArchivePageResolver } from './features/news-archive/news-archive-pa
 const canDeactivateHost: CanDeactivateFn<SessionHostComponent> = (component) =>
   component.canDeactivate();
 
+function getCodeParamFromRoute(route: Parameters<CanActivateFn>[0]): string | null {
+  return (
+    route.paramMap.get('code') ??
+    route.parent?.paramMap.get('code') ??
+    route.pathFromRoot
+      .map((snapshot) => snapshot.paramMap.get('code'))
+      .find((value): value is string => typeof value === 'string' && value.length > 0) ??
+    null
+  );
+}
+
 const redirectSessionEntry: CanActivateFn = (route) => {
-  const codeParam = route.paramMap.get('code');
+  const codeParam = getCodeParamFromRoute(route);
   if (!codeParam) {
     return inject(Router).createUrlTree(localizeCommands(['']));
   }
@@ -29,7 +40,7 @@ const redirectSessionEntry: CanActivateFn = (route) => {
 };
 
 const requireHostToken: CanActivateFn = (route) => {
-  const codeParam = route.paramMap.get('code');
+  const codeParam = getCodeParamFromRoute(route);
   if (!codeParam) {
     return inject(Router).createUrlTree(localizeCommands(['']));
   }
@@ -43,7 +54,7 @@ const requireHostToken: CanActivateFn = (route) => {
 };
 
 const requireFeedbackHostToken: CanActivateFn = (route) => {
-  const codeParam = route.paramMap.get('code');
+  const codeParam = getCodeParamFromRoute(route);
   if (!codeParam) {
     return inject(Router).createUrlTree(localizeCommands(['']));
   }

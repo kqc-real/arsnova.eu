@@ -162,7 +162,13 @@ export interface LiveSessionDialogResult {
       <button mat-button [mat-dialog-close]="undefined" i18n="@@quizList.liveDialog.cancel">
         Abbrechen
       </button>
-      <button mat-flat-button color="primary" [disabled]="!canStart()" (click)="start()">
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        [disabled]="!canStart()"
+        (click)="start()"
+      >
         <span i18n="@@quizList.liveDialog.confirm">Veranstaltung starten</span>
       </button>
     </mat-dialog-actions>

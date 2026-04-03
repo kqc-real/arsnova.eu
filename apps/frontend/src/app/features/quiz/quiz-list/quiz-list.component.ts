@@ -24,7 +24,6 @@ import {
 } from '@arsnova/shared-types';
 import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import { ThemePresetService } from '../../../core/theme-preset.service';
-import { localizeCommands } from '../../../core/locale-router';
 import {
   DEMO_QUIZ_ID,
   QuizStoreService,
@@ -37,6 +36,7 @@ import {
   setPendingHostSessionCode,
   trpc,
 } from '../../../core/trpc.client';
+import { navigateToHostSession } from '../../../core/session-host-navigation';
 import { buildKiQuizSystemPrompt } from '../../../shared/ki-quiz-prompt';
 import {
   renderMarkdownWithKatex,
@@ -815,10 +815,8 @@ export class QuizListComponent implements OnInit {
           await trpc.session.startQa.mutate({ code: result.code });
         }
 
+        await navigateToHostSession(this.router, result.code, options.initialTab);
         this.actionInfo.set($localize`Session ${result.code} gestartet.`);
-        await this.router.navigate(localizeCommands(['session', result.code, 'host']), {
-          queryParams: options.initialTab === 'quiz' ? undefined : { tab: options.initialTab },
-        });
       } finally {
         clearPendingHostSessionCode();
       }

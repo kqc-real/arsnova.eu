@@ -31,6 +31,7 @@ import {
   setPendingHostSessionCode,
   trpc,
 } from '../../../core/trpc.client';
+import { navigateToHostSession } from '../../../core/session-host-navigation';
 import {
   DEMO_QUIZ_ID,
   QuizStoreService,
@@ -639,9 +640,7 @@ export class QuizPreviewComponent implements OnDestroy {
           await trpc.session.startQa.mutate({ code: result.code });
         }
 
-        await this.router.navigate(localizeCommands(['session', result.code, 'host']), {
-          queryParams: options.initialTab === 'quiz' ? undefined : { tab: options.initialTab },
-        });
+        await navigateToHostSession(this.router, result.code, options.initialTab);
       } finally {
         clearPendingHostSessionCode();
       }

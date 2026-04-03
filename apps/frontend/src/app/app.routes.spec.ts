@@ -50,6 +50,20 @@ function createRouteSnapshot(code: string): ActivatedRouteSnapshot {
   return snapshot;
 }
 
+function createChildRouteSnapshot(parentCode: string): ActivatedRouteSnapshot {
+  const parent = createRouteSnapshot(parentCode);
+  const child = new ActivatedRouteSnapshot();
+  Object.defineProperty(child, 'parent', {
+    configurable: true,
+    get: () => parent,
+  });
+  Object.defineProperty(child, 'pathFromRoot', {
+    configurable: true,
+    get: () => [parent, child],
+  });
+  return child;
+}
+
 describe('app routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -90,7 +104,7 @@ describe('app routes', () => {
     const guard = findChildRoute('session/:code', 'host').canActivate?.[0] as CanActivateFn;
 
     const result = TestBed.runInInjectionContext(() =>
-      guard(createRouteSnapshot('abc123'), {} as never),
+      guard(createChildRouteSnapshot('abc123'), {} as never),
     );
 
     expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');
@@ -103,7 +117,7 @@ describe('app routes', () => {
     const router = TestBed.inject(Router);
 
     const result = TestBed.runInInjectionContext(() =>
-      guard(createRouteSnapshot('abc123'), {} as never),
+      guard(createChildRouteSnapshot('abc123'), {} as never),
     );
 
     expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');

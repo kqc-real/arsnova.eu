@@ -39,7 +39,7 @@ let pendingHostSessionCode: string | null = null;
 function resolveRouteHostSessionCode(): string | null {
   if (!isBrowser) return null;
 
-  const sessionHostMatch = /\/session\/([a-zA-Z0-9]{6})\/host(?:\/|$)/.exec(
+  const sessionHostMatch = /\/(?:de|en|fr|it|es\/)?session\/([a-zA-Z0-9]{6})\/host(?:\/|$)/.exec(
     globalThis.window.location.pathname,
   );
   if (sessionHostMatch?.[1]) {
@@ -52,7 +52,7 @@ function resolveRouteHostSessionCode(): string | null {
 function resolveRouteFeedbackCode(): string | null {
   if (!isBrowser) return null;
 
-  const feedbackHostMatch = /\/feedback\/([a-zA-Z0-9]{6})(?:\/|$)/.exec(
+  const feedbackHostMatch = /\/(?:de|en|fr|it|es\/)?feedback\/([a-zA-Z0-9]{6})(?:\/|$)/.exec(
     globalThis.window.location.pathname,
   );
   if (feedbackHostMatch?.[1]) {
