@@ -36,11 +36,11 @@
     </p>
   } @else if (payload(); as row) {
     <p class="last-session-feedback-dialog__session-meta">
-      <span i18n="@@quizList.bonusCodesSessionLabel">Session</span>
-      {{ row.sessionCode }}
       @if (row.endedAt) {
-        <span class="last-session-feedback-dialog__session-date"
-          >· {{ row.endedAt | date: 'short' }}</span
+        <span
+          class="last-session-feedback-dialog__session-date"
+          i18n="@@quizList.lastSessionFeedbackDialogEndedAt"
+          >Beendet: {{ row.endedAt | date: 'short' }}</span
         >
       }
     </p>

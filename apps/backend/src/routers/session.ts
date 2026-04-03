@@ -2032,7 +2032,6 @@ export const sessionRouter = router({
 
       return {
         sessions: sessions.map((session) => ({
-          sessionId: session.id,
           sessionCode: session.code,
           quizName: session.quiz?.name ?? '',
           endedAt: session.endedAt?.toISOString() ?? null,
@@ -2063,7 +2062,7 @@ export const sessionRouter = router({
           sessionFeedbacks: { some: {} },
         },
         orderBy: [{ endedAt: 'desc' }, { startedAt: 'desc' }],
-        select: { id: true, code: true, endedAt: true },
+        select: { id: true, endedAt: true },
       });
       if (!session) {
         return null;
@@ -2078,8 +2077,6 @@ export const sessionRouter = router({
       }
 
       return {
-        sessionId: session.id,
-        sessionCode: session.code,
         endedAt: session.endedAt?.toISOString() ?? null,
         summary,
       };

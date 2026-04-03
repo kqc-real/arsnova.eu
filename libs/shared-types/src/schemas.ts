@@ -835,7 +835,6 @@ export type BonusTokenEntryDTO = z.infer<typeof BonusTokenEntryDTOSchema>;
 
 /** DTO: Vollständige Bonus-Token-Liste für den Dozenten */
 export const BonusTokenListDTOSchema = z.object({
-  sessionId: z.uuid(),
   sessionCode: z.string(),
   quizName: z.string(),
   tokens: z.array(BonusTokenEntryDTOSchema),
@@ -1381,8 +1380,6 @@ export type GetLastSessionFeedbackForQuizInput = z.infer<
 >;
 
 export const LastSessionFeedbackForQuizDTOSchema = z.object({
-  sessionId: z.string().uuid(),
-  sessionCode: z.string(),
   endedAt: z.string().nullable(),
   summary: SessionFeedbackSummarySchema,
 });

@@ -33,12 +33,12 @@
       und Bonus aktiv war.
     </div>
   } @else {
-    @for (s of sessions(); track s.sessionId) {
+    @for (s of sessions(); track s.sessionCode) {
       <section
         class="bonus-codes-dialog__session"
-        [attr.aria-labelledby]="'bonus-sess-' + s.sessionId"
+        [attr.aria-labelledby]="'bonus-sess-' + s.sessionCode"
       >
-        <h3 class="bonus-codes-dialog__session-head" [id]="'bonus-sess-' + s.sessionId">
+        <h3 class="bonus-codes-dialog__session-head" [id]="'bonus-sess-' + s.sessionCode">
           <span i18n="@@quizList.bonusCodesSessionLabel">Session</span>
           {{ s.sessionCode }}
           @if (s.endedAt) {
