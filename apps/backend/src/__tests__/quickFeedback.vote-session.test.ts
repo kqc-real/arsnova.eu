@@ -12,6 +12,7 @@ const {
   redisMock: {
     get: vi.fn(),
     set: vi.fn(),
+    sismember: vi.fn(),
     multi: vi.fn(),
   },
   prismaMock: {
@@ -79,9 +80,11 @@ describe('quickFeedback.vote und Session-Status', () => {
     assertFeedbackHostAccessMock.mockResolvedValue('feedback-owner-token');
     invalidateFeedbackHostTokenMock.mockResolvedValue(undefined);
     redisMock.set.mockResolvedValue('OK');
+    redisMock.sismember.mockResolvedValue(0);
     redisMock.multi.mockReturnValue({
       set: vi.fn().mockReturnThis(),
       del: vi.fn().mockReturnThis(),
+      sadd: vi.fn().mockReturnThis(),
       hset: vi.fn().mockReturnThis(),
       expire: vi.fn().mockReturnThis(),
       exec: vi.fn().mockResolvedValue([]),
@@ -89,6 +92,17 @@ describe('quickFeedback.vote und Session-Status', () => {
   });
 
   it('lehnt ab, wenn die Live-Session beendet ist', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'MOOD',
+        theme: 'light',
+        preset: 'serious',
+        locked: false,
+        totalVotes: 0,
+        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+        sessionBound: true,
+      }),
+    );
     prismaMock.session.findUnique.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       quickFeedbackEnabled: true,
@@ -103,7 +117,32 @@ describe('quickFeedback.vote und Session-Status', () => {
       }),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 
-    expect(redisMock.get).not.toHaveBeenCalled();
+    expect(redisMock.get).toHaveBeenCalledWith('qf:ABCDEF');
+  });
+
+  it('erlaubt Standalone-Blitzlicht-Stimmen ohne Session-Nachschlag', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'MOOD',
+        theme: 'light',
+        preset: 'serious',
+        locked: false,
+        totalVotes: 0,
+        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+        sessionBound: false,
+      }),
+    );
+
+    await expect(
+      caller.vote({
+        sessionCode: 'ABCDEF',
+        voterId: VOTER_ID,
+        value: 'POSITIVE',
+      }),
+    ).resolves.toEqual({ ok: true });
+
+    expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+    expect(redisMock.sismember).toHaveBeenCalledWith('qf:voters:ABCDEF', VOTER_ID);
   });
 
   it('erlaubt Standalone-Blitzlicht ohne Host-Token', async () => {

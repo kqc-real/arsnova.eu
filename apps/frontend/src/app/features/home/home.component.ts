@@ -565,7 +565,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     markMotdDismissed(m.id, m.contentVersion);
     this.clearMotdOverlay();
     this.motdCurrent.invalidate();
-    await this.loadMotdOverlay();
   }
 
   async ackMotd(): Promise<void> {
@@ -575,7 +574,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     markMotdDismissed(m.id, m.contentVersion);
     this.clearMotdOverlay();
     this.motdCurrent.invalidate();
-    await this.loadMotdOverlay();
   }
 
   async thumbMotd(up: boolean): Promise<void> {

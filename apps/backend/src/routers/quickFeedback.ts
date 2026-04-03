@@ -131,6 +131,20 @@ function parseStoredQuickFeedbackResult(raw: string): StoredQuickFeedbackResult 
   return JSON.parse(raw) as StoredQuickFeedbackResult;
 }
 
+async function loadQuickFeedbackForVote(code: string): Promise<StoredQuickFeedbackResult> {
+  const redis = getRedis();
+  const raw = await redis.get(feedbackKey(code));
+
+  if (!raw) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
+    });
+  }
+
+  return parseStoredQuickFeedbackResult(raw);
+}
+
 async function loadQuickFeedbackForHost(
   req: Parameters<typeof assertHostSessionAccess>[0],
   code: string,
@@ -367,20 +381,14 @@ export const quickFeedbackRouter = router({
 
   vote: publicProcedure.input(QuickFeedbackVoteInputSchema).mutation(async ({ input }) => {
     const code = input.sessionCode.toUpperCase();
-    await assertSessionAllowsQuickFeedbackVote(code);
-
     const redis = getRedis();
     const key = feedbackKey(code);
-    const raw = await redis.get(key);
+    const result = await loadQuickFeedbackForVote(code);
 
-    if (!raw) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
-      });
+    if (result.sessionBound === true) {
+      await assertSessionAllowsQuickFeedbackVote(code);
     }
 
-    const result = JSON.parse(raw) as QuickFeedbackResult;
     if (result.locked) {
       throw new TRPCError({ code: 'FORBIDDEN', message: 'Abstimmung ist geschlossen.' });
     }

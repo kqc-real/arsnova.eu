@@ -301,6 +301,29 @@ describe('HomeComponent', () => {
         }
       }
     });
+
+    it('lädt nach dem Schließen nicht sofort die nächste MOTD nach', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Erste Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const comp = createHomeComponent();
+
+      await comp['loadMotdOverlay']();
+      const getCurrentCallsBeforeDismiss = vi.mocked(trpc.motd.getCurrent.query).mock.calls.length;
+      await comp.dismissMotdOverlay('DISMISS_CLOSE');
+
+      expect(vi.mocked(trpc.motd.getCurrent.query).mock.calls.length).toBe(
+        getCurrentCallsBeforeDismiss,
+      );
+      expect(comp.motd()).toBeNull();
+    });
   });
 
   describe('openSyncLink', () => {
