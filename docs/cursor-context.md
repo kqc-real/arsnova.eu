@@ -1,6 +1,6 @@
 # Projekt-Kontext: arsnova.eu (Stable Reference for AI)
 
-Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konventionen und Backlog. Es wird für Context Caching (Claude Opus 4.6) als stabiler Prefix genutzt. Nur bei größeren Architektur- oder Backlog-Änderungen anpassen. **Letzte inhaltliche Pflege:** 2026-04-01 (Epic 9/10, `PlatformStatistic`, MOTD-Rate-Limits, CI-Deploy-Gates, Präzisierung Redis vs. Subscription-Polling).
+Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konventionen und Backlog. Es wird für Context Caching (Claude Opus 4.6) als stabiler Prefix genutzt. Nur bei größeren Architektur- oder Backlog-Änderungen anpassen. **Letzte inhaltliche Pflege:** 2026-04-03 (Host-Härtung via Host-/Feedback-Host-Token, `accessProof` für Quiz-Historie, participant data minimization, Backlog 2.1c aktualisiert).
 
 ---
 
@@ -46,6 +46,11 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 ## 5. Sicherheit und Data-Stripping (kritisch)
 
 - **DTO-Pattern:** Daten werden serverseitig durch DTOs gefiltert, bevor sie an Clients gehen. Kein direktes Durchreichen von Prisma-Modellen.
+- **Rechte nie aus URL oder Session-Code ableiten:** `/session/:code/host`, `/session/:code/present` und `/feedback/:code` sind keine Berechtigungsnachweise. Rechte kommen aus serverseitig geprüften Tokens oder besitzgebundenen Nachweisen.
+- **Host-Zugriff:** `session.create` liefert ein Host-Token; Host-only-Prozeduren laufen über `hostProcedure` und erwarten `x-host-token`. Ohne Token führt `/session/:code` auf Join statt Host.
+- **Standalone-Blitzlicht:** `/feedback/:code` nutzt ein separates Feedback-Host-Token via `x-feedback-host-token`; dieses Modell ist bewusst vom Session-Host getrennt.
+- **Teilnehmenden-Daten minimieren:** Öffentliche Flows nutzen zweckgebundene Minimalendpunkte. Vollständige Teilnehmerlisten sind host-only; Join nutzt Nickname-Kollisionsprüfung, Vote nur Self-Lookups.
+- **Quiz-Sammlungs-Historie:** Besitzergebundene Historienzugriffe (`getBonusTokensForQuiz`, `getLastSessionFeedbackForQuiz`, `getActiveQuizIds`) verlangen einen `accessProof` statt einer rein öffentlichen `quizId`-Abfrage.
 - **isCorrect:** Das Feld `AnswerOption.isCorrect` (richtige Lösung) darf **niemals** im Session-Status `ACTIVE` an Teilnehmende gesendet werden. Erst nach Wechsel zu `RESULTS` und Auflösung durch die Lehrperson werden Lösungen sichtbar (QuestionRevealedDTO, AnswerOptionRevealedDTO).
 - **DTOs nach Phase:**
   - `QUESTION_OPEN` (Lesephase, Story 2.6): QuestionPreviewDTO – nur Fragenstamm, keine Antwortoptionen.
@@ -87,9 +92,10 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 - **appRouter** (apps/backend/src/routers/index.ts): health, quiz, session, vote, qa, quickFeedback, **motd** (öffentlich: `getCurrent`, `listArchive`, `getHeaderState`, `recordInteraction`), admin (inkl. verschachtelt **`admin.motd.*`** für MOTD/Templates, Epic 10 ✅).
 - **health:** check, stats (Story 0.4, inkl. `maxParticipantsSingleSession` / `PlatformStatistic`), footerBundle (Check+Stats parallel), ping (Subscription-Heartbeat).
 - **quiz:** upload (QuizUploadInputSchema), getById, list, etc.
-- **session:** create (CreateSessionInputSchema), getInfo (per code), join (JoinSessionInputSchema), nextQuestion, revealAnswers (Story 2.6), revealResults, startDiscussion, startSecondRound, end; Subscriptions: onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed, onResultsRevealed, onPersonalResult; getBonusTokens, getLeaderboard; getExportData (Story 4.7: GetExportDataInputSchema → SessionExportDTO).
+- **session:** create (CreateSessionInputSchema, inkl. Host-Token in der Response), getInfo (per code), join (JoinSessionInputSchema), nextQuestion, revealAnswers (Story 2.6), revealResults, startDiscussion, startSecondRound, end; Subscriptions: onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed, onResultsRevealed, onPersonalResult; getBonusTokens, getLeaderboard; getExportData (Story 4.7: GetExportDataInputSchema → SessionExportDTO); Quiz-Historie über `getBonusTokensForQuiz`, `getLastSessionFeedbackForQuiz`, `getActiveQuizIds` mit `accessProof`.
 - **vote:** submit (SubmitVoteInputSchema).
-- **qa:** submitQuestion, upvote, moderate (Lehrperson/Moderation), etc.
+- **qa:** submitQuestion, upvote, moderate (Lehrperson/Moderation), etc.; Moderation ist host-/rollenbasiert geschützt.
+- **quickFeedback:** Session-gebundenes Blitzlicht nutzt Session-Host-Rechte; Standalone-Blitzlicht nutzt ein separates Feedback-Host-Token-Modell.
 - Alle Ein-/Ausgaben über Zod-Schemas aus libs/shared-types (CreateSessionInputSchema, QuizUploadInputSchema, SubmitVoteInputSchema, JoinSessionInputSchema, SessionInfoDTOSchema, QuestionPreviewDTO, QuestionStudentDTO, QuestionRevealedDTO, PersonalScorecardDTO, LeaderboardEntryDTO, BonusTokenListDTO, SessionExportDTO, GetExportDataInputSchema, etc.).
 
 ---
@@ -97,8 +103,8 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 ## 9. Frontend-Routen und Komponenten (Überblick)
 
 - **App-Verzeichnis (Angular-konform):** `apps/frontend/src/app/` ist nach Feature-Bereichen organisiert: **core/** (App-weite Singletons und Plattformlogik, z. B. `trpc.client`, Locale-, MOTD- und Theme-Dienste), **shared/** (wiederverwendbare UI wie `preset-toast`, `server-status-widget`, `top-toolbar`), **features/** (pro Route/Feature, u. a. `home`, `quiz`, `session`, `feedback`, `join`, `legal`, `help`, `admin`). Keine typbasierten Ordner wie `components/` oder `services/` (Angular Style Guide).
-- **Routen:** `/` (Home), `/quiz`, `/session/:code/host`, `/session/:code/present`, `/session/:code/vote`, `/join/:code`, `/feedback/:code`, `/feedback/:code/vote`, `/admin`, `/help`, `/news-archive`, `/legal/imprint`, `/legal/privacy`; zusätzlich mit Locale-Präfixen wie `/de/...`.
-- **Host vs. Present:** Beide Routen existieren. `/session/:code/host` ist die Steuerungsansicht der Lehrperson; `/session/:code/present` ist die gesonderte Projektions-/Beameransicht. Bei gespiegeltem Setup kann faktisch trotzdem die Host-Ansicht projiziert werden; architektonisch sind es im aktuellen Router aber **zwei** getrennte Views.
+- **Routen:** `/` (Home), `/quiz`, `/session/:code/host`, `/session/:code/present`, `/session/:code/vote`, `/join/:code`, `/feedback/:code`, `/feedback/:code/vote`, `/admin`, `/help`, `/news-archive`, `/legal/imprint`, `/legal/privacy`; zusätzlich mit Locale-Präfixen wie `/de/...`. `/session/:code` ohne Segment entscheidet tokenabhängig zwischen Host-Ansicht und Join.
+- **Host vs. Present:** Beide Routen existieren. `/session/:code/host` ist die Steuerungsansicht der Lehrperson; `/session/:code/present` ist die gesonderte Projektions-/Beameransicht. Beide sind clientseitig an das Host-Token gebunden; serverseitig bleiben Host-only-Aktionen unabhängig davon geschützt.
 - **Home:** `HomeComponent` in `features/home` (Session-Code-Input, Schnellstart/Presets, MOTD-Overlay, Status-/Hilfelinks); ergänzend `PresetToastComponent` in `shared`.
 - **Quiz:** routed über `QuizComponent`; zentrale Teilansichten sind u. a. `QuizListComponent`, `QuizNewComponent`, `QuizEditComponent`, `QuizPreviewComponent`, `QuizSyncComponent` sowie `quiz-store.service.ts` als fachlicher Kern.
 - **Session (Lehrperson):** u. a. `SessionHostComponent`, `SessionPresentComponent`, `FeedbackHostComponent`; zugehörige Präsentations-/Visualisierungsbausteine liegen vor allem unter `features/session/session-present`.
@@ -113,13 +119,13 @@ Dieses Dokument ist die **kanonische Referenz** für Struktur, Stack, Konvention
 
 - **Epic 0 – Infrastruktur:** Redis (0.1), tRPC WebSocket (0.2), Yjs Provider (0.3), Server-Status (0.4), Rate-Limiting (0.5), CI/CD (0.6).
 - **Epic 1 – Quiz-Erstellung:** Quiz anlegen (1.1), Fragentypen MC/SC (1.2a), Freitext/Umfrage (1.2b), Rating (1.2c), Antworten & Lösungen (1.3), Sitzungs-Konfiguration (1.4), Local-First (1.5), Yjs Sync (1.6), Sync-Link (1.6a), Preset/Optionen-Sync (1.6b), Markdown/KaTeX (1.7), Markdown-Editor-Umfang vs. KI-Paste siehe **ADR-0017**, Export/Import (1.8/1.9), Bearbeiten/Löschen (1.10), Presets (1.11), SC-Schnellformate (1.12), Preview (1.13), Word Cloud interaktiv + Export (1.14).
-- **Epic 2 – Session-Steuerung:** Quiz-Upload & Session-ID (2.1a), QR-Code (2.1b), Lobby (2.2), Präsentations-Steuerung (2.3), Data-Stripping (2.4), Beamer (2.5), Zwei-Phasen-Frageanzeige/Lesephase (2.6).
+- **Epic 2 – Session-Steuerung:** Quiz-Upload & Session-ID (2.1a), QR-Code (2.1b), Host-/Presenter-Härtung via Session-Token (2.1c ✅), Lobby (2.2), Präsentations-Steuerung (2.3), Data-Stripping (2.4), Beamer (2.5), Zwei-Phasen-Frageanzeige/Lesephase (2.6).
 - **Epic 3 – Teilnahme & Abstimmung:** Beitreten (3.1), Nicknames (3.2), Frage empfangen (3.3a), Abstimmung (3.3b), Echtzeit-Feedback (3.4), Countdown (3.5), Anonymer Modus (3.6).
 - **Epic 4 – Auswertung & Cleanup:** Leaderboard (4.1), Server aufräumen (4.2), WebSocket Reconnection (4.3), Ergebnis-Visualisierung (4.4), Freitext-Auswertung (4.5), Bonus-Token (4.6), Ergebnis-Export für Lehrende (4.7).
 - **Epic 5 – Gamification & UX:** Sound (5.1), Hintergrundmusik (5.3), Belohnungseffekte (5.4), Answer Streak (5.5), Scorecard (5.6), Motivationsmeldungen (5.7), Emoji-Reaktionen (5.8).
 - **Epic 6 – Theming, i18n, Rechtliches, A11y:** Dark/Light/System (6.1), i18n (6.2), Impressum & Datenschutz (6.3), Mobile-First (6.4); **offen:** Barrierefreiheit Abschluss (6.5), Thinking Aloud / UX-Umsetzung (6.6).
 - **Epic 7 – Team-Modus:** Team-Modus (7.1) ✅.
-- **Epic 8 – Q&A:** Q&A starten (8.1), Fragen einreichen (8.2), Upvoting (8.3), Moderation (8.4); weitere Stories 8.5–8.7 siehe Backlog.
+- **Epic 8 – Q&A:** Q&A starten (8.1), Fragen einreichen (8.2), Upvoting (8.3), Moderation (8.4); weitere Stories 8.5–8.7 siehe Backlog. Host-Härtung gilt auch für Moderationspfade.
 - **Epic 9 – Admin:** Inspektion, rechtskonforme Löschung, Behördenexport, Audit ✅.
 - **Epic 10 – MOTD / Plattform-Kommunikation:** Datenmodell, öffentliche API + Rate-Limits, Admin-CRUD, UI, Overlay, Archiv, i18n, Härtung ✅ (ADR-0018).
 - **Blitzlicht:** Als Startseiten-Shortcut und als Session-Kanal integriert; ADR-0010.
@@ -157,6 +163,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 - **Router:** apps/backend/src/routers/index.ts, apps/backend/src/routers/\*.ts.
 - **Diagramme:** docs/diagrams/diagrams.md (detailliert), docs/diagrams/architecture-overview.md (Übersicht).
 - **Regeln:** .cursorrules (Pfade, Monorepo, Stack, UX, i18n inkl. stabiler `@@`-IDs); AGENT.md (Arbeitsweise, Baby-Steps, Tests, Leere-Zustände, Layout-`order` vor großen HTML-Umbauten). **UI-Referenz:** `docs/ui/STYLEGUIDE.md` (u. a. leere Listen/Einstieg, Blitzlicht Standalone + Session-Host eingebettet, Platzhalter-Hinweise). **Englische UI-Copy:** `docs/ui/ENGLISH-UI-COPY.md` (Ton, Terminologie, XLF-Ziele für `en`).
+- **Architekturentscheidungen:** Für Rechte-/Routenmodell und die aktuelle Host-Härtung insbesondere ADR-0006 und ADR-0019 beachten; MOTD siehe ADR-0018.
 
 Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (neue Epics, neuer Session-Status, neuer Router) einmalig diesen Kontext aktualisieren, damit Context Caching weiterhin den gleichen stabilen Prefix nutzen kann.
 
@@ -197,6 +204,7 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 - Presets: QUIZ_PRESETS (PLAYFUL, SERIOUS) mit readingPhaseEnabled, defaultTimer, anonymousMode etc.
 - **Live-Start (`quiz.upload`):** Payload aus `getUploadPayload` (Quiz); Home-Preset überschreibt nur boolesche Chips, deren Schlüssel **explizit** in `localStorage` `options` steht (`id in options`). Fehlender Schlüssel → Quiz-Wert. Details: `docs/features/preset-modes.md` § Live-Start.
 - **MOTD (Epic 10):** u. a. `MotdGetCurrentInputSchema`, `MotdPublicDTOSchema`; `ServerStatsDTOSchema` enthält u. a. `maxParticipantsSingleSession`; Admin-MOTD unter `admin.motd.*`.
+- **Host/Historie:** `QuizHistoryAccessProofSchema` und Hilfen zur Proof-Erzeugung liegen in shared-types; bei neuen owner-gebundenen Quiz-Endpunkten dieses Modell mitprüfen.
 - Typen: Alle via z.infer von den genannten Schemas exportieren; keine Duplikate als interface, außer wo für API-Kompatibilität nötig.
 
 ---

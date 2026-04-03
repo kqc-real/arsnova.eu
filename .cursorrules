@@ -3,22 +3,30 @@
 Du bist der Lead-Architekt. Wir arbeiten in einem **npm Workspaces Monorepo**.
 
 ## 📁 Projekt-Struktur & Pfade
+
 - **Backend:** `apps/backend/` (Node.js, tRPC Server, Prisma)
 - **Frontend:** `apps/frontend/` (Angular 17+, Signals). App unter `src/app/`: **core/** (ws-urls, trpc.client, theme-preset), **shared/** (wiederverwendbare UI), **features/** (home, quiz, session, legal, help).
 - **Shared Types:** `libs/shared-types/` (Zod Schemas, Interfaces)
 - **Unit-Tests:** Pro Komponente/Service eine Spec-Datei **im gleichen Ordner**, Name: `<dateiname>.spec.ts` (z.B. `home.component.spec.ts` neben `home.component.ts`). Siehe Angular Style Guide; Vitest in `apps/frontend`.
 
 ## 🛡️ Monorepo-Regeln (Strikt!)
+
 1. **Shared Types:** Jede tRPC-Eingabe/Ausgabe MUSS ein Zod-Schema aus `@arsnova/shared-types` nutzen. Erstelle/ändere IMMER erst das Schema dort, bevor du Code in Apps schreibst.
 2. **Imports:** Nutze für Shared-Logik `@arsnova/shared-types`. Cursor, achte darauf, dass `tsconfig.json` Pfade korrekt aufgelöst werden.
 3. **Kein REST:** Alle Kommunikation erfolgt über tRPC (v11) Subscriptions/Queries/Mutations.
+4. **Rechte nicht aus Routen ableiten:** `/session/:code/host`, `/session/:code/present` oder `/feedback/:code` sind nie selbst der Berechtigungsnachweis. Host-/Feedback-Host-Rechte kommen aus serverseitig geprüften Tokens.
+5. **Host-only Schutz:** Neue Host-only-Prozeduren im Backend MUESSEN über `hostProcedure` oder gleichwertige serverseitige Token-Prüfung laufen.
+6. **Besitzgebundene Historie:** Endpunkte für Quiz-Sammlungs-Historie oder ähnliche owner-gebundene Daten duerfen nicht nur auf `quizId` vertrauen; wenn der Besitz lokal gebunden ist, `accessProof` oder ein gleichwertiges Modell verwenden.
+7. **Datenminimierung:** Oeffentliche Teilnehmer-Endpunkte nur mit Minimaldaten aufbauen; keine oeffentliche Voll-Liste, wenn Nickname-Kollisionen oder Self-Lookups reichen.
 
 ## 🏗️ Technischer Stack (DoD)
+
 - **Angular:** NUR Signals, Standalone Components und `@if`/`@for`. KEIN `rxjs` für UI-State.
 - **Security:** "Zero-Knowledge"-Prinzip. Wende IMMER das DTO-Pattern an (`Data-Stripping`).
 - **Data:** Redis für Realtime-Sync, Yjs für Quiz-Inhalte.
 
 ## 🎨 UX & Design-Regeln (Startseite)
+
 1. **Wording:** Nutzenorientiert, aktivierend, rollenunabhaengig. Verben statt Nomen in CTAs. Siehe `docs/ui/STYLEGUIDE.md` Abschnitt "Wording-Konventionen".
 2. **Session-Code-Eingabe:** 6 Segment-Boxen mit transparentem Overlay-Input. KEIN `mat-form-field` fuer den Session-Code. Details siehe STYLEGUIDE.
 3. **Micro-Interactions:** Alle Animationen (Pulse, Shake, Glow) MUESSEN in `@media (prefers-reduced-motion: no-preference)` stehen.
@@ -28,6 +36,7 @@ Du bist der Lead-Architekt. Wir arbeiten in einem **npm Workspaces Monorepo**.
 7. **Status-Dot:** In Brand-SVG integriert, nicht als separates HTML-Element.
 
 ## 🌐 i18n (Story 6.2, ADR-0008)
+
 - **Quellsprache:** Deutsch; nur UI-Texte übersetzen, Quiz-Inhalte (Fragen/Antworten) nicht.
 - **Pflicht bei UI-Weiterentwicklung:** Neue oder geänderte deutschsprachige UI-Texte (Template, `$localize`, ARIA, Fehlermeldungen, Placeholders, Hilfetexte, Legal-Texte) MUESSEN im gleichen Arbeitsschritt in allen 5 Sprachen (`de`, `en`, `fr`, `es`, `it`) nachgezogen werden.
 - **Keine Teilübersetzung mergen:** Änderungen an DE-Texten gelten als unvollständig, solange die zugehörigen Targets in `messages.en.xlf`, `messages.fr.xlf`, `messages.es.xlf`, `messages.it.xlf` (und bei Legal-Seiten `imprint/privacy.{locale}.md`) nicht synchron aktualisiert sind.
@@ -38,6 +47,7 @@ Du bist der Lead-Architekt. Wir arbeiten in einem **npm Workspaces Monorepo**.
 - **Sprachwechsel:** Auf Quiz Edit/Quiz New bei ungespeichertem Inhalt Hinweis-Dialog oder Deaktivierung der Sprachwahl (ADR-0008 §3). Details: `docs/architecture/decisions/0008-i18n-internationalization.md`, `docs/I18N-ANGULAR.md`.
 
 ## 📋 Arbeitsweise in Cursor
+
 - **AGENT.md** gilt als ergänzende KI-Leitplanken: Baby-Steps, Backend-oder-Frontend zuerst, kein `BehaviorSubject` für UI-State, Styling (Material 3, kein Tailwind), Integrationstest vor Story-Fertigstellung. Bei Unklarheiten oder fehlendem Kontext: User bitten, `@AGENT.md` zu laden.
 - Nutze `@Codebase` bzw. das **Backlog** (`Backlog.md` im Repo-Root), um vor Story-Start die Akzeptanzkriterien und DoD zu prüfen.
 - Wenn du im **Composer (`Cmd+I`)** arbeitest, stelle sicher, dass du Änderungen in `apps/backend` und `apps/frontend` gleichzeitig vornimmst, um die tRPC-Typsicherheit zu wahren.

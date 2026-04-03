@@ -6,6 +6,14 @@ Dieses Dokument **ergänzt** die [.cursorrules](.cursorrules) (Projektstruktur, 
 
 Für Pfade (`apps/backend`, `apps/frontend`, `libs/shared-types`), strikte Monorepo-Regeln (Zod zuerst, nur tRPC), Angular (Signals, Standalone, kein RxJS für UI-State), DTO/Data-Stripping und Backlog-Verweis gilt **immer** die [.cursorrules](.cursorrules). Weiche davon nur ab, wenn der User es explizit mit dem Suffix **`--override`** verlangt.
 
+## 🔐 Sicherheitsleitplanken
+
+- **Rechte nie aus URL oder Session-Code ableiten.** Host-/Present-Zugriffe werden über Token geprüft, nicht über das bloße Aufrufen von `/session/:code/...`.
+- **Host-only Backend-Logik** immer über `hostProcedure` oder eine gleichwertige serverseitige Token-Prüfung absichern.
+- **Standalone-Blitzlicht** ist ein eigener Besitzkontext: dort nie implizit Session-Host-Rechte mitbenutzen, sondern das separate Feedback-Host-Token-Modell beachten.
+- **Quiz-Sammlungs-Historie** und ähnliche besitzgebundene Endpunkte nicht allein über `quizId` freigeben; prüfen, ob ein `accessProof` oder ein gleichwertiger Nachweis nötig ist.
+- **Teilnehmenden-Daten minimieren:** öffentliche Endpunkte nur mit zweckgebundenem Minimalumfang liefern; keine öffentliche Voll-Liste, wenn Nicknames oder Self-Lookups genügen.
+
 ## 🚶 Arbeitsweise (Baby-Steps)
 
 - Schreibe nicht die gesamte App auf einmal.

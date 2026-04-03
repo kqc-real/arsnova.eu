@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Last- & Performance-Tests), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -50,7 +50,7 @@
 | 1    | 1.15  | Preset-Konfiguration exportieren & importieren         | 🟢   | ✅ Fertig |
 | 2    | 2.1a  | Session-ID & Quiz-Upload                               | 🔴   | ✅ Fertig |
 | 2    | 2.1b  | QR-Code                                                | 🟢   | ✅ Fertig |
-| 2    | 2.1c  | Host-/Presenter-Zugang mit Session-Token härten        | 🔴   | ⬜ Offen  |
+| 2    | 2.1c  | Host-/Presenter-Zugang mit Session-Token härten        | 🔴   | ✅ Fertig |
 | 2    | 2.2   | Lobby-Ansicht                                          | 🔴   | ✅ Fertig |
 | 2    | 2.3   | Präsentations-Steuerung                                | 🔴   | ✅ Fertig |
 | 2    | 2.4   | Security / Data-Stripping                              | 🔴   | ✅ Fertig |
@@ -108,11 +108,11 @@
 | 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte     | 🟡   | ✅ Fertig |
 | 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)           | 🟡   | ✅ Fertig |
 
-> **Repo-Abgleich (Codebase 2026-04-01):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; Host-/Presenter-Zugang nicht wie in **2.1c** durch serverseitige Token-Prozeduren abgesichert; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
+> **Repo-Abgleich (Codebase 2026-04-03):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). **Umgesetzt** sind jetzt u. a. **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 28 · 🟡 Should: 54 · 🟢 Could: 11 = **93 Stories gesamt** (**79** ✅ Fertig · **14** ⬜ Offen)
+> **Statistik:** 🔴 Must: 28 · 🟡 Should: 54 · 🟢 Could: 11 = **93 Stories gesamt** (**80** ✅ Fertig · **13** ⬜ Offen)
 
 ---
 
@@ -567,7 +567,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 2: Live-Sitzung & Lobby (Rolle: Lehrperson)
 
-> **Verifizierung (Commit-Historie):** Der bisherige Kernumfang 2.1a–2.8 ist umgesetzt. Offen: Story 2.1c für tokenbasierten Host-/Presenter-Zugang.
+> **Verifizierung (Commit-Historie):** Der Kernumfang 2.1a–2.8 ist umgesetzt, einschließlich **2.1c** mit tokenbasiertem Host-/Presenter-Zugang und serverseitiger Host-Prüfung.
 
 - **Story 2.1a (Session-ID generieren & Quiz-Upload):** 🔴 Als Lehrperson möchte ich ein Quiz live schalten können, wodurch eine 6-stellige Session-ID generiert wird und die Quizdaten an den Server übertragen werden.
   - **Akzeptanzkriterien:**
@@ -580,13 +580,13 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
   - **Akzeptanzkriterien:**
     - QR-Code encodiert `{baseUrl}/join/{sessionCode}`.
     - QR-Code ist auf Beamer-Auflösung lesbar.
-- **Story 2.1c (Host-/Presenter-Zugang mit Session-Token härten):** 🔴 Als Lehrperson möchte ich, dass eine laufende Veranstaltung nur mit passenden Session-Tokens gesteuert oder angezeigt werden kann, damit weder Teilnehmende noch Dritte allein über den Session-Code Host-Rechte erhalten.
+- **Story 2.1c (Host-/Presenter-Zugang mit Session-Token härten):** ✅ Fertig – Als Lehrperson möchte ich, dass eine laufende Veranstaltung nur mit passenden Session-Tokens gesteuert oder angezeigt werden kann, damit weder Teilnehmende noch Dritte allein über den Session-Code Host-Rechte erhalten.
   - **Akzeptanzkriterien:**
-    - `session.create` liefert mindestens ein **Host-Token** zurück; optional zusätzlich ein separates **Presenter-Token** oder einen Presenter-Link.
-    - Der 6-stellige **Session-Code** bleibt ausschließlich Join-Zugang für Teilnehmende und reicht **nicht** für `/session/:code/host` oder geschützte Host-Prozeduren.
-    - Alle Host-only-Prozeduren (`nextQuestion`, `revealAnswers`, `revealResults`, `end`, Exporte, Bonus-/Moderationssteuerung) prüfen serverseitig ein gültiges Host-Token.
-    - Die Presenter-Ansicht ist als **read-only** abgesichert: Sie zeigt Live-Inhalte, kann aber keine Session steuern.
-    - Tokens werden serverseitig nur gehasht gespeichert, sind an die Session gebunden und mindestens für die Laufzeit der Session gültig.
+    - `session.create` liefert ein **Host-Token** zurück; der Redirect von `/session/:code` entscheidet tokenabhängig zwischen Host-Ansicht und Join-Pfad.
+    - Der 6-stellige **Session-Code** bleibt ausschließlich Join-Zugang für Teilnehmende und reicht **nicht** für `/session/:code/host`, `/session/:code/present` oder geschützte Host-Prozeduren.
+    - Alle Host-only-Prozeduren (`nextQuestion`, `revealAnswers`, `revealResults`, `end`, Exporte, Bonus-/Moderationssteuerung, Q&A-Moderation, session-gebundenes Blitzlicht) prüfen serverseitig ein gültiges Host-Token über `hostProcedure`.
+    - Die Presenter-Ansicht ist als **read-only** abgesichert: Sie zeigt Live-Inhalte, kann aber keine Session steuern und ist clientseitig an das Host-Token gebunden.
+    - Tokens werden serverseitig nur gehasht gespeichert, sind an die Session gebunden und werden bei Session-Ende bzw. Host-Exit sauber entfernt.
     - Ohne gültiges Token zeigen Host-/Presenter-Routen eine klare Zugriffsfehlermeldung oder leiten in einen sicheren Einstieg um.
 - **Story 2.2 (Lobby-Ansicht):** 🔴 Als Lehrperson möchte ich in Echtzeit sehen, wie viele und welche Teilnehmenden meiner Lobby beigetreten sind.
   - **Akzeptanzkriterien:**
