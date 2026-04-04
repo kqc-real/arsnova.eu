@@ -10854,8 +10854,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpTitle" datatype="html">
-        <source>Server-Status erklärt</source>
-        <target>Server status explained</target>
+        <source>Server-Status</source>
+        <target>Server status</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">23,27</context>

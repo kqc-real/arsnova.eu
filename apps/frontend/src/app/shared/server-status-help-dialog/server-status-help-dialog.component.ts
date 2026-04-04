@@ -16,11 +16,11 @@ import { MatIcon } from '@angular/material/icon';
   template: `
     <h2 mat-dialog-title class="dialog-title-header">
       <span class="dialog-title-header__icon" aria-hidden="true">
-        <mat-icon>monitoring</mat-icon>
+        <mat-icon>router</mat-icon>
       </span>
       <span class="dialog-title-header__copy">
         <span class="dialog-title-header__heading" i18n="@@app.footer.statusHelpTitle"
-          >Server-Status erklärt</span
+          >Server-Status</span
         >
       </span>
     </h2>
