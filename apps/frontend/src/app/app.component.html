@@ -164,13 +164,15 @@
             [compact]="true"
           />
           <button
-            mat-icon-button
+            matButton
+            type="button"
             class="app-footer__status-help-trigger"
             (click)="openServerStatusHelp()"
             i18n-aria-label="@@app.footer.statusHelpTriggerAria"
             aria-label="Hilfe zur Server-Statusanzeige"
           >
-            <mat-icon>router</mat-icon>
+            <mat-icon class="app-footer__icon" aria-hidden="true">router</mat-icon>
+            <span class="app-footer__link-text" i18n="@@app.footer.serverHelpLabel">Server</span>
           </button>
           @if (footerShowApiOffline()) {
             <button

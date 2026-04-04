@@ -195,14 +195,16 @@
   gap: 0.5rem;
 }
 
-.app-footer a {
+.app-footer a,
+.app-footer__status-help-trigger {
   position: relative;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
 }
 
 /* Icon + Text: gleiche Abstände für alle Footer-Links (News-Archiv jetzt auch: Icon | gap | Label). */
-.app-footer__links .mat-mdc-button-base .mdc-button__label {
+.app-footer__links .mat-mdc-button-base .mdc-button__label,
+.app-footer__status-line .mat-mdc-button-base .mdc-button__label {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -276,19 +278,21 @@
   width: auto;
 }
 
+/*
+ * Statuszeile: Nachbarn nutzen kompakte 1rem-Icons (server-status__stat-icon); Standard-matButton ist 40px hoch
+ * und 1.125rem-Icons — wirkt vertikal versetzt. Höhe + Label-Typo an kompakte Zeile, Icon wie Stat-Icons.
+ */
 .app-footer__status-help-trigger {
-  width: 1.75rem;
-  height: 1.75rem;
-  padding: 0;
-  border: none !important;
-  color: var(--mat-sys-on-surface-variant);
-  background: transparent !important;
-  box-shadow: none !important;
-  --mat-icon-button-state-layer-color: transparent;
-  --mat-icon-button-ripple-color: transparent;
+  --mat-button-text-icon-offset: 0;
+  --mat-button-text-container-height: 2.25rem;
+  --mat-button-text-label-text-font: var(--mat-sys-body-small-font);
+  --mat-button-text-label-text-size: var(--mat-sys-body-small-size);
+  --mat-button-text-label-text-tracking: var(--mat-sys-body-small-tracking);
+  --mat-button-text-label-text-weight: var(--mat-sys-body-small-weight);
+  line-height: var(--mat-sys-body-small-line-height);
 }
 
-.app-footer__status-help-trigger mat-icon {
+.app-footer__status-help-trigger .app-footer__icon {
   font-size: 1rem;
   width: 1rem;
   height: 1rem;
