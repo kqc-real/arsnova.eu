@@ -34,6 +34,14 @@
           <context context-type="linenumber">26,28</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.updateBanner.reloadNow" datatype="html">
+        <source>Jetzt laden</source>
+        <target>Carica ora</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/app.component.html</context>
+          <context context-type="linenumber">28,31</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="7984254788472058466" datatype="html">
         <source>Zum Inhalt springen</source>
         <target>Vai al contenuto</target>
