@@ -155,33 +155,25 @@
   max-width: 56rem;
   margin-inline: auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
 }
 
 .app-footer__row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem 0.75rem;
-}
-
-.app-footer__row .app-footer__links {
-  flex-shrink: 0;
+  width: 100%;
 }
 
 @media (min-width: 600px) {
   .app-footer__inner {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: center;
   }
   .app-footer__row {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 0.75rem;
+    justify-content: center;
   }
 }
 
@@ -192,7 +184,23 @@
 
 .app-footer__links {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 0.375rem;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-footer__links::-webkit-scrollbar {
+  display: none;
+}
+
+.app-footer__links--offline {
+  color: var(--mat-sys-error);
 }
 
 .app-footer a,
@@ -203,8 +211,7 @@
 }
 
 /* Icon + Text: gleiche Abstände für alle Footer-Links (News-Archiv jetzt auch: Icon | gap | Label). */
-.app-footer__links .mat-mdc-button-base .mdc-button__label,
-.app-footer__status-line .mat-mdc-button-base .mdc-button__label {
+.app-footer__links .mat-mdc-button-base .mdc-button__label {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -223,6 +230,16 @@
 
 /* Schmale Viewports: nur Icons (Text per Clip aus dem sichtbaren Layout, bleibt für Screenreader). */
 @media (max-width: 599px) {
+  .app-footer__links {
+    justify-content: center;
+    gap: 0.125rem;
+  }
+
+  .app-footer__status-action,
+  .app-footer__status-widget {
+    flex: 0 0 auto;
+  }
+
   .app-footer__link-text {
     position: absolute;
     width: 1px;
@@ -254,48 +271,14 @@
   overflow: visible;
 }
 
-.app-footer__status-line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
-  text-align: center;
-}
-
-.app-footer__status-line--offline {
-  color: var(--mat-sys-error);
-}
-
 .app-footer__status-action {
   min-width: 0;
   padding-inline: 0.35rem;
+  flex: 0 0 auto;
 }
 
 .app-footer__status-widget {
-  width: auto;
-}
-
-/*
- * Statuszeile: Nachbarn nutzen kompakte 1rem-Icons (server-status__stat-icon); Standard-matButton ist 40px hoch
- * und 1.125rem-Icons — wirkt vertikal versetzt. Höhe + Label-Typo an kompakte Zeile, Icon wie Stat-Icons.
- */
-.app-footer__status-help-trigger {
-  --mat-button-text-icon-offset: 0;
-  --mat-button-text-container-height: 2.25rem;
-  --mat-button-text-label-text-font: var(--mat-sys-body-small-font);
-  --mat-button-text-label-text-size: var(--mat-sys-body-small-size);
-  --mat-button-text-label-text-tracking: var(--mat-sys-body-small-tracking);
-  --mat-button-text-label-text-weight: var(--mat-sys-body-small-weight);
-  line-height: var(--mat-sys-body-small-line-height);
-}
-
-.app-footer__status-help-trigger .app-footer__icon {
-  font-size: 1rem;
-  width: 1rem;
-  height: 1rem;
+  flex: 0 0 auto;
 }
 
 /* Preset-Snackbar (global): Pill, inverse-surface, Blur/Refocus über PresetSnackbarFocusService */

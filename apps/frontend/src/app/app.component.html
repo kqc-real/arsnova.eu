@@ -3,32 +3,24 @@
     <div class="app-offline-banner" role="alert">
       <mat-icon class="app-offline-banner__icon">cloud_off</mat-icon>
       <span i18n>Offline. Verbindung prüfen.</span>
-      <button
-        matButton
-        class="app-offline-banner__retry"
-        (click)="retryOnline()"
-        i18n-aria-label
-        aria-label="Verbindung erneut prüfen"
-      >
+      <button matButton class="app-offline-banner__retry" (click)="retryOnline()">
         Nochmal versuchen
       </button>
     </div>
   }
   @if (updateAvailable()) {
-    <div class="app-update-banner" role="status">
+    <output class="app-update-banner" aria-live="polite">
       <mat-icon class="app-update-banner__icon">system_update</mat-icon>
       <span i18n>Neue Version verfügbar.</span>
       <button
         matButton
         class="app-update-banner__action"
         (click)="reloadWithUpdate()"
-        i18n-aria-label
-        aria-label="App neu laden"
         i18n="@@app.updateBanner.reloadNow"
       >
         Jetzt laden
       </button>
-    </div>
+    </output>
   }
   <ng-container connectionBannerHost></ng-container>
   <a href="#main-content" class="app-skip-link" i18n>Zum Inhalt springen</a>
@@ -36,7 +28,7 @@
   <ng-container presetToastHost></ng-container>
 
   @if (presetSnackbarVisible()) {
-    <div class="app-preset-snackbar" role="status">
+    <output class="app-preset-snackbar" aria-live="polite">
       <span class="app-preset-snackbar__icon-wrap">
         <mat-icon class="app-preset-snackbar__icon">{{ presetSnackbarIcon() }}</mat-icon>
       </span>
@@ -58,10 +50,10 @@
       >
         <mat-icon>close</mat-icon>
       </button>
-    </div>
+    </output>
   }
   @if (installSnackbarVisible()) {
-    <div class="app-install-snackbar" role="status">
+    <output class="app-install-snackbar" aria-live="polite">
       <span class="app-install-snackbar__icon-wrap">
         <mat-icon class="app-install-snackbar__icon">get_app</mat-icon>
       </span>
@@ -83,7 +75,7 @@
       >
         <mat-icon>close</mat-icon>
       </button>
-    </div>
+    </output>
   }
 
   @if (!isImmersiveHostView()) {
@@ -113,7 +105,13 @@
     <footer class="app-footer" role="contentinfo">
       <div class="app-footer__inner">
         <div class="app-footer__row">
-          <div class="app-footer__links">
+          <div
+            class="app-footer__links"
+            [class.app-footer__links--offline]="footerShowApiOffline()"
+            [attr.data-footer-api-state]="
+              footerHealthCheckDone() ? (apiStatus() ? 'ok' : 'offline') : 'pending'
+            "
+          >
             <a
               matButton
               class="app-footer__link--news-archive"
@@ -148,42 +146,24 @@
               <mat-icon class="app-footer__icon">privacy_tip</mat-icon>
               <span class="app-footer__link-text" i18n>Datenschutz</span>
             </a>
+            <app-server-status-widget
+              class="app-footer__status-widget"
+              [connectionOk]="footerConnectionOk()"
+              [loading]="!footerHealthCheckDone()"
+              [stats]="footerStats()"
+              (openRequested)="openServerStatusHelp()"
+            />
+            @if (footerShowApiOffline()) {
+              <button
+                matButton
+                class="app-footer__status-action"
+                (click)="retryApiConnection()"
+                [disabled]="apiRetrying()"
+              >
+                {{ footerRetryLabel() }}
+              </button>
+            }
           </div>
-        </div>
-        <div
-          class="app-footer__status-line"
-          [class.app-footer__status-line--offline]="footerShowApiOffline()"
-          [attr.data-footer-api-state]="
-            footerHealthCheckDone() ? (apiStatus() ? 'ok' : 'offline') : 'pending'
-          "
-        >
-          <app-server-status-widget
-            class="app-footer__status-widget"
-            [connectionOk]="footerConnectionOk()"
-            [initialStats]="footerStats()"
-            [compact]="true"
-          />
-          <button
-            matButton
-            type="button"
-            class="app-footer__status-help-trigger"
-            (click)="openServerStatusHelp()"
-            i18n-aria-label="@@app.footer.statusHelpTriggerAria"
-            aria-label="Hilfe zur Server-Statusanzeige"
-          >
-            <mat-icon class="app-footer__icon" aria-hidden="true">router</mat-icon>
-            <span class="app-footer__link-text" i18n="@@app.footer.serverHelpLabel">Server</span>
-          </button>
-          @if (footerShowApiOffline()) {
-            <button
-              matButton
-              class="app-footer__status-action"
-              (click)="retryApiConnection()"
-              [disabled]="apiRetrying()"
-            >
-              {{ footerRetryLabel() }}
-            </button>
-          }
         </div>
       </div>
     </footer>

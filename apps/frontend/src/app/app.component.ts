@@ -41,6 +41,7 @@ const PWA_INSTALL_DISMISSED_DAYS = 7;
 const PWA_UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 /** Wenn `serviceWorker.ready` nicht zeitnah auflöst (selten), Polling trotzdem starten. */
 const PWA_UPDATE_READY_FALLBACK_MS = 8_000;
+const FOOTER_STATS_POLL_INTERVAL_MS = 30_000;
 
 /** Browser-Event für „App installieren“ (PWA). */
 interface BeforeInstallPromptEvent extends Event {
@@ -119,6 +120,7 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Browser: `setInterval` / `setTimeout` liefern `number` (nicht Node-`Timeout`). */
   private pwaUpdateIntervalId: number | null = null;
   private pwaUpdateReadyFallbackId: number | null = null;
+  private footerStatsIntervalId: number | null = null;
   private pwaUpdatePollingArmed = false;
 
   /** true wenn gescrollt wurde (für stärkeren Schatten, Elevation). */
@@ -183,6 +185,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       this.updateRouteFlags();
       this.isOnline.set(navigator.onLine);
+      this.startFooterStatsPolling();
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(() => void this.checkApiConnection(), { timeout: 2000 });
         requestIdleCallback(() => void this.loadConnectionBanner(), { timeout: 2500 });
@@ -235,6 +238,10 @@ export class AppComponent implements OnInit, OnDestroy {
       if (this.pwaUpdateReadyFallbackId !== null) {
         clearTimeout(this.pwaUpdateReadyFallbackId);
         this.pwaUpdateReadyFallbackId = null;
+      }
+      if (this.footerStatsIntervalId !== null) {
+        clearInterval(this.footerStatsIntervalId);
+        this.footerStatsIntervalId = null;
       }
       window.removeEventListener('beforeinstallprompt', this.beforeInstallPromptListener);
       window.removeEventListener('appinstalled', this.appInstalledListener);
@@ -407,11 +414,15 @@ export class AppComponent implements OnInit, OnDestroy {
   onOnline(): void {
     this.isOnline.set(true);
     this.requestPwaUpdateCheck();
+    void this.checkApiConnection();
   }
 
   @HostListener('window:offline')
   onOffline(): void {
     this.isOnline.set(false);
+    this.apiStatus.set(null);
+    this.footerStats.set(null);
+    this.footerHealthCheckDone.set(true);
   }
 
   retryOnline(): void {
@@ -437,6 +448,14 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  private startFooterStatsPolling(): void {
+    if (this.footerStatsIntervalId !== null) return;
+    this.footerStatsIntervalId = window.setInterval(
+      () => void this.checkApiConnection(),
+      FOOTER_STATS_POLL_INTERVAL_MS,
+    );
+  }
+
   async retryApiConnection(): Promise<void> {
     this.apiRetrying.set(true);
     this.footerHealthCheckDone.set(false);
@@ -448,6 +467,11 @@ export class AppComponent implements OnInit, OnDestroy {
     this.dialog.open(ServerStatusHelpDialogComponent, {
       panelClass: 'app-status-help-dialog-panel',
       autoFocus: false,
+      data: {
+        connectionOk: this.footerConnectionOk(),
+        loading: !this.footerHealthCheckDone(),
+        stats: this.footerStats(),
+      },
       width: 'min(40rem, calc(100vw - 1.5rem))',
       maxWidth: '100vw',
     });

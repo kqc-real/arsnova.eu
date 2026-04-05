@@ -2,7 +2,7 @@
   margin: 0;
   padding: 0 1rem 0.5rem !important;
   display: grid;
-  gap: 0.7rem;
+  gap: 0.75rem;
   overflow: visible;
   max-height: none;
 }
@@ -19,12 +19,139 @@ mat-dialog-actions {
   line-height: 1.45;
 }
 
-.status-help-dialog__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
+.status-help-dialog__copy--compact {
+  font: var(--mat-sys-body-small);
+  line-height: 1.3;
+}
+
+.status-help-dialog__panel,
+.status-help-dialog__record,
+.status-help-dialog__state {
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.status-help-dialog__panel--stats {
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 16%, var(--mat-sys-surface));
+}
+
+.status-help-dialog__panel--legend {
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-surface));
+}
+
+.status-help-dialog__panel-header {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.status-help-dialog__panel-header--stacked {
+  display: grid;
+  gap: 0.2rem;
+  align-items: start;
+}
+
+.status-help-dialog__section-title {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+  color: var(--mat-sys-on-surface);
+}
+
+.status-help-dialog__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.status-help-dialog__metric {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.6rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-surface) 76%, var(--mat-sys-primary-container));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}
+
+.status-help-dialog__metric-head {
+  display: flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-width: 0;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.status-help-dialog__metric-head mat-icon {
+  flex-shrink: 0;
+  font-size: 0.95rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--mat-sys-primary);
+}
+
+.status-help-dialog__metric strong {
+  font: var(--mat-sys-headline-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-on-surface);
+  line-height: 1;
+}
+
+.status-help-dialog__record {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 18%, var(--mat-sys-surface));
+}
+
+.status-help-dialog__record-copy {
+  min-width: 0;
+}
+
+.status-help-dialog__record-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  row-gap: 0.25rem;
+  min-width: 5.75rem;
+}
+
+.status-help-dialog__record-number {
+  margin: 0;
+  font: var(--mat-sys-display-small);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-tertiary);
+  line-height: 1;
+}
+
+.status-help-dialog__record-unit {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}
+
+.status-help-dialog__record-asof,
+.status-help-dialog__record-hint,
+.status-help-dialog__record-dev-demo {
+  margin: 0.3rem 0 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.status-help-dialog__record-asof,
+.status-help-dialog__record-dev-demo,
+.status-help-dialog__record-hint {
+  font: var(--mat-sys-body-small);
+}
+
+.status-help-dialog__record-dev-demo {
+  grid-column: 1 / -1;
+  font-style: italic;
 }
 
 .status-help-dialog__legend {
@@ -33,21 +160,34 @@ mat-dialog-actions {
   list-style: none;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.35rem 0.75rem;
+  gap: 0.4rem;
+  align-items: stretch;
   font: var(--mat-sys-label-medium);
   color: var(--mat-sys-on-surface-variant);
 }
 
 .status-help-dialog__legend li {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 0.45rem;
+  column-gap: 0.45rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+}
+
+.status-help-dialog__legend li span:last-child {
+  line-height: 1.15;
 }
 
 .status-help-dialog__dot {
   width: 0.8rem;
   height: 0.8rem;
   border-radius: var(--mat-sys-corner-full);
+  flex-shrink: 0;
+  align-self: center;
   background: var(--mat-sys-outline-variant);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent);
 }
@@ -68,35 +208,60 @@ mat-dialog-actions {
   background: var(--mat-sys-outline-variant);
 }
 
-.status-help-dialog__list li {
-  display: grid;
-  grid-template-columns: 1.5rem 1fr;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 0.65rem;
-  border-radius: var(--mat-sys-corner-medium);
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface);
-  line-height: 1.35;
-}
+@media (max-width: 599px) {
+  .status-help-dialog__content {
+    padding: 0 0.875rem 0.5rem !important;
+    gap: 0.6rem;
+  }
 
-.status-help-dialog__list mat-icon {
-  margin-top: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: var(--mat-sys-corner-full);
-  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-  color: var(--mat-sys-primary);
-}
+  .status-help-dialog__panel,
+  .status-help-dialog__record,
+  .status-help-dialog__state {
+    padding: 0.65rem;
+  }
 
-@media (min-width: 760px) {
-  .status-help-dialog__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .status-help-dialog__metrics {
+    gap: 0.35rem;
+  }
+
+  .status-help-dialog__metric {
+    padding: 0.5rem 0.55rem;
+  }
+
+  .status-help-dialog__metric strong {
+    font: var(--mat-sys-title-large);
+    font-weight: 700;
+  }
+
+  .status-help-dialog__metric-head {
+    font: var(--mat-sys-label-small);
+  }
+
+  .status-help-dialog__record {
+    gap: 0.55rem;
+  }
+
+  .status-help-dialog__record-figure {
+    min-width: 5rem;
+  }
+
+  .status-help-dialog__record-number {
+    font: var(--mat-sys-headline-large);
+    font-weight: 700;
+  }
+
+  .status-help-dialog__record-unit {
+    font: var(--mat-sys-label-small);
+  }
+
+  .status-help-dialog__legend {
+    gap: 0.3rem;
+  }
+
+  .status-help-dialog__legend li {
+    column-gap: 0.4rem;
+    min-height: 1.85rem;
+    padding: 0.3rem 0.4rem;
+    font: var(--mat-sys-label-small);
   }
 }

@@ -2757,8 +2757,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.statsHint" datatype="html">
-        <source> Bisher höchste Teilnehmerzahl in einer einzelnen Live-Session auf diesem Server – nur aggregiert, ohne Namen oder andere personenbezogene Daten.</source>
-        <target>Highest number of participants so far in a single live session on this server—aggregated figures only; no names or other personal data.</target>
+        <source>Bisher höchste Teilnehmerzahl in einer einzelnen Live-Session auf diesem Server.</source>
+        <target>Highest number of participants so far in a single live session on this server.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">290,292</context>
@@ -10854,19 +10854,75 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.serverHelpLabel" datatype="html">
-        <source>Server</source>
-        <target>Server</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">174,175</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.statusHelpTitle" datatype="html">
         <source>Server-Status</source>
         <target>Server status</target>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-widget/server-status-widget.component.html</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusHelpTitle" datatype="html">
+        <source>Server-Statistik</source>
+        <target>Server statistics</target>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">23,27</context>
+          <context context-type="linenumber">30,34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusCurrentTitle" datatype="html">
+        <source>Jetzt auf dem Server</source>
+        <target>Currently on this server</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">52,56</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricLiveSessions" datatype="html">
+        <source>Live-Sessions</source>
+        <target>Live sessions</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">63,63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricBlitz" datatype="html">
+        <source>Blitz-Runden</source>
+        <target>Blitz rounds</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">68,68</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricParticipants" datatype="html">
+        <source>Teilnehmende</source>
+        <target>Participants</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">73,73</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricCompleted" datatype="html">
+        <source>Abgeschlossen</source>
+        <target>Completed</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">78,78</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusLoading" datatype="html">
+        <source>Live-Daten werden geladen…</source>
+        <target>Live data is loading…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">107,109</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusUnavailable" datatype="html">
+        <source>Derzeit sind keine Live-Daten verfügbar.</source>
+        <target>Live data is currently unavailable.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">111,113</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpDot" datatype="html">
@@ -10907,6 +10963,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">58,61</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusLegendTitle" datatype="html">
+        <source>Status-Legende</source>
+        <target>Status legend</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">134,136</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpLiveSessions" datatype="html">

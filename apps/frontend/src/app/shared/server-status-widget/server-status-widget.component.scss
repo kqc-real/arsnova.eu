@@ -1,57 +1,41 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .server-status {
-  border-radius: var(--mat-sys-corner-small);
-  background: var(--mat-sys-surface-container);
-  color: var(--mat-sys-on-surface);
-  padding: 0.75rem;
-  text-align: left;
-}
-
-.server-status--compact {
-  padding: 0;
-  background: transparent;
-}
-
-.server-status__header {
-  display: flex;
-  align-items: center;
+  --mat-button-text-container-height: 2.25rem;
+  --mat-button-text-label-text-font: var(--mat-sys-body-small-font);
+  --mat-button-text-label-text-size: var(--mat-sys-body-small-size);
+  --mat-button-text-label-text-tracking: var(--mat-sys-body-small-tracking);
+  --mat-button-text-label-text-weight: var(--mat-sys-body-small-weight);
+  --mat-button-text-icon-offset: 0;
+  min-width: 0;
+  padding-inline: 0.35rem;
   justify-content: center;
-  gap: 0.5rem;
-  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: var(--mat-sys-body-small-line-height);
 }
 
-.server-status--compact .server-status__header {
-  gap: 0.375rem;
-  font: var(--mat-sys-label-medium);
-}
-
-.server-status__compact-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.45rem;
-}
-
-.server-status__icon-wrap {
+.server-status :where(.mdc-button__label) {
   display: inline-flex;
   align-items: center;
-  line-height: 1;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .server-status__icon {
-  display: inline-flex;
-  align-items: center;
-  width: 20px;
-  height: 20px;
-  font-size: 20px;
-}
-
-.server-status__icon--status {
+  flex-shrink: 0;
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  line-height: 1;
   color: var(--mat-sys-outline-variant);
 }
 
 .server-status__icon--healthy {
-  color: var(--mat-sys-outline-variant);
+  color: var(--app-status-healthy);
 }
 
 .server-status__icon--busy {
@@ -66,106 +50,25 @@
   color: var(--mat-sys-outline-variant);
 }
 
-.server-status__dot {
-  width: 0.875rem;
-  height: 0.875rem;
-  border-radius: var(--mat-sys-corner-full);
-  flex-shrink: 0;
-  background: var(--mat-sys-outline-variant);
+.server-status__label {
+  min-width: 0;
 }
 
-.server-status__dot--healthy {
-  background: var(--app-status-healthy);
-}
+@media (max-width: 599px) {
+  .server-status {
+    padding-inline: 0.25rem;
+  }
 
-.server-status__dot--busy {
-  background: var(--app-status-busy);
-}
-
-.server-status__dot--overloaded {
-  background: var(--mat-sys-error);
-}
-
-.server-status__dot--unknown {
-  background: var(--mat-sys-outline-variant);
-}
-
-.server-status__text {
-  margin: 0.25rem 0 0;
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.server-status__text--muted {
-  color: var(--mat-sys-outline-variant);
-}
-
-.server-status__stats {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.5rem 2rem;
-  font: var(--mat-sys-body-medium);
-}
-
-.server-status--compact .server-status__stats {
-  gap: 0.35rem 0.5rem;
-  font: var(--mat-sys-body-small);
-}
-
-.server-status__stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.server-status--compact .server-status__stat {
-  gap: 0.25rem;
-  padding: 0;
-}
-
-.server-status__stat-icon {
-  font-size: 1.25rem;
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.server-status--compact .server-status__stat-icon {
-  font-size: 1rem;
-  width: 1rem;
-  height: 1rem;
-}
-
-.server-status__highlight {
-  color: var(--mat-sys-primary);
-  font-weight: 600;
-}
-
-.server-status__skeleton {
-  margin: 0.25rem 0 0;
-}
-
-.server-status--compact .server-status__text {
-  margin: 0;
-}
-
-.server-status__skeleton-line {
-  display: block;
-  height: 0.875rem;
-  width: 85%;
-  background: linear-gradient(
-    90deg,
-    var(--mat-sys-surface-variant) 25%,
-    var(--mat-sys-outline-variant) 50%,
-    var(--mat-sys-surface-variant) 75%
-  );
-  background-size: 200% 100%;
-  animation: server-status-shimmer 1.2s ease-in-out infinite;
-  border-radius: var(--mat-sys-corner-extra-small);
-}
-
-@keyframes server-status-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  .server-status__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
 }
