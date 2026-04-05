@@ -7633,6 +7633,38 @@
           <context context-type="linenumber">1726,1727</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudShow" datatype="html">
+        <source>Q&amp;A-Word-Cloud anzeigen</source>
+        <target>Mostra la word cloud Q&amp;A</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">492</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudHide" datatype="html">
+        <source>Q&amp;A-Word-Cloud ausblenden</source>
+        <target>Nascondi la word cloud Q&amp;A</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">491</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCountOne" datatype="html">
+        <source>1 Frage</source>
+        <target>1 domanda</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">496</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCountMany" datatype="html">
+        <source><x id="count" equiv-text="count"/> Fragen</source>
+        <target><x id="count" equiv-text="count"/> domande</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">498</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.filterEmptyHint" datatype="html">
         <source> Sichere Ansicht aktiv – keine hervorgehobenen Fragen vorhanden.</source>
         <target>Vista sicura attiva – nessuna domanda evidenziata.</target>
@@ -11207,6 +11239,62 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
           <context context-type="linenumber">161</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.title" datatype="html">
+        <source>Word-Cloud (Freitext)</source>
+        <target>Nuvola di parole (testo libero)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">67</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.empty" datatype="html">
+        <source>Noch keine Freitext-Antworten vorhanden.</source>
+        <target>Nessuna risposta in testo libero per ora.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">68</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.itemSingular" datatype="html">
+        <source>Antwort</source>
+        <target>Risposta</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">69</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.showStopwords" datatype="html">
+        <source>Stopwörter einblenden</source>
+        <target>Mostra le stopword</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">75</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.hideStopwords" datatype="html">
+        <source>Stopwörter ausblenden</source>
+        <target>Nascondi le stopword</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">76</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudHide" datatype="html">
+        <source>Word Cloud ausblenden</source>
+        <target>Nascondi la nuvola di parole</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">344</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudShow" datatype="html">
+        <source>Word Cloud anzeigen</source>
+        <target>Mostra la nuvola di parole</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">345</context>
         </context-group>
       </trans-unit>
     </body>

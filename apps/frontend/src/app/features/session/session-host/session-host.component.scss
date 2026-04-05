@@ -908,6 +908,12 @@
   padding-block: 0.55rem 0.45rem;
 }
 
+.session-host__qa-panel-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-block: 0.2rem 0.55rem;
+}
+
 .session-qa-moderation-hint {
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
@@ -1060,6 +1066,10 @@
         0 4px 12px color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
     }
   }
+}
+
+.session-qa-cloud {
+  margin-block: 0.9rem 0.25rem;
 }
 
 .session-qa-empty--filtered {
@@ -2928,7 +2938,6 @@ button.session-host__btn-discussion {
 
 .session-host__extra summary {
   cursor: pointer;
-  font-weight: 500;
   list-style: none;
 
   &::-webkit-details-marker {
@@ -2936,8 +2945,59 @@ button.session-host__btn-discussion {
   }
 }
 
+.session-host__extra-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.95rem 1rem;
+  border-radius: var(--mat-sys-corner-large, 1rem);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 18%, var(--mat-sys-surface));
+  font-weight: 600;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary-container) 24%, var(--mat-sys-surface));
+  }
+}
+
+.session-host__extra[open] .session-host__extra-summary {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 34%, var(--mat-sys-outline-variant));
+}
+
+.session-host__extra-summary-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--mat-sys-on-surface);
+}
+
+.session-host__extra-summary-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: right;
+}
+
 .session-host__extra-content {
   margin-top: 0.75rem;
+}
+
+@media (max-width: 700px) {
+  .session-host__extra-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .session-host__extra-summary-meta {
+    text-align: left;
+  }
 }
 
 .session-host__btn-end-secondary {

@@ -1,34 +1,50 @@
 <mat-card appearance="outlined">
   <mat-card-header>
-    <mat-card-title>Word-Cloud (Freitext)</mat-card-title>
+    <mat-card-title>{{ title() }}</mat-card-title>
   </mat-card-header>
   <mat-card-content class="word-cloud l-stack l-stack--sm">
-    @if (words().length === 0) {
-      <p class="word-cloud__empty">Noch keine Freitext-Antworten vorhanden.</p>
-    } @else {
-      <div class="word-cloud__visual">
-        @for (entry of words(); track entry.word) {
-          <button
-            type="button"
-            mat-button
-            class="word-cloud__word"
-            [class.word-cloud__word--active]="selectedWord() === entry.word"
-            [style.font-size.px]="entry.size"
-            [attr.title]="'Anzahl: ' + entry.count"
-            (click)="toggleWord(entry.word)"
-          >
-            {{ entry.word }}
-          </button>
-        }
-      </div>
+    <div class="word-cloud__meta">
+      <p class="word-cloud__meta-line">
+        <span class="word-cloud__meta-pill">{{ words().length }} Wörter</span>
+        <span class="word-cloud__meta-pill"
+          >{{ responseSummary().total }} {{ itemLabel(responseSummary().total) }}</span
+        >
+      </p>
+      @if (selectedWord()) {
+        <p class="word-cloud__filter-info">
+          Filter aktiv: <strong>{{ selectedWord() }}</strong>
+        </p>
+      }
+    </div>
+    <div #exportSurface class="word-cloud__visual-frame">
+      @if (words().length === 0) {
+        <p class="word-cloud__empty">{{ emptyMessage() }}</p>
+      } @else {
+        <div class="word-cloud__visual" [style.--word-cloud-stage-height]="stageMinHeight()">
+          @for (entry of words(); track entry.word; let index = $index) {
+            <button
+              type="button"
+              mat-button
+              class="word-cloud__word"
+              [class.word-cloud__word--active]="selectedWord() === entry.word"
+              [class.word-cloud__word--top]="index < 2"
+              [class.word-cloud__word--featured]="index >= 2 && index < 6"
+              [style.font-size.px]="entry.size"
+              [attr.title]="'Anzahl: ' + entry.count"
+              [attr.aria-pressed]="selectedWord() === entry.word"
+              (click)="toggleWord(entry.word)"
+            >
+              {{ entry.word }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+    @if (words().length > 0) {
       <div class="word-cloud__actions">
         <button mat-button type="button" (click)="toggleStopwords()">
           <mat-icon>filter_alt</mat-icon>
-          @if (hideStopwords()) {
-            Stopwörter einblenden
-          } @else {
-            Stopwörter ausblenden
-          }
+          {{ hideStopwords() ? showStopwordsLabel : hideStopwordsLabel }}
         </button>
         <button mat-button type="button" (click)="exportCsv()">
           <mat-icon>table_view</mat-icon>
@@ -40,18 +56,33 @@
         </button>
       </div>
       @if (statusMessage()) {
-        <p class="word-cloud__status" role="status">{{ statusMessage() }}</p>
+        <output class="word-cloud__status">{{ statusMessage() }}</output>
       }
-      @if (selectedWord()) {
-        <p class="word-cloud__filter-info">
-          Filter aktiv: <strong>{{ selectedWord() }}</strong>
+      @if (showResponsesPanel()) {
+        <details class="word-cloud__responses-panel" [attr.open]="showResponses() ? true : null">
+          <summary
+            class="word-cloud__responses-summary"
+            (click)="$event.preventDefault(); toggleResponses()"
+          >
+            {{ itemLabelPlural() }} anzeigen ({{ responseSummary().visible }})
+          </summary>
+          <ul class="word-cloud__responses">
+            @for (response of filteredResponses(); track response + $index) {
+              <li>{{ response }}</li>
+            }
+          </ul>
+        </details>
+      }
+      @if (showReleaseNote()) {
+        <p class="word-cloud__release-note">
+          Hinweis: Zum nächsten Major Release am 1. August 2026 ist Word Cloud 2.0 geplant. Dann
+          kommt ein echtes, dichteres Cloud-Layout mit ruhigerem Live-Update und stärkerer
+          Präsentationsqualität. Das Zielbild danach ist die intelligente Moderationshilfe mit NLP
+          (Natural Language Processing, also automatische Sprachverarbeitung): ähnliche Antworten
+          und Formulierungen werden zu gemeinsamen Themen gebündelt, verständlich benannt und
+          sinnvoll gewichtet, statt nur identische Wörter zu zählen.
         </p>
       }
-      <ul class="word-cloud__responses">
-        @for (response of filteredResponses(); track response + $index) {
-          <li>{{ response }}</li>
-        }
-      </ul>
     }
   </mat-card-content>
 </mat-card>

@@ -57,6 +57,23 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly showQaQueue = computed(
     () => this.presenterQaQuestions().length > 0 && !this.showTeamFinish(),
   );
+  readonly presenterQaWordCloudQuestions = computed(() => {
+    const questions: QaQuestionDTO[] = [];
+    const pinned = this.pinnedQaQuestion();
+    if (pinned) {
+      questions.push(pinned);
+    }
+    return [...questions, ...this.presenterQaQuestions()];
+  });
+  readonly presenterQaWordCloudResponses = computed(() =>
+    this.presenterQaWordCloudQuestions().map((question) => question.text),
+  );
+  readonly presenterQaWordCloudWeightedResponses = computed(() =>
+    this.presenterQaWordCloudQuestions().map((question) => ({
+      text: question.text,
+      weight: 1 + Math.max(0, question.upvoteCount),
+    })),
+  );
   readonly showQuickFeedbackCard = computed(
     () => this.quickFeedbackResult() !== null && !this.showTeamFinish(),
   );

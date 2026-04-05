@@ -230,6 +230,61 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt in der Presenter-Ansicht eine upvote-gewichtete Q&A-Word-Cloud', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preset: 'PLAYFUL',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Kannst du das Beispiel noch einmal erklären?',
+        upvoteCount: 4,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Q&A-Word-Cloud');
+    expect(text).toContain('2 Fragen');
+    expect(fixture.componentInstance.presenterQaWordCloudQuestions()).toHaveLength(2);
+    expect(fixture.componentInstance.presenterQaWordCloudWeightedResponses()[0]?.weight).toBe(5);
+    fixture.destroy();
+  });
+
   it('zeigt laufendes Blitzlicht in der Presenter-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

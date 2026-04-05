@@ -138,6 +138,20 @@
       </mat-card>
     }
 
+    @if (presenterQaWordCloudQuestions().length > 0) {
+      <section class="session-present__word-cloud-card">
+        <app-word-cloud
+          [responses]="presenterQaWordCloudResponses()"
+          [weightedResponses]="presenterQaWordCloudWeightedResponses()"
+          [title]="'Q&A-Word-Cloud (Upvotes gewichtet)'"
+          [itemLabelSingular]="'Frage'"
+          [itemLabelPlural]="'Fragen'"
+          [showResponsesPanel]="true"
+          [showReleaseNote]="true"
+        />
+      </section>
+    }
+
     @if (showQuickFeedbackCard() && quickFeedbackResult(); as quickFeedback) {
       <mat-card appearance="outlined" class="session-present__feedback-card">
         <mat-card-content>

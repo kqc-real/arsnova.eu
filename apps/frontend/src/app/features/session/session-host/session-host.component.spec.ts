@@ -261,6 +261,162 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt fuer Freitext-Fragen die Word-Cloud-Aktion mit Live-Hinweis', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 5 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Gravitation', 'Orbit'],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () => (fixture.nativeElement.textContent ?? '').includes('Word Cloud anzeigen'),
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Word Cloud anzeigen');
+    expect(text).not.toContain('Weitere Aktionen');
+    expect(text).toContain('2 Antworten');
+    expect(text).toContain('Live-Freitext wird aktualisiert.');
+    fixture.destroy();
+  });
+
+  it('zeigt im Fragen-Tab eine upvote-gewichtete Q&A-Word-Cloud fuer sichtbare Fragen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Kannst du das Beispiel noch einmal erklären?',
+        upvoteCount: 4,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        text: 'Ist das klausurrelevant?',
+        upvoteCount: 12,
+        status: 'PENDING',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    let text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Q&A-Word-Cloud anzeigen');
+    expect(text).toContain('2 Fragen');
+    expect(fixture.componentInstance.qaWordCloudQuestions()).toHaveLength(2);
+    expect(fixture.componentInstance.qaWordCloudWeightedResponses()[0]?.weight).toBe(10);
+
+    fixture.componentInstance.qaWordCloudExpanded.set(true);
+    fixture.detectChanges();
+
+    text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Q&A-Word-Cloud ausblenden');
+    expect(text).toContain('Q&A-Word-Cloud (Upvotes gewichtet)');
+    fixture.destroy();
+  });
+
+  it('zeigt bei aktiver reiner Q&A-Session das Fragen-Panel statt nur der Live-Karte', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      type: 'Q_AND_A',
+      quizName: null,
+      title: 'Offene Fragen',
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, title: 'Offene Fragen', moderationMode: true },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Welche Hilfsmittel sind in der Klausur erlaubt?',
+        upvoteCount: 7,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(fixture.componentInstance.showPrimaryLiveView()).toBe(false);
+    expect(text).toContain('Vorab-Moderation');
+    expect(text).toContain('Fragerunde beenden');
+    expect(text).toContain('Q&A-Word-Cloud anzeigen');
+    fixture.destroy();
+  });
+
   it('führt im Fragen-Tab eine Moderationsaktion aus', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

@@ -288,6 +288,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Nach einmaligem Anwenden von `?tab=` nicht erneut erzwingen (sonst kein Kanalwechsel möglich). */
   private initialUrlTabApplied = false;
   readonly freetextResponses = signal<string[]>([]);
+  readonly wordCloudExpanded = signal(false);
   readonly wordCloudInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly exportStatus = signal<string | null>(null);
@@ -338,6 +339,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (board.length === 0) return 0;
     return Math.max(...board.map((e) => e.totalScore));
   });
+  readonly wordCloudToggleLabel = computed(() =>
+    this.wordCloudExpanded()
+      ? $localize`:@@sessionHost.wordCloudHide:Word Cloud ausblenden`
+      : $localize`:@@sessionHost.wordCloudShow:Word Cloud anzeigen`,
+  );
   readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
   readonly channels = computed(() => {
     const session = this.session();
@@ -356,20 +362,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return result;
   });
   readonly showChannelTabs = computed(() => this.visibleChannels().length > 1);
-  readonly isLegacyQaOnlySession = computed(() => {
-    const session = this.session();
-    return (
-      session?.type === 'Q_AND_A' && this.channels().quiz === false && this.channels().qa === true
-    );
-  });
   readonly showPrimaryLiveView = computed(() => {
     const active = this.activeChannel();
     if (active === 'quiz') {
       return this.channels().quiz;
     }
 
-    if (active === 'qa' && this.isLegacyQaOnlySession()) {
-      return true;
+    if (active === 'qa') {
+      return this.session()?.type === 'Q_AND_A' && this.effectiveStatus() === 'LOBBY';
     }
 
     return false;
@@ -462,6 +462,36 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaFilteredQuestions = computed(() => {
     const all = this.qaQuestions();
     return this.qaShowPinnedOnly() ? all.filter((q) => q.status === 'PINNED') : all;
+  });
+  readonly qaWordCloudQuestions = computed(() => {
+    const visibleQuestions = this.qaQuestions().filter(
+      (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
+    );
+    return this.qaShowPinnedOnly()
+      ? visibleQuestions.filter((question) => question.status === 'PINNED')
+      : visibleQuestions;
+  });
+  readonly qaWordCloudResponses = computed(() =>
+    this.qaWordCloudQuestions().map((question) => question.text),
+  );
+  readonly qaWordCloudWeightedResponses = computed(() =>
+    this.qaWordCloudQuestions().map((question) => ({
+      text: question.text,
+      weight: 1 + Math.max(0, question.upvoteCount),
+    })),
+  );
+  readonly qaWordCloudExpanded = signal(false);
+  readonly qaWordCloudToggleLabel = computed(() =>
+    this.qaWordCloudExpanded()
+      ? $localize`:@@sessionQa.wordCloudHide:Q&A-Word-Cloud ausblenden`
+      : $localize`:@@sessionQa.wordCloudShow:Q&A-Word-Cloud anzeigen`,
+  );
+  readonly qaWordCloudInfo = computed(() => {
+    const count = this.qaWordCloudQuestions().length;
+    if (count === 1) {
+      return $localize`:@@sessionQa.wordCloudCountOne:1 Frage`;
+    }
+    return $localize`:@@sessionQa.wordCloudCountMany:${count}:count: Fragen`;
   });
   readonly qaPinnedCount = computed(
     () => this.qaQuestions().filter((q) => q.status === 'PINNED').length,
@@ -1239,38 +1269,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return ALL_MUSIC_TRACKS.find((t) => t.value === track)?.label ?? track;
   }
 
-  async exportFreetextSessionCsv(): Promise<void> {
-    try {
-      const data = await trpc.session.getFreetextSessionExport.query({
-        code: this.code.toUpperCase(),
-      });
-      const rows = ['questionOrder,questionText,response,count'];
-      for (const entry of data.entries) {
-        for (const aggregate of entry.aggregates) {
-          rows.push(
-            [
-              entry.questionOrder + 1,
-              escapeCsv(entry.questionText),
-              escapeCsv(aggregate.text),
-              aggregate.count,
-            ].join(','),
-          );
-        }
-      }
-      const content = rows.join('\n');
-      const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const anchor = this.document.createElement('a');
-      anchor.href = url;
-      anchor.download = `freetext-session_${new Date().toISOString().slice(0, 10)}.csv`;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      this.exportStatus.set($localize`Session-CSV exportiert.`);
-    } catch {
-      this.exportStatus.set($localize`Session-CSV konnte nicht exportiert werden.`);
-    }
-  }
-
   private async generateQrCode(): Promise<void> {
     try {
       const qrcodeModule = await import('qrcode-generator');
@@ -1858,14 +1856,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const sessionId = this.session()?.id;
     if (!sessionId || !this.channels().qa) {
       this.qaQuestions.set([]);
+      this.qaWordCloudExpanded.set(false);
       return;
     }
 
     try {
       const questions = await trpc.qa.list.query({ sessionId, moderatorView: true });
       this.qaQuestions.set(questions);
+      if (
+        this.qaWordCloudExpanded() &&
+        !questions.some((question) => question.status === 'PINNED' || question.status === 'ACTIVE')
+      ) {
+        this.qaWordCloudExpanded.set(false);
+      }
       this.dismissHostSteeringCallout();
     } catch {
+      this.qaWordCloudExpanded.set(false);
       this.openHostSteeringCalloutForQaFailure(() => void this.refreshQaQuestions());
     }
   }
@@ -2232,6 +2238,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       } else {
         this.currentQuestionLabel.set(null);
         this.wordCloudInfo.set($localize`Noch keine aktive Frage.`);
+        this.wordCloudExpanded.set(false);
       }
     } catch {
       this.wordCloudInfo.set($localize`Live-Freitextdaten konnten nicht geladen werden.`);

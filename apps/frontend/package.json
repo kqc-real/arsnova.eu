@@ -52,6 +52,7 @@
     "marked": "^17.0.3",
     "material-icons": "^1.13.14",
     "rxjs": "~7.8.0",
+    "stopword": "^3.1.5",
     "tslib": "^2.7.0",
     "y-indexeddb": "^9.0.12",
     "y-websocket": "^3.0.0",

@@ -1514,14 +1514,23 @@
               </div>
 
               @if (currentQuestionForHost()?.type === 'FREETEXT') {
-                <!-- Weitere Aktionen (eingeklappt) – nur bei Freitext-Fragen -->
-                <details class="session-host__extra">
-                  <summary i18n>Weitere Aktionen</summary>
+                <details
+                  class="session-host__extra"
+                  [attr.open]="wordCloudExpanded() ? true : null"
+                  (toggle)="wordCloudExpanded.set($any($event.target).open)"
+                >
+                  <summary class="session-host__extra-summary">
+                    <span class="session-host__extra-summary-main">
+                      <mat-icon aria-hidden="true">cloud</mat-icon>
+                      <span>{{ wordCloudToggleLabel() }}</span>
+                    </span>
+                    <span class="session-host__extra-summary-meta">
+                      {{ freetextResponses().length }} Antworten
+                      <span aria-hidden="true">&#183;</span>
+                      {{ wordCloudInfo() }}
+                    </span>
+                  </summary>
                   <div class="session-host__extra-content">
-                    <button mat-button type="button" (click)="exportFreetextSessionCsv()">
-                      <mat-icon>download</mat-icon>
-                      <span i18n>Freitext-Session als CSV exportieren</span>
-                    </button>
                     @if (exportStatus()) {
                       <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
                     }
@@ -1617,6 +1626,20 @@
 
               @if (qaInfo(); as info) {
                 <p class="session-channel-card__info" role="status">{{ info }}</p>
+              }
+
+              @if (isQaSession() && effectiveStatus() === 'ACTIVE') {
+                <div class="session-host__qa-panel-actions">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    [disabled]="controlPending()"
+                    (click)="endSession()"
+                  >
+                    <span i18n="@@sessionHost.endQa">Fragerunde beenden</span>
+                  </button>
+                </div>
               }
 
               <div class="session-qa-moderation-toggle">
@@ -1726,6 +1749,33 @@
                       >{{ qaUnseenCount() }} neue Fragen</span
                     >
                   </button>
+                }
+                @if (qaWordCloudQuestions().length > 0) {
+                  <details class="session-host__extra" [open]="qaWordCloudExpanded()">
+                    <summary
+                      class="session-host__extra-summary"
+                      (click)="qaWordCloudExpanded.set(!qaWordCloudExpanded())"
+                    >
+                      <span class="session-host__extra-summary-main">
+                        <mat-icon aria-hidden="true">bubble_chart</mat-icon>
+                        <span>{{ qaWordCloudToggleLabel() }}</span>
+                      </span>
+                      <span class="session-host__extra-summary-meta">{{ qaWordCloudInfo() }}</span>
+                    </summary>
+                    <div class="session-host__extra-content">
+                      <section class="session-qa-cloud">
+                        <app-word-cloud
+                          [responses]="qaWordCloudResponses()"
+                          [weightedResponses]="qaWordCloudWeightedResponses()"
+                          [title]="'Q&A-Word-Cloud (Upvotes gewichtet)'"
+                          [itemLabelSingular]="'Frage'"
+                          [itemLabelPlural]="'Fragen'"
+                          [showResponsesPanel]="true"
+                          [showReleaseNote]="true"
+                        />
+                      </section>
+                    </div>
+                  </details>
                 }
                 <div
                   class="session-qa-list"
