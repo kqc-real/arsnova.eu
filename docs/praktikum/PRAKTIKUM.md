@@ -10,14 +10,14 @@ Willkommen. Dieses Dokument erklärt **Ziele**, **Ablauf**, **bewertete Leistung
 
 **Einstieg in die Fallstudie:** Die erste Sitzung beginnt mit einer **Greenfield-Demo** zu [**Story 1.7a**](../../Backlog.md) (Markdown-Bilder: URL + Lightbox) in **3×45 Minuten** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md). Dabei setzt die Lehrperson mit **KI-Agent** live einen überschaubaren Feature-Strang um und ordnet parallel Werkzeuge und Projektstruktur ein. **Studierende** bearbeiten **1.7a** danach **nicht** zusätzlich als Praktikums-Ticket, sofern die Demo die Story inhaltlich abdeckt (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md), Abschnitt 0).
 
-**Wichtig für das Verständnis dieses Dokuments:** Das FSE-Praktikum ist **kein einzelnes Pflichtfeature**, sondern ein **allgemeines Software-Engineering-Praktikum** an der Codebasis **arsnova.eu**. Der Regelfall ist die Arbeit entlang von **Pflichtkern + Vertiefungspfad** aus [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md). Ein thematischer Schwerpunkt wie **Intelligente Moderationshilfe** ist **möglich**, aber nicht die einzige sinnvolle Form des Praktikums.
+**Wichtig für das Verständnis dieses Dokuments:** Das FSE-Praktikum ist **kein einzelnes Pflichtfeature**, sondern ein **allgemeines Software-Engineering-Praktikum** an der Codebasis **arsnova.eu**. Der Regelfall ist die Arbeit entlang der **verbindlichen Ticket-Reihenfolge** aus [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md). Ein thematischer Schwerpunkt wie **Intelligente Moderationshilfe** ist **möglich**, aber nicht die einzige sinnvolle Form des Praktikums.
 
 ## Kurz gesagt
 
 Wenn du gerade nur den praktischen Rahmen brauchst:
 
 - Du arbeitest an **arsnova.eu** als **Software-Engineering-Fallstudie**, nicht nur an einem Spezialfeature.
-- Der Standard ist: **Pflichtkern + Vertiefungspfad** aus [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md).
+- Der Standard ist: die **verbindliche Ticket-Reihenfolge** aus [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md).
 - Du sollst lieber **einen kleineren Beitrag sauber** umsetzen und absichern als einen großen halbfertigen Strang abgeben.
 - Wenn du einen **NLP-/LLM-Schwerpunkt** willst, ist das möglich, aber nur eine von mehreren sinnvollen Varianten.
 
@@ -47,7 +47,7 @@ Technisch (für deine Orientierung):
 
 **Erste Schritte:** [`docs/onboarding.md`](../onboarding.md), [`AGENT.md`](../../AGENT.md) (Arbeitsweise mit KI im Editor), [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 
-**Offene User Stories — didaktische Reihenfolge** mit **Pflichtkern + Vertiefungspfad** (statt Vollkatalog pro Person als Standard): [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md).
+**Offene User Stories — didaktische Reihenfolge** als **verbindliche Ticketstrecke pro Person**: [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md).
 
 ---
 
@@ -97,10 +97,10 @@ Wenn euer Schwerpunkt **Intelligente Moderationshilfe** ist, gehören zusätzlic
 
 #### Mindestumfang: ein klar abgegrenzter Produktbeitrag
 
-| Profil                              | Inhalt                                                                                                                                                                                                                                       |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A) Standardpfad über Stories**    | Umsetzung eines **sauber abgegrenzten Tickets** oder einer kleinen zusammenhängenden Ticket-Strecke aus [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md), inklusive passender Änderungen an Code, Tests und bei Bedarf Doku. |
-| **B) Thematischer Schwerpunktpfad** | Umsetzung eines fokussierten Strangs, z. B. **Intelligente Moderationshilfe**, wenn die Betreuung diesen Schwerpunkt freigibt und der Scope in 40 Stunden realistisch bleibt.                                                                |
+| Profil                              | Inhalt                                                                                                                                                                                                                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A) Standardpfad über Stories**    | Umsetzung entlang der **verbindlichen Ticket-Reihenfolge** aus [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md), in didaktisch sinnvollen Teilstrecken mit passenden Änderungen an Code, Tests und bei Bedarf Doku. |
+| **B) Thematischer Schwerpunktpfad** | Umsetzung eines fokussierten Strangs, z. B. **Intelligente Moderationshilfe**, wenn die Betreuung diesen Schwerpunkt freigibt und der Scope in 40 Stunden realistisch bleibt.                                                       |
 
 Für beide Profile gilt: Nicht die Größe des Diffs zählt, sondern ob ihr einen Beitrag **fachlich verstanden**, **technisch sauber eingegrenzt**, **architekturgerecht umgesetzt** und **nachvollziehbar abgesichert** habt.
 
