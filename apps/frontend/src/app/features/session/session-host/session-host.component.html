@@ -339,8 +339,10 @@
               @if (qrDataUrl()) {
                 <div class="session-host__join-menu-qr-wrap">
                   <img
+                    appMarkdownImageLightbox
                     [src]="qrDataUrl()"
                     alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                    data-markdown-image-lightbox="true"
                     class="session-host__join-menu-qr session-host__join-menu-qr--viewport-overlay app-qr-image"
                     width="320"
                     height="320"

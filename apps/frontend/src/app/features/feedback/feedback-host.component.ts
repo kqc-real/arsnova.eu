@@ -23,6 +23,7 @@ import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { localizeCommands, localizePath } from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
+import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import {
   feedbackDisplayIcon,
   feedbackDisplayLabel,
@@ -43,6 +44,7 @@ import type { Unsubscribable } from '@trpc/server/observable';
     MatButton,
     MatIconButton,
     MatIcon,
+    MarkdownImageLightboxDirective,
     OverlayModule,
   ],
   templateUrl: './feedback-host.component.html',

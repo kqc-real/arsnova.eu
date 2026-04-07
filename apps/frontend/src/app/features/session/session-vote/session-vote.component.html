@@ -278,8 +278,10 @@
             @if (qrDataUrl()) {
               <div class="vote-live-banner__qr-wrap">
                 <img
+                  appMarkdownImageLightbox
                   [src]="qrDataUrl()"
                   alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                  data-markdown-image-lightbox="true"
                   class="vote-live-banner__qr app-qr-image"
                   width="320"
                   height="320"

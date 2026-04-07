@@ -265,8 +265,10 @@
                   @if (qrDataUrl()) {
                     <div class="feedback-host__join-menu-qr-wrap">
                       <img
+                        appMarkdownImageLightbox
                         [src]="qrDataUrl()"
                         alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                        data-markdown-image-lightbox="true"
                         class="feedback-host__join-menu-qr app-qr-image"
                         width="320"
                         height="320"
