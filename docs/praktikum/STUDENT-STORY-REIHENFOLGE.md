@@ -3,12 +3,12 @@
 # Didaktische Reihenfolge: Offene User Stories
 
 **Zielgruppe:** Betreuende, Studierende im Praktikum  
-**Voraussetzung:** Die folgende Reihenfolge richtet sich nach den **aktuell offenen Stories** im Produkt-Backlog. Bereits erledigte Stories sind aus der studentischen Ticketstrecke entfernt; das betrifft jetzt insbesondere **2.1c**, die im Backlog als **✅ Fertig** geführt wird. **Story 1.7a** bleibt ein Sonderfall: Wenn die **Greenfield-Demo** (3×45 Min.) die Story inhaltlich vollständig abdeckt, gehört sie **nicht** zur regulären studentischen Ticketstrecke; andernfalls wird sie direkt vor **1.7b** eingeschoben. **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. Die **Reihenfolge** bleibt entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn die **Umsetzung überwiegend mit KI-Unterstützung** erfolgt und die studierende Person **überwacht, steuert und abnimmt**.
+**Voraussetzung:** Die folgende Reihenfolge richtet sich nach den **aktuell offenen Stories** im Produkt-Backlog. Bereits erledigte Stories sind aus der studentischen Ticketstrecke entfernt; das betrifft jetzt insbesondere **2.1c**, die im Backlog als **✅ Fertig** geführt wird. **Story 1.7a** bleibt ein Sonderfall: Wenn die **Greenfield-Demo** (3×45 Min.) die Story inhaltlich vollständig abdeckt, gehört sie **nicht** zur regulären studentischen Ticketstrecke; andernfalls wird sie direkt vor **1.7b** eingeschoben. **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. Die **Reihenfolge** bleibt entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn du **überwiegend mit KI-Unterstützung** arbeitest und die Umsetzung **überwachst, steuerst und abnimmst**.
 
 **Verbindlicher Rahmen:** Jede studierende Person bearbeitet die **gesamte Ticketstrecke** in der hier empfohlenen Reihenfolge. Der frühere Regelfall **„Pflichtkern + Vertiefungspfad“** gilt für dieses Dokument nicht mehr.
 
 **Referenz:** [`Backlog.md`](../../Backlog.md) (Status ⬜ Offen).  
-**Stand dieser Empfehlung:** 2026-04-05 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
+**Stand dieser Empfehlung:** 2026-04-07 — bei Änderungen im Backlog Reihenfolge und Begründungen anpassen.
 
 ## Kurz gesagt
 
@@ -52,7 +52,7 @@ Kurz übersetzt:
 - **Die KI** hilft beim Umsetzen, entscheidet aber nicht über Richtigkeit.
 - **Die Betreuung** hilft bei Scope, Reihenfolge und riskanten Themen.
 
-- **Studierende Person:** Versteht die Story, zerlegt sie in Schritte, formuliert Aufträge an die KI, **liest Diff und Tests**, führt manuelle Checks aus und dokumentiert kurz das Ergebnis.
+- **Du:** Verstehst die Story, zerlegst sie in Schritte, formulierst Aufträge an die KI, **liest Diff und Tests**, führst manuelle Checks aus und dokumentierst kurz das Ergebnis.
 - **KI:** Implementiert nach Vorgabe; **kein Ersatz** für Abnahme gegen Backlog und DoD.
 - **Betreuung:** Reihenfolge durchsetzen oder begründet abweichen; bei Security-/Querschnitts-Stories zusätzliche Review-Zeit einplanen.
 
@@ -60,7 +60,7 @@ Kurz übersetzt:
 
 ## 3. Verbindliche Reihenfolge aller Studententickets
 
-Die folgende Struktur listet die **offenen, für Studierende relevanten Stories** didaktisch geordnet. **Epic 10 (MOTD)** bleibt herausgenommen, weil es laut Backlog bereits fertig ist. **2.1c** ist ebenfalls entfernt, weil die Story inzwischen umgesetzt ist. **1.7a** ist nur dann Teil der Strecke, wenn sie nicht schon durch die Greenfield-Demo vollständig abgedeckt wurde.
+Die folgende Struktur listet die **offenen, für dich relevanten Stories** didaktisch geordnet. **Epic 10 (MOTD)** bleibt herausgenommen, weil es laut Backlog bereits fertig ist. **2.1c** ist ebenfalls entfernt, weil die Story inzwischen umgesetzt ist. **1.7a** ist nur dann Teil der Strecke, wenn sie nicht schon durch die Greenfield-Demo vollständig abgedeckt wurde.
 
 ### 3.1 Verbindliche Ticketstrecke
 
