@@ -1,0 +1,27 @@
+<div class="markdown-image-lightbox">
+  <button
+    mat-flat-button
+    type="button"
+    class="markdown-image-lightbox__close"
+    mat-dialog-close
+    i18n-aria-label="@@markdownImageLightbox.closeAria"
+    aria-label="Bildansicht schließen"
+  >
+    <mat-icon aria-hidden="true">close</mat-icon>
+    <span i18n="@@markdownImageLightbox.close">Schließen</span>
+  </button>
+
+  <div class="markdown-image-lightbox__viewport">
+    <figure class="markdown-image-lightbox__figure">
+      <img
+        class="markdown-image-lightbox__image"
+        [src]="data.src"
+        [alt]="data.alt"
+        decoding="async"
+      />
+      @if (caption(); as caption) {
+        <figcaption class="markdown-image-lightbox__caption">{{ caption }}</figcaption>
+      }
+    </figure>
+  </div>
+</div>

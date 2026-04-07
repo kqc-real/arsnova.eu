@@ -46,6 +46,7 @@ import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
   renderMarkdownWithoutKatex,
 } from '../../shared/markdown-katex.util';
+import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { AdminMotdTemplateDialogComponent } from './admin-motd-template-dialog.component';
 
 const ADMIN_MOTD_DATE_LOCALE: Record<string, string> = {
@@ -79,6 +80,7 @@ const ADMIN_MOTD_DATE_LOCALE: Record<string, string> = {
     MatTimepickerModule,
     MatExpansionModule,
     MatTooltipModule,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './admin-motd-panel.component.html',
   styleUrl: './admin-motd-panel.component.scss',

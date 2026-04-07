@@ -53,6 +53,7 @@ import {
   appendMotdContentVersionToAssetImgSrc,
   renderMarkdownWithoutKatex,
 } from '../../shared/markdown-katex.util';
+import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 
 @Component({
   selector: 'app-home',
@@ -72,6 +73,7 @@ import {
     MatIcon,
     MatIconButton,
     MatTooltip,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['../../shared/styles/dialog-title-header.scss', './home.component.scss'],

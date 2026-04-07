@@ -63,6 +63,7 @@ import {
   type SupportedQuestionType,
 } from '../data/quiz-store.service';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import {
   focusAndScrollElement,
   focusFirstInvalidField,
@@ -145,6 +146,7 @@ type QuizMetadataFormGroup = FormGroup<{
     CdkDrag,
     CdkDragHandle,
     CdkDragPlaceholder,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './quiz-edit.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-edit.component.scss'],

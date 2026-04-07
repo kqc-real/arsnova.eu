@@ -28,6 +28,7 @@ import type {
 } from '@arsnova/shared-types';
 import { recordServerTimeIso } from '../session-server-clock';
 import { localizePath } from '../../../core/locale-router';
+import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
@@ -44,6 +45,7 @@ import { localizePath } from '../../../core/locale-router';
     MatIcon,
     RouterLink,
     WordCloudComponent,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './session-present.component.html',
   styleUrl: './session-present.component.scss',

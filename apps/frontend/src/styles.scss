@@ -527,6 +527,58 @@ html.dark .cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
   margin: 0 !important;
 }
 
+.cdk-overlay-backdrop.markdown-image-lightbox-dialog-backdrop {
+  background: rgb(7 10 16 / 88%);
+  backdrop-filter: blur(8px);
+}
+
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel {
+  inset: 0 !important;
+  margin: 0 !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+}
+
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mat-mdc-dialog-inner-container,
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mdc-dialog__container,
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mat-mdc-dialog-container,
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mat-mdc-dialog-surface,
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mat-mdc-dialog-content {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mat-mdc-dialog-inner-container,
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mdc-dialog__container {
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.cdk-overlay-pane.markdown-image-lightbox-dialog-panel .mat-mdc-dialog-content {
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+.markdown-lightbox-enabled img[data-markdown-image-lightbox='true'],
+img[data-markdown-image-lightbox='true'] {
+  cursor: -webkit-zoom-in !important;
+  cursor: zoom-in !important;
+}
+
 /* Markdown (MOTD …): Flex-Eltern dürfen unter natürlicher Bildbreite schrumpfen (sonst kein max-width:100%) */
 .markdown-body {
   min-width: 0;

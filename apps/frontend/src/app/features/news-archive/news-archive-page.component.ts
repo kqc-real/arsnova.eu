@@ -14,6 +14,7 @@ import { setMotdArchiveSeenUpToEndsAtIso } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
+import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { sortMotdArchiveItemsNewFirst } from '../../shared/motd-archive-sort.util';
 import type { NewsArchiveInitialModel } from './news-archive-initial';
 
@@ -45,7 +46,7 @@ function appLocaleFromInjectedId(localeId: string): AppLocale {
 @Component({
   selector: 'app-news-archive-page',
   standalone: true,
-  imports: [MatButton, MatIcon, MatProgressSpinner, MatTooltip],
+  imports: [MatButton, MatIcon, MatProgressSpinner, MatTooltip, MarkdownImageLightboxDirective],
   templateUrl: './news-archive-page.component.html',
   styleUrls: [
     '../../shared/styles/dialog-title-header.scss',

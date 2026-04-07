@@ -1,5 +1,6 @@
 <section
   class="session-host"
+  appMarkdownImageLightbox
   [class.session-host--lobby]="effectiveStatus() === 'LOBBY'"
   [class.session-host--team-mode]="session()?.teamMode === true"
   [class.session-host--with-channel-tabs]="showChannelTabs()"
@@ -382,6 +383,7 @@
                     <img
                       class="session-lobby__quiz-motif"
                       [src]="motifUrl"
+                      data-markdown-image-lightbox="true"
                       i18n-alt="@@sessionHost.quizMotifImageAlt"
                       alt="Motivbild zum Quiz"
                       loading="lazy"
@@ -1246,6 +1248,7 @@
                       <img
                         class="session-host__run-quiz-motif"
                         [src]="runMotifUrl"
+                        data-markdown-image-lightbox="true"
                         i18n-alt="@@sessionHost.quizMotifImageAlt"
                         alt="Motivbild zum Quiz"
                         loading="lazy"

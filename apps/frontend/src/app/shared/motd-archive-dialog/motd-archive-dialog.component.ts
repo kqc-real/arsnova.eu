@@ -28,6 +28,7 @@ import {
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
+import { MarkdownImageLightboxDirective } from '../markdown-image-lightbox/markdown-image-lightbox.directive';
 import { buildMotdArchiveItemDisplay } from '../motd-archive-render.util';
 import { sortMotdArchiveItemsNewFirst } from '../motd-archive-sort.util';
 
@@ -59,6 +60,7 @@ const ARCHIVE_DATE_LOCALE: Record<AppLocale, string> = {
     MatExpansionPanelHeader,
     MatExpansionPanelTitle,
     MatExpansionPanelDescription,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './motd-archive-dialog.component.html',
   styleUrls: ['../styles/dialog-title-header.scss', './motd-archive-dialog.component.scss'],

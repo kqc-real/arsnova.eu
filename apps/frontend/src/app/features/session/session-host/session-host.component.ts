@@ -67,6 +67,7 @@ import type {
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
+import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
@@ -244,6 +245,7 @@ function musicTracksForPhase(
     CountdownFingersComponent,
     MusicEqualizerIconComponent,
     FeedbackHostComponent,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './session-host.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-host.component.scss'],

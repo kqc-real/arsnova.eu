@@ -1,7 +1,7 @@
 @if (isPreviewActive()) {
   <router-outlet />
 } @else if (quiz(); as quizData) {
-  <section class="quiz-edit l-stack l-stack--md">
+  <section class="quiz-edit l-stack l-stack--md" appMarkdownImageLightbox>
     <header class="quiz-edit__page-head dialog-title-header dialog-title-header--page">
       <span class="dialog-title-header__icon" aria-hidden="true">
         <mat-icon>edit_square</mat-icon>

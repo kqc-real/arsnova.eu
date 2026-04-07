@@ -37,6 +37,7 @@ import type {
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
+import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
@@ -180,6 +181,7 @@ function getContextMotivation(
     CountdownFingersComponent,
     DecimalPipe,
     FeedbackVoteComponent,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './session-vote.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-vote.component.scss'],

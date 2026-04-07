@@ -14,6 +14,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { trpc } from '../../core/trpc.client';
 import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
+import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 
 export type AdminMotdTemplateDialogData = { templateId: string | null };
 
@@ -30,6 +31,7 @@ export type AdminMotdTemplateDialogData = { templateId: string | null };
     MatLabel,
     MatInput,
     MatProgressSpinner,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './admin-motd-template-dialog.component.html',
   styleUrls: [

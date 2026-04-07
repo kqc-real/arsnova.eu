@@ -49,6 +49,7 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
+import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 
 /**
  * Quiz-Liste (Epic 1).
@@ -73,6 +74,7 @@ import {
     MatMenuItem,
     MatMenuTrigger,
     MatTooltip,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './quiz-list.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-list.component.scss'],

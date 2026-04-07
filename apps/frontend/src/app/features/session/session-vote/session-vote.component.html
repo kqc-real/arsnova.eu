@@ -1,6 +1,7 @@
 @if (showSessionEndGate()) {
   <div
     class="vote-page vote-page--session-end-gate"
+    appMarkdownImageLightbox
     role="dialog"
     aria-modal="true"
     aria-labelledby="session-end-gate-title"
@@ -188,7 +189,11 @@
     </button>
   </div>
 } @else {
-  <div class="vote-page" [class.vote-page--with-channel-tabs]="showChannelTabs()">
+  <div
+    class="vote-page"
+    appMarkdownImageLightbox
+    [class.vote-page--with-channel-tabs]="showChannelTabs()"
+  >
     @if (showChannelTabs()) {
       <div class="session-channel-tabs-shell">
         <mat-button-toggle-group

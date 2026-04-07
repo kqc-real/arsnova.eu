@@ -74,7 +74,11 @@
       <p class="admin-motd-tpl-dialog__preview-hint" i18n="@@admin.motd.previewHintTpl">
         Entspricht der Darstellung auf der Startseite (Markdown, ohne Formeln).
       </p>
-      <div class="admin-motd-tpl-dialog__preview markdown-body" [innerHTML]="previewHtml()"></div>
+      <div
+        class="admin-motd-tpl-dialog__preview markdown-body"
+        appMarkdownImageLightbox
+        [innerHTML]="previewHtml()"
+      ></div>
     </section>
 
     <h3 class="admin-motd-tpl-dialog__locale" i18n="@@admin.motd.localeEn">Englisch</h3>

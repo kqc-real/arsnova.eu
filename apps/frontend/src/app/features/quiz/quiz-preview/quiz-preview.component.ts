@@ -43,6 +43,7 @@ import {
 import { LiveSessionDialogComponent } from '../quiz-list/live-session-dialog.component';
 import { localizeCommands } from '../../../core/locale-router';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
 
 /**
@@ -52,7 +53,15 @@ import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/ques
 @Component({
   selector: 'app-quiz-preview',
   standalone: true,
-  imports: [RouterLink, MatButton, MatCard, MatCardContent, MatIcon, MatProgressBar],
+  imports: [
+    RouterLink,
+    MatButton,
+    MatCard,
+    MatCardContent,
+    MatIcon,
+    MatProgressBar,
+    MarkdownImageLightboxDirective,
+  ],
   templateUrl: './quiz-preview.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-preview.component.scss'],
 })

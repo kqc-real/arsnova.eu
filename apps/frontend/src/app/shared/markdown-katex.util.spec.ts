@@ -50,6 +50,7 @@ describe('renderMarkdownWithoutKatex', () => {
     const html = renderMarkdownWithoutKatex('![Kurzinfo](assets/demo/x.svg)');
     expect(html).toMatch(/alt="Kurzinfo"/);
     expect(html).toMatch(/title="Kurzinfo"/);
+    expect(html).toMatch(/data-markdown-image-lightbox="true"/);
   });
 
   it('nutzt optionalen Markdown-Bildtitel als title-Attribut', () => {

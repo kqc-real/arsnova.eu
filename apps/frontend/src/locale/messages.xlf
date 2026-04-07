@@ -10125,6 +10125,20 @@
           <context context-type="linenumber">743</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="markdownImageLightbox.closeAria" datatype="html">
+        <source>Bildansicht schließen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-image-lightbox/markdown-image-lightbox-dialog.component.html</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="markdownImageLightbox.close" datatype="html">
+        <source>Schließen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-image-lightbox/markdown-image-lightbox-dialog.component.html</context>
+          <context context-type="linenumber">10</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

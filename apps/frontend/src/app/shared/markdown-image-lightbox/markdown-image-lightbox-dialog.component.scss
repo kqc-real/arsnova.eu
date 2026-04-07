@@ -1,0 +1,95 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.markdown-image-lightbox {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.markdown-image-lightbox__viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.markdown-image-lightbox__figure {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.markdown-image-lightbox__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+  object-position: center;
+}
+
+.markdown-image-lightbox__caption {
+  position: absolute;
+  right: max(0.5rem, env(safe-area-inset-right));
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  left: max(0.5rem, env(safe-area-inset-left));
+  width: fit-content;
+  max-width: min(calc(100% - 1rem), 64rem);
+  margin-inline: auto;
+  padding: 0.625rem 0.875rem;
+  border-radius: 1rem;
+  background: rgb(15 18 24 / 72%);
+  color: #fff;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.markdown-image-lightbox__close {
+  position: absolute;
+  top: max(0.5rem, env(safe-area-inset-top));
+  right: max(0.5rem, env(safe-area-inset-right));
+  z-index: 2;
+  min-height: 3rem;
+  padding-inline: 1rem 1.125rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 24%);
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 16%),
+    0 0.75rem 2rem rgb(0 0 0 / 28%);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.markdown-image-lightbox__close:hover {
+  filter: brightness(1.04);
+}
+
+.markdown-image-lightbox__close:focus-visible {
+  outline: 3px solid rgb(255 255 255 / 82%);
+  outline-offset: 2px;
+}
+
+@media (max-width: 599px) {
+  .markdown-image-lightbox__close {
+    top: max(0.35rem, env(safe-area-inset-top));
+    right: max(0.35rem, env(safe-area-inset-right));
+    min-height: 2.75rem;
+  }
+
+  .markdown-image-lightbox__caption {
+    right: max(0.35rem, env(safe-area-inset-right));
+    bottom: max(0.35rem, env(safe-area-inset-bottom));
+    left: max(0.35rem, env(safe-area-inset-left));
+    padding: 0.5rem 0.75rem;
+  }
+}

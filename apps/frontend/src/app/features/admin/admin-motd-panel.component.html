@@ -407,7 +407,11 @@
 
         <h4 class="admin-motd__locale" i18n="@@admin.motd.previewTitle">Vorschau (Deutsch)</h4>
         @if (previewHtml(); as html) {
-          <div class="admin-motd__preview markdown-body" [innerHTML]="html"></div>
+          <div
+            class="admin-motd__preview markdown-body"
+            appMarkdownImageLightbox
+            [innerHTML]="html"
+          ></div>
         }
 
         <div class="admin-motd__save">
