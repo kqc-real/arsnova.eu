@@ -4,7 +4,7 @@
 
 **Kontext:** Kurs **Softwarequalitätsmanagement** in der Fallstudie **arsnova.eu** · **Zielgruppe:** Studierende nach dem Bearbeiten der didaktischen Ticket-Reihenfolge und der SQM-Aufgaben (siehe [`STUDENT-STORY-REIHENFOLGE.md`](./STUDENT-STORY-REIHENFOLGE.md) und [`PRAKTIKUM-SQM.md`](./PRAKTIKUM-SQM.md))  
 **Zweck:** Dieses Dokument gibt euch eine klare, eigenständige Orientierung für Themenwahl, Abgrenzung, Nachweise und Gewichtung der vier Referate. Es ersetzt keine Vorgaben der Betreuung.  
-**Backlog-Stand:** 93 Stories (79 erledigt, 14 offen) – bei größeren Änderungen in [`Backlog.md`](../../Backlog.md) bitte Beispiele, Begriffe und Nachweise aktualisieren.
+**Backlog-Stand:** 93 Stories (80 erledigt, 13 offen) – bei größeren Änderungen in [`Backlog.md`](../../Backlog.md) bitte Beispiele, Begriffe und Nachweise aktualisieren.
 
 ## Kurz gesagt
 

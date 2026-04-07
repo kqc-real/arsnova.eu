@@ -3,7 +3,7 @@
 # Didaktische Reihenfolge: Offene User Stories
 
 **Zielgruppe:** Betreuende, Studierende im Praktikum  
-**Voraussetzung:** Die folgende Reihenfolge richtet sich nach den **aktuell offenen Stories** im Produkt-Backlog. Bereits erledigte Stories sind aus der studentischen Ticketstrecke entfernt; das betrifft jetzt insbesondere **2.1c**, die im Backlog als **✅ Fertig** geführt wird. **Story 1.7a** bleibt ein Sonderfall: Wenn die **Greenfield-Demo** (3×45 Min.) die Story inhaltlich vollständig abdeckt, gehört sie **nicht** zur regulären studentischen Ticketstrecke; andernfalls wird sie direkt vor **1.7b** eingeschoben. **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. Die **Reihenfolge** bleibt entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn du **überwiegend mit KI-Unterstützung** arbeitest und die Umsetzung **überwachst, steuerst und abnimmst**.
+**Voraussetzung:** Die folgende Reihenfolge richtet sich nach den **aktuell offenen Stories** im Produkt-Backlog. Bereits erledigte Stories sind aus der studentischen Ticketstrecke entfernt; das betrifft jetzt insbesondere **2.1c** und **1.7a**, die im Backlog als **✅ Fertig** geführt werden. **Epic 10 (MOTD)** bleibt im Repo **bereits fertig** und dient bei Bedarf als Referenzcode. Die **Reihenfolge** bleibt entscheidend für **Verständnis**, **Lernkurve** und **Review-Sicherheit**, wenn du **überwiegend mit KI-Unterstützung** arbeitest und die Umsetzung **überwachst, steuerst und abnimmst**.
 
 **Verbindlicher Rahmen:** Jede studierende Person bearbeitet die **gesamte Ticketstrecke** in der hier empfohlenen Reihenfolge. Der frühere Regelfall **„Pflichtkern + Vertiefungspfad“** gilt für dieses Dokument nicht mehr.
 
@@ -17,12 +17,12 @@ Wenn du nur wissen willst, **was das für dich praktisch heißt**, dann ist der 
 - Du bearbeitest **alle Tickets dieser Liste** selbst.
 - Du startest nach der Vorlesungs-Demo mit **5.4a** und gehst die Liste dann **in Reihenfolge** durch.
 - **2.1c** ist aus der studentischen Strecke herausgenommen, weil die Story laut Backlog bereits umgesetzt ist.
-- **1.7a** kommt nur dann als zusätzliches Ticket dazu, wenn die Vorlesungs-Demo die Story **nicht** vollständig abdeckt.
+- **1.7a** ist bereits durch die Greenfield-Demo und den Produktstand abgedeckt und gehört **nicht** zur studentischen Ticketstrecke.
 - Die Strecke ist didaktisch bewusst aufgebaut: **kleiner Einstieg → Q&A-Logik → größere Produktflächen → Qualität/Querschnitt → Security-Härtung**.
 
 ---
 
-## 0. Einstieg: Greenfield 1.7a — diese Story ist nur bei Bedarf Teil der Ticketstrecke
+## 0. Einstieg: Greenfield 1.7a — Referenz, kein Studententicket
 
 Der Einstieg beginnt mit einer **Greenfield-Demo** am Beamer: **Story 1.7a** (Markdown-Bilder: nur URL + Lightbox) — **3×45 Minuten** (135 Min.), Leitfaden: [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](../didaktik/greenfield-demo-1-7a-vorlesung.md).
 
@@ -60,7 +60,7 @@ Kurz übersetzt:
 
 ## 3. Verbindliche Reihenfolge aller Studententickets
 
-Die folgende Struktur listet die **offenen, für dich relevanten Stories** didaktisch geordnet. **Epic 10 (MOTD)** bleibt herausgenommen, weil es laut Backlog bereits fertig ist. **2.1c** ist ebenfalls entfernt, weil die Story inzwischen umgesetzt ist. **1.7a** ist nur dann Teil der Strecke, wenn sie nicht schon durch die Greenfield-Demo vollständig abgedeckt wurde.
+Die folgende Struktur listet die **offenen, für dich relevanten Stories** didaktisch geordnet. **Epic 10 (MOTD)** bleibt herausgenommen, weil es laut Backlog bereits fertig ist. **2.1c** und **1.7a** sind ebenfalls entfernt, weil die Stories inzwischen umgesetzt sind.
 
 ### 3.1 Verbindliche Ticketstrecke
 
@@ -79,9 +79,9 @@ Die folgende Struktur listet die **offenen, für dich relevanten Stories** didak
 | 11  | **6.5**   | Barrierefreiheit (Prüfung Projektende) | Querschnitt, Audit, A11y                  | **Später Querschnitt:** sinnvoll, wenn die relevanten UI-Flächen bereits stehen und nicht mehr im Stundenrhythmus umgebaut werden.                           |
 | 12  | **1.6c**  | Sync-Sicherheit härten                 | Security, verteilte Logik, Review-Tiefe   | **Höchstes Fehlerrisiko:** kommt bewusst zuletzt, wenn Architekturverständnis, Prüfdisziplin und Review-Sorgfalt aufgebaut sind.                             |
 
-### 3.2 Bedingtes Zusatz-Ticket: 1.7a
+### 3.2 Greenfield-Referenz: 1.7a
 
-Wenn die Greenfield-Demo **1.7a** nicht vollständig abdeckt, wird die Story als **zusätzliches Ticket direkt vor 1.7b** eingefügt. Inhaltlich gehört sie in dieselbe Lernstufe wie der Editor-Ausbau, nicht an den Anfang der gesamten Strecke.
+Die Greenfield-Demo **1.7a** bleibt als gemeinsame Referenz für Markdown-Pipeline, Lightbox, i18n und Tests relevant. Als **umgesetzte Story** gehört sie aber **nicht** mehr in die studentische Ticketstrecke.
 
 ---
 
@@ -114,7 +114,6 @@ Kurz und wiederholbar — unabhängig von der Story-Nummer:
 Abweichungen sind möglich, aber nur **begründet und dokumentiert**, z. B.:
 
 - Eine Backlog-Änderung verschiebt die fachliche Priorität deutlich; dann muss die Reihenfolge in diesem Dokument mitangepasst werden.
-- **1.7a** ist in der Vorlesung nicht ausreichend abgedeckt; dann wird die Story vor **1.7b** eingeschoben.
 - Ein technischer Blocker macht eine Vorziehung nötig; auch dann bleibt die Grundlogik erhalten: kleine Features vor Querschnitt, Querschnitt vor Security-Härtung.
 
 ---

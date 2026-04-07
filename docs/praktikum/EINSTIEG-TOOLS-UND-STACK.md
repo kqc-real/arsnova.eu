@@ -19,7 +19,7 @@ Für den Einstieg reicht eine **solide Grundorientierung**. Du musst zu Beginn *
 
 Welche **weiteren** Dokumente für deine Veranstaltung Pflicht sind, sagt dir die **Betreuung**. Dieses Dokument ist die gemeinsame Landkarte für den technischen Einstieg.
 
-**Je nach Veranstaltung:** Die Lehrperson kann den Einstieg über eine **Greenfield-Demo** zu **Story 1.7a** ergänzen. Das hilft beim Überblick über Repo, Werkzeuge und Arbeitsweise, ersetzt aber **nicht** das praktische Setup.
+**Zum Veranstaltungsstart:** Die Lehrperson ergänzt den Einstieg durch eine **Greenfield-Demo** zu **Story 1.7a**. Das hilft beim Überblick über Repo, Werkzeuge und Arbeitsweise, ersetzt aber **nicht** das praktische Setup.
 
 **Wenn du nur den ersten lauffaehigen Stand brauchst:** `cp .env.example .env` → `npm ci` → `npm run setup:dev` → `npm run dev` → Browser auf **`http://localhost:4200`**. Das ist fuer Einsteiger der einfachste Start.
 
