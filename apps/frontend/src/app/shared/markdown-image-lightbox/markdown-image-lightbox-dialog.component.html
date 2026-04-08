@@ -11,13 +11,33 @@
     <span i18n="@@markdownImageLightbox.close">Schließen</span>
   </button>
 
-  <div class="markdown-image-lightbox__viewport">
-    <figure class="markdown-image-lightbox__figure">
+  <div
+    #viewport
+    class="markdown-image-lightbox__viewport"
+    [class.markdown-image-lightbox__viewport--zoomed]="isZoomed()"
+    [class.markdown-image-lightbox__viewport--dragging]="isDragging()"
+    [style.transform]="viewportTransform()"
+    [style.opacity]="viewportOpacity()"
+    (dblclick)="onDoubleClick($event)"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerCancel($event)"
+  >
+    <figure
+      class="markdown-image-lightbox__figure"
+      [class.markdown-image-lightbox__figure--zoomed]="isZoomed()"
+    >
       <img
         class="markdown-image-lightbox__image"
         [src]="data.src"
         [alt]="data.alt"
         decoding="async"
+        draggable="false"
+        [style.transform]="imageTransform()"
+        [class.markdown-image-lightbox__image--zoomed]="isZoomed()"
+        [class.markdown-image-lightbox__image--dragging]="isDragging()"
+        (load)="onImageLoad($event)"
       />
       @if (caption(); as caption) {
         <figcaption class="markdown-image-lightbox__caption">{{ caption }}</figcaption>

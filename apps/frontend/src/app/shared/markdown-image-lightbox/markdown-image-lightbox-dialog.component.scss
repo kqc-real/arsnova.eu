@@ -2,6 +2,7 @@
   display: block;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .markdown-image-lightbox {
@@ -10,12 +11,28 @@
   height: 100%;
   padding: 0;
   box-sizing: border-box;
+  overflow: hidden;
+  animation: markdown-image-lightbox-enter 180ms cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
 .markdown-image-lightbox__viewport {
   position: relative;
   width: 100%;
   height: 100%;
+  touch-action: none;
+  user-select: none;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+  will-change: transform, opacity;
+}
+
+.markdown-image-lightbox__viewport--zoomed {
+  transition: none;
+}
+
+.markdown-image-lightbox__viewport--dragging {
+  cursor: grabbing;
 }
 
 .markdown-image-lightbox__figure {
@@ -23,6 +40,13 @@
   width: 100%;
   height: 100%;
   margin: 0;
+  overflow: hidden;
+}
+
+.markdown-image-lightbox__figure--zoomed .markdown-image-lightbox__caption {
+  opacity: 0;
+  transform: translateY(0.5rem);
+  pointer-events: none;
 }
 
 .markdown-image-lightbox__image {
@@ -33,6 +57,19 @@
   min-height: 0;
   object-fit: contain;
   object-position: center;
+  transform-origin: center center;
+  transition: transform 180ms ease;
+  will-change: transform;
+  cursor: zoom-in;
+}
+
+.markdown-image-lightbox__image--zoomed {
+  transition: none;
+  cursor: grab;
+}
+
+.markdown-image-lightbox__image--dragging {
+  cursor: grabbing;
 }
 
 .markdown-image-lightbox__caption {
@@ -50,6 +87,9 @@
   font: var(--mat-sys-body-medium);
   line-height: 1.45;
   text-align: center;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
 }
 
 .markdown-image-lightbox__close {
@@ -68,6 +108,29 @@
     0 0.75rem 2rem rgb(0 0 0 / 28%);
   font-weight: 700;
   letter-spacing: 0.01em;
+}
+
+@keyframes markdown-image-lightbox-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown-image-lightbox {
+    animation: none;
+  }
+
+  .markdown-image-lightbox__viewport,
+  .markdown-image-lightbox__image,
+  .markdown-image-lightbox__caption {
+    transition: none;
+  }
 }
 
 .markdown-image-lightbox__close:hover {
