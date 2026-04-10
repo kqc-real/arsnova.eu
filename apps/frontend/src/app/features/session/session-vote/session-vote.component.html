@@ -682,7 +682,7 @@
         </div>
       } @else if (isQuestionOpen()) {
         @if (currentQuestion(); as q) {
-          <div class="vote-question">
+          <div class="vote-question" id="vote-quiz-question-anchor">
             <p class="vote-question__label">
               <span>{{ vpc.voteQuestionLabel(isPlayfulPreset(), q.order + 1) }}</span>
               @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
@@ -703,7 +703,7 @@
         }
       } @else if (isDiscussion()) {
         @if (currentQuestion(); as q) {
-          <div class="vote-question">
+          <div class="vote-question" id="vote-quiz-question-anchor">
             <p class="vote-question__label">
               <span>{{ vpc.voteQuestionLabel(isPlayfulPreset(), q.order + 1) }}</span>
               @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
@@ -725,7 +725,11 @@
         }
       } @else if (isActive() || isResults()) {
         @if (currentQuestion(); as q) {
-          <div class="vote-question" [class.vote-question--round2]="currentRound() === 2">
+          <div
+            class="vote-question"
+            id="vote-quiz-question-anchor"
+            [class.vote-question--round2]="currentRound() === 2"
+          >
             @if (currentRound() === 2 && isActive() && !voteSent()) {
               <p class="vote-round2-banner" role="status" aria-live="polite">
                 {{ vpc.voteRound2Banner(isPlayfulPreset()) }}
@@ -1002,12 +1006,61 @@
                   }
                 </div>
 
+                @if (scorecardStreakCallout(); as st) {
+                  <div class="vote-scorecard__streak-callout" role="status" aria-live="polite">
+                    <mat-icon class="vote-scorecard__streak-callout-icon" aria-hidden="true"
+                      >local_fire_department</mat-icon
+                    >
+                    <div class="vote-scorecard__streak-callout-body">
+                      <span class="vote-scorecard__streak-callout-eyebrow">{{
+                        vpc.voteScorecardStreakCalloutHeading(isPlayfulPreset())
+                      }}</span>
+                      <div
+                        class="vote-scorecard__streak-callout-row vote-scorecard__streak-callout-row--factor"
+                      >
+                        <span class="vote-scorecard__streak-callout-label">{{
+                          vpc.voteScorecardStreakFactorCaption(isPlayfulPreset())
+                        }}</span>
+                        <span class="vote-scorecard__streak-callout-value"
+                          >×{{ st.multiplier | number: '1.0-2' }}</span
+                        >
+                      </div>
+                      <div
+                        class="vote-scorecard__streak-callout-row vote-scorecard__streak-callout-row--bonus"
+                      >
+                        <span class="vote-scorecard__streak-callout-label">{{
+                          vpc.voteScorecardStreakExtraCaption(isPlayfulPreset())
+                        }}</span>
+                        <span
+                          class="vote-scorecard__streak-callout-value vote-scorecard__streak-callout-value--bonus"
+                          >+{{ st.bonusPoints | number }}</span
+                        >
+                      </div>
+                      <p class="vote-scorecard__streak-callout-foot">
+                        {{ vpc.voteScorecardStreakInARow(st.streakCount, isPlayfulPreset()) }}
+                      </p>
+                    </div>
+                  </div>
+                }
+
                 <div class="vote-scorecard__stats">
                   <div class="vote-scorecard__stat">
                     <span class="vote-scorecard__stat-value">{{ sc.questionScore | number }}</span>
                     <span class="vote-scorecard__stat-label" i18n>Punkte</span>
+                    @if (scorecardStreakCallout(); as stb) {
+                      <p class="vote-scorecard__points-breakdown">
+                        {{
+                          vpc.voteScorecardPointsBreakdownLine(
+                            sc.baseScore,
+                            sc.questionScore,
+                            stb.multiplier,
+                            isPlayfulPreset()
+                          )
+                        }}
+                      </p>
+                    }
                   </div>
-                  @if (sc.streakCount >= 2) {
+                  @if (sc.streakCount >= 2 && !scorecardStreakCallout()) {
                     <div class="vote-scorecard__stat">
                       <span class="vote-scorecard__stat-value vote-scorecard__streak">
                         @if (sc.streakCount >= 3) {

@@ -99,6 +99,13 @@ mat-dialog-actions {
   line-height: 1;
 }
 
+.status-help-dialog__metric-hint {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  line-height: 1.3;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .status-help-dialog__record {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

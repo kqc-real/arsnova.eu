@@ -12,6 +12,7 @@ const { prismaMock, isSessionCodeLockedOutMock, recordFailedSessionCodeAttemptMo
       },
       participant: {
         create: vi.fn(),
+        count: vi.fn(),
         findMany: vi.fn(),
       },
       vote: {
@@ -93,9 +94,13 @@ describe('session team mode (Story 7.1)', () => {
       { id: TEAM_B_ID, name: 'Team B', color: '#43A047', _count: { participants: 1 } },
     ]);
     prismaMock.participant.create.mockResolvedValue({ id: PARTICIPANT_ID });
+    prismaMock.participant.count.mockResolvedValue(3);
 
     const result = await caller.join({ code: 'ABC123', nickname: 'Ada', teamId: undefined });
 
+    expect(prismaMock.participant.count).toHaveBeenCalledWith({
+      where: { sessionId: SESSION_ID },
+    });
     expect(prismaMock.$executeRaw).toHaveBeenCalled();
     expect(prismaMock.participant.create).toHaveBeenCalledWith({
       data: {
@@ -129,9 +134,13 @@ describe('session team mode (Story 7.1)', () => {
       { id: TEAM_B_ID, name: 'Team B', color: '#43A047', _count: { participants: 0 } },
     ]);
     prismaMock.participant.create.mockResolvedValue({ id: PARTICIPANT_ID });
+    prismaMock.participant.count.mockResolvedValue(1);
 
     const result = await caller.join({ code: 'ABC123', nickname: 'Ada', teamId: TEAM_A_ID });
 
+    expect(prismaMock.participant.count).toHaveBeenCalledWith({
+      where: { sessionId: SESSION_ID },
+    });
     expect(prismaMock.$executeRaw).toHaveBeenCalled();
     expect(prismaMock.participant.create).toHaveBeenCalledWith({
       data: {

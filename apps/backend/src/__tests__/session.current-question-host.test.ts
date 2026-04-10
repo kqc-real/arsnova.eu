@@ -5,6 +5,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     session: {
       findUnique: vi.fn(),
     },
+    vote: {
+      findMany: vi.fn(),
+    },
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
@@ -37,6 +40,7 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.vote.findMany.mockResolvedValue([]);
   });
 
   it('liefert aktuelle Frage mit Antwortoptionen und isCorrect', async () => {
@@ -70,6 +74,101 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     expect(result!.answers).toHaveLength(2);
     expect(result!.answers[0]).toEqual({ id: a1Id, text: '3', isCorrect: false });
     expect(result!.answers[1]).toEqual({ id: a2Id, text: '4', isCorrect: true });
+  });
+
+  it('liefert in aktiver Runde 1 nur Stimmenzahl plus Peer-Instruction-Empfehlung ohne Verteilung', async () => {
+    const wrongId = 'aaaaaaaa-1111-4111-8111-111111111111';
+    const correctId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      quiz: {
+        defaultTimer: null,
+        preset: 'SERIOUS',
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            order: 0,
+            text: 'Was ist 2+2?',
+            type: 'SINGLE_CHOICE',
+            timer: null,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            answers: [
+              { id: wrongId, text: '3', isCorrect: false },
+              { id: correctId, text: '4', isCorrect: true },
+            ],
+          },
+        ],
+      },
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { selectedAnswers: [{ answerOptionId: correctId }] },
+      { selectedAnswers: [{ answerOptionId: correctId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+    ]);
+
+    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+    expect(result).not.toBeNull();
+    expect(result!.totalVotes).toBe(4);
+    expect(result!.peerInstructionSuggestion).toEqual({
+      suggested: true,
+      reason: 'CORRECTNESS_WINDOW',
+    });
+    expect(result!.voteDistribution).toBeUndefined();
+    expect(result!.correctVoterCount).toBeUndefined();
+  });
+
+  it('liefert keine Peer-Instruction-Empfehlung wenn Anteil vollstaendig korrekter Stimmen unter 35 %', async () => {
+    const wrongId = 'aaaaaaaa-1111-4111-8111-111111111111';
+    const correctId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      quiz: {
+        defaultTimer: null,
+        preset: 'SERIOUS',
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            order: 0,
+            text: 'Was ist 2+2?',
+            type: 'SINGLE_CHOICE',
+            timer: null,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            answers: [
+              { id: wrongId, text: '3', isCorrect: false },
+              { id: correctId, text: '4', isCorrect: true },
+            ],
+          },
+        ],
+      },
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { selectedAnswers: [{ answerOptionId: correctId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+    ]);
+
+    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+    expect(result).not.toBeNull();
+    expect(result!.totalVotes).toBe(4);
+    expect(result!.peerInstructionSuggestion).toBeUndefined();
   });
 
   it('liefert null wenn keine Session', async () => {

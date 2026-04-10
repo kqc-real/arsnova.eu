@@ -337,6 +337,13 @@
                 </div>
               </div>
               @if (qrDataUrl()) {
+                <p
+                  class="session-host__join-menu-qr-hint"
+                  i18n="@@sessionHost.joinMenuFullscreenHint"
+                >
+                  Wenn etwas abgeschnitten wirkt: Hier nach unten scrollen. Für eine größere Ansicht
+                  reicht ein Klick auf den QR-Code.
+                </p>
                 <div class="session-host__join-menu-qr-wrap">
                   <img
                     appMarkdownImageLightbox
@@ -936,7 +943,7 @@
                           <div
                             class="session-host__round-comparison"
                             role="img"
-                            i18n-aria-label
+                            i18n-aria-label="@@sessionHost.roundComparisonPeerInstructionAria"
                             aria-label="Vorher/Nachher-Vergleich Peer Instruction"
                           >
                             <div class="session-host__round-comparison-header">
@@ -1196,6 +1203,44 @@
                             </ul>
                           </div>
                         } @else if (q.answers.length > 0) {
+                          @if (shouldShowPeerInstructionSuggestion(q)) {
+                            <div
+                              class="session-host__peer-suggestion"
+                              role="status"
+                              aria-live="polite"
+                              aria-labelledby="session-host-peer-suggestion-title"
+                              aria-describedby="session-host-peer-suggestion-lead session-host-peer-suggestion-sub session-host-peer-suggestion-nextline"
+                            >
+                              <p
+                                id="session-host-peer-suggestion-title"
+                                class="session-host__peer-suggestion-title"
+                                i18n="@@sessionHost.peerSuggestionTitle"
+                              >
+                                Peer Instruction empfohlen
+                              </p>
+                              <p
+                                id="session-host-peer-suggestion-lead"
+                                class="session-host__peer-suggestion-lead"
+                                i18n="@@sessionHost.peerSuggestionLead"
+                              >
+                                35–70 % vollständig korrekt — zweite Runde passt.
+                              </p>
+                              <p
+                                id="session-host-peer-suggestion-sub"
+                                class="session-host__peer-suggestion-sub"
+                                i18n="@@sessionHost.peerSuggestionSub"
+                              >
+                                Erste Runde noch verborgen, bis du weiter machst.
+                              </p>
+                              <p
+                                id="session-host-peer-suggestion-nextline"
+                                class="session-host__peer-suggestion-next"
+                                i18n="@@sessionHost.peerSuggestionNext"
+                              >
+                                Diskussion starten oder Ergebnis zeigen.
+                              </p>
+                            </div>
+                          }
                           <ul class="session-host__answers" role="list">
                             @for (a of q.answers; track a.id; let i = $index) {
                               <li
@@ -1279,6 +1324,7 @@
               ) {
                 <div
                   class="session-host__emoji-reactions"
+                  [class.session-host__emoji-reactions--round2]="hostQuizVoteRound() === 2"
                   aria-labelledby="emoji-reactions-heading"
                 >
                   <p class="session-host__emoji-reactions-title" id="emoji-reactions-heading">
@@ -1286,6 +1332,19 @@
                     <span i18n="@@sessionHost.emojiReactionsTitle"
                       >Reaktionen der Teilnehmenden</span
                     >
+                    @if (hostQuizVoteRound() === 2) {
+                      <span
+                        class="session-host__emoji-round-badge session-host__emoji-round-badge--round2"
+                        i18n="@@sessionHost.emojiReactionsRound2"
+                        >2. Runde</span
+                      >
+                    } @else {
+                      <span
+                        class="session-host__emoji-round-badge session-host__emoji-round-badge--round1"
+                        i18n="@@sessionHost.emojiReactionsRound1"
+                        >1. Runde</span
+                      >
+                    }
                     @if (emojiNewCount() > 0) {
                       <span
                         class="session-host__emoji-new-badge"
@@ -1434,28 +1493,53 @@
                   effectiveStatus() === 'ACTIVE' && !isQaSession() && currentQuestionForHost();
                   as liveQ
                 ) {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="revealResults()"
-                  >
-                    <span i18n>Ergebnis zeigen</span>
-                  </button>
-                  @if (liveQ.currentRound === 1 && (liveQ.totalVotes ?? 0) > 0) {
+                  @if (shouldShowPeerInstructionSuggestion(liveQ)) {
                     <button
-                      matButton="tonal"
+                      mat-flat-button
+                      color="primary"
                       type="button"
-                      class="session-host__btn-discussion"
                       [disabled]="controlPending()"
                       (click)="startDiscussion()"
-                      i18n-aria-label
+                      i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
                       aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
                     >
                       <mat-icon aria-hidden="true">groups</mat-icon>
-                      <span i18n>Diskussionsphase</span>
+                      <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
                     </button>
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      [disabled]="controlPending()"
+                      (click)="revealResults()"
+                    >
+                      <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
+                        >Ergebnis trotzdem zeigen</span
+                      >
+                    </button>
+                  } @else {
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      type="button"
+                      [disabled]="controlPending()"
+                      (click)="revealResults()"
+                    >
+                      <span i18n>Ergebnis zeigen</span>
+                    </button>
+                    @if (liveQ.currentRound === 1 && (liveQ.totalVotes ?? 0) > 0) {
+                      <button
+                        matButton="tonal"
+                        type="button"
+                        class="session-host__btn-discussion"
+                        [disabled]="controlPending()"
+                        (click)="startDiscussion()"
+                        i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
+                        aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
+                      >
+                        <mat-icon aria-hidden="true">groups</mat-icon>
+                        <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
+                      </button>
+                    }
                   }
                 }
                 @if (isQuizAwaitingFirstQuestion()) {

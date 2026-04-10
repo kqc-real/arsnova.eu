@@ -691,8 +691,12 @@
   inset: 0;
   z-index: 1100;
   display: flex;
-  align-items: center;
+  flex-direction: row;
+  align-items: flex-start;
   justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: max(0.75rem, env(safe-area-inset-top, 0px)) max(0.75rem, env(safe-area-inset-right, 0px))
     max(0.75rem, env(safe-area-inset-bottom, 0px)) max(0.75rem, env(safe-area-inset-left, 0px));
   box-sizing: border-box;
@@ -711,6 +715,28 @@
 .session-host__join-viewport-overlay__surface {
   position: relative;
   width: 100%;
+  flex: 0 0 auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+/* Nur schmale Viewports: Scroll- und QR-Antipp-Hinweis (siehe Template) */
+.session-host__join-menu-qr-hint {
+  display: none;
+  margin: 0 0 0.35rem;
+  padding: 0 0.25rem;
+  font: var(--mat-sys-body-small);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+  text-wrap: balance;
+}
+
+@media (max-width: 599px) {
+  .session-host__join-menu-qr-hint {
+    display: block;
+  }
 }
 
 .session-host__join-viewport-overlay__close {
@@ -2428,10 +2454,21 @@
   border-radius: var(--mat-sys-corner-medium, 8px);
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
+
+  &--round2 {
+    border-color: color-mix(in srgb, var(--mat-sys-tertiary) 38%, var(--mat-sys-outline-variant));
+    background: color-mix(
+      in srgb,
+      var(--mat-sys-tertiary) 9%,
+      var(--mat-sys-surface-container-low)
+    );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent);
+  }
 }
 
 .session-host__emoji-reactions-title {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
@@ -2439,6 +2476,27 @@
   font: var(--mat-sys-title-small);
   font-weight: 600;
   color: var(--mat-sys-on-surface);
+}
+
+.session-host__emoji-round-badge {
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font: var(--mat-sys-label-small);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+.session-host__emoji-round-badge--round1 {
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 42%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, var(--mat-sys-surface-container-high));
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-host__emoji-round-badge--round2 {
+  border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 42%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 22%, transparent);
+  color: var(--mat-sys-on-tertiary-container);
 }
 
 .session-host__emoji-new-badge {
@@ -3228,6 +3286,55 @@ button.session-host__btn-discussion {
 // Vote-Verteilung (MC/SC/SURVEY)
 .session-host__vote-dist {
   padding: 0.25rem 0;
+}
+
+.session-host__peer-suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem 0.95rem 1.15rem;
+  border-radius: var(--mat-sys-corner-large, 0.75rem);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 26%, var(--mat-sys-outline));
+  border-inline-start: 4px solid var(--mat-sys-primary);
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-primary-container) 36%,
+    var(--mat-sys-surface-container-low)
+  );
+}
+
+.session-host__peer-suggestion-title {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+  color: var(--mat-sys-on-surface);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.session-host__peer-suggestion-lead {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--mat-sys-on-surface);
+  text-wrap: balance;
+}
+
+.session-host__peer-suggestion-sub {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-host__peer-suggestion-next {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
+  color: var(--mat-sys-primary);
+  font-weight: 600;
 }
 
 .session-host__vote-dist-total {

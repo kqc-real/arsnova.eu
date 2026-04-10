@@ -34,25 +34,27 @@ function getServerStatus(activeSessions: number): 'healthy' | 'busy' | 'overload
 
 /**
  * Zählt aktive Quick-Feedback-Runden ohne blockierendes Redis KEYS.
- * Nutzt cursor-basiertes SCAN und ignoriert interne voter-Sets.
+ * Nutzt cursor-basiertes SCAN. Nur Primär-Payload-Keys `qf:<code>` zählen — nicht
+ * `qf:voters:…`, `qf:choices:…`, `qf:choices:r1:…` oder `qf:host:…` (sonst mehrfache Zählung pro Runde).
  */
 async function countActiveBlitzRounds(): Promise<number> {
   const redis = getRedis();
   let cursor = '0';
-  const rounds = new Set<string>();
+  const primaryCodes = new Set<string>();
 
   do {
     const result = await redis.scan(cursor, 'MATCH', 'qf:*', 'COUNT', 200);
     cursor = result[0];
     const keys = result[1];
     for (const key of keys) {
-      if (!key.includes(':voters:')) {
-        rounds.add(key);
+      const segments = key.split(':');
+      if (segments.length === 2 && segments[0] === 'qf' && segments[1].length > 0) {
+        primaryCodes.add(key);
       }
     }
   } while (cursor !== '0');
 
-  return rounds.size;
+  return primaryCodes.size;
 }
 
 /** Async-Generator für Heartbeat-Subscription (exportiert für Unit-Tests). */
@@ -81,7 +83,9 @@ async function fetchServerStats() {
     const [activeSessions, completedSessions, totalParticipants, blitzKeys, platformRow] =
       await Promise.all([
         prisma.session.count({ where: { status: { in: [...ACTIVE_SESSION_STATUSES] } } }),
+        // Kumulativ: Session-Zeilen mit Status FINISHED (Quiz & Q&A; nicht gelöscht).
         prisma.session.count({ where: { status: 'FINISHED' } }),
+        // Alle Teilnehmer-Einträge zu Sessions, die noch nicht FINISHED sind (Summe über laufende Live-Sessions).
         prisma.participant.count({
           where: { session: { status: { in: [...ACTIVE_SESSION_STATUSES] } } },
         }),

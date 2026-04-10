@@ -6,9 +6,11 @@ import {
   ElementRef,
   ViewChild,
   inject,
+  Injector,
   signal,
   computed,
   effect,
+  afterNextRender,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -196,6 +198,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly themePreset = inject(ThemePresetService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly el = inject(ElementRef);
+  private readonly injector = inject(Injector);
   private readonly snackBar = inject(MatSnackBar);
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
@@ -301,6 +304,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   /** Story 5.6: Persönliche Scorecard pro Frage */
   readonly scorecard = signal<PersonalScorecardDTO | null>(null);
   private scorecardQuestionIndex = -1;
+
+  /**
+   * Serie mit Mehrwert: nur wenn Faktor > 1 und es gibt messbare Zusatzpunkte (question − Basis).
+   */
+  readonly scorecardStreakCallout = computed(() => {
+    const sc = this.scorecard();
+    if (!sc || sc.wasCorrect !== true) return null;
+    if (sc.streakMultiplier <= 1) return null;
+    const bonusPoints = sc.questionScore - sc.baseScore;
+    if (bonusPoints <= 0) return null;
+    return {
+      multiplier: sc.streakMultiplier,
+      bonusPoints,
+      streakCount: sc.streakCount,
+    };
+  });
 
   /** Story 5.8: Emoji-Reaktionen */
   readonly emojiOptions = ['👏', '🎉', '😮', '😂', '😢'] as const;
@@ -873,6 +892,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             return;
           }
           this.currentRound.set(newRound);
+          if (newRound !== prevRound) {
+            this.emojiSent.set(false);
+            this.emojiSentEmoji.set('');
+          }
           if (data.preset === 'PLAYFUL' || data.preset === 'SERIOUS') {
             this.themePreset.setPreset(data.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
               silent: true,
@@ -1456,12 +1479,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       const prev = this.currentQuestion();
       const prevId = prev && 'id' in prev ? prev.id : null;
       const newId = q && 'id' in q ? q.id : null;
+      const shouldScrollToQuestionOnRender = newId !== null && newId !== prevId;
       const prevHadTimer = prev && 'timer' in prev && prev.timer;
       const newHasTimer = q && 'timer' in q && q.timer;
 
       const qRound =
         q && 'currentRound' in q ? (q as { currentRound?: number }).currentRound : undefined;
       if (qRound && qRound !== this.currentRound()) {
+        this.emojiSent.set(false);
+        this.emojiSentEmoji.set('');
         this.currentRound.set(qRound);
       }
 
@@ -1533,14 +1559,23 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Gleiche Frage: Antwort-Liste beibehalten, um Re-Render zu vermeiden – Buttons reagieren sofort
+      // Gleiche Frage: Antwort-Liste beibehalten, um Re-Render zu vermeiden – Buttons reagieren sofort.
+      // Bei Wechsel ACTIVE → RESULTS (oder erneutem Poll in RESULTS) Server-Antworten übernehmen: dort sind
+      // isCorrect + Verteilung (QuestionRevealedDTO); die alte Student-Liste hat kein isCorrect — sonst
+      // würden alle Optionen fälschlich als falsch erscheinen.
+      const newAnswers = q && 'answers' in q ? (q as { answers?: unknown[] }).answers : undefined;
+      const firstNew = Array.isArray(newAnswers) ? newAnswers[0] : undefined;
+      const incomingHasSolution =
+        typeof firstNew === 'object' && firstNew !== null && 'isCorrect' in firstNew;
+
       if (
         newId === prevId &&
         prev &&
         q &&
         'answers' in prev &&
         'answers' in q &&
-        Array.isArray((prev as { answers: unknown[] }).answers)
+        Array.isArray((prev as { answers: unknown[] }).answers) &&
+        !incomingHasSolution
       ) {
         const prevAnswers = (prev as { answers: unknown[] }).answers;
         this.currentQuestion.set({ ...q, answers: prevAnswers } as CurrentQuestion);
@@ -1557,8 +1592,44 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.stopCountdown();
         this.countdownSeconds.set(null);
       }
+
+      if (shouldScrollToQuestionOnRender) {
+        this.scheduleScrollVoteQuestionToStart();
+      }
     } catch {
       /* noop */
+    }
+  }
+
+  private scheduleScrollVoteQuestionToStart(): void {
+    afterNextRender(
+      () => {
+        this.scrollVoteQuestionIntoView();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private voteScrollBehavior(): ScrollBehavior {
+    if (typeof globalThis.matchMedia !== 'function') return 'auto';
+    return globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  }
+
+  private scrollVoteQuestionIntoView(): void {
+    if (!this.showPrimaryLiveView()) return;
+    const host = this.el.nativeElement as HTMLElement;
+    const scrollRoot = host.closest('.app-main') as HTMLElement | null;
+    const anchor = host.querySelector('#vote-quiz-question-anchor') as HTMLElement | null;
+    if (!scrollRoot) return;
+    const behavior = this.voteScrollBehavior();
+    if (anchor) {
+      const rootRect = scrollRoot.getBoundingClientRect();
+      const anchorRect = anchor.getBoundingClientRect();
+      const margin = 8;
+      const y = anchorRect.top - rootRect.top + scrollRoot.scrollTop - margin;
+      scrollRoot.scrollTo({ top: Math.max(0, y), behavior });
+    } else {
+      scrollRoot.scrollTo({ top: 0, behavior });
     }
   }
 
@@ -1641,6 +1712,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         questionId: qId,
         participantId: this.participantId(),
         emoji: emoji as '👏' | '🎉' | '😮' | '😂' | '😢',
+        round: this.currentRound(),
       });
     } catch {
       /* noop */

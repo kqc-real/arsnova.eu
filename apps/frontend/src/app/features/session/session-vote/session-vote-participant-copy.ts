@@ -387,6 +387,55 @@ export function voteScorecardNeutral(playful: boolean): string {
   return $localize`:@@sessionVote.scoreNeutralSerious:Antwort registriert`;
 }
 
+/** Sichtbarer Callout: Serie mit Faktor und Zusatzpunkten (Story 5.5 / UX). */
+export function voteScorecardStreakCalloutHeading(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.streakCalloutHeadingPlayful:Serien-Boost`;
+  }
+  return $localize`:@@sessionVote.streakCalloutHeadingSerious:Serie-Bonus`;
+}
+
+export function voteScorecardStreakFactorCaption(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.streakFactorCaptionPlayful:Faktor`;
+  }
+  return $localize`:@@sessionVote.streakFactorCaptionSerious:Faktor`;
+}
+
+export function voteScorecardStreakExtraCaption(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.streakExtraCaptionPlayful:Extra durch die Serie`;
+  }
+  return $localize`:@@sessionVote.streakExtraCaptionSerious:Zusatzpunkte durch die Serie`;
+}
+
+export function voteScorecardStreakInARow(streakCount: number, playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.streakInARowPlayful:${streakCount}:count: richtige in Folge`;
+  }
+  return $localize`:@@sessionVote.streakInARowSerious:${streakCount}:count: richtige Antworten in Folge`;
+}
+
+/** Eine Zeile unter „Punkte“: Basis vs. Summe mit Serien-Faktor. */
+export function voteScorecardPointsBreakdownLine(
+  baseScore: number,
+  questionScore: number,
+  multiplier: number,
+  playful: boolean,
+): string {
+  const nfPts = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+  const baseStr = nfPts.format(baseScore);
+  const totalStr = nfPts.format(questionScore);
+  const multStr = new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2,
+  }).format(multiplier);
+  if (playful) {
+    return $localize`:@@sessionVote.pointsBreakdownPlayful:Basis: ${baseStr}:baseScore: · mit Boost: ${totalStr}:questionScore: (×${multStr}:multStr:)`;
+  }
+  return $localize`:@@sessionVote.pointsBreakdownSerious:Basis: ${baseStr}:baseScore: · mit Serie: ${totalStr}:questionScore: (×${multStr}:multStr:)`;
+}
+
 export function voteEmojiBarLabel(playful: boolean): string {
   if (playful) {
     return $localize`:@@sessionVote.emojiLabelPlayful:Schnell reagieren`;

@@ -473,6 +473,16 @@ export const RoundComparisonDTOSchema = z.object({
 });
 export type RoundComparisonDTO = z.infer<typeof RoundComparisonDTOSchema>;
 
+/**
+ * DTO: Didaktische Empfehlung fuer eine zweite Abstimmungsrunde nach Peer Instruction.
+ * Server: nur wenn Anteil vollstaendig korrekter Stimmen (Runde 1, SC/MC) zwischen 35 % und 70 % liegt.
+ */
+export const PeerInstructionSuggestionDTOSchema = z.object({
+  suggested: z.boolean(),
+  reason: z.enum(['CORRECTNESS_WINDOW']),
+});
+export type PeerInstructionSuggestionDTO = z.infer<typeof PeerInstructionSuggestionDTOSchema>;
+
 /** DTO: Aktuelle Frage für Host-Ansicht (Story 2.3, 3.5) – Text + Antwortoptionen inkl. isCorrect + Timer. */
 export const HostCurrentQuestionDTOSchema = z.object({
   questionId: z.string().uuid(),
@@ -510,6 +520,7 @@ export const HostCurrentQuestionDTOSchema = z.object({
     .optional(),
   totalVotes: z.number().int().optional(),
   correctVoterCount: z.number().int().optional(),
+  peerInstructionSuggestion: PeerInstructionSuggestionDTOSchema.optional(),
   currentRound: z.number().int().min(1).max(2).optional(),
   roundComparison: RoundComparisonDTOSchema.optional(),
 });
@@ -809,12 +820,13 @@ export const TeamLeaderboardEntryDTOSchema = z.object({
 });
 export type TeamLeaderboardEntryDTO = z.infer<typeof TeamLeaderboardEntryDTOSchema>;
 
-/** Input: Emoji-Reaktion senden (Story 5.8) */
+/** Input: Emoji-Reaktion senden (Story 5.8). `round`: Peer Instruction – eigener Speicher pro Runde. */
 export const SendEmojiReactionInputSchema = z.object({
   sessionId: z.uuid(),
   questionId: z.uuid(),
   participantId: z.uuid(),
   emoji: z.enum(EMOJI_REACTIONS),
+  round: z.number().int().min(1).max(2).optional().default(1),
 });
 export type SendEmojiReactionInput = z.infer<typeof SendEmojiReactionInputSchema>;
 
@@ -835,12 +847,14 @@ export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 /** DTO: Server-Auslastung für die Startseite (Story 0.4) */
 export const ServerStatsDTOSchema = z.object({
   activeSessions: z.number(),
+  /** Summe der Teilnehmer-Einträge über alle nicht beendeten Sessions (LOBBY … DISCUSSION). */
   totalParticipants: z.number(),
+  /** Kumulativ: Anzahl Session-Zeilen mit Status FINISHED (lebenslang in dieser DB). */
   completedSessions: z.number(),
   activeBlitzRounds: z.number(),
   /** Höchste je in einer Session registrierte Teilnehmerzahl (Joins, plattformweit). */
   maxParticipantsSingleSession: z.number().int().min(0),
-  /** ISO-8601: letzte Aktualisierung dieser Kennzahl (`PlatformStatistic.updatedAt`), sonst null. */
+  /** ISO-8601: Serverzeitpunkt, als sich der Rekord zuletzt erhöhte (`PlatformStatistic.updatedAt`), sonst null — nicht Session-Start/-Ende. */
   maxParticipantsStatisticUpdatedAt: z.string().datetime().nullable(),
   serverStatus: z.enum(['healthy', 'busy', 'overloaded']),
 });

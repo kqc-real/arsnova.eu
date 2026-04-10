@@ -32,7 +32,10 @@ export const voteRouter = router({
         include: { session: true },
       });
       if (!participant) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Teilnehmende oder Session nicht gefunden.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Teilnehmende oder Session nicht gefunden.',
+        });
       }
       if (participant.session.status === 'FINISHED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist beendet.' });
@@ -49,9 +52,13 @@ export const voteRouter = router({
       }
 
       if (question.timer && question.timer > 0 && participant.session.statusChangedAt) {
-        const deadline = new Date(participant.session.statusChangedAt).getTime() + question.timer * 1000;
+        const deadline =
+          new Date(participant.session.statusChangedAt).getTime() + question.timer * 1000;
         if (Date.now() > deadline + 2000) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Die Zeit für diese Frage ist abgelaufen.' });
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Die Zeit für diese Frage ist abgelaufen.',
+          });
         }
       }
 
@@ -192,18 +199,24 @@ export const voteRouter = router({
         const isCorrect = baseScore > 0;
 
         if (isCorrect) {
-          const previousVote = await prisma.vote.findFirst({
+          // Letztes SC/MC-Vote derselben Runde (nach Zeit), nicht „letztes mit streakCount > 0“:
+          // Nach einer falschen Antwort ist streakCount 0 — die alte Query hätte trotzdem ein
+          // früheres richtiges Vote gefunden und die Serie fälschlich hochgezählt.
+          const lastChoiceVote = await prisma.vote.findFirst({
             where: {
               sessionId: input.sessionId,
               participantId: input.participantId,
               round,
-              streakCount: { gt: 0 },
               question: { type: { in: ['SINGLE_CHOICE', 'MULTIPLE_CHOICE'] } },
             },
             orderBy: { votedAt: 'desc' },
-            select: { streakCount: true },
+            select: { streakCount: true, score: true },
           });
-          streakCount = (previousVote?.streakCount ?? 0) + 1;
+          if (!lastChoiceVote || lastChoiceVote.score <= 0) {
+            streakCount = 1;
+          } else {
+            streakCount = lastChoiceVote.streakCount + 1;
+          }
         }
         // Falsche Antwort: streakCount bleibt 0
         streakMultiplier = getStreakMultiplier(streakCount);

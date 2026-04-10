@@ -3,6 +3,7 @@
  * Mocked: Redis (pingRedis) und Prisma (session.count, participant.count).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type Redis from 'ioredis';
 
 vi.mock('../redis', () => ({
   pingRedis: vi.fn(),
@@ -19,7 +20,7 @@ vi.mock('../db', () => ({
   },
 }));
 
-import { pingRedis } from '../redis';
+import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
 import { healthRouter, heartbeatGenerator } from '../routers/health';
 
@@ -173,6 +174,31 @@ describe('health.stats', () => {
     expect(keys).not.toContain('participants');
     expect(keys).not.toContain('nicknames');
     expect(keys).not.toContain('emails');
+  });
+
+  it('zählt activeBlitzRounds nur einmal pro Quick-Feedback (Primär-Key qf:<code>)', async () => {
+    vi.mocked(getRedis).mockReturnValueOnce({
+      scan: vi
+        .fn()
+        .mockResolvedValue([
+          '0',
+          [
+            'qf:ABCD12',
+            'qf:voters:ABCD12',
+            'qf:choices:ABCD12',
+            'qf:choices:r1:ABCD12',
+            'qf:host:ABCD12',
+            'qf:ZZZZ99',
+          ],
+        ]),
+    } as unknown as Redis);
+    vi.mocked(prisma.session.count).mockResolvedValueOnce(0).mockResolvedValueOnce(0);
+    vi.mocked(prisma.participant.count).mockResolvedValue(0);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
+
+    const result = await caller.stats(undefined);
+
+    expect(result.activeBlitzRounds).toBe(2);
   });
 });
 

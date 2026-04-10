@@ -316,7 +316,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly emojiNewCount = signal(0);
   readonly emojiBadgePulse = signal(false);
   private emojiPulseTimer: ReturnType<typeof setTimeout> | null = null;
-  private lastEmojiQuestionId = '';
+  /** Frage + Abstimmungsrunde (Peer Instruction), damit Emoji-Badge bei Rundenwechsel zurücksetzt. */
+  private lastEmojiReactionScope = '';
+  /** Aktuelle Quiz-Abstimmungsrunde (1/2) für Emoji-Host-Panel. */
+  readonly hostQuizVoteRound = computed(() => this.currentQuestionForHost()?.currentRound ?? 1);
   /** Countdown in Sekunden (null = kein Timer, Story 3.5). */
   readonly countdownSeconds = signal<number | null>(null);
   /** true, sobald der Countdown 0 erreicht hat (bis zum nächsten Start). */
@@ -580,6 +583,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const votes = this.getVoteCountForCurrentQuestion(this.currentQuestionForHost());
     return votes >= participants;
   });
+
+  shouldShowPeerInstructionSuggestion(q: HostCurrentQuestionDTO | null): boolean {
+    return (
+      this.effectiveStatus() === 'ACTIVE' &&
+      q?.currentRound === 1 &&
+      q?.peerInstructionSuggestion?.suggested === true &&
+      (this.allHaveVoted() || this.countdownEnded())
+    );
+  }
 
   private previousStatus: string | null = null;
   private priorLobbyForAutoJoinMenu = false;
@@ -2092,20 +2104,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     const sid = this.session()?.id;
-    const qid = this.currentQuestionForHost()?.questionId;
+    const qHost = this.currentQuestionForHost();
+    const qid = qHost?.questionId;
+    const round = qHost?.currentRound ?? 1;
     if (!sid || !qid) {
       this.emojiReactions.set(null);
       this.clearEmojiNewBadge();
-      this.lastEmojiQuestionId = '';
+      this.lastEmojiReactionScope = '';
       return;
     }
-    if (this.lastEmojiQuestionId !== qid) {
-      this.lastEmojiQuestionId = qid;
+    const scope = `${qid}:r${round}`;
+    if (this.lastEmojiReactionScope !== scope) {
+      this.lastEmojiReactionScope = scope;
       this.clearEmojiNewBadge();
     }
     try {
       const previousTotal = this.emojiReactions()?.total ?? 0;
-      const data = await trpc.session.getReactions.query({ sessionId: sid, questionId: qid });
+      const data = await trpc.session.getReactions.query({
+        sessionId: sid,
+        questionId: qid,
+        round,
+      });
       this.emojiReactions.set(data);
       const delta = data.total - previousTotal;
       if (delta > 0) {

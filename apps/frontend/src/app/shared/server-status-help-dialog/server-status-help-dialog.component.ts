@@ -79,6 +79,12 @@ export interface ServerStatusHelpDialogData {
                 <span i18n="@@app.footer.statusMetricParticipants">Teilnehmende</span>
               </div>
               <strong>{{ s.totalParticipants }}</strong>
+              <p
+                class="status-help-dialog__metric-hint"
+                i18n="@@app.footer.statusMetricParticipantsHint"
+              >
+                Summe über alle laufenden Live-Sessions
+              </p>
             </article>
             <article class="status-help-dialog__metric">
               <div class="status-help-dialog__metric-head">
@@ -86,6 +92,12 @@ export interface ServerStatusHelpDialogData {
                 <span i18n="@@app.footer.statusMetricCompleted">Abgeschlossen</span>
               </div>
               <strong>{{ s.completedSessions }}</strong>
+              <p
+                class="status-help-dialog__metric-hint"
+                i18n="@@app.footer.statusMetricCompletedHint"
+              >
+                Alle je beendeten Live-Sessions (kumulativ)
+              </p>
             </article>
           </div>
         </section>
@@ -112,7 +124,7 @@ export interface ServerStatusHelpDialogData {
                   [attr.datetime]="s.maxParticipantsStatisticUpdatedAt ?? undefined"
                   i18n="@@help.statsAsOf"
                 >
-                  Gemessen am {{ dateLabel }}
+                  Zuletzt erhöht am {{ dateLabel }}
                 </time>
               </p>
             }

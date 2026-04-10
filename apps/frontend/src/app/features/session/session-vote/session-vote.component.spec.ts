@@ -277,6 +277,82 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('übernimmt bei ACTIVE → RESULTS die aufgelösten Antworten (isCorrect), statt die Student-Liste zu behalten', async () => {
+    const qid = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    const studentQ = {
+      id: qid,
+      text: 'Test?',
+      type: 'SINGLE_CHOICE' as const,
+      timer: 60,
+      difficulty: 'MEDIUM' as const,
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'Ja' },
+        { id: 'a2', text: 'Nein' },
+      ],
+      activeAt: MOCK_SERVER_TIME,
+      participantCount: 2,
+      totalVotes: 1,
+      currentRound: 1,
+    };
+    const revealedQ = {
+      id: qid,
+      text: 'Test?',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'Ja', isCorrect: true, voteCount: 1, votePercentage: 100 },
+        { id: 'a2', text: 'Nein', isCorrect: false, voteCount: 0, votePercentage: 0 },
+      ],
+      totalVotes: 1,
+    };
+
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue(studentQ);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.currentQuestion()).not.toBeNull();
+      },
+      { timeout: 3000, interval: 10 },
+    );
+
+    const inst = fixture.componentInstance;
+    const firstAfterActive = inst.currentQuestion()?.answers?.[0] as
+      | { isCorrect?: boolean }
+      | undefined;
+    expect(firstAfterActive?.isCorrect).toBeUndefined();
+
+    currentQuestionQueryMock.mockResolvedValue(revealedQ);
+    inst.status.set('RESULTS');
+    await (inst as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
+    fixture.detectChanges();
+
+    const firstAfterResults = inst.currentQuestion()?.answers?.[0] as { isCorrect: boolean };
+    expect(firstAfterResults.isCorrect).toBe(true);
+    fixture.destroy();
+  });
+
   it('leitet nach Session-Ende (FINISHED) zur Startseite um', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -346,8 +422,9 @@ describe('SessionVoteComponent', () => {
     const inst = fixture.componentInstance;
     expect(inst.showSessionEndGate()).toBe(true);
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Kurzes Feedback?');
     expect(text).toContain('Die Session ist beendet.');
+    expect(text).toContain('bewerte sie kurz');
+    expect(text).toMatch(/Kurzes Feedback\?|Deine Meinung zählt/);
     expect(navSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });

@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Peer-Instruction-Hinweis – Ablauf &amp; UI (Vorschau)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --mat-sys-primary: #6750a4;
+        --mat-sys-on-primary: #ffffff;
+        --mat-sys-primary-container: #eaddff;
+        --mat-sys-on-primary-container: #21005d;
+        --mat-sys-surface: #fef7ff;
+        --mat-sys-surface-container-low: #f7f2fa;
+        --mat-sys-outline: #79747e;
+        --mat-sys-on-surface: #1d1b20;
+        --mat-sys-on-surface-variant: #49454f;
+        --mat-sys-corner-large: 0.75rem;
+        --mat-sys-title-medium: 500 1rem/1.5rem Roboto, system-ui, sans-serif;
+        --mat-sys-body-medium: 400 0.875rem/1.25rem Roboto, system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 1.5rem;
+        font-family: Roboto, system-ui, sans-serif;
+        background: var(--mat-sys-surface);
+        color: var(--mat-sys-on-surface);
+        max-width: 52rem;
+      }
+
+      h1 {
+        margin: 0 0 0.25rem;
+        font-size: 1.35rem;
+        font-weight: 700;
+      }
+
+      .sub {
+        margin: 0 0 1.5rem;
+        font-size: 0.875rem;
+        color: var(--mat-sys-on-surface-variant);
+      }
+
+      .flow-section h2 {
+        margin: 0 0 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .flow {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        margin-bottom: 2rem;
+      }
+
+      .flow-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .flow-box {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: var(--mat-sys-corner-large);
+        border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-outline));
+        background: var(--mat-sys-surface-container-low);
+        font-size: 0.8125rem;
+        line-height: 1.45;
+        text-align: center;
+      }
+
+      .flow-box strong {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: var(--mat-sys-primary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .flow-arrow {
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 1.25rem;
+        line-height: 1.2;
+        padding: 0.2rem 0;
+      }
+
+      .flow-box--backend {
+        background: color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 55%,
+          var(--mat-sys-surface)
+        );
+      }
+
+      .flow-box--ui {
+        border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, var(--mat-sys-outline));
+        background: color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 28%,
+          var(--mat-sys-surface)
+        );
+      }
+
+      .ui-section h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .session-host__peer-suggestion {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 0.85rem 1rem 0.95rem 1.15rem;
+        border-radius: var(--mat-sys-corner-large);
+        border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 26%, var(--mat-sys-outline));
+        border-inline-start: 4px solid var(--mat-sys-primary);
+        background: color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 36%,
+          var(--mat-sys-surface-container-low)
+        );
+      }
+
+      .session-host__peer-suggestion-title {
+        margin: 0;
+        font: var(--mat-sys-title-medium);
+        font-weight: 700;
+        color: var(--mat-sys-on-surface);
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+      }
+
+      .session-host__peer-suggestion-lead {
+        margin: 0;
+        font: var(--mat-sys-body-large);
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--mat-sys-on-surface);
+        text-wrap: balance;
+      }
+
+      .session-host__peer-suggestion-sub {
+        margin: 0;
+        font: var(--mat-sys-body-medium);
+        line-height: 1.4;
+        color: var(--mat-sys-on-surface-variant);
+      }
+
+      .session-host__peer-suggestion-next {
+        margin: 0;
+        font: var(--mat-sys-body-medium);
+        line-height: 1.45;
+        color: var(--mat-sys-primary);
+        font-weight: 600;
+      }
+
+      .session-host__steering {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0;
+        padding-top: 1.25rem;
+        border-top: 1px solid color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
+      }
+
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.55rem 1.35rem;
+        border: none;
+        border-radius: 1.25rem;
+        background: var(--mat-sys-primary);
+        color: var(--mat-sys-on-primary);
+        font:
+          500 0.875rem/1.25rem Roboto,
+          system-ui,
+          sans-serif;
+        cursor: default;
+        box-shadow:
+          0 1px 2px color-mix(in srgb, var(--mat-sys-on-surface) 28%, transparent),
+          0 1px 3px 1px color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent);
+      }
+
+      .btn-tonal {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.55rem 1.25rem;
+        border: none;
+        border-radius: 1.25rem;
+        background: color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 92%,
+          var(--mat-sys-surface)
+        );
+        color: var(--mat-sys-on-primary-container);
+        font:
+          500 0.875rem/1.25rem Roboto,
+          system-ui,
+          sans-serif;
+        cursor: default;
+      }
+
+      .icon-groups {
+        width: 1.15rem;
+        height: 1.15rem;
+        opacity: 0.95;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Peer-Instruction-Hinweis</h1>
+    <p class="sub">
+      Schematischer Ablauf (Backend + Host-UI) und UI-Zustand wie in der Session-Host-Ansicht.
+    </p>
+
+    <section class="flow-section" aria-labelledby="flow-h">
+      <h2 id="flow-h">Ablauf bis zur Anzeige</h2>
+      <div class="flow">
+        <div class="flow-row">
+          <div class="flow-box">
+            <strong>Session</strong>
+            Status <code>ACTIVE</code>, aktuelle Frage Single-/Multiple-Choice,
+            <code>currentRound === 1</code>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box">
+            <strong>Stimmen</strong>
+            Mindestens eine Stimme; Anteil „vollständig korrekt“ liegt zwischen 35&nbsp;% und
+            70&nbsp;% (inklusive Grenzen)
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box flow-box--backend">
+            <strong>Backend</strong>
+            <code>getCurrentQuestionForHost</code> liefert <code>totalVotes</code>, keine Verteilung
+            in Runde&nbsp;1;
+            <code
+              >peerInstructionSuggestion: { suggested: true, reason: 'CORRECTNESS_WINDOW' }</code
+            >
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box">
+            <strong>Host-UI</strong>
+            Alle Teilnehmenden haben gewählt <em>oder</em> Countdown ist beendet → Hinweisbox und
+            Steuerung erscheinen
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box flow-box--ui">
+            <strong>Ergebnis</strong>
+            Hinweistext + primär „Diskussionsphase“, sekundär „Ergebnis trotzdem zeigen“
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ui-section" aria-labelledby="ui-h">
+      <h2 id="ui-h">Host-Oberfläche (vereinfachte Nachbildung)</h2>
+      <div class="session-host__peer-suggestion" role="status" aria-live="polite">
+        <p class="session-host__peer-suggestion-title">Peer Instruction empfohlen</p>
+        <p class="session-host__peer-suggestion-lead">
+          35–70 % vollständig korrekt — zweite Runde passt.
+        </p>
+        <p class="session-host__peer-suggestion-sub">
+          Erste Runde noch verborgen, bis du weiter machst.
+        </p>
+        <p class="session-host__peer-suggestion-next">Diskussion starten oder Ergebnis zeigen.</p>
+      </div>
+      <div class="session-host__steering">
+        <button type="button" class="btn-primary" disabled>
+          <svg class="icon-groups" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
+            />
+          </svg>
+          Diskussionsphase
+        </button>
+        <button type="button" class="btn-tonal" disabled>Ergebnis trotzdem zeigen</button>
+      </div>
+    </section>
+  </body>
+</html>

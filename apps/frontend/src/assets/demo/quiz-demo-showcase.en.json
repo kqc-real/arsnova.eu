@@ -1,9 +1,9 @@
 {
-  "exportVersion": 2,
+  "exportVersion": 5,
   "exportedAt": "2026-03-09T12:00:00.000Z",
   "quiz": {
     "name": "All question formats – high school demo quiz",
-    "description": "![Peer Instruction: nine concept questions and two voting rounds](/assets/demo/9_konzeptfragen_panorama.svg)\n\nThis quiz shows how arsnova.eu supports two voting rounds—first you vote, then discuss, then vote again. This is a core component of highly interactive sessions like Peer Instruction.\n\n**What is Peer Instruction?** An evidence-based interactive method (Eric Mazur, Harvard): The host poses a conceptual question. Everyone answers on their own first; then, participants compare their reasoning and vote again. Misconceptions and differing viewpoints are revealed and resolved together.\n\n**What is Markdown?** Format text right from your keyboard, no mouse needed. You type e.g. `**bold**` → **bold**, `*italic*` → *italic*, `` `code` `` → `code`. Create headings with `#` and lists with `-` or `*`. You'll see Markdown in action throughout these questions and answers.\n\n**What is KaTeX?** Professional math and formula notation. Wrap your equations in dollar signs: x^2 → $x^2$, fractions → $\\frac{1}{2}$, f'(x) → $f'(x)$. Perfect for STEM, finance, and technical presentations—no installation required, it just works out of the box in arsnova.eu.\n\nThis quiz features every question format available in arsnova.eu. Items are grouped by topic.\n\n| # | Subject | Format | Topic | Misconceptions / Notes |\n|---|---------|--------|-------|------------------------|\n| 1 | Math | Single choice | Sign change of $f'$ and extrema | Minimum vs. maximum; inflection ($f''$ confused); zero ($f=0$ vs $f'=0$) |\n| 2 | Math | Single choice | Independent events | Gambler's fallacy; hot-hand fallacy |\n| 3 | Math | Single choice | Definite integral ≠ geometric area | Positive area; net area; mean value |\n| 4 | Math | Rating | Vector geometry (intersections) | Self-assessment |\n| 5 | Physics | Single choice | Newton's 3rd Law – action = reaction | Lighter vehicle feels more force; heavier exerts more; forces \"cancel out\" |\n| 6 | Physics | Free text | Satellite in orbit | Reasoning |\n| 7 | Biology | Single choice | Natural selection vs. Lamarckism | Directed mutation; gradual adaptation; habituation |\n| 8 | Biology | Multiple choice | Dihybrid cross (Mendelian genetics) | All F2 are heterozygous; genes are linked |\n| 9 | Chemistry | Multiple choice | Le Chatelier's principle | A catalyst shifts the equilibrium |\n| 10 | — | Survey | Final exam prep | Study strategies |\n| 11 | — | Free text | Least certain question | Reflection |\n| 12 | — | Rating | Rate this demo quiz | Overall rating |",
+    "description": "![Peer Instruction: nine concept questions and two voting rounds](/assets/demo/9_konzeptfragen_panorama.svg)\n\nThis quiz shows how arsnova.eu supports two voting rounds—first you vote, then discuss, then vote again. This is a core component of highly interactive sessions like Peer Instruction.\n\n**What is Peer Instruction?** An evidence-based interactive method (Eric Mazur, Harvard): The host poses a conceptual question. Everyone answers on their own first; then, participants compare their reasoning and vote again. Misconceptions and differing viewpoints are revealed and resolved together.\n\n**Host view:** When **35%–70%** of round-1 votes are fully correct, arsnova.eu shows a **recommendation**—a typical Peer Instruction window. The detailed split stays hidden until you start the discussion phase or reveal results.\n\n**Reference:** Crouch, C. H., & Mazur, E. (2001). Peer Instruction: Ten years of experience and results. *American Journal of Physics*, 69(9), 970-977.\n\n**What is Markdown?** Format text right from your keyboard, no mouse needed. You type e.g. `**bold**` → **bold**, `*italic*` → *italic*, `` `code` `` → `code`. Create headings with `#` and lists with `-` or `*`. You’ll see Markdown in action throughout these questions and answers.\n\n**What is KaTeX?** Professional math and formula notation. Wrap your equations in dollar signs: x^2 → $x^2$, fractions → $\\frac{1}{2}$, f'(x) → $f'(x)$. Perfect for STEM, finance, and technical presentations—no installation required, it just works out of the box in arsnova.eu.\n\nThis quiz features every question format available in arsnova.eu. Items are grouped by topic.\n\n| # | Subject | Format | Topic | Misconceptions / note |\n|---|---------|--------|-------|------------------------|\n| 1 | Math | Single choice | Sign change of $f'$ and extrema | Minimum vs maximum; inflection ($f''$ confused); zero ($f=0$ vs $f'=0$) |\n| 2 | Math | Single choice | Stochastic independence | Gambler's fallacy; hot-hand |\n| 3 | Math | Single choice | Definite integral ≠ geometric area | Positive area; sum vs. net balance; mean value |\n| 4 | Math | Rating | Vector geometry (intersections) | Self-assessment |\n| 5 | Physics | Single choice | Newton 3 – action = reaction | Lighter vehicle feels more force; heavier exerts more; forces \"cancel out\" |\n| 6 | Physics | Free text | Satellite in orbit | Reasoning |\n| 7 | Biology | Single choice | Selection vs Lamarckism | Directed mutation; gradual adaptation; habituation |\n| 8 | Biology | Multiple choice | Dihybrid cross (Mendel) | All F2 are heterozygous; genes are linked |\n| 9 | Chemistry | Multiple choice | Le Chatelier (equilibrium) | A catalyst shifts the equilibrium |\n| 10 | — | Survey | Final exam prep | Study strategies |\n| 11 | — | Free text | Least certain question | Reflection |\n| 12 | — | Rating | Rate this demo quiz | Overall rating |",
     "motifImageUrl": "/assets/demo/9_konzeptfragen_panorama.svg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -22,7 +22,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Math: Calculus – Functions and derivatives\n\nThe derivative $f'(x)$ **changes from positive to negative** at $x_0$.\n\nWhat must be true about $f$ at this point?",
+        "text": "### Math: Analysis – Function and derivative\n\nThe derivative $f'(x)$ **changes sign from positive to negative** at $x_0$.\n\nWhat is true for $f$ at that point?",
         "type": "SINGLE_CHOICE",
         "timer": 60,
         "difficulty": "MEDIUM",
@@ -41,20 +41,20 @@
             "isCorrect": false
           },
           {
-            "text": "The function $f$ has an x-intercept there.",
+            "text": "The function $f$ has a root there.",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Math: Probability – Independent events\n\nA fair coin has landed on **heads** five times in a row.\n\nWhat is the probability that the sixth toss will be **tails**?",
+        "text": "### Math: Probability – Independent events\n\nA fair coin has come up **heads** five times in a row.\n\nWhat is the probability that the sixth toss is **tails**?",
         "type": "SINGLE_CHOICE",
         "timer": 45,
         "difficulty": "MEDIUM",
         "order": 1,
         "answers": [
           {
-            "text": "Exactly 50%, since each coin toss is independent of the previous ones.",
+            "text": "Exactly 50%, because each toss is independent of the previous ones.",
             "isCorrect": true
           },
           {
@@ -62,42 +62,42 @@
             "isCorrect": false
           },
           {
-            "text": "Less than 50%, because the streak of heads will probably continue.",
+            "text": "Less than 50%, because the run of heads will probably continue.",
             "isCorrect": false
           },
           {
-            "text": "It can't be calculated because the coin might be rigged.",
+            "text": "It cannot be calculated because the coin might be unfair.",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Math: Calculus – Definite integrals\n\nThe function $f(x) = x^2 - 4$ has zeros at $x = -2$ and $x = 2$⁠. Between these zeros, the graph is **entirely below** the $x$-axis.\n\nWhat exactly does $\\int_{-2}^{2} f(x)\\,\\mathrm{d}x$ compute?",
+        "text": "### Math: Analysis – Definite integral\n\nThe function $f(x) = x^2 - 4$ has zeros at $x = -2$ and $x = 2$⁠. Between the zeros the graph lies **entirely below** the $x$-axis.\n\nWhat does $\\int_{-2}^{2} f(x)\\,\\mathrm{d}x$ compute?",
         "type": "SINGLE_CHOICE",
         "timer": 60,
         "difficulty": "MEDIUM",
         "order": 2,
         "answers": [
           {
-            "text": "The signed (net) area between the graph and the $x$-axis.",
+            "text": "The signed area between the graph and the $x$-axis.",
             "isCorrect": true
           },
           {
-            "text": "The total geometric area between the graph and the $x$-axis.",
+            "text": "The absolute geometric area between the graph and the $x$-axis.",
             "isCorrect": false
           },
           {
-            "text": "The combined area above and below the axis.",
+            "text": "The total area above and below the axis.",
             "isCorrect": false
           },
           {
-            "text": "The average of all function values on the interval $[-2, 2]$.",
+            "text": "The mean of all function values on $[-2, 2]$.",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Math: Self-assessment – Vector geometry\n\nIn analytic geometry, you describe lines and planes using vector equations, like this:\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nHow confident are you in finding the **intersection** of lines and planes?",
+        "text": "### Math: Self-assessment – Vector geometry\n\nIn analytic geometry you describe lines and planes with vector equations, e.g.:\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nHow confident do you feel about solving for **intersections** of lines and planes?",
         "type": "RATING",
         "timer": 20,
         "difficulty": "EASY",
@@ -105,18 +105,18 @@
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,
-        "ratingLabelMin": "Totally lost",
-        "ratingLabelMax": "I could teach it"
+        "ratingLabelMin": "Very unsure",
+        "ratingLabelMax": "I can explain it"
       },
       {
-        "text": "### Physics: Forces in a collision\n\nA heavy semi-truck collides head-on with a small compact car.\n\nHow do the forces **during the impact** compare between the two vehicles?",
+        "text": "### Physics: Forces in a collision\n\nA heavy truck collides head-on with a light car.\n\nHow do the forces **during the impact** on the two vehicles compare?",
         "type": "SINGLE_CHOICE",
         "timer": 60,
         "difficulty": "MEDIUM",
         "order": 4,
         "answers": [
           {
-            "text": "The force exerted on the car is exactly the same as the force on the truck.",
+            "text": "The force exerted on the car equals the force on the truck.",
             "isCorrect": true
           },
           {
@@ -128,13 +128,13 @@
             "isCorrect": false
           },
           {
-            "text": "The forces on both vehicles cancel each other out completely.",
+            "text": "The forces on the two vehicles cancel each other out completely.",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Physics: Satellite in orbit\n\nA satellite orbits Earth on a stable circular path without losing altitude.\n\nExplain in your own words why the satellite doesn't crash into Earth, despite the pull of gravity.\n\n> Hint: Think about how velocity and gravity interact.",
+        "text": "### Physics: Satellite in orbit\n\nA satellite orbits Earth on a stable circular path without losing altitude.\n\nExplain in your own words why the satellite doesn't crash into Earth despite gravity.\n\n> Hint: Think about how speed and gravity interact.",
         "type": "FREETEXT",
         "timer": 90,
         "difficulty": "MEDIUM",
@@ -142,57 +142,57 @@
         "answers": []
       },
       {
-        "text": "### Biology: Antibiotic resistance\n\nHospitals are seeing a rise in antibiotic-resistant bacteria.\n\nWhich explanation correctly describes how this resistance develops?",
+        "text": "### Biology: Antibiotic resistance\n\nHospitals increasingly see antibiotic-resistant bacterial strains.\n\nWhich explanation correctly describes how resistance arises?",
         "type": "SINGLE_CHOICE",
         "timer": 60,
         "difficulty": "MEDIUM",
         "order": 6,
         "answers": [
           {
-            "text": "Resistant bacteria multiply faster because the antibiotic kills off the competing, non-resistant strains.",
+            "text": "Resistant bacteria multiply faster because the antibiotic kills off the competing strains.",
             "isCorrect": true
           },
           {
-            "text": "The antibiotic triggers targeted mutations that create resistance.",
+            "text": "The antibiotic causes targeted mutations that lead to resistance.",
             "isCorrect": false
           },
           {
-            "text": "The bacteria slowly adapt their metabolism to handle the antibiotic.",
+            "text": "The bacteria gradually adapt their metabolism to the antibiotic.",
             "isCorrect": false
           },
           {
-            "text": "The strongest bacteria build tolerance through repeated exposure.",
+            "text": "The strongest bacteria build tolerance through habituation.",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Biology: Mendelian genetics\n\nIn a dihybrid cross, two individuals that are heterozygous for both genes are crossed ($\\text{AaBb} \\times \\text{AaBb}$)⁠.\n\nWhich statements about the **F2 generation** are correct?\n\n*Select all that apply.*",
+        "text": "### Biology: Mendelian genetics\n\nIn a dihybrid cross, two individuals heterozygous for both genes are crossed ($\\text{AaBb} \\times \\text{AaBb}$)⁠.\n\nWhich statements about the **F2 generation** are correct?\n\n*Select all that apply.*",
         "type": "MULTIPLE_CHOICE",
         "timer": 60,
         "difficulty": "MEDIUM",
         "order": 7,
         "answers": [
           {
-            "text": "The phenotypic ratio in the F2 generation is 9 : 3 : 3 : 1.",
+            "text": "The phenotypic ratio in F2 is 9 : 3 : 3 : 1.",
             "isCorrect": true
           },
           {
-            "text": "The F2 generation shows trait combinations that weren't present in the parents.",
+            "text": "F2 shows trait combinations absent in the parents.",
             "isCorrect": true
           },
           {
-            "text": "All F2 individuals are heterozygous for both genes.",
+            "text": "All F2 are heterozygous for both genes.",
             "isCorrect": false
           },
           {
-            "text": "The alleles of both genes are always inherited together as a linked unit.",
+            "text": "The alleles of both genes are always inherited as a linked unit.",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Chemistry: Chemical equilibrium\n\nAmmonia synthesis is an exothermic reaction:\n\n$$\\mathrm{N_2 + 3\\,H_2 \\rightleftharpoons 2\\,NH_3} \\quad \\Delta H < 0$$\n\nWhich actions would shift the equilibrium **toward the products**?\n\n*Select all that apply.*",
+        "text": "### Chemistry: Chemical equilibrium\n\nAmmonia synthesis is exothermic:\n\n$$\\mathrm{N_2 + 3\\,H_2 \\rightleftharpoons 2\\,NH_3} \\quad \\Delta H < 0$$\n\nWhich measures shift the equilibrium **toward the products**?\n\n*Select all that apply.*",
         "type": "MULTIPLE_CHOICE",
         "timer": 60,
         "difficulty": "MEDIUM",
@@ -217,26 +217,26 @@
         ]
       },
       {
-        "text": "### Survey: Final exam prep\n\nWhat's your **go-to study strategy** when prepping for finals?",
+        "text": "### Survey: Final exam preparation\n\nWhich **study strategy** do you use most often when preparing for final exams?",
         "type": "SURVEY",
         "timer": 30,
         "difficulty": "EASY",
         "order": 9,
         "answers": [
           {
-            "text": "Taking practice tests",
+            "text": "Doing practice exams",
             "isCorrect": false
           },
           {
-            "text": "Creating study guides",
+            "text": "Making study guides",
             "isCorrect": false
           },
           {
-            "text": "Group study sessions",
+            "text": "Studying with a group",
             "isCorrect": false
           },
           {
-            "text": "Watching explainer videos on YouTube",
+            "text": "Watching explainer videos and tutorials",
             "isCorrect": false
           },
           {
@@ -246,7 +246,7 @@
         ]
       },
       {
-        "text": "### Reflection\n\nWhich question in this quiz were you the **most unsure about**—and why?\n\nUse your answer as a starting point for your next study session.",
+        "text": "### Reflection\n\nWhich question in this quiz made you feel the **least certain**—and why?\n\nUse your answer as a starting point for your next study session.",
         "type": "FREETEXT",
         "timer": 60,
         "difficulty": "EASY",
@@ -254,7 +254,7 @@
         "answers": []
       },
       {
-        "text": "### Overall rating\n\nHow would you rate this **demo quiz** overall?\n\nConsider:\n1. Clarity of the questions\n2. Variety of formats\n3. Appropriate difficulty level",
+        "text": "### Overall rating\n\nHow do you rate this **demo quiz** overall?\n\nConsider:\n1. Clarity of the questions\n2. Variety of formats\n3. Appropriate difficulty",
         "type": "RATING",
         "timer": 20,
         "difficulty": "EASY",

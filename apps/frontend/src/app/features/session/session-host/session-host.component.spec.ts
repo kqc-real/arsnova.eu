@@ -600,6 +600,51 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('empfiehlt bei passendem Korridor eine zweite Runde statt aktiver Ergebnisanzeige', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getParticipantsQueryMock.mockResolvedValue({ participantCount: 4, participants: [] });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0, currentRound: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE' as const,
+      currentRound: 1,
+      totalVotes: 4,
+      peerInstructionSuggestion: {
+        suggested: true,
+        reason: 'CORRECTNESS_WINDOW' as const,
+      },
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () => (fixture.nativeElement.textContent ?? '').includes('Peer Instruction empfohlen'),
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Peer Instruction empfohlen');
+    expect(text).toMatch(/35\s*[–-]\s*70/);
+    expect(text).toContain('Ergebnis trotzdem zeigen');
+    expect(text).toContain('Diskussionsphase');
+    fixture.destroy();
+  });
+
   it('zeigt in QUESTION_OPEN Fragentext und deutlichen Lesephase-Hinweis', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
     onStatusChangedSubscribeMock.mockImplementation(

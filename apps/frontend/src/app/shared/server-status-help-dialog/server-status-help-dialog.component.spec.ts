@@ -34,6 +34,8 @@ describe('ServerStatusHelpDialogComponent', () => {
     expect(text).toContain('Server-Statistik');
     expect(text).toContain('Jetzt auf dem Server');
     expect(text).toContain('145');
+    expect(text).toContain('Summe über alle laufenden Live-Sessions');
+    expect(text).toContain('Alle je beendeten Live-Sessions (kumulativ)');
     expect(text).toContain('Rekordteilnahme');
     expect(text).toContain('412');
   });

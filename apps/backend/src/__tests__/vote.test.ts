@@ -34,6 +34,7 @@ import { voteRouter } from '../routers/vote';
 const caller = voteRouter.createCaller({ req: undefined });
 const ANSWER_ID_1 = '11111111-1111-4111-8111-111111111111';
 const ANSWER_ID_2 = '22222222-2222-4222-8222-222222222222';
+const QUESTION_ID_2 = '33333333-3333-4333-a333-333333333333';
 
 describe('vote.submit', () => {
   beforeEach(() => {
@@ -135,6 +136,80 @@ describe('vote.submit', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           score: 2000,
+          streakCount: 1,
+          streakBonus: 1.0,
+        }),
+      }),
+    );
+  });
+
+  it('setzt Streak nach falscher Antwort zurück (nächste richtige = Serie 1, ×1.0)', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-2',
+      quizId: 'quiz-1',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      ratingMin: null,
+      ratingMax: null,
+      answers: [
+        { id: ANSWER_ID_1, isCorrect: true },
+        { id: ANSWER_ID_2, isCorrect: false },
+      ],
+    });
+    prismaMock.vote.findFirst.mockResolvedValue({
+      score: 0,
+      streakCount: 0,
+    });
+
+    await caller.submit({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+      questionId: QUESTION_ID_2,
+      answerIds: [ANSWER_ID_1],
+    });
+
+    expect(prismaMock.vote.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          score: 2000,
+          streakCount: 1,
+          streakBonus: 1.0,
+        }),
+      }),
+    );
+  });
+
+  it('erhöht Streak bei aufeinanderfolgenden richtigen SC-Antworten (×1.1 ab 2. Treffer)', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-2',
+      quizId: 'quiz-1',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      ratingMin: null,
+      ratingMax: null,
+      answers: [
+        { id: ANSWER_ID_1, isCorrect: true },
+        { id: ANSWER_ID_2, isCorrect: false },
+      ],
+    });
+    prismaMock.vote.findFirst.mockResolvedValue({
+      score: 2000,
+      streakCount: 1,
+    });
+
+    await caller.submit({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+      questionId: QUESTION_ID_2,
+      answerIds: [ANSWER_ID_1],
+    });
+
+    expect(prismaMock.vote.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          score: 2200,
+          streakCount: 2,
+          streakBonus: 1.1,
         }),
       }),
     );

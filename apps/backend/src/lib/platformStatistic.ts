@@ -14,11 +14,15 @@ export const PLATFORM_STATISTIC_ID = 'default';
 export async function updateMaxParticipantsSingleSession(participantCount: number): Promise<void> {
   if (!Number.isFinite(participantCount) || participantCount < 1) return;
   try {
+    // updatedAt nur bei echter Rekorderhöhung (sonst würde jedes Join den Zeitstempel setzen).
     await prisma.$executeRaw`
       UPDATE "PlatformStatistic"
       SET
         "maxParticipantsSingleSession" = GREATEST("maxParticipantsSingleSession", ${participantCount}),
-        "updatedAt" = NOW()
+        "updatedAt" = CASE
+          WHEN ${participantCount} > "maxParticipantsSingleSession" THEN NOW()
+          ELSE "updatedAt"
+        END
       WHERE "id" = ${PLATFORM_STATISTIC_ID}
     `;
   } catch (e) {
