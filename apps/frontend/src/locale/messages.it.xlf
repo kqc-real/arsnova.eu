@@ -7357,12 +7357,12 @@
           <context context-type="linenumber">882,884</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7000635549914845512" datatype="html">
+      <trans-unit id="sessionHost.roundComparisonPeerInstructionAria" datatype="html">
         <source>Vorher/Nachher-Vergleich Peer Instruction</source>
-        <target>Istruzioni tra pari prima/dopo il confronto</target>
+        <target>Confronto prima e dopo per la Peer Instruction</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">936,937</context>
+          <context context-type="linenumber">937,940</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.quizAwaitingFirstHint" datatype="html">
@@ -7457,20 +7457,28 @@
           <context context-type="linenumber">1439,1440</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7763990096257201954" datatype="html">
+      <trans-unit id="sessionHost.startDiscussionPhaseAria" datatype="html">
         <source>Diskussionsphase starten – Austausch vor zweiter Abstimmung</source>
-        <target>Avvia fase di discussione — confronto prima della seconda votazione</target>
+        <target>Avvia la fase di discussione – confronto prima della seconda votazione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1449,1450</context>
+          <context context-type="linenumber">1476,1478</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1509,1511</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="589026023124922508" datatype="html">
+      <trans-unit id="sessionHost.discussionPhaseButton" datatype="html">
         <source>Diskussionsphase</source>
         <target>Fase di discussione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1452,1453</context>
+          <context context-type="linenumber">1480,1481</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1513,1514</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.revealResultsDespiteSuggestion" datatype="html">
@@ -7478,7 +7486,7 @@
         <target>Mostra comunque il risultato</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1444,1445</context>
+          <context context-type="linenumber">1489,1491</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.peerSuggestionTitle" datatype="html">
@@ -7486,7 +7494,7 @@
         <target>Peer Instruction consigliata</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1070,1071</context>
+          <context context-type="linenumber">1207,1210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.peerSuggestionText" datatype="html">
@@ -7494,7 +7502,7 @@
         <target>Le risposte rientrano nell'intervallo adatto per un secondo turno di voto. Il risultato del primo turno resta nascosto finché non decidi.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1073,1075</context>
+          <context context-type="linenumber">1212,1219</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.peerSuggestionNext" datatype="html">
@@ -7502,7 +7510,7 @@
         <target>Avvia ora la fase di discussione oppure mostra subito il risultato.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1077,1078</context>
+          <context context-type="linenumber">1221,1227</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1715527181281145600" datatype="html">
@@ -7510,7 +7518,7 @@
         <target>Saltare</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1484,1485</context>
+          <context context-type="linenumber">1547,1547</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4102765943850996306" datatype="html">

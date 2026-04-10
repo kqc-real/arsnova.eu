@@ -936,7 +936,7 @@
                           <div
                             class="session-host__round-comparison"
                             role="img"
-                            i18n-aria-label
+                            i18n-aria-label="@@sessionHost.roundComparisonPeerInstructionAria"
                             aria-label="Vorher/Nachher-Vergleich Peer Instruction"
                           >
                             <div class="session-host__round-comparison-header">
@@ -1201,14 +1201,18 @@
                               class="session-host__peer-suggestion"
                               role="status"
                               aria-live="polite"
+                              aria-labelledby="session-host-peer-suggestion-title"
+                              aria-describedby="session-host-peer-suggestion-detail session-host-peer-suggestion-nextline"
                             >
                               <p
+                                id="session-host-peer-suggestion-title"
                                 class="session-host__peer-suggestion-title"
                                 i18n="@@sessionHost.peerSuggestionTitle"
                               >
                                 Peer Instruction empfohlen
                               </p>
                               <p
+                                id="session-host-peer-suggestion-detail"
                                 class="session-host__peer-suggestion-text"
                                 i18n="@@sessionHost.peerSuggestionText"
                               >
@@ -1217,6 +1221,7 @@
                                 Entscheidung verborgen.
                               </p>
                               <p
+                                id="session-host-peer-suggestion-nextline"
                                 class="session-host__peer-suggestion-next"
                                 i18n="@@sessionHost.peerSuggestionNext"
                               >
@@ -1469,11 +1474,11 @@
                       type="button"
                       [disabled]="controlPending()"
                       (click)="startDiscussion()"
-                      i18n-aria-label
+                      i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
                       aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
                     >
                       <mat-icon aria-hidden="true">groups</mat-icon>
-                      <span i18n>Diskussionsphase</span>
+                      <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
                     </button>
                     <button
                       matButton="tonal"
@@ -1502,11 +1507,11 @@
                         class="session-host__btn-discussion"
                         [disabled]="controlPending()"
                         (click)="startDiscussion()"
-                        i18n-aria-label
+                        i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
                         aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
                       >
                         <mat-icon aria-hidden="true">groups</mat-icon>
-                        <span i18n>Diskussionsphase</span>
+                        <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
                       </button>
                     }
                   }

@@ -31,7 +31,7 @@ const TARGET_BY_ID = {
   '4816916877207589304': 'Session <x id="PH"/> started.',
   '8680320837061900030': 'Live start failed.',
   '4077659868462369036': 'Too many sessions – please try again later.',
-  '7000635549914845512': 'Before/after comparison Peer Instruction',
+  'sessionHost.roundComparisonPeerInstructionAria': 'Before/after comparison Peer Instruction',
   '4102765943850996306': 'More actions',
   '6361582957693255944': 'Export freetext session as CSV',
   '4017389878545296254': 'Waiting for live freetext data …',
