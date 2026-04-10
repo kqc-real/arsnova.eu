@@ -208,29 +208,35 @@ describe('SessionHostComponent', () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
 
     const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     fixture.detectChanges();
     await fixture.whenStable();
 
     const canLeave = await fixture.componentInstance.canDeactivate();
 
-    expect(canLeave).toBe(true);
+    expect(canLeave).toBe(false);
     expect(endMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     fixture.destroy();
   });
 
-  it('erlaubt das Verlassen, wenn die Session serverseitig schon gelöscht wurde', async () => {
+  it('navigiert nach Home, wenn die Session beim Verlassen serverseitig schon gelöscht war', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     endMutateMock.mockRejectedValueOnce(new Error('Session nicht gefunden.'));
 
     const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     fixture.detectChanges();
     await fixture.whenStable();
 
     const canLeave = await fixture.componentInstance.canDeactivate();
 
-    expect(canLeave).toBe(true);
+    expect(canLeave).toBe(false);
     expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     fixture.destroy();
   });
 

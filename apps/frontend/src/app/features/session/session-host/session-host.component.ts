@@ -11,6 +11,7 @@ import {
   HostListener,
   Injector,
   LOCALE_ID,
+  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -280,6 +281,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly ngZone = inject(NgZone);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly themePreset = inject(ThemePresetService);
   readonly sound = inject(SoundService);
@@ -1184,10 +1186,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       try {
         await trpc.session.end.mutate({ code: this.code.toUpperCase() });
         clearHostToken(this.code);
+        await this.ngZone.run(async () => {
+          await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+        });
+        return false;
       } catch (error) {
         if (this.isSessionNotFoundError(error)) {
-          this.markSessionUnavailable();
-          return true;
+          await this.navigateHomeAfterSessionUnavailable();
+          return false;
         }
         this.openHostSteeringCalloutForSteeringFailure(
           () => void this.retryEndSessionAndNavigateHome(),

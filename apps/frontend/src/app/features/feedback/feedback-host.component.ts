@@ -3,6 +3,7 @@ import {
   Component,
   HostListener,
   Injector,
+  NgZone,
   OnDestroy,
   OnInit,
   afterNextRender,
@@ -18,6 +19,7 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { clearFeedbackHostToken, setFeedbackHostToken } from '../../core/feedback-host-token';
+import { clearHostToken } from '../../core/host-session-token';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { localizeCommands, localizePath } from '../../core/locale-router';
@@ -55,6 +57,7 @@ import type { Unsubscribable } from '@trpc/server/observable';
 export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly ngZone = inject(NgZone);
   private readonly snackBar = inject(MatSnackBar);
   private readonly themePreset = inject(ThemePresetService);
   private readonly document = inject(DOCUMENT);
@@ -426,30 +429,40 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     );
 
     ref.onAction().subscribe(() => {
-      if (this.embeddedInSession()) {
-        void this.confirmEndSession(code);
-        return;
-      }
-      void this.confirmEndStandaloneFeedback(code);
+      this.ngZone.run(() => {
+        if (this.embeddedInSession()) {
+          void this.confirmEndSession(code);
+          return;
+        }
+        void this.confirmEndStandaloneFeedback(code);
+      });
     });
   }
 
   private async confirmEndSession(code: string): Promise<void> {
     try {
       await trpc.session.end.mutate({ code });
-      await this.router.navigateByUrl(localizePath('/'));
     } catch {
-      // best-effort
+      /* Serverfehler: Nutzer wollte beenden → trotzdem zur Startseite */
+    } finally {
+      clearHostToken(code);
+      clearFeedbackHostToken(code);
+      await this.ngZone.run(async () => {
+        await this.router.navigateByUrl(localizePath('/'), { replaceUrl: true });
+      });
     }
   }
 
   private async confirmEndStandaloneFeedback(code: string): Promise<void> {
     try {
       await trpc.quickFeedback.end.mutate({ sessionCode: code });
-      clearFeedbackHostToken(code);
-      await this.router.navigateByUrl(localizePath('/'));
     } catch {
-      // best-effort
+      /* z. B. Host-Token abgelaufen: Client-Token trotzdem löschen und weiter */
+    } finally {
+      clearFeedbackHostToken(code);
+      await this.ngZone.run(async () => {
+        await this.router.navigateByUrl(localizePath('/'), { replaceUrl: true });
+      });
     }
   }
 

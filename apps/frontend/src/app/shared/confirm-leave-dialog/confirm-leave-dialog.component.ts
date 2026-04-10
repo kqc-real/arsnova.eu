@@ -49,7 +49,7 @@ export interface ConfirmLeaveDialogData {
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button type="button" (click)="onCancel()">{{ data.cancelLabel }}</button>
-      <button mat-flat-button color="warn" [mat-dialog-close]="true">
+      <button mat-flat-button type="button" color="warn" [mat-dialog-close]="true">
         {{ data.confirmLabel }}
       </button>
     </mat-dialog-actions>

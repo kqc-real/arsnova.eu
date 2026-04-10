@@ -9,9 +9,17 @@ const { clearFeedbackHostTokenMock, setFeedbackHostTokenMock } = vi.hoisted(() =
   setFeedbackHostTokenMock: vi.fn(),
 }));
 
+const { clearHostTokenMock } = vi.hoisted(() => ({
+  clearHostTokenMock: vi.fn(),
+}));
+
 vi.mock('../../core/feedback-host-token', () => ({
   clearFeedbackHostToken: clearFeedbackHostTokenMock,
   setFeedbackHostToken: setFeedbackHostTokenMock,
+}));
+
+vi.mock('../../core/host-session-token', () => ({
+  clearHostToken: clearHostTokenMock,
 }));
 
 vi.mock('../../core/trpc.client', () => ({
@@ -169,7 +177,9 @@ describe('FeedbackHostComponent', () => {
       { duration: 7000 },
     );
     expect(trpc.session.end.mutate).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(navigateByUrlSpy).toHaveBeenCalledWith('/');
+    expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
+    expect(clearFeedbackHostTokenMock).toHaveBeenCalledWith('ABC123');
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     expect(onActionSubscribe).toHaveBeenCalled();
     fixture.destroy();
   });
@@ -199,7 +209,7 @@ describe('FeedbackHostComponent', () => {
     expect(trpc.quickFeedback.end.mutate).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
     expect(clearFeedbackHostTokenMock).toHaveBeenCalledWith('ABC123');
     expect(trpc.session.end.mutate).not.toHaveBeenCalled();
-    expect(navigateByUrlSpy).toHaveBeenCalledWith('/');
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     expect(onActionSubscribe).toHaveBeenCalled();
   });
 });
