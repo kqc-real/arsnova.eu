@@ -45,6 +45,8 @@
     "build:prod": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/backend && npm run build:localize -w @arsnova/frontend",
     "free-port-3000": "node scripts/free-port-3000.mjs",
     "free-dev-ports": "node scripts/free-dev-ports.mjs",
+    "load:simulate:50": "node scripts/load/concurrent-50-http.mjs",
+    "load:simulate:session:50": "node scripts/load/session-participants-50.mjs",
     "start:prod": "node scripts/start-backend-prod.mjs",
     "prepare": "husky || true"
   },
