@@ -473,7 +473,10 @@ export const RoundComparisonDTOSchema = z.object({
 });
 export type RoundComparisonDTO = z.infer<typeof RoundComparisonDTOSchema>;
 
-/** DTO: Didaktische Empfehlung fuer eine zweite Abstimmungsrunde nach Peer Instruction. */
+/**
+ * DTO: Didaktische Empfehlung fuer eine zweite Abstimmungsrunde nach Peer Instruction.
+ * Server: nur wenn Anteil vollstaendig korrekter Stimmen (Runde 1, SC/MC) zwischen 35 % und 70 % liegt.
+ */
 export const PeerInstructionSuggestionDTOSchema = z.object({
   suggested: z.boolean(),
   reason: z.enum(['CORRECTNESS_WINDOW']),

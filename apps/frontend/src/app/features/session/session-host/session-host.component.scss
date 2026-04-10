@@ -3233,11 +3233,12 @@ button.session-host__btn-discussion {
 .session-host__peer-suggestion {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.5rem;
   margin-bottom: 1rem;
-  padding: 1rem 1.1rem;
+  padding: 0.85rem 1rem 0.95rem 1.15rem;
   border-radius: var(--mat-sys-corner-large, 0.75rem);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 26%, var(--mat-sys-outline));
+  border-inline-start: 4px solid var(--mat-sys-primary);
   background: color-mix(
     in srgb,
     var(--mat-sys-primary-container) 36%,
@@ -3250,17 +3251,30 @@ button.session-host__btn-discussion {
   font: var(--mat-sys-title-medium);
   font-weight: 700;
   color: var(--mat-sys-on-surface);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
-.session-host__peer-suggestion-text,
-.session-host__peer-suggestion-next {
+.session-host__peer-suggestion-lead {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--mat-sys-on-surface);
+  text-wrap: balance;
+}
+
+.session-host__peer-suggestion-sub {
   margin: 0;
   font: var(--mat-sys-body-medium);
-  line-height: 1.5;
+  line-height: 1.4;
   color: var(--mat-sys-on-surface-variant);
 }
 
 .session-host__peer-suggestion-next {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.45;
   color: var(--mat-sys-primary);
   font-weight: 600;
 }

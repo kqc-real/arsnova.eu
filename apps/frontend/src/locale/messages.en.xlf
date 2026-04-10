@@ -7566,17 +7566,25 @@
           <context context-type="linenumber">1207,1210</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.peerSuggestionText" datatype="html">
-        <source>Die Antworten liegen im passenden Korridor für eine zweite Abstimmungsrunde. Das Ergebnis von Runde 1 bleibt bis zu deiner Entscheidung verborgen.</source>
-        <target>The answers fall into the right window for a second voting round. The Round 1 result stays hidden until you decide.</target>
+      <trans-unit id="sessionHost.peerSuggestionLead" datatype="html">
+        <source>35–70 % vollständig korrekt — zweite Runde passt.</source>
+        <target>35–70% fully correct—second round fits.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1212,1219</context>
+          <context context-type="linenumber">1214,1225</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.peerSuggestionSub" datatype="html">
+        <source>Erste Runde noch verborgen, bis du weiter machst.</source>
+        <target>Round 1 still hidden until you continue.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1225,1232</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.peerSuggestionNext" datatype="html">
-        <source>Starte jetzt die Diskussionsphase oder löse die Frage direkt auf.</source>
-        <target>Start the discussion phase now or reveal the result directly.</target>
+        <source>Diskussion starten oder Ergebnis zeigen.</source>
+        <target>Start discussion or show results.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1221,1227</context>

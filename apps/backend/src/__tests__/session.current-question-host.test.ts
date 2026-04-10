@@ -126,6 +126,51 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     expect(result!.correctVoterCount).toBeUndefined();
   });
 
+  it('liefert keine Peer-Instruction-Empfehlung wenn Anteil vollstaendig korrekter Stimmen unter 35 %', async () => {
+    const wrongId = 'aaaaaaaa-1111-4111-8111-111111111111';
+    const correctId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      quiz: {
+        defaultTimer: null,
+        preset: 'SERIOUS',
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            order: 0,
+            text: 'Was ist 2+2?',
+            type: 'SINGLE_CHOICE',
+            timer: null,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            answers: [
+              { id: wrongId, text: '3', isCorrect: false },
+              { id: correctId, text: '4', isCorrect: true },
+            ],
+          },
+        ],
+      },
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { selectedAnswers: [{ answerOptionId: correctId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+      { selectedAnswers: [{ answerOptionId: wrongId }] },
+    ]);
+
+    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+    expect(result).not.toBeNull();
+    expect(result!.totalVotes).toBe(4);
+    expect(result!.peerInstructionSuggestion).toBeUndefined();
+  });
+
   it('liefert null wenn keine Session', async () => {
     prismaMock.session.findUnique.mockResolvedValue(null);
 

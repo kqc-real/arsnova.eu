@@ -639,6 +639,7 @@ describe('SessionHostComponent', () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Peer Instruction empfohlen');
+    expect(text).toMatch(/35\s*[–-]\s*70/);
     expect(text).toContain('Ergebnis trotzdem zeigen');
     expect(text).toContain('Diskussionsphase');
     fixture.destroy();

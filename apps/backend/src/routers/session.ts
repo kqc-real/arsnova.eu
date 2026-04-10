@@ -502,7 +502,8 @@ function buildSessionChannels(session: {
 }
 
 const PLAYFUL_FALLBACK_TIMER_SECONDS = 60;
-const PEER_INSTRUCTION_MIN_CORRECTNESS_RATIO = 0.3;
+/** Anteil vollstaendig korrekter Stimmen (SC/MC, Runde 1): Empfehlung nur in diesem Fenster. */
+const PEER_INSTRUCTION_MIN_CORRECTNESS_RATIO = 0.35;
 const PEER_INSTRUCTION_MAX_CORRECTNESS_RATIO = 0.7;
 
 function resolveQuestionTimer(
