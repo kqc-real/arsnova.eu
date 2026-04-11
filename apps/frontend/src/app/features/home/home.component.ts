@@ -106,6 +106,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Nur Preset Spielerisch: Bühne-Intro und Layout-Hinweise im Template. */
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   private readonly quizStore = inject(QuizStoreService);
+  /** Sync-Raum-ID für Links zur Quiz-Sync-Seite (z. B. von der Startseite). */
+  readonly syncRoomId = this.quizStore.syncRoomId;
   readonly quizCount = computed(
     () => this.quizStore.quizzes().filter((q) => q.id !== DEMO_QUIZ_ID).length,
   );
@@ -398,7 +400,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const docId = this.extractSyncDocId(this.syncLinkValue());
     if (!docId) {
       this.syncLinkError.set(
-        $localize`:@@homeHostCard.syncLinkError:Bitte eine gültige Sync-ID oder einen gültigen Sync-Link eingeben.`,
+        $localize`:@@homeHostCard.syncLinkError:Bitte einen gültigen Sync-Link einfügen.`,
       );
       this.syncLinkInput?.nativeElement.focus();
       return;

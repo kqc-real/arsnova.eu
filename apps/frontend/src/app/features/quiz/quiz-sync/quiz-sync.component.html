@@ -5,28 +5,39 @@
         <mat-icon>sync_alt</mat-icon>
       </span>
       <span class="dialog-title-header__copy">
-        <h2 class="dialog-title-header__heading" i18n="@@quizSync.title">
-          Quiz-Sammlung weitergeben
-        </h2>
+        <h2 class="dialog-title-header__heading" i18n="@@quizSync.title">Quiz-Sammlung teilen</h2>
       </span>
     </div>
-    <p class="quiz-sync__text" i18n="@@quizSync.intro">
-      Öffne deine Quiz-Sammlung auf einem anderen Gerät oder teile sie mit Kolleginnen und Kollegen.
+    <p class="quiz-sync__lead" i18n="@@quizSync.intro">
+      Verschick den Link oder den Kurzcode – damit können andere dieselbe Sammlung auf ihrem Gerät
+      öffnen.
     </p>
-    <p class="quiz-sync__text" i18n="@@quizSync.introSecondary">
-      Der Sync-Link ist der eigentliche Zugriffsschlüssel. Wer ihn hat, kann diese Sammlung auf
-      einem anderen Gerät öffnen und bearbeiten.
-    </p>
-    <div
-      class="quiz-sync__code-box"
-      i18n-aria-label="@@quizSync.codeAria"
-      aria-label="Sync-Kurzcode (Anzeigehilfe)"
-    >
-      <p class="quiz-sync__code-label" i18n="@@quizSync.codeLabel">Dein Sync-Kurzcode</p>
-      <p class="quiz-sync__code-value">{{ syncCode() }}</p>
+    <div class="quiz-sync__cta">
+      <button
+        matButton="filled"
+        type="button"
+        class="quiz-sync__link-copy"
+        (click)="copySyncLink()"
+      >
+        <mat-icon>link</mat-icon>
+        <span i18n="@@quizSync.copyLink">Sync-Link kopieren</span>
+      </button>
     </div>
-    <p class="quiz-sync__text" i18n>
-      Status:
+    <div
+      class="quiz-sync__short"
+      role="group"
+      i18n-aria-label="@@quizSync.shortGroupAria"
+      aria-label="Kurzcode"
+    >
+      <span class="quiz-sync__short-label" i18n="@@quizSync.codeLabel">Kurzcode</span>
+      <code class="quiz-sync__short-value">{{ syncCode() }}</code>
+      <button mat-button type="button" class="quiz-sync__copy-short" (click)="copySyncCode()">
+        <mat-icon>content_copy</mat-icon>
+        <span i18n="@@quizSync.copyCode">Kopieren</span>
+      </button>
+    </div>
+    <p class="quiz-sync__status">
+      <span i18n="@@quizSync.statusPrefix">Status:</span>
       <strong
         class="quiz-sync__state"
         [class.quiz-sync__state--ok]="syncConnectionState() === 'connected'"
@@ -34,25 +45,6 @@
         {{ syncStatusLabel() }}
       </strong>
     </p>
-    <div class="quiz-sync__actions">
-      <button mat-button type="button" (click)="copySyncCode()">
-        <mat-icon>pin</mat-icon>
-        <span i18n="@@quizSync.copyCode">Kurzcode kopieren</span>
-      </button>
-      <button mat-button type="button" (click)="copySyncLink()">
-        <mat-icon>link</mat-icon>
-        <span i18n="@@quizSync.copyLink">Sync-Link kopieren</span>
-      </button>
-    </div>
-    <details class="quiz-sync__details">
-      <summary i18n="@@quizSync.more">Mehr anzeigen</summary>
-      <p class="quiz-sync__text" i18n="@@quizSync.fullId">
-        Vollständige Sync-ID: <strong>{{ docId }}</strong>
-      </p>
-      <p class="quiz-sync__text" i18n="@@quizSync.accessKeyLink">
-        Sync-Link (Zugriffsschlüssel): <span class="quiz-sync__link">{{ syncLink() }}</span>
-      </p>
-    </details>
     <div class="quiz-sync__footer">
       @if (copyStatus()) {
         <p class="quiz-sync__hint" role="status">{{ copyStatus() }}</p>

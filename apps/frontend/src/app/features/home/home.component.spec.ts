@@ -327,7 +327,7 @@ describe('HomeComponent', () => {
   });
 
   describe('openSyncLink', () => {
-    it('erklaert im Sync-Hinweis, dass der Link der Zugriffsschluessel ist', () => {
+    it('ordnet Teilen- und Oeffnen-Hinweis je zum passenden Widget', () => {
       const fixture = TestBed.createComponent(HomeComponent);
       const comp = fixture.componentInstance;
 
@@ -335,8 +335,9 @@ describe('HomeComponent', () => {
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent as string;
-      expect(text).toContain('nutze am besten den Sync-Link');
-      expect(text).toContain('Der Link ist der eigentliche Zugriffsschlüssel.');
+      expect(text).toContain('Mit anderen teilen');
+      expect(text).toContain('Empfangenen Sync-Link hier einfügen');
+      expect(text).toContain('Sync-Link anzeigen');
     });
 
     it('aktiviert mit kompletter Sync-URL den Raum und oeffnet die Quiz-Sammlung', async () => {
@@ -382,9 +383,7 @@ describe('HomeComponent', () => {
       await comp.openSyncLink();
 
       expect(navSpy).not.toHaveBeenCalled();
-      expect(comp.syncLinkError()).toBe(
-        'Bitte eine gültige Sync-ID oder einen gültigen Sync-Link eingeben.',
-      );
+      expect(comp.syncLinkError()).toBe('Bitte einen gültigen Sync-Link einfügen.');
     });
   });
 

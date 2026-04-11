@@ -31,7 +31,7 @@ describe('QuizSyncComponent', () => {
     });
   });
 
-  it('aktiviert den gewünschten Sync-Raum und erklaert Link und Kurzcode', () => {
+  it('aktiviert den gewünschten Sync-Raum und zeigt Teilen-Oberflaeche', () => {
     const fixture = TestBed.createComponent(QuizSyncComponent);
     fixture.detectChanges();
 
@@ -40,11 +40,9 @@ describe('QuizSyncComponent', () => {
       registerOrigin: true,
     });
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Quiz-Sammlung weitergeben');
-    expect(text).toContain('Der Sync-Link ist der eigentliche Zugriffsschlüssel.');
-    expect(text).toContain('Dein Sync-Kurzcode');
-    expect(text).toContain('Vollständige Sync-ID:');
-    expect(text).toContain('Sync-Link (Zugriffsschlüssel):');
+    expect(text).toContain('Quiz-Sammlung teilen');
+    expect(text).toContain('Sync-Link kopieren');
+    expect(text).toContain('Kurzcode');
     expect(text).toContain('SYNCROOM');
   });
 });

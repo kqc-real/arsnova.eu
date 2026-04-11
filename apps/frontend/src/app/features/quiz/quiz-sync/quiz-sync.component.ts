@@ -36,9 +36,13 @@ export class QuizSyncComponent {
   );
   readonly syncStatusLabel = computed(() => {
     const state = this.syncConnectionState();
-    if (state === 'connected') return 'Verbunden';
-    if (state === 'connecting') return 'Verbindung wird aufgebaut';
-    return 'Offline (nur lokal)';
+    if (state === 'connected') {
+      return $localize`:@@quizSync.stateConnected:Verbunden`;
+    }
+    if (state === 'connecting') {
+      return $localize`:@@quizSync.stateConnecting:Verbindung wird aufgebaut`;
+    }
+    return $localize`:@@quizSync.stateOffline:Offline (nur lokal)`;
   });
   readonly syncLink = computed(() => {
     const origin = this.document.defaultView?.location.origin;
@@ -57,11 +61,17 @@ export class QuizSyncComponent {
   }
 
   async copySyncLink(): Promise<void> {
-    await this.copyText(this.syncLink(), 'Sync-Link wurde kopiert.');
+    await this.copyText(
+      this.syncLink(),
+      $localize`:@@quizSync.copyLinkDone:Sync-Link wurde kopiert.`,
+    );
   }
 
   async copySyncCode(): Promise<void> {
-    await this.copyText(this.syncCode(), 'Kurzcode wurde kopiert.');
+    await this.copyText(
+      this.syncCode(),
+      $localize`:@@quizSync.copyCodeDone:Kurzcode wurde kopiert.`,
+    );
   }
 
   private async copyText(value: string, successMessage: string): Promise<void> {
@@ -74,7 +84,9 @@ export class QuizSyncComponent {
       await clipboard.writeText(value);
       this.copyStatus.set(successMessage);
     } catch {
-      this.copyStatus.set($localize`Kopieren nicht möglich. Bitte manuell markieren und kopieren.`);
+      this.copyStatus.set(
+        $localize`:@@quizSync.copyFailed:Kopieren nicht möglich. Bitte manuell markieren und kopieren.`,
+      );
     }
   }
 }

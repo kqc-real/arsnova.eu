@@ -348,56 +348,74 @@
             class="home-card__tertiary-link"
             (click)="toggleSyncLinkEntry()"
             [attr.aria-expanded]="syncLinkVisible()"
-            i18n-aria-label="@@homeHostCard.syncLinkCta"
-            aria-label="Sync-Link öffnen"
+            i18n-aria-label="@@homeHostCard.syncPanelCta"
+            aria-label="Zwischen Geräten wechseln"
           >
             <mat-icon class="home-cta__icon">devices</mat-icon>
-            <span i18n="@@homeHostCard.syncLinkCta">Sync-Link öffnen</span>
+            <span i18n="@@homeHostCard.syncPanelCta">Zwischen Geräten wechseln</span>
           </button>
         </div>
         @if (syncLinkVisible()) {
           <div class="home-sync-entry">
-            <p class="home-card__hint home-sync-entry__hint" i18n="@@homeHostCard.syncLinkHint">
-              Wenn du hier mit einer freigegebenen Quiz-Sammlung von einem anderen Gerät
-              weitermachen willst, nutze am besten den Sync-Link. Der Link ist der eigentliche
-              Zugriffsschlüssel.
-            </p>
-            <label
-              class="home-sync-entry__label"
-              for="home-sync-link"
-              i18n="@@homeHostCard.syncLinkLabel"
-              >Sync-ID oder Sync-Link</label
-            >
-            <div class="home-sync-entry__form">
-              <input
-                #syncLinkInput
-                id="home-sync-link"
-                class="home-sync-entry__input"
-                type="url"
-                [value]="syncLinkValue()"
-                (input)="onSyncLinkInput($event)"
-                (keydown.enter)="openSyncLink()"
-                placeholder="sync-room-12345678"
-                i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
-                autocapitalize="off"
-                autocomplete="off"
-                spellcheck="false"
-                i18n-aria-label
-                aria-label="Sync-ID oder Sync-Link eingeben"
-              />
-              <button
-                matButton="tonal"
-                type="button"
-                class="home-sync-entry__submit"
-                (click)="openSyncLink()"
-                i18n="@@homeHostCard.syncLinkSubmit"
-              >
-                Öffnen
-              </button>
+            <div class="home-sync-entry__block">
+              <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncShareHint">
+                Mit anderen teilen oder auf einem zweiten Gerät dieselbe Sammlung nutzen:
+              </p>
+              <div class="home-sync-entry__share">
+                <a
+                  matButton="text"
+                  class="home-sync-entry__share-link"
+                  [routerLink]="localizedCommands(['quiz', 'sync', syncRoomId()])"
+                  i18n-aria-label="@@homeHostCard.syncShareAria"
+                  aria-label="Sync-Link anzeigen"
+                >
+                  <mat-icon class="home-sync-entry__share-icon">share</mat-icon>
+                  <span i18n="@@homeHostCard.syncShareLink">Sync-Link anzeigen</span>
+                </a>
+              </div>
             </div>
-            @if (syncLinkError()) {
-              <p class="home-error" role="alert">{{ syncLinkError() }}</p>
-            }
+            <hr class="home-sync-entry__divider" aria-hidden="true" />
+            <div class="home-sync-entry__block">
+              <p class="home-sync-entry__action-hint" i18n="@@homeHostCard.syncOpenHint">
+                Empfangenen Sync-Link hier einfügen:
+              </p>
+              <label
+                class="home-sync-entry__label"
+                for="home-sync-link"
+                i18n="@@homeHostCard.syncLinkLabel"
+                >Sync-Link</label
+              >
+              <div class="home-sync-entry__form">
+                <input
+                  #syncLinkInput
+                  id="home-sync-link"
+                  class="home-sync-entry__input"
+                  type="url"
+                  [value]="syncLinkValue()"
+                  (input)="onSyncLinkInput($event)"
+                  (keydown.enter)="openSyncLink()"
+                  placeholder="sync-room-12345678"
+                  i18n-placeholder="@@homeHostCard.syncLinkPlaceholder"
+                  autocapitalize="off"
+                  autocomplete="off"
+                  spellcheck="false"
+                  i18n-aria-label="@@homeHostCard.syncLinkInputAria"
+                  aria-label="Sync-Link einfügen"
+                />
+                <button
+                  matButton="tonal"
+                  type="button"
+                  class="home-sync-entry__submit"
+                  (click)="openSyncLink()"
+                  i18n="@@homeHostCard.syncLinkSubmit"
+                >
+                  Öffnen
+                </button>
+              </div>
+              @if (syncLinkError()) {
+                <p class="home-error" role="alert">{{ syncLinkError() }}</p>
+              }
+            </div>
           </div>
         }
       </mat-card-actions>

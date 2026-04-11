@@ -112,7 +112,7 @@ describe('QuizListComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Sync-Code erzeugen');
+    expect(text).toContain('Sammlung teilen');
   });
 
   it('zeigt bei geteilter Bibliothek einen sichtbaren Sync-Status', () => {
