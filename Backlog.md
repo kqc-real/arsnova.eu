@@ -1048,11 +1048,11 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
   **Hero-Chips — kanonisches Wording, Reihenfolge und Navigationsziele (festgelegt, in die Implementierung zu übernehmen):**
 
-  | Reihenfolge | Navigationsziel                                                             | DE                     | EN                     | FR                          | IT                        | ES                       |
-  | ----------- | --------------------------------------------------------------------------- | ---------------------- | ---------------------- | --------------------------- | ------------------------- | ------------------------ |
-  | 1           | **Quiz-Bibliothek** (Quiz-Liste / `quiz`-Route gemäß Router)                | **Quiz starten**       | **Launch quiz**        | **Lancer le quiz**          | **Avvia quiz**            | **Iniciar cuestionario** |
-  | 2           | **Host-Route**, aktiver **Q&A-Kanaltab** (`tab=qa` o. ä.)                   | **Q&A öffnen**         | **Open Q&A**           | **Ouvrir le Q&A**           | **Apri Q&A**              | **Abrir Q&A**            |
-  | 3           | **Host-Route**, aktiver **Blitzlicht-Kanaltab** (`tab=quickFeedback` o. ä.) | **Blitzlicht starten** | **Launch pulse check** | **Lancer le sondage flash** | **Avvia sondaggio flash** | **Iniciar sondeo flash** |
+  | Reihenfolge | Navigationsziel                                                             | DE                     | EN                    | FR                          | IT                        | ES                       |
+  | ----------- | --------------------------------------------------------------------------- | ---------------------- | --------------------- | --------------------------- | ------------------------- | ------------------------ |
+  | 1           | **Quiz-Bibliothek** (Quiz-Liste / `quiz`-Route gemäß Router)                | **Quiz starten**       | **Start quiz**        | **Lancer le quiz**          | **Avvia quiz**            | **Iniciar quiz**         |
+  | 2           | **Host-Route**, aktiver **Q&A-Kanaltab** (`tab=qa` o. ä.)                   | **Q&A öffnen**         | **Open Q&A**          | **Ouvrir le Q&A**           | **Apri Q&A**              | **Abrir Q&A**            |
+  | 3           | **Host-Route**, aktiver **Blitzlicht-Kanaltab** (`tab=quickFeedback` o. ä.) | **Blitzlicht starten** | **Start pulse check** | **Lancer le sondage flash** | **Avvia sondaggio flash** | **Iniciar sondeo flash** |
   - **Reihenfolge auf der Startseite:** immer **1 → 2 → 3** wie in der Tabelle (oben nach unten bzw. links nach rechts — konsistent mit dem Hero-Layout).
   - **i18n (ADR-0008):** Chip-Labels **verbindlich** wie in der Tabelle für **`de` · `en` · `fr` · `it` · `es`**; stabile `i18n`-IDs (`@@…`) wo sinnvoll.
 
