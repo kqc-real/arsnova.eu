@@ -74,6 +74,7 @@ import { recordServerTimeIso } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
+import { FoyerEntranceAnimationComponent } from './foyer-entrance-animation.component';
 
 const ANSWER_COLORS = [
   '#1565c0',
@@ -246,6 +247,7 @@ function musicTracksForPhase(
     CountdownFingersComponent,
     MusicEqualizerIconComponent,
     FeedbackHostComponent,
+    FoyerEntranceAnimationComponent,
     MarkdownImageLightboxDirective,
   ],
   templateUrl: './session-host.component.html',
@@ -398,6 +400,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly isQaSession = computed(() => this.session()?.type === 'Q_AND_A');
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
+  /**
+   * Story 5.4a: Animation soll nur im Playful-Preset und wenn Effekte enabled sind
+   */
+  readonly shouldShowFoyerEntrance = computed(
+    () =>
+      this.isPlayfulPreset() &&
+      (this.session()?.enableRewardEffects ?? true) &&
+      this.effectiveStatus() === 'LOBBY',
+  );
   readonly isRunningSession = computed(() => {
     const status = this.effectiveStatus();
     return this.session() !== null && status !== 'LOBBY' && status !== 'FINISHED';

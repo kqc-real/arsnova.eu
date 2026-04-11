@@ -384,6 +384,15 @@
         @if (effectiveStatus() === 'LOBBY') {
           <!-- Lobby: Start-CTA, Teams/Teilnehmende; Beitritt per Live-Leiste / automatisch geöffnetes Menü. -->
           <div class="session-lobby">
+            <!-- Story 5.4a: Foyer-Einflug Animation (nur im Playful-Preset) -->
+            @if (shouldShowFoyerEntrance()) {
+              <app-foyer-entrance-animation
+                [participantsData]="participantsPayload()"
+                [animationEnabled]="session()?.enableRewardEffects ?? true"
+                [isPlayfulPreset]="isPlayfulPreset()"
+              />
+            }
+
             @if (sessionHeading(); as heading) {
               <section class="session-lobby__hero-card">
                 <p class="session-lobby__hero-title">{{ heading }}</p>

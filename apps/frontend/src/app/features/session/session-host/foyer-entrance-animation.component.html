@@ -1,0 +1,55 @@
+<div class="foyer-entrance" [class.foyer-entrance--animate]="shouldAnimateChips()">
+  <!-- Animierte Chips (mit Einflug-Animation) -->
+  @if (shouldAnimateChips()) {
+    <div class="foyer-entrance__animated-container">
+      @for (chip of animatingChips(); track chip.id) {
+        <div
+          class="foyer-entrance__chip foyer-entrance__chip--animating"
+          [class.foyer-entrance__chip--entered]="chip.hasEntered"
+          [style]="
+            'animation-delay: ' +
+            chip.delay +
+            'ms; ' +
+            '--chip-color: ' +
+            getChipColor(chip.colorIndex) +
+            ';'
+          "
+          role="img"
+          [attr.aria-label]="chip.nickname + ' betritt das Foyer'"
+          aria-hidden="true"
+        >
+          @if (chip.emoji) {
+            <span class="foyer-entrance__chip-emoji">{{ chip.emoji }}</span>
+          } @else {
+            <span class="foyer-entrance__chip-initials">{{ getInitials(chip.nickname) }}</span>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Statische Chips (für prefers-reduced-motion) -->
+  @if (prefersReducedMotionSignal() && staticChips().length > 0) {
+    <div class="foyer-entrance__static-container">
+      <p class="foyer-entrance__static-label">Neue Teilnehmende:</p>
+      <div class="foyer-entrance__static-chips">
+        @for (chip of staticChips(); track chip.id) {
+          <div
+            class="foyer-entrance__chip foyer-entrance__chip--static"
+            [style]="'--chip-color: ' + getChipColor(chip.colorIndex) + ';'"
+            role="img"
+            [attr.aria-label]="chip.nickname"
+            aria-hidden="true"
+          >
+            @if (chip.emoji) {
+              <span class="foyer-entrance__chip-emoji">{{ chip.emoji }}</span>
+            } @else {
+              <span class="foyer-entrance__chip-initials">{{ getInitials(chip.nickname) }}</span>
+            }
+            <span class="foyer-entrance__chip-nickname">{{ chip.nickname }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
