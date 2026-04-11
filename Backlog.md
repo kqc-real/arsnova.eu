@@ -1046,8 +1046,18 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
   **Kurz (User Story):** Als Veranstaltende\*r nutze ich die **Hero-Chips** auf der Startseite, lande nach dem Start **zuverlässig** im richtigen Host-Kanal und kann die laufende Session **ohne inkonsistentes Verhalten** beenden oder zur App zurückkehren — **unabhängig vom aktiven Kanal** (Quiz, Q&A, Blitzlicht).
 
+  **Hero-Chips — kanonisches Wording, Reihenfolge und Navigationsziele (festgelegt, in die Implementierung zu übernehmen):**
+
+  | Reihenfolge | Navigationsziel                                                             | DE                     | EN                     | FR                          | IT                        | ES                       |
+  | ----------- | --------------------------------------------------------------------------- | ---------------------- | ---------------------- | --------------------------- | ------------------------- | ------------------------ |
+  | 1           | **Quiz-Bibliothek** (Quiz-Liste / `quiz`-Route gemäß Router)                | **Quiz starten**       | **Launch quiz**        | **Lancer le quiz**          | **Avvia quiz**            | **Iniciar cuestionario** |
+  | 2           | **Host-Route**, aktiver **Q&A-Kanaltab** (`tab=qa` o. ä.)                   | **Q&A öffnen**         | **Open Q&A**           | **Ouvrir le Q&A**           | **Apri Q&A**              | **Abrir Q&A**            |
+  | 3           | **Host-Route**, aktiver **Blitzlicht-Kanaltab** (`tab=quickFeedback` o. ä.) | **Blitzlicht starten** | **Launch pulse check** | **Lancer le sondage flash** | **Avvia sondaggio flash** | **Iniciar sondeo flash** |
+  - **Reihenfolge auf der Startseite:** immer **1 → 2 → 3** wie in der Tabelle (oben nach unten bzw. links nach rechts — konsistent mit dem Hero-Layout).
+  - **i18n (ADR-0008):** Chip-Labels **verbindlich** wie in der Tabelle für **`de` · `en` · `fr` · `it` · `es`**; stabile `i18n`-IDs (`@@…`) wo sinnvoll.
+
   **Zielbild für die Implementierung (MUSS):**
-  1. **Hero-Chips:** Jeder Chip mit Session-Einstieg führt **deterministisch** zum dokumentierten Ziel (z. B. Navigation nach `session/:code/host` mit Query `tab=qa` / `tab=quickFeedback` oder gleichwertigem, im Code festgelegtem Kanal-Start). Kein „still hängenbleiben“ oder falscher Tab nach dem Sprung von der Startseite.
+  1. **Hero-Chips:** Die **drei** Chips entsprechen **exakt** der Tabelle oben (Wording, Reihenfolge, Ziel). Jeder Chip führt **deterministisch** zum dokumentierten Ziel (Quiz-Bibliothek bzw. `session/:code/host` mit `tab=qa` / `tab=quickFeedback`). Kein „still hängenbleiben“ oder falscher Tab nach dem Sprung von der Startseite.
   2. **Zwei getrennte UX-Pfade zum Verlassen / Beenden** (beide bei **aktiver** Session mit **gleicher** Sicherheitslogik):
      - **Pfad A – Shell-Navigation:** Klicks auf Links in **`app-top-toolbar`** (z. B. Brand „arsnova.eu“, **Home-Icon**, andere App-Routen), die **weg von der Host-Route** navigieren → **dieselbe** Bestätigungslogik wie heute bei `canDeactivate` (Konsequenzen klar, Abbruch möglich). _Technisch: bestehender Router-Guard auf der Host-Route._
      - **Pfad B – Explizites Session-Ende:** Sichtbarer, beschrifteter **„Session beenden“**-Einstieg **im Host-Layout** mit **fester, UX-optimierter und kanalübergreifend identischer Platzierung:** die Aktion sitzt an **einem** von **`SessionHostComponent`** vorgegebenen **Anker** (z. B. gemeinsame Host-Steuerleiste / fester Bereich unmittelbar am Kanal-Tab-Bereich — im Code festgelegt, nicht pro Kanal neu erfunden). Beim Wechsel zwischen Quiz-, Q&A- und Blitzlicht-Tab bleibt der Einstieg **an derselben Stelle im Viewport** (kein Verschieben in unterschiedliche Bereiche der eingebetteten Kanal-Views). **Gleiche** Bestätigungsdialog-Komponente / **gleiches** Datenmodell für Konsequenzen wie Pfad A (kein separates „Mini-Ende“ per Snackbar ohne Dialog, wenn die Session noch aktiv ist).
@@ -1064,12 +1074,12 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
   - **Springender oder kanalabhängiger Ort für Pfad B:** „Session beenden“ darf **nicht** je nach aktivem Kanal an **unterschiedlichen** Stellen (z. B. nur unten in der Blitzlicht-Karte, links in Q&A) erscheinen — **ein** Anker, **eine** Position.
 
   **Akzeptanzkriterien (abnahmefähig):**
-  - [ ] Start über jeden relevanten **Hero-Chip** landet reproduzierbar im **richtigen Host-Tab/Kanal** (manuell + ggf. Smoke).
+  - [ ] Start über **jeden der drei Hero-Chips** (s. Tabelle; Labels in allen Locales **de/en/fr/it/es**) landet reproduzierbar im **richtigen Ziel** (Quiz-Bibliothek bzw. Host-Tab Q&A / Blitzlicht) (manuell + ggf. Smoke).
   - [ ] **Pfad A:** Navigation von `/session/…/host` zur Startseite über **Top-Toolbar** (Home/Brand) zeigt bei aktiver Session den **Bestätigungsdialog** und endet die Session nach Zustimmung konsistent.
   - [ ] **Pfad B:** Button **„Session beenden“** ist **immer am gleichen Host-Anker** platziert (sichtbar beim Wechsel **aller** relevanter Kanal-Tabs: Quiz, Q&A, Blitzlicht), **nicht** in `app-top-toolbar`, mit **demselben** Bestätigungsmuster wie Pfad A (inhaltlich vergleichbare Konsequenzen); **kein** Ortswechsel des Buttons nur durch Kanalwechsel.
   - [ ] **Vollbild** + **Toolbar eingeklappt/ausgeblendet:** Pfad B bleibt nutzbar; Session-Ende ist **ohne** sichtbare Toolbar möglich.
   - [ ] Nach Ende: **Host-Token** und **Feedback-Host-Token** (falls gesetzt) sind clientseitig konsistent entfernt; keine Zombie-Requests.
-  - [ ] **i18n (ADR-0008):** Alle neuen/geänderten UI-Strings in `de`, `en`, `fr`, `es`, `it`.
+  - [ ] **i18n (ADR-0008):** Chip-Labels **exakt** wie in der Tabelle für alle fünf Locales; XLF/`messages.*.xlf` synchron.
   - [ ] **Keine redundanten Session-Exits:** Code-Review / kurzes UI-Audit: **keine** weiteren sichtbaren Einstiege „Session beenden“ (oder unterschiedlich benannt, **gleiche** Wirkung) außer **Pfad A** (Toolbar-Navigation mit Guard) und **Pfad B** (Host-Kanal-Button); alte Duplikate sind entfernt oder auf den gemeinsamen Dialog refaktoriert.
 
   **Anker im Repo (Orientierung für Agent:innen, nicht abschließend):** `apps/frontend/src/app/features/home/home.component.ts` (Hero-Chips / Navigation zum Host), `apps/frontend/src/app/app.routes.ts` (`canDeactivate` Host-Route), `apps/frontend/src/app/features/session/session-host/session-host.component.ts` + Template, `apps/frontend/src/app/features/session/session.component.ts` (Host-Layout-Erkennung vs. Query), `apps/frontend/src/app/shared/confirm-leave-dialog/`, `apps/frontend/src/app/shared/top-toolbar/`, eingebettetes `FeedbackHostComponent` bei Blitzlicht, `docs/ui/STYLEGUIDE.md`, ADR-0008.
@@ -1078,7 +1088,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
   **Nicht-Ziele:** Inhaltliche Änderung von Quiz-Fragen; neue Live-Kanäle außerhalb der bestehenden Session-Architektur; reine REST-APIs (nur tRPC laut Monorepo-Regeln).
 
-  **Definition of Done (Story-spezifisch):** Unit-/Component-Tests für geänderte Host-/Home-Logik grün; manuelle Matrix mindestens: **Fragerunde** + **Blitzlicht** × (Pfad A Toolbar, Pfad B am **festen Host-Anker**) × (normale Ansicht, Vollbild oder Toolbar aus); beim Tab-Wechsel **Quiz ↔ Q&A ↔ Blitzlicht** prüfen: **Pfad B** bleibt **ortsgleich**; sekundäre Navigation (z. B. Hilfe) nach bestätigtem Verlassen ohne Fehlzustand; `npm run build` Frontend ohne Fehler.
+  **Definition of Done (Story-spezifisch):** Unit-/Component-Tests für geänderte Host-/Home-Logik grün; manuelle Matrix mindestens: **alle drei Hero-Chips** (Quiz-Bibliothek, Q&A-Tab, Blitzlicht-Tab) × (Pfad A Toolbar, Pfad B am **festen Host-Anker**) × (normale Ansicht, Vollbild oder Toolbar aus); beim Tab-Wechsel **Quiz ↔ Q&A ↔ Blitzlicht** prüfen: **Pfad B** bleibt **ortsgleich**; sekundäre Navigation (z. B. Hilfe) nach bestätigtem Verlassen ohne Fehlzustand; `npm run build` Frontend ohne Fehler.
 
 ---
 
