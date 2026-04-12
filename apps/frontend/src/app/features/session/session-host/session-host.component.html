@@ -109,20 +109,6 @@
       </div>
     }
 
-    @if (effectiveStatus() !== 'FINISHED') {
-      <div class="session-host__exit-anchor app-live-channel-shell">
-        <button
-          matButton="tonal"
-          type="button"
-          class="session-host__exit-anchor-button"
-          (click)="onSessionEndAnchorClick()"
-          i18n="@@sessionHost.endSessionAnchor"
-        >
-          Session beenden
-        </button>
-      </div>
-    }
-
     <mat-menu #hostMusicMenu="matMenu" xPosition="before" (closed)="onHostMusicMenuClosed()">
       <div
         class="session-host__music-menu-head dialog-title-header"
@@ -1964,6 +1950,19 @@
         </div>
       }
     </div>
+    @if (effectiveStatus() !== 'FINISHED') {
+      <div class="session-host__exit-anchor app-live-channel-shell">
+        <button
+          matButton="tonal"
+          type="button"
+          class="session-host__exit-anchor-button"
+          (click)="onSessionEndAnchorClick()"
+          i18n="@@sessionHost.endSessionAnchor"
+        >
+          Session beenden
+        </button>
+      </div>
+    }
   } @else {
     <mat-card appearance="outlined" class="session-placeholder">
       <mat-card-content>

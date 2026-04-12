@@ -83,6 +83,8 @@
   --session-host-float-top: 0.75rem;
   display: grid;
   gap: var(--session-host-zone-gap);
+  /* Platz für den fixierten Exit-Button am unteren Rand. */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
 }
 
 .session-host--with-channel-tabs {
@@ -125,15 +127,34 @@
 }
 
 .session-host__exit-anchor {
-  width: min(100%, var(--session-host-shell-max-width));
-  margin: 0 auto;
-  padding-inline: var(--session-host-shell-inline);
+  position: fixed;
+  left: 50%;
+  /* Fallback ohne Anchor-API: oberhalb der Footer-Zone halten. */
+  bottom: max(5.25rem, calc(env(safe-area-inset-bottom, 0px) + 0.85rem));
+  transform: translateX(-50%);
+  width: min(
+    var(--session-host-shell-max-width),
+    calc(100vw - (2 * var(--session-host-shell-inline)))
+  );
+  margin: 0;
+  padding-inline: 0;
   display: flex;
   justify-content: flex-end;
+  z-index: 20;
+  pointer-events: none;
+}
+
+@supports (position-anchor: --_) {
+  .session-host__exit-anchor {
+    position-anchor: --app-footer-anchor;
+    bottom: calc(anchor(top) + 0.5rem);
+  }
 }
 
 .session-host__exit-anchor-button {
   font-weight: 600;
+  pointer-events: auto;
+  box-shadow: var(--mat-sys-level2);
 }
 
 @media (max-width: 599px) {
@@ -160,6 +181,8 @@
   }
 
   .session-host__exit-anchor {
+    width: calc(100vw - (2 * var(--host-mobile-inline)));
+    bottom: max(5.25rem, calc(var(--host-mobile-safe-bottom) + 0.5rem));
     justify-content: stretch;
   }
 
