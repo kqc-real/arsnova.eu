@@ -62,7 +62,8 @@ export class SessionComponent implements OnInit, OnDestroy {
   }
 
   private updateHostRoute(): void {
-    const url = this.router.url;
-    this.isHostRoute.set(url.endsWith('/host') || url.endsWith('/host/'));
+    const childPath =
+      this.route.firstChild?.routeConfig?.path ?? this.route.snapshot.firstChild?.routeConfig?.path;
+    this.isHostRoute.set(childPath === 'host');
   }
 }

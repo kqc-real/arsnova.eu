@@ -109,6 +109,20 @@
       </div>
     }
 
+    @if (effectiveStatus() !== 'FINISHED') {
+      <div class="session-host__exit-anchor app-live-channel-shell">
+        <button
+          matButton="tonal"
+          type="button"
+          class="session-host__exit-anchor-button"
+          (click)="onSessionEndAnchorClick()"
+          i18n="@@sessionHost.endSessionAnchor"
+        >
+          Session beenden
+        </button>
+      </div>
+    }
+
     <mat-menu #hostMusicMenu="matMenu" xPosition="before" (closed)="onHostMusicMenuClosed()">
       <div
         class="session-host__music-menu-head dialog-title-header"
@@ -1478,17 +1492,6 @@
                     <span i18n>Antworten freigeben</span>
                   </button>
                 }
-                @if (effectiveStatus() === 'ACTIVE' && isQaSession()) {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="endSession()"
-                  >
-                    <span i18n="@@sessionHost.endQa">Fragerunde beenden</span>
-                  </button>
-                }
                 @if (
                   effectiveStatus() === 'ACTIVE' && !isQaSession() && currentQuestionForHost();
                   as liveQ
@@ -1579,7 +1582,7 @@
                     color="primary"
                     type="button"
                     [disabled]="controlPending()"
-                    (click)="nextQuestion()"
+                    (click)="isLastQuestion() ? onSessionEndAnchorClick() : nextQuestion()"
                   >
                     @if (isLastQuestion()) {
                       <span i18n>Session beenden</span>
@@ -1587,18 +1590,6 @@
                       <span i18n>Nächste Frage</span>
                     }
                   </button>
-                  @if (!isLastQuestion()) {
-                    <button
-                      matButton="tonal"
-                      type="button"
-                      class="session-host__btn-end-secondary"
-                      [disabled]="controlPending()"
-                      (click)="endSession()"
-                    >
-                      <mat-icon aria-hidden="true">stop_circle</mat-icon>
-                      <span i18n>Session beenden</span>
-                    </button>
-                  }
                 }
               </div>
 
@@ -1720,20 +1711,6 @@
 
               @if (qaInfo(); as info) {
                 <p class="session-channel-card__info" role="status">{{ info }}</p>
-              }
-
-              @if (isQaSession() && effectiveStatus() === 'ACTIVE') {
-                <div class="session-host__qa-panel-actions">
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="endSession()"
-                  >
-                    <span i18n="@@sessionHost.endQa">Fragerunde beenden</span>
-                  </button>
-                </div>
               }
 
               <div class="session-qa-moderation-toggle">

@@ -2942,6 +2942,43 @@
           <context context-type="linenumber">65,68</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="home.heroChip.quizStart" datatype="html">
+        <source>Quiz starten</source>
+        <target>Iniciar quiz</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="home.heroChip.openQa" datatype="html">
+        <source>Q&amp;A öffnen</source>
+        <target>Abrir Q&amp;A</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="home.heroChip.startQuickFeedback" datatype="html">
+        <source>Blitzlicht starten</source>
+        <target>Iniciar sondeo flash</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.endSessionAnchor" datatype="html">
+        <source>Session beenden</source>
+        <target>Terminar sesión</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile"
+            >src/app/features/session/session-host/session-host.component.html</context
+          >
+        </context-group>
+      </trans-unit>
+      <trans-unit id="home.heroChipStartError" datatype="html">
+        <source>Der Kanal konnte nicht gestartet werden. Bitte versuche es erneut.</source>
+        <target>No se pudo iniciar el canal. Inténtalo de nuevo.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="homeStage.rotate1" datatype="html">
         <source> Live-Quizze ohne Anmeldung.</source>
         <target>Quizzes en vivo sin registro.</target>
@@ -7984,6 +8021,20 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1016</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.leaveConsequenceExportAfterEnd" datatype="html">
+        <source>Du hast bereits Ergebnisse. Nach dem Beenden kannst du sie in der Abschlussansicht exportieren oder Feedback ansehen.</source>
+        <target>Ya tienes resultados. Después de finalizar, puedes exportarlos o revisar el feedback en la vista final.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.leaveConsequenceNoResultsYet" datatype="html">
+        <source>Es liegen noch keine verwertbaren Ergebnisse vor. Nach dem Beenden wirst du direkt zur Startseite geführt.</source>
+        <target>Todavía no hay resultados aprovechables. Después de finalizar, irás directamente a la página de inicio.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.leaveConsequenceBonusCodes" datatype="html">

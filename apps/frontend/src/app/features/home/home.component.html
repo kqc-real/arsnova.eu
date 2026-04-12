@@ -41,30 +41,34 @@
         </mat-button-toggle-group>
       </div>
 
-      <p class="home-hero-host-row">
+      <div class="home-hero-host-row">
         <a
-          href="#host-quick-feedback"
-          class="home-hero-host-link"
-          i18n="@@sessionTabs.quickFeedback"
-          >Blitzlicht</a
-        >
-        <span class="home-hero-host-sep" aria-hidden="true">·</span>
-        <a
-          [routerLink]="localizedPath('/quiz/new')"
-          class="home-hero-host-link"
-          (mouseenter)="preloadQuiz()"
-          i18n="@@home.heroHostCreate"
-          >Quiz erstellen</a
-        >
-        <span class="home-hero-host-sep" aria-hidden="true">·</span>
-        <a
+          matButton="tonal"
           [routerLink]="localizedPath('/quiz')"
           class="home-hero-host-link"
           (mouseenter)="preloadQuiz()"
-          i18n="@@home.heroHostLead"
-          >Session leiten</a
+          i18n="@@home.heroChip.quizStart"
+          >Quiz starten</a
         >
-      </p>
+        <button
+          matButton="tonal"
+          type="button"
+          class="home-hero-host-link"
+          (click)="openHeroHostTab('qa')"
+          i18n="@@home.heroChip.openQa"
+        >
+          Q&amp;A öffnen
+        </button>
+        <button
+          matButton="tonal"
+          type="button"
+          class="home-hero-host-link"
+          (click)="openHeroHostTab('quickFeedback')"
+          i18n="@@home.heroChip.startQuickFeedback"
+        >
+          Blitzlicht starten
+        </button>
+      </div>
     </div>
 
     @if (isPlayfulPreset()) {

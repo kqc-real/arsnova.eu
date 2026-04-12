@@ -137,15 +137,17 @@
         <mat-icon>restart_alt</mat-icon>
         <span i18n>Zurücksetzen</span>
       </button>
-      <button
-        mat-button
-        type="button"
-        class="feedback-host__action-link feedback-host__end-session-link"
-        (click)="endSession()"
-      >
-        <mat-icon>stop_circle</mat-icon>
-        <span i18n>Session beenden</span>
-      </button>
+      @if (!embeddedInSession()) {
+        <button
+          mat-button
+          type="button"
+          class="feedback-host__action-link feedback-host__end-session-link"
+          (click)="endSession()"
+        >
+          <mat-icon>stop_circle</mat-icon>
+          <span i18n>Session beenden</span>
+        </button>
+      }
     </div>
     <div class="feedback-host__template-switch">
       @for (chip of presetChips; track chip.type) {

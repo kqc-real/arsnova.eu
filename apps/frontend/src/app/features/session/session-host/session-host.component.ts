@@ -20,6 +20,7 @@ import {
   signal,
   computed,
   effect,
+  untracked,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -41,7 +42,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
-import type { Subscription } from 'rxjs';
+import { clearFeedbackHostToken } from '../../../core/feedback-host-token';
 import { clearHostToken } from '../../../core/host-session-token';
 import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
@@ -276,7 +277,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private participantSub: Unsubscribable | null = null;
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
-  private presetSub: Subscription | null = null;
   private readonly document = inject(DOCUMENT);
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
@@ -686,6 +686,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     effect(() => {
       this.hostDisplayMode.setHostSessionActive(this.isRunningSession());
     });
+    effect(() => {
+      const mappedPreset = this.themePreset.preset() === 'serious' ? 'SERIOUS' : 'PLAYFUL';
+      this.musicMuted.set(mappedPreset === 'SERIOUS');
+      untracked(() => this.syncMusic());
+
+      if (this.code.length !== 6) {
+        return;
+      }
+      const session = this.session();
+      if (!session || session.preset === mappedPreset) {
+        return;
+      }
+
+      this.session.update((current) => (current ? { ...current, preset: mappedPreset } : current));
+      void trpc.session.updatePreset
+        .mutate({ code: this.code.toUpperCase(), preset: mappedPreset })
+        .catch(() => {
+          /* best-effort */
+        });
+    });
     // Story 5.1: Sound-Effekte bei Status-Wechsel
     effect(() => {
       const status = this.effectiveStatus();
@@ -851,6 +871,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     if (this.code.length !== 6) return;
+    // Preset "Seriös/Business" startet standardmäßig ohne Musik.
+    this.musicMuted.set(this.themePreset.preset() === 'serious');
     try {
       const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
       recordServerTimeIso(session.serverTime);
@@ -927,12 +949,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         );
       }
 
-      this.presetSub = this.themePreset.presetChanged$.subscribe(() => {
-        const preset =
-          this.themePreset.preset() === 'serious' ? ('SERIOUS' as const) : ('PLAYFUL' as const);
-        void trpc.session.updatePreset.mutate({ code: this.code.toUpperCase(), preset });
-      });
-
       this.document.addEventListener('click', this.unlockListener, { once: true });
       this.document.addEventListener('keydown', this.unlockListener, { once: true });
     }
@@ -975,8 +991,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.statusSub = null;
     this.qaSub?.unsubscribe();
     this.qaSub = null;
-    this.presetSub?.unsubscribe();
-    this.presetSub = null;
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
@@ -1072,6 +1086,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return error instanceof Error && error.message.includes(SESSION_NOT_FOUND_MESSAGE);
   }
 
+  private clearSessionTokens(): void {
+    if (!this.code) {
+      return;
+    }
+    clearHostToken(this.code);
+    clearFeedbackHostToken(this.code);
+  }
+
   private markSessionUnavailable(): void {
     this.sessionUnavailable.set(true);
     this.stopCountdown();
@@ -1084,9 +1106,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
     this.session.update((session) => (session ? { ...session, status: 'FINISHED' } : session));
     this.dismissHostSteeringCallout();
-    if (this.code) {
-      clearHostToken(this.code);
-    }
+    this.clearSessionTokens();
   }
 
   private async navigateHomeAfterSessionUnavailable(): Promise<void> {
@@ -1126,7 +1146,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.code) return;
     try {
       await trpc.session.end.mutate({ code: this.code.toUpperCase() });
-      clearHostToken(this.code);
+      this.markSessionUnavailable();
       await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
       this.dismissHostSteeringCallout();
     } catch (error) {
@@ -1141,14 +1161,106 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * CanDeactivate-Guard-Hook: zeigt einen Bestätigungsdialog,
    * wenn die Session noch läuft.
    */
+  async onSessionEndAnchorClick(): Promise<void> {
+    if (!this.isSessionActive()) {
+      return;
+    }
+    const shouldShowFinishedView = await this.shouldStayOnFinishedAfterSessionEnd();
+    const confirmed = await this.confirmSessionEnd(undefined, shouldShowFinishedView);
+    if (!confirmed || !this.code) {
+      return;
+    }
+    try {
+      if (shouldShowFinishedView) {
+        await this.endSession();
+      } else {
+        await this.endSessionAndNavigateHome();
+      }
+    } catch {
+      const retry = shouldShowFinishedView
+        ? () => void this.endSession()
+        : () => void this.retryEndSessionAndNavigateHome();
+      this.openHostSteeringCalloutForSteeringFailure(retry);
+    }
+  }
+
+  private async shouldStayOnFinishedAfterSessionEnd(): Promise<boolean> {
+    if (!this.code) {
+      return false;
+    }
+    try {
+      const data = await trpc.session.getExportData.query({ code: this.code.toUpperCase() });
+      return this.hasExportableSessionResults(data);
+    } catch {
+      const participantCount = this.participantsPayload()?.participantCount ?? 0;
+      return participantCount > 0;
+    }
+  }
+
+  private hasExportableSessionResults(data: {
+    questions: Array<{
+      participantCount: number;
+      optionDistribution?: Array<{ count: number }>;
+      freetextAggregates?: Array<{ count: number }>;
+      ratingDistribution?: Record<string, number>;
+      ratingAverage?: number | null;
+    }>;
+    bonusTokens?: unknown[];
+  }): boolean {
+    if ((data.bonusTokens?.length ?? 0) > 0) {
+      return true;
+    }
+    return data.questions.some((question) => {
+      if (question.participantCount > 0) {
+        return true;
+      }
+      if (question.optionDistribution?.some((entry) => entry.count > 0)) {
+        return true;
+      }
+      if (question.freetextAggregates?.some((entry) => entry.count > 0)) {
+        return true;
+      }
+      if (
+        question.ratingDistribution &&
+        Object.values(question.ratingDistribution).some((count) => count > 0)
+      ) {
+        return true;
+      }
+      return typeof question.ratingAverage === 'number' && question.ratingAverage > 0;
+    });
+  }
+
   async canDeactivate(): Promise<boolean> {
     if (!this.isSessionActive()) {
       if (this.effectiveStatus() === 'FINISHED' && this.code) {
-        clearHostToken(this.code);
+        this.clearSessionTokens();
       }
       return true;
     }
 
+    const result = await this.confirmSessionEnd(() => this.tryEnterHostFullscreenFromUserGesture());
+    if (result !== true || !this.code) {
+      return false;
+    }
+
+    try {
+      await this.endSessionAndNavigateHome();
+    } catch (error) {
+      if (this.isSessionNotFoundError(error)) {
+        await this.navigateHomeAfterSessionUnavailable();
+        return false;
+      }
+      this.openHostSteeringCalloutForSteeringFailure(
+        () => void this.retryEndSessionAndNavigateHome(),
+      );
+    }
+    return false;
+  }
+
+  private async confirmSessionEnd(
+    onCancelUserGesture?: () => void,
+    hasExportableResults = false,
+  ): Promise<boolean> {
     const participants = this.participantsPayload()?.participantCount ?? 0;
 
     const consequences: string[] = [
@@ -1158,6 +1270,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (participants > 0) {
       consequences.push(
         $localize`:@@sessionHost.leaveConsequenceWaitingCount:${participants}:participantCount: Teilnehmende sind noch in der Session.`,
+      );
+    }
+    if (hasExportableResults) {
+      consequences.push(
+        $localize`:@@sessionHost.leaveConsequenceExportAfterEnd:Du hast bereits Ergebnisse. Nach dem Beenden kannst du sie in der Abschlussansicht exportieren oder Feedback ansehen.`,
+      );
+    } else {
+      consequences.push(
+        $localize`:@@sessionHost.leaveConsequenceNoResultsYet:Es liegen noch keine verwertbaren Ergebnisse vor. Nach dem Beenden wirst du direkt zur Startseite geführt.`,
       );
     }
     const bonusTop = this.session()?.bonusTokenCount;
@@ -1174,34 +1295,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         consequences,
         confirmLabel: $localize`Trotzdem verlassen`,
         cancelLabel: $localize`Zurück zur Session`,
-        onCancelUserGesture: () => this.tryEnterHostFullscreenFromUserGesture(),
+        onCancelUserGesture,
       } satisfies ConfirmLeaveDialogData,
       width: 'min(26rem, calc(100vw - 1.5rem))',
       maxWidth: '100vw',
       autoFocus: 'dialog',
     });
 
-    const result = await firstValueFrom(dialogRef.afterClosed());
-    if (result === true && this.code) {
-      try {
-        await trpc.session.end.mutate({ code: this.code.toUpperCase() });
-        clearHostToken(this.code);
-        await this.ngZone.run(async () => {
-          await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
-        });
-        return false;
-      } catch (error) {
-        if (this.isSessionNotFoundError(error)) {
-          await this.navigateHomeAfterSessionUnavailable();
-          return false;
-        }
-        this.openHostSteeringCalloutForSteeringFailure(
-          () => void this.retryEndSessionAndNavigateHome(),
-        );
-        return false;
-      }
+    return (await firstValueFrom(dialogRef.afterClosed())) === true;
+  }
+
+  private async endSessionAndNavigateHome(): Promise<void> {
+    if (!this.code) {
+      return;
     }
-    return result === true;
+    await trpc.session.end.mutate({ code: this.code.toUpperCase() });
+    this.markSessionUnavailable();
+    await this.ngZone.run(async () => {
+      await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+    });
   }
 
   private startCountdown(timerSeconds: number | null | undefined, activeAt?: string): void {

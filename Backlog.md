@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **6.7** (Hero-Chips; Session-Ende: Toolbar + Kanal-Button), **1.2d** (numerische Schätzfrage), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -88,7 +88,7 @@
 | 6    | 6.4   | Mobile-First & Responsive                                   | 🔴   | ✅ Fertig |
 | 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)                      | 🔴   | ⬜ Offen  |
 | 6    | 6.6   | UX-Testreihen Thinking Aloud & Umsetzung                    | 🟡   | ⬜ Offen  |
-| 6    | 6.7   | Startseite: Hero-Chips; Session-Ende Toolbar + Kanal-Button | 🔴   | ⬜ Offen  |
+| 6    | 6.7   | Startseite: Hero-Chips; Session-Ende Toolbar + Kanal-Button | 🔴   | ✅ Fertig |
 | 7    | 7.1   | Team-Modus                                                  | 🟢   | ✅ Fertig |
 | 8    | 8.1   | Q&A-Session starten                                         | 🟢   | ✅ Fertig |
 | 8    | 8.2   | Fragen einreichen                                           | 🟢   | ✅ Fertig |
@@ -1042,7 +1042,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Umsetzung:** Die als **Should/Must für die Reihe** markierten UX-Anpassungen werden **im Code umgesetzt** (Wording gemäß ADR-0008 in allen Locales, Layout/Interaktion gemäß ADR-0005/ADR-0014 wo betroffen); nachvollziehbar z. B. über Verweis von Maßnahmenliste auf PRs oder kurze Changelog-Notiz im Repo/`docs/`.
     - Optional aber wünschenswert: **kurze Lessons Learned** (1 Seite) für künftige Testrunden.
 
-- **Story 6.7 (Startseite: Hero-Chips & Kanal-Einstiege zuverlässig):** 🔴
+- **Story 6.7 (Startseite: Hero-Chips & Kanal-Einstiege zuverlässig):** 🟢
 
   **Kurz (User Story):** Als Veranstaltende\*r nutze ich die **Hero-Chips** auf der Startseite, lande nach dem Start **zuverlässig** im richtigen Host-Kanal und kann die laufende Session **ohne inkonsistentes Verhalten** beenden oder zur App zurückkehren — **unabhängig vom aktiven Kanal** (Quiz, Q&A, Blitzlicht).
 
@@ -1074,13 +1074,18 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
   - **Springender oder kanalabhängiger Ort für Pfad B:** „Session beenden“ darf **nicht** je nach aktivem Kanal an **unterschiedlichen** Stellen (z. B. nur unten in der Blitzlicht-Karte, links in Q&A) erscheinen — **ein** Anker, **eine** Position.
 
   **Akzeptanzkriterien (abnahmefähig):**
-  - [ ] Start über **jeden der drei Hero-Chips** (s. Tabelle; Labels in allen Locales **de/en/fr/it/es**) landet reproduzierbar im **richtigen Ziel** (Quiz-Bibliothek bzw. Host-Tab Q&A / Blitzlicht) (manuell + ggf. Smoke).
-  - [ ] **Pfad A:** Navigation von `/session/…/host` zur Startseite über **Top-Toolbar** (Home/Brand) zeigt bei aktiver Session den **Bestätigungsdialog** und endet die Session nach Zustimmung konsistent.
-  - [ ] **Pfad B:** Button **„Session beenden“** ist **immer am gleichen Host-Anker** platziert (sichtbar beim Wechsel **aller** relevanter Kanal-Tabs: Quiz, Q&A, Blitzlicht), **nicht** in `app-top-toolbar`, mit **demselben** Bestätigungsmuster wie Pfad A (inhaltlich vergleichbare Konsequenzen); **kein** Ortswechsel des Buttons nur durch Kanalwechsel.
-  - [ ] **Vollbild** + **Toolbar eingeklappt/ausgeblendet:** Pfad B bleibt nutzbar; Session-Ende ist **ohne** sichtbare Toolbar möglich.
-  - [ ] Nach Ende: **Host-Token** und **Feedback-Host-Token** (falls gesetzt) sind clientseitig konsistent entfernt; keine Zombie-Requests.
-  - [ ] **i18n (ADR-0008):** Chip-Labels **exakt** wie in der Tabelle für alle fünf Locales; XLF/`messages.*.xlf` synchron.
-  - [ ] **Keine redundanten Session-Exits:** Code-Review / kurzes UI-Audit: **keine** weiteren sichtbaren Einstiege „Session beenden“ (oder unterschiedlich benannt, **gleiche** Wirkung) außer **Pfad A** (Toolbar-Navigation mit Guard) und **Pfad B** (Host-Kanal-Button); alte Duplikate sind entfernt oder auf den gemeinsamen Dialog refaktoriert.
+  - [x] Start über **jeden der drei Hero-Chips** (s. Tabelle; Labels in allen Locales **de/en/fr/it/es**) landet reproduzierbar im **richtigen Ziel** (Quiz-Bibliothek bzw. Host-Tab Q&A / Blitzlicht) (manuell + ggf. Smoke).
+  - [x] **Pfad A:** Navigation von `/session/…/host` zur Startseite über **Top-Toolbar** (Home/Brand) zeigt bei aktiver Session den **Bestätigungsdialog** und endet die Session nach Zustimmung konsistent.
+  - [x] **Pfad B:** Button **„Session beenden“** ist **immer am gleichen Host-Anker** platziert (sichtbar beim Wechsel **aller** relevanter Kanal-Tabs: Quiz, Q&A, Blitzlicht), **nicht** in `app-top-toolbar`, mit **demselben** Bestätigungsmuster wie Pfad A (inhaltlich vergleichbare Konsequenzen); **kein** Ortswechsel des Buttons nur durch Kanalwechsel.
+  - [x] **Vollbild** + **Toolbar eingeklappt/ausgeblendet:** Pfad B bleibt nutzbar; Session-Ende ist **ohne** sichtbare Toolbar möglich.
+  - [x] Nach Ende: **Host-Token** und **Feedback-Host-Token** (falls gesetzt) sind clientseitig konsistent entfernt; keine Zombie-Requests.
+  - [x] **i18n (ADR-0008):** Chip-Labels **exakt** wie in der Tabelle für alle fünf Locales; XLF/`messages.*.xlf` synchron.
+  - [x] **Keine redundanten Session-Exits:** Code-Review / kurzes UI-Audit: **keine** weiteren sichtbaren Einstiege „Session beenden“ (oder unterschiedlich benannt, **gleiche** Wirkung) außer **Pfad A** (Toolbar-Navigation mit Guard) und **Pfad B** (Host-Kanal-Button); alte Duplikate sind entfernt oder auf den gemeinsamen Dialog refaktoriert.
+
+  **Verifizierung (April 2026):**
+  - Frontend-Specs (u. a. `home.component.spec.ts`, `session-host.component.spec.ts`) für Hero-Chip-/Host-Ende-Flows grün.
+  - Kanalübergreifender End-Flow (Quiz/Q&A/Blitzlicht), Token-Cleanup und Host-Route-Erkennung gegen Query-Parameter umgesetzt.
+  - Build-Check: `npm run -w apps/frontend build` erfolgreich.
 
   **Anker im Repo (Orientierung für Agent:innen, nicht abschließend):** `apps/frontend/src/app/features/home/home.component.ts` (Hero-Chips / Navigation zum Host), `apps/frontend/src/app/app.routes.ts` (`canDeactivate` Host-Route), `apps/frontend/src/app/features/session/session-host/session-host.component.ts` + Template, `apps/frontend/src/app/features/session/session.component.ts` (Host-Layout-Erkennung vs. Query), `apps/frontend/src/app/shared/confirm-leave-dialog/`, `apps/frontend/src/app/shared/top-toolbar/`, eingebettetes `FeedbackHostComponent` bei Blitzlicht, `docs/ui/STYLEGUIDE.md`, ADR-0008.
 

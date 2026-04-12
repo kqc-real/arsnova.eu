@@ -28,7 +28,8 @@ import {
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
-import { trpc } from '../../core/trpc.client';
+import { hasHostToken } from '../../core/host-session-token';
+import { setHostToken, trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import {
@@ -36,9 +37,15 @@ import {
   sessionNotFoundUiMessage,
 } from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
+import { navigateToHostSession } from '../../core/session-host-navigation';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 import { QUICK_FEEDBACK_PRESET_CHIPS } from '../feedback/feedback.config';
-import type { MotdInteractionKind, MotdPublicDTO, QuickFeedbackType } from '@arsnova/shared-types';
+import type {
+  MotdInteractionKind,
+  MotdPublicDTO,
+  QuickFeedbackType,
+  SessionInfoDTO,
+} from '@arsnova/shared-types';
 import {
   clearMotdThumbInteractionKeys,
   hasMotdInteractionRecorded,
@@ -377,6 +384,80 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   preloadQuiz(): void {
     import('../quiz/quiz.component').then(() => {});
+  }
+
+  async openHeroHostTab(tab: 'qa' | 'quickFeedback'): Promise<void> {
+    this.joinError.set(null);
+    this.joinErrorSessionFinished.set(false);
+    this.quickFeedbackError.set(null);
+
+    const code = this.resolveHeroHostCode();
+    if (!code) {
+      await this.startHeroHostSession(tab);
+      return;
+    }
+
+    try {
+      const session = await trpc.session.getInfo.query({ code });
+      const queryParams = this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
+      await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
+        queryParams,
+      });
+    } catch {
+      await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
+        queryParams: { tab },
+      });
+    }
+  }
+
+  private async startHeroHostSession(tab: 'qa' | 'quickFeedback'): Promise<void> {
+    try {
+      const result =
+        tab === 'qa'
+          ? await trpc.session.create.mutate({ type: 'Q_AND_A' })
+          : await trpc.session.create.mutate({
+              type: 'QUIZ',
+              quickFeedbackEnabled: true,
+            });
+      setHostToken(result.code, result.hostToken);
+      await navigateToHostSession(this.router, result.code, tab);
+    } catch {
+      this.joinError.set(
+        $localize`:@@home.heroChipStartError:Der Kanal konnte nicht gestartet werden. Bitte versuche es erneut.`,
+      );
+    }
+  }
+
+  private resolveHeroHostCode(): string | null {
+    const inputCode = this.sessionCode().trim().toUpperCase();
+    if (/^[A-Z0-9]{6}$/.test(inputCode) && hasHostToken(inputCode)) {
+      return inputCode;
+    }
+
+    const recentHostCode =
+      this.recentSessionCodes().find((entry) => hasHostToken(entry.code))?.code ?? null;
+    if (recentHostCode) {
+      return recentHostCode;
+    }
+
+    if (/^[A-Z0-9]{6}$/.test(inputCode)) {
+      return inputCode;
+    }
+
+    return (
+      this.recentSessionCodes().find((entry) => /^[A-Z0-9]{6}$/.test(entry.code))?.code ?? null
+    );
+  }
+
+  private isHeroTabAvailableForSession(
+    session: Pick<SessionInfoDTO, 'type' | 'channels'>,
+    tab: 'qa' | 'quickFeedback',
+  ): boolean {
+    const channels = session.channels;
+    if (!channels) {
+      return tab === 'qa' && session.type === 'Q_AND_A';
+    }
+    return tab === 'qa' ? channels.qa.enabled : channels.quickFeedback.enabled;
   }
 
   toggleSyncLinkEntry(): void {

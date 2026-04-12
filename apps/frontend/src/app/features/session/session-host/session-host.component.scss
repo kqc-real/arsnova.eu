@@ -124,6 +124,18 @@
   gap: var(--session-host-zone-gap);
 }
 
+.session-host__exit-anchor {
+  width: min(100%, var(--session-host-shell-max-width));
+  margin: 0 auto;
+  padding-inline: var(--session-host-shell-inline);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.session-host__exit-anchor-button {
+  font-weight: 600;
+}
+
 @media (max-width: 599px) {
   .session-host {
     --session-host-shell-inline: var(--host-mobile-inline);
@@ -145,6 +157,14 @@
   .session-host--with-channel-tabs .session-host__channel-panel {
     padding-inline: var(--host-mobile-inline);
     padding-bottom: var(--host-mobile-safe-bottom);
+  }
+
+  .session-host__exit-anchor {
+    justify-content: stretch;
+  }
+
+  .session-host__exit-anchor-button {
+    width: 100%;
   }
 }
 

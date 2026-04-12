@@ -17,6 +17,7 @@ vi.mock('../../core/feedback-host-token', () => ({
 }));
 
 vi.mock('../../core/trpc.client', () => ({
+  setHostToken: vi.fn(),
   trpc: {
     health: {
       check: {
@@ -48,6 +49,13 @@ vi.mock('../../core/trpc.client', () => ({
           quizName: 'Test',
           title: null,
           participantCount: 0,
+        }),
+      },
+      create: {
+        mutate: vi.fn().mockResolvedValue({
+          id: 'sess-hero',
+          code: 'HERO01',
+          hostToken: 'host-token-hero',
         }),
       },
     },
@@ -261,6 +269,49 @@ describe('HomeComponent', () => {
       expect(setFeedbackHostTokenMock).toHaveBeenCalledWith('ABC123', 'feedback-owner-token');
       expect(navSpy).toHaveBeenCalledWith(['feedback', 'ABC123']);
       expect(comp.quickFeedbackError()).toBeNull();
+    });
+  });
+
+  describe('openHeroHostTab', () => {
+    it('startet ohne vorhandenen Code eine neue Q&A-Host-Session', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qa',
+        code: 'QA1234',
+        hostToken: 'qa-host-token',
+      });
+
+      const comp = createHomeComponent();
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({ type: 'Q_AND_A' });
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA1234/host?tab=qa');
+      expect(comp.joinError()).toBeNull();
+    });
+
+    it('startet ohne vorhandenen Code eine neue Blitzlicht-Host-Session', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qf',
+        code: 'QF1234',
+        hostToken: 'qf-host-token',
+      });
+
+      const comp = createHomeComponent();
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('quickFeedback');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({
+        type: 'QUIZ',
+        quickFeedbackEnabled: true,
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QF1234/host?tab=quickFeedback');
+      expect(comp.joinError()).toBeNull();
     });
   });
 

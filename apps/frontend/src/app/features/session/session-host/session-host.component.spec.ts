@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionHostComponent } from './session-host.component';
+import { ThemePresetService } from '../../../core/theme-preset.service';
 
 const unsubscribeMock = vi.fn();
 
@@ -25,6 +26,8 @@ const {
   nextQuestionMutateMock,
   startQaMutateMock,
   endMutateMock,
+  updatePresetMutateMock,
+  quickFeedbackUpdateStyleMutateMock,
   updateQaTitleMutateMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
@@ -47,6 +50,8 @@ const {
   nextQuestionMutateMock: vi.fn(),
   startQaMutateMock: vi.fn(),
   endMutateMock: vi.fn(),
+  updatePresetMutateMock: vi.fn(),
+  quickFeedbackUpdateStyleMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
@@ -71,6 +76,7 @@ vi.mock('../../../core/trpc.client', () => ({
       nextQuestion: { mutate: nextQuestionMutateMock },
       startQa: { mutate: startQaMutateMock },
       end: { mutate: endMutateMock },
+      updatePreset: { mutate: updatePresetMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
@@ -83,6 +89,7 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     quickFeedback: {
       results: { query: vi.fn().mockResolvedValue({ totalVotes: 0, options: [] }) },
+      updateStyle: { mutate: quickFeedbackUpdateStyleMutateMock },
     },
   },
 }));
@@ -155,6 +162,11 @@ describe('SessionHostComponent', () => {
       currentQuestion: null,
       activeAt: null,
     });
+    updatePresetMutateMock.mockResolvedValue({
+      code: 'ABC123',
+      preset: 'SERIOUS',
+    });
+    quickFeedbackUpdateStyleMutateMock.mockResolvedValue({});
     updateQaTitleMutateMock.mockResolvedValue({
       title: 'Titel',
       qaTitle: 'Titel',
@@ -237,6 +249,85 @@ describe('SessionHostComponent', () => {
     expect(canLeave).toBe(false);
     expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('schaltet Musik beim Preset-Wechsel sofort um', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', preset: 'PLAYFUL' });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    const syncMusicSpy = vi.spyOn(component as never, 'syncMusic' as never);
+    syncMusicSpy.mockClear();
+
+    const themePreset = TestBed.inject(ThemePresetService);
+    themePreset.setPreset('serious');
+
+    await vi.waitUntil(() => component.musicMuted() === true, {
+      timeout: 1000,
+      interval: 10,
+    });
+    await vi.waitUntil(() => syncMusicSpy.mock.calls.length > 0, {
+      timeout: 1000,
+      interval: 10,
+    });
+    expect(component.musicMuted()).toBe(true);
+    expect(syncMusicSpy.mock.calls.length).toBeGreaterThan(0);
+    expect(updatePresetMutateMock).toHaveBeenCalledWith({ code: 'ABC123', preset: 'SERIOUS' });
+    fixture.destroy();
+  });
+
+  it('schaltet Musik nach Kanalwechsel von Q&A zu Blitzlicht beim Preset-Wechsel sofort um', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    component.selectChannel('qa');
+    component.selectChannel('quickFeedback');
+    expect(component.activeChannel()).toBe('quickFeedback');
+
+    const syncMusicSpy = vi.spyOn(component as never, 'syncMusic' as never);
+    syncMusicSpy.mockClear();
+    updatePresetMutateMock.mockClear();
+
+    const themePreset = TestBed.inject(ThemePresetService);
+    themePreset.setPreset('spielerisch');
+    themePreset.setPreset('serious');
+
+    await vi.waitUntil(() => component.musicMuted() === true, {
+      timeout: 1000,
+      interval: 10,
+    });
+    await vi.waitUntil(() => syncMusicSpy.mock.calls.length > 0, {
+      timeout: 1000,
+      interval: 10,
+    });
+    expect(component.musicMuted()).toBe(true);
+    expect(syncMusicSpy.mock.calls.length).toBeGreaterThan(0);
+    expect(updatePresetMutateMock).toHaveBeenCalledWith({ code: 'ABC123', preset: 'SERIOUS' });
     fixture.destroy();
   });
 
@@ -455,7 +546,7 @@ describe('SessionHostComponent', () => {
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(fixture.componentInstance.showPrimaryLiveView()).toBe(false);
     expect(text).toContain('Vorab-Moderation');
-    expect(text).toContain('Fragerunde beenden');
+    expect(text).toContain('Session beenden');
     expect(text).toContain('Q&A-Word-Cloud anzeigen');
     fixture.destroy();
   });

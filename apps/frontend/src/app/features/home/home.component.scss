@@ -263,34 +263,15 @@
   padding: 0 0.25rem;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  gap: 0.35rem 0.5rem;
-  font: var(--mat-sys-label-large);
+  gap: 0.5rem;
   text-align: center;
 }
 
 .home-hero-host-link {
-  color: var(--mat-sys-primary);
+  min-height: 2.2rem;
   font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--mat-sys-primary) 42%, transparent);
-  text-underline-offset: 0.2em;
-
-  &:hover {
-    text-decoration-color: var(--mat-sys-primary);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--mat-sys-primary);
-    outline-offset: 2px;
-    border-radius: var(--mat-sys-corner-extra-small);
-  }
-}
-
-.home-hero-host-sep {
-  color: var(--mat-sys-on-surface-variant);
-  user-select: none;
 }
 
 .home-hero-serious-tagline {
