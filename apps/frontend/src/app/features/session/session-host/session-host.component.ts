@@ -1111,6 +1111,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async navigateHomeAfterSessionUnavailable(): Promise<void> {
     this.markSessionUnavailable();
+    await this.exitFullscreenBeforeHomeNavigation();
     await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
   }
 
@@ -1147,6 +1148,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       await trpc.session.end.mutate({ code: this.code.toUpperCase() });
       this.markSessionUnavailable();
+      await this.exitFullscreenBeforeHomeNavigation();
       await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
       this.dismissHostSteeringCallout();
     } catch (error) {
@@ -1311,8 +1313,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     await trpc.session.end.mutate({ code: this.code.toUpperCase() });
     this.markSessionUnavailable();
+    await this.exitFullscreenBeforeHomeNavigation();
     await this.ngZone.run(async () => {
       await this.router.navigateByUrl(this.localizedPath('/'), { replaceUrl: true });
+    });
+  }
+
+  private async exitFullscreenBeforeHomeNavigation(): Promise<void> {
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const done = (): void => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        this.isFullscreenActive.set(this.getFullscreenElement() !== null);
+        resolve();
+      };
+
+      tryExitDocumentFullscreen(this.document, done);
+      setTimeout(done, 180);
     });
   }
 
