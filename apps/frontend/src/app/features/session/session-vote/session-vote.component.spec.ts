@@ -82,6 +82,12 @@ describe('SessionVoteComponent', () => {
       'vote-question-anchor',
       'vote-top',
     ]);
+    expect(anchorCandidatesForPhase('vote', true, true)).toEqual([
+      'vote-question-anchor',
+      'vote-options-start',
+      'vote-option-0',
+      'vote-top',
+    ]);
     expect(anchorCandidatesForPhase('vote', false)).toEqual([
       'vote-question-anchor',
       'vote-options-start',
@@ -91,6 +97,7 @@ describe('SessionVoteComponent', () => {
     expect(anchorCandidatesForPhase('result', false)).toEqual([
       'vote-result-score',
       'vote-result-message',
+      'vote-result-anchor',
       'vote-top',
       'vote-error',
     ]);
@@ -364,9 +371,9 @@ describe('SessionVoteComponent', () => {
     );
 
     const inst = fixture.componentInstance;
-    const firstAfterActive = inst.currentQuestion()?.answers?.[0] as
-      | { isCorrect?: boolean }
-      | undefined;
+    const firstAfterActive = (
+      inst.currentQuestion() as { answers?: Array<{ isCorrect?: boolean }> } | null
+    )?.answers?.[0];
     expect(firstAfterActive?.isCorrect).toBeUndefined();
 
     currentQuestionQueryMock.mockResolvedValue(revealedQ);
@@ -374,7 +381,9 @@ describe('SessionVoteComponent', () => {
     await (inst as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
     fixture.detectChanges();
 
-    const firstAfterResults = inst.currentQuestion()?.answers?.[0] as { isCorrect: boolean };
+    const firstAfterResults = (
+      inst.currentQuestion() as { answers?: Array<{ isCorrect: boolean }> } | null
+    )?.answers?.[0] as { isCorrect: boolean };
     expect(firstAfterResults.isCorrect).toBe(true);
     fixture.destroy();
   });

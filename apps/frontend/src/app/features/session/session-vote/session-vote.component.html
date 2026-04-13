@@ -727,6 +727,9 @@
         }
       } @else if (isActive() || isResults()) {
         @if (currentQuestion(); as q) {
+          @if (isResults()) {
+            <div id="vote-result-anchor"></div>
+          }
           <div
             class="vote-question"
             id="vote-question-anchor"

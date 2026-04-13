@@ -947,16 +947,34 @@
                             aria-label="Vorher/Nachher-Vergleich Peer Instruction"
                           >
                             <div class="session-host__round-comparison-header">
-                              <span
-                                class="session-host__round-comparison-label session-host__round-comparison-label--r1"
-                                i18n
-                                >Runde 1 ({{ q.roundComparison.round1Total }} Stimmen)</span
-                              >
-                              <span
-                                class="session-host__round-comparison-label session-host__round-comparison-label--r2"
-                                i18n
-                                >Runde 2 ({{ q.roundComparison.round2Total }} Stimmen)</span
-                              >
+                              @let round1Votes = q.roundComparison.round1Total;
+                              @if (round1Votes === 1) {
+                                <span
+                                  class="session-host__round-comparison-label session-host__round-comparison-label--r1"
+                                  i18n="@@sessionHost.roundComparisonRound1VotesLabelOne"
+                                  >Runde 1 ({{ round1Votes }} Stimme)</span
+                                >
+                              } @else {
+                                <span
+                                  class="session-host__round-comparison-label session-host__round-comparison-label--r1"
+                                  i18n="@@sessionHost.roundComparisonRound1VotesLabelMany"
+                                  >Runde 1 ({{ round1Votes }} Stimmen)</span
+                                >
+                              }
+                              @let round2Votes = q.roundComparison.round2Total;
+                              @if (round2Votes === 1) {
+                                <span
+                                  class="session-host__round-comparison-label session-host__round-comparison-label--r2"
+                                  i18n="@@sessionHost.roundComparisonRound2VotesLabelOne"
+                                  >Runde 2 ({{ round2Votes }} Stimme)</span
+                                >
+                              } @else {
+                                <span
+                                  class="session-host__round-comparison-label session-host__round-comparison-label--r2"
+                                  i18n="@@sessionHost.roundComparisonRound2VotesLabelMany"
+                                  >Runde 2 ({{ round2Votes }} Stimmen)</span
+                                >
+                              }
                             </div>
                             @if (
                               q.roundComparison.round1CorrectCount !== null &&
@@ -965,8 +983,10 @@
                             ) {
                               <p class="session-host__round-comparison-correct">
                                 <mat-icon>check_circle</mat-icon>
-                                Richtig: {{ q.roundComparison.round1CorrectCount }} →
-                                {{ q.roundComparison.round2CorrectCount }}
+                                <span i18n="@@sessionHost.roundComparisonCorrectCounts"
+                                  >Richtig: {{ q.roundComparison.round1CorrectCount }} in Runde 1,
+                                  danach {{ q.roundComparison.round2CorrectCount }} in Runde 2</span
+                                >
                                 @if (
                                   q.roundComparison.round1Total > 0 &&
                                   q.roundComparison.round2Total > 0

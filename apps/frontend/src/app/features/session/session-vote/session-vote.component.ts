@@ -53,6 +53,7 @@ const VOTE_ANCHOR_TOP = 'vote-top';
 const VOTE_ANCHOR_QUESTION = 'vote-question-anchor';
 const VOTE_ANCHOR_OPTIONS_START = 'vote-options-start';
 const VOTE_ANCHOR_OPTION_0 = 'vote-option-0';
+const VOTE_ANCHOR_RESULT_CONTAINER = 'vote-result-anchor';
 const VOTE_ANCHOR_RESULT_SCORE = 'vote-result-score';
 const VOTE_ANCHOR_RESULT_MESSAGE = 'vote-result-message';
 const VOTE_ANCHOR_ERROR = 'vote-error';
@@ -136,11 +137,20 @@ function pickRandom(arr: string[]): string {
 export function anchorCandidatesForPhase(
   phase: VoteAutoScrollPhase,
   hadReadPhase: boolean,
+  prioritizeQuestionOnVote = false,
 ): string[] {
   if (phase === 'read') {
     return [VOTE_ANCHOR_QUESTION, VOTE_ANCHOR_OPTIONS_START, VOTE_ANCHOR_TOP];
   }
   if (phase === 'vote') {
+    if (prioritizeQuestionOnVote) {
+      return [
+        VOTE_ANCHOR_QUESTION,
+        VOTE_ANCHOR_OPTIONS_START,
+        VOTE_ANCHOR_OPTION_0,
+        VOTE_ANCHOR_TOP,
+      ];
+    }
     if (hadReadPhase) {
       return [
         VOTE_ANCHOR_OPTION_0,
@@ -151,7 +161,13 @@ export function anchorCandidatesForPhase(
     }
     return [VOTE_ANCHOR_QUESTION, VOTE_ANCHOR_OPTIONS_START, VOTE_ANCHOR_OPTION_0, VOTE_ANCHOR_TOP];
   }
-  return [VOTE_ANCHOR_RESULT_SCORE, VOTE_ANCHOR_RESULT_MESSAGE, VOTE_ANCHOR_TOP, VOTE_ANCHOR_ERROR];
+  return [
+    VOTE_ANCHOR_RESULT_SCORE,
+    VOTE_ANCHOR_RESULT_MESSAGE,
+    VOTE_ANCHOR_RESULT_CONTAINER,
+    VOTE_ANCHOR_TOP,
+    VOTE_ANCHOR_ERROR,
+  ];
 }
 
 /**
@@ -241,6 +257,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private qaInfoTimeout: ReturnType<typeof setTimeout> | null = null;
   private qaErrorTimeout: ReturnType<typeof setTimeout> | null = null;
   private readonly questionIdsWithReadPhase = new Set<string>();
+  private readonly questionIdsWithRound2QuestionScroll = new Set<string>();
   private lastAutoScrollToken: string | null = null;
 
   @ViewChild('qaTextarea') qaTextareaRef?: ElementRef<HTMLTextAreaElement>;
@@ -1637,7 +1654,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
       if (newId && phase) {
         const hadReadPhase = this.questionIdsWithReadPhase.has(newId);
-        this.schedulePhaseDrivenVoteScroll(newId, phase, hadReadPhase);
+        const prioritizeQuestionOnVote =
+          phase === 'vote' &&
+          this.currentRound() === 2 &&
+          !this.questionIdsWithRound2QuestionScroll.has(newId);
+        this.schedulePhaseDrivenVoteScroll(
+          newId,
+          phase,
+          hadReadPhase,
+          this.currentRound(),
+          prioritizeQuestionOnVote,
+        );
+        if (prioritizeQuestionOnVote) {
+          this.questionIdsWithRound2QuestionScroll.add(newId);
+        }
       }
     } catch {
       /* noop */
@@ -1656,15 +1686,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     questionId: string,
     phase: VoteAutoScrollPhase,
     hadReadPhase: boolean,
+    round: number,
+    prioritizeQuestionOnVote: boolean,
   ): void {
-    const token = `${questionId}:${phase}:${hadReadPhase ? 'read' : 'direct'}`;
+    const token = `${questionId}:${phase}:${hadReadPhase ? 'read' : 'direct'}:r${round}`;
     if (this.lastAutoScrollToken === token) {
       return;
     }
     this.lastAutoScrollToken = token;
     afterNextRender(
       () => {
-        this.scrollVoteAnchorIntoView(phase, hadReadPhase);
+        this.scrollVoteAnchorIntoView(phase, hadReadPhase, prioritizeQuestionOnVote);
       },
       { injector: this.injector },
     );
@@ -1690,11 +1722,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private scrollVoteAnchorIntoView(phase: VoteAutoScrollPhase, hadReadPhase: boolean): void {
+  private scrollVoteAnchorIntoView(
+    phase: VoteAutoScrollPhase,
+    hadReadPhase: boolean,
+    prioritizeQuestionOnVote: boolean,
+  ): void {
     if (!this.showPrimaryLiveView()) return;
     const host = this.el.nativeElement as HTMLElement;
     const scrollRoot = host.closest('.app-main') as HTMLElement | null;
-    const anchor = this.findFirstAvailableVoteAnchor(anchorCandidatesForPhase(phase, hadReadPhase));
+    const anchor = this.findFirstAvailableVoteAnchor(
+      anchorCandidatesForPhase(phase, hadReadPhase, prioritizeQuestionOnVote),
+    );
     if (!scrollRoot) return;
     const behavior = this.voteScrollBehavior();
     if (anchor) {

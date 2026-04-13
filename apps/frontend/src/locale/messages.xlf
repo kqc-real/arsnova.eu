@@ -6619,6 +6619,55 @@
           <context context-type="linenumber">937,940</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.roundComparisonRound1VotesLabel" datatype="html">
+        <source>Runde 1 ({VAR_PLURAL, plural, =1 {# Stimme} other {# Stimmen}})</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">943,946</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.roundComparisonRound2VotesLabel" datatype="html">
+        <source>Runde 2 ({VAR_PLURAL, plural, =1 {# Stimme} other {# Stimmen}})</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">948,951</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.roundComparisonRound1VotesLabelOne" datatype="html">
+        <source>Runde 1 (<x id="INTERPOLATION" equiv-text="{{ round1Votes }}"/> Stimme)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">947,949</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.roundComparisonRound1VotesLabelMany" datatype="html">
+        <source>Runde 1 (<x id="INTERPOLATION" equiv-text="{{ round1Votes }}"/> Stimmen)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">954,956</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.roundComparisonRound2VotesLabelOne" datatype="html">
+        <source>Runde 2 (<x id="INTERPOLATION" equiv-text="{{ round2Votes }}"/> Stimme)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">963,965</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.roundComparisonRound2VotesLabelMany" datatype="html">
+        <source>Runde 2 (<x id="INTERPOLATION" equiv-text="{{ round2Votes }}"/> Stimmen)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">970,972</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.roundComparisonCorrectCounts" datatype="html">
+        <source>Richtig: <x id="INTERPOLATION" equiv-text="{{ q.roundComparison.round1CorrectCount }}"/> in Runde 1, danach <x id="INTERPOLATION_1" equiv-text="{{ q.roundComparison.round2CorrectCount }}"/> in Runde 2</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">969,971</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.quizAwaitingFirstHint" datatype="html">
         <source> Noch keine Quiz-Frage. Starte die erste Frage, wenn du mit dem Quiz beginnen möchtest. </source>
         <context-group purpose="location">
