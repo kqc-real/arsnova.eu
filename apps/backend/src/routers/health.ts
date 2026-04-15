@@ -13,10 +13,18 @@ import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
 import { logger } from '../lib/logger';
 import { updateCompletedSessionsTotal } from '../lib/platformStatistic';
+import { countActiveParticipantsForSessions } from '../lib/presence';
+import { readLoadSignals } from '../lib/loadSignal';
+import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 
-const SERVER_STATUS_THRESHOLDS = {
-  healthy: 50,
-  busy: 200,
+const SERVER_STATUS_SCORE_THRESHOLDS = {
+  busy: 60,
+  overloaded: 170,
+} as const;
+
+const PARTICIPANT_HARD_LIMITS = {
+  busy: 65,
+  overloaded: 220,
 } as const;
 
 const ACTIVE_SESSION_STATUSES = [
@@ -34,10 +42,78 @@ const ACTIVE_SESSION_STATUSES = [
  */
 const ACTIVE_SESSION_FRESH_HOURS = 24;
 
-function getServerStatus(activeSessions: number): 'healthy' | 'busy' | 'overloaded' {
-  if (activeSessions < SERVER_STATUS_THRESHOLDS.healthy) return 'healthy';
-  if (activeSessions < SERVER_STATUS_THRESHOLDS.busy) return 'busy';
-  return 'overloaded';
+type LoadStatusInputs = {
+  activeSessions: number;
+  totalParticipants: number;
+  activeBlitzRounds: number;
+  votesLastMinute: number;
+  sessionTransitionsLastMinute: number;
+  activeCountdownSessions: number;
+};
+
+function getLoadStatus({
+  activeSessions,
+  totalParticipants,
+  activeBlitzRounds,
+  votesLastMinute,
+  sessionTransitionsLastMinute,
+  activeCountdownSessions,
+}: LoadStatusInputs): 'healthy' | 'busy' | 'overloaded' {
+  if (totalParticipants >= PARTICIPANT_HARD_LIMITS.overloaded) return 'overloaded';
+  if (totalParticipants >= PARTICIPANT_HARD_LIMITS.busy) return 'busy';
+
+  const loadScore =
+    activeSessions * 1 +
+    totalParticipants * 0.45 +
+    activeBlitzRounds * 3 +
+    activeCountdownSessions * 2 +
+    votesLastMinute * 0.12 +
+    sessionTransitionsLastMinute * 1.5;
+
+  if (loadScore >= SERVER_STATUS_SCORE_THRESHOLDS.overloaded) return 'overloaded';
+  if (loadScore >= SERVER_STATUS_SCORE_THRESHOLDS.busy) return 'busy';
+  return 'healthy';
+}
+
+function mapLoadStatusToServiceStatus(
+  loadStatus: 'healthy' | 'busy' | 'overloaded',
+): 'stable' | 'limited' | 'critical' {
+  switch (loadStatus) {
+    case 'healthy':
+      return 'stable';
+    case 'busy':
+      return 'limited';
+    case 'overloaded':
+      return 'critical';
+  }
+}
+
+function getServiceStatus(
+  loadStatus: 'healthy' | 'busy' | 'overloaded',
+  sloSignals: SloSignals,
+): 'stable' | 'limited' | 'critical' {
+  // Für sehr kleine Samples bleibt der Status auf dem Lastindikator, um Ausreißer zu vermeiden.
+  if (sloSignals.totalRequestsLastMinute < 20) {
+    return mapLoadStatusToServiceStatus(loadStatus);
+  }
+
+  if (
+    sloSignals.errorRatePercentLastMinute <= 0.5 &&
+    sloSignals.p95LatencyMsLastMinute <= 1000 &&
+    sloSignals.p99LatencyMsLastMinute <= 2000
+  ) {
+    return 'stable';
+  }
+
+  if (
+    sloSignals.errorRatePercentLastMinute <= 1.0 &&
+    sloSignals.p95LatencyMsLastMinute <= 1500 &&
+    sloSignals.p99LatencyMsLastMinute <= 3000
+  ) {
+    return 'limited';
+  }
+
+  return 'critical';
 }
 
 /**
@@ -105,24 +181,35 @@ async function fetchServerStats() {
   }
 
   try {
-    const [activeSessions, completedSessionsNow, totalParticipants, platformRow] =
-      await Promise.all([
-        prisma.session.count({ where: activeSessionWhere }),
-        // Momentan in DB vorhandene FINISHED-Sessions (kann durch Purge sinken).
-        prisma.session.count({ where: { status: 'FINISHED' } }),
-        // Alle Teilnehmer-Einträge zu Sessions mit aktivem Status und frischer Aktivität.
-        prisma.participant.count({
-          where: { session: activeSessionWhere },
-        }),
-        prisma.platformStatistic.findUnique({
-          where: { id: 'default' },
-          select: {
-            maxParticipantsSingleSession: true,
-            completedSessionsTotal: true,
-            updatedAt: true,
-          },
-        }),
-      ]);
+    const [
+      activeSessions,
+      activeSessionIds,
+      completedSessionsNow,
+      platformRow,
+      loadSignals,
+      sloSignals,
+    ] = await Promise.all([
+      prisma.session.count({ where: activeSessionWhere }),
+      prisma.session.findMany({
+        where: activeSessionWhere,
+        select: { id: true },
+      }),
+      // Momentan in DB vorhandene FINISHED-Sessions (kann durch Purge sinken).
+      prisma.session.count({ where: { status: 'FINISHED' } }),
+      prisma.platformStatistic.findUnique({
+        where: { id: 'default' },
+        select: {
+          maxParticipantsSingleSession: true,
+          completedSessionsTotal: true,
+          updatedAt: true,
+        },
+      }),
+      readLoadSignals(),
+      readSloSignals(),
+    ]);
+    const totalParticipants = await countActiveParticipantsForSessions(
+      activeSessionIds.map((session) => session.id),
+    );
     const completedSessionsTotal = Math.max(
       completedSessionsNow,
       platformRow?.completedSessionsTotal ?? 0,
@@ -130,6 +217,14 @@ async function fetchServerStats() {
     if (completedSessionsNow > (platformRow?.completedSessionsTotal ?? 0)) {
       void updateCompletedSessionsTotal(completedSessionsNow);
     }
+    const loadStatus = getLoadStatus({
+      activeSessions,
+      totalParticipants,
+      activeBlitzRounds,
+      votesLastMinute: loadSignals.votesLastMinute,
+      sessionTransitionsLastMinute: loadSignals.sessionTransitionsLastMinute,
+      activeCountdownSessions: loadSignals.activeCountdownSessions,
+    });
     return {
       activeSessions,
       totalParticipants,
@@ -137,7 +232,8 @@ async function fetchServerStats() {
       activeBlitzRounds,
       maxParticipantsSingleSession: platformRow?.maxParticipantsSingleSession ?? 0,
       maxParticipantsStatisticUpdatedAt: platformRow?.updatedAt?.toISOString() ?? null,
-      serverStatus: getServerStatus(activeSessions),
+      serviceStatus: getServiceStatus(loadStatus, sloSignals),
+      loadStatus,
     };
   } catch {
     return {
@@ -147,7 +243,8 @@ async function fetchServerStats() {
       activeBlitzRounds: 0,
       maxParticipantsSingleSession: 0,
       maxParticipantsStatisticUpdatedAt: null,
-      serverStatus: 'healthy' as const,
+      serviceStatus: 'stable' as const,
+      loadStatus: 'healthy' as const,
     };
   }
 }

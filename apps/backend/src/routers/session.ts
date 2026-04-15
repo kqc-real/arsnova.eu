@@ -60,6 +60,8 @@ import {
 } from '@arsnova/shared-types';
 import { questionCountsTowardsTotalQuestions, questionAffectsStreak } from '../lib/quizScoring';
 import { updateMaxParticipantsSingleSession } from '../lib/platformStatistic';
+import { touchParticipantPresence } from '../lib/presence';
+import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
 
 /**
  * In-Memory-Store für Emoji-Reaktionen (Story 5.8).
@@ -851,6 +853,7 @@ export const sessionRouter = router({
         where: { id: session.id },
         data: { status: 'ACTIVE', statusChangedAt: now },
       });
+      void recordSessionTransitionActivity();
 
       return {
         status: 'ACTIVE' as const,
@@ -1275,6 +1278,7 @@ export const sessionRouter = router({
             endedAt: now,
           },
         });
+        void recordSessionTransitionActivity();
         await generateBonusTokens(session);
         return { status: 'FINISHED' as const, currentQuestion: null, currentRound: 1 };
       }
@@ -1303,6 +1307,8 @@ export const sessionRouter = router({
           ...(answerDisplayOrderPayload && { answerDisplayOrder: answerDisplayOrderPayload }),
         },
       });
+      void recordSessionTransitionActivity();
+      void markCountdownSessionActive(session.id);
       return {
         status: newStatus,
         currentQuestion: nextIdx,
@@ -1334,6 +1340,8 @@ export const sessionRouter = router({
         where: { id: session.id },
         data: { status: 'ACTIVE', statusChangedAt: now },
       });
+      void recordSessionTransitionActivity();
+      void markCountdownSessionActive(session.id);
       return {
         status: 'ACTIVE' as const,
         currentQuestion: session.currentQuestion,
@@ -1364,6 +1372,7 @@ export const sessionRouter = router({
         where: { id: session.id },
         data: { status: 'RESULTS', statusChangedAt: new Date() },
       });
+      void recordSessionTransitionActivity();
       return {
         status: 'RESULTS' as const,
         currentQuestion: session.currentQuestion,
@@ -1396,6 +1405,7 @@ export const sessionRouter = router({
         where: { id: session.id },
         data: { status: 'DISCUSSION', statusChangedAt: new Date() },
       });
+      void recordSessionTransitionActivity();
       return {
         status: 'DISCUSSION' as const,
         currentQuestion: session.currentQuestion,
@@ -1426,6 +1436,8 @@ export const sessionRouter = router({
         where: { id: session.id },
         data: { status: 'ACTIVE', currentRound: 2, statusChangedAt: now },
       });
+      void recordSessionTransitionActivity();
+      void markCountdownSessionActive(session.id);
       return {
         status: 'ACTIVE' as const,
         currentQuestion: session.currentQuestion,
@@ -2035,6 +2047,7 @@ export const sessionRouter = router({
         where: { sessionId: session.id },
       });
       void updateMaxParticipantsSingleSession(newParticipantCount);
+      void touchParticipantPresence(session.id, participant.id);
       const serverTime = new Date().toISOString();
       return {
         id: session.id,
@@ -2260,6 +2273,7 @@ export const sessionRouter = router({
           endedAt: now,
         },
       });
+      void recordSessionTransitionActivity();
 
       await generateBonusTokens(session);
 

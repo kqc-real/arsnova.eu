@@ -20,7 +20,8 @@ describe('ServerStatusHelpDialogComponent', () => {
               activeBlitzRounds: 3,
               maxParticipantsSingleSession: 412,
               maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
-              serverStatus: 'busy',
+              serviceStatus: 'limited',
+              loadStatus: 'busy',
             },
           },
         },
@@ -31,10 +32,12 @@ describe('ServerStatusHelpDialogComponent', () => {
     fixture.detectChanges();
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-    expect(text).toContain('Server-Statistik');
-    expect(text).toContain('Jetzt auf dem Server');
+    expect(text).toContain('Betriebsstatus & Systemlast');
+    expect(text).toContain('Systemlast-Indikatoren');
+    expect(text).toContain('Die Ampel im Footer zeigt den Betriebsstatus');
+    expect(text).toContain('Aktueller Lastindikator');
     expect(text).toContain('145');
-    expect(text).toContain('Summe über alle laufenden Live-Sessions');
+    expect(text).toContain('Aktiv in den letzten 3 Minuten über alle laufenden Live-Sessions');
     expect(text).toContain('Alle je beendeten Live-Sessions (kumulativ)');
     expect(text).toContain('Rekordteilnahme');
     expect(text).toContain('412');

@@ -31,7 +31,7 @@ export interface ServerStatusHelpDialogData {
       </span>
       <span class="dialog-title-header__copy">
         <span class="dialog-title-header__heading" i18n="@@app.footer.statusHelpTitle"
-          >Server-Statistik</span
+          >Betriebsstatus &amp; Systemlast</span
         >
       </span>
     </h2>
@@ -55,9 +55,32 @@ export interface ServerStatusHelpDialogData {
               class="status-help-dialog__section-title"
               i18n="@@app.footer.statusCurrentTitle"
             >
-              Jetzt auf dem Server
+              Systemlast-Indikatoren
             </h3>
           </div>
+          <p
+            class="status-help-dialog__copy status-help-dialog__copy--compact"
+            i18n="@@app.footer.statusSloVsLoadHint"
+          >
+            Die Ampel im Footer zeigt den Betriebsstatus (SLO). Die Werte hier helfen bei der
+            Last-Einordnung.
+          </p>
+          <p class="status-help-dialog__copy status-help-dialog__copy--compact">
+            <span i18n="@@app.footer.loadStatusLabel">Aktueller Lastindikator:</span>
+            <strong>
+              @switch (s.loadStatus) {
+                @case ('healthy') {
+                  <span i18n="@@app.footer.loadStatusHealthy">niedrig</span>
+                }
+                @case ('busy') {
+                  <span i18n="@@app.footer.loadStatusBusy">mittel</span>
+                }
+                @default {
+                  <span i18n="@@app.footer.loadStatusOverloaded">hoch</span>
+                }
+              }
+            </strong>
+          </p>
           <div class="status-help-dialog__metrics" aria-live="polite">
             <article class="status-help-dialog__metric">
               <div class="status-help-dialog__metric-head">
@@ -76,14 +99,14 @@ export interface ServerStatusHelpDialogData {
             <article class="status-help-dialog__metric">
               <div class="status-help-dialog__metric-head">
                 <mat-icon aria-hidden="true">group</mat-icon>
-                <span i18n="@@app.footer.statusMetricParticipants">Teilnehmende</span>
+                <span i18n="@@app.footer.statusMetricParticipants">Aktive Teilnehmende</span>
               </div>
               <strong>{{ s.totalParticipants }}</strong>
               <p
                 class="status-help-dialog__metric-hint"
                 i18n="@@app.footer.statusMetricParticipantsHint"
               >
-                Summe über alle laufenden Live-Sessions
+                Aktiv in den letzten 3 Minuten über alle laufenden Live-Sessions
               </p>
             </article>
             <article class="status-help-dialog__metric">
@@ -165,13 +188,13 @@ export interface ServerStatusHelpDialogData {
             class="status-help-dialog__section-title"
             i18n="@@app.footer.statusLegendTitle"
           >
-            Status-Legende
+            Betriebsstatus (SLO-Ampel)
           </h3>
           <p
             class="status-help-dialog__copy status-help-dialog__copy--compact"
             i18n="@@app.footer.statusHelpDot"
           >
-            Der Status wird über farbige Punkte angezeigt.
+            Die SLO-Ampel zeigt, wie stabil Live-Quizze aktuell laufen.
           </p>
         </div>
         <ul class="status-help-dialog__legend" role="list">
@@ -180,21 +203,21 @@ export interface ServerStatusHelpDialogData {
               class="status-help-dialog__dot status-help-dialog__dot--healthy"
               aria-hidden="true"
             ></span>
-            <span i18n="@@app.footer.statusLegendHealthy">Gesund</span>
+            <span i18n="@@app.footer.statusLegendHealthy">Stabil</span>
           </li>
           <li>
             <span
               class="status-help-dialog__dot status-help-dialog__dot--busy"
               aria-hidden="true"
             ></span>
-            <span i18n="@@app.footer.statusLegendBusy">Ausgelastet</span>
+            <span i18n="@@app.footer.statusLegendBusy">Eingeschränkt</span>
           </li>
           <li>
             <span
               class="status-help-dialog__dot status-help-dialog__dot--overloaded"
               aria-hidden="true"
             ></span>
-            <span i18n="@@app.footer.statusLegendOverloaded">Überlastet</span>
+            <span i18n="@@app.footer.statusLegendOverloaded">Kritisch</span>
           </li>
           <li>
             <span
@@ -260,6 +283,15 @@ export class ServerStatusHelpDialogComponent {
   statusTone(): 'healthy' | 'busy' | 'overloaded' | 'unknown' {
     if (!this.data.connectionOk) return 'unknown';
     const stats = this.effectiveStats();
-    return stats?.serverStatus ?? 'unknown';
+    switch (stats?.serviceStatus) {
+      case 'stable':
+        return 'healthy';
+      case 'limited':
+        return 'busy';
+      case 'critical':
+        return 'overloaded';
+      default:
+        return 'unknown';
+    }
   }
 }

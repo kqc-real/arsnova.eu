@@ -120,10 +120,17 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpTriggerAria" datatype="html">
-        <source>Hilfe zur Server-Statusanzeige</source>
+        <source>Betriebsstatus öffnen: SLO-Ampel und Systemlast-Indikatoren</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">170,172</context>
+          <context context-type="sourcefile">src/app/shared/server-status-widget/server-status-widget.component.html</context>
+          <context context-type="linenumber">1,10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusHelpTriggerTooltip" datatype="html">
+        <source>Betriebsstatus (SLO) und Systemlast-Indikatoren anzeigen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-widget/server-status-widget.component.html</context>
+          <context context-type="linenumber">1,11</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7981911571029514989" datatype="html">
@@ -9857,24 +9864,59 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.serverHelpLabel" datatype="html">
-        <source>Server-Status</source>
+        <source>Betriebsstatus</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-widget/server-status-widget.component.html</context>
           <context context-type="linenumber">13</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpTitle" datatype="html">
-        <source>Server-Statistik</source>
+        <source>Betriebsstatus &amp; Systemlast</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">30,34</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusCurrentTitle" datatype="html">
-        <source>Jetzt auf dem Server</source>
+        <source>Systemlast-Indikatoren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">52,56</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusSloVsLoadHint" datatype="html">
+        <source>Die Ampel im Footer zeigt den Betriebsstatus (SLO). Die Werte hier helfen bei der Last-Einordnung.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">59,63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.loadStatusLabel" datatype="html">
+        <source>Aktueller Lastindikator:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">65,65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.loadStatusHealthy" datatype="html">
+        <source>niedrig</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">68,68</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.loadStatusBusy" datatype="html">
+        <source>mittel</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">71,71</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.loadStatusOverloaded" datatype="html">
+        <source>hoch</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">74,74</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricLiveSessions" datatype="html">
@@ -9892,14 +9934,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricParticipants" datatype="html">
-        <source>Teilnehmende</source>
+        <source>Aktive Teilnehmende</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">73,73</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricParticipantsHint" datatype="html">
-        <source>Summe über alle laufenden Live-Sessions</source>
+        <source>Aktiv in den letzten 3 Minuten über alle laufenden Live-Sessions</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">79,84</context>
@@ -9934,28 +9976,28 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpDot" datatype="html">
-        <source> Der Status wird über farbige Punkte angezeigt. </source>
+        <source> Die SLO-Ampel zeigt, wie stabil Live-Quizze aktuell laufen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">29,31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendHealthy" datatype="html">
-        <source>Gesund</source>
+        <source>Stabil</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">37,40</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendBusy" datatype="html">
-        <source>Ausgelastet</source>
+        <source>Eingeschränkt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">44,47</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendOverloaded" datatype="html">
-        <source>Überlastet</source>
+        <source>Kritisch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">51,54</context>
@@ -9969,7 +10011,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendTitle" datatype="html">
-        <source>Status-Legende</source>
+        <source>Betriebsstatus (SLO-Ampel)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">134,136</context>

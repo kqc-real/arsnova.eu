@@ -5,6 +5,7 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import type { IncomingMessage } from 'node:http';
 import { extractAdminToken, isAdminSessionTokenValid } from './lib/adminAuth';
 import { extractHostTokenFromContext, isHostSessionTokenValid } from './lib/hostAuth';
+import { isTrackedLiveProcedure, recordLiveRequestTelemetry } from './lib/sloTelemetry';
 
 export type Context = {
   req?: IncomingMessage;
@@ -15,15 +16,37 @@ export type Context = {
 };
 
 const t = initTRPC.context<Context>().create();
+const telemetryProcedure = t.procedure.use(async ({ path, type, next }) => {
+  if (type === 'subscription' || !isTrackedLiveProcedure(path)) {
+    return next();
+  }
+
+  const startedAt = Date.now();
+  try {
+    const result = await next();
+    void recordLiveRequestTelemetry({ durationMs: Date.now() - startedAt });
+    return result;
+  } catch (err) {
+    const errorCode =
+      err && typeof err === 'object' && 'code' in err
+        ? String((err as { code?: unknown }).code)
+        : undefined;
+    void recordLiveRequestTelemetry({
+      durationMs: Date.now() - startedAt,
+      errorCode,
+    });
+    throw err;
+  }
+});
 
 /** tRPC Router Builder */
 export const router = t.router;
 
 /** Öffentliche Procedure (kein Auth nötig) */
-export const publicProcedure = t.procedure;
+export const publicProcedure = telemetryProcedure;
 
 /** Admin-geschützte Procedure (Token via Authorization oder x-admin-token). */
-export const adminProcedure = t.procedure.use(async ({ ctx, next }) => {
+export const adminProcedure = telemetryProcedure.use(async ({ ctx, next }) => {
   const token = extractAdminToken(ctx.req);
   if (!token) {
     throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Admin-Authentifizierung erforderlich.' });
@@ -62,7 +85,7 @@ function extractSessionCodeFromInput(input: unknown): string | null {
 }
 
 /** Host-geschützte Procedure (Token via x-host-token). */
-export const hostProcedure = t.procedure.use(async ({ ctx, getRawInput, next }) => {
+export const hostProcedure = telemetryProcedure.use(async ({ ctx, getRawInput, next }) => {
   const rawInput = await getRawInput();
   const sessionCode = extractSessionCodeFromInput(rawInput);
   if (!sessionCode) {

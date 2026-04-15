@@ -163,7 +163,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 - **Router:** apps/backend/src/routers/index.ts, apps/backend/src/routers/\*.ts.
 - **Diagramme:** docs/diagrams/diagrams.md (detailliert), docs/diagrams/architecture-overview.md (Übersicht).
 - **Regeln:** .cursorrules (Pfade, Monorepo, Stack, UX, i18n inkl. stabiler `@@`-IDs); AGENT.md (Arbeitsweise, Baby-Steps, Tests, Leere-Zustände, Layout-`order` vor großen HTML-Umbauten). **UI-Referenz:** `docs/ui/STYLEGUIDE.md` (u. a. leere Listen/Einstieg, Blitzlicht Standalone + Session-Host eingebettet, Platzhalter-Hinweise). **Englische UI-Copy:** `docs/ui/ENGLISH-UI-COPY.md` (Ton, Terminologie, XLF-Ziele für `en`).
-- **Architekturentscheidungen:** Für Rechte-/Routenmodell und die aktuelle Host-Härtung insbesondere ADR-0006 und ADR-0019 beachten; MOTD siehe ADR-0018.
+- **Architekturentscheidungen:** Für Rechte-/Routenmodell und die aktuelle Host-Härtung insbesondere ADR-0006 und ADR-0019 beachten; MOTD siehe ADR-0018; Betriebsstatus-vs-Last mit Live-SLO-Telemetrie siehe ADR-0021.
 
 Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (neue Epics, neuer Session-Status, neuer Router) einmalig diesen Kontext aktualisieren, damit Context Caching weiterhin den gleichen stabilen Prefix nutzen kann.
 

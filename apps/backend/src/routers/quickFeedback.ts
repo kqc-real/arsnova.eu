@@ -23,6 +23,7 @@ import {
 import { publicProcedure, router } from '../trpc';
 import { getRedis } from '../redis';
 import { prisma } from '../db';
+import { recordVoteActivity } from '../lib/loadSignal';
 import { assertHostSessionAccessFromContext, type HostTokenContext } from '../lib/hostAuth';
 import {
   assertFeedbackHostAccess,
@@ -416,6 +417,7 @@ export const quickFeedbackRouter = router({
     multi.hset(cKey, input.voterId, input.value);
     multi.expire(cKey, FEEDBACK_TTL_SECONDS);
     await multi.exec();
+    void recordVoteActivity();
 
     return { ok: true };
   }),

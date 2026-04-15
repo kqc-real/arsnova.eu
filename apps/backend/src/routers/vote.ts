@@ -13,6 +13,8 @@ import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
 import { checkVoteRate } from '../lib/rateLimit';
 import { calculateVoteScore, getStreakMultiplier, questionAffectsStreak } from '../lib/quizScoring';
+import { touchParticipantPresence } from '../lib/presence';
+import { recordVoteActivity } from '../lib/loadSignal';
 
 export const voteRouter = router({
   submit: publicProcedure
@@ -43,6 +45,8 @@ export const voteRouter = router({
       if (participant.session.status !== 'ACTIVE') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Die Frage ist nicht mehr aktiv.' });
       }
+      void touchParticipantPresence(input.sessionId, input.participantId);
+      void recordVoteActivity();
       const question = await prisma.question.findFirst({
         where: { id: input.questionId, quizId: participant.session.quizId ?? undefined },
         include: { answers: { select: { id: true, isCorrect: true } } },

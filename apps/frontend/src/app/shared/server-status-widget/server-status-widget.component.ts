@@ -4,11 +4,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import type { ServerStatsDTO } from '@arsnova/shared-types';
 
 @Component({
   selector: 'app-server-status-widget',
-  imports: [MatButton, MatIcon],
+  imports: [MatButton, MatIcon, MatTooltip],
   templateUrl: './server-status-widget.component.html',
   styleUrls: ['./server-status-widget.component.scss'],
 })
@@ -29,12 +30,12 @@ export class ServerStatusWidgetComponent {
     if (!this.connectionOk || this.loading) return 'gray';
     const s = this.stats;
     if (!s) return 'gray';
-    switch (s.serverStatus) {
-      case 'healthy':
+    switch (s.serviceStatus) {
+      case 'stable':
         return 'green';
-      case 'busy':
+      case 'limited':
         return 'yellow';
-      case 'overloaded':
+      case 'critical':
         return 'red';
       default:
         return 'gray';

@@ -16,6 +16,19 @@ describe('ServerStatusWidgetComponent', () => {
     expect(emitSpy).toHaveBeenCalledOnce();
   });
 
+  it('exposes an accessibility label for SLO and load help', () => {
+    TestBed.configureTestingModule({
+      imports: [ServerStatusWidgetComponent],
+    });
+    const fixture = TestBed.createComponent(ServerStatusWidgetComponent);
+
+    fixture.detectChanges();
+
+    const button = (fixture.nativeElement as HTMLElement).querySelector('button');
+    expect(button?.getAttribute('aria-label')).toContain('Betriebsstatus öffnen');
+    expect(button?.getAttribute('aria-label')).toContain('SLO-Ampel');
+  });
+
   it('renders a green status icon for healthy live stats', () => {
     TestBed.configureTestingModule({
       imports: [ServerStatusWidgetComponent],
@@ -30,7 +43,8 @@ describe('ServerStatusWidgetComponent', () => {
       activeBlitzRounds: 1,
       maxParticipantsSingleSession: 120,
       maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
-      serverStatus: 'healthy',
+      serviceStatus: 'stable',
+      loadStatus: 'healthy',
     };
 
     fixture.detectChanges();
@@ -67,7 +81,8 @@ describe('ServerStatusWidgetComponent', () => {
       activeBlitzRounds: 3,
       maxParticipantsSingleSession: 120,
       maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
-      serverStatus: 'busy',
+      serviceStatus: 'limited',
+      loadStatus: 'busy',
     };
 
     fixture.detectChanges();
@@ -90,7 +105,8 @@ describe('ServerStatusWidgetComponent', () => {
       activeBlitzRounds: 4,
       maxParticipantsSingleSession: 120,
       maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
-      serverStatus: 'overloaded',
+      serviceStatus: 'critical',
+      loadStatus: 'overloaded',
     };
 
     fixture.detectChanges();

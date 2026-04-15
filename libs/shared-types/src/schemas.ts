@@ -847,7 +847,7 @@ export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 /** DTO: Server-Auslastung für die Startseite (Story 0.4) */
 export const ServerStatsDTOSchema = z.object({
   activeSessions: z.number(),
-  /** Summe der Teilnehmer-Einträge über alle nicht beendeten Sessions (LOBBY … DISCUSSION). */
+  /** Aktive Teilnahmen über laufende Sessions (letzte 3 Minuten Redis-Presence). */
   totalParticipants: z.number(),
   /** Kumulativ: Anzahl Session-Zeilen mit Status FINISHED (lebenslang in dieser DB). */
   completedSessions: z.number(),
@@ -856,7 +856,10 @@ export const ServerStatsDTOSchema = z.object({
   maxParticipantsSingleSession: z.number().int().min(0),
   /** ISO-8601: Serverzeitpunkt, als sich der Rekord zuletzt erhöhte (`PlatformStatistic.updatedAt`), sonst null — nicht Session-Start/-Ende. */
   maxParticipantsStatisticUpdatedAt: z.string().datetime().nullable(),
-  serverStatus: z.enum(['healthy', 'busy', 'overloaded']),
+  /** Betriebsstatus (SLO-nah) für den Footer. */
+  serviceStatus: z.enum(['stable', 'limited', 'critical']),
+  /** Lastindikator für Diagnose im Detaildialog. */
+  loadStatus: z.enum(['healthy', 'busy', 'overloaded']),
 });
 
 export type ServerStatsDTO = z.infer<typeof ServerStatsDTOSchema>;
