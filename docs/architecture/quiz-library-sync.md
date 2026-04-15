@@ -27,7 +27,6 @@ Dieses Dokument ergänzt insbesondere:
 - **Quiz-Sammlung:** Die lokal gehaltene Sammlung aller Quizzes eines Geräts.
 - **Sync-Raum:** Der logische Yjs-Raum, in dem mehrere Geräte dieselbe Sammlung teilen.
 - **Sync-ID:** Die technische Raum-ID des Sync-Raums.
-- **Sync-Kurzcode:** Ein aus der Sync-ID abgeleiteter, verkürzter UI-Wert. Er dient nur als Anzeigehilfe und ist kein eigener Sicherheits- oder Auflösungsmechanismus.
 - **Sync-Link:** URL auf `quiz/sync/:docId`, über die ein Gerät gezielt in einen Sync-Raum einsteigt.
 - **Origin / Ursprungsgerät:** Das Gerät, auf dem eine Sammlung erstmals bewusst für andere Geräte freigegeben wurde.
 - **Remote-Änderung:** Eine Änderung, die über Yjs von einem anderen Gerät übernommen wird.
@@ -269,7 +268,6 @@ Die Quiz-Sammlungsseite zeigt die Synchronisierung bewusst nicht als rein techni
 Der Expander in `QuizListComponent` zeigt:
 
 - Verbindungsstatus
-- Sync-ID
 - aktuelles Gerät
 - weitere aktive Geräte
 - Ursprungsgerät und Freigabezeitpunkt
@@ -325,7 +323,6 @@ Für Eingaben und Fehlbedienungen existieren bereits grundlegende Schutzmechanis
 Zusätzlich ist der UI-Stand per 2026-04-03 fachlich nachgeschärft:
 
 - Der **Sync-Link** wird in den relevanten UI-Flächen ausdrücklich als eigentlicher Zugriffsschlüssel benannt.
-- Der verkürzte UI-Wert wird nicht mehr als eigenständige Sync-ID kommuniziert, sondern als **Sync-Kurzcode (Anzeigehilfe)**.
 - Geräte- und Herkunftsinformationen werden in UI und Doku ausdrücklich als **Vertrauenssignale** beschrieben.
 
 ### 12.3 Sicherheitsgrenzen des aktuellen Modells
@@ -335,8 +332,8 @@ Trotz dieser Validierung gibt es klare Grenzen:
 1. **Besitz des Links ist Besitz des Zugriffs.**  
    Wer den Link kennt, kann die Sammlung auf einem anderen Gerät öffnen.
 
-2. **Die kurze angezeigte Sync-ID ist kein eigener Sicherheitsmechanismus.**  
-   Die nutzerfreundliche Darstellung darf nicht mit einem eigenständigen, verifizierten Share-Code verwechselt werden.
+2. **Die technische Room-ID im Sync-Link ist selbst der Zugriffsschlüssel.**  
+   Ohne zusätzliche Serverprüfung ist sie ein Bearer-Secret und kein separat gehärteter Sicherheitsmechanismus.
 
 3. **Geräte- und Herkunftsinformationen sind Vertrauenssignale, keine Beweise.**  
    `deviceLabel`, `browserLabel` und Awareness-Daten stammen aus Clientangaben und sind nicht als manipulationssichere Nachweise zu verstehen.
@@ -366,7 +363,6 @@ Nicht Ziel des aktuellen Modells ist:
 Stand 2026-04-03:
 
 - **UI-Semantik des Sync-Links geschärft**
-- **Kurz-ID als Anzeigehilfe gekennzeichnet**
 - **Vertrauenssignal-Wording in UI und Doku nachgezogen**
 
 Damit ist Stufe A inhaltlich weitgehend vorbereitet, aber die Story 1.6c insgesamt noch nicht erledigt, weil die serverseitigen Schutz- und Missbrauchsmaßnahmen weiter offen sind.
@@ -376,9 +372,6 @@ Damit ist Stufe A inhaltlich weitgehend vorbereitet, aber die Story 1.6c insgesa
 
 - **Security-Wording ergänzen**  
   Zum Beispiel: „Wer den Sync-Link hat, kann diese Sammlung auf einem anderen Gerät öffnen.“
-
-- **Kurz-ID semantisch bereinigen**  
-  Entweder nur noch als Anzeigehilfe, oder später durch einen echten auflösbaren Kurzcode ersetzen.
 
 #### Stufe B: mittelfristig
 

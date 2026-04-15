@@ -634,7 +634,7 @@ sequenceDiagram
 flowchart LR
     subgraph Dozent["Dozent"]
         D1[Quiz erstellen - Yjs IndexedDB]
-        D1a[Sync-Link/Key für anderes Gerät anzeigen - Story 1.6a]
+        D1a[Sync-Link/Room-ID für anderes Gerät anzeigen - Story 1.6a]
         D2[Quiz-Preview - Validierung]
         D3[Live schalten - Session erstellen]
         D4[Session-Code + QR anzeigen]

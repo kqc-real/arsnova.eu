@@ -112,7 +112,7 @@ sequenceDiagram
     FE->>YJS: CRDT-Dokument speichern
     YJS-->>FE: Sync bestätigt
     opt Story 1.6a: Auf anderem Gerät öffnen
-        D->>FE: Sync-Link/Key anzeigen
+        D->>FE: Sync-Link/Room-ID anzeigen
         FE-->>D: Link/QR/Code (Yjs-Dokument-ID)
         Note over D: Anderes Gerät: Link öffnen → gleiches Quiz
     end

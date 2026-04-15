@@ -365,10 +365,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Ohne aktiven Sync bleibt das bisherige Verhalten (nur localStorage); mit Sync werden Änderungen an Preset/Optionen ins Yjs-Dokument geschrieben und so auf andere Clients übertragen.
     - Abhängig von Story 1.6 bzw. 1.6a (Sync-Link/Key muss vorhanden sein).
 - **Story 1.6c (Sync-Sicherheit härten):** 🔴 Als Lehrperson möchte ich, dass geteilte Quiz-Sammlungen sicherer geöffnet werden können, damit ein versehentlich weitergegebener oder missverstandener Sync-Zugang nicht stillschweigend Vollzugriff gewährt.
-  - **Teilstand 2026-04-03:** Die UI-Kommunikation wurde geschärft: Der **Sync-Link** wird als eigentlicher Zugriffsschlüssel benannt, die verkürzte Anzeige nur noch als **Sync-Kurzcode (Anzeigehilfe)** kommuniziert, und Geräte-/Herkunftsangaben werden in UI und Architektur-Doku ausdrücklich als **Vertrauenssignale** beschrieben. Die Story bleibt dennoch offen, weil der serverseitige Missbrauchsschutz für Sync-Raum-Zugriffe sowie der Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** noch fehlen.
+  - **Teilstand 2026-04-03:** Die UI-Kommunikation wurde geschärft: Der **Sync-Link** wird als eigentlicher Zugriffsschlüssel benannt, und Geräte-/Herkunftsangaben werden in UI und Architektur-Doku ausdrücklich als **Vertrauenssignale** beschrieben. Die Story bleibt dennoch offen, weil der serverseitige Missbrauchsschutz für Sync-Raum-Zugriffe sowie der Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** noch fehlen.
   - **Akzeptanzkriterien:**
     - Die UI erklärt klar, dass der **Sync-Link** der eigentliche Zugriffsschlüssel ist.
-    - Die aktuell verkürzte Anzeige der **Sync-ID** wird fachlich bereinigt: entweder nur noch als Anzeigehilfe oder durch einen echten, technisch auflösbaren Kurzcode ersetzt.
     - Für Sync-Raum-Zugriffe existiert ein Schutzkonzept gegen Missbrauch (mindestens Rate-Limit oder gleichwertige Begrenzung auf Relay-/Proxy-Ebene).
     - Ein Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** ist konzipiert und dokumentiert.
     - Herkunfts- und Geräteangaben werden im UI und in der Doku ausdrücklich als **Vertrauenssignale**, nicht als manipulationssichere Sicherheitsnachweise beschrieben.
