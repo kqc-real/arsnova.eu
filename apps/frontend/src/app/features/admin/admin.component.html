@@ -309,28 +309,49 @@
                       <strong i18n="@@admin.metaTitleLabel">Titel:</strong> {{ detail.title }}
                     </p>
                   }
+                  @if (detail.session.retention.legalHoldUntil; as legalHoldUntilIso) {
+                    <p class="admin-info" role="status" i18n="@@admin.legalHoldActiveUntil">
+                      Sperre aktiv bis {{ formatDateTime(legalHoldUntilIso) }}.
+                    </p>
+                    @if (detail.session.retention.legalHoldReason; as legalHoldReason) {
+                      <p class="admin-help" i18n="@@admin.legalHoldActiveReason">
+                        Grund: {{ legalHoldReason }}
+                      </p>
+                    }
+                  } @else {
+                    <p class="admin-help" i18n="@@admin.legalHoldInactive">
+                      Keine aktive Sperre gesetzt.
+                    </p>
+                  }
                   <div class="admin-actions admin-actions--hold">
                     <button
                       matButton="tonal"
-                      class="admin-action-btn"
+                      class="admin-action-btn admin-action-btn--with-spinner"
                       type="button"
                       [disabled]="holdLoading()"
                       (click)="setLegalHold(true)"
-                      i18n="@@admin.legalHoldSet"
                     >
-                      Daten 30 Tage sperren (Legal Hold)
+                      @if (holdLoading()) {
+                        <mat-progress-spinner diameter="16" mode="indeterminate" />
+                      }
+                      <span i18n="@@admin.legalHoldSet">Daten 30 Tage sperren (Legal Hold)</span>
                     </button>
                     <button
                       matButton="tonal"
-                      class="admin-action-btn"
+                      class="admin-action-btn admin-action-btn--with-spinner"
                       type="button"
                       [disabled]="holdLoading()"
                       (click)="setLegalHold(false)"
-                      i18n="@@admin.legalHoldRelease"
                     >
-                      Sperre aufheben
+                      @if (holdLoading()) {
+                        <mat-progress-spinner diameter="16" mode="indeterminate" />
+                      }
+                      <span i18n="@@admin.legalHoldRelease">Sperre aufheben</span>
                     </button>
                   </div>
+                  @if (holdInfo(); as holdInfoText) {
+                    <p class="admin-info" role="status">{{ holdInfoText }}</p>
+                  }
                   @if (holdError(); as holdErrorText) {
                     <p class="admin-error" role="alert">{{ holdErrorText }}</p>
                   }

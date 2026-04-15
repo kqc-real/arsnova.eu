@@ -408,6 +408,12 @@
   max-width: 100%;
 }
 
+.admin-action-btn--with-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .admin-btn-danger {
   background: color-mix(in srgb, var(--mat-sys-error) 90%, #000 10%);
   color: var(--mat-sys-on-error);

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, LOCALE_ID, OnInit, computed, inject, signal } from '@angular/core';
 import {
   MatCard,
   MatCardContent,
@@ -47,6 +47,7 @@ import type {
   styleUrl: './admin.component.scss',
 })
 export class AdminComponent implements OnInit {
+  private readonly locale = inject(LOCALE_ID);
   readonly adminSecret = signal('');
   readonly loginLoading = signal(false);
   readonly loginError = signal<string | null>(null);
@@ -66,6 +67,7 @@ export class AdminComponent implements OnInit {
   readonly selectedDetail = signal<AdminSessionDetailDTO | null>(null);
   readonly holdLoading = signal(false);
   readonly holdError = signal<string | null>(null);
+  readonly holdInfo = signal<string | null>(null);
   readonly deleteLoading = signal(false);
   readonly deleteError = signal<string | null>(null);
   readonly deleteInfo = signal<string | null>(null);
@@ -168,6 +170,8 @@ export class AdminComponent implements OnInit {
     this.selectedDetail.set(null);
     this.lookupCode.set('');
     this.lookupError.set(null);
+    this.holdError.set(null);
+    this.holdInfo.set(null);
   }
 
   async lookupByCode(): Promise<void> {
@@ -201,6 +205,8 @@ export class AdminComponent implements OnInit {
     try {
       const detail = await trpc.admin.getSessionDetail.query({ sessionId });
       this.selectedDetail.set(detail);
+      this.holdError.set(null);
+      this.holdInfo.set(null);
       this.deleteError.set(null);
       this.deleteInfo.set(null);
       this.deleteReason.set('');
@@ -230,12 +236,21 @@ export class AdminComponent implements OnInit {
     }
     this.holdLoading.set(true);
     this.holdError.set(null);
+    this.holdInfo.set(null);
     try {
-      await trpc.admin.setLegalHold.mutate({
+      const result = await trpc.admin.setLegalHold.mutate({
         sessionId: detail.session.sessionId,
         enabled,
         reason: enabled ? 'Behördenrelevante Sicherung' : undefined,
       });
+      if (enabled) {
+        const untilText = this.formatDateTime(result.legalHoldUntil);
+        this.holdInfo.set(
+          $localize`:@@admin.legalHoldSetDone:Sperre aktiviert bis ${untilText}:untilText:.`,
+        );
+      } else {
+        this.holdInfo.set($localize`:@@admin.legalHoldReleaseDone:Sperre wurde aufgehoben.`);
+      }
       await this.openSessionDetail(detail.session.sessionId);
       await this.loadSessions();
     } catch (error) {
@@ -552,6 +567,24 @@ export class AdminComponent implements OnInit {
       }
     }
     return fallback;
+  }
+
+  formatDateTime(iso: string | null | undefined): string {
+    if (!iso) {
+      return '—';
+    }
+    try {
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) {
+        return iso;
+      }
+      return new Intl.DateTimeFormat(this.locale, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }).format(date);
+    } catch {
+      return iso;
+    }
   }
 
   private downloadBase64File(contentBase64: string, mimeType: string, fileName: string): void {

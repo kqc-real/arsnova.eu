@@ -1404,6 +1404,46 @@
           <context context-type="linenumber">198,199</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.legalHoldActiveUntil" datatype="html">
+        <source>Sperre aktiv bis <x id="INTERPOLATION" equiv-text="{{ formatDateTime(legalHoldUntilIso) }}"/>.</source>
+        <target>Blocage actif jusqu’au <x id="INTERPOLATION" equiv-text="{{ formatDateTime(legalHoldUntilIso) }}"/>.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
+          <context context-type="linenumber">305,307</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.legalHoldActiveReason" datatype="html">
+        <source>Grund: <x id="INTERPOLATION" equiv-text="{{ legalHoldReason }}"/></source>
+        <target>Motif : <x id="INTERPOLATION" equiv-text="{{ legalHoldReason }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
+          <context context-type="linenumber">309,311</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.legalHoldInactive" datatype="html">
+        <source>Keine aktive Sperre gesetzt.</source>
+        <target>Aucun blocage actif n’est défini.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
+          <context context-type="linenumber">314,316</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.legalHoldSetDone" datatype="html">
+        <source>Sperre aktiviert bis <x id="untilText" equiv-text="untilText"/>.</source>
+        <target>Blocage activé jusqu’au <x id="untilText" equiv-text="untilText"/>.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
+          <context context-type="linenumber">248</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.legalHoldReleaseDone" datatype="html">
+        <source>Sperre wurde aufgehoben.</source>
+        <target>Le blocage a été levé.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.ts</context>
+          <context context-type="linenumber">251</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.exportPdf" datatype="html">
         <source> Als Compliance-Bericht (PDF) exportieren</source>
         <target>Exporter comme rapport de conformité (PDF)</target>
