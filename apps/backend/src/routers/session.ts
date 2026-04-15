@@ -31,6 +31,8 @@ import {
   BonusTokenListDTOSchema,
   GetBonusTokensForQuizInputSchema,
   BonusTokensForQuizOutputSchema,
+  VerifyBonusTokenForQuizInputSchema,
+  VerifyBonusTokenForQuizOutputSchema,
   GetLastSessionFeedbackForQuizInputSchema,
   LastSessionFeedbackForQuizOutputSchema,
   SubmitSessionFeedbackInputSchema,
@@ -2367,6 +2369,44 @@ export const sessionRouter = router({
             generatedAt: t.generatedAt.toISOString(),
           })),
         })),
+      };
+    }),
+
+  /** Bonus-Code serverseitig prüfen (Quiz-Sammlung, Story 4.6). */
+  verifyBonusTokenForQuiz: publicProcedure
+    .input(VerifyBonusTokenForQuizInputSchema)
+    .output(VerifyBonusTokenForQuizOutputSchema)
+    .query(async ({ input }) => {
+      await assertQuizHistoryAccess(input.quizId, input.accessProof);
+      const normalizedToken = input.bonusCode.trim().toUpperCase();
+
+      const token = await prisma.bonusToken.findFirst({
+        where: {
+          token: normalizedToken,
+          session: {
+            quizId: input.quizId,
+            status: 'FINISHED',
+          },
+        },
+        include: {
+          session: {
+            select: {
+              code: true,
+            },
+          },
+        },
+      });
+
+      if (!token) {
+        return { valid: false as const };
+      }
+
+      return {
+        valid: true as const,
+        sessionCode: token.session.code,
+        nickname: token.nickname,
+        rank: token.rank,
+        totalScore: token.totalScore,
       };
     }),
 

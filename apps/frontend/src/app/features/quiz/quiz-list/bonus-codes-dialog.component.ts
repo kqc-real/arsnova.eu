@@ -9,6 +9,8 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import type { BonusTokenListWithSessionMetaDTO } from '@arsnova/shared-types';
 import { trpc } from '../../../core/trpc.client';
@@ -19,6 +21,18 @@ export interface BonusCodesDialogData {
   quizName: string;
 }
 
+type BonusCodeVerificationResult =
+  | {
+      valid: true;
+      sessionCode: string;
+      nickname: string;
+      rank: number;
+      totalScore: number;
+    }
+  | {
+      valid: false;
+    };
+
 @Component({
   selector: 'app-bonus-codes-dialog',
   standalone: true,
@@ -28,6 +42,9 @@ export interface BonusCodesDialogData {
     MatDialogContent,
     MatDialogTitle,
     MatIcon,
+    MatFormField,
+    MatLabel,
+    MatInput,
     MatProgressSpinner,
     DecimalPipe,
     DatePipe,
@@ -46,6 +63,46 @@ export class BonusCodesDialogComponent implements OnInit {
   readonly loading = signal(true);
   readonly loadError = signal(false);
   readonly sessions = signal<BonusTokenListWithSessionMetaDTO[]>([]);
+  readonly verifyCode = signal('');
+  readonly verifyResult = signal<BonusCodeVerificationResult | null>(null);
+  readonly verifyLoading = signal(false);
+  readonly verifyError = signal(false);
+
+  updateVerifyCode(value: string): void {
+    const normalized = value
+      .toUpperCase()
+      .replace(/[^A-Z0-9-]/g, '')
+      .slice(0, 32);
+    this.verifyCode.set(normalized);
+    this.verifyResult.set(null);
+    this.verifyError.set(false);
+  }
+
+  canVerifyCode(): boolean {
+    return this.verifyCode().trim().length >= 4 && !this.verifyLoading();
+  }
+
+  async verifyBonusCode(): Promise<void> {
+    if (!this.canVerifyCode()) {
+      return;
+    }
+    const code = this.verifyCode().trim().toUpperCase();
+    this.verifyLoading.set(true);
+    this.verifyError.set(false);
+    this.verifyResult.set(null);
+    try {
+      const result = await trpc.session.verifyBonusTokenForQuiz.query({
+        quizId: this.data.serverQuizId,
+        accessProof: this.data.accessProof,
+        bonusCode: code,
+      });
+      this.verifyResult.set(result);
+    } catch {
+      this.verifyError.set(true);
+    } finally {
+      this.verifyLoading.set(false);
+    }
+  }
 
   async ngOnInit(): Promise<void> {
     try {

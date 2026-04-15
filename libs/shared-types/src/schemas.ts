@@ -1009,6 +1009,32 @@ export const BonusTokensForQuizOutputSchema = z.object({
 });
 export type BonusTokensForQuizOutput = z.infer<typeof BonusTokensForQuizOutputSchema>;
 
+export const VerifyBonusTokenForQuizInputSchema = z.object({
+  quizId: z.string().uuid(),
+  accessProof: QuizHistoryAccessProofSchema,
+  bonusCode: z
+    .string()
+    .trim()
+    .min(4)
+    .max(32)
+    .regex(/^[A-Za-z0-9-]+$/),
+});
+export type VerifyBonusTokenForQuizInput = z.infer<typeof VerifyBonusTokenForQuizInputSchema>;
+
+export const VerifyBonusTokenForQuizOutputSchema = z.discriminatedUnion('valid', [
+  z.object({
+    valid: z.literal(true),
+    sessionCode: z.string(),
+    nickname: z.string(),
+    rank: z.number().int().min(1),
+    totalScore: z.number(),
+  }),
+  z.object({
+    valid: z.literal(false),
+  }),
+]);
+export type VerifyBonusTokenForQuizOutput = z.infer<typeof VerifyBonusTokenForQuizOutputSchema>;
+
 // ---------------------------------------------------------------------------
 // Ergebnis-Export für Dozenten (Story 4.7) – nur aggregierte/anonyme Daten
 // ---------------------------------------------------------------------------

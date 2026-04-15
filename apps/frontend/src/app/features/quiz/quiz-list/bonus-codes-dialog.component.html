@@ -19,6 +19,81 @@
     Bitte nur privat einsehen – nicht im Hörsaal oder bei Zuschauer:innen sichtbar machen.
   </div>
 
+  <section class="bonus-codes-dialog__verify" aria-labelledby="bonus-code-verify-heading">
+    <h3
+      id="bonus-code-verify-heading"
+      class="bonus-codes-dialog__verify-heading"
+      i18n="@@quizList.bonusCodesVerifyHeading"
+    >
+      Bonus-Code prüfen
+    </h3>
+    <p class="bonus-codes-dialog__verify-hint" i18n="@@quizList.bonusCodesVerifyHint">
+      Wenn dir jemand einen Bonus-Code nennt, kannst du ihn hier direkt auf Gültigkeit prüfen.
+    </p>
+    <div class="bonus-codes-dialog__verify-row">
+      <mat-form-field appearance="outline" class="bonus-codes-dialog__verify-field">
+        <mat-label i18n="@@quizList.bonusCodesVerifyLabel">Bonus-Code</mat-label>
+        <input
+          matInput
+          type="text"
+          [value]="verifyCode()"
+          (input)="updateVerifyCode($any($event.target).value)"
+          maxlength="32"
+          autocomplete="off"
+        />
+      </mat-form-field>
+      <button
+        matButton="tonal"
+        type="button"
+        class="bonus-codes-dialog__verify-btn"
+        [disabled]="!canVerifyCode()"
+        (click)="verifyBonusCode()"
+        [attr.aria-busy]="verifyLoading()"
+        i18n="@@quizList.bonusCodesVerifyButton"
+      >
+        @if (verifyLoading()) {
+          <mat-progress-spinner
+            diameter="16"
+            mode="indeterminate"
+            class="bonus-codes-dialog__verify-spinner"
+          />
+        }
+        Code prüfen
+      </button>
+    </div>
+    @if (verifyResult(); as result) {
+      @if (result.valid) {
+        <p
+          class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--ok"
+          role="status"
+        >
+          <strong i18n="@@quizList.bonusCodesVerifyValidPrefix">Gültig.</strong>
+          <span i18n="@@quizList.bonusCodesVerifyValidDetails">
+            Session {{ result.sessionCode }}, Rang {{ result.rank }}, {{ result.nickname }},
+            {{ result.totalScore | number }} Punkte.
+          </span>
+        </p>
+      } @else {
+        <p
+          class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--error"
+          role="alert"
+          i18n="@@quizList.bonusCodesVerifyInvalid"
+        >
+          Ungültig: Dieser Bonus-Code ist nicht vorhanden.
+        </p>
+      }
+    }
+    @if (verifyError()) {
+      <p
+        class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--error"
+        role="alert"
+        i18n="@@quizList.bonusCodesVerifyRequestError"
+      >
+        Die Prüfung war nicht möglich. Bitte später erneut versuchen.
+      </p>
+    }
+  </section>
+
   @if (loading()) {
     <div class="bonus-codes-dialog__loading">
       <mat-progress-spinner diameter="40" mode="indeterminate" />

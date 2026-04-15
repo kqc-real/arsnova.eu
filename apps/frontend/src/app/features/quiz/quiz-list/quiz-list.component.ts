@@ -327,6 +327,7 @@ export class QuizListComponent implements OnInit {
         message: $localize`:@@quizList.deleteQuizDialogMessage:Das Quiz „${quizName}“ wird aus deiner Sammlung entfernt.`,
         consequences: [
           $localize`:@@quiz.deleteIrreversible:Das lässt sich nicht rückgängig machen.`,
+          $localize`:@@quizList.deleteQuizBonusCodesHint:Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über „Bonus-Codes“ > „CSV exportieren“.`,
         ],
         confirmLabel: $localize`:@@quizList.deleteQuizConfirm:Löschen`,
         cancelLabel: $localize`:@@quizList.deleteQuizCancel:Abbrechen`,

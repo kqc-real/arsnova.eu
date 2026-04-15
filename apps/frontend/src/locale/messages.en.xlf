@@ -5944,6 +5944,70 @@
           <context context-type="linenumber">80,83</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyHeading" datatype="html">
+        <source>Bonus-Code prüfen</source>
+        <target>Check bonus code</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">28,32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyHint" datatype="html">
+        <source>Wenn dir jemand einen Bonus-Code nennt, kannst du ihn hier direkt auf Gültigkeit prüfen.</source>
+        <target>If someone gives you a bonus code, you can verify it here immediately.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">34,36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyLabel" datatype="html">
+        <source>Bonus-Code</source>
+        <target>Bonus code</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">40</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyButton" datatype="html">
+        <source>Code prüfen</source>
+        <target>Check code</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">59,61</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyValidPrefix" datatype="html">
+        <source>Gültig.</source>
+        <target>Valid.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">68</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyValidDetails" datatype="html">
+        <source>Session <x id="INTERPOLATION" equiv-text="{{ result.sessionCode }}"/>, Rang <x id="INTERPOLATION_1" equiv-text="{{ result.rank }}"/>, <x id="INTERPOLATION_2" equiv-text="{{ result.nickname }}"/>, <x id="INTERPOLATION_3" equiv-text="{{ result.totalScore | number }}"/> Punkte.</source>
+        <target>Session <x id="INTERPOLATION" equiv-text="{{ result.sessionCode }}"/>, rank <x id="INTERPOLATION_1" equiv-text="{{ result.rank }}"/>, <x id="INTERPOLATION_2" equiv-text="{{ result.nickname }}"/>, <x id="INTERPOLATION_3" equiv-text="{{ result.totalScore | number }}"/> points.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">70,73</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyInvalid" datatype="html">
+        <source>Ungültig: Dieser Bonus-Code ist nicht vorhanden.</source>
+        <target>Invalid: this bonus code does not exist.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">80,82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyRequestError" datatype="html">
+        <source>Die Prüfung war nicht möglich. Bitte später erneut versuchen.</source>
+        <target>Verification was not possible. Please try again later.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">90,92</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="quizList.lastSessionFeedbackDialogHeading" datatype="html">
         <source>Letztes Session-Feedback</source>
         <target>Latest session feedback</target>
@@ -6768,6 +6832,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">312</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteQuizBonusCodesHint" datatype="html">
+        <source>Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über „Bonus-Codes“ &gt; „CSV exportieren“.</source>
+        <target>If bonus codes exist, export them first via “Bonus Codes” &gt; “Export CSV”.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">315</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.deleteQuizConfirm" datatype="html">
