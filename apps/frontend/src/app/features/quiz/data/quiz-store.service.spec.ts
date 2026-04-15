@@ -572,6 +572,19 @@ describe('QuizStoreService', () => {
     expect(service.originSharedAt()).toBe(firstOriginAt);
   });
 
+  it('kann eine geteilte Bibliothek wieder entlinken und lokal weiterführen', () => {
+    const service = TestBed.inject(QuizStoreService);
+    service.createQuiz({ name: 'Geteiltes Quiz' });
+    service.activateSyncRoom(service.syncRoomId(), { markShared: true });
+    const sharedRoomId = service.syncRoomId();
+
+    service.unlinkSharedLibrary();
+
+    expect(service.librarySharingMode()).toBe('local');
+    expect(service.syncRoomId()).not.toBe(sharedRoomId);
+    expect(service.quizzes().some((q) => q.name === 'Geteiltes Quiz')).toBe(true);
+  });
+
   it('merkt sich Gerät und Browser bei lokalen Quiz-Änderungen', () => {
     const service = TestBed.inject(QuizStoreService);
 

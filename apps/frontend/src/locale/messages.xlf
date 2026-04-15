@@ -3107,6 +3107,34 @@
           <context context-type="linenumber">394,396</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeHostCard.syncLinkedHintWithOrigin" datatype="html">
+        <source>Quizze werden mit <x id="INTERPOLATION" equiv-text="{{ originSummary }}"/> geteilt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">431,432</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncUnlinkCta" datatype="html">
+        <source>Verknüpfung lösen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">446,447</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncUnlinkConfirmPrompt" datatype="html">
+        <source>Verknüpfung wirklich lösen? Die aktuelle Quiz-Sammlung bleibt auf diesem Gerät erhalten.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+          <context context-type="linenumber">524,525</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.syncUnlinkSuccess" datatype="html">
+        <source>Verknüpfung gelöst. Die Quiz-Sammlung ist jetzt nur auf diesem Gerät aktiv.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+          <context context-type="linenumber">536,536</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="motd.overlayTitle" datatype="html">
         <source> Aktuelle Meldung </source>
         <context-group purpose="location">
@@ -5919,6 +5947,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">169</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.syncStatusReady" datatype="html">
+        <source>Bereit</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncStatusConnecting" datatype="html">

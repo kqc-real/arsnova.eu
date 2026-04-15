@@ -26,6 +26,7 @@ import {
   MatCardTitle,
 } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
 import { hasHostToken } from '../../core/host-session-token';
@@ -89,6 +90,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly localizedCommands = localizeCommands;
   readonly localizedPath = localizePath;
   private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
   @ViewChild('syncLinkInput') private readonly syncLinkInput?: ElementRef<HTMLInputElement>;
@@ -115,6 +117,31 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly quizStore = inject(QuizStoreService);
   /** Sync-Raum-ID für Links zur Quiz-Sync-Seite (z. B. von der Startseite). */
   readonly syncRoomId = this.quizStore.syncRoomId;
+  readonly librarySharingMode = this.quizStore.librarySharingMode;
+  readonly syncOriginDeviceLabel = this.quizStore.originDeviceLabel;
+  readonly syncOriginBrowserLabel = this.quizStore.originBrowserLabel;
+  readonly syncPeerInfos = this.quizStore.syncPeerInfos;
+  readonly currentDeviceLabel = this.quizStore.currentDeviceLabel;
+  readonly currentBrowserLabel = this.quizStore.currentBrowserLabel;
+  readonly hostSharingOriginSummary = computed(() => {
+    const peer = this.syncPeerInfos()[0] ?? null;
+    if (peer) {
+      return `${peer.browserLabel} auf ${peer.deviceLabel}`;
+    }
+
+    const deviceLabel = this.syncOriginDeviceLabel();
+    const browserLabel = this.syncOriginBrowserLabel();
+    if (!deviceLabel || !browserLabel) {
+      return null;
+    }
+    if (deviceLabel === this.currentDeviceLabel() && browserLabel === this.currentBrowserLabel()) {
+      return null;
+    }
+    return `${browserLabel} auf ${deviceLabel}`;
+  });
+  readonly showHostSharingHint = computed(
+    () => this.librarySharingMode() === 'shared' && this.hostSharingOriginSummary() !== null,
+  );
   readonly quizCount = computed(
     () => this.quizStore.quizzes().filter((q) => q.id !== DEMO_QUIZ_ID).length,
   );
@@ -488,10 +515,33 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.syncLinkError.set(null);
-    this.quizStore.activateSyncRoom(docId, { markShared: true });
+    this.quizStore.activateSyncRoom(docId, { markShared: true, registerOrigin: true });
     await this.router.navigate(this.localizedCommands(['quiz']), {
       queryParams: { syncImported: 1 },
     });
+  }
+
+  unlinkSharedLibrary(): void {
+    const shouldUnlink =
+      typeof globalThis.confirm !== 'function'
+        ? true
+        : globalThis.confirm(
+            $localize`:@@homeHostCard.syncUnlinkConfirmPrompt:Verknüpfung wirklich lösen? Die aktuelle Quiz-Sammlung bleibt auf diesem Gerät erhalten.`,
+          );
+    if (!shouldUnlink) {
+      return;
+    }
+
+    this.quizStore.unlinkSharedLibrary();
+    this.snackBar.open(
+      $localize`:@@homeHostCard.syncUnlinkSuccess:Verknüpfung gelöst. Die Quiz-Sammlung ist jetzt nur auf diesem Gerät aktiv.`,
+      '',
+      {
+        duration: 4500,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      },
+    );
   }
 
   async startQuickFeedback(type: QuickFeedbackType): Promise<void> {

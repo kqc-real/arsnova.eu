@@ -157,6 +157,19 @@ describe('QuizListComponent', () => {
     expect(text).toContain('Zuletzt hier geändert');
   });
 
+  it('zeigt bei geteilter Bibliothek ohne weitere Geräte den Status "Bereit"', () => {
+    mockStore.librarySharingMode.set('shared');
+    mockStore.syncConnectionState.set('connected');
+    mockStore.syncPeerInfos.set([]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Bereit');
+    expect(text).not.toContain('Verbunden');
+  });
+
   it('zeigt nach einem Sync-Import einen Snackbar-Hinweis', async () => {
     quizzesSignal.set([
       {

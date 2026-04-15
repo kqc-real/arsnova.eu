@@ -175,10 +175,18 @@ export class QuizListComponent implements OnInit {
 
   syncStatusLabel(): string {
     const state = this.syncConnectionState();
-    if (state === 'connected') return $localize`:@@quizList.syncStatusConnected:Verbunden`;
+    if (state === 'connected') {
+      return this.hasConnectedSyncPeer()
+        ? $localize`:@@quizList.syncStatusConnected:Verbunden`
+        : $localize`:@@quizList.syncStatusReady:Bereit`;
+    }
     if (state === 'connecting')
       return $localize`:@@quizList.syncStatusConnecting:Verbindung wird aufgebaut`;
     return $localize`:@@quizList.syncStatusOffline:Offline`;
+  }
+
+  hasConnectedSyncPeer(): boolean {
+    return this.syncConnectionState() === 'connected' && this.syncPeerInfos().length > 0;
   }
 
   syncCode(): string {

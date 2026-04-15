@@ -1189,7 +1189,7 @@ export class QuizStoreService {
     if (!normalizedRoomId) {
       throw new Error($localize`Ungültige Sync-ID.`);
     }
-    const shouldRegisterOrigin = options?.registerOrigin && this.librarySharingMode() === 'local';
+    const shouldRegisterOrigin = options?.registerOrigin === true;
     if (options?.markShared) {
       this.setLibrarySharingMode('shared');
     }
@@ -1213,6 +1213,27 @@ export class QuizStoreService {
 
     this.loadFromStorage(normalizedRoomId, false);
     this.initYjsPersistence(normalizedRoomId);
+  }
+
+  /**
+   * Trennt die geteilte Quiz-Sammlung und wechselt auf einen neuen lokalen Sync-Raum.
+   * Vorhandene Quizze bleiben auf diesem Gerät erhalten.
+   */
+  unlinkSharedLibrary(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const serialized = this.serializeQuizDocuments();
+    const newLocalRoomId = generateUuid();
+
+    this.teardownYjs();
+    this.setLibrarySharingMode('local');
+    this.syncRoomId.set(newLocalRoomId);
+    this.storeSyncRoomId(newLocalRoomId);
+    this.loadSyncMetadata(newLocalRoomId);
+    this.persistLocalMirror(serialized);
+    this.updateSerializedQuizCache(newLocalRoomId, serialized);
+    this.ensureDemoQuiz();
+    this.initYjsPersistence(newLocalRoomId);
   }
 
   private loadFromStorage(roomId: string, allowLegacyFallback: boolean): void {

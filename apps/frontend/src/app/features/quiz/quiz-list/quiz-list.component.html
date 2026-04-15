@@ -216,7 +216,7 @@
           </p>
           <span
             class="quiz-list__sync-status-badge"
-            [class.quiz-list__sync-status-badge--connected]="syncConnectionState() === 'connected'"
+            [class.quiz-list__sync-status-badge--connected]="hasConnectedSyncPeer()"
             [class.quiz-list__sync-status-badge--connecting]="
               syncConnectionState() === 'connecting'
             "

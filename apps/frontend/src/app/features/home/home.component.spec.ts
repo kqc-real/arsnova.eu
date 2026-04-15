@@ -401,7 +401,10 @@ describe('HomeComponent', () => {
       comp.syncLinkValue.set('https://arsnova.eu/quiz/sync/sync-room-12345678');
       await comp.openSyncLink();
 
-      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', { markShared: true });
+      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', {
+        markShared: true,
+        registerOrigin: true,
+      });
       expect(navSpy).toHaveBeenCalledWith(['quiz'], {
         queryParams: { syncImported: 1 },
       });
@@ -418,7 +421,10 @@ describe('HomeComponent', () => {
       comp.syncLinkValue.set('sync-room-12345678');
       await comp.openSyncLink();
 
-      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', { markShared: true });
+      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', {
+        markShared: true,
+        registerOrigin: true,
+      });
       expect(navSpy).toHaveBeenCalledWith(['quiz'], {
         queryParams: { syncImported: 1 },
       });
@@ -435,6 +441,104 @@ describe('HomeComponent', () => {
 
       expect(navSpy).not.toHaveBeenCalled();
       expect(comp.syncLinkError()).toBe('Bitte einen gültigen Sync-Link einfügen.');
+    });
+  });
+
+  describe('Host-Sharing-Hinweis', () => {
+    it('zeigt ohne Verlinkung keinen Hinweis auf der Host-Karte', () => {
+      const fixture = TestBed.createComponent(HomeComponent);
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector('.home-host-sharing-hint');
+      expect(hint).toBeNull();
+    });
+
+    it('zeigt bei verlinkter Sammlung den Hinweis mit Gerätekontext', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.activateSyncRoom('sync-room-12345678', { markShared: true, registerOrigin: true });
+      quizStore.syncPeerInfos.set([
+        {
+          deviceId: 'peer-device-context',
+          deviceLabel: 'Mac',
+          browserLabel: 'Chrome',
+        },
+      ]);
+
+      const fixture = TestBed.createComponent(HomeComponent);
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector(
+        '.home-host-sharing-hint',
+      ) as HTMLElement | null;
+      expect(hint).not.toBeNull();
+      expect(hint?.textContent).toContain('Quizze werden mit');
+      expect(hint?.textContent).toContain('Chrome auf Mac');
+    });
+
+    it('bevorzugt den verbundenen Peer statt der eigenen Origin im Hinweis', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.librarySharingMode.set('shared');
+      quizStore.originDeviceLabel.set('Mac');
+      quizStore.originBrowserLabel.set('Firefox');
+      quizStore.syncPeerInfos.set([
+        {
+          deviceId: 'peer-device',
+          deviceLabel: 'Mac',
+          browserLabel: 'Chrome',
+        },
+      ]);
+
+      const fixture = TestBed.createComponent(HomeComponent);
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector(
+        '.home-host-sharing-hint',
+      ) as HTMLElement | null;
+      expect(hint).not.toBeNull();
+      expect(hint?.textContent).toContain('Chrome auf Mac');
+      expect(hint?.textContent).not.toContain('Firefox auf Mac');
+    });
+
+    it('zeigt nie das eigene Gerät als Gegenstelle im Hinweis', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.librarySharingMode.set('shared');
+      quizStore.originDeviceLabel.set(quizStore.currentDeviceLabel());
+      quizStore.originBrowserLabel.set(quizStore.currentBrowserLabel());
+      quizStore.syncPeerInfos.set([]);
+
+      const fixture = TestBed.createComponent(HomeComponent);
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector(
+        '.home-host-sharing-hint',
+      ) as HTMLElement | null;
+      expect(hint).toBeNull();
+    });
+
+    it('löst Verknüpfung nach Bestätigung und ruft Entlinken im Store auf', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      const comp = createHomeComponent();
+      const confirmSpy = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+      const unlinkSpy = vi.spyOn(quizStore, 'unlinkSharedLibrary');
+
+      comp.unlinkSharedLibrary();
+
+      expect(confirmSpy).toHaveBeenCalled();
+      expect(unlinkSpy).toHaveBeenCalledTimes(1);
+      confirmSpy.mockRestore();
+    });
+
+    it('belässt Verknüpfung bei Abbruch und ruft Entlinken nicht auf', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      const comp = createHomeComponent();
+      const confirmSpy = vi.spyOn(globalThis, 'confirm').mockReturnValue(false);
+      const unlinkSpy = vi.spyOn(quizStore, 'unlinkSharedLibrary');
+
+      comp.unlinkSharedLibrary();
+
+      expect(confirmSpy).toHaveBeenCalled();
+      expect(unlinkSpy).not.toHaveBeenCalled();
+      confirmSpy.mockRestore();
     });
   });
 

@@ -422,6 +422,31 @@
             </div>
           </div>
         }
+        @if (showHostSharingHint()) {
+          <div class="home-host-sharing-hint" role="status">
+            <mat-icon class="home-host-sharing-hint__icon" aria-hidden="true">link</mat-icon>
+            <div class="home-host-sharing-hint__content">
+              <p class="home-host-sharing-hint__text">
+                @if (hostSharingOriginSummary(); as originSummary) {
+                  <span i18n="@@homeHostCard.syncLinkedHintWithOrigin">
+                    Quizze werden mit {{ originSummary }} geteilt.
+                  </span>
+                }
+              </p>
+              <button
+                matButton="outlined"
+                type="button"
+                class="home-host-sharing-hint__action"
+                (click)="unlinkSharedLibrary()"
+              >
+                <mat-icon class="home-host-sharing-hint__action-icon" aria-hidden="true"
+                  >link_off</mat-icon
+                >
+                <span i18n="@@homeHostCard.syncUnlinkCta">Verknüpfung lösen</span>
+              </button>
+            </div>
+          </div>
+        }
       </mat-card-actions>
     </mat-card>
   </div>
