@@ -87,6 +87,6 @@ export function localizeKnownServerError(error: unknown, fallbackMessage: string
   }
 
   const emphasis = $localize`:@@errors.rateLimitAttention:WICHTIG:`;
-  const retryHint = $localize`:@@errors.rateLimitRetryAfter:Bitte in ${retryAfterSeconds}:seconds Sekunden erneut versuchen.`;
+  const retryHint = $localize`:@@errors.rateLimitRetryAfter:Bitte in ${retryAfterSeconds}:seconds: Sekunden erneut versuchen.`;
   return `${emphasis} ${localizedMessage}\n${retryHint}`;
 }
