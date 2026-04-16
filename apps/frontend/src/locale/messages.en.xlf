@@ -6096,14 +6096,6 @@
           <context context-type="linenumber">21,26</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.lastSessionFeedbackDialogLoadError" datatype="html">
-        <source> Das Feedback konnte nicht geladen werden. Bitte später erneut versuchen.</source>
-        <target>Couldn&apos;t load feedback. Try again in a moment.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/last-session-feedback-dialog.component.html</context>
-          <context context-type="linenumber">35,38</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="quizList.lastSessionFeedbackDialogEndedAt" datatype="html">
         <source>Beendet: <x id="INTERPOLATION" equiv-text="row.endedAt | date: 'short'"/></source>
         <target>Ended: <x id="INTERPOLATION" equiv-text="row.endedAt | date: 'short'"/></target>

@@ -92,15 +92,18 @@ describe('BonusCodesDialogComponent', () => {
     expect(fixture.componentInstance.loadError()).toBe(true);
   });
 
-  it('blendet Listen-Ladefehler aus, sobald ein Verifikationsstatus vorliegt', () => {
+  it('zeigt ohne vorhandene Codes nur den leeren Zustand ohne Pruefbereich', async () => {
+    getBonusTokensQueryMock.mockRejectedValue(new Error('boom'));
     const fixture = TestBed.createComponent(BonusCodesDialogComponent);
-    const component = fixture.componentInstance;
 
-    component.loadError.set(true);
-    expect(component.shouldShowLoadError()).toBe(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
-    component.verifyResult.set({ valid: false, reason: 'invalidFormat' });
-    expect(component.shouldShowLoadError()).toBe(false);
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Noch keine Codes');
+    expect(text).not.toContain('Bonus-Code prüfen');
+    expect(text).not.toContain('Bitte nur privat einsehen');
   });
 
   it('normalisiert den Verify-Code und loescht altes Ergebnis', () => {
@@ -270,8 +273,29 @@ describe('BonusCodesDialogComponent', () => {
         resolveVerify = resolve;
       }),
     );
+    getBonusTokensQueryMock.mockResolvedValue({
+      sessions: [
+        {
+          sessionCode: 'ABCDEF',
+          quizName: 'Chemie 101',
+          endedAt: null,
+          tokens: [
+            {
+              token: 'BNS-TEST-1234',
+              nickname: 'Ada',
+              quizName: 'Chemie 101',
+              totalScore: 42,
+              rank: 1,
+              generatedAt: '2026-04-15T11:05:00.000Z',
+            },
+          ],
+        },
+      ],
+    });
     const fixture = TestBed.createComponent(BonusCodesDialogComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
 
     component.updateVerifyCode('BNS-TEST-1234');
     const pendingVerification = component.verifyBonusCode();

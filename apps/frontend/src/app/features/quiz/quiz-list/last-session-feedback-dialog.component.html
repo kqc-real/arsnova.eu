@@ -13,28 +13,20 @@
 </h2>
 
 <mat-dialog-content class="last-session-feedback-dialog__body">
-  <div
-    class="last-session-feedback-dialog__hint-box"
-    role="note"
-    i18n="@@quizList.lastSessionFeedbackDialogHint"
-  >
-    Zusammenfassung aus freiwilligen Angaben der Teilnehmenden – bezogen auf die zuletzt beendete
-    Session mit mindestens einer Bewertung.
-  </div>
-
   @if (loading()) {
     <div class="last-session-feedback-dialog__loading">
       <mat-progress-spinner diameter="40" mode="indeterminate" />
     </div>
-  } @else if (loadError()) {
-    <p
-      class="last-session-feedback-dialog__error"
-      role="alert"
-      i18n="@@quizList.lastSessionFeedbackDialogLoadError"
-    >
-      Das Feedback konnte nicht geladen werden. Bitte später erneut versuchen.
-    </p>
   } @else if (payload(); as row) {
+    <div
+      class="last-session-feedback-dialog__hint-box"
+      role="note"
+      i18n="@@quizList.lastSessionFeedbackDialogHint"
+    >
+      Zusammenfassung aus freiwilligen Angaben der Teilnehmenden – bezogen auf die zuletzt beendete
+      Session mit mindestens einer Bewertung.
+    </div>
+
     <p class="last-session-feedback-dialog__session-meta">
       @if (row.endedAt) {
         <span

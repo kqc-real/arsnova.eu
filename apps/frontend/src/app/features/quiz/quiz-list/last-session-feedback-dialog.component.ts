@@ -44,7 +44,6 @@ export class LastSessionFeedbackDialogComponent implements OnInit {
   readonly data = inject<LastSessionFeedbackDialogData>(MAT_DIALOG_DATA);
 
   readonly loading = signal(true);
-  readonly loadError = signal(false);
   readonly payload = signal<LastSessionFeedbackForQuizDTO | null>(null);
 
   async ngOnInit(): Promise<void> {
@@ -55,7 +54,7 @@ export class LastSessionFeedbackDialogComponent implements OnInit {
       });
       this.payload.set(result);
     } catch {
-      this.loadError.set(true);
+      this.payload.set(null);
     } finally {
       this.loading.set(false);
     }
