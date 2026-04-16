@@ -81,6 +81,60 @@
   line-height: 1.45;
 }
 
+.bonus-codes-dialog__verify-outcome {
+  margin-top: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 35%, transparent);
+}
+
+.bonus-codes-dialog__verified-followup {
+  margin-top: 0.7rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.bonus-codes-dialog__verified-chip {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 16%, var(--mat-sys-surface));
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.bonus-codes-dialog__verify-result--followup {
+  margin-top: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.bonus-codes-dialog__verify-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.15rem;
+}
+
+.bonus-codes-dialog__verify-btn--danger {
+  --mat-text-button-label-text-color: var(--mat-sys-error);
+  --mat-text-button-state-layer-color: var(--mat-sys-error);
+}
+
+@media (max-width: 30rem) {
+  .bonus-codes-dialog__verify-actions {
+    display: block;
+  }
+
+  .bonus-codes-dialog__verify-actions .bonus-codes-dialog__verify-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .bonus-codes-dialog__verify-result--ok {
   color: var(--mat-sys-primary);
 }

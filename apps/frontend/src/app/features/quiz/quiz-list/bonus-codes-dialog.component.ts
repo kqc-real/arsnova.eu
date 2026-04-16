@@ -24,6 +24,8 @@ export interface BonusCodesDialogData {
 type BonusCodeVerificationResult =
   | {
       valid: true;
+      code: string;
+      previouslyVerified: boolean;
       sessionCode: string;
       nickname: string;
       rank: number;
@@ -31,7 +33,11 @@ type BonusCodeVerificationResult =
     }
   | {
       valid: false;
+      reason: 'notFound' | 'invalidFormat';
     };
+
+const BONUS_CODE_LENGTH = 13;
+const BONUS_CODE_PATTERN = /^BNS-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
 
 @Component({
   selector: 'app-bonus-codes-dialog',
@@ -67,15 +73,19 @@ export class BonusCodesDialogComponent implements OnInit {
   readonly verifyResult = signal<BonusCodeVerificationResult | null>(null);
   readonly verifyLoading = signal(false);
   readonly verifyError = signal(false);
+  readonly deleteLoading = signal(false);
+  readonly deleteError = signal(false);
+  private readonly verifiedValidCodes = signal<Record<string, true>>({});
 
   updateVerifyCode(value: string): void {
     const normalized = value
       .toUpperCase()
       .replace(/[^A-Z0-9-]/g, '')
-      .slice(0, 32);
+      .slice(0, BONUS_CODE_LENGTH);
     this.verifyCode.set(normalized);
     this.verifyResult.set(null);
     this.verifyError.set(false);
+    this.deleteError.set(false);
   }
 
   canVerifyCode(): boolean {
@@ -87,6 +97,11 @@ export class BonusCodesDialogComponent implements OnInit {
       return;
     }
     const code = this.verifyCode().trim().toUpperCase();
+    if (!BONUS_CODE_PATTERN.test(code)) {
+      this.verifyError.set(false);
+      this.verifyResult.set({ valid: false, reason: 'invalidFormat' });
+      return;
+    }
     this.verifyLoading.set(true);
     this.verifyError.set(false);
     this.verifyResult.set(null);
@@ -96,11 +111,60 @@ export class BonusCodesDialogComponent implements OnInit {
         accessProof: this.data.accessProof,
         bonusCode: code,
       });
-      this.verifyResult.set(result);
+      if (result.valid) {
+        const alreadyVerified = this.isCodeAlreadyVerified(code);
+        this.verifyResult.set({
+          ...result,
+          code,
+          previouslyVerified: alreadyVerified,
+        });
+        this.rememberVerifiedCode(code);
+      } else {
+        this.verifyResult.set({ valid: false, reason: 'notFound' });
+      }
     } catch {
       this.verifyError.set(true);
     } finally {
       this.verifyLoading.set(false);
+    }
+  }
+
+  canDeleteVerifiedCode(): boolean {
+    const result = this.verifyResult();
+    return (
+      !!result &&
+      result.valid &&
+      result.previouslyVerified &&
+      !this.deleteLoading() &&
+      !this.verifyLoading()
+    );
+  }
+
+  async deleteVerifiedCode(): Promise<void> {
+    const result = this.verifyResult();
+    if (!result || !result.valid || !result.previouslyVerified || this.deleteLoading()) {
+      return;
+    }
+    this.deleteLoading.set(true);
+    this.deleteError.set(false);
+    try {
+      const deleted = await trpc.session.deleteBonusTokenForQuiz.mutate({
+        quizId: this.data.serverQuizId,
+        accessProof: this.data.accessProof,
+        bonusCode: result.code,
+      });
+      if (!deleted.deleted) {
+        this.deleteError.set(true);
+        return;
+      }
+      this.forgetVerifiedCode(result.code);
+      this.removeBonusCodeFromSessionList(result.code);
+      this.verifyResult.set({ valid: false, reason: 'notFound' });
+      this.verifyCode.set(result.code);
+    } catch {
+      this.deleteError.set(true);
+    } finally {
+      this.deleteLoading.set(false);
     }
   }
 
@@ -142,5 +206,33 @@ export class BonusCodesDialogComponent implements OnInit {
     a.download = `bonus-codes-${this.data.quizName.replace(/[^\wäöüÄÖÜß.-]+/gi, '-')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  private isCodeAlreadyVerified(code: string): boolean {
+    return this.verifiedValidCodes()[code] === true;
+  }
+
+  private rememberVerifiedCode(code: string): void {
+    this.verifiedValidCodes.update((known) => ({ ...known, [code]: true }));
+  }
+
+  private forgetVerifiedCode(code: string): void {
+    this.verifiedValidCodes.update((known) => {
+      if (!known[code]) return known;
+      const next = { ...known };
+      delete next[code];
+      return next;
+    });
+  }
+
+  private removeBonusCodeFromSessionList(code: string): void {
+    this.sessions.update((sessions) =>
+      sessions
+        .map((session) => ({
+          ...session,
+          tokens: session.tokens.filter((token) => token.token !== code),
+        }))
+        .filter((session) => session.tokens.length > 0),
+    );
   }
 }

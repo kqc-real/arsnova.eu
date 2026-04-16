@@ -33,6 +33,8 @@ import {
   BonusTokensForQuizOutputSchema,
   VerifyBonusTokenForQuizInputSchema,
   VerifyBonusTokenForQuizOutputSchema,
+  DeleteBonusTokenForQuizInputSchema,
+  DeleteBonusTokenForQuizOutputSchema,
   GetLastSessionFeedbackForQuizInputSchema,
   LastSessionFeedbackForQuizOutputSchema,
   SubmitSessionFeedbackInputSchema,
@@ -2408,6 +2410,25 @@ export const sessionRouter = router({
         rank: token.rank,
         totalScore: token.totalScore,
       };
+    }),
+
+  /** Bonus-Code serverseitig löschen (Quiz-Sammlung, Story 4.6). */
+  deleteBonusTokenForQuiz: publicProcedure
+    .input(DeleteBonusTokenForQuizInputSchema)
+    .output(DeleteBonusTokenForQuizOutputSchema)
+    .mutation(async ({ input }) => {
+      await assertQuizHistoryAccess(input.quizId, input.accessProof);
+      const normalizedToken = input.bonusCode.trim().toUpperCase();
+      const deleted = await prisma.bonusToken.deleteMany({
+        where: {
+          token: normalizedToken,
+          session: {
+            quizId: input.quizId,
+            status: 'FINISHED',
+          },
+        },
+      });
+      return { deleted: deleted.count > 0 };
     }),
 
   /**

@@ -38,7 +38,7 @@
           type="text"
           [value]="verifyCode()"
           (input)="updateVerifyCode($any($event.target).value)"
-          maxlength="32"
+          maxlength="13"
           autocomplete="off"
         />
       </mat-form-field>
@@ -63,24 +63,69 @@
     </div>
     @if (verifyResult(); as result) {
       @if (result.valid) {
-        <p
-          class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--ok"
-          role="status"
-        >
-          <strong i18n="@@quizList.bonusCodesVerifyValidPrefix">Gültig.</strong>
-          <span i18n="@@quizList.bonusCodesVerifyValidDetails">
-            Session {{ result.sessionCode }}, Rang {{ result.rank }}, {{ result.nickname }},
-            {{ result.totalScore | number }} Punkte.
-          </span>
-        </p>
+        <div class="bonus-codes-dialog__verify-outcome" role="status">
+          <p class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--ok">
+            <strong i18n="@@quizList.bonusCodesVerifyValidPrefix">Gültig.</strong>
+            <span i18n="@@quizList.bonusCodesVerifyValidDetails">
+              Session {{ result.sessionCode }}, Rang {{ result.rank }}, {{ result.nickname }},
+              {{ result.totalScore | number }} Punkte.
+            </span>
+          </p>
+          @if (result.previouslyVerified) {
+            <div class="bonus-codes-dialog__verified-followup">
+              <span
+                class="bonus-codes-dialog__verified-chip"
+                i18n="@@quizList.bonusCodesVerifiedChip"
+              >
+                Bereits geprüft
+              </span>
+              <p
+                class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--ok bonus-codes-dialog__verify-result--followup"
+                i18n="@@quizList.bonusCodesVerifyAlreadyChecked"
+              >
+                Dieser Code wurde schon einmal als gültig bestätigt.
+              </p>
+              <div class="bonus-codes-dialog__verify-actions">
+                <button
+                  matButton="tonal"
+                  type="button"
+                  class="bonus-codes-dialog__verify-btn bonus-codes-dialog__verify-btn--danger"
+                  [disabled]="!canDeleteVerifiedCode()"
+                  (click)="deleteVerifiedCode()"
+                  [attr.aria-busy]="deleteLoading()"
+                  i18n="@@quizList.bonusCodesDeleteButton"
+                >
+                  @if (deleteLoading()) {
+                    <mat-progress-spinner
+                      diameter="16"
+                      mode="indeterminate"
+                      class="bonus-codes-dialog__verify-spinner"
+                    />
+                  }
+                  Code löschen
+                </button>
+              </div>
+            </div>
+          }
+        </div>
       } @else {
-        <p
-          class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--error"
-          role="alert"
-          i18n="@@quizList.bonusCodesVerifyInvalid"
-        >
-          Ungültig: Dieser Bonus-Code ist nicht vorhanden.
-        </p>
+        @if (result.reason === 'invalidFormat') {
+          <p
+            class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--error"
+            role="alert"
+            i18n="@@quizList.bonusCodesVerifyInvalidFormat"
+          >
+            Ungültiges Format: Bitte verwende BNS-XXXX-XXXX.
+          </p>
+        } @else {
+          <p
+            class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--error"
+            role="alert"
+            i18n="@@quizList.bonusCodesVerifyInvalid"
+          >
+            Ungültig: Dieser Bonus-Code ist nicht vorhanden.
+          </p>
+        }
       }
     }
     @if (verifyError()) {
@@ -90,6 +135,15 @@
         i18n="@@quizList.bonusCodesVerifyRequestError"
       >
         Die Prüfung war nicht möglich. Bitte später erneut versuchen.
+      </p>
+    }
+    @if (deleteError()) {
+      <p
+        class="bonus-codes-dialog__verify-result bonus-codes-dialog__verify-result--error"
+        role="alert"
+        i18n="@@quizList.bonusCodesDeleteError"
+      >
+        Der Bonus-Code konnte nicht gelöscht werden. Bitte später erneut versuchen.
       </p>
     }
   </section>

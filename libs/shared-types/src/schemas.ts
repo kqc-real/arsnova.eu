@@ -1035,6 +1035,21 @@ export const VerifyBonusTokenForQuizOutputSchema = z.discriminatedUnion('valid',
 ]);
 export type VerifyBonusTokenForQuizOutput = z.infer<typeof VerifyBonusTokenForQuizOutputSchema>;
 
+export const DeleteBonusTokenForQuizInputSchema = z.object({
+  quizId: z.string().uuid(),
+  accessProof: QuizHistoryAccessProofSchema,
+  bonusCode: z
+    .string()
+    .trim()
+    .regex(/^BNS-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$/),
+});
+export type DeleteBonusTokenForQuizInput = z.infer<typeof DeleteBonusTokenForQuizInputSchema>;
+
+export const DeleteBonusTokenForQuizOutputSchema = z.object({
+  deleted: z.boolean(),
+});
+export type DeleteBonusTokenForQuizOutput = z.infer<typeof DeleteBonusTokenForQuizOutputSchema>;
+
 // ---------------------------------------------------------------------------
 // Ergebnis-Export für Dozenten (Story 4.7) – nur aggregierte/anonyme Daten
 // ---------------------------------------------------------------------------

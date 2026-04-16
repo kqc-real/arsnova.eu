@@ -5971,6 +5971,46 @@
           <context context-type="linenumber">80,82</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyInvalidFormat" datatype="html">
+        <source>Ungültiges Format: Bitte verwende BNS-XXXX-XXXX.</source>
+        <target>Formato non valido: usa BNS-XXXX-XXXX.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">80,82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifyAlreadyChecked" datatype="html">
+        <source>Dieser Code wurde schon einmal als gültig bestätigt.</source>
+        <target>Questo codice è già stato confermato come valido.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">80,82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesVerifiedChip" datatype="html">
+        <source>Bereits geprüft</source>
+        <target>Già verificato</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">80,82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesDeleteButton" datatype="html">
+        <source>Code löschen</source>
+        <target>Elimina codice</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">80,82</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.bonusCodesDeleteError" datatype="html">
+        <source>Der Bonus-Code konnte nicht gelöscht werden. Bitte später erneut versuchen.</source>
+        <target>Non è stato possibile eliminare il codice bonus. Riprova più tardi.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">80,82</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="quizList.bonusCodesVerifyRequestError" datatype="html">
         <source>Die Prüfung war nicht möglich. Bitte später erneut versuchen.</source>
         <target>La verifica non è stata possibile. Riprova più tardi.</target>

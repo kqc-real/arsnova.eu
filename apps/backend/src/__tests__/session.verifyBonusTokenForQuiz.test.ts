@@ -8,6 +8,7 @@ const { prismaMock } = vi.hoisted(() => ({
     },
     bonusToken: {
       findFirst: vi.fn(),
+      deleteMany: vi.fn(),
     },
   },
 }));
@@ -76,6 +77,7 @@ describe('session.verifyBonusTokenForQuiz', () => {
         ratingLabelMax: null,
       })),
     });
+    prismaMock.bonusToken.deleteMany.mockResolvedValue({ count: 1 });
   });
 
   it('liefert gueltige Bonus-Code-Details aus der DB', async () => {
@@ -140,5 +142,41 @@ describe('session.verifyBonusTokenForQuiz', () => {
     });
 
     expect(prismaMock.bonusToken.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('loescht einen gueltigen Bonus-Code aus der Quiz-Historie', async () => {
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+
+    const result = await caller.deleteBonusTokenForQuiz({
+      quizId: QUIZ_ID,
+      accessProof,
+      bonusCode: 'BNS-TEST-1234',
+    });
+
+    expect(prismaMock.bonusToken.deleteMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          token: 'BNS-TEST-1234',
+          session: expect.objectContaining({
+            quizId: QUIZ_ID,
+            status: 'FINISHED',
+          }),
+        }),
+      }),
+    );
+    expect(result).toEqual({ deleted: true });
+  });
+
+  it('meldet deleted=false wenn beim Loeschen kein Bonus-Code vorhanden ist', async () => {
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.bonusToken.deleteMany.mockResolvedValue({ count: 0 });
+
+    const result = await caller.deleteBonusTokenForQuiz({
+      quizId: QUIZ_ID,
+      accessProof,
+      bonusCode: 'BNS-ABCD-0000',
+    });
+
+    expect(result).toEqual({ deleted: false });
   });
 });
