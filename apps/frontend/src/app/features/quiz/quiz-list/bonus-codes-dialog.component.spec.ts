@@ -92,6 +92,17 @@ describe('BonusCodesDialogComponent', () => {
     expect(fixture.componentInstance.loadError()).toBe(true);
   });
 
+  it('blendet Listen-Ladefehler aus, sobald ein Verifikationsstatus vorliegt', () => {
+    const fixture = TestBed.createComponent(BonusCodesDialogComponent);
+    const component = fixture.componentInstance;
+
+    component.loadError.set(true);
+    expect(component.shouldShowLoadError()).toBe(true);
+
+    component.verifyResult.set({ valid: false, reason: 'invalidFormat' });
+    expect(component.shouldShowLoadError()).toBe(false);
+  });
+
   it('normalisiert den Verify-Code und loescht altes Ergebnis', () => {
     const fixture = TestBed.createComponent(BonusCodesDialogComponent);
     const component = fixture.componentInstance;

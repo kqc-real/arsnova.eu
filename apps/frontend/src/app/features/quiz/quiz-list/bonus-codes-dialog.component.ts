@@ -92,6 +92,16 @@ export class BonusCodesDialogComponent implements OnInit {
     return this.verifyCode().trim().length >= 4 && !this.verifyLoading();
   }
 
+  shouldShowLoadError(): boolean {
+    return (
+      this.loadError() &&
+      !this.verifyResult() &&
+      !this.verifyError() &&
+      !this.deleteError() &&
+      !this.verifyLoading()
+    );
+  }
+
   async verifyBonusCode(): Promise<void> {
     if (!this.canVerifyCode()) {
       return;
