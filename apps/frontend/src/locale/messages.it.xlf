@@ -7975,7 +7975,7 @@
           <context context-type="linenumber">1368,1369</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7229658628762810575" datatype="html">
+      <trans-unit id="sessionHost.revealAnswerOptions" datatype="html">
         <source>Antwortoptionen freigeben</source>
         <target>Mostra opzioni di risposta</target>
         <context-group purpose="location">

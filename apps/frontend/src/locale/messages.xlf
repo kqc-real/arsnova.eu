@@ -7085,7 +7085,7 @@
           <context context-type="linenumber">1368,1369</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7229658628762810575" datatype="html">
+      <trans-unit id="sessionHost.revealAnswerOptions" datatype="html">
         <source>Antwortoptionen freigeben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
