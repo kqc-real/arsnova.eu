@@ -12254,6 +12254,22 @@
           <context context-type="linenumber">743</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="errors.rateLimitAttention" datatype="html">
+        <source>WICHTIG:</source>
+        <target>IMPORTANT:</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
+          <context context-type="linenumber">85</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="errors.rateLimitRetryAfter" datatype="html">
+        <source>Bitte in <x id="seconds" equiv-text="retryAfterSeconds"/> Sekunden erneut versuchen.</source>
+        <target>Please try again in <x id="seconds" equiv-text="retryAfterSeconds"/> seconds.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
+          <context context-type="linenumber">86</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

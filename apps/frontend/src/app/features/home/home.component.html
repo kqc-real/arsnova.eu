@@ -230,7 +230,10 @@
           </button>
         }
         @if (joinError()) {
-          <p class="home-error" role="alert">{{ joinError() }}</p>
+          <p class="home-error" role="alert">
+            <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
+            <span class="home-error__text">{{ joinError() }}</span>
+          </p>
           @if (joinErrorSessionFinished() && sessionCode().length === 6) {
             <a
               [routerLink]="localizedCommands(['session', sessionCode().toUpperCase(), 'host'])"
@@ -299,7 +302,10 @@
           }
         </div>
         @if (quickFeedbackError()) {
-          <p class="home-error" role="alert">{{ quickFeedbackError() }}</p>
+          <p class="home-error" role="alert">
+            <mat-icon class="home-error__icon" aria-hidden="true">warning</mat-icon>
+            <span class="home-error__text">{{ quickFeedbackError() }}</span>
+          </p>
         }
       </mat-card-content>
     </mat-card>

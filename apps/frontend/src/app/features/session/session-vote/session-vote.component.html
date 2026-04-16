@@ -772,7 +772,10 @@
           }
 
           @if (voteError()) {
-            <p class="vote-error" id="vote-error" role="alert">{{ voteError() }}</p>
+            <p class="vote-error" id="vote-error" role="alert">
+              <mat-icon class="vote-error__icon" aria-hidden="true">warning</mat-icon>
+              <span class="vote-error__text">{{ voteError() }}</span>
+            </p>
           }
 
           @if (hasAnswers()) {
@@ -1307,7 +1310,10 @@
         </div>
 
         @if (qaError(); as error) {
-          <p class="session-channel-card__error" role="alert">{{ error }}</p>
+          <p class="session-channel-card__error" role="alert">
+            <mat-icon class="session-channel-card__error-icon" aria-hidden="true">warning</mat-icon>
+            <span class="session-channel-card__error-text">{{ error }}</span>
+          </p>
         }
         @if (qaInfo(); as info) {
           <p class="session-channel-card__info" role="status">{{ info }}</p>

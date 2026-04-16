@@ -34,7 +34,7 @@ import { setHostToken, trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import {
-  localizeKnownServerMessage,
+  localizeKnownServerError,
   sessionNotFoundUiMessage,
 } from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
@@ -618,15 +618,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       await this.router.navigate(localizeCommands(['join', code]));
     } catch (err: unknown) {
       this.removeRecentSessionCode(code);
-      const raw =
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: string }).message === 'string'
-          ? (err as { message: string }).message
-          : sessionNotFoundUiMessage();
       this.joinErrorSessionFinished.set(false);
-      this.joinError.set(localizeKnownServerMessage(raw));
+      this.joinError.set(localizeKnownServerError(err, sessionNotFoundUiMessage()));
       this.triggerShake();
       this.clearSessionCodeAndFocusStart();
     } finally {

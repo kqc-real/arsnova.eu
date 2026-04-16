@@ -21,6 +21,10 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { trpc } from '../../../core/trpc.client';
+import {
+  localizeKnownServerError,
+  localizeKnownServerMessage,
+} from '../../../core/localize-known-server-message';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import * as vpc from './session-vote-participant-copy';
@@ -1284,11 +1288,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.showQaInfo($localize`:@@sessionQa.submitSuccess:Frage gesendet.`);
       await this.refreshQaQuestions();
     } catch (error) {
-      const message =
-        error && typeof error === 'object' && 'message' in error
-          ? String((error as { message: string }).message)
-          : $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`;
-      this.showQaError(message);
+      this.showQaError(
+        localizeKnownServerError(
+          error,
+          $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`,
+        ),
+      );
     } finally {
       this.qaSubmitting.set(false);
     }
@@ -1336,11 +1341,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, autoNickname);
         }
       } catch (error) {
-        const message =
-          error && typeof error === 'object' && 'message' in error
-            ? String((error as { message: string }).message)
-            : $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`;
-        this.showQaError(message);
+        this.showQaError(
+          localizeKnownServerError(
+            error,
+            $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`,
+          ),
+        );
         return null;
       }
     }
@@ -1802,11 +1808,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
     } catch (err: unknown) {
       this.voteSent.set(false);
-      const msg =
-        err && typeof err === 'object' && 'message' in err
-          ? (err as { message: string }).message
-          : 'Abstimmung fehlgeschlagen.';
-      this.voteError.set(msg);
+      this.voteError.set(localizeKnownServerError(err, 'Abstimmung fehlgeschlagen.'));
       if (!overrideIds) this.selectedAnswerIds.set(new Set());
     } finally {
       this.voteSending.set(false);
@@ -1974,15 +1976,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.snackBar.open(vpc.voteFeedbackSnack(this.isPlayfulPreset()), '', { duration: 2000 });
       void this.loadFeedbackSummary();
     } catch (err: unknown) {
-      const msg =
+      const raw =
         err && typeof err === 'object' && 'message' in err
-          ? (err as { message: string }).message
+          ? String((err as { message: string }).message)
           : '';
+      const msg = localizeKnownServerMessage(raw);
       if (msg.includes('bereits bewertet')) {
         this.feedbackSubmitted.set(true);
         void this.loadFeedbackSummary();
       } else {
-        this.snackBar.open('Feedback konnte nicht gesendet werden.', '', { duration: 2000 });
+        this.snackBar.open(
+          localizeKnownServerError(err, 'Feedback konnte nicht gesendet werden.'),
+          '',
+          {
+            duration: 6000,
+          },
+        );
       }
     } finally {
       this.feedbackSubmitting.set(false);

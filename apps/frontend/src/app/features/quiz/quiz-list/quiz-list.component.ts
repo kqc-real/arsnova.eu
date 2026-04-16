@@ -50,6 +50,7 @@ import {
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 
 /**
  * Quiz-Liste (Epic 1).
@@ -837,15 +838,7 @@ export class QuizListComponent implements OnInit {
         clearPendingHostSessionCode();
       }
     } catch (error) {
-      const msg =
-        error && typeof error === 'object' && 'message' in error
-          ? String((error as { message: string }).message)
-          : $localize`Live-Start fehlgeschlagen.`;
-      if (msg.includes('TOO_MANY_REQUESTS') || msg.includes('Sessions pro Stunde')) {
-        this.actionError.set($localize`Zu viele Sessions – bitte später erneut versuchen.`);
-      } else {
-        this.actionError.set(msg);
-      }
+      this.actionError.set(localizeKnownServerError(error, $localize`Live-Start fehlgeschlagen.`));
     } finally {
       this.liveStartPending.set(false);
     }

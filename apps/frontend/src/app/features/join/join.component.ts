@@ -12,7 +12,7 @@ import type { SessionInfoDTO, TeamDTO } from '@arsnova/shared-types';
 import type { NicknameTheme } from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
 import {
-  localizeKnownServerMessage,
+  localizeKnownServerError,
   sessionNotFoundUiMessage,
 } from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
@@ -246,15 +246,8 @@ export class JoinComponent implements OnInit, OnDestroy {
       await this.loadParticipants();
       this.startSessionPoll();
     } catch (err: unknown) {
-      const raw =
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: string }).message === 'string'
-          ? (err as { message: string }).message
-          : sessionNotFoundUiMessage();
       this.errorSessionFinished.set(false);
-      this.error.set(localizeKnownServerMessage(raw));
+      this.error.set(localizeKnownServerError(err, sessionNotFoundUiMessage()));
     } finally {
       this.loading.set(false);
     }
@@ -356,15 +349,8 @@ export class JoinComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
-      const raw =
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: string }).message === 'string'
-          ? (err as { message: string }).message
-          : $localize`Beitritt fehlgeschlagen.`;
       this.errorSessionFinished.set(false);
-      this.error.set(localizeKnownServerMessage(raw));
+      this.error.set(localizeKnownServerError(err, $localize`Beitritt fehlgeschlagen.`));
     } finally {
       this.joining.set(false);
       this.loading.set(false);
@@ -390,15 +376,8 @@ export class JoinComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
-      const raw =
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: string }).message === 'string'
-          ? (err as { message: string }).message
-          : $localize`Beitritt fehlgeschlagen.`;
       this.errorSessionFinished.set(false);
-      this.error.set(localizeKnownServerMessage(raw));
+      this.error.set(localizeKnownServerError(err, $localize`Beitritt fehlgeschlagen.`));
     } finally {
       this.joining.set(false);
     }

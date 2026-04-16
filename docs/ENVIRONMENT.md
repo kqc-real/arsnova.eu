@@ -5,6 +5,13 @@
 **Lokal:** Vorlage [`../.env.example`](../.env.example) nach `.env` kopieren und anpassen.  
 **Produktion (Docker):** Vorlage [`.env.production.example`](../.env.production.example) → `.env.production`; siehe auch [deployment-debian-root-server.md](deployment-debian-root-server.md).
 
+Die Example-Dateien sind bewusst gleich aufgebaut:
+
+1. **Credentials/Secrets zuerst**
+2. Laufzeit/Netzwerk
+3. Admin-Konfiguration
+4. Rate-Limits
+
 ---
 
 ## Backend (Lokal / Standard-Dev)
@@ -46,6 +53,21 @@ In **`.env.example`** und **Docker-/Deploy-Vorlagen** enthalten; im aktuellen **
 
 Zusätzlich zu den Backend-Variablen (angepasste Hosts: `postgres`, `redis` im Netzwerk) siehe [`.env.production.example`](../.env.production.example) für **PostgreSQL-Credentials** und Secrets. Nie echte Secrets in Git committen. Falls der Yjs-WebSocket in Containern von außen erreichbar sein muss, `YJS_WS_HOST` explizit passend setzen; `HOST` ist dafür nur der Fallback.
 
+### Empfohlenes Profil: hochfrequentierter Betrieb
+
+Für Installationen mit vielen Einrichtungen hinter Shared-NAT/Proxy (z. B. Schulen/Hochschulen/Business) enthält `.env.production.example` bewusst ein großzügigeres Startprofil:
+
+- `TRUST_PROXY_HOPS=1` (hinter Nginx/Reverse-Proxy)
+- `RATE_LIMIT_SESSION_CREATE_PER_HOUR=480`
+- `RATE_LIMIT_SESSION_CODE_ATTEMPTS=20`
+- `RATE_LIMIT_SESSION_CODE_LOCKOUT_SECONDS=45`
+- `RATE_LIMIT_VOTE_REQUESTS_PER_SECOND=2`
+- `RATE_LIMIT_MOTD_GET_CURRENT_PER_MINUTE=1200`
+- `RATE_LIMIT_MOTD_LIST_ARCHIVE_PER_MINUTE=180`
+- `RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE=120`
+
+Wichtig: Das sind **Betriebswerte** für die Produktionsvorlage. Die Backend-Code-Defaults (wenn Variablen fehlen) bleiben weiterhin konservativ (z. B. `RATE_LIMIT_SESSION_CREATE_PER_HOUR=10`).
+
 ---
 
 ## Schnelldiagnose
@@ -73,9 +95,9 @@ redis-cli ZCARD "<redisKey>"
 redis-cli TTL "<redisKey>"
 ```
 
-4. **Wenn alle Clients in einen Bucket fallen**:
+1. **Wenn alle Clients in einen Bucket fallen**:
    - `TRUST_PROXY_HOPS=1` setzen (typisch hinter Nginx) und Backend neu starten.
-5. **Wenn es ein Trigger-/Loop-Problem im Client ist**:
+2. **Wenn es ein Trigger-/Loop-Problem im Client ist**:
    - Frontend hat Schutz gegen Request-Stürme (in-flight dedupe + Mindestabstand) in `apps/frontend/src/app/core/motd-header-state.service.ts`.
 
 ---

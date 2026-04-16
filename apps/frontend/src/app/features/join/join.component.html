@@ -8,7 +8,10 @@
   } @else if (error()) {
     <mat-card appearance="outlined" class="join-card join-card--error">
       <mat-card-content>
-        <p class="join-card__text" role="alert">{{ error() }}</p>
+        <p class="join-card__text join-card__text--error" role="alert">
+          <mat-icon class="join-card__error-icon" aria-hidden="true">warning</mat-icon>
+          <span class="join-card__error-text">{{ error() }}</span>
+        </p>
         <div class="join-card__actions">
           <a [routerLink]="localizedPath('/')" matButton="filled" class="join-card__home-link">
             <mat-icon>home</mat-icon>
@@ -204,7 +207,10 @@
         }
 
         @if (error()) {
-          <p class="join-card__error" role="alert">{{ error() }}</p>
+          <p class="join-card__error" role="alert">
+            <mat-icon class="join-card__error-icon" aria-hidden="true">warning</mat-icon>
+            <span class="join-card__error-text">{{ error() }}</span>
+          </p>
         }
         <button
           mat-flat-button

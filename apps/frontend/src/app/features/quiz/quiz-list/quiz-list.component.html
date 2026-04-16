@@ -48,7 +48,10 @@
     <p class="quiz-list__info" role="status">{{ actionInfo() }}</p>
   }
   @if (actionError()) {
-    <p class="quiz-list__error" role="alert">{{ actionError() }}</p>
+    <p class="quiz-list__error" role="alert">
+      <mat-icon class="quiz-list__error-icon" aria-hidden="true">warning</mat-icon>
+      <span class="quiz-list__error-text">{{ actionError() }}</span>
+    </p>
   }
 
   @if (showAiImport()) {
