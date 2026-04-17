@@ -280,7 +280,7 @@
                       <img
                         appMarkdownImageLightbox
                         [src]="qrDataUrl()"
-                        alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                        [attr.alt]="joinUrl"
                         data-markdown-image-lightbox="true"
                         class="feedback-host__join-menu-qr feedback-host__join-menu-qr--viewport-overlay app-qr-image"
                         width="320"

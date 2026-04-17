@@ -39,9 +39,6 @@
         />
         <div class="quiz-form__markdown-hints">
           <span class="quiz-form__markdown-count">{{ descriptionControl.value.length }}/5000</span>
-          <span i18n="@@quiz.new.descriptionMarkdownHint"
-            >Wird in der Quiz-Sammlung wie hier mit Markdown und KaTeX angezeigt.</span
-          >
         </div>
         @if (
           descriptionControl.hasError('maxlength') && (descriptionControl.touched || submitted())
@@ -53,7 +50,9 @@
       </div>
 
       <mat-form-field appearance="outline" floatLabel="always">
-        <mat-label i18n="@@quizForm.motifImageUrlLabel">Motivbild (optional)</mat-label>
+        <mat-label i18n="@@quizForm.motifImageUrlLabel"
+          >Motivbild beim Quizstart (optional)</mat-label
+        >
         <input
           matInput
           formControlName="motifImageUrl"
@@ -63,7 +62,7 @@
           i18n-placeholder="@@quizForm.motifImageUrlPlaceholder"
           placeholder="Nur HTTPS, z. B. https://…"
           i18n-aria-label="@@quizForm.motifImageUrlAria"
-          aria-label="HTTPS-URL zum Motivbild (optional)"
+          aria-label="HTTPS-URL zum optionalen Motivbild (wird beim Quizstart angezeigt)"
         />
         <mat-hint align="end"
           >{{ motifImageUrlControl.value.length }}/{{ motifImageUrlMaxLength }}</mat-hint

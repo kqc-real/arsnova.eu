@@ -1,8 +1,11 @@
-import { Location } from '@angular/common';
+import { Location, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   HostListener,
+  Injector,
   OnDestroy,
+  PLATFORM_ID,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -74,6 +77,8 @@ export class QuizPreviewComponent implements OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly quizStore = inject(QuizStoreService);
   private readonly dialog = inject(MatDialog);
+  private readonly injector = inject(Injector);
+  private readonly platformId = inject(PLATFORM_ID);
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
   private animationTimer: ReturnType<typeof setTimeout> | null = null;
   private touchStartX: number | null = null;
@@ -302,6 +307,97 @@ export class QuizPreviewComponent implements OnDestroy {
     this.questionDraftText.set(question.text);
     this.answerDraftTexts.set(question.answers.map((answer) => answer.text));
     this.inlineEditMode.set(true);
+    this.scrollInlineEditorIntoView();
+  }
+
+  /**
+   * Scroll-Ziel: Bearbeitungsblock unterhalb der fixierten App-Toolbar — `#main-content` hat dafür
+   * `padding-top` (siehe `app-main--toolbar-fixed`). Diesen Abstand in der Formel abziehen, sonst
+   * landet der Block am oberen Rand des Main und wirkt unter der Toolbar „weggescrollt“.
+   */
+  private scrollInlineEditorIntoView(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const run = (): void => {
+      const el = document.getElementById('quiz-preview-inline-editor') as HTMLElement | null;
+      if (el) {
+        this.scrollElementIntoAppShell(el);
+      }
+    };
+
+    afterNextRender(
+      () => {
+        run();
+        queueMicrotask(run);
+        setTimeout(run, 0);
+        requestAnimationFrame(() => {
+          run();
+          requestAnimationFrame(run);
+        });
+        setTimeout(run, 120);
+        setTimeout(run, 280);
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private scrollBehavior(): ScrollBehavior {
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  }
+
+  /**
+   * Scrollt den ersten passenden Vorfahren mit Overflow — typisch `.app-main` / `#main-content`.
+   * Fallback: `window`/`document.scrollingElement`, dann `scrollIntoView`.
+   */
+  private scrollElementIntoAppShell(el: HTMLElement): void {
+    const behavior = this.scrollBehavior();
+    const scrollRoot =
+      (el.closest('.app-main') as HTMLElement | null) ?? this.findScrollableOverflowParent(el);
+
+    const applyToRoot = (root: HTMLElement, b: ScrollBehavior): void => {
+      const rootRect = root.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      /** Entspricht dem freien Streifen unter der Toolbar (Layout-Padding von `.app-main--toolbar-fixed`). */
+      const toolbarClearancePx = parseFloat(getComputedStyle(root).paddingTop) || 0;
+      const gapPx = 8;
+      const nextTop = elRect.top - rootRect.top + root.scrollTop - toolbarClearancePx - gapPx;
+      root.scrollTo({ top: Math.max(0, nextTop), behavior: b });
+    };
+
+    if (scrollRoot) {
+      applyToRoot(scrollRoot, behavior);
+      setTimeout(() => applyToRoot(scrollRoot, 'auto'), 200);
+      return;
+    }
+
+    const se = document.scrollingElement;
+    if (se instanceof HTMLElement) {
+      const elRect = el.getBoundingClientRect();
+      const rootRect = se.getBoundingClientRect();
+      const margin = 12;
+      const nextTop = elRect.top - rootRect.top + se.scrollTop - margin;
+      se.scrollTo({ top: Math.max(0, nextTop), behavior });
+      return;
+    }
+
+    if (typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
+    }
+  }
+
+  private findScrollableOverflowParent(from: HTMLElement): HTMLElement | null {
+    let p: HTMLElement | null = from.parentElement;
+    while (p) {
+      const { overflowY } = getComputedStyle(p);
+      if (
+        (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') &&
+        p.scrollHeight > p.clientHeight + 1
+      ) {
+        return p;
+      }
+      p = p.parentElement;
+    }
+    return null;
   }
 
   cancelInlineEditMode(): void {

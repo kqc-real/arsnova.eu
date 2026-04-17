@@ -373,6 +373,33 @@
   margin-top: 0.4rem;
 }
 
+/* Schmale Viewports: Löschen-Icon nicht neben dem Editor — Zeile 1 (Auswahl + Löschen), Zeile 2 Editor in voller Breite */
+@media (max-width: 599px) {
+  .quiz-edit-answer {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+  }
+
+  .quiz-edit-answer__selector {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: auto;
+  }
+
+  .quiz-edit-answer__remove {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 0;
+    align-self: center;
+  }
+
+  .quiz-edit-answer__field {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
 .quiz-edit-form__markdown-field {
   display: grid;
   gap: 0.5rem;
@@ -476,10 +503,14 @@
 }
 
 .quiz-edit-form__preview-block {
-  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-medium);
   padding: 1rem;
   background: var(--mat-sys-surface-container-low);
+}
+
+/* Abstand zwischen Kachel „Frage“ und Kachel „Antworten“ in der Gesamtvorschau */
+.quiz-edit-form__preview-block + .quiz-edit-form__preview-block {
+  margin-top: 1rem;
 }
 
 .quiz-edit-form__preview-label {

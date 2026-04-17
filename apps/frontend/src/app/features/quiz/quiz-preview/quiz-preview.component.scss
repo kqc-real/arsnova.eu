@@ -4,11 +4,6 @@
   padding-bottom: calc(8rem + env(safe-area-inset-bottom));
 }
 
-.quiz-preview__page-head {
-  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 85%, transparent);
-  margin-bottom: 0.25rem;
-}
-
 .quiz-preview__top-bar {
   display: flex;
   flex-direction: column;
@@ -324,6 +319,21 @@
 
 .quiz-preview__validation {
   border-color: var(--mat-sys-outline-variant);
+}
+
+.quiz-preview-editor-wrap {
+  min-width: 0;
+  /*
+   * Wie `.app-main--toolbar-fixed` (app.component.scss): gleicher Abstand, damit scrollIntoView-Fallback
+   * den Block unterhalb der fixierten Toolbar hält (nicht „darunter verschwindet“).
+   */
+  scroll-margin-top: max(4rem, env(safe-area-inset-top, 0px));
+  @media (min-width: 600px) {
+    scroll-margin-top: max(4.5rem, env(safe-area-inset-top, 0px));
+  }
+  @media (min-width: 840px) {
+    scroll-margin-top: max(5rem, env(safe-area-inset-top, 0px));
+  }
 }
 
 .quiz-preview-editor {

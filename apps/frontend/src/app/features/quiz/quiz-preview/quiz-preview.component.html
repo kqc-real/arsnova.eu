@@ -6,9 +6,6 @@
       </span>
       <span class="dialog-title-header__copy">
         <h1 class="dialog-title-header__heading">{{ previewTitleName(quizData) }}</h1>
-        <p class="dialog-title-header__sub" i18n="@@quizPreview.pageSubtitle">
-          Vorschau für Teilnehmende
-        </p>
       </span>
     </header>
     @if (questions().length > 0) {
@@ -156,145 +153,150 @@
       }
 
       @if (inlineEditMode()) {
-        <mat-card appearance="outlined" class="quiz-preview-editor">
-          <mat-card-content class="quiz-preview-editor__content">
-            <div class="quiz-preview-editor__header">
-              <div class="dialog-title-header quiz-preview-editor__title-row">
-                <span class="dialog-title-header__icon" aria-hidden="true">
-                  <mat-icon>edit_note</mat-icon>
-                </span>
-                <span class="dialog-title-header__copy">
-                  <p class="quiz-preview-editor__eyebrow" i18n="@@quizPreview.editModeEyebrow">
-                    Bearbeitungsmodus
-                  </p>
-                  <h2 class="dialog-title-header__heading" i18n="@@quizPreview.editModeTitle">
-                    Diese Frage bearbeiten
-                  </h2>
-                </span>
-              </div>
-              <button mat-button type="button" (click)="cancelInlineEditMode()">
-                <mat-icon>close</mat-icon>
-                <span i18n>Abbrechen</span>
-              </button>
-            </div>
-
-            @if (currentQuestionValidation().hasIssues) {
-              <div class="quiz-preview-editor__warning" role="alert">
-                <div class="quiz-preview-editor__warning-header">
-                  <mat-icon>warning</mat-icon>
-                  <span i18n="@@quizPreview.editorWarningTitle"
-                    >Hier braucht diese Folie noch etwas Feinschliff</span
-                  >
-                </div>
-                <div class="quiz-preview-editor__warning-list">
-                  @if (currentQuestionValidation().needsMoreAnswers) {
-                    <p i18n="@@quizPreview.editorWarningAnswers">
-                      Füge mindestens zwei Antwortoptionen hinzu.
+        <div id="quiz-preview-inline-editor" class="quiz-preview-editor-wrap">
+          <mat-card appearance="outlined" class="quiz-preview-editor">
+            <mat-card-content class="quiz-preview-editor__content">
+              <div class="quiz-preview-editor__header">
+                <div class="dialog-title-header quiz-preview-editor__title-row">
+                  <span class="dialog-title-header__icon" aria-hidden="true">
+                    <mat-icon>edit_note</mat-icon>
+                  </span>
+                  <span class="dialog-title-header__copy">
+                    <p class="quiz-preview-editor__eyebrow" i18n="@@quizPreview.editModeEyebrow">
+                      Bearbeitungsmodus
                     </p>
-                  }
-                  @if (currentQuestionValidation().needsCorrectAnswer) {
-                    @if (question.type === 'SINGLE_CHOICE') {
-                      <p i18n="@@quizPreview.editorWarningSingleCorrect">
-                        Wähle genau eine richtige Antwort aus.
-                      </p>
-                    } @else {
-                      <p i18n="@@quizPreview.editorWarningMultipleCorrect">
-                        Markiere mindestens eine richtige Antwort.
-                      </p>
-                    }
-                  }
+                    <h2 class="dialog-title-header__heading" i18n="@@quizPreview.editModeTitle">
+                      Diese Frage bearbeiten
+                    </h2>
+                  </span>
                 </div>
+                <button mat-button type="button" (click)="cancelInlineEditMode()">
+                  <mat-icon>close</mat-icon>
+                  <span i18n>Abbrechen</span>
+                </button>
               </div>
-            }
 
-            <label class="quiz-preview-editor__label" i18n>Frage</label>
-            <app-markdown-katex-editor
-              [value]="questionDraftText()"
-              (valueChange)="onQuestionDraftChanged($event)"
-              [rows]="4"
-            />
-
-            @if (question.type !== 'FREETEXT' && question.type !== 'RATING') {
-              <div
-                class="quiz-preview-editor__answers"
-                [class.quiz-preview-editor__answers--invalid]="
-                  currentQuestionValidation().needsMoreAnswers ||
-                  currentQuestionValidation().needsCorrectAnswer
-                "
-              >
-                <p class="quiz-preview-editor__label" i18n>Antworten</p>
-                @for (answer of question.answers; track answer.id; let i = $index) {
-                  <div
-                    class="quiz-preview-editor__answer-row"
-                    [class.quiz-preview-editor__answer-row--correct]="
-                      questionTypeHasCorrectAnswers(question.type) && answer.isCorrect
-                    "
-                  >
-                    <span class="quiz-preview-editor__answer-label" aria-hidden="true">{{
-                      answerOptionLabel(i)
-                    }}</span>
-                    @if (questionTypeHasCorrectAnswers(question.type)) {
-                      <button
-                        mat-icon-button
-                        type="button"
-                        class="quiz-preview-editor__correct-toggle"
-                        (click)="toggleCorrectAnswer(i)"
-                        i18n-aria-label="@@quizPreview.toggleCorrectAria"
-                        aria-label="Richtige Antwort umschalten"
-                      >
-                        <mat-icon>
-                          @if (question.type === 'SINGLE_CHOICE') {
-                            {{
-                              answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked'
-                            }}
-                          } @else {
-                            {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
-                          }
-                        </mat-icon>
-                      </button>
+              @if (currentQuestionValidation().hasIssues) {
+                <div class="quiz-preview-editor__warning" role="alert">
+                  <div class="quiz-preview-editor__warning-header">
+                    <mat-icon>warning</mat-icon>
+                    <span i18n="@@quizPreview.editorWarningTitle"
+                      >Hier braucht diese Folie noch etwas Feinschliff</span
+                    >
+                  </div>
+                  <div class="quiz-preview-editor__warning-list">
+                    @if (currentQuestionValidation().needsMoreAnswers) {
+                      <p i18n="@@quizPreview.editorWarningAnswers">
+                        Füge mindestens zwei Antwortoptionen hinzu.
+                      </p>
                     }
-                    <div class="quiz-preview-editor__answer-input">
-                      <app-markdown-katex-editor
-                        [value]="answerDraftTexts()[i]"
-                        (valueChange)="onAnswerDraftChanged(i, $event)"
-                        [rows]="2"
-                        [compact]="true"
-                      />
-                    </div>
-                    @if (questionTypeHasCorrectAnswers(question.type)) {
-                      <span
-                        class="quiz-preview-editor__answer-state"
-                        [class.quiz-preview-editor__answer-state--correct]="answer.isCorrect"
-                      >
-                        @if (answer.isCorrect) {
-                          <span i18n="@@quizPreview.answerStateCorrect">Richtig</span>
-                        } @else {
-                          <span i18n="@@quizPreview.answerStateNeutral">Option</span>
-                        }
-                      </span>
+                    @if (currentQuestionValidation().needsCorrectAnswer) {
+                      @if (question.type === 'SINGLE_CHOICE') {
+                        <p i18n="@@quizPreview.editorWarningSingleCorrect">
+                          Wähle genau eine richtige Antwort aus.
+                        </p>
+                      } @else {
+                        <p i18n="@@quizPreview.editorWarningMultipleCorrect">
+                          Markiere mindestens eine richtige Antwort.
+                        </p>
+                      }
                     }
                   </div>
-                }
-                @if (currentQuestionValidation().needsCorrectAnswer) {
-                  <p class="quiz-preview-editor__hint" i18n="@@quizPreview.editorCorrectAnswerHint">
-                    Nutze die Auswahl links, um richtige Antworten direkt zu markieren.
-                  </p>
-                }
-              </div>
-            }
+                </div>
+              }
 
-            <div class="quiz-preview-editor__actions">
-              <button mat-button type="button" (click)="cancelInlineEditMode()">
-                <mat-icon>close</mat-icon>
-                <span i18n>Abbrechen</span>
-              </button>
-              <button matButton="filled" type="button" (click)="finishInlineEditMode()">
-                <mat-icon>check</mat-icon>
-                <span i18n>Fertig</span>
-              </button>
-            </div>
-          </mat-card-content>
-        </mat-card>
+              <label class="quiz-preview-editor__label" i18n>Frage</label>
+              <app-markdown-katex-editor
+                [value]="questionDraftText()"
+                (valueChange)="onQuestionDraftChanged($event)"
+                [rows]="4"
+              />
+
+              @if (question.type !== 'FREETEXT' && question.type !== 'RATING') {
+                <div
+                  class="quiz-preview-editor__answers"
+                  [class.quiz-preview-editor__answers--invalid]="
+                    currentQuestionValidation().needsMoreAnswers ||
+                    currentQuestionValidation().needsCorrectAnswer
+                  "
+                >
+                  <p class="quiz-preview-editor__label" i18n>Antworten</p>
+                  @for (answer of question.answers; track answer.id; let i = $index) {
+                    <div
+                      class="quiz-preview-editor__answer-row"
+                      [class.quiz-preview-editor__answer-row--correct]="
+                        questionTypeHasCorrectAnswers(question.type) && answer.isCorrect
+                      "
+                    >
+                      <span class="quiz-preview-editor__answer-label" aria-hidden="true">{{
+                        answerOptionLabel(i)
+                      }}</span>
+                      @if (questionTypeHasCorrectAnswers(question.type)) {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          class="quiz-preview-editor__correct-toggle"
+                          (click)="toggleCorrectAnswer(i)"
+                          i18n-aria-label="@@quizPreview.toggleCorrectAria"
+                          aria-label="Richtige Antwort umschalten"
+                        >
+                          <mat-icon>
+                            @if (question.type === 'SINGLE_CHOICE') {
+                              {{
+                                answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked'
+                              }}
+                            } @else {
+                              {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
+                            }
+                          </mat-icon>
+                        </button>
+                      }
+                      <div class="quiz-preview-editor__answer-input">
+                        <app-markdown-katex-editor
+                          [value]="answerDraftTexts()[i]"
+                          (valueChange)="onAnswerDraftChanged(i, $event)"
+                          [rows]="2"
+                          [compact]="true"
+                        />
+                      </div>
+                      @if (questionTypeHasCorrectAnswers(question.type)) {
+                        <span
+                          class="quiz-preview-editor__answer-state"
+                          [class.quiz-preview-editor__answer-state--correct]="answer.isCorrect"
+                        >
+                          @if (answer.isCorrect) {
+                            <span i18n="@@quizPreview.answerStateCorrect">Richtig</span>
+                          } @else {
+                            <span i18n="@@quizPreview.answerStateNeutral">Option</span>
+                          }
+                        </span>
+                      }
+                    </div>
+                  }
+                  @if (currentQuestionValidation().needsCorrectAnswer) {
+                    <p
+                      class="quiz-preview-editor__hint"
+                      i18n="@@quizPreview.editorCorrectAnswerHint"
+                    >
+                      Nutze die Auswahl links, um richtige Antworten direkt zu markieren.
+                    </p>
+                  }
+                </div>
+              }
+
+              <div class="quiz-preview-editor__actions">
+                <button mat-button type="button" (click)="cancelInlineEditMode()">
+                  <mat-icon>close</mat-icon>
+                  <span i18n>Abbrechen</span>
+                </button>
+                <button matButton="filled" type="button" (click)="finishInlineEditMode()">
+                  <mat-icon>check</mat-icon>
+                  <span i18n>Fertig</span>
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
       }
     }
 

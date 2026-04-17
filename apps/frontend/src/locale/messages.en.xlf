@@ -4296,18 +4296,6 @@
           <context context-type="linenumber">10</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quiz.new.descriptionMarkdownHint" datatype="html">
-        <source> Wird in der Quiz-Sammlung wie hier mit Markdown und KaTeX angezeigt.</source>
-        <target>It appears in your quiz library the same way, with Markdown and KaTeX.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
-          <context context-type="linenumber">44,46</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">82,84</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="8768083855656807358" datatype="html">
         <source>Gib deinem Quiz einen Namen.</source>
         <target>Give your quiz a name.
@@ -4360,8 +4348,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizForm.motifImageUrlLabel" datatype="html">
-        <source>Motivbild (optional)</source>
-        <target>Motif image (optional)</target>
+        <source>Motivbild beim Quizstart (optional)</source>
+        <target>Motif image at quiz start (optional)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">96,97</context>
@@ -4384,8 +4372,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizForm.motifImageUrlAria" datatype="html">
-        <source>HTTPS-URL zum Motivbild (optional)</source>
-        <target>HTTPS URL for the motif image (optional)</target>
+        <source>HTTPS-URL zum optionalen Motivbild (wird beim Quizstart angezeigt)</source>
+        <target>HTTPS URL for optional motif image; shown at quiz start</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">105,106</context>
@@ -7096,14 +7084,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
           <context context-type="linenumber">112,116</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizPreview.pageSubtitle" datatype="html">
-        <source> Vorschau für Teilnehmende</source>
-        <target>Preview for participants</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">10,13</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.preview.allQuestionsDisabledTitle" datatype="html">

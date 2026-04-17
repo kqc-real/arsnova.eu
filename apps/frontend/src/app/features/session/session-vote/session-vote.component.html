@@ -282,7 +282,7 @@
                 <img
                   appMarkdownImageLightbox
                   [src]="qrDataUrl()"
-                  alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                  [attr.alt]="joinUrl"
                   data-markdown-image-lightbox="true"
                   class="vote-live-banner__qr app-qr-image"
                   width="320"
