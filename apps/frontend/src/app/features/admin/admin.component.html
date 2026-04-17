@@ -70,6 +70,9 @@
                   Liste aller für dich sichtbaren Sessions. Mit dem sechsstelligen Code springst du
                   direkt zu den Details.
                 </p>
+                <p class="admin-help" i18n="@@admin.listCountHint">
+                  Aktuell sichtbare Sessions: {{ sessionTotal() }}
+                </p>
 
                 <div class="admin-lookup">
                   <label class="admin-label" for="admin-lookup-code" i18n="@@admin.lookupCodeLabel"
@@ -114,28 +117,44 @@
                   </p>
                 } @else {
                   <div class="admin-list">
-                    @for (session of sessions(); track session.sessionId) {
-                      <button
-                        matButton="tonal"
-                        type="button"
-                        class="admin-list__item"
-                        (click)="openSessionDetail(session.sessionId)"
-                      >
-                        <span class="admin-list__code">{{ session.sessionCode }}</span>
-                        <span class="admin-list__meta"
-                          >{{ sessionTypeLabel(session.type) }} ·
-                          {{ sessionStatusLabel(session.status) }}</span
-                        >
-                        @if (liveParticipantsIncludingHost(session); as liveCount) {
-                          <span class="admin-list__chip" i18n="@@admin.liveParticipantsChip"
-                            >Live: {{ liveCount }}</span
-                          >
-                        }
-                        <span class="admin-list__meta"
-                          ><span i18n="@@admin.retentionPrefix">Aufbewahrung:</span>
-                          {{ retentionLabel(session.retention.window) }}</span
-                        >
-                      </button>
+                    @for (group of groupedSessions(); track group.status) {
+                      <section class="admin-list__group" [attr.data-status]="group.status">
+                        <h3 class="admin-list__group-title">
+                          {{ sessionStatusLabel(group.status) }}
+                        </h3>
+                        <div class="admin-list__group-items">
+                          @for (session of group.sessions; track session.sessionId) {
+                            <button
+                              matButton="tonal"
+                              type="button"
+                              class="admin-list__item"
+                              (click)="openSessionDetail(session.sessionId)"
+                            >
+                              <span class="admin-list__code">{{ session.sessionCode }}</span>
+                              <span class="admin-list__meta">{{
+                                sessionTypeLabel(session.type)
+                              }}</span>
+                              @if (liveParticipantsIncludingHost(session); as liveCount) {
+                                <span
+                                  class="admin-list__chip"
+                                  i18n="@@admin.liveParticipantsWithActivityChip"
+                                  >Live: {{ liveCount }} · Letzte Aktivität:
+                                  {{ formatDateTime(session.lastActivityAt) }}</span
+                                >
+                              } @else {
+                                <span class="admin-list__chip" i18n="@@admin.lastActivityChip"
+                                  >Letzte Aktivität:
+                                  {{ formatDateTime(session.lastActivityAt) }}</span
+                                >
+                              }
+                              <span class="admin-list__meta"
+                                ><span i18n="@@admin.retentionPrefix">Aufbewahrung:</span>
+                                {{ retentionLabel(session.retention.window) }}</span
+                              >
+                            </button>
+                          }
+                        </div>
+                      </section>
                     }
                   </div>
                 }

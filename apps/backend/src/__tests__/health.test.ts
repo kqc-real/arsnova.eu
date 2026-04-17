@@ -161,7 +161,7 @@ describe('health.stats', () => {
 
   it('berechnet loadStatus "healthy" bei niedriger Last', async () => {
     vi.mocked(prisma.session.count)
-      .mockResolvedValueOnce(10) // activeSessions (not FINISHED)
+      .mockResolvedValueOnce(10) // activeSessions (status != FINISHED)
       .mockResolvedValueOnce(5); // completedSessions (FINISHED)
     vi.mocked(prisma.session.findMany).mockResolvedValue([{ id: 's-1' }, { id: 's-2' }] as never);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(42);
@@ -184,16 +184,14 @@ describe('health.stats', () => {
       1,
       expect.objectContaining({
         where: expect.objectContaining({
-          status: { in: ['LOBBY', 'QUESTION_OPEN', 'ACTIVE', 'PAUSED', 'RESULTS', 'DISCUSSION'] },
-          statusChangedAt: expect.objectContaining({ gte: expect.any(Date) }),
+          status: { not: 'FINISHED' },
         }),
       }),
     );
     expect(prisma.session.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          status: { in: ['LOBBY', 'QUESTION_OPEN', 'ACTIVE', 'PAUSED', 'RESULTS', 'DISCUSSION'] },
-          statusChangedAt: expect.objectContaining({ gte: expect.any(Date) }),
+          status: { not: 'FINISHED' },
         }),
         select: { id: true },
       }),

@@ -280,6 +280,76 @@ describe('admin router (Epic 9)', () => {
     );
   });
 
+  it('listet Sessions nach Statuspriorität und letzter Aktivität', async () => {
+    const caller = adminRouter.createCaller({ req: {} as never });
+    prismaMock.session.findMany.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        code: 'PAUS01',
+        type: 'QUIZ',
+        status: 'PAUSED',
+        quiz: { name: 'Pause' },
+        _count: { participants: 2 },
+        startedAt: new Date('2026-03-14T08:00:00.000Z'),
+        statusChangedAt: new Date('2026-03-14T11:30:00.000Z'),
+        endedAt: null,
+        legalHoldUntil: null,
+        legalHoldReason: null,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        code: 'ACTV02',
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        quiz: { name: 'Aktiv neu' },
+        _count: { participants: 8 },
+        startedAt: new Date('2026-03-14T09:00:00.000Z'),
+        statusChangedAt: new Date('2026-03-14T11:50:00.000Z'),
+        endedAt: null,
+        legalHoldUntil: null,
+        legalHoldReason: null,
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        code: 'ACTV01',
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        quiz: { name: 'Aktiv alt' },
+        _count: { participants: 5 },
+        startedAt: new Date('2026-03-14T08:30:00.000Z'),
+        statusChangedAt: new Date('2026-03-14T11:10:00.000Z'),
+        endedAt: null,
+        legalHoldUntil: null,
+        legalHoldReason: null,
+      },
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        code: 'FINI01',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        quiz: { name: 'Beendet' },
+        _count: { participants: 3 },
+        startedAt: new Date('2026-03-14T07:00:00.000Z'),
+        statusChangedAt: new Date('2026-03-14T10:00:00.000Z'),
+        endedAt: new Date('2026-03-14T10:00:00.000Z'),
+        legalHoldUntil: null,
+        legalHoldReason: null,
+      },
+    ]);
+
+    const result = await caller.listSessions({ page: 1, pageSize: 25 });
+
+    expect(result.total).toBe(4);
+    expect(result.sessions.map((session) => session.sessionCode)).toEqual([
+      'ACTV02',
+      'ACTV01',
+      'PAUS01',
+      'FINI01',
+    ]);
+    expect(result.sessions[0]?.lastActivityAt).toBe('2026-03-14T11:50:00.000Z');
+    expect(result.sessions[3]?.retention.window).toBe('POST_SESSION_24H');
+  });
+
   it('löscht alle Sessions nach Sicherheitsabfrage', async () => {
     const caller = adminRouter.createCaller({ req: {} as never });
     prismaMock.session.count.mockResolvedValue(2);

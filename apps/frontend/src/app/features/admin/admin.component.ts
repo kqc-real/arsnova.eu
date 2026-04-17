@@ -21,6 +21,21 @@ import type {
   SessionType,
 } from '@arsnova/shared-types';
 
+type AdminSessionGroup = {
+  status: SessionStatus;
+  sessions: AdminSessionSummaryDTO[];
+};
+
+const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
+  'ACTIVE',
+  'QUESTION_OPEN',
+  'DISCUSSION',
+  'RESULTS',
+  'PAUSED',
+  'LOBBY',
+  'FINISHED',
+];
+
 /**
  * Admin-Dashboard (Epic 9). Ohne gültige Admin-Auth nur Login/Platzhalter.
  * Story 9.1, 9.2, 9.3.
@@ -88,6 +103,15 @@ export class AdminComponent implements OnInit {
 
   readonly hasSessions = computed(() => this.sessions().length > 0);
   readonly hasAnySessions = computed(() => this.sessionTotal() > 0);
+  readonly groupedSessions = computed<AdminSessionGroup[]>(() => {
+    const sessions = [...this.sessions()].sort((left, right) =>
+      this.compareByLastActivityDesc(left, right),
+    );
+    return ADMIN_SESSION_GROUP_ORDER.map((status) => ({
+      status,
+      sessions: sessions.filter((session) => session.status === status),
+    })).filter((group) => group.sessions.length > 0);
+  });
   readonly deleteAllRequiredPhrase = 'ALLE SESSIONS LOESCHEN';
   readonly resetRecordRequiredPhrase = 'REKORD RESETZEN';
 
@@ -585,6 +609,29 @@ export class AdminComponent implements OnInit {
     } catch {
       return iso;
     }
+  }
+
+  private compareByLastActivityDesc(
+    left: Pick<AdminSessionSummaryDTO, 'lastActivityAt' | 'startedAt' | 'sessionId'>,
+    right: Pick<AdminSessionSummaryDTO, 'lastActivityAt' | 'startedAt' | 'sessionId'>,
+  ): number {
+    const rightActivity = Date.parse(right.lastActivityAt);
+    const leftActivity = Date.parse(left.lastActivityAt);
+    if (
+      !Number.isNaN(rightActivity) &&
+      !Number.isNaN(leftActivity) &&
+      rightActivity !== leftActivity
+    ) {
+      return rightActivity - leftActivity;
+    }
+
+    const rightStarted = Date.parse(right.startedAt);
+    const leftStarted = Date.parse(left.startedAt);
+    if (!Number.isNaN(rightStarted) && !Number.isNaN(leftStarted) && rightStarted !== leftStarted) {
+      return rightStarted - leftStarted;
+    }
+
+    return left.sessionId.localeCompare(right.sessionId);
   }
 
   private downloadBase64File(contentBase64: string, mimeType: string, fileName: string): void {

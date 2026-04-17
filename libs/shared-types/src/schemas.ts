@@ -1181,6 +1181,7 @@ export const AdminSessionSummaryDTOSchema = z.object({
   participantCount: z.number().int().min(0),
   startedAt: z.string(),
   endedAt: z.string().nullable(),
+  lastActivityAt: z.string(),
   retention: AdminRetentionStateDTOSchema,
 });
 export type AdminSessionSummaryDTO = z.infer<typeof AdminSessionSummaryDTOSchema>;

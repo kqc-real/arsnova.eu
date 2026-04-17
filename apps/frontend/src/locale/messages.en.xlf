@@ -1267,6 +1267,14 @@
           <context context-type="linenumber">70,71</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="admin.listCountHint" datatype="html">
+        <source> Aktuell sichtbare Sessions: <x id="INTERPOLATION" equiv-text="{{ sessionTotal() }}"/></source>
+        <target>Currently visible sessions: <x id="INTERPOLATION" equiv-text="{{ sessionTotal() }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
+          <context context-type="linenumber">73,75</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.lookupCodeLabel" datatype="html">
         <source>Session-Code (6-stellig)</source>
         <target>Session code (6 characters)</target>
@@ -1763,12 +1771,20 @@
           <context context-type="linenumber">315</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.liveParticipantsChip" datatype="html">
-        <source>Live: <x id="INTERPOLATION" equiv-text="{{ liveCount }}"/></source>
-        <target>Live: <x id="INTERPOLATION" equiv-text="{{ liveCount }}"/></target>
+      <trans-unit id="admin.liveParticipantsWithActivityChip" datatype="html">
+        <source>Live: <x id="INTERPOLATION" equiv-text="{{ liveCount }}"/> · Letzte Aktivität: <x id="INTERPOLATION_1" equiv-text="{{ formatDateTime(session.lastActivityAt) }}"/></source>
+        <target>Live: <x id="INTERPOLATION" equiv-text="{{ liveCount }}"/> · Last activity: <x id="INTERPOLATION_1" equiv-text="{{ formatDateTime(session.lastActivityAt) }}"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
-          <context context-type="linenumber">130,132</context>
+          <context context-type="linenumber">130,133</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="admin.lastActivityChip" datatype="html">
+        <source>Letzte Aktivität: <x id="INTERPOLATION" equiv-text="{{ formatDateTime(session.lastActivityAt) }}"/></source>
+        <target>Last activity: <x id="INTERPOLATION" equiv-text="{{ formatDateTime(session.lastActivityAt) }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
+          <context context-type="linenumber">135,136</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.sessionStatusLobby" datatype="html">

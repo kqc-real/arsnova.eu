@@ -221,6 +221,27 @@
   gap: 0.65rem;
 }
 
+.admin-list__group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-list__group + .admin-list__group {
+  margin-top: 0.35rem;
+}
+
+.admin-list__group-title {
+  margin: 0;
+  padding-top: 0.2rem;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-primary);
+}
+
+.admin-list__group-items {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .admin-danger-zone {
   display: grid;
   gap: 1rem;

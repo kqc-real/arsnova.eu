@@ -27,21 +27,6 @@ const PARTICIPANT_HARD_LIMITS = {
   overloaded: 220,
 } as const;
 
-const ACTIVE_SESSION_STATUSES = [
-  'LOBBY',
-  'QUESTION_OPEN',
-  'ACTIVE',
-  'PAUSED',
-  'RESULTS',
-  'DISCUSSION',
-] as const;
-/**
- * "Live" im Footer bedeutet: Session ist in aktivem Status und wurde in den letzten 24h
- * aktualisiert. Das entkoppelt die Anzeige von Cleanup-Ausfällen und verhindert "hängende"
- * Kennzahlen durch verwaiste Alt-Sessions.
- */
-const ACTIVE_SESSION_FRESH_HOURS = 24;
-
 type LoadStatusInputs = {
   activeSessions: number;
   totalParticipants: number;
@@ -163,11 +148,8 @@ async function fetchHealthCheck() {
 
 /** Server-Statistik für Startseite (Story 0.4). Bei nicht erreichbarer DB: Fallback (0 Werte), keine Prisma-Fehler. */
 async function fetchServerStats() {
-  const activeCutoff = new Date(Date.now() - ACTIVE_SESSION_FRESH_HOURS * 60 * 60 * 1000);
-  const activeStatuses = [...ACTIVE_SESSION_STATUSES];
   const activeSessionWhere = {
-    status: { in: activeStatuses },
-    statusChangedAt: { gte: activeCutoff },
+    status: { not: 'FINISHED' as const },
   };
 
   let activeBlitzRounds = 0;

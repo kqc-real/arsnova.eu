@@ -84,6 +84,52 @@ function resolveRetentionState(session: {
   };
 }
 
+const ADMIN_SESSION_STATUS_PRIORITY: Record<
+  'ACTIVE' | 'QUESTION_OPEN' | 'DISCUSSION' | 'RESULTS' | 'PAUSED' | 'LOBBY' | 'FINISHED',
+  number
+> = {
+  ACTIVE: 0,
+  QUESTION_OPEN: 1,
+  DISCUSSION: 2,
+  RESULTS: 3,
+  PAUSED: 4,
+  LOBBY: 5,
+  FINISHED: 6,
+};
+
+function compareAdminSessionsByActivity(
+  left: {
+    status: keyof typeof ADMIN_SESSION_STATUS_PRIORITY;
+    statusChangedAt: Date;
+    startedAt: Date;
+    id: string;
+  },
+  right: {
+    status: keyof typeof ADMIN_SESSION_STATUS_PRIORITY;
+    statusChangedAt: Date;
+    startedAt: Date;
+    id: string;
+  },
+): number {
+  const statusDelta =
+    ADMIN_SESSION_STATUS_PRIORITY[left.status] - ADMIN_SESSION_STATUS_PRIORITY[right.status];
+  if (statusDelta !== 0) {
+    return statusDelta;
+  }
+
+  const activityDelta = right.statusChangedAt.getTime() - left.statusChangedAt.getTime();
+  if (activityDelta !== 0) {
+    return activityDelta;
+  }
+
+  const startedDelta = right.startedAt.getTime() - left.startedAt.getTime();
+  if (startedDelta !== 0) {
+    return startedDelta;
+  }
+
+  return left.id.localeCompare(right.id);
+}
+
 function toSessionSummary(session: {
   id: string;
   code: string;
@@ -92,6 +138,7 @@ function toSessionSummary(session: {
   quiz: { name: string } | null;
   _count: { participants: number };
   startedAt: Date;
+  statusChangedAt: Date;
   endedAt: Date | null;
   legalHoldUntil: Date | null;
   legalHoldReason: string | null;
@@ -105,6 +152,7 @@ function toSessionSummary(session: {
     participantCount: session._count.participants,
     startedAt: session.startedAt.toISOString(),
     endedAt: session.endedAt?.toISOString() ?? null,
+    lastActivityAt: session.statusChangedAt.toISOString(),
     retention: resolveRetentionState(session),
   };
 }
@@ -464,22 +512,20 @@ export const adminRouter = router({
         ],
       };
 
-      const [total, sessions] = await Promise.all([
-        prisma.session.count({ where }),
-        prisma.session.findMany({
-          where,
-          orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
-          skip,
-          take: pageSize,
-          include: {
-            quiz: { select: { name: true } },
-            _count: { select: { participants: true } },
-          },
-        }),
-      ]);
+      const sessions = await prisma.session.findMany({
+        where,
+        include: {
+          quiz: { select: { name: true } },
+          _count: { select: { participants: true } },
+        },
+      });
+      const total = sessions.length;
+      const pagedSessions = sessions
+        .sort(compareAdminSessionsByActivity)
+        .slice(skip, skip + pageSize);
 
       return {
-        sessions: sessions.map((session) => toSessionSummary(session)),
+        sessions: pagedSessions.map((session) => toSessionSummary(session)),
         total,
         page,
         pageSize,
