@@ -25,6 +25,7 @@ vi.mock('../lib/platformStatistic', () => ({
 
 vi.mock('../lib/presence', () => ({
   countActiveParticipantsForSessions: vi.fn(),
+  getActiveParticipantCountsForSessions: vi.fn(),
 }));
 
 vi.mock('../lib/loadSignal', () => ({
@@ -41,6 +42,7 @@ import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
 import { updateCompletedSessionsTotal } from '../lib/platformStatistic';
 import { countActiveParticipantsForSessions } from '../lib/presence';
+import { getActiveParticipantCountsForSessions } from '../lib/presence';
 import { readLoadSignals } from '../lib/loadSignal';
 import { readSloSignals } from '../lib/sloTelemetry';
 import { healthRouter, heartbeatGenerator } from '../routers/health';
@@ -52,6 +54,7 @@ describe('health.check', () => {
     vi.clearAllMocks();
     vi.mocked(prisma.session.findMany).mockResolvedValue([]);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(0);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(new Map());
     vi.mocked(readLoadSignals).mockResolvedValue({
       votesLastMinute: 0,
       sessionTransitionsLastMinute: 0,
@@ -91,6 +94,7 @@ describe('health.footerBundle', () => {
     vi.clearAllMocks();
     vi.mocked(prisma.session.findMany).mockResolvedValue([]);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(0);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(new Map());
     vi.mocked(readLoadSignals).mockResolvedValue({
       votesLastMinute: 0,
       sessionTransitionsLastMinute: 0,
@@ -118,7 +122,11 @@ describe('health.footerBundle', () => {
 
     expect(result.check.status).toBe('ok');
     expect(result.check.redis).toBe('ok');
+    expect(result.stats.openSessions).toBe(0);
     expect(result.stats.activeSessions).toBe(0);
+    expect(result.stats.votesLastMinute).toBe(0);
+    expect(result.stats.sessionTransitionsLastMinute).toBe(0);
+    expect(result.stats.activeCountdownSessions).toBe(0);
     expect(result.stats.maxParticipantsSingleSession).toBe(42);
     expect(result.stats.maxParticipantsStatisticUpdatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(result.stats.serviceStatus).toBe('stable');
@@ -131,6 +139,7 @@ describe('health.stats', () => {
     vi.clearAllMocks();
     vi.mocked(prisma.session.findMany).mockResolvedValue([]);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(0);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(new Map());
     vi.mocked(readLoadSignals).mockResolvedValue({
       votesLastMinute: 0,
       sessionTransitionsLastMinute: 0,
@@ -150,8 +159,12 @@ describe('health.stats', () => {
 
     const result = await caller.stats(undefined);
 
+    expect(result.openSessions).toBe(0);
     expect(result.activeSessions).toBe(0);
     expect(result.totalParticipants).toBe(0);
+    expect(result.votesLastMinute).toBe(0);
+    expect(result.sessionTransitionsLastMinute).toBe(0);
+    expect(result.activeCountdownSessions).toBe(0);
     expect(result.completedSessions).toBe(0);
     expect(result.maxParticipantsSingleSession).toBe(0);
     expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
@@ -161,10 +174,15 @@ describe('health.stats', () => {
 
   it('berechnet loadStatus "healthy" bei niedriger Last', async () => {
     vi.mocked(prisma.session.count)
-      .mockResolvedValueOnce(10) // activeSessions (status != FINISHED)
+      .mockResolvedValueOnce(10) // openSessions (status != FINISHED)
       .mockResolvedValueOnce(5); // completedSessions (FINISHED)
-    vi.mocked(prisma.session.findMany).mockResolvedValue([{ id: 's-1' }, { id: 's-2' }] as never);
+    vi.mocked(prisma.session.findMany).mockResolvedValue(
+      Array.from({ length: 10 }, (_, index) => ({ id: `s-${index + 1}` })) as never,
+    );
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(42);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+      new Map(Array.from({ length: 10 }, (_, index) => [`s-${index + 1}`, index < 2 ? 21 : 0])),
+    );
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
       id: 'default',
       updatedAt: new Date(),
@@ -174,8 +192,12 @@ describe('health.stats', () => {
 
     const result = await caller.stats(undefined);
 
-    expect(result.activeSessions).toBe(10);
+    expect(result.openSessions).toBe(10);
+    expect(result.activeSessions).toBe(2);
     expect(result.totalParticipants).toBe(42);
+    expect(result.votesLastMinute).toBe(0);
+    expect(result.sessionTransitionsLastMinute).toBe(0);
+    expect(result.activeCountdownSessions).toBe(0);
     expect(result.completedSessions).toBe(5);
     expect(result.maxParticipantsSingleSession).toBe(100);
     expect(result.loadStatus).toBe('healthy');
@@ -196,12 +218,24 @@ describe('health.stats', () => {
         select: { id: true },
       }),
     );
-    expect(countActiveParticipantsForSessions).toHaveBeenCalledWith(['s-1', 's-2']);
+    expect(countActiveParticipantsForSessions).toHaveBeenCalledWith(
+      Array.from({ length: 10 }, (_, index) => `s-${index + 1}`),
+    );
   });
 
   it('berechnet loadStatus "busy" bei hoher Teilnehmerzahl (Hard-Limit)', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(6).mockResolvedValueOnce(50);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(69);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+      new Map([
+        ['s-1', 20],
+        ['s-2', 18],
+        ['s-3', 12],
+        ['s-4', 10],
+        ['s-5', 5],
+        ['s-6', 4],
+      ]),
+    );
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
       id: 'default',
       updatedAt: new Date(),
@@ -211,7 +245,8 @@ describe('health.stats', () => {
 
     const result = await caller.stats(undefined);
 
-    expect(result.activeSessions).toBe(6);
+    expect(result.openSessions).toBe(6);
+    expect(result.activeSessions).toBe(5);
     expect(result.loadStatus).toBe('busy');
     expect(result.serviceStatus).toBe('limited');
   });
@@ -219,6 +254,9 @@ describe('health.stats', () => {
   it('berechnet loadStatus "overloaded" bei sehr hoher Teilnehmerzahl', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(12).mockResolvedValueOnce(1000);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(260);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+      new Map(Array.from({ length: 12 }, (_, index) => [`s-${index + 1}`, 10])),
+    );
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
       id: 'default',
       updatedAt: new Date(),
@@ -228,6 +266,7 @@ describe('health.stats', () => {
 
     const result = await caller.stats(undefined);
 
+    expect(result.openSessions).toBe(12);
     expect(result.activeSessions).toBe(12);
     expect(result.loadStatus).toBe('overloaded');
     expect(result.serviceStatus).toBe('critical');
@@ -236,6 +275,14 @@ describe('health.stats', () => {
   it('berücksichtigt Dynamiksignal (Votes/Transitions/Countdown) auch bei moderaten Bestandswerten', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(10).mockResolvedValueOnce(20);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(40);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+      new Map([
+        ['s-1', 10],
+        ['s-2', 10],
+        ['s-3', 10],
+        ['s-4', 10],
+      ]),
+    );
     vi.mocked(readLoadSignals).mockResolvedValue({
       votesLastMinute: 280,
       sessionTransitionsLastMinute: 16,
@@ -250,6 +297,9 @@ describe('health.stats', () => {
 
     const result = await caller.stats(undefined);
 
+    expect(result.votesLastMinute).toBe(280);
+    expect(result.sessionTransitionsLastMinute).toBe(16);
+    expect(result.activeCountdownSessions).toBe(12);
     expect(result.loadStatus).toBe('busy');
     expect(result.serviceStatus).toBe('limited');
   });
@@ -257,6 +307,14 @@ describe('health.stats', () => {
   it('leitet serviceStatus aus echter SLO-Telemetrie ab (critical bei schlechter Latenz)', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(8).mockResolvedValueOnce(20);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(35);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+      new Map([
+        ['s-1', 10],
+        ['s-2', 10],
+        ['s-3', 8],
+        ['s-4', 7],
+      ]),
+    );
     vi.mocked(readLoadSignals).mockResolvedValue({
       votesLastMinute: 20,
       sessionTransitionsLastMinute: 2,
@@ -295,8 +353,12 @@ describe('health.stats', () => {
     const keys = Object.keys(result);
     expect(keys).toEqual(
       expect.arrayContaining([
+        'openSessions',
         'activeSessions',
         'totalParticipants',
+        'votesLastMinute',
+        'sessionTransitionsLastMinute',
+        'activeCountdownSessions',
         'completedSessions',
         'activeBlitzRounds',
         'maxParticipantsSingleSession',
@@ -341,6 +403,12 @@ describe('health.stats', () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(6).mockResolvedValueOnce(11);
     vi.mocked(prisma.session.findMany).mockResolvedValue([{ id: 's-1' }, { id: 's-2' }] as never);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(69);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+      new Map([
+        ['s-1', 40],
+        ['s-2', 29],
+      ]),
+    );
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
       id: 'default',
       updatedAt: new Date(),
@@ -350,7 +418,8 @@ describe('health.stats', () => {
 
     const result = await caller.stats(undefined);
 
-    expect(result.activeSessions).toBe(6);
+    expect(result.openSessions).toBe(6);
+    expect(result.activeSessions).toBe(2);
     expect(result.totalParticipants).toBe(69);
     expect(result.completedSessions).toBe(11);
     expect(result.activeBlitzRounds).toBe(0);
@@ -385,6 +454,32 @@ describe('health.stats', () => {
 
     expect(result.completedSessions).toBe(13);
     expect(updateCompletedSessionsTotal).toHaveBeenCalledWith(13);
+  });
+
+  it('zählt nur Sessions mit mindestens 5 aktiven Teilnehmenden als activeSessions', async () => {
+    vi.mocked(prisma.session.count).mockResolvedValueOnce(4).mockResolvedValueOnce(2);
+    vi.mocked(prisma.session.findMany).mockResolvedValue([
+      { id: 's-1' },
+      { id: 's-2' },
+      { id: 's-3' },
+      { id: 's-4' },
+    ] as never);
+    vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(14);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+      new Map([
+        ['s-1', 5],
+        ['s-2', 4],
+        ['s-3', 0],
+        ['s-4', 5],
+      ]),
+    );
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
+
+    const result = await caller.stats(undefined);
+
+    expect(result.openSessions).toBe(4);
+    expect(result.activeSessions).toBe(2);
+    expect(result.totalParticipants).toBe(14);
   });
 });
 

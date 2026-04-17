@@ -853,9 +853,18 @@ export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 
 /** DTO: Server-Auslastung für die Startseite (Story 0.4) */
 export const ServerStatsDTOSchema = z.object({
+  /** Alle noch nicht beendeten Sessions. */
+  openSessions: z.number(),
+  /** Offene Sessions mit mindestens 5 aktiven Teilnehmenden in den letzten 3 Minuten. */
   activeSessions: z.number(),
   /** Aktive Teilnahmen über laufende Sessions (letzte 3 Minuten Redis-Presence). */
   totalParticipants: z.number(),
+  /** Abstimmungen der letzten Minute über alle offenen Sessions. */
+  votesLastMinute: z.number(),
+  /** Statuswechsel der letzten Minute über alle offenen Sessions. */
+  sessionTransitionsLastMinute: z.number(),
+  /** Sessions mit aktivem Countdown im aktuellen Zeitfenster. */
+  activeCountdownSessions: z.number(),
   /** Kumulativ: Anzahl Session-Zeilen mit Status FINISHED (lebenslang in dieser DB). */
   completedSessions: z.number(),
   activeBlitzRounds: z.number(),

@@ -16,7 +16,7 @@ describe('ServerStatusWidgetComponent', () => {
     expect(emitSpy).toHaveBeenCalledOnce();
   });
 
-  it('exposes an accessibility label for SLO and load help', () => {
+  it('exposes an accessibility label for status and load help', () => {
     TestBed.configureTestingModule({
       imports: [ServerStatusWidgetComponent],
     });
@@ -26,7 +26,7 @@ describe('ServerStatusWidgetComponent', () => {
 
     const button = (fixture.nativeElement as HTMLElement).querySelector('button');
     expect(button?.getAttribute('aria-label')).toContain('Betriebsstatus öffnen');
-    expect(button?.getAttribute('aria-label')).toContain('SLO-Ampel');
+    expect(button?.getAttribute('aria-label')).toContain('Statusanzeige');
   });
 
   it('renders a green status icon for healthy live stats', () => {
@@ -37,8 +37,12 @@ describe('ServerStatusWidgetComponent', () => {
     fixture.componentInstance.connectionOk = true;
     fixture.componentInstance.loading = false;
     fixture.componentInstance.stats = {
+      openSessions: 6,
       activeSessions: 4,
       totalParticipants: 32,
+      votesLastMinute: 12,
+      sessionTransitionsLastMinute: 3,
+      activeCountdownSessions: 2,
       completedSessions: 18,
       activeBlitzRounds: 1,
       maxParticipantsSingleSession: 120,
@@ -75,8 +79,12 @@ describe('ServerStatusWidgetComponent', () => {
     fixture.componentInstance.connectionOk = true;
     fixture.componentInstance.loading = false;
     fixture.componentInstance.stats = {
+      openSessions: 121,
       activeSessions: 120,
       totalParticipants: 870,
+      votesLastMinute: 260,
+      sessionTransitionsLastMinute: 44,
+      activeCountdownSessions: 28,
       completedSessions: 18,
       activeBlitzRounds: 3,
       maxParticipantsSingleSession: 120,
@@ -99,8 +107,12 @@ describe('ServerStatusWidgetComponent', () => {
     fixture.componentInstance.connectionOk = true;
     fixture.componentInstance.loading = false;
     fixture.componentInstance.stats = {
+      openSessions: 255,
       activeSessions: 250,
       totalParticipants: 1600,
+      votesLastMinute: 720,
+      sessionTransitionsLastMinute: 91,
+      activeCountdownSessions: 64,
       completedSessions: 18,
       activeBlitzRounds: 4,
       maxParticipantsSingleSession: 120,

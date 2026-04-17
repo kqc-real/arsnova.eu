@@ -472,7 +472,7 @@ export class AppComponent implements OnInit, OnDestroy {
         loading: !this.footerHealthCheckDone(),
         stats: this.footerStats(),
       },
-      width: 'min(40rem, calc(100vw - 1.5rem))',
+      width: 'min(54rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
     });
   }

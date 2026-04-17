@@ -14,8 +14,12 @@ describe('ServerStatusHelpDialogComponent', () => {
             connectionOk: true,
             loading: false,
             stats: {
+              openSessions: 11,
               activeSessions: 6,
               totalParticipants: 145,
+              votesLastMinute: 87,
+              sessionTransitionsLastMinute: 14,
+              activeCountdownSessions: 5,
               completedSessions: 98,
               activeBlitzRounds: 3,
               maxParticipantsSingleSession: 412,
@@ -34,10 +38,22 @@ describe('ServerStatusHelpDialogComponent', () => {
 
     expect(text).toContain('Betriebsstatus & Systemlast');
     expect(text).toContain('Systemlast-Indikatoren');
-    expect(text).toContain('Die Ampel im Footer zeigt den Betriebsstatus');
-    expect(text).toContain('Aktueller Lastindikator');
+    expect(text).toContain('Die Ampel unten zeigt, wie stabil das System gerade läuft.');
+    expect(text).toContain('Systemlast:');
+    expect(text).toContain('Aktuelle Lage');
+    expect(text).toContain('Aktuelle Dynamik');
+    expect(text).toContain('Aktive Sessions');
+    expect(text).toContain('Offene Sessions');
     expect(text).toContain('145');
-    expect(text).toContain('Aktiv in den letzten 3 Minuten über alle laufenden Live-Sessions');
+    expect(text).toContain('Abstimmungen / Minute');
+    expect(text).toContain('Statuswechsel / Minute');
+    expect(text).toContain('Countdown-Sessions');
+    expect(text).toContain('Mindestens 5 aktive Teilnehmende in den letzten 3 Minuten');
+    expect(text).toContain('Noch nicht beendet');
+    expect(text).toContain('Summe über alle offenen Sessions in den letzten 3 Minuten');
+    expect(text).toContain('Neue Antworten im letzten Minutenfenster');
+    expect(text).toContain('Sessions, die gerade sichtbar weiterlaufen');
+    expect(text).toContain('Mit laufendem Countdown im aktuellen Aktivitätsfenster');
     expect(text).toContain('Alle je beendeten Live-Sessions (kumulativ)');
     expect(text).toContain('Rekordteilnahme');
     expect(text).toContain('412');

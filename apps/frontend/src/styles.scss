@@ -796,13 +796,13 @@ html.dark .app-qr-image {
 
 .app-status-help-dialog-panel .mat-mdc-dialog-surface {
   border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
-  border: 1px solid var(--mat-sys-outline-variant);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 44%, transparent);
   background: var(--mat-sys-surface-container-high);
   box-shadow: var(--mat-sys-level3);
 }
 
 .app-status-help-dialog-panel .mat-mdc-dialog-content {
-  max-height: min(80dvh, 36rem);
+  max-height: min(84dvh, 42rem);
 }
 
 .feedback-compare-round-snackbar.mat-mdc-snack-bar-container {

@@ -13,9 +13,14 @@ import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
 import { logger } from '../lib/logger';
 import { updateCompletedSessionsTotal } from '../lib/platformStatistic';
-import { countActiveParticipantsForSessions } from '../lib/presence';
+import {
+  countActiveParticipantsForSessions,
+  getActiveParticipantCountsForSessions,
+} from '../lib/presence';
 import { readLoadSignals } from '../lib/loadSignal';
 import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
+
+const ACTIVE_SESSION_MIN_PARTICIPANTS = 5;
 
 const SERVER_STATUS_SCORE_THRESHOLDS = {
   busy: 60,
@@ -223,7 +228,7 @@ async function fetchServerStats() {
     })();
 
     const [
-      activeSessions,
+      openSessions,
       activeSessionIds,
       completedSessionsNow,
       platformRow,
@@ -241,9 +246,14 @@ async function fetchServerStats() {
       readLoadSignals(),
       readSloSignals(),
     ]);
-    const totalParticipants = await countActiveParticipantsForSessions(
-      activeSessionIds.map((session) => session.id),
-    );
+    const openSessionIds = activeSessionIds.map((session) => session.id);
+    const [participantCounts, totalParticipants] = await Promise.all([
+      getActiveParticipantCountsForSessions(openSessionIds),
+      countActiveParticipantsForSessions(openSessionIds),
+    ]);
+    const activeSessions = [...participantCounts.values()].filter(
+      (count) => count >= ACTIVE_SESSION_MIN_PARTICIPANTS,
+    ).length;
     const persistedCompletedSessionsTotal = platformRow.completedSessionsTotal;
     const completedSessionsTotal =
       typeof persistedCompletedSessionsTotal === 'number'
@@ -264,8 +274,12 @@ async function fetchServerStats() {
       activeCountdownSessions: loadSignals.activeCountdownSessions,
     });
     return {
+      openSessions,
       activeSessions,
       totalParticipants,
+      votesLastMinute: loadSignals.votesLastMinute,
+      sessionTransitionsLastMinute: loadSignals.sessionTransitionsLastMinute,
+      activeCountdownSessions: loadSignals.activeCountdownSessions,
       completedSessions: completedSessionsTotal,
       activeBlitzRounds,
       maxParticipantsSingleSession: platformRow.maxParticipantsSingleSession,
@@ -275,8 +289,12 @@ async function fetchServerStats() {
     };
   } catch {
     return {
+      openSessions: 0,
       activeSessions: 0,
       totalParticipants: 0,
+      votesLastMinute: 0,
+      sessionTransitionsLastMinute: 0,
+      activeCountdownSessions: 0,
       completedSessions: 0,
       activeBlitzRounds: 0,
       maxParticipantsSingleSession: 0,

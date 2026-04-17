@@ -59,66 +59,163 @@ export interface ServerStatusHelpDialogData {
             class="status-help-dialog__copy status-help-dialog__copy--compact"
             i18n="@@app.footer.statusSloVsLoadHint"
           >
-            Die Ampel im Footer zeigt den Betriebsstatus (SLO). Die Werte hier helfen bei der
-            Last-Einordnung.
+            Die Ampel unten zeigt, wie stabil das System gerade läuft.
           </p>
           <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-            <span i18n="@@app.footer.loadStatusLabel">Aktueller Lastindikator:</span>
-            <strong>
+            <span i18n="@@app.footer.loadStatusLabel">Systemlast:</span>&nbsp;
+            <strong class="status-help-dialog__status-badge-wrapper">
               @switch (s.loadStatus) {
                 @case ('healthy') {
-                  <span i18n="@@app.footer.loadStatusHealthy">niedrig</span>
+                  <span
+                    class="status-help-dialog__status-badge status-help-dialog__status-badge--healthy"
+                    i18n="@@app.footer.loadStatusHealthy"
+                    >niedrig</span
+                  >
                 }
                 @case ('busy') {
-                  <span i18n="@@app.footer.loadStatusBusy">mittel</span>
+                  <span
+                    class="status-help-dialog__status-badge status-help-dialog__status-badge--busy"
+                    i18n="@@app.footer.loadStatusBusy"
+                    >mittel</span
+                  >
                 }
                 @default {
-                  <span i18n="@@app.footer.loadStatusOverloaded">hoch</span>
+                  <span
+                    class="status-help-dialog__status-badge status-help-dialog__status-badge--overloaded"
+                    i18n="@@app.footer.loadStatusOverloaded"
+                    >hoch</span
+                  >
                 }
               }
             </strong>
           </p>
-          <div class="status-help-dialog__metrics" aria-live="polite">
-            <article class="status-help-dialog__metric">
-              <div class="status-help-dialog__metric-head">
-                <mat-icon aria-hidden="true">play_circle</mat-icon>
-                <span i18n="@@app.footer.statusMetricLiveSessions">Live-Sessions</span>
-              </div>
-              <strong>{{ s.activeSessions }}</strong>
-            </article>
-            <article class="status-help-dialog__metric">
-              <div class="status-help-dialog__metric-head">
-                <mat-icon aria-hidden="true">bolt</mat-icon>
-                <span i18n="@@app.footer.statusMetricBlitz">Blitz-Runden</span>
-              </div>
-              <strong>{{ s.activeBlitzRounds }}</strong>
-            </article>
-            <article class="status-help-dialog__metric">
-              <div class="status-help-dialog__metric-head">
-                <mat-icon aria-hidden="true">group</mat-icon>
-                <span i18n="@@app.footer.statusMetricParticipants">Aktive Teilnehmende</span>
-              </div>
-              <strong>{{ s.totalParticipants }}</strong>
-              <p
-                class="status-help-dialog__metric-hint"
-                i18n="@@app.footer.statusMetricParticipantsHint"
+          <div class="status-help-dialog__metric-groups" aria-live="polite">
+            <section
+              class="status-help-dialog__metric-group status-help-dialog__metric-group--overview"
+              aria-labelledby="server-status-overview-heading"
+            >
+              <h4
+                id="server-status-overview-heading"
+                class="status-help-dialog__metric-group-title"
+                i18n="@@app.footer.statusMetricGroupOverview"
               >
-                Aktiv in den letzten 3 Minuten über alle laufenden Live-Sessions
-              </p>
-            </article>
-            <article class="status-help-dialog__metric">
-              <div class="status-help-dialog__metric-head">
-                <mat-icon aria-hidden="true">check_circle</mat-icon>
-                <span i18n="@@app.footer.statusMetricCompleted">Abgeschlossen</span>
+                Aktuelle Lage
+              </h4>
+              <div class="status-help-dialog__metrics status-help-dialog__metrics--overview">
+                <article class="status-help-dialog__metric status-help-dialog__metric--key">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">play_circle</mat-icon>
+                    <span i18n="@@app.footer.statusMetricActiveSessions">Aktive Sessions</span>
+                  </div>
+                  <strong>{{ s.activeSessions }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricActiveSessionsHint"
+                  >
+                    Mindestens 5 aktive Teilnehmende in den letzten 3 Minuten
+                  </p>
+                </article>
+                <article class="status-help-dialog__metric status-help-dialog__metric--key">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">meeting_room</mat-icon>
+                    <span i18n="@@app.footer.statusMetricOpenSessions">Offene Sessions</span>
+                  </div>
+                  <strong>{{ s.openSessions }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricOpenSessionsHint"
+                  >
+                    Noch nicht beendet
+                  </p>
+                </article>
+                <article class="status-help-dialog__metric">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">group</mat-icon>
+                    <span i18n="@@app.footer.statusMetricParticipants">Aktive Teilnehmende</span>
+                  </div>
+                  <strong>{{ s.totalParticipants }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricParticipantsHint"
+                  >
+                    Summe über alle offenen Sessions in den letzten 3 Minuten
+                  </p>
+                </article>
+                <article class="status-help-dialog__metric">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">bolt</mat-icon>
+                    <span i18n="@@app.footer.statusMetricBlitz">Blitz-Runden</span>
+                  </div>
+                  <strong>{{ s.activeBlitzRounds }}</strong>
+                </article>
+                <article class="status-help-dialog__metric status-help-dialog__metric--wide">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">check_circle</mat-icon>
+                    <span i18n="@@app.footer.statusMetricCompleted">Abgeschlossen</span>
+                  </div>
+                  <strong>{{ s.completedSessions }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricCompletedHint"
+                  >
+                    Alle je beendeten Live-Sessions (kumulativ)
+                  </p>
+                </article>
               </div>
-              <strong>{{ s.completedSessions }}</strong>
-              <p
-                class="status-help-dialog__metric-hint"
-                i18n="@@app.footer.statusMetricCompletedHint"
+            </section>
+            <section
+              class="status-help-dialog__metric-group status-help-dialog__metric-group--dynamic"
+              aria-labelledby="server-status-dynamics-heading"
+            >
+              <h4
+                id="server-status-dynamics-heading"
+                class="status-help-dialog__metric-group-title"
+                i18n="@@app.footer.statusMetricGroupDynamics"
               >
-                Alle je beendeten Live-Sessions (kumulativ)
-              </p>
-            </article>
+                Aktuelle Dynamik
+              </h4>
+              <div class="status-help-dialog__metrics status-help-dialog__metrics--dynamic">
+                <article class="status-help-dialog__metric status-help-dialog__metric--dynamic">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">how_to_vote</mat-icon>
+                    <span i18n="@@app.footer.statusMetricVotes">Abstimmungen / Minute</span>
+                  </div>
+                  <strong>{{ s.votesLastMinute }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricVotesHint"
+                  >
+                    Neue Antworten im letzten Minutenfenster
+                  </p>
+                </article>
+                <article class="status-help-dialog__metric status-help-dialog__metric--dynamic">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">sync_alt</mat-icon>
+                    <span i18n="@@app.footer.statusMetricTransitions">Statuswechsel / Minute</span>
+                  </div>
+                  <strong>{{ s.sessionTransitionsLastMinute }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricTransitionsHint"
+                  >
+                    Sessions, die gerade sichtbar weiterlaufen
+                  </p>
+                </article>
+                <article class="status-help-dialog__metric status-help-dialog__metric--dynamic">
+                  <div class="status-help-dialog__metric-head">
+                    <mat-icon aria-hidden="true">timer</mat-icon>
+                    <span i18n="@@app.footer.statusMetricCountdowns">Countdown-Sessions</span>
+                  </div>
+                  <strong>{{ s.activeCountdownSessions }}</strong>
+                  <p
+                    class="status-help-dialog__metric-hint"
+                    i18n="@@app.footer.statusMetricCountdownsHint"
+                  >
+                    Mit laufendem Countdown im aktuellen Aktivitätsfenster
+                  </p>
+                </article>
+              </div>
+            </section>
           </div>
         </section>
 
@@ -179,38 +276,38 @@ export interface ServerStatusHelpDialogData {
             class="status-help-dialog__section-title"
             i18n="@@app.footer.statusLegendTitle"
           >
-            Betriebsstatus (SLO-Ampel)
+            Betriebsstatus
           </h3>
           <p
             class="status-help-dialog__copy status-help-dialog__copy--compact"
             i18n="@@app.footer.statusHelpDot"
           >
-            Die SLO-Ampel zeigt, wie stabil Live-Quizze aktuell laufen.
+            Die Statusanzeige zeigt, wie stabil Live-Quizze gerade laufen.
           </p>
         </div>
         <ul class="status-help-dialog__legend" role="list">
-          <li>
+          <li class="status-help-dialog__legend-item status-help-dialog__legend-item--healthy">
             <span
               class="status-help-dialog__dot status-help-dialog__dot--healthy"
               aria-hidden="true"
             ></span>
             <span i18n="@@app.footer.statusLegendHealthy">Stabil</span>
           </li>
-          <li>
+          <li class="status-help-dialog__legend-item status-help-dialog__legend-item--busy">
             <span
               class="status-help-dialog__dot status-help-dialog__dot--busy"
               aria-hidden="true"
             ></span>
             <span i18n="@@app.footer.statusLegendBusy">Eingeschränkt</span>
           </li>
-          <li>
+          <li class="status-help-dialog__legend-item status-help-dialog__legend-item--overloaded">
             <span
               class="status-help-dialog__dot status-help-dialog__dot--overloaded"
               aria-hidden="true"
             ></span>
             <span i18n="@@app.footer.statusLegendOverloaded">Kritisch</span>
           </li>
-          <li>
+          <li class="status-help-dialog__legend-item status-help-dialog__legend-item--unknown">
             <span
               class="status-help-dialog__dot status-help-dialog__dot--unknown"
               aria-hidden="true"

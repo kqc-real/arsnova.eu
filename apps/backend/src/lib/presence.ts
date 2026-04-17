@@ -44,8 +44,22 @@ export async function countActiveParticipantsForSessions(
   sessionIds: readonly string[],
   nowMs: number = Date.now(),
 ): Promise<number> {
-  if (process.env['NODE_ENV'] === 'test') return 0;
-  if (sessionIds.length === 0) return 0;
+  const counts = await getActiveParticipantCountsForSessions(sessionIds, nowMs);
+  let sum = 0;
+  for (const count of counts.values()) {
+    if (count > 0) {
+      sum += count;
+    }
+  }
+  return sum;
+}
+
+export async function getActiveParticipantCountsForSessions(
+  sessionIds: readonly string[],
+  nowMs: number = Date.now(),
+): Promise<Map<string, number>> {
+  if (process.env['NODE_ENV'] === 'test') return new Map();
+  if (sessionIds.length === 0) return new Map();
 
   const cutoff = nowMs - PRESENCE_TTL_MS;
   const redis = getRedis();
@@ -58,9 +72,9 @@ export async function countActiveParticipantsForSessions(
 
   try {
     const execResult = await multi.exec();
-    if (!execResult) return 0;
+    if (!execResult) return new Map();
 
-    let sum = 0;
+    const counts = new Map<string, number>();
     for (let i = 0; i < sessionIds.length; i++) {
       const countTuple = execResult[i * 2 + 1];
       const countResult = countTuple?.[1];
@@ -70,11 +84,9 @@ export async function countActiveParticipantsForSessions(
           : typeof countResult === 'string'
             ? Number.parseInt(countResult, 10)
             : 0;
-      if (Number.isFinite(count) && count > 0) {
-        sum += count;
-      }
+      counts.set(sessionIds[i]!, Number.isFinite(count) && count > 0 ? count : 0);
     }
-    return sum;
+    return counts;
   } catch (err) {
     if (!countWarned) {
       countWarned = true;
@@ -83,6 +95,6 @@ export async function countActiveParticipantsForSessions(
         err,
       );
     }
-    return 0;
+    return new Map();
   }
 }
