@@ -72,6 +72,7 @@ export class AdminComponent implements OnInit {
   readonly listError = signal<string | null>(null);
   readonly sessions = signal<AdminSessionSummaryDTO[]>([]);
   readonly sessionTotal = signal(0);
+  readonly selectedSessionId = signal<string | null>(null);
 
   readonly lookupCode = signal('');
   readonly lookupLoading = signal(false);
@@ -191,6 +192,7 @@ export class AdminComponent implements OnInit {
     this.authenticated.set(false);
     this.sessions.set([]);
     this.sessionTotal.set(0);
+    this.selectedSessionId.set(null);
     this.selectedDetail.set(null);
     this.lookupCode.set('');
     this.lookupError.set(null);
@@ -207,7 +209,10 @@ export class AdminComponent implements OnInit {
     this.detailError.set(null);
     try {
       const detail = await trpc.admin.getSessionByCode.query({ code: this.lookupCode() });
+      this.upsertVisibleSession(detail.session);
+      this.selectedSessionId.set(detail.session.sessionId);
       this.selectedDetail.set(detail);
+      await this.scrollToSessionChip(detail.session.sessionId);
     } catch (error) {
       this.lookupError.set(
         this.extractErrorMessage(
@@ -224,6 +229,16 @@ export class AdminComponent implements OnInit {
     if (this.detailLoading()) {
       return;
     }
+    if (
+      this.selectedSessionId() === sessionId &&
+      this.selectedDetail()?.session.sessionId === sessionId
+    ) {
+      this.selectedSessionId.set(null);
+      this.selectedDetail.set(null);
+      this.detailError.set(null);
+      return;
+    }
+    this.selectedSessionId.set(sessionId);
     this.detailLoading.set(true);
     this.detailError.set(null);
     try {
@@ -244,6 +259,7 @@ export class AdminComponent implements OnInit {
           $localize`:@@admin.errorDetailSession:Session-Detail konnte nicht geladen werden.`,
         ),
       );
+      this.selectedDetail.set(null);
     } finally {
       this.detailLoading.set(false);
     }
@@ -311,6 +327,7 @@ export class AdminComponent implements OnInit {
       this.deleteInfo.set(
         $localize`:@@admin.sessionDeleted:Session ${result.sessionCode}:sessionCode: wurde endgültig gelöscht.`,
       );
+      this.selectedSessionId.set(null);
       this.selectedDetail.set(null);
       this.deleteReason.set('');
       this.deleteConfirmCode.set('');
@@ -488,6 +505,15 @@ export class AdminComponent implements OnInit {
     return session.participantCount + 1;
   }
 
+  isSessionSelected(sessionId: string): boolean {
+    return this.selectedSessionId() === sessionId;
+  }
+
+  selectedDetailForSession(sessionId: string): AdminSessionDetailDTO | null {
+    const detail = this.selectedDetail();
+    return detail?.session.sessionId === sessionId ? detail : null;
+  }
+
   sessionStatusLabel(status: SessionStatus): string {
     switch (status) {
       case 'LOBBY':
@@ -571,6 +597,14 @@ export class AdminComponent implements OnInit {
       const result = await trpc.admin.listSessions.query({ page: 1, pageSize: 25 });
       this.sessions.set(result.sessions);
       this.sessionTotal.set(result.total);
+      if (
+        this.selectedSessionId() &&
+        !result.sessions.some((session) => session.sessionId === this.selectedSessionId())
+      ) {
+        this.selectedSessionId.set(null);
+        this.selectedDetail.set(null);
+        this.detailError.set(null);
+      }
     } catch (error) {
       this.listError.set(
         this.extractErrorMessage(
@@ -581,6 +615,32 @@ export class AdminComponent implements OnInit {
     } finally {
       this.listLoading.set(false);
     }
+  }
+
+  private upsertVisibleSession(session: AdminSessionSummaryDTO): void {
+    this.sessions.update((current) => {
+      const existingIndex = current.findIndex((entry) => entry.sessionId === session.sessionId);
+      if (existingIndex === -1) {
+        return [...current, session];
+      }
+      return current.map((entry) => (entry.sessionId === session.sessionId ? session : entry));
+    });
+  }
+
+  private async scrollToSessionChip(sessionId: string): Promise<void> {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
+    }
+
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+
+    const chip = document.getElementById(this.sessionChipElementId(sessionId));
+    chip?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+  }
+
+  sessionChipElementId(sessionId: string): string {
+    return `admin-session-chip-${sessionId}`;
   }
 
   private extractErrorMessage(error: unknown, fallback: string): string {

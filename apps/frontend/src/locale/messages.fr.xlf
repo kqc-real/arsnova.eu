@@ -1324,22 +1324,6 @@
           <context context-type="linenumber">129,130</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="admin.detailTitle" datatype="html">
-        <source>Ausgewählte Session</source>
-        <target>Détail de la session</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
-          <context context-type="linenumber">141,142</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.detailCardSubtitle" datatype="html">
-        <source> Stammdaten, Aufbewahrung, Export für Behörden und Löschung.</source>
-        <target>Données de base, conservation, export pour les autorités et suppression.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
-          <context context-type="linenumber">143,144</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="admin.detailLoading" datatype="html">
         <source>Details werden geladen…</source>
         <target>Chargement des détails…</target>
@@ -1626,14 +1610,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
           <context context-type="linenumber">312,313</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="admin.detailPlaceholder" datatype="html">
-        <source> Wähle links eine Session aus der Liste oder gib oben einen gültigen Session-Code ein.</source>
-        <target>Sélectionne une session dans la liste à gauche ou saisis un code valide ci-dessus.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/admin/admin.component.html</context>
-          <context context-type="linenumber">317,318</context>
         </context-group>
       </trans-unit>
       <trans-unit id="admin.tabMotd" datatype="html">

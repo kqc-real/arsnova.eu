@@ -127,7 +127,11 @@
                             <button
                               matButton="tonal"
                               type="button"
+                              [id]="sessionChipElementId(session.sessionId)"
                               class="admin-list__item"
+                              [class.admin-list__item--selected]="
+                                isSessionSelected(session.sessionId)
+                              "
                               (click)="openSessionDetail(session.sessionId)"
                             >
                               <span class="admin-list__code">{{ session.sessionCode }}</span>
@@ -152,6 +156,239 @@
                                 {{ retentionLabel(session.retention.window) }}</span
                               >
                             </button>
+                            @if (isSessionSelected(session.sessionId)) {
+                              <section class="admin-list__detail" aria-live="polite">
+                                @if (detailLoading()) {
+                                  <p class="admin-help" i18n="@@admin.detailLoading">
+                                    Details werden geladen…
+                                  </p>
+                                } @else if (detailError(); as error) {
+                                  <p class="admin-error" role="alert">{{ error }}</p>
+                                } @else if (
+                                  selectedDetailForSession(session.sessionId);
+                                  as detail
+                                ) {
+                                  <div class="admin-detail__meta">
+                                    <p class="admin-detail__line">
+                                      <strong i18n="@@admin.metaCodeLabel">Code:</strong>
+                                      {{ detail.session.sessionCode }}
+                                    </p>
+                                    <p class="admin-detail__line">
+                                      <strong i18n="@@admin.metaStatusLabel">Status:</strong>
+                                      {{ sessionStatusLabel(detail.session.status) }}
+                                    </p>
+                                    <p class="admin-detail__line">
+                                      <strong i18n="@@admin.metaWindowLabel">Aufbewahrung:</strong>
+                                      {{ retentionLabel(detail.session.retention.window) }}
+                                    </p>
+                                    <p class="admin-detail__line">
+                                      <strong i18n="@@admin.metaTypeLabel">Typ:</strong>
+                                      {{ sessionTypeLabel(detail.session.type) }}
+                                    </p>
+                                    <p class="admin-detail__line">
+                                      <strong i18n="@@admin.metaParticipantsLabel"
+                                        >Teilnehmende:</strong
+                                      >
+                                      {{ detail.session.participantCount }}
+                                    </p>
+                                  </div>
+                                  @if (detail.title) {
+                                    <p class="admin-detail__line">
+                                      <strong i18n="@@admin.metaTitleLabel">Titel:</strong>
+                                      {{ detail.title }}
+                                    </p>
+                                  }
+                                  @if (
+                                    detail.session.retention.legalHoldUntil;
+                                    as legalHoldUntilIso
+                                  ) {
+                                    <p
+                                      class="admin-info"
+                                      role="status"
+                                      i18n="@@admin.legalHoldActiveUntil"
+                                    >
+                                      Sperre aktiv bis {{ formatDateTime(legalHoldUntilIso) }}.
+                                    </p>
+                                    @if (
+                                      detail.session.retention.legalHoldReason;
+                                      as legalHoldReason
+                                    ) {
+                                      <p class="admin-help" i18n="@@admin.legalHoldActiveReason">
+                                        Grund: {{ legalHoldReason }}
+                                      </p>
+                                    }
+                                  } @else {
+                                    <p class="admin-help" i18n="@@admin.legalHoldInactive">
+                                      Keine aktive Sperre gesetzt.
+                                    </p>
+                                  }
+                                  <div class="admin-actions admin-actions--hold">
+                                    <button
+                                      matButton="tonal"
+                                      class="admin-action-btn admin-action-btn--with-spinner"
+                                      type="button"
+                                      [disabled]="holdLoading()"
+                                      (click)="setLegalHold(true)"
+                                    >
+                                      @if (holdLoading()) {
+                                        <mat-progress-spinner diameter="16" mode="indeterminate" />
+                                      }
+                                      <span i18n="@@admin.legalHoldSet"
+                                        >Daten 30 Tage sperren (Legal Hold)</span
+                                      >
+                                    </button>
+                                    <button
+                                      matButton="tonal"
+                                      class="admin-action-btn admin-action-btn--with-spinner"
+                                      type="button"
+                                      [disabled]="holdLoading()"
+                                      (click)="setLegalHold(false)"
+                                    >
+                                      @if (holdLoading()) {
+                                        <mat-progress-spinner diameter="16" mode="indeterminate" />
+                                      }
+                                      <span i18n="@@admin.legalHoldRelease">Sperre aufheben</span>
+                                    </button>
+                                  </div>
+                                  @if (holdInfo(); as holdInfoText) {
+                                    <p class="admin-info" role="status">{{ holdInfoText }}</p>
+                                  }
+                                  @if (holdError(); as holdErrorText) {
+                                    <p class="admin-error" role="alert">{{ holdErrorText }}</p>
+                                  }
+                                  <div class="admin-actions admin-actions--export">
+                                    <button
+                                      mat-flat-button
+                                      class="admin-action-btn"
+                                      type="button"
+                                      [disabled]="exportLoading()"
+                                      (click)="exportForAuthorities('PDF')"
+                                      i18n="@@admin.exportPdf"
+                                    >
+                                      Als Compliance-Bericht (PDF) exportieren
+                                    </button>
+                                    <button
+                                      matButton="tonal"
+                                      class="admin-action-btn"
+                                      type="button"
+                                      [disabled]="exportLoading()"
+                                      (click)="exportSessionAsQuizImport()"
+                                      i18n="@@admin.exportJson"
+                                    >
+                                      Als Quiz-Importdatei (JSON) exportieren
+                                    </button>
+                                  </div>
+                                  @if (exportError(); as exportErrorText) {
+                                    <p class="admin-error" role="alert">{{ exportErrorText }}</p>
+                                  }
+                                  @if (exportInfo(); as exportInfoText) {
+                                    <p class="admin-info" role="status">{{ exportInfoText }}</p>
+                                  }
+                                  <section class="admin-delete admin-delete--single">
+                                    <h3
+                                      class="admin-delete__title"
+                                      i18n="@@admin.deleteSectionTitle"
+                                    >
+                                      Session endgültig löschen
+                                    </h3>
+                                    <p class="admin-help" i18n="@@admin.deleteHelp">
+                                      Das lässt sich nicht rückgängig machen. Trage optional einen
+                                      Grund ein und bestätige mit dem Session-Code.
+                                    </p>
+                                    <mat-form-field appearance="outline" class="admin-field">
+                                      <mat-label i18n="@@admin.deleteReasonLabel"
+                                        >Grund (optional)</mat-label
+                                      >
+                                      <textarea
+                                        matInput
+                                        rows="3"
+                                        maxlength="1000"
+                                        [disabled]="deleteLoading()"
+                                        [value]="deleteReason()"
+                                        (input)="updateDeleteReason($any($event.target).value)"
+                                      ></textarea>
+                                    </mat-form-field>
+                                    <mat-form-field
+                                      appearance="outline"
+                                      class="admin-field admin-field--code admin-field--danger-confirm"
+                                    >
+                                      <mat-label i18n="@@admin.deleteConfirmLabel"
+                                        >Session-Code zur Bestätigung</mat-label
+                                      >
+                                      <input
+                                        matInput
+                                        class="admin-input--code"
+                                        type="text"
+                                        [disabled]="deleteLoading()"
+                                        [value]="deleteConfirmCode()"
+                                        (input)="updateDeleteConfirmCode($any($event.target).value)"
+                                        maxlength="6"
+                                      />
+                                    </mat-form-field>
+                                    <div class="admin-actions admin-actions--delete">
+                                      <button
+                                        mat-flat-button
+                                        type="button"
+                                        class="admin-action-btn admin-btn-danger"
+                                        [disabled]="deleteLoading() || !canDeleteSelectedSession()"
+                                        (click)="deleteSelectedSession()"
+                                        i18n="@@admin.deleteButton"
+                                      >
+                                        @if (deleteLoading()) {
+                                          <mat-progress-spinner
+                                            diameter="18"
+                                            mode="indeterminate"
+                                          />
+                                        } @else {
+                                          <span>Session endgültig löschen</span>
+                                        }
+                                      </button>
+                                    </div>
+                                    @if (deleteError(); as deleteErrorText) {
+                                      <p class="admin-error" role="alert">{{ deleteErrorText }}</p>
+                                    }
+                                    @if (deleteInfo(); as deleteInfoText) {
+                                      <p class="admin-info" role="status">{{ deleteInfoText }}</p>
+                                    }
+                                  </section>
+                                  @if (detail.questions?.length) {
+                                    <div class="admin-questions">
+                                      @for (question of detail.questions!; track question.id) {
+                                        <article class="admin-question">
+                                          <p
+                                            class="admin-question__head"
+                                            i18n="@@admin.questionHead"
+                                          >
+                                            Frage {{ question.order + 1 }} · {{ question.type }}
+                                          </p>
+                                          <p class="admin-question__text">
+                                            {{ renderMarkdownText(question.text) }}
+                                          </p>
+                                          @if (question.answers.length > 0) {
+                                            <ul class="admin-question__answers">
+                                              @for (answer of question.answers; track answer.id) {
+                                                <li>
+                                                  <span>{{ renderMarkdownText(answer.text) }}</span>
+                                                  @if (answer.isCorrect) {
+                                                    <strong i18n="@@admin.answerCorrectSuffix"
+                                                      >(korrekt)</strong
+                                                    >
+                                                  }
+                                                </li>
+                                              }
+                                            </ul>
+                                          }
+                                        </article>
+                                      }
+                                    </div>
+                                  } @else {
+                                    <p class="admin-help" i18n="@@admin.noQuestions">
+                                      Keine Quiz-Fragen in dieser Session vorhanden.
+                                    </p>
+                                  }
+                                }
+                              </section>
+                            }
                           }
                         </div>
                       </section>
@@ -284,222 +521,6 @@
                     }
                   </section>
                 </div>
-              </mat-card-content>
-            </mat-card>
-
-            <mat-card appearance="outlined" class="admin-card">
-              <mat-card-header>
-                <mat-card-title i18n="@@admin.detailTitle">Ausgewählte Session</mat-card-title>
-                <mat-card-subtitle i18n="@@admin.detailCardSubtitle">
-                  Stammdaten, Aufbewahrung, Export für Behörden und Löschung.
-                </mat-card-subtitle>
-              </mat-card-header>
-              <mat-card-content>
-                @if (detailError(); as error) {
-                  <p class="admin-error" role="alert">{{ error }}</p>
-                }
-                @if (detailLoading()) {
-                  <p class="admin-help" i18n="@@admin.detailLoading">Details werden geladen…</p>
-                } @else if (selectedDetail(); as detail) {
-                  <div class="admin-detail__meta">
-                    <p class="admin-detail__line">
-                      <strong i18n="@@admin.metaCodeLabel">Code:</strong>
-                      {{ detail.session.sessionCode }}
-                    </p>
-                    <p class="admin-detail__line">
-                      <strong i18n="@@admin.metaStatusLabel">Status:</strong>
-                      {{ sessionStatusLabel(detail.session.status) }}
-                    </p>
-                    <p class="admin-detail__line">
-                      <strong i18n="@@admin.metaWindowLabel">Aufbewahrung:</strong>
-                      {{ retentionLabel(detail.session.retention.window) }}
-                    </p>
-                    <p class="admin-detail__line">
-                      <strong i18n="@@admin.metaTypeLabel">Typ:</strong>
-                      {{ sessionTypeLabel(detail.session.type) }}
-                    </p>
-                    <p class="admin-detail__line">
-                      <strong i18n="@@admin.metaParticipantsLabel">Teilnehmende:</strong>
-                      {{ detail.session.participantCount }}
-                    </p>
-                  </div>
-                  @if (detail.title) {
-                    <p class="admin-detail__line">
-                      <strong i18n="@@admin.metaTitleLabel">Titel:</strong> {{ detail.title }}
-                    </p>
-                  }
-                  @if (detail.session.retention.legalHoldUntil; as legalHoldUntilIso) {
-                    <p class="admin-info" role="status" i18n="@@admin.legalHoldActiveUntil">
-                      Sperre aktiv bis {{ formatDateTime(legalHoldUntilIso) }}.
-                    </p>
-                    @if (detail.session.retention.legalHoldReason; as legalHoldReason) {
-                      <p class="admin-help" i18n="@@admin.legalHoldActiveReason">
-                        Grund: {{ legalHoldReason }}
-                      </p>
-                    }
-                  } @else {
-                    <p class="admin-help" i18n="@@admin.legalHoldInactive">
-                      Keine aktive Sperre gesetzt.
-                    </p>
-                  }
-                  <div class="admin-actions admin-actions--hold">
-                    <button
-                      matButton="tonal"
-                      class="admin-action-btn admin-action-btn--with-spinner"
-                      type="button"
-                      [disabled]="holdLoading()"
-                      (click)="setLegalHold(true)"
-                    >
-                      @if (holdLoading()) {
-                        <mat-progress-spinner diameter="16" mode="indeterminate" />
-                      }
-                      <span i18n="@@admin.legalHoldSet">Daten 30 Tage sperren (Legal Hold)</span>
-                    </button>
-                    <button
-                      matButton="tonal"
-                      class="admin-action-btn admin-action-btn--with-spinner"
-                      type="button"
-                      [disabled]="holdLoading()"
-                      (click)="setLegalHold(false)"
-                    >
-                      @if (holdLoading()) {
-                        <mat-progress-spinner diameter="16" mode="indeterminate" />
-                      }
-                      <span i18n="@@admin.legalHoldRelease">Sperre aufheben</span>
-                    </button>
-                  </div>
-                  @if (holdInfo(); as holdInfoText) {
-                    <p class="admin-info" role="status">{{ holdInfoText }}</p>
-                  }
-                  @if (holdError(); as holdErrorText) {
-                    <p class="admin-error" role="alert">{{ holdErrorText }}</p>
-                  }
-
-                  <div class="admin-actions admin-actions--export">
-                    <button
-                      mat-flat-button
-                      class="admin-action-btn"
-                      type="button"
-                      [disabled]="exportLoading()"
-                      (click)="exportForAuthorities('PDF')"
-                      i18n="@@admin.exportPdf"
-                    >
-                      Als Compliance-Bericht (PDF) exportieren
-                    </button>
-                    <button
-                      matButton="tonal"
-                      class="admin-action-btn"
-                      type="button"
-                      [disabled]="exportLoading()"
-                      (click)="exportSessionAsQuizImport()"
-                      i18n="@@admin.exportJson"
-                    >
-                      Als Quiz-Importdatei (JSON) exportieren
-                    </button>
-                  </div>
-                  @if (exportError(); as exportErrorText) {
-                    <p class="admin-error" role="alert">{{ exportErrorText }}</p>
-                  }
-                  @if (exportInfo(); as exportInfoText) {
-                    <p class="admin-info" role="status">{{ exportInfoText }}</p>
-                  }
-
-                  <section class="admin-delete admin-delete--single">
-                    <h3 class="admin-delete__title" i18n="@@admin.deleteSectionTitle">
-                      Session endgültig löschen
-                    </h3>
-                    <p class="admin-help" i18n="@@admin.deleteHelp">
-                      Das lässt sich nicht rückgängig machen. Trage optional einen Grund ein und
-                      bestätige mit dem Session-Code.
-                    </p>
-                    <mat-form-field appearance="outline" class="admin-field">
-                      <mat-label i18n="@@admin.deleteReasonLabel">Grund (optional)</mat-label>
-                      <textarea
-                        matInput
-                        rows="3"
-                        maxlength="1000"
-                        [disabled]="deleteLoading()"
-                        [value]="deleteReason()"
-                        (input)="updateDeleteReason($any($event.target).value)"
-                      ></textarea>
-                    </mat-form-field>
-                    <mat-form-field
-                      appearance="outline"
-                      class="admin-field admin-field--code admin-field--danger-confirm"
-                    >
-                      <mat-label i18n="@@admin.deleteConfirmLabel"
-                        >Session-Code zur Bestätigung</mat-label
-                      >
-                      <input
-                        matInput
-                        class="admin-input--code"
-                        type="text"
-                        [disabled]="deleteLoading()"
-                        [value]="deleteConfirmCode()"
-                        (input)="updateDeleteConfirmCode($any($event.target).value)"
-                        maxlength="6"
-                      />
-                    </mat-form-field>
-                    <div class="admin-actions admin-actions--delete">
-                      <button
-                        mat-flat-button
-                        type="button"
-                        class="admin-action-btn admin-btn-danger"
-                        [disabled]="deleteLoading() || !canDeleteSelectedSession()"
-                        (click)="deleteSelectedSession()"
-                        i18n="@@admin.deleteButton"
-                      >
-                        @if (deleteLoading()) {
-                          <mat-progress-spinner diameter="18" mode="indeterminate" />
-                        } @else {
-                          <span>Session endgültig löschen</span>
-                        }
-                      </button>
-                    </div>
-                    @if (deleteError(); as deleteErrorText) {
-                      <p class="admin-error" role="alert">{{ deleteErrorText }}</p>
-                    }
-                    @if (deleteInfo(); as deleteInfoText) {
-                      <p class="admin-info" role="status">{{ deleteInfoText }}</p>
-                    }
-                  </section>
-
-                  @if (detail.questions?.length) {
-                    <div class="admin-questions">
-                      @for (question of detail.questions!; track question.id) {
-                        <article class="admin-question">
-                          <p class="admin-question__head" i18n="@@admin.questionHead">
-                            Frage {{ question.order + 1 }} · {{ question.type }}
-                          </p>
-                          <p class="admin-question__text">
-                            {{ renderMarkdownText(question.text) }}
-                          </p>
-                          @if (question.answers.length > 0) {
-                            <ul class="admin-question__answers">
-                              @for (answer of question.answers; track answer.id) {
-                                <li>
-                                  <span>{{ renderMarkdownText(answer.text) }}</span>
-                                  @if (answer.isCorrect) {
-                                    <strong i18n="@@admin.answerCorrectSuffix">(korrekt)</strong>
-                                  }
-                                </li>
-                              }
-                            </ul>
-                          }
-                        </article>
-                      }
-                    </div>
-                  } @else {
-                    <p class="admin-help" i18n="@@admin.noQuestions">
-                      Keine Quiz-Fragen in dieser Session vorhanden.
-                    </p>
-                  }
-                } @else {
-                  <p class="admin-help" i18n="@@admin.detailPlaceholder">
-                    Wähle links eine Session aus der Liste oder gib oben einen gültigen Session-Code
-                    ein.
-                  </p>
-                }
               </mat-card-content>
             </mat-card>
           </div>
