@@ -8,15 +8,28 @@
     role="toolbar"
     i18n-aria-label="@@mdEditor.toolbarAria"
     aria-label="Markdown-Werkzeugleiste"
+    (pointerdown.capture)="onToolbarPointerDownCapture($event)"
   >
+    <button
+      mat-icon-button
+      type="button"
+      (click)="applyHeading(2)"
+      [disabled]="disabled"
+      [matTooltip]="mdToolbarLabel.heading"
+      [matTooltipDisabled]="disabled"
+      [attr.aria-label]="mdToolbarLabel.heading"
+    >
+      <mat-icon aria-hidden="true">title</mat-icon>
+    </button>
     <button
       #boldBtn
       mat-icon-button
       type="button"
       (click)="applyBold()"
       [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.boldAria"
-      aria-label="Fett"
+      [matTooltip]="mdToolbarLabel.bold"
+      [matTooltipDisabled]="disabled"
+      [attr.aria-label]="mdToolbarLabel.bold"
     >
       <mat-icon aria-hidden="true">format_bold</mat-icon>
     </button>
@@ -26,89 +39,145 @@
       type="button"
       (click)="applyItalic()"
       [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.italicAria"
-      aria-label="Kursiv"
+      [matTooltip]="mdToolbarLabel.italic"
+      [matTooltipDisabled]="disabled"
+      [attr.aria-label]="mdToolbarLabel.italic"
     >
       <mat-icon aria-hidden="true">format_italic</mat-icon>
     </button>
     <button
-      mat-icon-button
-      type="button"
-      (click)="applyInlineCode()"
-      [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.inlineCodeAria"
-      aria-label="Inline-Code"
-    >
-      <mat-icon aria-hidden="true">code</mat-icon>
-    </button>
-    <button
-      mat-icon-button
-      type="button"
-      (click)="applyBulletList()"
-      [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.bulletListAria"
-      aria-label="Liste"
-    >
-      <mat-icon aria-hidden="true">format_list_bulleted</mat-icon>
-    </button>
-    <button
-      mat-icon-button
-      type="button"
-      (click)="applyQuote()"
-      [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.quoteAria"
-      aria-label="Zitat"
-    >
-      <mat-icon aria-hidden="true">format_quote</mat-icon>
-    </button>
-    <button
-      mat-icon-button
-      type="button"
-      (click)="applyInlineMath()"
-      [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.inlineMathAria"
-      aria-label="Inline-Formel"
-    >
-      <mat-icon aria-hidden="true">functions</mat-icon>
-    </button>
-    <button
-      mat-icon-button
-      type="button"
-      (click)="openLinkDialog($event)"
-      [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.linkAria"
-      aria-label="Link einfügen"
-    >
-      <mat-icon aria-hidden="true">link</mat-icon>
-    </button>
-    <button
-      mat-icon-button
-      type="button"
-      (click)="openImageDialog($event)"
-      [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.imageAria"
-      aria-label="Bild einfügen"
-    >
-      <mat-icon aria-hidden="true">image</mat-icon>
-    </button>
-
-    <button
+      class="mk-editor__toolbar-overflow"
       mat-icon-button
       type="button"
       [matMenuTriggerFor]="overflow"
       [disabled]="disabled"
-      i18n-aria-label="@@mdEditor.moreActionsAria"
-      aria-label="Weitere Aktionen"
+      [matTooltip]="mdToolbarLabel.more"
+      [matTooltipDisabled]="disabled"
+      [attr.aria-label]="mdToolbarLabel.more"
     >
       <mat-icon aria-hidden="true">more_vert</mat-icon>
     </button>
+    <div class="mk-editor__toolbar-rest">
+      <button
+        mat-icon-button
+        type="button"
+        (click)="applyBulletList()"
+        [disabled]="disabled"
+        [matTooltip]="mdToolbarLabel.list"
+        [matTooltipDisabled]="disabled"
+        [attr.aria-label]="mdToolbarLabel.list"
+      >
+        <mat-icon aria-hidden="true">format_list_bulleted</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="applyQuote()"
+        [disabled]="disabled"
+        [matTooltip]="mdToolbarLabel.quote"
+        [matTooltipDisabled]="disabled"
+        [attr.aria-label]="mdToolbarLabel.quote"
+      >
+        <mat-icon aria-hidden="true">format_quote</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="applyInlineCode()"
+        [disabled]="disabled"
+        [matTooltip]="mdToolbarLabel.inlineCode"
+        [matTooltipDisabled]="disabled"
+        [attr.aria-label]="mdToolbarLabel.inlineCode"
+      >
+        <mat-icon aria-hidden="true">code</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="applyInlineMath()"
+        [disabled]="disabled"
+        [matTooltip]="mdToolbarLabel.inlineMath"
+        [matTooltipDisabled]="disabled"
+        [attr.aria-label]="mdToolbarLabel.inlineMath"
+      >
+        <mat-icon aria-hidden="true">functions</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="openLinkDialog($event)"
+        [disabled]="disabled"
+        [matTooltip]="mdToolbarLabel.link"
+        [matTooltipDisabled]="disabled"
+        [attr.aria-label]="mdToolbarLabel.link"
+      >
+        <mat-icon aria-hidden="true">link</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        (click)="openImageDialog($event)"
+        [disabled]="disabled"
+        [matTooltip]="mdToolbarLabel.image"
+        [matTooltipDisabled]="disabled"
+        [attr.aria-label]="mdToolbarLabel.image"
+      >
+        <mat-icon aria-hidden="true">image</mat-icon>
+      </button>
+
+      <div class="mk-editor__toolbar-wide">
+        <button
+          mat-icon-button
+          type="button"
+          (click)="applyCodeBlock()"
+          [disabled]="disabled"
+          [matTooltip]="mdToolbarLabel.codeBlock"
+          [matTooltipDisabled]="disabled"
+          [attr.aria-label]="mdToolbarLabel.codeBlock"
+        >
+          <mat-icon aria-hidden="true">view_agenda</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          (click)="applyBlockMath()"
+          [disabled]="disabled"
+          [matTooltip]="mdToolbarLabel.blockMath"
+          [matTooltipDisabled]="disabled"
+          [attr.aria-label]="mdToolbarLabel.blockMath"
+        >
+          <mat-icon aria-hidden="true">calculate</mat-icon>
+        </button>
+      </div>
+    </div>
+
     <mat-menu #overflow="matMenu">
-      <button mat-menu-item type="button" (click)="applyHeading(2)">
-        <mat-icon aria-hidden="true">title</mat-icon>
-        <span i18n="@@mdEditor.menu.heading2">Überschrift</span>
+      <button mat-menu-item type="button" (click)="applyBulletList()">
+        <mat-icon aria-hidden="true">format_list_bulleted</mat-icon>
+        <span i18n="@@mdEditor.menu.bulletList">Liste</span>
+      </button>
+      <button mat-menu-item type="button" (click)="applyQuote()">
+        <mat-icon aria-hidden="true">format_quote</mat-icon>
+        <span i18n="@@mdEditor.menu.quote">Zitat</span>
+      </button>
+      <button mat-menu-item type="button" (click)="applyInlineCode()">
+        <mat-icon aria-hidden="true">code</mat-icon>
+        <span i18n="@@mdEditor.menu.inlineCode">Inline-Code</span>
+      </button>
+      <button mat-menu-item type="button" (click)="applyInlineMath()">
+        <mat-icon aria-hidden="true">functions</mat-icon>
+        <span i18n="@@mdEditor.menu.inlineMath">Inline-Formel</span>
+      </button>
+      <button mat-menu-item type="button" (click)="openLinkDialog($event)">
+        <mat-icon aria-hidden="true">link</mat-icon>
+        <span i18n="@@mdEditor.menu.link">Link einfügen</span>
+      </button>
+      <button mat-menu-item type="button" (click)="openImageDialog($event)">
+        <mat-icon aria-hidden="true">image</mat-icon>
+        <span i18n="@@mdEditor.menu.image">Bild einfügen</span>
       </button>
       <button mat-menu-item type="button" (click)="applyCodeBlock()">
-        <mat-icon aria-hidden="true">code_blocks</mat-icon>
+        <mat-icon aria-hidden="true">view_agenda</mat-icon>
         <span i18n="@@mdEditor.menu.codeBlock">Codeblock</span>
       </button>
       <button mat-menu-item type="button" (click)="applyBlockMath()">
@@ -119,23 +188,26 @@
   </div>
 
   <div class="mk-editor__split">
-    <textarea
-      #field
-      class="mk-editor__field"
-      [attr.placeholder]="placeholder"
-      [disabled]="disabled"
-      [rows]="rows"
-      [value]="rawValue()"
-      (input)="onInput(field.value)"
-    ></textarea>
+    <div class="mk-editor__source">
+      <textarea
+        #field
+        class="mk-editor__field"
+        [attr.placeholder]="placeholder"
+        [disabled]="disabled"
+        [rows]="rows"
+        (input)="onInput(field.value)"
+      ></textarea>
+    </div>
     <div class="mk-editor__preview">
       <div class="mk-editor__preview-head" aria-hidden="true">
         <mat-icon class="mk-editor__preview-icon" aria-hidden="true">visibility</mat-icon>
         <span class="mk-editor__preview-label" i18n="@@mdEditor.previewLabel">Vorschau</span>
       </div>
-      <p class="mk-editor__preview-hint" aria-hidden="true" i18n="@@mdEditor.previewHint">
-        Nur zur Ansicht – du bearbeitest links.
-      </p>
+      @if (!compact) {
+        <p class="mk-editor__preview-hint" aria-hidden="true" i18n="@@mdEditor.previewHint">
+          Nur zur Ansicht – du bearbeitest links.
+        </p>
+      }
       <div class="mk-editor__preview-body" [innerHTML]="preview()"></div>
     </div>
   </div>

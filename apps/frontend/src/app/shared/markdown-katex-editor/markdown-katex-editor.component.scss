@@ -1,33 +1,81 @@
 .mk-editor {
   display: grid;
   gap: 0.5rem;
+  /* In Grid-/Flex-Eltern (z. B. Quiz-Antwortzeilen) sonst Mindestbreite = Toolbar-Breite → Overflow */
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  container-type: inline-size;
+  container-name: mk-editor;
 }
 
 .mk-editor__toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.25rem;
   border-radius: var(--mat-sys-corner-medium);
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
+  min-width: 0;
+}
+
+/* Schmale Spalte: nur Überschrift/Fett/Kursiv + „Mehr“; Rest im Menü */
+.mk-editor__toolbar-rest {
+  display: none;
+}
+
+.mk-editor__toolbar-wide {
+  display: none;
+}
+
+/*
+ * Ab ca. 26rem Editor-Breite: alle Icons in der Leiste, kein Overflow-Button.
+ */
+@container mk-editor (min-width: 26rem) {
+  .mk-editor__toolbar-rest {
+    display: contents;
+  }
+
+  .mk-editor__toolbar-wide {
+    display: contents;
+  }
+
+  /* Material setzt am Icon-Button display: inline-flex — ohne !important gewinnt es */
+  .mk-editor__toolbar > button.mk-editor__toolbar-overflow {
+    display: none !important;
+  }
 }
 
 .mk-editor__split {
   display: grid;
   gap: 0.75rem;
   grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.mk-editor__source {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
 @media (min-width: 900px) {
   .mk-editor__split {
     grid-template-columns: 1fr 1fr;
-    align-items: start;
+    /* Gleiche Zeilenhöhe: Quelle und Vorschau so hoch wie die jeweils höhere Spalte */
+    align-items: stretch;
   }
 }
 
 .mk-editor__field {
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
   font: inherit;
   resize: vertical;
   min-height: 6rem;
@@ -46,6 +94,12 @@
 }
 
 .mk-editor__preview {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
   padding: 0.75rem;
   border-radius: var(--mat-sys-corner-large);
   border: 1px solid var(--mat-sys-outline-variant);
@@ -76,6 +130,8 @@
 
 .mk-editor__preview-body {
   display: block;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .mk-editor__preview-hint {
@@ -182,11 +238,26 @@
   gap: 0.5rem;
 }
 
+.mk-editor--compact .mk-editor__source {
+  max-height: 8rem;
+}
+
 .mk-editor--compact .mk-editor__field {
   min-height: 4rem;
 }
 
+/* Kompakt: keine zweite Hinweiszeile; Höhe gilt für den gerenderten Inhalt, nicht für Badge+Hinweis */
 .mk-editor--compact .mk-editor__preview {
+  overflow: visible;
+}
+
+.mk-editor--compact .mk-editor__preview-head {
+  margin: 0 0 0.35rem;
+  padding: 0.1rem 0.45rem;
+}
+
+.mk-editor--compact .mk-editor__preview-body {
   max-height: 8rem;
+  min-height: 4.5rem;
   overflow: auto;
 }

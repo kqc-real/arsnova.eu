@@ -7100,8 +7100,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editModeTitle" datatype="html">
-        <source> Diese Folie bearbeiten</source>
-        <target>Editar esta diapositiva</target>
+        <source> Diese Frage bearbeiten</source>
+        <target>Editar esta pregunta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">171,172</context>
@@ -12321,9 +12321,41 @@
         <source>Weitere Aktionen</source>
         <target>Más acciones</target>
       </trans-unit>
-      <trans-unit id="mdEditor.menu.heading2" datatype="html">
+      <trans-unit id="mdEditor.toolbarHeading2Aria" datatype="html">
         <source>Überschrift</source>
         <target>Título</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.toolbarCodeBlockAria" datatype="html">
+        <source>Codeblock</source>
+        <target>Bloque de código</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.toolbarBlockMathAria" datatype="html">
+        <source>Block-Formel</source>
+        <target>Fórmula en bloque</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.bulletList" datatype="html">
+        <source>Liste</source>
+        <target>Lista</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.quote" datatype="html">
+        <source>Zitat</source>
+        <target>Cita</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.inlineCode" datatype="html">
+        <source>Inline-Code</source>
+        <target>Código en línea</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.inlineMath" datatype="html">
+        <source>Inline-Formel</source>
+        <target>Fórmula en línea</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.link" datatype="html">
+        <source>Link einfügen</source>
+        <target>Insertar enlace</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.image" datatype="html">
+        <source>Bild einfügen</source>
+        <target>Insertar imagen</target>
       </trans-unit>
       <trans-unit id="mdEditor.menu.codeBlock" datatype="html">
         <source>Codeblock</source>

@@ -69,3 +69,10 @@ h3.dialog-title-header__heading {
   color: var(--mat-sys-on-surface-variant);
   max-width: 42ch;
 }
+
+/* Markdown Link/Bild-Dialoge: Content-Padding (Material-Internals → global in styles.scss, Panel-Klasse). */
+.md-markdown-insert-dialog__content {
+  padding-top: 1.75rem;
+  padding-bottom: 0.875rem;
+  box-sizing: border-box;
+}

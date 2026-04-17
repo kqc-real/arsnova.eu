@@ -22,6 +22,36 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.html).toContain('KaTeX-Fehler');
   });
 
+  it('toleriert Backslash-n-Artefakte in Block-Math (kein Undefined control sequence)', () => {
+    const result = renderMarkdownWithKatex(String.raw`$$\n$$`);
+
+    expect(result.katexError).toBeNull();
+    expect(result.html).toContain('katex');
+  });
+
+  it('lässt \\neq in Block-Math unverändert gültig rendern', () => {
+    const result = renderMarkdownWithKatex(String.raw`$$\neq 0$$`);
+
+    expect(result.katexError).toBeNull();
+    expect(result.html).toContain('katex');
+  });
+
+  it('toleriert Backslash-n-Artefakte in Inline-Math', () => {
+    const result = renderMarkdownWithKatex(String.raw`$\n$`);
+
+    expect(result.katexError).toBeNull();
+    expect(result.html).toContain('katex');
+  });
+
+  it('behält KaTeX-HTML-Styles nach DOMPurify (mehrzeiliges Block-Math)', () => {
+    const result = renderMarkdownWithKatex('$$\nx^2\n$$');
+
+    expect(result.katexError).toBeNull();
+    expect(result.html).toContain('katex');
+    expect(result.html).toContain('style=');
+    expect(result.html).toContain('display="block"');
+  });
+
   it('escaped eingebettetes HTML aus Markdown-Text', () => {
     const result = renderMarkdownWithKatex('<img src=x onerror=alert(1)>');
 

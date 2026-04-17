@@ -335,6 +335,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+  min-width: 0;
 }
 
 .quiz-preview-editor__header {
@@ -406,6 +407,8 @@
 .quiz-preview-editor__textarea,
 .quiz-preview-editor__answer-input {
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-medium);
   padding: 0.8rem 0.9rem;
@@ -436,13 +439,15 @@
 
 .quiz-preview-editor__answer-row {
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  /* minmax(0, 1fr): Editor-Spalte darf unter Mindestbreite des Inhalts schrumpfen (Toolbar wrap) */
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-large);
   background: var(--mat-sys-surface);
+  min-width: 0;
 }
 
 .quiz-preview-editor__answer-row--correct {
@@ -489,9 +494,27 @@
   z-index: 4;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  padding-top: 0.25rem;
-  background: linear-gradient(to top, var(--mat-sys-surface-container-low) 75%, transparent);
+  margin-top: 0.5rem;
+  padding: 0.75rem 0.85rem calc(0.7rem + env(safe-area-inset-bottom, 0));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 90%, transparent);
+  border-radius: var(--mat-sys-corner-large);
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-highest) 92%,
+    var(--mat-sys-surface)
+  );
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 1px 0 color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
+}
+
+@supports (backdrop-filter: blur(10px)) {
+  .quiz-preview-editor__actions {
+    backdrop-filter: blur(8px);
+  }
 }
 
 .quiz-preview__bottom-bar {
@@ -709,7 +732,7 @@
   }
 
   .quiz-preview-editor__answer-row {
-    grid-template-columns: auto auto 1fr;
+    grid-template-columns: auto auto minmax(0, 1fr);
   }
 
   .quiz-preview-editor__answer-state {

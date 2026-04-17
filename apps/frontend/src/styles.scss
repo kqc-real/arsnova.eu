@@ -1238,6 +1238,51 @@ $markdown-katex-flow-hosts:
   -webkit-overflow-scrolling: touch;
 }
 
+/* Markdown „Link/Bild einfügen“: Clipping kommt von Dialog-/MDC-Containern (nicht aus Component-SCSS erreichbar). */
+.cdk-overlay-pane.md-markdown-insert-dialog-panel .mat-mdc-dialog-inner-container,
+.cdk-overlay-pane.md-markdown-insert-dialog-panel .mdc-dialog__container,
+.cdk-overlay-pane.md-markdown-insert-dialog-panel .mat-mdc-dialog-container {
+  overflow: visible !important;
+}
+
+.cdk-overlay-pane.md-markdown-insert-dialog-panel .mat-mdc-dialog-surface {
+  overflow: visible !important;
+}
+
+.cdk-overlay-pane.md-markdown-insert-dialog-panel
+  .mat-mdc-dialog-content.md-markdown-insert-dialog__content {
+  padding-top: 2rem !important;
+  padding-bottom: 1rem !important;
+  overflow: visible !important;
+}
+
+.cdk-overlay-pane.md-markdown-insert-dialog-panel
+  .md-markdown-insert-dialog__content
+  .mat-mdc-form-field,
+.cdk-overlay-pane.md-markdown-insert-dialog-panel
+  .md-markdown-insert-dialog__content
+  .mat-mdc-text-field-wrapper,
+.cdk-overlay-pane.md-markdown-insert-dialog-panel
+  .md-markdown-insert-dialog__content
+  .mdc-notched-outline,
+.cdk-overlay-pane.md-markdown-insert-dialog-panel
+  .md-markdown-insert-dialog__content
+  .mat-mdc-notch-piece {
+  overflow: visible !important;
+}
+
+/* „100%“ bezieht sich auf den schmalen MDC-Label-Wrapper → Ellipsis („Text“ → „Tex“). */
+.cdk-overlay-pane.md-markdown-insert-dialog-panel
+  .md-markdown-insert-dialog__content
+  .mat-mdc-floating-label,
+.cdk-overlay-pane.md-markdown-insert-dialog-panel
+  .md-markdown-insert-dialog__content
+  .mdc-floating-label {
+  max-width: none !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mat-mdc-dialog-container .mat-mdc-dialog-surface,
   .cdk-overlay-backdrop.cdk-overlay-backdrop-showing {

@@ -9,6 +9,17 @@ export interface MarkdownRenderResult {
 
 export type MarkdownImagePolicy = 'external-https-only' | 'allow-relative-and-https';
 
+/**
+ * Bereinigt typische Nutzer-/Escape-Artefakte vor KaTeX.
+ * `\\n` (Backslash + „n“) ist in KaTeX keine gültige Sequenz und erzeugt „Undefined control sequence: \\n“.
+ * Commands wie `\\neq`, `\\nabla`, `\\not`, `\\newline` bleiben erhalten (nach `\\n` folgt ein Buchstabe).
+ */
+function normalizeMathExpressionBeforeKatex(raw: string): string {
+  let s = raw.trim();
+  s = s.replace(/\\n(?![a-zA-Z])/g, ' ');
+  return s.trim();
+}
+
 export function renderMarkdownWithKatex(
   source = '',
   options?: { imagePolicy?: MarkdownImagePolicy },
@@ -23,9 +34,10 @@ export function renderMarkdownWithKatex(
   };
 
   const renderExpression = (expression: string, displayMode: boolean): string => {
+    const normalized = normalizeMathExpressionBeforeKatex(expression);
     try {
       return storeRenderedMath(
-        katex.renderToString(expression.trim(), {
+        katex.renderToString(normalized, {
           displayMode,
           throwOnError: true,
           strict: 'warn',
@@ -250,6 +262,10 @@ function sanitizeMarkdownHtml(html: string): string {
       'aria-hidden',
       'xmlns',
       'encoding',
+      // KaTeX: Layout über tausende inline style=… auf span; ohne diese wirken Formeln „kaputt“/abgeschnitten.
+      'style',
+      // MathML: <math display="block"> …
+      'display',
     ],
   });
 }

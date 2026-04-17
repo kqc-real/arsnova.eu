@@ -25,7 +25,7 @@ export interface MarkdownImageDialogResult {
     MatInputModule,
   ],
   templateUrl: './markdown-image-dialog.component.html',
-  styleUrls: ['../styles/dialog-title-header.scss'],
+  styleUrls: ['../styles/dialog-title-header.scss', './markdown-image-dialog.component.scss'],
 })
 export class MarkdownImageDialogComponent {
   private readonly dialogRef = inject(

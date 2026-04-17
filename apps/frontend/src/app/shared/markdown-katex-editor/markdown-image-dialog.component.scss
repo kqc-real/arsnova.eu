@@ -1,0 +1,18 @@
+:host {
+  display: block;
+  box-sizing: border-box;
+}
+
+.md-markdown-insert-dialog__form {
+  padding-top: 0.125rem;
+}
+
+.md-markdown-insert-dialog__form mat-form-field {
+  width: 100%;
+}
+
+/* MDC: volle Infix-Breite; Label-Notch nicht horizontal quetschen */
+:host ::ng-deep .md-markdown-insert-dialog__form .mat-mdc-form-field-infix {
+  width: 100%;
+  min-width: 0;
+}

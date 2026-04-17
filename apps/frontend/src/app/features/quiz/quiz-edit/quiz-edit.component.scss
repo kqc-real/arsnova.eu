@@ -340,9 +340,11 @@
 
 .quiz-edit-answer {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  /* minmax(0, 1fr): sonst Mindestbreite = Inhalt (z. B. Markdown-Toolbar) → horizontales Überlaufen */
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.75rem;
   align-items: start;
+  min-width: 0;
 }
 
 .quiz-edit-answer__selector {
@@ -359,6 +361,7 @@
 
 .quiz-edit-answer__field {
   width: 100%;
+  min-width: 0;
 }
 
 .quiz-edit-answer__remove {
@@ -368,14 +371,17 @@
 .quiz-edit-form__markdown-field {
   display: grid;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .quiz-edit-form__markdown-hints {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
   font-size: 0.85rem;
   opacity: 0.85;
+  min-width: 0;
 }
 
 .quiz-edit-form__markdown-count {
