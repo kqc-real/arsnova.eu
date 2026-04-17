@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizNewComponent } from './quiz-new.component';
 import { QuizStoreService } from '../data/quiz-store.service';
@@ -9,13 +11,28 @@ describe('QuizNewComponent', () => {
     createQuiz: vi.fn(),
   };
 
+  const matDialogMock = {
+    open: vi.fn(() => ({
+      afterClosed: () => of(true),
+    })),
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    matDialogMock.open.mockReset();
+    matDialogMock.open.mockImplementation(() => ({
+      afterClosed: () => of(true),
+    }));
     TestBed.configureTestingModule({
       imports: [QuizNewComponent],
-      providers: [provideRouter([]), { provide: QuizStoreService, useValue: mockStore }],
+      providers: [
+        provideRouter([]),
+        { provide: QuizStoreService, useValue: mockStore },
+        { provide: MatDialog, useValue: matDialogMock },
+      ],
     });
+    TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
   });
 
   it('erstellt ein Quiz und navigiert zum Editor', async () => {

@@ -345,6 +345,11 @@
   gap: 0.75rem;
   align-items: start;
   min-width: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--mat-sys-on-surface) 5%, transparent);
 }
 
 .quiz-edit-answer__selector {
@@ -374,9 +379,14 @@
   min-width: 0;
 }
 
+.quiz-edit-form__markdown-label {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+}
+
 .quiz-edit-form__markdown-hints {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 0.75rem;
   font-size: 0.85rem;
@@ -412,6 +422,33 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+/* Nur Frage-Editor (Hinzufügen/Aktualisieren): eigene Leiste — bewusst getrennt von Preview-Styles (kein Shared-Partial). */
+.quiz-edit-form__actions--question-bar {
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 90%, transparent);
+  border-radius: var(--mat-sys-corner-large);
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-highest) 92%,
+    var(--mat-sys-surface)
+  );
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 1px 0 color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
+}
+
+@supports (backdrop-filter: blur(10px)) {
+  .quiz-edit-form__actions--question-bar {
+    backdrop-filter: blur(8px);
+  }
 }
 
 .quiz-edit-form__actions button[type='submit'] {
@@ -823,15 +860,28 @@
 
 .quiz-edit-question__inline-editor {
   margin-top: 0.75rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding: 1rem 1rem 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-outline-variant));
+  border-radius: var(--mat-sys-corner-large);
+  background: var(--mat-sys-surface-container-low);
+  box-sizing: border-box;
+}
+
+.quiz-edit-question__inline-editor-eyebrow {
+  margin: 0 0 0.2rem;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-medium);
 }
 
 .quiz-edit-question__inline-editor-head.dialog-title-header {
   align-items: flex-start;
-  padding: 0 0 1rem;
+  padding: 0 0 0.85rem;
   margin: 0;
   box-sizing: border-box;
+}
+
+.quiz-edit-question__inline-editor-head .dialog-title-header__copy {
+  gap: 0.2rem;
 }
 
 .quiz-edit-form__preview-head.dialog-title-header {

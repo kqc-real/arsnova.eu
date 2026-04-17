@@ -4296,6 +4296,18 @@
           <context context-type="linenumber">10</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quiz.new.descriptionMarkdownHint" datatype="html">
+        <source> Wird in der Quiz-Sammlung wie hier mit Markdown und KaTeX angezeigt.</source>
+        <target>It appears in your quiz library the same way, with Markdown and KaTeX.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">44,46</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">82,84</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="8768083855656807358" datatype="html">
         <source>Gib deinem Quiz einen Namen.</source>
         <target>Give your quiz a name.
@@ -4328,7 +4340,7 @@
         </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">67</context>
+          <context context-type="linenumber">72,73</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -4340,7 +4352,7 @@
         <target>Description may be at most 5000 characters.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">74,77</context>
+          <context context-type="linenumber">88,91</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -4352,7 +4364,7 @@
         <target>Motif image (optional)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">79,81</context>
+          <context context-type="linenumber">96,97</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -4364,7 +4376,7 @@
         <target>HTTPS only, e.g. https://…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">87,88</context>
+          <context context-type="linenumber">103,104</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -4376,7 +4388,7 @@
         <target>HTTPS URL for the motif image (optional)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">89,91</context>
+          <context context-type="linenumber">105,106</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -5184,14 +5196,6 @@
           <context context-type="linenumber">501,502</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quiz.edit.markdownKatexPreviewHint" datatype="html">
-        <source>Unten in der Vorschau: Markdown, KaTeX.</source>
-        <target>Below in the preview: Markdown, KaTeX.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">505,507</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="1245945853792844677" datatype="html">
         <source>Gib einen Fragetext ein.</source>
         <target>Enter question text.
@@ -5359,11 +5363,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.edit.livePreviewCardTitle" datatype="html">
-        <source> Live-Vorschau</source>
-        <target>Live preview</target>
+        <source> Gesamtvorschau</source>
+        <target>Full preview</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">674,676</context>
+          <context context-type="linenumber">688,690</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7492260970005034710" datatype="html">
@@ -5530,13 +5534,20 @@
           <context context-type="linenumber">987,988</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quiz.edit.editQuestionTitle" datatype="html">
-        <source> Frage bearbeiten</source>
-        <target>Edit question
-        </target>
+      <trans-unit id="quiz.edit.inlineEditEyebrow" datatype="html">
+        <source> Bearbeitungsmodus</source>
+        <target>Edit mode</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">856,857</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quiz.edit.editQuestionTitle" datatype="html">
+        <source> Diese Frage bearbeiten</source>
+        <target>Edit this question</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">862,863</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1347551992589671907" datatype="html">
@@ -7048,6 +7059,10 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
           <context context-type="linenumber">36,37</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">69,70</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7479683756900419424" datatype="html">
@@ -12455,12 +12470,16 @@
         <target>URL</target>
       </trans-unit>
       <trans-unit id="mdEditor.linkDialog.urlPlaceholder" datatype="html">
-        <source>Nur HTTPS, z. B. https://…</source>
-        <target>HTTPS only, e.g. https://…</target>
+        <source>https://… oder mailto:…</source>
+        <target>https://… or mailto:…</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.linkDialog.urlRequired" datatype="html">
+        <source>Bitte gib einen Link ein.</source>
+        <target>Please enter a link.</target>
       </trans-unit>
       <trans-unit id="mdEditor.linkDialog.urlError" datatype="html">
-        <source>Bitte gib eine gültige HTTPS-URL ein.</source>
-        <target>Please enter a valid HTTPS URL.</target>
+        <source>Bitte https://… oder mailto:… verwenden.</source>
+        <target>Use https://… or mailto:…</target>
       </trans-unit>
       <trans-unit id="mdEditor.imageDialog.title" datatype="html">
         <source>Bild einfügen</source>
@@ -12486,9 +12505,13 @@
         <source>Vorschau</source>
         <target>Preview</target>
       </trans-unit>
-      <trans-unit id="mdEditor.previewHint" datatype="html">
+      <trans-unit id="mdEditor.previewHintWide" datatype="html">
         <source>Nur zur Ansicht – du bearbeitest links.</source>
         <target>Preview only — edit on the left.</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.previewHintStack" datatype="html">
+        <source>Nur Vorschau – Text oben im Feld bearbeiten.</source>
+        <target>Preview only — edit in the field above.</target>
       </trans-unit>
     </body>
   </file>

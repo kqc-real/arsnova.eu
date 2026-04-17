@@ -252,13 +252,13 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ### Was als nächstes ansteht (🔲 Geplant / offen)
 
-| Thema                 | Kurzbeschreibung                                           | Backlog / Referenz    |
-| --------------------- | ---------------------------------------------------------- | --------------------- |
-| Barrierefreiheit & UX | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud) | Epic 6                |
-| Markdown & Editor     | Bilder/Lightbox (**1.7a**), Editor-Toolbar (**1.7b**)      | Epic 1, ADR-0015–0017 |
-| Q&A-Erweiterungen     | Delegation, Kontrovers-/Wilson-Sortierung (**8.5–8.7**)    | Epic 8                |
-| Last & Performance    | Ausführbares Lasttest-Setup (**0.7**)                      | Epic 0, ADR-0013      |
-| Weitere UX-Politur    | Feinschliff Startseite, Presenter, Beamer, Mobile/Tablet   | laufend               |
+| Thema                 | Kurzbeschreibung                                               | Backlog / Referenz    |
+| --------------------- | -------------------------------------------------------------- | --------------------- |
+| Barrierefreiheit & UX | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)     | Epic 6                |
+| Markdown & Editor     | **1.7a** und **1.7b** umgesetzt (Lightbox, MD3-Toolbar-Editor) | Epic 1, ADR-0015–0017 |
+| Q&A-Erweiterungen     | Delegation, Kontrovers-/Wilson-Sortierung (**8.5–8.7**)        | Epic 8                |
+| Last & Performance    | Ausführbares Lasttest-Setup (**0.7**)                          | Epic 0, ADR-0013      |
+| Weitere UX-Politur    | Feinschliff Startseite, Presenter, Beamer, Mobile/Tablet       | laufend               |
 
 Vollständige Story-Liste und Status: [`Backlog.md`](../Backlog.md).
 

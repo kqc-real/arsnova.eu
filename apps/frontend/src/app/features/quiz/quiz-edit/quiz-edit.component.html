@@ -63,18 +63,35 @@
                 <mat-error i18n>Der Name darf maximal 200 Zeichen lang sein.</mat-error>
               }
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label i18n>Beschreibung (optional)</mat-label>
-              <textarea matInput formControlName="description" rows="3" maxlength="5000"></textarea>
-              <mat-hint align="end"
-                >{{ metadataForm.controls.description.value.length }}/5000</mat-hint
-              >
-              @if (metadataForm.controls.description.hasError('maxlength')) {
-                <mat-error i18n="@@quizEdit.descriptionMaxLengthError"
-                  >Die Beschreibung darf maximal 5000 Zeichen lang sein.</mat-error
+            <div
+              class="quiz-edit-form__markdown-field"
+              role="group"
+              i18n-aria-label
+              aria-label="Quiz-Beschreibung"
+            >
+              <label class="quiz-edit-form__markdown-label" i18n>Beschreibung (optional)</label>
+              <app-markdown-katex-editor
+                [value]="metadataForm.controls.description.value"
+                (valueChange)="metadataForm.controls.description.setValue($event)"
+                [rows]="8"
+              />
+              <div class="quiz-edit-form__markdown-hints">
+                <span class="quiz-edit-form__markdown-count"
+                  >{{ metadataForm.controls.description.value.length }}/5000</span
                 >
+                <span i18n="@@quiz.new.descriptionMarkdownHint"
+                  >Wird in der Quiz-Sammlung wie hier mit Markdown und KaTeX angezeigt.</span
+                >
+              </div>
+              @if (
+                metadataForm.controls.description.hasError('maxlength') &&
+                metadataForm.controls.description.touched
+              ) {
+                <p class="quiz-edit-form__error" i18n="@@quizEdit.descriptionMaxLengthError">
+                  Die Beschreibung darf maximal 5000 Zeichen lang sein.
+                </p>
               }
-            </mat-form-field>
+            </div>
             <mat-form-field appearance="outline" floatLabel="always">
               <mat-label i18n="@@quizForm.motifImageUrlLabel">Motivbild (optional)</mat-label>
               <input
@@ -498,9 +515,6 @@
           />
           <div class="quiz-edit-form__markdown-hints">
             <span class="quiz-edit-form__markdown-count">{{ textControl.value.length }}/2000</span>
-            <span i18n="@@quiz.edit.markdownKatexPreviewHint"
-              >Unten in der Vorschau: Markdown, KaTeX.</span
-            >
           </div>
           @if (textControl.hasError('required') && (textControl.touched || submitted())) {
             <mat-error i18n>Gib einen Fragetext ein.</mat-error>
@@ -672,7 +686,7 @@
             </span>
             <div class="dialog-title-header__copy">
               <h3 class="dialog-title-header__heading" i18n="@@quiz.edit.livePreviewCardTitle">
-                Live-Vorschau
+                Gesamtvorschau
               </h3>
             </div>
           </div>
@@ -706,7 +720,7 @@
           <p class="quiz-edit-form__error" role="alert">{{ submitError() }}</p>
         }
 
-        <mat-card-actions class="quiz-edit-form__actions">
+        <mat-card-actions class="quiz-edit-form__actions quiz-edit-form__actions--question-bar">
           @if (isEditing()) {
             <button mat-button type="button" (click)="cancelEditing()">
               <mat-icon>close</mat-icon>
@@ -850,11 +864,17 @@
                           <mat-icon>edit_note</mat-icon>
                         </span>
                         <div class="dialog-title-header__copy">
+                          <p
+                            class="quiz-edit-question__inline-editor-eyebrow"
+                            i18n="@@quiz.edit.inlineEditEyebrow"
+                          >
+                            Bearbeitungsmodus
+                          </p>
                           <h3
                             class="dialog-title-header__heading"
                             i18n="@@quiz.edit.editQuestionTitle"
                           >
-                            Frage bearbeiten
+                            Diese Frage bearbeiten
                           </h3>
                           <p
                             class="dialog-title-header__sub"

@@ -39,6 +39,8 @@ import {
 } from '@arsnova/shared-types';
 import { mergeTimerPresetOptions } from '../default-timer-presets';
 import { QuizStoreService, type QuizSettings } from '../data/quiz-store.service';
+import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
@@ -68,6 +70,8 @@ import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util
     MatLabel,
     MatOption,
     MatSelect,
+    MarkdownImageLightboxDirective,
+    MarkdownKatexEditorComponent,
   ],
   templateUrl: './quiz-new.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-new.component.scss'],

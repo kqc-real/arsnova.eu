@@ -1,4 +1,4 @@
-<mat-card appearance="outlined" class="quiz-form-card">
+<mat-card appearance="outlined" class="quiz-form-card" appMarkdownImageLightbox>
   <mat-card-content>
     <form
       #quizCreateForm
@@ -25,25 +25,32 @@
         }
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label i18n>Beschreibung (optional)</mat-label>
-        <textarea
-          matInput
-          formControlName="description"
-          rows="3"
-          maxlength="5000"
-          i18n-aria-label
-          aria-label="Quiz-Beschreibung"
-        ></textarea>
-        <mat-hint align="end">{{ descriptionControl.value.length }}/5000</mat-hint>
+      <div
+        class="quiz-form__markdown-field"
+        role="group"
+        i18n-aria-label
+        aria-label="Quiz-Beschreibung"
+      >
+        <label class="quiz-form__markdown-label" i18n>Beschreibung (optional)</label>
+        <app-markdown-katex-editor
+          [value]="descriptionControl.value"
+          (valueChange)="descriptionControl.setValue($event)"
+          [rows]="8"
+        />
+        <div class="quiz-form__markdown-hints">
+          <span class="quiz-form__markdown-count">{{ descriptionControl.value.length }}/5000</span>
+          <span i18n="@@quiz.new.descriptionMarkdownHint"
+            >Wird in der Quiz-Sammlung wie hier mit Markdown und KaTeX angezeigt.</span
+          >
+        </div>
         @if (
           descriptionControl.hasError('maxlength') && (descriptionControl.touched || submitted())
         ) {
-          <mat-error i18n="@@quizEdit.descriptionMaxLengthError"
-            >Die Beschreibung darf maximal 5000 Zeichen lang sein.</mat-error
-          >
+          <p class="quiz-form__field-error" i18n="@@quizEdit.descriptionMaxLengthError">
+            Die Beschreibung darf maximal 5000 Zeichen lang sein.
+          </p>
         }
-      </mat-form-field>
+      </div>
 
       <mat-form-field appearance="outline" floatLabel="always">
         <mat-label i18n="@@quizForm.motifImageUrlLabel">Motivbild (optional)</mat-label>

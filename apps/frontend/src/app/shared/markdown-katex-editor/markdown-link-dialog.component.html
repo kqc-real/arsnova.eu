@@ -21,14 +21,18 @@
       <input
         matInput
         formControlName="url"
-        type="url"
+        type="text"
         autocomplete="off"
+        spellcheck="false"
         i18n-placeholder="@@mdEditor.linkDialog.urlPlaceholder"
-        placeholder="Nur HTTPS, z. B. https://…"
+        placeholder="https://… oder mailto:…"
       />
-      @if (form.controls.url.invalid && form.controls.url.touched) {
+      @if (form.controls.url.hasError('required') && form.controls.url.touched) {
+        <mat-error i18n="@@mdEditor.linkDialog.urlRequired">Bitte gib einen Link ein.</mat-error>
+      }
+      @if (form.controls.url.hasError('markdownLinkHref') && form.controls.url.touched) {
         <mat-error i18n="@@mdEditor.linkDialog.urlError"
-          >Bitte gib eine gültige HTTPS-URL ein.</mat-error
+          >Bitte https://… oder mailto:… verwenden.</mat-error
         >
       }
     </mat-form-field>

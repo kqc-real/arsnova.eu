@@ -3818,7 +3818,7 @@
         <source>Beschreibung (optional)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">67</context>
+          <context context-type="linenumber">72,73</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3829,7 +3829,7 @@
         <source>Die Beschreibung darf maximal 5000 Zeichen lang sein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">74,77</context>
+          <context context-type="linenumber">88,91</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3840,7 +3840,7 @@
         <source>Motivbild (optional)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">79,81</context>
+          <context context-type="linenumber">96,97</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3851,7 +3851,7 @@
         <source>Nur HTTPS, z. B. https://…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">87,88</context>
+          <context context-type="linenumber">103,104</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -3862,7 +3862,7 @@
         <source>HTTPS-URL zum Motivbild (optional)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">89,91</context>
+          <context context-type="linenumber">105,106</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
@@ -4574,13 +4574,6 @@
           <context context-type="linenumber">493,494</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quiz.edit.markdownKatexPreviewHint" datatype="html">
-        <source>Unten in der Vorschau: Markdown, KaTeX.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">502,505</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="1245945853792844677" datatype="html">
         <source>Gib einen Fragetext ein.</source>
         <context-group purpose="location">
@@ -4715,10 +4708,10 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.edit.livePreviewCardTitle" datatype="html">
-        <source> Live-Vorschau </source>
+        <source> Gesamtvorschau </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">675,677</context>
+          <context context-type="linenumber">688,690</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7492260970005034710" datatype="html">
@@ -4862,11 +4855,18 @@
           <context context-type="linenumber">988,989</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quiz.edit.editQuestionTitle" datatype="html">
-        <source> Frage bearbeiten </source>
+      <trans-unit id="quiz.edit.inlineEditEyebrow" datatype="html">
+        <source> Bearbeitungsmodus </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">857,858</context>
+          <context context-type="linenumber">856,857</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quiz.edit.editQuestionTitle" datatype="html">
+        <source> Diese Frage bearbeiten </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">862,863</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1347551992589671907" datatype="html">
@@ -6196,6 +6196,17 @@
           <context context-type="linenumber">10,12</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quiz.new.descriptionMarkdownHint" datatype="html">
+        <source> Wird in der Quiz-Sammlung wie hier mit Markdown und KaTeX angezeigt. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">44,46</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">82,84</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="5627344272065043829" datatype="html">
         <source>Quiz-Name</source>
         <context-group purpose="location">
@@ -6208,6 +6219,10 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
           <context context-type="linenumber">36,37</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">69,70</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.new.presetOverridesHint" datatype="html">
@@ -10164,11 +10179,18 @@
           <context context-type="linenumber">168,170</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="mdEditor.previewHint" datatype="html">
+      <trans-unit id="mdEditor.previewHintWide" datatype="html">
         <source> Nur zur Ansicht – du bearbeitest links. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
-          <context context-type="linenumber">171,173</context>
+          <context context-type="linenumber">206,214</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.previewHintStack" datatype="html">
+        <source> Nur Vorschau – Text oben im Feld bearbeiten. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">215,223</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mdEditor.linkDialog.title" datatype="html">
@@ -10193,17 +10215,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="mdEditor.linkDialog.urlPlaceholder" datatype="html">
-        <source>Nur HTTPS, z. B. https://…</source>
+        <source>https://… oder mailto:…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-link-dialog.component.html</context>
-          <context context-type="linenumber">27,29</context>
+          <context context-type="linenumber">27,30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.linkDialog.urlRequired" datatype="html">
+        <source>Bitte gib einen Link ein.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-link-dialog.component.html</context>
+          <context context-type="linenumber">31,35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mdEditor.linkDialog.urlError" datatype="html">
-        <source>Bitte gib eine gültige HTTPS-URL ein.</source>
+        <source>Bitte https://… oder mailto:… verwenden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-link-dialog.component.html</context>
-          <context context-type="linenumber">31,34</context>
+          <context context-type="linenumber">36,40</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3094756648323026955" datatype="html">

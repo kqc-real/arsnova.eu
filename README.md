@@ -17,7 +17,7 @@
 
 - **Produktionsreif umgesetzt:** Epics **0–5**, **7.1 (Team-Modus)**, **8**, **9 (Admin)** und **10 (MOTD / Plattform-Kommunikation, ADR-0018)** — siehe [`Backlog.md`](./Backlog.md).
 - **Plattform-Qualität:** Epic **6** ist im Kern umgesetzt (Theme, i18n, Legal, Responsive); **6.5 Barrierefreiheit (Abschlussprüfung)** und **6.6 Thinking Aloud** sind noch offen.
-- **Offene Stories (Auswahl):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Lasttests), **1.7a/1.7b** (Markdown-Erweiterungen), **8.5–8.7** (Q&A) — vollständige Liste im Backlog.
+- **Offene Stories (Auswahl):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Lasttests), **8.5–8.7** (Q&A) — vollständige Liste im Backlog. **Markdown:** Stories **1.7a** und **1.7b** sind umgesetzt.
 - **Plattform-Statistik:** Rekord **max. Teilnehmer je Session** wird serverseitig gepflegt und in `health.stats` sowie auf der Hilfe-Seite genutzt (`PlatformStatistic`, siehe Backlog „Repo-Abgleich“).
 - **Lehre:** Greenfield-Demo **Story 1.7a** in **3×45 Min.** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md); Epic 10 bleibt optionales **Referenzbeispiel**, kein Ersatz für 1.7a.
 
@@ -325,7 +325,7 @@ Nachdem die App lokal läuft, empfiehlt sich diese Lesereihenfolge:
 7. **[docs/cursor-context.md](./docs/cursor-context.md)** – verdichtete Projektreferenz für komplexere KI-Sessions
 8. **[Vibe-Coding-Szenario](./docs/vibe-coding/vibe-coding-szenario.md)** – Zusammenarbeit mit der KI
 
-> **Tipp (aktueller Fokus):** Epics **0–5**, **7.1**, **8**, **9** und **10** sind umgesetzt. Nächste Prioritäten siehe [Backlog](./Backlog.md) (u. a. **6.5**/**6.6**, **2.1c**, **0.7**, **1.7a**/**1.7b**). Vor der Umsetzung zuerst Story und DoD lesen; bei KI-gestützter Arbeit anschließend mit `AGENT.md` arbeiten.
+> **Tipp (aktueller Fokus):** Epics **0–5**, **7.1**, **8**, **9** und **10** sind umgesetzt. Nächste Prioritäten siehe [Backlog](./Backlog.md) (u. a. **6.5**/**6.6**, **2.1c**, **0.7**, **1.2d**, **1.14a**). Vor der Umsetzung zuerst Story und DoD lesen; bei KI-gestützter Arbeit anschließend mit `AGENT.md` arbeiten.
 
 ## 🔄 Zurücksetzen auf einen bekannten Zustand
 

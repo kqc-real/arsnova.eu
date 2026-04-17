@@ -38,7 +38,9 @@ import {
 } from '../../../core/trpc.client';
 import { navigateToHostSession } from '../../../core/session-host-navigation';
 import { buildKiQuizSystemPrompt } from '../../../shared/ki-quiz-prompt';
+import { resolveMotdAssetOrigin } from '../../../core/motd-asset-origin';
 import {
+  absolutizeMarkdownHtmlRootAssetImgSrc,
   renderMarkdownWithKatex,
   renderMarkdownWithoutKatex,
 } from '../../../shared/markdown-katex.util';
@@ -167,9 +169,11 @@ export class QuizListComponent implements OnInit {
   }
 
   renderDescription(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
-    );
+    const raw = renderMarkdownWithKatex(value, {
+      imagePolicy: 'allow-relative-and-https',
+    }).html;
+    const html = absolutizeMarkdownHtmlRootAssetImgSrc(raw, resolveMotdAssetOrigin());
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
   isSharedLibrary(): boolean {

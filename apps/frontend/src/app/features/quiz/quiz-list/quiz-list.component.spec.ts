@@ -261,6 +261,32 @@ describe('QuizListComponent', () => {
     expect(description.innerHTML).toContain('<strong>Deep Learning</strong>');
   });
 
+  it('rendert Bilder mit relativem /assets-Pfad in der Quiz-Beschreibung', () => {
+    quizzesSignal.set([
+      {
+        id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+        name: 'Demo',
+        description: '![Banner](/assets/demo/9_konzeptfragen_panorama.svg)',
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 1,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const description = fixture.nativeElement.querySelector(
+      '.quiz-list-item__description',
+    ) as HTMLElement;
+    expect(description.innerHTML).toContain('<img');
+    expect(description.innerHTML).toContain('assets/demo/9_konzeptfragen_panorama.svg');
+  });
+
   it('zeigt im More-Menü den Eintrag Bearbeiten', async () => {
     quizzesSignal.set([
       {

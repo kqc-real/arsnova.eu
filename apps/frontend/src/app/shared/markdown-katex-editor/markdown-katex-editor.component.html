@@ -204,8 +204,19 @@
         <span class="mk-editor__preview-label" i18n="@@mdEditor.previewLabel">Vorschau</span>
       </div>
       @if (!compact) {
-        <p class="mk-editor__preview-hint" aria-hidden="true" i18n="@@mdEditor.previewHint">
+        <p
+          class="mk-editor__preview-hint mk-editor__preview-hint--wide"
+          aria-hidden="true"
+          i18n="@@mdEditor.previewHintWide"
+        >
           Nur zur Ansicht – du bearbeitest links.
+        </p>
+        <p
+          class="mk-editor__preview-hint mk-editor__preview-hint--stack"
+          aria-hidden="true"
+          i18n="@@mdEditor.previewHintStack"
+        >
+          Nur Vorschau – Text oben im Feld bearbeiten.
         </p>
       }
       <div class="mk-editor__preview-body" [innerHTML]="preview()"></div>

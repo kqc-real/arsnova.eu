@@ -99,7 +99,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 - **Story 1.6a (Quiz auf anderem Gerät öffnen – Sync-Link/Room-ID):** Dozent-Sequenz (opt. Phase „Auf anderem Gerät öffnen“) und Aktivitätsdiagramm (Schritt D1a) in diagrams.md; Datenfluss in architecture-overview.md (opt. Sync-Link) ✓
 - Quiz-Presets (1.11) und SC-Schnellformate (1.12) – clientseitig in shared-types definiert, Komponenten implizit in QuizConfigComponent ✓
 - Markdown/KaTeX (1.7) – MarkdownKatexComponent in Shared ✓
-- Stories **1.7a/1.7b** (Markdown-Bilder URL+Lightbox, KaTeX-Editor MD3-Toolbar) – Backlog offen, [ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md) / [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md); keine eigene Mermaid-Erweiterung nötig
+- Stories **1.7a** und **1.7b** (Markdown-Bilder URL+Lightbox, KaTeX-Editor MD3-Toolbar) – umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)); keine eigene Mermaid-Erweiterung nötig
 - Word Cloud interaktiv + Export (1.14) – WordcloudComponent bereits in Beamer/Ergebnis-Ansicht; Export (CSV/PNG) in Story 1.14 spezifiziert ✓
 
 ### Epic 2: Session-Start & Steuerung

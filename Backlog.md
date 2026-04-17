@@ -37,7 +37,7 @@
 | 1    | 1.6d  | Sync-Performance & Skalierung optimieren                    | 🟡   | ⬜ Offen  |
 | 1    | 1.7   | Markdown & KaTeX                                            | 🔴   | ✅ Fertig |
 | 1    | 1.7a  | Markdown-Bilder: nur URL + Lightbox                         | 🟡   | ✅ Fertig |
-| 1    | 1.7b  | Markdown/KaTeX-Editor mit MD3-Toolbar                       | 🟡   | ⬜ Offen  |
+| 1    | 1.7b  | Markdown/KaTeX-Editor mit MD3-Toolbar                       | 🟡   | ✅ Fertig |
 | 1    | 1.8   | Quiz exportieren                                            | 🟡   | ✅ Fertig |
 | 1    | 1.9   | Quiz importieren                                            | 🟡   | ✅ Fertig |
 | 1    | 1.9a  | KI-gestützter Quiz-Import (Zod-Validierung)                 | 🟡   | ✅ Fertig |
@@ -281,7 +281,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 1: Quiz-Verwaltung (Rolle: Lehrperson / Ersteller:in)
 
-> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07):** Die **nummerierten** Kern-Stories **1.1–1.15** (ohne Buchstaben-Zusätze) sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben die Erweiterungen **1.2d**, **1.6c**, **1.6d**, **1.7b**, **1.14a** (dort ⬜). **Story 1.7a** ist umgesetzt und auf **✅ Fertig** gesetzt.
+> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07, 2026-04-17):** Die **nummerierten** Kern-Stories **1.1–1.15** (ohne Buchstaben-Zusätze) sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben die Erweiterungen **1.2d**, **1.6c**, **1.6d**, **1.14a** (dort ⬜). **Story 1.7a** und **Story 1.7b** sind umgesetzt und auf **✅ Fertig** gesetzt.
 > Frontend-Checks: `npm run typecheck -w @arsnova/frontend` ✅, `npm run test -w @arsnova/frontend -- src/app/features/quiz` ✅ (54/54).  
 > Ergänzend abgeschlossen: Styleguide-/DoD-Nacharbeiten (Lesbarkeit/Spacing, Wording-Konsistenz, deutsches Datumsformat `de-DE`, Fehlerfokus auf erstes ungültiges Feld, Entfernung fragiler `::ng-deep`-Selektoren im Quiz-Feature, Preview-Interaktions- und Markdown/KaTeX-Rendering-Korrekturen).
 
@@ -397,7 +397,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Schließen** der Ansicht: Backdrop-Tap, Schließen-Steuerung und **Escape** (Desktop); **Fokus** und **ARIA** für Barrierefreiheit.
     - **i18n:** UI-Strings (z. B. Schließen, optionaler Hinweis) in **de/en/fr/es/it** (ADR-0008).
     - Architekturentscheidung und Policy sind in **ADR-0015** festgehalten.
-- **Story 1.7b (Markdown/KaTeX-Editor mit MD3-Toolbar):** 🟡 Als Lehrperson möchte ich Fragen- und Antworttexte in einem **Split-View** bearbeiten (**Markdown-Quelle** + **Live-Vorschau** mit KaTeX) und Formatierungen, Links, **externe Bild-URLs** und Formeln **per Klick auf eine eigene Material-3-Toolbar** einfügen, damit die Bearbeitung auf dem **Smartphone** nutzbar bleibt und dieselbe Darstellung wie in der **Live-Session** zuverlässig widerspiegelt wird.
+- **Story 1.7b (Markdown/KaTeX-Editor mit MD3-Toolbar):** ✅ Als Lehrperson möchte ich Fragen- und Antworttexte in einem **Split-View** bearbeiten (**Markdown-Quelle** + **Live-Vorschau** mit KaTeX) und Formatierungen, Links, **externe Bild-URLs** und Formeln **per Klick auf eine eigene Material-3-Toolbar** einfügen, damit die Bearbeitung auf dem **Smartphone** nutzbar bleibt und dieselbe Darstellung wie in der **Live-Session** zuverlässig widerspiegelt wird.
   - **Akzeptanzkriterien:**
     - **Split-View:** Markdown-Quelltext und Vorschau sind gleichzeitig nutzbar; die Vorschau aktualisiert sich mit **Debouncing** (z. B. ≤ 300 ms) wie bei Story 1.7.
     - **Gemeinsame Logik:** Vorschau nutzt dieselbe **Markdown-/KaTeX- und Sanitize-Strategie** wie die bestehende Session-/Preview-Darstellung (kein „zweites, stilles“ Rendering ohne Abgleich).

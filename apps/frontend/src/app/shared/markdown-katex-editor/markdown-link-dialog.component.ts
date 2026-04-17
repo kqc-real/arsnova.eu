@@ -1,6 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,6 +17,17 @@ import { MatInputModule } from '@angular/material/input';
 export interface MarkdownLinkDialogResult {
   text: string;
   url: string;
+}
+
+/** HTTPS-URL oder `mailto:` (ohne Leerzeichen im gesamten Wert). */
+export function markdownLinkHrefValidator(
+  control: AbstractControl<string | null | undefined>,
+): ValidationErrors | null {
+  const v = String(control.value ?? '').trim();
+  if (!v) return null;
+  if (/^https:\/\/\S+$/i.test(v)) return null;
+  if (/^mailto:\S+$/i.test(v)) return null;
+  return { markdownLinkHref: true };
 }
 
 @Component({
@@ -40,7 +58,7 @@ export class MarkdownLinkDialogComponent {
     }),
     url: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern(/^https:\/\/\S+$/i)],
+      validators: [Validators.required, markdownLinkHrefValidator],
     }),
   });
 

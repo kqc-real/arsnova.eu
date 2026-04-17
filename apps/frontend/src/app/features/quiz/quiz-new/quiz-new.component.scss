@@ -17,6 +17,38 @@
   row-gap: 1.25rem;
 }
 
+.quiz-form__markdown-field {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.quiz-form__markdown-label {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-large);
+}
+
+.quiz-form__markdown-hints {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+  min-width: 0;
+}
+
+.quiz-form__markdown-count {
+  white-space: nowrap;
+}
+
+.quiz-form__field-error {
+  margin: 0;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+}
+
 .quiz-form mat-form-field {
   width: 100%;
   margin: 0.35rem 0 0.65rem;
