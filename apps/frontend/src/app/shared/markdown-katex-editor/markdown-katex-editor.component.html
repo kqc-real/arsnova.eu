@@ -1,6 +1,7 @@
 <section
   class="mk-editor"
   [class.mk-editor--compact]="compact"
+  [class.mk-editor--frameless-panels]="compact || framelessPanels"
   [class.mk-editor--disabled]="disabled"
 >
   <div
@@ -135,7 +136,7 @@
           [matTooltipDisabled]="disabled"
           [attr.aria-label]="mdToolbarLabel.codeBlock"
         >
-          <mat-icon aria-hidden="true">view_agenda</mat-icon>
+          <mat-icon aria-hidden="true">integration_instructions</mat-icon>
         </button>
         <button
           mat-icon-button
@@ -177,7 +178,7 @@
         <span i18n="@@mdEditor.menu.image">Bild einfügen</span>
       </button>
       <button mat-menu-item type="button" (click)="applyCodeBlock()">
-        <mat-icon aria-hidden="true">view_agenda</mat-icon>
+        <mat-icon aria-hidden="true">integration_instructions</mat-icon>
         <span i18n="@@mdEditor.menu.codeBlock">Codeblock</span>
       </button>
       <button mat-menu-item type="button" (click)="applyBlockMath()">
@@ -203,22 +204,6 @@
         <mat-icon class="mk-editor__preview-icon" aria-hidden="true">visibility</mat-icon>
         <span class="mk-editor__preview-label" i18n="@@mdEditor.previewLabel">Vorschau</span>
       </div>
-      @if (!compact) {
-        <p
-          class="mk-editor__preview-hint mk-editor__preview-hint--wide"
-          aria-hidden="true"
-          i18n="@@mdEditor.previewHintWide"
-        >
-          Nur zur Ansicht – du bearbeitest links.
-        </p>
-        <p
-          class="mk-editor__preview-hint mk-editor__preview-hint--stack"
-          aria-hidden="true"
-          i18n="@@mdEditor.previewHintStack"
-        >
-          Nur Vorschau – Text oben im Feld bearbeiten.
-        </p>
-      }
       <div class="mk-editor__preview-body" [innerHTML]="preview()"></div>
     </div>
   </div>

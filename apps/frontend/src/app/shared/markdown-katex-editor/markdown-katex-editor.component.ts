@@ -75,6 +75,8 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
   @Input() placeholder = '';
   @Input() rows = 4;
   @Input() compact = false;
+  /** Kein Rand um Quelltext + Vorschau (Toolbar bleibt mit Umrandung). */
+  @Input() framelessPanels = false;
 
   @Output() valueChange = new EventEmitter<string>();
 

@@ -361,16 +361,22 @@
                                           >
                                             Frage {{ question.order + 1 }} · {{ question.type }}
                                           </p>
-                                          <p class="admin-question__text">
-                                            {{ renderMarkdownText(question.text) }}
-                                          </p>
+                                          <div
+                                            class="admin-question__text markdown-body"
+                                            [innerHTML]="renderQuizRichText(question.text)"
+                                          ></div>
                                           @if (question.answers.length > 0) {
                                             <ul class="admin-question__answers">
                                               @for (answer of question.answers; track answer.id) {
-                                                <li>
-                                                  <span>{{ renderMarkdownText(answer.text) }}</span>
+                                                <li class="admin-question__answer-row">
+                                                  <div
+                                                    class="admin-answer-text markdown-body"
+                                                    [innerHTML]="renderQuizRichText(answer.text)"
+                                                  ></div>
                                                   @if (answer.isCorrect) {
-                                                    <strong i18n="@@admin.answerCorrectSuffix"
+                                                    <strong
+                                                      class="admin-answer__correct"
+                                                      i18n="@@admin.answerCorrectSuffix"
                                                       >(korrekt)</strong
                                                     >
                                                   }

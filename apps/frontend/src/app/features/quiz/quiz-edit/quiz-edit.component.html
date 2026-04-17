@@ -704,7 +704,9 @@
             </div>
             @if (answerPreviewHtml().length > 0) {
               <div class="quiz-edit-form__preview-block">
-                <p class="quiz-edit-form__preview-label" i18n>Antworten</p>
+                <p class="quiz-edit-form__preview-label" i18n="@@quizEdit.livePreviewAnswersLabel">
+                  Antworten
+                </p>
                 <ol class="quiz-edit-form__preview-answers">
                   @for (answerHtml of answerPreviewHtml(); track $index) {
                     <li [innerHTML]="answerHtml"></li>

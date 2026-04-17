@@ -1,3 +1,10 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .mk-editor {
   display: grid;
   gap: 0.5rem;
@@ -46,6 +53,50 @@
   .mk-editor__toolbar > button.mk-editor__toolbar-overflow {
     display: none !important;
   }
+}
+
+/*
+ * Kompakt (Preview / enge Antwortspalte): Container ist oft ≥26rem, trotzdem nur kurze Leiste + „Mehr“.
+ * Überschreibt das Container-Query-Expand oben.
+ */
+.mk-editor--compact .mk-editor__toolbar {
+  flex-wrap: nowrap;
+}
+
+.mk-editor--compact .mk-editor__toolbar-rest {
+  display: none !important;
+}
+
+.mk-editor--compact .mk-editor__toolbar-wide {
+  display: none !important;
+}
+
+.mk-editor--compact .mk-editor__toolbar > button.mk-editor__toolbar-overflow {
+  display: inline-flex !important;
+}
+
+/*
+ * Quelltext + Vorschau ohne durchgehenden 1px-Rahmen wie im Standard-Editor,
+ * aber klar vom umgebenden Surface getrennt (höhere Container-Stufe + leichter Schatten).
+ */
+.mk-editor--frameless-panels .mk-editor__field {
+  border: none;
+  background: var(--mat-sys-surface-container-high);
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-outline-variant) 35%, transparent);
+}
+
+.mk-editor--frameless-panels .mk-editor__field:focus {
+  border-color: transparent;
+}
+
+.mk-editor--frameless-panels .mk-editor__preview {
+  border: none;
+  background: var(--mat-sys-surface-container-high);
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-outline-variant) 35%, transparent);
 }
 
 .mk-editor__split {
@@ -132,28 +183,6 @@
   display: block;
   flex: 1 1 auto;
   min-height: 0;
-}
-
-.mk-editor__preview-hint {
-  margin: -0.35rem 0 0.65rem;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
-  line-height: 1.4;
-}
-
-/* Unter 900px: Quelle über Vorschau — „links“ trifft nicht zu. */
-.mk-editor__preview-hint--stack {
-  display: none;
-}
-
-@media (max-width: 899px) {
-  .mk-editor__preview-hint--wide {
-    display: none;
-  }
-
-  .mk-editor__preview-hint--stack {
-    display: block;
-  }
 }
 
 .mk-editor__preview :where(p, ul, ol, blockquote, pre) {
@@ -261,7 +290,7 @@
   min-height: 4rem;
 }
 
-/* Kompakt: keine zweite Hinweiszeile; Höhe gilt für den gerenderten Inhalt, nicht für Badge+Hinweis */
+/* Kompakt: Höhe für gerenderten Vorschau-Inhalt, nicht nur für Badge */
 .mk-editor--compact .mk-editor__preview {
   overflow: visible;
 }

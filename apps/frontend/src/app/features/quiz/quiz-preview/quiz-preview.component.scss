@@ -419,6 +419,10 @@
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+}
+
+/* Nur noch für einfache Textfelder (falls genutzt); Markdown-Antworten: Rahmen im Editor selbst */
+.quiz-preview-editor__textarea {
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-medium);
   padding: 0.8rem 0.9rem;
@@ -435,6 +439,12 @@
   }
 }
 
+.quiz-preview-editor__answer-input {
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
 .quiz-preview-editor__answers {
   display: flex;
   flex-direction: column;
@@ -449,8 +459,8 @@
 
 .quiz-preview-editor__answer-row {
   display: grid;
-  /* minmax(0, 1fr): Editor-Spalte darf unter Mindestbreite des Inhalts schrumpfen (Toolbar wrap) */
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  /* Ohne Richtig-Toggle: Buchstabe + Editor (volle Breite) */
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
@@ -458,6 +468,11 @@
   border-radius: var(--mat-sys-corner-large);
   background: var(--mat-sys-surface);
   min-width: 0;
+}
+
+.quiz-preview-editor__answer-row--with-correct {
+  /* Buchstabe | Umschalten | Editor nimmt Rest */
+  grid-template-columns: auto auto minmax(0, 1fr);
 }
 
 .quiz-preview-editor__answer-row--correct {
@@ -480,16 +495,6 @@
 
 .quiz-preview-editor__correct-toggle {
   flex-shrink: 0;
-}
-
-.quiz-preview-editor__answer-state {
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-label-medium);
-}
-
-.quiz-preview-editor__answer-state--correct {
-  color: var(--mat-sys-primary);
-  font-weight: 600;
 }
 
 .quiz-preview-editor__hint {
@@ -739,14 +744,6 @@
 
   .quiz-preview__bottom-actions {
     gap: 0.25rem;
-  }
-
-  .quiz-preview-editor__answer-row {
-    grid-template-columns: auto auto minmax(0, 1fr);
-  }
-
-  .quiz-preview-editor__answer-state {
-    display: none;
   }
 
   .quiz-preview__bottom-bar {

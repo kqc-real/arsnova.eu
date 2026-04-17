@@ -365,6 +365,15 @@
   font: var(--mat-sys-body-medium);
   line-height: 1.45;
   overflow-wrap: break-word;
+  min-width: 0;
+}
+
+.admin-question__text.markdown-body :deep(p) {
+  margin: 0 0 0.4rem;
+}
+
+.admin-question__text.markdown-body :deep(p:last-child) {
+  margin-bottom: 0;
 }
 
 .admin-question__answers {
@@ -373,10 +382,40 @@
   font: var(--mat-sys-body-small);
   line-height: 1.35;
   overflow-wrap: break-word;
+  list-style-position: outside;
 }
 
 .admin-question__answers li + li {
-  margin-top: 0.2rem;
+  margin-top: 0.45rem;
+}
+
+.admin-question__answer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.25rem 0.5rem;
+}
+
+.admin-answer-text {
+  min-width: 0;
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+}
+
+.admin-answer-text.markdown-body :deep(p) {
+  margin: 0;
+}
+
+.admin-answer-text.markdown-body :deep(p + p) {
+  margin-top: 0.35rem;
+}
+
+.admin-answer__correct {
+  flex-shrink: 0;
+  font: var(--mat-sys-label-small);
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  white-space: nowrap;
 }
 
 .admin-delete {

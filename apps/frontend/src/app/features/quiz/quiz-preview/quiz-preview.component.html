@@ -210,6 +210,7 @@
                 [value]="questionDraftText()"
                 (valueChange)="onQuestionDraftChanged($event)"
                 [rows]="4"
+                [framelessPanels]="true"
               />
 
               @if (question.type !== 'FREETEXT' && question.type !== 'RATING') {
@@ -220,10 +221,18 @@
                     currentQuestionValidation().needsCorrectAnswer
                   "
                 >
-                  <p class="quiz-preview-editor__label" i18n>Antworten</p>
+                  <p
+                    class="quiz-preview-editor__label"
+                    i18n="@@quizPreview.editorAnswerOptionsHeading"
+                  >
+                    Antwortoptionen
+                  </p>
                   @for (answer of question.answers; track answer.id; let i = $index) {
                     <div
                       class="quiz-preview-editor__answer-row"
+                      [class.quiz-preview-editor__answer-row--with-correct]="
+                        questionTypeHasCorrectAnswers(question.type)
+                      "
                       [class.quiz-preview-editor__answer-row--correct]="
                         questionTypeHasCorrectAnswers(question.type) && answer.isCorrect
                       "
@@ -259,18 +268,6 @@
                           [compact]="true"
                         />
                       </div>
-                      @if (questionTypeHasCorrectAnswers(question.type)) {
-                        <span
-                          class="quiz-preview-editor__answer-state"
-                          [class.quiz-preview-editor__answer-state--correct]="answer.isCorrect"
-                        >
-                          @if (answer.isCorrect) {
-                            <span i18n="@@quizPreview.answerStateCorrect">Richtig</span>
-                          } @else {
-                            <span i18n="@@quizPreview.answerStateNeutral">Option</span>
-                          }
-                        </span>
-                      }
                     </div>
                   }
                   @if (currentQuestionValidation().needsCorrectAnswer) {

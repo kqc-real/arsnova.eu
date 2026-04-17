@@ -4732,15 +4732,18 @@
           <context context-type="linenumber">210,211</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3643065623582513222" datatype="html">
+      <trans-unit id="quizEdit.livePreviewAnswersLabel" datatype="html">
         <source>Antworten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">694,695</context>
+          <context context-type="linenumber">707,712</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizPreview.editorAnswerOptionsHeading" datatype="html">
+        <source>Antwortoptionen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">225,226</context>
+          <context context-type="linenumber">224,230</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7624133960269641605" datatype="html">
@@ -6345,20 +6348,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">243,245</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizPreview.answerStateCorrect" datatype="html">
-        <source>Richtig</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">270,272</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizPreview.answerStateNeutral" datatype="html">
-        <source>Option</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">272,274</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editorCorrectAnswerHint" datatype="html">
@@ -10159,20 +10148,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
           <context context-type="linenumber">168,170</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="mdEditor.previewHintWide" datatype="html">
-        <source> Nur zur Ansicht – du bearbeitest links. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
-          <context context-type="linenumber">206,214</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="mdEditor.previewHintStack" datatype="html">
-        <source> Nur Vorschau – Text oben im Feld bearbeiten. </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
-          <context context-type="linenumber">215,223</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mdEditor.linkDialog.title" datatype="html">

@@ -5379,17 +5379,20 @@
           <context context-type="linenumber">210,211</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3643065623582513222" datatype="html">
+      <trans-unit id="quizEdit.livePreviewAnswersLabel" datatype="html">
         <source>Antworten</source>
-        <target>Answers
-        </target>
+        <target>Answers</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">693,694</context>
+          <context context-type="linenumber">707,712</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quizPreview.editorAnswerOptionsHeading" datatype="html">
+        <source>Antwortoptionen</source>
+        <target>Answer options</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">227,228</context>
+          <context context-type="linenumber">224,230</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7624133960269641605" datatype="html">
@@ -7204,22 +7207,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
           <context context-type="linenumber">245,247</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizPreview.answerStateCorrect" datatype="html">
-        <source>Richtig</source>
-        <target>Correct</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">270,272</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizPreview.answerStateNeutral" datatype="html">
-        <source>Option</source>
-        <target>Option</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
-          <context context-type="linenumber">272,274</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.editorCorrectAnswerHint" datatype="html">
@@ -12484,14 +12471,6 @@
       <trans-unit id="mdEditor.previewLabel" datatype="html">
         <source>Vorschau</source>
         <target>Preview</target>
-      </trans-unit>
-      <trans-unit id="mdEditor.previewHintWide" datatype="html">
-        <source>Nur zur Ansicht – du bearbeitest links.</source>
-        <target>Preview only — edit on the left.</target>
-      </trans-unit>
-      <trans-unit id="mdEditor.previewHintStack" datatype="html">
-        <source>Nur Vorschau – Text oben im Feld bearbeiten.</source>
-        <target>Preview only — edit in the field above.</target>
       </trans-unit>
     </body>
   </file>

@@ -1,4 +1,5 @@
 import { Component, LOCALE_ID, OnInit, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   MatCard,
   MatCardContent,
@@ -12,6 +13,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { trpc } from '../../core/trpc.client';
+import { renderMarkdownWithKatex } from '../../shared/markdown-katex.util';
 import { AdminMotdPanelComponent } from './admin-motd-panel.component';
 import { getAdminToken, setAdminToken } from '../../core/trpc.client';
 import type {
@@ -63,6 +65,7 @@ const ADMIN_SESSION_GROUP_ORDER: readonly SessionStatus[] = [
 })
 export class AdminComponent implements OnInit {
   private readonly locale = inject(LOCALE_ID);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly adminSecret = signal('');
   readonly loginLoading = signal(false);
   readonly loginError = signal<string | null>(null);
@@ -543,40 +546,13 @@ export class AdminComponent implements OnInit {
   }
 
   /**
-   * Nur für die Admin-Vorschau: Markdown/KaTeX zu lesbarem Klartext ohne Sprache
-   * (Symbole und Standard-Notation, unabhängig von der UI-Locale).
+   * Session-Detail: Fragen/Antworten wie in der Live-Ansicht (Markdown + KaTeX, DOMPurify im Util).
    */
-  renderMarkdownText(text: string): string {
-    const normalizeKatexExpression = (expression: string): string =>
-      expression
-        .trim()
-        .replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '($1)/($2)')
-        .replace(/\\sqrt\s*\{([^{}]+)\}/g, '√($1)')
-        .replace(/\\cdot/g, '·')
-        .replace(/\\times/g, '×')
-        .replace(/\\geq/g, '≥')
-        .replace(/\\leq/g, '≤')
-        .replace(/\\neq/g, '≠')
-        .replace(/\\pm/g, '±')
-        .replace(/\\approx/g, '≈')
-        .replace(/\\infty/g, '∞')
-        .replace(/\^\{([^{}]+)\}/g, '^($1)')
-        .replace(/\^([A-Za-z0-9]+)/g, '^$1')
-        .replace(/_\{([^{}]+)\}/g, '_($1)')
-        .replace(/_([A-Za-z0-9]+)/g, '_$1')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-    return (text ?? '')
-      .replace(/\$\$([\s\S]+?)\$\$/g, (_m, expr: string) => normalizeKatexExpression(expr))
-      .replace(/\$([^$\n]+?)\$/g, (_m, expr: string) => normalizeKatexExpression(expr))
-      .replace(/^#{1,6}\s+/gm, '')
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1')
-      .replace(/`([^`]+)`/g, '$1')
-      .replace(/^\s*[-+]\s+/gm, '• ')
-      .replace(/^\s*\d+\.\s+/gm, '• ')
-      .trim();
+  renderQuizRichText(text: string): SafeHtml {
+    const { html } = renderMarkdownWithKatex(text ?? '', {
+      imagePolicy: 'external-https-only',
+    });
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
   private async verifyAdminSession(): Promise<void> {
