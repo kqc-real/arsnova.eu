@@ -1,4 +1,5 @@
 import katex from 'katex';
+import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 
 export interface MarkdownRenderResult {
@@ -6,7 +7,12 @@ export interface MarkdownRenderResult {
   katexError: string | null;
 }
 
-export function renderMarkdownWithKatex(source = ''): MarkdownRenderResult {
+export type MarkdownImagePolicy = 'external-https-only' | 'allow-relative-and-https';
+
+export function renderMarkdownWithKatex(
+  source = '',
+  options?: { imagePolicy?: MarkdownImagePolicy },
+): MarkdownRenderResult {
   const input = source;
   let katexError: string | null = null;
   const renderedMath: string[] = [];
@@ -22,7 +28,10 @@ export function renderMarkdownWithKatex(source = ''): MarkdownRenderResult {
         katex.renderToString(expression.trim(), {
           displayMode,
           throwOnError: true,
-          strict: 'ignore',
+          strict: 'warn',
+          trust: false,
+          maxExpand: 1000,
+          maxSize: 20,
         }),
       );
     } catch (error) {
@@ -44,15 +53,20 @@ export function renderMarkdownWithKatex(source = ''): MarkdownRenderResult {
     renderExpression(expression, false),
   );
 
-  const markdownHtml = parseMarkdownEscapingInlineHtml(withInlineMath);
+  const markdownHtml = parseMarkdownEscapingInlineHtml(withInlineMath, {
+    imagePolicy: options?.imagePolicy ?? 'allow-relative-and-https',
+  });
   const html = renderedMath.reduce(
     (current, value, index) => current.replaceAll(mathPlaceholder(index), value),
     markdownHtml,
   );
-  return { html, katexError };
+  return { html: sanitizeMarkdownHtml(html), katexError };
 }
 
-function parseMarkdownEscapingInlineHtml(source: string): string {
+function parseMarkdownEscapingInlineHtml(
+  source: string,
+  options: { imagePolicy: MarkdownImagePolicy },
+): string {
   const renderer = new marked.Renderer();
   renderer.html = ({ text }) => escapeHtml(text);
   renderer.link = ({ href, title, text }): string => {
@@ -63,11 +77,13 @@ function parseMarkdownEscapingInlineHtml(source: string): string {
     const hrefEsc = escapeHtml(safeHref);
     const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
     const titleAttr = hasTitle ? ` title="${escapeHtml(String(title).trim())}"` : '';
-    return `<a href="${hrefEsc}"${titleAttr}>${text}</a>`;
+    const isExternalHttp = /^https?:\/\//i.test(safeHref);
+    const relAttr = isExternalHttp ? ` rel="noopener noreferrer"` : '';
+    return `<a href="${hrefEsc}"${titleAttr}${relAttr}>${text}</a>`;
   };
   /** `alt` allein löst keinen Hover-Tooltip aus; `title` schon (optional explizit in `![](url "title")`). */
   renderer.image = ({ href, title, text }): string => {
-    const safeHref = sanitizeMarkdownUrl(href, 'image');
+    const safeHref = sanitizeMarkdownUrl(href, 'image', options.imagePolicy);
     if (!safeHref) {
       return escapeHtml(text);
     }
@@ -82,8 +98,15 @@ function parseMarkdownEscapingInlineHtml(source: string): string {
 }
 
 /** Markdown → HTML ohne KaTeX (kein `$…$`-Parsing). Für lange System-Prompts mit JSON-Beispielen. */
-export function renderMarkdownWithoutKatex(source = ''): string {
-  return parseMarkdownEscapingInlineHtml(source);
+export function renderMarkdownWithoutKatex(
+  source = '',
+  options?: { imagePolicy?: MarkdownImagePolicy },
+): string {
+  return sanitizeMarkdownHtml(
+    parseMarkdownEscapingInlineHtml(source, {
+      imagePolicy: options?.imagePolicy ?? 'allow-relative-and-https',
+    }),
+  );
 }
 
 /**
@@ -129,16 +152,26 @@ function mathPlaceholder(index: number): string {
 function sanitizeMarkdownUrl(
   href: string | null | undefined,
   type: 'link' | 'image',
+  imagePolicy: MarkdownImagePolicy = 'allow-relative-and-https',
 ): string | null {
   if (!href) return null;
   const value = href.trim();
   if (!value) return null;
   if (value.startsWith('#') || value.startsWith('?')) return value;
-  if (value.startsWith('/')) {
-    return value.startsWith('//') ? null : value;
+  if (type === 'link') {
+    if (value.startsWith('/')) {
+      return value.startsWith('//') ? null : value;
+    }
+    if (value.startsWith('./') || value.startsWith('../')) return value;
+    if (/^[^\s/:?#]+(?:\/[^\s?#]*)?(?:\?[^\s#]*)?(?:#.*)?$/.test(value)) return value;
   }
-  if (value.startsWith('./') || value.startsWith('../')) return value;
-  if (/^[^\s/:?#]+(?:\/[^\s?#]*)?(?:\?[^\s#]*)?(?:#.*)?$/.test(value)) return value;
+  if (type === 'image' && imagePolicy === 'allow-relative-and-https') {
+    if (value.startsWith('/')) {
+      return value.startsWith('//') ? null : value;
+    }
+    if (value.startsWith('./') || value.startsWith('../')) return value;
+    if (/^[^\s/:?#]+(?:\/[^\s?#]*)?(?:\?[^\s#]*)?(?:#.*)?$/.test(value)) return value;
+  }
 
   const schemeMatch = /^([a-zA-Z][a-zA-Z\d+.-]*):/.exec(value);
   if (!schemeMatch) return null;
@@ -156,4 +189,67 @@ function escapeHtml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function sanitizeMarkdownHtml(html: string): string {
+  // SSR: Auf dem Server existiert kein DOM. Unsere Render-Pipeline escaped inline HTML (renderer.html)
+  // und erzwingt URL-Policies für Links/Bilder; DOMPurify wird daher nur im Browser angewendet.
+  if (typeof window === 'undefined') return html;
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'hr',
+      'strong',
+      'em',
+      's',
+      'code',
+      'pre',
+      'blockquote',
+      'ul',
+      'ol',
+      'li',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'a',
+      'img',
+      'span',
+      // KaTeX (MathML + Annotation) – für A11y und Tests.
+      'math',
+      'semantics',
+      'mrow',
+      'mi',
+      'mo',
+      'mn',
+      'msup',
+      'msub',
+      'mfrac',
+      'msqrt',
+      'mroot',
+      'mtext',
+      'mspace',
+      'mtable',
+      'mtr',
+      'mtd',
+      'mover',
+      'munder',
+      'munderover',
+      'mstyle',
+      'annotation',
+    ],
+    ALLOWED_ATTR: [
+      'href',
+      'title',
+      'src',
+      'alt',
+      'data-markdown-image-lightbox',
+      'class',
+      'rel',
+      'aria-hidden',
+      'xmlns',
+      'encoding',
+    ],
+  });
 }

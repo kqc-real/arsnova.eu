@@ -1,0 +1,192 @@
+.mk-editor {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.mk-editor__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.25rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.mk-editor__split {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .mk-editor__split {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.mk-editor__field {
+  width: 100%;
+  font: inherit;
+  resize: vertical;
+  min-height: 6rem;
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  line-height: 1.5;
+
+  &:focus {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 1px;
+    border-color: var(--mat-sys-primary);
+  }
+}
+
+.mk-editor__preview {
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  box-shadow: var(--mat-sys-level1);
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+}
+
+.mk-editor__preview-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  margin: -0.15rem 0 0.65rem;
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+}
+
+.mk-editor__preview-icon {
+  width: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+}
+
+.mk-editor__preview-body {
+  display: block;
+}
+
+.mk-editor__preview-hint {
+  margin: -0.35rem 0 0.65rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
+.mk-editor__preview :where(p, ul, ol, blockquote, pre) {
+  margin: 0.6rem 0;
+}
+
+.mk-editor__preview :where(h1, h2, h3, h4) {
+  margin: 0.8rem 0 0.45rem;
+  font: var(--mat-sys-title-medium);
+  line-height: 1.25;
+}
+
+.mk-editor__preview :where(ul, ol) {
+  padding-left: 1.25rem;
+}
+
+.mk-editor__preview :where(li) {
+  margin: 0.25rem 0;
+}
+
+.mk-editor__preview :where(blockquote) {
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  border-radius: var(--mat-sys-corner-medium);
+}
+
+.mk-editor__preview :where(code) {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+}
+
+.mk-editor__preview :where(pre) {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  overflow: auto;
+}
+
+.mk-editor__preview :where(pre code) {
+  display: block;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.mk-editor__preview :where(.markdown-katex-error) {
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
+.mk-editor__preview :where(a) {
+  color: var(--mat-sys-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.08em;
+}
+
+.mk-editor__preview :where(a:hover) {
+  color: color-mix(in srgb, var(--mat-sys-primary) 85%, var(--mat-sys-on-surface));
+}
+
+.mk-editor__preview :where(a:focus-visible) {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  border-radius: var(--mat-sys-corner-small);
+}
+
+.mk-editor__preview :where(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.mk-editor__preview :where(img[data-markdown-image-lightbox='true']) {
+  cursor: zoom-in;
+}
+
+.mk-editor__preview :where(img[data-markdown-image-lightbox='true']:focus-visible) {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.mk-editor--disabled {
+  opacity: 0.75;
+}
+
+.mk-editor--compact {
+  gap: 0.375rem;
+}
+
+.mk-editor--compact .mk-editor__split {
+  gap: 0.5rem;
+}
+
+.mk-editor--compact .mk-editor__field {
+  min-height: 4rem;
+}
+
+.mk-editor--compact .mk-editor__preview {
+  max-height: 8rem;
+  overflow: auto;
+}

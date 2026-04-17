@@ -1699,7 +1699,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+    );
   }
 
   channelLabel(channel: SessionChannelTab): string {

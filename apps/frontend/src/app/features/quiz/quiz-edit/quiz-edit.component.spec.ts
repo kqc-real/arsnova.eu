@@ -80,6 +80,9 @@ describe('QuizEditComponent', () => {
         { provide: MatDialog, useValue: matDialogMock },
       ],
     });
+    // QuizEdit importiert indirekt Material-Dialog-Provider (über MarkdownKatexEditorComponent).
+    // Wir overriden explizit, damit Tests keine echten Overlay-Provider benötigen.
+    TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
   });
 
   it('hält das Panel „Neue Frage“ bei leerem Quiz zunächst geschlossen', () => {
@@ -111,6 +114,7 @@ describe('QuizEditComponent', () => {
         { provide: MatDialog, useValue: matDialogMock },
       ],
     });
+    TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(QuizEditComponent);

@@ -208,13 +208,11 @@
             }
 
             <label class="quiz-preview-editor__label" i18n>Frage</label>
-            <textarea
-              #questionDraftInput
-              class="quiz-preview-editor__textarea"
+            <app-markdown-katex-editor
               [value]="questionDraftText()"
-              (input)="onQuestionDraftChanged(questionDraftInput.value)"
-              rows="4"
-            ></textarea>
+              (valueChange)="onQuestionDraftChanged($event)"
+              [rows]="4"
+            />
 
             @if (question.type !== 'FREETEXT' && question.type !== 'RATING') {
               <div
@@ -255,12 +253,14 @@
                         </mat-icon>
                       </button>
                     }
-                    <input
-                      #answerDraftInput
-                      class="quiz-preview-editor__answer-input"
-                      [value]="answerDraftTexts()[i]"
-                      (input)="onAnswerDraftChanged(i, answerDraftInput.value)"
-                    />
+                    <div class="quiz-preview-editor__answer-input">
+                      <app-markdown-katex-editor
+                        [value]="answerDraftTexts()[i]"
+                        (valueChange)="onAnswerDraftChanged(i, $event)"
+                        [rows]="2"
+                        [compact]="true"
+                      />
+                    </div>
                     @if (questionTypeHasCorrectAnswers(question.type)) {
                       <span
                         class="quiz-preview-editor__answer-state"

@@ -167,7 +167,9 @@ export class QuizListComponent implements OnInit {
   }
 
   renderDescription(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+    );
   }
 
   isSharedLibrary(): boolean {

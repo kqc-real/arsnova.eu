@@ -16,14 +16,16 @@ Gleichzeitig soll die Darstellung auf **Smartphones** der gängigen Chat-/Messen
 
 ### 1. Kein Bild-Upload, nur Einbindung aus dem Netz
 
-- Bilder in Markdown ausschließlich über **externe URLs** im üblichen Syntax `![Alt-Text](https://…)` (optional Titel nach GFM).
+- **Quiz-/Session-Inhalte:** Bilder in Markdown ausschließlich über **externe URLs** im üblichen Syntax `![Alt-Text](https://…)` (optional Titel nach GFM).
 - Es gibt **keinen** Server-Endpunkt zum **Upload** von Bildern für Quiz-Inhalte und **keine** Speicherung binärer Medien in unserer Infrastruktur für diese Funktion.
 - Der **Persistenz- und Exportpfad** bleibt **reiner Text** (Markdown); die URL ist nur eine Zeichenkette im Inhalt.
 
 ### 2. Sicherheit und harte Grenzen
 
 - **Rendering:** Bilder werden im Client wie heute aus dem Markdown-HTML erzeugt; es gilt das bestehende **Sanitizing** und **DTO-/Stripping**-Denken (kein unkontrolliertes `innerHTML` ohne Filter).
-- **URL-Policy (Mindeststandard):** Nur **`https:`-URLs** für `src` zulassen; **`data:`**, **`javascript:`** und ähnliche Schemata für Bilder **ablehnen** oder nicht rendern (konkrete Implementierung im Frontend; bei Bedarf dokumentierte Allowlist später ergänzbar).
+- **URL-Policy (Mindeststandard):**
+  - **Quiz-/Session-Inhalte:** Nur **`https:`-URLs** für `img[src]` zulassen; **`data:`**, **`javascript:`** und ähnliche Schemata für Bilder **ablehnen** oder nicht rendern.
+  - **System-/Admin-Inhalte (z. B. MOTD, Legal, Demos):** Bilder dürfen zusätzlich als **interne Assets** referenziert werden (z. B. `/assets/...` oder `assets/...`), bleiben aber ansonsten denselben Sicherheitsregeln unterworfen (kein `data:`, kein `javascript:`).
 - **CSP:** `img-src` muss zu den erlaubten Quellen passen; bei strikter CSP ggf. dokumentierte Ausnahmen nur soweit nötig.
 
 ### 3. Lightbox / große Ansicht per Klick

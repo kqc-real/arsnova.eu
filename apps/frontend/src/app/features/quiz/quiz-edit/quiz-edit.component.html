@@ -489,28 +489,26 @@
           </p>
         }
 
-        <mat-form-field appearance="outline">
-          <mat-label i18n>Fragetext</mat-label>
-          <textarea
-            matInput
-            formControlName="text"
-            rows="4"
-            maxlength="2000"
-            (input)="onLivePreviewInput()"
-            i18n-aria-label
-            aria-label="Fragetext eingeben"
-          ></textarea>
-          <mat-hint align="end">{{ textControl.value.length }}/2000</mat-hint>
-          <mat-hint i18n="@@quiz.edit.markdownKatexPreviewHint"
-            >Unten in der Vorschau: Markdown, KaTeX.</mat-hint
-          >
+        <div class="quiz-edit-form__markdown-field">
+          <label class="quiz-edit-form__markdown-label" i18n>Fragetext</label>
+          <app-markdown-katex-editor
+            [value]="textControl.value"
+            (valueChange)="textControl.setValue($event); onLivePreviewInput()"
+            [rows]="4"
+          />
+          <div class="quiz-edit-form__markdown-hints">
+            <span class="quiz-edit-form__markdown-count">{{ textControl.value.length }}/2000</span>
+            <span i18n="@@quiz.edit.markdownKatexPreviewHint"
+              >Unten in der Vorschau: Markdown, KaTeX.</span
+            >
+          </div>
           @if (textControl.hasError('required') && (textControl.touched || submitted())) {
             <mat-error i18n>Gib einen Fragetext ein.</mat-error>
           }
           @if (textControl.hasError('maxlength') && (textControl.touched || submitted())) {
             <mat-error i18n>Der Fragetext darf maximal 2000 Zeichen lang sein.</mat-error>
           }
-        </mat-form-field>
+        </div>
 
         <div class="quiz-edit-form__grid">
           <mat-form-field appearance="outline">
@@ -614,16 +612,19 @@
                   }
                 </div>
 
-                <mat-form-field appearance="outline" class="quiz-edit-answer__field">
-                  <mat-label i18n>Antwort {{ i + 1 }}</mat-label>
-                  <input
-                    matInput
-                    formControlName="text"
-                    maxlength="500"
-                    (input)="onLivePreviewInput()"
-                    aria-label="Antworttext eingeben"
+                <div class="quiz-edit-answer__field">
+                  <label class="quiz-edit-answer__label" i18n>Antwort {{ i + 1 }}</label>
+                  <app-markdown-katex-editor
+                    [value]="answerTextControl(i).value"
+                    (valueChange)="answerTextControl(i).setValue($event); onLivePreviewInput()"
+                    [rows]="2"
+                    [compact]="true"
                   />
-                  <mat-hint align="end">{{ answerTextControl(i).value.length }}/500</mat-hint>
+                  <div class="quiz-edit-answer__hints">
+                    <span class="quiz-edit-answer__count"
+                      >{{ answerTextControl(i).value.length }}/500</span
+                    >
+                  </div>
                   @if (
                     answerTextControl(i).hasError('required') &&
                     (answerTextControl(i).touched || submitted())
@@ -636,7 +637,7 @@
                   ) {
                     <mat-error i18n>Maximal 500 Zeichen.</mat-error>
                   }
-                </mat-form-field>
+                </div>
 
                 <button
                   mat-icon-button

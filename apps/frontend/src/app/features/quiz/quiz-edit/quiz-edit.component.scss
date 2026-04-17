@@ -365,6 +365,34 @@
   margin-top: 0.4rem;
 }
 
+.quiz-edit-form__markdown-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.quiz-edit-form__markdown-hints {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.quiz-edit-form__markdown-count {
+  white-space: nowrap;
+}
+
+.quiz-edit-answer__hints {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.quiz-edit-answer__count {
+  white-space: nowrap;
+}
+
 .quiz-edit-form__answer-actions {
   display: flex;
   justify-content: flex-start;

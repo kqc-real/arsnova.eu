@@ -12281,6 +12281,114 @@
           <context context-type="linenumber">86</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="mdEditor.toolbarAria" datatype="html">
+        <source>Markdown-Werkzeugleiste</source>
+        <target>Barre d’outils Markdown</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.boldAria" datatype="html">
+        <source>Fett</source>
+        <target>Gras</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.italicAria" datatype="html">
+        <source>Kursiv</source>
+        <target>Italique</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.inlineCodeAria" datatype="html">
+        <source>Inline-Code</source>
+        <target>Code en ligne</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.bulletListAria" datatype="html">
+        <source>Liste</source>
+        <target>Liste</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.quoteAria" datatype="html">
+        <source>Zitat</source>
+        <target>Citation</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.inlineMathAria" datatype="html">
+        <source>Inline-Formel</source>
+        <target>Formule en ligne</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.linkAria" datatype="html">
+        <source>Link einfügen</source>
+        <target>Insérer un lien</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.imageAria" datatype="html">
+        <source>Bild einfügen</source>
+        <target>Insérer une image</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.moreActionsAria" datatype="html">
+        <source>Weitere Aktionen</source>
+        <target>Autres actions</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.heading2" datatype="html">
+        <source>Überschrift</source>
+        <target>Titre</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.codeBlock" datatype="html">
+        <source>Codeblock</source>
+        <target>Bloc de code</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.menu.blockMath" datatype="html">
+        <source>Block-Formel</source>
+        <target>Formule en bloc</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.dialog.cancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Annuler</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.dialog.insert" datatype="html">
+        <source>Einfügen</source>
+        <target>Insérer</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.linkDialog.title" datatype="html">
+        <source>Link einfügen</source>
+        <target>Insérer un lien</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.linkDialog.textLabel" datatype="html">
+        <source>Text</source>
+        <target>Texte</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.linkDialog.urlLabel" datatype="html">
+        <source>URL</source>
+        <target>URL</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.linkDialog.urlPlaceholder" datatype="html">
+        <source>Nur HTTPS, z. B. https://…</source>
+        <target>HTTPS uniquement, ex. https://…</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.linkDialog.urlError" datatype="html">
+        <source>Bitte gib eine gültige HTTPS-URL ein.</source>
+        <target>Saisis une URL HTTPS valide.</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.imageDialog.title" datatype="html">
+        <source>Bild einfügen</source>
+        <target>Insérer une image</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.imageDialog.altLabel" datatype="html">
+        <source>Alt-Text</source>
+        <target>Texte alternatif</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.imageDialog.urlLabel" datatype="html">
+        <source>Bild-URL</source>
+        <target>URL de l’image</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.imageDialog.urlPlaceholder" datatype="html">
+        <source>Nur HTTPS, z. B. https://…</source>
+        <target>HTTPS uniquement, ex. https://…</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.imageDialog.urlError" datatype="html">
+        <source>Bitte gib eine gültige HTTPS-URL ein.</source>
+        <target>Saisis une URL HTTPS valide.</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.previewLabel" datatype="html">
+        <source>Vorschau</source>
+        <target>Aperçu</target>
+      </trans-unit>
+      <trans-unit id="mdEditor.previewHint" datatype="html">
+        <source>Nur zur Ansicht – du bearbeitest links.</source>
+        <target>Aperçu uniquement — modifie à gauche.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

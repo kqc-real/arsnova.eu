@@ -1,0 +1,142 @@
+<section
+  class="mk-editor"
+  [class.mk-editor--compact]="compact"
+  [class.mk-editor--disabled]="disabled"
+>
+  <div
+    class="mk-editor__toolbar"
+    role="toolbar"
+    i18n-aria-label="@@mdEditor.toolbarAria"
+    aria-label="Markdown-Werkzeugleiste"
+  >
+    <button
+      #boldBtn
+      mat-icon-button
+      type="button"
+      (click)="applyBold()"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.boldAria"
+      aria-label="Fett"
+    >
+      <mat-icon aria-hidden="true">format_bold</mat-icon>
+    </button>
+    <button
+      #italicBtn
+      mat-icon-button
+      type="button"
+      (click)="applyItalic()"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.italicAria"
+      aria-label="Kursiv"
+    >
+      <mat-icon aria-hidden="true">format_italic</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="applyInlineCode()"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.inlineCodeAria"
+      aria-label="Inline-Code"
+    >
+      <mat-icon aria-hidden="true">code</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="applyBulletList()"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.bulletListAria"
+      aria-label="Liste"
+    >
+      <mat-icon aria-hidden="true">format_list_bulleted</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="applyQuote()"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.quoteAria"
+      aria-label="Zitat"
+    >
+      <mat-icon aria-hidden="true">format_quote</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="applyInlineMath()"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.inlineMathAria"
+      aria-label="Inline-Formel"
+    >
+      <mat-icon aria-hidden="true">functions</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="openLinkDialog($event)"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.linkAria"
+      aria-label="Link einfügen"
+    >
+      <mat-icon aria-hidden="true">link</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="openImageDialog($event)"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.imageAria"
+      aria-label="Bild einfügen"
+    >
+      <mat-icon aria-hidden="true">image</mat-icon>
+    </button>
+
+    <button
+      mat-icon-button
+      type="button"
+      [matMenuTriggerFor]="overflow"
+      [disabled]="disabled"
+      i18n-aria-label="@@mdEditor.moreActionsAria"
+      aria-label="Weitere Aktionen"
+    >
+      <mat-icon aria-hidden="true">more_vert</mat-icon>
+    </button>
+    <mat-menu #overflow="matMenu">
+      <button mat-menu-item type="button" (click)="applyHeading(2)">
+        <mat-icon aria-hidden="true">title</mat-icon>
+        <span i18n="@@mdEditor.menu.heading2">Überschrift</span>
+      </button>
+      <button mat-menu-item type="button" (click)="applyCodeBlock()">
+        <mat-icon aria-hidden="true">code_blocks</mat-icon>
+        <span i18n="@@mdEditor.menu.codeBlock">Codeblock</span>
+      </button>
+      <button mat-menu-item type="button" (click)="applyBlockMath()">
+        <mat-icon aria-hidden="true">calculate</mat-icon>
+        <span i18n="@@mdEditor.menu.blockMath">Block-Formel</span>
+      </button>
+    </mat-menu>
+  </div>
+
+  <div class="mk-editor__split">
+    <textarea
+      #field
+      class="mk-editor__field"
+      [attr.placeholder]="placeholder"
+      [disabled]="disabled"
+      [rows]="rows"
+      [value]="rawValue()"
+      (input)="onInput(field.value)"
+    ></textarea>
+    <div class="mk-editor__preview">
+      <div class="mk-editor__preview-head" aria-hidden="true">
+        <mat-icon class="mk-editor__preview-icon" aria-hidden="true">visibility</mat-icon>
+        <span class="mk-editor__preview-label" i18n="@@mdEditor.previewLabel">Vorschau</span>
+      </div>
+      <p class="mk-editor__preview-hint" aria-hidden="true" i18n="@@mdEditor.previewHint">
+        Nur zur Ansicht – du bearbeitest links.
+      </p>
+      <div class="mk-editor__preview-body" [innerHTML]="preview()"></div>
+    </div>
+  </div>
+</section>

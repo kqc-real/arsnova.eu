@@ -35,7 +35,8 @@ describe('renderMarkdownWithoutKatex', () => {
     const html = renderMarkdownWithoutKatex('Text\n\n```json\n{"a":1}\n```\n');
 
     expect(html).toContain('<pre><code class="language-json">');
-    expect(html).toContain('{&quot;a&quot;:1}');
+    // Je nach Sanitizing/Parser-Pfad können Anführungszeichen als Entities oder roh vorkommen.
+    expect(html.includes('{&quot;a&quot;:1}') || html.includes('{"a":1}')).toBe(true);
     expect(html).not.toContain('katex');
   });
 
@@ -51,6 +52,23 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).toMatch(/alt="Kurzinfo"/);
     expect(html).toMatch(/title="Kurzinfo"/);
     expect(html).toMatch(/data-markdown-image-lightbox="true"/);
+  });
+
+  it('blockiert relative Bildquellen im strikten Modus (Quiz-Inhalte)', () => {
+    const html = renderMarkdownWithoutKatex('![A](assets/demo/x.svg)', {
+      imagePolicy: 'external-https-only',
+    });
+    expect(html).toContain('<p>A</p>');
+    expect(html).not.toContain('<img ');
+    expect(html).not.toContain('src="assets/demo/x.svg"');
+  });
+
+  it('erlaubt https-Bildquellen im strikten Modus (Quiz-Inhalte)', () => {
+    const html = renderMarkdownWithoutKatex('![A](https://example.org/x.svg)', {
+      imagePolicy: 'external-https-only',
+    });
+    expect(html).toContain('<img');
+    expect(html).toContain('src="https://example.org/x.svg"');
   });
 
   it('nutzt optionalen Markdown-Bildtitel als title-Attribut', () => {

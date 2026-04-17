@@ -856,7 +856,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+    );
   }
 
   /** Nach Session-Ende: optional Bonus-Code zeigen, sonst direkt zur Startseite. */

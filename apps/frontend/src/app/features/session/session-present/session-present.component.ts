@@ -180,7 +180,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+    );
   }
 
   quickFeedbackHeading(type: string): string {

@@ -64,6 +64,7 @@ import {
 } from '../data/quiz-store.service';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import {
   focusAndScrollElement,
   focusFirstInvalidField,
@@ -147,6 +148,7 @@ type QuizMetadataFormGroup = FormGroup<{
     CdkDragHandle,
     CdkDragPlaceholder,
     MarkdownImageLightboxDirective,
+    MarkdownKatexEditorComponent,
   ],
   templateUrl: './quiz-edit.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-edit.component.scss'],
@@ -488,7 +490,9 @@ export class QuizEditComponent implements OnDestroy {
 
   renderMarkdown(value: string | null | undefined): SafeHtml {
     const source = value ?? '';
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(source).html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      renderMarkdownWithKatex(source, { imagePolicy: 'external-https-only' }).html,
+    );
   }
 
   addAnswer(): void {

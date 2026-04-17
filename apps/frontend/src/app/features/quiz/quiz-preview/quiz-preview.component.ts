@@ -43,6 +43,7 @@ import {
 import { LiveSessionDialogComponent } from '../quiz-list/live-session-dialog.component';
 import { localizeCommands } from '../../../core/locale-router';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
 
@@ -60,6 +61,7 @@ import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/ques
     MatCardContent,
     MatIcon,
     MatProgressBar,
+    MarkdownKatexEditorComponent,
     MarkdownImageLightboxDirective,
   ],
   templateUrl: './quiz-preview.component.html',
@@ -471,7 +473,9 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+    );
   }
 
   ratingScaleValues(min: number | null, max: number | null): number[] {
