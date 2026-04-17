@@ -401,6 +401,34 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
   - **Akzeptanzkriterien:**
     - **Split-View:** Markdown-Quelltext und Vorschau sind gleichzeitig nutzbar; die Vorschau aktualisiert sich mit **Debouncing** (z. B. ≤ 300 ms) wie bei Story 1.7.
     - **Gemeinsame Logik:** Vorschau nutzt dieselbe **Markdown-/KaTeX- und Sanitize-Strategie** wie die bestehende Session-/Preview-Darstellung (kein „zweites, stilles“ Rendering ohne Abgleich).
+    - **Implementierungs-Skizze (verbindliche Bausteine, ohne WYSIWYG-Pflicht):**
+      - **Shared Render-Pipeline:** Eine zentrale, wiederverwendbare Einheit (z. B. `renderMarkdownWithKatex(...)` + Sanitizing + URL-Policy aus ADR-0015) erzeugt das Preview-/Session-HTML. **Alle** Views (Editor-Preview, Host/Present/Vote/Preview) nutzen **denselben** Pfad bzw. dieselbe Konfiguration.
+      - **Editor-Komponente:** Eine Standalone-Editor-Komponente kapselt `textarea` (Quelle), debounced Preview und Toolbar-State mit **Signals** (kein rxjs-Zwang). Sie ist so gebaut, dass sie für **Fragetext** und **Antwortoptionen** wiederverwendbar ist (Inputs: `value`, `disabled`, `placeholder`, optional `compact`; Output: `valueChange`).
+      - **Toolbar + Actions:** Toolbar-Aktionen sind als kleine, testbare Funktionen/Services modelliert (Insert/Wrap/Replace anhand von Selection-Range), damit Edge-Cases (mehrzeilig, Cursor, Undo/Redo) robust bleiben. Dialoge/Sheets (Link/Bild/Formel) liefern strukturierte Werte zurück; das Einfügen erfolgt anschließend über dieselben Action-Funktionen.
+    - **Security (Angular v22 Best Practices):**
+      - **Kein ungeprüftes HTML:** Es wird **kein** untrusted HTML ohne Sanitizing per `[innerHTML]` gerendert. `DomSanitizer.bypassSecurityTrustHtml(...)` wird **nur** als letzter Schritt auf **bereits sanitiztem** HTML eingesetzt (Angular Security Best Practices).
+      - **Sanitizing explizit:** Die Render-Pipeline verwendet einen expliziten Sanitizer (z. B. **DOMPurify**) und eine dokumentierte Policy (Tags/Attributes/URL-Schemata). Links/Bilder müssen die URL-Policy aus ADR-0015 durchsetzen (mindestens `https:`); externe Links erhalten `rel="noopener noreferrer"` und ein sicheres `target`-Verhalten.
+      - **Sanitizing-Policy (konkret, Allowlist-orientiert):**
+        - **Erlaubte Tags (Minimum):** `p`, `br`, `hr`, `strong`, `em`, `s`, `code`, `pre`, `blockquote`, `ul`, `ol`, `li`, `h1`–`h4`, `a`, `img` sowie KaTeX-Output-Container (`span`) für gerenderte Formeln. Weitere Tags nur bei begründetem Bedarf ergänzen.
+        - **Erlaubte Attribute:** Für Links `href`, `title`; für Bilder `src`, `alt`, `title`. **Kein** User-`style`, **keine** `on*`-Handler, keine iframes/forms/embeds. Falls für KaTeX nötig: `class` auf `span`/KaTeX-Elementen zulassen (nur zur Darstellung, nicht als Authoring-Feature).
+        - **URL-Schemata:** `img[src]` **nur `https:`** (ADR-0015). `a[href]` nur aus definierter Allowlist (mind. `https:`; optional `http:`/`mailto:`). Alle anderen Schemata entfernen/neutralisieren.
+        - **Link-Härtung:** Externe Links werden mit `rel="noopener noreferrer"` versehen; `target="_blank"` nur, wenn UX-seitig explizit gewünscht und konsistent umgesetzt.
+    - **Empfohlene Libraries / Angular-Komponenten (Stand 2026, konform zu ADRs & Angular v22 Security):**
+      - **Markdown-Parsing:** `marked` (wie Story 1.7); Security erfolgt **nicht** im Parser, sondern in der gemeinsamen Render-Pipeline.
+      - **Sanitizing:** `dompurify` (Allowlist-Policy wie oben; optional `RETURN_TRUSTED_TYPE` bei strikter CSP/Trusted Types).
+      - **KaTeX:** `katex` mit `trust: false` und gesetzten Limits (`maxExpand`, `maxSize`) gemäß „untrusted input“.
+      - **Textarea-Insert/Wrapping (Undo/Redo best effort):** `text-field-edit` (Insert/Wrap mit besserer Browser-Unterstützung) plus eigene, testbare Action-Funktionen für Selection-Handling.
+      - **MD3 UI:** `MatIconButton`/`MatButton` + `MatMenu` (Overflow), `MatDialog` (Link/Bild/Formel-Dialoge), `MatBottomSheet` (mobile Overflow/Actionsheets).
+      - **A11y/Fokus:** `@angular/cdk/a11y` (z. B. `cdkTrapFocus`, `cdkFocusInitial`, `FocusMonitor`) falls über Standardverhalten hinaus benötigt.
+    - **KaTeX-Sicherheit & Robustheit:**
+      - KaTeX läuft mit **untrusted-input**-tauglicher Konfiguration: `trust` ist **false** (bzw. nur per enger Allowlist-Funktion, falls jemals nötig) und es sind **Limits** gesetzt (`maxExpand`, `maxSize`), um Missbrauch/DoS durch extreme Formeln zu begrenzen.
+      - Fehler in KaTeX werden als **lesbare** Preview-Fehlermeldung angezeigt (kein Crash); die App bleibt interaktiv.
+    - **Mobile-Definition Split-View (320 px):**
+      - Auf kleinen Viewports ist „Split-View“ als **gestapelter** Split (Quelle/Preview untereinander) oder als **schneller Umschaltmodus** mit stabiler Kontextwahrung definiert; beide Paneele bleiben ohne Layout-Brüche nutzbar (keine horizontale Scroll-Fallen).
+    - **A11y für Dialoge/Sheets (Link/Bild/Formel):**
+      - Dialoge/Sheets setzen initialen Fokus sinnvoll, halten Fokus innerhalb des Overlays, schließen per **Escape** (wo passend) und geben Fokus nach Close an den auslösenden Toolbar-Button zurück; Titel/Labels sind über `aria-labelledby`/`aria-label` angebunden.
+    - **Undo/Redo (Best-Effort):**
+      - Toolbar-Inserts/Wrapping respektieren native Undo/Redo **best effort**; browserbedingte Unterschiede sind akzeptiert, aber Cursor/Selection werden nach jeder Aktion deterministisch gesetzt.
     - **MD3-Toolbar (Klick/Tap):** Aktionen mindestens für Fett, Kursiv, Überschrift (sinnvolle Stufen), Listen, Zitat, Inline-Code, Codeblock, Link (Sheet/Dialog mit Text + URL), **Bild nur per HTTPS-URL** (+ Alt-Text, **kein Upload** — **ADR-0015**), **Inline- und Block-Formel** (Delimiters wie in der App dokumentiert).
     - **Mobile:** häufige Aktionen in der ersten Zeile; weitere über **Menü** oder **Bottom Sheet**; Touch-Ziele ausreichend groß (Mobile-First).
     - **Open Source:** eingesetzte Abhängigkeiten für Parsing/Hilfen sind **Open Source** und zur Projektlizenz kompatibel (**ADR-0016**); keine Pflicht-Komponente aus kommerziellen Rich-Text-Suites.
