@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **1.2e** (bewertbare Kurzantwort), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -27,6 +27,7 @@
 | 1    | 1.2b  | Fragentypen: Freitext & Umfrage                             | 🟡   | ✅ Fertig |
 | 1    | 1.2c  | Fragentyp: Rating-Skala                                     | 🟡   | ✅ Fertig |
 | 1    | 1.2d  | Numerische Schätzfrage (Toleranz, 2 Runden, Statistik)      | 🟡   | ⬜ Offen  |
+| 1    | 1.2e  | Fragentyp: Kurzantwort / Short Answer mit Musterlösung      | 🟡   | ⬜ Offen  |
 | 1    | 1.3   | Antworten & Lösungen                                        | 🔴   | ✅ Fertig |
 | 1    | 1.4   | Sitzungs-Konfiguration                                      | 🟡   | ✅ Fertig |
 | 1    | 1.5   | Local-First Speicherung                                     | 🔴   | ✅ Fertig |
@@ -110,11 +111,11 @@
 | 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte          | 🟡   | ✅ Fertig |
 | 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)                | 🟡   | ✅ Fertig |
 
-> **Repo-Abgleich (Codebase 2026-04-03):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). **Umgesetzt** sind jetzt u. a. **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
+> **Repo-Abgleich (Codebase 2026-04-03):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung und kein eigener Typ für bewertbare Kurzantwort in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). **Umgesetzt** sind jetzt u. a. **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 29 · 🟡 Should: 55 · 🟢 Could: 11 = **95 Stories gesamt** (**80** ✅ Fertig · **15** ⬜ Offen)
+> **Statistik:** 🔴 Must: 29 · 🟡 Should: 56 · 🟢 Could: 11 = **96 Stories gesamt** (**80** ✅ Fertig · **16** ⬜ Offen)
 
 ---
 
@@ -281,7 +282,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 1: Quiz-Verwaltung (Rolle: Lehrperson / Ersteller:in)
 
-> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07, 2026-04-17):** Die **nummerierten** Kern-Stories **1.1–1.15** (ohne Buchstaben-Zusätze) sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben die Erweiterungen **1.2d**, **1.6c**, **1.6d**, **1.14a** (dort ⬜). **Story 1.7a** und **Story 1.7b** sind umgesetzt und auf **✅ Fertig** gesetzt.
+> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07, 2026-04-17):** Die umgesetzten Kern-Stories in Epic 1 sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben aktuell **1.2d**, **1.2e**, **1.6c**, **1.6d**, **1.14a** (dort ⬜). **Story 1.7a** und **Story 1.7b** sind umgesetzt und auf **✅ Fertig** gesetzt.
 > Frontend-Checks: `npm run typecheck -w @arsnova/frontend` ✅, `npm run test -w @arsnova/frontend -- src/app/features/quiz` ✅ (54/54).  
 > Ergänzend abgeschlossen: Styleguide-/DoD-Nacharbeiten (Lesbarkeit/Spacing, Wording-Konsistenz, deutsches Datumsformat `de-DE`, Fehlerfokus auf erstes ungültiges Feld, Entfernung fragiler `::ng-deep`-Selektoren im Quiz-Feature, Preview-Interaktions- und Markdown/KaTeX-Rendering-Korrekturen).
 
@@ -327,6 +328,36 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Tests:** Unit-Tests für Toleranzlogik, Parsing, Rundung/Grenzfälle (\(V=0\), leere Runde 2); mindestens ein Integrationstest-Pfad für Zwei-Runden-Speicherung; Frontend-Specs für kritische Validierung wo sinnvoll.
     - **i18n (ADR-0008):** Alle neuen UI-Strings (Lehrperson, Host, Teilnehmende, Fehlermeldungen) in **de, en, fr, es, it**.
   - **Abhängigkeiten:** Story **1.7** (Markdown/KaTeX), Story **1.3** (Antwortlogik ggf. erweitern; klären ob Antwortoptionen entfallen), Story **2.7** (Peer-Instruction-/Zweirunden-Flow als fachliches Vorbild), Story **3.3b** (Abstimmung), Story **4.1** / **4.4** (Scoring & Visualisierung), Story **2.4** (Data-Stripping).
+- **Story 1.2e (Fragentyp: Kurzantwort / Short Answer mit Musterlösung):** 🟡 Als Lehrperson möchte ich **bewertbare Kurzantwort-Fragen** stellen können, bei denen Teilnehmende ein **kurzes Wort oder eine kurze Phrase** eingeben und das System diese Antwort anhand von **vordefinierten Musterlösungen** automatisch als richtig oder falsch bewertet.
+  - **Akzeptanzkriterien:**
+    - **Neuer Fragentyp:** Neuer Typ `SHORT_TEXT` (oder fachlich gleichwertige Benennung) in `@arsnova/shared-types`, klar getrennt von `FREETEXT`.
+    - **Abgrenzung zu Freitext:** `FREETEXT` bleibt **offen, unbewertet und ohne Musterlösung**. Der neue Typ ist **bewertbar** und für kurze, erwartbare Antworten gedacht.
+    - **Editor (Lehrperson):** Im Quiz-Editor kann die Lehrperson für eine Kurzantwort-Frage
+      - eine oder mehrere **gültige Musterlösungen** hinterlegen,
+      - optional **alternative Schreibweisen** ergänzen,
+      - die **maximale Antwortlänge** konfigurieren oder einen sinnvollen Standardwert übernehmen,
+      - festlegen, ob **Groß-/Kleinschreibung relevant** ist.
+    - **Normalisierung:** Vor dem Vergleich werden Eingaben auf Client und Server nach denselben Regeln normalisiert. Mindestens:
+      - führende und nachgestellte Leerzeichen entfernen,
+      - Mehrfach-Leerzeichen im Inneren vereinheitlichen,
+      - optional Groß-/Kleinschreibung ignorieren.
+    - **Nicht-Ziel im ersten Schritt:** Kein semantisches Matching, keine KI-Auswertung, keine Fuzzy-Suche, keine automatische Tippfehler-Toleranz.
+    - **Teilnehmenden-UI:** Die Antwort erfolgt über ein kompaktes Texteingabefeld für kurze Antworten, nicht über eine große Freitextbox.
+    - **Validierung:** Leere Eingaben werden abgewiesen. Antworten oberhalb der zulässigen Länge werden mit einer **lokalisierten** Fehlermeldung abgewiesen; es wird kein Vote gespeichert/gesendet.
+    - **Wertung:** Die Antwort gilt als **richtig**, wenn sie nach Normalisierung exakt einer hinterlegten Musterlösung entspricht; sonst falsch.
+    - **Scoring:** Kurzantwort-Fragen nehmen regulär am Quiz-Scoring teil wie andere bewertbare Fragetypen.
+    - **Data Stripping:** Während `ACTIVE` erhalten Teilnehmende **keine** Information über Musterlösungen oder Korrektheit. `isCorrect` und richtige Lösungen werden erst in `RESULTS` offengelegt.
+    - **Ergebnis-Visualisierung:** In der Host-/Presenter-Ansicht werden mindestens angezeigt:
+      - Anzahl richtiger und falscher Antworten,
+      - die hinterlegten Musterlösungen,
+      - optional aggregierte falsche Eingaben in gekürzter Form, soweit datenschutz- und UX-seitig vertretbar.
+    - **Import/Export:** Der Fragetyp samt Musterlösungen ist im Quiz-JSON vollständig serialisierbar. Der Ergebnisexport behandelt Kurzantworten getrennt von offenem Freitext; mindestens richtige/falsche Anzahl und Musterlösungen sind exportierbar.
+    - **Tests:** Es gibt Unit-/Komponententests für
+      - Normalisierung,
+      - korrekte/falsche Bewertung,
+      - Data-Stripping im aktiven Zustand,
+      - Editor-Validierung,
+      - Import/Export des Fragetypen.
 - **Story 1.3 (Antworten & Lösungen):** 🔴 Als Lehrperson möchte ich Antwortmöglichkeiten definieren und korrekte Antworten markieren können.
   - **Akzeptanzkriterien:**
     - Antworten können hinzugefügt, bearbeitet und gelöscht werden.
