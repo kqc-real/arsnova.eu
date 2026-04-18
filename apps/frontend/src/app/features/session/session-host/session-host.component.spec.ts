@@ -25,6 +25,8 @@ const {
   qaOnQuestionsUpdatedSubscribeMock,
   nextQuestionMutateMock,
   startQaMutateMock,
+  enableQaChannelMutateMock,
+  enableQuickFeedbackChannelMutateMock,
   endMutateMock,
   updatePresetMutateMock,
   quickFeedbackUpdateStyleMutateMock,
@@ -49,6 +51,8 @@ const {
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   nextQuestionMutateMock: vi.fn(),
   startQaMutateMock: vi.fn(),
+  enableQaChannelMutateMock: vi.fn(),
+  enableQuickFeedbackChannelMutateMock: vi.fn(),
   endMutateMock: vi.fn(),
   updatePresetMutateMock: vi.fn(),
   quickFeedbackUpdateStyleMutateMock: vi.fn(),
@@ -75,6 +79,8 @@ vi.mock('../../../core/trpc.client', () => ({
       getExportData: { query: getExportDataQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
       startQa: { mutate: startQaMutateMock },
+      enableQaChannel: { mutate: enableQaChannelMutateMock },
+      enableQuickFeedbackChannel: { mutate: enableQuickFeedbackChannelMutateMock },
       end: { mutate: endMutateMock },
       updatePreset: { mutate: updatePresetMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
@@ -151,6 +157,16 @@ describe('SessionHostComponent', () => {
       currentQuestion: null,
       currentRound: 1,
     });
+    enableQaChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: true, title: null, moderationMode: true },
+      quickFeedback: { enabled: false },
+    });
+    enableQuickFeedbackChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true },
+    });
     nextQuestionMutateMock.mockResolvedValue({
       status: 'ACTIVE',
       currentQuestion: null,
@@ -213,6 +229,53 @@ describe('SessionHostComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('ABC123');
     expect(text).toContain('Erste Frage starten');
+    fixture.destroy();
+  });
+
+  it('zeigt im Host auch noch inaktive Kanaele als Tabs an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Quiz');
+    expect(text).toContain('Q&A');
+    expect(text).toContain('Blitzlicht');
+    expect(text).toContain('Aus');
+    fixture.destroy();
+  });
+
+  it('aktiviert den Q&A-Tab beim Klick auf einen inaktiven Kanal', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    await fixture.componentInstance.selectChannel('qa');
+    fixture.detectChanges();
+
+    expect(enableQaChannelMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(fixture.componentInstance.channels().qa).toBe(true);
     fixture.destroy();
   });
 

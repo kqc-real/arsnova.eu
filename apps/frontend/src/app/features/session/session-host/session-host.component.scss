@@ -340,6 +340,14 @@
   align-items: center;
 }
 
+.session-channel-tabs__toggle--inactive {
+  opacity: 0.72;
+}
+
+.session-channel-tabs__toggle--inactive .session-channel-tabs__label {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .session-channel-tabs__badge {
   display: inline-flex;
   align-items: center;
@@ -361,6 +369,11 @@
 .session-channel-tabs__badge--status {
   background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
   color: var(--mat-sys-primary);
+}
+
+.session-channel-tabs__badge--inactive {
+  background: color-mix(in srgb, var(--mat-sys-outline-variant) 22%, transparent);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .session-channel-card {

@@ -449,34 +449,6 @@ html {
   line-height: 1.3;
 }
 
-.cdk-overlay-backdrop.live-session-dialog-backdrop {
-  background: color-mix(in srgb, var(--mat-sys-scrim) 38%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
-  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 82%, var(--mat-sys-surface));
-  box-shadow:
-    0 24px 60px -20px color-mix(in srgb, var(--mat-sys-shadow) 38%, transparent),
-    0 6px 18px -8px color-mix(in srgb, var(--mat-sys-shadow) 22%, transparent);
-}
-
-html.dark .cdk-overlay-pane.live-session-dialog-panel .mat-mdc-dialog-surface {
-  background: color-mix(
-    in srgb,
-    var(--mat-sys-surface-container-high) 90%,
-    var(--mat-sys-surface-bright)
-  );
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cdk-overlay-backdrop.live-session-dialog-backdrop {
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-  }
-}
-
 /* MOTD-Archiv (Toolbar): Hintergrund wie Home-MOTD-Overlay (Blur, kein Blur bei reduced-motion) */
 .cdk-overlay-backdrop.motd-archive-dialog-backdrop {
   background: color-mix(in srgb, var(--mat-sys-scrim) 45%, transparent);

@@ -660,6 +660,10 @@ export const SessionChannelsDTOSchema = z.object({
 });
 export type SessionChannelsDTO = z.infer<typeof SessionChannelsDTOSchema>;
 
+/** Output: Kanalstatus nach Zuschalten eines Session-Kanals (Host, ADR-0009). */
+export const UpdateSessionChannelsOutputSchema = SessionChannelsDTOSchema;
+export type UpdateSessionChannelsOutput = z.infer<typeof UpdateSessionChannelsOutputSchema>;
+
 export const SessionInfoDTOSchema = z.object({
   id: z.uuid(),
   code: z.string(),

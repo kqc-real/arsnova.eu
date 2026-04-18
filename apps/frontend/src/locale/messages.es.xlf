@@ -6184,142 +6184,6 @@
           <context context-type="linenumber">87</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.liveDialog.title" datatype="html">
-        <source>Live vorbereiten</source>
-        <target>Preparar la sesión en vivo</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">40,43</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.subtitle" datatype="html">
-        <source> Auftakt und Formate festlegen (Quiz, Q&amp;A, Blitzlicht)</source>
-        <target>Definir el arranque y los formatos (Quiz, Q&amp;A, sondeo rápido)</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">46,48</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelQuiz" datatype="html">
-        <source>Quiz</source>
-        <target>Quiz</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">71,74</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelQuizHint" datatype="html">
-        <source> Startet mit „<x id="INTERPOLATION" equiv-text="{{ data.quizName }}"/>“.</source>
-        <target>Preguntas y resultados</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">77,78</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelQa" datatype="html">
-        <source>Q&amp;A</source>
-        <target>Q&amp;A</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">104,106</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelQaHint" datatype="html">
-        <source> Fragen aus dem Raum</source>
-        <target>Preguntas de la sala</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">110,112</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelQuickFeedback" datatype="html">
-        <source>Blitzlicht</source>
-        <target>sondeo rápido</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">137,140</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelQuickFeedbackHint" datatype="html">
-        <source> Kurze Stimmungsbilder</source>
-        <target>Pulso rápido del grupo</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">143,146</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.cancel" datatype="html">
-        <source> Abbrechen</source>
-        <target>Cancelar</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">163,166</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.confirm" datatype="html">
-        <source>Veranstaltung starten</source>
-        <target>Iniciar evento</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">172,174</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelGroup" datatype="html">
-        <source>Live-Bereiche wählen</source>
-        <target>Elegir áreas live adicionales</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">409</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelStateStart" datatype="html">
-        <source>Start</source>
-        <target>comenzar</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">495</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">504</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">512</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelStateOn" datatype="html">
-        <source>An</source>
-        <target>Activo</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">498</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">507</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">516</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.liveDialog.channelStateOff" datatype="html">
-        <source>Aus</source>
-        <target>Off</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">499</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">508</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/live-session-dialog.component.ts</context>
-          <context context-type="linenumber">517</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="quizList.emptyWelcome" datatype="html">
         <source>Willkommen!</source>
         <target>¡Bienvenido!</target>
@@ -8966,6 +8830,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">627</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionTabs.channelInactive" datatype="html">
+        <source>Aus</source>
+        <target>Desactivado</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1774</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionTabs.questionsBadgeNew" datatype="html">

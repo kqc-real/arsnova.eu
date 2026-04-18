@@ -50,18 +50,26 @@
           class="session-channel-tabs"
           [value]="activeChannel()"
           (valueChange)="selectChannel($event)"
+          [disabled]="channelActivationPending() !== null"
           i18n-aria-label="@@sessionTabs.hostAria"
           aria-label="Live-Bereich wählen"
         >
-          @for (channel of visibleChannels(); track channel) {
-            <mat-button-toggle [value]="channel">
+          @for (channel of availableChannels(); track channel) {
+            <mat-button-toggle
+              [value]="channel"
+              [class.session-channel-tabs__toggle--inactive]="!isChannelEnabled(channel)"
+              [class.session-channel-tabs__toggle--pending]="channelActivationPending() === channel"
+            >
               <span class="session-channel-tabs__label">{{ channelLabel(channel) }}</span>
               @if (channelTabMetaLabel(channel); as metaLabel) {
                 <span
                   class="session-channel-tabs__badge"
+                  [class.session-channel-tabs__badge--inactive]="!isChannelEnabled(channel)"
                   [class.session-channel-tabs__badge--alert]="isChannelBadgeAlert(channel)"
                   [class.session-channel-tabs__badge--status]="
-                    channel === 'quickFeedback' && !isChannelBadgeAlert(channel)
+                    isChannelEnabled(channel) &&
+                    channel === 'quickFeedback' &&
+                    !isChannelBadgeAlert(channel)
                   "
                 >
                   {{ metaLabel }}

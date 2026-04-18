@@ -16,7 +16,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatCheckbox } from '@angular/material/checkbox';
-import { MatDialog } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatOption } from '@angular/material/core';
@@ -30,7 +29,6 @@ import {
   type CreateSessionOutput,
   type Difficulty,
 } from '@arsnova/shared-types';
-import { firstValueFrom } from 'rxjs';
 import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import {
   clearPendingHostSessionCode,
@@ -47,7 +45,6 @@ import {
   type QuizQuestion,
   type SupportedQuestionType,
 } from '../data/quiz-store.service';
-import { LiveSessionDialogComponent } from '../quiz-list/live-session-dialog.component';
 import { localizeCommands } from '../../../core/locale-router';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
@@ -86,7 +83,6 @@ export class QuizPreviewComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly quizStore = inject(QuizStoreService);
-  private readonly dialog = inject(MatDialog);
   private readonly injector = inject(Injector);
   private readonly platformId = inject(PLATFORM_ID);
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
@@ -288,29 +284,7 @@ export class QuizPreviewComponent implements OnDestroy {
   async openLiveStartDialog(): Promise<void> {
     const quiz = this.quiz();
     if (!quiz || this.questions().length === 0 || this.liveStartPending()) return;
-
-    const dialogRef = this.dialog.open(LiveSessionDialogComponent, {
-      width: 'min(32rem, calc(100vw - 1.5rem))',
-      maxWidth: '100vw',
-      autoFocus: false,
-      panelClass: 'live-session-dialog-panel',
-      backdropClass: 'live-session-dialog-backdrop',
-      data: {
-        quizName: quiz.name,
-        quizCanStart: this.questions().length > 0,
-      },
-    });
-
-    const result = await firstValueFrom(dialogRef.afterClosed());
-    if (!result) return;
-
-    await this.startLiveSession({
-      includeQuiz: result.enableQuiz,
-      includeQa: result.enableQa,
-      includeQuickFeedback: result.enableQuickFeedback,
-      startWithQa: result.startChannel === 'qa',
-      initialTab: result.startChannel,
-    });
+    await this.startLiveSession();
   }
 
   enterInlineEditMode(): void {
@@ -761,100 +735,76 @@ export class QuizPreviewComponent implements OnDestroy {
     }, 1160);
   }
 
-  private async startLiveSession(options: {
-    includeQuiz: boolean;
-    includeQa: boolean;
-    includeQuickFeedback: boolean;
-    startWithQa: boolean;
-    initialTab: 'quiz' | 'qa' | 'quickFeedback';
-  }): Promise<void> {
+  private async startLiveSession(): Promise<void> {
     this.liveStartError.set(null);
     this.liveStartPending.set(true);
     try {
-      let result: CreateSessionOutput;
-
-      if (options.includeQuiz) {
-        let payload = this.quizStore.getUploadPayload(this.id);
-        const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
-        try {
-          const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
-          const parsed = raw ? (JSON.parse(raw) as unknown) : null;
-          const entry = PresetStorageEntrySchema.safeParse(parsed);
-          if (entry.success) {
-            const storedOptions = entry.data.options;
-            /** Wie quiz-list: fehlender Chip = Quiz-Wert behalten, nicht false. */
-            const optionEnabled = (id: string, fallback: boolean) =>
-              id in storedOptions ? storedOptions[id] === true : fallback;
-            const effectiveTeamMode = optionEnabled('teamMode', false) || payload.teamMode;
-            payload = {
-              ...payload,
-              // Namensliste / Anonymität: immer aus dem Quiz (Snackbar-Preset überschreibt das nicht).
-              showLeaderboard: optionEnabled('showLeaderboard', payload.showLeaderboard),
-              enableRewardEffects: optionEnabled(
-                'enableRewardEffects',
-                payload.enableRewardEffects,
-              ),
-              enableMotivationMessages: optionEnabled(
-                'enableMotivationMessages',
-                payload.enableMotivationMessages,
-              ),
-              enableEmojiReactions: optionEnabled(
-                'enableEmojiReactions',
-                payload.enableEmojiReactions,
-              ),
-              enableSoundEffects: optionEnabled('enableSoundEffects', payload.enableSoundEffects),
-              readingPhaseEnabled: optionEnabled(
-                'readingPhaseEnabled',
-                payload.readingPhaseEnabled ?? true,
-              ),
-              teamMode: effectiveTeamMode,
-              teamAssignment: optionEnabled('teamMode', false)
-                ? optionEnabled('teamAssignment', false)
-                  ? 'MANUAL'
-                  : 'AUTO'
-                : (payload.teamAssignment ?? 'AUTO'),
-              teamCount: optionEnabled('teamMode', false)
-                ? (entry.data.teamCountValue ?? payload.teamCount)
-                : payload.teamCount,
-              bonusTokenCount: optionEnabled('bonusTokenCount', false)
-                ? (payload.bonusTokenCount ?? DEFAULT_BONUS_TOKEN_COUNT)
-                : payload.bonusTokenCount,
-              defaultTimer: optionEnabled('defaultTimer', typeof payload.defaultTimer === 'number')
-                ? (payload.defaultTimer ?? DEFAULT_TIMER_SECONDS)
-                : null,
-            };
-          }
-        } catch {
-          // Preset-Optionen nicht lesbar → Quiz-Einstellungen unverändert nutzen
+      let payload = this.quizStore.getUploadPayload(this.id);
+      const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
+      try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
+        const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+        const entry = PresetStorageEntrySchema.safeParse(parsed);
+        if (entry.success) {
+          const storedOptions = entry.data.options;
+          /** Wie quiz-list: fehlender Chip = Quiz-Wert behalten, nicht false. */
+          const optionEnabled = (id: string, fallback: boolean) =>
+            id in storedOptions ? storedOptions[id] === true : fallback;
+          const effectiveTeamMode = optionEnabled('teamMode', false) || payload.teamMode;
+          payload = {
+            ...payload,
+            // Namensliste / Anonymität: immer aus dem Quiz (Snackbar-Preset überschreibt das nicht).
+            showLeaderboard: optionEnabled('showLeaderboard', payload.showLeaderboard),
+            enableRewardEffects: optionEnabled('enableRewardEffects', payload.enableRewardEffects),
+            enableMotivationMessages: optionEnabled(
+              'enableMotivationMessages',
+              payload.enableMotivationMessages,
+            ),
+            enableEmojiReactions: optionEnabled(
+              'enableEmojiReactions',
+              payload.enableEmojiReactions,
+            ),
+            enableSoundEffects: optionEnabled('enableSoundEffects', payload.enableSoundEffects),
+            readingPhaseEnabled: optionEnabled(
+              'readingPhaseEnabled',
+              payload.readingPhaseEnabled ?? true,
+            ),
+            teamMode: effectiveTeamMode,
+            teamAssignment: optionEnabled('teamMode', false)
+              ? optionEnabled('teamAssignment', false)
+                ? 'MANUAL'
+                : 'AUTO'
+              : (payload.teamAssignment ?? 'AUTO'),
+            teamCount: optionEnabled('teamMode', false)
+              ? (entry.data.teamCountValue ?? payload.teamCount)
+              : payload.teamCount,
+            bonusTokenCount: optionEnabled('bonusTokenCount', false)
+              ? (payload.bonusTokenCount ?? DEFAULT_BONUS_TOKEN_COUNT)
+              : payload.bonusTokenCount,
+            defaultTimer: optionEnabled('defaultTimer', typeof payload.defaultTimer === 'number')
+              ? (payload.defaultTimer ?? DEFAULT_TIMER_SECONDS)
+              : null,
+          };
         }
-
-        const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
-        this.quizStore.setLastServerUploadAccess(
-          this.id,
-          uploadedQuizId,
-          await createQuizHistoryAccessProof(payload),
-        );
-        result = await trpc.session.create.mutate({
-          quizId: uploadedQuizId,
-          type: 'QUIZ',
-          qaEnabled: options.includeQa,
-          quickFeedbackEnabled: options.includeQuickFeedback,
-        });
-      } else {
-        result = await trpc.session.create.mutate({
-          type: 'Q_AND_A',
-          quickFeedbackEnabled: options.includeQuickFeedback,
-        });
+      } catch {
+        // Preset-Optionen nicht lesbar → Quiz-Einstellungen unverändert nutzen
       }
+
+      const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
+      this.quizStore.setLastServerUploadAccess(
+        this.id,
+        uploadedQuizId,
+        await createQuizHistoryAccessProof(payload),
+      );
+      const result: CreateSessionOutput = await trpc.session.create.mutate({
+        quizId: uploadedQuizId,
+        type: 'QUIZ',
+      });
 
       setHostToken(result.code, result.hostToken);
       setPendingHostSessionCode(result.code);
       try {
-        if (options.startWithQa) {
-          await trpc.session.startQa.mutate({ code: result.code });
-        }
-
-        await navigateToHostSession(this.router, result.code, options.initialTab);
+        await navigateToHostSession(this.router, result.code, 'quiz');
       } finally {
         clearPendingHostSessionCode();
       }

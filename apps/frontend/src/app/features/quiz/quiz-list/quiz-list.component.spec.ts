@@ -464,7 +464,7 @@ Viel Erfolg beim Import.`);
     expect(fixture.componentInstance.startLiveShortcutMode()).toBe(true);
   });
 
-  it('oeffnet den Startdialog direkt fuer das angeforderte Quiz', async () => {
+  it('startet die angeforderte Live-Session direkt fuer das angeforderte Quiz', async () => {
     quizzesSignal.set([
       {
         id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',

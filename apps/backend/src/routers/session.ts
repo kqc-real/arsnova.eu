@@ -55,6 +55,7 @@ import {
   UpdateSessionPresetInputSchema,
   UpdateSessionQaTitleInputSchema,
   UpdateSessionQaTitleOutputSchema,
+  UpdateSessionChannelsOutputSchema,
   GetSessionParticipantInputSchema,
   SendEmojiReactionInputSchema,
   EMOJI_REACTIONS,
@@ -864,6 +865,95 @@ export const sessionRouter = router({
         currentRound: 1,
         activeAt: now.toISOString(),
       };
+    }),
+
+  enableQaChannel: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(UpdateSessionChannelsOutputSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      if (session.type !== 'Q_AND_A' && session.qaEnabled !== true) {
+        const updated = await prisma.session.update({
+          where: { id: session.id },
+          data: {
+            qaEnabled: true,
+            qaModerationMode: session.qaModerationMode ?? true,
+          },
+          select: {
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+          },
+        });
+        return buildSessionChannels(updated);
+      }
+
+      return buildSessionChannels(session);
+    }),
+
+  enableQuickFeedbackChannel: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(UpdateSessionChannelsOutputSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      if (session.quickFeedbackEnabled !== true) {
+        const updated = await prisma.session.update({
+          where: { id: session.id },
+          data: { quickFeedbackEnabled: true },
+          select: {
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+          },
+        });
+        return buildSessionChannels(updated);
+      }
+
+      return buildSessionChannels(session);
     }),
 
   /** Session-Info per Code (für Beitritt, Story 3.1, 3.2). Enthält Nickname-Konfiguration bei QUIZ. */

@@ -44,7 +44,6 @@ import {
   renderMarkdownWithKatex,
   renderMarkdownWithoutKatex,
 } from '../../../shared/markdown-katex.util';
-import { LiveSessionDialogComponent } from './live-session-dialog.component';
 import { BonusCodesDialogComponent } from './bonus-codes-dialog.component';
 import { LastSessionFeedbackDialogComponent } from './last-session-feedback-dialog.component';
 import {
@@ -560,40 +559,15 @@ export class QuizListComponent implements OnInit {
 
   async openLiveStartDialog(
     quizId: string,
-    quizName: string,
+    _quizName: string,
     questionCount: number,
   ): Promise<void> {
-    if (this.liveStartPending()) {
+    if (this.liveStartPending() || questionCount <= 0) {
       return;
     }
 
     await this.clearLiveStartShortcut();
-
-    const dialogRef = this.dialog.open(LiveSessionDialogComponent, {
-      width: 'min(32rem, calc(100vw - 1.5rem))',
-      maxWidth: '100vw',
-      autoFocus: false,
-      panelClass: 'live-session-dialog-panel',
-      backdropClass: 'live-session-dialog-backdrop',
-      data: {
-        quizName,
-        quizCanStart: questionCount > 0,
-      },
-    });
-
-    const result = await firstValueFrom(dialogRef.afterClosed());
-    if (!result) {
-      return;
-    }
-
-    await this.startLiveSession({
-      quizId,
-      includeQuiz: result.enableQuiz,
-      includeQa: result.enableQa,
-      includeQuickFeedback: result.enableQuickFeedback,
-      startWithQa: result.startChannel === 'qa',
-      initialTab: result.startChannel,
-    });
+    await this.startLiveSession({ quizId });
   }
 
   async openBonusCodesDialog(quiz: QuizSummary): Promise<void> {
@@ -743,101 +717,76 @@ export class QuizListComponent implements OnInit {
    * Quiz live schalten (Story 2.1a): Upload + Session erstellen, dann zur Host-Ansicht.
    * Übernimmt das aktuell gewählte Home-Preset (z. B. Altersgruppe Kita) in den Upload-Payload.
    */
-  private async startLiveSession(options: {
-    quizId: string;
-    includeQuiz: boolean;
-    includeQa: boolean;
-    includeQuickFeedback: boolean;
-    startWithQa: boolean;
-    initialTab: 'quiz' | 'qa' | 'quickFeedback';
-  }): Promise<void> {
+  private async startLiveSession(options: { quizId: string }): Promise<void> {
     this.actionError.set(null);
     this.actionInfo.set(null);
     this.liveStartPending.set(true);
     try {
-      let result: CreateSessionOutput;
-
-      if (options.includeQuiz) {
-        let payload = this.quizStore.getUploadPayload(options.quizId);
-        const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
-        try {
-          const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
-          const parsed = raw ? (JSON.parse(raw) as unknown) : null;
-          const entry = PresetStorageEntrySchema.safeParse(parsed);
-          if (entry.success) {
-            const storedOptions = entry.data.options;
-            /** Fehlender Chip-Schlüssel = Quiz-Wert behalten (wie Quiz-Vorschau). */
-            const optionEnabled = (id: string, fallback: boolean) =>
-              id in storedOptions ? storedOptions[id] === true : fallback;
-            const effectiveTeamMode = optionEnabled('teamMode', false) || payload.teamMode;
-            payload = {
-              ...payload,
-              // Namensliste / Anonymität: immer aus dem Quiz (Snackbar-Preset überschreibt das nicht).
-              showLeaderboard: optionEnabled('showLeaderboard', payload.showLeaderboard),
-              enableRewardEffects: optionEnabled(
-                'enableRewardEffects',
-                payload.enableRewardEffects,
-              ),
-              enableMotivationMessages: optionEnabled(
-                'enableMotivationMessages',
-                payload.enableMotivationMessages,
-              ),
-              enableEmojiReactions: optionEnabled(
-                'enableEmojiReactions',
-                payload.enableEmojiReactions,
-              ),
-              enableSoundEffects: optionEnabled('enableSoundEffects', payload.enableSoundEffects),
-              readingPhaseEnabled: optionEnabled(
-                'readingPhaseEnabled',
-                payload.readingPhaseEnabled ?? true,
-              ),
-              teamMode: effectiveTeamMode,
-              teamAssignment: optionEnabled('teamMode', false)
-                ? optionEnabled('teamAssignment', false)
-                  ? 'MANUAL'
-                  : 'AUTO'
-                : (payload.teamAssignment ?? 'AUTO'),
-              teamCount: optionEnabled('teamMode', false)
-                ? (entry.data.teamCountValue ?? payload.teamCount)
-                : payload.teamCount,
-              bonusTokenCount: optionEnabled('bonusTokenCount', false)
-                ? (payload.bonusTokenCount ?? DEFAULT_BONUS_TOKEN_COUNT)
-                : payload.bonusTokenCount,
-              defaultTimer: optionEnabled('defaultTimer', typeof payload.defaultTimer === 'number')
-                ? (payload.defaultTimer ?? DEFAULT_TIMER_SECONDS)
-                : null,
-            };
-          }
-        } catch {
-          // Preset-Optionen nicht lesbar → Quiz-Einstellungen unverändert nutzen
+      let payload = this.quizStore.getUploadPayload(options.quizId);
+      const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
+      try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
+        const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+        const entry = PresetStorageEntrySchema.safeParse(parsed);
+        if (entry.success) {
+          const storedOptions = entry.data.options;
+          /** Fehlender Chip-Schlüssel = Quiz-Wert behalten (wie Quiz-Vorschau). */
+          const optionEnabled = (id: string, fallback: boolean) =>
+            id in storedOptions ? storedOptions[id] === true : fallback;
+          const effectiveTeamMode = optionEnabled('teamMode', false) || payload.teamMode;
+          payload = {
+            ...payload,
+            // Namensliste / Anonymität: immer aus dem Quiz (Snackbar-Preset überschreibt das nicht).
+            showLeaderboard: optionEnabled('showLeaderboard', payload.showLeaderboard),
+            enableRewardEffects: optionEnabled('enableRewardEffects', payload.enableRewardEffects),
+            enableMotivationMessages: optionEnabled(
+              'enableMotivationMessages',
+              payload.enableMotivationMessages,
+            ),
+            enableEmojiReactions: optionEnabled(
+              'enableEmojiReactions',
+              payload.enableEmojiReactions,
+            ),
+            enableSoundEffects: optionEnabled('enableSoundEffects', payload.enableSoundEffects),
+            readingPhaseEnabled: optionEnabled(
+              'readingPhaseEnabled',
+              payload.readingPhaseEnabled ?? true,
+            ),
+            teamMode: effectiveTeamMode,
+            teamAssignment: optionEnabled('teamMode', false)
+              ? optionEnabled('teamAssignment', false)
+                ? 'MANUAL'
+                : 'AUTO'
+              : (payload.teamAssignment ?? 'AUTO'),
+            teamCount: optionEnabled('teamMode', false)
+              ? (entry.data.teamCountValue ?? payload.teamCount)
+              : payload.teamCount,
+            bonusTokenCount: optionEnabled('bonusTokenCount', false)
+              ? (payload.bonusTokenCount ?? DEFAULT_BONUS_TOKEN_COUNT)
+              : payload.bonusTokenCount,
+            defaultTimer: optionEnabled('defaultTimer', typeof payload.defaultTimer === 'number')
+              ? (payload.defaultTimer ?? DEFAULT_TIMER_SECONDS)
+              : null,
+          };
         }
-        const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
-        this.quizStore.setLastServerUploadAccess(
-          options.quizId,
-          uploadedQuizId,
-          await createQuizHistoryAccessProof(payload),
-        );
-        result = await trpc.session.create.mutate({
-          quizId: uploadedQuizId,
-          type: 'QUIZ',
-          qaEnabled: options.includeQa,
-          quickFeedbackEnabled: options.includeQuickFeedback,
-        });
-      } else {
-        result = await trpc.session.create.mutate({
-          type: options.includeQa ? 'Q_AND_A' : 'QUIZ',
-          quickFeedbackEnabled: options.includeQuickFeedback,
-        });
+      } catch {
+        // Preset-Optionen nicht lesbar → Quiz-Einstellungen unverändert nutzen
       }
+      const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
+      this.quizStore.setLastServerUploadAccess(
+        options.quizId,
+        uploadedQuizId,
+        await createQuizHistoryAccessProof(payload),
+      );
+      const result: CreateSessionOutput = await trpc.session.create.mutate({
+        quizId: uploadedQuizId,
+        type: 'QUIZ',
+      });
 
       setHostToken(result.code, result.hostToken);
       setPendingHostSessionCode(result.code);
       try {
-        if (options.startWithQa) {
-          await trpc.session.startQa.mutate({ code: result.code });
-        }
-
-        await navigateToHostSession(this.router, result.code, options.initialTab);
+        await navigateToHostSession(this.router, result.code, 'quiz');
         this.actionInfo.set($localize`Session ${result.code} gestartet.`);
       } finally {
         clearPendingHostSessionCode();
