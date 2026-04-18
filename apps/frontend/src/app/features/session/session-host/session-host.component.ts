@@ -278,6 +278,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private participantSub: Unsubscribable | null = null;
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
+  private qaSubscriptionSessionId: string | null = null;
   private readonly document = inject(DOCUMENT);
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
@@ -629,6 +630,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.ensureActiveChannel();
     });
     effect(() => {
+      const sessionId = this.session()?.id ?? null;
+      const qaEnabled = this.channels().qa;
+      void sessionId;
+      void qaEnabled;
+      untracked(() => this.ensureQaSubscription());
+    });
+    effect(() => {
       const allVoted = this.allHaveVoted();
       if (allVoted) {
         this.stopCountdown();
@@ -914,6 +922,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       void this.refreshParticipantsPayload();
       void this.refreshLiveFreetext();
       void this.refreshCurrentQuestionForHost();
+      void this.refreshQaQuestions();
       void this.refreshEmojiReactions();
       void this.refreshLobbyTeams();
       void this.refreshQuickFeedbackResult();
@@ -949,19 +958,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         },
       );
 
-      if (this.channels().qa && this.session()?.id) {
-        this.qaSub = trpc.qa.onQuestionsUpdated.subscribe(
-          { sessionId: this.session()!.id, moderatorView: true },
-          {
-            onData: (data) => {
-              this.qaQuestions.set(data);
-              this.dismissHostSteeringCallout();
-            },
-            onError: () => this.burstHostFallbackAfterWsGap(),
-          },
-        );
-      }
-
       this.document.addEventListener('click', this.unlockListener, { once: true });
       this.document.addEventListener('keydown', this.unlockListener, { once: true });
     }
@@ -979,6 +975,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     void this.refreshParticipantsPayload();
     void this.refreshLiveFreetext();
     void this.refreshCurrentQuestionForHost();
+    void this.refreshQaQuestions();
     void this.refreshEmojiReactions();
     void this.refreshLobbyTeams();
     void this.refreshQuickFeedbackResult();
@@ -1004,6 +1001,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.statusSub = null;
     this.qaSub?.unsubscribe();
     this.qaSub = null;
+    this.qaSubscriptionSessionId = null;
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
@@ -1969,6 +1967,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private patchSessionChannels(channels: SessionChannelsDTO): void {
     this.session.update((session) => (session ? { ...session, channels } : session));
+  }
+
+  private ensureQaSubscription(): void {
+    const sessionId = this.session()?.id ?? null;
+    const qaEnabled = this.channels().qa;
+    if (!sessionId || !qaEnabled) {
+      this.qaSub?.unsubscribe();
+      this.qaSub = null;
+      this.qaSubscriptionSessionId = null;
+      return;
+    }
+
+    if (this.qaSub && this.qaSubscriptionSessionId === sessionId) {
+      return;
+    }
+
+    this.qaSub?.unsubscribe();
+    this.qaSub = trpc.qa.onQuestionsUpdated.subscribe(
+      { sessionId, moderatorView: true },
+      {
+        onData: (data) => {
+          this.qaQuestions.set(data);
+          this.dismissHostSteeringCallout();
+        },
+        onError: () => this.burstHostFallbackAfterWsGap(),
+      },
+    );
+    this.qaSubscriptionSessionId = sessionId;
   }
 
   private syncQaTitleDraftFromSession(): void {

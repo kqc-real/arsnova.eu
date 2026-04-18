@@ -151,6 +151,44 @@ describe('FeedbackHostComponent', () => {
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
   });
 
+  it('startet im eingebetteten Modus nach spaetem Start sofort die Live-Subscription', async () => {
+    const { trpc } = await import('../../core/trpc.client');
+    const onResultsSubscribeMock = vi
+      .mocked(trpc.quickFeedback.onResults.subscribe)
+      .mockReturnValue({ unsubscribe: vi.fn() });
+    vi.mocked(trpc.quickFeedback.results.query)
+      .mockRejectedValueOnce(new Error('not found'))
+      .mockResolvedValueOnce({
+        type: 'TRUEFALSE_UNKNOWN',
+        theme: 'system',
+        preset: 'serious',
+        locked: false,
+        totalVotes: 0,
+        distribution: { TRUE: 0, FALSE: 0, UNKNOWN: 0 },
+      });
+
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(onResultsSubscribeMock).not.toHaveBeenCalled();
+
+    await fixture.componentInstance.startRound('TRUEFALSE_UNKNOWN');
+
+    expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledWith({
+      sessionCode: 'ABC123',
+      type: 'TRUEFALSE_UNKNOWN',
+      theme: fixture.componentInstance['themePreset'].theme(),
+      preset: fixture.componentInstance['themePreset'].preset(),
+    });
+    expect(onResultsSubscribeMock).toHaveBeenCalledWith(
+      { sessionCode: 'ABC123' },
+      expect.any(Object),
+    );
+    fixture.destroy();
+  });
+
   it('beendet die eingebettete Session und navigiert zur Startseite', async () => {
     const { trpc } = await import('../../core/trpc.client');
     const router = TestBed.inject(Router);

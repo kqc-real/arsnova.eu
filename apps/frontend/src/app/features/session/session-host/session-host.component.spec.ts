@@ -269,11 +269,16 @@ describe('SessionHostComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
+    qaOnQuestionsUpdatedSubscribeMock.mockClear();
 
     await fixture.componentInstance.selectChannel('qa');
     fixture.detectChanges();
 
     expect(enableQaChannelMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(qaOnQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+      { sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad', moderatorView: true },
+      expect.any(Object),
+    );
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(fixture.componentInstance.channels().qa).toBe(true);
     fixture.destroy();
