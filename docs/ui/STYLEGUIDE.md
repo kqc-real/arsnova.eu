@@ -299,7 +299,7 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 ## Preset-Toast: Wording
 
 - **Titel:** Nur "Seriös" / "Spielerisch" (ohne "Preset:"). **Englisch (`en`):** Toggles und Toast-Titel **Business** / **Gamification** — siehe **`docs/ui/ENGLISH-UI-COPY.md`**.
-- **Hinweise:** Nutzenorientiert, keine reine Feature-Liste. Serioes: "Anonym, ohne Wettbewerb – Fokus auf Inhalte." Spielerisch: "Mit Rangliste, Sounds und Anfeuerung – fuer mehr Motivation."
+- **Hinweise:** Nutzenorientiert, keine reine Feature-Liste. Serioes: "Ohne Wettbewerb, mit Lesephase – Fokus auf Inhalte." Spielerisch: "Mit Rangliste, Action Sounds und Anfeuerung – fuer mehr Motivation."
 - **Stil wechseln:** Link-Text "Stil wechseln zu Serioes/Spielerisch".
 - **Subtitle:** "Tippen zum An- oder Ausschalten. Mit „Speichern“ uebernehmen." (kurz, handlungsorientiert).
 - **Kategorien:** "Spiel & Auswertung", "Teilnahme & Namen", "Ablauf & Zeit", "Team", "Ton & Musik". Kein Anglizismus "Nicknames".

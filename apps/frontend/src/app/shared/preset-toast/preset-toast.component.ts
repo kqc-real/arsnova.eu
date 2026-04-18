@@ -92,7 +92,7 @@ export const PRESET_OPTION_IDS = [
   },
   {
     id: 'enableSoundEffects',
-    label: $localize`Sounds bei Aktionen`,
+    label: $localize`Action Sounds`,
     icon: 'volume_up',
     categoryId: 'audio' as CategoryId,
   },

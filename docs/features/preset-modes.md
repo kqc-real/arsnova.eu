@@ -1,6 +1,6 @@
 # Preset-Modi (Session-Voreinstellungen)
 
-> **Stand:** 2026-04-01 · Abgleich mit `ThemePresetService`, `preset-toast.component.ts`, `PresetStorageEntrySchema` (`@arsnova/shared-types`)
+> **Stand:** 2026-04-18 · Abgleich mit `QUIZ_PRESETS` / `CreateQuizInput` (`libs/shared-types/src/schemas.ts`), `ThemePresetService`, `preset-toast.component.ts` (`PRESET_OPTION_IDS`, `getPresetDefaults`), `PresetStorageEntrySchema`
 
 Die Preset-Modi sind ein zentrales Unterscheidungsmerkmal von arsnova.eu. Sie erlauben es Dozenten, mit **einem Klick** eine komplette Session-Konfiguration zu laden – optimiert für den jeweiligen Einsatzzweck. Kein langwieriges Zusammenklicken einzelner Optionen, kein versehentliches Vergessen eines Toggles.
 
@@ -8,11 +8,11 @@ Die Preset-Modi sind ein zentrales Unterscheidungsmerkmal von arsnova.eu. Sie er
 
 In klassischen Audience-Response-Systemen (Kahoot!, Mentimeter) gibt es meist einen einzigen Modus. arsnova.eu erkennt, dass Hörsaal-Quizze je nach Kontext **fundamental verschiedene Anforderungen** haben:
 
-| Szenario                      | Bedürfnis                                                |
-| ----------------------------- | -------------------------------------------------------- |
-| Prüfungsvorbereitung          | Kein sozialer Druck, Fokus auf Inhalt, anonyme Teilnahme |
-| Auflockerung in der Vorlesung | Wettbewerb, Rangliste, Sound, Emoji-Reaktionen           |
-| Teamarbeit im Seminar         | Gruppenbildung, kooperative Auswertung                   |
+| Szenario                      | Bedürfnis                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| Prüfungsvorbereitung          | Wenig Wettbewerb, Fokus auf Inhalt, Lesephase, Pseudonyme statt freier Namen |
+| Auflockerung in der Vorlesung | Wettbewerb, Rangliste, Sound, Emoji-Reaktionen                               |
+| Teamarbeit im Seminar         | Gruppenbildung, kooperative Auswertung                                       |
 
 Die Preset-Modi lösen dieses Problem mit **zwei Grundkonfigurationen**, die der Dozent jederzeit individuell anpassen kann.
 
@@ -20,35 +20,38 @@ Die Preset-Modi lösen dieses Problem mit **zwei Grundkonfigurationen**, die der
 
 ### Seriös
 
-> _Druckfrei, anonym, Fokus auf Inhalt._
+> _Druckarm, ohne Wettbewerb, Fokus auf Inhalt — Lesephase und Pseudonyme._
 
 ![Preset: Seriös](preset-serioes.png)
 
-**Defaults:**
+**Defaults** (siehe `QUIZ_PRESETS.SERIOUS` in `@arsnova/shared-types`):
 
-- Alle Gamification-Features **aus** (keine Rangliste, keine Effekte, keine Sounds)
-- Namensmodus: **Anonym**
-- Lesephase: **an** (Studierende lesen zuerst die Frage, bevor die Antwortphase startet)
-- Zeitlimit: **aus**
+- Alle Gamification-Features **aus** (keine Rangliste, keine Belohnungs-/Motivations-/Emoji-Effekte, keine **Action Sounds**)
+- **`anonymousMode`: false** — Teilnehmende nutzen weiterhin **Pseudonyme** aus der Themenliste (Standard **`nicknameTheme`: Oberstufe**), nicht den reinen Anonym-Modus ohne Namen
+- **`allowCustomNicknames`: false** — keine frei wählbaren Nicks
+- Lesephase: **an** (Frage zuerst lesen, dann „Antworten freigeben“)
+- Zeitlimit: **aus** (`defaultTimer`: null)
 
-**Typischer Einsatz:** Formative Assessments, Prüfungsvorbereitung, sensible Themen, bei denen Studierende sich nicht exponieren sollen.
+**Typischer Einsatz:** Formative Assessments, Prüfungsvorbereitung, sensible Themen, reflektiertes Arbeiten ohne Leaderboard-Druck.
 
 ### Spielerisch
 
-> _Rangliste, Sound & Effekte, Motivation & Wettbewerb._
+> _Rangliste, Action Sounds & Effekte, Motivation & Wettbewerb._
 
 ![Preset: Spielerisch](preset-spielerisch.png)
 
-**Defaults:**
+**Defaults** (siehe `QUIZ_PRESETS.PLAYFUL`):
 
 - Rangliste: **an**
 - Effekte bei richtiger Antwort: **an**
 - Anfeuerungstexte: **an**
 - Emoji-Reaktionen: **an**
-- Sound: **an**
-- Zeitlimit: **an**
-- Namensmodus: **Nicks** (mit Altersgruppe „Nobelpreisträger")
+- **Action Sounds** (`enableSoundEffects`): **an** — kurze **SFX** (z. B. Countdown-Ende), **nicht** die Phasen-Hintergrundmusik (die steuert `backgroundMusic` im Quiz-Editor)
+- Zeitlimit: **an** (Standard-Sekundenwert aus `DEFAULT_TIMER_SECONDS` in shared-types)
+- **`anonymousMode`: false**, **`allowCustomNicknames`: false**, **`nicknameTheme`: Oberstufe** — vorgegebene Pseudonyme, kein reiner Anonym-Modus
 - Lesephase: **aus**
+
+**Hinweis Startseite:** Im **Preset-Toast** (localStorage) kann die **Altersgruppe** für Nicks separat gewählt werden; beim **neuen Quiz** legt das Preset aber **`QUIZ_PRESETS`** fest (derzeit **Oberstufe** für beide Modi).
 
 **Typischer Einsatz:** Auflockerung in der Vorlesung, Wettbewerbs-Quizze, Gamified Learning.
 
@@ -104,9 +107,9 @@ Der Namensmodus bestimmt, wie Teilnehmer im Quiz erscheinen:
 
 ### Audio
 
-| Option             | Icon        | Beschreibung                                                         |
-| ------------------ | ----------- | -------------------------------------------------------------------- |
-| Sound bei Aktionen | `volume_up` | Akustisches Feedback bei Aktionen (Preset-Chip `enableSoundEffects`) |
+| Option            | Icon        | Beschreibung                                                                                                                  |
+| ----------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Action Sounds** | `volume_up` | Kurze **Soundeffekte** (SFX), u. a. am Countdown-Ende (`enableSoundEffects`) — **keine** durchgehende Phasen-Hintergrundmusik |
 
 **Hintergrundmusik** (`backgroundMusic` am Quiz) wird **nicht** im Preset-Toast gesteuert, sondern im **Quiz-Editor** bzw. in den Quiz-Einstellungen (Yjs / Formular) — siehe `Quiz`-Modell und Session-Start.
 
@@ -136,13 +139,13 @@ Im Modus **Nicks** wählt der Dozent eine Altersgruppe, die den Nickname-Pool be
 
 ![Nickname-Theme-Auswahl](preset-nickname-theme.png)
 
-| Theme            | Icon            | Beschreibung                               |
-| ---------------- | --------------- | ------------------------------------------ |
-| Nobelpreisträger | `military_tech` | Namen berühmter Nobelpreisträger (Default) |
-| Kita             | `child_care`    | Kindgerechte, einfache Tiernamen o.Ä.      |
-| Grundschule      | `abc`           | Altersgerechte Fantasienamen               |
-| Mittelstufe      | `calculate`     | Wissenschaftliche Begriffe                 |
-| Oberstufe        | `school`        | Komplexere, akademische Pseudonyme         |
+| Theme            | Icon            | Beschreibung                                                    |
+| ---------------- | --------------- | --------------------------------------------------------------- |
+| Nobelpreisträger | `military_tech` | Namen berühmter Nobelpreisträger (häufige Wahl im Preset-Toast) |
+| Kita             | `child_care`    | Kindgerechte, einfache Tiernamen o.Ä.                           |
+| Grundschule      | `abc`           | Altersgerechte Fantasienamen                                    |
+| Mittelstufe      | `calculate`     | Wissenschaftliche Begriffe                                      |
+| Oberstufe        | `school`        | Komplexere, akademische Pseudonyme                              |
 
 Die Themes sind als Zod-Enum `NicknameThemeEnum` in `libs/shared-types/src/schemas.ts` definiert und werden sowohl im Frontend als auch im Backend validiert.
 
@@ -176,7 +179,7 @@ Alle Preset-Toast-Einstellungen werden **pro Preset** im Browser des Dozenten ge
     "enableSoundEffects": true
   },
   "nameMode": "nicknameTheme",
-  "nicknameThemeValue": "NOBEL_LAUREATES",
+  "nicknameThemeValue": "HIGH_SCHOOL",
   "teamCountValue": 2
 }
 ```

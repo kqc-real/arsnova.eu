@@ -481,9 +481,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Alle Operationen erfolgen rein clientseitig (Local-First).
 - **Story 1.11 (Quiz-Presets):** 🟡 Als Lehrperson möchte ich beim Erstellen eines Quizzes ein Preset auswählen können, das alle Gamification-Einstellungen auf einmal setzt, damit ich schnell zwischen spielerischem und seriösem Modus wechseln kann.
   - **Akzeptanzkriterien:**
-    - Es gibt **zwei** Presets in der Quiz-Konfiguration:
-      - **🎮 Spielerisch** (default): setzt `showLeaderboard=true`, `enableSoundEffects=true`, `enableRewardEffects=true`, `enableMotivationMessages=true`, `enableEmojiReactions=true`, `anonymousMode=false`.
-      - **🎓 Seriös**: setzt `showLeaderboard=false`, `enableSoundEffects=false`, `enableRewardEffects=false`, `enableMotivationMessages=false`, `enableEmojiReactions=false`, `anonymousMode=true`, `defaultTimer=null` (offene Antwortphase).
+    - Es gibt **zwei** Presets in der Quiz-Konfiguration (Implementierung: `QUIZ_PRESETS` in `@arsnova/shared-types`):
+      - **🎮 Spielerisch** (default): u. a. `showLeaderboard=true`, `enableSoundEffects=true`, `enableRewardEffects=true`, `enableMotivationMessages=true`, `enableEmojiReactions=true`, `anonymousMode=false`, `allowCustomNicknames=false`, `nicknameTheme=HIGH_SCHOOL`, `defaultTimer` = Standard-Countdown (`DEFAULT_TIMER_SECONDS`), `readingPhaseEnabled=false`.
+      - **🎓 Seriös**: u. a. `showLeaderboard=false`, `enableSoundEffects=false`, `enableRewardEffects=false`, `enableMotivationMessages=false`, `enableEmojiReactions=false`, `anonymousMode=false` (Pseudonyme aus Themenliste, nicht reiner Anonym-Modus), `allowCustomNicknames=false`, `nicknameTheme=HIGH_SCHOOL`, `defaultTimer=null` (offene Antwortphase), `readingPhaseEnabled=true`.
     - **Einzeloptionen sind auswählbar:** Jede Option kann unabhängig an- oder abgewählt bzw. gesetzt werden; die UI bietet pro Option einen klaren Toggle oder ein Eingabefeld. Nach Auswahl eines Presets kann die Lehrperson jede Einzeloption überschreiben. Die gewählten **Einzelwerte werden gespeichert** — im Quiz-Dokument (Yjs) und damit persistent (Local-First, Sync über Yjs).
     - Das Preset dient nur als Komfortfunktion zum einmaligen Vorsetzen der Werte; **maßgeblich und gespeichert sind die Einzelwerte** (über Yjs), nicht das Preset selbst.
     - Ein visueller Hinweis (Badge „Spielerisch" / „Seriös") zeigt an, welchem Preset die aktuelle Konfiguration entspricht. Wenn Einzelwerte abweichen, wird „Benutzerdefiniert" angezeigt.
@@ -491,7 +491,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - **showLeaderboard** — Leaderboard mit Rangfolge anzeigen (ja/nein).
       - **allowCustomNicknames** — Eigene Pseudonyme erlauben oder nur vordefinierte Liste (Story 1.4) (ja/nein).
       - **defaultTimer** — Standard-Countdown in Sekunden pro Frage (Zahl oder „offen" / null).
-      - **enableSoundEffects** — Sound-Effekte bei Aktionen (ja/nein).
+      - **enableSoundEffects** — **Action Sounds**: kurze SFX (z. B. Countdown), nicht Phasen-Hintergrundmusik (ja/nein).
       - **enableRewardEffects** — Belohnungseffekte (ja/nein).
       - **enableMotivationMessages** — Motivationsmeldungen (ja/nein).
       - **enableEmojiReactions** — Emoji-Reaktionen (ja/nein).
@@ -754,7 +754,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Doppelte Nicknames in derselben Session werden abgelehnt (DB-Constraint).
 - **Story 3.6 (Anonymer Modus):** 🟡 Als Lehrperson möchte ich einen anonymen Modus aktivieren können, bei dem keine Nicknames angezeigt werden, damit die Teilnahme psychologisch druckfrei ist.
   - **Akzeptanzkriterien:**
-    - Neues Quiz-Konfigurationsfeld `anonymousMode` (default: false; wird automatisch durch Preset „Seriös" aktiviert, Story 1.11).
+    - Neues Quiz-Konfigurationsfeld `anonymousMode` (default: false; **Preset „Seriös“ setzt `anonymousMode=false`** — reiner Anonym-Modus ist optional separat aktivierbar, Story 1.11).
     - Wenn aktiviert:
       - Teilnehmende erhalten beim Beitreten eine automatisch generierte ID (z. B. „Teilnehmer #7“) — kein Nickname-Auswahlschritt.
       - In der Lobby (Story 2.2) wird nur die **Zahl der Teilnehmenden** angezeigt, keine Namensliste.

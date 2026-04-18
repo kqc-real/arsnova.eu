@@ -201,7 +201,7 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 - Enums/Schemas: SessionStatusEnum, QuestionTypeEnum, DifficultyEnum, NicknameThemeEnum, TeamAssignmentEnum, SessionTypeEnum, QaQuestionStatusEnum.
 - Input-Schemas: CreateSessionInputSchema, JoinSessionInputSchema, CreateQuizInputSchema, QuizUploadInputSchema, SubmitVoteInputSchema, AddQuestionInputSchema, AnswerOptionInputSchema, GetExportDataInputSchema (Story 4.7).
 - DTO-Schemas: SessionInfoDTOSchema, QuestionPreviewDTOSchema, QuestionStudentDTOSchema, QuestionRevealedDTOSchema (AnswerOptionRevealedDTO), LeaderboardEntryDTOSchema, PersonalScorecardDTOSchema, BonusTokenListDTO, SessionExportDTOSchema (Story 4.7); ParticipantDTO, QuizExportSchema.
-- Presets: QUIZ_PRESETS (PLAYFUL, SERIOUS) mit readingPhaseEnabled, defaultTimer, anonymousMode etc.
+- Presets: `QUIZ_PRESETS` (PLAYFUL, SERIOUS) in `libs/shared-types` — u. a. `readingPhaseEnabled`, `defaultTimer`, `nicknameTheme` (Standard **Oberstufe**), `allowCustomNicknames`, `anonymousMode` (in beiden Presets derzeit **false**; reiner Anonym-Modus optional manuell).
 - **Live-Start (`quiz.upload`):** Payload aus `getUploadPayload` (Quiz); Home-Preset überschreibt nur boolesche Chips, deren Schlüssel **explizit** in `localStorage` `options` steht (`id in options`). Fehlender Schlüssel → Quiz-Wert. Details: `docs/features/preset-modes.md` § Live-Start.
 - **MOTD (Epic 10):** u. a. `MotdGetCurrentInputSchema`, `MotdPublicDTOSchema`; `ServerStatsDTOSchema` enthält u. a. `maxParticipantsSingleSession`; Admin-MOTD unter `admin.motd.*`.
 - **Host/Historie:** `QuizHistoryAccessProofSchema` und Hilfen zur Proof-Erzeugung liegen in shared-types; bei neuen owner-gebundenen Quiz-Endpunkten dieses Modell mitprüfen.

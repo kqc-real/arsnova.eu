@@ -76,7 +76,7 @@ In den Prompt werden u. a. eingetragen (Auszug; vollständige Liste im TypeScrip
 
 - Preset-Label (lokalisiert) und Preset-Enum (`PLAYFUL` / `SERIOUS`)
 - `nicknameTheme`, `readingPhaseEnabled`, `defaultDifficulty`
-- Optionen: Rangliste, Nicknames, `defaultTimer`, Sound-/Reward-/Motivations-/Emoji-Effekte, `anonymousMode`, Team-Modus (`teamCount`, `teamAssignment`, `teamNames`), `backgroundMusic`, `bonusTokenCount`
+- Optionen: Rangliste, Nicknames, `defaultTimer`, **Action Sounds** (`enableSoundEffects`) sowie Reward-/Motivations-/Emoji-Effekte, `anonymousMode`, Team-Modus (`teamCount`, `teamAssignment`, `teamNames`), `bonusTokenCount` — **kein** `backgroundMusic` im Prompt (Hintergrundmusik nur Quiz-Editor/Session).
 
 ### Inhaltliche Bausteine des Prompts (Kurz)
 
