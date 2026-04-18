@@ -25,14 +25,14 @@
         autocomplete="off"
         spellcheck="false"
         i18n-placeholder="@@mdEditor.linkDialog.urlPlaceholder"
-        placeholder="https://… oder mailto:…"
+        placeholder="https://… oder mailto:… oder tel:…"
       />
       @if (form.controls.url.hasError('required') && form.controls.url.touched) {
         <mat-error i18n="@@mdEditor.linkDialog.urlRequired">Bitte gib einen Link ein.</mat-error>
       }
       @if (form.controls.url.hasError('markdownLinkHref') && form.controls.url.touched) {
         <mat-error i18n="@@mdEditor.linkDialog.urlError"
-          >Bitte https://… oder mailto:… verwenden.</mat-error
+          >Bitte https://…, mailto:… oder tel:… verwenden.</mat-error
         >
       }
     </mat-form-field>

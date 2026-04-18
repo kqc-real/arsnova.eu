@@ -13,6 +13,7 @@
     (pointerdown.capture)="onToolbarPointerDownCapture($event)"
   >
     <button
+      class="mk-editor__tool"
       mat-icon-button
       type="button"
       (click)="applyHeading(2)"
@@ -20,11 +21,14 @@
       [matTooltip]="mdToolbarLabel.heading"
       [matTooltipDisabled]="disabled"
       [attr.aria-label]="mdToolbarLabel.heading"
+      [attr.aria-pressed]="toolbarState().heading"
+      [class.mk-editor__tool--active]="toolbarState().heading"
     >
       <mat-icon aria-hidden="true">title</mat-icon>
     </button>
     <button
       #boldBtn
+      class="mk-editor__tool"
       mat-icon-button
       type="button"
       (click)="applyBold()"
@@ -32,11 +36,14 @@
       [matTooltip]="mdToolbarLabel.bold"
       [matTooltipDisabled]="disabled"
       [attr.aria-label]="mdToolbarLabel.bold"
+      [attr.aria-pressed]="toolbarState().bold"
+      [class.mk-editor__tool--active]="toolbarState().bold"
     >
       <mat-icon aria-hidden="true">format_bold</mat-icon>
     </button>
     <button
       #italicBtn
+      class="mk-editor__tool"
       mat-icon-button
       type="button"
       (click)="applyItalic()"
@@ -44,6 +51,8 @@
       [matTooltip]="mdToolbarLabel.italic"
       [matTooltipDisabled]="disabled"
       [attr.aria-label]="mdToolbarLabel.italic"
+      [attr.aria-pressed]="toolbarState().italic"
+      [class.mk-editor__tool--active]="toolbarState().italic"
     >
       <mat-icon aria-hidden="true">format_italic</mat-icon>
     </button>
@@ -61,6 +70,7 @@
     </button>
     <div class="mk-editor__toolbar-rest">
       <button
+        class="mk-editor__tool"
         mat-icon-button
         type="button"
         (click)="applyBulletList()"
@@ -68,10 +78,13 @@
         [matTooltip]="mdToolbarLabel.list"
         [matTooltipDisabled]="disabled"
         [attr.aria-label]="mdToolbarLabel.list"
+        [attr.aria-pressed]="toolbarState().list"
+        [class.mk-editor__tool--active]="toolbarState().list"
       >
         <mat-icon aria-hidden="true">format_list_bulleted</mat-icon>
       </button>
       <button
+        class="mk-editor__tool"
         mat-icon-button
         type="button"
         (click)="applyQuote()"
@@ -79,10 +92,13 @@
         [matTooltip]="mdToolbarLabel.quote"
         [matTooltipDisabled]="disabled"
         [attr.aria-label]="mdToolbarLabel.quote"
+        [attr.aria-pressed]="toolbarState().quote"
+        [class.mk-editor__tool--active]="toolbarState().quote"
       >
         <mat-icon aria-hidden="true">format_quote</mat-icon>
       </button>
       <button
+        class="mk-editor__tool"
         mat-icon-button
         type="button"
         (click)="applyInlineCode()"
@@ -90,10 +106,13 @@
         [matTooltip]="mdToolbarLabel.inlineCode"
         [matTooltipDisabled]="disabled"
         [attr.aria-label]="mdToolbarLabel.inlineCode"
+        [attr.aria-pressed]="toolbarState().inlineCode"
+        [class.mk-editor__tool--active]="toolbarState().inlineCode"
       >
         <mat-icon aria-hidden="true">code</mat-icon>
       </button>
       <button
+        class="mk-editor__tool"
         mat-icon-button
         type="button"
         (click)="applyInlineMath()"
@@ -101,6 +120,8 @@
         [matTooltip]="mdToolbarLabel.inlineMath"
         [matTooltipDisabled]="disabled"
         [attr.aria-label]="mdToolbarLabel.inlineMath"
+        [attr.aria-pressed]="toolbarState().inlineMath"
+        [class.mk-editor__tool--active]="toolbarState().inlineMath"
       >
         <mat-icon aria-hidden="true">functions</mat-icon>
       </button>
@@ -129,6 +150,7 @@
 
       <div class="mk-editor__toolbar-wide">
         <button
+          class="mk-editor__tool"
           mat-icon-button
           type="button"
           (click)="applyCodeBlock()"
@@ -136,10 +158,13 @@
           [matTooltip]="mdToolbarLabel.codeBlock"
           [matTooltipDisabled]="disabled"
           [attr.aria-label]="mdToolbarLabel.codeBlock"
+          [attr.aria-pressed]="toolbarState().codeBlock"
+          [class.mk-editor__tool--active]="toolbarState().codeBlock"
         >
           <mat-icon aria-hidden="true">integration_instructions</mat-icon>
         </button>
         <button
+          class="mk-editor__tool"
           mat-icon-button
           type="button"
           (click)="applyBlockMath()"
@@ -147,19 +172,24 @@
           [matTooltip]="mdToolbarLabel.blockMath"
           [matTooltipDisabled]="disabled"
           [attr.aria-label]="mdToolbarLabel.blockMath"
+          [attr.aria-pressed]="toolbarState().blockMath"
+          [class.mk-editor__tool--active]="toolbarState().blockMath"
         >
           <mat-icon aria-hidden="true">calculate</mat-icon>
         </button>
         <button
+          class="mk-editor__tool"
           mat-icon-button
           type="button"
-          (click)="applyMarkdownShowcase()"
+          (click)="toggleHelp()"
           [disabled]="disabled"
-          [matTooltip]="mdToolbarLabel.showcase"
+          [matTooltip]="mdToolbarLabel.help"
           [matTooltipDisabled]="disabled"
-          [attr.aria-label]="mdToolbarLabel.showcase"
+          [attr.aria-label]="mdToolbarLabel.help"
+          [attr.aria-pressed]="helpOpen()"
+          [class.mk-editor__tool--active]="helpOpen()"
         >
-          <mat-icon aria-hidden="true">menu_book</mat-icon>
+          <mat-icon aria-hidden="true">help_outline</mat-icon>
         </button>
       </div>
     </div>
@@ -197,12 +227,56 @@
         <mat-icon aria-hidden="true">calculate</mat-icon>
         <span i18n="@@mdEditor.menu.blockMath">Block-Formel</span>
       </button>
-      <button mat-menu-item type="button" (click)="applyMarkdownShowcase()">
-        <mat-icon aria-hidden="true">menu_book</mat-icon>
-        <span i18n="@@mdEditor.menu.showcase">Was geht?</span>
+      <button mat-menu-item type="button" (click)="toggleHelp()">
+        <mat-icon aria-hidden="true">help_outline</mat-icon>
+        <span i18n="@@mdEditor.menu.help">Kurzhilfe</span>
       </button>
     </mat-menu>
   </div>
+
+  @if (helpOpen()) {
+    <aside class="mk-editor__help" aria-live="polite">
+      <div class="mk-editor__help-head">
+        <mat-icon aria-hidden="true">help_outline</mat-icon>
+        <strong i18n="@@mdEditor.helpTitle">Markdown-Kurzhilfe</strong>
+      </div>
+      <div class="mk-editor__help-grid">
+        <div class="mk-editor__help-card">
+          <p class="mk-editor__help-label" i18n="@@mdEditor.helpFormatting">Formatierung</p>
+          <code>**fett**</code>
+          <code>_kursiv_</code>
+          <code>`code`</code>
+          <code>- Liste</code>
+          <code>&gt; Zitat</code>
+        </div>
+        <div class="mk-editor__help-card">
+          <p class="mk-editor__help-label" i18n="@@mdEditor.helpLinks">Links & Bilder</p>
+          <code>[Text](https://example.org)</code>
+          <code>![Alt](https://example.org/bild.png)</code>
+          <p class="mk-editor__help-note" i18n="@@mdEditor.helpHttpsOnly">
+            Für Bilder nur externe HTTPS-URLs verwenden.
+          </p>
+        </div>
+        <div class="mk-editor__help-card">
+          <p class="mk-editor__help-label" i18n="@@mdEditor.helpMath">KaTeX</p>
+          <code>$x^2$</code>
+          <code>$$ x^2 + y^2 = z^2 $$</code>
+          <p class="mk-editor__help-note" i18n="@@mdEditor.helpMathHint">
+            Inline mit <code>$...$</code>, Blockformeln mit <code>$$...$$</code>.
+          </p>
+        </div>
+        <div class="mk-editor__help-card">
+          <p class="mk-editor__help-label" i18n="@@mdEditor.helpShortcuts">Shortcuts</p>
+          <p class="mk-editor__help-shortcut"><kbd>Ctrl/Cmd</kbd> + <kbd>B</kbd> Fett</p>
+          <p class="mk-editor__help-shortcut"><kbd>Ctrl/Cmd</kbd> + <kbd>I</kbd> Kursiv</p>
+          <p class="mk-editor__help-shortcut"><kbd>Ctrl/Cmd</kbd> + <kbd>K</kbd> Link</p>
+          <p class="mk-editor__help-shortcut">
+            <kbd>Tab</kbd> / <kbd>Shift</kbd> + <kbd>Tab</kbd> Ein-/Ausrücken
+          </p>
+        </div>
+      </div>
+    </aside>
+  }
 
   <div class="mk-editor__split">
     <div class="mk-editor__source">
@@ -214,6 +288,10 @@
         [rows]="rows"
         (input)="onInput(field.value)"
         (keydown)="onFieldKeydown($event)"
+        (keyup)="onFieldSelectionChange()"
+        (click)="onFieldSelectionChange()"
+        (select)="onFieldSelectionChange()"
+        (scroll)="onSourceScroll()"
       ></textarea>
     </div>
     <div class="mk-editor__preview">
@@ -221,7 +299,13 @@
         <mat-icon class="mk-editor__preview-icon" aria-hidden="true">visibility</mat-icon>
         <span class="mk-editor__preview-label" i18n="@@mdEditor.previewLabel">Vorschau</span>
       </div>
-      <div class="mk-editor__preview-body" [innerHTML]="preview()"></div>
+      @if (previewKatexError(); as error) {
+        <p class="mk-editor__preview-error" aria-live="polite">
+          <strong i18n="@@mdEditor.previewErrorLabel">Formelfehler:</strong>
+          {{ error }}
+        </p>
+      }
+      <div #previewBody class="mk-editor__preview-body" [innerHTML]="preview()"></div>
     </div>
   </div>
 </section>

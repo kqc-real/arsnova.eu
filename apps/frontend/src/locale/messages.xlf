@@ -10164,8 +10164,8 @@
           <context context-type="linenumber">197,199</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="mdEditor.menu.showcase" datatype="html">
-        <source>Was geht?</source>
+      <trans-unit id="mdEditor.menu.help" datatype="html">
+        <source>Kurzhilfe</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
           <context context-type="linenumber">201,203</context>
@@ -10176,6 +10176,62 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
           <context context-type="linenumber">221,223</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.previewErrorLabel" datatype="html">
+        <source>Formelfehler:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">227,229</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.helpTitle" datatype="html">
+        <source>Markdown-Kurzhilfe</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">236,238</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.helpFormatting" datatype="html">
+        <source>Formatierung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">241,241</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.helpLinks" datatype="html">
+        <source>Links &amp; Bilder</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">249,249</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.helpHttpsOnly" datatype="html">
+        <source>Für Bilder nur externe HTTPS-URLs verwenden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">252,254</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.helpMath" datatype="html">
+        <source>KaTeX</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">258,258</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.helpMathHint" datatype="html">
+        <source>Inline mit <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$...$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/>, Blockformeln mit <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$$...$$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/>.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">261,263</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="mdEditor.helpShortcuts" datatype="html">
+        <source>Shortcuts</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">267,267</context>
         </context-group>
       </trans-unit>
       <trans-unit id="mdEditor.boldAria" datatype="html">
@@ -10255,8 +10311,8 @@
           <context context-type="linenumber">75</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="mdEditor.showcaseAria" datatype="html">
-        <source>Vollständiges Markdown- und KaTeX-Beispiel auf Englisch laden (ersetzt den aktuellen Text)</source>
+      <trans-unit id="mdEditor.helpAria" datatype="html">
+        <source>Markdown-Hilfe und Tastenkürzel anzeigen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.ts</context>
           <context context-type="linenumber">76</context>
@@ -10291,7 +10347,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="mdEditor.linkDialog.urlPlaceholder" datatype="html">
-        <source>https://… oder mailto:…</source>
+        <source>https://… oder mailto:… oder tel:…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-link-dialog.component.html</context>
           <context context-type="linenumber">28,30</context>
@@ -10305,7 +10361,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="mdEditor.linkDialog.urlError" datatype="html">
-        <source>Bitte https://… oder mailto:… verwenden.</source>
+        <source>Bitte https://…, mailto:… oder tel:… verwenden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-link-dialog.component.html</context>
           <context context-type="linenumber">35,38</context>

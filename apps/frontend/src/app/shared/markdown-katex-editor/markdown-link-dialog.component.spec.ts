@@ -18,8 +18,18 @@ describe('markdownLinkHrefValidator', () => {
     expect(markdownLinkHrefValidator(c)).toBeNull();
   });
 
+  it('accepts tel links', () => {
+    const c = new FormControl('tel:+49301234567');
+    expect(markdownLinkHrefValidator(c)).toBeNull();
+  });
+
   it('rejects bare mailto', () => {
     const c = new FormControl('mailto:');
+    expect(markdownLinkHrefValidator(c)).toEqual({ markdownLinkHref: true });
+  });
+
+  it('rejects bare tel', () => {
+    const c = new FormControl('tel:');
     expect(markdownLinkHrefValidator(c)).toEqual({ markdownLinkHref: true });
   });
 

@@ -6,6 +6,7 @@ import {
   EventEmitter,
   Input,
   AfterViewInit,
+  OnDestroy,
   OnChanges,
   Output,
   SimpleChanges,
@@ -32,7 +33,6 @@ import {
   type MarkdownLinkDialogResult,
 } from './markdown-link-dialog.component';
 import { MarkdownImageLightboxDirective } from '../markdown-image-lightbox/markdown-image-lightbox.directive';
-import { MARKDOWN_SHOWCASE_EN } from './markdown-showcase-sample.en';
 
 /** Eingefügte Fence-Blöcke; Caret auf die leere Zeile zwischen öffnendem und schließendem Fence. */
 const INSERT_CODE_BLOCK = `\n\`\`\`${DEFAULT_MARKDOWN_FENCE_LANGUAGE}\n\n\`\`\`\n`;
@@ -40,6 +40,18 @@ const INSERT_BLOCK_MATH = '\n$$\n\n$$\n';
 /** Zeichenoffset nach `\n` + öffnendem Fence + `\n` (Anfang der Innenzeile). */
 const CARET_OFFSET_CODE_BLOCK = `\n\`\`\`${DEFAULT_MARKDOWN_FENCE_LANGUAGE}\n`.length;
 const CARET_OFFSET_BLOCK_MATH = '\n$$\n'.length;
+
+type MarkdownToolbarState = {
+  heading: boolean;
+  bold: boolean;
+  italic: boolean;
+  list: boolean;
+  quote: boolean;
+  inlineCode: boolean;
+  inlineMath: boolean;
+  codeBlock: boolean;
+  blockMath: boolean;
+};
 
 @Component({
   selector: 'app-markdown-katex-editor',
@@ -57,10 +69,12 @@ const CARET_OFFSET_BLOCK_MATH = '\n$$\n'.length;
   styleUrls: ['./markdown-katex-editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
+export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly dialog = inject(MatDialog);
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private previewScrollFrame: number | null = null;
+  private lastSourceScrollRatio = 0;
 
   /** Sichtbare Kurzinfos (matTooltip) + aria-label – gleiche IDs wie zuvor in den Templates. */
   readonly mdToolbarLabel = {
@@ -75,7 +89,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
     heading: $localize`:@@mdEditor.toolbarHeading2Aria:Überschrift`,
     codeBlock: $localize`:@@mdEditor.toolbarCodeBlockAria:Codeblock`,
     blockMath: $localize`:@@mdEditor.toolbarBlockMathAria:Block-Formel`,
-    showcase: $localize`:@@mdEditor.showcaseAria:Vollständiges Markdown- und KaTeX-Beispiel auf Englisch laden (ersetzt den aktuellen Text)`,
+    help: $localize`:@@mdEditor.helpAria:Markdown-Hilfe und Tastenkürzel anzeigen`,
     more: $localize`:@@mdEditor.moreActionsAria:Weitere Aktionen`,
   } as const;
 
@@ -93,22 +107,42 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
   @Output() valueChange = new EventEmitter<string>();
 
   @ViewChild('field', { static: true }) fieldRef!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('previewBody') previewBodyRef?: ElementRef<HTMLElement>;
 
   readonly rawValue = signal('');
   readonly debouncedValue = signal('');
+  readonly helpOpen = signal(false);
+  readonly toolbarState = signal<MarkdownToolbarState>({
+    heading: false,
+    bold: false,
+    italic: false,
+    list: false,
+    quote: false,
+    inlineCode: false,
+    inlineMath: false,
+    codeBlock: false,
+    blockMath: false,
+  });
+  readonly previewResult = computed(() =>
+    renderMarkdownWithKatex(this.debouncedValue(), {
+      imagePolicy: 'external-https-only',
+    }),
+  );
 
   readonly preview = computed<SafeHtml>(() => {
-    const result = renderMarkdownWithKatex(this.debouncedValue(), {
-      imagePolicy: 'external-https-only',
-    });
-    return this.sanitizer.bypassSecurityTrustHtml(result.html);
+    return this.sanitizer.bypassSecurityTrustHtml(this.previewResult().html);
   });
+  readonly previewKatexError = computed(() => this.previewResult().katexError);
 
   constructor() {
     effect(() => {
       const next = this.rawValue();
       if (this.debounceTimer) clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => this.debouncedValue.set(next), 250);
+    });
+    effect(() => {
+      this.debouncedValue();
+      this.schedulePreviewScrollSync();
     });
   }
 
@@ -118,6 +152,9 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
     if (el.value !== next) {
       el.value = next;
     }
+    this.lastSourceScrollRatio = this.scrollRatioOf(el);
+    this.syncToolbarStateFromField();
+    this.schedulePreviewScrollSync();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -127,7 +164,19 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
         this.rawValue.set(next);
         this.debouncedValue.set(next);
         this.syncTextareaDomFromParent(next);
+        queueMicrotask(() => this.syncToolbarStateFromField());
       }
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+    if (this.previewScrollFrame !== null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.previewScrollFrame);
+      this.previewScrollFrame = null;
     }
   }
 
@@ -137,6 +186,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
       const el = this.fieldRef?.nativeElement;
       if (!el || el.value === next) return;
       el.value = next;
+      this.syncToolbarStateFromField();
     });
   }
 
@@ -191,6 +241,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
 
   onInput(value: string): void {
     this.rawValue.set(value);
+    this.syncToolbarStateFromField();
     this.valueChange.emit(value);
   }
 
@@ -199,6 +250,11 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
    */
   onFieldKeydown(event: KeyboardEvent): void {
     if (this.disabled) return;
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      this.applyLineIndent(event.shiftKey);
+      return;
+    }
     if (!event.ctrlKey && !event.metaKey) return;
     if (event.altKey || event.shiftKey) return;
 
@@ -218,6 +274,19 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
       this.openLinkDialog();
       return;
     }
+  }
+
+  onSourceScroll(): void {
+    this.lastSourceScrollRatio = this.scrollRatioOf(this.fieldRef.nativeElement);
+    this.schedulePreviewScrollSync();
+  }
+
+  onFieldSelectionChange(): void {
+    this.syncToolbarStateFromField();
+  }
+
+  toggleHelp(): void {
+    this.helpOpen.update((current) => !current);
   }
 
   focusField(): void {
@@ -326,6 +395,56 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
     this.insert(INSERT_CODE_BLOCK, CARET_OFFSET_CODE_BLOCK);
   }
 
+  private applyLineIndent(outdent: boolean): void {
+    const field = this.fieldRef.nativeElement;
+    const value = field.value;
+    const start = field.selectionStart ?? 0;
+    const end = field.selectionEnd ?? start;
+    const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+    const effectiveEnd = end > start && value[end - 1] === '\n' ? end - 1 : end;
+    const lineEndIdx = value.indexOf('\n', effectiveEnd);
+    const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
+    const block = value.slice(lineStart, lineEnd);
+    const hasSelection = end > start;
+
+    let offset = lineStart;
+    let startShift = 0;
+    let endShift = 0;
+    const updatedBlock = block
+      .split('\n')
+      .map((line) => {
+        const currentLineStart = offset;
+        offset += line.length + 1;
+
+        if (!outdent) {
+          if (hasSelection && line.length === 0) {
+            return line;
+          }
+          startShift += this.indentPositionShift(start, currentLineStart, 2);
+          endShift += this.indentPositionShift(end, currentLineStart, 2);
+          return `  ${line}`;
+        }
+
+        const removed = this.removableIndentWidth(line);
+        if (removed === 0) {
+          return line;
+        }
+        startShift += this.outdentPositionShift(start, currentLineStart, removed);
+        endShift += this.outdentPositionShift(end, currentLineStart, removed);
+        return line.slice(removed);
+      })
+      .join('\n');
+
+    const nextValue = value.slice(0, lineStart) + updatedBlock + value.slice(lineEnd);
+    field.value = nextValue;
+    field.setSelectionRange(
+      Math.max(lineStart, start + startShift),
+      Math.max(lineStart, end + endShift),
+    );
+    this.onInput(field.value);
+    this.schedulePreviewScrollSync();
+  }
+
   /** Selektion ist genau ein ```…```-Block → Inneres zurückgeben, sonst null. */
   private tryStripOuterCodeFence(text: string): string | null {
     const m = text.match(/^```(\w*)\r?\n([\s\S]*)\r?\n```$/);
@@ -428,17 +547,6 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
     this.insert(INSERT_BLOCK_MATH, CARET_OFFSET_BLOCK_MATH);
   }
 
-  /** Ersetzt den Quelltext durch ein englisches Vollbeispiel (unterstützte Markdown- und KaTeX-Optionen). */
-  applyMarkdownShowcase(): void {
-    if (this.disabled) return;
-    const field = this.fieldRef.nativeElement;
-    field.focus();
-    const next = MARKDOWN_SHOWCASE_EN;
-    field.value = next;
-    field.setSelectionRange(0, 0);
-    this.onInput(next);
-  }
-
   openLinkDialog(): void {
     this.restoreToolbarTextareaSelection();
     const field = this.fieldRef.nativeElement;
@@ -502,5 +610,136 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
       field.focus();
       field.setSelectionRange(start, end);
     });
+  }
+
+  private syncToolbarStateFromField(): void {
+    const field = this.fieldRef?.nativeElement;
+    if (!field) return;
+    const value = field.value;
+    const start = field.selectionStart ?? 0;
+    const end = field.selectionEnd ?? start;
+    this.toolbarState.set({
+      heading: this.isHeadingSelection(value, start, end, 2),
+      bold: this.hasInlineMarkerSelection(value, start, end, '**'),
+      italic: this.hasInlineMarkerSelection(value, start, end, '_'),
+      list: this.areSelectedLinesPrefixed(value, start, end, '- '),
+      quote: this.areSelectedLinesPrefixed(value, start, end, '> '),
+      inlineCode: this.hasInlineMarkerSelection(value, start, end, '`'),
+      inlineMath: this.hasInlineMarkerSelection(value, start, end, '$'),
+      codeBlock: this.isInsideFencedBlock(value, start, '```'),
+      blockMath: this.isInsideFencedBlock(value, start, '$$'),
+    });
+  }
+
+  private hasInlineMarkerSelection(
+    value: string,
+    start: number,
+    end: number,
+    marker: string,
+  ): boolean {
+    const mlen = marker.length;
+    if (end > start) {
+      const selected = value.slice(start, end);
+      if (selected.length >= 2 * mlen && selected.startsWith(marker) && selected.endsWith(marker)) {
+        return true;
+      }
+    }
+
+    if (start === end) {
+      if (start >= mlen && start + mlen <= value.length) {
+        const left = value.slice(start - mlen, start);
+        const right = value.slice(start, start + mlen);
+        if (left === marker && right === marker) {
+          return true;
+        }
+      }
+      const before = value.slice(0, start);
+      const after = value.slice(start);
+      const beforeCount = before.split(marker).length - 1;
+      return beforeCount % 2 === 1 && after.includes(marker);
+    }
+
+    return false;
+  }
+
+  private areSelectedLinesPrefixed(
+    value: string,
+    start: number,
+    end: number,
+    prefix: string,
+  ): boolean {
+    const block = this.selectedLineBlock(value, start, end);
+    const lines = block.split('\n');
+    const nonEmpty = lines.filter((line) => line.trim().length > 0);
+    return nonEmpty.length > 0 && nonEmpty.every((line) => line.startsWith(prefix));
+  }
+
+  private isHeadingSelection(value: string, start: number, end: number, level: 2 | 3): boolean {
+    const prefix = `${'#'.repeat(level)} `;
+    return this.areSelectedLinesPrefixed(value, start, end, prefix);
+  }
+
+  private selectedLineBlock(value: string, start: number, end: number): string {
+    const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+    const effectiveEnd = end > start && value[end - 1] === '\n' ? end - 1 : end;
+    const lineEndIdx = value.indexOf('\n', effectiveEnd);
+    const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
+    return value.slice(lineStart, lineEnd);
+  }
+
+  private isInsideFencedBlock(value: string, position: number, fence: '```' | '$$'): boolean {
+    const before = value.slice(0, position);
+    const after = value.slice(position);
+    const pattern = fence === '```' ? /^```.*$/gm : /^\$\$$/gm;
+    const beforeCount = [...before.matchAll(pattern)].length;
+    return beforeCount % 2 === 1 && pattern.test(after);
+  }
+
+  private removableIndentWidth(line: string): number {
+    if (line.startsWith('\t')) return 1;
+    if (line.startsWith('  ')) return 2;
+    if (line.startsWith(' ')) return 1;
+    return 0;
+  }
+
+  private indentPositionShift(position: number, lineStart: number, amount: number): number {
+    return position >= lineStart ? amount : 0;
+  }
+
+  private outdentPositionShift(position: number, lineStart: number, removed: number): number {
+    if (position <= lineStart) return 0;
+    return -Math.min(removed, position - lineStart);
+  }
+
+  private scrollRatioOf(element: {
+    scrollTop: number;
+    scrollHeight: number;
+    clientHeight: number;
+  }): number {
+    const maxScroll = Math.max(0, element.scrollHeight - element.clientHeight);
+    return maxScroll > 0 ? element.scrollTop / maxScroll : 0;
+  }
+
+  private schedulePreviewScrollSync(): void {
+    if (typeof window === 'undefined') return;
+    if (this.previewScrollFrame !== null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.previewScrollFrame);
+    }
+    const run = () => {
+      this.previewScrollFrame = null;
+      this.syncPreviewScrollToSource();
+    };
+    if (typeof requestAnimationFrame === 'function') {
+      this.previewScrollFrame = requestAnimationFrame(run);
+      return;
+    }
+    queueMicrotask(run);
+  }
+
+  private syncPreviewScrollToSource(): void {
+    const preview = this.previewBodyRef?.nativeElement;
+    if (!preview) return;
+    const maxScroll = Math.max(0, preview.scrollHeight - preview.clientHeight);
+    preview.scrollTop = maxScroll * this.lastSourceScrollRatio;
   }
 }

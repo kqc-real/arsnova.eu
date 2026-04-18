@@ -19,7 +19,7 @@ export interface MarkdownLinkDialogResult {
   url: string;
 }
 
-/** HTTPS-URL oder `mailto:` (ohne Leerzeichen im gesamten Wert). */
+/** HTTPS-URL, `mailto:` oder `tel:` (ohne Leerzeichen im gesamten Wert). */
 export function markdownLinkHrefValidator(
   control: AbstractControl<string | null | undefined>,
 ): ValidationErrors | null {
@@ -27,6 +27,7 @@ export function markdownLinkHrefValidator(
   if (!v) return null;
   if (/^https:\/\/\S+$/i.test(v)) return null;
   if (/^mailto:\S+$/i.test(v)) return null;
+  if (/^tel:\S+$/i.test(v)) return null;
   return { markdownLinkHref: true };
 }
 
