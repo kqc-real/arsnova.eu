@@ -287,7 +287,10 @@ describe('HomeComponent', () => {
 
       await comp.openHeroHostTab('qa');
 
-      expect(trpc.session.create.mutate).toHaveBeenCalledWith({ type: 'Q_AND_A' });
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({
+        type: 'QUIZ',
+        qaEnabled: true,
+      });
       expect(navigateSpy).toHaveBeenCalledWith('/session/QA1234/host?tab=qa');
       expect(comp.joinError()).toBeNull();
     });

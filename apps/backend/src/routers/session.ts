@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import {
+  AttachQuizToSessionInputSchema,
   CreateSessionInputSchema,
   CreateSessionOutputSchema,
   GetSessionInfoInputSchema,
@@ -478,6 +479,34 @@ async function ensureSessionTeams(
   });
 }
 
+async function assignExistingParticipantsToTeams(
+  sessionId: string,
+  teamIds: string[],
+): Promise<void> {
+  if (teamIds.length === 0) {
+    return;
+  }
+
+  const participants = await prisma.participant.findMany({
+    where: { sessionId },
+    orderBy: { joinedAt: 'asc' },
+    select: { id: true, teamId: true },
+  });
+
+  let nextTeamIndex = participants.filter((participant) => participant.teamId).length;
+  for (const participant of participants) {
+    if (participant.teamId) {
+      continue;
+    }
+    const teamId = teamIds[nextTeamIndex % teamIds.length];
+    nextTeamIndex++;
+    await prisma.participant.update({
+      where: { id: participant.id },
+      data: { teamId },
+    });
+  }
+}
+
 function buildSessionChannels(session: {
   type: 'QUIZ' | 'Q_AND_A';
   quizId?: string | null;
@@ -783,8 +812,10 @@ export const sessionRouter = router({
         }
       }
       const code = await ensureUniqueSessionCode();
-      const isQaOnlySession = input.type === 'Q_AND_A';
-      const qaEnabled = isQaOnlySession || input.qaEnabled === true;
+      const legacyQaOnlySession = input.type === 'Q_AND_A';
+      const qaEnabled = legacyQaOnlySession || input.qaEnabled === true;
+      const standaloneQaSession =
+        (input.type === 'QUIZ' && !input.quizId && qaEnabled) || legacyQaOnlySession;
       const qaOpen = qaEnabled;
       const qaTitle = qaEnabled ? input.qaTitle?.trim() || input.title?.trim() || null : null;
       const qaModerationMode = qaEnabled
@@ -796,9 +827,9 @@ export const sessionRouter = router({
         data: {
           code,
           type: input.type ?? 'QUIZ',
-          quizId: isQaOnlySession ? null : (input.quizId ?? null),
-          title: isQaOnlySession ? qaTitle : null,
-          moderationMode: isQaOnlySession ? qaModerationMode : false,
+          quizId: input.quizId ?? null,
+          title: standaloneQaSession ? qaTitle : null,
+          moderationMode: standaloneQaSession ? qaModerationMode : false,
           qaEnabled,
           qaOpen,
           qaTitle,
@@ -837,7 +868,7 @@ export const sessionRouter = router({
     .mutation(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        select: { id: true, status: true, type: true, qaEnabled: true, qaOpen: true },
+        select: { id: true, status: true, type: true, quizId: true, qaEnabled: true, qaOpen: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -855,7 +886,8 @@ export const sessionRouter = router({
         });
       }
 
-      const isQuizWithQaChannel = session.type === 'QUIZ' && session.qaEnabled === true;
+      const isQuizWithQaChannel =
+        session.type === 'QUIZ' && session.qaEnabled === true && !!session.quizId;
       if (isQuizWithQaChannel) {
         return {
           status: 'LOBBY' as const,
@@ -975,6 +1007,111 @@ export const sessionRouter = router({
       }
 
       return buildSessionChannels(session);
+    }),
+
+  attachQuizToSession: hostProcedure
+    .input(AttachQuizToSessionInputSchema)
+    .output(UpdateSessionChannelsOutputSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+          _count: { select: { participants: true } },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.type !== 'QUIZ' && session.type !== 'Q_AND_A') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Nur Live-Sessions können ein Quiz nachträglich anhängen.',
+        });
+      }
+      if (session.status === 'FINISHED') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Beendete Sessions können nicht mehr verändert werden.',
+        });
+      }
+      if (session.quizId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Diese Session hat bereits ein Quiz.',
+        });
+      }
+
+      const quiz = await prisma.quiz.findUnique({
+        where: { id: input.quizId },
+        select: {
+          id: true,
+          teamMode: true,
+          teamCount: true,
+          teamAssignment: true,
+          teamNames: true,
+        },
+      });
+      if (!quiz) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
+      }
+      if (quiz.teamMode && quiz.teamAssignment === 'MANUAL' && session._count.participants > 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Team-Quiz mit manueller Teamwahl können nur angehängt werden, solange noch niemand beigetreten ist.',
+        });
+      }
+
+      const updated = await prisma.session.update({
+        where: { id: session.id },
+        data: {
+          type: 'QUIZ',
+          quizId: quiz.id,
+          currentQuestion: null,
+          currentRound: 1,
+        },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+
+      if (quiz.teamMode) {
+        const teams = await ensureSessionTeams(
+          session.id,
+          quiz.teamCount ?? DEFAULT_TEAM_COUNT,
+          quiz.teamNames,
+        );
+        if (quiz.teamAssignment === 'AUTO' && session._count.participants > 0) {
+          await assignExistingParticipantsToTeams(
+            session.id,
+            teams.map((team) => team.id),
+          );
+        }
+      }
+
+      return buildSessionChannels(updated);
     }),
 
   closeQaChannel: hostProcedure
@@ -1459,7 +1596,7 @@ export const sessionRouter = router({
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
-        select: { id: true, type: true, qaEnabled: true, qaOpen: true },
+        select: { id: true, type: true, quizId: true, qaEnabled: true, qaOpen: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -1471,7 +1608,7 @@ export const sessionRouter = router({
       const trimmed = input.qaTitle?.trim() ?? '';
       const value = trimmed.length > 0 ? trimmed.slice(0, 200) : null;
       const data: { qaTitle: string | null; title?: string | null } = { qaTitle: value };
-      if (session.type === 'Q_AND_A') {
+      if (session.type === 'Q_AND_A' || (session.quizId === null && session.qaEnabled === true)) {
         data.title = value;
       }
       const updated = await prisma.session.update({

@@ -128,7 +128,8 @@ export class JoinComponent implements OnInit, OnDestroy {
   /** Eigenes Namensfeld nur wenn der Host eigene Nicks erlaubt (Preset: eigener Name). */
   readonly showCustomNickname = computed(() => {
     const s = this.session();
-    return s?.type === 'Q_AND_A' || s?.allowCustomNicknames === true;
+    const standaloneQa = s?.channels?.qa.enabled === true && s.channels.quiz.enabled === false;
+    return standaloneQa || s?.type === 'Q_AND_A' || s?.allowCustomNicknames === true;
   });
 
   readonly showTeamSelect = computed(() => {

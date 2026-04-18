@@ -500,10 +500,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
   readonly showChannelTabs = computed(() => this.visibleChannels().length > 1);
   readonly isStandaloneQaSession = computed(
-    () =>
-      this.sessionSettings().type === 'Q_AND_A' &&
-      this.channels().quiz === false &&
-      this.channels().qa === true,
+    () => this.channels().quiz === false && this.channels().qa === true,
   );
   readonly showPrimaryLiveView = computed(() => {
     const active = this.activeChannel();
@@ -1093,6 +1090,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       recordServerTimeIso(session.serverTime);
       const nextStatus = session.status as SessionStatus;
       const prevStatus = this.status();
+      const previousTeamMode = this.sessionSettings().teamMode === true;
       this.sessionId.set(session.id);
       this.sessionSettings.set(session);
       this.status.set(nextStatus);
@@ -1101,6 +1099,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         return;
       }
       this.ensureQaSubscription();
+      if (session.teamMode && !previousTeamMode) {
+        await Promise.all([this.loadParticipantTeam(), this.loadSessionTeams()]);
+      }
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
           silent: true,

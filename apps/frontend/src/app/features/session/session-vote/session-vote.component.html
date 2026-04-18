@@ -365,14 +365,14 @@
           <div class="vote-lobby__wait" role="status">
             <mat-icon class="vote-lobby__icon" aria-hidden="true">schedule</mat-icon>
             <p class="vote-lobby__text">{{ vpc.voteLobbyWaitTitle(isPlayfulPreset()) }}</p>
-            @if (sessionSettings().type === 'Q_AND_A') {
+            @if (isStandaloneQaSession()) {
               <p class="vote-lobby__hint">{{ vpc.voteLobbyHintQa(isPlayfulPreset()) }}</p>
             } @else {
               <p class="vote-lobby__hint">{{ vpc.voteLobbyHintQuiz(isPlayfulPreset()) }}</p>
             }
           </div>
         </div>
-      } @else if (isActive() && sessionSettings().type === 'Q_AND_A') {
+      } @else if (isActive() && isStandaloneQaSession()) {
         <div class="vote-lobby vote-lobby--active">
           <mat-icon class="vote-lobby__icon" aria-hidden="true">forum</mat-icon>
           <p class="vote-lobby__text">{{ vpc.voteQaActiveTitle(isPlayfulPreset()) }}</p>

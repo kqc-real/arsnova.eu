@@ -55,6 +55,7 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
+import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 import type {
   HostCurrentQuestionDTO,
   LeaderboardEntryDTO,
@@ -75,7 +76,12 @@ import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
+import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
+import {
+  SessionQuizPickerDialogComponent,
+  type SessionQuizPickerDialogData,
+} from '../session-quiz-picker-dialog.component';
 
 const ANSWER_COLORS = [
   '#1565c0',
@@ -290,6 +296,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly quizStore = inject(QuizStoreService);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
   private readonly requestedInitialTab = this.route.snapshot?.queryParamMap?.get('tab') ?? null;
@@ -409,9 +416,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly availableChannels = computed<SessionChannelTab[]>(() => {
     const session = this.session();
     if (!session) return [];
-    if (session.type === 'Q_AND_A') {
-      return ['qa', 'quickFeedback'];
-    }
     return ['quiz', 'qa', 'quickFeedback'];
   });
   readonly showChannelTabs = computed(() => this.availableChannels().length > 1);
@@ -422,12 +426,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     if (active === 'qa') {
-      return this.session()?.type === 'Q_AND_A' && this.effectiveStatus() === 'LOBBY';
+      return this.isQaSession() && this.effectiveStatus() === 'LOBBY';
     }
 
     return false;
   });
-  readonly isQaSession = computed(() => this.session()?.type === 'Q_AND_A');
+  readonly isQaSession = computed(
+    () => this.channels().quiz === false && this.channels().qa === true,
+  );
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
   readonly isRunningSession = computed(() => {
     const status = this.effectiveStatus();
@@ -489,8 +495,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    if (session.type === 'Q_AND_A') {
+    if (this.isQaSession()) {
       return (
+        session.channels?.qa.title?.trim() ||
         session.title?.trim() ||
         $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`
       );
@@ -915,20 +922,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     // Preset "Seriös/Business" startet standardmäßig ohne Musik.
     this.musicMuted.set(this.themePreset.preset() === 'serious');
     try {
-      const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
-      recordServerTimeIso(session.serverTime);
-      this.sessionUnavailable.set(false);
-      this.session.set(session);
-      this.syncQaTitleDraftFromSession();
+      await this.reloadSessionInfo();
       await this.refreshParticipantsPayload();
       await this.refreshLobbyTeams();
       await this.refreshQaQuestions();
       await this.refreshQuickFeedbackResult();
-      if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
-        this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
-          silent: true,
-        });
-      }
     } catch {
       this.session.set(null);
     }
@@ -981,6 +979,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.document.addEventListener('click', this.unlockListener, { once: true });
       this.document.addEventListener('keydown', this.unlockListener, { once: true });
     }
+  }
+
+  private async reloadSessionInfo(): Promise<SessionInfoDTO> {
+    const session = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
+    recordServerTimeIso(session.serverTime);
+    this.sessionUnavailable.set(false);
+    this.session.set(session);
+    this.syncQaTitleDraftFromSession();
+    if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
+      this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
+        silent: true,
+      });
+    }
+    return session;
   }
 
   private unlockListener = (): void => {
@@ -1949,8 +1961,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async selectChannel(channel: string): Promise<void> {
     if (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') {
-      if (channel !== 'quiz' && !this.isChannelEnabled(channel)) {
-        await this.enableChannel(channel);
+      if (!this.isChannelEnabled(channel)) {
+        if (channel === 'quiz') {
+          await this.activateQuizChannel();
+        } else {
+          await this.enableChannel(channel);
+        }
         return;
       }
       const prev = this.activeChannel();
@@ -1964,6 +1980,76 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       this.ensureActiveChannel();
     }
+  }
+
+  private async activateQuizChannel(): Promise<void> {
+    if (this.channelActivationPending() || !this.code) {
+      return;
+    }
+
+    const localQuizId = await this.chooseQuizForSession();
+    if (!localQuizId) {
+      return;
+    }
+
+    this.channelActivationPending.set('quiz');
+    try {
+      const payload = this.quizStore.getUploadPayload(localQuizId);
+      const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
+      this.quizStore.setLastServerUploadAccess(
+        localQuizId,
+        uploadedQuizId,
+        await createQuizHistoryAccessProof(payload),
+      );
+      await this.attachUploadedQuizToSession(uploadedQuizId);
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.activateQuizChannel());
+    } finally {
+      this.channelActivationPending.set(null);
+    }
+  }
+
+  private async attachUploadedQuizToSession(uploadedQuizId: string): Promise<void> {
+    let attached = false;
+    try {
+      await trpc.session.attachQuizToSession.mutate({
+        code: this.code.toUpperCase(),
+        quizId: uploadedQuizId,
+      });
+      attached = true;
+      await this.finalizeQuizChannelActivation();
+      this.dismissHostSteeringCallout();
+    } catch {
+      const retry = attached
+        ? () => void this.finalizeQuizChannelActivation()
+        : () => void this.attachUploadedQuizToSession(uploadedQuizId);
+      this.openHostSteeringCalloutForSteeringFailure(retry);
+    }
+  }
+
+  private async finalizeQuizChannelActivation(): Promise<void> {
+    await this.reloadSessionInfo();
+    await this.refreshParticipantsPayload();
+    await this.refreshLobbyTeams();
+    await this.refreshCurrentQuestionForHost();
+    await this.refreshQaQuestions();
+    await this.refreshQuickFeedbackResult();
+    this.activeChannel.set('quiz');
+    this.ensureActiveChannel();
+  }
+
+  private async chooseQuizForSession(): Promise<string | undefined> {
+    const dialogRef = this.dialog.open<
+      SessionQuizPickerDialogComponent,
+      SessionQuizPickerDialogData,
+      string
+    >(SessionQuizPickerDialogComponent, {
+      width: '36rem',
+      maxWidth: 'calc(100vw - 1.5rem)',
+      autoFocus: false,
+      data: { quizzes: this.quizStore.quizzes() },
+    });
+    return firstValueFrom(dialogRef.afterClosed());
   }
 
   private async enableChannel(
@@ -2132,7 +2218,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         if (!s?.channels) return s;
         return {
           ...s,
-          title: s.type === 'Q_AND_A' ? result.title : s.title,
+          title:
+            s.type === 'Q_AND_A' || (s.channels.quiz.enabled === false && s.channels.qa.enabled)
+              ? result.title
+              : s.title,
           channels: {
             ...s.channels,
             qa: { ...s.channels.qa, title: displayTitle },
@@ -2203,6 +2292,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const active = this.activeChannel();
+    const visible = this.visibleChannels();
+    if (!this.isChannelEnabled(active) && visible.length > 0) {
+      this.activeChannel.set(visible[0]!);
+      return;
+    }
+
     if (!available.includes(active)) {
       this.activeChannel.set(available[0]!);
       return;

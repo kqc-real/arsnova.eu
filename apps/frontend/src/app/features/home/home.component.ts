@@ -441,7 +441,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       const result =
         tab === 'qa'
-          ? await trpc.session.create.mutate({ type: 'Q_AND_A' })
+          ? await trpc.session.create.mutate({ type: 'QUIZ', qaEnabled: true })
           : await trpc.session.create.mutate({
               type: 'QUIZ',
               quickFeedbackEnabled: true,

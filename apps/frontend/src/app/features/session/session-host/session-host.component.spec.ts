@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -6,6 +7,7 @@ import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionHostComponent } from './session-host.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 
 const unsubscribeMock = vi.fn();
 
@@ -25,6 +27,7 @@ const {
   qaOnQuestionsUpdatedSubscribeMock,
   nextQuestionMutateMock,
   startQaMutateMock,
+  attachQuizToSessionMutateMock,
   enableQaChannelMutateMock,
   enableQuickFeedbackChannelMutateMock,
   closeQaChannelMutateMock,
@@ -36,6 +39,7 @@ const {
   quickFeedbackHostResultsQueryMock,
   quickFeedbackUpdateStyleMutateMock,
   updateQaTitleMutateMock,
+  quizUploadMutateMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
   clearHostTokenMock,
@@ -56,6 +60,7 @@ const {
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   nextQuestionMutateMock: vi.fn(),
   startQaMutateMock: vi.fn(),
+  attachQuizToSessionMutateMock: vi.fn(),
   enableQaChannelMutateMock: vi.fn(),
   enableQuickFeedbackChannelMutateMock: vi.fn(),
   closeQaChannelMutateMock: vi.fn(),
@@ -67,6 +72,7 @@ const {
   quickFeedbackHostResultsQueryMock: vi.fn(),
   quickFeedbackUpdateStyleMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
+  quizUploadMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   clearHostTokenMock: vi.fn(),
@@ -89,6 +95,7 @@ vi.mock('../../../core/trpc.client', () => ({
       getExportData: { query: getExportDataQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
       startQa: { mutate: startQaMutateMock },
+      attachQuizToSession: { mutate: attachQuizToSessionMutateMock },
       enableQaChannel: { mutate: enableQaChannelMutateMock },
       enableQuickFeedbackChannel: { mutate: enableQuickFeedbackChannelMutateMock },
       closeQaChannel: { mutate: closeQaChannelMutateMock },
@@ -100,6 +107,9 @@ vi.mock('../../../core/trpc.client', () => ({
       updateQaTitle: { mutate: updateQaTitleMutateMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
+    },
+    quiz: {
+      upload: { mutate: quizUploadMutateMock },
     },
     qa: {
       list: { query: qaListQueryMock },
@@ -145,9 +155,47 @@ const defaultLiveFreetext = {
   updatedAt: '2026-03-08T12:00:00.000Z',
 };
 
+const quizStoreMock = {
+  quizzes: signal([
+    {
+      id: 'local-quiz-1',
+      name: 'Quiz Sammlung',
+      description: 'Mitgebrachte Fragen',
+      createdAt: '2026-03-20T12:00:00.000Z',
+      updatedAt: '2026-03-24T12:00:00.000Z',
+      questionCount: 3,
+      teamMode: false,
+      hasBonus: false,
+      lastServerQuizId: null,
+      lastServerQuizAccessProof: null,
+    },
+  ]),
+  getUploadPayload: vi.fn(),
+  setLastServerUploadAccess: vi.fn(),
+};
+
 describe('SessionHostComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('crypto', {
+      subtle: {
+        digest: vi.fn().mockResolvedValue(new Uint8Array(32).buffer),
+      },
+    });
+    quizStoreMock.quizzes.set([
+      {
+        id: 'local-quiz-1',
+        name: 'Quiz Sammlung',
+        description: 'Mitgebrachte Fragen',
+        createdAt: '2026-03-20T12:00:00.000Z',
+        updatedAt: '2026-03-24T12:00:00.000Z',
+        questionCount: 3,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+    ]);
     unsubscribeMock.mockClear();
     healthCheckQueryMock.mockResolvedValue({
       status: 'ok',
@@ -171,6 +219,11 @@ describe('SessionHostComponent', () => {
       status: 'ACTIVE',
       currentQuestion: null,
       currentRound: 1,
+    });
+    attachQuizToSessionMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: false, open: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true, open: true },
     });
     enableQaChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
@@ -203,6 +256,44 @@ describe('SessionHostComponent', () => {
       quickFeedback: { enabled: true, open: true },
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({ totalVotes: 0, options: [] });
+    quizUploadMutateMock.mockResolvedValue({
+      quizId: '44444444-4444-4444-8444-444444444444',
+    });
+    quizStoreMock.getUploadPayload.mockReturnValue({
+      name: 'Quiz Sammlung',
+      description: 'Mitgebrachte Fragen',
+      motifImageUrl: null,
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      defaultTimer: 30,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: 'AUTO',
+      teamNames: [],
+      backgroundMusic: null,
+      nicknameTheme: 'HIGH_SCHOOL',
+      bonusTokenCount: null,
+      readingPhaseEnabled: true,
+      preset: 'PLAYFUL',
+      questions: [
+        {
+          text: 'Frage 1',
+          type: 'SINGLE_CHOICE',
+          difficulty: 'MEDIUM',
+          order: 0,
+          timer: 30,
+          answers: [
+            { text: 'A', isCorrect: true },
+            { text: 'B', isCorrect: false },
+          ],
+        },
+      ],
+    });
     nextQuestionMutateMock.mockResolvedValue({
       status: 'ACTIVE',
       currentQuestion: null,
@@ -239,6 +330,7 @@ describe('SessionHostComponent', () => {
         provideRouter([]),
         { provide: MatDialog, useValue: { open: dialogOpenMock } },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: QuizStoreService, useValue: quizStoreMock },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -320,6 +412,50 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('öffnet beim inaktiven Quiz-Tab die Sammlung, lädt das Quiz hoch und hängt es an die Session', async () => {
+    getInfoQueryMock
+      .mockResolvedValueOnce({
+        ...defaultSession,
+        quizName: null,
+        channels: {
+          quiz: { enabled: false },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: true, open: true },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...defaultSession,
+        quizName: 'Quiz Sammlung',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    await fixture.componentInstance.selectChannel('quiz');
+    fixture.detectChanges();
+
+    expect(dialogOpenMock).toHaveBeenCalled();
+    expect(quizStoreMock.getUploadPayload).toHaveBeenCalledWith('local-quiz-1');
+    expect(quizUploadMutateMock).toHaveBeenCalledTimes(1);
+    expect(attachQuizToSessionMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      quizId: '44444444-4444-4444-8444-444444444444',
+    });
+    expect(quizStoreMock.setLastServerUploadAccess).toHaveBeenCalledTimes(1);
+    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
+    expect(fixture.componentInstance.channels().quiz).toBe(true);
+    expect(fixture.componentInstance.session()?.quizName).toBe('Quiz Sammlung');
+    fixture.destroy();
+  });
+
   it('schließt den aktiven Q&A-Kanal über die Sichtbarkeitsaktion', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -333,7 +469,7 @@ describe('SessionHostComponent', () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
-    fixture.componentInstance.activeChannel.set('qa');
+    await fixture.componentInstance.selectChannel('qa');
     fixture.detectChanges();
 
     expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe('Kanal schließen');

@@ -164,6 +164,56 @@ describe('session.create (Story 2.1a)', () => {
     );
   });
 
+  it('erstellt eine quizlose Quiz-Session mit aktiviertem Q&A-Kanal', async () => {
+    prismaMock.session.create.mockResolvedValueOnce({
+      id: SESSION_ID,
+      code: CODE,
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizId: null,
+      title: 'Offene Fragerunde',
+      moderationMode: true,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Offene Fragerunde',
+      qaModerationMode: true,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      quiz: null,
+    });
+
+    const result = await caller.create({
+      type: 'QUIZ',
+      qaEnabled: true,
+      title: '  Offene Fragerunde  ',
+    });
+
+    expect(result).toEqual({
+      sessionId: SESSION_ID,
+      code: CODE,
+      status: 'LOBBY',
+      quizName: null,
+      hostToken: HOST_TOKEN,
+    });
+    expect(prismaMock.session.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          type: 'QUIZ',
+          quizId: null,
+          title: 'Offene Fragerunde',
+          moderationMode: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: 'Offene Fragerunde',
+          qaModerationMode: true,
+          quickFeedbackEnabled: false,
+          quickFeedbackOpen: false,
+          status: 'LOBBY',
+        }),
+      }),
+    );
+  });
+
   it('erstellt Q&A-Session ohne quizId und mit optionalem Titel', async () => {
     prismaMock.session.create.mockResolvedValueOnce({
       id: SESSION_ID,

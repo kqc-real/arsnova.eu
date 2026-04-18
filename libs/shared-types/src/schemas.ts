@@ -350,7 +350,7 @@ export async function createQuizHistoryAccessProof(
 export const CreateSessionInputSchema = z
   .object({
     type: SessionTypeEnum.optional().default('QUIZ'), // Story 8.1: Quiz oder Q&A
-    quizId: z.uuid().optional(), // Pflicht bei QUIZ, null bei Q_AND_A
+    quizId: z.uuid().optional(), // Pflicht bei Quiz-Session, optional bei kanalbasiertem Q&A/Blitzlicht
     title: z.string().trim().max(200).optional(), // Story 8.1: Titel für Q&A-Runde
     moderationMode: z.boolean().optional().default(true), // Story 8.4 / Q&A: Vorab-Moderation (Default an)
     qaEnabled: z.boolean().optional().default(false), // ADR-0009: Q&A-Kanal in Quiz-Session
@@ -359,13 +359,12 @@ export const CreateSessionInputSchema = z
     quickFeedbackEnabled: z.boolean().optional().default(false), // ADR-0009: Blitz-Feedback-Kanal
   })
   .superRefine((value, ctx) => {
-    const isQuickFeedbackOnlySession =
+    const isQuizlessChannelSession =
       value.type === 'QUIZ' &&
       !value.quizId &&
-      value.qaEnabled !== true &&
-      value.quickFeedbackEnabled === true;
+      (value.qaEnabled === true || value.quickFeedbackEnabled === true);
 
-    if (value.type === 'QUIZ' && !value.quizId && !isQuickFeedbackOnlySession) {
+    if (value.type === 'QUIZ' && !value.quizId && !isQuizlessChannelSession) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['quizId'],
@@ -398,6 +397,12 @@ export const GetSessionInfoInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
+
+/** Input: Ein Quiz an eine laufende Quiz-Session anhängen. */
+export const AttachQuizToSessionInputSchema = GetSessionInfoInputSchema.extend({
+  quizId: z.uuid(),
+});
+export type AttachQuizToSessionInput = z.infer<typeof AttachQuizToSessionInputSchema>;
 
 /** Input: Preset zur Laufzeit ändern (Host → alle Clients). */
 export const UpdateSessionPresetInputSchema = z.object({
