@@ -21,6 +21,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { DEFAULT_MARKDOWN_FENCE_LANGUAGE } from '../markdown-code-highlight';
 import { renderMarkdownWithKatex } from '../markdown-katex.util';
 import {
   MarkdownImageDialogComponent,
@@ -30,6 +31,15 @@ import {
   MarkdownLinkDialogComponent,
   type MarkdownLinkDialogResult,
 } from './markdown-link-dialog.component';
+import { MarkdownImageLightboxDirective } from '../markdown-image-lightbox/markdown-image-lightbox.directive';
+import { MARKDOWN_SHOWCASE_EN } from './markdown-showcase-sample.en';
+
+/** Eingefügte Fence-Blöcke; Caret auf die leere Zeile zwischen öffnendem und schließendem Fence. */
+const INSERT_CODE_BLOCK = `\n\`\`\`${DEFAULT_MARKDOWN_FENCE_LANGUAGE}\n\n\`\`\`\n`;
+const INSERT_BLOCK_MATH = '\n$$\n\n$$\n';
+/** Zeichenoffset nach `\n` + öffnendem Fence + `\n` (Anfang der Innenzeile). */
+const CARET_OFFSET_CODE_BLOCK = `\n\`\`\`${DEFAULT_MARKDOWN_FENCE_LANGUAGE}\n`.length;
+const CARET_OFFSET_BLOCK_MATH = '\n$$\n'.length;
 
 @Component({
   selector: 'app-markdown-katex-editor',
@@ -41,6 +51,7 @@ import {
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
+    MarkdownImageLightboxDirective,
   ],
   templateUrl: './markdown-katex-editor.component.html',
   styleUrls: ['./markdown-katex-editor.component.scss'],
@@ -64,6 +75,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
     heading: $localize`:@@mdEditor.toolbarHeading2Aria:Überschrift`,
     codeBlock: $localize`:@@mdEditor.toolbarCodeBlockAria:Codeblock`,
     blockMath: $localize`:@@mdEditor.toolbarBlockMathAria:Block-Formel`,
+    showcase: $localize`:@@mdEditor.showcaseAria:Vollständiges Markdown- und KaTeX-Beispiel auf Englisch laden (ersetzt den aktuellen Text)`,
     more: $localize`:@@mdEditor.moreActionsAria:Weitere Aktionen`,
   } as const;
 
@@ -180,16 +192,42 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
     this.valueChange.emit(value);
   }
 
+  /**
+   * Strg/Cmd+B/I/K im Quellfeld — gleiche Aktionen wie die Toolbar (kein Fokusverlust zur Leiste).
+   */
+  onFieldKeydown(event: KeyboardEvent): void {
+    if (this.disabled) return;
+    if (!event.ctrlKey && !event.metaKey) return;
+    if (event.altKey || event.shiftKey) return;
+
+    const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+    if (key === 'b') {
+      event.preventDefault();
+      this.applyBold();
+      return;
+    }
+    if (key === 'i') {
+      event.preventDefault();
+      this.applyItalic();
+      return;
+    }
+    if (key === 'k') {
+      event.preventDefault();
+      this.openLinkDialog();
+      return;
+    }
+  }
+
   focusField(): void {
     this.fieldRef.nativeElement.focus();
   }
 
-  insert(text: string): void {
+  insert(text: string, caretOffsetInInsertedText?: number): void {
     this.restoreToolbarTextareaSelection();
     const field = this.fieldRef.nativeElement;
     const start = field.selectionStart ?? 0;
     const end = field.selectionEnd ?? start;
-    this.replaceFieldRange(field, start, end, text);
+    this.replaceFieldRange(field, start, end, text, caretOffsetInInsertedText);
   }
 
   /** Einfügen an fester Zeichen-Range (z. B. nach Dialog, ohne Toolbar-Stash). */
@@ -198,6 +236,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
     rangeStart: number,
     rangeEnd: number,
     text: string,
+    caretOffsetInInsertedText?: number,
   ): void {
     field.focus();
     const v = field.value;
@@ -206,7 +245,11 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
     const b = Math.max(0, Math.min(rangeEnd, len));
     const next = v.slice(0, a) + text + v.slice(b);
     field.value = next;
-    field.setSelectionRange(a + text.length, a + text.length);
+    const caret =
+      caretOffsetInInsertedText !== undefined
+        ? a + Math.min(Math.max(0, caretOffsetInInsertedText), text.length)
+        : a + text.length;
+    field.setSelectionRange(caret, caret);
     this.onInput(field.value);
   }
 
@@ -278,7 +321,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
         return;
       }
     }
-    this.insert('\n```\n\n```\n');
+    this.insert(INSERT_CODE_BLOCK, CARET_OFFSET_CODE_BLOCK);
   }
 
   /** Selektion ist genau ein ```…```-Block → Inneres zurückgeben, sonst null. */
@@ -380,11 +423,21 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
   }
 
   applyBlockMath(): void {
-    this.insert('\n$$\n\n$$\n');
+    this.insert(INSERT_BLOCK_MATH, CARET_OFFSET_BLOCK_MATH);
   }
 
-  openLinkDialog(event: MouseEvent): void {
-    const trigger = event.currentTarget as HTMLElement | null;
+  /** Ersetzt den Quelltext durch ein englisches Vollbeispiel (unterstützte Markdown- und KaTeX-Optionen). */
+  applyMarkdownShowcase(): void {
+    if (this.disabled) return;
+    const field = this.fieldRef.nativeElement;
+    field.focus();
+    const next = MARKDOWN_SHOWCASE_EN;
+    field.value = next;
+    field.setSelectionRange(0, 0);
+    this.onInput(next);
+  }
+
+  openLinkDialog(): void {
     this.restoreToolbarTextareaSelection();
     const field = this.fieldRef.nativeElement;
     const rangeStart = field.selectionStart ?? 0;
@@ -403,15 +456,16 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
       data: { text: selection },
     });
     ref.afterClosed().subscribe((result) => {
-      if (!result) return;
-      this.replaceFieldRange(field, rangeStart, rangeEnd, `[${result.text}](${result.url})`);
-      // restore focus to triggering button (A11y requirement in story)
-      trigger?.focus();
+      if (result) {
+        this.replaceFieldRange(field, rangeStart, rangeEnd, `[${result.text}](${result.url})`);
+        this.restoreCaretFocusAfterDialog(field);
+      } else {
+        queueMicrotask(() => field.focus());
+      }
     });
   }
 
-  openImageDialog(event: MouseEvent): void {
-    const trigger = event.currentTarget as HTMLElement | null;
+  openImageDialog(): void {
     this.restoreToolbarTextareaSelection();
     const field = this.fieldRef.nativeElement;
     const rangeStart = field.selectionStart ?? 0;
@@ -428,9 +482,23 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
       maxWidth: '96vw',
     });
     ref.afterClosed().subscribe((result) => {
-      if (!result) return;
-      this.replaceFieldRange(field, rangeStart, rangeEnd, `![${result.alt}](${result.url})`);
-      trigger?.focus();
+      if (result) {
+        this.replaceFieldRange(field, rangeStart, rangeEnd, `![${result.alt}](${result.url})`);
+        this.restoreCaretFocusAfterDialog(field);
+      } else {
+        queueMicrotask(() => field.focus());
+      }
+    });
+  }
+
+  /** Nach Dialog-Schließen: Fokus und Caret im Textarea (replaceFieldRange setzt die Position). */
+  private restoreCaretFocusAfterDialog(field: HTMLTextAreaElement): void {
+    queueMicrotask(() => {
+      const len = field.value.length;
+      const start = Math.min(field.selectionStart ?? 0, len);
+      const end = Math.min(field.selectionEnd ?? start, len);
+      field.focus();
+      field.setSelectionRange(start, end);
     });
   }
 }

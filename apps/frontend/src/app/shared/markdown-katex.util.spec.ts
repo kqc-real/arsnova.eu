@@ -64,10 +64,18 @@ describe('renderMarkdownWithoutKatex', () => {
   it('rendert eingezäunte Codeblöcke als pre/code (ohne $-KaTeX)', () => {
     const html = renderMarkdownWithoutKatex('Text\n\n```json\n{"a":1}\n```\n');
 
-    expect(html).toContain('<pre><code class="language-json">');
-    // Je nach Sanitizing/Parser-Pfad können Anführungszeichen als Entities oder roh vorkommen.
-    expect(html.includes('{&quot;a&quot;:1}') || html.includes('{"a":1}')).toBe(true);
+    expect(html).toContain('<pre><code class="hljs language-json">');
+    expect(html).toContain('hljs-');
+    // JSON wird in Spans zerlegt; Inhalt bleibt erkennbar.
+    expect(html).toMatch(/"a"|&quot;a&quot;/);
+    expect(html).toMatch(/hljs-(?:attr|number|string|literal|property)/);
     expect(html).not.toContain('katex');
+  });
+
+  it('behandelt Fences ohne Sprach-Tag standardmäßig als Python', () => {
+    const html = renderMarkdownWithoutKatex('```\nprint(1)\n```\n');
+    expect(html).toContain('<pre><code class="hljs language-python">');
+    expect(html).toContain('hljs-');
   });
 
   it('lässt Dollarzeichen in JSON-Beispielzeilen unangetastet', () => {

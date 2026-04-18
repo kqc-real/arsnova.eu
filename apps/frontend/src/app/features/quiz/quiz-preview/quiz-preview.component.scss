@@ -187,8 +187,19 @@
 
 .quiz-preview-question__text {
   margin: 0;
+  min-width: 0;
+  max-width: 100%;
   font: var(--mat-sys-title-small);
   line-height: 1.4;
+}
+
+.quiz-preview-question__text :where(img) {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: scale-down;
+  box-sizing: border-box;
 }
 
 @media (min-width: 840px) {
@@ -272,6 +283,15 @@
   display: block;
   min-width: 0;
   line-height: 1.6;
+
+  :where(img) {
+    display: block;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: scale-down;
+    box-sizing: border-box;
+  }
 }
 
 .quiz-preview-question__answer-input {

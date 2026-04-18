@@ -2,6 +2,8 @@ import katex from 'katex';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 
+import { renderMarkdownCodeBlockHtml } from './markdown-code-highlight';
+
 export interface MarkdownRenderResult {
   html: string;
   katexError: string | null;
@@ -80,6 +82,7 @@ function parseMarkdownEscapingInlineHtml(
   options: { imagePolicy: MarkdownImagePolicy },
 ): string {
   const renderer = new marked.Renderer();
+  renderer.code = (token) => renderMarkdownCodeBlockHtml(token);
   renderer.html = ({ text }) => escapeHtml(text);
   renderer.link = ({ href, title, text }): string => {
     const safeHref = sanitizeMarkdownUrl(href, 'link');

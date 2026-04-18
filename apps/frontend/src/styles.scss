@@ -3,6 +3,22 @@
 @use 'styles/music-equalizer-global';
 @import 'katex/dist/katex.min.css';
 
+/* Markdown-Fenced-Code: highlight.js (hell/dunkel, analog Theme-Klassen in index.html) */
+html.light {
+  @include meta.load-css('highlight.js/styles/github');
+}
+html.dark {
+  @include meta.load-css('highlight.js/styles/github-dark');
+}
+html:not(.light):not(.dark) {
+  @media (prefers-color-scheme: light) {
+    @include meta.load-css('highlight.js/styles/github');
+  }
+  @media (prefers-color-scheme: dark) {
+    @include meta.load-css('highlight.js/styles/github-dark');
+  }
+}
+
 // ---------------------------------------------------------------------------
 // 0) Material Icons selbst gehostet (kein Google-Request, kein Tracking)
 // ---------------------------------------------------------------------------
@@ -583,6 +599,19 @@ img[data-markdown-image-lightbox='true'] {
 .markdown-body {
   min-width: 0;
   max-width: 100%;
+}
+
+.markdown-body pre {
+  margin: 0.65rem 0;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.markdown-body pre code.hljs {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: var(--mat-sys-corner-small);
+  font-size: 0.875em;
 }
 
 /* Bilder an Inhaltsbreite; !important gegen evtl. Attribute/Third-Party */

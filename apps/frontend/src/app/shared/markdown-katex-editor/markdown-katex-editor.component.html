@@ -3,6 +3,7 @@
   [class.mk-editor--compact]="compact"
   [class.mk-editor--frameless-panels]="compact || framelessPanels"
   [class.mk-editor--disabled]="disabled"
+  appMarkdownImageLightbox
 >
   <div
     class="mk-editor__toolbar"
@@ -106,7 +107,7 @@
       <button
         mat-icon-button
         type="button"
-        (click)="openLinkDialog($event)"
+        (click)="openLinkDialog()"
         [disabled]="disabled"
         [matTooltip]="mdToolbarLabel.link"
         [matTooltipDisabled]="disabled"
@@ -117,7 +118,7 @@
       <button
         mat-icon-button
         type="button"
-        (click)="openImageDialog($event)"
+        (click)="openImageDialog()"
         [disabled]="disabled"
         [matTooltip]="mdToolbarLabel.image"
         [matTooltipDisabled]="disabled"
@@ -149,6 +150,17 @@
         >
           <mat-icon aria-hidden="true">calculate</mat-icon>
         </button>
+        <button
+          mat-icon-button
+          type="button"
+          (click)="applyMarkdownShowcase()"
+          [disabled]="disabled"
+          [matTooltip]="mdToolbarLabel.showcase"
+          [matTooltipDisabled]="disabled"
+          [attr.aria-label]="mdToolbarLabel.showcase"
+        >
+          <mat-icon aria-hidden="true">menu_book</mat-icon>
+        </button>
       </div>
     </div>
 
@@ -169,11 +181,11 @@
         <mat-icon aria-hidden="true">functions</mat-icon>
         <span i18n="@@mdEditor.menu.inlineMath">Inline-Formel</span>
       </button>
-      <button mat-menu-item type="button" (click)="openLinkDialog($event)">
+      <button mat-menu-item type="button" (click)="openLinkDialog()">
         <mat-icon aria-hidden="true">link</mat-icon>
         <span i18n="@@mdEditor.menu.link">Link einfügen</span>
       </button>
-      <button mat-menu-item type="button" (click)="openImageDialog($event)">
+      <button mat-menu-item type="button" (click)="openImageDialog()">
         <mat-icon aria-hidden="true">image</mat-icon>
         <span i18n="@@mdEditor.menu.image">Bild einfügen</span>
       </button>
@@ -184,6 +196,10 @@
       <button mat-menu-item type="button" (click)="applyBlockMath()">
         <mat-icon aria-hidden="true">calculate</mat-icon>
         <span i18n="@@mdEditor.menu.blockMath">Block-Formel</span>
+      </button>
+      <button mat-menu-item type="button" (click)="applyMarkdownShowcase()">
+        <mat-icon aria-hidden="true">menu_book</mat-icon>
+        <span i18n="@@mdEditor.menu.showcase">Was geht?</span>
       </button>
     </mat-menu>
   </div>
@@ -197,6 +213,7 @@
         [disabled]="disabled"
         [rows]="rows"
         (input)="onInput(field.value)"
+        (keydown)="onFieldKeydown($event)"
       ></textarea>
     </div>
     <div class="mk-editor__preview">
