@@ -483,7 +483,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return result;
   });
   readonly showChannelTabs = computed(() => this.visibleChannels().length > 1);
-  readonly isLegacyQaOnlySession = computed(
+  readonly isStandaloneQaSession = computed(
     () =>
       this.sessionSettings().type === 'Q_AND_A' &&
       this.channels().quiz === false &&
@@ -495,8 +495,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return this.channels().quiz;
     }
 
-    if (active === 'qa' && this.isLegacyQaOnlySession()) {
-      return true;
+    if (active === 'qa' && this.isStandaloneQaSession()) {
+      // Standalone-Q&A must render the actual Q&A form once the round is live.
+      // Lobby and finished states still use the primary session shell.
+      return this.status() !== 'ACTIVE';
     }
 
     return false;

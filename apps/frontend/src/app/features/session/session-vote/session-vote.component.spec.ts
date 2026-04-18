@@ -464,7 +464,7 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt bei aktiver Q&A-Session einen neutralen Wartezustand', async () => {
+  it('zeigt bei aktiver Standalone-Q&A-Session das Frageformular', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -484,9 +484,10 @@ describe('SessionVoteComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
-    const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Fragerunde läuft');
-    expect(text).toContain('Neue Inhalte erscheinen hier automatisch.');
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('#qa-draft')).not.toBeNull();
+    expect(host.querySelector('.session-qa-form__submit')).not.toBeNull();
+    expect(host.textContent).not.toContain('Neue Inhalte erscheinen hier automatisch.');
     fixture.destroy();
   });
 
