@@ -620,12 +620,26 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label i18n>Label Minimum (optional)</mat-label>
+              <mat-label>
+                <span class="quiz-edit-form__rating-boundary-inner">
+                  <mat-icon class="quiz-edit-form__rating-boundary-icon" aria-hidden="true"
+                    >first_page</mat-icon
+                  >
+                  <span i18n>Linke Grenze (optional)</span>
+                </span>
+              </mat-label>
               <input matInput formControlName="ratingLabelMin" maxlength="50" />
             </mat-form-field>
           </div>
           <mat-form-field appearance="outline">
-            <mat-label i18n>Label Maximum (optional)</mat-label>
+            <mat-label>
+              <span class="quiz-edit-form__rating-boundary-inner">
+                <span i18n>Rechte Grenze (optional)</span>
+                <mat-icon class="quiz-edit-form__rating-boundary-icon" aria-hidden="true"
+                  >last_page</mat-icon
+                >
+              </span>
+            </mat-label>
             <input matInput formControlName="ratingLabelMax" maxlength="50" />
           </mat-form-field>
         }
@@ -926,8 +940,11 @@
                     ></div>
 
                     @if (question.type === 'FREETEXT') {
-                      <p class="quiz-edit-question__text quiz-edit-question__text--hint" i18n>
-                        Freitext-Antwort
+                      <p
+                        class="quiz-edit-question__text quiz-edit-question__text--hint"
+                        i18n="@@quiz.freeTextWordCloudHint"
+                      >
+                        Freitext-Antwort als Wortwolke
                       </p>
                     } @else if (question.type === 'RATING') {
                       <div class="quiz-edit-question__rating">
@@ -940,14 +957,28 @@
                           <div class="quiz-edit-question__rating-cell">
                             <span class="quiz-edit-question__rating-step">{{ step }}</span>
                             @if (first && question.ratingLabelMin) {
-                              <span class="quiz-edit-question__rating-label">{{
-                                question.ratingLabelMin
-                              }}</span>
+                              <span
+                                class="quiz-edit-question__rating-label quiz-edit-question__rating-label--min"
+                              >
+                                <mat-icon
+                                  class="quiz-edit-question__rating-label-icon"
+                                  aria-hidden="true"
+                                  >first_page</mat-icon
+                                >
+                                {{ question.ratingLabelMin }}
+                              </span>
                             }
                             @if (last && question.ratingLabelMax) {
-                              <span class="quiz-edit-question__rating-label">{{
-                                question.ratingLabelMax
-                              }}</span>
+                              <span
+                                class="quiz-edit-question__rating-label quiz-edit-question__rating-label--max"
+                              >
+                                {{ question.ratingLabelMax }}
+                                <mat-icon
+                                  class="quiz-edit-question__rating-label-icon"
+                                  aria-hidden="true"
+                                  >last_page</mat-icon
+                                >
+                              </span>
                             }
                           </div>
                         }

@@ -887,12 +887,18 @@
               @let values = ratingRange();
               @if (ratingLabelMin() || ratingLabelMax()) {
                 <div class="vote-rating__labels">
-                  <span class="vote-rating__label vote-rating__label--min">{{
-                    ratingLabelMin()
-                  }}</span>
-                  <span class="vote-rating__label vote-rating__label--max">{{
-                    ratingLabelMax()
-                  }}</span>
+                  <span class="vote-rating__label vote-rating__label--min">
+                    <mat-icon class="vote-rating__label-icon" aria-hidden="true"
+                      >first_page</mat-icon
+                    >
+                    {{ ratingLabelMin() }}
+                  </span>
+                  <span class="vote-rating__label vote-rating__label--max">
+                    {{ ratingLabelMax() }}
+                    <mat-icon class="vote-rating__label-icon" aria-hidden="true"
+                      >last_page</mat-icon
+                    >
+                  </span>
                 </div>
               }
               <div class="vote-rating__buttons" [style.--rating-count]="values.length">

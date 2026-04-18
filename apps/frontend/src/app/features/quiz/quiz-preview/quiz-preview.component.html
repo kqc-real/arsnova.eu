@@ -93,9 +93,9 @@
             @if (slide.question.type === 'FREETEXT') {
               <p
                 class="quiz-preview-question__text quiz-preview-question__text--hint"
-                i18n="@@quizPreview.freeTextAnswer"
+                i18n="@@quiz.freeTextWordCloudHint"
               >
-                Freitext-Antwort
+                Freitext-Antwort als Wortwolke
               </p>
             } @else if (slide.question.type === 'RATING') {
               @let ratingValues =
@@ -115,12 +115,24 @@
                 </div>
                 @if (slide.question.ratingLabelMin || slide.question.ratingLabelMax) {
                   <p class="quiz-preview-question__rating-labels">
+                    <span class="quiz-preview-question__rating-pole">
+                      <mat-icon class="quiz-preview-question__rating-pole-icon" aria-hidden="true"
+                        >first_page</mat-icon
+                      >
+                      <span
+                        [innerHTML]="renderMarkdown(slide.question.ratingLabelMin || 'Min')"
+                      ></span>
+                    </span>
                     <span
-                      [innerHTML]="renderMarkdown(slide.question.ratingLabelMin || 'Min')"
-                    ></span>
-                    <span
-                      [innerHTML]="renderMarkdown(slide.question.ratingLabelMax || 'Max')"
-                    ></span>
+                      class="quiz-preview-question__rating-pole quiz-preview-question__rating-pole--max"
+                    >
+                      <span
+                        [innerHTML]="renderMarkdown(slide.question.ratingLabelMax || 'Max')"
+                      ></span>
+                      <mat-icon class="quiz-preview-question__rating-pole-icon" aria-hidden="true"
+                        >last_page</mat-icon
+                      >
+                    </span>
                   </p>
                 }
               </div>

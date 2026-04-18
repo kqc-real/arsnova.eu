@@ -265,6 +265,38 @@
   gap: 1.25rem;
 }
 
+/* Ein Zeile trotz MDC-Floating-Label (Icon + Text darf nicht umbrechen) */
+.quiz-edit-form__rating-boundary-inner {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.quiz-edit-form__rating-boundary-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  line-height: 1;
+}
+
+/* MDC setzt das Label teils als Block/Flex-Spalte — Icon + Text bleiben eine Zeile */
+:host ::ng-deep mat-form-field:has(.quiz-edit-form__rating-boundary-inner) {
+  .mat-mdc-floating-label,
+  .mdc-floating-label {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    max-width: calc(100% - 1.5rem);
+  }
+}
+
 /* Team-Block: Zeile 1 Zähler | Zuweisung, Zeile 2 Namen | Vorschau */
 .quiz-edit-form__grid--team-block {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -810,10 +842,38 @@
 }
 
 .quiz-edit-question__rating-label {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
   font: var(--mat-sys-label-small);
   color: var(--mat-sys-on-surface-variant);
   text-align: center;
   white-space: nowrap;
+  max-width: 100%;
+}
+
+.quiz-edit-question__rating-label-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  line-height: 1;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.quiz-edit-question__rating-label--min {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.quiz-edit-question__rating-label--max {
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .quiz-edit-question__actions {

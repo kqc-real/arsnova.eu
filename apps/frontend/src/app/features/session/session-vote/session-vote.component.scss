@@ -2259,8 +2259,31 @@
   &__labels {
     display: flex;
     justify-content: space-between;
+    gap: 0.5rem;
     font: var(--mat-sys-label-large);
     color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__label {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    min-width: min-content;
+  }
+
+  &__label-icon {
+    flex-shrink: 0;
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  &__label--max {
+    flex-direction: row;
+    justify-content: flex-end;
+    text-align: right;
   }
 
   &__buttons {

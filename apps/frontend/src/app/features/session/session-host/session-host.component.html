@@ -868,8 +868,24 @@
                           <div class="session-host__rating">
                             @if (q.ratingLabelMin || q.ratingLabelMax) {
                               <div class="session-host__rating-labels">
-                                <span>{{ q.ratingLabelMin }}</span>
-                                <span>{{ q.ratingLabelMax }}</span>
+                                <span class="session-host__rating-pole">
+                                  <mat-icon
+                                    class="session-host__rating-pole-icon"
+                                    aria-hidden="true"
+                                    >first_page</mat-icon
+                                  >
+                                  {{ q.ratingLabelMin }}
+                                </span>
+                                <span
+                                  class="session-host__rating-pole session-host__rating-pole--max"
+                                >
+                                  {{ q.ratingLabelMax }}
+                                  <mat-icon
+                                    class="session-host__rating-pole-icon"
+                                    aria-hidden="true"
+                                    >last_page</mat-icon
+                                  >
+                                </span>
                               </div>
                             }
                             @if (
