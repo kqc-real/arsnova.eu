@@ -18,6 +18,7 @@
     [class.markdown-image-lightbox__viewport--dragging]="isDragging()"
     [style.transform]="viewportTransform()"
     [style.opacity]="viewportOpacity()"
+    (click)="onViewportClick($event)"
     (dblclick)="onDoubleClick($event)"
     (pointerdown)="onPointerDown($event)"
     (pointermove)="onPointerMove($event)"

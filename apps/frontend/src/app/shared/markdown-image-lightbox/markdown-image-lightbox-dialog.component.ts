@@ -71,6 +71,21 @@ export class MarkdownImageLightboxDialogComponent {
     this.toggleZoomAt(event.clientX, event.clientY);
   }
 
+  onViewportClick(event: MouseEvent): void {
+    if (this.activePointers.size > 0 || this.movedDuringGesture) {
+      return;
+    }
+    if (event.target instanceof Element) {
+      if (event.target.closest('.markdown-image-lightbox__caption')) {
+        return;
+      }
+    }
+    if (this.isPointInsideRenderedImage(event.clientX, event.clientY)) {
+      return;
+    }
+    this.close();
+  }
+
   onPointerDown(event: PointerEvent): void {
     if (event.pointerType === 'mouse' && event.button !== 0) {
       return;
@@ -352,6 +367,24 @@ export class MarkdownImageLightboxDialogComponent {
       width: rect.height * imageRatio,
       height: rect.height,
     };
+  }
+
+  private isPointInsideRenderedImage(clientX: number, clientY: number): boolean {
+    const viewport = this.viewportRef?.nativeElement;
+    if (!viewport) {
+      return false;
+    }
+    const rect = viewport.getBoundingClientRect();
+    const base = this.baseImageSize();
+    const width = base.width * this.scale;
+    const height = base.height * this.scale;
+    const centerX = rect.left + rect.width / 2 + this.translateX;
+    const centerY = rect.top + rect.height / 2 + this.translateY;
+    const left = centerX - width / 2;
+    const right = centerX + width / 2;
+    const top = centerY - height / 2;
+    const bottom = centerY + height / 2;
+    return clientX >= left && clientX <= right && clientY >= top && clientY <= bottom;
   }
 
   private midpoint(

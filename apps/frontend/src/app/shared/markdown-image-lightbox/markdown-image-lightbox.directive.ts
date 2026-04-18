@@ -49,7 +49,6 @@ export class MarkdownImageLightboxDirective {
       data,
       autoFocus: false,
       restoreFocus: true,
-      disableClose: true,
       enterAnimationDuration: 180,
       exitAnimationDuration: 140,
       width: '100vw',
