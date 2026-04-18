@@ -68,7 +68,9 @@ export function renderMarkdownWithKatex(
   );
 
   const markdownHtml = parseMarkdownEscapingInlineHtml(withInlineMath, {
-    imagePolicy: options?.imagePolicy ?? 'allow-relative-and-https',
+    // Quiz-/Session-Inhalte sollen standardmäßig nur HTTPS-Bilder akzeptieren.
+    // Relative Asset-Pfade bleiben eine explizite Ausnahme für Demo-/Systeminhalte.
+    imagePolicy: options?.imagePolicy ?? 'external-https-only',
   });
   const html = renderedMath.reduce(
     (current, value, index) => current.replaceAll(mathPlaceholder(index), value),

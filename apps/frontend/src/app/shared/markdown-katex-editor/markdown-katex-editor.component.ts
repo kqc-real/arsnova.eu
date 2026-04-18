@@ -98,7 +98,9 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges {
   readonly debouncedValue = signal('');
 
   readonly preview = computed<SafeHtml>(() => {
-    const result = renderMarkdownWithKatex(this.debouncedValue());
+    const result = renderMarkdownWithKatex(this.debouncedValue(), {
+      imagePolicy: 'external-https-only',
+    });
     return this.sanitizer.bypassSecurityTrustHtml(result.html);
   });
 

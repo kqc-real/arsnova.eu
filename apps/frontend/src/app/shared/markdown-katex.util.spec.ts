@@ -58,6 +58,14 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.html).toContain('&lt;img src=x onerror=alert(1)&gt;');
     expect(result.html).not.toContain('<img src=');
   });
+
+  it('blockiert relative Bildquellen standardmäßig in Quiz-/Session-Inhalten', () => {
+    const result = renderMarkdownWithKatex('![Demo](/assets/demo/x.svg)');
+
+    expect(result.html).toContain('<p>Demo</p>');
+    expect(result.html).not.toContain('<img ');
+    expect(result.html).not.toContain('src="/assets/demo/x.svg"');
+  });
 });
 
 describe('renderMarkdownWithoutKatex', () => {

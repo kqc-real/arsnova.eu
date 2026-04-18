@@ -1076,11 +1076,15 @@ export class QuizEditComponent implements OnDestroy {
     }
 
     this.previewTimer = setTimeout(() => {
-      const questionResult = renderMarkdownWithKatex(this.textControl.value);
+      const questionResult = renderMarkdownWithKatex(this.textControl.value, {
+        imagePolicy: 'external-https-only',
+      });
       this.questionPreviewHtml.set(this.sanitizer.bypassSecurityTrustHtml(questionResult.html));
 
       const answerResults = this.answersArray.controls.map((answer) =>
-        renderMarkdownWithKatex(answer.controls.text.value),
+        renderMarkdownWithKatex(answer.controls.text.value, {
+          imagePolicy: 'external-https-only',
+        }),
       );
       this.answerPreviewHtml.set(
         answerResults.map((result) => this.sanitizer.bypassSecurityTrustHtml(result.html)),
