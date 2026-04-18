@@ -451,7 +451,7 @@
   flex-wrap: wrap;
 }
 
-/* Nur Frage-Editor (Hinzufügen/Aktualisieren): eigene Leiste — bewusst getrennt von Preview-Styles (kein Shared-Partial). */
+/* Nur Frage-Editor (Speichern): eigene Leiste — bewusst getrennt von Preview-Styles (kein Shared-Partial). */
 .quiz-edit-form__actions--question-bar {
   justify-content: space-between;
   align-items: center;
@@ -664,6 +664,21 @@
 }
 
 .quiz-edit-question__difficulty-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.quiz-edit-question__timer-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  white-space: nowrap;
+}
+
+.quiz-edit-question__timer-icon {
   flex-shrink: 0;
   font-size: 1rem;
   width: 1rem;

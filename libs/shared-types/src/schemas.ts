@@ -150,7 +150,7 @@ export const CreateQuizInputSchema = z.object({
   description: z.string().max(5000).optional(),
   motifImageUrl: QuizMotifImageUrlInputSchema,
   showLeaderboard: z.boolean().optional().default(true),
-  allowCustomNicknames: z.boolean().optional().default(true),
+  allowCustomNicknames: z.boolean().optional().default(false),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
   enableSoundEffects: z.boolean().optional().default(true),
   enableRewardEffects: z.boolean().optional().default(true),
@@ -162,7 +162,7 @@ export const CreateQuizInputSchema = z.object({
   teamAssignment: TeamAssignmentEnum.optional().default('AUTO'),
   teamNames: TeamNamesSchema.optional().default([]),
   backgroundMusic: z.string().max(50).nullable().optional().default(null),
-  nicknameTheme: NicknameThemeEnum.optional().default('NOBEL_LAUREATES'),
+  nicknameTheme: NicknameThemeEnum.optional().default('HIGH_SCHOOL'),
   bonusTokenCount: z.number().int().min(1).max(50).nullable().optional().default(null), // Story 4.6
   readingPhaseEnabled: z.boolean().optional().default(true),
   preset: QuizPresetEnum.optional().default('PLAYFUL'),
@@ -1451,6 +1451,9 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
     enableMotivationMessages: true,
     enableEmojiReactions: true,
     anonymousMode: false,
+    allowCustomNicknames: false,
+    nicknameTheme: 'HIGH_SCHOOL',
+    defaultTimer: DEFAULT_TIMER_SECONDS,
     readingPhaseEnabled: false, // Story 2.6: Schnelles Spieltempo
   },
   SERIOUS: {
@@ -1459,7 +1462,10 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
     enableRewardEffects: false,
     enableMotivationMessages: false,
     enableEmojiReactions: false,
-    anonymousMode: true,
+    /** Pseudonyme aus Themenliste (Oberstufe), nicht reiner Anonym-Modus */
+    anonymousMode: false,
+    allowCustomNicknames: false,
+    nicknameTheme: 'HIGH_SCHOOL',
     defaultTimer: null, // Offene Antwortphase (kein Countdown)
     readingPhaseEnabled: true, // Story 2.6: Frage zuerst lesen
   },

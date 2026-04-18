@@ -432,7 +432,6 @@ export class QuizListComponent implements OnInit {
       teamCount: settings.teamCount,
       teamAssignment: settings.teamAssignment,
       teamNames: settings.teamNames,
-      backgroundMusic: settings.backgroundMusic,
       bonusTokenCount: settings.bonusTokenCount,
     });
   }
@@ -449,13 +448,13 @@ export class QuizListComponent implements OnInit {
       enableRewardEffects: presetDefaults.enableRewardEffects ?? true,
       enableMotivationMessages: presetDefaults.enableMotivationMessages ?? true,
       enableEmojiReactions: presetDefaults.enableEmojiReactions ?? true,
-      anonymousMode: preset === 'SERIOUS',
+      anonymousMode: presetDefaults.anonymousMode ?? false,
       teamMode: false,
       teamCount: null,
       teamAssignment: 'AUTO',
       teamNames: [],
       backgroundMusic: null,
-      nicknameTheme: 'NOBEL_LAUREATES',
+      nicknameTheme: presetDefaults.nicknameTheme ?? 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: presetDefaults.readingPhaseEnabled ?? false,
       preset,

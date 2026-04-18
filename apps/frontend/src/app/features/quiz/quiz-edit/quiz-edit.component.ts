@@ -59,6 +59,7 @@ import {
   DEMO_QUIZ_ID,
   QuizStoreService,
   type AddQuizQuestionInput,
+  type QuizQuestion,
   type QuizSettings,
   type SupportedQuestionType,
 } from '../data/quiz-store.service';
@@ -83,6 +84,8 @@ type QuestionFormGroup = FormGroup<{
   text: FormControl<string>;
   type: FormControl<SupportedQuestionType>;
   difficulty: FormControl<Difficulty>;
+  /** `null` = Quiz-`defaultTimer` */
+  questionTimer: FormControl<number | null>;
   answers: FormArray<AnswerFormGroup>;
   ratingMin: FormControl<number | null>;
   ratingMax: FormControl<number | null>;
@@ -243,6 +246,7 @@ export class QuizEditComponent implements OnDestroy {
     }),
     type: this.formBuilder.control<SupportedQuestionType>('SINGLE_CHOICE'),
     difficulty: this.formBuilder.control<Difficulty>('MEDIUM'),
+    questionTimer: this.formBuilder.control<number | null>(null),
     answers: this.createAnswerArrayForType('SINGLE_CHOICE'),
     ratingMin: this.formBuilder.control<number | null>(1),
     ratingMax: this.formBuilder.control<number | null>(5),
@@ -252,7 +256,7 @@ export class QuizEditComponent implements OnDestroy {
 
   readonly settingsForm: QuizSettingsFormGroup = this.formBuilder.group({
     showLeaderboard: this.formBuilder.control(true),
-    allowCustomNicknames: this.formBuilder.control(true),
+    allowCustomNicknames: this.formBuilder.control(false),
     defaultTimer: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(5), Validators.max(300)],
     }),
@@ -268,7 +272,7 @@ export class QuizEditComponent implements OnDestroy {
     }),
     teamAssignment: this.formBuilder.control<TeamAssignment>('AUTO'),
     teamNamesText: this.formBuilder.control(''),
-    nicknameTheme: this.formBuilder.control<NicknameTheme>('NOBEL_LAUREATES'),
+    nicknameTheme: this.formBuilder.control<NicknameTheme>('HIGH_SCHOOL'),
     bonusEnabled: this.formBuilder.control(false),
     bonusTokenCount: this.formBuilder.control<number | null>(DEFAULT_BONUS_TOKEN_COUNT, {
       validators: [Validators.min(1), Validators.max(50)],
@@ -383,6 +387,14 @@ export class QuizEditComponent implements OnDestroy {
     return this.difficultyOptions.find((option) => option.value === value)?.label ?? value;
   }
 
+  /** Kurztext für die Fragenliste: eigenes Limit oder Quiz-Standard. */
+  questionTimerDisplay(question: QuizQuestion): string {
+    if (question.timer !== null) {
+      return `${question.timer} s`;
+    }
+    return $localize`:@@quiz.edit.questionTimerQuizDefault:Quiz-Standard`;
+  }
+
   isPreviewActive(): boolean {
     return this.route.snapshot.firstChild?.routeConfig?.path === 'preview';
   }
@@ -398,6 +410,26 @@ export class QuizEditComponent implements OnDestroy {
 
   defaultTimerSelectOptions(): number[] {
     return mergeTimerPresetOptions(this.settingsTimerControl.value);
+  }
+
+  questionTimerUsesQuizDefault(): boolean {
+    return this.form.controls.questionTimer.value === null;
+  }
+
+  questionTimerSelectOptions(): number[] {
+    return mergeTimerPresetOptions(this.form.controls.questionTimer.value);
+  }
+
+  onQuestionTimerInheritChange(useQuizDefault: boolean): void {
+    const c = this.form.controls.questionTimer;
+    if (useQuizDefault) {
+      c.setValue(null);
+    } else {
+      if (c.value === null) {
+        const fallback = this.quiz()?.settings.defaultTimer ?? DEFAULT_TIMER_SECONDS;
+        c.setValue(fallback);
+      }
+    }
   }
 
   onDefaultTimerEnabledChange(checked: boolean): void {
@@ -443,6 +475,8 @@ export class QuizEditComponent implements OnDestroy {
         enableMotivationMessages: values.enableMotivationMessages ?? true,
         enableEmojiReactions: values.enableEmojiReactions ?? true,
         anonymousMode: values.anonymousMode ?? false,
+        allowCustomNicknames: values.allowCustomNicknames ?? false,
+        nicknameTheme: values.nicknameTheme ?? 'HIGH_SCHOOL',
         readingPhaseEnabled: values.readingPhaseEnabled ?? false,
         defaultTimer: values.defaultTimer ?? null,
         preset,
@@ -607,6 +641,7 @@ export class QuizEditComponent implements OnDestroy {
       text: this.textControl.value,
       type: this.typeControl.value,
       difficulty: this.form.controls.difficulty.value,
+      timer: this.form.controls.questionTimer.value,
       answers: this.buildQuestionAnswersForType(),
       ...(this.isRatingType()
         ? {
@@ -723,6 +758,7 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.ratingMax.setValue(question.ratingMax ?? 5);
     this.form.controls.ratingLabelMin.setValue(question.ratingLabelMin ?? '');
     this.form.controls.ratingLabelMax.setValue(question.ratingLabelMax ?? '');
+    this.form.controls.questionTimer.setValue(question.timer ?? null);
 
     this.editingQuestionId.set(question.id);
     this.submitError.set(null);
@@ -864,7 +900,7 @@ export class QuizEditComponent implements OnDestroy {
     if (!this.quiz()) return;
     try {
       this.quizStore.updateQuizSettings(this.id, {
-        nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
+        nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'HIGH_SCHOOL',
         allowCustomNicknames: this.settingsForm.controls.allowCustomNicknames.value,
         anonymousMode: this.settingsForm.controls.anonymousMode.value,
       });
@@ -900,7 +936,7 @@ export class QuizEditComponent implements OnDestroy {
       teamAssignment: this.settingsForm.controls.teamAssignment.value,
       teamNames: parseTeamNamesText(this.settingsForm.controls.teamNamesText.value),
       backgroundMusic: null,
-      nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
+      nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'HIGH_SCHOOL',
       bonusTokenCount: this.settingsForm.controls.bonusEnabled.value
         ? (this.settingsForm.controls.bonusTokenCount.value ?? DEFAULT_BONUS_TOKEN_COUNT)
         : null,
@@ -922,7 +958,10 @@ export class QuizEditComponent implements OnDestroy {
         (target.enableEmojiReactions ?? current.enableEmojiReactions) &&
       current.anonymousMode === (target.anonymousMode ?? current.anonymousMode) &&
       current.readingPhaseEnabled === (target.readingPhaseEnabled ?? current.readingPhaseEnabled) &&
-      current.defaultTimer === (target.defaultTimer ?? current.defaultTimer)
+      current.defaultTimer === (target.defaultTimer ?? current.defaultTimer) &&
+      current.allowCustomNicknames ===
+        (target.allowCustomNicknames ?? current.allowCustomNicknames) &&
+      current.nicknameTheme === (target.nicknameTheme ?? current.nicknameTheme)
     );
   }
 
@@ -944,6 +983,7 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.text.reset('');
     this.form.controls.type.reset(type);
     this.form.controls.difficulty.reset('MEDIUM');
+    this.form.controls.questionTimer.reset(null);
     this.form.setControl('answers', this.createAnswerArrayForType(type));
     this.form.controls.ratingMin.reset(1);
     this.form.controls.ratingMax.reset(5);

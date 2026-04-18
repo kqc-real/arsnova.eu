@@ -119,7 +119,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       [Validators.maxLength(MOTIF_IMAGE_URL_MAX_LENGTH), motifImageUrlOptionalHttpsValidator],
     ],
     showLeaderboard: [true],
-    allowCustomNicknames: [true],
+    allowCustomNicknames: [false],
     defaultTimer: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(5), Validators.max(300)],
     }),
@@ -135,7 +135,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     }),
     teamAssignment: this.formBuilder.control<TeamAssignment>('AUTO'),
     teamNamesText: [''],
-    nicknameTheme: this.formBuilder.control<NicknameTheme>('NOBEL_LAUREATES'),
+    nicknameTheme: this.formBuilder.control<NicknameTheme>('HIGH_SCHOOL'),
     bonusEnabled: [false],
     bonusTokenCount: this.formBuilder.control<number | null>(DEFAULT_BONUS_TOKEN_COUNT, {
       validators: [Validators.min(1), Validators.max(50)],
@@ -175,6 +175,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    /** Vollständige Preset-Defaults zum Home-Thema (nicht nur Timer/Nickname), damit die Maske initial stimmt. */
+    this.applyPreset(this.currentQuizPreset());
     this.syncTeamNamesValidation();
     this.localeGuard.register(() => this.form.dirty);
   }
@@ -218,6 +220,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       enableMotivationMessages: values.enableMotivationMessages ?? true,
       enableEmojiReactions: values.enableEmojiReactions ?? true,
       anonymousMode: values.anonymousMode ?? false,
+      allowCustomNicknames: values.allowCustomNicknames ?? false,
+      nicknameTheme: values.nicknameTheme ?? 'HIGH_SCHOOL',
       readingPhaseEnabled: values.readingPhaseEnabled ?? false,
       defaultTimer: values.defaultTimer ?? null,
     });
@@ -236,17 +240,18 @@ export class QuizNewComponent implements OnInit, OnDestroy {
         (target.enableEmojiReactions ?? current.enableEmojiReactions) &&
       current.anonymousMode === (target.anonymousMode ?? current.anonymousMode) &&
       current.readingPhaseEnabled === (target.readingPhaseEnabled ?? current.readingPhaseEnabled) &&
-      current.defaultTimer === (target.defaultTimer ?? current.defaultTimer)
+      current.defaultTimer === (target.defaultTimer ?? current.defaultTimer) &&
+      current.allowCustomNicknames ===
+        (target.allowCustomNicknames ?? current.allowCustomNicknames) &&
+      current.nicknameTheme === (target.nicknameTheme ?? current.nicknameTheme)
     );
   }
 
   private readSettingsFromForm(): QuizSettings {
     const selectedPreset = this.currentQuizPreset();
-    const allowCustomNicknames =
-      selectedPreset === 'PLAYFUL' ? false : this.form.controls.allowCustomNicknames.value;
     return {
       showLeaderboard: this.form.controls.showLeaderboard.value,
-      allowCustomNicknames,
+      allowCustomNicknames: this.form.controls.allowCustomNicknames.value,
       defaultTimer: this.defaultTimerControl.value,
       enableSoundEffects: this.form.controls.enableSoundEffects.value,
       enableRewardEffects: this.form.controls.enableRewardEffects.value,
@@ -258,7 +263,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       teamAssignment: this.form.controls.teamAssignment.value ?? 'AUTO',
       teamNames: parseTeamNamesText(this.form.controls.teamNamesText.value),
       backgroundMusic: null,
-      nicknameTheme: this.form.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
+      nicknameTheme: this.form.controls.nicknameTheme.value ?? 'HIGH_SCHOOL',
       bonusTokenCount: this.form.controls.bonusEnabled.value
         ? (this.bonusTokenCountControl.value ?? DEFAULT_BONUS_TOKEN_COUNT)
         : null,
@@ -416,11 +421,11 @@ function hasLocalPresetOverridesForQuizPreset(quizPreset: QuizPreset): boolean {
     const hasOptionOverride = Object.entries(defaults).some(
       ([id, defaultValue]) => id in entry.options && entry.options[id] !== defaultValue,
     );
-    const defaultNameMode = quizPreset === 'SERIOUS' ? 'anonymousMode' : 'nicknameTheme';
+    const defaultNameMode = 'nicknameTheme';
     return (
       hasOptionOverride ||
       entry.nameMode !== defaultNameMode ||
-      entry.nicknameThemeValue !== 'NOBEL_LAUREATES' ||
+      entry.nicknameThemeValue !== 'HIGH_SCHOOL' ||
       entry.teamCountValue !== DEFAULT_TEAM_COUNT
     );
   } catch {

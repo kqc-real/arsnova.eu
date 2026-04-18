@@ -499,9 +499,8 @@
         (ngSubmit)="addQuestion()"
       >
         @if (isEditing()) {
-          <p class="quiz-edit-form__editing-hint" i18n>
-            Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren", um die Änderungen zu
-            speichern.
+          <p class="quiz-edit-form__editing-hint" i18n="@@quiz.edit.questionEditSaveHint">
+            Du bearbeitest eine vorhandene Frage. Mit „Speichern“ übernimmst du die Änderungen.
           </p>
         }
 
@@ -553,6 +552,43 @@
             </mat-form-field>
           }
         </div>
+
+        <fieldset class="quiz-edit-form__fieldset">
+          <legend class="quiz-edit-form__legend" i18n="@@quiz.edit.questionTimerSectionLegend">
+            Zeit für diese Frage
+          </legend>
+          <p class="quiz-edit-form__fieldset-hint" i18n="@@quiz.edit.questionTimerSectionHint">
+            Standard ist das Zeitlimit aus den Quiz-Einstellungen. Du kannst pro Frage ein eigenes
+            Limit setzen.
+          </p>
+          <mat-checkbox
+            i18n="@@quiz.edit.questionTimerUseQuizDefault"
+            [checked]="questionTimerUsesQuizDefault()"
+            (change)="onQuestionTimerInheritChange($event.checked)"
+            >Quiz-Zeitlimit verwenden</mat-checkbox
+          >
+          @if (!questionTimerUsesQuizDefault()) {
+            <div class="quiz-edit-form__default-timer quiz-edit-form__default-timer--nested">
+              <mat-form-field appearance="outline">
+                <mat-label i18n="@@quiz.edit.questionTimerSecondsFieldLabel"
+                  >Sekunden für diese Frage</mat-label
+                >
+                <mat-select
+                  formControlName="questionTimer"
+                  i18n-aria-label="@@quiz.edit.questionTimerSecondsAria"
+                  aria-label="Sekunden für diese Frage"
+                >
+                  @for (sec of questionTimerSelectOptions(); track sec) {
+                    <mat-option [value]="sec">
+                      {{ sec }}
+                      <span i18n="@@quizForm.timerSecondsSuffix">Sekunden</span>
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+        </fieldset>
 
         @if (isSingleChoiceType()) {
           <mat-form-field appearance="outline">
@@ -729,18 +765,8 @@
             </button>
           }
           <button matButton="filled" type="submit">
-            <mat-icon>
-              @if (isEditing()) {
-                save
-              } @else {
-                playlist_add
-              }
-            </mat-icon>
-            @if (isEditing()) {
-              <span i18n>Aktualisieren</span>
-            } @else {
-              <span i18n>Hinzufügen</span>
-            }
+            <mat-icon>save</mat-icon>
+            <span i18n="@@quiz.edit.questionSaveButton">Speichern</span>
           </button>
         </mat-card-actions>
       </form>
@@ -814,6 +840,13 @@
                           {{ difficultyLabel(question.difficulty) }}
                         </span>
                       }
+                      <span class="quiz-edit-question__timer-line">
+                        ·
+                        <mat-icon class="quiz-edit-question__timer-icon" aria-hidden="true"
+                          >timer</mat-icon
+                        >
+                        {{ questionTimerDisplay(question) }}
+                      </span>
                       @if (question.enabled === false) {
                         <span
                           class="quiz-edit-question__disabled-badge"

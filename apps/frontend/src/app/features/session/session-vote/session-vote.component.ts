@@ -334,7 +334,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const session = this.sessionSettings();
     return (
       session.type === 'QUIZ' &&
-      (session.nicknameTheme ?? 'NOBEL_LAUREATES') === 'KINDERGARTEN' &&
+      (session.nicknameTheme ?? 'HIGH_SCHOOL') === 'KINDERGARTEN' &&
       session.anonymousMode !== true
     );
   });

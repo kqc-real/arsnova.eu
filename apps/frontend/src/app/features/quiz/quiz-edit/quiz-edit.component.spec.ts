@@ -31,7 +31,7 @@ describe('QuizEditComponent', () => {
       teamAssignment: 'AUTO',
       teamNames: [],
       backgroundMusic: null,
-      nicknameTheme: 'NOBEL_LAUREATES',
+      nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: false,
       preset: 'PLAYFUL',
@@ -161,6 +161,7 @@ describe('QuizEditComponent', () => {
       text: 'Was ist korrekt?',
       type: 'SINGLE_CHOICE',
       difficulty: 'MEDIUM',
+      timer: null,
       answers: [
         { text: 'Antwort A', isCorrect: false },
         { text: 'Antwort B', isCorrect: true },
@@ -183,6 +184,7 @@ describe('QuizEditComponent', () => {
       text: 'Was nimmst du heute mit?',
       type: 'FREETEXT',
       difficulty: 'MEDIUM',
+      timer: null,
       answers: [],
     });
   });
@@ -204,6 +206,7 @@ describe('QuizEditComponent', () => {
       text: 'Wie war das Tempo?',
       type: 'SURVEY',
       difficulty: 'MEDIUM',
+      timer: null,
       answers: [
         { text: 'Zu schnell', isCorrect: false },
         { text: 'Passend', isCorrect: false },
@@ -244,6 +247,7 @@ describe('QuizEditComponent', () => {
         difficulty: 'EASY',
         order: 0,
         enabled: true,
+        timer: null,
         answers: [
           {
             id: '79b35123-ff7f-4ff8-b8bf-a2ca695f57d4',
@@ -278,6 +282,7 @@ describe('QuizEditComponent', () => {
       text: 'Neue Frage',
       type: 'SINGLE_CHOICE',
       difficulty: 'EASY',
+      timer: null,
       answers: [
         { text: 'Neu A', isCorrect: false },
         { text: 'Neu B', isCorrect: true },
@@ -295,6 +300,7 @@ describe('QuizEditComponent', () => {
         difficulty: 'EASY',
         order: 0,
         enabled: true,
+        timer: null,
         answers: [
           {
             id: '79b35123-ff7f-4ff8-b8bf-a2ca695f57d4',
@@ -336,6 +342,7 @@ describe('QuizEditComponent', () => {
         difficulty: 'EASY',
         order: 0,
         enabled: true,
+        timer: null,
         answers: [
           {
             id: '79b35123-ff7f-4ff8-b8bf-a2ca695f57d4',
@@ -375,6 +382,7 @@ describe('QuizEditComponent', () => {
         difficulty: 'EASY',
         order: 0,
         enabled: true,
+        timer: null,
         answers: [],
         ratingMin: null,
         ratingMax: null,
@@ -407,6 +415,7 @@ describe('QuizEditComponent', () => {
         difficulty: 'EASY',
         order: 0,
         enabled: true,
+        timer: null,
         answers: [],
         ratingMin: null,
         ratingMax: null,
@@ -442,6 +451,7 @@ describe('QuizEditComponent', () => {
       text: 'Ungültige SC Frage',
       type: 'SINGLE_CHOICE',
       difficulty: 'MEDIUM',
+      timer: null,
       answers: [
         { text: 'A', isCorrect: true },
         { text: 'B', isCorrect: false },
@@ -555,7 +565,8 @@ describe('QuizEditComponent', () => {
 
     expect(component.settingsForm.controls.showLeaderboard.value).toBe(false);
     expect(component.settingsForm.controls.enableSoundEffects.value).toBe(false);
-    expect(component.settingsForm.controls.anonymousMode.value).toBe(true);
+    expect(component.settingsForm.controls.anonymousMode.value).toBe(false);
+    expect(component.settingsForm.controls.nicknameTheme.value).toBe('HIGH_SCHOOL');
     expect(component.settingsForm.controls.defaultTimer.value).toBeNull();
   });
 
@@ -651,6 +662,7 @@ describe('QuizEditComponent', () => {
         difficulty: 'MEDIUM',
         order: 0,
         enabled: true,
+        timer: null,
         answers: [
           {
             id: '1f013086-724d-4c5f-8354-53b3dcda4f27',

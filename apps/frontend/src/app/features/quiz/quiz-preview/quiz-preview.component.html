@@ -68,6 +68,19 @@
                     {{ difficultyLabel(slide.question.difficulty) }}
                   </span>
                 }
+                @let timerSec = effectivePreviewTimerSeconds(slide.question);
+                <span
+                  class="quiz-preview-question__badge quiz-preview-question__badge--timer"
+                  [class.quiz-preview-question__badge--timer-off]="timerSec === null"
+                  [attr.aria-label]="previewTimerAriaLabel(slide.question)"
+                >
+                  <mat-icon class="quiz-preview-question__timer-icon" aria-hidden="true"
+                    >timer</mat-icon
+                  >
+                  @if (timerSec !== null) {
+                    <span class="quiz-preview-question__timer-value">{{ timerSec }} s</span>
+                  }
+                </span>
               </div>
               <p class="quiz-preview-question__position" i18n="@@quiz.preview.questionPosition">
                 Frage {{ currentIndex() + 1 }} von {{ questions().length }}
@@ -213,6 +226,95 @@
                 [framelessPanels]="true"
               />
 
+              <div class="quiz-preview-editor__timer-sections">
+                <fieldset class="quiz-preview-editor__fieldset">
+                  <legend
+                    class="quiz-preview-editor__fieldset-legend"
+                    i18n="@@quizPreview.inlineTimerGlobalLegend"
+                  >
+                    Zeitlimit für das gesamte Quiz
+                  </legend>
+                  <p
+                    class="quiz-preview-editor__fieldset-hint"
+                    i18n="@@quizPreview.inlineTimerGlobalHint"
+                  >
+                    Gilt für alle Fragen ohne eigenes Limit (Voreinstellung im Editor).
+                  </p>
+                  <mat-checkbox
+                    i18n="@@quizForm.defaultTimerEnabled"
+                    [checked]="inlineGlobalTimerEnabled()"
+                    (change)="onInlineGlobalTimerEnabledChange($event.checked)"
+                    >Zeitlimit</mat-checkbox
+                  >
+                  @if (inlineGlobalTimerEnabled()) {
+                    <div class="quiz-preview-editor__default-timer-nested">
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quizForm.defaultTimerSecondsLabel"
+                          >Sekunden pro Frage</mat-label
+                        >
+                        <mat-select
+                          [value]="inlineQuizDefaultTimerDraft()!"
+                          (selectionChange)="onInlineGlobalTimerSecondsChange($event.value)"
+                          i18n-aria-label="@@quizForm.defaultTimerSecondsAria"
+                          aria-label="Sekunden pro Frage auswählen"
+                        >
+                          @for (sec of inlinePreviewDefaultTimerSelectOptions(); track sec) {
+                            <mat-option [value]="sec">
+                              {{ sec }}
+                              <span i18n="@@quizForm.timerSecondsSuffix">Sekunden</span>
+                            </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                  }
+                </fieldset>
+
+                <fieldset class="quiz-preview-editor__fieldset">
+                  <legend
+                    class="quiz-preview-editor__fieldset-legend"
+                    i18n="@@quiz.edit.questionTimerSectionLegend"
+                  >
+                    Zeit für diese Frage
+                  </legend>
+                  <p
+                    class="quiz-preview-editor__fieldset-hint"
+                    i18n="@@quiz.edit.questionTimerSectionHint"
+                  >
+                    Standard ist das Zeitlimit aus den Quiz-Einstellungen. Du kannst pro Frage ein
+                    eigenes Limit setzen.
+                  </p>
+                  <mat-checkbox
+                    i18n="@@quiz.edit.questionTimerUseQuizDefault"
+                    [checked]="questionTimerUsesQuizDefaultInPreview()"
+                    (change)="onInlineQuestionTimerInheritChange($event.checked)"
+                    >Quiz-Zeitlimit verwenden</mat-checkbox
+                  >
+                  @if (!questionTimerUsesQuizDefaultInPreview()) {
+                    <div class="quiz-preview-editor__default-timer-nested">
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quiz.edit.questionTimerSecondsFieldLabel"
+                          >Sekunden für diese Frage</mat-label
+                        >
+                        <mat-select
+                          [value]="inlineQuestionTimerDraft()!"
+                          (selectionChange)="onInlineQuestionTimerSecondsChange($event.value)"
+                          i18n-aria-label="@@quiz.edit.questionTimerSecondsAria"
+                          aria-label="Sekunden für diese Frage"
+                        >
+                          @for (sec of inlinePreviewQuestionTimerSelectOptions(); track sec) {
+                            <mat-option [value]="sec">
+                              {{ sec }}
+                              <span i18n="@@quizForm.timerSecondsSuffix">Sekunden</span>
+                            </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                  }
+                </fieldset>
+              </div>
+
               @if (question.type !== 'FREETEXT' && question.type !== 'RATING') {
                 <div
                   class="quiz-preview-editor__answers"
@@ -287,8 +389,8 @@
                   <span i18n>Abbrechen</span>
                 </button>
                 <button matButton="filled" type="button" (click)="finishInlineEditMode()">
-                  <mat-icon>check</mat-icon>
-                  <span i18n>Fertig</span>
+                  <mat-icon>save</mat-icon>
+                  <span i18n="@@quiz.edit.questionSaveButton">Speichern</span>
                 </button>
               </div>
             </mat-card-content>

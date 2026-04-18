@@ -508,15 +508,14 @@ function buildSessionChannels(session: {
   };
 }
 
-const PLAYFUL_FALLBACK_TIMER_SECONDS = 60;
 /** Anteil vollstaendig korrekter Stimmen (SC/MC, Runde 1): Empfehlung nur in diesem Fenster. */
 const PEER_INSTRUCTION_MIN_CORRECTNESS_RATIO = 0.35;
 const PEER_INSTRUCTION_MAX_CORRECTNESS_RATIO = 0.7;
 
+/** Frage-Timer: nur explizite Werte (Frage oder Quiz-Default). Kein Preset-Fallback — deaktiviert = keine Begrenzung. */
 function resolveQuestionTimer(
   questionTimer: number | null | undefined,
   defaultTimer: number | null | undefined,
-  preset: 'PLAYFUL' | 'SERIOUS' | null | undefined,
 ): number | null {
   if (typeof questionTimer === 'number' && questionTimer > 0) {
     return questionTimer;
@@ -524,7 +523,7 @@ function resolveQuestionTimer(
   if (typeof defaultTimer === 'number' && defaultTimer > 0) {
     return defaultTimer;
   }
-  return preset === 'PLAYFUL' ? PLAYFUL_FALLBACK_TIMER_SECONDS : null;
+  return null;
 }
 
 function buildPeerInstructionSuggestion(
@@ -1194,7 +1193,6 @@ export const sessionRouter = router({
           ? resolveQuestionTimer(
               session.quiz?.questions[session.currentQuestion]?.timer,
               session.quiz?.defaultTimer,
-              session.quiz?.preset as 'PLAYFUL' | 'SERIOUS' | undefined,
             )
           : null;
       const payloadBase: {
@@ -1505,11 +1503,7 @@ export const sessionRouter = router({
           | 'FREETEXT'
           | 'RATING'
           | 'SURVEY',
-        timer: resolveQuestionTimer(
-          question.timer,
-          session.quiz.defaultTimer,
-          session.quiz.preset as 'PLAYFUL' | 'SERIOUS' | undefined,
-        ),
+        timer: resolveQuestionTimer(question.timer, session.quiz.defaultTimer),
         answers: answersOrdered.map((a) => ({ id: a.id, text: a.text, isCorrect: a.isCorrect })),
         ratingMin: question.ratingMin ?? null,
         ratingMax: question.ratingMax ?? null,
@@ -1710,11 +1704,7 @@ export const sessionRouter = router({
           id: question.id,
           text: question.text,
           type: question.type,
-          timer: resolveQuestionTimer(
-            question.timer,
-            session.quiz.defaultTimer,
-            session.quiz.preset as 'PLAYFUL' | 'SERIOUS' | undefined,
-          ),
+          timer: resolveQuestionTimer(question.timer, session.quiz.defaultTimer),
           difficulty: question.difficulty,
           order: question.order,
           totalQuestions,

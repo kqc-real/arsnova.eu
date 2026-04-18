@@ -82,7 +82,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   readonly nicknameOptions = computed(() => {
     const s = this.session();
     if (!s || s.type !== 'QUIZ') return [];
-    const theme = (s.nicknameTheme ?? 'NOBEL_LAUREATES') as NicknameTheme;
+    const theme = (s.nicknameTheme ?? 'HIGH_SCHOOL') as NicknameTheme;
     return [...getNicknameList(theme, this.locale)];
   });
 
@@ -96,7 +96,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   /** Kindergarten-Liste: große Tier-Emoji in Auswahl und (nach Join) in der Lobby. */
   readonly isKindergartenNicknameTheme = computed(() => {
     const s = this.session();
-    return s?.type === 'QUIZ' && (s.nicknameTheme ?? 'NOBEL_LAUREATES') === 'KINDERGARTEN';
+    return s?.type === 'QUIZ' && (s.nicknameTheme ?? 'HIGH_SCHOOL') === 'KINDERGARTEN';
   });
 
   readonly kindergartenEmojiForSelected = computed((): string | null => {

@@ -67,6 +67,10 @@ export interface QuizQuestion {
   order: number;
   /** false: nicht in Vorschau/Live-Upload; bleibt in der Liste zum späteren Aktivieren */
   enabled: boolean;
+  /**
+   * Zeitlimit nur für diese Frage (Sekunden). `null` = Quiz-`defaultTimer` verwenden.
+   */
+  timer: number | null;
   answers: QuizAnswer[];
   ratingMin: number | null;
   ratingMax: number | null;
@@ -129,7 +133,7 @@ export interface QuizSummary {
 
 /**
  * Für Live-Upload: Namensliste aus RAM vs. localStorage zusammenführen.
- * Wenn genau eine Seite eine „spezielle“ Liste hat (nicht Nobel), gewinnt diese —
+ * Wenn genau eine Seite eine „spezielle“ Liste hat (nicht Oberstufe-Standard), gewinnt diese —
  * auch wenn der andere Stand ein neueres updatedAt hat (typisch: RAM durch Yjs/Tab veraltet, LS noch Kita).
  */
 function pickNameParticipationSettings(
@@ -138,12 +142,12 @@ function pickNameParticipationSettings(
 ): Pick<QuizSettings, 'nicknameTheme' | 'allowCustomNicknames' | 'anonymousMode'> {
   const themeMem = NicknameThemeEnum.safeParse(mem.settings.nicknameTheme).success
     ? mem.settings.nicknameTheme
-    : ('NOBEL_LAUREATES' as NicknameTheme);
+    : ('HIGH_SCHOOL' as NicknameTheme);
   const themeLs = NicknameThemeEnum.safeParse(ls.settings.nicknameTheme).success
     ? ls.settings.nicknameTheme
-    : ('NOBEL_LAUREATES' as NicknameTheme);
-  const memRich = themeMem !== 'NOBEL_LAUREATES';
-  const lsRich = themeLs !== 'NOBEL_LAUREATES';
+    : ('HIGH_SCHOOL' as NicknameTheme);
+  const memRich = themeMem !== 'HIGH_SCHOOL';
+  const lsRich = themeLs !== 'HIGH_SCHOOL';
   const memT = Date.parse(mem.updatedAt);
   const lsT = Date.parse(ls.updatedAt);
 
@@ -191,6 +195,8 @@ export interface AddQuizQuestionInput {
   text: string;
   type: SupportedQuestionType;
   difficulty: Difficulty;
+  /** `null` oder auslassen = Quiz-`defaultTimer` */
+  timer?: number | null;
   answers: Array<{ text: string; isCorrect: boolean }>;
   ratingMin?: number | null;
   ratingMax?: number | null;
@@ -211,6 +217,7 @@ type ValidatedQuestionInput = {
   text: string;
   type: SupportedQuestionType;
   difficulty: Difficulty;
+  timer: number | null;
   answers: Array<{ text: string; isCorrect: boolean }>;
   ratingMin: number | null;
   ratingMax: number | null;
@@ -301,6 +308,7 @@ const QuestionCreateSchema = AddQuestionInputSchema.pick({
   ratingMax: true,
   ratingLabelMin: true,
   ratingLabelMax: true,
+  timer: true,
 }).superRefine((value, ctx) => {
   if (
     value.type !== 'MULTIPLE_CHOICE' &&
@@ -711,6 +719,7 @@ export class QuizStoreService {
           type: question.type,
           difficulty: question.difficulty,
           order: question.order,
+          ...(typeof question.timer === 'number' ? { timer: question.timer } : {}),
           answers: question.answers.map((answer) => ({
             text: answer.text,
             isCorrect: answer.isCorrect,
@@ -757,7 +766,7 @@ export class QuizStoreService {
 
   /**
    * Baut den effektiven Quiz-Datensatz für Live-Upload: Fragen/Metadaten vom neueren Stand (RAM vs. LS),
-   * Namensliste/Anonymität per pickNameParticipationSettings (Kita gewinnt gegen veraltetes Nobel im RAM).
+   * Namensliste/Anonymität per pickNameParticipationSettings (spezielle Themenliste gewinnt gegen Oberstufe-Standard im RAM).
    */
   private composeQuizDocumentForLiveUpload(quizId: string): QuizDocument | null {
     const memDoc = this.getQuizById(quizId);
@@ -835,6 +844,7 @@ export class QuizStoreService {
         type: q.type,
         difficulty: q.difficulty,
         order: index,
+        timer: q.timer ?? null,
         answers: q.answers.map((a) => ({ text: a.text, isCorrect: a.isCorrect })),
         ratingMin: q.ratingMin ?? undefined,
         ratingMax: q.ratingMax ?? undefined,
@@ -900,6 +910,7 @@ export class QuizStoreService {
           difficulty: question.difficulty,
           order: index,
           enabled: question.enabled !== false,
+          timer: question.timer === undefined || question.timer === null ? null : question.timer,
           answers: question.answers.map((answer) => ({
             id: generateUuid(),
             text: answer.text,
@@ -938,6 +949,7 @@ export class QuizStoreService {
       difficulty: parsed.difficulty,
       order: document.questions.length,
       enabled: true,
+      timer: parsed.timer,
       answers: parsed.answers.map((answer) => ({
         id: generateUuid(),
         text: answer.text,
@@ -986,6 +998,7 @@ export class QuizStoreService {
       text: parsed.text,
       type: parsed.type,
       difficulty: parsed.difficulty,
+      timer: parsed.timer,
       answers: parsed.answers.map((answer, index) => ({
         id: existingQuestion.answers[index]?.id ?? generateUuid(),
         text: answer.text,
@@ -1906,6 +1919,7 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     ratingMax: input.ratingMax ?? undefined,
     ratingLabelMin: normalizeNullableLabel(input.ratingLabelMin),
     ratingLabelMax: normalizeNullableLabel(input.ratingLabelMax),
+    timer: input.timer === undefined ? undefined : input.timer,
   });
 
   if (!parsed.success) {
@@ -1936,6 +1950,7 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     text: parsed.data.text,
     type: parsed.data.type as SupportedQuestionType,
     difficulty: parsed.data.difficulty,
+    timer: parsed.data.timer ?? null,
     answers,
     ratingMin,
     ratingMax,
@@ -1975,6 +1990,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     ratingMax: readNumberOrNull(candidate['ratingMax']) ?? undefined,
     ratingLabelMin: readStringOrNull(candidate['ratingLabelMin']) ?? undefined,
     ratingLabelMax: readStringOrNull(candidate['ratingLabelMax']) ?? undefined,
+    timer: readNumberOrNull(candidate['timer']) ?? undefined,
   });
   if (!parsed.success) return null;
 
@@ -1994,6 +2010,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     difficulty: parsed.data.difficulty,
     order,
     enabled,
+    timer: parsed.data.timer ?? null,
     answers,
     ratingMin: parsed.data.type === 'RATING' ? (parsed.data.ratingMin ?? 1) : null,
     ratingMax: parsed.data.type === 'RATING' ? (parsed.data.ratingMax ?? 5) : null,

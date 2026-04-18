@@ -68,6 +68,7 @@ describe('QuizStoreService', () => {
             difficulty: 'MEDIUM',
             order: 0,
             enabled: true,
+            timer: null,
             answers: [
               {
                 id: 'ec21ad56-d90e-4a7e-9590-75caebc945dd',
@@ -113,6 +114,7 @@ describe('QuizStoreService', () => {
     expect(quiz).toBeTruthy();
     expect(quiz?.questions.length).toBe(1);
     expect(quiz?.questions[0]?.type).toBe('SINGLE_CHOICE');
+    expect(quiz?.questions[0]?.timer).toBeNull();
     expect(quiz?.questions[0]?.answers.filter((answer) => answer.isCorrect).length).toBe(1);
     expect(service.quizzes()[0]?.questionCount).toBe(1);
   });
@@ -364,7 +366,7 @@ describe('QuizStoreService', () => {
 
     expect(settings).toBeTruthy();
     expect(settings?.showLeaderboard).toBe(true);
-    expect(settings?.allowCustomNicknames).toBe(true);
+    expect(settings?.allowCustomNicknames).toBe(false);
     expect(settings?.defaultTimer).toBeNull();
   });
 
@@ -722,11 +724,10 @@ describe('QuizStoreService', () => {
     );
   });
 
-  it('getUploadPayload: Kita in localStorage schlägt Nobel im RAM (neueres updatedAt, z. B. Yjs/Tab)', () => {
+  it('getUploadPayload: Kita in localStorage schlägt Oberstufe-Standard im RAM (älteres LS mit Themenliste)', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({
       name: 'Live-Merge',
-      settings: { nicknameTheme: 'KINDERGARTEN' },
     });
     service.addQuestion(created.id, {
       text: 'Frage?',
@@ -739,7 +740,6 @@ describe('QuizStoreService', () => {
     });
     const roomId = localStorage.getItem('quiz-sync-room-id');
     expect(roomId).toBeTruthy();
-    service.updateQuizSettings(created.id, { nicknameTheme: 'NOBEL_LAUREATES' });
 
     const storageKey = `${QUIZ_STORAGE_KEY}:${roomId}`;
     const raw = localStorage.getItem(storageKey);

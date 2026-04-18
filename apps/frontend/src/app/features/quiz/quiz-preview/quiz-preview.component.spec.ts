@@ -27,7 +27,7 @@ describe('QuizPreviewComponent', () => {
       teamAssignment: 'AUTO',
       teamNames: [],
       backgroundMusic: null,
-      nicknameTheme: 'NOBEL_LAUREATES',
+      nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: true,
       preset: 'PLAYFUL',
@@ -40,6 +40,7 @@ describe('QuizPreviewComponent', () => {
         difficulty: 'MEDIUM',
         order: 0,
         enabled: true,
+        timer: null,
         answers: [],
         ratingMin: 1,
         ratingMax: 5,
@@ -53,6 +54,7 @@ describe('QuizPreviewComponent', () => {
         difficulty: 'EASY',
         order: 1,
         enabled: true,
+        timer: null,
         answers: [
           {
             id: 'a1cfb5f1-42a8-4312-9f95-ec7ae4e9be34',
@@ -76,6 +78,7 @@ describe('QuizPreviewComponent', () => {
   const mockStore = {
     getQuizById: vi.fn((id: string) => (id === QUIZ_ID ? quiz : null)),
     updateQuestion: vi.fn(),
+    updateQuizSettings: vi.fn(),
   };
 
   beforeEach(() => {
@@ -135,6 +138,7 @@ describe('QuizPreviewComponent', () => {
       difficulty: 'HARD',
       order: 0,
       enabled: true,
+      timer: null,
       answers: [
         { id: 's1', text: 'Sehr hilfreich', isCorrect: false },
         { id: 's2', text: 'Teilweise hilfreich', isCorrect: false },
@@ -187,6 +191,40 @@ describe('QuizPreviewComponent', () => {
       QUIZ_ID,
       'f8be4e5d-2c03-4f9b-8d63-b9668212f3ea',
       expect.objectContaining({ text: 'Neue Frage' }),
+    );
+  });
+
+  it('persistiert globales Zeitlimit (Quiz-Einstellungen) mit Debounce', () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onInlineGlobalTimerEnabledChange(true);
+    vi.advanceTimersByTime(220);
+
+    expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({ defaultTimer: expect.any(Number) }),
+    );
+  });
+
+  it('persistiert individuelles Fragen-Zeitlimit mit Debounce', () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onInlineQuestionTimerInheritChange(false);
+    component.onInlineQuestionTimerSecondsChange(45);
+    vi.advanceTimersByTime(220);
+
+    expect(mockStore.updateQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      'f8be4e5d-2c03-4f9b-8d63-b9668212f3ea',
+      expect.objectContaining({ timer: 45 }),
     );
   });
 

@@ -15,9 +15,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatOption } from '@angular/material/core';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatSelect } from '@angular/material/select';
 import {
   createQuizHistoryAccessProof,
   PresetStorageEntrySchema,
@@ -49,6 +53,7 @@ import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
+import { mergeTimerPresetOptions } from '../default-timer-presets';
 
 /**
  * Quiz-Preview & Schnellkorrektur (Epic 1).
@@ -64,6 +69,11 @@ import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/ques
     MatCardContent,
     MatIcon,
     MatProgressBar,
+    MatCheckbox,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
     MarkdownKatexEditorComponent,
     MarkdownImageLightboxDirective,
   ],
@@ -89,6 +99,11 @@ export class QuizPreviewComponent implements OnDestroy {
   readonly questionDraftText = signal('');
   readonly answerDraftTexts = signal<string[]>([]);
   readonly originalQuestionSnapshot = signal<AddQuizQuestionInput | null>(null);
+  /** Wert beim Eintritt in den Inline-Edit (für Abbrechen); `undefined` = keine aktive Sitzung. */
+  readonly quizDefaultTimerAtEditStart = signal<number | null | undefined>(undefined);
+  readonly inlineQuizDefaultTimerDraft = signal<number | null>(null);
+  /** `null` = Quiz-`defaultTimer` */
+  readonly inlineQuestionTimerDraft = signal<number | null>(null);
   readonly swipeDirection = signal<'left' | 'right' | null>(null);
   readonly animationNonce = signal(0);
   readonly liveStartPending = signal(false);
@@ -300,10 +315,14 @@ export class QuizPreviewComponent implements OnDestroy {
 
   enterInlineEditMode(): void {
     const question = this.currentQuestion();
-    if (!question) return;
+    const doc = this.quiz();
+    if (!question || !doc) return;
     if (this.inlineEditMode()) return;
 
     this.originalQuestionSnapshot.set(this.toQuestionInput(question));
+    this.quizDefaultTimerAtEditStart.set(doc.settings.defaultTimer);
+    this.inlineQuizDefaultTimerDraft.set(doc.settings.defaultTimer);
+    this.inlineQuestionTimerDraft.set(question.timer);
     this.questionDraftText.set(question.text);
     this.answerDraftTexts.set(question.answers.map((answer) => answer.text));
     this.inlineEditMode.set(true);
@@ -406,6 +425,11 @@ export class QuizPreviewComponent implements OnDestroy {
     if (original && question) {
       this.quizStore.updateQuestion(this.id, question.id, original);
     }
+    const doc = this.quiz();
+    const defaultAtStart = this.quizDefaultTimerAtEditStart();
+    if (doc && defaultAtStart !== undefined && doc.settings.defaultTimer !== defaultAtStart) {
+      this.quizStore.updateQuizSettings(this.id, { defaultTimer: defaultAtStart });
+    }
     this.resetInlineEditState();
   }
 
@@ -443,6 +467,7 @@ export class QuizPreviewComponent implements OnDestroy {
       text: this.inlineEditMode() ? this.questionDraftText() : question.text,
       type: question.type,
       difficulty: question.difficulty,
+      timer: this.inlineEditMode() ? this.inlineQuestionTimerDraft() : question.timer,
       answers: updatedAnswers,
       ratingMin: question.ratingMin,
       ratingMax: question.ratingMax,
@@ -559,6 +584,24 @@ export class QuizPreviewComponent implements OnDestroy {
     }
   }
 
+  /**
+   * Wie beim Live-Start: `question.timer` oder Quiz-`defaultTimer`; kein Limit wenn beides fehlt/unwirksam.
+   */
+  effectivePreviewTimerSeconds(question: QuizQuestion): number | null {
+    const doc = this.quiz();
+    if (!doc) return null;
+    const resolved = question.timer ?? doc.settings.defaultTimer;
+    return typeof resolved === 'number' && resolved > 0 ? resolved : null;
+  }
+
+  previewTimerAriaLabel(question: QuizQuestion): string {
+    const sec = this.effectivePreviewTimerSeconds(question);
+    if (sec !== null) {
+      return $localize`:@@quizPreview.timerAriaWithLimit:Zeitlimit ${sec}:seconds: Sekunden`;
+    }
+    return $localize`:@@quizPreview.timerAriaNoLimit:Kein Zeitlimit`;
+  }
+
   previewTitleName(quiz: QuizDocument): string {
     const n = quiz.name?.trim();
     return n && n.length > 0 ? n : $localize`:@@quizPreview.unnamedQuiz:Unbenanntes Quiz`;
@@ -594,7 +637,13 @@ export class QuizPreviewComponent implements OnDestroy {
 
   private persistInlineEditsNow(): void {
     const question = this.currentQuestion();
-    if (!question || !this.inlineEditMode()) return;
+    const doc = this.quiz();
+    if (!question || !doc || !this.inlineEditMode()) return;
+
+    const nextDefault = this.inlineQuizDefaultTimerDraft();
+    if (doc.settings.defaultTimer !== nextDefault) {
+      this.quizStore.updateQuizSettings(this.id, { defaultTimer: nextDefault });
+    }
 
     const answers = question.answers.map((answer, index) => ({
       text: this.answerDraftTexts()[index] ?? answer.text,
@@ -605,6 +654,7 @@ export class QuizPreviewComponent implements OnDestroy {
       text: this.questionDraftText(),
       type: question.type,
       difficulty: question.difficulty,
+      timer: this.inlineQuestionTimerDraft(),
       answers,
       ratingMin: question.ratingMin,
       ratingMax: question.ratingMax,
@@ -626,6 +676,60 @@ export class QuizPreviewComponent implements OnDestroy {
   private resetInlineEditState(): void {
     this.inlineEditMode.set(false);
     this.originalQuestionSnapshot.set(null);
+    this.quizDefaultTimerAtEditStart.set(undefined);
+    this.inlineQuizDefaultTimerDraft.set(null);
+    this.inlineQuestionTimerDraft.set(null);
+  }
+
+  inlineGlobalTimerEnabled(): boolean {
+    return this.inlineQuizDefaultTimerDraft() !== null;
+  }
+
+  onInlineGlobalTimerEnabledChange(checked: boolean): void {
+    if (checked) {
+      this.inlineQuizDefaultTimerDraft.update((v) => v ?? DEFAULT_TIMER_SECONDS);
+    } else {
+      this.inlineQuizDefaultTimerDraft.set(null);
+    }
+    this.schedulePersistInlineEdits();
+  }
+
+  onInlineGlobalTimerSecondsChange(seconds: number): void {
+    this.inlineQuizDefaultTimerDraft.set(seconds);
+    this.schedulePersistInlineEdits();
+  }
+
+  inlinePreviewDefaultTimerSelectOptions(): number[] {
+    return mergeTimerPresetOptions(this.inlineQuizDefaultTimerDraft());
+  }
+
+  questionTimerUsesQuizDefaultInPreview(): boolean {
+    return this.inlineQuestionTimerDraft() === null;
+  }
+
+  onInlineQuestionTimerInheritChange(useQuizDefault: boolean): void {
+    if (useQuizDefault) {
+      this.inlineQuestionTimerDraft.set(null);
+    } else {
+      const current = this.inlineQuestionTimerDraft();
+      if (current === null) {
+        const fallback =
+          this.inlineQuizDefaultTimerDraft() ??
+          this.quiz()?.settings.defaultTimer ??
+          DEFAULT_TIMER_SECONDS;
+        this.inlineQuestionTimerDraft.set(fallback);
+      }
+    }
+    this.schedulePersistInlineEdits();
+  }
+
+  onInlineQuestionTimerSecondsChange(seconds: number): void {
+    this.inlineQuestionTimerDraft.set(seconds);
+    this.schedulePersistInlineEdits();
+  }
+
+  inlinePreviewQuestionTimerSelectOptions(): number[] {
+    return mergeTimerPresetOptions(this.inlineQuestionTimerDraft());
   }
 
   private toQuestionInput(question: QuizQuestion): AddQuizQuestionInput {
@@ -633,6 +737,7 @@ export class QuizPreviewComponent implements OnDestroy {
       text: question.text,
       type: question.type,
       difficulty: question.difficulty,
+      timer: question.timer,
       answers: question.answers.map((answer) => ({
         text: answer.text,
         isCorrect: answer.isCorrect,

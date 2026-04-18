@@ -38,6 +38,7 @@ describe('QuizNewComponent', () => {
   it('erstellt ein Quiz und navigiert zum Editor', async () => {
     const fixture = TestBed.createComponent(QuizNewComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
@@ -61,7 +62,7 @@ describe('QuizNewComponent', () => {
         teamAssignment: 'AUTO',
         teamNames: [],
         backgroundMusic: null,
-        nicknameTheme: 'NOBEL_LAUREATES',
+        nicknameTheme: 'HIGH_SCHOOL',
         bonusTokenCount: null,
         readingPhaseEnabled: false,
         preset: 'PLAYFUL',
@@ -79,7 +80,7 @@ describe('QuizNewComponent', () => {
       settings: expect.objectContaining({
         showLeaderboard: true,
         allowCustomNicknames: false,
-        defaultTimer: null,
+        defaultTimer: 60,
         enableSoundEffects: true,
         enableRewardEffects: true,
         enableMotivationMessages: true,
@@ -90,7 +91,7 @@ describe('QuizNewComponent', () => {
         teamAssignment: 'AUTO',
         teamNames: [],
         backgroundMusic: null,
-        nicknameTheme: 'NOBEL_LAUREATES',
+        nicknameTheme: 'HIGH_SCHOOL',
         bonusTokenCount: null,
         readingPhaseEnabled: false,
         preset: 'PLAYFUL',
@@ -126,11 +127,22 @@ describe('QuizNewComponent', () => {
 
     expect(component.form.controls.showLeaderboard.value).toBe(false);
     expect(component.form.controls.enableSoundEffects.value).toBe(false);
-    expect(component.form.controls.anonymousMode.value).toBe(true);
+    expect(component.form.controls.anonymousMode.value).toBe(false);
+    expect(component.form.controls.allowCustomNicknames.value).toBe(false);
+    expect(component.form.controls.nicknameTheme.value).toBe('HIGH_SCHOOL');
     expect(component.form.controls.defaultTimer.value).toBeNull();
   });
 
-  it('erzwingt im PLAYFUL-Preset allowCustomNicknames auf false beim Speichern', async () => {
+  it('setzt mit dem Playful-Preset den Standard-Timer auf 60 Sekunden', () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+
+    component.applyPreset('PLAYFUL');
+
+    expect(component.form.controls.defaultTimer.value).toBe(60);
+  });
+
+  it('übernimmt allowCustomNicknames beim Speichern aus dem Formular (z. B. aktiviert)', async () => {
     const fixture = TestBed.createComponent(QuizNewComponent);
     const component = fixture.componentInstance;
 
@@ -147,7 +159,7 @@ describe('QuizNewComponent', () => {
       updatedAt: '2026-03-08T12:00:00.000Z',
       settings: {
         showLeaderboard: true,
-        allowCustomNicknames: false,
+        allowCustomNicknames: true,
         defaultTimer: null,
         enableSoundEffects: true,
         enableRewardEffects: true,
@@ -159,7 +171,7 @@ describe('QuizNewComponent', () => {
         teamAssignment: 'AUTO',
         teamNames: [],
         backgroundMusic: null,
-        nicknameTheme: 'NOBEL_LAUREATES',
+        nicknameTheme: 'HIGH_SCHOOL',
         bonusTokenCount: null,
         readingPhaseEnabled: false,
         preset: 'PLAYFUL',
@@ -172,7 +184,7 @@ describe('QuizNewComponent', () => {
       expect.objectContaining({
         settings: expect.objectContaining({
           preset: 'PLAYFUL',
-          allowCustomNicknames: false,
+          allowCustomNicknames: true,
         }),
       }),
     );
@@ -231,7 +243,7 @@ describe('QuizNewComponent', () => {
           enableSoundEffects: true,
         },
         nameMode: 'nicknameTheme',
-        nicknameThemeValue: 'NOBEL_LAUREATES',
+        nicknameThemeValue: 'HIGH_SCHOOL',
         teamCountValue: 2,
       }),
     );
