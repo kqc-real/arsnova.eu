@@ -167,4 +167,24 @@ describe('FeedbackVoteComponent', () => {
     expect(text).toContain('Zur Startseite');
     fixture.destroy();
   });
+
+  it('zeigt bei geschlossenem Sitzungskanal den passenden Hinweis', async () => {
+    quickFeedbackResultsQueryMock.mockRejectedValueOnce(
+      new Error('Der Blitzlicht-Kanal ist aktuell geschlossen.'),
+    );
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain(
+      'Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.',
+    );
+    expect(text).toContain('Zur Startseite');
+    fixture.destroy();
+  });
 });

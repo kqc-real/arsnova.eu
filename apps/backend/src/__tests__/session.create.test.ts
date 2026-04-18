@@ -56,9 +56,11 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: QUIZ_ID,
       qaEnabled: false,
+      qaOpen: false,
       qaTitle: null,
       qaModerationMode: false,
       quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
       quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
     });
   });
@@ -78,9 +80,11 @@ describe('session.create (Story 2.1a)', () => {
           type: 'QUIZ',
           quizId: QUIZ_ID,
           qaEnabled: false,
+          qaOpen: false,
           qaTitle: null,
           qaModerationMode: false,
           quickFeedbackEnabled: false,
+          quickFeedbackOpen: false,
         }),
       }),
     );
@@ -94,9 +98,11 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: QUIZ_ID,
       qaEnabled: true,
+      qaOpen: true,
       qaTitle: 'Fragen',
       qaModerationMode: true,
       quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
       quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
     });
 
@@ -110,6 +116,7 @@ describe('session.create (Story 2.1a)', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           qaEnabled: true,
+          qaOpen: true,
           qaTitle: 'Fragen',
           qaModerationMode: true,
         }),
@@ -125,9 +132,11 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: QUIZ_ID,
       qaEnabled: true,
+      qaOpen: true,
       qaTitle: 'Fragen zum Kapitel 3',
       qaModerationMode: true,
       quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
       quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
     });
 
@@ -145,9 +154,11 @@ describe('session.create (Story 2.1a)', () => {
           type: 'QUIZ',
           quizId: QUIZ_ID,
           qaEnabled: true,
+          qaOpen: true,
           qaTitle: 'Fragen zum Kapitel 3',
           qaModerationMode: true,
           quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
         }),
       }),
     );
@@ -161,6 +172,8 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: null,
       title: 'Offene Fragerunde',
+      qaOpen: true,
+      quickFeedbackOpen: false,
       quiz: null,
     });
 
@@ -184,9 +197,11 @@ describe('session.create (Story 2.1a)', () => {
           title: 'Offene Fragerunde',
           moderationMode: true,
           qaEnabled: true,
+          qaOpen: true,
           qaTitle: 'Offene Fragerunde',
           qaModerationMode: true,
           quickFeedbackEnabled: false,
+          quickFeedbackOpen: false,
           status: 'LOBBY',
         }),
       }),
@@ -201,9 +216,11 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: null,
       qaEnabled: false,
+      qaOpen: false,
       qaTitle: null,
       qaModerationMode: false,
       quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
       quiz: null,
     });
 
@@ -225,9 +242,11 @@ describe('session.create (Story 2.1a)', () => {
           type: 'QUIZ',
           quizId: null,
           qaEnabled: false,
+          qaOpen: false,
           qaTitle: null,
           qaModerationMode: false,
           quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
           status: 'LOBBY',
         }),
       }),

@@ -242,7 +242,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const data = await trpc.quickFeedback.results.query({ sessionCode: code });
+      const data = await trpc.quickFeedback.hostResults.query({ sessionCode: code });
       this.result.set(data);
       this.locked.set(data.locked);
       this.error.set(null);
@@ -267,7 +267,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.subscription = trpc.quickFeedback.onResults.subscribe(
+    this.subscription = trpc.quickFeedback.onHostResults.subscribe(
       { sessionCode: code },
       {
         onData: (data) => {

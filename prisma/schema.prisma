@@ -80,9 +80,11 @@ model Session {
   title           String?                          // Story 8.1: Titel für Q&A-Runden
   moderationMode  Boolean       @default(false)   // Story 8.4: Q&A-Fragen vorab moderieren
   qaEnabled       Boolean       @default(false)   // ADR-0009: Q&A-Kanal innerhalb einer Live-Session
+  qaOpen          Boolean       @default(false)   // ADR-0009: Q&A-Kanal aktuell für Teilnehmende geöffnet
   qaTitle         String?                          // ADR-0009: Titel des Q&A-Kanals
   qaModerationMode Boolean      @default(true)    // ADR-0009: Vorab-Moderation für Q&A-Kanal (Default: an)
   quickFeedbackEnabled Boolean  @default(false)   // ADR-0009: Blitz-Feedback-Kanal innerhalb einer Session
+  quickFeedbackOpen Boolean     @default(false)   // ADR-0009: Blitz-Feedback-Kanal aktuell für Teilnehmende geöffnet
   currentQuestion Int?                             // Index der aktuell aktiven Frage (0-basiert)
   currentRound    Int              @default(1)     // Story 2.7: Peer Instruction – aktuelle Abstimmungsrunde (1 oder 2)
   quizId          String?                          // null bei Q&A-Sessions

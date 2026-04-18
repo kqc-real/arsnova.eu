@@ -28,6 +28,18 @@ function assertQaSessionOpenForParticipants(sessionStatus: string | null | undef
   }
 }
 
+function isQaEnabled(session: { type: string; qaEnabled?: boolean | null }): boolean {
+  return session.type === 'Q_AND_A' || session.qaEnabled === true;
+}
+
+function isQaOpenForParticipants(session: {
+  type: string;
+  qaEnabled?: boolean | null;
+  qaOpen?: boolean | null;
+}): boolean {
+  return isQaEnabled(session) && session.qaOpen !== false;
+}
+
 function sortQuestions<T extends { status: string; upvoteCount: number; createdAt: Date | string }>(
   questions: T[],
 ): T[] {
@@ -89,17 +101,20 @@ export const qaRouter = router({
           code: true,
           type: true,
           qaEnabled: true,
+          qaOpen: true,
           qaModerationMode: true,
         },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      if (session.type !== 'Q_AND_A' && session.qaEnabled !== true) {
+      if (!isQaEnabled(session)) {
         return [];
       }
       if (input.moderatorView) {
         await assertHostSessionAccessFromContext(ctx, session.code);
+      } else if (!isQaOpenForParticipants(session)) {
+        return [];
       }
 
       const questions = await prisma.qaQuestion.findMany({
@@ -147,7 +162,7 @@ export const qaRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      if (session.type !== 'Q_AND_A' && session.qaEnabled !== true) {
+      if (!isQaEnabled(session)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Fragen sind in dieser Session nicht aktiviert.',
@@ -243,6 +258,7 @@ export const qaRouter = router({
               id: true,
               type: true,
               qaEnabled: true,
+              qaOpen: true,
               qaModerationMode: true,
               moderationMode: true,
               status: true,
@@ -258,10 +274,16 @@ export const qaRouter = router({
       }
 
       const session = participant.session;
-      if (session.type !== 'Q_AND_A' && session.qaEnabled !== true) {
+      if (!isQaEnabled(session)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Fragen sind in dieser Session nicht aktiviert.',
+        });
+      }
+      if (!isQaOpenForParticipants(session)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Der Q&A-Kanal ist aktuell geschlossen.',
         });
       }
       assertQaSessionOpenForParticipants(session.status);
@@ -316,8 +338,14 @@ export const qaRouter = router({
       }
       const delSession = await prisma.session.findUnique({
         where: { id: question.sessionId },
-        select: { status: true },
+        select: { type: true, qaEnabled: true, qaOpen: true, status: true },
       });
+      if (delSession && !isQaOpenForParticipants(delSession)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Der Q&A-Kanal ist aktuell geschlossen.',
+        });
+      }
       assertQaSessionOpenForParticipants(delSession?.status);
       await prisma.qaQuestion.update({
         where: { id: input.questionId },
@@ -338,6 +366,7 @@ export const qaRouter = router({
               id: true,
               type: true,
               qaEnabled: true,
+              qaOpen: true,
               status: true,
             },
           },
@@ -346,10 +375,16 @@ export const qaRouter = router({
       if (!question || question.status === 'DELETED') {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
-      if (question.session.type !== 'Q_AND_A' && question.session.qaEnabled !== true) {
+      if (!isQaEnabled(question.session)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Fragen sind in dieser Session nicht aktiviert.',
+        });
+      }
+      if (!isQaOpenForParticipants(question.session)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Der Q&A-Kanal ist aktuell geschlossen.',
         });
       }
       assertQaSessionOpenForParticipants(question.session.status);
@@ -438,15 +473,25 @@ export const qaRouter = router({
     .mutation(async ({ input }) => {
       const question = await prisma.qaQuestion.findUnique({
         where: { id: input.questionId },
-        include: { session: { select: { id: true, type: true, qaEnabled: true, status: true } } },
+        include: {
+          session: {
+            select: { id: true, type: true, qaEnabled: true, qaOpen: true, status: true },
+          },
+        },
       });
       if (!question || question.status === 'DELETED') {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
-      if (question.session.type !== 'Q_AND_A' && question.session.qaEnabled !== true) {
+      if (!isQaEnabled(question.session)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Fragen sind in dieser Session nicht aktiviert.',
+        });
+      }
+      if (!isQaOpenForParticipants(question.session)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Der Q&A-Kanal ist aktuell geschlossen.',
         });
       }
       assertQaSessionOpenForParticipants(question.session.status);
@@ -581,29 +626,36 @@ export const qaRouter = router({
 
       const gateSession = await prisma.session.findUnique({
         where: { id: input.sessionId },
-        select: { id: true, code: true, type: true, qaEnabled: true },
+        select: { id: true, code: true, type: true, qaEnabled: true, qaOpen: true },
       });
       if (!gateSession) {
         return;
       }
-      if (gateSession.type !== 'Q_AND_A' && gateSession.qaEnabled !== true) {
+      if (!isQaEnabled(gateSession)) {
         yield [];
         return;
       }
       if (input.moderatorView) {
         await assertHostSessionAccessFromContext(ctx, gateSession.code);
+      } else if (!isQaOpenForParticipants(gateSession)) {
+        yield [];
+        return;
       }
 
       while (true) {
         const session = await prisma.session.findUnique({
           where: { id: input.sessionId },
-          select: { id: true, type: true, qaEnabled: true },
+          select: { id: true, type: true, qaEnabled: true, qaOpen: true },
         });
         if (!session) {
           return;
         }
 
-        if (session.type !== 'Q_AND_A' && session.qaEnabled !== true) {
+        if (!isQaEnabled(session)) {
+          yield [];
+          return;
+        }
+        if (!input.moderatorView && !isQaOpenForParticipants(session)) {
           yield [];
           return;
         }

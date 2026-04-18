@@ -56,6 +56,7 @@ describe('session.startQa (Story 8.1)', () => {
       type: 'Q_AND_A',
       status: 'LOBBY',
       qaEnabled: true,
+      qaOpen: true,
     });
 
     const result = await caller.startQa({ code: 'abc123' });
@@ -66,7 +67,7 @@ describe('session.startQa (Story 8.1)', () => {
     expect(result.activeAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
       where: { code: 'ABC123' },
-      select: { id: true, status: true, type: true, qaEnabled: true },
+      select: { id: true, status: true, type: true, qaEnabled: true, qaOpen: true },
     });
     expect(prismaMock.session.update).toHaveBeenCalledWith({
       where: { id: SESSION_ID },
@@ -80,6 +81,7 @@ describe('session.startQa (Story 8.1)', () => {
       type: 'QUIZ',
       status: 'LOBBY',
       qaEnabled: true,
+      qaOpen: true,
     });
 
     const result = await caller.startQa({ code: 'ABC123' });
@@ -96,6 +98,7 @@ describe('session.startQa (Story 8.1)', () => {
       type: 'Q_AND_A',
       status: 'ACTIVE',
       qaEnabled: true,
+      qaOpen: true,
     });
 
     await expect(caller.startQa({ code: 'ABC123' })).rejects.toMatchObject({

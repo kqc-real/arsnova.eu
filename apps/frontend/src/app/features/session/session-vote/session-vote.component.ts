@@ -474,6 +474,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       quickFeedback: false,
     };
   });
+  readonly channelOpenState = computed(() => {
+    const session = this.sessionSettings();
+    const ch = session.channels;
+    if (ch) {
+      return {
+        quiz: true,
+        qa: ch.qa.open,
+        quickFeedback: ch.quickFeedback.open,
+      };
+    }
+    return {
+      quiz: true,
+      qa: session.type === 'Q_AND_A',
+      quickFeedback: false,
+    };
+  });
   readonly visibleChannels = computed<SessionChannelTab[]>(() => {
     const result: SessionChannelTab[] = [];
     const channels = this.channels();
@@ -509,6 +525,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionSettings().title ??
       $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`,
   );
+  readonly isQaChannelOpen = computed(() => this.channelOpenState().qa);
+  readonly isQuickFeedbackChannelOpen = computed(() => this.channelOpenState().quickFeedback);
   /** Live-Banner: Quiztitel (Anzeige mit Ellipse im Template). */
   readonly liveHeading = computed(
     () => this.sessionSettings().quizName ?? this.sessionSettings().title ?? null,
@@ -633,6 +651,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   quickFeedbackTabMetaLabel(): string | null {
+    if (this.channels().quickFeedback && !this.isQuickFeedbackChannelOpen()) {
+      return $localize`:@@sessionTabs.channelClosed:Zu`;
+    }
     const result = this.quickFeedbackResult();
     if (!result) {
       return null;
@@ -1034,7 +1055,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private ensureQaSubscription(): void {
-    if (this.qaSub || !this.channels().qa || !this.sessionId()) {
+    if (!this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
+      this.qaSub?.unsubscribe();
+      this.qaSub = null;
+      return;
+    }
+
+    if (this.qaSub) {
       return;
     }
 
@@ -1231,7 +1258,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private async refreshQaQuestions(): Promise<void> {
-    if (!this.channels().qa || !this.sessionId()) {
+    if (!this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
       this.qaQuestions.set([]);
       return;
     }
@@ -1251,7 +1278,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private async refreshQuickFeedbackResult(): Promise<void> {
-    if (!this.channels().quickFeedback || !this.code) {
+    if (!this.channels().quickFeedback || !this.isQuickFeedbackChannelOpen() || !this.code) {
       this.quickFeedbackResult.set(null);
       return;
     }
@@ -1265,7 +1292,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   async submitQaQuestion(): Promise<void> {
-    if (!this.qaCanSubmit()) {
+    if (!this.isQaChannelOpen() || !this.qaCanSubmit()) {
       return;
     }
 
@@ -1364,7 +1391,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   async voteQa(questionId: string, direction: 'UP' | 'DOWN'): Promise<void> {
-    if (!this.participantId() || this.qaPendingQuestionIds().has(questionId)) {
+    if (
+      !this.isQaChannelOpen() ||
+      !this.participantId() ||
+      this.qaPendingQuestionIds().has(questionId)
+    ) {
       return;
     }
 
@@ -1403,7 +1434,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   async deleteOwnQuestion(questionId: string): Promise<void> {
-    if (!this.participantId() || this.qaPendingQuestionIds().has(questionId)) return;
+    if (
+      !this.isQaChannelOpen() ||
+      !this.participantId() ||
+      this.qaPendingQuestionIds().has(questionId)
+    )
+      return;
 
     const pending = new Set(this.qaPendingQuestionIds());
     pending.add(questionId);

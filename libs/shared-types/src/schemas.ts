@@ -651,11 +651,13 @@ export const SessionChannelsDTOSchema = z.object({
   }),
   qa: z.object({
     enabled: z.boolean(),
+    open: z.boolean(),
     title: z.string().nullable(),
     moderationMode: z.boolean(),
   }),
   quickFeedback: z.object({
     enabled: z.boolean(),
+    open: z.boolean(),
   }),
 });
 export type SessionChannelsDTO = z.infer<typeof SessionChannelsDTOSchema>;

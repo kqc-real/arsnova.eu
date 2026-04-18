@@ -27,8 +27,13 @@ const {
   startQaMutateMock,
   enableQaChannelMutateMock,
   enableQuickFeedbackChannelMutateMock,
+  closeQaChannelMutateMock,
+  reopenQaChannelMutateMock,
+  closeQuickFeedbackChannelMutateMock,
+  reopenQuickFeedbackChannelMutateMock,
   endMutateMock,
   updatePresetMutateMock,
+  quickFeedbackHostResultsQueryMock,
   quickFeedbackUpdateStyleMutateMock,
   updateQaTitleMutateMock,
   onParticipantJoinedSubscribeMock,
@@ -53,8 +58,13 @@ const {
   startQaMutateMock: vi.fn(),
   enableQaChannelMutateMock: vi.fn(),
   enableQuickFeedbackChannelMutateMock: vi.fn(),
+  closeQaChannelMutateMock: vi.fn(),
+  reopenQaChannelMutateMock: vi.fn(),
+  closeQuickFeedbackChannelMutateMock: vi.fn(),
+  reopenQuickFeedbackChannelMutateMock: vi.fn(),
   endMutateMock: vi.fn(),
   updatePresetMutateMock: vi.fn(),
+  quickFeedbackHostResultsQueryMock: vi.fn(),
   quickFeedbackUpdateStyleMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
@@ -81,6 +91,10 @@ vi.mock('../../../core/trpc.client', () => ({
       startQa: { mutate: startQaMutateMock },
       enableQaChannel: { mutate: enableQaChannelMutateMock },
       enableQuickFeedbackChannel: { mutate: enableQuickFeedbackChannelMutateMock },
+      closeQaChannel: { mutate: closeQaChannelMutateMock },
+      reopenQaChannel: { mutate: reopenQaChannelMutateMock },
+      closeQuickFeedbackChannel: { mutate: closeQuickFeedbackChannelMutateMock },
+      reopenQuickFeedbackChannel: { mutate: reopenQuickFeedbackChannelMutateMock },
       end: { mutate: endMutateMock },
       updatePreset: { mutate: updatePresetMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
@@ -95,6 +109,7 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     quickFeedback: {
       results: { query: vi.fn().mockResolvedValue({ totalVotes: 0, options: [] }) },
+      hostResults: { query: quickFeedbackHostResultsQueryMock },
       updateStyle: { mutate: quickFeedbackUpdateStyleMutateMock },
     },
   },
@@ -159,14 +174,35 @@ describe('SessionHostComponent', () => {
     });
     enableQaChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
-      qa: { enabled: true, title: null, moderationMode: true },
-      quickFeedback: { enabled: false },
+      qa: { enabled: true, open: true, title: null, moderationMode: true },
+      quickFeedback: { enabled: false, open: false },
     });
     enableQuickFeedbackChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
-      qa: { enabled: false, title: null, moderationMode: false },
-      quickFeedback: { enabled: true },
+      qa: { enabled: false, open: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true, open: true },
     });
+    closeQaChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: true, open: false, title: 'Fragen', moderationMode: true },
+      quickFeedback: { enabled: false, open: false },
+    });
+    reopenQaChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+      quickFeedback: { enabled: false, open: false },
+    });
+    closeQuickFeedbackChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: false, open: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true, open: false },
+    });
+    reopenQuickFeedbackChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: false, open: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true, open: true },
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({ totalVotes: 0, options: [] });
     nextQuestionMutateMock.mockResolvedValue({
       status: 'ACTIVE',
       currentQuestion: null,
@@ -237,8 +273,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: false, title: null, moderationMode: false },
-        quickFeedback: { enabled: false },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
       },
     });
 
@@ -260,8 +296,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: false, title: null, moderationMode: false },
-        quickFeedback: { enabled: false },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
       },
     });
 
@@ -281,6 +317,61 @@ describe('SessionHostComponent', () => {
     );
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(fixture.componentInstance.channels().qa).toBe(true);
+    fixture.destroy();
+  });
+
+  it('schließt den aktiven Q&A-Kanal über die Sichtbarkeitsaktion', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe('Kanal schließen');
+
+    await fixture.componentInstance.toggleActiveChannelOpen();
+    fixture.detectChanges();
+
+    expect(closeQaChannelMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.isChannelOpen('qa')).toBe(false);
+    expect(fixture.componentInstance.channelTabMetaLabel('qa')).toBe('Zu');
+    fixture.destroy();
+  });
+
+  it('öffnet den aktiven Blitzlicht-Kanal über die Sichtbarkeitsaktion wieder', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe(
+      'Kanal wieder öffnen',
+    );
+
+    await fixture.componentInstance.toggleActiveChannelOpen();
+    fixture.detectChanges();
+
+    expect(reopenQuickFeedbackChannelMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.isChannelOpen('quickFeedback')).toBe(true);
     fixture.destroy();
   });
 
@@ -359,8 +450,8 @@ describe('SessionHostComponent', () => {
       preset: 'PLAYFUL',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen', moderationMode: false },
-        quickFeedback: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
       },
     });
 
@@ -417,6 +508,29 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('öffnet per Klick auf den fixierten Exit-Button den Beenden-Dialog', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor-button',
+    ) as HTMLButtonElement | null;
+    expect(button).not.toBeNull();
+
+    dialogOpenMock.mockClear();
+    button?.click();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 1, {
+      timeout: 1000,
+      interval: 10,
+    });
+    expect(dialogOpenMock).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
   it('zeigt für Q&A in der Lobby den Button Fragerunde starten', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -442,8 +556,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: false },
-        quickFeedback: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
       },
     });
 
@@ -510,8 +624,8 @@ describe('SessionHostComponent', () => {
       status: 'ACTIVE',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -584,8 +698,8 @@ describe('SessionHostComponent', () => {
       status: 'ACTIVE',
       channels: {
         quiz: { enabled: false },
-        qa: { enabled: true, title: 'Offene Fragen', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Offene Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -624,8 +738,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -664,8 +778,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -697,8 +811,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -1150,8 +1264,8 @@ describe('SessionHostComponent', () => {
         ...defaultSession,
         channels: {
           quiz: { enabled: true },
-          qa: { enabled: true, title: 'Fragen', moderationMode: true },
-          quickFeedback: { enabled: false },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
         },
       });
       qaListQueryMock.mockResolvedValue([
@@ -1188,8 +1302,8 @@ describe('SessionHostComponent', () => {
         ...defaultSession,
         channels: {
           quiz: { enabled: true },
-          qa: { enabled: true, title: 'Fragen', moderationMode: false },
-          quickFeedback: { enabled: false },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
         },
       });
 

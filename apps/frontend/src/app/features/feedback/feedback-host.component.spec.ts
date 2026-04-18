@@ -31,6 +31,8 @@ vi.mock('../../core/trpc.client', () => ({
       updateStyle: { mutate: vi.fn().mockResolvedValue({ ok: true }) },
       results: { query: vi.fn().mockRejectedValue(new Error('not found')) },
       onResults: { subscribe: vi.fn() },
+      hostResults: { query: vi.fn().mockRejectedValue(new Error('not found')) },
+      onHostResults: { subscribe: vi.fn() },
       toggleLock: { mutate: vi.fn() },
       startDiscussion: { mutate: vi.fn() },
       startSecondRound: { mutate: vi.fn() },
@@ -154,9 +156,9 @@ describe('FeedbackHostComponent', () => {
   it('startet im eingebetteten Modus nach spaetem Start sofort die Live-Subscription', async () => {
     const { trpc } = await import('../../core/trpc.client');
     const onResultsSubscribeMock = vi
-      .mocked(trpc.quickFeedback.onResults.subscribe)
+      .mocked(trpc.quickFeedback.onHostResults.subscribe)
       .mockReturnValue({ unsubscribe: vi.fn() });
-    vi.mocked(trpc.quickFeedback.results.query)
+    vi.mocked(trpc.quickFeedback.hostResults.query)
       .mockRejectedValueOnce(new Error('not found'))
       .mockResolvedValueOnce({
         type: 'TRUEFALSE_UNKNOWN',

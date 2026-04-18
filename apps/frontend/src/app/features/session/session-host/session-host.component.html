@@ -79,6 +79,19 @@
           }
         </mat-button-toggle-group>
 
+        @if (activeChannelVisibilityActionLabel(); as visibilityActionLabel) {
+          <button
+            mat-button
+            type="button"
+            class="session-host__channel-visibility-action"
+            [disabled]="channelVisibilityPending() !== null"
+            (click)="toggleActiveChannelOpen()"
+          >
+            <mat-icon aria-hidden="true">{{ activeChannelVisibilityIcon() }}</mat-icon>
+            <span>{{ visibilityActionLabel }}</span>
+          </button>
+        }
+
         @if (isRunningSession()) {
           <div class="session-host__view-controls session-host__view-controls--inline">
             <button

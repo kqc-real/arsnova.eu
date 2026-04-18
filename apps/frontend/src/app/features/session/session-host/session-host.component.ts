@@ -335,6 +335,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** true ab 7 Sek. vor Countdown-Ende → Musik aus, nur SFX. */
   readonly countdownSfxPhase = signal(false);
   readonly channelActivationPending = signal<SessionChannelTab | null>(null);
+  readonly channelVisibilityPending = signal<Extract<
+    SessionChannelTab,
+    'qa' | 'quickFeedback'
+  > | null>(null);
   readonly Math = Math;
   /** ARIA für sichtbaren Session-Code (Lokalisation wie Blitzlicht-Teilnehmeransicht). */
   sessionCodeDisplayAria(code: string): string {
@@ -374,6 +378,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return {
       quiz: session?.type === 'QUIZ',
+      qa: session?.type === 'Q_AND_A',
+      quickFeedback: false,
+    };
+  });
+  readonly channelOpenState = computed(() => {
+    const session = this.session();
+    const ch = session?.channels;
+    if (ch) {
+      return {
+        quiz: true,
+        qa: ch.qa.open,
+        quickFeedback: ch.quickFeedback.open,
+      };
+    }
+    return {
+      quiz: true,
       qa: session?.type === 'Q_AND_A',
       quickFeedback: false,
     };
@@ -1771,6 +1791,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.channels()[channel]) {
       return $localize`:@@sessionTabs.channelInactive:Aus`;
     }
+    if (!this.isChannelOpen(channel)) {
+      return $localize`:@@sessionTabs.channelClosed:Zu`;
+    }
     if (channel === 'qa') {
       return this.qaTabMetaLabel();
     }
@@ -1784,7 +1807,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.channels()[channel];
   }
 
+  isChannelOpen(channel: SessionChannelTab): boolean {
+    return this.channelOpenState()[channel];
+  }
+
   isChannelBadgeAlert(channel: SessionChannelTab): boolean {
+    if (!this.isChannelOpen(channel)) {
+      return false;
+    }
     if (channel === 'qa') {
       return this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0;
     }
@@ -1967,6 +1997,62 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private patchSessionChannels(channels: SessionChannelsDTO): void {
     this.session.update((session) => (session ? { ...session, channels } : session));
+  }
+
+  activeChannelVisibilityActionLabel(): string | null {
+    const active = this.activeChannel();
+    if (active !== 'qa' && active !== 'quickFeedback') {
+      return null;
+    }
+    if (!this.isChannelEnabled(active)) {
+      return null;
+    }
+    return this.isChannelOpen(active)
+      ? $localize`:@@sessionTabs.closeChannelAction:Kanal schließen`
+      : $localize`:@@sessionTabs.reopenChannelAction:Kanal wieder öffnen`;
+  }
+
+  activeChannelVisibilityIcon(): string {
+    const active = this.activeChannel();
+    if (active !== 'qa' && active !== 'quickFeedback') {
+      return 'visibility';
+    }
+    return this.isChannelOpen(active) ? 'visibility_off' : 'visibility';
+  }
+
+  async toggleActiveChannelOpen(): Promise<void> {
+    const active = this.activeChannel();
+    if (active !== 'qa' && active !== 'quickFeedback') {
+      return;
+    }
+    if (this.channelVisibilityPending() || !this.isChannelEnabled(active) || !this.code) {
+      return;
+    }
+
+    this.channelVisibilityPending.set(active);
+    try {
+      const channels =
+        active === 'qa'
+          ? this.isChannelOpen(active)
+            ? await trpc.session.closeQaChannel.mutate({ code: this.code.toUpperCase() })
+            : await trpc.session.reopenQaChannel.mutate({ code: this.code.toUpperCase() })
+          : this.isChannelOpen(active)
+            ? await trpc.session.closeQuickFeedbackChannel.mutate({ code: this.code.toUpperCase() })
+            : await trpc.session.reopenQuickFeedbackChannel.mutate({
+                code: this.code.toUpperCase(),
+              });
+      this.patchSessionChannels(channels);
+      if (active === 'qa') {
+        await this.refreshQaQuestions();
+      } else {
+        await this.refreshQuickFeedbackResult();
+      }
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.toggleActiveChannelOpen());
+    } finally {
+      this.channelVisibilityPending.set(null);
+    }
   }
 
   private ensureQaSubscription(): void {
@@ -2179,7 +2265,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const result = await trpc.quickFeedback.results.query({
+      const result = await trpc.quickFeedback.hostResults.query({
         sessionCode: this.code.toUpperCase(),
       });
       this.quickFeedbackResult.set(result);

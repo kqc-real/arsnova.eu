@@ -503,8 +503,8 @@ describe('SessionVoteComponent', () => {
       participantCount: 6,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: false },
-        quickFeedback: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -534,8 +534,8 @@ describe('SessionVoteComponent', () => {
       participantCount: 6,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: false, title: null, moderationMode: false },
-        quickFeedback: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -561,6 +561,76 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt im Q&A-Tab einen Geschlossen-Hinweis statt Eingabeformular', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain(
+      'Der Q&A-Kanal wurde von der Lehrperson geschlossen. Fragen und Bewertungen sind gerade nicht möglich.',
+    );
+    expect(host.querySelector('#qa-draft')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt im Blitzlicht-Tab einen Geschlossen-Hinweis statt Voting', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Blitzlicht geschlossen');
+    expect(host.textContent).toContain(
+      'Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.',
+    );
+    fixture.destroy();
+  });
+
   it('erzwingt Quiz-Kanal nur in Lesephase und Abstimmung, nicht in Ergebnisphase', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -574,8 +644,8 @@ describe('SessionVoteComponent', () => {
       preset: 'PLAYFUL',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen', moderationMode: false },
-        quickFeedback: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -617,8 +687,8 @@ describe('SessionVoteComponent', () => {
       preset: 'PLAYFUL',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen', moderationMode: false },
-        quickFeedback: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -662,8 +732,8 @@ describe('SessionVoteComponent', () => {
       preset: 'PLAYFUL',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen', moderationMode: false },
-        quickFeedback: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -707,8 +777,8 @@ describe('SessionVoteComponent', () => {
       participantCount: 6,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: false },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -756,8 +826,8 @@ describe('SessionVoteComponent', () => {
       participantCount: 6,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen', moderationMode: false },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -808,8 +878,8 @@ describe('SessionVoteComponent', () => {
       participantCount: 6,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen', moderationMode: false },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);

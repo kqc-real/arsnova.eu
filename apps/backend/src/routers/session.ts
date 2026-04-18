@@ -483,13 +483,18 @@ function buildSessionChannels(session: {
   quizId?: string | null;
   quiz?: object | null;
   qaEnabled?: boolean | null;
+  qaOpen?: boolean | null;
   qaTitle?: string | null;
   qaModerationMode?: boolean | null;
   title?: string | null;
   moderationMode?: boolean | null;
   quickFeedbackEnabled?: boolean | null;
+  quickFeedbackOpen?: boolean | null;
 }) {
   const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
+  const qaOpen = qaEnabled && session.qaOpen !== false;
+  const quickFeedbackEnabled = session.quickFeedbackEnabled === true;
+  const quickFeedbackOpen = quickFeedbackEnabled && session.quickFeedbackOpen !== false;
 
   return {
     quiz: {
@@ -498,13 +503,15 @@ function buildSessionChannels(session: {
     },
     qa: {
       enabled: qaEnabled,
+      open: qaOpen,
       title: qaEnabled ? (session.qaTitle ?? session.title ?? null) : null,
       moderationMode: qaEnabled
         ? (session.qaModerationMode ?? session.moderationMode ?? true)
         : false,
     },
     quickFeedback: {
-      enabled: session.quickFeedbackEnabled === true,
+      enabled: quickFeedbackEnabled,
+      open: quickFeedbackOpen,
     },
   };
 }
@@ -778,10 +785,13 @@ export const sessionRouter = router({
       const code = await ensureUniqueSessionCode();
       const isQaOnlySession = input.type === 'Q_AND_A';
       const qaEnabled = isQaOnlySession || input.qaEnabled === true;
+      const qaOpen = qaEnabled;
       const qaTitle = qaEnabled ? input.qaTitle?.trim() || input.title?.trim() || null : null;
       const qaModerationMode = qaEnabled
         ? (input.qaModerationMode ?? input.moderationMode ?? true)
         : false;
+      const quickFeedbackEnabled = input.quickFeedbackEnabled ?? false;
+      const quickFeedbackOpen = quickFeedbackEnabled;
       const session = await prisma.session.create({
         data: {
           code,
@@ -790,9 +800,11 @@ export const sessionRouter = router({
           title: isQaOnlySession ? qaTitle : null,
           moderationMode: isQaOnlySession ? qaModerationMode : false,
           qaEnabled,
+          qaOpen,
           qaTitle,
           qaModerationMode,
-          quickFeedbackEnabled: input.quickFeedbackEnabled ?? false,
+          quickFeedbackEnabled,
+          quickFeedbackOpen,
           status: 'LOBBY',
         },
         include: {
@@ -825,7 +837,7 @@ export const sessionRouter = router({
     .mutation(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        select: { id: true, status: true, type: true, qaEnabled: true },
+        select: { id: true, status: true, type: true, qaEnabled: true, qaOpen: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -878,11 +890,13 @@ export const sessionRouter = router({
           type: true,
           quizId: true,
           qaEnabled: true,
+          qaOpen: true,
           qaTitle: true,
           qaModerationMode: true,
           title: true,
           moderationMode: true,
           quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
         },
       });
       if (!session) {
@@ -894,17 +908,20 @@ export const sessionRouter = router({
           where: { id: session.id },
           data: {
             qaEnabled: true,
+            qaOpen: true,
             qaModerationMode: session.qaModerationMode ?? true,
           },
           select: {
             type: true,
             quizId: true,
             qaEnabled: true,
+            qaOpen: true,
             qaTitle: true,
             qaModerationMode: true,
             title: true,
             moderationMode: true,
             quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
           },
         });
         return buildSessionChannels(updated);
@@ -924,11 +941,13 @@ export const sessionRouter = router({
           type: true,
           quizId: true,
           qaEnabled: true,
+          qaOpen: true,
           qaTitle: true,
           qaModerationMode: true,
           title: true,
           moderationMode: true,
           quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
         },
       });
       if (!session) {
@@ -938,22 +957,236 @@ export const sessionRouter = router({
       if (session.quickFeedbackEnabled !== true) {
         const updated = await prisma.session.update({
           where: { id: session.id },
-          data: { quickFeedbackEnabled: true },
+          data: { quickFeedbackEnabled: true, quickFeedbackOpen: true },
           select: {
             type: true,
             quizId: true,
             qaEnabled: true,
+            qaOpen: true,
             qaTitle: true,
             qaModerationMode: true,
             title: true,
             moderationMode: true,
             quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
           },
         });
         return buildSessionChannels(updated);
       }
 
       return buildSessionChannels(session);
+    }),
+
+  closeQaChannel: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(UpdateSessionChannelsOutputSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
+      if (!qaEnabled) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiviert.' });
+      }
+
+      if (session.qaOpen === false) {
+        return buildSessionChannels(session);
+      }
+
+      const updated = await prisma.session.update({
+        where: { id: session.id },
+        data: { qaOpen: false },
+        select: {
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      return buildSessionChannels(updated);
+    }),
+
+  reopenQaChannel: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(UpdateSessionChannelsOutputSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
+      if (!qaEnabled) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Q&A-Kanal ist nicht aktiviert.' });
+      }
+
+      if (session.qaOpen !== false) {
+        return buildSessionChannels(session);
+      }
+
+      const updated = await prisma.session.update({
+        where: { id: session.id },
+        data: { qaOpen: true },
+        select: {
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      return buildSessionChannels(updated);
+    }),
+
+  closeQuickFeedbackChannel: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(UpdateSessionChannelsOutputSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      if (session.quickFeedbackEnabled !== true) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Blitzlicht-Kanal ist nicht aktiviert.',
+        });
+      }
+
+      if (session.quickFeedbackOpen === false) {
+        return buildSessionChannels(session);
+      }
+
+      const updated = await prisma.session.update({
+        where: { id: session.id },
+        data: { quickFeedbackOpen: false },
+        select: {
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      return buildSessionChannels(updated);
+    }),
+
+  reopenQuickFeedbackChannel: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(UpdateSessionChannelsOutputSchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      if (session.quickFeedbackEnabled !== true) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Blitzlicht-Kanal ist nicht aktiviert.',
+        });
+      }
+
+      if (session.quickFeedbackOpen !== false) {
+        return buildSessionChannels(session);
+      }
+
+      const updated = await prisma.session.update({
+        where: { id: session.id },
+        data: { quickFeedbackOpen: true },
+        select: {
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        },
+      });
+      return buildSessionChannels(updated);
     }),
 
   /** Session-Info per Code (für Beitritt, Story 3.1, 3.2). Enthält Nickname-Konfiguration bei QUIZ. */
@@ -1226,7 +1459,7 @@ export const sessionRouter = router({
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
-        select: { id: true, type: true, qaEnabled: true },
+        select: { id: true, type: true, qaEnabled: true, qaOpen: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });

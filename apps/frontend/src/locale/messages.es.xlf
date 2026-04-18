@@ -8840,6 +8840,82 @@
           <context context-type="linenumber">1774</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionTabs.channelClosed" datatype="html">
+        <source>Zu</source>
+        <target>Cerrado</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1794</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">655</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionTabs.closeChannelAction" datatype="html">
+        <source>Kanal schließen</source>
+        <target>Cerrar canal</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">2010</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionTabs.reopenChannelAction" datatype="html">
+        <source>Kanal wieder öffnen</source>
+        <target>Reabrir canal</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">2011</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionTabs.qaClosedNotice" datatype="html">
+        <source>Der Q&amp;A-Kanal wurde von der Lehrperson geschlossen. Fragen und Bewertungen sind gerade nicht möglich.</source>
+        <target>El canal de preguntas y respuestas ha sido cerrado por el profesorado. En este momento no se pueden enviar preguntas ni votar.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">1278,1280</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionTabs.qaClosedHint" datatype="html">
+        <source>Die bisherigen Inhalte sind für Teilnehmende ausgeblendet, bis die Lehrperson den Kanal wieder öffnet.</source>
+        <target>Los contenidos anteriores están ocultos para los participantes hasta que el profesorado vuelva a abrir el canal.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">1443,1445</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackClosedTitle" datatype="html">
+        <source>Blitzlicht geschlossen</source>
+        <target>Blitzlicht cerrado</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">1462,1463</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionTabs.quickFeedbackClosedNotice" datatype="html">
+        <source>Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.</source>
+        <target>El canal de Blitzlicht ha sido cerrado por el profesorado. En este momento no se pueden enviar nuevas votaciones.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">1467,1468</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
+          <context context-type="linenumber">164</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
+          <context context-type="linenumber">174</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="feedback.voteMissing" datatype="html">
+        <source>Feedback-Runde nicht gefunden oder abgelaufen.</source>
+        <target>No se encontró la ronda de feedback o ya ha caducado.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-vote.component.ts</context>
+          <context context-type="linenumber">176</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionTabs.questionsBadgeNew" datatype="html">
         <source><x id="count" equiv-text="this.qaUnseenCount()"/> neu</source>
         <target><x id="count" equiv-text="this.qaUnseenCount()"/> nueva(s)</target>

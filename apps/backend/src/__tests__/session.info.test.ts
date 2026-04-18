@@ -41,9 +41,11 @@ describe('session.getInfo (ADR-0009)', () => {
       title: null,
       quizId: QUIZ_ID,
       qaEnabled: true,
+      qaOpen: true,
       qaTitle: 'Fragen zur Vorlesung',
       qaModerationMode: true,
       quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
       _count: { participants: 12 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({
@@ -75,10 +77,11 @@ describe('session.getInfo (ADR-0009)', () => {
       quiz: { enabled: true },
       qa: {
         enabled: true,
+        open: true,
         title: 'Fragen zur Vorlesung',
         moderationMode: true,
       },
-      quickFeedback: { enabled: true },
+      quickFeedback: { enabled: true, open: true },
     });
     expect(result.quizName).toBe('Demo Quiz');
     expect(result.nicknameTheme).toBe('NOBEL_LAUREATES');
@@ -93,9 +96,11 @@ describe('session.getInfo (ADR-0009)', () => {
       title: null,
       quizId: QUIZ_ID,
       qaEnabled: false,
+      qaOpen: false,
       qaTitle: null,
       qaModerationMode: true,
       quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
       _count: { participants: 0 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({
@@ -134,9 +139,11 @@ describe('session.getInfo (ADR-0009)', () => {
       title: null,
       quizId: null,
       qaEnabled: false,
+      qaOpen: false,
       qaTitle: null,
       qaModerationMode: true,
       quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
       _count: { participants: 0 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue(null);
@@ -147,10 +154,11 @@ describe('session.getInfo (ADR-0009)', () => {
       quiz: { enabled: false },
       qa: {
         enabled: false,
+        open: false,
         title: null,
         moderationMode: false,
       },
-      quickFeedback: { enabled: true },
+      quickFeedback: { enabled: true, open: true },
     });
     expect(result.quizName).toBeNull();
   });
@@ -165,9 +173,11 @@ describe('session.getInfo (ADR-0009)', () => {
       quizId: null,
       moderationMode: true,
       qaEnabled: true,
+      qaOpen: true,
       qaTitle: 'Offene Fragerunde',
       qaModerationMode: true,
       quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
       _count: { participants: 3 },
     });
 
@@ -179,10 +189,11 @@ describe('session.getInfo (ADR-0009)', () => {
       quiz: { enabled: false },
       qa: {
         enabled: true,
+        open: true,
         title: 'Offene Fragerunde',
         moderationMode: true,
       },
-      quickFeedback: { enabled: false },
+      quickFeedback: { enabled: false, open: false },
     });
     expect(result.quizName).toBeNull();
     expect(result.title).toBe('Offene Fragerunde');
