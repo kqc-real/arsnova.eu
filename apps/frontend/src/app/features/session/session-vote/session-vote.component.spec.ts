@@ -10,6 +10,7 @@ const {
   statusChangedSubscribeMock,
   currentQuestionQueryMock,
   quickFeedbackResultsQueryMock,
+  quickFeedbackOnResultsSubscribeMock,
   getParticipantSelfQueryMock,
   getTeamsQueryMock,
   getTeamLeaderboardQueryMock,
@@ -27,6 +28,7 @@ const {
   statusChangedSubscribeMock: vi.fn(),
   currentQuestionQueryMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
+  quickFeedbackOnResultsSubscribeMock: vi.fn(),
   getParticipantSelfQueryMock: vi.fn(),
   getTeamsQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
@@ -57,6 +59,7 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     quickFeedback: {
       results: { query: quickFeedbackResultsQueryMock },
+      onResults: { subscribe: quickFeedbackOnResultsSubscribeMock },
     },
     qa: {
       list: { query: qaListQueryMock },
@@ -150,6 +153,7 @@ describe('SessionVoteComponent', () => {
     });
     submitSessionFeedbackMutateMock.mockResolvedValue({ success: true });
     quickFeedbackResultsQueryMock.mockRejectedValue(new Error('not found'));
+    quickFeedbackOnResultsSubscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
     qaListQueryMock.mockResolvedValue([]);
     qaSubmitMutateMock.mockResolvedValue({});
     qaUpvoteMutateMock.mockResolvedValue({});
@@ -596,6 +600,34 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('zieht Clients nicht automatisch in einen geschlossenen Q&A-Kanal', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
+    fixture.destroy();
+  });
+
   it('zeigt im Blitzlicht-Tab einen Geschlossen-Hinweis statt Voting', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -627,6 +659,78 @@ describe('SessionVoteComponent', () => {
     expect(host.textContent).toContain('Blitzlicht geschlossen');
     expect(host.textContent).toContain(
       'Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.',
+    );
+    fixture.destroy();
+  });
+
+  it('bleibt nach dem Schließen von Blitzlicht im Blitzlicht-Kanal und zeigt den Geschlossen-Hinweis', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+
+    expect(component.activeChannel()).toBe('quickFeedback');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Blitzlicht geschlossen');
+    fixture.destroy();
+  });
+
+  it('zieht Clients bei laufendem Blitzlicht in den Blitzlicht-Kanal', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 3,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
+      },
+      { timeout: 3000, interval: 10 },
     );
     fixture.destroy();
   });

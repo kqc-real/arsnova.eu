@@ -1218,12 +1218,32 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (
-      active === 'quiz' &&
+    const quickFeedbackRoundVisible =
+      visible.includes('quickFeedback') &&
+      this.isQuickFeedbackChannelOpen() &&
+      this.quickFeedbackResult() !== null;
+    const qaRoundVisible =
       visible.includes('qa') &&
+      this.isQaChannelOpen() &&
       this.status() === 'ACTIVE' &&
-      this.currentQuestion() === null
+      this.currentQuestion() === null;
+
+    if (active !== 'quickFeedback' && quickFeedbackRoundVisible) {
+      this.activeChannel.set('quickFeedback');
+      return;
+    }
+
+    if (
+      active === 'quickFeedback' &&
+      this.isQuickFeedbackChannelOpen() &&
+      !quickFeedbackRoundVisible &&
+      qaRoundVisible
     ) {
+      this.activeChannel.set('qa');
+      return;
+    }
+
+    if (active === 'quiz' && qaRoundVisible) {
       this.activeChannel.set('qa');
       return;
     }
