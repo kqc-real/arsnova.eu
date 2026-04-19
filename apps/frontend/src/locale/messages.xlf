@@ -11163,6 +11163,13 @@
           <context context-type="linenumber">231</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeKindergarten" datatype="html">
+        <source>Feste Tier-Emojis als Pseudonyme.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">234</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQuizPicker.nameModeTheme" datatype="html">
         <source>Feste Pseudonyme aus <x id="PH" equiv-text="this.nicknameThemeLabel(profile.nicknameTheme)"/>.</source>
         <context-group purpose="location">

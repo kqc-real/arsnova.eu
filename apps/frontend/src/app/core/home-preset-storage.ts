@@ -33,7 +33,7 @@ export interface HomePresetOnboardingProfile {
 
 export function createDefaultLiveSessionOnboardingProfile(): HomePresetOnboardingProfile {
   return {
-    nicknameTheme: 'HIGH_SCHOOL',
+    nicknameTheme: 'KINDERGARTEN',
     allowCustomNicknames: false,
     anonymousMode: false,
     teamMode: false,

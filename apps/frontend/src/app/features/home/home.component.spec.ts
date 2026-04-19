@@ -290,7 +290,7 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith({
         type: 'QUIZ',
         qaEnabled: true,
-        nicknameTheme: 'HIGH_SCHOOL',
+        nicknameTheme: 'KINDERGARTEN',
         allowCustomNicknames: false,
         anonymousMode: false,
         teamMode: false,
@@ -319,7 +319,7 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith({
         type: 'QUIZ',
         quickFeedbackEnabled: true,
-        nicknameTheme: 'HIGH_SCHOOL',
+        nicknameTheme: 'KINDERGARTEN',
         allowCustomNicknames: false,
         anonymousMode: false,
         teamMode: false,

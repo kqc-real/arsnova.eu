@@ -12548,6 +12548,10 @@
         <source>Freie Nicknames sind erlaubt.</source>
         <target>Se permiten apodos libres.</target>
       </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeKindergarten" datatype="html">
+        <source>Feste Tier-Emojis als Pseudonyme.</source>
+        <target>Emojis de animales fijos como seudónimos.</target>
+      </trans-unit>
       <trans-unit id="sessionQuizPicker.nameModeTheme" datatype="html">
         <source>Feste Pseudonyme aus <x id="PH" equiv-text="this.nicknameThemeLabel(profile.nicknameTheme)"/>.</source>
         <target>Seudónimos fijos de <x id="PH" equiv-text="this.nicknameThemeLabel(profile.nicknameTheme)"/>.</target>

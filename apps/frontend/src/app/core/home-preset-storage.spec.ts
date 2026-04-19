@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   HOME_PRESET_OPTIONS_STORAGE_PREFIX,
+  createDefaultLiveSessionOnboardingProfile,
   homePresetOptionsKeyForQuizPreset,
   homePresetOptionsStorageKey,
 } from './home-preset-storage';
@@ -25,5 +26,17 @@ describe('home-preset-storage', () => {
     expect(homePresetOptionsKeyForQuizPreset(undefined)).toBe(
       homePresetOptionsStorageKey('spielerisch'),
     );
+  });
+
+  it('liefert für quizlose Live-Sessions feste Tier-Pseudonyme ohne Teammodus', () => {
+    expect(createDefaultLiveSessionOnboardingProfile()).toEqual({
+      nicknameTheme: 'KINDERGARTEN',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: 'AUTO',
+      teamNames: [],
+    });
   });
 });

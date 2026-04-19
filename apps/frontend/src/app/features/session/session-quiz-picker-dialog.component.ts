@@ -87,6 +87,23 @@ export interface SessionQuizPickerDialogData {
         gap: 0.75rem;
       }
 
+      .session-quiz-picker__empty-state {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        align-items: start;
+        margin: 0;
+        padding: 1rem 1rem 1rem 1.05rem;
+        border: 1px solid color-mix(in srgb, var(--mat-sys-error) 32%, var(--mat-sys-outline));
+        border-radius: 1rem;
+        background: color-mix(in srgb, var(--mat-sys-error-container) 72%, var(--mat-sys-surface));
+      }
+
+      .session-quiz-picker__empty-icon {
+        margin-top: 0.05rem;
+        color: var(--mat-sys-error);
+      }
+
       .session-quiz-picker__item {
         width: 100%;
         min-height: 4.5rem;
@@ -118,10 +135,16 @@ export interface SessionQuizPickerDialogData {
         color: var(--mat-sys-on-surface-variant);
       }
 
-      .session-quiz-picker__empty,
       .session-quiz-picker__profile-text {
         margin: 0;
         font: var(--mat-sys-body-small);
+      }
+
+      .session-quiz-picker__empty {
+        margin: 0;
+        color: var(--mat-sys-on-error-container);
+        font: var(--mat-sys-body-medium);
+        font-weight: 600;
       }
 
       .session-quiz-picker__item-description {
@@ -155,10 +178,15 @@ export interface SessionQuizPickerDialogData {
         </section>
       }
       @if (quizzes.length === 0) {
-        <p class="session-quiz-picker__empty" i18n="@@sessionQuizPicker.empty">
-          Zum aktuellen Onboarding-Profil deiner Teilnehmenden passt aktuell kein Quiz aus deiner
-          Sammlung.
-        </p>
+        <section class="session-quiz-picker__empty-state" role="alert" aria-live="polite">
+          <mat-icon class="session-quiz-picker__empty-icon" aria-hidden="true">
+            warning_amber
+          </mat-icon>
+          <p class="session-quiz-picker__empty" i18n="@@sessionQuizPicker.empty">
+            Zum aktuellen Onboarding-Profil deiner Teilnehmenden passt aktuell kein Quiz aus deiner
+            Sammlung.
+          </p>
+        </section>
       } @else {
         <p class="session-quiz-picker__intro" i18n="@@sessionQuizPicker.intro">
           Wähle ein Quiz, das zum aktuellen Onboarding-Profil deiner Teilnehmenden passt:
@@ -233,6 +261,9 @@ export class SessionQuizPickerDialogComponent {
     }
     if (profile.allowCustomNicknames) {
       return $localize`:@@sessionQuizPicker.nameModeCustom:Freie Nicknames sind erlaubt.`;
+    }
+    if (profile.nicknameTheme === 'KINDERGARTEN') {
+      return $localize`:@@sessionQuizPicker.nameModeKindergarten:Feste Tier-Emojis als Pseudonyme.`;
     }
     return $localize`:@@sessionQuizPicker.nameModeTheme:Feste Pseudonyme aus ${this.nicknameThemeLabel(profile.nicknameTheme)}.`;
   }
