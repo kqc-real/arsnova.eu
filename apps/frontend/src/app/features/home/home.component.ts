@@ -191,6 +191,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Leertaste schon in keydown verarbeitet → keyup nicht erneut auslösen (vermeidet Doppel-Submit, nutzt keyup für virtuelle Tastatur). */
   private spaceHandledInKeydown = false;
+  private readonly timeoutIds = new Set<ReturnType<typeof setTimeout>>();
+  private readonly idleCallbackIds = new Set<number>();
+  private readonly animationFrameIds = new Set<number>();
 
   private static isSpaceKey(e: KeyboardEvent): boolean {
     return e.key === ' ' || e.code === 'Space' || e.keyCode === 32;
@@ -238,7 +241,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.focusService.registerInput(this.sessionCodeInput);
     // preventScroll: vermeidet Scroll des #main-content zum Code-Feld (kurze Viewports).
-    setTimeout(() => this.sessionCodeInput?.nativeElement.focus({ preventScroll: true }), 100);
+    this.scheduleTimeout(
+      () => this.sessionCodeInput?.nativeElement.focus({ preventScroll: true }),
+      100,
+    );
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', this.keydownListener, true);
       document.addEventListener('keyup', this.keyupListener, true);
@@ -247,6 +253,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.focusService.registerInput(undefined);
+    this.clearScheduledCallbacks();
     if (typeof document !== 'undefined') {
       document.removeEventListener('keydown', this.keydownListener, true);
       document.removeEventListener('keyup', this.keyupListener, true);
@@ -256,17 +263,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadRecentSessionCodes();
-      if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(() => void this.validateRecentSessions(), { timeout: 2000 });
-      } else {
-        setTimeout(() => void this.validateRecentSessions(), 500);
-      }
+      this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
       // MOTD: bald nach erstem Paint, ohne langes Idle-Warten (max. ~400 ms)
-      if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(() => void this.loadMotdOverlay(), { timeout: 400 });
-      } else {
-        setTimeout(() => void this.loadMotdOverlay(), 50);
-      }
+      this.scheduleIdleWork(() => void this.loadMotdOverlay(), 400, 50);
     }
   }
 
@@ -396,18 +395,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         /* ignore */
       }
     };
-    setTimeout(run, 0);
+    this.scheduleTimeout(run, 0);
   }
 
   private triggerShake(): void {
     this.codeShaking.set(true);
-    setTimeout(() => this.codeShaking.set(false), 400);
+    this.scheduleTimeout(() => this.codeShaking.set(false), 400);
   }
 
   private triggerCtaPulse(): void {
     this.ctaReady.set(false);
-    requestAnimationFrame(() => this.ctaReady.set(true));
-    setTimeout(() => this.ctaReady.set(false), 350);
+    this.scheduleAnimationFrame(() => this.ctaReady.set(true));
+    this.scheduleTimeout(() => this.ctaReady.set(false), 350);
   }
 
   preloadQuiz(): void {
@@ -504,7 +503,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.syncLinkValue.set('');
       return;
     }
-    setTimeout(() => this.syncLinkInput?.nativeElement.focus(), 0);
+    this.scheduleTimeout(() => this.syncLinkInput?.nativeElement.focus(), 0);
   }
 
   onSyncLinkInput(event: Event): void {
@@ -651,7 +650,63 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       motd.contentVersion,
     );
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
-    setTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
+    this.scheduleTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
+  }
+
+  private scheduleTimeout(callback: () => void, delayMs: number): void {
+    const timeoutId = setTimeout(() => {
+      this.timeoutIds.delete(timeoutId);
+      callback();
+    }, delayMs);
+    this.timeoutIds.add(timeoutId);
+  }
+
+  private scheduleIdleWork(callback: () => void, timeoutMs: number, fallbackDelayMs: number): void {
+    if (typeof requestIdleCallback !== 'undefined') {
+      const idleId = requestIdleCallback(
+        () => {
+          this.idleCallbackIds.delete(idleId);
+          callback();
+        },
+        { timeout: timeoutMs },
+      );
+      this.idleCallbackIds.add(idleId);
+      return;
+    }
+    this.scheduleTimeout(callback, fallbackDelayMs);
+  }
+
+  private scheduleAnimationFrame(callback: () => void): void {
+    if (typeof requestAnimationFrame === 'undefined') {
+      this.scheduleTimeout(callback, 0);
+      return;
+    }
+    const frameId = requestAnimationFrame(() => {
+      this.animationFrameIds.delete(frameId);
+      callback();
+    });
+    this.animationFrameIds.add(frameId);
+  }
+
+  private clearScheduledCallbacks(): void {
+    for (const timeoutId of this.timeoutIds) {
+      clearTimeout(timeoutId);
+    }
+    this.timeoutIds.clear();
+
+    if (typeof cancelIdleCallback !== 'undefined') {
+      for (const idleId of this.idleCallbackIds) {
+        cancelIdleCallback(idleId);
+      }
+    }
+    this.idleCallbackIds.clear();
+
+    if (typeof cancelAnimationFrame !== 'undefined') {
+      for (const frameId of this.animationFrameIds) {
+        cancelAnimationFrame(frameId);
+      }
+    }
+    this.animationFrameIds.clear();
   }
 
   private clearMotdOverlay(): void {

@@ -62,21 +62,40 @@ vi.mock('../../core/trpc.client', () => ({
   },
 }));
 
-function createHomeComponent(): HomeComponent {
+const activeFixtures: Array<ReturnType<typeof TestBed.createComponent<HomeComponent>>> = [];
+
+function createHomeFixture() {
   const fixture = TestBed.createComponent(HomeComponent);
+  activeFixtures.push(fixture);
+  return fixture;
+}
+
+function createHomeComponent(): HomeComponent {
+  const fixture = createHomeFixture();
   return fixture.componentInstance;
 }
 
 describe('HomeComponent', () => {
   beforeEach(() => {
     localStorage.clear();
+    vi.useFakeTimers();
     TestBed.configureTestingModule({
       imports: [HomeComponent],
       providers: [provideRouter([]), provideHttpClient()],
     });
   });
 
-  afterEach(() => localStorage.clear());
+  afterEach(() => {
+    while (activeFixtures.length > 0) {
+      activeFixtures.pop()?.destroy();
+    }
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    TestBed.resetTestingModule();
+    localStorage.clear();
+  });
 
   describe('isPlayfulPreset', () => {
     it('ist true im Standard-Preset Spielerisch', () => {
@@ -131,7 +150,7 @@ describe('HomeComponent', () => {
 
   describe('Session-Code-Segmente (Template)', () => {
     it('zeigt grünen Haken nur bei gültigem 6-stelligem Code', () => {
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       const el = fixture.nativeElement as HTMLElement;
       fixture.detectChanges();
 
@@ -410,7 +429,7 @@ describe('HomeComponent', () => {
           },
         });
 
-        const fixture = TestBed.createComponent(HomeComponent);
+        const fixture = createHomeFixture();
         const comp = fixture.componentInstance;
 
         await comp['loadMotdOverlay']();
@@ -456,7 +475,7 @@ describe('HomeComponent', () => {
 
   describe('openSyncLink', () => {
     it('ordnet Teilen- und Oeffnen-Hinweis je zum passenden Widget', () => {
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       const comp = fixture.componentInstance;
 
       comp.toggleSyncLinkEntry();
@@ -472,7 +491,7 @@ describe('HomeComponent', () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);
       const quizStore = TestBed.inject(QuizStoreService);
-      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom');
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom').mockImplementation(() => {});
       const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
       comp.syncLinkValue.set('https://arsnova.eu/quiz/sync/sync-room-12345678');
@@ -492,7 +511,7 @@ describe('HomeComponent', () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);
       const quizStore = TestBed.inject(QuizStoreService);
-      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom');
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom').mockImplementation(() => {});
       const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
       comp.syncLinkValue.set('sync-room-12345678');
@@ -523,7 +542,7 @@ describe('HomeComponent', () => {
 
   describe('Host-Sharing-Hinweis', () => {
     it('zeigt ohne Verlinkung keinen Hinweis auf der Host-Karte', () => {
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const hint = fixture.nativeElement.querySelector('.home-host-sharing-hint');
@@ -532,7 +551,9 @@ describe('HomeComponent', () => {
 
     it('zeigt bei verlinkter Sammlung den Hinweis mit Gerätekontext', () => {
       const quizStore = TestBed.inject(QuizStoreService);
-      quizStore.activateSyncRoom('sync-room-12345678', { markShared: true, registerOrigin: true });
+      quizStore.librarySharingMode.set('shared');
+      quizStore.originDeviceLabel.set('Mac');
+      quizStore.originBrowserLabel.set('Chrome');
       quizStore.syncPeerInfos.set([
         {
           deviceId: 'peer-device-context',
@@ -541,7 +562,7 @@ describe('HomeComponent', () => {
         },
       ]);
 
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const hint = fixture.nativeElement.querySelector(
@@ -565,7 +586,7 @@ describe('HomeComponent', () => {
         },
       ]);
 
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const hint = fixture.nativeElement.querySelector(
@@ -583,7 +604,7 @@ describe('HomeComponent', () => {
       quizStore.originBrowserLabel.set(quizStore.currentBrowserLabel());
       quizStore.syncPeerInfos.set([]);
 
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const hint = fixture.nativeElement.querySelector(
@@ -651,7 +672,7 @@ describe('HomeComponent', () => {
     });
 
     it('zeigt ohne eigenes Quiz (nur Demo) keinen gefuellten Primaer-CTA auf der Veranstalten-Karte', () => {
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const filled = fixture.nativeElement.querySelector(

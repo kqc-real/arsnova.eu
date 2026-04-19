@@ -1,6 +1,7 @@
 import {
   Injectable,
   LOCALE_ID,
+  OnDestroy,
   PLATFORM_ID,
   Signal,
   computed,
@@ -9,7 +10,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { Subscription, filter } from 'rxjs';
 import * as Y from 'yjs';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { WebsocketProvider } from 'y-websocket';
@@ -434,7 +435,7 @@ export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
 const DEMO_QUIZ_SEED_FINGERPRINT_KEY = 'arsnova-demo-quiz-seed-fp-v1';
 
 @Injectable({ providedIn: 'root' })
-export class QuizStoreService {
+export class QuizStoreService implements OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly quizDocuments = signal<QuizDocument[]>([]);
   readonly syncRoomId = signal('');
@@ -467,6 +468,7 @@ export class QuizStoreService {
   private readonly currentSyncDeviceId = this.resolveCurrentSyncDeviceId();
   private readonly localeId = inject(LOCALE_ID);
   private readonly router = inject(Router);
+  private routerEventsSub: Subscription | null = null;
   private readonly onPresetUpdated = (): void => {
     this.writePresetSnapshotToYjs();
   };
@@ -503,12 +505,21 @@ export class QuizStoreService {
     if (isPlatformBrowser(this.platformId)) {
       globalThis.addEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
       // Demo-Quiz-Sprache an URL-Segment koppeln (/de/quiz → /en/quiz ohne Reload).
-      this.router.events
+      this.routerEventsSub = this.router.events
         .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
         .subscribe(() => {
           this.ensureDemoQuiz();
         });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.routerEventsSub?.unsubscribe();
+    this.routerEventsSub = null;
+    if (isPlatformBrowser(this.platformId)) {
+      globalThis.removeEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
+    }
+    this.teardownYjs();
   }
 
   getDemoQuizId(): string | null {
