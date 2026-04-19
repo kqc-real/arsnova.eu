@@ -10,7 +10,7 @@
   @if (session(); as s) {
     @if (hostSteeringCallout(); as steer) {
       <div
-        class="session-host__steering-callout app-live-channel-shell"
+        class="session-host__steering-callout"
         role="alert"
         aria-live="assertive"
         i18n-aria-label="@@sessionHost.steeringCalloutAria"
@@ -87,7 +87,6 @@
             [disabled]="channelVisibilityPending() !== null"
             (click)="toggleActiveChannelOpen()"
           >
-            <mat-icon aria-hidden="true">{{ activeChannelVisibilityIcon() }}</mat-icon>
             <span>{{ visibilityActionLabel }}</span>
           </button>
         }
@@ -227,7 +226,7 @@
 
     @if (effectiveStatus() !== 'FINISHED') {
       @let liveParticipantCount = participantsPayload()?.participantCount ?? s.participantCount;
-      <section class="session-host__live-banner app-live-channel-shell">
+      <section class="session-host__live-banner">
         <div class="session-host__live-banner-main">
           <div class="session-host__live-access">
             <button
@@ -1681,10 +1680,7 @@
         }
       } @else if (activeChannel() === 'qa') {
         <div class="session-host__channel-panel session-host__channel-panel--qa">
-          <mat-card
-            appearance="outlined"
-            class="session-channel-card session-channel-card--qa app-live-channel-shell"
-          >
+          <mat-card appearance="outlined" class="session-channel-card session-channel-card--qa">
             <mat-card-content
               class="session-channel-card__content session-channel-card__content--left"
             >
@@ -2018,7 +2014,7 @@
       }
     </div>
     @if (effectiveStatus() !== 'FINISHED') {
-      <div class="session-host__exit-anchor app-live-channel-shell">
+      <div class="session-host__exit-anchor">
         <button
           matButton="tonal"
           type="button"

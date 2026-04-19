@@ -3,10 +3,11 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  box-sizing: border-box;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
   margin-inline: auto;
-  max-width: 56rem;
+  max-width: var(--app-toolbar-max-width);
   padding-inline: 1rem;
   border-radius: var(--mat-sys-corner-extra-large);
   background: var(--mat-sys-surface-container);
@@ -44,21 +45,21 @@
 .top-toolbar--fixed {
   position: fixed;
   top: 0.5rem;
-  left: max(1rem, (100% - 56rem) / 2);
-  right: max(1rem, (100% - 56rem) / 2);
+  left: max(1rem, calc((100% - var(--app-toolbar-max-width)) / 2));
+  right: max(1rem, calc((100% - var(--app-toolbar-max-width)) / 2));
   margin-bottom: 0;
   max-width: none;
   margin-inline: 0;
 
   @media (min-width: 600px) {
     top: 0.75rem;
-    left: max(1.5rem, (100% - 56rem) / 2);
-    right: max(1.5rem, (100% - 56rem) / 2);
+    left: max(1.5rem, calc((100% - var(--app-toolbar-max-width)) / 2));
+    right: max(1.5rem, calc((100% - var(--app-toolbar-max-width)) / 2));
   }
   @media (min-width: 840px) {
     top: 1rem;
-    left: max(2rem, (100% - 56rem) / 2);
-    right: max(2rem, (100% - 56rem) / 2);
+    left: max(2rem, calc((100% - var(--app-toolbar-max-width)) / 2));
+    right: max(2rem, calc((100% - var(--app-toolbar-max-width)) / 2));
   }
 }
 

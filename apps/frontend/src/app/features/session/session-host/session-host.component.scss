@@ -3,8 +3,8 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 0.75rem 1rem;
-  width: 100%;
-  max-width: var(--session-host-shell-max-width);
+  width: var(--session-host-shell-width);
+  max-width: 100%;
   margin-inline: auto;
   margin-bottom: var(--session-host-zone-gap);
   padding: clamp(0.85rem, 2vw, 1rem) clamp(1rem, 2.5vw, 1.25rem);
@@ -76,15 +76,32 @@
 
 .session-host {
   width: 100%;
-  --session-host-shell-max-width: 64rem;
+  --session-host-shell-max-width: var(--app-toolbar-max-width);
   --session-host-shell-inline: 1rem;
+  --session-host-shell-width: min(
+    var(--session-host-shell-max-width),
+    calc(100vw - (2 * var(--session-host-shell-inline)))
+  );
   --session-host-zone-gap: 0.875rem;
   --session-host-toolbar-clearance: calc(env(safe-area-inset-top, 0px) + 4.25rem);
   --session-host-float-top: 0.75rem;
   display: grid;
+  justify-items: center;
   gap: var(--session-host-zone-gap);
   /* Platz für den fixierten Exit-Button am unteren Rand. */
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
+}
+
+@media (min-width: 600px) {
+  .session-host {
+    --session-host-shell-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 840px) {
+  .session-host {
+    --session-host-shell-inline: 2rem;
+  }
 }
 
 .session-host--with-channel-tabs {
@@ -96,10 +113,6 @@
   top: auto;
   left: auto;
   transform: none;
-  width: min(
-    var(--session-host-shell-max-width),
-    calc(100vw - (2 * var(--session-host-shell-inline)))
-  );
   z-index: auto;
 }
 
@@ -108,10 +121,9 @@
 }
 
 .session-host__channel-panel {
-  width: 100%;
-  max-width: var(--session-host-shell-max-width);
+  width: var(--session-host-shell-width);
+  max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--session-host-shell-inline);
   box-sizing: border-box;
 }
 
@@ -123,30 +135,24 @@
 .session-host__channel-stage {
   width: 100%;
   display: grid;
+  justify-items: center;
   gap: var(--session-host-zone-gap);
 }
 
 .session-host__exit-anchor {
-  position: fixed;
-  left: 50%;
-  /* Fallback ohne Anchor-API: oberhalb der Footer-Zone halten. */
-  bottom: max(5.25rem, calc(env(safe-area-inset-bottom, 0px) + 0.85rem));
-  transform: translateX(-50%);
-  width: min(
-    var(--session-host-shell-max-width),
-    calc(100vw - (2 * var(--session-host-shell-inline)))
-  );
-  margin: 0;
-  padding-inline: 0;
+  position: sticky;
+  bottom: max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem));
+  width: var(--session-host-shell-width);
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
   display: flex;
   justify-content: flex-end;
-  z-index: 1200;
-  pointer-events: none;
+  z-index: 40;
 }
 
 .session-host__exit-anchor-button {
   font-weight: 600;
-  pointer-events: auto;
   box-shadow: var(--mat-sys-level2);
 }
 
@@ -169,13 +175,12 @@
   }
 
   .session-host--with-channel-tabs .session-host__channel-panel {
-    padding-inline: var(--host-mobile-inline);
     padding-bottom: var(--host-mobile-safe-bottom);
   }
 
   .session-host__exit-anchor {
-    width: calc(100vw - (2 * var(--host-mobile-inline)));
-    bottom: max(5.25rem, calc(var(--host-mobile-safe-bottom) + 0.5rem));
+    width: 100%;
+    bottom: max(0.5rem, calc(var(--host-mobile-safe-bottom) + 0.25rem));
     justify-content: stretch;
   }
 
@@ -190,14 +195,14 @@
   left: auto;
   transform: none;
   z-index: auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
   gap: 0.45rem;
-  width: min(
-    var(--session-host-shell-max-width),
-    calc(100vw - (2 * var(--session-host-shell-inline)))
-  );
+  width: auto;
   max-width: calc(100vw - (2 * var(--session-host-shell-inline)));
+  box-sizing: border-box;
   margin-inline: auto;
 }
 
@@ -208,7 +213,7 @@
 }
 
 .session-host__channel-visibility-action {
-  justify-self: center;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -249,19 +254,20 @@
     align-items: center;
     justify-content: center;
     gap: var(--host-mobile-toolbar-gap);
-    width: min(100%, calc(100vw - (2 * var(--session-host-shell-inline))));
+    width: auto;
     max-width: calc(100vw - (2 * var(--session-host-shell-inline)));
     margin: 0 auto var(--host-mobile-toolbar-gap);
   }
 
   .session-channel-tabs {
     width: auto;
-    max-width: calc(100vw - (2 * var(--session-host-shell-inline)) - 6.25rem);
+    max-width: none;
     display: flex;
     overflow-x: auto;
     overflow-y: hidden;
     border-radius: var(--mat-sys-corner-extra-large);
-    flex: 0 1 auto;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .session-channel-tabs mat-button-toggle {
@@ -276,9 +282,7 @@
   }
 
   .session-channel-tabs__badge {
-    margin-left: 0.3rem;
-    padding: 0.08rem 0.35rem;
-    font-size: 0.68rem;
+    display: none;
   }
 
   .session-host__view-controls {
@@ -287,8 +291,15 @@
 
   .session-host__view-controls--inline {
     flex: 0 0 auto;
-    justify-self: end;
     gap: var(--host-mobile-toolbar-gap);
+  }
+
+  .session-host__channel-visibility-action {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding-inline: 0.5rem;
+    font: var(--mat-sys-label-medium);
+    white-space: nowrap;
   }
 
   .session-host__live-actions {
@@ -327,31 +338,24 @@
   }
 
   .session-host__exit-anchor {
-    left: auto;
-    right: max(var(--session-host-shell-inline), calc(env(safe-area-inset-right, 0px) + 0.75rem));
-    transform: none;
-    width: auto;
-    max-width: none;
-    pointer-events: auto;
-  }
-
-  .session-channel-tabs-shell {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    align-items: center;
+    width: var(--session-host-shell-width);
+    max-width: 100%;
+    margin-inline: auto;
   }
 
   .session-channel-tabs {
-    justify-self: start;
-    width: fit-content;
+    width: auto;
     max-width: 100%;
+    flex: 0 0 auto;
+    min-width: 0;
   }
 
   .session-host__channel-visibility-action {
-    justify-self: end;
+    margin-left: 0;
   }
 
   .session-host__view-controls--inline {
-    justify-self: end;
+    margin-left: 0;
   }
 }
 
@@ -410,6 +414,11 @@
   margin: 0 auto;
   border-color: var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-low);
+}
+
+.session-channel-card--qa {
+  width: 100%;
+  max-width: none;
 }
 
 .session-channel-card__content {
@@ -550,8 +559,8 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
   align-items: center;
-  width: 100%;
-  max-width: var(--session-host-shell-max-width);
+  width: min(100%, var(--app-live-channel-max-width));
+  max-width: var(--app-live-channel-max-width);
   margin: 0 auto;
   padding: clamp(0.72rem, 1.8vw, 0.95rem);
   border: 1px solid var(--mat-sys-outline-variant);
@@ -570,7 +579,7 @@
 
 .session-host__live-access {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 0.7rem;
   align-items: center;
   min-width: 0;
@@ -636,6 +645,7 @@
 
 .session-host__live-actions {
   display: inline-flex;
+  grid-column: 3;
   align-items: center;
   justify-self: end;
   gap: 0.45rem;
@@ -643,6 +653,7 @@
 
 .session-host__live-join-control {
   margin-left: 0;
+  grid-column: 1;
   justify-self: start;
   border: none;
   background: transparent;
@@ -935,7 +946,7 @@
   }
 
   .session-host__live-access {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: 0.5rem;
     align-items: center;
     text-align: center;
@@ -1516,12 +1527,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 1.75rem;
+  padding-block: 2.5rem;
   min-height: 0;
 }
 
 .session-host--lobby .session-lobby {
-  padding-inline: 0.5rem;
+  padding-inline: 0;
 }
 
 /* Team-Lobby kann auf Mobile deutlich höher werden: nicht zentrieren/clippen, damit App-Main normal scrollt. */
@@ -1536,8 +1547,8 @@
   display: grid;
   gap: 1.5rem;
   text-align: center;
-  width: 100%;
-  max-width: 42rem;
+  width: var(--session-host-shell-width);
+  max-width: 100%;
 }
 
 .session-lobby__hero-card {
@@ -1575,7 +1586,7 @@
 .session-host__run-quiz-motif-wrap {
   margin: 0 auto 1rem;
   width: 100%;
-  max-width: 56rem;
+  max-width: var(--session-host-shell-width);
   border-radius: var(--mat-sys-corner-medium, 12px);
   overflow: hidden;
 }
@@ -1772,10 +1783,14 @@
   padding: 1.5rem 1.75rem;
   list-style: none;
   text-align: left;
-  max-height: 14rem;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--mat-sys-outline-variant) transparent;
+}
+
+.session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr));
+  gap: 0.6rem 0.8rem;
+  justify-items: center;
+  align-items: start;
 }
 
 .session-lobby__list-item {
@@ -1789,6 +1804,11 @@
   &:not(:last-child) {
     margin-bottom: 0.35rem;
   }
+}
+
+.session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) .session-lobby__list-item {
+  justify-content: center;
+  margin-bottom: 0;
 }
 
 .session-lobby__quiz-name {
@@ -1824,11 +1844,16 @@
   .session-lobby__list {
     padding: 1.25rem 1.35rem;
   }
+
+  .session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) {
+    grid-template-columns: repeat(auto-fill, minmax(4.1rem, 1fr));
+    gap: 0.45rem 0.6rem;
+  }
 }
 
 @media (min-width: 700px) {
   .session-lobby {
-    max-width: 68rem;
+    max-width: var(--session-host-shell-max-width);
   }
 
   .session-lobby__hero {
@@ -1874,8 +1899,12 @@
 // ---------------------------------------------------------------------------
 .session-host__run {
   --session-host-run-bleed: 1rem;
+  width: var(--session-host-shell-width);
+  max-width: 100%;
+  margin-inline: auto;
   padding-top: 0.25rem;
   padding-bottom: max(2.5rem, var(--host-mobile-safe-bottom));
+  padding-inline: 0;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -2089,7 +2118,8 @@
 /* --- Ergebnisseite (FINISHED) – Container & Hero --- */
 
 .session-host__results {
-  max-width: 42rem;
+  width: var(--session-host-shell-width);
+  max-width: 100%;
   margin: 0 auto;
   padding: 2rem 0 3rem;
   display: flex;
@@ -2738,10 +2768,10 @@
 }
 
 .session-host__question-card {
-  width: calc(100% + (2 * var(--session-host-run-bleed)));
-  max-width: calc(100% + (2 * var(--session-host-run-bleed)));
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
-  margin: 0 calc(-1 * var(--session-host-run-bleed)) 1rem;
+  margin: 0 0 1rem;
   min-width: 0;
   border-radius: var(--mat-sys-corner-large, 12px);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-outline-variant));
@@ -2778,10 +2808,10 @@
 }
 
 .session-host__results-wrap {
-  max-width: calc(100% + (2 * var(--session-host-run-bleed)));
-  margin-inline: calc(-1 * var(--session-host-run-bleed));
+  max-width: 100%;
+  margin-inline: 0;
   margin-bottom: 1.25rem;
-  width: calc(100% + (2 * var(--session-host-run-bleed)));
+  width: 100%;
 }
 
 .session-host__results-card {
