@@ -1760,9 +1760,11 @@
 
 .session-lobby__team-member:has(.session-lobby__nick-emoji--host-lobby),
 .session-lobby__list-item:has(.session-lobby__nick-emoji--host-lobby) {
-  padding: 0;
-  padding-block: 0.35rem;
-  min-height: auto;
+  display: grid;
+  place-items: center;
+  min-width: 6.25rem;
+  min-height: 6.25rem;
+  padding: 0.5rem;
   background: transparent;
   border-radius: 0;
   box-shadow: none;
@@ -1784,8 +1786,8 @@
 
 .session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr));
-  gap: 0.6rem 0.8rem;
+  grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+  gap: 1rem 1.2rem;
   justify-items: center;
   align-items: start;
 }

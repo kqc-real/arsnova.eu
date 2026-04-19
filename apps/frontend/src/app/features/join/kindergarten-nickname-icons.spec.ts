@@ -4,11 +4,18 @@ import {
   findKindergartenNicknameIndex,
   KINDERGARTEN_NICKNAME_EMOJIS,
 } from './kindergarten-nickname-icons';
-import { NICKNAME_LISTS } from './nickname-themes';
+import { NICKNAME_LISTS, NICKNAME_LISTS_BY_LOCALE } from './nickname-themes';
 
 describe('kindergarten-nickname-icons', () => {
   it('hat pro Kindergarten-Eintrag ein Emoji', () => {
     expect(KINDERGARTEN_NICKNAME_EMOJIS.length).toBe(NICKNAME_LISTS.KINDERGARTEN.length);
+  });
+
+  it('hat in allen Locales nur eindeutige Kindergarten-Namen', () => {
+    for (const localeLists of Object.values(NICKNAME_LISTS_BY_LOCALE)) {
+      const names = localeLists.KINDERGARTEN;
+      expect(new Set(names).size).toBe(names.length);
+    }
   });
 
   it('findet Index und Emoji für deutsche und englische Labels', () => {

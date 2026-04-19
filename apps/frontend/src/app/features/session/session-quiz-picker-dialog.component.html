@@ -1,0 +1,67 @@
+<h2 mat-dialog-title class="dialog-title-header session-quiz-picker__title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>library_books</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@sessionQuizPicker.title">
+      Quiz auswählen
+    </span>
+    <span class="dialog-title-header__sub" i18n="@@sessionQuizPicker.intro">
+      Wähle ein Quiz, das zum aktuellen Onboarding-Profil deiner Teilnehmenden passt:
+    </span>
+  </span>
+</h2>
+
+<mat-dialog-content class="session-quiz-picker__content">
+  @if (profileSummary(); as profileSummary) {
+    <section class="session-quiz-picker__profile-card" role="note">
+      <mat-icon class="session-quiz-picker__profile-icon" aria-hidden="true">badge</mat-icon>
+      <div class="session-quiz-picker__profile-copy">
+        <p class="session-quiz-picker__profile-heading" i18n="@@sessionQuizPicker.profileHeading">
+          Aktuelles Onboarding-Profil der Teilnehmenden
+        </p>
+        <p class="session-quiz-picker__profile-text">{{ profileSummary }}</p>
+      </div>
+    </section>
+  }
+
+  @if (quizzes.length === 0) {
+    <section class="session-quiz-picker__empty-state" role="alert" aria-live="polite">
+      <mat-icon class="session-quiz-picker__empty-icon" aria-hidden="true">warning_amber</mat-icon>
+      <div class="session-quiz-picker__empty-copy">
+        <p class="session-quiz-picker__empty-heading" i18n="@@sessionQuizPicker.empty">
+          Zum aktuellen Onboarding-Profil deiner Teilnehmenden passt aktuell kein Quiz aus deiner
+          Sammlung.
+        </p>
+      </div>
+    </section>
+  } @else {
+    <div class="session-quiz-picker__list" role="list">
+      @for (quiz of quizzes; track quiz.id) {
+        <button
+          mat-button
+          type="button"
+          class="session-quiz-picker__item"
+          role="listitem"
+          (click)="pick(quiz.id)"
+        >
+          <span class="session-quiz-picker__item-row">
+            <span class="session-quiz-picker__item-main">
+              <span class="session-quiz-picker__item-name">{{ quiz.name }}</span>
+              <span class="session-quiz-picker__item-meta">{{ quizMetaLabel(quiz) }}</span>
+            </span>
+            <mat-icon class="session-quiz-picker__item-icon" aria-hidden="true"
+              >play_arrow</mat-icon
+            >
+          </span>
+        </button>
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close i18n="@@sessionQuizPicker.cancel">
+    Abbrechen
+  </button>
+</mat-dialog-actions>

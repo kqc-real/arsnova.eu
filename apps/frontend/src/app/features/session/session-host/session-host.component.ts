@@ -2080,6 +2080,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       width: '36rem',
       maxWidth: 'calc(100vw - 1.5rem)',
       autoFocus: false,
+      panelClass: 'session-quiz-picker-dialog-panel',
+      backdropClass: 'session-quiz-picker-dialog-backdrop',
       data: {
         quizzes,
         sessionProfile: this.getSessionOnboardingProfile(),

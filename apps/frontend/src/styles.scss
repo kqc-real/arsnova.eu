@@ -516,6 +516,22 @@ html {
   margin: 0 !important;
 }
 
+.cdk-overlay-backdrop.session-quiz-picker-dialog-backdrop {
+  background: color-mix(in srgb, var(--mat-sys-scrim) 38%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cdk-overlay-backdrop.session-quiz-picker-dialog-backdrop {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+.cdk-overlay-pane.session-quiz-picker-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  box-shadow: var(--mat-sys-level3);
+}
+
 .cdk-overlay-backdrop.markdown-image-lightbox-dialog-backdrop {
   background: rgb(7 10 16 / 88%);
   backdrop-filter: blur(8px);
