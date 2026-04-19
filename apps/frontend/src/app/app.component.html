@@ -90,6 +90,7 @@
     id="main-content"
     class="app-main app-main--toolbar-fixed"
     [class.app-main--immersive-host]="isImmersiveHostView()"
+    [class.app-main--toolbar-hidden]="toolbarHidden() && !isImmersiveHostView()"
     role="main"
   >
     <div

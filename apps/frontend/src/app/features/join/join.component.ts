@@ -332,6 +332,13 @@ export class JoinComponent implements OnInit, OnDestroy {
     this.selectedTeamId.set(teamId);
   }
 
+  private getStoredRejoinToken(): string | undefined {
+    if (typeof localStorage === 'undefined') {
+      return undefined;
+    }
+    return localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? undefined;
+  }
+
   private async joinAnonymous(session: SessionInfoDTO): Promise<void> {
     this.joining.set(true);
     try {
@@ -340,6 +347,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         code: this.code,
         nickname,
         teamId: this.selectedTeamId().trim() || undefined,
+        rejoinToken: this.getStoredRejoinToken(),
       });
       recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
@@ -367,6 +375,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         code: this.code,
         nickname: nickname.slice(0, 30),
         teamId: this.selectedTeamId().trim() || undefined,
+        rejoinToken: this.getStoredRejoinToken(),
       });
       recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {

@@ -12,15 +12,29 @@ const { hasHostTokenMock, normalizeHostSessionCodeMock } = vi.hoisted(() => ({
   normalizeHostSessionCodeMock: vi.fn((code: string) => code.trim().toUpperCase()),
 }));
 
+const { clearHostTokenMock, getParticipantsQueryMock } = vi.hoisted(() => ({
+  clearHostTokenMock: vi.fn(),
+  getParticipantsQueryMock: vi.fn(),
+}));
+
 vi.mock('./core/feedback-host-token', () => ({
   hasFeedbackHostToken: hasFeedbackHostTokenMock,
   normalizeFeedbackCode: normalizeFeedbackCodeMock,
 }));
 
 vi.mock('./core/host-session-token', () => ({
+  clearHostToken: clearHostTokenMock,
   getSessionEntryCommands: vi.fn((code: string) => ['join', code.trim().toUpperCase()]),
   hasHostToken: hasHostTokenMock,
   normalizeHostSessionCode: normalizeHostSessionCodeMock,
+}));
+
+vi.mock('./core/trpc.client', () => ({
+  trpc: {
+    session: {
+      getParticipants: { query: getParticipantsQueryMock },
+    },
+  },
 }));
 
 import { routes } from './app.routes';
@@ -67,6 +81,7 @@ function createChildRouteSnapshot(parentCode: string): ActivatedRouteSnapshot {
 describe('app routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
     TestBed.configureTestingModule({
       providers: [provideRouter([])],
     });
@@ -99,15 +114,16 @@ describe('app routes', () => {
     );
   });
 
-  it('erlaubt die Session-Host-Route mit gespeichertem Host-Token', () => {
+  it('erlaubt die Session-Host-Route mit gültigem gespeichertem Host-Token', async () => {
     hasHostTokenMock.mockReturnValue(true);
     const guard = findChildRoute('session/:code', 'host').canActivate?.[0] as CanActivateFn;
 
-    const result = TestBed.runInInjectionContext(() =>
+    const result = await TestBed.runInInjectionContext(() =>
       guard(createChildRouteSnapshot('abc123'), {} as never),
     );
 
     expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');
+    expect(getParticipantsQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(result).toBe(true);
   });
 
@@ -121,6 +137,22 @@ describe('app routes', () => {
     );
 
     expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');
+    expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe('/join/ABC123');
+  });
+
+  it('räumt einen ungültigen gespeicherten Host-Token weg und leitet auf Join um', async () => {
+    hasHostTokenMock.mockReturnValue(true);
+    getParticipantsQueryMock.mockRejectedValue(
+      new Error('UNAUTHORIZED: Host-Authentifizierung erforderlich.'),
+    );
+    const guard = findChildRoute('session/:code', 'host').canActivate?.[0] as CanActivateFn;
+    const router = TestBed.inject(Router);
+
+    const result = await TestBed.runInInjectionContext(() =>
+      guard(createChildRouteSnapshot('abc123'), {} as never),
+    );
+
+    expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
     expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe('/join/ABC123');
   });
 });

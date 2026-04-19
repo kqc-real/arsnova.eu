@@ -440,7 +440,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async startHeroHostSession(tab: 'qa' | 'quickFeedback'): Promise<void> {
     try {
-      const onboardingProfile = createDefaultLiveSessionOnboardingProfile();
+      const onboardingProfile = createDefaultLiveSessionOnboardingProfile(
+        this.themePreset.preset(),
+      );
       const result =
         tab === 'qa'
           ? await trpc.session.create.mutate({

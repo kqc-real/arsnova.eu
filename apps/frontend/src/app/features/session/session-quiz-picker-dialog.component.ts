@@ -9,16 +9,13 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import type { NicknameTheme, TeamAssignment } from '@arsnova/shared-types';
+import type { TeamAssignment } from '@arsnova/shared-types';
 import type { QuizSummary } from '../quiz/data/quiz-store.service';
 
 export interface SessionQuizPickerProfile {
-  nicknameTheme: NicknameTheme;
-  allowCustomNicknames: boolean;
-  anonymousMode: boolean;
   teamMode: boolean;
-  teamCount: number | null;
-  teamAssignment: TeamAssignment;
+  teamCount?: number | null;
+  teamAssignment?: TeamAssignment;
 }
 
 export interface SessionQuizPickerDialogData {
@@ -53,9 +50,7 @@ export class SessionQuizPickerDialogComponent {
     if (!profile) {
       return null;
     }
-
-    const parts = [this.nameModeLabel(profile), this.teamModeLabel(profile)];
-    return parts.join(' ');
+    return this.teamModeLabel(profile);
   }
 
   quizMetaLabel(quiz: QuizSummary): string {
@@ -64,44 +59,10 @@ export class SessionQuizPickerDialogComponent {
       : $localize`:@@sessionQuizPicker.questionCountMany:${quiz.questionCount}:count: Fragen`;
   }
 
-  private nameModeLabel(profile: SessionQuizPickerProfile): string {
-    if (profile.anonymousMode) {
-      return $localize`:@@sessionQuizPicker.nameModeAnonymous:Anonyme Teilnahme.`;
-    }
-    if (profile.allowCustomNicknames) {
-      return $localize`:@@sessionQuizPicker.nameModeCustom:Freie Nicknames sind erlaubt.`;
-    }
-    if (profile.nicknameTheme === 'KINDERGARTEN') {
-      return $localize`:@@sessionQuizPicker.nameModeKindergarten:Feste Tier-Emojis als Pseudonyme.`;
-    }
-    return $localize`:@@sessionQuizPicker.nameModeTheme:Feste Pseudonyme aus ${this.nicknameThemeLabel(profile.nicknameTheme)}.`;
-  }
-
   private teamModeLabel(profile: SessionQuizPickerProfile): string {
     if (!profile.teamMode) {
       return $localize`:@@sessionQuizPicker.teamsDisabled:Teams sind nicht möglich.`;
     }
-    const count = profile.teamCount ?? 2;
-    const assignment =
-      profile.teamAssignment === 'MANUAL'
-        ? $localize`:@@sessionQuizPicker.teamAssignmentManual:manuelle Teamwahl`
-        : $localize`:@@sessionQuizPicker.teamAssignmentAuto:automatische Teamzuweisung`;
-    return $localize`:@@sessionQuizPicker.teamModeHint:Teams sind aktiv (${count} Teams, ${assignment}).`;
-  }
-
-  private nicknameThemeLabel(theme: NicknameTheme): string {
-    switch (theme) {
-      case 'NOBEL_LAUREATES':
-        return $localize`:@@sessionQuizPicker.nicknameThemeNobel:Nobelpreis`;
-      case 'KINDERGARTEN':
-        return $localize`:@@sessionQuizPicker.nicknameThemeKindergarten:Kindergarten`;
-      case 'PRIMARY_SCHOOL':
-        return $localize`:@@sessionQuizPicker.nicknameThemePrimary:Grundschule`;
-      case 'MIDDLE_SCHOOL':
-        return $localize`:@@sessionQuizPicker.nicknameThemeMiddle:Mittelstufe`;
-      case 'HIGH_SCHOOL':
-      default:
-        return $localize`:@@sessionQuizPicker.nicknameThemeHigh:Oberstufe`;
-    }
+    return $localize`:@@sessionQuizPicker.teamModeHint:Teams sind aktiv.`;
   }
 }

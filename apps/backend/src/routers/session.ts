@@ -605,42 +605,7 @@ function areSessionOnboardingProfilesCompatible(
   sessionProfile: SessionOnboardingProfile,
   quizProfile: SessionOnboardingProfile,
 ): boolean {
-  if (sessionProfile.anonymousMode !== quizProfile.anonymousMode) {
-    return false;
-  }
-
-  if (!sessionProfile.anonymousMode) {
-    if (sessionProfile.allowCustomNicknames !== quizProfile.allowCustomNicknames) {
-      return false;
-    }
-    if (
-      sessionProfile.allowCustomNicknames === false &&
-      sessionProfile.nicknameTheme !== quizProfile.nicknameTheme
-    ) {
-      return false;
-    }
-  }
-
-  if (sessionProfile.teamMode !== quizProfile.teamMode) {
-    return false;
-  }
-  if (!sessionProfile.teamMode) {
-    return true;
-  }
-
-  if (sessionProfile.teamAssignment !== quizProfile.teamAssignment) {
-    return false;
-  }
-  if (
-    (sessionProfile.teamCount ?? DEFAULT_TEAM_COUNT) !==
-    (quizProfile.teamCount ?? DEFAULT_TEAM_COUNT)
-  ) {
-    return false;
-  }
-
-  const sessionTeamNames = buildEffectiveTeamNames(sessionProfile);
-  const quizTeamNames = buildEffectiveTeamNames(quizProfile);
-  return sessionTeamNames.every((name, index) => name === quizTeamNames[index]);
+  return sessionProfile.teamMode === quizProfile.teamMode;
 }
 
 async function ensureSessionTeams(
@@ -1318,7 +1283,7 @@ export const sessionRouter = router({
       ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Dieses Quiz passt nicht zum Onboarding-Profil der laufenden Session.',
+          message: 'Dieses Quiz passt nicht zur Teamsituation der laufenden Session.',
         });
       }
       const existingParticipantsForManualTeams =
@@ -2753,8 +2718,34 @@ export const sessionRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
       }
       const onboardingProfile = resolveSessionOnboardingProfile(session, session.quiz);
+      const trimmedNickname = input.nickname.trim().slice(0, 30);
       let assignedTeamId: string | undefined;
       let assignedTeamName: string | null = null;
+      let participantId: string | null = null;
+
+      if (input.rejoinToken) {
+        const existingParticipant = await prisma.participant.findFirst({
+          where: {
+            id: input.rejoinToken,
+            sessionId: session.id,
+          },
+          select: {
+            id: true,
+            teamId: true,
+            team: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        });
+        if (existingParticipant) {
+          participantId = existingParticipant.id;
+          assignedTeamId = existingParticipant.teamId ?? undefined;
+          assignedTeamName = existingParticipant.team?.name ?? null;
+        }
+      }
+
       if (onboardingProfile.teamMode) {
         const teams = await ensureSessionTeams(
           session.id,
@@ -2769,16 +2760,18 @@ export const sessionRouter = router({
         }
 
         if (onboardingProfile.teamAssignment === 'MANUAL') {
-          if (!input.teamId) {
+          if (!participantId && !input.teamId) {
             throw new TRPCError({ code: 'BAD_REQUEST', message: 'Bitte wähle ein Team aus.' });
           }
-          const selectedTeam = teams.find((team) => team.id === input.teamId);
-          if (!selectedTeam) {
-            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ungültiges Team.' });
+          if (!participantId) {
+            const selectedTeam = teams.find((team) => team.id === input.teamId);
+            if (!selectedTeam) {
+              throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ungültiges Team.' });
+            }
+            assignedTeamId = selectedTeam.id;
+            assignedTeamName = selectedTeam.name;
           }
-          assignedTeamId = selectedTeam.id;
-          assignedTeamName = selectedTeam.name;
-        } else {
+        } else if (!participantId) {
           const participantIndex = session._count.participants;
           const teamIndex = participantIndex % teams.length;
           const autoTeam = teams[teamIndex]!;
@@ -2786,26 +2779,37 @@ export const sessionRouter = router({
           assignedTeamName = autoTeam.name;
         }
       }
-      const participant = await prisma.participant
-        .create({
-          data: {
-            sessionId: session.id,
-            nickname: input.nickname.trim().slice(0, 30),
-            teamId: assignedTeamId,
-          },
-        })
-        .catch(() => {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Dieser Nickname ist in dieser Session bereits vergeben.',
+
+      if (!participantId) {
+        const participant = await prisma.participant
+          .create({
+            data: {
+              sessionId: session.id,
+              nickname: trimmedNickname,
+              teamId: assignedTeamId,
+            },
+          })
+          .catch(() => {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Dieser Nickname ist in dieser Session bereits vergeben.',
+            });
           });
+        participantId = participant.id;
+      }
+      if (!participantId) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Teilnehmende konnten nicht vorbereitet werden.',
         });
+      }
+
       // Nach Create zählen (nicht _count+1): bei gleichzeitigen Joins ist der Anfangssnapshot sonst zu niedrig — Rekord/Response falsch.
       const newParticipantCount = await prisma.participant.count({
         where: { sessionId: session.id },
       });
       void updateMaxParticipantsSingleSession(newParticipantCount);
-      void touchParticipantPresence(session.id, participant.id);
+      void touchParticipantPresence(session.id, participantId);
       const serverTime = new Date().toISOString();
       return {
         id: session.id,
@@ -2825,7 +2829,8 @@ export const sessionRouter = router({
         teamCount: onboardingProfile.teamCount,
         teamAssignment: onboardingProfile.teamMode ? onboardingProfile.teamAssignment : null,
         teamNames: onboardingProfile.teamMode ? buildEffectiveTeamNames(onboardingProfile) : [],
-        participantId: participant.id,
+        participantId,
+        rejoinToken: participantId,
         teamId: assignedTeamId ?? null,
         teamName: assignedTeamName,
       };

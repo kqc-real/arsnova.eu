@@ -735,6 +735,64 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('zieht verspätete Clients bei laufender Quizfrage nicht aus dem Quiz in den Blitzlicht-Kanal', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      timer: 60,
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 3,
+      answers: [
+        { id: 'a1', text: 'Rot' },
+        { id: 'a2', text: 'Blau' },
+      ],
+      activeAt: MOCK_SERVER_TIME,
+      participantCount: 6,
+      totalVotes: 1,
+      currentRound: 1,
+    });
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 3,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.currentQuestion()).not.toBeNull();
+      },
+      { timeout: 3000, interval: 10 },
+    );
+
+    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
+    fixture.destroy();
+  });
+
   it('erzwingt Quiz-Kanal nur in Lesephase und Abstimmung, nicht in Ergebnisphase', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

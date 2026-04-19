@@ -11199,7 +11199,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.teamModeHint" datatype="html">
-        <source>Teams sind aktiv (<x id="PH" equiv-text="count"/> Teams, <x id="PH_1" equiv-text="assignment"/>).</source>
+        <source>Teams sind aktiv.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
           <context context-type="linenumber">245</context>

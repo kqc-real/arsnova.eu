@@ -8,11 +8,13 @@ import {
 } from '@angular/router';
 import { hasFeedbackHostToken, normalizeFeedbackCode } from './core/feedback-host-token';
 import {
+  clearHostToken,
   getSessionEntryCommands,
   hasHostToken,
   normalizeHostSessionCode,
 } from './core/host-session-token';
 import { localizeCommands } from './core/locale-router';
+import { trpc } from './core/trpc.client';
 import type { SessionHostComponent } from './features/session/session-host/session-host.component';
 import { newsArchivePageResolver } from './features/news-archive/news-archive-page.resolver';
 
@@ -40,17 +42,29 @@ const redirectSessionEntry: CanActivateFn = (route) => {
 };
 
 const requireHostToken: CanActivateFn = (route) => {
+  const router = inject(Router);
   const codeParam = getCodeParamFromRoute(route);
   if (!codeParam) {
-    return inject(Router).createUrlTree(localizeCommands(['']));
+    return router.createUrlTree(localizeCommands(['']));
   }
 
   const code = normalizeHostSessionCode(codeParam);
-  if (hasHostToken(code)) {
-    return true;
+  if (!hasHostToken(code)) {
+    return router.createUrlTree(localizeCommands(['join', code]));
   }
 
-  return inject(Router).createUrlTree(localizeCommands(['join', code]));
+  return trpc.session.getParticipants
+    .query({ code })
+    .then(() => true)
+    .catch((error: unknown) => {
+      const message =
+        error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+      if (message.startsWith('UNAUTHORIZED:') || message.startsWith('NOT_FOUND:')) {
+        clearHostToken(code);
+        return router.createUrlTree(localizeCommands(['join', code]));
+      }
+      return true;
+    });
 };
 
 const requireFeedbackHostToken: CanActivateFn = (route) => {

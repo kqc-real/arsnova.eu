@@ -20,6 +20,13 @@ const mockSession = {
   allowCustomNicknames: true,
 };
 
+const { participantIds } = vi.hoisted(() => ({
+  participantIds: {
+    current: '11111111-1111-4111-8111-111111111111',
+    existing: '22222222-2222-4222-8222-222222222222',
+  },
+}));
+
 vi.mock('../../core/trpc.client', () => ({
   trpc: {
     session: {
@@ -50,7 +57,8 @@ vi.mock('../../core/trpc.client', () => ({
           quizName: 'Test-Quiz',
           title: null,
           participantCount: 6,
-          participantId: 'part-1',
+          participantId: participantIds.current,
+          rejoinToken: participantIds.current,
         }),
       },
     },
@@ -59,6 +67,7 @@ vi.mock('../../core/trpc.client', () => ({
 
 describe('JoinComponent', () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue(mockSession);
     vi.mocked(trpc.session.getTeams.query).mockResolvedValue({ teams: [], teamCount: 0 });
     vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
@@ -67,7 +76,8 @@ describe('JoinComponent', () => {
     });
     vi.mocked(trpc.session.join.mutate).mockResolvedValue({
       ...mockSession,
-      participantId: 'part-1',
+      participantId: participantIds.current,
+      rejoinToken: participantIds.current,
     });
     TestBed.configureTestingModule({
       imports: [JoinComponent],
@@ -246,8 +256,28 @@ describe('JoinComponent', () => {
     expect(trpc.session.join.mutate).toHaveBeenCalledWith({
       code: 'ABC123',
       nickname: 'Ada Yonath',
+      rejoinToken: undefined,
     });
     expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
+  });
+
+  it('sendet vorhandenen Teilnehmer-Schlüssel als rejoinToken mit', async () => {
+    localStorage.setItem('arsnova-participant-ABC123', participantIds.existing);
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    comp.selectedNickname.set('Ada Yonath');
+    await comp.submitJoin();
+    await fixture.whenStable();
+
+    expect(trpc.session.join.mutate).toHaveBeenCalledWith({
+      code: 'ABC123',
+      nickname: 'Ada Yonath',
+      rejoinToken: participantIds.existing,
+    });
   });
 
   it('zeigt Teamauswahl bei manuellem Teammodus', async () => {
@@ -303,6 +333,7 @@ describe('JoinComponent', () => {
       code: 'ABC123',
       nickname: 'Ada',
       teamId: 'team-b',
+      rejoinToken: undefined,
     });
     expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
   });

@@ -12569,8 +12569,8 @@
         <target>assegnazione automatica della squadra</target>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.teamModeHint" datatype="html">
-        <source>Teams sind aktiv (<x id="PH" equiv-text="count"/> Teams, <x id="PH_1" equiv-text="assignment"/>).</source>
-        <target>Le squadre sono attive (<x id="PH" equiv-text="count"/> squadre, <x id="PH_1" equiv-text="assignment"/>).</target>
+        <source>Teams sind aktiv.</source>
+        <target>Le squadre sono attive.</target>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.nicknameThemeNobel" datatype="html">
         <source>Nobelpreis</source>

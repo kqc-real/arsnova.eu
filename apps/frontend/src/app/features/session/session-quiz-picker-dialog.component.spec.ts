@@ -13,12 +13,7 @@ describe('SessionQuizPickerDialogComponent', () => {
           provide: MAT_DIALOG_DATA,
           useValue: {
             sessionProfile: {
-              nicknameTheme: 'KINDERGARTEN',
-              allowCustomNicknames: false,
-              anonymousMode: false,
               teamMode: false,
-              teamCount: null,
-              teamAssignment: 'AUTO',
             },
             quizzes: [
               {
@@ -69,10 +64,9 @@ describe('SessionQuizPickerDialogComponent', () => {
     expect(title).toBeTruthy();
     expect(host.textContent).toContain('Quiz auswählen');
     expect(host.textContent).toContain(
-      'Wähle ein Quiz, das zum aktuellen Onboarding-Profil deiner Teilnehmenden passt:',
+      'Wähle ein Quiz, das zur aktuellen Teamsituation deiner Teilnehmenden passt:',
     );
-    expect(host.textContent).toContain('Aktuelles Onboarding-Profil der Teilnehmenden');
-    expect(host.textContent).toContain('Feste Tier-Emojis als Pseudonyme.');
+    expect(host.textContent).toContain('Aktuelle Teamsituation der Teilnehmenden');
     expect(host.textContent).toContain('Teams sind nicht möglich.');
   });
 
@@ -115,7 +109,7 @@ describe('SessionQuizPickerDialogComponent', () => {
 
     expect(host.querySelector('.session-quiz-picker__empty-state')).toBeTruthy();
     expect(host.textContent).toContain(
-      'Zum aktuellen Onboarding-Profil deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung.',
+      'Zur aktuellen Teamsituation deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung.',
     );
   });
 });

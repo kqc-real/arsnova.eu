@@ -549,6 +549,7 @@ export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   nickname: z.string().min(1).max(30),
   teamId: z.uuid().optional(),
+  rejoinToken: z.uuid().optional(),
 });
 export type JoinSessionInput = z.infer<typeof JoinSessionInputSchema>;
 
@@ -720,6 +721,7 @@ export type SessionInfoDTO = z.infer<typeof SessionInfoDTOSchema>;
 /** Output: Nach Join (Session-Info + eigene Participant-ID für vote.submit). */
 export const JoinSessionOutputSchema = SessionInfoDTOSchema.extend({
   participantId: z.uuid(),
+  rejoinToken: z.uuid(),
   teamId: z.uuid().nullable().optional(),
   teamName: z.string().nullable().optional(),
 });

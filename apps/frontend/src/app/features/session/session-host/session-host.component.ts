@@ -2132,49 +2132,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     sessionProfile: SessionOnboardingProfile,
     quizProfile: SessionOnboardingProfile,
   ): boolean {
-    if (sessionProfile.anonymousMode !== quizProfile.anonymousMode) {
-      return false;
-    }
-    if (!sessionProfile.anonymousMode) {
-      if (sessionProfile.allowCustomNicknames !== quizProfile.allowCustomNicknames) {
-        return false;
-      }
-      if (
-        sessionProfile.allowCustomNicknames === false &&
-        sessionProfile.nicknameTheme !== quizProfile.nicknameTheme
-      ) {
-        return false;
-      }
-    }
-    if (sessionProfile.teamMode !== quizProfile.teamMode) {
-      return false;
-    }
-    if (!sessionProfile.teamMode) {
-      return true;
-    }
-    if (sessionProfile.teamAssignment !== quizProfile.teamAssignment) {
-      return false;
-    }
-    if ((sessionProfile.teamCount ?? 2) !== (quizProfile.teamCount ?? 2)) {
-      return false;
-    }
-
-    const sessionTeamNames = this.effectiveTeamNames(sessionProfile);
-    const quizTeamNames = this.effectiveTeamNames(quizProfile);
-    return sessionTeamNames.every((name, index) => name === quizTeamNames[index]);
-  }
-
-  private effectiveTeamNames(profile: SessionOnboardingProfile): string[] {
-    if (!profile.teamMode) {
-      return [];
-    }
-    const count = profile.teamCount ?? 2;
-    return Array.from({ length: count }, (_, index) => {
-      const configured = profile.teamNames[index]?.trim();
-      return configured && configured.length > 0
-        ? configured
-        : `Team ${String.fromCharCode(65 + index)}`;
-    });
+    return sessionProfile.teamMode === quizProfile.teamMode;
   }
 
   private async enableChannel(

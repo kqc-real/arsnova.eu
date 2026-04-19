@@ -23,6 +23,7 @@
 /* Platz für fixierte Toolbar (Top-Inset 0.5rem/0.75rem/1rem + Toolbar-Höhe). */
 .app-main--toolbar-fixed {
   padding-top: 4rem;
+  --vote-channel-tabs-desktop-top: 6.75rem;
 }
 
 .app-main--immersive-host {
@@ -31,11 +32,29 @@
 @media (min-width: 600px) {
   .app-main--toolbar-fixed {
     padding-top: 4.5rem;
+    --vote-channel-tabs-desktop-top: 7.25rem;
   }
 }
 @media (min-width: 840px) {
   .app-main--toolbar-fixed {
     padding-top: 5rem;
+    --vote-channel-tabs-desktop-top: 7.75rem;
+  }
+}
+
+.app-main--toolbar-hidden {
+  --vote-channel-tabs-desktop-top: 0.5rem;
+}
+
+@media (min-width: 600px) {
+  .app-main--toolbar-hidden {
+    --vote-channel-tabs-desktop-top: 0.75rem;
+  }
+}
+
+@media (min-width: 840px) {
+  .app-main--toolbar-hidden {
+    --vote-channel-tabs-desktop-top: 1rem;
   }
 }
 

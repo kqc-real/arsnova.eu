@@ -302,6 +302,36 @@ describe('HomeComponent', () => {
       expect(comp.joinError()).toBeNull();
     });
 
+    it('startet im seriösen Preset eine neue Q&A-Host-Session mit Oberstufen-Pseudonymen', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qa',
+        code: 'QA5678',
+        hostToken: 'qa-host-token-2',
+      });
+
+      const comp = createHomeComponent();
+      comp.themePreset.setPreset('serious');
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({
+        type: 'QUIZ',
+        qaEnabled: true,
+        nicknameTheme: 'HIGH_SCHOOL',
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA5678/host?tab=qa');
+      expect(comp.joinError()).toBeNull();
+    });
+
     it('startet ohne vorhandenen Code eine neue Blitzlicht-Host-Session', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
@@ -328,6 +358,36 @@ describe('HomeComponent', () => {
         teamNames: [],
       });
       expect(navigateSpy).toHaveBeenCalledWith('/session/QF1234/host?tab=quickFeedback');
+      expect(comp.joinError()).toBeNull();
+    });
+
+    it('startet im seriösen Preset eine neue Blitzlicht-Host-Session mit Oberstufen-Pseudonymen', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qf',
+        code: 'QF5678',
+        hostToken: 'qf-host-token-2',
+      });
+
+      const comp = createHomeComponent();
+      comp.themePreset.setPreset('serious');
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('quickFeedback');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({
+        type: 'QUIZ',
+        quickFeedbackEnabled: true,
+        nicknameTheme: 'HIGH_SCHOOL',
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QF5678/host?tab=quickFeedback');
       expect(comp.joinError()).toBeNull();
     });
   });

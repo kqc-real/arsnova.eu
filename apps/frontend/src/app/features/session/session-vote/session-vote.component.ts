@@ -1218,10 +1218,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const quizContentVisible =
+      visible.includes('quiz') &&
+      this.currentQuestion() !== null &&
+      (this.status() === 'QUESTION_OPEN' ||
+        this.status() === 'ACTIVE' ||
+        this.status() === 'DISCUSSION' ||
+        this.status() === 'RESULTS');
     const quickFeedbackRoundVisible =
       visible.includes('quickFeedback') &&
       this.isQuickFeedbackChannelOpen() &&
-      this.quickFeedbackResult() !== null;
+      this.quickFeedbackResult() !== null &&
+      !quizContentVisible;
     const qaRoundVisible =
       visible.includes('qa') &&
       this.isQaChannelOpen() &&

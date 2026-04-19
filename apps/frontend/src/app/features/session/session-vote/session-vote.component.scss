@@ -115,7 +115,7 @@
 
 .session-channel-tabs-shell {
   position: fixed;
-  top: 6.75rem;
+  top: var(--vote-channel-tabs-desktop-top, 6.75rem);
   left: 50%;
   transform: translateX(-50%);
   z-index: 8;
@@ -187,7 +187,6 @@
   }
 
   .session-channel-tabs-shell {
-    top: 7.25rem;
     max-width: calc(100% - 3rem);
   }
 }
@@ -198,7 +197,6 @@
   }
 
   .session-channel-tabs-shell {
-    top: 7.75rem;
     max-width: calc(100% - 4rem);
   }
 }

@@ -82,6 +82,8 @@
     var(--session-host-shell-max-width),
     calc(100vw - (2 * var(--session-host-shell-inline)))
   );
+  --session-host-channel-tabs-offset: 50px;
+  --session-host-channel-tabs-offset-immersive: 0.5rem;
   --session-host-zone-gap: 0.875rem;
   --session-host-toolbar-clearance: calc(env(safe-area-inset-top, 0px) + 4.25rem);
   --session-host-float-top: 0.75rem;
@@ -95,17 +97,23 @@
 @media (min-width: 600px) {
   .session-host {
     --session-host-shell-inline: 1.5rem;
+    --session-host-channel-tabs-offset-immersive: 0.75rem;
   }
 }
 
 @media (min-width: 840px) {
   .session-host {
     --session-host-shell-inline: 2rem;
+    --session-host-channel-tabs-offset-immersive: 1rem;
   }
 }
 
 .session-host--with-channel-tabs {
   --session-host-tabs-height: 3.5rem;
+}
+
+.session-host--immersive {
+  --session-host-channel-tabs-offset: var(--session-host-channel-tabs-offset-immersive);
 }
 
 .session-host--with-channel-tabs .session-host__live-banner {
@@ -197,7 +205,7 @@
   gap: 0.45rem;
   width: var(--session-host-shell-width);
   max-width: 100%;
-  margin-top: 50px;
+  margin-top: var(--session-host-channel-tabs-offset);
   box-sizing: border-box;
   margin-inline: auto;
 }
@@ -252,7 +260,10 @@
     gap: var(--host-mobile-toolbar-gap);
     width: var(--session-host-shell-width);
     max-width: 100%;
-    margin: 0 auto var(--host-mobile-toolbar-gap);
+    margin-top: var(--session-host-channel-tabs-offset);
+    margin-right: auto;
+    margin-bottom: var(--host-mobile-toolbar-gap);
+    margin-left: auto;
   }
 
   .session-channel-tabs {

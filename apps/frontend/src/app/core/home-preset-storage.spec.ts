@@ -28,9 +28,21 @@ describe('home-preset-storage', () => {
     );
   });
 
-  it('liefert für quizlose Live-Sessions feste Tier-Pseudonyme ohne Teammodus', () => {
-    expect(createDefaultLiveSessionOnboardingProfile()).toEqual({
+  it('liefert im spielerischen Preset feste Tier-Pseudonyme ohne Teammodus', () => {
+    expect(createDefaultLiveSessionOnboardingProfile('spielerisch')).toEqual({
       nicknameTheme: 'KINDERGARTEN',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: 'AUTO',
+      teamNames: [],
+    });
+  });
+
+  it('liefert im seriösen Preset Oberstufen-Pseudonyme ohne Teammodus', () => {
+    expect(createDefaultLiveSessionOnboardingProfile('serious')).toEqual({
+      nicknameTheme: 'HIGH_SCHOOL',
       allowCustomNicknames: false,
       anonymousMode: false,
       teamMode: false,

@@ -31,9 +31,11 @@ export interface HomePresetOnboardingProfile {
   teamNames: string[];
 }
 
-export function createDefaultLiveSessionOnboardingProfile(): HomePresetOnboardingProfile {
+export function createDefaultLiveSessionOnboardingProfile(
+  bucket: HomeToolbarPreset = 'spielerisch',
+): HomePresetOnboardingProfile {
   return {
-    nicknameTheme: 'KINDERGARTEN',
+    nicknameTheme: bucket === 'serious' ? 'HIGH_SCHOOL' : 'KINDERGARTEN',
     allowCustomNicknames: false,
     anonymousMode: false,
     teamMode: false,

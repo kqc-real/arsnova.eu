@@ -12630,8 +12630,8 @@
         <target>automatic team assignment</target>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.teamModeHint" datatype="html">
-        <source>Teams sind aktiv (<x id="PH" equiv-text="count"/> Teams, <x id="PH_1" equiv-text="assignment"/>).</source>
-        <target>Teams are active (<x id="PH" equiv-text="count"/> teams, <x id="PH_1" equiv-text="assignment"/>).</target>
+        <source>Teams sind aktiv.</source>
+        <target>Teams are active.</target>
       </trans-unit>
       <trans-unit id="sessionQuizPicker.nicknameThemeNobel" datatype="html">
         <source>Nobelpreis</source>

@@ -98,9 +98,9 @@ describe('session.attachQuizToSession', () => {
     });
     prismaMock.quiz.findUnique.mockResolvedValue({
       id: QUIZ_ID,
-      nicknameTheme: 'HIGH_SCHOOL',
-      allowCustomNicknames: false,
-      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+      allowCustomNicknames: true,
+      anonymousMode: true,
       teamMode: false,
       teamCount: null,
       teamAssignment: 'AUTO',
@@ -259,7 +259,7 @@ describe('session.attachQuizToSession', () => {
       caller.attachQuizToSession({ code: 'ABC123', quizId: QUIZ_ID }),
     ).rejects.toMatchObject({
       code: 'BAD_REQUEST',
-      message: 'Dieses Quiz passt nicht zum Onboarding-Profil der laufenden Session.',
+      message: 'Dieses Quiz passt nicht zur Teamsituation der laufenden Session.',
     });
 
     expect(prismaMock.session.update).not.toHaveBeenCalled();
