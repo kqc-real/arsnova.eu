@@ -143,6 +143,13 @@ const defaultSession = {
   quizMotifImageUrl: null as string | null,
   title: null,
   participantCount: 0,
+  nicknameTheme: 'HIGH_SCHOOL' as const,
+  allowCustomNicknames: false,
+  anonymousMode: false,
+  teamMode: false,
+  teamCount: null,
+  teamAssignment: null,
+  teamNames: [] as string[],
 };
 
 const defaultLiveFreetext = {
@@ -170,6 +177,67 @@ const quizStoreMock = {
       lastServerQuizAccessProof: null,
     },
   ]),
+  getQuizById: vi.fn((id: string) =>
+    id === 'local-quiz-1'
+      ? {
+          id: 'local-quiz-1',
+          name: 'Quiz Sammlung',
+          description: 'Mitgebrachte Fragen',
+          motifImageUrl: null,
+          createdAt: '2026-03-20T12:00:00.000Z',
+          updatedAt: '2026-03-24T12:00:00.000Z',
+          settings: {
+            showLeaderboard: true,
+            allowCustomNicknames: false,
+            defaultTimer: 60,
+            enableSoundEffects: true,
+            enableRewardEffects: true,
+            enableMotivationMessages: true,
+            enableEmojiReactions: true,
+            anonymousMode: false,
+            teamMode: false,
+            teamCount: null,
+            teamAssignment: 'AUTO',
+            teamNames: [],
+            backgroundMusic: null,
+            nicknameTheme: 'HIGH_SCHOOL',
+            bonusTokenCount: null,
+            readingPhaseEnabled: true,
+            preset: 'PLAYFUL',
+          },
+          questions: [],
+        }
+      : id === 'local-quiz-incompatible'
+        ? {
+            id: 'local-quiz-incompatible',
+            name: 'Team Quiz',
+            description: 'Nur für Teams',
+            motifImageUrl: null,
+            createdAt: '2026-03-21T12:00:00.000Z',
+            updatedAt: '2026-03-25T12:00:00.000Z',
+            settings: {
+              showLeaderboard: true,
+              allowCustomNicknames: false,
+              defaultTimer: 60,
+              enableSoundEffects: true,
+              enableRewardEffects: true,
+              enableMotivationMessages: true,
+              enableEmojiReactions: true,
+              anonymousMode: false,
+              teamMode: true,
+              teamCount: 2,
+              teamAssignment: 'MANUAL',
+              teamNames: ['Rot', 'Blau'],
+              backgroundMusic: null,
+              nicknameTheme: 'HIGH_SCHOOL',
+              bonusTokenCount: null,
+              readingPhaseEnabled: true,
+              preset: 'PLAYFUL',
+            },
+            questions: [],
+          }
+        : null,
+  ),
   getUploadPayload: vi.fn(),
   setLastServerUploadAccess: vi.fn(),
 };
@@ -191,6 +259,18 @@ describe('SessionHostComponent', () => {
         updatedAt: '2026-03-24T12:00:00.000Z',
         questionCount: 3,
         teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+      {
+        id: 'local-quiz-incompatible',
+        name: 'Team Quiz',
+        description: 'Nur für Teams',
+        createdAt: '2026-03-21T12:00:00.000Z',
+        updatedAt: '2026-03-25T12:00:00.000Z',
+        questionCount: 4,
+        teamMode: true,
         hasBonus: false,
         lastServerQuizId: null,
         lastServerQuizAccessProof: null,
@@ -453,6 +533,66 @@ describe('SessionHostComponent', () => {
     expect(fixture.componentInstance.activeChannel()).toBe('quiz');
     expect(fixture.componentInstance.channels().quiz).toBe(true);
     expect(fixture.componentInstance.session()?.quizName).toBe('Quiz Sammlung');
+    fixture.destroy();
+  });
+
+  it('zeigt vor dem ersten Quizstart nur kompatible Quizze zum Wechsel an', async () => {
+    getInfoQueryMock
+      .mockResolvedValueOnce({
+        ...defaultSession,
+        quizName: 'Erstes Quiz',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...defaultSession,
+        quizName: 'Quiz Sammlung',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.canReplaceQuizBeforeStart()).toBe(true);
+    await fixture.componentInstance.replaceQuizBeforeStart();
+    fixture.detectChanges();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          sessionProfile: expect.objectContaining({
+            nicknameTheme: 'HIGH_SCHOOL',
+            allowCustomNicknames: false,
+            anonymousMode: false,
+            teamMode: false,
+            teamCount: null,
+            teamAssignment: 'AUTO',
+          }),
+          quizzes: [
+            expect.objectContaining({
+              id: 'local-quiz-1',
+              name: 'Quiz Sammlung',
+            }),
+          ],
+        }),
+      }),
+    );
+    expect(quizStoreMock.getUploadPayload).toHaveBeenCalledWith('local-quiz-1');
+    expect(attachQuizToSessionMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      quizId: '44444444-4444-4444-8444-444444444444',
+    });
     fixture.destroy();
   });
 

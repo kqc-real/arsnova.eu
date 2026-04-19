@@ -169,6 +169,18 @@ export const CreateQuizInputSchema = z.object({
 });
 export type CreateQuizInput = z.infer<typeof CreateQuizInputSchema>;
 
+/** Session-weites Onboarding-Profil (Join-/Team-/Pseudonym-Regeln, getrennt vom Visual Preset). */
+export const SessionOnboardingProfileInputSchema = z.object({
+  allowCustomNicknames: z.boolean().optional(),
+  anonymousMode: z.boolean().optional(),
+  teamMode: z.boolean().optional(),
+  teamCount: z.number().int().min(2).max(8).nullable().optional(),
+  teamAssignment: TeamAssignmentEnum.optional(),
+  teamNames: TeamNamesSchema.optional(),
+  nicknameTheme: NicknameThemeEnum.optional(),
+});
+export type SessionOnboardingProfileInput = z.infer<typeof SessionOnboardingProfileInputSchema>;
+
 /** Schema für eine einzelne Antwortoption beim Hinzufügen/Bearbeiten */
 export const AnswerOptionInputSchema = z.object({
   text: z.string().min(1, { error: 'Antworttext darf nicht leer sein' }).max(500),
@@ -357,6 +369,7 @@ export const CreateSessionInputSchema = z
     qaTitle: z.string().trim().max(200).optional(), // ADR-0009: Titel des Q&A-Tabs
     qaModerationMode: z.boolean().optional().default(true), // ADR-0009: Q&A-Vorab-Moderation (Default an)
     quickFeedbackEnabled: z.boolean().optional().default(false), // ADR-0009: Blitz-Feedback-Kanal
+    ...SessionOnboardingProfileInputSchema.shape,
   })
   .superRefine((value, ctx) => {
     const isQuizlessChannelSession =

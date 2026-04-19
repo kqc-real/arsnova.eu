@@ -85,6 +85,14 @@ model Session {
   qaModerationMode Boolean      @default(true)    // ADR-0009: Vorab-Moderation für Q&A-Kanal (Default: an)
   quickFeedbackEnabled Boolean  @default(false)   // ADR-0009: Blitz-Feedback-Kanal innerhalb einer Session
   quickFeedbackOpen Boolean     @default(false)   // ADR-0009: Blitz-Feedback-Kanal aktuell für Teilnehmende geöffnet
+  onboardingProfileConfigured Boolean @default(false) // Session-weites Onboarding-Profil aktiv
+  onboardingAllowCustomNicknames Boolean?
+  onboardingAnonymousMode Boolean?
+  onboardingTeamMode Boolean?
+  onboardingTeamCount Int?
+  onboardingTeamAssignment TeamAssignment?
+  onboardingTeamNames String[]  @default([])
+  onboardingNicknameTheme NicknameTheme?
   currentQuestion Int?                             // Index der aktuell aktiven Frage (0-basiert)
   currentRound    Int              @default(1)     // Story 2.7: Peer Instruction – aktuelle Abstimmungsrunde (1 oder 2)
   quizId          String?                          // null bei Q&A-Sessions

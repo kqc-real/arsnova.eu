@@ -4,7 +4,7 @@
   align-items: flex-start;
   gap: 0.75rem 1rem;
   width: 100%;
-  max-width: var(--app-live-channel-max-width);
+  max-width: var(--session-host-shell-max-width);
   margin-inline: auto;
   margin-bottom: var(--session-host-zone-gap);
   padding: clamp(0.85rem, 2vw, 1rem) clamp(1rem, 2.5vw, 1.25rem);
@@ -76,7 +76,7 @@
 
 .session-host {
   width: 100%;
-  --session-host-shell-max-width: 56rem;
+  --session-host-shell-max-width: 64rem;
   --session-host-shell-inline: 1rem;
   --session-host-zone-gap: 0.875rem;
   --session-host-toolbar-clearance: calc(env(safe-area-inset-top, 0px) + 4.25rem);
@@ -97,7 +97,7 @@
   left: auto;
   transform: none;
   width: min(
-    var(--app-live-channel-max-width),
+    var(--session-host-shell-max-width),
     calc(100vw - (2 * var(--session-host-shell-inline)))
   );
   z-index: auto;
@@ -194,7 +194,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 0.45rem;
   width: min(
-    var(--app-live-channel-max-width),
+    var(--session-host-shell-max-width),
     calc(100vw - (2 * var(--session-host-shell-inline)))
   );
   max-width: calc(100vw - (2 * var(--session-host-shell-inline)));
@@ -341,8 +341,6 @@
   }
 
   .session-channel-tabs {
-    overflow-x: auto;
-    overflow-y: hidden;
     justify-self: start;
     width: fit-content;
     max-width: 100%;
@@ -408,7 +406,7 @@
 
 .session-channel-card {
   width: 100%;
-  max-width: var(--app-live-channel-max-width);
+  max-width: var(--session-host-shell-max-width);
   margin: 0 auto;
   border-color: var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container-low);
@@ -553,7 +551,7 @@
   gap: 0.75rem;
   align-items: center;
   width: 100%;
-  max-width: var(--app-live-channel-max-width);
+  max-width: var(--session-host-shell-max-width);
   margin: 0 auto;
   padding: clamp(0.72rem, 1.8vw, 0.95rem);
   border: 1px solid var(--mat-sys-outline-variant);

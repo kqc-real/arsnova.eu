@@ -290,6 +290,13 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith({
         type: 'QUIZ',
         qaEnabled: true,
+        nicknameTheme: 'HIGH_SCHOOL',
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
       });
       expect(navigateSpy).toHaveBeenCalledWith('/session/QA1234/host?tab=qa');
       expect(comp.joinError()).toBeNull();
@@ -312,6 +319,13 @@ describe('HomeComponent', () => {
       expect(trpc.session.create.mutate).toHaveBeenCalledWith({
         type: 'QUIZ',
         quickFeedbackEnabled: true,
+        nicknameTheme: 'HIGH_SCHOOL',
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
       });
       expect(navigateSpy).toHaveBeenCalledWith('/session/QF1234/host?tab=quickFeedback');
       expect(comp.joinError()).toBeNull();

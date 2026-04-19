@@ -3,6 +3,7 @@
  */
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import { Prisma } from '@prisma/client';
 import {
   AttachQuizToSessionInputSchema,
   CreateSessionInputSchema,
@@ -42,14 +43,17 @@ import {
   SessionFeedbackSummarySchema,
   PersonalScorecardDTOSchema,
   type SessionExportDTO,
+  type SessionOnboardingProfileInput,
   type QuestionExportEntry,
   type QuestionType,
   type OptionDistributionEntry,
   type FreetextAggregateEntry,
   type BonusTokenEntryDTO,
   type LeaderboardEntryDTO,
+  type NicknameTheme,
   type PeerInstructionSuggestionDTO,
   type TeamLeaderboardEntryDTO,
+  type TeamAssignment,
   type RoundComparisonDTO,
   type RoundDistributionEntry,
   type VoterMigrationEntry,
@@ -448,6 +452,197 @@ function normalizeConfiguredTeamNames(teamNames: string[] | null | undefined): s
     .filter((entry) => entry.length > 0);
 }
 
+interface SessionOnboardingProfile {
+  nicknameTheme: NicknameTheme;
+  allowCustomNicknames: boolean;
+  anonymousMode: boolean;
+  teamMode: boolean;
+  teamCount: number | null;
+  teamAssignment: TeamAssignment;
+  teamNames: string[];
+}
+
+const LEGACY_SESSION_ONBOARDING_PROFILE: SessionOnboardingProfile = {
+  nicknameTheme: 'HIGH_SCHOOL',
+  allowCustomNicknames: true,
+  anonymousMode: false,
+  teamMode: false,
+  teamCount: null,
+  teamAssignment: 'AUTO',
+  teamNames: [],
+};
+
+function normalizeNicknameTheme(value: string | null | undefined): NicknameTheme {
+  const parsed = NicknameThemeEnum.safeParse(value);
+  return parsed.success ? parsed.data : 'HIGH_SCHOOL';
+}
+
+function normalizeSessionOnboardingProfile(
+  input:
+    | SessionOnboardingProfileInput
+    | {
+        nicknameTheme?: string | null;
+        allowCustomNicknames?: boolean | null;
+        anonymousMode?: boolean | null;
+        teamMode?: boolean | null;
+        teamCount?: number | null;
+        teamAssignment?: TeamAssignment | null;
+        teamNames?: string[] | null;
+      },
+): SessionOnboardingProfile {
+  const anonymousMode = input.anonymousMode === true;
+  const teamMode = input.teamMode === true;
+  const teamCount = teamMode
+    ? Math.min(8, Math.max(2, input.teamCount ?? DEFAULT_TEAM_COUNT))
+    : null;
+
+  return {
+    nicknameTheme: normalizeNicknameTheme(input.nicknameTheme),
+    allowCustomNicknames: anonymousMode ? false : input.allowCustomNicknames === true,
+    anonymousMode,
+    teamMode,
+    teamCount,
+    teamAssignment: teamMode ? (input.teamAssignment ?? 'AUTO') : 'AUTO',
+    teamNames: teamMode
+      ? normalizeConfiguredTeamNames(input.teamNames).slice(0, teamCount ?? 8)
+      : [],
+  };
+}
+
+function buildSessionOnboardingProfileFromQuiz(quiz: {
+  nicknameTheme: string;
+  allowCustomNicknames: boolean;
+  anonymousMode: boolean;
+  teamMode: boolean;
+  teamCount: number | null;
+  teamAssignment: TeamAssignment;
+  teamNames: string[];
+}): SessionOnboardingProfile {
+  return normalizeSessionOnboardingProfile(quiz);
+}
+
+function hasStoredSessionOnboardingProfile(session: {
+  onboardingProfileConfigured?: boolean | null;
+}): boolean {
+  return session.onboardingProfileConfigured === true;
+}
+
+function buildStoredSessionOnboardingProfile(session: {
+  onboardingNicknameTheme?: string | null;
+  onboardingAllowCustomNicknames?: boolean | null;
+  onboardingAnonymousMode?: boolean | null;
+  onboardingTeamMode?: boolean | null;
+  onboardingTeamCount?: number | null;
+  onboardingTeamAssignment?: TeamAssignment | null;
+  onboardingTeamNames?: string[] | null;
+}): SessionOnboardingProfile {
+  return normalizeSessionOnboardingProfile({
+    nicknameTheme: session.onboardingNicknameTheme,
+    allowCustomNicknames: session.onboardingAllowCustomNicknames,
+    anonymousMode: session.onboardingAnonymousMode,
+    teamMode: session.onboardingTeamMode,
+    teamCount: session.onboardingTeamCount,
+    teamAssignment: session.onboardingTeamAssignment,
+    teamNames: session.onboardingTeamNames,
+  });
+}
+
+function resolveSessionOnboardingProfile(
+  session: {
+    onboardingProfileConfigured?: boolean | null;
+    onboardingNicknameTheme?: string | null;
+    onboardingAllowCustomNicknames?: boolean | null;
+    onboardingAnonymousMode?: boolean | null;
+    onboardingTeamMode?: boolean | null;
+    onboardingTeamCount?: number | null;
+    onboardingTeamAssignment?: TeamAssignment | null;
+    onboardingTeamNames?: string[] | null;
+  },
+  quiz?: {
+    nicknameTheme: string;
+    allowCustomNicknames: boolean;
+    anonymousMode: boolean;
+    teamMode: boolean;
+    teamCount: number | null;
+    teamAssignment: TeamAssignment;
+    teamNames: string[];
+  } | null,
+): SessionOnboardingProfile {
+  if (hasStoredSessionOnboardingProfile(session)) {
+    return buildStoredSessionOnboardingProfile(session);
+  }
+  if (quiz) {
+    return buildSessionOnboardingProfileFromQuiz(quiz);
+  }
+  return LEGACY_SESSION_ONBOARDING_PROFILE;
+}
+
+function buildSessionOnboardingUpdate(profile: SessionOnboardingProfile) {
+  return {
+    onboardingProfileConfigured: true,
+    onboardingNicknameTheme: profile.nicknameTheme,
+    onboardingAllowCustomNicknames: profile.allowCustomNicknames,
+    onboardingAnonymousMode: profile.anonymousMode,
+    onboardingTeamMode: profile.teamMode,
+    onboardingTeamCount: profile.teamCount,
+    onboardingTeamAssignment: profile.teamMode ? profile.teamAssignment : 'AUTO',
+    onboardingTeamNames: profile.teamMode ? profile.teamNames : [],
+  };
+}
+
+function buildEffectiveTeamNames(profile: SessionOnboardingProfile): string[] {
+  if (!profile.teamMode) {
+    return [];
+  }
+  const count = profile.teamCount ?? DEFAULT_TEAM_COUNT;
+  return Array.from(
+    { length: count },
+    (_, index) => profile.teamNames[index] ?? buildDefaultTeamName(index),
+  );
+}
+
+function areSessionOnboardingProfilesCompatible(
+  sessionProfile: SessionOnboardingProfile,
+  quizProfile: SessionOnboardingProfile,
+): boolean {
+  if (sessionProfile.anonymousMode !== quizProfile.anonymousMode) {
+    return false;
+  }
+
+  if (!sessionProfile.anonymousMode) {
+    if (sessionProfile.allowCustomNicknames !== quizProfile.allowCustomNicknames) {
+      return false;
+    }
+    if (
+      sessionProfile.allowCustomNicknames === false &&
+      sessionProfile.nicknameTheme !== quizProfile.nicknameTheme
+    ) {
+      return false;
+    }
+  }
+
+  if (sessionProfile.teamMode !== quizProfile.teamMode) {
+    return false;
+  }
+  if (!sessionProfile.teamMode) {
+    return true;
+  }
+
+  if (sessionProfile.teamAssignment !== quizProfile.teamAssignment) {
+    return false;
+  }
+  if (
+    (sessionProfile.teamCount ?? DEFAULT_TEAM_COUNT) !==
+    (quizProfile.teamCount ?? DEFAULT_TEAM_COUNT)
+  ) {
+    return false;
+  }
+
+  const sessionTeamNames = buildEffectiveTeamNames(sessionProfile);
+  const quizTeamNames = buildEffectiveTeamNames(quizProfile);
+  return sessionTeamNames.every((name, index) => name === quizTeamNames[index]);
+}
+
 async function ensureSessionTeams(
   sessionId: string,
   requestedTeamCount: number,
@@ -812,6 +1007,27 @@ export const sessionRouter = router({
         }
       }
       const code = await ensureUniqueSessionCode();
+      const quiz =
+        input.quizId !== undefined
+          ? await prisma.quiz.findUnique({
+              where: { id: input.quizId },
+              select: {
+                id: true,
+                name: true,
+                nicknameTheme: true,
+                allowCustomNicknames: true,
+                anonymousMode: true,
+                teamMode: true,
+                teamCount: true,
+                teamAssignment: true,
+                teamNames: true,
+              },
+            })
+          : null;
+      if (input.quizId && !quiz) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
+      }
+
       const legacyQaOnlySession = input.type === 'Q_AND_A';
       const qaEnabled = legacyQaOnlySession || input.qaEnabled === true;
       const standaloneQaSession =
@@ -823,6 +1039,12 @@ export const sessionRouter = router({
         : false;
       const quickFeedbackEnabled = input.quickFeedbackEnabled ?? false;
       const quickFeedbackOpen = quickFeedbackEnabled;
+      const onboardingProfile = quiz
+        ? buildSessionOnboardingProfileFromQuiz(quiz)
+        : normalizeSessionOnboardingProfile({
+            ...LEGACY_SESSION_ONBOARDING_PROFILE,
+            ...input,
+          });
       const session = await prisma.session.create({
         data: {
           code,
@@ -836,17 +1058,15 @@ export const sessionRouter = router({
           qaModerationMode,
           quickFeedbackEnabled,
           quickFeedbackOpen,
+          ...buildSessionOnboardingUpdate(onboardingProfile),
           status: 'LOBBY',
         },
-        include: {
-          quiz: { select: { name: true, teamMode: true, teamCount: true, teamNames: true } },
-        },
       });
-      if (session.type === 'QUIZ' && session.quiz?.teamMode) {
+      if (onboardingProfile.teamMode) {
         await ensureSessionTeams(
           session.id,
-          session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
-          session.quiz.teamNames,
+          onboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
+          onboardingProfile.teamNames,
         );
       }
       const hostToken = await createHostSessionToken(session.code);
@@ -854,7 +1074,7 @@ export const sessionRouter = router({
         sessionId: session.id,
         code: session.code,
         status: session.status,
-        quizName: session.quiz?.name ?? null,
+        quizName: quiz?.name ?? null,
         hostToken,
       };
     }),
@@ -1019,6 +1239,7 @@ export const sessionRouter = router({
           id: true,
           type: true,
           status: true,
+          currentQuestion: true,
           quizId: true,
           qaEnabled: true,
           qaOpen: true,
@@ -1028,6 +1249,14 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          onboardingProfileConfigured: true,
+          onboardingAllowCustomNicknames: true,
+          onboardingAnonymousMode: true,
+          onboardingTeamMode: true,
+          onboardingTeamCount: true,
+          onboardingTeamAssignment: true,
+          onboardingTeamNames: true,
+          onboardingNicknameTheme: true,
           _count: { select: { participants: true } },
         },
       });
@@ -1046,10 +1275,21 @@ export const sessionRouter = router({
           message: 'Beendete Sessions können nicht mehr verändert werden.',
         });
       }
-      if (session.quizId) {
+      const voteCountForSession =
+        session.quizId !== null
+          ? await prisma.vote.count({
+              where: { sessionId: session.id },
+            })
+          : 0;
+      const canReplaceExistingQuiz =
+        session.quizId !== null &&
+        session.status === 'LOBBY' &&
+        session.currentQuestion === null &&
+        voteCountForSession === 0;
+      if (session.quizId && !canReplaceExistingQuiz) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Diese Session hat bereits ein Quiz.',
+          message: 'Das aktuelle Quiz kann nur vor der ersten gestarteten Frage gewechselt werden.',
         });
       }
 
@@ -1057,6 +1297,9 @@ export const sessionRouter = router({
         where: { id: input.quizId },
         select: {
           id: true,
+          nicknameTheme: true,
+          allowCustomNicknames: true,
+          anonymousMode: true,
           teamMode: true,
           teamCount: true,
           teamAssignment: true,
@@ -1066,11 +1309,32 @@ export const sessionRouter = router({
       if (!quiz) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
       }
-      if (quiz.teamMode && quiz.teamAssignment === 'MANUAL' && session._count.participants > 0) {
+
+      const sessionOnboardingProfile = resolveSessionOnboardingProfile(session, null);
+      const quizOnboardingProfile = buildSessionOnboardingProfileFromQuiz(quiz);
+      if (
+        session._count.participants > 0 &&
+        !areSessionOnboardingProfilesCompatible(sessionOnboardingProfile, quizOnboardingProfile)
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Dieses Quiz passt nicht zum Onboarding-Profil der laufenden Session.',
+        });
+      }
+      const existingParticipantsForManualTeams =
+        quizOnboardingProfile.teamMode &&
+        quizOnboardingProfile.teamAssignment === 'MANUAL' &&
+        session._count.participants > 0
+          ? await prisma.participant.findMany({
+              where: { sessionId: session.id },
+              select: { id: true, teamId: true },
+            })
+          : null;
+      if (existingParticipantsForManualTeams?.some((participant) => !participant.teamId)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message:
-            'Team-Quiz mit manueller Teamwahl können nur angehängt werden, solange noch niemand beigetreten ist.',
+            'Dieses Quiz erfordert Teamwahl, aber die laufende Session enthält Teilnehmende ohne Teamzuordnung.',
         });
       }
 
@@ -1081,6 +1345,12 @@ export const sessionRouter = router({
           quizId: quiz.id,
           currentQuestion: null,
           currentRound: 1,
+          answerDisplayOrder: Prisma.JsonNull,
+          ...buildSessionOnboardingUpdate(
+            hasStoredSessionOnboardingProfile(session)
+              ? sessionOnboardingProfile
+              : quizOnboardingProfile,
+          ),
         },
         select: {
           id: true,
@@ -1097,13 +1367,13 @@ export const sessionRouter = router({
         },
       });
 
-      if (quiz.teamMode) {
+      if (quizOnboardingProfile.teamMode) {
         const teams = await ensureSessionTeams(
           session.id,
-          quiz.teamCount ?? DEFAULT_TEAM_COUNT,
-          quiz.teamNames,
+          quizOnboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
+          quizOnboardingProfile.teamNames,
         );
-        if (quiz.teamAssignment === 'AUTO' && session._count.participants > 0) {
+        if (quizOnboardingProfile.teamAssignment === 'AUTO' && session._count.participants > 0) {
           await assignExistingParticipantsToTeams(
             session.id,
             teams.map((team) => team.id),
@@ -1363,9 +1633,11 @@ export const sessionRouter = router({
                 bonusTokenCount: true,
                 preset: true,
                 motifImageUrl: true,
+                teamNames: true,
               },
             })
           : null;
+      const onboardingProfile = resolveSessionOnboardingProfile(session, q);
       const serverTime = new Date().toISOString();
       return {
         id: session.id,
@@ -1378,13 +1650,14 @@ export const sessionRouter = router({
         title: session.title ?? null,
         channels: buildSessionChannels(session),
         participantCount: session._count.participants,
+        nicknameTheme: onboardingProfile.nicknameTheme,
+        allowCustomNicknames: onboardingProfile.allowCustomNicknames,
+        anonymousMode: onboardingProfile.anonymousMode,
+        teamMode: onboardingProfile.teamMode,
+        teamCount: onboardingProfile.teamCount,
+        teamAssignment: onboardingProfile.teamMode ? onboardingProfile.teamAssignment : null,
+        teamNames: onboardingProfile.teamMode ? buildEffectiveTeamNames(onboardingProfile) : [],
         ...(q && {
-          nicknameTheme: (() => {
-            const nt = NicknameThemeEnum.safeParse(q.nicknameTheme);
-            return nt.success ? nt.data : 'NOBEL_LAUREATES';
-          })(),
-          allowCustomNicknames: q.allowCustomNicknames,
-          anonymousMode: q.anonymousMode,
           showLeaderboard: q.showLeaderboard,
           enableSoundEffects: q.enableSoundEffects,
           enableRewardEffects: q.enableRewardEffects,
@@ -1393,9 +1666,6 @@ export const sessionRouter = router({
           readingPhaseEnabled: q.readingPhaseEnabled,
           defaultTimer: q.defaultTimer,
           backgroundMusic: q.backgroundMusic,
-          teamMode: q.teamMode,
-          teamCount: q.teamCount,
-          teamAssignment: q.teamAssignment,
           bonusTokenCount: q.bonusTokenCount,
           preset: q.preset as 'PLAYFUL' | 'SERIOUS',
         }),
@@ -1504,20 +1774,31 @@ export const sessionRouter = router({
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
         include: {
-          quiz: { select: { teamMode: true, teamCount: true, teamNames: true } },
+          quiz: {
+            select: {
+              nicknameTheme: true,
+              allowCustomNicknames: true,
+              anonymousMode: true,
+              teamMode: true,
+              teamCount: true,
+              teamAssignment: true,
+              teamNames: true,
+            },
+          },
         },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      if (!session.quiz?.teamMode) {
+      const onboardingProfile = resolveSessionOnboardingProfile(session, session.quiz);
+      if (!onboardingProfile.teamMode) {
         return { teams: [], teamCount: 0 };
       }
 
       const teams = await ensureSessionTeams(
         session.id,
-        session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
-        session.quiz.teamNames,
+        onboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
+        onboardingProfile.teamNames,
       );
       return {
         teams: teams.map((team) => ({
@@ -2443,6 +2724,9 @@ export const sessionRouter = router({
           quiz: {
             select: {
               name: true,
+              nicknameTheme: true,
+              allowCustomNicknames: true,
+              anonymousMode: true,
               teamMode: true,
               teamCount: true,
               teamAssignment: true,
@@ -2468,13 +2752,14 @@ export const sessionRouter = router({
       if (session.status === 'FINISHED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diese Session ist bereits beendet.' });
       }
+      const onboardingProfile = resolveSessionOnboardingProfile(session, session.quiz);
       let assignedTeamId: string | undefined;
       let assignedTeamName: string | null = null;
-      if (session.quiz?.teamMode) {
+      if (onboardingProfile.teamMode) {
         const teams = await ensureSessionTeams(
           session.id,
-          session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
-          session.quiz.teamNames,
+          onboardingProfile.teamCount ?? DEFAULT_TEAM_COUNT,
+          onboardingProfile.teamNames,
         );
         if (teams.length === 0) {
           throw new TRPCError({
@@ -2483,7 +2768,7 @@ export const sessionRouter = router({
           });
         }
 
-        if (session.quiz.teamAssignment === 'MANUAL') {
+        if (onboardingProfile.teamAssignment === 'MANUAL') {
           if (!input.teamId) {
             throw new TRPCError({ code: 'BAD_REQUEST', message: 'Bitte wähle ein Team aus.' });
           }
@@ -2533,6 +2818,13 @@ export const sessionRouter = router({
         title: session.title ?? null,
         channels: buildSessionChannels(session),
         participantCount: newParticipantCount,
+        nicknameTheme: onboardingProfile.nicknameTheme,
+        allowCustomNicknames: onboardingProfile.allowCustomNicknames,
+        anonymousMode: onboardingProfile.anonymousMode,
+        teamMode: onboardingProfile.teamMode,
+        teamCount: onboardingProfile.teamCount,
+        teamAssignment: onboardingProfile.teamMode ? onboardingProfile.teamAssignment : null,
+        teamNames: onboardingProfile.teamMode ? buildEffectiveTeamNames(onboardingProfile) : [],
         participantId: participant.id,
         teamId: assignedTeamId ?? null,
         teamName: assignedTeamName,

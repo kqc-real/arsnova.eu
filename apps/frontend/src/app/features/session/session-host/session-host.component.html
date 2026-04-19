@@ -1589,6 +1589,16 @@
                   }
                 }
                 @if (isQuizAwaitingFirstQuestion()) {
+                  @if (canReplaceQuizBeforeStart()) {
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      [disabled]="controlPending() || channelActivationPending() === 'quiz'"
+                      (click)="replaceQuizBeforeStart()"
+                    >
+                      <span i18n="@@sessionHost.replaceQuizBeforeStart">Quiz wechseln</span>
+                    </button>
+                  }
                   <button
                     mat-flat-button
                     color="primary"

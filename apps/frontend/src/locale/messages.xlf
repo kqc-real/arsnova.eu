@@ -11086,6 +11086,153 @@
           <context context-type="linenumber">161</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.replaceQuizBeforeStart" datatype="html">
+        <source>Quiz wechseln</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1599</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.title" datatype="html">
+        <source>Quiz auswählen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">136</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.profileHeading" datatype="html">
+        <source>Aktuelles Onboarding-Profil der Teilnehmenden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">145</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.empty" datatype="html">
+        <source>Zum aktuellen Onboarding-Profil deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">154</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.intro" datatype="html">
+        <source>Wähle ein Quiz, das zum aktuellen Onboarding-Profil deiner Teilnehmenden passt:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">159</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.cancel" datatype="html">
+        <source>Abbrechen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">186</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.questionCountOne" datatype="html">
+        <source>1 Frage</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">217</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.questionCountMany" datatype="html">
+        <source><x id="count" equiv-text="quiz.questionCount"/> Fragen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">218</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamMode" datatype="html">
+        <source>Teammodus</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">221</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeAnonymous" datatype="html">
+        <source>Anonyme Teilnahme.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">228</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeCustom" datatype="html">
+        <source>Freie Nicknames sind erlaubt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">231</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeTheme" datatype="html">
+        <source>Feste Pseudonyme aus <x id="PH" equiv-text="this.nicknameThemeLabel(profile.nicknameTheme)"/>.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">233</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamsDisabled" datatype="html">
+        <source>Teams sind nicht möglich.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">238</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamAssignmentManual" datatype="html">
+        <source>manuelle Teamwahl</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">243</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamAssignmentAuto" datatype="html">
+        <source>automatische Teamzuweisung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">244</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamModeHint" datatype="html">
+        <source>Teams sind aktiv (<x id="PH" equiv-text="count"/> Teams, <x id="PH_1" equiv-text="assignment"/>).</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">245</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeNobel" datatype="html">
+        <source>Nobelpreis</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">251</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeKindergarten" datatype="html">
+        <source>Kindergarten</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">253</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemePrimary" datatype="html">
+        <source>Grundschule</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">255</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeMiddle" datatype="html">
+        <source>Mittelstufe</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">257</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeHigh" datatype="html">
+        <source>Oberstufe</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-quiz-picker-dialog.component.ts</context>
+          <context context-type="linenumber">260</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

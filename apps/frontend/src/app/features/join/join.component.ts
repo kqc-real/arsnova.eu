@@ -81,7 +81,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   /** Nur die Namensliste, die der Host fürs Quiz vorgegeben hat (nicknameTheme aus Session/Quiz). */
   readonly nicknameOptions = computed(() => {
     const s = this.session();
-    if (!s || s.type !== 'QUIZ') return [];
+    if (!s) return [];
     const theme = (s.nicknameTheme ?? 'HIGH_SCHOOL') as NicknameTheme;
     return [...getNicknameList(theme, this.locale)];
   });
@@ -96,7 +96,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   /** Kindergarten-Liste: große Tier-Emoji in Auswahl und (nach Join) in der Lobby. */
   readonly isKindergartenNicknameTheme = computed(() => {
     const s = this.session();
-    return s?.type === 'QUIZ' && (s.nicknameTheme ?? 'HIGH_SCHOOL') === 'KINDERGARTEN';
+    return (s?.nicknameTheme ?? 'HIGH_SCHOOL') === 'KINDERGARTEN';
   });
 
   readonly kindergartenEmojiForSelected = computed((): string | null => {
@@ -127,9 +127,7 @@ export class JoinComponent implements OnInit, OnDestroy {
 
   /** Eigenes Namensfeld nur wenn der Host eigene Nicks erlaubt (Preset: eigener Name). */
   readonly showCustomNickname = computed(() => {
-    const s = this.session();
-    const standaloneQa = s?.channels?.qa.enabled === true && s.channels.quiz.enabled === false;
-    return standaloneQa || s?.type === 'Q_AND_A' || s?.allowCustomNicknames === true;
+    return this.session()?.allowCustomNicknames === true;
   });
 
   readonly showTeamSelect = computed(() => {

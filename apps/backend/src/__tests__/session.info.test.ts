@@ -197,5 +197,7 @@ describe('session.getInfo (ADR-0009)', () => {
     });
     expect(result.quizName).toBeNull();
     expect(result.title).toBe('Offene Fragerunde');
+    expect(result.allowCustomNicknames).toBe(true);
+    expect(result.teamMode).toBe(false);
   });
 });

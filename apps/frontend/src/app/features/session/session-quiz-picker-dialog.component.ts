@@ -9,10 +9,21 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import type { NicknameTheme, TeamAssignment } from '@arsnova/shared-types';
 import type { QuizSummary } from '../quiz/data/quiz-store.service';
+
+export interface SessionQuizPickerProfile {
+  nicknameTheme: NicknameTheme;
+  allowCustomNicknames: boolean;
+  anonymousMode: boolean;
+  teamMode: boolean;
+  teamCount: number | null;
+  teamAssignment: TeamAssignment;
+}
 
 export interface SessionQuizPickerDialogData {
   quizzes: QuizSummary[];
+  sessionProfile: SessionQuizPickerProfile | null;
 }
 
 @Component({
@@ -21,9 +32,54 @@ export interface SessionQuizPickerDialogData {
   imports: [MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
   styles: [
     `
+      .session-quiz-picker__title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .session-quiz-picker__title mat-icon {
+        color: var(--mat-sys-primary);
+      }
+
       .session-quiz-picker__intro {
-        margin: 0 0 1rem;
+        margin: 0 0 0.85rem;
         color: var(--mat-sys-on-surface-variant);
+        font: var(--mat-sys-body-medium);
+      }
+
+      .session-quiz-picker__profile-card {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.85rem;
+        align-items: start;
+        margin: 0 0 1rem;
+        padding: 0.95rem 1rem;
+        border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-outline));
+        border-radius: 1rem;
+        background: color-mix(
+          in srgb,
+          var(--mat-sys-primary-container) 52%,
+          var(--mat-sys-surface-container-high)
+        );
+      }
+
+      .session-quiz-picker__profile-icon {
+        margin-top: 0.05rem;
+        color: var(--mat-sys-primary);
+      }
+
+      .session-quiz-picker__profile-copy {
+        display: grid;
+        gap: 0.3rem;
+        min-width: 0;
+      }
+
+      .session-quiz-picker__profile-heading {
+        margin: 0;
+        color: var(--mat-sys-on-surface);
+        font: var(--mat-sys-title-small);
+        font-weight: 700;
       }
 
       .session-quiz-picker__list {
@@ -36,7 +92,12 @@ export interface SessionQuizPickerDialogData {
         min-height: 4.5rem;
         padding: 0.9rem 1rem;
         border-radius: 1rem;
-        border: 1px solid rgba(0, 0, 0, 0.12);
+        border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 75%, transparent);
+        background: color-mix(
+          in srgb,
+          var(--mat-sys-surface-container) 76%,
+          var(--mat-sys-surface)
+        );
         justify-content: space-between;
         text-align: left;
       }
@@ -52,8 +113,15 @@ export interface SessionQuizPickerDialogData {
       }
 
       .session-quiz-picker__item-meta,
-      .session-quiz-picker__empty {
+      .session-quiz-picker__empty,
+      .session-quiz-picker__profile-text {
         color: var(--mat-sys-on-surface-variant);
+      }
+
+      .session-quiz-picker__empty,
+      .session-quiz-picker__profile-text {
+        margin: 0;
+        font: var(--mat-sys-body-small);
       }
 
       .session-quiz-picker__item-description {
@@ -67,18 +135,33 @@ export interface SessionQuizPickerDialogData {
     `,
   ],
   template: `
-    <h2 mat-dialog-title>
+    <h2 mat-dialog-title class="session-quiz-picker__title">
       <mat-icon aria-hidden="true">library_books</mat-icon>
       <span i18n="@@sessionQuizPicker.title">Quiz auswählen</span>
     </h2>
     <mat-dialog-content>
+      @if (profileSummary(); as profileSummary) {
+        <section class="session-quiz-picker__profile-card" role="note">
+          <mat-icon class="session-quiz-picker__profile-icon" aria-hidden="true">badge</mat-icon>
+          <div class="session-quiz-picker__profile-copy">
+            <p
+              class="session-quiz-picker__profile-heading"
+              i18n="@@sessionQuizPicker.profileHeading"
+            >
+              Aktuelles Onboarding-Profil der Teilnehmenden
+            </p>
+            <p class="session-quiz-picker__profile-text">{{ profileSummary }}</p>
+          </div>
+        </section>
+      }
       @if (quizzes.length === 0) {
         <p class="session-quiz-picker__empty" i18n="@@sessionQuizPicker.empty">
-          In deiner Quiz-Sammlung ist noch kein Quiz zum Starten vorhanden.
+          Zum aktuellen Onboarding-Profil deiner Teilnehmenden passt aktuell kein Quiz aus deiner
+          Sammlung.
         </p>
       } @else {
         <p class="session-quiz-picker__intro" i18n="@@sessionQuizPicker.intro">
-          Wähle das nächste Quiz aus deiner Sammlung für diese Session.
+          Wähle ein Quiz, das zum aktuellen Onboarding-Profil deiner Teilnehmenden passt:
         </p>
         <div class="session-quiz-picker__list">
           @for (quiz of quizzes; track quiz.id) {
@@ -116,9 +199,20 @@ export class SessionQuizPickerDialogComponent {
   readonly quizzes = [...this.data.quizzes].sort(
     (left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
   );
+  readonly sessionProfile = this.data.sessionProfile;
 
   pick(quizId: string): void {
     this.dialogRef.close(quizId);
+  }
+
+  profileSummary(): string | null {
+    const profile = this.sessionProfile;
+    if (!profile) {
+      return null;
+    }
+
+    const parts = [this.nameModeLabel(profile), this.teamModeLabel(profile)];
+    return parts.join(' ');
   }
 
   quizMetaLabel(quiz: QuizSummary): string {
@@ -131,5 +225,43 @@ export class SessionQuizPickerDialogComponent {
       parts.push($localize`:@@sessionQuizPicker.teamMode:Teammodus`);
     }
     return parts.join(' · ');
+  }
+
+  private nameModeLabel(profile: SessionQuizPickerProfile): string {
+    if (profile.anonymousMode) {
+      return $localize`:@@sessionQuizPicker.nameModeAnonymous:Anonyme Teilnahme.`;
+    }
+    if (profile.allowCustomNicknames) {
+      return $localize`:@@sessionQuizPicker.nameModeCustom:Freie Nicknames sind erlaubt.`;
+    }
+    return $localize`:@@sessionQuizPicker.nameModeTheme:Feste Pseudonyme aus ${this.nicknameThemeLabel(profile.nicknameTheme)}.`;
+  }
+
+  private teamModeLabel(profile: SessionQuizPickerProfile): string {
+    if (!profile.teamMode) {
+      return $localize`:@@sessionQuizPicker.teamsDisabled:Teams sind nicht möglich.`;
+    }
+    const count = profile.teamCount ?? 2;
+    const assignment =
+      profile.teamAssignment === 'MANUAL'
+        ? $localize`:@@sessionQuizPicker.teamAssignmentManual:manuelle Teamwahl`
+        : $localize`:@@sessionQuizPicker.teamAssignmentAuto:automatische Teamzuweisung`;
+    return $localize`:@@sessionQuizPicker.teamModeHint:Teams sind aktiv (${count} Teams, ${assignment}).`;
+  }
+
+  private nicknameThemeLabel(theme: NicknameTheme): string {
+    switch (theme) {
+      case 'NOBEL_LAUREATES':
+        return $localize`:@@sessionQuizPicker.nicknameThemeNobel:Nobelpreis`;
+      case 'KINDERGARTEN':
+        return $localize`:@@sessionQuizPicker.nicknameThemeKindergarten:Kindergarten`;
+      case 'PRIMARY_SCHOOL':
+        return $localize`:@@sessionQuizPicker.nicknameThemePrimary:Grundschule`;
+      case 'MIDDLE_SCHOOL':
+        return $localize`:@@sessionQuizPicker.nicknameThemeMiddle:Mittelstufe`;
+      case 'HIGH_SCHOOL':
+      default:
+        return $localize`:@@sessionQuizPicker.nicknameThemeHigh:Oberstufe`;
+    }
   }
 }

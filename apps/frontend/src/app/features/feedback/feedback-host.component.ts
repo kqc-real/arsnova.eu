@@ -227,7 +227,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       return;
     }
     this.pollTimer = setInterval(() => {
-      if (this.subscription) {
+      // Embedded in the session host: keep a light HTTP fallback even with an active WS subscription.
+      // This closes WS gaps where the first live result update does not arrive until a full reload.
+      if (this.subscription && !this.embeddedInSession()) {
         return;
       }
       void this.loadInitialResult();

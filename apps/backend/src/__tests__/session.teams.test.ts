@@ -45,9 +45,10 @@ const PARTICIPANT_ID = '33333333-3333-4333-8333-333333333333';
 
 describe('session team mode (Story 7.1)', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     isSessionCodeLockedOutMock.mockResolvedValue({ locked: false, retryAfterSeconds: 0 });
     recordFailedSessionCodeAttemptMock.mockResolvedValue({ locked: false, retryAfterSeconds: 0 });
+    prismaMock.$executeRaw.mockResolvedValue(1);
   });
 
   it('liefert Teams einer Session und initialisiert konfigurierte Team-Namen bei Bedarf', async () => {
@@ -71,6 +72,30 @@ describe('session team mode (Story 7.1)', () => {
         { sessionId: SESSION_ID, name: 'Blau', color: '#43A047' },
       ],
     });
+  });
+
+  it('liefert Teams auch für quizlose Sessions mit gespeichertem Onboarding-Profil', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      onboardingProfileConfigured: true,
+      onboardingAllowCustomNicknames: false,
+      onboardingAnonymousMode: false,
+      onboardingTeamMode: true,
+      onboardingTeamCount: 2,
+      onboardingTeamAssignment: 'MANUAL',
+      onboardingTeamNames: ['Rot', 'Blau'],
+      onboardingNicknameTheme: 'HIGH_SCHOOL',
+    });
+    prismaMock.team.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      { id: TEAM_A_ID, name: 'Rot', color: '#1E88E5', _count: { participants: 0 } },
+      { id: TEAM_B_ID, name: 'Blau', color: '#43A047', _count: { participants: 0 } },
+    ]);
+    prismaMock.team.createMany.mockResolvedValue({ count: 2 });
+
+    const result = await caller.getTeams({ code: 'ABC123' });
+
+    expect(result.teamCount).toBe(2);
+    expect(result.teams.map((team) => team.name)).toEqual(['Rot', 'Blau']);
   });
 
   it('weist beim AUTO-Join Round-Robin zu (1.→A, 2.→B, 3.→A, …)', async () => {

@@ -31,6 +31,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
 import { hasHostToken } from '../../core/host-session-token';
 import { setHostToken, trpc } from '../../core/trpc.client';
+import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import {
@@ -439,12 +440,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async startHeroHostSession(tab: 'qa' | 'quickFeedback'): Promise<void> {
     try {
+      const onboardingProfile = createDefaultLiveSessionOnboardingProfile();
       const result =
         tab === 'qa'
-          ? await trpc.session.create.mutate({ type: 'QUIZ', qaEnabled: true })
+          ? await trpc.session.create.mutate({
+              type: 'QUIZ',
+              qaEnabled: true,
+              ...onboardingProfile,
+            })
           : await trpc.session.create.mutate({
               type: 'QUIZ',
               quickFeedbackEnabled: true,
+              ...onboardingProfile,
             });
       setHostToken(result.code, result.hostToken);
       await navigateToHostSession(this.router, result.code, tab);

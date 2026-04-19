@@ -59,12 +59,14 @@ import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 import type {
   HostCurrentQuestionDTO,
   LeaderboardEntryDTO,
+  NicknameTheme,
   QaQuestionDTO,
   QuickFeedbackResult,
   SessionChannelsDTO,
   SessionFeedbackSummary,
   SessionInfoDTO,
   SessionParticipantsPayload,
+  TeamAssignment,
   SessionStatusUpdate,
   TeamDTO,
   TeamLeaderboardEntryDTO,
@@ -106,6 +108,15 @@ const ANSWER_SHAPES = [
 const HOST_FALLBACK_POLL_MS = 3000;
 const SESSION_NOT_FOUND_MESSAGE = 'Session nicht gefunden.';
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
+type SessionOnboardingProfile = {
+  nicknameTheme: NicknameTheme;
+  allowCustomNicknames: boolean;
+  anonymousMode: boolean;
+  teamMode: boolean;
+  teamCount: number | null;
+  teamAssignment: TeamAssignment;
+  teamNames: string[];
+};
 type HostMusicTrack =
   | 'LOBBY_0'
   | 'LOBBY_1'
@@ -447,6 +458,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.isQaSession()) return false;
     if (!this.channels().quiz) return false;
     if (this.effectiveStatus() !== 'ACTIVE') return false;
+    return this.currentQuestionForHost() === null;
+  });
+  readonly canReplaceQuizBeforeStart = computed(() => {
+    if (!this.channels().quiz) return false;
+    if (this.effectiveStatus() !== 'LOBBY') return false;
     return this.currentQuestionForHost() === null;
   });
   readonly isImmersiveMode = computed(() => this.hostDisplayMode.immersiveHostActive());
@@ -1986,6 +2002,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.channelActivationPending() || !this.code) {
       return;
     }
+    await this.startQuizSelectionFlow();
+  }
+
+  async replaceQuizBeforeStart(): Promise<void> {
+    if (!this.canReplaceQuizBeforeStart()) {
+      return;
+    }
+    await this.startQuizSelectionFlow();
+  }
+
+  private async startQuizSelectionFlow(): Promise<void> {
+    if (this.channelActivationPending() || !this.code) {
+      return;
+    }
 
     const localQuizId = await this.chooseQuizForSession();
     if (!localQuizId) {
@@ -2003,7 +2033,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
       await this.attachUploadedQuizToSession(uploadedQuizId);
     } catch {
-      this.openHostSteeringCalloutForSteeringFailure(() => void this.activateQuizChannel());
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.startQuizSelectionFlow());
     } finally {
       this.channelActivationPending.set(null);
     }
@@ -2039,6 +2069,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async chooseQuizForSession(): Promise<string | undefined> {
+    const quizzes = this.quizStore
+      .quizzes()
+      .filter((quiz) => this.isLocalQuizCompatibleWithSession(quiz.id));
     const dialogRef = this.dialog.open<
       SessionQuizPickerDialogComponent,
       SessionQuizPickerDialogData,
@@ -2047,9 +2080,99 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       width: '36rem',
       maxWidth: 'calc(100vw - 1.5rem)',
       autoFocus: false,
-      data: { quizzes: this.quizStore.quizzes() },
+      data: {
+        quizzes,
+        sessionProfile: this.getSessionOnboardingProfile(),
+      },
     });
     return firstValueFrom(dialogRef.afterClosed());
+  }
+
+  private isLocalQuizCompatibleWithSession(localQuizId: string): boolean {
+    const sessionProfile = this.getSessionOnboardingProfile();
+    if (!sessionProfile) {
+      return true;
+    }
+    const quiz = this.quizStore.getQuizById(localQuizId);
+    if (!quiz) {
+      return false;
+    }
+    return this.areOnboardingProfilesCompatible(sessionProfile, {
+      nicknameTheme: quiz.settings.nicknameTheme,
+      allowCustomNicknames: quiz.settings.allowCustomNicknames,
+      anonymousMode: quiz.settings.anonymousMode,
+      teamMode: quiz.settings.teamMode,
+      teamCount: quiz.settings.teamMode ? quiz.settings.teamCount : null,
+      teamAssignment: quiz.settings.teamMode ? quiz.settings.teamAssignment : 'AUTO',
+      teamNames: quiz.settings.teamMode ? quiz.settings.teamNames : [],
+    });
+  }
+
+  private getSessionOnboardingProfile(): SessionOnboardingProfile | null {
+    const session = this.session();
+    if (!session) {
+      return null;
+    }
+    return {
+      nicknameTheme: session.nicknameTheme ?? 'HIGH_SCHOOL',
+      allowCustomNicknames: session.allowCustomNicknames ?? true,
+      anonymousMode: session.anonymousMode === true,
+      teamMode: session.teamMode === true,
+      teamCount: session.teamMode ? (session.teamCount ?? 2) : null,
+      teamAssignment: session.teamMode
+        ? ((session.teamAssignment ?? 'AUTO') as TeamAssignment)
+        : 'AUTO',
+      teamNames: session.teamMode ? (session.teamNames ?? []) : [],
+    };
+  }
+
+  private areOnboardingProfilesCompatible(
+    sessionProfile: SessionOnboardingProfile,
+    quizProfile: SessionOnboardingProfile,
+  ): boolean {
+    if (sessionProfile.anonymousMode !== quizProfile.anonymousMode) {
+      return false;
+    }
+    if (!sessionProfile.anonymousMode) {
+      if (sessionProfile.allowCustomNicknames !== quizProfile.allowCustomNicknames) {
+        return false;
+      }
+      if (
+        sessionProfile.allowCustomNicknames === false &&
+        sessionProfile.nicknameTheme !== quizProfile.nicknameTheme
+      ) {
+        return false;
+      }
+    }
+    if (sessionProfile.teamMode !== quizProfile.teamMode) {
+      return false;
+    }
+    if (!sessionProfile.teamMode) {
+      return true;
+    }
+    if (sessionProfile.teamAssignment !== quizProfile.teamAssignment) {
+      return false;
+    }
+    if ((sessionProfile.teamCount ?? 2) !== (quizProfile.teamCount ?? 2)) {
+      return false;
+    }
+
+    const sessionTeamNames = this.effectiveTeamNames(sessionProfile);
+    const quizTeamNames = this.effectiveTeamNames(quizProfile);
+    return sessionTeamNames.every((name, index) => name === quizTeamNames[index]);
+  }
+
+  private effectiveTeamNames(profile: SessionOnboardingProfile): string[] {
+    if (!profile.teamMode) {
+      return [];
+    }
+    const count = profile.teamCount ?? 2;
+    return Array.from({ length: count }, (_, index) => {
+      const configured = profile.teamNames[index]?.trim();
+      return configured && configured.length > 0
+        ? configured
+        : `Team ${String.fromCharCode(65 + index)}`;
+    });
   }
 
   private async enableChannel(

@@ -12504,6 +12504,90 @@
           <context context-type="linenumber">161</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.replaceQuizBeforeStart" datatype="html">
+        <source>Quiz wechseln</source>
+        <target>Cambia quiz</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.title" datatype="html">
+        <source>Quiz auswählen</source>
+        <target>Seleziona quiz</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.profileHeading" datatype="html">
+        <source>Aktuelles Onboarding-Profil der Teilnehmenden</source>
+        <target>Profilo di onboarding attuale dei partecipanti</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.empty" datatype="html">
+        <source>Zum aktuellen Onboarding-Profil deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung.</source>
+        <target>Al momento nessun quiz della tua raccolta corrisponde al profilo di onboarding attuale dei partecipanti.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.intro" datatype="html">
+        <source>Wähle ein Quiz, das zum aktuellen Onboarding-Profil deiner Teilnehmenden passt:</source>
+        <target>Scegli un quiz della tua raccolta che corrisponda al profilo di onboarding attuale dei partecipanti:</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.cancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Annulla</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.questionCountOne" datatype="html">
+        <source>1 Frage</source>
+        <target>1 domanda</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.questionCountMany" datatype="html">
+        <source><x id="count" equiv-text="quiz.questionCount"/> Fragen</source>
+        <target><x id="count" equiv-text="quiz.questionCount"/> domande</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamMode" datatype="html">
+        <source>Teammodus</source>
+        <target>Modalità a squadre</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeAnonymous" datatype="html">
+        <source>Anonyme Teilnahme.</source>
+        <target>Partecipazione anonima.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeCustom" datatype="html">
+        <source>Freie Nicknames sind erlaubt.</source>
+        <target>Sono consentiti nickname liberi.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeTheme" datatype="html">
+        <source>Feste Pseudonyme aus <x id="PH" equiv-text="this.nicknameThemeLabel(profile.nicknameTheme)"/>.</source>
+        <target>Pseudonimi fissi da <x id="PH" equiv-text="this.nicknameThemeLabel(profile.nicknameTheme)"/>.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamsDisabled" datatype="html">
+        <source>Teams sind nicht möglich.</source>
+        <target>Le squadre non sono possibili.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamAssignmentManual" datatype="html">
+        <source>manuelle Teamwahl</source>
+        <target>scelta manuale della squadra</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamAssignmentAuto" datatype="html">
+        <source>automatische Teamzuweisung</source>
+        <target>assegnazione automatica della squadra</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamModeHint" datatype="html">
+        <source>Teams sind aktiv (<x id="PH" equiv-text="count"/> Teams, <x id="PH_1" equiv-text="assignment"/>).</source>
+        <target>Le squadre sono attive (<x id="PH" equiv-text="count"/> squadre, <x id="PH_1" equiv-text="assignment"/>).</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeNobel" datatype="html">
+        <source>Nobelpreis</source>
+        <target>Premio Nobel</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeKindergarten" datatype="html">
+        <source>Kindergarten</source>
+        <target>Scuola dell’infanzia</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemePrimary" datatype="html">
+        <source>Grundschule</source>
+        <target>Scuola primaria</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeMiddle" datatype="html">
+        <source>Mittelstufe</source>
+        <target>Scuola media</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeHigh" datatype="html">
+        <source>Oberstufe</source>
+        <target>Scuola superiore</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

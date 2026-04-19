@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FeedbackHostComponent } from './feedback-host.component';
 
 const { clearFeedbackHostTokenMock, setFeedbackHostTokenMock } = vi.hoisted(() => ({
@@ -67,6 +67,10 @@ describe('FeedbackHostComponent', () => {
         },
       ],
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   function createComponent(): FeedbackHostComponent {
@@ -188,6 +192,38 @@ describe('FeedbackHostComponent', () => {
       { sessionCode: 'ABC123' },
       expect.any(Object),
     );
+    fixture.destroy();
+  });
+
+  it('pollt im eingebetteten Modus weiter als Fallback, auch wenn eine Subscription aktiv ist', async () => {
+    vi.useFakeTimers();
+    const { trpc } = await import('../../core/trpc.client');
+    vi.mocked(trpc.quickFeedback.hostResults.query).mockResolvedValue({
+      type: 'TRUEFALSE_UNKNOWN',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 0,
+      distribution: { TRUE: 0, FALSE: 0, UNKNOWN: 0 },
+    });
+
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    const comp = fixture.componentInstance as FeedbackHostComponent & {
+      subscription: { unsubscribe(): void } | null;
+      startPolling(): void;
+      pollTimer: ReturnType<typeof setInterval> | null;
+    };
+    comp.subscription = { unsubscribe: vi.fn() };
+    comp.startPolling();
+
+    await vi.advanceTimersByTimeAsync(3000);
+
+    expect(trpc.quickFeedback.hostResults.query).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    if (comp.pollTimer) {
+      clearInterval(comp.pollTimer);
+      comp.pollTimer = null;
+    }
     fixture.destroy();
   });
 

@@ -184,6 +184,9 @@ describe('JoinComponent', () => {
       quizName: null,
       title: 'Offene Fragen',
       participantCount: 3,
+      allowCustomNicknames: true,
+      anonymousMode: false,
+      teamMode: false,
     });
 
     const { fixture, comp } = createWithCode('ABC123');
@@ -194,6 +197,37 @@ describe('JoinComponent', () => {
     expect(comp.showCustomNickname()).toBe(true);
     expect(comp.showNicknameList()).toBe(false);
     expect(comp.canSubmit()).toBe(false);
+  });
+
+  it('erzwingt auch in quizlosen Sessions die Pseudonymauswahl aus dem Onboarding-Profil', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      id: 'sess-qa',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      serverTime: '2026-03-24T12:00:00.000Z',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 3,
+      nicknameTheme: 'KINDERGARTEN',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      teamMode: false,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Offene Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(comp.showCustomNickname()).toBe(false);
+    expect(comp.showNicknameList()).toBe(true);
+    expect(comp.nicknameOptions().length).toBeGreaterThan(0);
   });
 
   it('ruft join mit Code und Nickname auf und navigiert zu vote (Story 3.2)', async () => {

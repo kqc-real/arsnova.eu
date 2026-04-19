@@ -12504,6 +12504,90 @@
           <context context-type="linenumber">161</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.replaceQuizBeforeStart" datatype="html">
+        <source>Quiz wechseln</source>
+        <target>Cambiar cuestionario</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.title" datatype="html">
+        <source>Quiz auswählen</source>
+        <target>Seleccionar cuestionario</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.profileHeading" datatype="html">
+        <source>Aktuelles Onboarding-Profil der Teilnehmenden</source>
+        <target>Perfil actual de incorporación de los participantes</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.empty" datatype="html">
+        <source>Zum aktuellen Onboarding-Profil deiner Teilnehmenden passt aktuell kein Quiz aus deiner Sammlung.</source>
+        <target>Actualmente ningún cuestionario de tu colección coincide con el perfil actual de incorporación de tus participantes.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.intro" datatype="html">
+        <source>Wähle ein Quiz, das zum aktuellen Onboarding-Profil deiner Teilnehmenden passt:</source>
+        <target>Elige un cuestionario de tu colección que coincida con el perfil actual de incorporación de tus participantes:</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.cancel" datatype="html">
+        <source>Abbrechen</source>
+        <target>Cancelar</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.questionCountOne" datatype="html">
+        <source>1 Frage</source>
+        <target>1 pregunta</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.questionCountMany" datatype="html">
+        <source><x id="count" equiv-text="quiz.questionCount"/> Fragen</source>
+        <target><x id="count" equiv-text="quiz.questionCount"/> preguntas</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamMode" datatype="html">
+        <source>Teammodus</source>
+        <target>Modo por equipos</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeAnonymous" datatype="html">
+        <source>Anonyme Teilnahme.</source>
+        <target>Participación anónima.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeCustom" datatype="html">
+        <source>Freie Nicknames sind erlaubt.</source>
+        <target>Se permiten apodos libres.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nameModeTheme" datatype="html">
+        <source>Feste Pseudonyme aus <x id="PH" equiv-text="this.nicknameThemeLabel(profile.nicknameTheme)"/>.</source>
+        <target>Seudónimos fijos de <x id="PH" equiv-text="this.nicknameThemeLabel(profile.nicknameTheme)"/>.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamsDisabled" datatype="html">
+        <source>Teams sind nicht möglich.</source>
+        <target>Los equipos no son posibles.</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamAssignmentManual" datatype="html">
+        <source>manuelle Teamwahl</source>
+        <target>selección manual de equipo</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamAssignmentAuto" datatype="html">
+        <source>automatische Teamzuweisung</source>
+        <target>asignación automática de equipo</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.teamModeHint" datatype="html">
+        <source>Teams sind aktiv (<x id="PH" equiv-text="count"/> Teams, <x id="PH_1" equiv-text="assignment"/>).</source>
+        <target>Los equipos están activos (<x id="PH" equiv-text="count"/> equipos, <x id="PH_1" equiv-text="assignment"/>).</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeNobel" datatype="html">
+        <source>Nobelpreis</source>
+        <target>Premio Nobel</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeKindergarten" datatype="html">
+        <source>Kindergarten</source>
+        <target>Educación infantil</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemePrimary" datatype="html">
+        <source>Grundschule</source>
+        <target>Primaria</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeMiddle" datatype="html">
+        <source>Mittelstufe</source>
+        <target>Secundaria inicial</target>
+      </trans-unit>
+      <trans-unit id="sessionQuizPicker.nicknameThemeHigh" datatype="html">
+        <source>Oberstufe</source>
+        <target>Secundaria superior</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
