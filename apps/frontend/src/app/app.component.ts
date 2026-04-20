@@ -2,6 +2,7 @@ import {
   Component,
   ComponentRef,
   Directive,
+  ElementRef,
   HostListener,
   OnInit,
   OnDestroy,
@@ -97,6 +98,13 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(PresetToastHostDirective) private presetToastHost?: PresetToastHostDirective;
   @ViewChild(ConnectionBannerHostDirective)
   private connectionBannerHost?: ConnectionBannerHostDirective;
+  @ViewChild('appFooter')
+  set appFooterRef(value: ElementRef<HTMLElement> | undefined) {
+    this._appFooterRef = value;
+    if (isPlatformBrowser(this.platformId)) {
+      queueMicrotask(() => this.syncFooterOffsetObserver());
+    }
+  }
   private presetToastRef: ComponentRef<unknown> | null = null;
   private connectionBannerRef: ComponentRef<unknown> | null = null;
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
@@ -122,6 +130,9 @@ export class AppComponent implements OnInit, OnDestroy {
   private pwaUpdateReadyFallbackId: number | null = null;
   private footerStatsIntervalId: number | null = null;
   private pwaUpdatePollingArmed = false;
+  private _appFooterRef?: ElementRef<HTMLElement>;
+  private footerResizeObserver: ResizeObserver | null = null;
+  private observedFooterElement: HTMLElement | null = null;
 
   /** true wenn gescrollt wurde (für stärkeren Schatten, Elevation). */
   hasScrolled = signal(false);
@@ -160,6 +171,8 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Offline-Styling + Retry nur nach abgeschlossenem Check und fehlgeschlagenem API-Status. */
   footerShowApiOffline = computed(() => this.footerHealthCheckDone() && !this.apiStatus());
   isImmersiveHostView = computed(() => this.hostDisplayMode.immersiveHostActive());
+  footerVisible = computed(() => !this.isFeedbackRoute() && !this.isImmersiveHostView());
+  footerVisibleOffset = signal(0);
 
   /** Footer: Badge mit ungelesenen Archiv-Meldungen (max. „99+“), wie Toolbar-Megafon. */
   footerNewsArchiveBadgeText = computed(() => {
@@ -201,6 +214,7 @@ export class AppComponent implements OnInit, OnDestroy {
           this.toolbarHidden.set(false);
           this.updateRouteFlags();
           this.seo.applyFromRouter();
+          queueMicrotask(() => this.syncFooterOffsetObserver());
           /* Nur bei Folge-Navigationen: #main-content scrollen (nicht window). Erstes Event überspringen — vermeidet sichtbares „Zucken“. */
           if (this.pendingInitialNavigationEnd) {
             this.pendingInitialNavigationEnd = false;
@@ -243,6 +257,7 @@ export class AppComponent implements OnInit, OnDestroy {
         clearInterval(this.footerStatsIntervalId);
         this.footerStatsIntervalId = null;
       }
+      this.disconnectFooterOffsetObserver();
       window.removeEventListener('beforeinstallprompt', this.beforeInstallPromptListener);
       window.removeEventListener('appinstalled', this.appInstalledListener);
       if (isDevMode()) {
@@ -571,6 +586,41 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isPreviewRoute.set(
       this.matchesPreviewRoute(routerPath) || this.matchesPreviewRoute(windowPath),
     );
+    if (!this.footerVisible()) {
+      this.disconnectFooterOffsetObserver();
+      this.footerVisibleOffset.set(0);
+    }
+  }
+
+  private syncFooterOffsetObserver(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.footerVisible()) {
+      this.disconnectFooterOffsetObserver();
+      this.footerVisibleOffset.set(0);
+      return;
+    }
+    const footer = this._appFooterRef?.nativeElement;
+    if (!footer) {
+      this.footerVisibleOffset.set(0);
+      return;
+    }
+    this.footerVisibleOffset.set(Math.ceil(footer.getBoundingClientRect().height));
+    if (typeof ResizeObserver === 'undefined') return;
+    if (this.observedFooterElement === footer && this.footerResizeObserver) return;
+    this.disconnectFooterOffsetObserver();
+    this.footerResizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      this.footerVisibleOffset.set(Math.ceil(entry.contentRect.height));
+    });
+    this.footerResizeObserver.observe(footer);
+    this.observedFooterElement = footer;
+  }
+
+  private disconnectFooterOffsetObserver(): void {
+    this.footerResizeObserver?.disconnect();
+    this.footerResizeObserver = null;
+    this.observedFooterElement = null;
   }
 
   private static stripQueryAndHash(url: string): string {

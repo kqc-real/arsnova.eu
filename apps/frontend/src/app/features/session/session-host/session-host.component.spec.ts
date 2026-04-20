@@ -1024,10 +1024,14 @@ describe('SessionHostComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(fixture.componentInstance.showPrimaryLiveView()).toBe(false);
     expect(text).toContain('Vorab-Moderation');
     expect(text).toContain('Session beenden');
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--fixed');
     expect(text).toContain('Q&A-Word-Cloud anzeigen');
     fixture.destroy();
   });

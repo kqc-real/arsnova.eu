@@ -87,6 +87,7 @@
   --session-host-zone-gap: 0.875rem;
   --session-host-toolbar-clearance: calc(env(safe-area-inset-top, 0px) + 4.25rem);
   --session-host-float-top: 0.75rem;
+  --session-host-exit-bottom-base: max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem));
   display: grid;
   justify-items: center;
   gap: var(--session-host-zone-gap);
@@ -149,7 +150,7 @@
 
 .session-host__exit-anchor {
   position: sticky;
-  bottom: max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem));
+  bottom: var(--session-host-exit-bottom-base);
   width: var(--session-host-shell-width);
   max-width: 100%;
   margin: 0 auto;
@@ -157,6 +158,13 @@
   display: flex;
   justify-content: flex-end;
   z-index: 40;
+}
+
+.session-host__exit-anchor--fixed {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--session-host-exit-bottom-base) + var(--app-footer-visible-offset, 0px));
+  transform: translateX(-50%);
 }
 
 .session-host__exit-anchor-button {
@@ -170,6 +178,7 @@
     --session-host-zone-gap: var(--host-mobile-stack-gap);
     --session-host-toolbar-clearance: calc(env(safe-area-inset-top, 0px) + 5.5rem);
     --session-host-float-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+    --session-host-exit-bottom-base: max(0.5rem, calc(var(--host-mobile-safe-bottom) + 0.25rem));
   }
 
   .session-host__run {
@@ -183,8 +192,14 @@
 
   .session-host__exit-anchor {
     width: 100%;
-    bottom: max(0.5rem, calc(var(--host-mobile-safe-bottom) + 0.25rem));
     justify-content: stretch;
+  }
+
+  .session-host__exit-anchor--fixed {
+    left: var(--session-host-shell-inline);
+    right: var(--session-host-shell-inline);
+    width: auto;
+    transform: none;
   }
 
   .session-host__exit-anchor-button {

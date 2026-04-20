@@ -2014,7 +2014,10 @@
       }
     </div>
     @if (effectiveStatus() !== 'FINISHED') {
-      <div class="session-host__exit-anchor">
+      <div
+        class="session-host__exit-anchor"
+        [class.session-host__exit-anchor--fixed]="showChannelTabs()"
+      >
         <button
           matButton="tonal"
           type="button"
