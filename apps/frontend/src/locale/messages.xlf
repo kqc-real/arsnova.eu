@@ -4161,6 +4161,28 @@
           <context context-type="linenumber">320,321</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizForm.timerScaleByDifficultyLabel" datatype="html">
+        <source>Fragezeit nach Schwierigkeit anpassen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">277,280</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">213,216</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizForm.timerScaleByDifficultyHint" datatype="html">
+        <source>Leicht = wie eingestellt, Mittel = ×1,5, Schwer = ×2,0</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">281,284</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">217,220</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2616703419117401747" datatype="html">
         <source>Mindestens 5 Sekunden.</source>
         <context-group purpose="location">
