@@ -17,6 +17,7 @@ describe('QuizPreviewComponent', () => {
       showLeaderboard: true,
       allowCustomNicknames: true,
       defaultTimer: null,
+      timerScaleByDifficulty: true,
       enableSoundEffects: true,
       enableRewardEffects: true,
       enableMotivationMessages: true,
@@ -127,6 +128,43 @@ describe('QuizPreviewComponent', () => {
 
     expect(badges).toContain('Bewertung');
     expect(badges).not.toContain('Mittel');
+  });
+
+  it('skaliert den Vorschau-Timer nach Schwierigkeitsgrad, wenn die Quiz-Option aktiv ist', () => {
+    quiz.settings.defaultTimer = 40;
+    quiz.settings.timerScaleByDifficulty = true;
+    const originalDifficulty = quiz.questions[1]!.difficulty;
+    quiz.questions[1]!.difficulty = 'HARD';
+
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.effectivePreviewTimerSeconds(quiz.questions[1]!)).toBe(80);
+
+    quiz.settings.defaultTimer = null;
+    quiz.settings.timerScaleByDifficulty = true;
+    quiz.questions[1]!.difficulty = originalDifficulty;
+  });
+
+  it('laesst einen expliziten Frage-Timer in der Vorschau unveraendert', () => {
+    quiz.settings.defaultTimer = 40;
+    quiz.settings.timerScaleByDifficulty = true;
+    const originalDifficulty = quiz.questions[1]!.difficulty;
+    const originalTimer = quiz.questions[1]!.timer;
+    quiz.questions[1]!.difficulty = 'HARD';
+    quiz.questions[1]!.timer = 30;
+
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.effectivePreviewTimerSeconds(quiz.questions[1]!)).toBe(30);
+
+    quiz.settings.defaultTimer = null;
+    quiz.settings.timerScaleByDifficulty = true;
+    quiz.questions[1]!.difficulty = originalDifficulty;
+    quiz.questions[1]!.timer = originalTimer;
   });
 
   it('zeigt bei Umfragen kein Schwierigkeits-Badge', () => {

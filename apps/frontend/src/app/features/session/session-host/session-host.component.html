@@ -91,7 +91,7 @@
           </button>
         }
 
-        @if (isRunningSession()) {
+        @if (showHostViewControls()) {
           <div class="session-host__view-controls session-host__view-controls--inline">
             <button
               mat-icon-button
@@ -274,7 +274,7 @@
                 }
                 <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
               </button>
-              @if (isRunningSession() && !showChannelTabs()) {
+              @if (showHostViewControls() && !showChannelTabs()) {
                 <div class="session-host__view-controls session-host__view-controls--meta">
                   <button
                     mat-icon-button

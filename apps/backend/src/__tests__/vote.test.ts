@@ -143,6 +143,78 @@ describe('vote.submit', () => {
     );
   });
 
+  it('skaliert den Timer bei der Punkteberechnung nach Schwierigkeitsgrad', async () => {
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      defaultTimer: 40,
+      timerScaleByDifficulty: true,
+    });
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'HARD',
+      timer: null,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [
+        { id: ANSWER_ID_1, isCorrect: true },
+        { id: ANSWER_ID_2, isCorrect: false },
+      ],
+    });
+
+    await caller.submit({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      answerIds: [ANSWER_ID_1],
+      responseTimeMs: 70000,
+    });
+
+    expect(prismaMock.vote.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          score: 375,
+        }),
+      }),
+    );
+  });
+
+  it('skaliert einen expliziten Frage-Timer bei der Punkteberechnung nicht', async () => {
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      defaultTimer: 40,
+      timerScaleByDifficulty: true,
+    });
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'HARD',
+      timer: 30,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [
+        { id: ANSWER_ID_1, isCorrect: true },
+        { id: ANSWER_ID_2, isCorrect: false },
+      ],
+    });
+
+    await caller.submit({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      answerIds: [ANSWER_ID_1],
+      responseTimeMs: 20000,
+    });
+
+    expect(prismaMock.vote.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          score: 1000,
+        }),
+      }),
+    );
+  });
+
   it('setzt Streak nach falscher Antwort zurück (nächste richtige = Serie 1, ×1.0)', async () => {
     prismaMock.question.findFirst.mockResolvedValue({
       id: 'question-2',

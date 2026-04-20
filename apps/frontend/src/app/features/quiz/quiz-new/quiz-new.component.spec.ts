@@ -52,6 +52,7 @@ describe('QuizNewComponent', () => {
         showLeaderboard: true,
         allowCustomNicknames: false,
         defaultTimer: null,
+        timerScaleByDifficulty: true,
         enableSoundEffects: true,
         enableRewardEffects: true,
         enableMotivationMessages: true,
@@ -81,6 +82,7 @@ describe('QuizNewComponent', () => {
         showLeaderboard: true,
         allowCustomNicknames: false,
         defaultTimer: 60,
+        timerScaleByDifficulty: true,
         enableSoundEffects: true,
         enableRewardEffects: true,
         enableMotivationMessages: true,
@@ -94,6 +96,7 @@ describe('QuizNewComponent', () => {
         nicknameTheme: 'HIGH_SCHOOL',
         bonusTokenCount: null,
         readingPhaseEnabled: false,
+        timerScaleByDifficulty: true,
         preset: 'PLAYFUL',
       }),
     });
@@ -131,6 +134,7 @@ describe('QuizNewComponent', () => {
     expect(component.form.controls.allowCustomNicknames.value).toBe(false);
     expect(component.form.controls.nicknameTheme.value).toBe('HIGH_SCHOOL');
     expect(component.form.controls.defaultTimer.value).toBeNull();
+    expect(component.form.controls.timerScaleByDifficulty.value).toBe(true);
   });
 
   it('setzt mit dem Playful-Preset den Standard-Timer auf 60 Sekunden', () => {
@@ -140,6 +144,7 @@ describe('QuizNewComponent', () => {
     component.applyPreset('PLAYFUL');
 
     expect(component.form.controls.defaultTimer.value).toBe(60);
+    expect(component.form.controls.timerScaleByDifficulty.value).toBe(true);
   });
 
   it('übernimmt allowCustomNicknames beim Speichern aus dem Formular (z. B. aktiviert)', async () => {
@@ -161,6 +166,7 @@ describe('QuizNewComponent', () => {
         showLeaderboard: true,
         allowCustomNicknames: true,
         defaultTimer: null,
+        timerScaleByDifficulty: true,
         enableSoundEffects: true,
         enableRewardEffects: true,
         enableMotivationMessages: true,

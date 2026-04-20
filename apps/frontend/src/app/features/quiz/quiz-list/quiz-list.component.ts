@@ -52,6 +52,7 @@ import {
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
+import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 
 /**
  * Quiz-Liste (Epic 1).
@@ -721,6 +722,7 @@ export class QuizListComponent implements OnInit {
     this.actionError.set(null);
     this.actionInfo.set(null);
     this.liveStartPending.set(true);
+    tryRequestDocumentFullscreen(this.document);
     try {
       let payload = this.quizStore.getUploadPayload(options.quizId);
       const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);

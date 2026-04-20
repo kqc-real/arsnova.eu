@@ -368,6 +368,7 @@ describe('QuizStoreService', () => {
     expect(settings?.showLeaderboard).toBe(true);
     expect(settings?.allowCustomNicknames).toBe(false);
     expect(settings?.defaultTimer).toBeNull();
+    expect(settings?.timerScaleByDifficulty).toBe(true);
   });
 
   it('dupliziert ein Quiz mit neuer ID und "(Kopie)"-Suffix', () => {

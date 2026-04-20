@@ -440,6 +440,29 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('aktiviert im Quiz-Foyer bereits die immersive Host-Ansicht', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.isImmersiveMode()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('.session-host__view-controls--inline'),
+    ).not.toBeNull();
+    fixture.destroy();
+  });
+
   it('zeigt im Host auch noch inaktive Kanaele als Tabs an', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

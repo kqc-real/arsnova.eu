@@ -450,6 +450,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const status = this.effectiveStatus();
     return this.session() !== null && status !== 'LOBBY' && status !== 'FINISHED';
   });
+  readonly isQuizLobbyImmersive = computed(() => {
+    if (this.session() === null) return false;
+    if (this.effectiveStatus() !== 'LOBBY') return false;
+    if (!this.channels().quiz || this.isQaSession()) return false;
+    return this.activeChannel() === 'quiz';
+  });
+  readonly showHostViewControls = computed(
+    () => this.isRunningSession() || this.isQuizLobbyImmersive(),
+  );
   /**
    * Quiz-Kanal: ACTIVE (z. B. nach Fragerunden-Start), aber noch keine Quiz-Frage – kein Voting,
    * daher keine „Ergebnis zeigen“-Steuerung; erste Frage explizit starten.
@@ -755,7 +764,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     });
     effect(() => {
-      this.hostDisplayMode.setHostSessionActive(this.isRunningSession());
+      this.hostDisplayMode.setHostSessionActive(
+        this.isRunningSession() || this.isQuizLobbyImmersive(),
+      );
     });
     effect(() => {
       const mappedPreset = this.themePreset.preset() === 'serious' ? 'SERIOUS' : 'PLAYFUL';

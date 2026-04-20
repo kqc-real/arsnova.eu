@@ -6,6 +6,7 @@ import { TRPCError } from '@trpc/server';
 import {
   SubmitVoteInputSchema,
   SubmitVoteOutputSchema,
+  resolveEffectiveQuestionTimer,
   type QuestionType,
   type Difficulty,
 } from '@arsnova/shared-types';
@@ -55,9 +56,20 @@ export const voteRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
 
-      if (question.timer && question.timer > 0 && participant.session.statusChangedAt) {
+      const quiz = await prisma.quiz.findUnique({
+        where: { id: participant.session.quizId ?? '' },
+        select: { defaultTimer: true, timerScaleByDifficulty: true },
+      });
+      const timerSeconds = resolveEffectiveQuestionTimer(
+        question.timer,
+        quiz?.defaultTimer,
+        question.difficulty as Difficulty,
+        quiz?.timerScaleByDifficulty ?? true,
+      );
+
+      if (timerSeconds && timerSeconds > 0 && participant.session.statusChangedAt) {
         const deadline =
-          new Date(participant.session.statusChangedAt).getTime() + question.timer * 1000;
+          new Date(participant.session.statusChangedAt).getTime() + timerSeconds * 1000;
         if (Date.now() > deadline + 2000) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
@@ -160,12 +172,6 @@ export const voteRouter = router({
       }
 
       const round = input.round ?? 1;
-
-      const quiz = await prisma.quiz.findUnique({
-        where: { id: participant.session.quizId ?? '' },
-        select: { defaultTimer: true },
-      });
-      const timerSeconds = question.timer ?? quiz?.defaultTimer ?? null;
 
       const correctAnswerIds = question.answers
         .filter((answer) => answer.isCorrect)

@@ -83,6 +83,7 @@ export interface QuizSettings {
   showLeaderboard: boolean;
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
+  timerScaleByDifficulty?: boolean;
   enableSoundEffects: boolean;
   enableRewardEffects: boolean;
   enableMotivationMessages: boolean;
@@ -284,6 +285,7 @@ const QuizSettingsSchema = CreateQuizInputSchema.pick({
   showLeaderboard: true,
   allowCustomNicknames: true,
   defaultTimer: true,
+  timerScaleByDifficulty: true,
   enableSoundEffects: true,
   enableRewardEffects: true,
   enableMotivationMessages: true,
@@ -712,6 +714,7 @@ export class QuizStoreService implements OnDestroy {
         showLeaderboard: document.settings.showLeaderboard,
         allowCustomNicknames: document.settings.allowCustomNicknames,
         defaultTimer: document.settings.defaultTimer,
+        timerScaleByDifficulty: document.settings.timerScaleByDifficulty ?? true,
         enableSoundEffects: document.settings.enableSoundEffects,
         enableRewardEffects: document.settings.enableRewardEffects,
         enableMotivationMessages: document.settings.enableMotivationMessages,
@@ -836,6 +839,7 @@ export class QuizStoreService implements OnDestroy {
       showLeaderboard: document.settings.showLeaderboard,
       allowCustomNicknames: document.settings.allowCustomNicknames,
       defaultTimer: document.settings.defaultTimer,
+      timerScaleByDifficulty: document.settings.timerScaleByDifficulty ?? true,
       enableSoundEffects: document.settings.enableSoundEffects,
       enableRewardEffects: document.settings.enableRewardEffects,
       enableMotivationMessages: document.settings.enableMotivationMessages,
@@ -896,6 +900,7 @@ export class QuizStoreService implements OnDestroy {
         showLeaderboard: parsed.data.quiz.showLeaderboard,
         allowCustomNicknames: parsed.data.quiz.allowCustomNicknames,
         defaultTimer: parsed.data.quiz.defaultTimer ?? null,
+        timerScaleByDifficulty: parsed.data.quiz.timerScaleByDifficulty ?? true,
         enableSoundEffects: parsed.data.quiz.enableSoundEffects,
         enableRewardEffects: parsed.data.quiz.enableRewardEffects,
         enableMotivationMessages: parsed.data.quiz.enableMotivationMessages,
@@ -1835,6 +1840,7 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
     showLeaderboard: input.showLeaderboard,
     allowCustomNicknames: input.allowCustomNicknames,
     defaultTimer: input.defaultTimer ?? null,
+    timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,
     enableSoundEffects: input.enableSoundEffects,
     enableRewardEffects: input.enableRewardEffects,
     enableMotivationMessages: input.enableMotivationMessages,
@@ -1860,6 +1866,7 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
     showLeaderboard: parsed.data.showLeaderboard,
     allowCustomNicknames: parsed.data.allowCustomNicknames,
     defaultTimer: parsed.data.defaultTimer ?? null,
+    timerScaleByDifficulty: parsed.data.timerScaleByDifficulty ?? true,
     enableSoundEffects: parsed.data.enableSoundEffects,
     enableRewardEffects: parsed.data.enableRewardEffects,
     enableMotivationMessages: parsed.data.enableMotivationMessages,
@@ -1889,6 +1896,7 @@ function normalizeStoredQuizSettings(value: unknown): QuizSettings {
       showLeaderboard: readBoolean(candidate['showLeaderboard']),
       allowCustomNicknames: readBoolean(candidate['allowCustomNicknames']),
       defaultTimer: readNumberOrNull(candidate['defaultTimer']),
+      timerScaleByDifficulty: readBoolean(candidate['timerScaleByDifficulty']),
       enableSoundEffects: readBoolean(candidate['enableSoundEffects']),
       enableRewardEffects: readBoolean(candidate['enableRewardEffects']),
       enableMotivationMessages: readBoolean(candidate['enableMotivationMessages']),

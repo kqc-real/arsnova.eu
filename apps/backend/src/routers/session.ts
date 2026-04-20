@@ -67,6 +67,7 @@ import {
   DEFAULT_TEAM_COUNT,
   NicknameThemeEnum,
   createQuizHistoryAccessProof,
+  resolveEffectiveQuestionTimer,
 } from '@arsnova/shared-types';
 import { questionCountsTowardsTotalQuestions, questionAffectsStreak } from '../lib/quizScoring';
 import { updateMaxParticipantsSingleSession } from '../lib/platformStatistic';
@@ -708,20 +709,6 @@ function buildSessionChannels(session: {
 /** Anteil vollstaendig korrekter Stimmen (SC/MC, Runde 1): Empfehlung nur in diesem Fenster. */
 const PEER_INSTRUCTION_MIN_CORRECTNESS_RATIO = 0.35;
 const PEER_INSTRUCTION_MAX_CORRECTNESS_RATIO = 0.7;
-
-/** Frage-Timer: nur explizite Werte (Frage oder Quiz-Default). Kein Preset-Fallback — deaktiviert = keine Begrenzung. */
-function resolveQuestionTimer(
-  questionTimer: number | null | undefined,
-  defaultTimer: number | null | undefined,
-): number | null {
-  if (typeof questionTimer === 'number' && questionTimer > 0) {
-    return questionTimer;
-  }
-  if (typeof defaultTimer === 'number' && defaultTimer > 0) {
-    return defaultTimer;
-  }
-  return null;
-}
 
 function buildPeerInstructionSuggestion(
   questionType: QuestionType,
@@ -1591,6 +1578,7 @@ export const sessionRouter = router({
                 enableEmojiReactions: true,
                 readingPhaseEnabled: true,
                 defaultTimer: true,
+                timerScaleByDifficulty: true,
                 backgroundMusic: true,
                 teamMode: true,
                 teamCount: true,
@@ -1630,6 +1618,7 @@ export const sessionRouter = router({
           enableEmojiReactions: q.enableEmojiReactions,
           readingPhaseEnabled: q.readingPhaseEnabled,
           defaultTimer: q.defaultTimer,
+          timerScaleByDifficulty: q.timerScaleByDifficulty,
           backgroundMusic: q.backgroundMusic,
           bonusTokenCount: q.bonusTokenCount,
           preset: q.preset as 'PLAYFUL' | 'SERIOUS',
@@ -1885,7 +1874,8 @@ export const sessionRouter = router({
             select: {
               preset: true,
               defaultTimer: true,
-              questions: { orderBy: { order: 'asc' }, select: { timer: true } },
+              timerScaleByDifficulty: true,
+              questions: { orderBy: { order: 'asc' }, select: { timer: true, difficulty: true } },
             },
           },
         },
@@ -1896,9 +1886,11 @@ export const sessionRouter = router({
       const isActive = session.status === 'ACTIVE';
       const currentTimer =
         isActive && session.currentQuestion !== null
-          ? resolveQuestionTimer(
+          ? resolveEffectiveQuestionTimer(
               session.quiz?.questions[session.currentQuestion]?.timer,
               session.quiz?.defaultTimer,
+              session.quiz?.questions[session.currentQuestion]?.difficulty ?? 'MEDIUM',
+              session.quiz?.timerScaleByDifficulty ?? true,
             )
           : null;
       const payloadBase: {
@@ -2172,6 +2164,7 @@ export const sessionRouter = router({
                   text: true,
                   type: true,
                   timer: true,
+                  difficulty: true,
                   ratingMin: true,
                   ratingMax: true,
                   ratingLabelMin: true,
@@ -2180,6 +2173,7 @@ export const sessionRouter = router({
                 },
               },
               defaultTimer: true,
+              timerScaleByDifficulty: true,
               preset: true,
             },
           },
@@ -2209,7 +2203,12 @@ export const sessionRouter = router({
           | 'FREETEXT'
           | 'RATING'
           | 'SURVEY',
-        timer: resolveQuestionTimer(question.timer, session.quiz.defaultTimer),
+        timer: resolveEffectiveQuestionTimer(
+          question.timer,
+          session.quiz.defaultTimer,
+          question.difficulty,
+          session.quiz.timerScaleByDifficulty ?? true,
+        ),
         answers: answersOrdered.map((a) => ({ id: a.id, text: a.text, isCorrect: a.isCorrect })),
         ratingMin: question.ratingMin ?? null,
         ratingMax: question.ratingMax ?? null,
@@ -2351,6 +2350,7 @@ export const sessionRouter = router({
                 include: { answers: { select: { id: true, text: true, isCorrect: true } } },
               },
               defaultTimer: true,
+              timerScaleByDifficulty: true,
               preset: true,
             },
           },
@@ -2410,7 +2410,12 @@ export const sessionRouter = router({
           id: question.id,
           text: question.text,
           type: question.type,
-          timer: resolveQuestionTimer(question.timer, session.quiz.defaultTimer),
+          timer: resolveEffectiveQuestionTimer(
+            question.timer,
+            session.quiz.defaultTimer,
+            question.difficulty,
+            session.quiz.timerScaleByDifficulty ?? true,
+          ),
           difficulty: question.difficulty,
           order: question.order,
           totalQuestions,

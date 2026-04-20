@@ -123,6 +123,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     defaultTimer: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(5), Validators.max(300)],
     }),
+    timerScaleByDifficulty: [true],
     enableSoundEffects: [true],
     enableRewardEffects: [true],
     enableMotivationMessages: [true],
@@ -224,6 +225,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       nicknameTheme: values.nicknameTheme ?? 'HIGH_SCHOOL',
       readingPhaseEnabled: values.readingPhaseEnabled ?? false,
       defaultTimer: values.defaultTimer ?? null,
+      timerScaleByDifficulty: values.timerScaleByDifficulty ?? true,
     });
   }
 
@@ -241,6 +243,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       current.anonymousMode === (target.anonymousMode ?? current.anonymousMode) &&
       current.readingPhaseEnabled === (target.readingPhaseEnabled ?? current.readingPhaseEnabled) &&
       current.defaultTimer === (target.defaultTimer ?? current.defaultTimer) &&
+      current.timerScaleByDifficulty ===
+        (target.timerScaleByDifficulty ?? current.timerScaleByDifficulty) &&
       current.allowCustomNicknames ===
         (target.allowCustomNicknames ?? current.allowCustomNicknames) &&
       current.nicknameTheme === (target.nicknameTheme ?? current.nicknameTheme)
@@ -253,6 +257,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       showLeaderboard: this.form.controls.showLeaderboard.value,
       allowCustomNicknames: this.form.controls.allowCustomNicknames.value,
       defaultTimer: this.defaultTimerControl.value,
+      timerScaleByDifficulty: this.form.controls.timerScaleByDifficulty.value,
       enableSoundEffects: this.form.controls.enableSoundEffects.value,
       enableRewardEffects: this.form.controls.enableRewardEffects.value,
       enableMotivationMessages: this.form.controls.enableMotivationMessages.value,

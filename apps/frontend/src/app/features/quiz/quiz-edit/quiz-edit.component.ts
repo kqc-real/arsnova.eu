@@ -97,6 +97,7 @@ type QuizSettingsFormGroup = FormGroup<{
   showLeaderboard: FormControl<boolean>;
   allowCustomNicknames: FormControl<boolean>;
   defaultTimer: FormControl<number | null>;
+  timerScaleByDifficulty: FormControl<boolean>;
   enableSoundEffects: FormControl<boolean>;
   enableRewardEffects: FormControl<boolean>;
   enableMotivationMessages: FormControl<boolean>;
@@ -260,6 +261,7 @@ export class QuizEditComponent implements OnDestroy {
     defaultTimer: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(5), Validators.max(300)],
     }),
+    timerScaleByDifficulty: this.formBuilder.control(true),
     enableSoundEffects: this.formBuilder.control(true),
     enableRewardEffects: this.formBuilder.control(true),
     enableMotivationMessages: this.formBuilder.control(true),
@@ -871,6 +873,7 @@ export class QuizEditComponent implements OnDestroy {
         showLeaderboard: settings.showLeaderboard,
         allowCustomNicknames: settings.allowCustomNicknames,
         defaultTimer: settings.defaultTimer,
+        timerScaleByDifficulty: settings.timerScaleByDifficulty ?? true,
         enableSoundEffects: settings.enableSoundEffects,
         enableRewardEffects: settings.enableRewardEffects,
         enableMotivationMessages: settings.enableMotivationMessages,
@@ -924,6 +927,7 @@ export class QuizEditComponent implements OnDestroy {
       showLeaderboard: this.settingsForm.controls.showLeaderboard.value,
       allowCustomNicknames: this.settingsForm.controls.allowCustomNicknames.value,
       defaultTimer: this.settingsForm.controls.defaultTimer.value,
+      timerScaleByDifficulty: this.settingsForm.controls.timerScaleByDifficulty.value,
       enableSoundEffects: this.settingsForm.controls.enableSoundEffects.value,
       enableRewardEffects: this.settingsForm.controls.enableRewardEffects.value,
       enableMotivationMessages: this.settingsForm.controls.enableMotivationMessages.value,
@@ -959,6 +963,8 @@ export class QuizEditComponent implements OnDestroy {
       current.anonymousMode === (target.anonymousMode ?? current.anonymousMode) &&
       current.readingPhaseEnabled === (target.readingPhaseEnabled ?? current.readingPhaseEnabled) &&
       current.defaultTimer === (target.defaultTimer ?? current.defaultTimer) &&
+      current.timerScaleByDifficulty ===
+        (target.timerScaleByDifficulty ?? current.timerScaleByDifficulty) &&
       current.allowCustomNicknames ===
         (target.allowCustomNicknames ?? current.allowCustomNicknames) &&
       current.nicknameTheme === (target.nicknameTheme ?? current.nicknameTheme)

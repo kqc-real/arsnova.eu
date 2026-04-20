@@ -317,6 +317,14 @@
   margin-top: 0.35rem;
 }
 
+.quiz-edit-form__timer-scale {
+  margin-top: 0.1rem;
+  padding-left: 2rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
 .quiz-edit-form__preset-actions {
   display: flex;
   flex-wrap: wrap;

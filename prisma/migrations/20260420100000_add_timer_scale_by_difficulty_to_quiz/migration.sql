@@ -1,0 +1,2 @@
+ALTER TABLE "Quiz"
+ADD COLUMN "timerScaleByDifficulty" BOOLEAN NOT NULL DEFAULT true;

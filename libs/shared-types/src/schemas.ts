@@ -27,6 +27,12 @@ export type SessionStatus = z.infer<typeof SessionStatusEnum>;
 export const DifficultyEnum = z.enum(['EASY', 'MEDIUM', 'HARD']);
 export type Difficulty = z.infer<typeof DifficultyEnum>;
 
+export const TIMER_DIFFICULTY_SCALE_FACTORS: Record<Difficulty, number> = {
+  EASY: 1,
+  MEDIUM: 1.5,
+  HARD: 2,
+};
+
 export const NicknameThemeEnum = z.enum([
   'NOBEL_LAUREATES',
   'KINDERGARTEN',
@@ -100,6 +106,40 @@ export const DEFAULT_TEAM_COUNT = 2;
 export const DEFAULT_BONUS_TOKEN_COUNT = 3;
 export const DEFAULT_TIMER_SECONDS = 60;
 
+export function scaleTimerByDifficulty(
+  timerSeconds: number | null | undefined,
+  difficulty: Difficulty,
+  enabled = true,
+): number | null {
+  if (typeof timerSeconds !== 'number' || timerSeconds <= 0) {
+    return null;
+  }
+  if (!enabled) {
+    return timerSeconds;
+  }
+  const factor = (TIMER_DIFFICULTY_SCALE_FACTORS as Record<string, number>)[difficulty] ?? 1;
+  return Math.ceil(timerSeconds * factor);
+}
+
+export function resolveEffectiveQuestionTimer(
+  questionTimer: number | null | undefined,
+  defaultTimer: number | null | undefined,
+  difficulty: Difficulty,
+  scaleByDifficulty = true,
+): number | null {
+  // Ein explizit pro Frage gesetzter Timer ist bereits die finale Host-Entscheidung
+  // und darf nicht mehr durch die Schwierigkeits-Skalierung verändert werden.
+  if (typeof questionTimer === 'number' && questionTimer > 0) {
+    return questionTimer;
+  }
+
+  if (typeof defaultTimer === 'number' && defaultTimer > 0) {
+    return scaleTimerByDifficulty(defaultTimer, difficulty, scaleByDifficulty);
+  }
+
+  return null;
+}
+
 /** Obergrenze Motivbild-URL (typische Bild-URLs; lange signierte CDN-Links bleiben i. d. R. darunter). */
 export const MOTIF_IMAGE_URL_MAX_LENGTH = 1024;
 
@@ -152,6 +192,7 @@ export const CreateQuizInputSchema = z.object({
   showLeaderboard: z.boolean().optional().default(true),
   allowCustomNicknames: z.boolean().optional().default(false),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
+  timerScaleByDifficulty: z.boolean().optional().default(true),
   enableSoundEffects: z.boolean().optional().default(true),
   enableRewardEffects: z.boolean().optional().default(true),
   enableMotivationMessages: z.boolean().optional().default(true),
@@ -212,6 +253,7 @@ export const QuizUploadInputSchema = z.object({
   showLeaderboard: z.boolean(),
   allowCustomNicknames: z.boolean(),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
+  timerScaleByDifficulty: z.boolean().optional(),
   enableSoundEffects: z.boolean(),
   enableRewardEffects: z.boolean(),
   enableMotivationMessages: z.boolean(),
@@ -248,6 +290,7 @@ type QuizHistoryAccessMaterial = {
   showLeaderboard: boolean;
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
+  timerScaleByDifficulty: boolean;
   enableSoundEffects: boolean;
   enableRewardEffects: boolean;
   enableMotivationMessages: boolean;
@@ -295,6 +338,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
     showLeaderboard: parsed.showLeaderboard,
     allowCustomNicknames: parsed.allowCustomNicknames,
     defaultTimer: parsed.defaultTimer ?? null,
+    timerScaleByDifficulty: parsed.timerScaleByDifficulty ?? true,
     enableSoundEffects: parsed.enableSoundEffects,
     enableRewardEffects: parsed.enableRewardEffects,
     enableMotivationMessages: parsed.enableMotivationMessages,
@@ -708,6 +752,7 @@ export const SessionInfoDTOSchema = z.object({
   enableEmojiReactions: z.boolean().optional(),
   readingPhaseEnabled: z.boolean().optional(),
   defaultTimer: z.number().nullable().optional(),
+  timerScaleByDifficulty: z.boolean().optional(),
   backgroundMusic: z.string().nullable().optional(),
   teamMode: z.boolean().optional(),
   teamCount: z.number().nullable().optional(),
@@ -959,6 +1004,7 @@ export const QuizExportSchema = z.object({
     showLeaderboard: z.boolean(),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
+    timerScaleByDifficulty: z.boolean().optional(),
     enableSoundEffects: z.boolean(),
     enableRewardEffects: z.boolean(),
     enableMotivationMessages: z.boolean(),
@@ -1480,6 +1526,7 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
     allowCustomNicknames: false,
     nicknameTheme: 'HIGH_SCHOOL',
     defaultTimer: DEFAULT_TIMER_SECONDS,
+    timerScaleByDifficulty: true,
     readingPhaseEnabled: false, // Story 2.6: Schnelles Spieltempo
   },
   SERIOUS: {
@@ -1493,6 +1540,7 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
     allowCustomNicknames: false,
     nicknameTheme: 'HIGH_SCHOOL',
     defaultTimer: null, // Offene Antwortphase (kein Countdown)
+    timerScaleByDifficulty: true,
     readingPhaseEnabled: true, // Story 2.6: Frage zuerst lesen
   },
 };

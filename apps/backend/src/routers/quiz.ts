@@ -23,6 +23,7 @@ export const quizRouter = router({
           showLeaderboard: input.showLeaderboard,
           allowCustomNicknames: input.allowCustomNicknames,
           defaultTimer: input.defaultTimer ?? null,
+          timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,
           enableSoundEffects: input.enableSoundEffects,
           enableRewardEffects: input.enableRewardEffects,
           enableMotivationMessages: input.enableMotivationMessages,

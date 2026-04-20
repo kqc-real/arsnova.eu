@@ -1,4 +1,4 @@
-import { Location, isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, Location, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   HostListener,
@@ -26,6 +26,7 @@ import {
   PresetStorageEntrySchema,
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TIMER_SECONDS,
+  resolveEffectiveQuestionTimer,
   type CreateSessionOutput,
   type Difficulty,
 } from '@arsnova/shared-types';
@@ -51,6 +52,7 @@ import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-edi
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel as questionTypeLabelI18n } from '../../../shared/question-type-label';
 import { mergeTimerPresetOptions } from '../default-timer-presets';
+import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 
 /**
  * Quiz-Preview & Schnellkorrektur (Epic 1).
@@ -79,6 +81,7 @@ import { mergeTimerPresetOptions } from '../default-timer-presets';
 })
 export class QuizPreviewComponent implements OnDestroy {
   private readonly location = inject(Location);
+  private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
@@ -564,8 +567,12 @@ export class QuizPreviewComponent implements OnDestroy {
   effectivePreviewTimerSeconds(question: QuizQuestion): number | null {
     const doc = this.quiz();
     if (!doc) return null;
-    const resolved = question.timer ?? doc.settings.defaultTimer;
-    return typeof resolved === 'number' && resolved > 0 ? resolved : null;
+    return resolveEffectiveQuestionTimer(
+      question.timer,
+      doc.settings.defaultTimer,
+      question.difficulty,
+      doc.settings.timerScaleByDifficulty ?? true,
+    );
   }
 
   previewTimerAriaLabel(question: QuizQuestion): string {
@@ -738,6 +745,9 @@ export class QuizPreviewComponent implements OnDestroy {
   private async startLiveSession(): Promise<void> {
     this.liveStartError.set(null);
     this.liveStartPending.set(true);
+    if (isPlatformBrowser(this.platformId)) {
+      tryRequestDocumentFullscreen(this.document);
+    }
     try {
       let payload = this.quizStore.getUploadPayload(this.id);
       const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);

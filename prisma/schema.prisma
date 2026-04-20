@@ -18,6 +18,7 @@ model Quiz {
   showLeaderboard      Boolean    @default(true)   // Story 1.4: Leaderboard an/aus
   allowCustomNicknames Boolean    @default(true)   // Story 1.4: Eigene Pseudonyme erlauben
   defaultTimer         Int?                         // Story 1.4: Standard-Countdown in Sekunden
+  timerScaleByDifficulty Boolean  @default(true)   // Story 1.4: Timer nach EASY/MEDIUM/HARD skalieren
   enableSoundEffects   Boolean    @default(true)   // Story 5.1: Sound-Effekte an/aus
   enableRewardEffects  Boolean    @default(true)   // Story 5.4: Belohnungseffekte an/aus
   enableMotivationMessages Boolean @default(true) // Story 5.7: Motivationsmeldungen an/aus
