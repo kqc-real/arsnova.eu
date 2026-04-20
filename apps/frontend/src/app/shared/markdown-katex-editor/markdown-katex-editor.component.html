@@ -285,7 +285,7 @@
         class="mk-editor__field"
         [attr.placeholder]="placeholder"
         [disabled]="disabled"
-        [rows]="rows"
+        [rows]="visibleRows()"
         (input)="onInput(field.value)"
         (keydown)="onFieldKeydown($event)"
         (keyup)="onFieldSelectionChange()"
@@ -294,18 +294,41 @@
         (scroll)="onSourceScroll()"
       ></textarea>
     </div>
-    <div class="mk-editor__preview">
+    <div
+      class="mk-editor__preview"
+      [class.mk-editor__preview--collapsed]="!isPreviewExpanded()"
+      [class.mk-editor__preview--mobile]="isSmartphoneViewport()"
+    >
       <div class="mk-editor__preview-head" aria-hidden="true">
         <mat-icon class="mk-editor__preview-icon" aria-hidden="true">visibility</mat-icon>
         <span class="mk-editor__preview-label" i18n="@@mdEditor.previewLabel">Vorschau</span>
       </div>
-      @if (previewKatexError(); as error) {
-        <p class="mk-editor__preview-error" aria-live="polite">
-          <strong i18n="@@mdEditor.previewErrorLabel">Formelfehler:</strong>
-          {{ error }}
-        </p>
+      <button
+        class="mk-editor__preview-toggle"
+        type="button"
+        (click)="togglePreview()"
+        [disabled]="isPreviewForcedCollapsed()"
+        [attr.aria-expanded]="isPreviewExpanded()"
+        i18n-aria-label="@@mdEditor.previewLabel"
+        aria-label="Vorschau"
+      >
+        <span class="mk-editor__preview-toggle-copy">
+          <mat-icon class="mk-editor__preview-icon" aria-hidden="true">visibility</mat-icon>
+          <span class="mk-editor__preview-label" i18n="@@mdEditor.previewLabel">Vorschau</span>
+        </span>
+        <mat-icon class="mk-editor__preview-toggle-chevron" aria-hidden="true">
+          {{ isPreviewExpanded() ? 'expand_less' : 'expand_more' }}
+        </mat-icon>
+      </button>
+      @if (isPreviewExpanded()) {
+        @if (previewKatexError(); as error) {
+          <p class="mk-editor__preview-error" aria-live="polite">
+            <strong i18n="@@mdEditor.previewErrorLabel">Formelfehler:</strong>
+            {{ error }}
+          </p>
+        }
+        <div #previewBody class="mk-editor__preview-body" [innerHTML]="preview()"></div>
       }
-      <div #previewBody class="mk-editor__preview-body" [innerHTML]="preview()"></div>
     </div>
   </div>
 </section>

@@ -1,10 +1,28 @@
+import { SimpleChange } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MarkdownKatexEditorComponent } from './markdown-katex-editor.component';
 
 describe('MarkdownKatexEditorComponent', () => {
-  function setup() {
+  function stubMatchMedia(matches = false) {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockImplementation(() => ({
+        matches,
+        media: '(max-width: 599px)',
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    );
+  }
+
+  function setup(options?: { mobile?: boolean; rows?: number; compact?: boolean }) {
+    stubMatchMedia(options?.mobile ?? false);
     const matDialogMock = {
       open: vi.fn(),
     };
@@ -14,6 +32,8 @@ describe('MarkdownKatexEditorComponent', () => {
     });
     const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
     fixture.componentInstance.value = '';
+    fixture.componentInstance.rows = options?.rows ?? fixture.componentInstance.rows;
+    fixture.componentInstance.compact = options?.compact ?? fixture.componentInstance.compact;
     fixture.detectChanges();
     return {
       fixture,
@@ -41,6 +61,75 @@ describe('MarkdownKatexEditorComponent', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Formelfehler:');
     expect(text).toContain('KaTeX-Fehler');
+  });
+
+  it('klappt die Mobile-Vorschau ohne Markdown- oder KaTeX-Syntax zu', () => {
+    const { fixture } = setup({ mobile: true });
+
+    const preview = fixture.nativeElement.querySelector('.mk-editor__preview') as HTMLElement;
+    const toggle = fixture.nativeElement.querySelector(
+      '.mk-editor__preview-toggle',
+    ) as HTMLButtonElement;
+
+    expect(preview.className).toContain('mk-editor__preview--collapsed');
+    expect(toggle.disabled).toBe(true);
+    expect(fixture.nativeElement.querySelector('.mk-editor__preview-body')).toBeNull();
+  });
+
+  it('vergrößert auf Smartphones die sichtbaren Zeilen im normalen Editor', () => {
+    const { textarea } = setup({ mobile: true, rows: 4 });
+
+    expect(textarea.rows).toBe(8);
+  });
+
+  it('lässt kompakte Editoren auf Smartphones unverändert klein', () => {
+    const { fixture, component, textarea } = setup({ mobile: true });
+
+    component.compact = true;
+    component.rows = 2;
+    component.ngOnChanges({
+      compact: new SimpleChange(false, true, false),
+      rows: new SimpleChange(4, 2, false),
+    });
+    fixture.detectChanges();
+
+    expect(textarea.rows).toBe(2);
+  });
+
+  it('öffnet die Mobile-Vorschau automatisch bei Markdown oder KaTeX', () => {
+    const { fixture, component } = setup({ mobile: true });
+
+    component.onInput('Nur Text');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.mk-editor__preview-body')).toBeNull();
+
+    component.onInput(String.raw`Formel: $x^2$`);
+    fixture.detectChanges();
+
+    const preview = fixture.nativeElement.querySelector('.mk-editor__preview') as HTMLElement;
+    const toggle = fixture.nativeElement.querySelector(
+      '.mk-editor__preview-toggle',
+    ) as HTMLButtonElement;
+
+    expect(preview.className).not.toContain('mk-editor__preview--collapsed');
+    expect(toggle.disabled).toBe(false);
+    expect(fixture.nativeElement.querySelector('.mk-editor__preview-body')).not.toBeNull();
+  });
+
+  it('erkennt einfache Inline-KaTeX-Variablen wie $f$ für die Mobile-Vorschau', () => {
+    const { fixture, component } = setup({ mobile: true });
+
+    component.onInput('Formel: $f$');
+    fixture.detectChanges();
+
+    const preview = fixture.nativeElement.querySelector('.mk-editor__preview') as HTMLElement;
+    const toggle = fixture.nativeElement.querySelector(
+      '.mk-editor__preview-toggle',
+    ) as HTMLButtonElement;
+
+    expect(preview.className).not.toContain('mk-editor__preview--collapsed');
+    expect(toggle.disabled).toBe(false);
+    expect(fixture.nativeElement.querySelector('.mk-editor__preview-body')).not.toBeNull();
   });
 
   it('rückt Listen mit Tab ein und mit Shift+Tab wieder aus', () => {

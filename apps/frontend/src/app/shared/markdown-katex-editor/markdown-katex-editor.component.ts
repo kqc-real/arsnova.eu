@@ -40,6 +40,12 @@ const INSERT_BLOCK_MATH = '\n$$\n\n$$\n';
 /** Zeichenoffset nach `\n` + öffnendem Fence + `\n` (Anfang der Innenzeile). */
 const CARET_OFFSET_CODE_BLOCK = `\n\`\`\`${DEFAULT_MARKDOWN_FENCE_LANGUAGE}\n`.length;
 const CARET_OFFSET_BLOCK_MATH = '\n$$\n'.length;
+const SMARTPHONE_MEDIA_QUERY = '(max-width: 599px)';
+const MOBILE_EDITOR_MIN_ROWS = 8;
+const MARKDOWN_REGEX =
+  /(^|\n)(#{1,6}\s|>\s|[-+*]\s|\d+\.\s|```)|(\*\*[^*\n]+\*\*|__[^_\n]+__|~~[^~\n]+~~|`[^`\n]+`)|(!?\[[^\]]+\]\([^)]+\))/m;
+const KATEX_REGEX =
+  /(\$\$[\s\S]+?\$\$)|(\\\([\s\S]+?\\\))|(\\\[[\s\S]+?\\\])|(\$(?=[^$\n]*[\\^_{}=+\-*/])[^\n$]+?\$)|(\$[A-Za-z0-9]+\$)/;
 
 type MarkdownToolbarState = {
   heading: boolean;
@@ -75,6 +81,11 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private previewScrollFrame: number | null = null;
   private lastSourceScrollRatio = 0;
+  private smartphoneMediaQuery: MediaQueryList | null = null;
+  private previewWasAutoOpenable = false;
+  private readonly handleSmartphoneMediaChange = (event: MediaQueryListEvent) => {
+    this.isSmartphoneViewport.set(event.matches);
+  };
 
   /** Sichtbare Kurzinfos (matTooltip) + aria-label – gleiche IDs wie zuvor in den Templates. */
   readonly mdToolbarLabel = {
@@ -112,6 +123,10 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   readonly rawValue = signal('');
   readonly debouncedValue = signal('');
   readonly helpOpen = signal(false);
+  readonly rowsValue = signal(4);
+  readonly compactValue = signal(false);
+  readonly isSmartphoneViewport = signal(false);
+  readonly mobilePreviewExpanded = signal(false);
   readonly toolbarState = signal<MarkdownToolbarState>({
     heading: false,
     bold: false,
@@ -133,8 +148,26 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     return this.sanitizer.bypassSecurityTrustHtml(this.previewResult().html);
   });
   readonly previewKatexError = computed(() => this.previewResult().katexError);
+  readonly hasMarkdownOrKatexFormatting = computed(() => {
+    const value = this.rawValue().trim();
+    return value.length > 0 && (MARKDOWN_REGEX.test(value) || KATEX_REGEX.test(value));
+  });
+  readonly visibleRows = computed(() => {
+    const rows = this.rowsValue();
+    if (!this.isSmartphoneViewport() || this.compactValue()) return rows;
+    return Math.max(rows, MOBILE_EDITOR_MIN_ROWS);
+  });
+  readonly isPreviewForcedCollapsed = computed(
+    () => this.isSmartphoneViewport() && !this.hasMarkdownOrKatexFormatting(),
+  );
+  readonly isPreviewExpanded = computed(() => {
+    if (!this.isSmartphoneViewport()) return true;
+    if (this.isPreviewForcedCollapsed()) return false;
+    return this.mobilePreviewExpanded();
+  });
 
   constructor() {
+    this.setupSmartphoneMediaQuery();
     effect(() => {
       const next = this.rawValue();
       if (this.debounceTimer) clearTimeout(this.debounceTimer);
@@ -143,6 +176,19 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     effect(() => {
       this.debouncedValue();
       this.schedulePreviewScrollSync();
+    });
+    effect(() => {
+      const shouldAutoOpen = this.isSmartphoneViewport() && this.hasMarkdownOrKatexFormatting();
+      if (shouldAutoOpen && !this.previewWasAutoOpenable) {
+        this.mobilePreviewExpanded.set(true);
+      } else if (!shouldAutoOpen && this.isSmartphoneViewport()) {
+        this.mobilePreviewExpanded.set(false);
+      }
+      this.previewWasAutoOpenable = shouldAutoOpen;
+    });
+    effect(() => {
+      if (!this.isPreviewExpanded()) return;
+      queueMicrotask(() => this.schedulePreviewScrollSync());
     });
   }
 
@@ -167,6 +213,12 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
         queueMicrotask(() => this.syncToolbarStateFromField());
       }
     }
+    if (changes['rows']) {
+      this.rowsValue.set(this.rows);
+    }
+    if (changes['compact']) {
+      this.compactValue.set(this.compact);
+    }
   }
 
   ngOnDestroy(): void {
@@ -177,6 +229,25 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     if (this.previewScrollFrame !== null && typeof cancelAnimationFrame === 'function') {
       cancelAnimationFrame(this.previewScrollFrame);
       this.previewScrollFrame = null;
+    }
+    if (this.smartphoneMediaQuery) {
+      if (typeof this.smartphoneMediaQuery.removeEventListener === 'function') {
+        this.smartphoneMediaQuery.removeEventListener('change', this.handleSmartphoneMediaChange);
+      } else {
+        this.smartphoneMediaQuery.removeListener(this.handleSmartphoneMediaChange);
+      }
+      this.smartphoneMediaQuery = null;
+    }
+  }
+
+  private setupSmartphoneMediaQuery(): void {
+    if (typeof globalThis.matchMedia !== 'function') return;
+    this.smartphoneMediaQuery = globalThis.matchMedia(SMARTPHONE_MEDIA_QUERY);
+    this.isSmartphoneViewport.set(this.smartphoneMediaQuery.matches);
+    if (typeof this.smartphoneMediaQuery.addEventListener === 'function') {
+      this.smartphoneMediaQuery.addEventListener('change', this.handleSmartphoneMediaChange);
+    } else {
+      this.smartphoneMediaQuery.addListener(this.handleSmartphoneMediaChange);
     }
   }
 
@@ -287,6 +358,11 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
 
   toggleHelp(): void {
     this.helpOpen.update((current) => !current);
+  }
+
+  togglePreview(): void {
+    if (!this.isSmartphoneViewport() || this.isPreviewForcedCollapsed()) return;
+    this.mobilePreviewExpanded.update((current) => !current);
   }
 
   focusField(): void {
