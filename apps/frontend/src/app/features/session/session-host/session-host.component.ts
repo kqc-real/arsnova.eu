@@ -491,10 +491,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly activeMusicTrack = computed<HostMusicTrack | null>(() => {
     if (this.musicMuted()) return null;
-    if (this.countdownSfxPhase() || this.countdownEnded()) return null;
-    if (this.allHaveVoted()) return null;
     const phase = this.currentMusicPhase();
     if (!phase) return null;
+    if (phase === 'countdown' && (this.countdownSfxPhase() || this.countdownEnded())) {
+      return null;
+    }
+    if (this.allHaveVoted()) return null;
     return this.phaseTracks()[phase];
   });
   readonly activeMusicLabel = computed(() => {
@@ -686,6 +688,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.countdownSeconds.set(null);
         this.sound.stopAllSfx();
       }
+      untracked(() => this.syncMusic());
+    });
+    effect(() => {
+      const track = this.activeMusicTrack();
+      void track;
       untracked(() => this.syncMusic());
     });
     effect(() => {

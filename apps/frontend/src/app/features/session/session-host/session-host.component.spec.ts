@@ -1235,6 +1235,135 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('aktiviert nach einer beendeten Countdown-Phase wieder Lesephasen-Musik', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'QUESTION_OPEN',
+      preset: 'PLAYFUL',
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.musicMuted.set(false);
+    component.countdownEnded.set(true);
+    component.countdownSfxPhase.set(true);
+    component.statusUpdate.set({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      activeAt: null,
+    });
+    fixture.detectChanges();
+
+    expect(component.currentMusicPhase()).toBe('reading');
+    expect(component.activeMusicTrack()).toBe('READING_0');
+    fixture.destroy();
+  });
+
+  it('startet die passende Live-Musik bei Musik-Phasenwechseln sofort', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', preset: 'PLAYFUL' });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
+    const stopMusicSpy = vi.spyOn(component.sound, 'stopMusic').mockImplementation(() => {});
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    component.musicMuted.set(false);
+    playMusicSpy.mockClear();
+    stopMusicSpy.mockClear();
+
+    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
+      | ((data: {
+          status: string;
+          currentQuestion: number | null;
+          activeAt?: string | null;
+        }) => void)
+      | undefined;
+
+    expect(statusHandler).toBeTypeOf('function');
+
+    statusHandler?.({ status: 'QUESTION_OPEN', currentQuestion: 0, activeAt: null });
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'READING_0'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    statusHandler?.({ status: 'ACTIVE', currentQuestion: 0, activeAt: null });
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'COUNTDOWN_0'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    stopMusicSpy.mockClear();
+    statusHandler?.({ status: 'RESULTS', currentQuestion: 0, activeAt: null });
+    await vi.waitUntil(() => stopMusicSpy.mock.calls.length > 0, {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    statusHandler?.({ status: 'LOBBY', currentQuestion: null, activeAt: null });
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'LOBBY_2'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    fixture.destroy();
+  });
+
+  it('startet bei Phasenwechseln keine Live-Musik, wenn das Preset sie deaktiviert', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', preset: 'SERIOUS' });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
+    const stopMusicSpy = vi.spyOn(component.sound, 'stopMusic').mockImplementation(() => {});
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+    await vi.waitUntil(() => component.musicMuted() === true, {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    stopMusicSpy.mockClear();
+
+    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
+      | ((data: {
+          status: string;
+          currentQuestion: number | null;
+          activeAt?: string | null;
+        }) => void)
+      | undefined;
+
+    statusHandler?.({ status: 'QUESTION_OPEN', currentQuestion: 0, activeAt: null });
+    statusHandler?.({ status: 'ACTIVE', currentQuestion: 0, activeAt: null });
+    statusHandler?.({ status: 'LOBBY', currentQuestion: null, activeAt: null });
+    await new Promise((r) => setTimeout(r, 25));
+
+    expect(component.activeMusicTrack()).toBeNull();
+    expect(playMusicSpy).not.toHaveBeenCalled();
+
+    fixture.destroy();
+  });
+
   it('zeigt in QUESTION_OPEN Fragentext und deutlichen Lesephase-Hinweis', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
     onStatusChangedSubscribeMock.mockImplementation(
