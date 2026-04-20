@@ -20,6 +20,7 @@ export class QuizComponent implements OnInit, OnDestroy {
 
   readonly showHeader = signal(true);
   readonly pageTitle = signal<'LIST' | 'NEW'>('LIST');
+  readonly useCompactLayout = signal(true);
 
   ngOnInit(): void {
     this.updateHeaderVisibility();
@@ -33,8 +34,13 @@ export class QuizComponent implements OnInit, OnDestroy {
   }
 
   private updateHeaderVisibility(): void {
-    const isPreview = this.router.url.includes('/preview');
+    const segments = this.router.url.split('?')[0].split('/').filter(Boolean);
+    const childRoute = segments[1] ?? '';
+    const isPreview = segments[2] === 'preview';
+    const isEditorRoute = childRoute === 'new' || (childRoute !== '' && childRoute !== 'sync');
+
     this.showHeader.set(!isPreview);
-    this.pageTitle.set(this.router.url.includes('/new') ? 'NEW' : 'LIST');
+    this.pageTitle.set(childRoute === 'new' ? 'NEW' : 'LIST');
+    this.useCompactLayout.set(!isEditorRoute);
   }
 }
