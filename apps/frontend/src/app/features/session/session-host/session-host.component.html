@@ -86,8 +86,10 @@
             class="session-host__channel-visibility-action"
             [disabled]="channelVisibilityPending() !== null"
             (click)="toggleActiveChannelOpen()"
+            [attr.aria-label]="visibilityActionLabel"
           >
-            <span>{{ visibilityActionLabel }}</span>
+            <mat-icon aria-hidden="true">{{ activeChannelVisibilityIcon() }}</mat-icon>
+            <span class="session-host__channel-visibility-label">{{ visibilityActionLabel }}</span>
           </button>
         }
 

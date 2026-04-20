@@ -636,6 +636,7 @@ describe('SessionHostComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe('Kanal schließen');
+    expect(fixture.componentInstance.activeChannelVisibilityIcon()).toBe('visibility_off');
 
     await fixture.componentInstance.toggleActiveChannelOpen();
     fixture.detectChanges();
@@ -665,6 +666,7 @@ describe('SessionHostComponent', () => {
     expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe(
       'Kanal wieder öffnen',
     );
+    expect(fixture.componentInstance.activeChannelVisibilityIcon()).toBe('visibility');
 
     await fixture.componentInstance.toggleActiveChannelOpen();
     fixture.detectChanges();

@@ -239,6 +239,10 @@
   white-space: nowrap;
 }
 
+.session-host__channel-visibility-label {
+  display: inline;
+}
+
 .session-host__view-controls--inline {
   flex: 0 0 auto;
 }
@@ -319,9 +323,23 @@
   .session-host__channel-visibility-action {
     flex: 0 0 auto;
     min-width: 0;
+    width: 2.75rem;
+    height: 2.75rem;
     padding-inline: 0.5rem;
+    padding-block: 0;
     font: var(--mat-sys-label-medium);
     white-space: nowrap;
+    justify-content: center;
+  }
+
+  .session-host__channel-visibility-action .mdc-button__label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .session-host__channel-visibility-label {
+    display: none;
   }
 
   .session-host__live-actions {
