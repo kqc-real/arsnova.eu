@@ -1421,7 +1421,72 @@ describe('SessionHostComponent', () => {
     expect(el.textContent).toContain('Lies die Frage zuerst.');
     expect(el.textContent).toContain('Lesephase');
     expect(el.textContent).toContain('Antwortoptionen freigeben');
+    const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').trim(),
+    );
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Antwortoptionen freigeben', 'Session beenden']);
     expect(el.querySelector('.session-host__answers')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt bei aktiver Frage die Aktion "Ergebnis zeigen" im unteren Exit-Anker neben "Session beenden"', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').trim(),
+    );
+
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Session beenden']);
     fixture.destroy();
   });
 
@@ -1526,6 +1591,62 @@ describe('SessionHostComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent ?? '').toContain('0 von 0 komplett richtig');
+    fixture.destroy();
+  });
+
+  it('zeigt bei Ergebnisstand die Aktion "Nächste Frage" im unteren Exit-Anker neben "Session beenden"', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').trim(),
+    );
+
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Nächste Frage', 'Session beenden']);
     fixture.destroy();
   });
 

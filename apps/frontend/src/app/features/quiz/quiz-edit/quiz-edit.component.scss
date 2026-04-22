@@ -1,5 +1,8 @@
 .quiz-edit {
+  --quiz-edit-inline-padding: 1rem;
+  --quiz-edit-bottom-action-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
   line-height: 1.5;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 9rem);
 }
 
 .quiz-edit__page-head.dialog-title-header--page .dialog-title-header__heading {
@@ -162,6 +165,13 @@
   .quiz-edit__preset-chip {
     align-self: center;
   }
+
+  .quiz-edit__bottom-actions {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    transform: none;
+  }
 }
 
 .quiz-edit__preset-chip {
@@ -179,6 +189,50 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.quiz-edit__bottom-actions {
+  position: fixed;
+  left: 50%;
+  bottom: var(--quiz-edit-bottom-action-bottom);
+  transform: translateX(-50%);
+  z-index: 30;
+  width: min(40rem, calc(100vw - (var(--quiz-edit-inline-padding) * 2)));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.75rem 0.85rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 90%, transparent);
+  border-radius: var(--mat-sys-corner-large);
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-highest) 92%,
+    var(--mat-sys-surface)
+  );
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 1px 0 color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
+  box-sizing: border-box;
+}
+
+.quiz-edit__bottom-actions-save {
+  flex: 1 1 auto;
+  min-height: 3rem;
+  padding-inline: 1.5rem;
+  letter-spacing: 0.02em;
+}
+
+.quiz-edit__bottom-actions a,
+.quiz-edit__bottom-actions button {
+  white-space: nowrap;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+  .quiz-edit__bottom-actions {
+    backdrop-filter: blur(8px);
+  }
 }
 
 .quiz-edit__form-card {
@@ -496,7 +550,6 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.65rem;
-  width: 100%;
   box-sizing: border-box;
   margin-top: 0.85rem;
   padding: 0.75rem 0.85rem 0.7rem;
@@ -510,6 +563,12 @@
   box-shadow:
     var(--mat-sys-level1),
     inset 0 1px 0 color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
+  position: fixed;
+  left: 50%;
+  bottom: var(--quiz-edit-bottom-action-bottom);
+  transform: translateX(-50%);
+  z-index: 30;
+  width: min(40rem, calc(100vw - (var(--quiz-edit-inline-padding) * 2)));
 }
 
 @supports (backdrop-filter: blur(10px)) {
@@ -522,6 +581,10 @@
   min-height: 3rem;
   padding-inline: 1.5rem;
   letter-spacing: 0.02em;
+}
+
+.quiz-edit-form__actions--question-bar button {
+  white-space: nowrap;
 }
 
 .quiz-edit-form__error {
@@ -1037,6 +1100,19 @@
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
   line-height: 1.5;
+}
+
+@media (max-width: 599px) {
+  .quiz-edit {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10rem);
+  }
+
+  .quiz-edit-form__actions--question-bar {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    transform: none;
+  }
 }
 
 .quiz-edit__not-found-text {

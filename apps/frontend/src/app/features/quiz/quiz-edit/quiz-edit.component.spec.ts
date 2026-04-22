@@ -130,12 +130,23 @@ describe('QuizEditComponent', () => {
     );
   });
 
-  it('synchronisiert nicknameTheme in den Store ohne Einstellungen-Übernehmen', () => {
+  it('hält Einstellungsänderungen lokal, bis global gespeichert wird', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
     mockStore.updateQuizSettings.mockClear();
+
     component.settingsForm.controls.nicknameTheme.setValue('KINDERGARTEN');
+    component.settingsForm.markAsDirty();
+    expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
+
+    mockStore.updateQuizSettings.mockReturnValue({
+      ...quiz.settings,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+
+    component.saveAll();
+
     expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
       QUIZ_ID,
       expect.objectContaining({
@@ -331,6 +342,51 @@ describe('QuizEditComponent', () => {
 
     expect(component.isEditing()).toBe(true);
     expect(component.isNewQuestionFormPanelExpanded()).toBe(false);
+  });
+
+  it('aktiviert den globalen Save-CTA nicht allein durch das Oeffnen des Bearbeitungsmodus', () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Alte Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        order: 0,
+        enabled: true,
+        timer: null,
+        answers: [
+          {
+            id: '79b35123-ff7f-4ff8-b8bf-a2ca695f57d4',
+            text: 'Alt A',
+            isCorrect: true,
+          },
+          {
+            id: '7f87b192-df9b-45ce-af85-9a44ef0f4b44',
+            text: 'Alt B',
+            isCorrect: false,
+          },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.editQuestion(QUESTION_ID);
+    fixture.detectChanges();
+
+    const saveButton = fixture.nativeElement.querySelector(
+      '.quiz-edit__bottom-actions-save',
+    ) as HTMLButtonElement | null;
+
+    expect(component.isEditing()).toBe(true);
+    expect(component.hasPendingChanges()).toBe(false);
+    expect(saveButton?.disabled).toBe(true);
   });
 
   it('rendert Markdown und KaTeX in der Fragenkarten-Zusammenfassung', () => {
@@ -627,6 +683,134 @@ describe('QuizEditComponent', () => {
 
     expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
     expect(focusSpy).toHaveBeenCalled();
+  });
+
+  it('speichert Metadaten, Einstellungen und Fragen gesammelt mit saveAll', () => {
+    mockStore.updateQuizMetadata.mockReturnValue({
+      ...quiz,
+      name: 'Aktualisiertes Quiz',
+      description: 'Neue Beschreibung',
+      motifImageUrl: null,
+    });
+    mockStore.updateQuizSettings.mockReturnValue({
+      ...quiz.settings,
+      showLeaderboard: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.metadataForm.patchValue({
+      name: 'Aktualisiertes Quiz',
+      description: 'Neue Beschreibung',
+      motifImageUrl: '',
+    });
+    component.metadataForm.markAsDirty();
+    component.settingsForm.patchValue({
+      showLeaderboard: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    component.settingsForm.markAsDirty();
+    component.form.controls.text.setValue('Was ist neu?');
+    component.answersArray.at(0).controls.text.setValue('Antwort A');
+    component.answersArray.at(1).controls.text.setValue('Antwort B');
+    component.setSingleCorrect(0);
+
+    component.saveAll();
+
+    expect(mockStore.updateQuizMetadata).toHaveBeenCalledWith(QUIZ_ID, {
+      name: 'Aktualisiertes Quiz',
+      description: 'Neue Beschreibung',
+      motifImageUrl: null,
+    });
+    expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({
+        showLeaderboard: false,
+        nicknameTheme: 'KINDERGARTEN',
+      }),
+    );
+    expect(mockStore.addQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({
+        text: 'Was ist neu?',
+      }),
+    );
+  });
+
+  it('fixiert nur noch einen globalen Save-CTA im unteren Aktionsbereich', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const bottomAction = fixture.nativeElement.querySelector('.quiz-edit__bottom-actions');
+    const backLink = bottomAction?.querySelector('a[routerLink=".."]') as HTMLAnchorElement | null;
+    const saveButton = bottomAction?.querySelector(
+      '.quiz-edit__bottom-actions-save',
+    ) as HTMLButtonElement | null;
+    const cancelButton = bottomAction?.querySelector('button[mat-button], button:not([matButton])');
+    const metadataSubmit = fixture.nativeElement.querySelector(
+      '.quiz-edit__meta-card button[type="submit"]',
+    );
+    const settingsSubmit = fixture.nativeElement.querySelector(
+      '.quiz-edit__settings-card button[type="submit"]',
+    );
+    const backLinks = fixture.nativeElement.querySelectorAll('a[routerLink=".."]');
+
+    expect(bottomAction).not.toBeNull();
+    expect(backLink?.textContent).toContain('Zurück');
+    expect(cancelButton?.textContent).toContain('Änderungen verwerfen');
+    expect(saveButton?.textContent).toContain('Alle Änderungen speichern');
+    expect(backLinks).toHaveLength(1);
+    expect(metadataSubmit).toBeNull();
+    expect(settingsSubmit).toBeNull();
+  });
+
+  it('verwirft mit Abbrechen alle lokalen Aenderungen', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.metadataForm.patchValue({ name: 'Entwurfstitel', description: 'Entwurf' });
+    component.metadataForm.markAsDirty();
+    component.settingsForm.patchValue({ showLeaderboard: false, nicknameTheme: 'KINDERGARTEN' });
+    component.settingsForm.markAsDirty();
+    component.form.controls.text.setValue('Temporäre Frage');
+    component.answersArray.at(0).controls.text.setValue('A');
+    component.answersArray.at(1).controls.text.setValue('B');
+    component.submitError.set('Fehler');
+    component.metadataSubmitError.set('Meta-Fehler');
+    component.settingsSubmitError.set('Settings-Fehler');
+
+    component.cancelAllChanges();
+
+    expect(component.metadataForm.controls.name.value).toBe('Test-Quiz');
+    expect(component.metadataForm.controls.description.value).toBe('Beschreibung');
+    expect(component.settingsForm.controls.showLeaderboard.value).toBe(true);
+    expect(component.settingsForm.controls.nicknameTheme.value).toBe('HIGH_SCHOOL');
+    expect(component.form.controls.text.value).toBe('');
+    expect(component.metadataForm.dirty).toBe(false);
+    expect(component.settingsForm.dirty).toBe(false);
+    expect(component.hasPendingChanges()).toBe(false);
+    expect(component.submitError()).toBeNull();
+    expect(component.metadataSubmitError()).toBeNull();
+    expect(component.settingsSubmitError()).toBeNull();
+  });
+
+  it('aktiviert den globalen Save-CTA bei Aenderungen an der Beschreibung', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.onMetadataDescriptionChange('Neue Beschreibung aus dem Editor');
+    fixture.detectChanges();
+
+    const saveButton = fixture.nativeElement.querySelector(
+      '.quiz-edit__bottom-actions-save',
+    ) as HTMLButtonElement | null;
+
+    expect(component.hasPendingChanges()).toBe(true);
+    expect(component.metadataForm.controls.description.dirty).toBe(true);
+    expect(saveButton?.disabled).toBe(false);
   });
 
   it('springt bei fehlender Korrektmarkierung zur ersten Auswahlhilfe', () => {

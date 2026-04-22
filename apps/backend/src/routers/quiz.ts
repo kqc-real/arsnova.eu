@@ -2,9 +2,94 @@
  * Quiz-Router (Story 2.1a).
  * quiz.upload: Quiz-Daten beim Live-Schalten an den Server übertragen und in PostgreSQL speichern.
  */
-import { QuizUploadInputSchema, QuizUploadOutputSchema } from '@arsnova/shared-types';
+import {
+  QuizUploadInputSchema,
+  QuizUploadOutputSchema,
+  createLegacyQuizHistoryAccessProof,
+  type QuizUploadInput,
+} from '@arsnova/shared-types';
 import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
+
+function buildQuizUploadPayloadFromStoredQuiz(quiz: {
+  historyScopeId: string | null;
+  name: string;
+  description: string | null;
+  motifImageUrl: string | null;
+  showLeaderboard: boolean;
+  allowCustomNicknames: boolean;
+  defaultTimer: number | null;
+  timerScaleByDifficulty: boolean;
+  enableSoundEffects: boolean;
+  enableRewardEffects: boolean;
+  enableMotivationMessages: boolean;
+  enableEmojiReactions: boolean;
+  anonymousMode: boolean;
+  teamMode: boolean;
+  teamCount: number | null;
+  teamAssignment: 'AUTO' | 'MANUAL';
+  teamNames: string[];
+  backgroundMusic: string | null;
+  nicknameTheme: QuizUploadInput['nicknameTheme'];
+  bonusTokenCount: number | null;
+  readingPhaseEnabled: boolean;
+  preset: 'PLAYFUL' | 'SERIOUS' | string;
+  questions: Array<{
+    text: string;
+    type: QuizUploadInput['questions'][number]['type'];
+    timer: number | null;
+    difficulty: QuizUploadInput['questions'][number]['difficulty'];
+    order: number;
+    ratingMin: number | null;
+    ratingMax: number | null;
+    ratingLabelMin: string | null;
+    ratingLabelMax: string | null;
+    answers: Array<{
+      text: string;
+      isCorrect: boolean;
+    }>;
+  }>;
+}): QuizUploadInput {
+  return {
+    ...(quiz.historyScopeId ? { historyScopeId: quiz.historyScopeId } : {}),
+    name: quiz.name,
+    ...(quiz.description ? { description: quiz.description } : {}),
+    motifImageUrl: quiz.motifImageUrl ?? null,
+    showLeaderboard: quiz.showLeaderboard,
+    allowCustomNicknames: quiz.allowCustomNicknames,
+    defaultTimer: quiz.defaultTimer,
+    timerScaleByDifficulty: quiz.timerScaleByDifficulty,
+    enableSoundEffects: quiz.enableSoundEffects,
+    enableRewardEffects: quiz.enableRewardEffects,
+    enableMotivationMessages: quiz.enableMotivationMessages,
+    enableEmojiReactions: quiz.enableEmojiReactions,
+    anonymousMode: quiz.anonymousMode,
+    teamMode: quiz.teamMode,
+    teamCount: quiz.teamCount ?? undefined,
+    teamAssignment: quiz.teamAssignment,
+    teamNames: quiz.teamNames,
+    backgroundMusic: quiz.backgroundMusic ?? undefined,
+    nicknameTheme: quiz.nicknameTheme,
+    bonusTokenCount: quiz.bonusTokenCount ?? undefined,
+    readingPhaseEnabled: quiz.readingPhaseEnabled,
+    preset: quiz.preset === 'SERIOUS' ? 'SERIOUS' : 'PLAYFUL',
+    questions: quiz.questions.map((question) => ({
+      text: question.text,
+      type: question.type,
+      timer: question.timer,
+      difficulty: question.difficulty,
+      order: question.order,
+      ratingMin: question.ratingMin ?? undefined,
+      ratingMax: question.ratingMax ?? undefined,
+      ratingLabelMin: question.ratingLabelMin ?? undefined,
+      ratingLabelMax: question.ratingLabelMax ?? undefined,
+      answers: question.answers.map((answer) => ({
+        text: answer.text,
+        isCorrect: answer.isCorrect,
+      })),
+    })),
+  };
+}
 
 export const quizRouter = router({
   /**
@@ -15,8 +100,10 @@ export const quizRouter = router({
     .input(QuizUploadInputSchema)
     .output(QuizUploadOutputSchema)
     .mutation(async ({ input }) => {
+      const historyScopeId = input.historyScopeId ?? null;
       const quiz = await prisma.quiz.create({
         data: {
+          historyScopeId,
           name: input.name,
           description: input.description ?? null,
           motifImageUrl: input.motifImageUrl ?? null,
@@ -59,6 +146,82 @@ export const quizRouter = router({
           },
         },
       });
+
+      if (historyScopeId) {
+        const legacyAccessProof = await createLegacyQuizHistoryAccessProof(input);
+        const legacyCandidates = await prisma.quiz.findMany({
+          where: {
+            name: input.name,
+            historyScopeId: null,
+            id: { not: quiz.id },
+          },
+          select: {
+            id: true,
+            historyScopeId: true,
+            name: true,
+            description: true,
+            motifImageUrl: true,
+            showLeaderboard: true,
+            allowCustomNicknames: true,
+            defaultTimer: true,
+            timerScaleByDifficulty: true,
+            enableSoundEffects: true,
+            enableRewardEffects: true,
+            enableMotivationMessages: true,
+            enableEmojiReactions: true,
+            anonymousMode: true,
+            teamMode: true,
+            teamCount: true,
+            teamAssignment: true,
+            teamNames: true,
+            backgroundMusic: true,
+            nicknameTheme: true,
+            bonusTokenCount: true,
+            readingPhaseEnabled: true,
+            preset: true,
+            questions: {
+              orderBy: { order: 'asc' },
+              select: {
+                text: true,
+                type: true,
+                timer: true,
+                difficulty: true,
+                order: true,
+                ratingMin: true,
+                ratingMax: true,
+                ratingLabelMin: true,
+                ratingLabelMax: true,
+                answers: {
+                  select: {
+                    text: true,
+                    isCorrect: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const matchingLegacyQuizIds: string[] = [];
+        for (const candidate of legacyCandidates) {
+          const candidateProof = await createLegacyQuizHistoryAccessProof(
+            buildQuizUploadPayloadFromStoredQuiz(candidate),
+          );
+          if (candidateProof === legacyAccessProof) {
+            matchingLegacyQuizIds.push(candidate.id);
+          }
+        }
+
+        if (matchingLegacyQuizIds.length > 0) {
+          await prisma.quiz.updateMany({
+            where: {
+              id: { in: matchingLegacyQuizIds },
+              historyScopeId: null,
+            },
+            data: { historyScopeId },
+          });
+        }
+      }
 
       return { quizId: quiz.id };
     }),

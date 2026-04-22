@@ -83,6 +83,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly showEmbeddedEmptyState = computed(
     () => this.embeddedInSession() && this.result() === null,
   );
+  readonly showStandaloneBottomActionBar = computed(
+    () => !this.embeddedInSession() && this.result() !== null && this.isStandaloneFeedbackRoute(),
+  );
   readonly presetChips = QUICK_FEEDBACK_PRESET_CHIPS;
 
   sessionCodeDisplayAria(code: string): string {
@@ -201,6 +204,10 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
     const host = this.document.defaultView?.location?.host;
     return typeof host === 'string' && host.length > 0 ? host : '';
+  }
+
+  private isStandaloneFeedbackRoute(): boolean {
+    return this.document.defaultView?.location?.pathname?.includes('/feedback/') ?? false;
   }
 
   async ngOnInit(): Promise<void> {
@@ -339,6 +346,66 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
   lockToggleAriaLabel(): string {
     return this.locked() ? $localize`Abstimmung fortsetzen` : $localize`Abstimmung einfrieren`;
+  }
+
+  standalonePrimaryActionKind(): 'second-round' | 'discussion' | 'lock-toggle' {
+    const data = this.result();
+    if (!data) {
+      return 'lock-toggle';
+    }
+    if (this.isDiscussion()) {
+      return 'second-round';
+    }
+    if (!this.isRound2() && data.totalVotes > 0) {
+      return 'discussion';
+    }
+    return 'lock-toggle';
+  }
+
+  standalonePrimaryActionLabel(): string {
+    switch (this.standalonePrimaryActionKind()) {
+      case 'second-round':
+        return $localize`Zweite Abstimmung`;
+      case 'discussion':
+        return $localize`:@@feedback.compareRoundLabel:Vergleichsrunde`;
+      default:
+        return this.lockToggleLabel();
+    }
+  }
+
+  standalonePrimaryActionAriaLabel(): string {
+    switch (this.standalonePrimaryActionKind()) {
+      case 'second-round':
+        return $localize`Zweite Abstimmung starten`;
+      case 'discussion':
+        return $localize`:@@feedback.compareRoundStartAria:Vergleichsrunde starten`;
+      default:
+        return this.lockToggleAriaLabel();
+    }
+  }
+
+  standalonePrimaryActionIcon(): string {
+    switch (this.standalonePrimaryActionKind()) {
+      case 'second-round':
+        return 'replay';
+      case 'discussion':
+        return 'groups';
+      default:
+        return this.locked() ? 'play_arrow' : 'stop';
+    }
+  }
+
+  async runStandalonePrimaryAction(): Promise<void> {
+    switch (this.standalonePrimaryActionKind()) {
+      case 'second-round':
+        await this.startSecondRound();
+        return;
+      case 'discussion':
+        await this.startDiscussion();
+        return;
+      default:
+        await this.toggleLock();
+    }
   }
 
   readonly isDiscussion = computed(() => !!this.result()?.discussion);

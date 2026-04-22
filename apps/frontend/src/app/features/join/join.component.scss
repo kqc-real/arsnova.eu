@@ -1,15 +1,41 @@
 /* Wie admin-page: mehr Luft unter der App-Toolbar (global .l-page + first-child margin reicht hier oft knapp). */
 .join-page {
+  --join-page-inline-padding: 1rem;
+  --join-page-max-width: 36rem;
+  --join-bottom-action-bottom: max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem));
   padding-top: 1.65rem;
 
   @media (min-width: 600px) {
     padding-top: 2.35rem;
+    --join-page-inline-padding: 1.5rem;
   }
 
   @media (min-width: 840px) {
     padding-top: 3.1rem;
     padding-bottom: 0.35rem;
+    --join-page-inline-padding: 2rem;
   }
+}
+
+.join-page--with-bottom-action {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 9.5rem);
+}
+
+.join-page__bottom-action {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--join-bottom-action-bottom) + var(--app-footer-visible-offset, 0px));
+  transform: translateX(-50%);
+  z-index: 30;
+  width: min(var(--join-page-max-width), calc(100vw - (2 * var(--join-page-inline-padding))));
+  max-width: calc(100vw - (2 * var(--join-page-inline-padding)));
+  box-sizing: border-box;
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-extra-large, 1.5rem);
+  background: color-mix(in srgb, var(--mat-sys-surface) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
+  box-shadow: var(--mat-sys-level3);
+  backdrop-filter: blur(14px);
 }
 
 .join-card {
@@ -327,6 +353,11 @@
   }
 }
 
+.join-page__bottom-action-button.join-card__submit {
+  margin-top: 0;
+  width: 100%;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .join-card__text--error,
   .join-card__error {
@@ -359,6 +390,25 @@
   }
   50% {
     box-shadow: 0 0 0 0.17rem color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
+  }
+}
+
+@media (max-width: 599px) {
+  .join-page {
+    --join-page-inline-padding: var(--host-mobile-inline);
+    --join-bottom-action-bottom: max(0.5rem, calc(var(--host-mobile-safe-bottom) + 0.25rem));
+  }
+
+  .join-page--with-bottom-action {
+    padding-bottom: calc(var(--host-mobile-safe-bottom) + 9.75rem);
+  }
+
+  .join-page__bottom-action {
+    left: var(--join-page-inline-padding);
+    right: var(--join-page-inline-padding);
+    width: auto;
+    max-width: none;
+    transform: none;
   }
 }
 

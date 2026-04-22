@@ -1,4 +1,7 @@
-<div class="l-page l-section join-page">
+<div
+  class="l-page l-section join-page"
+  [class.join-page--with-bottom-action]="!!session() && !loading() && !error()"
+>
   @if (loading()) {
     <mat-card appearance="outlined" class="join-card">
       <mat-card-content>
@@ -212,16 +215,18 @@
             <span class="join-card__error-text">{{ error() }}</span>
           </p>
         }
-        <button
-          mat-flat-button
-          color="primary"
-          class="join-card__submit"
-          [disabled]="!canSubmit() || joining()"
-          (click)="submitJoin()"
-        >
-          {{ joining() ? joiningLabel() : joinNowLabel() }}
-        </button>
       </mat-card-content>
     </mat-card>
+    <div class="join-page__bottom-action">
+      <button
+        mat-flat-button
+        color="primary"
+        class="join-card__submit join-page__bottom-action-button"
+        [disabled]="!canSubmit() || joining()"
+        (click)="submitJoin()"
+      >
+        {{ joining() ? joiningLabel() : joinNowLabel() }}
+      </button>
+    </div>
   }
 </div>

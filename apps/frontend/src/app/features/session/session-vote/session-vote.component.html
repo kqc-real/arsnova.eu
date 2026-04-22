@@ -3,6 +3,9 @@
     id="vote-top"
     class="vote-page vote-page--session-end-gate"
     appMarkdownImageLightbox
+    [class.vote-page--with-bottom-actions]="showBottomActionBar()"
+    [class.vote-page--with-session-end-actions]="showSessionEndBottomActionBar()"
+    [class.vote-page--with-floating-bottom-actions]="showFloatingBottomActionBar()"
     role="dialog"
     aria-modal="true"
     aria-labelledby="vote-session-end-anchor"
@@ -36,15 +39,6 @@
           <span>{{ vpc.voteBonusTitle(isPlayfulPreset()) }}</span>
         </h2>
         <p class="vote-bonus-card__code">{{ gateToken }}</p>
-        <button
-          matButton="tonal"
-          type="button"
-          class="vote-bonus-card__copy"
-          (click)="copyBonusCode()"
-        >
-          <mat-icon>content_copy</mat-icon>
-          <span>{{ vpc.voteBonusCopyCta(isPlayfulPreset()) }}</span>
-        </button>
         <p class="vote-bonus-card__hint">{{ vpc.voteBonusHint(isPlayfulPreset()) }}</p>
       </section>
       @if (!feedbackSubmitted()) {
@@ -154,15 +148,6 @@
             </button>
           </div>
         </fieldset>
-
-        <button
-          mat-flat-button
-          class="vote-feedback-card__submit"
-          [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
-          (click)="submitFeedback()"
-        >
-          <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
-        </button>
       </section>
     } @else {
       @if (feedbackSummary(); as summary) {
@@ -179,15 +164,46 @@
       }
     }
 
-    <button
-      matButton="filled"
-      type="button"
-      class="vote-session-end-gate__continue"
-      (click)="continueToHomeAfterSessionEnd()"
+    <div
+      class="vote-page__bottom-actions vote-page__bottom-actions--session-end"
+      [class.vote-page__bottom-actions--single]="sessionEndGateActionCount() === 1"
+      [class.vote-page__bottom-actions--double]="sessionEndGateActionCount() === 2"
+      [class.vote-page__bottom-actions--triple]="sessionEndGateActionCount() === 3"
+      [class.vote-page__bottom-actions--with-primary]="showSessionEndGateFeedbackAction()"
+      aria-label="Session-Aktionen"
     >
-      <mat-icon>home</mat-icon>
-      <span i18n="@@sessionVote.sessionEndGateContinue">Zur Startseite</span>
-    </button>
+      @if (showSessionEndGateFeedbackAction()) {
+        <button
+          mat-flat-button
+          type="button"
+          class="vote-feedback-card__submit vote-page__bottom-action vote-page__bottom-action--primary"
+          [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
+          (click)="submitFeedback()"
+        >
+          <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
+        </button>
+      }
+      @if (showSessionEndGateBonusAction()) {
+        <button
+          matButton="tonal"
+          type="button"
+          class="vote-bonus-card__copy vote-page__bottom-action"
+          (click)="copyBonusCode()"
+        >
+          <mat-icon>content_copy</mat-icon>
+          <span>{{ vpc.voteBonusCopyCta(isPlayfulPreset()) }}</span>
+        </button>
+      }
+      <button
+        matButton="filled"
+        type="button"
+        class="vote-session-end-gate__continue vote-page__bottom-action"
+        (click)="continueToHomeAfterSessionEnd()"
+      >
+        <mat-icon>home</mat-icon>
+        <span i18n="@@sessionVote.sessionEndGateContinue">Zur Startseite</span>
+      </button>
+    </div>
   </div>
 } @else {
   <div
@@ -195,6 +211,9 @@
     class="vote-page"
     appMarkdownImageLightbox
     [class.vote-page--with-channel-tabs]="showChannelTabs()"
+    [class.vote-page--with-bottom-actions]="showBottomActionBar()"
+    [class.vote-page--with-session-end-actions]="showSessionEndBottomActionBar()"
+    [class.vote-page--with-floating-bottom-actions]="showFloatingBottomActionBar()"
   >
     @if (showChannelTabs()) {
       <div class="session-channel-tabs-shell">
@@ -417,12 +436,6 @@
                 </div>
               </div>
             }
-            <div class="vote-finished-hero__actions">
-              <a matButton="filled" [routerLink]="localizedPath('/')">
-                <mat-icon>home</mat-icon>
-                <span>{{ vpc.voteBackHomeCta(isPlayfulPreset()) }}</span>
-              </a>
-            </div>
           </section>
 
           @if (showTeamRewardCard() && ownTeamEntry(); as ownTeam) {
@@ -542,15 +555,6 @@
                 <span>{{ vpc.voteBonusTitle(isPlayfulPreset()) }}</span>
               </h2>
               <p class="vote-bonus-card__code">{{ token }}</p>
-              <button
-                matButton="tonal"
-                type="button"
-                class="vote-bonus-card__copy"
-                (click)="copyBonusCode()"
-              >
-                <mat-icon>content_copy</mat-icon>
-                <span>{{ vpc.voteBonusCopyCta(isPlayfulPreset()) }}</span>
-              </button>
               <p class="vote-bonus-card__hint">{{ vpc.voteBonusHint(isPlayfulPreset()) }}</p>
             </section>
           }
@@ -653,15 +657,6 @@
                   </button>
                 </div>
               </fieldset>
-
-              <button
-                mat-flat-button
-                class="vote-feedback-card__submit"
-                [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
-                (click)="submitFeedback()"
-              >
-                <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
-              </button>
             </section>
           } @else {
             @if (feedbackSummary(); as summary) {
@@ -824,22 +819,6 @@
                 </li>
               }
             </ul>
-
-            @if (!voteSent() && isActive()) {
-              <button
-                mat-flat-button
-                color="primary"
-                id="vote-submit"
-                class="vote-submit-mc"
-                [class.vote-submit--pending]="voteSending()"
-                [disabled]="
-                  selectedAnswerIds().size === 0 || voteSending() || debounced() || timerExpired()
-                "
-                (click)="submitVote()"
-              >
-                <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
-              </button>
-            }
           } @else if ($any(q).type === 'FREETEXT' && isActive()) {
             <div class="vote-freetext">
               <textarea
@@ -851,23 +830,6 @@
                 rows="3"
                 [disabled]="voteSent() || timerExpired()"
               ></textarea>
-              <button
-                mat-flat-button
-                color="primary"
-                id="vote-submit"
-                class="vote-freetext__submit"
-                [class.vote-submit--pending]="voteSending()"
-                [disabled]="
-                  !freeTextValue().trim() ||
-                  voteSent() ||
-                  voteSending() ||
-                  debounced() ||
-                  timerExpired()
-                "
-                (click)="submitVote()"
-              >
-                <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
-              </button>
             </div>
           } @else if ($any(q).type === 'FREETEXT' && isResults()) {
             <div class="vote-freetext vote-freetext--result">
@@ -916,21 +878,6 @@
                   </button>
                 }
               </div>
-              @if (!voteSent()) {
-                <button
-                  mat-flat-button
-                  color="primary"
-                  id="vote-submit"
-                  class="vote-rating__submit"
-                  [class.vote-submit--pending]="voteSending()"
-                  [disabled]="
-                    ratingValue() === null || voteSending() || debounced() || timerExpired()
-                  "
-                  (click)="submitVote()"
-                >
-                  <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
-                </button>
-              }
             </div>
           } @else if (isRating() && isResults()) {
             <div class="vote-rating vote-rating--result">
@@ -1308,16 +1255,6 @@
                 [class.session-qa-form__counter--warn]="qaDraft().trim().length >= 450"
                 >{{ qaDraft().trim().length }}/500</span
               >
-              <button
-                mat-flat-button
-                type="button"
-                class="session-qa-form__submit"
-                [class.vote-submit--pending]="qaSubmitting()"
-                [disabled]="!qaCanSubmit()"
-                (click)="submitQaQuestion()"
-              >
-                <span>{{ vpc.voteQaSubmit(isPlayfulPreset()) }}</span>
-              </button>
             </div>
           </div>
 
@@ -1479,6 +1416,83 @@
           [showSessionCode]="false"
         />
       }
+    }
+
+    @if (showFinishedActions()) {
+      <div
+        class="vote-page__bottom-actions vote-page__bottom-actions--session-end"
+        [class.vote-page__bottom-actions--single]="finishedActionCount() === 1"
+        [class.vote-page__bottom-actions--double]="finishedActionCount() === 2"
+        [class.vote-page__bottom-actions--triple]="finishedActionCount() === 3"
+        [class.vote-page__bottom-actions--with-primary]="showFinishedFeedbackAction()"
+        aria-label="Abschluss-Aktionen"
+      >
+        @if (showFinishedFeedbackAction()) {
+          <button
+            mat-flat-button
+            type="button"
+            class="vote-feedback-card__submit vote-page__bottom-action vote-page__bottom-action--primary"
+            [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
+            (click)="submitFeedback()"
+          >
+            <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
+          </button>
+        }
+        @if (showFinishedBonusAction()) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="vote-bonus-card__copy vote-page__bottom-action"
+            (click)="copyBonusCode()"
+          >
+            <mat-icon>content_copy</mat-icon>
+            <span>{{ vpc.voteBonusCopyCta(isPlayfulPreset()) }}</span>
+          </button>
+        }
+        <button
+          matButton="filled"
+          type="button"
+          class="vote-session-end-gate__continue vote-page__bottom-action"
+          (click)="continueToHomeAfterSessionEnd()"
+        >
+          <mat-icon>home</mat-icon>
+          <span>{{ vpc.voteBackHomeCta(isPlayfulPreset()) }}</span>
+        </button>
+      </div>
+    } @else if (showVoteSubmitAction()) {
+      <div
+        class="vote-page__bottom-actions vote-page__bottom-actions--floating"
+        aria-label="Quiz-Aktionen"
+      >
+        <button
+          mat-flat-button
+          color="primary"
+          id="vote-submit"
+          type="button"
+          class="vote-page__bottom-action vote-page__bottom-action--primary"
+          [class.vote-submit--pending]="voteSending()"
+          [disabled]="voteSubmitDisabled()"
+          (click)="submitVote()"
+        >
+          <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
+        </button>
+      </div>
+    } @else if (showQaSubmitAction()) {
+      <div
+        class="vote-page__bottom-actions vote-page__bottom-actions--floating"
+        aria-label="Q&A-Aktionen"
+      >
+        <button
+          mat-flat-button
+          type="button"
+          class="session-qa-form__submit vote-page__bottom-action vote-page__bottom-action--primary"
+          [class.vote-submit--pending]="qaSubmitting()"
+          [disabled]="!qaCanSubmit()"
+          (click)="submitQaQuestion()"
+        >
+          <span>{{ vpc.voteQaSubmit(isPlayfulPreset()) }}</span>
+        </button>
+      </div>
     }
   </div>
 }

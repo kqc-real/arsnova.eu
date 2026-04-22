@@ -118,6 +118,23 @@ describe('JoinComponent', () => {
     expect(comp.loading()).toBe(false);
   });
 
+  it('fixiert "Jetzt beitreten" im unteren Aktionsbereich des Join-Clients', async () => {
+    const { fixture } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const bottomAction = host.querySelector('.join-page__bottom-action') as HTMLElement | null;
+    const submitButtons = host.querySelectorAll('.join-card__submit');
+
+    expect(host.querySelector('.join-page')?.className).toContain('join-page--with-bottom-action');
+    expect(bottomAction).not.toBeNull();
+    expect(bottomAction?.textContent).toContain('Jetzt beitreten');
+    expect(submitButtons).toHaveLength(1);
+  });
+
   it('zeigt Fehler bei ungültigem Code (zu kurz)', async () => {
     const { fixture, comp } = createWithCode('AB');
     fixture.detectChanges();

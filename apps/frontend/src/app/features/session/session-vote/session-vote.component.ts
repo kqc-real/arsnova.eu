@@ -13,7 +13,7 @@ import {
   afterNextRender,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -225,7 +225,6 @@ function getContextMotivation(
   standalone: true,
   imports: [
     MatButton,
-    RouterLink,
     MatButtonToggle,
     MatButtonToggleGroup,
     MatIcon,
@@ -591,6 +590,70 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'RATING';
   });
+  readonly isFreetext = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'FREETEXT';
+  });
+  readonly showVoteSubmitAction = computed(() => {
+    if (this.showSessionEndGate() || this.isFinished()) return false;
+    if (this.activeChannel() !== 'quiz' || !this.isActive() || this.voteSent()) return false;
+    return this.hasAnswers() || this.isFreetext() || this.isRating();
+  });
+  readonly voteSubmitDisabled = computed(() => {
+    if (!this.showVoteSubmitAction()) return true;
+    if (this.voteSending() || this.debounced() || this.timerExpired()) return true;
+    if (this.hasAnswers()) {
+      return this.selectedAnswerIds().size === 0;
+    }
+    if (this.isFreetext()) {
+      return !this.freeTextValue().trim();
+    }
+    if (this.isRating()) {
+      return this.ratingValue() === null;
+    }
+    return true;
+  });
+  readonly showQaSubmitAction = computed(
+    () =>
+      !this.showSessionEndGate() &&
+      !this.isFinished() &&
+      this.activeChannel() === 'qa' &&
+      this.isQaChannelOpen(),
+  );
+  readonly showFinishedActions = computed(() => this.isFinished() && !this.showSessionEndGate());
+  readonly showSessionEndGateBonusAction = computed(
+    () => this.showSessionEndGate() && Boolean(this.bonusToken()),
+  );
+  readonly showSessionEndGateFeedbackAction = computed(
+    () => this.showSessionEndGate() && !this.feedbackSubmitted(),
+  );
+  readonly showFinishedBonusAction = computed(
+    () => this.showFinishedActions() && Boolean(this.bonusToken()),
+  );
+  readonly showFinishedFeedbackAction = computed(
+    () => this.showFinishedActions() && !this.feedbackSubmitted(),
+  );
+  readonly sessionEndGateActionCount = computed(
+    () =>
+      Number(this.showSessionEndGateFeedbackAction()) +
+      Number(this.showSessionEndGateBonusAction()) +
+      Number(this.showSessionEndGate()),
+  );
+  readonly finishedActionCount = computed(
+    () =>
+      Number(this.showFinishedFeedbackAction()) +
+      Number(this.showFinishedBonusAction()) +
+      Number(this.showFinishedActions()),
+  );
+  readonly showSessionEndBottomActionBar = computed(
+    () => this.showSessionEndGate() || this.showFinishedActions(),
+  );
+  readonly showFloatingBottomActionBar = computed(
+    () => this.showVoteSubmitAction() || this.showQaSubmitAction(),
+  );
+  readonly showBottomActionBar = computed(
+    () => this.showSessionEndBottomActionBar() || this.showFloatingBottomActionBar(),
+  );
 
   ratingRange(): number[] {
     const q = this.currentQuestion();

@@ -464,6 +464,52 @@ describe('SessionVoteComponent', () => {
     expect(text).toContain('Die Session ist beendet.');
     expect(text).toContain('bewerte sie kurz');
     expect(text).toMatch(/Kurzes Feedback\?|Deine Meinung zählt/);
+    const bottomActions = fixture.nativeElement.querySelector('.vote-page__bottom-actions');
+    expect(bottomActions?.textContent).toContain('Zur Startseite');
+    expect(bottomActions?.textContent).toMatch(/Absenden!|Bewertung absenden/);
+    expect(bottomActions?.className).toContain('vote-page__bottom-actions--session-end');
+    expect(navSpy).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('zeigt im Session-End-Gate Bonus, Feedback und Startseite gemeinsam im unteren Aktionsanker', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: false,
+      preset: 'PLAYFUL',
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    getHasSubmittedFeedbackQueryMock.mockResolvedValue({ submitted: false });
+    getPersonalResultQueryMock.mockResolvedValue({
+      totalScore: 10,
+      rank: 3,
+      bonusToken: 'BONUS-123',
+    });
+
+    const router = TestBed.inject(Router);
+    const navSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+    fixture.detectChanges();
+
+    const bottomActions = fixture.nativeElement.querySelector(
+      '.vote-page__bottom-actions',
+    ) as HTMLElement | null;
+    expect(bottomActions).not.toBeNull();
+    expect(bottomActions?.textContent).toContain('Code kopieren');
+    expect(bottomActions?.textContent).toMatch(/Absenden!|Bewertung absenden/);
+    expect(bottomActions?.textContent).toContain('Zur Startseite');
+    expect(bottomActions?.className).toContain('vote-page__bottom-actions--session-end');
     expect(navSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });
@@ -490,8 +536,73 @@ describe('SessionVoteComponent', () => {
 
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('#qa-draft')).not.toBeNull();
-    expect(host.querySelector('.session-qa-form__submit')).not.toBeNull();
+    expect(host.querySelector('.session-qa-form__meta .session-qa-form__submit')).toBeNull();
+    expect(
+      host.querySelector('.vote-page__bottom-actions .session-qa-form__submit'),
+    ).not.toBeNull();
     expect(host.textContent).not.toContain('Neue Inhalte erscheinen hier automatisch.');
+    fixture.destroy();
+  });
+
+  it('zeigt bei aktiver Quizfrage den Abstimmen-Button im unteren Aktionsanker', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      preset: 'SERIOUS',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 0,
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      timer: 60,
+      difficulty: 'MEDIUM',
+      answers: [
+        { id: 'a1', text: 'Rot' },
+        { id: 'a2', text: 'Blau' },
+      ],
+      activeAt: MOCK_SERVER_TIME,
+      participantCount: 6,
+      totalVotes: 1,
+      currentRound: 1,
+    });
+    quickFeedbackResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 3,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.currentQuestion()).not.toBeNull();
+      },
+      { timeout: 3000, interval: 10 },
+    );
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-answers')).not.toBeNull();
+    const bottomActions = host.querySelector('.vote-page__bottom-actions') as HTMLElement | null;
+    expect(bottomActions?.className).toContain('vote-page__bottom-actions--floating');
+    expect(host.querySelector('.vote-page__bottom-actions #vote-submit')).not.toBeNull();
     fixture.destroy();
   });
 

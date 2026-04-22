@@ -260,4 +260,21 @@ describe('QuizNewComponent', () => {
 
     expect(text).not.toContain('Startwerte prüfen');
   });
+
+  it('fixiert den primaeren Weiter-CTA im unteren Aktionsbereich', () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    fixture.detectChanges();
+
+    const bottomAction = fixture.nativeElement.querySelector('.quiz-new-page__bottom-action');
+    const submitButton = fixture.nativeElement.querySelector(
+      '.quiz-new-page__bottom-action button[type="submit"][form="quiz-create-form"]',
+    ) as HTMLButtonElement | null;
+    const inlineSubmitButton = fixture.nativeElement.querySelector(
+      '.quiz-form__actions button[type="submit"]',
+    );
+
+    expect(bottomAction).not.toBeNull();
+    expect(submitButton?.textContent).toContain('Weiter zu den Fragen');
+    expect(inlineSubmitButton).toBeNull();
+  });
 });

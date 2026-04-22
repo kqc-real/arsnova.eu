@@ -5,6 +5,7 @@ const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
     quiz: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     bonusToken: {
       findFirst: vi.fn(),
@@ -21,6 +22,7 @@ import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
 const QUIZ_ID = '11111111-1111-4111-8111-111111111111';
+const OTHER_QUIZ_ID = '22222222-2222-4222-8222-222222222222';
 const QUIZ_INPUT = {
   name: 'Chemie',
   description: undefined,
@@ -66,6 +68,7 @@ describe('session.verifyBonusTokenForQuiz', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
       ...QUIZ_INPUT,
       description: null,
       teamCount: null,
@@ -78,6 +81,22 @@ describe('session.verifyBonusTokenForQuiz', () => {
         ratingLabelMax: null,
       })),
     });
+    prismaMock.quiz.findMany.mockResolvedValue([
+      {
+        id: QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+    ]);
     prismaMock.bonusToken.deleteMany.mockResolvedValue({ count: 1 });
   });
 
@@ -102,7 +121,7 @@ describe('session.verifyBonusTokenForQuiz', () => {
         where: expect.objectContaining({
           token: 'BNS-TEST-1234',
           session: expect.objectContaining({
-            quizId: QUIZ_ID,
+            quizId: { in: [QUIZ_ID] },
             status: 'FINISHED',
           }),
         }),
@@ -159,7 +178,7 @@ describe('session.verifyBonusTokenForQuiz', () => {
         where: expect.objectContaining({
           token: 'BNS-TEST-1234',
           session: expect.objectContaining({
-            quizId: QUIZ_ID,
+            quizId: { in: [QUIZ_ID] },
             status: 'FINISHED',
           }),
         }),
@@ -179,5 +198,74 @@ describe('session.verifyBonusTokenForQuiz', () => {
     });
 
     expect(result).toEqual({ deleted: false });
+  });
+
+  it('prueft und loescht Bonus-Codes ueber mehrere passende Quizkopien mit identischem Proof', async () => {
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.quiz.findMany.mockResolvedValue([
+      {
+        id: QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+      {
+        id: OTHER_QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+    ]);
+    prismaMock.bonusToken.findFirst.mockResolvedValue(null);
+
+    await caller.verifyBonusTokenForQuiz({
+      quizId: QUIZ_ID,
+      accessProof,
+      bonusCode: 'BNS-TEST-1234',
+    });
+    await caller.deleteBonusTokenForQuiz({
+      quizId: QUIZ_ID,
+      accessProof,
+      bonusCode: 'BNS-TEST-1234',
+    });
+
+    expect(prismaMock.bonusToken.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          token: 'BNS-TEST-1234',
+          session: expect.objectContaining({
+            quizId: { in: [QUIZ_ID, OTHER_QUIZ_ID] },
+            status: 'FINISHED',
+          }),
+        }),
+      }),
+    );
+    expect(prismaMock.bonusToken.deleteMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          token: 'BNS-TEST-1234',
+          session: expect.objectContaining({
+            quizId: { in: [QUIZ_ID, OTHER_QUIZ_ID] },
+            status: 'FINISHED',
+          }),
+        }),
+      }),
+    );
   });
 });

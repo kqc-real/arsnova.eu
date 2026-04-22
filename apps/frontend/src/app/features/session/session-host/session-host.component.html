@@ -1525,17 +1525,6 @@
 
               <!-- Steuerungs-Buttons (primär) -->
               <div class="session-host__steering">
-                @if (effectiveStatus() === 'QUESTION_OPEN') {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="revealAnswers()"
-                  >
-                    <span i18n="@@sessionHost.revealAnswerOptions">Antwortoptionen freigeben</span>
-                  </button>
-                }
                 @if (
                   effectiveStatus() === 'ACTIVE' && !isQaSession() && currentQuestionForHost();
                   as liveQ
@@ -1564,15 +1553,6 @@
                       >
                     </button>
                   } @else {
-                    <button
-                      mat-flat-button
-                      color="primary"
-                      type="button"
-                      [disabled]="controlPending()"
-                      (click)="revealResults()"
-                    >
-                      <span i18n>Ergebnis zeigen</span>
-                    </button>
                     @if (liveQ.currentRound === 1 && (liveQ.totalVotes ?? 0) > 0) {
                       <button
                         matButton="tonal"
@@ -1628,21 +1608,6 @@
                     (click)="nextQuestion()"
                   >
                     <span i18n>Überspringen</span>
-                  </button>
-                }
-                @if (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="isLastQuestion() ? onSessionEndAnchorClick() : nextQuestion()"
-                  >
-                    @if (isLastQuestion()) {
-                      <span i18n>Session beenden</span>
-                    } @else {
-                      <span i18n>Nächste Frage</span>
-                    }
                   </button>
                 }
               </div>
@@ -2019,7 +1984,61 @@
       <div
         class="session-host__exit-anchor"
         [class.session-host__exit-anchor--fixed]="showChannelTabs()"
+        [class.session-host__exit-anchor--with-primary]="
+          effectiveStatus() === 'QUESTION_OPEN' ||
+          ((effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
+            !isLastQuestion()) ||
+          (effectiveStatus() === 'ACTIVE' &&
+            !isQaSession() &&
+            !!currentQuestionForHost() &&
+            !shouldShowPeerInstructionSuggestion(currentQuestionForHost()))
+        "
       >
+        @if (effectiveStatus() === 'QUESTION_OPEN') {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            [disabled]="controlPending()"
+            (click)="revealAnswers()"
+          >
+            <span i18n="@@sessionHost.revealAnswerOptions">Antwortoptionen freigeben</span>
+          </button>
+        }
+        @if (
+          effectiveStatus() === 'ACTIVE' && !isQaSession() && currentQuestionForHost();
+          as liveQ
+        ) {
+          @if (!shouldShowPeerInstructionSuggestion(liveQ)) {
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+              [disabled]="controlPending()"
+              (click)="revealResults()"
+              i18n="@@sessionHost.revealResultsAnchor"
+            >
+              Ergebnis zeigen
+            </button>
+          }
+        }
+        @if (
+          (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') && !isLastQuestion()
+        ) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            [disabled]="controlPending()"
+            (click)="nextQuestion()"
+            i18n="@@sessionHost.nextQuestionAnchor"
+          >
+            Nächste Frage
+          </button>
+        }
         <button
           matButton="tonal"
           type="button"

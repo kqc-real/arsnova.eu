@@ -246,6 +246,7 @@ export type AddQuestionInput = z.infer<typeof AddQuestionInputSchema>;
 
 /** Schema für den Quiz-Upload beim Live-Schalten (Story 2.1a) */
 export const QuizUploadInputSchema = z.object({
+  historyScopeId: z.uuid().optional(),
   name: z.string().min(1).max(200),
   description: z.string().max(5000).optional(),
   /** Wie CreateQuiz: Leerstring/undefined → null (vermeidet Upload-Fehler bei leerem Feld). */
@@ -280,7 +281,16 @@ export const QuizUploadOutputSchema = z.object({
 });
 export type QuizUploadOutput = z.infer<typeof QuizUploadOutputSchema>;
 
-export const QuizHistoryAccessProofSchema = z.string().regex(/^[a-f0-9]{64}$/);
+const LEGACY_QUIZ_HISTORY_ACCESS_PROOF_REGEX = /^[a-f0-9]{64}$/;
+export const QuizHistoryAccessProofSchema = z
+  .string()
+  .refine(
+    (value) =>
+      z.uuid().safeParse(value).success || LEGACY_QUIZ_HISTORY_ACCESS_PROOF_REGEX.test(value),
+    {
+      message: 'Ungültiger Quiz-Historie-Zugriff.',
+    },
+  );
 export type QuizHistoryAccessProof = z.infer<typeof QuizHistoryAccessProofSchema>;
 
 type QuizHistoryAccessMaterial = {
@@ -390,12 +400,22 @@ async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export async function createQuizHistoryAccessProof(
+export async function createLegacyQuizHistoryAccessProof(
   input: QuizUploadInput,
 ): Promise<QuizHistoryAccessProof> {
   return QuizHistoryAccessProofSchema.parse(
     await sha256Hex(serializeQuizHistoryAccessMaterial(input)),
   );
+}
+
+export async function createQuizHistoryAccessProof(
+  input: QuizUploadInput,
+): Promise<QuizHistoryAccessProof> {
+  const parsed = QuizUploadInputSchema.parse(input);
+  if (parsed.historyScopeId) {
+    return QuizHistoryAccessProofSchema.parse(parsed.historyScopeId);
+  }
+  return createLegacyQuizHistoryAccessProof(parsed);
 }
 
 // ---------------------------------------------------------------------------
@@ -892,9 +912,9 @@ export const TeamLeaderboardEntryDTOSchema = z.object({
   rank: z.number(),
   teamName: z.string(),
   teamColor: z.string().nullable(),
-  totalScore: z.number(), // Summe aller Mitglieder-Scores
+  totalScore: z.number(), // Harmonisierte Team-Punkte (Gesamtpunkte / Teamgröße)
   memberCount: z.number(),
-  averageScore: z.number(), // Durchschnitt pro Mitglied
+  averageScore: z.number(), // Durchschnitt pro Mitglied (derzeit identisch zu totalScore)
 });
 export type TeamLeaderboardEntryDTO = z.infer<typeof TeamLeaderboardEntryDTOSchema>;
 

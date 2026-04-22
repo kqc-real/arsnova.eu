@@ -66,7 +66,7 @@
 } @else if (result(); as data) {
   <ng-template #feedbackHostJoinActions>
     <div class="feedback-host__actions">
-      @if (isDiscussion()) {
+      @if (isDiscussion() && embeddedInSession()) {
         <button
           mat-flat-button
           color="primary"
@@ -80,16 +80,18 @@
           <span i18n>Zweite Abstimmung</span>
         </button>
       } @else if (!isRound2()) {
-        <button
-          mat-button
-          type="button"
-          (click)="toggleLock()"
-          [attr.aria-label]="lockToggleAriaLabel()"
-        >
-          <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
-          {{ lockToggleLabel() }}
-        </button>
-        @if (data.totalVotes > 0) {
+        @if (embeddedInSession()) {
+          <button
+            mat-button
+            type="button"
+            (click)="toggleLock()"
+            [attr.aria-label]="lockToggleAriaLabel()"
+          >
+            <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
+            {{ lockToggleLabel() }}
+          </button>
+        }
+        @if (data.totalVotes > 0 && embeddedInSession()) {
           <button
             mat-button
             type="button"
@@ -101,7 +103,7 @@
             <span i18n="@@feedback.compareRoundLabel">Vergleichsrunde</span>
           </button>
         }
-      } @else {
+      } @else if (embeddedInSession()) {
         <button
           mat-button
           type="button"
@@ -137,17 +139,6 @@
         <mat-icon>restart_alt</mat-icon>
         <span i18n>Zurücksetzen</span>
       </button>
-      @if (!embeddedInSession()) {
-        <button
-          mat-button
-          type="button"
-          class="feedback-host__action-link feedback-host__end-session-link"
-          (click)="endSession()"
-        >
-          <mat-icon>stop_circle</mat-icon>
-          <span i18n>Session beenden</span>
-        </button>
-      }
     </div>
     <div class="feedback-host__template-switch">
       @for (chip of presetChips; track chip.type) {
@@ -187,6 +178,7 @@
   <div
     class="feedback-host app-live-channel-shell"
     [class.feedback-host--embedded]="embeddedInSession()"
+    [class.feedback-host--with-bottom-actions]="showStandaloneBottomActionBar()"
   >
     <div class="feedback-host__wrapper">
       <section
@@ -578,6 +570,30 @@
         }
       </section>
     </div>
+    @if (showStandaloneBottomActionBar()) {
+      <div class="feedback-host__bottom-actions">
+        <button
+          mat-button
+          type="button"
+          class="feedback-host__bottom-action-secondary"
+          (click)="endSession()"
+        >
+          <mat-icon>stop_circle</mat-icon>
+          <span i18n>Session beenden</span>
+        </button>
+        <button
+          matButton="filled"
+          type="button"
+          class="feedback-host__bottom-action-primary"
+          [class.feedback-host__next-round-cta]="standalonePrimaryActionKind() === 'second-round'"
+          (click)="runStandalonePrimaryAction()"
+          [attr.aria-label]="standalonePrimaryActionAriaLabel()"
+        >
+          <mat-icon>{{ standalonePrimaryActionIcon() }}</mat-icon>
+          <span>{{ standalonePrimaryActionLabel() }}</span>
+        </button>
+      </div>
+    }
   </div>
 } @else {
   <div class="feedback-host__loading">

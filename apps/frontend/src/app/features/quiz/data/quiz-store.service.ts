@@ -113,7 +113,7 @@ export interface QuizDocument {
   updatedByBrowserLabel?: string | null;
   /** Letzte Server-Quiz-ID nach quiz.upload (für Bonus-Codes in der Sammlung, nicht am Live-Host). */
   lastServerQuizId?: string | null;
-  /** Besitz-Nachweis für die zuletzt hochgeladene Server-Quizkopie. */
+  /** Stable Quiz-ID für den zuletzt hochgeladenen Historien-Scope. */
   lastServerQuizAccessProof?: string | null;
   settings: QuizSettings;
   questions: QuizQuestion[];
@@ -833,6 +833,7 @@ export class QuizStoreService implements OnDestroy {
         : document.description;
 
     const payload: QuizUploadInput = {
+      historyScopeId: document.id,
       name: document.name,
       ...(description ? { description } : {}),
       motifImageUrl: normalizeMotifImageUrlInput(document.motifImageUrl) ?? null,
@@ -1782,7 +1783,8 @@ function normalizeStoredQuiz(value: unknown): QuizDocument | null {
   const lastServerQuizId = rawLastServer && UUID_PATTERN.test(rawLastServer) ? rawLastServer : null;
   const rawLastServerAccessProof = readStringOrNull(candidate['lastServerQuizAccessProof']);
   const lastServerQuizAccessProof =
-    rawLastServerAccessProof && /^[a-f0-9]{64}$/.test(rawLastServerAccessProof)
+    rawLastServerAccessProof &&
+    (UUID_PATTERN.test(rawLastServerAccessProof) || /^[a-f0-9]{64}$/.test(rawLastServerAccessProof))
       ? rawLastServerAccessProof
       : null;
 

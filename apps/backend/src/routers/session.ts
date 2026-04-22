@@ -46,6 +46,7 @@ import {
   type SessionOnboardingProfileInput,
   type QuestionExportEntry,
   type QuestionType,
+  type QuizUploadInput,
   type OptionDistributionEntry,
   type FreetextAggregateEntry,
   type BonusTokenEntryDTO,
@@ -199,109 +200,152 @@ function normalizeQuizHistoryAccessProof(proof: string): Buffer {
   return Buffer.from(proof.trim(), 'utf8');
 }
 
-async function assertQuizHistoryAccess(quizId: string, accessProof: string): Promise<void> {
-  const quiz = await prisma.quiz.findUnique({
-    where: { id: quizId },
+const quizHistoryAccessQuizSelect = Prisma.validator<Prisma.QuizSelect>()({
+  id: true,
+  historyScopeId: true,
+  name: true,
+  description: true,
+  motifImageUrl: true,
+  showLeaderboard: true,
+  allowCustomNicknames: true,
+  defaultTimer: true,
+  timerScaleByDifficulty: true,
+  enableSoundEffects: true,
+  enableRewardEffects: true,
+  enableMotivationMessages: true,
+  enableEmojiReactions: true,
+  anonymousMode: true,
+  teamMode: true,
+  teamCount: true,
+  teamAssignment: true,
+  teamNames: true,
+  backgroundMusic: true,
+  nicknameTheme: true,
+  bonusTokenCount: true,
+  readingPhaseEnabled: true,
+  preset: true,
+  questions: {
+    orderBy: { order: 'asc' },
     select: {
-      name: true,
-      description: true,
-      motifImageUrl: true,
-      showLeaderboard: true,
-      allowCustomNicknames: true,
-      defaultTimer: true,
-      timerScaleByDifficulty: true,
-      enableSoundEffects: true,
-      enableRewardEffects: true,
-      enableMotivationMessages: true,
-      enableEmojiReactions: true,
-      anonymousMode: true,
-      teamMode: true,
-      teamCount: true,
-      teamAssignment: true,
-      teamNames: true,
-      backgroundMusic: true,
-      nicknameTheme: true,
-      bonusTokenCount: true,
-      readingPhaseEnabled: true,
-      preset: true,
-      questions: {
-        orderBy: { order: 'asc' },
+      text: true,
+      type: true,
+      timer: true,
+      difficulty: true,
+      order: true,
+      ratingMin: true,
+      ratingMax: true,
+      ratingLabelMin: true,
+      ratingLabelMax: true,
+      answers: {
         select: {
           text: true,
-          type: true,
-          timer: true,
-          difficulty: true,
-          order: true,
-          ratingMin: true,
-          ratingMax: true,
-          ratingLabelMin: true,
-          ratingLabelMax: true,
-          answers: {
-            select: {
-              text: true,
-              isCorrect: true,
-            },
-          },
+          isCorrect: true,
         },
       },
     },
+  },
+});
+
+type QuizHistoryAccessQuiz = Prisma.QuizGetPayload<{
+  select: typeof quizHistoryAccessQuizSelect;
+}>;
+
+function buildQuizHistoryAccessPayload(quiz: QuizHistoryAccessQuiz): QuizUploadInput {
+  return {
+    ...(quiz.historyScopeId ? { historyScopeId: quiz.historyScopeId } : {}),
+    name: quiz.name,
+    description: quiz.description ?? undefined,
+    motifImageUrl: quiz.motifImageUrl ?? null,
+    showLeaderboard: quiz.showLeaderboard,
+    allowCustomNicknames: quiz.allowCustomNicknames,
+    defaultTimer: quiz.defaultTimer,
+    timerScaleByDifficulty: quiz.timerScaleByDifficulty ?? true,
+    enableSoundEffects: quiz.enableSoundEffects,
+    enableRewardEffects: quiz.enableRewardEffects,
+    enableMotivationMessages: quiz.enableMotivationMessages,
+    enableEmojiReactions: quiz.enableEmojiReactions,
+    anonymousMode: quiz.anonymousMode,
+    teamMode: quiz.teamMode,
+    teamCount: quiz.teamCount ?? undefined,
+    teamAssignment: quiz.teamAssignment,
+    teamNames: quiz.teamNames,
+    backgroundMusic: quiz.backgroundMusic ?? undefined,
+    nicknameTheme: quiz.nicknameTheme,
+    bonusTokenCount: quiz.bonusTokenCount ?? undefined,
+    readingPhaseEnabled: quiz.readingPhaseEnabled,
+    preset: quiz.preset === 'SERIOUS' ? 'SERIOUS' : 'PLAYFUL',
+    questions: quiz.questions.map((question) => ({
+      text: question.text,
+      type: question.type,
+      timer: question.timer,
+      difficulty: question.difficulty,
+      order: question.order,
+      ratingMin: question.ratingMin ?? undefined,
+      ratingMax: question.ratingMax ?? undefined,
+      ratingLabelMin: question.ratingLabelMin ?? undefined,
+      ratingLabelMax: question.ratingLabelMax ?? undefined,
+      answers: question.answers.map((answer) => ({
+        text: answer.text,
+        isCorrect: answer.isCorrect,
+      })),
+    })),
+  };
+}
+
+async function createQuizHistoryProofBuffer(quiz: QuizHistoryAccessQuiz): Promise<Buffer> {
+  return normalizeQuizHistoryAccessProof(
+    await createQuizHistoryAccessProof(buildQuizHistoryAccessPayload(quiz)),
+  );
+}
+
+function quizHistoryProofsMatch(expectedProof: Buffer, providedProof: Buffer): boolean {
+  return (
+    expectedProof.length === providedProof.length && timingSafeEqual(expectedProof, providedProof)
+  );
+}
+
+async function resolveQuizHistoryScopeIds(quizId: string, accessProof: string): Promise<string[]> {
+  const quiz = await prisma.quiz.findUnique({
+    where: { id: quizId },
+    select: quizHistoryAccessQuizSelect,
   });
 
   if (!quiz) {
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
   }
 
-  const expectedProof = normalizeQuizHistoryAccessProof(
-    await createQuizHistoryAccessProof({
-      name: quiz.name,
-      description: quiz.description ?? undefined,
-      motifImageUrl: quiz.motifImageUrl ?? null,
-      showLeaderboard: quiz.showLeaderboard,
-      allowCustomNicknames: quiz.allowCustomNicknames,
-      defaultTimer: quiz.defaultTimer,
-      timerScaleByDifficulty: quiz.timerScaleByDifficulty ?? true,
-      enableSoundEffects: quiz.enableSoundEffects,
-      enableRewardEffects: quiz.enableRewardEffects,
-      enableMotivationMessages: quiz.enableMotivationMessages,
-      enableEmojiReactions: quiz.enableEmojiReactions,
-      anonymousMode: quiz.anonymousMode,
-      teamMode: quiz.teamMode,
-      teamCount: quiz.teamCount ?? undefined,
-      teamAssignment: quiz.teamAssignment,
-      teamNames: quiz.teamNames,
-      backgroundMusic: quiz.backgroundMusic ?? undefined,
-      nicknameTheme: quiz.nicknameTheme,
-      bonusTokenCount: quiz.bonusTokenCount ?? undefined,
-      readingPhaseEnabled: quiz.readingPhaseEnabled,
-      preset: quiz.preset === 'SERIOUS' ? 'SERIOUS' : 'PLAYFUL',
-      questions: quiz.questions.map((question) => ({
-        text: question.text,
-        type: question.type,
-        timer: question.timer,
-        difficulty: question.difficulty,
-        order: question.order,
-        ratingMin: question.ratingMin ?? undefined,
-        ratingMax: question.ratingMax ?? undefined,
-        ratingLabelMin: question.ratingLabelMin ?? undefined,
-        ratingLabelMax: question.ratingLabelMax ?? undefined,
-        answers: question.answers.map((answer) => ({
-          text: answer.text,
-          isCorrect: answer.isCorrect,
-        })),
-      })),
-    }),
-  );
   const providedProof = normalizeQuizHistoryAccessProof(accessProof);
+  const expectedProof = await createQuizHistoryProofBuffer(quiz);
 
-  if (
-    expectedProof.length !== providedProof.length ||
-    !timingSafeEqual(expectedProof, providedProof)
-  ) {
+  if (!quizHistoryProofsMatch(expectedProof, providedProof)) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'Zugriff auf diese Quiz-Historie ist nicht erlaubt.',
     });
   }
+
+  if (quiz.historyScopeId) {
+    const scopedQuizzes = await prisma.quiz.findMany({
+      where: { historyScopeId: quiz.historyScopeId },
+      select: { id: true },
+    });
+    return scopedQuizzes.map((entry) => entry.id);
+  }
+
+  const candidates = await prisma.quiz.findMany({
+    where: { name: quiz.name },
+    select: quizHistoryAccessQuizSelect,
+  });
+
+  const matchingIds: string[] = [];
+  for (const candidate of candidates) {
+    const candidateProof = await createQuizHistoryProofBuffer(candidate);
+    if (quizHistoryProofsMatch(candidateProof, providedProof)) {
+      matchingIds.push(candidate.id);
+    }
+  }
+
+  return matchingIds.length > 0 ? matchingIds : [quizId];
 }
 
 async function collectAuthorizedQuizHistoryIds(
@@ -314,107 +358,18 @@ async function collectAuthorizedQuizHistoryIds(
   const quizIds = [...new Set(entries.map((entry) => entry.quizId))];
   const quizzes = await prisma.quiz.findMany({
     where: { id: { in: quizIds } },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      motifImageUrl: true,
-      showLeaderboard: true,
-      allowCustomNicknames: true,
-      defaultTimer: true,
-      timerScaleByDifficulty: true,
-      enableSoundEffects: true,
-      enableRewardEffects: true,
-      enableMotivationMessages: true,
-      enableEmojiReactions: true,
-      anonymousMode: true,
-      teamMode: true,
-      teamCount: true,
-      teamAssignment: true,
-      teamNames: true,
-      backgroundMusic: true,
-      nicknameTheme: true,
-      bonusTokenCount: true,
-      readingPhaseEnabled: true,
-      preset: true,
-      questions: {
-        orderBy: { order: 'asc' },
-        select: {
-          text: true,
-          type: true,
-          timer: true,
-          difficulty: true,
-          order: true,
-          ratingMin: true,
-          ratingMax: true,
-          ratingLabelMin: true,
-          ratingLabelMax: true,
-          answers: {
-            select: {
-              text: true,
-              isCorrect: true,
-            },
-          },
-        },
-      },
-    },
+    select: quizHistoryAccessQuizSelect,
   });
 
   const proofByQuizId = new Map<string, Buffer>();
   for (const quiz of quizzes) {
-    proofByQuizId.set(
-      quiz.id,
-      normalizeQuizHistoryAccessProof(
-        await createQuizHistoryAccessProof({
-          name: quiz.name,
-          description: quiz.description ?? undefined,
-          motifImageUrl: quiz.motifImageUrl ?? null,
-          showLeaderboard: quiz.showLeaderboard,
-          allowCustomNicknames: quiz.allowCustomNicknames,
-          defaultTimer: quiz.defaultTimer,
-          timerScaleByDifficulty: quiz.timerScaleByDifficulty ?? true,
-          enableSoundEffects: quiz.enableSoundEffects,
-          enableRewardEffects: quiz.enableRewardEffects,
-          enableMotivationMessages: quiz.enableMotivationMessages,
-          enableEmojiReactions: quiz.enableEmojiReactions,
-          anonymousMode: quiz.anonymousMode,
-          teamMode: quiz.teamMode,
-          teamCount: quiz.teamCount ?? undefined,
-          teamAssignment: quiz.teamAssignment,
-          teamNames: quiz.teamNames,
-          backgroundMusic: quiz.backgroundMusic ?? undefined,
-          nicknameTheme: quiz.nicknameTheme,
-          bonusTokenCount: quiz.bonusTokenCount ?? undefined,
-          readingPhaseEnabled: quiz.readingPhaseEnabled,
-          preset: quiz.preset === 'SERIOUS' ? 'SERIOUS' : 'PLAYFUL',
-          questions: quiz.questions.map((question) => ({
-            text: question.text,
-            type: question.type,
-            timer: question.timer,
-            difficulty: question.difficulty,
-            order: question.order,
-            ratingMin: question.ratingMin ?? undefined,
-            ratingMax: question.ratingMax ?? undefined,
-            ratingLabelMin: question.ratingLabelMin ?? undefined,
-            ratingLabelMax: question.ratingLabelMax ?? undefined,
-            answers: question.answers.map((answer) => ({
-              text: answer.text,
-              isCorrect: answer.isCorrect,
-            })),
-          })),
-        }),
-      ),
-    );
+    proofByQuizId.set(quiz.id, await createQuizHistoryProofBuffer(quiz));
   }
 
   return entries.flatMap((entry) => {
     const expectedProof = proofByQuizId.get(entry.quizId);
     const providedProof = normalizeQuizHistoryAccessProof(entry.accessProof);
-    if (
-      !expectedProof ||
-      expectedProof.length !== providedProof.length ||
-      !timingSafeEqual(expectedProof, providedProof)
-    ) {
+    if (!expectedProof || !quizHistoryProofsMatch(expectedProof, providedProof)) {
       return [];
     }
     return [entry.quizId];
@@ -2929,7 +2884,7 @@ export const sessionRouter = router({
       return entries;
     }),
 
-  /** Team-Leaderboard: Ranking aller Teams nach Gesamtpunktzahl (Story 7.1). */
+  /** Team-Leaderboard: Ranking aller Teams nach harmonisierten Team-Punkten (Story 7.1). */
   getTeamLeaderboard: publicProcedure
     .input(GetSessionInfoInputSchema)
     .output(z.array(TeamLeaderboardEntryDTOSchema))
@@ -2963,13 +2918,13 @@ export const sessionRouter = router({
 
       const teamStats = new Map<
         string,
-        { teamName: string; teamColor: string | null; totalScore: number; memberCount: number }
+        { teamName: string; teamColor: string | null; rawTotalScore: number; memberCount: number }
       >();
       for (const team of teams) {
         teamStats.set(team.id, {
           teamName: team.name,
           teamColor: team.color ?? null,
-          totalScore: 0,
+          rawTotalScore: 0,
           memberCount: 0,
         });
       }
@@ -2989,25 +2944,30 @@ export const sessionRouter = router({
         if (!teamId) continue;
         const stats = teamStats.get(teamId);
         if (!stats) continue;
-        stats.totalScore += Number(vote.score) || 0;
+        stats.rawTotalScore += Number(vote.score) || 0;
       }
 
       const entries: TeamLeaderboardEntryDTO[] = [...teamStats.values()]
         .filter((team) => team.memberCount > 0)
-        .sort(
-          (a, b) =>
-            b.totalScore - a.totalScore ||
-            b.memberCount - a.memberCount ||
-            a.teamName.localeCompare(b.teamName),
-        )
+        .map((team) => {
+          const normalizedScore =
+            team.memberCount > 0 ? Number((team.rawTotalScore / team.memberCount).toFixed(2)) : 0;
+          return {
+            teamName: team.teamName,
+            teamColor: team.teamColor,
+            totalScore: normalizedScore,
+            memberCount: team.memberCount,
+            averageScore: normalizedScore,
+          };
+        })
+        .sort((a, b) => b.totalScore - a.totalScore || a.teamName.localeCompare(b.teamName))
         .map((team, index) => ({
           rank: index + 1,
           teamName: team.teamName,
           teamColor: team.teamColor,
           totalScore: team.totalScore,
           memberCount: team.memberCount,
-          averageScore:
-            team.memberCount > 0 ? Number((team.totalScore / team.memberCount).toFixed(2)) : 0,
+          averageScore: team.averageScore,
         }));
 
       return entries;
@@ -3097,11 +3057,11 @@ export const sessionRouter = router({
     .input(GetBonusTokensForQuizInputSchema)
     .output(BonusTokensForQuizOutputSchema)
     .query(async ({ input }) => {
-      await assertQuizHistoryAccess(input.quizId, input.accessProof);
+      const scopedQuizIds = await resolveQuizHistoryScopeIds(input.quizId, input.accessProof);
 
       const sessions = await prisma.session.findMany({
         where: {
-          quizId: input.quizId,
+          quizId: { in: scopedQuizIds },
           status: 'FINISHED',
           bonusTokens: { some: {} },
         },
@@ -3135,14 +3095,14 @@ export const sessionRouter = router({
     .input(VerifyBonusTokenForQuizInputSchema)
     .output(VerifyBonusTokenForQuizOutputSchema)
     .query(async ({ input }) => {
-      await assertQuizHistoryAccess(input.quizId, input.accessProof);
+      const scopedQuizIds = await resolveQuizHistoryScopeIds(input.quizId, input.accessProof);
       const normalizedToken = input.bonusCode.trim().toUpperCase();
 
       const token = await prisma.bonusToken.findFirst({
         where: {
           token: normalizedToken,
           session: {
-            quizId: input.quizId,
+            quizId: { in: scopedQuizIds },
             status: 'FINISHED',
           },
         },
@@ -3173,13 +3133,13 @@ export const sessionRouter = router({
     .input(DeleteBonusTokenForQuizInputSchema)
     .output(DeleteBonusTokenForQuizOutputSchema)
     .mutation(async ({ input }) => {
-      await assertQuizHistoryAccess(input.quizId, input.accessProof);
+      const scopedQuizIds = await resolveQuizHistoryScopeIds(input.quizId, input.accessProof);
       const normalizedToken = input.bonusCode.trim().toUpperCase();
       const deleted = await prisma.bonusToken.deleteMany({
         where: {
           token: normalizedToken,
           session: {
-            quizId: input.quizId,
+            quizId: { in: scopedQuizIds },
             status: 'FINISHED',
           },
         },
@@ -3195,11 +3155,11 @@ export const sessionRouter = router({
     .input(GetLastSessionFeedbackForQuizInputSchema)
     .output(LastSessionFeedbackForQuizOutputSchema)
     .query(async ({ input }) => {
-      await assertQuizHistoryAccess(input.quizId, input.accessProof);
+      const scopedQuizIds = await resolveQuizHistoryScopeIds(input.quizId, input.accessProof);
 
       const session = await prisma.session.findFirst({
         where: {
-          quizId: input.quizId,
+          quizId: { in: scopedQuizIds },
           status: 'FINISHED',
           sessionFeedbacks: { some: {} },
         },

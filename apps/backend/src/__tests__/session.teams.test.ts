@@ -178,7 +178,7 @@ describe('session team mode (Story 7.1)', () => {
     expect(result.teamName).toBe('Team A');
   });
 
-  it('aggregiert Team-Scores für das Team-Leaderboard', async () => {
+  it('harmonisiert Team-Scores für ungleich große Teams', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       quiz: { teamMode: true, teamCount: 2, teamNames: [] },
@@ -203,19 +203,19 @@ describe('session team mode (Story 7.1)', () => {
     expect(result).toEqual([
       {
         rank: 1,
-        teamName: 'Team A',
-        teamColor: '#1E88E5',
-        totalScore: 100,
-        memberCount: 2,
-        averageScore: 50,
-      },
-      {
-        rank: 2,
         teamName: 'Team B',
         teamColor: '#43A047',
         totalScore: 70,
         memberCount: 1,
         averageScore: 70,
+      },
+      {
+        rank: 2,
+        teamName: 'Team A',
+        teamColor: '#1E88E5',
+        totalScore: 50,
+        memberCount: 2,
+        averageScore: 50,
       },
     ]);
   });

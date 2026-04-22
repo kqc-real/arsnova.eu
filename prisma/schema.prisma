@@ -12,6 +12,7 @@ datasource db {
 // Kein creatorId/User – die App ist accountfrei (Zero-Account, Local-First).
 model Quiz {
   id                   String     @id @default(uuid())
+  historyScopeId       String?    @db.Uuid // Stabile Quiz-Identität über mehrere Upload-Kopien hinweg
   name                 String
   description          String?
   motifImageUrl        String?    // HTTPS-URL, optionales Motivbild (Host, Quiz-Kanal)
@@ -37,6 +38,8 @@ model Quiz {
   sessions             Session[]
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
+
+  @@index([historyScopeId])
 }
 
 // Eine einzelne Frage

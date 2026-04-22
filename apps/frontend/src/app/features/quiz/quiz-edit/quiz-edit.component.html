@@ -50,7 +50,7 @@
             #metadataFormElement
             class="quiz-edit-form l-stack l-stack--md"
             [formGroup]="metadataForm"
-            (ngSubmit)="saveMetadata()"
+            (ngSubmit)="saveAll()"
           >
             <mat-form-field appearance="outline">
               <mat-label i18n>Name</mat-label>
@@ -72,7 +72,7 @@
               <label class="quiz-edit-form__markdown-label" i18n>Beschreibung (optional)</label>
               <app-markdown-katex-editor
                 [value]="metadataForm.controls.description.value"
-                (valueChange)="metadataForm.controls.description.setValue($event)"
+                (valueChange)="onMetadataDescriptionChange($event)"
                 [rows]="8"
               />
               <div class="quiz-edit-form__markdown-hints">
@@ -129,9 +129,6 @@
             @if (metadataSaved()) {
               <p class="quiz-edit-form__editing-hint" role="status" i18n>Gespeichert.</p>
             }
-            <mat-card-actions class="quiz-edit-form__actions">
-              <button matButton="filled" type="submit" i18n>Speichern</button>
-            </mat-card-actions>
           </form>
         </mat-card-content>
       </mat-expansion-panel>
@@ -145,10 +142,6 @@
         >
           <mat-icon>visibility</mat-icon>
           <span i18n>Vorschau</span>
-        </a>
-        <a mat-button routerLink=".." i18n-aria-label aria-label="Zurück zur Quiz-Liste">
-          <mat-icon>arrow_back</mat-icon>
-          <span i18n>Zurück</span>
         </a>
       </mat-card-actions>
     </mat-card>
@@ -198,7 +191,7 @@
             #settingsFormElement
             class="quiz-edit-form l-stack l-stack--md"
             [formGroup]="settingsForm"
-            (ngSubmit)="saveSettings()"
+            (ngSubmit)="saveAll()"
           >
             <div class="quiz-edit-form__preset-actions">
               @for (preset of presetOptions; track preset.value) {
@@ -461,10 +454,6 @@
                 Einstellungen übernommen.
               </p>
             }
-
-            <mat-card-actions class="quiz-edit-form__actions">
-              <button matButton="filled" type="submit" i18n>Übernehmen</button>
-            </mat-card-actions>
           </form>
         </mat-card-content>
       </mat-card>
@@ -506,11 +495,12 @@
         #questionFormElement
         class="quiz-edit-form l-stack l-stack--md"
         [formGroup]="form"
-        (ngSubmit)="addQuestion()"
+        (ngSubmit)="saveAll()"
       >
         @if (isEditing()) {
           <p class="quiz-edit-form__editing-hint" i18n="@@quiz.edit.questionEditSaveHint">
-            Du bearbeitest eine vorhandene Frage. Mit „Speichern“ übernimmst du die Änderungen.
+            Du bearbeitest eine vorhandene Frage. Mit „Alle Änderungen speichern“ übernimmst du die
+            Änderungen.
           </p>
         }
 
@@ -780,19 +770,6 @@
         @if (submitError()) {
           <p class="quiz-edit-form__error" role="alert">{{ submitError() }}</p>
         }
-
-        <mat-card-actions class="quiz-edit-form__actions quiz-edit-form__actions--question-bar">
-          @if (isEditing()) {
-            <button mat-button type="button" (click)="cancelEditing()">
-              <mat-icon>close</mat-icon>
-              <span i18n>Abbrechen</span>
-            </button>
-          }
-          <button matButton="filled" type="submit">
-            <mat-icon>save</mat-icon>
-            <span i18n="@@quiz.edit.questionSaveButton">Speichern</span>
-          </button>
-        </mat-card-actions>
       </form>
     </ng-template>
 
@@ -1096,6 +1073,32 @@
         </div>
       }
     </section>
+
+    <div class="quiz-edit__bottom-actions quiz-edit__bottom-actions--with-secondary">
+      <a mat-button routerLink=".." i18n-aria-label aria-label="Zurück zur Quiz-Liste">
+        <mat-icon>arrow_back</mat-icon>
+        <span i18n>Zurück</span>
+      </a>
+      <button
+        mat-button
+        type="button"
+        (click)="cancelAllChanges()"
+        [disabled]="!hasPendingChanges()"
+      >
+        <mat-icon>close</mat-icon>
+        <span i18n="@@quiz.edit.discardChangesButton">Änderungen verwerfen</span>
+      </button>
+      <button
+        matButton="filled"
+        type="button"
+        class="quiz-edit__bottom-actions-save"
+        (click)="saveAll()"
+        [disabled]="!hasPendingChanges()"
+      >
+        <mat-icon>save</mat-icon>
+        <span i18n="@@quiz.edit.saveAllButton">Alle Änderungen speichern</span>
+      </button>
+    </div>
   </section>
 } @else {
   <mat-card appearance="outlined" class="quiz-edit__not-found">

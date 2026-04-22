@@ -53,6 +53,7 @@ vi.mock('../../core/trpc.client', () => ({
 describe('FeedbackHostComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.history.replaceState({}, '', '/feedback/ABC123/host');
     TestBed.configureTestingModule({
       imports: [FeedbackHostComponent],
       providers: [
@@ -287,5 +288,78 @@ describe('FeedbackHostComponent', () => {
     expect(trpc.session.end.mutate).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     expect(onActionSubscribe).toHaveBeenCalled();
+  });
+
+  it('fixiert im Standalone-Host die primaere Aktion "Vergleichsrunde" unten neben "Session beenden"', () => {
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    const comp = fixture.componentInstance;
+    comp.result.set({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 4,
+      distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 1 },
+    });
+    fixture.detectChanges();
+
+    const bottomActions = fixture.nativeElement.querySelector(
+      '.feedback-host__bottom-actions',
+    ) as HTMLElement | null;
+    const inlineActions = fixture.nativeElement.querySelector(
+      '.feedback-host__actions',
+    ) as HTMLElement | null;
+
+    expect(bottomActions?.textContent).toContain('Vergleichsrunde');
+    expect(bottomActions?.textContent).toContain('Session beenden');
+    expect(inlineActions?.textContent).toContain('Link kopieren');
+    expect(inlineActions?.textContent).toContain('Zurücksetzen');
+    expect(inlineActions?.textContent).not.toContain('Vergleichsrunde');
+    expect(inlineActions?.textContent).not.toContain('Session beenden');
+  });
+
+  it('fixiert im Standalone-Host bei Diskussionsphase die Aktion "Zweite Abstimmung" unten', () => {
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    const comp = fixture.componentInstance;
+    comp.result.set({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      discussion: true,
+      totalVotes: 4,
+      distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 1 },
+    });
+    fixture.detectChanges();
+
+    const bottomActions = fixture.nativeElement.querySelector(
+      '.feedback-host__bottom-actions',
+    ) as HTMLElement | null;
+
+    expect(bottomActions?.textContent).toContain('Zweite Abstimmung');
+    expect(bottomActions?.textContent).toContain('Session beenden');
+  });
+
+  it('rendert im eingebetteten Session-Host keine eigene Bottom-Leiste mit "Session beenden"', () => {
+    window.history.replaceState({}, '', '/session/ABC123/host');
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    fixture.componentRef.setInput('embeddedInSession', true);
+    const comp = fixture.componentInstance;
+    comp.result.set({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 4,
+      distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 1 },
+    });
+    fixture.detectChanges();
+
+    const bottomActions = fixture.nativeElement.querySelector(
+      '.feedback-host__bottom-actions',
+    ) as HTMLElement | null;
+
+    expect(bottomActions).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Session beenden');
   });
 });

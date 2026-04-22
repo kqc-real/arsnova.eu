@@ -91,8 +91,8 @@
   display: grid;
   justify-items: center;
   gap: var(--session-host-zone-gap);
-  /* Platz für den fixierten Exit-Button am unteren Rand. */
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem);
+  /* Genug Scroll-Reserve, damit Inhalte komplett über die fixe Aktionsleiste gezogen werden können. */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 9rem);
 }
 
 @media (min-width: 600px) {
@@ -149,26 +149,38 @@
 }
 
 .session-host__exit-anchor {
-  position: sticky;
-  bottom: var(--session-host-exit-bottom-base);
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--session-host-exit-bottom-base) + var(--app-footer-visible-offset, 0px));
+  transform: translateX(-50%);
   width: var(--session-host-shell-width);
   max-width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
   justify-content: flex-end;
   z-index: 40;
 }
 
 .session-host__exit-anchor--fixed {
   position: fixed;
-  left: 50%;
-  bottom: calc(var(--session-host-exit-bottom-base) + var(--app-footer-visible-offset, 0px));
-  transform: translateX(-50%);
 }
 
 .session-host__exit-anchor-button {
+  flex: 0 0 auto;
+  max-width: 100%;
   font-weight: 600;
+  box-shadow: var(--mat-sys-level2);
+}
+
+.session-host__exit-anchor-button .mdc-button__label {
+  white-space: nowrap;
+}
+
+.session-host__exit-anchor-button--primary {
   box-shadow: var(--mat-sys-level2);
 }
 
@@ -179,6 +191,7 @@
     --session-host-toolbar-clearance: calc(env(safe-area-inset-top, 0px) + 5.5rem);
     --session-host-float-top: calc(0.5rem + env(safe-area-inset-top, 0px));
     --session-host-exit-bottom-base: max(0.5rem, calc(var(--host-mobile-safe-bottom) + 0.25rem));
+    padding-bottom: calc(var(--host-mobile-safe-bottom) + 11rem);
   }
 
   .session-host__run {
@@ -193,13 +206,15 @@
   .session-host__exit-anchor {
     width: 100%;
     justify-content: stretch;
-  }
-
-  .session-host__exit-anchor--fixed {
     left: var(--session-host-shell-inline);
     right: var(--session-host-shell-inline);
     width: auto;
     transform: none;
+  }
+
+  .session-host__exit-anchor--with-primary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .session-host__exit-anchor-button {
@@ -3054,8 +3069,6 @@
   align-items: center;
   gap: 0.75rem;
   margin: 1.75rem 0 0;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
 }
 
 // Diskussionsphase-Button: MD3 tonal (Primary Container), Styleguide-Tokens

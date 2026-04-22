@@ -5508,6 +5508,22 @@
           <context context-type="linenumber">162</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quiz.edit.discardChangesButton" datatype="html">
+        <source>Änderungen verwerfen</source>
+        <target>Discard changes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">1089</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quiz.edit.saveAllButton" datatype="html">
+        <source>Alle Änderungen speichern</source>
+        <target>Save all changes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">1098</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="quiz.edit.questionSaveButton" datatype="html">
         <source>Speichern</source>
         <target>Save</target>
