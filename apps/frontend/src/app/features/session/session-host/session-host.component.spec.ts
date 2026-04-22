@@ -1221,11 +1221,20 @@ describe('SessionHostComponent', () => {
     );
     fixture.detectChanges();
 
-    const text = fixture.nativeElement.textContent ?? '';
+    const el = fixture.nativeElement as HTMLElement;
+    const text = el.textContent ?? '';
     expect(text).toContain('Peer Instruction empfohlen');
     expect(text).toMatch(/35\s*[–-]\s*70/);
-    expect(text).toContain('Ergebnis trotzdem zeigen');
-    expect(text).toContain('Diskussionsphase');
+    const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').replace(/^groups/, '').trim(),
+    );
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual([
+      'Diskussionsphase',
+      'Ergebnis trotzdem zeigen',
+      'Session beenden',
+    ]);
     fixture.destroy();
   });
 
@@ -1490,6 +1499,70 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt ohne Peer-Instruction-Empfehlung keine Diskussionsphase, auch wenn schon Stimmen vorliegen', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+      peerInstructionSuggestion: {
+        suggested: false,
+        reason: 'CORRECTNESS_WINDOW' as const,
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').trim(),
+    );
+    const text = fixture.nativeElement.textContent ?? '';
+
+    expect(text).not.toContain('Peer Instruction empfohlen');
+    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Session beenden']);
+    fixture.destroy();
+  });
+
   it('zeigt "komplett richtig" nicht bei Single-Choice-Ergebnisfragen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -1647,6 +1720,65 @@ describe('SessionHostComponent', () => {
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual(['Nächste Frage', 'Session beenden']);
+    fixture.destroy();
+  });
+
+  it('zeigt in der Diskussionsphase die Aktionen "Zweite Abstimmung" und "Überspringen" im unteren Exit-Anker', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'DISCUSSION' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'DISCUSSION', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').replace(/^replay/, '').trim(),
+    );
+
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Zweite Abstimmung', 'Überspringen', 'Session beenden']);
     fixture.destroy();
   });
 

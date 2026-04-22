@@ -18,6 +18,10 @@ describe('kindergarten-nickname-icons', () => {
     }
   });
 
+  it('verwendet pro Kindergarten-Eintrag nur eindeutige Bilder', () => {
+    expect(new Set(KINDERGARTEN_NICKNAME_EMOJIS).size).toBe(KINDERGARTEN_NICKNAME_EMOJIS.length);
+  });
+
   it('findet Index und Emoji für deutsche und englische Labels', () => {
     expect(findKindergartenNicknameIndex('Blauer Elefant')).toBe(0);
     expect(findKindergartenNicknameEmoji('Blauer Elefant')).toBe('🐘');

@@ -166,12 +166,20 @@ export function anchorCandidatesForPhase(
     return [VOTE_ANCHOR_QUESTION, VOTE_ANCHOR_OPTIONS_START, VOTE_ANCHOR_OPTION_0, VOTE_ANCHOR_TOP];
   }
   return [
-    VOTE_ANCHOR_RESULT_SCORE,
     VOTE_ANCHOR_RESULT_MESSAGE,
+    VOTE_ANCHOR_RESULT_SCORE,
     VOTE_ANCHOR_RESULT_CONTAINER,
     VOTE_ANCHOR_TOP,
     VOTE_ANCHOR_ERROR,
   ];
+}
+
+export function focusTargetIdForAnchor(anchorId: string | null | undefined): string | null {
+  if (!anchorId) return null;
+  if (anchorId === VOTE_ANCHOR_OPTION_0 || anchorId === VOTE_ANCHOR_OPTIONS_START) {
+    return VOTE_ANCHOR_QUESTION;
+  }
+  return anchorId;
 }
 
 /**
@@ -262,6 +270,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly questionIdsWithReadPhase = new Set<string>();
   private readonly questionIdsWithRound2QuestionScroll = new Set<string>();
   private lastAutoScrollToken: string | null = null;
+  private lastResultContentScrollToken: string | null = null;
 
   @ViewChild('qaTextarea') qaTextareaRef?: ElementRef<HTMLTextAreaElement>;
 
@@ -409,6 +418,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (this.isFinished() && this.code && this.participantId() && !this.feedbackStateLoaded) {
         void this.loadFeedbackState();
       }
+    });
+    effect(() => {
+      if (!this.showPrimaryLiveView() || !this.isResults() || !this.voteSent()) {
+        return;
+      }
+      const q = this.currentQuestion();
+      const questionId = q && 'id' in q ? q.id : null;
+      const message = this.motivationMessage();
+      if (!questionId || !message) {
+        return;
+      }
+      const sc = this.scorecard();
+      const token = `${questionId}:${message}:${sc ? `${sc.questionOrder}:${sc.totalScore}:${sc.currentRank}` : 'pending'}`;
+      this.scheduleResultContentScroll(token);
     });
   }
 
@@ -1840,6 +1863,19 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   }
 
+  private scheduleResultContentScroll(token: string): void {
+    if (this.lastResultContentScrollToken === token) {
+      return;
+    }
+    this.lastResultContentScrollToken = token;
+    afterNextRender(
+      () => {
+        this.scrollVoteAnchorIntoView('result', false, false);
+      },
+      { injector: this.injector },
+    );
+  }
+
   private voteScrollBehavior(): ScrollBehavior {
     if (typeof globalThis.matchMedia !== 'function') return 'auto';
     return globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
@@ -1876,11 +1912,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (anchor) {
       const rootRect = scrollRoot.getBoundingClientRect();
       const anchorRect = anchor.getBoundingClientRect();
-      const margin = 8;
-      const y = anchorRect.top - rootRect.top + scrollRoot.scrollTop - margin;
+      const toolbarClearancePx = parseFloat(getComputedStyle(scrollRoot).paddingTop) || 0;
+      const gapPx = 8;
+      const y = anchorRect.top - rootRect.top + scrollRoot.scrollTop - toolbarClearancePx - gapPx;
       scrollRoot.scrollTo({ top: Math.max(0, y), behavior });
-      this.ensureFocusable(anchor);
-      anchor.focus({ preventScroll: true });
+      const focusTargetId = focusTargetIdForAnchor(anchor.id);
+      const focusTarget =
+        (focusTargetId ? (host.querySelector(`#${focusTargetId}`) as HTMLElement | null) : null) ??
+        anchor;
+      this.ensureFocusable(focusTarget);
+      focusTarget.focus({ preventScroll: true });
     } else {
       scrollRoot.scrollTo({ top: 0, behavior });
     }

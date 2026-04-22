@@ -68,6 +68,7 @@ import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-edi
 import {
   focusAndScrollElement,
   focusFirstInvalidField,
+  scrollElementIntoAppShell,
 } from '../../../shared/focus-invalid-field.util';
 import {
   ConfirmLeaveDialogComponent,
@@ -780,9 +781,7 @@ export class QuizEditComponent implements OnDestroy {
 
     requestAnimationFrame(() => {
       const el = this.questionFormElement?.nativeElement;
-      if (el && typeof el.scrollIntoView === 'function') {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      scrollElementIntoAppShell(el, 'start');
     });
   }
 

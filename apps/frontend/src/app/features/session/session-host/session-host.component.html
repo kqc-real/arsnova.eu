@@ -1525,50 +1525,6 @@
 
               <!-- Steuerungs-Buttons (primär) -->
               <div class="session-host__steering">
-                @if (
-                  effectiveStatus() === 'ACTIVE' && !isQaSession() && currentQuestionForHost();
-                  as liveQ
-                ) {
-                  @if (shouldShowPeerInstructionSuggestion(liveQ)) {
-                    <button
-                      mat-flat-button
-                      color="primary"
-                      type="button"
-                      [disabled]="controlPending()"
-                      (click)="startDiscussion()"
-                      i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
-                      aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
-                    >
-                      <mat-icon aria-hidden="true">groups</mat-icon>
-                      <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
-                    </button>
-                    <button
-                      matButton="tonal"
-                      type="button"
-                      [disabled]="controlPending()"
-                      (click)="revealResults()"
-                    >
-                      <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
-                        >Ergebnis trotzdem zeigen</span
-                      >
-                    </button>
-                  } @else {
-                    @if (liveQ.currentRound === 1 && (liveQ.totalVotes ?? 0) > 0) {
-                      <button
-                        matButton="tonal"
-                        type="button"
-                        class="session-host__btn-discussion"
-                        [disabled]="controlPending()"
-                        (click)="startDiscussion()"
-                        i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
-                        aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
-                      >
-                        <mat-icon aria-hidden="true">groups</mat-icon>
-                        <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
-                      </button>
-                    }
-                  }
-                }
                 @if (isQuizAwaitingFirstQuestion()) {
                   @if (canReplaceQuizBeforeStart()) {
                     <button
@@ -1588,26 +1544,6 @@
                     (click)="nextQuestion()"
                   >
                     <span i18n>Erste Frage starten</span>
-                  </button>
-                }
-                @if (effectiveStatus() === 'DISCUSSION') {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="startSecondRound()"
-                  >
-                    <mat-icon>replay</mat-icon>
-                    <span i18n>Zweite Abstimmung</span>
-                  </button>
-                  <button
-                    matButton="tonal"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="nextQuestion()"
-                  >
-                    <span i18n>Überspringen</span>
                   </button>
                 }
               </div>
@@ -1986,12 +1922,10 @@
         [class.session-host__exit-anchor--fixed]="showChannelTabs()"
         [class.session-host__exit-anchor--with-primary]="
           effectiveStatus() === 'QUESTION_OPEN' ||
+          effectiveStatus() === 'DISCUSSION' ||
           ((effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
             !isLastQuestion()) ||
-          (effectiveStatus() === 'ACTIVE' &&
-            !isQaSession() &&
-            !!currentQuestionForHost() &&
-            !shouldShowPeerInstructionSuggestion(currentQuestionForHost()))
+          (effectiveStatus() === 'ACTIVE' && !isQaSession() && !!currentQuestionForHost())
         "
       >
         @if (effectiveStatus() === 'QUESTION_OPEN') {
@@ -2010,7 +1944,32 @@
           effectiveStatus() === 'ACTIVE' && !isQaSession() && currentQuestionForHost();
           as liveQ
         ) {
-          @if (!shouldShowPeerInstructionSuggestion(liveQ)) {
+          @if (shouldShowPeerInstructionSuggestion(liveQ)) {
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+              [disabled]="controlPending()"
+              (click)="startDiscussion()"
+              i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
+              aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
+            >
+              <mat-icon aria-hidden="true">groups</mat-icon>
+              <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
+            </button>
+            <button
+              matButton="tonal"
+              type="button"
+              class="session-host__exit-anchor-button"
+              [disabled]="controlPending()"
+              (click)="revealResults()"
+            >
+              <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
+                >Ergebnis trotzdem zeigen</span
+              >
+            </button>
+          } @else {
             <button
               mat-flat-button
               color="primary"
@@ -2037,6 +1996,28 @@
             i18n="@@sessionHost.nextQuestionAnchor"
           >
             Nächste Frage
+          </button>
+        }
+        @if (effectiveStatus() === 'DISCUSSION') {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            [disabled]="controlPending()"
+            (click)="startSecondRound()"
+          >
+            <mat-icon aria-hidden="true">replay</mat-icon>
+            <span i18n>Zweite Abstimmung</span>
+          </button>
+          <button
+            matButton="tonal"
+            type="button"
+            class="session-host__exit-anchor-button"
+            [disabled]="controlPending()"
+            (click)="nextQuestion()"
+          >
+            <span i18n>Überspringen</span>
           </button>
         }
         <button

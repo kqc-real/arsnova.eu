@@ -7,7 +7,7 @@ import { NICKNAME_LISTS_BY_LOCALE } from './nickname-themes';
 
 const KINDERGARTEN_LOCALES: SupportedLocale[] = ['de', 'en', 'fr', 'es', 'it'];
 
-/** Parallel zu `NICKNAME_LISTS.KINDERGARTEN` (100 Einträge). */
+/** Parallel zu `NICKNAME_LISTS.KINDERGARTEN`. */
 export const KINDERGARTEN_NICKNAME_EMOJIS: readonly string[] = [
   '🐘', // Blauer Elefant
   '🦄', // Rotes Einhorn
@@ -37,34 +37,17 @@ export const KINDERGARTEN_NICKNAME_EMOJIS: readonly string[] = [
   '🦉', // Lavendelblaue Eule
   '🐓', // Senfgelber Hahn
   '🦫', // Tannengrüner Biber
-  '🦊', // Himbeerroter Fuchs
   '🐛', // Apfelgrüne Raupe
   '🐹', // Maulwurfsgrauer Hamster
   '🐎', // Kastanienbraunes Pony
-  '🦋', // Azurblauer Schmetterling
   '🐊', // Salbeigrünes Krokodil
   '🦡', // Terrakottafarbener Dachs
   '🦗', // Smaragdgrüne Libelle (näherungsweise)
-  '🦉', // Amberfarbene Eule
-  '🐸', // Smaragdgrüner Frosch
-  '🐬', // Kobaltblauer Delfin
   '🐤', // Safrangelber Vogel
   '🐳', // Indigoblauer Wal
-  '🐻', // Khakifarbener Bär
   '🐢', // Magenta Schildkröte
-  '🦔', // Ockerfarbener Igel
   '🐟', // Petrolfarbener Fisch
-  '🐦', // Pflaumenfarbener Vogel
-  '🦊', // Rubinroter Fuchs
-  '🐍', // Smaragdgrüne Schlange
-  '🦁', // Topasgelber Löwe
-  '🦢', // Ultramarinblauer Schwan
   '🐑', // Vanillefarbenes Lamm
-  '🦜', // Weinroter Papagei
-  '🐓', // Zinnoberroter Hahn
-  '🐬', // Aquamarin Delfin
-  '🐻', // Bernsteinfarbener Bär
-  '🦋', // Chromgelber Schmetterling
   '🐶', // Türkisfarbener Hund
   '🐱', // Korallenfarbene Katze
   '🦒', // Himmelblaue Giraffe
@@ -109,6 +92,23 @@ export const KINDERGARTEN_NICKNAME_EMOJIS: readonly string[] = [
   '🦧', // Azurfarbener Orang-Utan
   '🦍', // Waldgrüner Gorilla
   '🦬', // Perlmuttfarbener Bison
+  '🦌', // Silberbraunes Reh
+  '🦘', // Korallenfarbenes Känguru
+  '🦥', // Nebelgraues Faultier
+  '🦦', // Seegrüner Otter
+  '🦨', // Veilchenfarbenes Stinktier
+  '🦣', // Mondgraues Mammut
+  '🐃', // Mahagonifarbener Wasserbüffel
+  '🐪', // Sandbeiges Kamel
+  '🐫', // Dünenfarbenes Trampeltier
+  '🫏', // Schiefergrauer Esel
+  '🫎', // Moosbrauner Elch
+  '🪿', // Schneeweiße Gans
+  '🪼', // Lagunenblaue Qualle
+  '🦕', // Bernsteinfarbener Langhals
+  '🦖', // Kirschroter T-Rex
+  '🐂', // Stahlgrauer Ochse
+  '🐔', // Honiggelbe Henne
 ] as const;
 
 export function kindergartenEmojiAtIndex(index: number): string | null {

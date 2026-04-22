@@ -3,7 +3,11 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { MatSnackBar } from '@angular/material/snack-bar';
 import type { QaQuestionDTO } from '@arsnova/shared-types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { anchorCandidatesForPhase, SessionVoteComponent } from './session-vote.component';
+import {
+  anchorCandidatesForPhase,
+  focusTargetIdForAnchor,
+  SessionVoteComponent,
+} from './session-vote.component';
 
 const {
   getInfoQueryMock,
@@ -98,12 +102,18 @@ describe('SessionVoteComponent', () => {
       'vote-top',
     ]);
     expect(anchorCandidatesForPhase('result', false)).toEqual([
-      'vote-result-score',
       'vote-result-message',
+      'vote-result-score',
       'vote-result-anchor',
       'vote-top',
       'vote-error',
     ]);
+  });
+
+  it('fokussiert im Abstimmungsflow keine Antwortoption als Scrollziel', () => {
+    expect(focusTargetIdForAnchor('vote-option-0')).toBe('vote-question-anchor');
+    expect(focusTargetIdForAnchor('vote-options-start')).toBe('vote-question-anchor');
+    expect(focusTargetIdForAnchor('vote-result-message')).toBe('vote-result-message');
   });
 
   beforeEach(() => {
