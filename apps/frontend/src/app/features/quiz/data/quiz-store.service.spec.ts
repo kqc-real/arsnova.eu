@@ -428,10 +428,10 @@ describe('QuizStoreService', () => {
     const imported = service.importQuiz(exported);
 
     expect(exported.exportVersion).toBeGreaterThanOrEqual(1);
-    expect(imported.quiz.id).not.toBe(created.id);
-    expect(imported.quiz.name).toBe('Export Quiz');
-    expect(imported.quiz.questions[0]?.type).toBe('RATING');
-    expect(imported.quiz.questions[0]?.ratingMax).toBe(10);
+    expect(imported.id).not.toBe(created.id);
+    expect(imported.name).toBe('Export Quiz');
+    expect(imported.questions[0]?.type).toBe('RATING');
+    expect(imported.questions[0]?.ratingMax).toBe(10);
   });
 
   it('exportiert enabled:false und stellt den Zustand nach Import wieder her', () => {
@@ -458,181 +458,10 @@ describe('QuizStoreService', () => {
     expect((ausExport as { enabled?: boolean }).enabled).toBe(false);
 
     const imported = service.importQuiz(exported);
-    const aus = imported.quiz.questions.find((q) => q.text === 'Aus');
+    const aus = imported.questions.find((q) => q.text === 'Aus');
     expect(aus?.enabled).toBe(false);
-    const an = imported.quiz.questions.find((q) => q.text === 'An');
+    const an = imported.questions.find((q) => q.text === 'An');
     expect(an?.enabled).toBe(true);
-  });
-
-  it('importiert arsnova.click-Exporte ueber einen Kompatibilitaetsfilter', () => {
-    const service = TestBed.inject(QuizStoreService);
-
-    const imported = service.importQuiz({
-      name: 'Click Import',
-      description: 'Aus arsnova.click',
-      sessionConfig: {
-        readingConfirmationEnabled: false,
-        nicks: {
-          memberGroups: [{ name: 'Team Rot' }, { name: 'Team Blau' }],
-          autoJoinToGroup: true,
-          blockIllegalNicks: true,
-        },
-      },
-      questionList: [
-        {
-          TYPE: 'SingleChoiceQuestion',
-          timer: 30,
-          questionText: 'Eine richtige Antwort',
-          answerOptionList: [
-            { answerText: 'A', isCorrect: false },
-            { answerText: 'B', isCorrect: true },
-          ],
-          difficulty: 2,
-        },
-        {
-          TYPE: 'ABCDSurveyQuestion',
-          timer: 15,
-          questionText: 'Feedback',
-          answerOptionList: [
-            { answerText: 'A' },
-            { answerText: 'B' },
-            { answerText: 'C' },
-            { answerText: 'D' },
-          ],
-          difficulty: 5,
-        },
-        {
-          TYPE: 'FreeTextQuestion',
-          timer: 45,
-          questionText: 'Offene Rueckmeldung',
-          answerOptionList: [
-            {
-              answerText: 'Paris',
-              configCaseSensitive: false,
-            },
-          ],
-          difficulty: 8,
-        },
-      ],
-    });
-
-    expect(imported.quiz.name).toBe('Click Import');
-    expect(imported.quiz.description).toBe('Aus arsnova.click');
-    expect(imported.quiz.settings.readingPhaseEnabled).toBe(false);
-    expect(imported.quiz.settings.allowCustomNicknames).toBe(false);
-    expect(imported.quiz.settings.teamMode).toBe(true);
-    expect(imported.quiz.settings.teamCount).toBe(2);
-    expect(imported.quiz.settings.teamAssignment).toBe('AUTO');
-    expect(imported.quiz.settings.teamNames).toEqual(['Team Rot', 'Team Blau']);
-    expect(imported.quiz.questions.map((question) => question.type)).toEqual([
-      'SINGLE_CHOICE',
-      'SURVEY',
-      'FREETEXT',
-    ]);
-    expect(imported.quiz.questions[0]?.difficulty).toBe('EASY');
-    expect(imported.quiz.questions[1]?.difficulty).toBe('MEDIUM');
-    expect(imported.quiz.questions[2]?.difficulty).toBe('HARD');
-    expect(imported.quiz.questions[0]?.timer).toBe(30);
-    expect(imported.quiz.questions[1]?.answers.every((answer) => !answer.isCorrect)).toBe(true);
-    expect(imported.quiz.questions[2]?.answers).toEqual([]);
-    expect(imported.warnings.some((warning) => warning.kind === 'mapped_question')).toBe(true);
-    expect(
-      imported.warnings.some(
-        (warning) =>
-          warning.questionNumber === 2 &&
-          warning.message === 'Wurde als normale Umfrage importiert.',
-      ),
-    ).toBe(true);
-    expect(
-      imported.warnings.some(
-        (warning) =>
-          warning.questionNumber === 3 &&
-          warning.message === 'Sonderregeln für Freitext-Antworten wurden nicht übernommen.',
-      ),
-    ).toBe(true);
-  });
-
-  it('importiert arsnova.click trotz nicht unterstuetzter Typen mit Warnhinweis', () => {
-    const service = TestBed.inject(QuizStoreService);
-
-    const imported = service.importQuiz({
-      name: 'Teilweise kompatibel',
-      questionList: [
-        {
-          TYPE: 'RangedQuestion',
-          questionText: 'Schaetzfrage',
-          rangeMin: 0,
-          rangeMax: 1000,
-          correctValue: 420,
-        },
-        {
-          TYPE: 'SingleChoiceQuestion',
-          questionText: 'Bleibt erhalten',
-          answerOptionList: [
-            { answerText: 'A', isCorrect: true },
-            { answerText: 'B', isCorrect: false },
-          ],
-        },
-      ],
-    });
-
-    expect(imported.quiz.name).toBe('Teilweise kompatibel');
-    expect(imported.quiz.questions).toHaveLength(1);
-    expect(imported.quiz.questions[0]?.text).toBe('Bleibt erhalten');
-    expect(
-      imported.warnings.some(
-        (warning) =>
-          warning.kind === 'skipped_question' &&
-          warning.questionNumber === 1 &&
-          warning.message === 'Dieser Fragetyp wird in arsnova.eu noch nicht unterstützt.',
-      ),
-    ).toBe(true);
-  });
-
-  it('importiert arsnova.click auch ohne uebernehmbare Fragen als leeres Quiz', () => {
-    const service = TestBed.inject(QuizStoreService);
-
-    const imported = service.importQuiz({
-      name: 'Nur Range',
-      questionList: [
-        {
-          TYPE: 'RangedQuestion',
-          questionText: 'Schaetzfrage',
-          rangeMin: 0,
-          rangeMax: 1000,
-          correctValue: 420,
-        },
-      ],
-    });
-
-    expect(imported.quiz.name).toBe('Nur Range');
-    expect(imported.quiz.questions).toHaveLength(0);
-    expect(imported.warnings.some((warning) => warning.kind === 'skipped_question')).toBe(true);
-  });
-
-  it('meldet auch Probleme in Antwortoptionen strukturiert zurueck', () => {
-    const service = TestBed.inject(QuizStoreService);
-
-    const imported = service.importQuiz({
-      name: 'Antwortproblem',
-      questionList: [
-        {
-          TYPE: 'SingleChoiceQuestion',
-          questionText: 'Problemfrage',
-          answerOptionList: [{ answerText: 'A', isCorrect: true }, {}],
-        },
-      ],
-    });
-
-    expect(imported.quiz.questions).toHaveLength(0);
-    expect(imported.warnings).toContainEqual(
-      expect.objectContaining({
-        kind: 'skipped_question',
-        questionNumber: 1,
-        questionText: 'Problemfrage',
-        message: 'Antwort 2 hat keinen gültigen Text.',
-      }),
-    );
   });
 
   it('getUploadPayload: deaktivierte Fragen fehlen, Reihenfolge wird neu nummeriert', () => {

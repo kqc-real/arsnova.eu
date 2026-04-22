@@ -28,8 +28,6 @@ import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
   DEMO_QUIZ_ID,
   QuizStoreService,
-  type QuizImportResult,
-  type QuizImportWarning,
   type QuizSettings,
   type QuizSummary,
 } from '../data/quiz-store.service';
@@ -134,7 +132,6 @@ export class QuizListComponent implements OnInit {
   readonly currentBrowserLabel = this.quizStore.currentBrowserLabel;
   readonly syncPeerInfos = this.quizStore.syncPeerInfos;
   readonly actionInfo = signal<string | null>(null);
-  readonly actionInfoWarnings = signal<QuizImportWarning[]>([]);
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizParticipants = signal<Map<string, number>>(new Map());
   readonly showAiImport = signal(false);
@@ -176,14 +173,6 @@ export class QuizListComponent implements OnInit {
   }
 
   renderDescription(value: string): SafeHtml {
-    const raw = renderMarkdownWithKatex(value, {
-      imagePolicy: 'allow-relative-and-https',
-    }).html;
-    const html = absolutizeMarkdownHtmlRootAssetImgSrc(raw, resolveMotdAssetOrigin());
-    return this.sanitizer.bypassSecurityTrustHtml(html);
-  }
-
-  renderImportWarningQuestion(value: string): SafeHtml {
     const raw = renderMarkdownWithKatex(value, {
       imagePolicy: 'allow-relative-and-https',
     }).html;
@@ -310,7 +299,6 @@ export class QuizListComponent implements OnInit {
     this.showKiPromptPreview.set(false);
     this.actionError.set(null);
     this.actionInfo.set(null);
-    this.actionInfoWarnings.set([]);
   }
 
   toggleKiPromptPreview(): void {
@@ -325,14 +313,12 @@ export class QuizListComponent implements OnInit {
     this.aiJsonInput.set('');
     this.actionError.set(null);
     this.actionInfo.set(null);
-    this.actionInfoWarnings.set([]);
   }
 
   duplicateQuiz(quizId: string): void {
     this.actionError.set(null);
     try {
       const duplicate = this.quizStore.duplicateQuiz(quizId);
-      this.actionInfoWarnings.set([]);
       this.actionInfo.set($localize`„${duplicate.name}“ wurde dupliziert.`);
     } catch (error) {
       this.actionError.set(
@@ -344,7 +330,6 @@ export class QuizListComponent implements OnInit {
   deleteQuiz(quizId: string, quizName: string): void {
     this.actionError.set(null);
     if (this.isQuizLive(quizId)) {
-      this.actionInfoWarnings.set([]);
       this.actionInfo.set($localize`„${quizName}“ ist gerade live und kann nicht gelöscht werden.`);
       return;
     }
@@ -368,7 +353,6 @@ export class QuizListComponent implements OnInit {
       if (confirmed !== true) return;
       try {
         this.quizStore.deleteQuiz(quizId);
-        this.actionInfoWarnings.set([]);
         this.actionInfo.set($localize`„${quizName}“ wurde gelöscht.`);
       } catch (error) {
         this.actionError.set(
@@ -389,12 +373,8 @@ export class QuizListComponent implements OnInit {
       const anchor = this.document.createElement('a');
       anchor.href = url;
       anchor.download = filename;
-      anchor.style.display = 'none';
-      this.document.body.appendChild(anchor);
       anchor.click();
-      anchor.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 0);
-      this.actionInfoWarnings.set([]);
+      URL.revokeObjectURL(url);
       this.actionInfo.set($localize`„${quiz.quiz.name}“ wurde exportiert.`);
     } catch (error) {
       this.actionError.set(
@@ -413,7 +393,7 @@ export class QuizListComponent implements OnInit {
       const raw = await file.text();
       const parsed = JSON.parse(raw) as unknown;
       const imported = this.quizStore.importQuiz(parsed);
-      this.actionInfo.set(this.buildImportInfoMessage(imported));
+      this.actionInfo.set($localize`„${imported.name}“ wurde importiert.`);
       target.value = '';
     } catch (error) {
       const message = error instanceof Error ? error.message : $localize`Import fehlgeschlagen.`;
@@ -426,7 +406,6 @@ export class QuizListComponent implements OnInit {
     const prompt = this.buildCurrentKiPromptText();
     try {
       await navigator.clipboard.writeText(prompt);
-      this.actionInfoWarnings.set([]);
       this.actionInfo.set(
         $localize`:@@quizList.aiImport.copySuccess:Die Textvorlage ist jetzt in deiner Zwischenablage.`,
       );
@@ -544,7 +523,6 @@ export class QuizListComponent implements OnInit {
   importAiJson(): void {
     this.actionError.set(null);
     this.actionInfo.set(null);
-    this.actionInfoWarnings.set([]);
 
     const raw = this.aiJsonInput().trim();
     if (!raw) {
@@ -557,7 +535,9 @@ export class QuizListComponent implements OnInit {
     try {
       const parsed = parseAiImportPayload(raw);
       const imported = this.quizStore.importQuiz(parsed);
-      this.actionInfo.set(this.buildImportInfoMessage(imported));
+      this.actionInfo.set(
+        $localize`:@@quizList.aiImport.success:„${imported.name}:quizName:“ wurde importiert.`,
+      );
       this.aiJsonInput.set('');
       this.showAiImport.set(false);
     } catch (error) {
@@ -704,18 +684,6 @@ export class QuizListComponent implements OnInit {
     return $localize`:@@quizList.syncImportedSuccessWithTimestamp:Quiz-Sammlung erfolgreich synchronisiert. Neuester Stand vom ${formattedTimestamp}:timestamp:.`;
   }
 
-  private buildImportInfoMessage(result: QuizImportResult): string {
-    const skipped = result.warnings.filter((warning) => warning.kind === 'skipped_question');
-    this.actionInfoWarnings.set(skipped);
-    return `„${result.quiz.name}“ wurde importiert.`;
-  }
-
-  formatImportWarning(warning: QuizImportResult['warnings'][number]): string {
-    const label = warning.questionNumber ? `Frage ${warning.questionNumber}` : 'Quiz';
-
-    return `${label}: ${warning.message}`;
-  }
-
   private formatSyncTimestamp(value: string): string | null {
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) {
@@ -757,7 +725,6 @@ export class QuizListComponent implements OnInit {
   private async startLiveSession(options: { quizId: string }): Promise<void> {
     this.actionError.set(null);
     this.actionInfo.set(null);
-    this.actionInfoWarnings.set([]);
     this.liveStartPending.set(true);
     tryRequestDocumentFullscreen(this.document);
     try {
@@ -826,7 +793,6 @@ export class QuizListComponent implements OnInit {
       setPendingHostSessionCode(result.code);
       try {
         await navigateToHostSession(this.router, result.code, 'quiz');
-        this.actionInfoWarnings.set([]);
         this.actionInfo.set($localize`Session ${result.code} gestartet.`);
       } finally {
         clearPendingHostSessionCode();

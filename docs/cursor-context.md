@@ -219,9 +219,9 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 
 ### 18.1 Lokaler Production-ähnlicher Aufbau und Start
 
-Für einen **lokal production-ähnlichen** Lauf (optimierter Frontend-Build, ein Prozess liefert alles aus, Gzip):
+Für einen **lokal production-ähnlichen** Lauf (optimierter Frontend-Build, ein Prozess liefert alles aus, Gzip, Pre-Render):
 
-1. **Build:** Im Repo-Root `npm run build:prod` ausführen. Baut Backend (`apps/backend/dist`) und Frontend für Production (`apps/frontend/dist/browser`) als lokalisierten Browser-Build mit Locale-Unterordnern.
+1. **Build:** Im Repo-Root `npm run build:prod` ausführen. Baut Backend (`apps/backend/dist`) und Frontend für Production (`apps/frontend/dist/browser`, inkl. Pre-Render für `/`, `/help`, `/quiz`).
 2. **Start:** `npm run start:prod` ausführen. Das Skript `scripts/start-backend-prod.mjs` lädt optional `.env` aus dem Root, gibt Port 3000 frei (falls belegt), baut das Backend bei Bedarf nach und startet es mit `NODE_ENV=production`. Das Backend bedient HTTP/tRPC und liefert die statischen Dateien aus `apps/frontend/dist/browser` aus (Fallback: `index.csr.html`, wenn kein `index.html`).
 3. **Aufruf:** Im Browser **`http://localhost:3000`** öffnen. Ohne laufendes PostgreSQL/Redis funktioniert die Auslieferung und die Startseite; Health-Stats und Session-Funktionen liefern Fallbacks bzw. benötigen DB/Redis.
 4. **Optional – Port bereits belegt:** Zuerst `npm run free-port-3000`, danach `npm run start:prod`. Oder Backend auf anderem Port starten: `PORT=3010 npm run start:prod`, dann **`http://localhost:3010`**.

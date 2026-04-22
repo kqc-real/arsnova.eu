@@ -77,7 +77,7 @@ describe('Quiz example imports (all formats)', () => {
     const service = TestBed.inject(QuizStoreService);
 
     for (const fixture of fixtures) {
-      const imported = service.importQuiz(fixture.payload).quiz;
+      const imported = service.importQuiz(fixture.payload);
       const expectedQuestionCount = fixture.payload.quiz.questions.length;
 
       expect(imported.id).toBeTruthy();
@@ -126,7 +126,7 @@ describe('Quiz example imports (all formats)', () => {
     const service = TestBed.inject(QuizStoreService);
 
     for (const fixture of fixtures) {
-      const imported = service.importQuiz(fixture.payload).quiz;
+      const imported = service.importQuiz(fixture.payload);
       const firstQuestion = imported.questions[0];
       expect(firstQuestion).toBeTruthy();
 
@@ -149,9 +149,9 @@ describe('Quiz example imports (all formats)', () => {
     const service = TestBed.inject(QuizStoreService);
 
     for (const fixture of fixtures) {
-      const imported = service.importQuiz(fixture.payload).quiz;
+      const imported = service.importQuiz(fixture.payload);
       const exported = service.exportQuiz(imported.id);
-      const roundtrip = service.importQuiz(exported).quiz;
+      const roundtrip = service.importQuiz(exported);
 
       expect(roundtrip.id).not.toBe(imported.id);
       expect(roundtrip.name).toBe(imported.name);

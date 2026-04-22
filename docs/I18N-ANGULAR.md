@@ -211,7 +211,7 @@ ng build --localize
   - `lang` auf `<html>`
   - `baseHref` (z. B. `/de/`, `/en/`) über die Locale-Konfiguration (`subPath` o. ä.).
 
-**Repo-Spezifik:** In `arsnova.eu` läuft der Produktionspfad über `npm run build:localize -w @arsnova/frontend`. Dafür gibt es einen eigenen Browser-Build-Target ohne SSR/Prerender; nach dem Angular-Build folgen noch Repo-spezifische Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, `ngsw.json` und die Root-`index.html`.
+**Repo-Spezifik:** In `arsnova.eu` läuft der Produktionspfad über `npm run build:localize -w @arsnova/frontend`. Nach dem Angular-Build folgen noch Repo-spezifische Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, `ngsw.json` und die Root-`index.html`.
 
 ---
 
@@ -220,7 +220,7 @@ ng build --localize
 - Jede Locale wird aus einem **eigenen Unterpfad** ausgeliefert (z. B. `/de/`, `/en/`).
 - **Spracherkennung:** Serverseitig anhand des `Accept-Language`-Headers auf die passende Locale umleiten (z. B. `/` → `/de/` oder `/en/`).
 - **Sprachwahl in der App:** Navigation zu anderem Subpfad (z. B. von `/de/` zu `/en/`), ggf. mit Reload.
-- **SEO:** `apps/frontend/src/sitemap.xml` listet öffentliche Routen (Startseite, Hilfe, Quiz-Liste, Impressum, Datenschutz) je Locale mit **`hreflang`**-Alternates; `x-default` entspricht der Startseite **`/de/`** (wie in `index.html`). Die Datei wird wie `robots.txt` in jeden Locale-Ordner des Builds kopiert; das **Backend** liefert **`GET /sitemap.xml`** zentral aus (analog zu `robots.txt`). In **`src/robots.txt`** steht **`Sitemap: https://arsnova.eu/sitemap.xml`**. Nach **`ng build --localize`** setzt **`scripts/patch-sitemap-lastmod.mjs`** (in **`build:localize`**) je URL ein **`lastmod`** (UTC-Datum). Auf der **Startseite** ergänzt **`SeoService`** **`WebSite`** + **`Organization`** als **JSON-LD** (`#arsnova-schema-org`); auf anderen Routen wird das Script entfernt.
+- **SEO:** `apps/frontend/src/sitemap.xml` listet öffentliche, prerenderbare Routen (Startseite, Hilfe, Quiz-Liste, Impressum, Datenschutz) je Locale mit **`hreflang`**-Alternates; `x-default` entspricht der Startseite **`/de/`** (wie in `index.html`). Die Datei wird wie `robots.txt` in jeden Locale-Ordner des Builds kopiert; das **Backend** liefert **`GET /sitemap.xml`** zentral aus (analog zu `robots.txt`). In **`src/robots.txt`** steht **`Sitemap: https://arsnova.eu/sitemap.xml`**. Nach **`ng build --localize`** setzt **`scripts/patch-sitemap-lastmod.mjs`** (in **`build:localize`**) je URL ein **`lastmod`** (UTC-Datum). Auf der **Startseite** ergänzt **`SeoService`** **`WebSite`** + **`Organization`** als **JSON-LD** (`#arsnova-schema-org`); auf anderen Routen wird das Script entfernt.
 
 Dokumentation: [Deploy multiple locales](https://angular.dev/guide/i18n/deploy) (inkl. Nginx-/Apache-Beispiele).
 

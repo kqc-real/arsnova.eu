@@ -85,50 +85,6 @@
           },
           "defaultConfiguration": "development"
         },
-        "build-localize": {
-          "builder": "@angular-devkit/build-angular:browser",
-          "options": {
-            "outputPath": "dist/browser",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": ["@angular/localize/init"],
-            "tsConfig": "tsconfig.localize.json",
-            "assets": [
-              "src/assets",
-              "src/manifest.webmanifest",
-              {
-                "glob": "robots.txt",
-                "input": "src",
-                "output": "/"
-              },
-              {
-                "glob": "sitemap.xml",
-                "input": "src",
-                "output": "/"
-              }
-            ],
-            "styles": ["src/styles.scss"],
-            "scripts": [],
-            "inlineStyleLanguage": "scss",
-            "i18nMissingTranslation": "warning"
-          },
-          "configurations": {
-            "production": {
-              "localize": true,
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "1.65MB",
-                  "maximumError": "1.70MB"
-                }
-              ],
-              "outputHashing": "all",
-              "serviceWorker": true,
-              "ngswConfigPath": "ngsw-config.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {

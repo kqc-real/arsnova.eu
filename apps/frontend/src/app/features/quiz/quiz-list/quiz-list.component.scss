@@ -332,43 +332,6 @@
   color: var(--mat-sys-tertiary);
 }
 
-.quiz-list__info-text {
-  margin: 0;
-  white-space: pre-line;
-}
-
-.quiz-list__info-list-title {
-  margin: 0.5rem 0 0;
-  font-weight: 600;
-}
-
-.quiz-list__info-list {
-  margin: 0.35rem 0 0;
-  padding-left: 1.1rem;
-}
-
-.quiz-list__info-item + .quiz-list__info-item {
-  margin-top: 0.75rem;
-}
-
-.quiz-list__info-item-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.quiz-list__info-question {
-  margin-top: 0.35rem;
-}
-
-.quiz-list__info-question :is(p, ul, ol, blockquote, pre) {
-  margin-top: 0.35rem;
-  margin-bottom: 0.35rem;
-}
-
-.quiz-list__info-question :is(h1, h2, h3, h4, h5, h6) {
-  margin: 0.45rem 0 0.25rem;
-}
-
 .quiz-list__error {
   display: flex;
   align-items: flex-start;

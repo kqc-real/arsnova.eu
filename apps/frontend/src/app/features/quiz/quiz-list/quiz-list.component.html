@@ -45,25 +45,7 @@
   </div>
 
   @if (actionInfo()) {
-    <div class="quiz-list__info" role="status">
-      <p class="quiz-list__info-text">{{ actionInfo() }}</p>
-      @if (actionInfoWarnings().length > 0) {
-        <p class="quiz-list__info-list-title">Nicht übernommen:</p>
-        <ul class="quiz-list__info-list">
-          @for (warning of actionInfoWarnings(); track $index) {
-            <li class="quiz-list__info-item">
-              <p class="quiz-list__info-item-title">{{ formatImportWarning(warning) }}</p>
-              @if (warning.questionText) {
-                <div
-                  class="quiz-list__info-question"
-                  [innerHTML]="renderImportWarningQuestion(warning.questionText)"
-                ></div>
-              }
-            </li>
-          }
-        </ul>
-      }
-    </div>
+    <p class="quiz-list__info" role="status">{{ actionInfo() }}</p>
   }
   @if (actionError()) {
     <p class="quiz-list__error" role="alert">
