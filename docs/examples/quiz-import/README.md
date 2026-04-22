@@ -16,6 +16,9 @@ Sie entsprechen dem `QuizImportSchema` aus `@arsnova/shared-types`.
 - `word-cloud-responses-komplex.txt` – großer synthetischer Antwortsatz (2.800 Antworten)
 - `word-cloud-komplex.svg` – bereits gerenderte, sehr komplexe Word-Cloud aus dem Datensatz
 - `word-cloud-komplex-top20.csv` – Top-20 Woerter mit Haeufigkeiten
+- `arsnova-click-export.schema.json` – dokumentiertes Snapshot-Schema fuer `arsnova.click`-Exporte
+- `arsnova-click-maximal-export.json` – Vollbeispiel fuer alle bekannten `arsnova.click`-Fragetypen
+- `arsnova-click-compat.md` – Mapping- und Inkompatibilitaetsdoku fuer den aktuellen Importfilter
 
 Alle Quizzes enthalten realistische Fragestämme mit **Markdown** und **KaTeX** (`$...$`, `$$...$$`).
 
