@@ -16,6 +16,7 @@ import {
   QUIZ_PRESETS,
   PresetStorageEntrySchema,
   createQuizHistoryAccessProof,
+  createLegacyQuizHistoryAccessProof,
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TIMER_SECONDS,
   type CreateSessionOutput,
@@ -53,6 +54,9 @@ import {
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
+
+const QUIZ_HISTORY_SCOPE_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Quiz-Liste (Epic 1).
@@ -812,12 +816,64 @@ export class QuizListComponent implements OnInit {
   }
 
   private async resolveQuizHistoryAccessProof(quiz: QuizSummary): Promise<string | null> {
+    if (
+      quiz.lastServerQuizAccessProof &&
+      QUIZ_HISTORY_SCOPE_ID_PATTERN.test(quiz.lastServerQuizAccessProof)
+    ) {
+      return quiz.lastServerQuizAccessProof;
+    }
+
+    const legacyAccessProof = await this.resolveLegacyQuizHistoryAccessProof(quiz);
+    if (quiz.lastServerQuizId && legacyAccessProof) {
+      const reboundAccessProof = await this.bindLegacyQuizHistoryScope(quiz, legacyAccessProof);
+      if (reboundAccessProof) {
+        return reboundAccessProof;
+      }
+      return legacyAccessProof;
+    }
+
     if (quiz.lastServerQuizAccessProof) {
       return quiz.lastServerQuizAccessProof;
     }
 
     try {
       return await createQuizHistoryAccessProof(this.quizStore.getUploadPayload(quiz.id));
+    } catch {
+      return null;
+    }
+  }
+
+  private async resolveLegacyQuizHistoryAccessProof(quiz: QuizSummary): Promise<string | null> {
+    if (
+      quiz.lastServerQuizAccessProof &&
+      !QUIZ_HISTORY_SCOPE_ID_PATTERN.test(quiz.lastServerQuizAccessProof)
+    ) {
+      return quiz.lastServerQuizAccessProof;
+    }
+
+    try {
+      return await createLegacyQuizHistoryAccessProof(this.quizStore.getUploadPayload(quiz.id));
+    } catch {
+      return null;
+    }
+  }
+
+  private async bindLegacyQuizHistoryScope(
+    quiz: QuizSummary,
+    accessProof: string,
+  ): Promise<string | null> {
+    if (!quiz.lastServerQuizId) {
+      return null;
+    }
+
+    try {
+      const result = await trpc.session.bindQuizHistoryScope.mutate({
+        quizId: quiz.lastServerQuizId,
+        accessProof,
+        historyScopeId: quiz.id,
+      });
+      this.quizStore.setLastServerQuizAccessProof(quiz.id, result.accessProof);
+      return result.accessProof;
     } catch {
       return null;
     }

@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
+import {
+  createLegacyQuizHistoryAccessProof,
+  createQuizHistoryAccessProof,
+} from '@arsnova/shared-types';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -184,6 +187,39 @@ describe('session.getBonusTokensForQuiz', () => {
         })),
       },
     ]);
+    prismaMock.session.findMany.mockResolvedValue([]);
+
+    await caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof });
+
+    expect(prismaMock.session.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          quizId: { in: [QUIZ_ID, OTHER_QUIZ_ID] },
+          status: 'FINISHED',
+        }),
+      }),
+    );
+  });
+
+  it('akzeptiert legacy-proof auch dann, wenn die serverkopie bereits an einen stabilen scope gebunden ist', async () => {
+    const stableHistoryScopeId = '33333333-3333-4333-8333-333333333333';
+    const accessProof = await createLegacyQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
+      historyScopeId: stableHistoryScopeId,
+      ...QUIZ_INPUT,
+      description: null,
+      teamCount: null,
+      backgroundMusic: null,
+      questions: QUIZ_INPUT.questions.map((question) => ({
+        ...question,
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      })),
+    });
+    prismaMock.quiz.findMany.mockResolvedValue([{ id: QUIZ_ID }, { id: OTHER_QUIZ_ID }]);
     prismaMock.session.findMany.mockResolvedValue([]);
 
     await caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof });

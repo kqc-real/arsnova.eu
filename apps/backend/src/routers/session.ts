@@ -32,6 +32,8 @@ import {
   TeamLeaderboardEntryDTOSchema,
   BonusTokenListDTOSchema,
   GetBonusTokensForQuizInputSchema,
+  BindQuizHistoryScopeInputSchema,
+  BindQuizHistoryScopeOutputSchema,
   BonusTokensForQuizOutputSchema,
   VerifyBonusTokenForQuizInputSchema,
   VerifyBonusTokenForQuizOutputSchema,
@@ -68,6 +70,7 @@ import {
   DEFAULT_TEAM_COUNT,
   NicknameThemeEnum,
   createQuizHistoryAccessProof,
+  createLegacyQuizHistoryAccessProof,
   resolveEffectiveQuestionTimer,
 } from '@arsnova/shared-types';
 import { questionCountsTowardsTotalQuestions, questionAffectsStreak } from '../lib/quizScoring';
@@ -250,9 +253,15 @@ type QuizHistoryAccessQuiz = Prisma.QuizGetPayload<{
   select: typeof quizHistoryAccessQuizSelect;
 }>;
 
-function buildQuizHistoryAccessPayload(quiz: QuizHistoryAccessQuiz): QuizUploadInput {
+function buildQuizHistoryAccessPayload(
+  quiz: QuizHistoryAccessQuiz,
+  options?: { includeHistoryScopeId?: boolean },
+): QuizUploadInput {
+  const includeHistoryScopeId = options?.includeHistoryScopeId !== false;
   return {
-    ...(quiz.historyScopeId ? { historyScopeId: quiz.historyScopeId } : {}),
+    ...(includeHistoryScopeId && quiz.historyScopeId
+      ? { historyScopeId: quiz.historyScopeId }
+      : {}),
     name: quiz.name,
     description: quiz.description ?? undefined,
     motifImageUrl: quiz.motifImageUrl ?? null,
@@ -298,10 +307,43 @@ async function createQuizHistoryProofBuffer(quiz: QuizHistoryAccessQuiz): Promis
   );
 }
 
+async function createLegacyQuizHistoryProofBuffer(quiz: QuizHistoryAccessQuiz): Promise<Buffer> {
+  return normalizeQuizHistoryAccessProof(
+    await createLegacyQuizHistoryAccessProof(
+      buildQuizHistoryAccessPayload(quiz, { includeHistoryScopeId: false }),
+    ),
+  );
+}
+
 function quizHistoryProofsMatch(expectedProof: Buffer, providedProof: Buffer): boolean {
   return (
     expectedProof.length === providedProof.length && timingSafeEqual(expectedProof, providedProof)
   );
+}
+
+async function assertQuizHistoryAccessAuthorized(
+  quiz: QuizHistoryAccessQuiz,
+  accessProof: string,
+): Promise<void> {
+  const providedProof = normalizeQuizHistoryAccessProof(accessProof);
+  const expectedProofs = [await createQuizHistoryProofBuffer(quiz)];
+
+  // Legacy clients or older local quiz cards may still hold the historical content hash
+  // even after the server quiz was rebound to a stable history scope.
+  if (quiz.historyScopeId) {
+    expectedProofs.push(await createLegacyQuizHistoryProofBuffer(quiz));
+  }
+
+  if (
+    expectedProofs.some((expectedProof) => quizHistoryProofsMatch(expectedProof, providedProof))
+  ) {
+    return;
+  }
+
+  throw new TRPCError({
+    code: 'UNAUTHORIZED',
+    message: 'Zugriff auf diese Quiz-Historie ist nicht erlaubt.',
+  });
 }
 
 async function resolveQuizHistoryScopeIds(quizId: string, accessProof: string): Promise<string[]> {
@@ -314,15 +356,8 @@ async function resolveQuizHistoryScopeIds(quizId: string, accessProof: string): 
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
   }
 
+  await assertQuizHistoryAccessAuthorized(quiz, accessProof);
   const providedProof = normalizeQuizHistoryAccessProof(accessProof);
-  const expectedProof = await createQuizHistoryProofBuffer(quiz);
-
-  if (!quizHistoryProofsMatch(expectedProof, providedProof)) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Zugriff auf diese Quiz-Historie ist nicht erlaubt.',
-    });
-  }
 
   if (quiz.historyScopeId) {
     const scopedQuizzes = await prisma.quiz.findMany({
@@ -3088,6 +3123,43 @@ export const sessionRouter = router({
           })),
         })),
       };
+    }),
+
+  /**
+   * Bindet alte serverseitige Quizkopien beim ersten Zugriff an eine stabile Quiz-Identität.
+   * Das migriert Legacy-Historie (vor historyScopeId) auf die lokale Quiz-ID des Clients.
+   */
+  bindQuizHistoryScope: publicProcedure
+    .input(BindQuizHistoryScopeInputSchema)
+    .output(BindQuizHistoryScopeOutputSchema)
+    .mutation(async ({ input }) => {
+      const quiz = await prisma.quiz.findUnique({
+        where: { id: input.quizId },
+        select: quizHistoryAccessQuizSelect,
+      });
+
+      if (!quiz) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Quiz nicht gefunden.' });
+      }
+
+      await assertQuizHistoryAccessAuthorized(quiz, input.accessProof);
+
+      if (quiz.historyScopeId) {
+        return { accessProof: quiz.historyScopeId };
+      }
+
+      // Legacy-Bestand kennt keine stabile lokale Quiz-ID. Für die einmalige Migration
+      // ist der Quizname der beste verfügbare Scope, damit auch ältere Versionen desselben
+      // Quizzes (mit früheren Frage-/Antwortständen) wieder an derselben Karte sichtbar werden.
+      await prisma.quiz.updateMany({
+        where: {
+          historyScopeId: null,
+          name: quiz.name,
+        },
+        data: { historyScopeId: input.historyScopeId },
+      });
+
+      return { accessProof: input.historyScopeId };
     }),
 
   /** Bonus-Code serverseitig prüfen (Quiz-Sammlung, Story 4.6). */

@@ -423,6 +423,7 @@ const QuestionCreateSchema = AddQuestionInputSchema.pick({
 });
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const LEGACY_QUIZ_HISTORY_ACCESS_PROOF_PATTERN = /^[a-f0-9]{64}$/i;
 
 const DEFAULT_QUIZ_SETTINGS: QuizSettings = parseQuizSettings({});
 type SyncConnectionState = 'connected' | 'connecting' | 'disconnected';
@@ -681,6 +682,28 @@ export class QuizStoreService implements OnDestroy {
               lastServerQuizAccessProof: accessProof,
               updatedAt: new Date().toISOString(),
               ...this.currentQuizUpdateSource(),
+            }
+          : quiz,
+      ),
+    );
+    this.persistToStorage();
+  }
+
+  setLastServerQuizAccessProof(localQuizId: string, accessProof: string): void {
+    if (
+      !UUID_PATTERN.test(localQuizId) ||
+      (!UUID_PATTERN.test(accessProof) &&
+        !LEGACY_QUIZ_HISTORY_ACCESS_PROOF_PATTERN.test(accessProof))
+    ) {
+      return;
+    }
+
+    this.quizDocuments.update((current) =>
+      current.map((quiz) =>
+        quiz.id === localQuizId
+          ? {
+              ...quiz,
+              lastServerQuizAccessProof: accessProof,
             }
           : quiz,
       ),

@@ -1105,6 +1105,18 @@ export const GetBonusTokensForQuizInputSchema = z.object({
 });
 export type GetBonusTokensForQuizInput = z.infer<typeof GetBonusTokensForQuizInputSchema>;
 
+export const BindQuizHistoryScopeInputSchema = z.object({
+  quizId: z.string().uuid(),
+  accessProof: QuizHistoryAccessProofSchema,
+  historyScopeId: z.string().uuid(),
+});
+export type BindQuizHistoryScopeInput = z.infer<typeof BindQuizHistoryScopeInputSchema>;
+
+export const BindQuizHistoryScopeOutputSchema = z.object({
+  accessProof: QuizHistoryAccessProofSchema,
+});
+export type BindQuizHistoryScopeOutput = z.infer<typeof BindQuizHistoryScopeOutputSchema>;
+
 export const BonusTokensForQuizOutputSchema = z.object({
   sessions: z.array(BonusTokenListWithSessionMetaDTOSchema),
 });

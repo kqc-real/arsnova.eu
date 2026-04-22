@@ -7,10 +7,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizListComponent } from './quiz-list.component';
 import { QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
 
-const { getActiveQuizIdsQueryMock, snackBarOpenMock } = vi.hoisted(() => ({
-  getActiveQuizIdsQueryMock: vi.fn(),
-  snackBarOpenMock: vi.fn(),
-}));
+const { getActiveQuizIdsQueryMock, bindQuizHistoryScopeMutationMock, snackBarOpenMock } =
+  vi.hoisted(() => ({
+    getActiveQuizIdsQueryMock: vi.fn(),
+    bindQuizHistoryScopeMutationMock: vi.fn(),
+    snackBarOpenMock: vi.fn(),
+  }));
 
 vi.mock('../../../core/trpc.client', () => ({
   clearPendingHostSessionCode: vi.fn(),
@@ -20,6 +22,9 @@ vi.mock('../../../core/trpc.client', () => ({
     session: {
       getActiveQuizIds: {
         query: getActiveQuizIdsQueryMock,
+      },
+      bindQuizHistoryScope: {
+        mutate: bindQuizHistoryScopeMutationMock,
       },
     },
   },
@@ -58,6 +63,7 @@ describe('QuizListComponent', () => {
     getUploadPayload: vi.fn(),
     importQuiz: vi.fn(),
     setLastServerUploadAccess: vi.fn(),
+    setLastServerQuizAccessProof: vi.fn(),
   };
 
   beforeEach(() => {
@@ -80,6 +86,7 @@ describe('QuizListComponent', () => {
     mockStore.currentBrowserLabel.set('Firefox');
     mockStore.syncPeerInfos.set([]);
     getActiveQuizIdsQueryMock.mockResolvedValue([]);
+    bindQuizHistoryScopeMutationMock.mockReset();
     TestBed.configureTestingModule({
       imports: [QuizListComponent, NoopAnimationsModule],
       providers: [
@@ -524,7 +531,7 @@ Viel Erfolg beim Import.`);
       teamMode: false,
       hasBonus: true,
       lastServerQuizId: '11111111-1111-4111-8111-111111111111',
-      lastServerQuizAccessProof: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
     });
 
     expect(dialogOpenSpy).toHaveBeenCalledWith(
@@ -532,7 +539,51 @@ Viel Erfolg beim Import.`);
       expect.objectContaining({
         data: expect.objectContaining({
           serverQuizId: '11111111-1111-4111-8111-111111111111',
-          accessProof: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+          quizName: 'Datenbanken',
+        }),
+      }),
+    );
+    expect(bindQuizHistoryScopeMutationMock).not.toHaveBeenCalled();
+  });
+
+  it('bindet legacy quiz-historie beim ersten oeffnen an die stabile quiz-id', async () => {
+    bindQuizHistoryScopeMutationMock.mockResolvedValue({
+      accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+    const dialogOpenSpy = vi.spyOn(component['dialog'], 'open').mockReturnValue({} as never);
+
+    await component.openBonusCodesDialog({
+      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      name: 'Datenbanken',
+      description: null,
+      createdAt: '2026-03-08T10:00:00.000Z',
+      updatedAt: '2026-03-08T11:30:00.000Z',
+      questionCount: 2,
+      teamMode: false,
+      hasBonus: true,
+      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+      lastServerQuizAccessProof: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    });
+
+    expect(bindQuizHistoryScopeMutationMock).toHaveBeenCalledWith({
+      quizId: '11111111-1111-4111-8111-111111111111',
+      accessProof: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      historyScopeId: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+    expect(mockStore.setLastServerQuizAccessProof).toHaveBeenCalledWith(
+      'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    );
+    expect(dialogOpenSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          serverQuizId: '11111111-1111-4111-8111-111111111111',
+          accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
           quizName: 'Datenbanken',
         }),
       }),
