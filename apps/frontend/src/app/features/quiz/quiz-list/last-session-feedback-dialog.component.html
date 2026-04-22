@@ -17,6 +17,14 @@
     <div class="last-session-feedback-dialog__loading">
       <mat-progress-spinner diameter="40" mode="indeterminate" />
     </div>
+  } @else if (loadError()) {
+    <p
+      class="last-session-feedback-dialog__error"
+      role="alert"
+      i18n="@@quizList.lastSessionFeedbackDialogLoadError"
+    >
+      Das Feedback konnte nicht geladen werden. Bitte später erneut versuchen.
+    </p>
   } @else if (payload(); as row) {
     <div
       class="last-session-feedback-dialog__hint-box"

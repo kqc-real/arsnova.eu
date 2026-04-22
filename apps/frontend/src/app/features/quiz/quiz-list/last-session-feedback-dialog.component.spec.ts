@@ -100,9 +100,10 @@ describe('LastSessionFeedbackDialogComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(fixture.componentInstance.loading()).toBe(false);
+    expect(fixture.componentInstance.loadError()).toBe(true);
     expect(fixture.componentInstance.payload()).toBeNull();
-    expect(text).toContain('Noch kein Feedback');
-    expect(text).not.toContain('Das Feedback konnte nicht geladen werden');
+    expect(text).toContain('Das Feedback konnte nicht geladen werden');
+    expect(text).not.toContain('Noch kein Feedback');
   });
 
   it('schliesst den Dialog', () => {

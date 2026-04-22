@@ -93,7 +93,7 @@ describe('BonusCodesDialogComponent', () => {
   });
 
   it('zeigt ohne vorhandene Codes nur den leeren Zustand ohne Pruefbereich', async () => {
-    getBonusTokensQueryMock.mockRejectedValue(new Error('boom'));
+    getBonusTokensQueryMock.mockResolvedValue({ sessions: [] });
     const fixture = TestBed.createComponent(BonusCodesDialogComponent);
 
     fixture.detectChanges();
@@ -104,6 +104,19 @@ describe('BonusCodesDialogComponent', () => {
     expect(text).toContain('Noch keine Codes');
     expect(text).not.toContain('Bonus-Code prüfen');
     expect(text).not.toContain('Bitte nur privat einsehen');
+  });
+
+  it('zeigt bei Ladefehler eine Fehlermeldung statt Empty-State', async () => {
+    getBonusTokensQueryMock.mockRejectedValue(new Error('boom'));
+    const fixture = TestBed.createComponent(BonusCodesDialogComponent);
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Die Bonus-Codes konnten nicht geladen werden');
+    expect(text).not.toContain('Noch keine Codes');
   });
 
   it('normalisiert den Verify-Code und loescht altes Ergebnis', () => {

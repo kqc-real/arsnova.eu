@@ -5989,6 +5989,14 @@
           <context context-type="linenumber">20,25</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizList.bonusCodesDialogLoadError" datatype="html">
+        <source> Die Bonus-Codes konnten nicht geladen werden. Bitte später erneut versuchen.</source>
+        <target>The bonus codes could not be loaded. Please try again later.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/bonus-codes-dialog.component.html</context>
+          <context context-type="linenumber">19,20</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="quizList.bonusCodesDialogPrivacyHint" datatype="html">
         <source> Bitte nur privat einsehen – nicht im Hörsaal oder bei Zuschauer:innen sichtbar machen.</source>
         <target>For your eyes only—don&apos;t show this on a projector or stream.</target>
@@ -6235,6 +6243,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/last-session-feedback-dialog.component.html</context>
           <context context-type="linenumber">121,127</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.lastSessionFeedbackDialogLoadError" datatype="html">
+        <source> Das Feedback konnte nicht geladen werden. Bitte später erneut versuchen.</source>
+        <target>The feedback could not be loaded. Please try again later.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/last-session-feedback-dialog.component.html</context>
+          <context context-type="linenumber">21,26</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.lastSessionFeedbackDialog.ratingSingular" datatype="html">

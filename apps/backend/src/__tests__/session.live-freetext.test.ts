@@ -52,6 +52,7 @@ const QUIZ_INPUT = {
   showLeaderboard: true,
   allowCustomNicknames: true,
   defaultTimer: null,
+  timerScaleByDifficulty: false,
   enableSoundEffects: true,
   enableRewardEffects: true,
   enableMotivationMessages: true,

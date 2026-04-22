@@ -15,6 +15,10 @@
     <div class="bonus-codes-dialog__loading">
       <mat-progress-spinner diameter="40" mode="indeterminate" />
     </div>
+  } @else if (loadError()) {
+    <p class="bonus-codes-dialog__error" role="alert" i18n="@@quizList.bonusCodesDialogLoadError">
+      Die Bonus-Codes konnten nicht geladen werden. Bitte später erneut versuchen.
+    </p>
   } @else if (sessions().length === 0) {
     <div class="bonus-codes-dialog__empty-box" i18n="@@quizList.bonusCodesDialogEmpty">
       Noch keine Codes – sie erscheinen hier, sobald eine Live-Session mit diesem Quiz beendet wurde
