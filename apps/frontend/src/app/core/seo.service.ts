@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, inject, isDevMode, LOCALE_ID } from '@angular/core';
+import { Injectable, inject, isDevMode, LOCALE_ID, REQUEST } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { type UrlTree, Router } from '@angular/router';
 import type { SupportedLocale } from './locale-from-path';
 import { SUPPORTED_LOCALES } from './locale-from-path';
 import { resolveSeoForPath, type SeoRoutePayload } from './seo-route-meta';
@@ -16,16 +16,19 @@ export class SeoService {
   private readonly meta = inject(Meta);
   private readonly router = inject(Router);
   private readonly localeId = inject(LOCALE_ID);
+  private readonly request = inject(REQUEST, { optional: true });
 
   /** Nach Navigation und einmal beim Init (AppComponent / SSR) aufrufen. */
   applyFromRouter(): void {
-    const treeUrl = this.router.url.split('?')[0].split('#')[0] || '/';
+    const treeUrl = normalizeRouterUrl(
+      this.router.lastSuccessfulNavigation()?.finalUrl ?? this.router.parseUrl(this.router.url),
+    );
     this.applyForPath(treeUrl);
   }
 
   private applyForPath(treeUrl: string): void {
     const { locale, pathRest } = parseLocalePath(treeUrl, this.localeId);
-    const origin = resolveSiteOrigin(this.doc);
+    const origin = resolveSiteOrigin(this.doc, this.request);
     const canonicalPath = buildCanonicalPath(locale, pathRest);
     const absoluteUrl = `${origin}${canonicalPath}`;
     const payload = resolveSeoForPath(pathRest);
@@ -137,19 +140,92 @@ export class SeoService {
   }
 }
 
-function resolveSiteOrigin(doc: Document): string {
+function resolveSiteOrigin(doc: Document, request: Request | null | undefined): string {
+  const baseUriOrigin = tryGetOriginFromDocumentBase(doc);
+  if (baseUriOrigin) {
+    return normalizeOrigin(baseUriOrigin);
+  }
+
   const loc = doc.defaultView?.location;
   if (loc?.origin && loc.origin !== 'null') {
-    const host = loc.hostname;
-    const looksLocal =
-      host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host.endsWith('.local');
-    // Prerender/Prod-Build: echte Canonical-/OG-URLs statt localhost-Port.
-    if (!isDevMode() && looksLocal) {
-      return SITE_ORIGIN_FALLBACK;
-    }
-    return loc.origin;
+    return normalizeOrigin(loc.origin, loc.hostname);
   }
+
+  const requestOrigin = tryGetOriginFromRequest(request);
+  if (requestOrigin) {
+    return normalizeOrigin(requestOrigin);
+  }
+
   return SITE_ORIGIN_FALLBACK;
+}
+
+function normalizeRouterUrl(url: UrlTree): string {
+  const serialized = url.toString();
+  return serialized ? serialized.split('?')[0].split('#')[0] || '/' : '/';
+}
+
+function tryGetOriginFromUrl(candidate: string | null | undefined): string | null {
+  if (!candidate) return null;
+  try {
+    const parsed = new URL(candidate);
+    if (!parsed.origin || parsed.origin === 'null' || parsed.protocol === 'about:') {
+      return null;
+    }
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+function tryGetOriginFromDocumentBase(doc: Document): string | null {
+  try {
+    return tryGetOriginFromUrl(doc.baseURI);
+  } catch {
+    return null;
+  }
+}
+
+function tryGetOriginFromRequest(request: Request | null | undefined): string | null {
+  if (!request) return null;
+  try {
+    const parsed = new URL(request.url);
+    if (!parsed.origin || parsed.origin === 'null') {
+      return null;
+    }
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeOrigin(origin: string, hostname?: string): string {
+  const protocol = safeProtocol(origin);
+  if (protocol !== 'http:' && protocol !== 'https:') {
+    return SITE_ORIGIN_FALLBACK;
+  }
+  const host = hostname ?? safeHostname(origin);
+  const looksLocal =
+    host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host.endsWith('.local');
+  if (!isDevMode() && looksLocal) {
+    return SITE_ORIGIN_FALLBACK;
+  }
+  return origin;
+}
+
+function safeHostname(origin: string): string {
+  try {
+    return new URL(origin).hostname;
+  } catch {
+    return '';
+  }
+}
+
+function safeProtocol(origin: string): string {
+  try {
+    return new URL(origin).protocol;
+  } catch {
+    return '';
+  }
 }
 
 function parseLocalePath(

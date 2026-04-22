@@ -195,6 +195,23 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.seo.applyFromRouter();
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
+    this.routerSub = this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(() => {
+        this.seo.applyFromRouter();
+        if (!isPlatformBrowser(this.platformId)) {
+          return;
+        }
+        this.toolbarHidden.set(false);
+        this.updateRouteFlags();
+        queueMicrotask(() => this.syncFooterOffsetObserver());
+        /* Nur bei Folge-Navigationen: #main-content scrollen (nicht window). Erstes Event überspringen — vermeidet sichtbares „Zucken“. */
+        if (this.pendingInitialNavigationEnd) {
+          this.pendingInitialNavigationEnd = false;
+        } else {
+          requestAnimationFrame(() => this.scrollPrimaryScrollContainerToTop());
+        }
+      });
     if (isPlatformBrowser(this.platformId)) {
       this.updateRouteFlags();
       this.isOnline.set(navigator.onLine);
@@ -208,20 +225,6 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       this.checkForUpdates();
       this.setupPwaInstallPrompt();
-      this.routerSub = this.router.events
-        .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-        .subscribe(() => {
-          this.toolbarHidden.set(false);
-          this.updateRouteFlags();
-          this.seo.applyFromRouter();
-          queueMicrotask(() => this.syncFooterOffsetObserver());
-          /* Nur bei Folge-Navigationen: #main-content scrollen (nicht window). Erstes Event überspringen — vermeidet sichtbares „Zucken“. */
-          if (this.pendingInitialNavigationEnd) {
-            this.pendingInitialNavigationEnd = false;
-          } else {
-            requestAnimationFrame(() => this.scrollPrimaryScrollContainerToTop());
-          }
-        });
     }
   }
 
