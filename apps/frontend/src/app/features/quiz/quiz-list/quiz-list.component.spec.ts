@@ -414,8 +414,11 @@ describe('QuizListComponent', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     const component = fixture.componentInstance;
     mockStore.importQuiz.mockReturnValue({
-      id: 'caece014-f7cd-4d26-a101-bd494379f95f',
-      name: 'KI Import',
+      quiz: {
+        id: 'caece014-f7cd-4d26-a101-bd494379f95f',
+        name: 'KI Import',
+      },
+      warnings: [],
     });
 
     component.updateAiJsonInput(`Hier ist dein Quiz:
@@ -429,6 +432,82 @@ Viel Erfolg beim Import.`);
     component.importAiJson();
 
     expect(mockStore.importQuiz).toHaveBeenCalledWith({ quiz: { name: 'KI Import' } });
+    expect(component.actionError()).toBeNull();
+    expect(component.actionInfo()).toContain('KI Import');
+  });
+
+  it('importiert ueber den Datei-Import der Quiz-Sammlung und zeigt nur nicht uebernommene Fragen', async () => {
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+    mockStore.importQuiz.mockReturnValue({
+      quiz: {
+        id: 'caece014-f7cd-4d26-a101-bd494379f95f',
+        name: 'Datei Import',
+      },
+      warnings: [
+        {
+          kind: 'skipped_question',
+          questionNumber: 1,
+          questionText: 'Schätzfrage',
+          message: 'Dieser Fragetyp wird in arsnova.eu noch nicht unterstützt.',
+        },
+        {
+          kind: 'simplified_question',
+          questionNumber: 2,
+          questionText: 'Freitext',
+          message: 'Sonderregeln für Freitext-Antworten wurden nicht übernommen.',
+        },
+      ],
+    });
+
+    const file = {
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          name: 'Click Import',
+          questionList: [
+            {
+              TYPE: 'SingleChoiceQuestion',
+              questionText: 'Eine Frage',
+              answerOptionList: [
+                { answerText: 'A', isCorrect: false },
+                { answerText: 'B', isCorrect: true },
+              ],
+            },
+          ],
+        }),
+      ),
+    } as unknown as File;
+    const input = document.createElement('input');
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [file],
+    });
+
+    await component.onImportFileSelected({ target: input } as Event);
+    fixture.detectChanges();
+
+    expect(mockStore.importQuiz).toHaveBeenCalledWith({
+      name: 'Click Import',
+      questionList: [
+        {
+          TYPE: 'SingleChoiceQuestion',
+          questionText: 'Eine Frage',
+          answerOptionList: [
+            { answerText: 'A', isCorrect: false },
+            { answerText: 'B', isCorrect: true },
+          ],
+        },
+      ],
+    });
+    expect(component.actionInfo()).toContain('Datei Import');
+    expect(component.actionInfoWarnings()).toHaveLength(1);
+    const infoText = fixture.nativeElement.querySelector('.quiz-list__info')?.textContent as string;
+    expect(infoText).toContain('Nicht übernommen:');
+    expect(infoText).toContain(
+      'Frage 1: Dieser Fragetyp wird in arsnova.eu noch nicht unterstützt.',
+    );
+    expect(infoText).toContain('Schätzfrage');
+    expect(infoText).not.toContain('Freitext');
     expect(component.actionError()).toBeNull();
   });
 

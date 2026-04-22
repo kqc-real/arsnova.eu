@@ -1,0 +1,254 @@
+{
+  "name": "Maximal Export Quiz",
+  "origin": "template-full",
+  "description": "Beispiel mit allen Fragetypen",
+  "state": "Inactive",
+  "currentQuestionIndex": -1,
+  "currentStartTimestamp": -1,
+  "sentQuestionIndex": 0,
+  "readingConfirmationRequested": false,
+  "questionCount": 8,
+  "sessionConfig": {
+    "confidenceSliderEnabled": true,
+    "readingConfirmationEnabled": true,
+    "showResponseProgress": true,
+    "theme": "Material",
+    "leaderboardAlgorithm": "PointBased",
+    "music": {
+      "enabled": {
+        "lobby": true,
+        "countdownRunning": true,
+        "countdownEnd": true
+      },
+      "volumeConfig": {
+        "global": 60,
+        "lobby": 60,
+        "countdownRunning": 60,
+        "countdownEnd": 60,
+        "useGlobalVolume": true
+      },
+      "titleConfig": {
+        "lobby": "Song0",
+        "countdownRunning": "Song0",
+        "countdownEnd": "Song0"
+      }
+    },
+    "nicks": {
+      "memberGroups": [
+        {
+          "name": "Gruppe A",
+          "color": "#ff0000"
+        }
+      ],
+      "maxMembersPerGroup": 10,
+      "autoJoinToGroup": false,
+      "selectedNicks": ["Ada Lovelace", "Alan Turing"],
+      "blockIllegalNicks": true
+    }
+  },
+  "questionList": [
+    {
+      "TYPE": "SingleChoiceQuestion",
+      "displayAnswerText": true,
+      "showOneAnswerPerRow": false,
+      "timer": 30,
+      "questionText": "Single Choice",
+      "answerOptionList": [
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "A",
+          "isCorrect": false
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "B",
+          "isCorrect": true
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "C",
+          "isCorrect": false
+        }
+      ],
+      "tags": ["single", "wissen"],
+      "requiredForToken": true,
+      "difficulty": 5
+    },
+    {
+      "TYPE": "YesNoSingleChoiceQuestion",
+      "displayAnswerText": true,
+      "showOneAnswerPerRow": false,
+      "timer": 20,
+      "questionText": "Ja/Nein",
+      "answerOptionList": [
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "Yes",
+          "isCorrect": true
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "No",
+          "isCorrect": false
+        }
+      ],
+      "tags": ["yesno"],
+      "requiredForToken": true,
+      "difficulty": 3
+    },
+    {
+      "TYPE": "TrueFalseSingleChoiceQuestion",
+      "displayAnswerText": true,
+      "showOneAnswerPerRow": false,
+      "timer": 20,
+      "questionText": "Wahr/Falsch",
+      "answerOptionList": [
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "True",
+          "isCorrect": false
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "False",
+          "isCorrect": true
+        }
+      ],
+      "tags": ["truefalse"],
+      "requiredForToken": true,
+      "difficulty": 3
+    },
+    {
+      "TYPE": "MultipleChoiceQuestion",
+      "displayAnswerText": true,
+      "showOneAnswerPerRow": true,
+      "timer": 45,
+      "questionText": "Multiple Choice",
+      "answerOptionList": [
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "A",
+          "isCorrect": true
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "B",
+          "isCorrect": false
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "C",
+          "isCorrect": true
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "D",
+          "isCorrect": false
+        }
+      ],
+      "tags": ["multiple"],
+      "requiredForToken": true,
+      "difficulty": 7
+    },
+    {
+      "TYPE": "SurveyQuestion",
+      "displayAnswerText": true,
+      "showOneAnswerPerRow": false,
+      "multipleSelectionEnabled": true,
+      "timer": 30,
+      "questionText": "Umfrage",
+      "answerOptionList": [
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "Option 1",
+          "isCorrect": false
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "Option 2",
+          "isCorrect": false
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "Option 3",
+          "isCorrect": false
+        }
+      ],
+      "tags": ["survey"],
+      "requiredForToken": false,
+      "difficulty": 1
+    },
+    {
+      "TYPE": "ABCDSurveyQuestion",
+      "displayAnswerText": false,
+      "showOneAnswerPerRow": false,
+      "timer": 15,
+      "questionText": "ABCD",
+      "answerOptionList": [
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "A",
+          "isCorrect": false
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "B",
+          "isCorrect": false
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "C",
+          "isCorrect": false
+        },
+        {
+          "TYPE": "DefaultAnswerOption",
+          "answerText": "D",
+          "isCorrect": false
+        }
+      ],
+      "tags": ["abcd"],
+      "requiredForToken": false,
+      "difficulty": 1
+    },
+    {
+      "TYPE": "RangedQuestion",
+      "displayAnswerText": false,
+      "timer": 60,
+      "questionText": "Schaetzfrage",
+      "answerOptionList": [],
+      "rangeMin": 0,
+      "rangeMax": 1000,
+      "correctValue": 420,
+      "tags": ["range"],
+      "requiredForToken": true,
+      "difficulty": 6
+    },
+    {
+      "TYPE": "FreeTextQuestion",
+      "displayAnswerText": true,
+      "timer": 45,
+      "questionText": "Freitext",
+      "answerOptionList": [
+        {
+          "TYPE": "FreeTextAnswerOption",
+          "answerText": "Paris",
+          "configCaseSensitive": false,
+          "configTrimWhitespaces": true,
+          "configUseKeywords": true,
+          "configUsePunctuation": false
+        },
+        {
+          "TYPE": "FreeTextAnswerOption",
+          "answerText": "paris",
+          "configCaseSensitive": false,
+          "configTrimWhitespaces": true,
+          "configUseKeywords": true,
+          "configUsePunctuation": false
+        }
+      ],
+      "tags": ["text"],
+      "requiredForToken": true,
+      "difficulty": 4
+    }
+  ]
+}
