@@ -171,7 +171,7 @@ Die App unterstützt **fünf Sprachen** (`de`, `en`, `fr`, `es`, `it`) über Ang
    npm run build:localize -w @arsnova/frontend
    ```
 
-   Das baut alle in `angular.json` konfigurierten Locales und legt die Locale-Ordner in `dist/browser/` sowie eine Root-`index.html` (Redirect nach `/de/`) an.
+   Das baut alle in `angular.json` konfigurierten Locales über den dedizierten Browser-Target, legt die Locale-Ordner in `dist/browser/` an und erzeugt eine Root-`index.html` (Redirect nach `/de/`).
 
 3. **Proxy starten** (serviert den Build auf Port 4200 und leitet API/WebSockets ans Backend weiter):
 
@@ -187,7 +187,7 @@ Die App unterstützt **fünf Sprachen** (`de`, `en`, `fr`, `es`, `it`) über Ang
 
 ### 5. Production-ähnlich lokal (optional)
 
-Für einen **lokal production-ähnlichen** Lauf (optimierter Build, ein Prozess liefert alles aus, Gzip, Pre-Render) sollten Postgres und Redis laufen (wie in Schritt 2, z. B. `docker compose up -d redis postgres`).
+Für einen **lokal production-ähnlichen** Lauf (optimierter Build, ein Prozess liefert alles aus, Gzip) sollten Postgres und Redis laufen (wie in Schritt 2, z. B. `docker compose up -d redis postgres`).
 
 `npm run build:prod` erzeugt dabei den **lokalisierten Frontend-Build** (`de`/`en`/`fr`/`es`/`it`) und kopiert die Root-`index.html` für den Redirect auf `/de/`.
 
@@ -213,7 +213,7 @@ cd apps/frontend && SCREENSHOT_URL=http://localhost:3000 npm run screenshots
 
 **Option B – mit Dev-Server:** Frontend mit `npm run dev:frontend` starten, dann (in anderem Terminal) aus `apps/frontend`: `npm run screenshots`. Default-URL ist dann `http://localhost:4200` (Standard-Dev = deutsche Quelltexte). Fuer Englisch: `npm run dev:frontend:en` und bei Bedarf `SCREENSHOT_URL=http://localhost:4200/en/`.
 
-**Option C – nur Static-Serve:** Nach `npm run build:prod -w @arsnova/frontend` erzeugt das Skript beim ersten Aufruf automatisch `dist/browser/index.html` aus `index.csr.html`, damit `npx serve dist/browser -p 4210 -s` die App ausliefert (ohne diese Datei würde `/` eine Verzeichnisliste zeigen). Danach Serve starten und Screenshots mit `SCREENSHOT_URL=http://localhost:4210 npm run screenshots` erzeugen.
+**Option C – nur Static-Serve:** Nach `npm run build:prod -w @arsnova/frontend` kann `npx serve dist/browser -p 4210 -s` direkt genutzt werden; das Build-Skript erzeugt bereits die Root-`index.html` für den Redirect nach `/de/`. Danach Screenshots mit `SCREENSHOT_URL=http://localhost:4210 npm run screenshots` erzeugen.
 
 Die PNGs landen in `apps/frontend/src/assets/icons/` (`screenshot-wide.png`, `screenshot-narrow.png`).
 

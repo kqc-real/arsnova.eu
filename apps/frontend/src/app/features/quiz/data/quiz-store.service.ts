@@ -46,6 +46,8 @@ import {
   getDemoQuizSeedFingerprint,
   normalizeDemoQuizLocale,
 } from './demo-quiz-payload';
+import { normalizeQuizImportPayload, type QuizImportWarning } from './quiz-import-normalizer';
+export type { QuizImportWarning } from './quiz-import-normalizer';
 
 export type SupportedQuestionType =
   | 'MULTIPLE_CHOICE'
@@ -131,6 +133,11 @@ export interface QuizSummary {
   /** Server-Quiz-ID nach letztem quiz.upload (Bonus-Codes in der Sammlung). */
   lastServerQuizId: string | null;
   lastServerQuizAccessProof: string | null;
+}
+
+export interface QuizImportResult {
+  quiz: QuizDocument;
+  warnings: QuizImportWarning[];
 }
 
 /**
@@ -901,47 +908,76 @@ export class QuizStoreService implements OnDestroy {
     return parsed.data;
   }
 
-  importQuiz(payload: unknown, overrideId?: string): QuizDocument {
-    const parsed = QuizImportSchema.safeParse(payload);
-    if (!parsed.success) {
-      const issue = parsed.error.issues[0];
-      const message = issue
-        ? `${formatQuizImportIssuePath(issue.path)}: ${issue.message}`
-        : $localize`Ungültige Import-Datei.`;
-      throw new Error(`Import fehlgeschlagen: ${message}`);
+  importQuiz(payload: unknown, overrideId?: string): QuizImportResult {
+    let normalizedPayload: unknown;
+    let normalizedSourceQuiz: QuizExport['quiz'] | undefined;
+    let warnings: QuizImportWarning[];
+    try {
+      ({
+        payload: normalizedPayload,
+        sourceQuiz: normalizedSourceQuiz,
+        warnings,
+      } = normalizeQuizImportPayload(payload));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : $localize`Ungültige Import-Datei.`;
+      throw new Error(`Import fehlgeschlagen: ${message}`, { cause: error });
     }
 
     const now = new Date().toISOString();
+    let quizData: QuizExport['quiz'];
+    if (normalizedSourceQuiz) {
+      quizData = normalizedSourceQuiz;
+    } else {
+      const parsed = QuizImportSchema.safeParse(normalizedPayload);
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const message = issue
+          ? `${formatQuizImportIssuePath(issue.path)}: ${issue.message}`
+          : $localize`Ungültige Import-Datei.`;
+        throw new Error(`Import fehlgeschlagen: ${message}`);
+      }
+      quizData = parsed.data.quiz;
+    }
+
+    const metadata = QuizMetadataSchema.safeParse({
+      name: quizData.name.trim(),
+      description: normalizeDescription(quizData.description),
+      motifImageUrl: normalizeMotifImageUrlInput(quizData.motifImageUrl),
+    });
+    if (!metadata.success) {
+      const message = metadata.error.issues[0]?.message ?? $localize`Ungültige Import-Datei.`;
+      throw new Error(`Import fehlgeschlagen: ${message}`);
+    }
+
     const imported: QuizDocument = {
       id: overrideId ?? generateUuid(),
-      name: parsed.data.quiz.name,
-      description: normalizeDescription(parsed.data.quiz.description) ?? null,
-      motifImageUrl: parsed.data.quiz.motifImageUrl ?? null,
+      name: metadata.data.name,
+      description: metadata.data.description ?? null,
+      motifImageUrl: metadata.data.motifImageUrl ?? null,
       createdAt: now,
       updatedAt: now,
       ...this.currentQuizUpdateSource(),
       settings: parseQuizSettings({
-        showLeaderboard: parsed.data.quiz.showLeaderboard,
-        allowCustomNicknames: parsed.data.quiz.allowCustomNicknames,
-        defaultTimer: parsed.data.quiz.defaultTimer ?? null,
-        timerScaleByDifficulty: parsed.data.quiz.timerScaleByDifficulty ?? true,
-        enableSoundEffects: parsed.data.quiz.enableSoundEffects,
-        enableRewardEffects: parsed.data.quiz.enableRewardEffects,
-        enableMotivationMessages: parsed.data.quiz.enableMotivationMessages,
-        enableEmojiReactions: parsed.data.quiz.enableEmojiReactions,
-        anonymousMode: parsed.data.quiz.anonymousMode,
-        teamMode: parsed.data.quiz.teamMode,
-        teamCount: parsed.data.quiz.teamCount ?? null,
-        teamAssignment: parsed.data.quiz.teamAssignment,
-        teamNames: parsed.data.quiz.teamNames ?? [],
-        backgroundMusic: parsed.data.quiz.backgroundMusic ?? null,
-        nicknameTheme: parsed.data.quiz.nicknameTheme,
-        bonusTokenCount: parsed.data.quiz.bonusTokenCount ?? null,
-        readingPhaseEnabled: parsed.data.quiz.readingPhaseEnabled ?? true,
-        preset:
-          ((parsed.data.quiz as Record<string, unknown>)['preset'] as QuizPreset) ?? 'PLAYFUL',
+        showLeaderboard: quizData.showLeaderboard,
+        allowCustomNicknames: quizData.allowCustomNicknames,
+        defaultTimer: quizData.defaultTimer ?? null,
+        timerScaleByDifficulty: quizData.timerScaleByDifficulty ?? true,
+        enableSoundEffects: quizData.enableSoundEffects,
+        enableRewardEffects: quizData.enableRewardEffects,
+        enableMotivationMessages: quizData.enableMotivationMessages,
+        enableEmojiReactions: quizData.enableEmojiReactions,
+        anonymousMode: quizData.anonymousMode,
+        teamMode: quizData.teamMode,
+        teamCount: quizData.teamCount ?? null,
+        teamAssignment: quizData.teamAssignment,
+        teamNames: quizData.teamNames ?? [],
+        backgroundMusic: quizData.backgroundMusic ?? null,
+        nicknameTheme: quizData.nicknameTheme,
+        bonusTokenCount: quizData.bonusTokenCount ?? null,
+        readingPhaseEnabled: quizData.readingPhaseEnabled ?? true,
+        preset: ((quizData as Record<string, unknown>)['preset'] as QuizPreset) ?? 'PLAYFUL',
       }),
-      questions: parsed.data.quiz.questions
+      questions: quizData.questions
         .sort((a, b) => a.order - b.order)
         .map((question, index) => ({
           id: generateUuid(),
@@ -971,7 +1007,10 @@ export class QuizStoreService implements OnDestroy {
 
     this.quizDocuments.update((current) => [imported, ...current]);
     this.persistToStorage();
-    return imported;
+    return {
+      quiz: imported,
+      warnings,
+    };
   }
 
   addQuestion(quizId: string, input: AddQuizQuestionInput): QuizQuestion {

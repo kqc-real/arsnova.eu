@@ -10,7 +10,7 @@
     "build": "ng build",
     "build:prod": "npm run build:localize",
     "serve:dist": "npx serve dist/browser -s",
-    "build:localize": "ng build --configuration production --localize && node scripts/patch-prerender-noscript.mjs && node scripts/patch-sitemap-lastmod.mjs && node scripts/patch-pwa-manifest-per-locale.mjs && node scripts/regenerate-ngsw-localized.mjs && node -e \"require('fs').copyFileSync('static-root-index.html', 'dist/browser/index.html')\" && node scripts/check-motd-assets-postbuild.mjs",
+    "build:localize": "npm run build -w @arsnova/shared-types && ng run frontend:build-localize:production && node scripts/patch-prerender-noscript.mjs && node scripts/patch-sitemap-lastmod.mjs && node scripts/patch-pwa-manifest-per-locale.mjs && node scripts/regenerate-ngsw-localized.mjs && node -e \"require('fs').copyFileSync('static-root-index.html', 'dist/browser/index.html')\" && node scripts/check-motd-assets-postbuild.mjs",
     "serve:localize": "npx serve dist/browser -p 4200",
     "serve:localize:api": "node scripts/serve-localized-with-api.mjs",
     "lighthouse:serve": "npm run build:prod && npm run serve:dist",
@@ -63,6 +63,7 @@
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "2.4.0-beta.4",
     "@analogjs/vitest-angular": "2.4.0-beta.4",
+    "@angular-devkit/build-angular": "^21.2.0",
     "@angular/build": "^21.2.0",
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",

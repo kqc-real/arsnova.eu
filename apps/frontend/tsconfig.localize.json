@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@arsnova/shared-types": ["libs/shared-types/dist/index"],
+      "@arsnova/api": ["apps/backend/src/routers/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.server.ts", "src/server.ts", "src/test-setup.ts"]
+}
