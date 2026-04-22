@@ -197,7 +197,7 @@
                 </div>
                 <button mat-button type="button" (click)="cancelInlineEditMode()">
                   <mat-icon>close</mat-icon>
-                  <span i18n>Abbrechen</span>
+                  <span i18n="@@quiz.edit.discardChangesButton">Änderungen verwerfen</span>
                 </button>
               </div>
 
@@ -348,7 +348,7 @@
                         questionTypeHasCorrectAnswers(question.type)
                       "
                       [class.quiz-preview-editor__answer-row--correct]="
-                        questionTypeHasCorrectAnswers(question.type) && answer.isCorrect
+                        questionTypeHasCorrectAnswers(question.type) && draftAnswerIsCorrect(i)
                       "
                     >
                       <span class="quiz-preview-editor__answer-label" aria-hidden="true">{{
@@ -366,10 +366,14 @@
                           <mat-icon>
                             @if (question.type === 'SINGLE_CHOICE') {
                               {{
-                                answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked'
+                                draftAnswerIsCorrect(i)
+                                  ? 'radio_button_checked'
+                                  : 'radio_button_unchecked'
                               }}
                             } @else {
-                              {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
+                              {{
+                                draftAnswerIsCorrect(i) ? 'check_box' : 'check_box_outline_blank'
+                              }}
                             }
                           </mat-icon>
                         </button>
@@ -398,9 +402,14 @@
               <div class="quiz-preview-editor__actions">
                 <button mat-button type="button" (click)="cancelInlineEditMode()">
                   <mat-icon>close</mat-icon>
-                  <span i18n>Abbrechen</span>
+                  <span i18n="@@quiz.edit.discardChangesButton">Änderungen verwerfen</span>
                 </button>
-                <button matButton="filled" type="button" (click)="finishInlineEditMode()">
+                <button
+                  matButton="filled"
+                  type="button"
+                  (click)="finishInlineEditMode()"
+                  [disabled]="!inlineEditHasChanges()"
+                >
                   <mat-icon>save</mat-icon>
                   <span i18n="@@quiz.edit.questionSaveButton">Speichern</span>
                 </button>

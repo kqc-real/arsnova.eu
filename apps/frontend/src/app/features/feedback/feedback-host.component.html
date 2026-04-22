@@ -80,17 +80,6 @@
           <span i18n>Zweite Abstimmung</span>
         </button>
       } @else if (!isRound2()) {
-        @if (embeddedInSession()) {
-          <button
-            mat-button
-            type="button"
-            (click)="toggleLock()"
-            [attr.aria-label]="lockToggleAriaLabel()"
-          >
-            <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
-            {{ lockToggleLabel() }}
-          </button>
-        }
         @if (data.totalVotes > 0 && embeddedInSession()) {
           <button
             mat-button
@@ -103,16 +92,6 @@
             <span i18n="@@feedback.compareRoundLabel">Vergleichsrunde</span>
           </button>
         }
-      } @else if (embeddedInSession()) {
-        <button
-          mat-button
-          type="button"
-          (click)="toggleLock()"
-          [attr.aria-label]="lockToggleAriaLabel()"
-        >
-          <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
-          {{ lockToggleLabel() }}
-        </button>
       }
       <button
         mat-button

@@ -37,6 +37,7 @@ const {
   endMutateMock,
   updatePresetMutateMock,
   quickFeedbackHostResultsQueryMock,
+  quickFeedbackToggleLockMutateMock,
   quickFeedbackUpdateStyleMutateMock,
   updateQaTitleMutateMock,
   quizUploadMutateMock,
@@ -70,6 +71,7 @@ const {
   endMutateMock: vi.fn(),
   updatePresetMutateMock: vi.fn(),
   quickFeedbackHostResultsQueryMock: vi.fn(),
+  quickFeedbackToggleLockMutateMock: vi.fn(),
   quickFeedbackUpdateStyleMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
   quizUploadMutateMock: vi.fn(),
@@ -120,6 +122,7 @@ vi.mock('../../../core/trpc.client', () => ({
     quickFeedback: {
       results: { query: vi.fn().mockResolvedValue({ totalVotes: 0, options: [] }) },
       hostResults: { query: quickFeedbackHostResultsQueryMock },
+      toggleLock: { mutate: quickFeedbackToggleLockMutateMock },
       updateStyle: { mutate: quickFeedbackUpdateStyleMutateMock },
     },
   },
@@ -336,6 +339,7 @@ describe('SessionHostComponent', () => {
       quickFeedback: { enabled: true, open: true },
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({ totalVotes: 0, options: [] });
+    quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true });
     quizUploadMutateMock.mockResolvedValue({
       quizId: '44444444-4444-4444-8444-444444444444',
     });
@@ -1779,6 +1783,50 @@ describe('SessionHostComponent', () => {
 
     expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
     expect(buttonTexts).toEqual(['Zweite Abstimmung', 'Überspringen', 'Session beenden']);
+    fixture.destroy();
+  });
+
+  it('zieht im Blitzlicht-Kanal die Aktion "Stopp" in die untere Action-Bar neben "Session beenden"', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 2,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttons = Array.from(exitAnchor.querySelectorAll('button'));
+    const buttonTexts = buttons.map((button) =>
+      (button.textContent ?? '').replace(/^stop/, '').trim(),
+    );
+
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Stopp', 'Session beenden']);
+
+    (buttons[0] as HTMLButtonElement | undefined)?.click();
+    await fixture.whenStable();
+
+    expect(quickFeedbackToggleLockMutateMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
     fixture.destroy();
   });
 

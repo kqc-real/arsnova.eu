@@ -1923,11 +1923,25 @@
         [class.session-host__exit-anchor--with-primary]="
           effectiveStatus() === 'QUESTION_OPEN' ||
           effectiveStatus() === 'DISCUSSION' ||
+          showQuickFeedbackAnchorAction() ||
           ((effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
             !isLastQuestion()) ||
           (effectiveStatus() === 'ACTIVE' && !isQaSession() && !!currentQuestionForHost())
         "
       >
+        @if (showQuickFeedbackAnchorAction()) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            [disabled]="quickFeedbackActionPending()"
+            (click)="toggleQuickFeedbackRoundLock()"
+          >
+            <mat-icon aria-hidden="true">{{ quickFeedbackAnchorActionIcon() }}</mat-icon>
+            <span>{{ quickFeedbackAnchorActionLabel() }}</span>
+          </button>
+        }
         @if (effectiveStatus() === 'QUESTION_OPEN') {
           <button
             mat-flat-button

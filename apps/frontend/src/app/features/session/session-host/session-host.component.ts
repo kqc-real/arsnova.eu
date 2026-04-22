@@ -292,6 +292,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly quickFeedbackSeenVoteCount = signal(0);
+  readonly quickFeedbackActionPending = signal(false);
   private participantSub: Unsubscribable | null = null;
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
@@ -1828,6 +1829,46 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     return null;
+  }
+
+  showQuickFeedbackAnchorAction(): boolean {
+    return this.activeChannel() === 'quickFeedback' && this.quickFeedbackResult() !== null;
+  }
+
+  quickFeedbackAnchorActionLabel(): string {
+    return this.quickFeedbackResult()?.locked ? $localize`Fortsetzen` : $localize`Stopp`;
+  }
+
+  quickFeedbackAnchorActionIcon(): string {
+    return this.quickFeedbackResult()?.locked ? 'play_arrow' : 'stop';
+  }
+
+  async toggleQuickFeedbackRoundLock(): Promise<void> {
+    const result = this.quickFeedbackResult();
+    if (
+      this.activeChannel() !== 'quickFeedback' ||
+      !result ||
+      this.quickFeedbackActionPending() ||
+      !this.code
+    ) {
+      return;
+    }
+
+    this.quickFeedbackActionPending.set(true);
+    try {
+      const next = await trpc.quickFeedback.toggleLock.mutate({
+        sessionCode: this.code.toUpperCase(),
+      });
+      this.quickFeedbackResult.update((current) =>
+        current ? { ...current, locked: next.locked } : current,
+      );
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(
+        () => void this.toggleQuickFeedbackRoundLock(),
+      );
+    } finally {
+      this.quickFeedbackActionPending.set(false);
+    }
   }
 
   channelTabMetaLabel(channel: SessionChannelTab): string | null {

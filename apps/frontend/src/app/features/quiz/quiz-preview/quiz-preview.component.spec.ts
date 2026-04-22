@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { QuizPreviewComponent } from './quiz-preview.component';
 import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service';
@@ -7,6 +7,16 @@ import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service'
 const QUIZ_ID = 'baf6b8e5-9425-495e-953d-ab4a95c8bf68';
 
 describe('QuizPreviewComponent', () => {
+  const mockRoute = {
+    snapshot: {
+      queryParamMap: convertToParamMap({}),
+    },
+    parent: {
+      snapshot: {
+        paramMap: convertToParamMap({ id: QUIZ_ID }),
+      },
+    },
+  };
   const quiz: QuizDocument = {
     id: QUIZ_ID,
     name: 'Preview Quiz',
@@ -90,17 +100,12 @@ describe('QuizPreviewComponent', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: {
-            parent: {
-              snapshot: {
-                paramMap: convertToParamMap({ id: QUIZ_ID }),
-              },
-            },
-          },
+          useValue: mockRoute,
         },
         { provide: QuizStoreService, useValue: mockStore },
       ],
     });
+    mockRoute.snapshot.queryParamMap = convertToParamMap({});
   });
 
   afterEach(() => {
@@ -215,15 +220,17 @@ describe('QuizPreviewComponent', () => {
     expect(text).toContain('Validierungshinweise');
   });
 
-  it('persistiert Inline-Textänderungen mit Debounce', () => {
-    vi.useFakeTimers();
+  it('speichert Inline-Textänderungen erst nach explizitem Speichern', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
     component.enterInlineEditMode();
     component.onQuestionDraftChanged('Neue Frage');
-    vi.advanceTimersByTime(220);
+
+    expect(mockStore.updateQuestion).not.toHaveBeenCalled();
+
+    component.finishInlineEditMode();
 
     expect(mockStore.updateQuestion).toHaveBeenCalledWith(
       QUIZ_ID,
@@ -232,37 +239,77 @@ describe('QuizPreviewComponent', () => {
     );
   });
 
-  it('persistiert globales Zeitlimit (Quiz-Einstellungen) mit Debounce', () => {
-    vi.useFakeTimers();
+  it('verwirft Inline-Aenderungen ohne Persistieren', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
     component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
     component.onInlineGlobalTimerEnabledChange(true);
-    vi.advanceTimersByTime(220);
+    component.cancelInlineEditMode();
 
-    expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
-      QUIZ_ID,
-      expect.objectContaining({ defaultTimer: expect.any(Number) }),
-    );
+    expect(mockStore.updateQuestion).not.toHaveBeenCalled();
+    expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
+    expect(component.inlineEditMode()).toBe(false);
   });
 
-  it('persistiert individuelles Fragen-Zeitlimit mit Debounce', () => {
-    vi.useFakeTimers();
+  it('verwirft beim Zurueck-Navigieren offene Inline-Aenderungen statt sie implizit zu speichern', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    mockRoute.snapshot.queryParamMap = convertToParamMap({ returnTo: 'edit' });
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+    component.backToOrigin();
+
+    expect(mockStore.updateQuestion).not.toHaveBeenCalled();
+    expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalled();
+    expect(component.inlineEditMode()).toBe(false);
+  });
+
+  it('verwirft beim Fragewechsel offene Inline-Aenderungen statt sie implizit zu speichern', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
     component.enterInlineEditMode();
-    component.onInlineQuestionTimerInheritChange(false);
-    component.onInlineQuestionTimerSecondsChange(45);
-    vi.advanceTimersByTime(220);
+    component.onQuestionDraftChanged('Neue Frage');
+    component.nextQuestion();
+
+    expect(mockStore.updateQuestion).not.toHaveBeenCalled();
+    expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
+    expect(component.currentIndex()).toBe(1);
+    expect(component.inlineEditMode()).toBe(false);
+  });
+
+  it('speichert lokale Korrektheits-Toggles erst nach Speichern', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    component.currentIndex.set(1);
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.toggleCorrectAnswer(1);
+
+    expect(component.inlineEditHasChanges()).toBe(true);
+    expect(mockStore.updateQuestion).not.toHaveBeenCalled();
+
+    component.finishInlineEditMode();
 
     expect(mockStore.updateQuestion).toHaveBeenCalledWith(
       QUIZ_ID,
-      'f8be4e5d-2c03-4f9b-8d63-b9668212f3ea',
-      expect.objectContaining({ timer: 45 }),
+      'ef2d6b11-6389-4f2d-b9d7-9a6ad86ee91f',
+      expect.objectContaining({
+        answers: [
+          expect.objectContaining({ isCorrect: false }),
+          expect.objectContaining({ isCorrect: true }),
+        ],
+      }),
     );
   });
 
@@ -302,5 +349,49 @@ describe('QuizPreviewComponent', () => {
     expect(component.inlineEditMode()).toBe(false);
     component.onKeydown(new KeyboardEvent('keydown', { key: 'e' }));
     expect(component.inlineEditMode()).toBe(true);
+  });
+
+  it('aktiviert den Save-Button im Preview-Editor erst nach einer Aenderung', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    fixture.detectChanges();
+
+    const saveButton = fixture.nativeElement.querySelector(
+      '.quiz-preview-editor__actions button[matbutton="filled"], .quiz-preview-editor__actions button:last-child',
+    ) as HTMLButtonElement | null;
+
+    expect(saveButton).not.toBeNull();
+    expect(component.inlineEditHasChanges()).toBe(false);
+    expect(saveButton?.disabled).toBe(true);
+
+    component.onQuestionDraftChanged('Neue Frage');
+    fixture.detectChanges();
+
+    expect(component.inlineEditHasChanges()).toBe(true);
+    expect(saveButton?.disabled).toBe(false);
+  });
+
+  it('deaktiviert den Save-Button wieder, wenn der Draft dem Ausgangszustand entspricht', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const originalText = component.currentQuestion()?.text ?? '';
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+    fixture.detectChanges();
+
+    component.onQuestionDraftChanged(originalText);
+    fixture.detectChanges();
+
+    const saveButton = fixture.nativeElement.querySelector(
+      '.quiz-preview-editor__actions button[matbutton="filled"], .quiz-preview-editor__actions button:last-child',
+    ) as HTMLButtonElement | null;
+
+    expect(component.inlineEditHasChanges()).toBe(false);
+    expect(saveButton?.disabled).toBe(true);
   });
 });

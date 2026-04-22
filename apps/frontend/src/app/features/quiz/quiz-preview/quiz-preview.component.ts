@@ -88,7 +88,6 @@ export class QuizPreviewComponent implements OnDestroy {
   private readonly quizStore = inject(QuizStoreService);
   private readonly injector = inject(Injector);
   private readonly platformId = inject(PLATFORM_ID);
-  private persistTimer: ReturnType<typeof setTimeout> | null = null;
   private animationTimer: ReturnType<typeof setTimeout> | null = null;
   private touchStartX: number | null = null;
 
@@ -97,6 +96,7 @@ export class QuizPreviewComponent implements OnDestroy {
   readonly inlineEditMode = signal(false);
   readonly questionDraftText = signal('');
   readonly answerDraftTexts = signal<string[]>([]);
+  readonly answerDraftCorrectFlags = signal<boolean[]>([]);
   readonly originalQuestionSnapshot = signal<AddQuizQuestionInput | null>(null);
   /** Wert beim Eintritt in den Inline-Edit (für Abbrechen); `undefined` = keine aktive Sitzung. */
   readonly quizDefaultTimerAtEditStart = signal<number | null | undefined>(undefined);
@@ -116,6 +116,49 @@ export class QuizPreviewComponent implements OnDestroy {
     return [...quiz.questions].filter((q) => q.enabled !== false).sort((a, b) => a.order - b.order);
   });
   readonly currentQuestion = computed(() => this.questions()[this.currentIndex()] ?? null);
+  readonly inlineEditHasChanges = computed(() => {
+    const original = this.originalQuestionSnapshot();
+    if (!original || !this.inlineEditMode()) return false;
+
+    if (this.questionDraftText() !== original.text) {
+      return true;
+    }
+
+    const defaultAtStart = this.quizDefaultTimerAtEditStart();
+    if (defaultAtStart !== undefined && this.inlineQuizDefaultTimerDraft() !== defaultAtStart) {
+      return true;
+    }
+
+    if (this.inlineQuestionTimerDraft() !== (original.timer ?? null)) {
+      return true;
+    }
+
+    const answerDrafts = this.answerDraftTexts();
+    const answerDraftCorrectFlags = this.answerDraftCorrectFlags();
+    const currentAnswers = this.currentQuestion()?.answers ?? [];
+    const originalAnswers = original.answers ?? [];
+    const answerCount = Math.max(
+      answerDrafts.length,
+      currentAnswers.length,
+      originalAnswers.length,
+    );
+
+    for (let index = 0; index < answerCount; index += 1) {
+      const originalAnswer = originalAnswers[index];
+      const currentAnswer = currentAnswers[index];
+      if ((answerDrafts[index] ?? '') !== (originalAnswer?.text ?? '')) {
+        return true;
+      }
+      if (
+        (answerDraftCorrectFlags[index] ?? currentAnswer?.isCorrect ?? false) !==
+        (originalAnswer?.isCorrect ?? false)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  });
   readonly animatedCurrentQuestion = computed(() => {
     const question = this.currentQuestion();
     if (!question) return [];
@@ -180,7 +223,14 @@ export class QuizPreviewComponent implements OnDestroy {
         question.type === 'SURVEY') &&
       question.answers.length < 2;
 
-    const correctCount = question.answers.filter((answer) => answer.isCorrect).length;
+    const validationAnswers =
+      this.inlineEditMode() && this.questionTypeHasCorrectAnswers(question.type)
+        ? question.answers.map((answer, index) => ({
+            ...answer,
+            isCorrect: this.answerDraftCorrectFlags()[index] ?? answer.isCorrect,
+          }))
+        : question.answers;
+    const correctCount = validationAnswers.filter((answer) => answer.isCorrect).length;
     const needsCorrectAnswer =
       (question.type === 'SINGLE_CHOICE' && correctCount !== 1) ||
       (question.type === 'MULTIPLE_CHOICE' && correctCount < 1);
@@ -210,10 +260,6 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.persistTimer) {
-      clearTimeout(this.persistTimer);
-      this.persistTimer = null;
-    }
     if (this.animationTimer) {
       clearTimeout(this.animationTimer);
       this.animationTimer = null;
@@ -225,7 +271,9 @@ export class QuizPreviewComponent implements OnDestroy {
     if (total === 0) return;
     const nextIndex = Math.min(this.currentIndex() + 1, total - 1);
     if (nextIndex === this.currentIndex()) return;
-    this.commitInlineEdits();
+    if (this.inlineEditMode()) {
+      this.cancelInlineEditMode();
+    }
     this.currentIndex.set(nextIndex);
     this.triggerSwipeAnimation('left');
   }
@@ -233,7 +281,9 @@ export class QuizPreviewComponent implements OnDestroy {
   previousQuestion(): void {
     const previousIndex = Math.max(this.currentIndex() - 1, 0);
     if (previousIndex === this.currentIndex()) return;
-    this.commitInlineEdits();
+    if (this.inlineEditMode()) {
+      this.cancelInlineEditMode();
+    }
     this.currentIndex.set(previousIndex);
     this.triggerSwipeAnimation('right');
   }
@@ -243,7 +293,9 @@ export class QuizPreviewComponent implements OnDestroy {
     if (index < 0 || index >= total) return;
     const currentIndex = this.currentIndex();
     if (index === currentIndex) return;
-    this.commitInlineEdits();
+    if (this.inlineEditMode()) {
+      this.cancelInlineEditMode();
+    }
     this.currentIndex.set(index);
     this.triggerSwipeAnimation(index > currentIndex ? 'left' : 'right');
   }
@@ -263,7 +315,9 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   backToOrigin(): void {
-    this.commitInlineEdits();
+    if (this.inlineEditMode()) {
+      this.cancelInlineEditMode();
+    }
     const returnTo = this.route.snapshot.queryParamMap.get('returnTo');
 
     if (returnTo === 'list') {
@@ -302,6 +356,7 @@ export class QuizPreviewComponent implements OnDestroy {
     this.inlineQuestionTimerDraft.set(question.timer);
     this.questionDraftText.set(question.text);
     this.answerDraftTexts.set(question.answers.map((answer) => answer.text));
+    this.answerDraftCorrectFlags.set(question.answers.map((answer) => answer.isCorrect));
     this.inlineEditMode.set(true);
     this.scrollInlineEditorIntoView();
   }
@@ -397,16 +452,6 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   cancelInlineEditMode(): void {
-    const original = this.originalQuestionSnapshot();
-    const question = this.currentQuestion();
-    if (original && question) {
-      this.quizStore.updateQuestion(this.id, question.id, original);
-    }
-    const doc = this.quiz();
-    const defaultAtStart = this.quizDefaultTimerAtEditStart();
-    if (doc && defaultAtStart !== undefined && doc.settings.defaultTimer !== defaultAtStart) {
-      this.quizStore.updateQuizSettings(this.id, { defaultTimer: defaultAtStart });
-    }
     this.resetInlineEditState();
   }
 
@@ -416,41 +461,36 @@ export class QuizPreviewComponent implements OnDestroy {
 
   onQuestionDraftChanged(value: string): void {
     this.questionDraftText.set(value);
-    this.schedulePersistInlineEdits();
   }
 
   onAnswerDraftChanged(index: number, value: string): void {
     this.answerDraftTexts.update((current) =>
       current.map((entry, currentIndex) => (currentIndex === index ? value : entry)),
     );
-    this.schedulePersistInlineEdits();
   }
 
   toggleCorrectAnswer(index: number): void {
     const question = this.currentQuestion();
-    if (!question || !this.questionTypeHasCorrectAnswers(question.type)) return;
+    if (!question || !this.questionTypeHasCorrectAnswers(question.type) || !this.inlineEditMode()) {
+      return;
+    }
 
-    const updatedAnswers = question.answers.map((answer, currentIndex) => {
-      if (question.type === 'SINGLE_CHOICE') {
-        return { text: answer.text, isCorrect: currentIndex === index };
-      }
-      if (currentIndex === index) {
-        return { text: answer.text, isCorrect: !answer.isCorrect };
-      }
-      return { text: answer.text, isCorrect: answer.isCorrect };
-    });
+    this.answerDraftCorrectFlags.update((current) =>
+      current.map((isCorrect, currentIndex) => {
+        if (question.type === 'SINGLE_CHOICE') {
+          return currentIndex === index;
+        }
+        if (currentIndex === index) {
+          return !isCorrect;
+        }
+        return isCorrect;
+      }),
+    );
+  }
 
-    this.quizStore.updateQuestion(this.id, question.id, {
-      text: this.inlineEditMode() ? this.questionDraftText() : question.text,
-      type: question.type,
-      difficulty: question.difficulty,
-      timer: this.inlineEditMode() ? this.inlineQuestionTimerDraft() : question.timer,
-      answers: updatedAnswers,
-      ratingMin: question.ratingMin,
-      ratingMax: question.ratingMax,
-      ratingLabelMin: question.ratingLabelMin,
-      ratingLabelMax: question.ratingLabelMax,
-    });
+  draftAnswerIsCorrect(index: number): boolean {
+    const currentAnswer = this.currentQuestion()?.answers[index];
+    return this.answerDraftCorrectFlags()[index] ?? currentAnswer?.isCorrect ?? false;
   }
 
   onTouchStart(event: TouchEvent): void {
@@ -519,9 +559,7 @@ export class QuizPreviewComponent implements OnDestroy {
     }
     if (key === 'e') {
       event.preventDefault();
-      if (this.inlineEditMode()) {
-        this.commitInlineEdits();
-      } else {
+      if (!this.inlineEditMode()) {
         this.enterInlineEditMode();
       }
       return;
@@ -605,17 +643,6 @@ export class QuizPreviewComponent implements OnDestroy {
     return Array.from({ length: to - from + 1 }, (_, index) => from + index);
   }
 
-  private schedulePersistInlineEdits(): void {
-    if (!this.inlineEditMode()) return;
-    if (this.persistTimer) {
-      clearTimeout(this.persistTimer);
-    }
-    this.persistTimer = setTimeout(() => {
-      this.persistInlineEditsNow();
-      this.persistTimer = null;
-    }, 200);
-  }
-
   private persistInlineEditsNow(): void {
     const question = this.currentQuestion();
     const doc = this.quiz();
@@ -628,7 +655,7 @@ export class QuizPreviewComponent implements OnDestroy {
 
     const answers = question.answers.map((answer, index) => ({
       text: this.answerDraftTexts()[index] ?? answer.text,
-      isCorrect: answer.isCorrect,
+      isCorrect: this.answerDraftCorrectFlags()[index] ?? answer.isCorrect,
     }));
 
     this.quizStore.updateQuestion(this.id, question.id, {
@@ -646,10 +673,6 @@ export class QuizPreviewComponent implements OnDestroy {
 
   private commitInlineEdits(): void {
     if (!this.inlineEditMode()) return;
-    if (this.persistTimer) {
-      clearTimeout(this.persistTimer);
-      this.persistTimer = null;
-    }
     this.persistInlineEditsNow();
     this.resetInlineEditState();
   }
@@ -660,6 +683,9 @@ export class QuizPreviewComponent implements OnDestroy {
     this.quizDefaultTimerAtEditStart.set(undefined);
     this.inlineQuizDefaultTimerDraft.set(null);
     this.inlineQuestionTimerDraft.set(null);
+    this.questionDraftText.set('');
+    this.answerDraftTexts.set([]);
+    this.answerDraftCorrectFlags.set([]);
   }
 
   inlineGlobalTimerEnabled(): boolean {
@@ -672,12 +698,10 @@ export class QuizPreviewComponent implements OnDestroy {
     } else {
       this.inlineQuizDefaultTimerDraft.set(null);
     }
-    this.schedulePersistInlineEdits();
   }
 
   onInlineGlobalTimerSecondsChange(seconds: number): void {
     this.inlineQuizDefaultTimerDraft.set(seconds);
-    this.schedulePersistInlineEdits();
   }
 
   inlinePreviewDefaultTimerSelectOptions(): number[] {
@@ -701,12 +725,10 @@ export class QuizPreviewComponent implements OnDestroy {
         this.inlineQuestionTimerDraft.set(fallback);
       }
     }
-    this.schedulePersistInlineEdits();
   }
 
   onInlineQuestionTimerSecondsChange(seconds: number): void {
     this.inlineQuestionTimerDraft.set(seconds);
-    this.schedulePersistInlineEdits();
   }
 
   inlinePreviewQuestionTimerSelectOptions(): number[] {
