@@ -25,11 +25,11 @@
       },
       "architect": {
         "build": {
-          "builder": "@angular/build:application",
+          "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist",
+            "outputPath": "dist/browser",
             "index": "src/index.html",
-            "browser": "src/main.ts",
+            "main": "src/main.ts",
             "polyfills": ["@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -49,35 +49,31 @@
             "styles": ["src/styles.scss"],
             "scripts": [],
             "inlineStyleLanguage": "scss",
-            "server": "src/main.server.ts",
-            "outputMode": "static",
-            "security": {
-              "allowedHosts": []
-            },
-            "ssr": {
-              "entry": "src/server.ts"
-            },
             "i18nMissingTranslation": "warning"
           },
           "configurations": {
             "production": {
+              "localize": true,
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1.45MB",
-                  "maximumError": "1.60MB"
+                  "maximumWarning": "1.55MB",
+                  "maximumError": "1.70MB"
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json"
+              "serviceWorker": true,
+              "ngswConfigPath": "ngsw-config.json"
             },
             "development": {
               "optimization": false,
+              "buildOptimizer": false,
               "extractLicenses": false,
               "sourceMap": true
             },
             "development-en": {
               "optimization": false,
+              "buildOptimizer": false,
               "extractLicenses": false,
               "sourceMap": true,
               "localize": ["en"]
@@ -85,8 +81,51 @@
           },
           "defaultConfiguration": "development"
         },
+        "server": {
+          "builder": "@angular-devkit/build-angular:server",
+          "options": {
+            "outputPath": "dist/server",
+            "main": "src/main.server.ts",
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "i18nMissingTranslation": "warning"
+          },
+          "configurations": {
+            "production": {
+              "localize": true,
+              "outputHashing": "media"
+            },
+            "development": {
+              "optimization": false,
+              "buildOptimizer": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "development-en": {
+              "optimization": false,
+              "buildOptimizer": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "localize": ["en"]
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "prerender": {
+          "builder": "@angular-devkit/build-angular:prerender",
+          "options": {
+            "browserTarget": "frontend:build:production",
+            "serverTarget": "frontend:server:production",
+            "routes": ["/", "/help", "/news-archive", "/quiz", "/legal/imprint", "/legal/privacy"],
+            "discoverRoutes": false
+          },
+          "configurations": {
+            "production": {}
+          },
+          "defaultConfiguration": "production"
+        },
         "serve": {
-          "builder": "@angular/build:dev-server",
+          "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "proxyConfig": "proxy.conf.json"
           },

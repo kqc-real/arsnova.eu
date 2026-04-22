@@ -11,9 +11,6 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
-import * as Y from 'yjs';
-import { IndexeddbPersistence } from 'y-indexeddb';
-import { WebsocketProvider } from 'y-websocket';
 import {
   AddQuestionInputSchema,
   CreateQuizInputSchema,
@@ -253,6 +250,14 @@ interface SyncClientPresence {
   browserLabel: string;
 }
 
+type YDoc = import('yjs').Doc;
+type YMapDoc<T> = import('yjs').Map<T>;
+type YjsModule = typeof import('yjs');
+type IndexedDbPersistenceCtor = typeof import('y-indexeddb').IndexeddbPersistence;
+type IndexedDbPersistenceInstance = import('y-indexeddb').IndexeddbPersistence;
+type WebsocketProviderCtor = typeof import('y-websocket').WebsocketProvider;
+type WebsocketProviderInstance = import('y-websocket').WebsocketProvider;
+
 export interface SyncPeerInfo {
   deviceId: string;
   deviceLabel: string;
@@ -457,10 +462,14 @@ export class QuizStoreService implements OnDestroy {
   readonly currentDeviceLabel = signal('Dieses Gerät');
   readonly currentBrowserLabel = signal('');
   readonly syncPeerInfos = signal<SyncPeerInfo[]>([]);
-  private yDoc: Y.Doc | null = null;
-  private yRoot: Y.Map<string> | null = null;
-  private yPersistence: IndexeddbPersistence | null = null;
-  private yProvider: WebsocketProvider | null = null;
+  private yDoc: YDoc | null = null;
+  private yRoot: YMapDoc<string> | null = null;
+  private yPersistence: IndexedDbPersistenceInstance | null = null;
+  private yProvider: WebsocketProviderInstance | null = null;
+  private yjsModulePromise: Promise<YjsModule> | null = null;
+  private indexedDbPersistencePromise: Promise<IndexedDbPersistenceCtor> | null = null;
+  private websocketProviderPromise: Promise<WebsocketProviderCtor> | null = null;
+  private yjsInitGeneration = 0;
   private isApplyingYjsSnapshot = false;
   private hasStoredSyncRoomId = false;
   private lastSerializedQuizDocuments = '[]';
@@ -504,7 +513,7 @@ export class QuizStoreService implements OnDestroy {
     this.loadSyncMetadata(roomId);
     this.loadFromStorage(roomId, !this.hasStoredSyncRoomId);
     this.ensureDemoQuiz();
-    this.initYjsPersistence(roomId);
+    void this.initYjsPersistence(roomId);
     if (isPlatformBrowser(this.platformId)) {
       globalThis.addEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
       // Demo-Quiz-Sprache an URL-Segment koppeln (/de/quiz → /en/quiz ohne Reload).
@@ -1248,7 +1257,7 @@ export class QuizStoreService implements OnDestroy {
     }
     if (this.syncRoomId() === normalizedRoomId) {
       if (options?.markShared) {
-        this.attachYjsWebSocketProviderIfNeeded();
+        void this.attachYjsWebSocketProviderIfNeeded();
       }
       if (shouldRegisterOrigin) {
         this.recordSyncOriginIfMissing();
@@ -1265,7 +1274,7 @@ export class QuizStoreService implements OnDestroy {
     }
 
     this.loadFromStorage(normalizedRoomId, false);
-    this.initYjsPersistence(normalizedRoomId);
+    void this.initYjsPersistence(normalizedRoomId);
   }
 
   /**
@@ -1286,7 +1295,7 @@ export class QuizStoreService implements OnDestroy {
     this.persistLocalMirror(serialized);
     this.updateSerializedQuizCache(newLocalRoomId, serialized);
     this.ensureDemoQuiz();
-    this.initYjsPersistence(newLocalRoomId);
+    void this.initYjsPersistence(newLocalRoomId);
   }
 
   private loadFromStorage(roomId: string, allowLegacyFallback: boolean): void {
@@ -1343,30 +1352,50 @@ export class QuizStoreService implements OnDestroy {
     }
   }
 
-  private initYjsPersistence(roomId: string): void {
+  private async initYjsPersistence(roomId: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    const generation = ++this.yjsInitGeneration;
+
     try {
-      this.yDoc = new Y.Doc();
-      this.yRoot = this.yDoc.getMap<string>('quiz-library');
-      this.yRoot.observe(this.onYjsRootChanged);
+      const Y = await this.loadYjsModule();
+      if (!this.canUseYjsSetupResult(generation, roomId)) return;
+
+      const yDoc = new Y.Doc();
+      const yRoot = yDoc.getMap<string>('quiz-library');
+      yRoot.observe(this.onYjsRootChanged);
+      this.yDoc = yDoc;
+      this.yRoot = yRoot;
 
       if (hasIndexedDbSupport()) {
-        this.yPersistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, this.yDoc);
+        const IndexeddbPersistence = await this.loadIndexedDbPersistenceCtor();
+        if (!this.canUseYjsSetupResult(generation, roomId)) {
+          yRoot.unobserve(this.onYjsRootChanged);
+          yDoc.destroy();
+          return;
+        }
+        this.yPersistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, yDoc);
         this.yPersistence.once('synced', () => {
-          this.syncFromYjsOrSeed();
+          if (this.yDoc === yDoc && this.syncRoomId() === roomId) {
+            this.syncFromYjsOrSeed();
+          }
         });
       }
 
-      this.attachYjsWebSocketProviderIfNeeded();
+      await this.attachYjsWebSocketProviderIfNeeded(generation, roomId);
     } catch {
-      this.teardownYjs();
-      this.syncConnectionState.set('disconnected');
+      if (this.canUseYjsSetupResult(generation, roomId)) {
+        this.teardownYjs();
+        this.syncConnectionState.set('disconnected');
+      }
     }
   }
 
   /** Yjs-WebSocket nur bei geteilter Bibliothek – lokal reicht IndexedDB (keine WS-Konsolenfehler ohne Server). */
-  private attachYjsWebSocketProviderIfNeeded(): void {
+  private async attachYjsWebSocketProviderIfNeeded(
+    expectedGeneration = this.yjsInitGeneration,
+    expectedRoomId = this.syncRoomId(),
+  ): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || !this.yDoc || this.yProvider) return;
     if (this.librarySharingMode() !== 'shared') {
       this.syncConnectionState.set('disconnected');
@@ -1384,10 +1413,16 @@ export class QuizStoreService implements OnDestroy {
     }
 
     this.syncConnectionState.set('connecting');
+    const WebsocketProvider = await this.loadWebsocketProviderCtor();
+    if (!this.canUseYjsSetupResult(expectedGeneration, expectedRoomId) || !this.yDoc) {
+      return;
+    }
+
+    const yDoc = this.yDoc;
     this.yProvider = new WebsocketProvider(
       getYjsWsUrl(),
-      `${QUIZ_SYNC_ROOM_PREFIX}${roomId}`,
-      this.yDoc,
+      `${QUIZ_SYNC_ROOM_PREFIX}${expectedRoomId}`,
+      yDoc,
     );
     this.yProvider.awareness.setLocalStateField(
       'syncClient',
@@ -1395,7 +1430,9 @@ export class QuizStoreService implements OnDestroy {
     );
     this.yProvider.awareness.on('change', this.onAwarenessChanged);
     this.yProvider.on('sync', (isSynced: boolean) => {
-      if (isSynced) this.syncFromYjsOrSeed();
+      if (isSynced && this.yDoc === yDoc && this.syncRoomId() === expectedRoomId) {
+        this.syncFromYjsOrSeed();
+      }
     });
     this.yProvider.on('status', ({ status }: { status: SyncConnectionState }) => {
       const nextState =
@@ -1412,6 +1449,7 @@ export class QuizStoreService implements OnDestroy {
   }
 
   private teardownYjs(): void {
+    this.yjsInitGeneration++;
     try {
       this.yRoot?.unobserve(this.onYjsRootChanged);
     } catch {
@@ -1430,6 +1468,33 @@ export class QuizStoreService implements OnDestroy {
     this.yRoot = null;
     this.yDoc = null;
     this.syncPeerInfos.set([]);
+  }
+
+  private canUseYjsSetupResult(generation: number, roomId: string): boolean {
+    return (
+      isPlatformBrowser(this.platformId) &&
+      generation === this.yjsInitGeneration &&
+      this.syncRoomId() === roomId
+    );
+  }
+
+  private loadYjsModule(): Promise<YjsModule> {
+    this.yjsModulePromise ??= import('yjs');
+    return this.yjsModulePromise;
+  }
+
+  private loadIndexedDbPersistenceCtor(): Promise<IndexedDbPersistenceCtor> {
+    this.indexedDbPersistencePromise ??= import('y-indexeddb').then(
+      (module) => module.IndexeddbPersistence,
+    );
+    return this.indexedDbPersistencePromise;
+  }
+
+  private loadWebsocketProviderCtor(): Promise<WebsocketProviderCtor> {
+    this.websocketProviderPromise ??= import('y-websocket').then(
+      (module) => module.WebsocketProvider,
+    );
+    return this.websocketProviderPromise;
   }
 
   private syncFromYjsOrSeed(): void {

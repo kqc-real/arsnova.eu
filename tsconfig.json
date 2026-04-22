@@ -18,7 +18,7 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@arsnova/shared-types": ["libs/shared-types/src/index.ts"],
+      "@arsnova/shared-types": ["libs/shared-types/src/index.workspace.ts"],
       "@arsnova/api": ["apps/backend/src/routers/index.ts"]
     }
   },

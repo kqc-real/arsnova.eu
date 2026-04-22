@@ -33,7 +33,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@arsnova/shared-types': path.resolve(projectRoot, '../../libs/shared-types/src/index.ts'),
+      '@arsnova/shared-types': path.resolve(
+        projectRoot,
+        '../../libs/shared-types/src/index.workspace.ts',
+      ),
     },
   },
   optimizeDeps: {
