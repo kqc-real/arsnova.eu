@@ -66,6 +66,78 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.html).not.toContain('<img ');
     expect(result.html).not.toContain('src="/assets/demo/x.svg"');
   });
+
+  it('erlaubt im lockeren Bildmodus Loopback-HTTP-Bildquellen fuer lokale Vorschauen', () => {
+    const result = renderMarkdownWithKatex('![Demo](http://localhost:4200/assets/demo/x.svg)', {
+      imagePolicy: 'allow-relative-and-https',
+    });
+
+    expect(result.html).toContain('<img');
+    expect(result.html).toContain('src="http://localhost:4200/assets/demo/x.svg"');
+  });
+
+  it('setzt fuer externe Bilder kompatible Ladeattribute', () => {
+    const result = renderMarkdownWithKatex(
+      '![Demo](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)',
+      { imagePolicy: 'allow-relative-and-https' },
+    );
+
+    expect(result.html).toContain('loading="eager"');
+    expect(result.html).toContain('decoding="async"');
+    expect(result.html).toContain('crossorigin="anonymous"');
+    expect(result.html).toContain('referrerpolicy="no-referrer"');
+  });
+
+  it('erlaubt im lockeren Bildmodus Blob-Bildquellen fuer lokale Vorschauen', () => {
+    const result = renderMarkdownWithKatex('![Demo](blob:http://localhost:4200/preview-image)', {
+      imagePolicy: 'allow-relative-and-https',
+    });
+
+    expect(result.html).toContain('<img');
+    expect(result.html).toContain('src="blob:http://localhost:4200/preview-image"');
+  });
+
+  it('erlaubt im lockeren Bildmodus sichere data-image-Quellen fuer lokale Vorschauen', () => {
+    const result = renderMarkdownWithKatex(
+      '![Pixel](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4//8/AwAI/AL+KDv0WQAAAABJRU5ErkJggg==)',
+      {
+        imagePolicy: 'allow-relative-and-https',
+      },
+    );
+
+    expect(result.html).toContain('<img');
+    expect(result.html).toContain('src="data:image/png;base64,');
+  });
+
+  it('ersetzt bekannte Emoji-Shortcodes in normalem Markdown-Text', () => {
+    const result = renderMarkdownWithKatex('Los :rocket: **Apfel :apple:**');
+
+    expect(result.html).toContain('Los <span class="markdown-emoji" title=":rocket:">🚀</span>');
+    expect(result.html).toContain(
+      '<strong>Apfel <span class="markdown-emoji" title=":apple:">🍎</span></strong>',
+    );
+  });
+
+  it('nutzt die vollständige Emoji-Datenquelle auch für bislang ungemappte Shortcodes', () => {
+    const result = renderMarkdownWithKatex('Gesicht :grinning: Zustimmung :+1:');
+
+    expect(result.html).toContain(
+      'Gesicht <span class="markdown-emoji" title=":grinning:">😀</span>',
+    );
+    expect(result.html).toContain('Zustimmung <span class="markdown-emoji" title=":+1:">👍</span>');
+  });
+
+  it('ersetzt Emoji-Shortcodes nicht in Inline-Code oder Link-Zielen', () => {
+    const result = renderMarkdownWithKatex(
+      '[Start :rocket:](https://example.org/:apple:) `:apple:`',
+    );
+
+    expect(result.html).toContain(
+      '>Start <span class="markdown-emoji" title=":rocket:">🚀</span></a>',
+    );
+    expect(result.html).toContain('href="https://example.org/:apple:"');
+    expect(result.html).toContain('<code>:apple:</code>');
+  });
 });
 
 describe('renderMarkdownWithoutKatex', () => {
@@ -153,6 +225,39 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).not.toContain('src="http://arsnova.eu/banner.png"');
     expect(html).not.toContain('<img ');
     expect(html).toContain('unsicher');
+  });
+
+  it('erlaubt lokale Loopback-HTTP-Bildquellen weiterhin im lockeren Bildmodus', () => {
+    const html = renderMarkdownWithoutKatex('![lokal](http://127.0.0.1:4200/banner.png)');
+
+    expect(html).toContain('<img');
+    expect(html).toContain('src="http://127.0.0.1:4200/banner.png"');
+  });
+
+  it('erlaubt Blob-Bildquellen im lockeren Bildmodus', () => {
+    const html = renderMarkdownWithoutKatex('![lokal](blob:http://localhost:4200/banner)');
+
+    expect(html).toContain('<img');
+    expect(html).toContain('src="blob:http://localhost:4200/banner"');
+  });
+
+  it('blockiert unsichere data-URLs ausserhalb sicherer Bildformate', () => {
+    const html = renderMarkdownWithoutKatex(
+      '![x](data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==)',
+    );
+
+    expect(html).toContain('<p>x</p>');
+    expect(html).not.toContain('<img ');
+  });
+
+  it('ersetzt Emoji-Shortcodes nur in sichtbarem Text, nicht in Bild-Alttexten', () => {
+    const html = renderMarkdownWithoutKatex(
+      'Text :bulb: ![Alt :apple:](https://example.org/x.svg)',
+    );
+
+    expect(html).toContain('Text <span class="markdown-emoji" title=":bulb:">💡</span>');
+    expect(html).toContain('alt="Alt :apple:"');
+    expect(html).toContain('title="Alt :apple:"');
   });
 
   it('absolutizeMarkdownHtmlRootAssetImgSrc setzt MOTD-Banner auf volle Origin-URL', () => {

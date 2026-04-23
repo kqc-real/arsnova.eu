@@ -688,7 +688,10 @@
                 }}</span>
               }
             </p>
-            <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
+            <div
+              class="vote-question__text markdown-body"
+              [innerHTML]="renderMarkdown(q.text)"
+            ></div>
             <div class="vote-reading-banner" role="status" aria-live="polite">
               <mat-icon class="vote-reading-banner__icon" aria-hidden="true">menu_book</mat-icon>
               <p class="vote-reading-banner__title">
@@ -709,7 +712,10 @@
                 }}</span>
               }
             </p>
-            <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
+            <div
+              class="vote-question__text markdown-body"
+              [innerHTML]="renderMarkdown(q.text)"
+            ></div>
           </div>
           <div class="vote-discussion" role="status" aria-live="polite">
             <div class="vote-discussion__icon-ring">
@@ -756,7 +762,10 @@
                 </span>
               }
             </div>
-            <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
+            <div
+              class="vote-question__text markdown-body"
+              [innerHTML]="renderMarkdown(q.text)"
+            ></div>
           </div>
 
           @if (timeoutMessage() && !voteSent()) {
@@ -796,7 +805,10 @@
                       <span class="vote-answer__shape">{{ getShape(i) }}</span>
                       <span class="vote-answer__letter">{{ getLetter(i) }}</span>
                     </span>
-                    <span class="vote-answer__text" [innerHTML]="renderMarkdown(a.text)"></span>
+                    <span
+                      class="vote-answer__text markdown-body"
+                      [innerHTML]="renderMarkdown(a.text)"
+                    ></span>
                     @if (isRevealed) {
                       @if (a.isCorrect) {
                         <mat-icon class="vote-answer__icon vote-answer__icon--correct"
@@ -1367,7 +1379,7 @@
                       }
                     </div>
                     <div
-                      class="session-qa-card__text"
+                      class="session-qa-card__text markdown-body"
                       [innerHTML]="renderMarkdown(question.text)"
                     ></div>
                     <span class="session-qa-card__time">{{

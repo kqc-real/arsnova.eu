@@ -42,7 +42,7 @@
           </a>
         </mat-card-content>
       </mat-card>
-    } @else if (currentQuestion(); as question) {
+    } @else if (displayedQuestion(); as question) {
       @for (slide of animatedCurrentQuestion(); track slide.key) {
         <mat-card
           appearance="outlined"
@@ -87,7 +87,7 @@
               </p>
             </div>
             <div
-              class="quiz-preview-question__text"
+              class="quiz-preview-question__text markdown-body"
               [innerHTML]="renderMarkdown(slide.question.text)"
             ></div>
             @if (slide.question.type === 'FREETEXT') {
@@ -166,7 +166,7 @@
                       </span>
                     }
                     <span
-                      class="quiz-preview-question__answer-content"
+                      class="quiz-preview-question__answer-content markdown-body"
                       [innerHTML]="renderMarkdown(answer.text)"
                     ></span>
                   </li>

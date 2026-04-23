@@ -861,7 +861,7 @@
                     </mat-card-subtitle>
                     <mat-card-title class="session-host__question-title">
                       <span
-                        class="session-host__question-title-inner"
+                        class="session-host__question-title-inner markdown-body"
                         [innerHTML]="renderMarkdown(q.text)"
                       ></span>
                     </mat-card-title>
@@ -1072,7 +1072,7 @@
                                       }}</span>
                                     </span>
                                     <span
-                                      class="session-host__round-comparison-text session-host__rich-text"
+                                      class="session-host__round-comparison-text session-host__rich-text markdown-body"
                                       [innerHTML]="renderMarkdown(a.text)"
                                     ></span>
                                     @if (a.isCorrect && q.type !== 'SURVEY') {
@@ -1213,7 +1213,7 @@
                                       }}</span>
                                     </span>
                                     <span
-                                      class="session-host__vote-dist-text session-host__rich-text"
+                                      class="session-host__vote-dist-text session-host__rich-text markdown-body"
                                       [innerHTML]="renderMarkdown(a.text)"
                                     ></span>
                                     @if (a.isCorrect && q.type !== 'SURVEY') {
@@ -1322,7 +1322,7 @@
                                   }}</span>
                                 </span>
                                 <span
-                                  class="session-host__answer-text session-host__rich-text"
+                                  class="session-host__answer-text session-host__rich-text markdown-body"
                                   [innerHTML]="renderMarkdown(a.text)"
                                 ></span>
                                 @if (effectiveStatus() === 'RESULTS' && a.isCorrect) {
@@ -1855,7 +1855,7 @@
                         </span>
                       </div>
                       <div
-                        class="session-qa-card__text"
+                        class="session-qa-card__text markdown-body"
                         [innerHTML]="renderMarkdown(question.text)"
                       ></div>
                       <div class="session-qa-card__meta">

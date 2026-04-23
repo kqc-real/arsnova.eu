@@ -748,7 +748,7 @@
             <div class="quiz-edit-form__preview-block">
               <p class="quiz-edit-form__preview-label" i18n>Frage</p>
               <div
-                class="quiz-edit-form__preview-content"
+                class="quiz-edit-form__preview-content markdown-body"
                 [innerHTML]="questionPreviewHtml()"
               ></div>
             </div>
@@ -757,7 +757,7 @@
                 <p class="quiz-edit-form__preview-label" i18n="@@quizEdit.livePreviewAnswersLabel">
                   Antworten
                 </p>
-                <ol class="quiz-edit-form__preview-answers">
+                <ol class="quiz-edit-form__preview-answers markdown-body">
                   @for (answerHtml of answerPreviewHtml(); track $index) {
                     <li [innerHTML]="answerHtml"></li>
                   }
@@ -924,7 +924,7 @@
                     </div>
                   } @else if (isQuestionExpanded(question.id)) {
                     <div
-                      class="quiz-edit-question__text"
+                      class="quiz-edit-question__text markdown-body"
                       [innerHTML]="renderMarkdown(question.text)"
                     ></div>
 
@@ -994,7 +994,7 @@
                               </mat-icon>
                             }
                             <span
-                              class="quiz-edit-question__answer-text"
+                              class="quiz-edit-question__answer-text markdown-body"
                               [innerHTML]="renderMarkdown(answer.text)"
                             ></span>
                           </li>

@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 
 import { renderMarkdownCodeBlockHtml } from './markdown-code-highlight';
+import { MARKDOWN_EMOJI_SHORTCODE_MAP } from './markdown-emoji-shortcodes';
 
 export interface MarkdownRenderResult {
   html: string;
@@ -10,6 +11,10 @@ export interface MarkdownRenderResult {
 }
 
 export type MarkdownImagePolicy = 'external-https-only' | 'allow-relative-and-https';
+
+const MARKDOWN_EMOJI_SHORTCODES = new Map(Object.entries(MARKDOWN_EMOJI_SHORTCODE_MAP));
+
+const EMOJI_SHORTCODE_PATTERN = /:([a-z0-9_+-]+):/gi;
 
 /**
  * Bereinigt typische Nutzer-/Escape-Artefakte vor KaTeX.
@@ -69,7 +74,8 @@ export function renderMarkdownWithKatex(
 
   const markdownHtml = parseMarkdownEscapingInlineHtml(withInlineMath, {
     // Quiz-/Session-Inhalte sollen standardmäßig nur HTTPS-Bilder akzeptieren.
-    // Relative Asset-Pfade bleiben eine explizite Ausnahme für Demo-/Systeminhalte.
+    // Relative Asset-Pfade bleiben eine explizite Ausnahme für Demo-/Systeminhalte;
+    // im lockeren Modus sind in Dev zusätzlich Loopback-HTTP-Bilder erlaubt.
     imagePolicy: options?.imagePolicy ?? 'external-https-only',
   });
   const html = renderedMath.reduce(
@@ -86,6 +92,7 @@ function parseMarkdownEscapingInlineHtml(
   const renderer = new marked.Renderer();
   renderer.code = (token) => renderMarkdownCodeBlockHtml(token);
   renderer.html = ({ text }) => escapeHtml(text);
+  renderer.text = ({ text }) => renderMarkdownText(text);
   renderer.link = ({ href, title, text }): string => {
     const safeHref = sanitizeMarkdownUrl(href, 'link');
     if (!safeHref) {
@@ -96,7 +103,8 @@ function parseMarkdownEscapingInlineHtml(
     const titleAttr = hasTitle ? ` title="${escapeHtml(String(title).trim())}"` : '';
     const isExternalHttp = /^https?:\/\//i.test(safeHref);
     const relAttr = isExternalHttp ? ` rel="noopener noreferrer"` : '';
-    return `<a href="${hrefEsc}"${titleAttr}${relAttr}>${text}</a>`;
+    const renderedText = looksLikeRenderedHtml(text) ? text : renderMarkdownText(text);
+    return `<a href="${hrefEsc}"${titleAttr}${relAttr}>${renderedText}</a>`;
   };
   /** `alt` allein löst keinen Hover-Tooltip aus; `title` schon (optional explizit in `![](url "title")`). */
   renderer.image = ({ href, title, text }): string => {
@@ -109,7 +117,7 @@ function parseMarkdownEscapingInlineHtml(
     const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
     const tooltip = hasTitle ? String(title).trim() : text;
     const titleEsc = escapeHtml(tooltip);
-    return `<img src="${hrefEsc}" alt="${altEsc}" title="${titleEsc}" data-markdown-image-lightbox="true" />`;
+    return `<img src="${hrefEsc}" alt="${altEsc}" title="${titleEsc}" loading="eager" decoding="async" crossorigin="anonymous" referrerpolicy="no-referrer" data-markdown-image-lightbox="true" />`;
   };
   return marked.parse(source, { renderer }) as string;
 }
@@ -166,6 +174,31 @@ function mathPlaceholder(index: number): string {
   return `KATEXPLACEHOLDERTOKEN${index}`;
 }
 
+function renderMarkdownText(value: string): string {
+  let html = '';
+  let lastIndex = 0;
+  for (const match of value.matchAll(EMOJI_SHORTCODE_PATTERN)) {
+    const full = match[0];
+    const code = match[1];
+    const index = match.index ?? 0;
+    const emoji = MARKDOWN_EMOJI_SHORTCODES.get(code.toLowerCase());
+    if (!emoji) {
+      continue;
+    }
+
+    html += escapeHtml(value.slice(lastIndex, index));
+    html += `<span class="markdown-emoji" title="${escapeHtml(full)}">${emoji}</span>`;
+    lastIndex = index + full.length;
+  }
+
+  html += escapeHtml(value.slice(lastIndex));
+  return html;
+}
+
+function looksLikeRenderedHtml(value: string): boolean {
+  return /<\/?[a-z][^>]*>/i.test(value);
+}
+
 function sanitizeMarkdownUrl(
   href: string | null | undefined,
   type: 'link' | 'image',
@@ -194,9 +227,49 @@ function sanitizeMarkdownUrl(
   if (!schemeMatch) return null;
 
   const scheme = schemeMatch[1].toLowerCase();
-  const allowedSchemes =
-    type === 'image' ? new Set(['https']) : new Set(['https', 'mailto', 'tel']);
+  if (type === 'image') {
+    if (scheme === 'https') return value;
+    if (
+      scheme === 'http' &&
+      imagePolicy === 'allow-relative-and-https' &&
+      isLoopbackHttpUrl(value)
+    ) {
+      return value;
+    }
+    if (imagePolicy === 'allow-relative-and-https' && scheme === 'blob') {
+      return value;
+    }
+    if (imagePolicy === 'allow-relative-and-https' && isSafeInlineDataImageUrl(value)) {
+      return value;
+    }
+    return null;
+  }
+
+  const allowedSchemes = new Set(['https', 'mailto', 'tel']);
   return allowedSchemes.has(scheme) ? value : null;
+}
+
+function isLoopbackHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'http:') return false;
+
+    const host = url.hostname.toLowerCase();
+    return (
+      host === 'localhost' ||
+      host.endsWith('.localhost') ||
+      host === '127.0.0.1' ||
+      host === '0.0.0.0' ||
+      host === '::1' ||
+      host === '[::1]'
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isSafeInlineDataImageUrl(value: string): boolean {
+  return /^data:image\/(?:png|apng|avif|gif|jpeg|jpg|webp|bmp);base64,[a-z0-9+/=]+$/i.test(value);
 }
 
 function escapeHtml(value: string): string {
@@ -262,6 +335,10 @@ function sanitizeMarkdownHtml(html: string): string {
       'src',
       'alt',
       'data-markdown-image-lightbox',
+      'loading',
+      'decoding',
+      'crossorigin',
+      'referrerpolicy',
       'class',
       'rel',
       'aria-hidden',
@@ -272,5 +349,9 @@ function sanitizeMarkdownHtml(html: string): string {
       // MathML: <math display="block"> …
       'display',
     ],
+    // URL-Policies werden bereits vor dem HTML-Bau im Renderer erzwungen; hier müssen wir nur
+    // verhindern, dass DOMPurify zulässige Preview-Bildquellen wie `blob:` nachträglich entfernt.
+    ALLOWED_URI_REGEXP:
+      /^(?:(?:https?|mailto|tel|blob):|data:image\/(?:png|apng|avif|gif|jpeg|jpg|webp|bmp);base64,|[^a-z]|[a-z+.\-.]+(?:[^a-z+.\-:]|$))/i,
   });
 }

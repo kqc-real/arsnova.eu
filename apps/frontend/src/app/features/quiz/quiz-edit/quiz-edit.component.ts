@@ -527,7 +527,7 @@ export class QuizEditComponent implements OnDestroy {
   renderMarkdown(value: string | null | undefined): SafeHtml {
     const source = value ?? '';
     return this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(source, { imagePolicy: 'external-https-only' }).html,
+      renderMarkdownWithKatex(source, { imagePolicy: 'allow-relative-and-https' }).html,
     );
   }
 
@@ -1252,13 +1252,13 @@ export class QuizEditComponent implements OnDestroy {
 
     this.previewTimer = setTimeout(() => {
       const questionResult = renderMarkdownWithKatex(this.textControl.value, {
-        imagePolicy: 'external-https-only',
+        imagePolicy: 'allow-relative-and-https',
       });
       this.questionPreviewHtml.set(this.sanitizer.bypassSecurityTrustHtml(questionResult.html));
 
       const answerResults = this.answersArray.controls.map((answer) =>
         renderMarkdownWithKatex(answer.controls.text.value, {
-          imagePolicy: 'external-https-only',
+          imagePolicy: 'allow-relative-and-https',
         }),
       );
       this.answerPreviewHtml.set(

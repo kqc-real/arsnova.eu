@@ -37,6 +37,7 @@ import { MotdHeaderStateService } from './core/motd-header-state.service';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
+const DEV_SERVICE_WORKER_RESET_MARKER = 'dev-service-worker-reset-v1';
 const PWA_INSTALL_DISMISSED_DAYS = 7;
 /** Ohne regelmäßige `checkForUpdate()`-Aufrufe feuert `versionUpdates` nicht — Banner erscheint nie. */
 const PWA_UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -213,6 +214,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       });
     if (isPlatformBrowser(this.platformId)) {
+      void this.resetDevServiceWorkerState();
       this.updateRouteFlags();
       this.isOnline.set(navigator.onLine);
       this.startFooterStatsPolling();
@@ -237,6 +239,57 @@ export class AppComponent implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+  }
+
+  /**
+   * Dev-Server auf `localhost` und frühere PWA-/Preview-Server teilen sich dieselbe Origin.
+   * Ein alter ngsw kann deshalb weiterhin alte Chunks oder Responses liefern, obwohl `ng serve`
+   * längst neuen Code baut. Im Dev-Modus räumen wir alte Registrierungen/Caches einmalig weg und
+   * laden danach neu.
+   */
+  private async resetDevServiceWorkerState(): Promise<void> {
+    if (!isDevMode()) return;
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+    if (!('serviceWorker' in navigator)) return;
+    if (!this.isLocalDevHost(window.location.hostname)) return;
+
+    const hadController = !!navigator.serviceWorker.controller;
+    let changed = false;
+
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        changed = (await registration.unregister()) || changed;
+      }
+    } catch {
+      /* ignore */
+    }
+
+    if (typeof caches !== 'undefined') {
+      try {
+        const cacheKeys = await caches.keys();
+        for (const cacheKey of cacheKeys) {
+          changed = (await caches.delete(cacheKey)) || changed;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    if (!changed || !hadController) return;
+
+    try {
+      if (sessionStorage.getItem(DEV_SERVICE_WORKER_RESET_MARKER) === '1') return;
+      sessionStorage.setItem(DEV_SERVICE_WORKER_RESET_MARKER, '1');
+    } catch {
+      /* ignore */
+    }
+
+    window.location.reload();
+  }
+
+  private isLocalDevHost(hostname: string): boolean {
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
   }
 
   ngOnDestroy(): void {

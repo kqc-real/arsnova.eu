@@ -254,6 +254,31 @@ describe('QuizPreviewComponent', () => {
     expect(component.inlineEditMode()).toBe(false);
   });
 
+  it('rendert relative Bilder in der Fragenvorschau waehrend des Inline-Edits', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Vorschau ![](/assets/test-image.png)');
+    fixture.detectChanges();
+
+    const previewImage = fixture.nativeElement.querySelector('.quiz-preview-question__text img');
+    expect(previewImage).not.toBeNull();
+    expect(previewImage.getAttribute('src')).toContain('/assets/test-image.png');
+  });
+
+  it('rendert data-image-Bilder in der Fragenvorschau', () => {
+    quiz.questions[0]!.text =
+      'How are you feeling? ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4//8/AwAI/AL+KDv0WQAAAABJRU5ErkJggg==)';
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    fixture.detectChanges();
+
+    const previewImage = fixture.nativeElement.querySelector('.quiz-preview-question__text img');
+    expect(previewImage).not.toBeNull();
+    expect(previewImage.getAttribute('src')).toContain('data:image/png;base64,');
+  });
+
   it('verwirft beim Zurueck-Navigieren offene Inline-Aenderungen statt sie implizit zu speichern', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
@@ -323,6 +348,25 @@ describe('QuizPreviewComponent', () => {
     ) as HTMLElement | null;
 
     expect(renderedMath).not.toBeNull();
+  });
+
+  it('markiert Markdown-Container in der Vorschau fuer responsive Bild-Styles', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const questionText = fixture.nativeElement.querySelector(
+      '.quiz-preview-question__text',
+    ) as HTMLElement | null;
+    expect(questionText?.classList.contains('markdown-body')).toBe(true);
+
+    component.currentIndex.set(1);
+    fixture.detectChanges();
+
+    const answerContent = fixture.nativeElement.querySelector(
+      '.quiz-preview-question__answer-content',
+    ) as HTMLElement | null;
+    expect(answerContent?.classList.contains('markdown-body')).toBe(true);
   });
 
   it('rendert Auswahl-Toggles linksbündig vor dem Antworttext', () => {

@@ -116,6 +116,21 @@ export class QuizPreviewComponent implements OnDestroy {
     return [...quiz.questions].filter((q) => q.enabled !== false).sort((a, b) => a.order - b.order);
   });
   readonly currentQuestion = computed(() => this.questions()[this.currentIndex()] ?? null);
+  readonly displayedQuestion = computed(() => {
+    const question = this.currentQuestion();
+    if (!question) return null;
+    if (!this.inlineEditMode()) return question;
+
+    return {
+      ...question,
+      text: this.questionDraftText(),
+      answers: question.answers.map((answer, index) => ({
+        ...answer,
+        text: this.answerDraftTexts()[index] ?? answer.text,
+        isCorrect: this.answerDraftCorrectFlags()[index] ?? answer.isCorrect,
+      })),
+    };
+  });
   readonly inlineEditHasChanges = computed(() => {
     const original = this.originalQuestionSnapshot();
     if (!original || !this.inlineEditMode()) return false;
@@ -160,7 +175,7 @@ export class QuizPreviewComponent implements OnDestroy {
     return false;
   });
   readonly animatedCurrentQuestion = computed(() => {
-    const question = this.currentQuestion();
+    const question = this.displayedQuestion();
     if (!question) return [];
 
     return [
@@ -212,7 +227,7 @@ export class QuizPreviewComponent implements OnDestroy {
       .filter((entry): entry is { index: number; message: string } => entry !== null),
   );
   readonly currentQuestionValidation = computed(() => {
-    const question = this.currentQuestion();
+    const question = this.displayedQuestion();
     if (!question) {
       return { hasIssues: false, needsMoreAnswers: false, needsCorrectAnswer: false };
     }
@@ -223,14 +238,7 @@ export class QuizPreviewComponent implements OnDestroy {
         question.type === 'SURVEY') &&
       question.answers.length < 2;
 
-    const validationAnswers =
-      this.inlineEditMode() && this.questionTypeHasCorrectAnswers(question.type)
-        ? question.answers.map((answer, index) => ({
-            ...answer,
-            isCorrect: this.answerDraftCorrectFlags()[index] ?? answer.isCorrect,
-          }))
-        : question.answers;
-    const correctCount = validationAnswers.filter((answer) => answer.isCorrect).length;
+    const correctCount = question.answers.filter((answer) => answer.isCorrect).length;
     const needsCorrectAnswer =
       (question.type === 'SINGLE_CHOICE' && correctCount !== 1) ||
       (question.type === 'MULTIPLE_CHOICE' && correctCount < 1);
@@ -632,7 +640,7 @@ export class QuizPreviewComponent implements OnDestroy {
 
   renderMarkdown(value: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+      renderMarkdownWithKatex(value, { imagePolicy: 'allow-relative-and-https' }).html,
     );
   }
 

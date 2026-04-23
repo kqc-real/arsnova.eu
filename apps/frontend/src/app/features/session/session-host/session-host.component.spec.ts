@@ -994,6 +994,50 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('markiert Markdown-Container im Q&A-Kanal fuer responsive Bild-Styles', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: '![Frage](https://example.com/qa.png)',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const qaText = fixture.nativeElement.querySelector(
+      '.session-qa-card__text',
+    ) as HTMLElement | null;
+
+    expect(qaText?.classList.contains('markdown-body')).toBe(true);
+    fixture.destroy();
+  });
+
   it('zeigt bei aktiver reiner Q&A-Session das Fragen-Panel statt nur der Live-Karte', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -1185,6 +1229,52 @@ describe('SessionHostComponent', () => {
     expect(text).toContain('Was ist 2+2?');
     expect(text).toContain('Ergebnis zeigen');
     expect(getCurrentQuestionForHostQueryMock).toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('markiert Markdown-Container im Quiz-Livekanal fuer responsive Bild-Styles', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: '![Frage](https://example.com/question.png)',
+      type: 'SINGLE_CHOICE' as const,
+      answers: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: '![Antwort](https://example.com/answer.png)',
+          isCorrect: false,
+        },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'Text', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () => fixture.nativeElement.querySelector('.session-host__question-title-inner') !== null,
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    fixture.detectChanges();
+
+    const questionText = fixture.nativeElement.querySelector(
+      '.session-host__question-title-inner',
+    ) as HTMLElement | null;
+    const answerText = fixture.nativeElement.querySelector(
+      '.session-host__answer-text',
+    ) as HTMLElement | null;
+
+    expect(questionText?.classList.contains('markdown-body')).toBe(true);
+    expect(answerText?.classList.contains('markdown-body')).toBe(true);
     fixture.destroy();
   });
 

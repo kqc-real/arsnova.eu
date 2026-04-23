@@ -914,6 +914,63 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('markiert Markdown-Container in der Quizsession fuer responsive Bild-Styles', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      text: '![Frage](https://example.com/question.png)',
+      type: 'SINGLE_CHOICE',
+      timer: 60,
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 3,
+      answers: [
+        { id: 'a1', text: '![Antwort](https://example.com/answer.png)' },
+        { id: 'a2', text: 'Blau' },
+      ],
+      activeAt: MOCK_SERVER_TIME,
+      participantCount: 6,
+      totalVotes: 1,
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.currentQuestion()).not.toBeNull();
+      },
+      { timeout: 3000, interval: 10 },
+    );
+
+    const questionText = fixture.nativeElement.querySelector(
+      '.vote-question__text',
+    ) as HTMLElement | null;
+    const answerText = fixture.nativeElement.querySelector(
+      '.vote-answer__text',
+    ) as HTMLElement | null;
+
+    expect(questionText?.classList.contains('markdown-body')).toBe(true);
+    expect(answerText?.classList.contains('markdown-body')).toBe(true);
+    fixture.destroy();
+  });
+
   it('erzwingt Quiz-Kanal nur in Lesephase und Abstimmung, nicht in Ergebnisphase', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

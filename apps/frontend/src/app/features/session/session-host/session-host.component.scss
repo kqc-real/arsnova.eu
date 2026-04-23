@@ -1434,6 +1434,10 @@
 }
 
 .session-qa-card__text {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-large);
   line-height: 1.55;
@@ -2875,12 +2879,14 @@
   line-height: 1.2;
   margin: 0.35rem 0 0;
   padding: 0;
+  min-width: 0;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
 
   .session-host__question-title-inner {
     display: block;
+    min-width: 0;
     width: 100%;
     max-width: 100%;
     /* balance kürzt optisch nutzbare Zeilenbreite; Fließtext soll die Kartenbreite nutzen */
@@ -2949,6 +2955,7 @@
 
 .session-host__answer-text {
   flex: 1;
+  min-width: 0;
   font-weight: 400;
   line-height: 1.45;
 }
@@ -3552,6 +3559,7 @@ button.session-host__btn-discussion {
 
 .session-host__vote-dist-text {
   flex: 1;
+  min-width: 0;
   font: var(--mat-sys-body-large);
   color: var(--mat-sys-on-surface);
 }
@@ -3925,6 +3933,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 
 .session-host__round-comparison-text {
   flex: 1;
+  min-width: 0;
   font: var(--mat-sys-body-large);
 }
 

@@ -140,7 +140,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   });
   readonly previewResult = computed(() =>
     renderMarkdownWithKatex(this.debouncedValue(), {
-      imagePolicy: 'external-https-only',
+      imagePolicy: 'allow-relative-and-https',
     }),
   );
 

@@ -193,15 +193,6 @@
   line-height: 1.4;
 }
 
-.quiz-preview-question__text :where(img) {
-  display: block;
-  max-width: 100%;
-  width: auto;
-  height: auto;
-  object-fit: scale-down;
-  box-sizing: border-box;
-}
-
 @media (min-width: 840px) {
   .quiz-preview-question__text {
     font: var(--mat-sys-title-medium);
@@ -283,15 +274,6 @@
   display: block;
   min-width: 0;
   line-height: 1.6;
-
-  :where(img) {
-    display: block;
-    max-width: 100%;
-    width: auto;
-    height: auto;
-    object-fit: scale-down;
-    box-sizing: border-box;
-  }
 }
 
 .quiz-preview-question__answer-input {

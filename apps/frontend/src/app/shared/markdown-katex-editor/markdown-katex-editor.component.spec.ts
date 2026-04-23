@@ -63,6 +63,20 @@ describe('MarkdownKatexEditorComponent', () => {
     expect(text).toContain('KaTeX-Fehler');
   });
 
+  it('rendert relative Asset-Bilder in der Editor-Vorschau', () => {
+    vi.useFakeTimers();
+    const { fixture, component } = setup();
+
+    component.onInput('![Demo](/assets/demo/9_konzeptfragen_panorama.svg)');
+    vi.advanceTimersByTime(250);
+    fixture.detectChanges();
+
+    const previewBody = fixture.nativeElement.querySelector(
+      '.mk-editor__preview-body',
+    ) as HTMLElement | null;
+    expect(previewBody?.innerHTML).toContain('src="/assets/demo/9_konzeptfragen_panorama.svg"');
+  });
+
   it('klappt die Mobile-Vorschau ohne Markdown- oder KaTeX-Syntax zu', () => {
     const { fixture } = setup({ mobile: true });
 

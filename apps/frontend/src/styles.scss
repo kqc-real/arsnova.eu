@@ -612,6 +612,19 @@ img[data-markdown-image-lightbox='true'] {
   box-sizing: border-box;
 }
 
+.markdown-emoji {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1em;
+  block-size: 1em;
+  font-family:
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
+  font-size: 2.5rem;
+  line-height: 1;
+  vertical-align: -0.3em;
+  font-variant-emoji: emoji;
+}
+
 /* MOTD-Vorlage-Dialog: Markdown in [innerHTML] — kein View-Encapsulation für Kindknoten */
 .cdk-overlay-pane.admin-motd-template-dialog-panel .admin-motd-tpl-dialog__preview.markdown-body {
   font: var(--mat-sys-body-medium);
@@ -961,6 +974,18 @@ $markdown-katex-flow-hosts:
   margin: 0.7rem 0;
   padding-left: 0.7rem;
   border-left: 3px solid var(--mat-sys-outline-variant);
+}
+
+/* Quiz-Preview-Bilder kommen aus [innerHTML] und brauchen deshalb globale Begrenzungen. */
+.quiz-preview-question__text img,
+.quiz-preview-question__answer-content img {
+  display: block;
+  width: auto !important;
+  max-width: 100% !important;
+  max-height: min(48vh, 26rem) !important;
+  height: auto !important;
+  margin: clamp(0.75rem, 2vw, 1rem) auto;
+  object-fit: contain;
 }
 
 /* Session-Host: Markdown/KaTeX in Frage und Antworten (gleiche Typo wie Quiz-Vorschau) */

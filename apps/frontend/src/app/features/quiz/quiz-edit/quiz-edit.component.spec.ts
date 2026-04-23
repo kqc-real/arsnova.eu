@@ -181,6 +181,28 @@ describe('QuizEditComponent', () => {
     expect(mockStore.updateQuestion).not.toHaveBeenCalled();
   });
 
+  it('rendert lokale Bild-URLs in der Gesamtvorschau des Editors und markiert sie als Markdown-Flow', () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.questionFormPanelOpen.set(true);
+    component.form.controls.text.setValue(
+      '![Demo](http://localhost:4200/assets/demo/9_konzeptfragen_panorama.svg)',
+    );
+    fixture.detectChanges();
+    vi.advanceTimersByTime(250);
+    fixture.detectChanges();
+
+    const preview = (fixture.nativeElement as HTMLElement).querySelector(
+      '.quiz-edit-form__preview-content',
+    ) as HTMLElement | null;
+    expect(preview?.classList.contains('markdown-body')).toBe(true);
+    expect(preview?.innerHTML).toContain(
+      'src="http://localhost:4200/assets/demo/9_konzeptfragen_panorama.svg"',
+    );
+  });
+
   it('speichert eine FREETEXT-Frage ohne Antwortoptionen', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
