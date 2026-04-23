@@ -120,6 +120,19 @@ const TEAM_COLORS = [
   '#5E35B1',
 ] as const;
 
+function normalizeTeamLeaderboardScore(rawTotalScore: number, memberCount: number): number {
+  if (!Number.isFinite(rawTotalScore) || memberCount <= 0) {
+    return 0;
+  }
+
+  const averageScore = rawTotalScore / memberCount;
+  if (memberCount === 1) {
+    return Math.round(averageScore);
+  }
+
+  return Math.round(averageScore / 100) * 100;
+}
+
 /** Typen für getExportData-Callbacks (vermeidet implizites any). */
 interface QuestionWithAnswersForExport {
   id: string;
@@ -2985,8 +2998,10 @@ export const sessionRouter = router({
       const entries: TeamLeaderboardEntryDTO[] = [...teamStats.values()]
         .filter((team) => team.memberCount > 0)
         .map((team) => {
-          const normalizedScore =
-            team.memberCount > 0 ? Number((team.rawTotalScore / team.memberCount).toFixed(2)) : 0;
+          const normalizedScore = normalizeTeamLeaderboardScore(
+            team.rawTotalScore,
+            team.memberCount,
+          );
           return {
             teamName: team.teamName,
             teamColor: team.teamColor,

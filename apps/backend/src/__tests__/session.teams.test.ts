@@ -178,7 +178,7 @@ describe('session team mode (Story 7.1)', () => {
     expect(result.teamName).toBe('Team A');
   });
 
-  it('harmonisiert Team-Scores für ungleich große Teams', async () => {
+  it('rundet harmonisierte Team-Scores auf volle Hunderter ohne Nachkommastellen', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       quiz: { teamMode: true, teamCount: 2, teamNames: [] },
@@ -193,9 +193,9 @@ describe('session team mode (Story 7.1)', () => {
       { id: 'p3', teamId: TEAM_B_ID },
     ]);
     prismaMock.vote.findMany.mockResolvedValue([
-      { participantId: 'p1', score: 40 },
-      { participantId: 'p2', score: 60 },
-      { participantId: 'p3', score: 70 },
+      { participantId: 'p1', score: 2800 },
+      { participantId: 'p2', score: 2735.34 },
+      { participantId: 'p3', score: 2500 },
     ]);
 
     const result = await caller.getTeamLeaderboard({ code: 'ABC123' });
@@ -203,19 +203,19 @@ describe('session team mode (Story 7.1)', () => {
     expect(result).toEqual([
       {
         rank: 1,
-        teamName: 'Team B',
-        teamColor: '#43A047',
-        totalScore: 70,
-        memberCount: 1,
-        averageScore: 70,
+        teamName: 'Team A',
+        teamColor: '#1E88E5',
+        totalScore: 2800,
+        memberCount: 2,
+        averageScore: 2800,
       },
       {
         rank: 2,
-        teamName: 'Team A',
-        teamColor: '#1E88E5',
-        totalScore: 50,
-        memberCount: 2,
-        averageScore: 50,
+        teamName: 'Team B',
+        teamColor: '#43A047',
+        totalScore: 2500,
+        memberCount: 1,
+        averageScore: 2500,
       },
     ]);
   });
