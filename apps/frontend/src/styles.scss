@@ -612,6 +612,18 @@ img[data-markdown-image-lightbox='true'] {
   box-sizing: border-box;
 }
 
+/* Host-Fragetext: große Markdown-Bilder, auch verlinkte, auf sinnvolle Viewport-Höhe begrenzen. */
+.session-host__question-title-inner img,
+.session-host__question-title-inner a img {
+  display: block;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 33vh !important;
+  object-fit: contain;
+  margin-inline: auto;
+}
+
 .markdown-emoji {
   display: inline-grid;
   place-items: center;

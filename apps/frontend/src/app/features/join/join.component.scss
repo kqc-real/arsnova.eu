@@ -229,6 +229,12 @@
     flex-shrink: 0;
   }
 
+  &__team-card-emoji {
+    font-size: 3em;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
   &__team-card-meta {
     display: block;
     margin-top: 0.25rem;

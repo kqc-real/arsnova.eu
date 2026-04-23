@@ -635,6 +635,39 @@ describe('QuizEditComponent', () => {
     expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
   });
 
+  it('wandelt Emoji-Shortcodes in Team-Namen beim Speichern um', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    mockStore.updateQuizSettings.mockReturnValue({
+      ...quiz,
+      settings: {
+        ...quiz.settings,
+        teamMode: true,
+        teamCount: 2,
+        teamAssignment: 'AUTO',
+        teamNames: ['🍎 Team', '🚀 Crew'],
+      },
+    });
+
+    component.settingsForm.patchValue({
+      teamMode: true,
+      teamCount: 2,
+      teamAssignment: 'AUTO',
+      teamNamesText: ':apple: Team\n:rocket: Crew',
+    });
+
+    component.saveSettings();
+
+    expect(component.teamNamePreview()).toEqual(['🍎 Team', '🚀 Crew']);
+    expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({
+        teamNames: ['🍎 Team', '🚀 Crew'],
+      }),
+    );
+  });
+
   it('wendet Preset-Werte auf die Sitzungs-Konfiguration an', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

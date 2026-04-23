@@ -1751,6 +1751,10 @@
   align-items: center;
 }
 
+.session-lobby__team-card-head--emoji {
+  grid-template-columns: auto 1fr auto;
+}
+
 .session-lobby__team-card-dot {
   width: 1rem;
   height: 1rem;
@@ -1761,6 +1765,11 @@
       animation: lobby-team-dot-pulse 1.8s ease-in-out infinite;
     }
   }
+}
+
+.session-lobby__team-card-emoji {
+  font-size: calc(1.15rem * 3);
+  line-height: 1;
 }
 
 .session-lobby__team-card-name {

@@ -196,6 +196,12 @@
   flex-shrink: 0;
 }
 
+.vote-player-badge__team-emoji {
+  font-size: 3em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .vote-player-badge__team {
   white-space: nowrap;
   overflow: hidden;
@@ -1176,6 +1182,12 @@
   flex-shrink: 0;
 }
 
+.vote-lobby__kita-team-emoji {
+  font-size: 3em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .vote-lobby--kindergarten .vote-lobby__badge {
   margin-top: 0;
 }
@@ -1543,6 +1555,27 @@
   &--wrong {
     border-color: var(--arsnova-bar-wrong, #c62828);
     background: color-mix(in srgb, var(--arsnova-bar-wrong, #c62828) 12%, transparent);
+  }
+
+  &--result-selected {
+    border-width: 3px;
+    border-color: color-mix(
+      in srgb,
+      var(--mat-sys-primary) 68%,
+      var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2))
+    );
+    background: color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-surface));
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
+      0 0.35rem 0.9rem color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  }
+
+  &--result-selected .vote-answer__badge {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
+  }
+
+  &--result-selected#{&}--disabled {
+    opacity: 1;
   }
 
   &--disabled {
@@ -2112,6 +2145,12 @@
   width: 0.9rem;
   height: 0.9rem;
   border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.vote-team-reward__emoji {
+  font-size: 3em;
+  line-height: 1;
   flex-shrink: 0;
 }
 

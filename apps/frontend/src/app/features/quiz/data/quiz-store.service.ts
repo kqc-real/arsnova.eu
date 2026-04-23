@@ -44,6 +44,7 @@ import {
   normalizeDemoQuizLocale,
 } from './demo-quiz-payload';
 import { normalizeQuizImportPayload, type QuizImportWarning } from './quiz-import-normalizer';
+import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 export type { QuizImportWarning } from './quiz-import-normalizer';
 
 export type SupportedQuestionType =
@@ -2224,7 +2225,7 @@ function normalizeTeamNames(value: string[] | null | undefined): string[] | unde
 
   return value
     .filter((entry): entry is string => typeof entry === 'string')
-    .map((entry) => entry.trim())
+    .map((entry) => replaceEmojiShortcodes(entry.trim()))
     .filter((entry) => entry.length > 0);
 }
 

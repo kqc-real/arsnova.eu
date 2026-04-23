@@ -460,13 +460,26 @@
                       class="session-lobby__team-card"
                       [class.session-lobby__team-card--playful]="isPlayfulPreset()"
                     >
-                      <div class="session-lobby__team-card-head">
-                        <span
-                          class="session-lobby__team-card-dot"
-                          [style.background]="team.color || 'var(--mat-sys-primary)'"
-                          aria-hidden="true"
-                        ></span>
-                        <span class="session-lobby__team-card-name">{{ team.name }}</span>
+                      <div
+                        class="session-lobby__team-card-head"
+                        [class.session-lobby__team-card-head--emoji]="
+                          teamNameUsesEmojiMarker(team.name)
+                        "
+                      >
+                        @if (teamNameEmojiMarker(team.name); as teamEmoji) {
+                          <span class="session-lobby__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                        } @else {
+                          <span
+                            class="session-lobby__team-card-dot"
+                            [style.background]="team.color || 'var(--mat-sys-primary)'"
+                            aria-hidden="true"
+                          ></span>
+                        }
+                        <span class="session-lobby__team-card-name">{{
+                          teamNameLabelWithoutEmojiMarker(team.name)
+                        }}</span>
                         <span class="session-lobby__team-card-count">{{
                           teamMemberLabel(team.memberCount)
                         }}</span>

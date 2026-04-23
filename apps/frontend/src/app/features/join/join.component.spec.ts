@@ -378,4 +378,27 @@ describe('JoinComponent', () => {
     expect(comp.showTeamSelect()).toBe(false);
     expect(comp.teams().map((team) => team.name)).toEqual(['Rot', 'Blau']);
   });
+
+  it('zeigt bei Teamnamen mit fuehrendem Emoji keinen Farbpunk und rendert das Emoji separat', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      teamMode: true,
+      teamAssignment: 'MANUAL',
+    });
+    vi.mocked(trpc.session.getTeams.query).mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: '🍎 Rot', color: '#1E88E5', memberCount: 1 }],
+    });
+
+    const { fixture } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.join-card__team-card') as HTMLElement;
+    expect(card.textContent ?? '').toContain('Rot');
+    expect(card.querySelector('.join-card__team-card-dot')).toBeNull();
+    expect(card.querySelector('.join-card__team-card-emoji')?.textContent).toBe('🍎');
+  });
 });

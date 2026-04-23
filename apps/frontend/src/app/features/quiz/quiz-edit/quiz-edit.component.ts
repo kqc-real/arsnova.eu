@@ -65,6 +65,7 @@ import {
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
+import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import {
   focusAndScrollElement,
   focusFirstInvalidField,
@@ -1291,7 +1292,7 @@ function motifImageUrlOptionalHttpsValidator(control: AbstractControl): Validati
 function parseTeamNamesText(value: string): string[] {
   return value
     .split('\n')
-    .map((entry) => entry.trim())
+    .map((entry) => replaceEmojiShortcodes(entry.trim()))
     .filter((entry) => entry.length > 0);
 }
 

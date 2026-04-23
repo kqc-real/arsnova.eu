@@ -47,11 +47,13 @@ import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-l
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
+import { extractLeadingEmoji, startsWithEmoji } from '../../../shared/emoji-shortcode.util';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
+const VOTE_RESPONSE_STORAGE_KEY = 'arsnova-vote-response';
 const VOTE_FALLBACK_POLL_MS = 2000;
 const VOTE_ANCHOR_TOP = 'vote-top';
 const VOTE_ANCHOR_QUESTION = 'vote-question-anchor';
@@ -66,6 +68,13 @@ export type VoteAutoScrollPhase = 'read' | 'vote' | 'result';
 
 type CurrentQuestion = QuestionStudentDTO | QuestionPreviewDTO | QuestionRevealedDTO;
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
+type StoredVoteResponse = {
+  answerIds?: string[];
+  freeText?: string;
+  ratingValue?: number;
+  sent: true;
+  updatedAt: string;
+};
 
 const ANSWER_COLORS = [
   '#1565c0',
@@ -362,6 +371,25 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return nick;
   });
 
+  teamNameUsesEmojiMarker(teamName: string | null | undefined): boolean {
+    return typeof teamName === 'string' && startsWithEmoji(teamName);
+  }
+
+  teamNameEmojiMarker(teamName: string | null | undefined): string | null {
+    return typeof teamName === 'string' ? extractLeadingEmoji(teamName) : null;
+  }
+
+  teamNameLabelWithoutEmojiMarker(teamName: string | null | undefined): string {
+    if (typeof teamName !== 'string') {
+      return '';
+    }
+    const marker = this.teamNameEmojiMarker(teamName);
+    if (!marker) {
+      return teamName;
+    }
+    return teamName.trimStart().slice(marker.length).trimStart();
+  }
+
   /** Story 5.6: Persönliche Scorecard pro Frage */
   readonly scorecard = signal<PersonalScorecardDTO | null>(null);
   private scorecardQuestionIndex = -1;
@@ -617,6 +645,87 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'FREETEXT';
   });
+
+  questionUsesCorrectness(type: string | null | undefined): boolean {
+    return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
+  }
+
+  private voteResponseStorageKey(questionId: string, round: number): string | null {
+    if (typeof localStorage === 'undefined' || !this.code) {
+      return null;
+    }
+
+    const participantId =
+      this.participantId() || localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) || '';
+    if (!participantId) {
+      return null;
+    }
+
+    return `${VOTE_RESPONSE_STORAGE_KEY}-${this.code}-${participantId}-${questionId}-${round}`;
+  }
+
+  private questionRoundForStorage(question: CurrentQuestion): number {
+    return 'currentRound' in question && typeof question.currentRound === 'number'
+      ? question.currentRound
+      : this.currentRound();
+  }
+
+  private hasLocalVoteState(): boolean {
+    return (
+      this.selectedAnswerIds().size > 0 ||
+      this.freeTextValue().trim().length > 0 ||
+      this.ratingValue() !== null
+    );
+  }
+
+  private restoreStoredVoteResponse(question: CurrentQuestion): void {
+    const key = this.voteResponseStorageKey(question.id, this.questionRoundForStorage(question));
+    if (!key || this.voteSent() || this.hasLocalVoteState()) {
+      return;
+    }
+
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as StoredVoteResponse;
+      this.selectedAnswerIds.set(new Set(parsed.answerIds ?? []));
+      this.freeTextValue.set(parsed.freeText ?? '');
+      this.ratingValue.set(typeof parsed.ratingValue === 'number' ? parsed.ratingValue : null);
+      this.voteSent.set(parsed.sent === true);
+    } catch {
+      /* noop */
+    }
+  }
+
+  private storeVoteResponse(
+    question: CurrentQuestion,
+    answerIds: string[],
+    freeText: string | undefined,
+    ratingValue: number | undefined,
+  ): void {
+    const key = this.voteResponseStorageKey(question.id, this.questionRoundForStorage(question));
+    if (!key || typeof localStorage === 'undefined') {
+      return;
+    }
+
+    const payload: StoredVoteResponse = {
+      answerIds: answerIds.length > 0 ? answerIds : undefined,
+      freeText: freeText || undefined,
+      ratingValue,
+      sent: true,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem(key, JSON.stringify(payload));
+    } catch {
+      /* noop */
+    }
+  }
+
   readonly showVoteSubmitAction = computed(() => {
     if (this.showSessionEndGate() || this.isFinished()) return false;
     if (this.activeChannel() !== 'quiz' || !this.isActive() || this.voteSent()) return false;
@@ -1726,6 +1835,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.startCountdown(q);
       }
 
+      if (q && this.isResults()) {
+        this.restoreStoredVoteResponse(q);
+      }
+
       if (q && this.isResults() && this.voteSent() && !this.motivationMessage()) {
         const settings = this.sessionSettings();
         const qType = 'type' in q ? q.type : null;
@@ -1758,12 +1871,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
               ),
             );
           }
-        } else if (settings.enableMotivationMessages) {
-          this.motivationMessage.set(
-            pickRandom(
-              this.isPlayfulPreset() ? MESSAGES_NEUTRAL_PLAYFUL : MESSAGES_NEUTRAL_SERIOUS,
-            ),
-          );
         }
       }
 
@@ -1974,6 +2081,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ratingValue: rating,
         round: this.currentRound(),
       });
+      this.storeVoteResponse(q, answerIds, freeText, rating);
       try {
         navigator.vibrate?.(10);
       } catch {

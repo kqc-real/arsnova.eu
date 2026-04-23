@@ -41,6 +41,7 @@ import { mergeTimerPresetOptions } from '../default-timer-presets';
 import { QuizStoreService, type QuizSettings } from '../data/quiz-store.service';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
+import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
@@ -334,7 +335,7 @@ function motifImageUrlOptionalHttpsValidator(control: AbstractControl): Validati
 function parseTeamNamesText(value: string): string[] {
   return value
     .split('\n')
-    .map((entry) => entry.trim())
+    .map((entry) => replaceEmojiShortcodes(entry.trim()))
     .filter((entry) => entry.length > 0);
 }
 

@@ -251,6 +251,88 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt Teamnamen mit fuehrendem Emoji ohne Farbpunkte im Vote-Client', async () => {
+    getParticipantSelfQueryMock.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      nickname: 'Ada',
+      teamId: '22222222-2222-4222-8222-222222222222',
+      teamName: '🍎 Rot',
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          name: '🍎 Rot',
+          color: '#1E88E5',
+          memberCount: 3,
+        },
+      ],
+    });
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: '🍎 Rot',
+        teamColor: '#1E88E5',
+        totalScore: 240,
+        memberCount: 3,
+        averageScore: 80,
+      },
+    ]);
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: true,
+      enableRewardEffects: true,
+      preset: 'PLAYFUL',
+      enableEmojiReactions: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 1,
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'a1', text: 'Rot', isCorrect: true },
+        { id: 'a2', text: 'Blau', isCorrect: false },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.status()).toBe('RESULTS');
+        expect(fixture.componentInstance.sessionSettings().teamMode).toBe(true);
+      },
+      { timeout: 5000, interval: 10 },
+    );
+    await (
+      fixture.componentInstance as unknown as { refreshQuestion: () => Promise<void> }
+    ).refreshQuestion();
+    await (
+      fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
+    ).loadTeamRewardState();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent ?? '').toContain('Rot');
+    expect(host.querySelector('.vote-player-badge__team-dot')).toBeNull();
+    expect(host.querySelector('.vote-team-reward__dot')).toBeNull();
+    expect(host.querySelector('.vote-player-badge__team-emoji')?.textContent).toBe('🍎');
+    expect(host.querySelector('.vote-team-reward__emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
   it('behauptet bei 0 Team-Punkten für alle nicht „Ihr führt gerade“', async () => {
     getTeamLeaderboardQueryMock.mockResolvedValue([
       {
@@ -399,6 +481,102 @@ describe('SessionVoteComponent', () => {
       inst.currentQuestion() as { answers?: Array<{ isCorrect: boolean }> } | null
     )?.answers?.[0] as { isCorrect: boolean };
     expect(firstAfterResults.isCorrect).toBe(true);
+    fixture.destroy();
+  });
+
+  it('markiert Umfrage-Antworten in der Ergebnisansicht nicht als falsch', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      text: 'Wie fandest du das?',
+      type: 'SURVEY',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'Gut', isCorrect: false, voteCount: 1, votePercentage: 100 },
+        { id: 'a2', text: 'Nicht so gut', isCorrect: false, voteCount: 0, votePercentage: 0 },
+      ],
+      totalVotes: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.selectedAnswerIds.set(new Set(['a1']));
+    component.voteSent.set(true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.vote-answer--result-selected')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.vote-answer--wrong')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.vote-answer__icon--wrong')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.vote-answer__icon--correct')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.vote-motivation')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('stellt eigene Umfrage-Antworten aus lokalem Speicher in RESULTS wieder her', async () => {
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    localStorage.setItem(
+      `arsnova-vote-response-ABC123-11111111-1111-4111-8111-111111111111-${questionId}-1`,
+      JSON.stringify({
+        answerIds: ['a1'],
+        sent: true,
+        updatedAt: '2026-04-23T06:00:00.000Z',
+      }),
+    );
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: questionId,
+      text: 'Wie fandest du das?',
+      type: 'SURVEY',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'Gut', isCorrect: false, voteCount: 1, votePercentage: 100 },
+        { id: 'a2', text: 'Nicht so gut', isCorrect: false, voteCount: 0, votePercentage: 0 },
+      ],
+      totalVotes: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.voteSent()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.vote-answer--result-selected')).not.toBeNull();
     fixture.destroy();
   });
 

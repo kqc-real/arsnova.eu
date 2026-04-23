@@ -213,6 +213,60 @@ describe('QuizNewComponent', () => {
     expect(mockStore.createQuiz).not.toHaveBeenCalled();
   });
 
+  it('wandelt Emoji-Shortcodes in Team-Namen vor dem Speichern um', async () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    mockStore.createQuiz.mockReturnValue({
+      id: '928f0bb8-bfd8-442b-9f2e-a7544628a92f',
+      name: 'Emoji-Quiz',
+      description: null,
+      createdAt: '2026-03-08T12:00:00.000Z',
+      updatedAt: '2026-03-08T12:00:00.000Z',
+      settings: {
+        showLeaderboard: true,
+        allowCustomNicknames: false,
+        defaultTimer: null,
+        timerScaleByDifficulty: true,
+        enableSoundEffects: true,
+        enableRewardEffects: true,
+        enableMotivationMessages: true,
+        enableEmojiReactions: true,
+        anonymousMode: false,
+        teamMode: true,
+        teamCount: 2,
+        teamAssignment: 'AUTO',
+        teamNames: ['🍎 Team', '🚀 Crew'],
+        backgroundMusic: null,
+        nicknameTheme: 'HIGH_SCHOOL',
+        bonusTokenCount: null,
+        readingPhaseEnabled: false,
+        preset: 'PLAYFUL',
+      },
+    });
+
+    component.form.patchValue({
+      name: 'Emoji-Quiz',
+      teamMode: true,
+      teamCount: 2,
+      teamNamesText: ':apple: Team\n:rocket: Crew',
+    });
+
+    await component.submit();
+
+    expect(component.teamNamePreview()).toEqual(['🍎 Team', '🚀 Crew']);
+    expect(mockStore.createQuiz).toHaveBeenCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          teamNames: ['🍎 Team', '🚀 Crew'],
+        }),
+      }),
+    );
+  });
+
   it('zeigt einen Hinweis, wenn lokale Startwerte vom Preset-Standard abweichen', () => {
     localStorage.setItem(
       'home-preset-options-spielerisch',

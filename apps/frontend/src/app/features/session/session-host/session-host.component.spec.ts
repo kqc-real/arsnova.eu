@@ -2037,6 +2037,44 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('blendet den Farbpunkt aus, wenn der Teamname mit Emoji beginnt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: '🍎 Rot', color: '#1E88E5', memberCount: 1 }],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: '🍎 Rot' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({
+          participantCount: 1,
+          participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: '🍎 Rot' }],
+        });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
+    expect(card.textContent ?? '').toContain('Rot');
+    expect(card.querySelector('.session-lobby__team-card-dot')).toBeNull();
+    expect(card.querySelector('.session-lobby__team-card-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
   describe('Host-Steering-Callout bei Störfällen', () => {
     const steeringTitle = 'Das ist gerade nicht angekommen';
     const qaCalloutTitle = 'Mit den Fragen klappt es gerade nicht';
