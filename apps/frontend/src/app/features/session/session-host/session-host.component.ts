@@ -502,6 +502,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly activeMusicTrack = computed<HostMusicTrack | null>(() => {
     if (this.musicMuted()) return null;
+    if (this.activeChannel() === 'qa') return null;
     const phase = this.currentMusicPhase();
     if (!phase) return null;
     if (phase === 'countdown' && (this.countdownSfxPhase() || this.countdownEnded())) {

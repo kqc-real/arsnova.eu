@@ -1496,6 +1496,96 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('deaktiviert Hintergrundmusik im Q&A-Kanal und startet sie im Quiz-Kanal wieder', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'QUESTION_OPEN',
+      preset: 'PLAYFUL',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
+    const stopMusicSpy = vi.spyOn(component.sound, 'stopMusic').mockImplementation(() => {});
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    component.musicMuted.set(false);
+    fixture.detectChanges();
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'READING_0'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    stopMusicSpy.mockClear();
+    await component.selectChannel('qa');
+    fixture.detectChanges();
+
+    expect(component.activeChannel()).toBe('qa');
+    expect(component.activeMusicTrack()).toBeNull();
+    await vi.waitUntil(() => stopMusicSpy.mock.calls.length > 0, {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    await component.selectChannel('quiz');
+    fixture.detectChanges();
+
+    expect(component.activeChannel()).toBe('quiz');
+    expect(component.activeMusicTrack()).toBe('READING_0');
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'READING_0'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    fixture.destroy();
+  });
+
+  it('laesst Hintergrundmusik nach Q&A aus, wenn sie vorher bereits stumm war', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'QUESTION_OPEN',
+      preset: 'PLAYFUL',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    component.musicMuted.set(true);
+    fixture.detectChanges();
+    playMusicSpy.mockClear();
+
+    await component.selectChannel('qa');
+    fixture.detectChanges();
+    await component.selectChannel('quiz');
+    fixture.detectChanges();
+
+    expect(component.musicMuted()).toBe(true);
+    expect(component.activeMusicTrack()).toBeNull();
+    expect(playMusicSpy).not.toHaveBeenCalled();
+
+    fixture.destroy();
+  });
+
   it('zeigt in QUESTION_OPEN Fragentext und deutlichen Lesephase-Hinweis', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
     onStatusChangedSubscribeMock.mockImplementation(
