@@ -436,6 +436,17 @@ describe('SessionHostComponent', () => {
     return TestBed.createComponent(SessionHostComponent);
   };
 
+  it('cacht gerendertes Markdown fuer identische Texte', () => {
+    const fixture = setup();
+    const component = fixture.componentInstance;
+
+    const first = component.renderMarkdown('![Bild](https://example.org/test.png)');
+    const second = component.renderMarkdown('![Bild](https://example.org/test.png)');
+
+    expect(second).toBe(first);
+    fixture.destroy();
+  });
+
   it('zeigt Lobby mit Session-Code und Button Erste Frage starten bei Status LOBBY', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
 

@@ -684,6 +684,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private suppressJoinMenuAutopen = false;
   /** Beitritts-Dialog (QR): volles Viewport-Overlay, mittig (Smartphone-Scanner). */
   readonly joinInfoPopoverOpen = signal(false);
+  private readonly markdownCache = new Map<string, SafeHtml>();
 
   private readonly injector = inject(Injector);
 
@@ -1797,9 +1798,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(
+    const cached = this.markdownCache.get(value);
+    if (cached) {
+      return cached;
+    }
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(
       renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
     );
+    this.markdownCache.set(value, rendered);
+    return rendered;
   }
 
   channelLabel(channel: SessionChannelTab): string {

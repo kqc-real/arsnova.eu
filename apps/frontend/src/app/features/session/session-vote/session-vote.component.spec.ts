@@ -193,6 +193,17 @@ describe('SessionVoteComponent', () => {
     });
   });
 
+  it('cacht gerendertes Markdown fuer identische Texte', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+
+    const first = component.renderMarkdown('![Bild](https://example.org/test.png)');
+    const second = component.renderMarkdown('![Bild](https://example.org/test.png)');
+
+    expect(second).toBe(first);
+    fixture.destroy();
+  });
+
   it('zeigt im Ergebnisflow den Team-Fortschritt mit eigener Hervorhebung', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

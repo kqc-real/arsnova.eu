@@ -425,6 +425,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     overallAverage: number;
     overallDistribution: Record<string, number>;
   } | null>(null);
+  private readonly markdownCache = new Map<string, SafeHtml>();
   private feedbackStateLoaded = false;
 
   /**
@@ -1071,9 +1072,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(
+    const cached = this.markdownCache.get(value);
+    if (cached) {
+      return cached;
+    }
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(
       renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
     );
+    this.markdownCache.set(value, rendered);
+    return rendered;
   }
 
   /** Nach Session-Ende: optional Bonus-Code zeigen, sonst direkt zur Startseite. */
