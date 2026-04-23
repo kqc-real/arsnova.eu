@@ -638,7 +638,9 @@ img[data-markdown-image-lightbox='true'] {
 .quiz-edit-question__text img,
 .quiz-edit-question__text a img,
 .quiz-edit-question__answer-text img,
-.quiz-edit-question__answer-text a img {
+.quiz-edit-question__answer-text a img,
+.quiz-edit-question__summary img,
+.quiz-edit-question__summary a img {
   display: block;
   width: auto !important;
   max-width: 100% !important;
@@ -1012,13 +1014,17 @@ $markdown-katex-flow-hosts:
   border-left: 3px solid var(--mat-sys-outline-variant);
 }
 
-/* Quiz-Preview-Bilder kommen aus [innerHTML] und brauchen deshalb globale Begrenzungen. */
+/* Quiz-MD-Bilder kommen aus [innerHTML] und brauchen deshalb globale Begrenzungen. */
 .quiz-preview-question__text img,
-.quiz-preview-question__answer-content img {
+.quiz-preview-question__answer-content img,
+.quiz-preview-question__text a img,
+.quiz-preview-question__answer-content a img,
+.quiz-edit-question__summary img,
+.quiz-edit-question__summary a img {
   display: block;
   width: auto !important;
   max-width: 100% !important;
-  max-height: min(48vh, 26rem) !important;
+  max-height: 33vh !important;
   height: auto !important;
   margin: clamp(0.75rem, 2vw, 1rem) auto;
   object-fit: contain;
