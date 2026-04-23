@@ -401,8 +401,14 @@ describe('SessionHostComponent', () => {
     qaToggleModerationMutateMock.mockResolvedValue({ enabled: true });
     dialogOpenMock.mockReturnValue({ afterClosed: () => of(true) });
     getExportDataQueryMock.mockResolvedValue({
+      sessionId: defaultSession.id,
       sessionCode: 'ABC123',
+      quizName: 'Demo Quiz',
+      finishedAt: '2026-03-24T12:30:00.000Z',
+      participantCount: 0,
+      teamMode: false,
       questions: [],
+      teamLeaderboard: [],
       bonusTokens: [],
     });
   });
@@ -2364,6 +2370,96 @@ describe('SessionHostComponent', () => {
 
       expect(fixture.componentInstance.hostSteeringCallout()?.title).toContain(exportCalloutTitle);
       fixture.destroy();
+    });
+
+    it('exportiert die Team-Wertung im Ergebnis-CSV', async () => {
+      let exportedBlob: Blob | null = null;
+      let exportedCsv = '';
+      const createObjectURLMock = vi.fn((blob: Blob) => {
+        exportedBlob = blob;
+        return 'blob:test-export';
+      });
+      const revokeObjectURLMock = vi.fn();
+      const anchorClickSpy = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+      const originalCreateObjectURL = URL.createObjectURL;
+      const originalRevokeObjectURL = URL.revokeObjectURL;
+      const originalBlob = Blob;
+      class CaptureBlob extends Blob {
+        constructor(parts: BlobPart[], options?: BlobPropertyBag) {
+          super(parts, options);
+          exportedCsv = parts
+            .map((part) => (typeof part === 'string' ? part : String(part)))
+            .join('');
+        }
+      }
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: createObjectURLMock,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: revokeObjectURLMock,
+      });
+      Object.defineProperty(globalThis, 'Blob', {
+        configurable: true,
+        writable: true,
+        value: CaptureBlob,
+      });
+      getExportDataQueryMock.mockResolvedValueOnce({
+        sessionId: defaultSession.id,
+        sessionCode: 'ABC123',
+        quizName: 'Demo Quiz',
+        finishedAt: '2026-03-24T12:30:00.000Z',
+        participantCount: 3,
+        teamMode: true,
+        questions: [],
+        teamLeaderboard: [
+          {
+            rank: 1,
+            teamName: ':apple: Rot',
+            teamColor: '#1E88E5',
+            memberCount: 2,
+            totalScore: 220,
+            averageScore: 220,
+          },
+        ],
+        bonusTokens: [],
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(createObjectURLMock).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:test-export');
+      expect(exportedBlob).not.toBeNull();
+      expect(exportedCsv).toContain('Team-Wertung');
+      expect(exportedCsv).toContain('Rang;Team;Farbe;Mitglieder;Team-Punkte;Ø Punkte pro Mitglied');
+      expect(exportedCsv).toContain('1;"🍎 Rot";#1E88E5;2;220;220');
+
+      fixture.destroy();
+      anchorClickSpy.mockRestore();
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalCreateObjectURL,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalRevokeObjectURL,
+      });
+      Object.defineProperty(globalThis, 'Blob', {
+        configurable: true,
+        writable: true,
+        value: originalBlob,
+      });
     });
 
     it('schließt den Callout bei „Okay“ und führt Retry erneut aus', async () => {

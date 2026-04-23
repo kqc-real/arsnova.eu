@@ -1,29 +1,37 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock, isSessionCodeLockedOutMock, recordFailedSessionCodeAttemptMock } = vi.hoisted(
-  () => ({
-    prismaMock: {
-      session: {
-        findUnique: vi.fn(),
-      },
-      team: {
-        findMany: vi.fn(),
-        createMany: vi.fn(),
-      },
-      participant: {
-        create: vi.fn(),
-        count: vi.fn(),
-        findMany: vi.fn(),
-      },
-      vote: {
-        findMany: vi.fn(),
-      },
-      $executeRaw: vi.fn().mockResolvedValue(1),
+const {
+  prismaMock,
+  isSessionCodeLockedOutMock,
+  recordFailedSessionCodeAttemptMock,
+  hostAuthMocks,
+} = vi.hoisted(() => ({
+  prismaMock: {
+    session: {
+      findUnique: vi.fn(),
     },
-    isSessionCodeLockedOutMock: vi.fn(),
-    recordFailedSessionCodeAttemptMock: vi.fn(),
-  }),
-);
+    team: {
+      findMany: vi.fn(),
+      createMany: vi.fn(),
+    },
+    participant: {
+      create: vi.fn(),
+      count: vi.fn(),
+      findMany: vi.fn(),
+    },
+    vote: {
+      findMany: vi.fn(),
+    },
+    $executeRaw: vi.fn().mockResolvedValue(1),
+  },
+  isSessionCodeLockedOutMock: vi.fn(),
+  recordFailedSessionCodeAttemptMock: vi.fn(),
+  hostAuthMocks: {
+    extractHostTokenMock: vi.fn(),
+    extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
+    isHostSessionTokenValidMock: vi.fn(),
+  },
+}));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
@@ -35,9 +43,19 @@ vi.mock('../lib/rateLimit', () => ({
   checkSessionCreateRate: vi.fn(),
 }));
 
+vi.mock('../lib/hostAuth', async () => {
+  const { buildHostAuthTestMock } = await import('./lib/hostAuth-vitest-mock');
+  return buildHostAuthTestMock({
+    extractHostToken: hostAuthMocks.extractHostTokenMock,
+    extractHostTokenFromConnectionParams: hostAuthMocks.extractHostTokenFromConnectionParamsMock,
+    isHostSessionTokenValid: hostAuthMocks.isHostSessionTokenValidMock,
+  });
+});
+
 import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
+const hostCaller = sessionRouter.createCaller({ req: {} as never });
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const TEAM_A_ID = '11111111-1111-4111-8111-111111111111';
 const TEAM_B_ID = '22222222-2222-4222-8222-222222222222';
@@ -48,6 +66,9 @@ describe('session team mode (Story 7.1)', () => {
     vi.resetAllMocks();
     isSessionCodeLockedOutMock.mockResolvedValue({ locked: false, retryAfterSeconds: 0 });
     recordFailedSessionCodeAttemptMock.mockResolvedValue({ locked: false, retryAfterSeconds: 0 });
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.$executeRaw.mockResolvedValue(1);
   });
 
@@ -216,6 +237,62 @@ describe('session team mode (Story 7.1)', () => {
         totalScore: 2500,
         memberCount: 1,
         averageScore: 2500,
+      },
+    ]);
+  });
+
+  it('liefert Team-Wertung auch im Session-Export nach Sessionende', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'ABC123',
+      status: 'FINISHED',
+      type: 'QUIZ',
+      endedAt: new Date('2026-04-23T08:00:00.000Z'),
+      quiz: {
+        name: 'Team-Quiz',
+        teamMode: true,
+        teamCount: 2,
+        teamNames: ['Rot', 'Blau'],
+        questions: [],
+      },
+      votes: [],
+      bonusTokens: [],
+      participants: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }],
+    });
+    prismaMock.team.findMany.mockResolvedValue([
+      { id: TEAM_A_ID, name: 'Rot', color: '#1E88E5', _count: { participants: 2 } },
+      { id: TEAM_B_ID, name: 'Blau', color: '#43A047', _count: { participants: 1 } },
+    ]);
+    prismaMock.participant.findMany.mockResolvedValue([
+      { id: 'p1', teamId: TEAM_A_ID },
+      { id: 'p2', teamId: TEAM_A_ID },
+      { id: 'p3', teamId: TEAM_B_ID },
+    ]);
+    prismaMock.vote.findMany.mockResolvedValue([
+      { participantId: 'p1', score: 400 },
+      { participantId: 'p2', score: 600 },
+      { participantId: 'p3', score: 700 },
+    ]);
+
+    const result = await hostCaller.getExportData({ code: 'ABC123' });
+
+    expect(result.teamMode).toBe(true);
+    expect(result.teamLeaderboard).toEqual([
+      {
+        rank: 1,
+        teamName: 'Blau',
+        teamColor: '#43A047',
+        totalScore: 700,
+        memberCount: 1,
+        averageScore: 700,
+      },
+      {
+        rank: 2,
+        teamName: 'Rot',
+        teamColor: '#1E88E5',
+        totalScore: 500,
+        memberCount: 2,
+        averageScore: 500,
       },
     ]);
   });

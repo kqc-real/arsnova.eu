@@ -1228,7 +1228,9 @@ export const SessionExportDTOSchema = z.object({
   quizName: z.string(),
   finishedAt: z.string(), // ISO-8601
   participantCount: z.number(),
+  teamMode: z.boolean(),
   questions: z.array(QuestionExportEntrySchema),
+  teamLeaderboard: z.array(TeamLeaderboardEntryDTOSchema).optional(),
   bonusTokens: z.array(BonusTokenEntryDTOSchema).optional(), // optional einbeziehen (Pseudonyme)
 });
 export type SessionExportDTO = z.infer<typeof SessionExportDTOSchema>;

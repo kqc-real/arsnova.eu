@@ -647,6 +647,72 @@ async function ensureSessionTeams(
   });
 }
 
+async function buildSessionTeamLeaderboard(
+  sessionId: string,
+  requestedTeamCount: number,
+  configuredTeamNames?: string[] | null,
+): Promise<TeamLeaderboardEntryDTO[]> {
+  const teams = await ensureSessionTeams(sessionId, requestedTeamCount, configuredTeamNames);
+  const participants = await prisma.participant.findMany({
+    where: { sessionId },
+    select: { id: true, teamId: true },
+  });
+  const votes = await prisma.vote.findMany({
+    where: { sessionId, round: 1 },
+    select: { participantId: true, score: true },
+  });
+
+  const teamStats = new Map<
+    string,
+    { teamName: string; teamColor: string | null; rawTotalScore: number; memberCount: number }
+  >();
+  for (const team of teams) {
+    teamStats.set(team.id, {
+      teamName: team.name,
+      teamColor: team.color ?? null,
+      rawTotalScore: 0,
+      memberCount: 0,
+    });
+  }
+
+  const participantTeam = new Map<string, string>();
+  for (const participant of participants) {
+    if (!participant.teamId) continue;
+    participantTeam.set(participant.id, participant.teamId);
+    const stats = teamStats.get(participant.teamId);
+    if (stats) {
+      stats.memberCount += 1;
+    }
+  }
+
+  for (const vote of votes) {
+    const teamId = participantTeam.get(vote.participantId);
+    if (!teamId) continue;
+    const stats = teamStats.get(teamId);
+    if (!stats) continue;
+    stats.rawTotalScore += Number(vote.score) || 0;
+  }
+
+  return [...teamStats.values()]
+    .filter((team) => team.memberCount > 0)
+    .map((team) => {
+      const normalizedScore = normalizeTeamLeaderboardScore(team.rawTotalScore, team.memberCount);
+      return {
+        rank: 0,
+        teamName: team.teamName,
+        teamColor: team.teamColor,
+        totalScore: normalizedScore,
+        memberCount: team.memberCount,
+        averageScore: normalizedScore,
+      };
+    })
+    .sort((a, b) => b.totalScore - a.totalScore || a.teamName.localeCompare(b.teamName))
+    .map((team, index) => ({
+      ...team,
+      rank: index + 1,
+    }));
+}
+
 async function assignExistingParticipantsToTeams(
   sessionId: string,
   teamIds: string[],
@@ -2949,78 +3015,11 @@ export const sessionRouter = router({
       if (!session.quiz?.teamMode) {
         return [];
       }
-
-      const teams = await ensureSessionTeams(
+      return buildSessionTeamLeaderboard(
         session.id,
         session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
         session.quiz.teamNames,
       );
-      const participants = await prisma.participant.findMany({
-        where: { sessionId: session.id },
-        select: { id: true, teamId: true },
-      });
-      const votes = await prisma.vote.findMany({
-        where: { sessionId: session.id, round: 1 },
-        select: { participantId: true, score: true },
-      });
-
-      const teamStats = new Map<
-        string,
-        { teamName: string; teamColor: string | null; rawTotalScore: number; memberCount: number }
-      >();
-      for (const team of teams) {
-        teamStats.set(team.id, {
-          teamName: team.name,
-          teamColor: team.color ?? null,
-          rawTotalScore: 0,
-          memberCount: 0,
-        });
-      }
-
-      const participantTeam = new Map<string, string>();
-      for (const participant of participants) {
-        if (!participant.teamId) continue;
-        participantTeam.set(participant.id, participant.teamId);
-        const stats = teamStats.get(participant.teamId);
-        if (stats) {
-          stats.memberCount += 1;
-        }
-      }
-
-      for (const vote of votes) {
-        const teamId = participantTeam.get(vote.participantId);
-        if (!teamId) continue;
-        const stats = teamStats.get(teamId);
-        if (!stats) continue;
-        stats.rawTotalScore += Number(vote.score) || 0;
-      }
-
-      const entries: TeamLeaderboardEntryDTO[] = [...teamStats.values()]
-        .filter((team) => team.memberCount > 0)
-        .map((team) => {
-          const normalizedScore = normalizeTeamLeaderboardScore(
-            team.rawTotalScore,
-            team.memberCount,
-          );
-          return {
-            teamName: team.teamName,
-            teamColor: team.teamColor,
-            totalScore: normalizedScore,
-            memberCount: team.memberCount,
-            averageScore: normalizedScore,
-          };
-        })
-        .sort((a, b) => b.totalScore - a.totalScore || a.teamName.localeCompare(b.teamName))
-        .map((team, index) => ({
-          rank: index + 1,
-          teamName: team.teamName,
-          teamColor: team.teamColor,
-          totalScore: team.totalScore,
-          memberCount: team.memberCount,
-          averageScore: team.averageScore,
-        }));
-
-      return entries;
     }),
 
   /** Session manuell beenden (Story 4.2, 4.6). Setzt FINISHED, endedAt, generiert Bonus-Codes. */
@@ -3703,6 +3702,14 @@ export const sessionRouter = router({
             generatedAt: t.generatedAt.toISOString(),
           }))
         : undefined;
+      const teamLeaderboard =
+        session.quiz.teamMode === true
+          ? await buildSessionTeamLeaderboard(
+              session.id,
+              session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
+              session.quiz.teamNames,
+            )
+          : undefined;
 
       const result: SessionExportDTO = {
         sessionId: session.id,
@@ -3710,7 +3717,10 @@ export const sessionRouter = router({
         quizName,
         finishedAt: session.endedAt?.toISOString() ?? new Date().toISOString(),
         participantCount: session.participants.length,
+        teamMode: session.quiz.teamMode === true,
         questions: questionEntries,
+        teamLeaderboard:
+          teamLeaderboard && teamLeaderboard.length > 0 ? teamLeaderboard : undefined,
         bonusTokens,
       };
 

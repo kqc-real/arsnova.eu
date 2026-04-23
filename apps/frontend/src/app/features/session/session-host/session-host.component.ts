@@ -80,6 +80,7 @@ import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-ico
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 import {
+  replaceEmojiShortcodes,
   extractLeadingEmoji,
   startsWithEmoji,
   stripLeadingEmojiMarker,
@@ -1291,9 +1292,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ratingDistribution?: Record<string, number>;
       ratingAverage?: number | null;
     }>;
+    teamLeaderboard?: unknown[];
     bonusTokens?: unknown[];
   }): boolean {
     if ((data.bonusTokens?.length ?? 0) > 0) {
+      return true;
+    }
+    if ((data.teamLeaderboard?.length ?? 0) > 0) {
       return true;
     }
     return data.questions.some((question) => {
@@ -2802,6 +2807,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             escapeCsv(details),
           ].join(';'),
         );
+      }
+
+      if (data.teamMode && data.teamLeaderboard && data.teamLeaderboard.length > 0) {
+        rows.push('');
+        rows.push('Team-Wertung');
+        rows.push('Rang;Team;Farbe;Mitglieder;Team-Punkte;Ø Punkte pro Mitglied');
+        for (const team of data.teamLeaderboard) {
+          rows.push(
+            [
+              team.rank,
+              escapeCsv(replaceEmojiShortcodes(team.teamName)),
+              team.teamColor ?? '',
+              team.memberCount,
+              team.totalScore,
+              team.averageScore,
+            ].join(';'),
+          );
+        }
       }
 
       if (data.bonusTokens && data.bonusTokens.length > 0) {
