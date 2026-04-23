@@ -624,6 +624,20 @@ img[data-markdown-image-lightbox='true'] {
   margin-inline: auto;
 }
 
+/* Quiz-Vorschau und Quiz-Beschreibung: Markdown-Bilder auf ein Drittel der Viewport-Höhe begrenzen. */
+.quiz-preview-question__text img,
+.quiz-preview-question__text a img,
+.quiz-list-item__description img,
+.quiz-list-item__description a img {
+  display: block;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 33vh !important;
+  object-fit: contain;
+  margin-inline: auto;
+}
+
 .markdown-emoji {
   display: inline-grid;
   place-items: center;
