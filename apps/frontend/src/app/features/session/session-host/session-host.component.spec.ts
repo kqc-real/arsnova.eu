@@ -2076,6 +2076,84 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('blendet im Host-Team-Leaderboard den Farbpunkt bei Emoji-Shortcodes aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      teamMode: true,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'FINISHED', currentQuestion: null });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: ':apple: Rot',
+        teamColor: '#1E88E5',
+        totalScore: 220,
+        memberCount: 3,
+        averageScore: 220,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const boardName = fixture.nativeElement.querySelector(
+      '.session-host__team-bar-name',
+    ) as HTMLElement | null;
+    expect(boardName?.textContent ?? '').toContain('Rot');
+    expect(boardName?.querySelector('.session-host__team-bar-dot')).toBeNull();
+    expect(boardName?.querySelector('.session-host__team-bar-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
+  it('blendet in der Host-Teamwertung bei RESULTS den Farbpunkt bei Emoji-Shortcodes aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'RESULTS',
+      teamMode: true,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: ':apple: Rot',
+        teamColor: '#1E88E5',
+        totalScore: 220,
+        memberCount: 3,
+        averageScore: 220,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const interimName = fixture.nativeElement.querySelector(
+      '.session-host__interim-name',
+    ) as HTMLElement | null;
+    expect(interimName?.textContent ?? '').toContain('Rot');
+    expect(interimName?.querySelector('.session-host__interim-team-dot')).toBeNull();
+    expect(interimName?.querySelector('.session-host__interim-team-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
   it('zeigt in der Lobby eine Teamübersicht mit Mitgliedern', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

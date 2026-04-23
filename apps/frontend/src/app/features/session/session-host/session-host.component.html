@@ -695,11 +695,17 @@
                               >{{ teamLeaderboardRankDisplay(entry.rank) }}</span
                             >
                             <span class="session-host__team-bar-name">
-                              <span
-                                class="session-host__team-bar-dot"
-                                [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                              ></span>
-                              {{ entry.teamName }}
+                              @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
+                                <span class="session-host__team-bar-emoji" aria-hidden="true">{{
+                                  teamEmoji
+                                }}</span>
+                              } @else {
+                                <span
+                                  class="session-host__team-bar-dot"
+                                  [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                                ></span>
+                              }
+                              {{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}
                             </span>
                             <span class="session-host__team-bar-meta">
                               {{ teamMemberLabel(entry.memberCount) }} ·
@@ -1513,12 +1519,18 @@
                           }
                         </span>
                         <span class="session-host__interim-name">
-                          <span
-                            class="session-host__interim-team-dot"
-                            [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                            aria-hidden="true"
-                          ></span>
-                          {{ entry.teamName }}
+                          @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
+                            <span class="session-host__interim-team-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                          } @else {
+                            <span
+                              class="session-host__interim-team-dot"
+                              [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                              aria-hidden="true"
+                            ></span>
+                          }
+                          {{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}
                         </span>
                         <span class="session-host__interim-score" i18n
                           >{{ entry.totalScore | number }} Pkt.</span

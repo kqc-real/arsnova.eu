@@ -2477,6 +2477,12 @@
   flex-shrink: 0;
 }
 
+.session-host__team-bar-emoji {
+  font-size: 1.7rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .session-host__team-bar-meta {
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
@@ -2776,6 +2782,15 @@
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 999px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 0.35rem;
+}
+
+.session-host__interim-team-emoji {
+  display: inline-block;
+  font-size: 1.35rem;
+  line-height: 1;
   flex-shrink: 0;
   vertical-align: middle;
   margin-right: 0.35rem;

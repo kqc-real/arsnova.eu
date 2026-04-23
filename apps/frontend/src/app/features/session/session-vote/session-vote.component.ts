@@ -47,7 +47,11 @@ import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-l
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
-import { extractLeadingEmoji, startsWithEmoji } from '../../../shared/emoji-shortcode.util';
+import {
+  extractLeadingEmoji,
+  startsWithEmoji,
+  stripLeadingEmojiMarker,
+} from '../../../shared/emoji-shortcode.util';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 
@@ -383,11 +387,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (typeof teamName !== 'string') {
       return '';
     }
-    const marker = this.teamNameEmojiMarker(teamName);
-    if (!marker) {
-      return teamName;
-    }
-    return teamName.trimStart().slice(marker.length).trimStart();
+    return stripLeadingEmojiMarker(teamName);
   }
 
   /** Story 5.6: Persönliche Scorecard pro Frage */

@@ -23,7 +23,11 @@ import {
   kindergartenEmojiAtIndex,
 } from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
-import { extractLeadingEmoji, startsWithEmoji } from '../../shared/emoji-shortcode.util';
+import {
+  extractLeadingEmoji,
+  startsWithEmoji,
+  stripLeadingEmojiMarker,
+} from '../../shared/emoji-shortcode.util';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
@@ -196,11 +200,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   teamNameUsesEmojiMarker = (teamName: string) => startsWithEmoji(teamName);
   teamNameEmojiMarker = (teamName: string) => extractLeadingEmoji(teamName);
   teamNameLabelWithoutEmojiMarker = (teamName: string) => {
-    const marker = this.teamNameEmojiMarker(teamName);
-    if (!marker) {
-      return teamName;
-    }
-    return teamName.trimStart().slice(marker.length).trimStart();
+    return stripLeadingEmojiMarker(teamName);
   };
   teamInfoHeading = () =>
     this.showTeamSelect() ? $localize`Dein Team` : $localize`Team-Modus aktiv`;

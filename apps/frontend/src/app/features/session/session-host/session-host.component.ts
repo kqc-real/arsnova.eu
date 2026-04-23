@@ -79,7 +79,11 @@ import { recordServerTimeIso } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
-import { extractLeadingEmoji, startsWithEmoji } from '../../../shared/emoji-shortcode.util';
+import {
+  extractLeadingEmoji,
+  startsWithEmoji,
+  stripLeadingEmojiMarker,
+} from '../../../shared/emoji-shortcode.util';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 import {
   SessionQuizPickerDialogComponent,
@@ -1606,11 +1610,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   teamNameLabelWithoutEmojiMarker(teamName: string): string {
-    const marker = this.teamNameEmojiMarker(teamName);
-    if (!marker) {
-      return teamName;
-    }
-    return teamName.trimStart().slice(marker.length).trimStart();
+    return stripLeadingEmojiMarker(teamName);
   }
 
   lobbyTeamEmptyLabel(): string {

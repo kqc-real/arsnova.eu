@@ -529,8 +529,8 @@
                       [attr.aria-label]="teamStandingAriaLabel(entry)"
                     >
                       <div class="vote-team-reward__board-head">
-                        <span class="vote-team-reward__board-rank">{{
-                          teamRewardRankDisplay(entry.rank)
+                        <span class="vote-team-reward__board-rank" [attr.aria-hidden]="true">{{
+                          teamScoreboardHasPoints() ? teamRewardRankDisplay(entry.rank) : ''
                         }}</span>
                         <span class="vote-team-reward__board-name">
                           @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
@@ -1170,8 +1170,8 @@
                       [attr.aria-label]="teamStandingAriaLabel(entry)"
                     >
                       <div class="vote-team-reward__board-head">
-                        <span class="vote-team-reward__board-rank">{{
-                          teamRewardRankDisplay(entry.rank)
+                        <span class="vote-team-reward__board-rank" [attr.aria-hidden]="true">{{
+                          teamScoreboardHasPoints() ? teamRewardRankDisplay(entry.rank) : ''
                         }}</span>
                         <span class="vote-team-reward__board-name">
                           @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
