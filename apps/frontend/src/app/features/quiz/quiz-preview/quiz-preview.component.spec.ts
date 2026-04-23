@@ -418,6 +418,22 @@ describe('QuizPreviewComponent', () => {
     expect(saveButton?.disabled).toBe(false);
   });
 
+  it('zeigt im Preview-Editor nur einen Verwerfen-Button in der Actionbar', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    fixture.detectChanges();
+
+    const discardButtons = Array.from(fixture.nativeElement.querySelectorAll('button')).filter(
+      (button) => (button.textContent as string).includes('Änderungen verwerfen'),
+    );
+
+    expect(discardButtons).toHaveLength(1);
+    expect(discardButtons[0]?.closest('.quiz-preview-editor__actions')).not.toBeNull();
+  });
+
   it('deaktiviert den Save-Button wieder, wenn der Draft dem Ausgangszustand entspricht', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
