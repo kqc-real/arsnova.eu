@@ -172,6 +172,7 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).toMatch(/alt="Kurzinfo"/);
     expect(html).toMatch(/title="Kurzinfo"/);
     expect(html).toMatch(/data-markdown-image-lightbox="true"/);
+    expect(html).toMatch(/data-markdown-image-state="loading"/);
   });
 
   it('blockiert relative Bildquellen im strikten Modus (Quiz-Inhalte)', () => {

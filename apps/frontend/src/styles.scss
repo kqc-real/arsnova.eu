@@ -582,6 +582,22 @@ html {
 img[data-markdown-image-lightbox='true'] {
   cursor: -webkit-zoom-in !important;
   cursor: zoom-in !important;
+  transition: opacity 180ms ease-out;
+}
+
+.markdown-lightbox-enabled
+  img[data-markdown-image-lightbox='true'][data-markdown-image-state='loading'],
+img[data-markdown-image-lightbox='true'][data-markdown-image-state='loading'] {
+  opacity: 0;
+}
+
+.markdown-lightbox-enabled
+  img[data-markdown-image-lightbox='true'][data-markdown-image-state='ready'],
+.markdown-lightbox-enabled
+  img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'],
+img[data-markdown-image-lightbox='true'][data-markdown-image-state='ready'],
+img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
+  opacity: 1;
 }
 
 /* Markdown (MOTD …): Flex-Eltern dürfen unter natürlicher Bildbreite schrumpfen (sonst kein max-width:100%) */

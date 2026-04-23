@@ -115,7 +115,7 @@ function parseMarkdownEscapingInlineHtml(
     const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
     const tooltip = hasTitle ? String(title).trim() : text;
     const titleEsc = escapeHtml(tooltip);
-    return `<img src="${hrefEsc}" alt="${altEsc}" title="${titleEsc}" loading="eager" decoding="async" crossorigin="anonymous" referrerpolicy="no-referrer" data-markdown-image-lightbox="true" />`;
+    return `<img src="${hrefEsc}" alt="${altEsc}" title="${titleEsc}" loading="eager" decoding="async" crossorigin="anonymous" referrerpolicy="no-referrer" data-markdown-image-lightbox="true" data-markdown-image-state="loading" />`;
   };
   return marked.parse(source, { renderer }) as string;
 }
