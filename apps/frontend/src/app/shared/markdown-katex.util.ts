@@ -101,10 +101,8 @@ function parseMarkdownEscapingInlineHtml(
     const hrefEsc = escapeHtml(safeHref);
     const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
     const titleAttr = hasTitle ? ` title="${escapeHtml(String(title).trim())}"` : '';
-    const isExternalHttp = /^https?:\/\//i.test(safeHref);
-    const relAttr = isExternalHttp ? ` rel="noopener noreferrer"` : '';
     const renderedText = looksLikeRenderedHtml(text) ? text : renderMarkdownText(text);
-    return `<a href="${hrefEsc}"${titleAttr}${relAttr}>${renderedText}</a>`;
+    return `<a href="${hrefEsc}"${titleAttr} target="_blank" rel="noopener noreferrer">${renderedText}</a>`;
   };
   /** `alt` allein löst keinen Hover-Tooltip aus; `title` schon (optional explizit in `![](url "title")`). */
   renderer.image = ({ href, title, text }): string => {
@@ -340,6 +338,7 @@ function sanitizeMarkdownHtml(html: string): string {
       'crossorigin',
       'referrerpolicy',
       'class',
+      'target',
       'rel',
       'aria-hidden',
       'xmlns',

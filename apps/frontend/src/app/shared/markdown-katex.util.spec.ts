@@ -136,6 +136,8 @@ describe('renderMarkdownWithKatex', () => {
       '>Start <span class="markdown-emoji" title=":rocket:">🚀</span></a>',
     );
     expect(result.html).toContain('href="https://example.org/:apple:"');
+    expect(result.html).toContain('target="_blank"');
+    expect(result.html).toContain('rel="noopener noreferrer"');
     expect(result.html).toContain('<code>:apple:</code>');
   });
 });
@@ -215,6 +217,8 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).toContain('href="/de/datenschutz"');
     expect(html).toContain('href="https://arsnova.eu/info"');
     expect(html).toContain('href="mailto:test@example.org"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noopener noreferrer"');
   });
 
   it('entfernt unsichere http-Links und http-Bildquellen', () => {
