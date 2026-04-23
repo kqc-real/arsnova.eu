@@ -628,7 +628,17 @@ img[data-markdown-image-lightbox='true'] {
 .quiz-preview-question__text img,
 .quiz-preview-question__text a img,
 .quiz-list-item__description img,
-.quiz-list-item__description a img {
+.quiz-list-item__description a img,
+.mk-editor__preview-body img,
+.mk-editor__preview-body a img,
+.quiz-edit-form__preview-content img,
+.quiz-edit-form__preview-content a img,
+.quiz-edit-form__preview-answers img,
+.quiz-edit-form__preview-answers a img,
+.quiz-edit-question__text img,
+.quiz-edit-question__text a img,
+.quiz-edit-question__answer-text img,
+.quiz-edit-question__answer-text a img {
   display: block;
   width: auto !important;
   max-width: 100% !important;
