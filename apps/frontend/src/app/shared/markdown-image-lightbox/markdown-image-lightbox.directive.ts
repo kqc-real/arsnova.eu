@@ -118,24 +118,36 @@ export class MarkdownImageLightboxDirective implements AfterViewInit, OnDestroy 
     }
 
     if (image.complete) {
-      image.dataset.markdownImageState = image.naturalWidth > 0 ? 'ready' : 'error';
+      this.setMarkdownImageState(image, image.naturalWidth > 0 ? 'ready' : 'error');
       return;
     }
 
-    image.dataset.markdownImageState = 'loading';
+    this.setMarkdownImageState(image, 'loading');
   }
 
   private readonly onImageLoad = (event: Event): void => {
     if (!(event.target instanceof HTMLImageElement)) {
       return;
     }
-    event.target.dataset.markdownImageState = 'ready';
+    this.setMarkdownImageState(event.target, 'ready');
   };
 
   private readonly onImageError = (event: Event): void => {
     if (!(event.target instanceof HTMLImageElement)) {
       return;
     }
-    event.target.dataset.markdownImageState = 'error';
+    this.setMarkdownImageState(event.target, 'error');
   };
+
+  private setMarkdownImageState(
+    image: HTMLImageElement,
+    state: 'loading' | 'ready' | 'error',
+  ): void {
+    if (image.dataset) {
+      image.dataset.markdownImageState = state;
+      return;
+    }
+
+    image.setAttribute('data-markdown-image-state', state);
+  }
 }

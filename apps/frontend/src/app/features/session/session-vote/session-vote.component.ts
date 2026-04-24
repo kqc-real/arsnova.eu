@@ -1227,7 +1227,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     this.ensureQaSubscription();
 
-    void this.refreshQuestion();
     this.pollTimer = setInterval(() => {
       void this.refreshSessionInfoFallback();
       void this.refreshQuestion();
@@ -1247,7 +1246,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
       this.ensureQaSubscription();
       await this.refreshQaQuestions();
-      await this.refreshQuickFeedbackResult();
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
           silent: true,
@@ -1259,6 +1257,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           await this.loadTeamLeaderboard();
         }
       }
+      await this.refreshQuestion();
+      await this.refreshQuickFeedbackResult();
     } catch {
       // Parent-Shell validiert bereits; Retry läuft über Polling.
     }
@@ -1922,6 +1922,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       } else {
         this.currentQuestion.set(q);
       }
+      this.ensureActiveChannel();
 
       const pc =
         q && 'participantCount' in q

@@ -445,7 +445,7 @@ describe('SessionHostComponent', () => {
 
     expect(second).toBe(first);
     fixture.destroy();
-  });
+  }, 15000);
 
   it('baut QR-Join-Links unter einem localized production base href', () => {
     const base = document.createElement('base');

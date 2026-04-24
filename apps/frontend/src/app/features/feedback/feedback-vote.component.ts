@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, inject, input, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatFabButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -52,6 +52,7 @@ function hasAlreadyVoted(code: string): boolean {
 export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly themePreset = inject(ThemePresetService);
   private styleTimer: ReturnType<typeof setInterval> | null = null;
   private subscription: Unsubscribable | null = null;
@@ -109,6 +110,20 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     if (!code) {
       this.loading.set(false);
       return;
+    }
+
+    if (!this.embeddedInSession()) {
+      try {
+        const session = await trpc.session.getInfo.query({ code });
+        if (session.type === 'QUIZ') {
+          await this.router.navigateByUrl(this.localizedPath(`/session/${code}/vote`), {
+            replaceUrl: true,
+          });
+          return;
+        }
+      } catch {
+        // Fallback: standalone Blitzlicht-Route normal weiter behandeln.
+      }
     }
 
     this.voted.set(hasAlreadyVoted(code));

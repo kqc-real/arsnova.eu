@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { QuizEditComponent } from './quiz-edit.component';
 import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service';
 
@@ -83,6 +83,10 @@ describe('QuizEditComponent', () => {
     // QuizEdit importiert indirekt Material-Dialog-Provider (über MarkdownKatexEditorComponent).
     // Wir overriden explizit, damit Tests keine echten Overlay-Provider benötigen.
     TestBed.overrideProvider(MatDialog, { useValue: matDialogMock });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('hält das Panel „Neue Frage“ bei leerem Quiz zunächst geschlossen', () => {

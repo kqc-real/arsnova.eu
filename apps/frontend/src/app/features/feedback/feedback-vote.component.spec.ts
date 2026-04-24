@@ -1,13 +1,15 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedbackVoteComponent } from './feedback-vote.component';
 
 const {
+  getInfoQueryMock,
   quickFeedbackResultsQueryMock,
   quickFeedbackVoteMutateMock,
   quickFeedbackOnResultsSubscribeMock,
 } = vi.hoisted(() => ({
+  getInfoQueryMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
   quickFeedbackVoteMutateMock: vi.fn(),
   quickFeedbackOnResultsSubscribeMock: vi.fn(() => ({ unsubscribe: vi.fn() })),
@@ -15,6 +17,9 @@ const {
 
 vi.mock('../../core/trpc.client', () => ({
   trpc: {
+    session: {
+      getInfo: { query: getInfoQueryMock },
+    },
     quickFeedback: {
       results: { query: quickFeedbackResultsQueryMock },
       vote: { mutate: quickFeedbackVoteMutateMock },
@@ -26,6 +31,7 @@ vi.mock('../../core/trpc.client', () => ({
 describe('FeedbackVoteComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getInfoQueryMock.mockRejectedValue(new Error('not found'));
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'YESNO',
       theme: 'system',
@@ -52,6 +58,39 @@ describe('FeedbackVoteComponent', () => {
         },
       ],
     });
+  });
+
+  it('leitet standalone Feedback-Routen für Quiz-Sessions direkt in den Session-Vote-Flow um', async () => {
+    getInfoQueryMock.mockResolvedValueOnce({
+      id: 'session-1',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      serverTime: '2026-04-24T18:00:00.000Z',
+      quizName: 'Demo',
+      title: null,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+      participantCount: 0,
+    });
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(getInfoQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/session/ABC123/vote', {
+      replaceUrl: true,
+    });
+    fixture.destroy();
   });
 
   it('lädt eingebettetes Blitzlicht nach gesetztem Session-Code-Input', async () => {
