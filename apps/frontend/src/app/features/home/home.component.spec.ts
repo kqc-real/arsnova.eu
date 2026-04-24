@@ -506,6 +506,26 @@ describe('HomeComponent', () => {
       );
       expect(comp.motd()).toBeNull();
     });
+
+    it('unterdrückt die MOTD nach Interaktion mit der Session-Eingabe', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const comp = createHomeComponent();
+      comp.onSessionCodeInput({ target: { value: 'A' } } as unknown as Event);
+
+      await comp['loadMotdOverlay']();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+      expect(comp.motd()).toBeNull();
+    });
   });
 
   describe('openSyncLink', () => {

@@ -171,6 +171,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Aktive MOTD (Epic 10); nur Browser, nach getCurrent. */
   readonly motd = signal<MotdPublicDTO | null>(null);
   readonly motdBodyHtml = signal<SafeHtml | null>(null);
+  private readonly suppressMotdForJoinIntent = signal(false);
   /** Erzwingt Neuablesung der MOTD-Interaktions-Flags aus localStorage. */
   private readonly motdInteractionRev = signal(0);
   private motdTouchStartY = 0;
@@ -268,8 +269,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.loadRecentSessionCodes();
       this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
-      // MOTD: bald nach erstem Paint, ohne langes Idle-Warten (max. ~400 ms)
-      this.scheduleIdleWork(() => void this.loadMotdOverlay(), 400, 50);
+      // MOTD: bewusst etwas später laden, damit der Session-Einstieg auf Home
+      // nicht direkt von einem Overlay unterbrochen wird.
+      this.scheduleIdleWork(() => void this.loadMotdOverlay(), 2400, 1600);
     }
   }
 
@@ -396,6 +398,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   focusCodeInput(): void {
+    this.markJoinIntentForMotd();
     this.sessionCodeInput?.nativeElement.focus();
   }
 
@@ -603,6 +606,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       .replace(/[^A-Z0-9]/g, '')
       .slice(0, 6);
     this.sessionCode.set(normalized);
+    if (normalized.length > 0) {
+      this.markJoinIntentForMotd();
+    }
     this.joinError.set(null);
     this.quickFeedbackError.set(null);
     if (normalized.length === 6 && prev.length < 6) {
@@ -655,6 +661,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async loadMotdOverlay(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+    if (
+      this.suppressMotdForJoinIntent() ||
+      this.sessionCode().trim().length > 0 ||
+      this.isJoining()
+    ) {
+      return;
+    }
     const motd = await this.motdCurrent.getCurrent();
     if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
       return;
@@ -669,6 +682,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     );
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
     this.scheduleTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
+  }
+
+  private markJoinIntentForMotd(): void {
+    if (this.suppressMotdForJoinIntent()) {
+      return;
+    }
+    this.suppressMotdForJoinIntent.set(true);
+    if (this.motd()) {
+      this.clearMotdOverlay();
+    }
   }
 
   private scheduleTimeout(callback: () => void, delayMs: number): void {
