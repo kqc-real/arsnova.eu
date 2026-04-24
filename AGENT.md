@@ -43,6 +43,42 @@ Für Pfade (`apps/backend`, `apps/frontend`, `libs/shared-types`), strikte Monor
 - **Frontend:** Pro neuer Komponente/Service eine Spec-Datei im gleichen Ordner; kritische Logik und Nutzerinteraktionen abdecken.
 - Bevor eine Story als „fertig“ markiert wird: Tests ausführen (`npm run test -w @arsnova/backend` bzw. `-w @arsnova/frontend`) und DoD-Check (inkl. DTO-Stripping-Tests wo relevant).
 
+## ✅ Abschluss-Flow für Feature- und Bugfix-Arbeit
+
+Bevor du eine Feature- oder Bugfix-Änderung als abgeschlossen meldest, gilt der folgende Ablauf als verbindlicher Standard. Wenn der User nichts anderes vorgibt, wird er vollständig durchlaufen.
+
+1. **Scope gegen Backlog und Regeln abgleichen**
+   - Betroffene Story, DoD, Sicherheits- und i18n-Vorgaben prüfen.
+   - Bei UI-Textänderungen sofort den Übersetzungsumfang (`de`, `en`, `fr`, `es`, `it`) mitdenken.
+2. **Änderung fachlich und technisch abschließen**
+   - Keine halbfertigen TODO-Reste, keine bewusst offenen Compile-/Lint-/Testfehler hinterlassen.
+   - Neue Hilfslogik dort bündeln, wo Anzeige, Filter, Export und Folgepfade dieselbe Semantik brauchen.
+3. **Tests gezielt ergänzen**
+   - Für den geänderten Pfad zuerst die nächstliegenden Unit-/Komponententests ergänzen oder anpassen.
+   - Bei Backend-Änderungen Happy Path plus Fehlerfall; bei Frontend-Änderungen kritische Interaktion und Regressionen abdecken.
+4. **Relevante Tests lokal ausführen**
+   - Mindestens die betroffenen Tests gezielt laufen lassen.
+   - Vor Abschluss zusätzlich die vollständige betroffene Suite ausführen (`npm run test -w @arsnova/backend` und/oder `npm run test -w @arsnova/frontend`).
+5. **Lokalisierten Production-Build prüfen**
+   - Bei Frontend-Änderungen vor Abschluss immer den lokalisierten Production-Build ausführen (`npm run build:prod` im Repo-Root bzw. mindestens `npm run build:localize -w @arsnova/frontend`).
+   - Build-Warnungen nicht reflexhaft ignorieren; neue Warnungen aktiv einordnen und im Zweifel beheben.
+6. **UI-/Runtime-Folgen querprüfen**
+   - Prüfen, ob Anzeige, Filter, Export, Host/Present/Vote und Fehlerzustände dieselbe fachliche Logik verwenden.
+   - Bei UI-Änderungen Mobile-First mitdenken; bei sprachrelevanten Änderungen Länge und Lesbarkeit gegenprüfen.
+7. **Diff bewusst prüfen**
+   - Vor dem Commit `git diff` bzw. `git status` prüfen.
+   - Keine versehentlichen Nebenänderungen, keine Debug-Ausgaben, keine ungewollten Formatierungswellen mitnehmen.
+8. **Sauber committen**
+   - Commit erst nach grünem Test-/Build-Stand.
+   - Commit-Message knapp, fachlich und im bestehenden Stil (`fix(...)`, `feat(...)`, `docs(...)`).
+9. **Push erst nach lokalem Abschluss**
+   - Nach Commit den aktuellen Branch pushen.
+   - Wenn der User „committen und pushen“ verlangt, nicht vorher stoppen.
+10. **Abschlussmeldung mit Nachweis**
+
+- Kurz sagen: was geändert wurde, welche Tests liefen, ob der lokalisierte Production-Build grün war und ob Restwarnungen geblieben sind.
+- Offene Restrisiken oder bewusst nicht angefasste Folgepunkte klar benennen.
+
 ## 📐 Zusätzliche Angular-Details (zu .cursorrules)
 
 - **RxJS:** Nur für asynchrone Streams (WebSockets, tRPC-Subscriptions) oder z.B. Debouncing – **niemals** für einfachen UI-State (`BehaviorSubject` ist verboten).

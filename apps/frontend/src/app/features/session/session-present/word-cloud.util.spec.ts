@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { aggregateWords, getStopwordsForLocale } from './word-cloud.util';
+import {
+  aggregateWords,
+  getStopwordsForLocale,
+  normalizeFreeTextResponseForDisplay,
+  responseContainsWord,
+} from './word-cloud.util';
 
 describe('aggregateWords', () => {
   it('aggregiert Freitext-Antworten und filtert Stopwords', () => {
@@ -26,6 +31,36 @@ describe('aggregateWords', () => {
     expect(result.some((entry) => entry.word === 'welche')).toBe(false);
     expect(result.some((entry) => entry.word === 'was')).toBe(false);
     expect(result.some((entry) => entry.word === 'formel')).toBe(true);
+  });
+
+  it('laesst fachliche Kurzbegriffe mit zwei Zeichen zu, filtert aber Einzelzeichen', () => {
+    const result = aggregateWords(['pi KI a b', 'KI hilft bei pi']);
+
+    expect(result.find((entry) => entry.word === 'pi')?.count).toBe(2);
+    expect(result.find((entry) => entry.word === 'ki')?.count).toBe(2);
+    expect(result.some((entry) => entry.word === 'a')).toBe(false);
+    expect(result.some((entry) => entry.word === 'b')).toBe(false);
+  });
+
+  it('behaelt numerische Antworten als ganze Tokens und normalisiert Dezimaltrennzeichen', () => {
+    const result = aggregateWords(['3.14', '3,14', '7', 'a']);
+
+    expect(result.find((entry) => entry.word === '3.14')?.count).toBe(2);
+    expect(result.find((entry) => entry.word === '7')?.count).toBe(1);
+    expect(result.some((entry) => entry.word === '14')).toBe(false);
+    expect(result.some((entry) => entry.word === 'a')).toBe(false);
+  });
+
+  it('normalisiert reine numerische Antworten verlustfrei fuer die Anzeige', () => {
+    expect(normalizeFreeTextResponseForDisplay(' 3, 14529 ')).toBe('3.14529');
+    expect(normalizeFreeTextResponseForDisplay('3.14529')).toBe('3.14529');
+    expect(normalizeFreeTextResponseForDisplay('Pi ist 3,14')).toBe('Pi ist 3,14');
+  });
+
+  it('filtert Antworten ueber normalisierte Tokens statt ueber rohe Teilstrings', () => {
+    expect(responseContainsWord('3, 14', '3.14')).toBe(true);
+    expect(responseContainsWord('13.14', '3.14')).toBe(false);
+    expect(responseContainsWord('spiel', 'pi')).toBe(false);
   });
 
   it('nutzt sprachspezifische Stoplisten fuer die unterstuetzten Locales', () => {

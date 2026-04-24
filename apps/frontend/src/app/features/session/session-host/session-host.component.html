@@ -979,7 +979,9 @@
                               </p>
                               <ul class="session-host__freetext-list" role="list">
                                 @for (text of q.freeTextResponses; track text) {
-                                  <li class="session-host__freetext-item">{{ text }}</li>
+                                  <li class="session-host__freetext-item">
+                                    {{ normalizeFreetextResponse(text) }}
+                                  </li>
                                 }
                               </ul>
                             } @else {

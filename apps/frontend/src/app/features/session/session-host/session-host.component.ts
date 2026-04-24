@@ -72,6 +72,7 @@ import type {
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
+import { normalizeFreeTextResponseForDisplay } from '../session-present/word-cloud.util';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { remainingCountdownSeconds } from '../session-countdown.util';
@@ -1662,6 +1663,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return $localize`${count} von ${totalStr} hat geantwortet`;
     }
     return $localize`${count} von ${totalStr} haben geantwortet`;
+  }
+
+  normalizeFreetextResponse(value: string): string {
+    return normalizeFreeTextResponseForDisplay(value);
   }
 
   /** Ergebnisansicht: „X von Y hat/haben abgestimmt“ (Plural nach Anzahl abgegebener Stimmen). */

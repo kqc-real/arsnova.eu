@@ -49,5 +49,6 @@ Du bist der Lead-Architekt. Wir arbeiten in einem **npm Workspaces Monorepo**.
 ## 📋 Arbeitsweise in Cursor
 
 - **AGENT.md** gilt als ergänzende KI-Leitplanken: Baby-Steps, Backend-oder-Frontend zuerst, kein `BehaviorSubject` für UI-State, Styling (Material 3, kein Tailwind), Integrationstest vor Story-Fertigstellung. Bei Unklarheiten oder fehlendem Kontext: User bitten, `@AGENT.md` zu laden.
+- **Abschluss-Flow ist verpflichtend:** Vor „fertig“, Commit oder Push den in `AGENT.md` definierten **Abschluss-Flow für Feature-/Bugfix-Arbeit** durchlaufen (inkl. relevanter Tests und lokalisiertem Production-Build bei Frontend-Änderungen).
 - Nutze `@Codebase` bzw. das **Backlog** (`Backlog.md` im Repo-Root), um vor Story-Start die Akzeptanzkriterien und DoD zu prüfen.
 - Wenn du im **Composer (`Cmd+I`)** arbeitest, stelle sicher, dass du Änderungen in `apps/backend` und `apps/frontend` gleichzeitig vornimmst, um die tRPC-Typsicherheit zu wahren.
