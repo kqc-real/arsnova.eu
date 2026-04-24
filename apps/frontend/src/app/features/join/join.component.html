@@ -89,17 +89,25 @@
                   >
                     <span class="join-card__team-card-name">
                       @if (teamNameEmojiMarker(team.name); as teamEmoji) {
-                        <span class="join-card__team-card-emoji" aria-hidden="true">{{
-                          teamEmoji
-                        }}</span>
+                        @if (teamNameEmojiMarkerTrailing(team.name)) {
+                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                        } @else {
+                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                        }
                       } @else {
                         <span
                           class="join-card__team-card-dot"
                           [style.background]="team.color || 'var(--mat-sys-primary)'"
                           aria-hidden="true"
                         ></span>
+                        <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
                       }
-                      {{ teamNameLabelWithoutEmojiMarker(team.name) }}
                     </span>
                     <span class="join-card__team-card-meta">{{
                       teamMembersLabel(team.memberCount)
@@ -113,17 +121,25 @@
                   >
                     <span class="join-card__team-card-name">
                       @if (teamNameEmojiMarker(team.name); as teamEmoji) {
-                        <span class="join-card__team-card-emoji" aria-hidden="true">{{
-                          teamEmoji
-                        }}</span>
+                        @if (teamNameEmojiMarkerTrailing(team.name)) {
+                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                        } @else {
+                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                        }
                       } @else {
                         <span
                           class="join-card__team-card-dot"
                           [style.background]="team.color || 'var(--mat-sys-primary)'"
                           aria-hidden="true"
                         ></span>
+                        <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
                       }
-                      {{ teamNameLabelWithoutEmojiMarker(team.name) }}
                     </span>
                     <span class="join-card__team-card-meta">{{
                       teamMembersLabel(team.memberCount)

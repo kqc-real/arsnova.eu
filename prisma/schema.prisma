@@ -49,6 +49,7 @@ model Question {
   type       QuestionType
   timer      Int?           // Optionaler Countdown in Sekunden (überschreibt Quiz.defaultTimer)
   difficulty Difficulty     @default(MEDIUM) // Schwierigkeitsgrad für Punkteberechnung
+  skipReadingPhase Boolean  @default(false) // Story 2.6a: Frage überspringt die globale Lesephase
   ratingMin  Int?           // Story 1.2c: Untere Skalengrenze (nur bei RATING, default: 1)
   ratingMax  Int?           // Story 1.2c: Obere Skalengrenze (nur bei RATING, default: 5)
   ratingLabelMin String?    // Story 1.2c: Label für Minimum (z.B. "Stimme gar nicht zu")

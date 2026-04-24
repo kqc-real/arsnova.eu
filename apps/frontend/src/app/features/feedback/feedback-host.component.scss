@@ -432,7 +432,9 @@
 
 .feedback-host__join-menu-title-copy.dialog-title-header__copy {
   gap: 0.45rem;
+  align-self: center;
   align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
@@ -592,6 +594,9 @@
 
   .feedback-host__join-menu-title-copy.dialog-title-header__copy {
     gap: 0.55rem;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
   }
 
   .feedback-host__join-menu-qr-wrap {
@@ -654,6 +659,9 @@
 
   .feedback-host__join-menu-title-copy.dialog-title-header__copy {
     gap: 0.55rem;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
   }
 }
 

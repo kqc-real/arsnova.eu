@@ -73,6 +73,7 @@ export interface QuizQuestion {
    */
   timer: number | null;
   answers: QuizAnswer[];
+  skipReadingPhase?: boolean;
   ratingMin: number | null;
   ratingMax: number | null;
   ratingLabelMin: string | null;
@@ -205,6 +206,7 @@ export interface AddQuizQuestionInput {
   /** `null` oder auslassen = Quiz-`defaultTimer` */
   timer?: number | null;
   answers: Array<{ text: string; isCorrect: boolean }>;
+  skipReadingPhase?: boolean;
   ratingMin?: number | null;
   ratingMax?: number | null;
   ratingLabelMin?: string | null;
@@ -226,6 +228,7 @@ type ValidatedQuestionInput = {
   difficulty: Difficulty;
   timer: number | null;
   answers: Array<{ text: string; isCorrect: boolean }>;
+  skipReadingPhase: boolean;
   ratingMin: number | null;
   ratingMax: number | null;
   ratingLabelMin: string | null;
@@ -320,6 +323,7 @@ const QuestionCreateSchema = AddQuestionInputSchema.pick({
   type: true,
   difficulty: true,
   answers: true,
+  skipReadingPhase: true,
   ratingMin: true,
   ratingMax: true,
   ratingLabelMin: true,
@@ -778,6 +782,7 @@ export class QuizStoreService implements OnDestroy {
             text: answer.text,
             isCorrect: answer.isCorrect,
           })),
+          skipReadingPhase: question.skipReadingPhase,
           ratingMin: question.ratingMin,
           ratingMax: question.ratingMax,
           ratingLabelMin: question.ratingLabelMin,
@@ -902,6 +907,7 @@ export class QuizStoreService implements OnDestroy {
         order: index,
         timer: q.timer ?? null,
         answers: q.answers.map((a) => ({ text: a.text, isCorrect: a.isCorrect })),
+        skipReadingPhase: q.skipReadingPhase ?? false,
         ratingMin: q.ratingMin ?? undefined,
         ratingMax: q.ratingMax ?? undefined,
         ratingLabelMin: q.ratingLabelMin ?? undefined,
@@ -1002,6 +1008,7 @@ export class QuizStoreService implements OnDestroy {
             text: answer.text,
             isCorrect: answer.isCorrect,
           })),
+          skipReadingPhase: question.skipReadingPhase ?? false,
           ratingMin: question.type === 'RATING' ? (question.ratingMin ?? 1) : null,
           ratingMax: question.type === 'RATING' ? (question.ratingMax ?? 5) : null,
           ratingLabelMin:
@@ -1044,6 +1051,7 @@ export class QuizStoreService implements OnDestroy {
         text: answer.text,
         isCorrect: answer.isCorrect,
       })),
+      skipReadingPhase: parsed.skipReadingPhase,
       ratingMin: parsed.ratingMin,
       ratingMax: parsed.ratingMax,
       ratingLabelMin: parsed.ratingLabelMin,
@@ -1093,6 +1101,7 @@ export class QuizStoreService implements OnDestroy {
         text: answer.text,
         isCorrect: answer.isCorrect,
       })),
+      skipReadingPhase: parsed.skipReadingPhase,
       ratingMin: parsed.ratingMin,
       ratingMax: parsed.ratingMax,
       ratingLabelMin: parsed.ratingLabelMin,
@@ -2064,6 +2073,7 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
       text: answer.text.trim(),
       isCorrect: answer.isCorrect,
     })),
+    skipReadingPhase: input.skipReadingPhase ?? false,
     ratingMin: input.ratingMin ?? undefined,
     ratingMax: input.ratingMax ?? undefined,
     ratingLabelMin: normalizeNullableLabel(input.ratingLabelMin),
@@ -2101,6 +2111,7 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     difficulty: parsed.data.difficulty,
     timer: parsed.data.timer ?? null,
     answers,
+    skipReadingPhase: parsed.data.skipReadingPhase ?? false,
     ratingMin,
     ratingMax,
     ratingLabelMin,
@@ -2135,6 +2146,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
       text: answer.text,
       isCorrect: answer.isCorrect,
     })),
+    skipReadingPhase: readBoolean(candidate['skipReadingPhase']) ?? false,
     ratingMin: readNumberOrNull(candidate['ratingMin']) ?? undefined,
     ratingMax: readNumberOrNull(candidate['ratingMax']) ?? undefined,
     ratingLabelMin: readStringOrNull(candidate['ratingLabelMin']) ?? undefined,
@@ -2161,6 +2173,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     enabled,
     timer: parsed.data.timer ?? null,
     answers,
+    skipReadingPhase: parsed.data.skipReadingPhase ?? false,
     ratingMin: parsed.data.type === 'RATING' ? (parsed.data.ratingMin ?? 1) : null,
     ratingMax: parsed.data.type === 'RATING' ? (parsed.data.ratingMax ?? 5) : null,
     ratingLabelMin:

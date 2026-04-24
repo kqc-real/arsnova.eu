@@ -261,17 +261,29 @@
         @if (playerTeamName()) {
           <span class="vote-player-badge__sep" aria-hidden="true">·</span>
           @if (teamNameEmojiMarker(playerTeamName()); as teamEmoji) {
-            <span class="vote-player-badge__team-emoji" aria-hidden="true">{{ teamEmoji }}</span>
-          } @else if (playerTeamColor()) {
-            <span
-              class="vote-player-badge__team-dot"
-              [style.background]="playerTeamColor()"
-              aria-hidden="true"
-            ></span>
+            @if (teamNameEmojiMarkerTrailing(playerTeamName())) {
+              <span class="vote-player-badge__team">{{
+                teamNameLabelWithoutEmojiMarker(playerTeamName())
+              }}</span>
+              <span class="vote-player-badge__team-emoji" aria-hidden="true">{{ teamEmoji }}</span>
+            } @else {
+              <span class="vote-player-badge__team-emoji" aria-hidden="true">{{ teamEmoji }}</span>
+              <span class="vote-player-badge__team">{{
+                teamNameLabelWithoutEmojiMarker(playerTeamName())
+              }}</span>
+            }
+          } @else {
+            @if (playerTeamColor()) {
+              <span
+                class="vote-player-badge__team-dot"
+                [style.background]="playerTeamColor()"
+                aria-hidden="true"
+              ></span>
+            }
+            <span class="vote-player-badge__team">{{
+              teamNameLabelWithoutEmojiMarker(playerTeamName())
+            }}</span>
           }
-          <span class="vote-player-badge__team">{{
-            teamNameLabelWithoutEmojiMarker(playerTeamName())
-          }}</span>
         }
       </div>
     }
@@ -359,19 +371,33 @@
               @if (playerTeamName()) {
                 <span class="vote-lobby__kita-sep" aria-hidden="true">·</span>
                 @if (teamNameEmojiMarker(playerTeamName()); as teamEmoji) {
-                  <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
-                    teamEmoji
+                  @if (teamNameEmojiMarkerTrailing(playerTeamName())) {
+                    <span class="vote-lobby__kita-team">{{
+                      teamNameLabelWithoutEmojiMarker(playerTeamName())
+                    }}</span>
+                    <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
+                      teamEmoji
+                    }}</span>
+                  } @else {
+                    <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
+                      teamEmoji
+                    }}</span>
+                    <span class="vote-lobby__kita-team">{{
+                      teamNameLabelWithoutEmojiMarker(playerTeamName())
+                    }}</span>
+                  }
+                } @else {
+                  @if (playerTeamColor()) {
+                    <span
+                      class="vote-lobby__kita-team-dot"
+                      [style.background]="playerTeamColor()"
+                      aria-hidden="true"
+                    ></span>
+                  }
+                  <span class="vote-lobby__kita-team">{{
+                    teamNameLabelWithoutEmojiMarker(playerTeamName())
                   }}</span>
-                } @else if (playerTeamColor()) {
-                  <span
-                    class="vote-lobby__kita-team-dot"
-                    [style.background]="playerTeamColor()"
-                    aria-hidden="true"
-                  ></span>
                 }
-                <span class="vote-lobby__kita-team">{{
-                  teamNameLabelWithoutEmojiMarker(playerTeamName())
-                }}</span>
               }
             </p>
           </div>
@@ -473,15 +499,25 @@
               <p class="vote-team-reward__summary">
                 <span class="vote-team-reward__team">
                   @if (teamNameEmojiMarker(ownTeam.teamName); as teamEmoji) {
-                    <span class="vote-team-reward__emoji" aria-hidden="true">{{ teamEmoji }}</span>
+                    @if (teamNameEmojiMarkerTrailing(ownTeam.teamName)) {
+                      <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                    } @else {
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                      <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                    }
                   } @else {
                     <span
                       class="vote-team-reward__dot"
                       [style.background]="ownTeam.teamColor || 'var(--mat-sys-primary)'"
                       aria-hidden="true"
                     ></span>
+                    <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
                   }
-                  {{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}
                 </span>
                 <span class="vote-team-reward__message">{{ teamRewardMessage() }}</span>
               </p>
@@ -534,17 +570,25 @@
                         }}</span>
                         <span class="vote-team-reward__board-name">
                           @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
-                            <span class="vote-team-reward__emoji" aria-hidden="true">{{
-                              teamEmoji
-                            }}</span>
+                            @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                              <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                            } @else {
+                              <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                            }
                           } @else {
                             <span
                               class="vote-team-reward__dot"
                               [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
                               aria-hidden="true"
                             ></span>
+                            <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
                           }
-                          {{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}
                         </span>
                         <span class="vote-team-reward__board-score">{{
                           entry.totalScore | number
@@ -1122,15 +1166,25 @@
               <p class="vote-team-reward__summary">
                 <span class="vote-team-reward__team">
                   @if (teamNameEmojiMarker(ownTeam.teamName); as teamEmoji) {
-                    <span class="vote-team-reward__emoji" aria-hidden="true">{{ teamEmoji }}</span>
+                    @if (teamNameEmojiMarkerTrailing(ownTeam.teamName)) {
+                      <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                    } @else {
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                      <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                    }
                   } @else {
                     <span
                       class="vote-team-reward__dot"
                       [style.background]="ownTeam.teamColor || 'var(--mat-sys-primary)'"
                       aria-hidden="true"
                     ></span>
+                    <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
                   }
-                  {{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}
                 </span>
                 <span class="vote-team-reward__message">{{ teamRewardMessage() }}</span>
               </p>
@@ -1174,17 +1228,25 @@
                         }}</span>
                         <span class="vote-team-reward__board-name">
                           @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
-                            <span class="vote-team-reward__emoji" aria-hidden="true">{{
-                              teamEmoji
-                            }}</span>
+                            @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                              <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                            } @else {
+                              <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                            }
                           } @else {
                             <span
                               class="vote-team-reward__dot"
                               [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
                               aria-hidden="true"
                             ></span>
+                            <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
                           }
-                          {{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}
                         </span>
                         <span class="vote-team-reward__board-score">{{
                           entry.totalScore | number

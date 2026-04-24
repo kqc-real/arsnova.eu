@@ -421,4 +421,51 @@ describe('JoinComponent', () => {
     expect(card.querySelector('.join-card__team-card-dot')).toBeNull();
     expect(card.querySelector('.join-card__team-card-emoji')?.textContent).toBe('🍎');
   });
+
+  it('zeigt bei emoji-only Teamnamen einen generischen Team-Text neben dem Emoji', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      teamMode: true,
+      teamAssignment: 'MANUAL',
+    });
+    vi.mocked(trpc.session.getTeams.query).mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: ':apple:', color: '#1E88E5', memberCount: 1 }],
+    });
+
+    const { fixture } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.join-card__team-card') as HTMLElement;
+    expect(card.textContent ?? '').toContain('Team');
+    expect(card.querySelector('.join-card__team-card-dot')).toBeNull();
+    expect(card.querySelector('.join-card__team-card-emoji')?.textContent).toBe('🍎');
+  });
+
+  it('zeigt bei Teamnamen mit nachgestelltem Emoji keinen Farbpunk und haelt die Reihenfolge Text dann Emoji', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      teamMode: true,
+      teamAssignment: 'MANUAL',
+    });
+    vi.mocked(trpc.session.getTeams.query).mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: 'Team :apple:', color: '#1E88E5', memberCount: 1 }],
+    });
+
+    const { fixture } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.join-card__team-card') as HTMLElement;
+    const name = card.querySelector('.join-card__team-card-name') as HTMLElement | null;
+    expect(name?.textContent ?? '').toContain('Team');
+    expect(card.querySelector('.join-card__team-card-dot')).toBeNull();
+    expect(card.querySelector('.join-card__team-card-emoji')?.textContent).toBe('🍎');
+  });
 });

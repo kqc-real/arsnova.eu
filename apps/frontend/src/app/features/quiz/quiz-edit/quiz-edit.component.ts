@@ -87,6 +87,7 @@ type QuestionFormGroup = FormGroup<{
   difficulty: FormControl<Difficulty>;
   /** `null` = Quiz-`defaultTimer` */
   questionTimer: FormControl<number | null>;
+  questionSkipReadingPhase: FormControl<boolean>;
   answers: FormArray<AnswerFormGroup>;
   ratingMin: FormControl<number | null>;
   ratingMax: FormControl<number | null>;
@@ -249,6 +250,7 @@ export class QuizEditComponent implements OnDestroy {
     type: this.formBuilder.control<SupportedQuestionType>('SINGLE_CHOICE'),
     difficulty: this.formBuilder.control<Difficulty>('MEDIUM'),
     questionTimer: this.formBuilder.control<number | null>(null),
+    questionSkipReadingPhase: this.formBuilder.control(false),
     answers: this.createAnswerArrayForType('SINGLE_CHOICE'),
     ratingMin: this.formBuilder.control<number | null>(1),
     ratingMax: this.formBuilder.control<number | null>(5),
@@ -772,6 +774,7 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.ratingLabelMin.setValue(question.ratingLabelMin ?? '');
     this.form.controls.ratingLabelMax.setValue(question.ratingLabelMax ?? '');
     this.form.controls.questionTimer.setValue(question.timer ?? null);
+    this.form.controls.questionSkipReadingPhase.setValue(question.skipReadingPhase ?? false);
 
     this.editingQuestionId.set(question.id);
     this.submitError.set(null);
@@ -1069,6 +1072,10 @@ export class QuizEditComponent implements OnDestroy {
       return true;
     }
 
+    if (this.form.controls.questionSkipReadingPhase.value) {
+      return true;
+    }
+
     if (this.answersArray.length !== 2) {
       return true;
     }
@@ -1109,6 +1116,7 @@ export class QuizEditComponent implements OnDestroy {
       difficulty: this.form.controls.difficulty.value,
       timer: this.form.controls.questionTimer.value,
       answers: this.buildQuestionAnswersForType(),
+      skipReadingPhase: this.form.controls.questionSkipReadingPhase.value,
       ...(this.isRatingType()
         ? {
             ratingMin: this.form.controls.ratingMin.value,
@@ -1129,6 +1137,7 @@ export class QuizEditComponent implements OnDestroy {
           difficulty: Difficulty;
           timer: number | null;
           answers: Array<{ text: string; isCorrect: boolean }>;
+          skipReadingPhase?: boolean;
           ratingMin?: number | null;
           ratingMax?: number | null;
           ratingLabelMin?: string | null;
@@ -1144,6 +1153,7 @@ export class QuizEditComponent implements OnDestroy {
         text: answer.text,
         isCorrect: answer.isCorrect,
       })),
+      skipReadingPhase: question.skipReadingPhase ?? false,
       ...(question.type === 'RATING'
         ? {
             ratingMin: question.ratingMin ?? 1,
@@ -1160,6 +1170,7 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.type.reset(type);
     this.form.controls.difficulty.reset('MEDIUM');
     this.form.controls.questionTimer.reset(null);
+    this.form.controls.questionSkipReadingPhase.reset(false);
     this.form.setControl('answers', this.createAnswerArrayForType(type));
     this.form.controls.ratingMin.reset(1);
     this.form.controls.ratingMax.reset(5);

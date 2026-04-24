@@ -764,7 +764,9 @@
 
 .session-host__join-menu-title-copy.dialog-title-header__copy {
   gap: 0.45rem;
+  align-self: center;
   align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
@@ -927,6 +929,9 @@
 
   .session-host__join-menu-title-copy.dialog-title-header__copy {
     gap: 0.55rem;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
   }
 
   .session-host__join-menu-qr-wrap {
@@ -1768,7 +1773,7 @@
 }
 
 .session-lobby__team-card-emoji {
-  font-size: calc(1.15rem * 3);
+  font-size: clamp(3.2rem, 5vw, 4.8rem);
   line-height: 1;
 }
 
@@ -2478,7 +2483,7 @@
 }
 
 .session-host__team-bar-emoji {
-  font-size: 1.7rem;
+  font-size: clamp(2.2rem, 3vw, 3rem);
   line-height: 1;
   flex-shrink: 0;
 }
@@ -2789,7 +2794,7 @@
 
 .session-host__interim-team-emoji {
   display: inline-block;
-  font-size: 1.35rem;
+  font-size: clamp(2rem, 3vw, 2.8rem);
   line-height: 1;
   flex-shrink: 0;
   vertical-align: middle;
@@ -3307,6 +3312,26 @@ button.session-host__btn-discussion {
   margin-bottom: 0.75rem;
 }
 
+.session-host__rating-scale {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.session-host__rating-scale-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: var(--mat-sys-corner-medium, 0.75rem);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 55%, transparent);
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
 .session-host__rating-pole {
   display: inline-flex;
   flex-wrap: nowrap;
@@ -3664,6 +3689,17 @@ button.session-host__btn-discussion {
   .session-host__freetext-list,
   .session-host__rating-bars {
     gap: 0.35rem;
+  }
+
+  .session-host__rating-scale {
+    gap: 0.25rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .session-host__rating-scale-value {
+    min-height: 1.8rem;
+    padding: 0.2rem 0.35rem;
+    font: var(--mat-sys-label-small);
   }
 
   .session-host__freetext {

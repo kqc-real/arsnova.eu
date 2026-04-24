@@ -160,7 +160,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       : resolveLocalizedAppUrl(`/feedback/${code}/vote`);
   }
 
-  /** Hostname für Join-Menü („Gehe auf …“), analog Session-Host. */
+  /** Hostname für Join-Menü, analog Session-Host. */
   toggleFeedbackJoinPopover(): void {
     this.feedbackJoinPopoverOpen.update((v) => !v);
   }

@@ -1,5 +1,5 @@
 {
-  "exportVersion": 16,
+  "exportVersion": 18,
   "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
     "name": "Praxis-Showcase: Live-Teamdemo",
@@ -17,7 +17,7 @@
     "teamMode": true,
     "teamCount": 2,
     "teamAssignment": "AUTO",
-    "teamNames": ["🍎 Apfel", "🍐 Birne"],
+    "teamNames": ["Team 🍎", "Team 🍐"],
     "backgroundMusic": null,
     "nicknameTheme": "KINDERGARTEN",
     "bonusTokenCount": 3,
@@ -54,6 +54,7 @@
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 1,
+        "skipReadingPhase": true,
         "answers": []
       },
       {
@@ -79,6 +80,7 @@
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 3,
+        "skipReadingPhase": true,
         "answers": [
           {
             "text": "Vorwissen zu Beginn einer Stunde aktivieren",

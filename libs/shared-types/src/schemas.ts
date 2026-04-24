@@ -237,6 +237,7 @@ export const AddQuestionInputSchema = z.object({
   difficulty: DifficultyEnum.optional().default('MEDIUM'),
   order: z.number().int().min(0),
   answers: z.array(AnswerOptionInputSchema).max(10),
+  skipReadingPhase: z.boolean().optional(),
   ratingMin: z.number().int().min(0).max(10).optional(), // Nur bei RATING
   ratingMax: z.number().int().min(1).max(10).optional(), // Nur bei RATING
   ratingLabelMin: z.string().max(50).optional(), // Nur bei RATING
@@ -321,6 +322,7 @@ type QuizHistoryAccessMaterial = {
     timer: number | null;
     difficulty: Difficulty;
     order: number;
+    skipReadingPhase: boolean;
     ratingMin: number | null;
     ratingMax: number | null;
     ratingLabelMin: string | null;
@@ -371,6 +373,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
         timer: question.timer ?? null,
         difficulty: question.difficulty,
         order: question.order,
+        skipReadingPhase: question.skipReadingPhase ?? false,
         ratingMin: question.ratingMin ?? null,
         ratingMax: question.ratingMax ?? null,
         ratingLabelMin: question.ratingLabelMin ?? null,
@@ -1005,6 +1008,7 @@ const ExportedQuestionSchema = z.object({
   difficulty: DifficultyEnum,
   order: z.number(),
   answers: z.array(ExportedAnswerOptionSchema),
+  skipReadingPhase: z.boolean().optional(),
   ratingMin: z.number().nullable().optional(), // Nur bei RATING
   ratingMax: z.number().nullable().optional(), // Nur bei RATING
   ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING

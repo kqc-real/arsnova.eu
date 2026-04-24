@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  edgeEmojiMarkerPosition,
+  extractEdgeEmoji,
   extractLeadingEmoji,
+  extractTrailingEmoji,
   replaceEmojiShortcodes,
   startsWithEmoji,
+  stripEdgeEmojiMarker,
   stripLeadingEmojiMarker,
+  stripTrailingEmojiMarker,
 } from './emoji-shortcode.util';
 
 describe('replaceEmojiShortcodes', () => {
@@ -54,5 +59,50 @@ describe('stripLeadingEmojiMarker', () => {
   it('laesst normale Teamnamen unveraendert', () => {
     expect(stripLeadingEmojiMarker('Rot')).toBe('Rot');
     expect(stripLeadingEmojiMarker('Team 🍎')).toBe('Team 🍎');
+  });
+});
+
+describe('extractTrailingEmoji', () => {
+  it('liest ein nachgestelltes Emoji oder einen Shortcode aus', () => {
+    expect(extractTrailingEmoji('Team 🍎')).toBe('🍎');
+    expect(extractTrailingEmoji('Team :apple:')).toBe('🍎');
+    expect(extractTrailingEmoji(':apple:')).toBe('🍎');
+  });
+
+  it('liefert null ohne nachgestelltes Emoji', () => {
+    expect(extractTrailingEmoji('🍎 Team')).toBeNull();
+    expect(extractTrailingEmoji('Rot')).toBeNull();
+  });
+});
+
+describe('stripTrailingEmojiMarker', () => {
+  it('entfernt nachgestellte Emojis und Shortcodes aus Teamnamen', () => {
+    expect(stripTrailingEmojiMarker('Team 🍎')).toBe('Team');
+    expect(stripTrailingEmojiMarker('Team :apple:')).toBe('Team');
+    expect(stripTrailingEmojiMarker(':apple:')).toBe('');
+  });
+});
+
+describe('edgeEmojiMarkerPosition', () => {
+  it('erkennt Emoji-Marker an beiden Raendern', () => {
+    expect(edgeEmojiMarkerPosition('🍎 Rot')).toBe('leading');
+    expect(edgeEmojiMarkerPosition('Team 🍎')).toBe('trailing');
+    expect(edgeEmojiMarkerPosition(':apple:')).toBe('trailing');
+  });
+});
+
+describe('extractEdgeEmoji', () => {
+  it('liest den relevanten Emoji-Marker fuer Teamlabels aus', () => {
+    expect(extractEdgeEmoji('🍎 Rot')).toBe('🍎');
+    expect(extractEdgeEmoji('Team 🍎')).toBe('🍎');
+    expect(extractEdgeEmoji(':apple:')).toBe('🍎');
+  });
+});
+
+describe('stripEdgeEmojiMarker', () => {
+  it('entfernt fuehrende oder nachgestellte Marker fuer die Labelanzeige', () => {
+    expect(stripEdgeEmojiMarker('🍎 Rot')).toBe('Rot');
+    expect(stripEdgeEmojiMarker('Team 🍎')).toBe('Team');
+    expect(stripEdgeEmojiMarker(':apple:')).toBe('');
   });
 });

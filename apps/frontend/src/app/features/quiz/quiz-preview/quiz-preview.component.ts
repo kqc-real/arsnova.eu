@@ -103,6 +103,7 @@ export class QuizPreviewComponent implements OnDestroy {
   readonly inlineQuizDefaultTimerDraft = signal<number | null>(null);
   /** `null` = Quiz-`defaultTimer` */
   readonly inlineQuestionTimerDraft = signal<number | null>(null);
+  readonly inlineSkipReadingPhaseDraft = signal(false);
   readonly swipeDirection = signal<'left' | 'right' | null>(null);
   readonly animationNonce = signal(0);
   readonly liveStartPending = signal(false);
@@ -145,6 +146,10 @@ export class QuizPreviewComponent implements OnDestroy {
     }
 
     if (this.inlineQuestionTimerDraft() !== (original.timer ?? null)) {
+      return true;
+    }
+
+    if (this.inlineSkipReadingPhaseDraft() !== (original.skipReadingPhase ?? false)) {
       return true;
     }
 
@@ -362,6 +367,7 @@ export class QuizPreviewComponent implements OnDestroy {
     this.quizDefaultTimerAtEditStart.set(doc.settings.defaultTimer);
     this.inlineQuizDefaultTimerDraft.set(doc.settings.defaultTimer);
     this.inlineQuestionTimerDraft.set(question.timer);
+    this.inlineSkipReadingPhaseDraft.set(question.skipReadingPhase ?? false);
     this.questionDraftText.set(question.text);
     this.answerDraftTexts.set(question.answers.map((answer) => answer.text));
     this.answerDraftCorrectFlags.set(question.answers.map((answer) => answer.isCorrect));
@@ -672,6 +678,7 @@ export class QuizPreviewComponent implements OnDestroy {
       difficulty: question.difficulty,
       timer: this.inlineQuestionTimerDraft(),
       answers,
+      skipReadingPhase: this.inlineSkipReadingPhaseDraft(),
       ratingMin: question.ratingMin,
       ratingMax: question.ratingMax,
       ratingLabelMin: question.ratingLabelMin,
@@ -691,6 +698,7 @@ export class QuizPreviewComponent implements OnDestroy {
     this.quizDefaultTimerAtEditStart.set(undefined);
     this.inlineQuizDefaultTimerDraft.set(null);
     this.inlineQuestionTimerDraft.set(null);
+    this.inlineSkipReadingPhaseDraft.set(false);
     this.questionDraftText.set('');
     this.answerDraftTexts.set([]);
     this.answerDraftCorrectFlags.set([]);
@@ -739,6 +747,10 @@ export class QuizPreviewComponent implements OnDestroy {
     this.inlineQuestionTimerDraft.set(seconds);
   }
 
+  onInlineSkipReadingPhaseChange(checked: boolean): void {
+    this.inlineSkipReadingPhaseDraft.set(checked);
+  }
+
   inlinePreviewQuestionTimerSelectOptions(): number[] {
     return mergeTimerPresetOptions(this.inlineQuestionTimerDraft());
   }
@@ -753,6 +765,7 @@ export class QuizPreviewComponent implements OnDestroy {
         text: answer.text,
         isCorrect: answer.isCorrect,
       })),
+      skipReadingPhase: question.skipReadingPhase,
       ratingMin: question.ratingMin,
       ratingMax: question.ratingMax,
       ratingLabelMin: question.ratingLabelMin,

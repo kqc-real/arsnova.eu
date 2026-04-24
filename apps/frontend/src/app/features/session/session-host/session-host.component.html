@@ -324,7 +324,7 @@
               class="session-host__join-viewport-overlay__surface session-host__join-menu-panel"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="session-host-join-lead session-host-join-origin"
+              aria-labelledby="session-host-join-origin"
               id="session-host-join-info"
               tabindex="-1"
               (click)="$event.stopPropagation()"
@@ -346,13 +346,6 @@
                   <mat-icon>qr_code_2</mat-icon>
                 </span>
                 <div class="dialog-title-header__copy session-host__join-menu-title-copy">
-                  <p
-                    class="session-host__join-menu-lead"
-                    id="session-host-join-lead"
-                    i18n="@@sessionHost.joinMenuLead"
-                  >
-                    Gehe auf
-                  </p>
                   <p class="session-host__join-menu-origin" id="session-host-join-origin">
                     {{ joinOriginForMenu() }}
                   </p>
@@ -460,19 +453,31 @@
                         "
                       >
                         @if (teamNameEmojiMarker(team.name); as teamEmoji) {
-                          <span class="session-lobby__team-card-emoji" aria-hidden="true">{{
-                            teamEmoji
-                          }}</span>
+                          @if (teamNameEmojiMarkerTrailing(team.name)) {
+                            <span class="session-lobby__team-card-name">{{
+                              teamNameLabelWithoutEmojiMarker(team.name)
+                            }}</span>
+                            <span class="session-lobby__team-card-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                          } @else {
+                            <span class="session-lobby__team-card-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                            <span class="session-lobby__team-card-name">{{
+                              teamNameLabelWithoutEmojiMarker(team.name)
+                            }}</span>
+                          }
                         } @else {
                           <span
                             class="session-lobby__team-card-dot"
                             [style.background]="team.color || 'var(--mat-sys-primary)'"
                             aria-hidden="true"
                           ></span>
+                          <span class="session-lobby__team-card-name">{{
+                            teamNameLabelWithoutEmojiMarker(team.name)
+                          }}</span>
                         }
-                        <span class="session-lobby__team-card-name">{{
-                          teamNameLabelWithoutEmojiMarker(team.name)
-                        }}</span>
                         <span class="session-lobby__team-card-count">{{
                           teamMemberLabel(team.memberCount)
                         }}</span>
@@ -696,16 +701,24 @@
                             >
                             <span class="session-host__team-bar-name">
                               @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
-                                <span class="session-host__team-bar-emoji" aria-hidden="true">{{
-                                  teamEmoji
-                                }}</span>
+                                @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
+                                  <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                                  <span class="session-host__team-bar-emoji" aria-hidden="true">{{
+                                    teamEmoji
+                                  }}</span>
+                                } @else {
+                                  <span class="session-host__team-bar-emoji" aria-hidden="true">{{
+                                    teamEmoji
+                                  }}</span>
+                                  <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                                }
                               } @else {
                                 <span
                                   class="session-host__team-bar-dot"
                                   [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
                                 ></span>
+                                <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
                               }
-                              {{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}
                             </span>
                             <span class="session-host__team-bar-meta">
                               {{ teamMemberLabel(entry.memberCount) }} ·
@@ -922,6 +935,18 @@
                                 </span>
                               </div>
                             }
+                            <div
+                              class="session-host__rating-scale"
+                              role="list"
+                              i18n-aria-label="@@sessionHost.ratingScaleAria"
+                              aria-label="Bewertungsskala"
+                            >
+                              @for (val of ratingBarRange(q); track val) {
+                                <span class="session-host__rating-scale-value" role="listitem">
+                                  {{ val }}
+                                </span>
+                              }
+                            </div>
                             @if (
                               effectiveStatus() === 'RESULTS' &&
                               q.ratingAvg !== null &&
@@ -1513,17 +1538,25 @@
                         </span>
                         <span class="session-host__interim-name">
                           @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
-                            <span class="session-host__interim-team-emoji" aria-hidden="true">{{
-                              teamEmoji
-                            }}</span>
+                            @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                              <span class="session-host__interim-team-emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                            } @else {
+                              <span class="session-host__interim-team-emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                            }
                           } @else {
                             <span
                               class="session-host__interim-team-dot"
                               [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
                               aria-hidden="true"
                             ></span>
+                            <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
                           }
-                          {{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}
                         </span>
                         <span class="session-host__interim-score" i18n
                           >{{ entry.totalScore | number }} Pkt.</span

@@ -197,7 +197,7 @@
 }
 
 .vote-player-badge__team-emoji {
-  font-size: 3em;
+  font-size: clamp(2rem, 3.6vw, 2.8rem);
   line-height: 1;
   flex-shrink: 0;
 }
@@ -1183,7 +1183,7 @@
 }
 
 .vote-lobby__kita-team-emoji {
-  font-size: 3em;
+  font-size: clamp(2.7rem, 5vw, 4rem);
   line-height: 1;
   flex-shrink: 0;
 }
@@ -1788,33 +1788,25 @@
 .vote-scorecard__inner {
   margin: 0 1rem 1rem;
   padding: 1rem 1.25rem;
-  border-radius: var(--mat-sys-corner-medium, 0.5rem);
-  background: var(--mat-sys-surface);
-  border: 1px solid var(--mat-sys-outline-variant);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, white 55%, transparent);
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 
   &.vote-scorecard--rank1 {
-    border-color: color-mix(in srgb, #ffd700 68%, var(--mat-sys-outline-variant));
-    background:
-      linear-gradient(135deg, color-mix(in srgb, #ffd700 18%, transparent), transparent 60%),
-      color-mix(in srgb, #ffd700 10%, var(--mat-sys-surface));
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, white 70%, transparent),
-      0 0.85rem 1.8rem color-mix(in srgb, #ffd700 18%, transparent);
+    border: none;
+    background: transparent;
+    box-shadow: none;
   }
 
   &.vote-scorecard--rank2 {
-    border-color: color-mix(in srgb, #c0c0c0 72%, var(--mat-sys-outline-variant));
-    background:
-      linear-gradient(135deg, color-mix(in srgb, #c0c0c0 16%, transparent), transparent 60%),
-      var(--mat-sys-surface);
+    border: none;
+    background: transparent;
   }
 
   &.vote-scorecard--rank3 {
-    border-color: color-mix(in srgb, #cd7f32 72%, var(--mat-sys-outline-variant));
-    background:
-      linear-gradient(135deg, color-mix(in srgb, #cd7f32 16%, transparent), transparent 60%),
-      var(--mat-sys-surface);
+    border: none;
+    background: transparent;
   }
 }
 
@@ -2059,22 +2051,14 @@
   margin: 1rem 0 1.25rem;
   padding: 1rem 1.1rem;
   border-radius: var(--mat-sys-corner-large, 1rem);
-  background:
-    radial-gradient(
-      circle at top,
-      color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
-      transparent 62%
-    ),
-    color-mix(in srgb, var(--mat-sys-surface-container-low) 90%, var(--mat-sys-surface));
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 90%, var(--mat-sys-surface));
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-outline-variant));
   overflow: hidden;
   box-shadow: 0 0.9rem 1.8rem color-mix(in srgb, black 8%, transparent);
 
   &--leader {
     border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant));
-    background:
-      radial-gradient(circle at top, color-mix(in srgb, #ffd700 16%, transparent), transparent 62%),
-      color-mix(in srgb, var(--mat-sys-primary-container) 55%, white);
+    background: color-mix(in srgb, var(--mat-sys-primary-container) 55%, white);
     box-shadow: 0 1rem 2rem color-mix(in srgb, #ffd700 12%, transparent);
   }
 
@@ -2091,26 +2075,38 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  width: fit-content;
+  width: 100%;
   max-width: 100%;
-  padding: 0.4rem 0.8rem;
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .vote-team-reward__eyebrow {
   margin: 0;
+  padding: 0;
   font: var(--mat-sys-label-large);
   font-weight: 600;
   color: var(--mat-sys-primary);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .vote-team-reward__title {
   margin: 0;
+  padding: 0;
   font: var(--mat-sys-title-large);
   line-height: 1.25;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .vote-team-reward__summary {
@@ -2118,6 +2114,7 @@
   flex-direction: column;
   gap: 0.45rem;
   margin: 0.85rem 0 0;
+  padding-top: 0.15rem;
 }
 
 .vote-team-reward__team {
@@ -2128,9 +2125,9 @@
   font-weight: 700;
   width: fit-content;
   max-width: 100%;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .vote-team-reward__dot {
@@ -2141,7 +2138,7 @@
 }
 
 .vote-team-reward__emoji {
-  font-size: 3em;
+  font-size: clamp(2.35rem, 3.6vw, 3.4rem);
   line-height: 1;
   flex-shrink: 0;
 }
@@ -2165,8 +2162,8 @@
   padding: 0.75rem 0.5rem;
   border-radius: var(--mat-sys-corner-medium, 0.75rem);
   text-align: center;
-  background: var(--mat-sys-surface);
-  border: 1px solid var(--mat-sys-outline-variant);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-outline-variant));
 }
 
 .vote-team-reward__stat-value {
@@ -2194,19 +2191,19 @@
 .vote-team-reward__board-item {
   padding: 0.75rem 0.85rem;
   border-radius: var(--mat-sys-corner-medium, 0.75rem);
-  background: var(--mat-sys-surface);
-  border: 1px solid var(--mat-sys-outline-variant);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 68%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-outline-variant));
 
   &--own {
     border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, var(--mat-sys-outline-variant));
-    background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface));
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-low));
   }
 
   &--rank1 {
     border-color: color-mix(in srgb, #ffd700 68%, var(--mat-sys-outline-variant));
     background:
       linear-gradient(90deg, color-mix(in srgb, #ffd700 16%, transparent), transparent 82%),
-      var(--mat-sys-surface);
+      color-mix(in srgb, var(--mat-sys-surface-container-low) 68%, transparent);
     box-shadow: 0 0.6rem 1.2rem color-mix(in srgb, #ffd700 14%, transparent);
   }
 
@@ -2214,14 +2211,14 @@
     border-color: color-mix(in srgb, #c0c0c0 62%, var(--mat-sys-outline-variant));
     background:
       linear-gradient(90deg, color-mix(in srgb, #c0c0c0 12%, transparent), transparent 80%),
-      var(--mat-sys-surface);
+      color-mix(in srgb, var(--mat-sys-surface-container-low) 68%, transparent);
   }
 
   &--rank3 {
     border-color: color-mix(in srgb, #cd7f32 62%, var(--mat-sys-outline-variant));
     background:
       linear-gradient(90deg, color-mix(in srgb, #cd7f32 12%, transparent), transparent 80%),
-      var(--mat-sys-surface);
+      color-mix(in srgb, var(--mat-sys-surface-container-low) 68%, transparent);
   }
 }
 

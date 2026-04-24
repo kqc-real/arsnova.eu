@@ -205,7 +205,7 @@
                   class="feedback-host__join-viewport-overlay__surface feedback-host__join-menu-panel"
                   role="dialog"
                   aria-modal="true"
-                  aria-labelledby="feedback-host-join-lead feedback-host-join-origin"
+                  aria-labelledby="feedback-host-join-origin"
                   id="feedback-host-join-info"
                   tabindex="-1"
                   (click)="$event.stopPropagation()"
@@ -227,13 +227,6 @@
                       <mat-icon>qr_code_2</mat-icon>
                     </span>
                     <div class="dialog-title-header__copy feedback-host__join-menu-title-copy">
-                      <p
-                        id="feedback-host-join-lead"
-                        class="feedback-host__join-menu-lead"
-                        i18n="@@sessionHost.joinMenuLead"
-                      >
-                        Gehe auf
-                      </p>
                       <p id="feedback-host-join-origin" class="feedback-host__join-menu-origin">
                         {{ joinOriginForMenu() }}
                       </p>

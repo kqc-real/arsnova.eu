@@ -252,4 +252,39 @@ describe('quiz.upload (Story 2.1a)', () => {
 
     expect(prismaMock.quiz.create.mock.calls[0]![0].data.readingPhaseEnabled).toBe(true);
   });
+
+  it('übernimmt skipReadingPhase pro Frage', async () => {
+    const input = {
+      name: 'Quiz',
+      showLeaderboard: false,
+      allowCustomNicknames: false,
+      enableSoundEffects: false,
+      enableRewardEffects: false,
+      enableMotivationMessages: false,
+      enableEmojiReactions: false,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      questions: [
+        {
+          text: 'Frage',
+          type: 'MULTIPLE_CHOICE' as const,
+          difficulty: 'MEDIUM' as const,
+          order: 0,
+          skipReadingPhase: true,
+          answers: [
+            { text: 'A', isCorrect: true },
+            { text: 'B', isCorrect: false },
+          ],
+        },
+      ],
+    };
+
+    await caller.upload(input);
+
+    expect(
+      prismaMock.quiz.create.mock.calls[0]![0].data.questions.create[0]?.skipReadingPhase,
+    ).toBe(true);
+  });
 });

@@ -1023,6 +1023,7 @@ export const adminRouter = router({
                   timer: true,
                   difficulty: true,
                   order: true,
+                  skipReadingPhase: true,
                   ratingMin: true,
                   ratingMax: true,
                   ratingLabelMin: true,
@@ -1086,6 +1087,7 @@ export const adminRouter = router({
             timer: question.timer ?? null,
             difficulty: question.difficulty,
             order: Number.isInteger(question.order) ? question.order : index,
+            skipReadingPhase: question.skipReadingPhase ?? false,
             answers: question.answers.map((answer) => ({
               text: answer.text,
               isCorrect: answer.isCorrect,

@@ -442,6 +442,171 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt bei emoji-only Teamnamen einen generischen Team-Text im Vote-Client', async () => {
+    getParticipantSelfQueryMock.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      nickname: 'Ada',
+      teamId: '22222222-2222-4222-8222-222222222222',
+      teamName: ':apple:',
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          name: ':apple:',
+          color: '#1E88E5',
+          memberCount: 3,
+        },
+      ],
+    });
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: ':apple:',
+        teamColor: '#1E88E5',
+        totalScore: 240,
+        memberCount: 3,
+        averageScore: 80,
+      },
+    ]);
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: true,
+      enableRewardEffects: true,
+      preset: 'PLAYFUL',
+      enableEmojiReactions: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 1,
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'a1', text: 'Rot', isCorrect: true },
+        { id: 'a2', text: 'Blau', isCorrect: false },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.status()).toBe('RESULTS');
+        expect(fixture.componentInstance.sessionSettings().teamMode).toBe(true);
+      },
+      { timeout: 5000, interval: 10 },
+    );
+    await (
+      fixture.componentInstance as unknown as { refreshQuestion: () => Promise<void> }
+    ).refreshQuestion();
+    await (
+      fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
+    ).loadTeamRewardState();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent ?? '').toContain('Team');
+    expect(host.querySelector('.vote-player-badge__team-dot')).toBeNull();
+    expect(host.querySelector('.vote-team-reward__dot')).toBeNull();
+    expect(host.querySelector('.vote-player-badge__team-emoji')?.textContent).toBe('🍎');
+    expect(host.querySelector('.vote-team-reward__emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
+  it('zeigt bei Teamnamen mit nachgestelltem Emoji keinen Farbpunk im Vote-Client', async () => {
+    getParticipantSelfQueryMock.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      nickname: 'Ada',
+      teamId: '22222222-2222-4222-8222-222222222222',
+      teamName: 'Team :apple:',
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          name: 'Team :apple:',
+          color: '#1E88E5',
+          memberCount: 3,
+        },
+      ],
+    });
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: 'Team :apple:',
+        teamColor: '#1E88E5',
+        totalScore: 240,
+        memberCount: 3,
+        averageScore: 80,
+      },
+    ]);
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      teamMode: true,
+      enableRewardEffects: true,
+      preset: 'PLAYFUL',
+      enableEmojiReactions: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 1,
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'a1', text: 'Rot', isCorrect: true },
+        { id: 'a2', text: 'Blau', isCorrect: false },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.status()).toBe('RESULTS');
+        expect(fixture.componentInstance.sessionSettings().teamMode).toBe(true);
+      },
+      { timeout: 5000, interval: 10 },
+    );
+    await (
+      fixture.componentInstance as unknown as { refreshQuestion: () => Promise<void> }
+    ).refreshQuestion();
+    await (
+      fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
+    ).loadTeamRewardState();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-player-badge__team')?.textContent ?? '').toContain('Team');
+    expect(host.querySelector('.vote-team-reward__team')?.textContent ?? '').toContain('Team');
+    expect(host.querySelector('.vote-player-badge__team-dot')).toBeNull();
+    expect(host.querySelector('.vote-team-reward__dot')).toBeNull();
+    expect(host.querySelector('.vote-player-badge__team-emoji')?.textContent).toBe('🍎');
+    expect(host.querySelector('.vote-team-reward__emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
   it('behauptet bei 0 Team-Punkten für alle nicht „Ihr führt gerade“', async () => {
     getTeamLeaderboardQueryMock.mockResolvedValue([
       {

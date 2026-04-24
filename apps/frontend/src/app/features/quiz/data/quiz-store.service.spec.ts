@@ -418,6 +418,7 @@ describe('QuizStoreService', () => {
       type: 'RATING',
       difficulty: 'MEDIUM',
       answers: [],
+      skipReadingPhase: true,
       ratingMin: 1,
       ratingMax: 10,
       ratingLabelMin: 'schlecht',
@@ -432,6 +433,7 @@ describe('QuizStoreService', () => {
     expect(imported.quiz.name).toBe('Export Quiz');
     expect(imported.quiz.questions[0]?.type).toBe('RATING');
     expect(imported.quiz.questions[0]?.ratingMax).toBe(10);
+    expect(imported.quiz.questions[0]?.skipReadingPhase).toBe(true);
   });
 
   it('exportiert enabled:false und stellt den Zustand nach Import wieder her', () => {

@@ -239,6 +239,22 @@ describe('QuizPreviewComponent', () => {
     );
   });
 
+  it('speichert den Lesephasen-Override im Inline-Editor', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onInlineSkipReadingPhaseChange(true);
+    component.finishInlineEditMode();
+
+    expect(mockStore.updateQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      'f8be4e5d-2c03-4f9b-8d63-b9668212f3ea',
+      expect.objectContaining({ skipReadingPhase: true }),
+    );
+  });
+
   it('verwirft Inline-Aenderungen ohne Persistieren', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;

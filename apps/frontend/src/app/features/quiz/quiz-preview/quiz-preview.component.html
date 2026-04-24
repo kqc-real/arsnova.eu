@@ -320,6 +320,13 @@
                       </mat-form-field>
                     </div>
                   }
+                  <mat-checkbox
+                    [checked]="inlineSkipReadingPhaseDraft()"
+                    (change)="onInlineSkipReadingPhaseChange($event.checked)"
+                    i18n
+                  >
+                    Für diese Frage keine Lesephase
+                  </mat-checkbox>
                 </fieldset>
               </div>
 

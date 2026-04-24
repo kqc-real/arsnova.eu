@@ -24,9 +24,9 @@ import {
 } from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
 import {
-  extractLeadingEmoji,
-  startsWithEmoji,
-  stripLeadingEmojiMarker,
+  edgeEmojiMarkerPosition,
+  extractEdgeEmoji,
+  stripEdgeEmojiMarker,
 } from '../../shared/emoji-shortcode.util';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
@@ -196,12 +196,12 @@ export class JoinComponent implements OnInit, OnDestroy {
   teamMembersLabel = (count: number) =>
     count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
   teamCardAriaLabel = (team: TeamDTO) =>
-    $localize`${team.name}, ${this.teamMembersLabel(team.memberCount)}`;
-  teamNameUsesEmojiMarker = (teamName: string) => startsWithEmoji(teamName);
-  teamNameEmojiMarker = (teamName: string) => extractLeadingEmoji(teamName);
-  teamNameLabelWithoutEmojiMarker = (teamName: string) => {
-    return stripLeadingEmojiMarker(teamName);
-  };
+    $localize`${this.teamNameDisplayLabel(team.name)}, ${this.teamMembersLabel(team.memberCount)}`;
+  teamNameUsesEmojiMarker = (teamName: string) => edgeEmojiMarkerPosition(teamName) !== null;
+  teamNameEmojiMarker = (teamName: string) => extractEdgeEmoji(teamName);
+  teamNameEmojiMarkerTrailing = (teamName: string) =>
+    edgeEmojiMarkerPosition(teamName) === 'trailing';
+  teamNameLabelWithoutEmojiMarker = (teamName: string) => this.teamNameDisplayLabel(teamName);
   teamInfoHeading = () =>
     this.showTeamSelect() ? $localize`Dein Team` : $localize`Team-Modus aktiv`;
   teamInfoHint = () =>
@@ -210,11 +210,13 @@ export class JoinComponent implements OnInit, OnDestroy {
       : $localize`Teams werden automatisch verteilt. Du siehst hier schon, welche Teams bereitstehen.`;
   selectedTeamLabel = () => {
     const team = this.showTeamSelect() ? this.selectedTeam() : null;
-    return team ? $localize`Ausgewählt: ${team.name}` : null;
+    return team ? $localize`Ausgewählt: ${this.teamNameDisplayLabel(team.name)}` : null;
   };
   playfulTeamReadyLabel = () => {
     const team = this.visibleTeamChoice();
-    return team ? $localize`Perfekt! ${team.name} wartet schon auf dich.` : null;
+    return team
+      ? $localize`Perfekt! ${this.teamNameDisplayLabel(team.name)} wartet schon auf dich.`
+      : null;
   };
 
   ngOnInit(): void {
@@ -232,6 +234,11 @@ export class JoinComponent implements OnInit, OnDestroy {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
+  }
+
+  private teamNameDisplayLabel(teamName: string): string {
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    return label.length > 0 ? label : $localize`Team`;
   }
 
   private async loadSession(): Promise<void> {

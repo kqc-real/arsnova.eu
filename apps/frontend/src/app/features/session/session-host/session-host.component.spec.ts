@@ -477,6 +477,52 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt bei Rating-Fragen auf dem Host die komplette Skala', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 6 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 6,
+      totalQuestions: 7,
+      text: 'Wie sicher fühlst du dich?',
+      type: 'RATING',
+      timer: 30,
+      answers: [],
+      ratingMin: 1,
+      ratingMax: 5,
+      ratingLabelMin: 'Unsicher',
+      ratingLabelMax: 'Sicher',
+      currentRound: 1,
+      ratingCount: 0,
+      totalVotes: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () =>
+        fixture.nativeElement.querySelectorAll('.session-host__rating-scale-value').length === 5,
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    fixture.detectChanges();
+
+    const scaleValues = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-host__rating-scale-value'),
+    ).map((node: Element) => node.textContent?.trim());
+
+    expect(scaleValues).toEqual(['1', '2', '3', '4', '5']);
+    fixture.destroy();
+  });
+
   it('aktiviert im Quiz-Foyer bereits die immersive Host-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -2341,6 +2387,84 @@ describe('SessionHostComponent', () => {
 
     const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
     expect(card.textContent ?? '').toContain('Rot');
+    expect(card.querySelector('.session-lobby__team-card-dot')).toBeNull();
+    expect(card.querySelector('.session-lobby__team-card-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
+  it('zeigt bei emoji-only Teamnamen einen generischen Team-Text in der Lobby', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: ':apple:', color: '#1E88E5', memberCount: 1 }],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: ':apple:' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({
+          participantCount: 1,
+          participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: ':apple:' }],
+        });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
+    expect(card.textContent ?? '').toContain('Team');
+    expect(card.querySelector('.session-lobby__team-card-dot')).toBeNull();
+    expect(card.querySelector('.session-lobby__team-card-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
+  it('zeigt bei Teamnamen mit nachgestelltem Emoji keinen Farbpunk in der Lobby', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: 'Team :apple:', color: '#1E88E5', memberCount: 1 }],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Team :apple:' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({
+          participantCount: 1,
+          participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Team :apple:' }],
+        });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
+    expect(card.querySelector('.session-lobby__team-card-name')?.textContent ?? '').toContain(
+      'Team',
+    );
     expect(card.querySelector('.session-lobby__team-card-dot')).toBeNull();
     expect(card.querySelector('.session-lobby__team-card-emoji')?.textContent).toBe('🍎');
     fixture.destroy();

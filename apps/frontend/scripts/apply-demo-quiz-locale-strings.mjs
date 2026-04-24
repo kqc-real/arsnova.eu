@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const demoDir = path.join(__dirname, '../src/assets/demo');
 const md = String.raw;
 
-const EXPORT_VERSION = 16;
+const EXPORT_VERSION = 18;
 const EXPORTED_AT = '2026-04-24T14:30:00.000Z';
 
 const EMOTION_IMAGE_URL =
@@ -89,6 +89,7 @@ function buildPayload(locale) {
           timer: null,
           difficulty: 'MEDIUM',
           order: 1,
+          skipReadingPhase: true,
           answers: [],
         },
         {
@@ -105,6 +106,7 @@ function buildPayload(locale) {
           timer: null,
           difficulty: 'MEDIUM',
           order: 3,
+          skipReadingPhase: true,
           answers: locale.questions[3].answers,
         },
         {
@@ -143,7 +145,7 @@ function buildPayload(locale) {
 const LOCALES = {
   de: {
     name: 'Praxis-Showcase: Live-Teamdemo',
-    teamNames: ['🍎 Apfel', '🍐 Birne'],
+    teamNames: ['Team 🍎', 'Team 🍐'],
     description: md`![Praxis-Showcase](${PI_IMAGE_URL})
 
 # Praxis-Showcase für den Unterricht
@@ -260,7 +262,7 @@ ${CODE_FENCE}`,
   },
   en: {
     name: 'Teaching Showcase: Live Team Demo',
-    teamNames: ['🍎 Apple', '🍐 Pear'],
+    teamNames: ['Team 🍎', 'Team 🍐'],
     description: md`![Teaching showcase](${PI_IMAGE_URL})
 
 # Teaching Practice Showcase
@@ -377,7 +379,7 @@ ${CODE_FENCE}`,
   },
   fr: {
     name: 'Showcase pédagogique : démo en équipe',
-    teamNames: ['🍎 Pomme', '🍐 Poire'],
+    teamNames: ['Équipe 🍎', 'Équipe 🍐'],
     description: md`![Showcase pédagogique](${PI_IMAGE_URL})
 
 # Showcase pédagogique
@@ -494,7 +496,7 @@ ${CODE_FENCE}`,
   },
   es: {
     name: 'Showcase docente: demo por equipos',
-    teamNames: ['🍎 Manzana', '🍐 Pera'],
+    teamNames: ['Equipo 🍎', 'Equipo 🍐'],
     description: md`![Showcase docente](${PI_IMAGE_URL})
 
 # Showcase docente
@@ -611,7 +613,7 @@ ${CODE_FENCE}`,
   },
   it: {
     name: 'Showcase didattico: demo a squadre',
-    teamNames: ['🍎 Mela', '🍐 Pera'],
+    teamNames: ['Squadra 🍎', 'Squadra 🍐'],
     description: md`![Showcase didattico](${PI_IMAGE_URL})
 
 # Showcase didattico

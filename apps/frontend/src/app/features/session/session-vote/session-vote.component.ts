@@ -48,9 +48,9 @@ import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 import {
-  extractLeadingEmoji,
-  startsWithEmoji,
-  stripLeadingEmojiMarker,
+  edgeEmojiMarkerPosition,
+  extractEdgeEmoji,
+  stripEdgeEmojiMarker,
 } from '../../../shared/emoji-shortcode.util';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
@@ -370,24 +370,28 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const nick = this.playerNickname()?.trim() ?? '';
     const team = this.playerTeamName()?.trim();
     if (team) {
-      return `${nick}, ${team}`;
+      return `${nick}, ${this.teamNameDisplayLabel(team)}`;
     }
     return nick;
   });
 
   teamNameUsesEmojiMarker(teamName: string | null | undefined): boolean {
-    return typeof teamName === 'string' && startsWithEmoji(teamName);
+    return typeof teamName === 'string' && edgeEmojiMarkerPosition(teamName) !== null;
   }
 
   teamNameEmojiMarker(teamName: string | null | undefined): string | null {
-    return typeof teamName === 'string' ? extractLeadingEmoji(teamName) : null;
+    return typeof teamName === 'string' ? extractEdgeEmoji(teamName) : null;
+  }
+
+  teamNameEmojiMarkerTrailing(teamName: string | null | undefined): boolean {
+    return typeof teamName === 'string' && edgeEmojiMarkerPosition(teamName) === 'trailing';
   }
 
   teamNameLabelWithoutEmojiMarker(teamName: string | null | undefined): string {
     if (typeof teamName !== 'string') {
       return '';
     }
-    return stripLeadingEmojiMarker(teamName);
+    return this.teamNameDisplayLabel(teamName);
   }
 
   /** Story 5.6: Persönliche Scorecard pro Frage */
@@ -1005,9 +1009,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (leader.totalScore <= 0) {
       return null;
     }
+    const leaderLabel = this.teamNameDisplayLabel(leader.teamName);
     return this.isPlayfulPreset()
-      ? vpc.voteTeamLeaderHintPlayful(leader.teamName, leader.totalScore)
-      : vpc.voteTeamLeaderHintSerious(leader.teamName, leader.totalScore);
+      ? vpc.voteTeamLeaderHintPlayful(leaderLabel, leader.totalScore)
+      : vpc.voteTeamLeaderHintSerious(leaderLabel, leader.totalScore);
   }
 
   finishedHeroTitle(): string {
@@ -1038,10 +1043,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   teamStandingAriaLabel(entry: TeamLeaderboardEntryDTO): string {
+    const teamLabel = this.teamNameDisplayLabel(entry.teamName);
     if (!this.teamScoreboardHasPoints()) {
-      return $localize`:@@sessionVote.teamStandingNoRank:${entry.teamName}:teamName: mit ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
+      return $localize`:@@sessionVote.teamStandingNoRank:${teamLabel}:teamName: mit ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
     }
-    return $localize`Platz ${entry.rank}:teamRank:: ${entry.teamName}:teamName: mit ${entry.totalScore}:totalScore: Punkten`;
+    return $localize`Platz ${entry.rank}:teamRank:: ${teamLabel}:teamName: mit ${entry.totalScore}:totalScore: Punkten`;
+  }
+
+  private teamNameDisplayLabel(teamName: string): string {
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    return label.length > 0 ? label : $localize`Team`;
   }
 
   teamScoreBarWidth(totalScore: number): string {

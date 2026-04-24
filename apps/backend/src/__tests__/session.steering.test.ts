@@ -125,6 +125,34 @@ describe('session.nextQuestion (Story 2.3)', () => {
     );
   });
 
+  it('überspringt Lesephase bei explizitem Frage-Override trotz aktivierter Lesephase', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'LOBBY',
+      currentQuestion: null,
+      quiz: {
+        readingPhaseEnabled: true,
+        questions: [{ id: 'q1', type: 'MULTIPLE_CHOICE', skipReadingPhase: true }],
+      },
+    });
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+    });
+
+    const result = await caller.nextQuestion({ code: CODE });
+
+    expect(result.status).toBe('ACTIVE');
+    expect(result.currentQuestion).toBe(0);
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'ACTIVE', currentQuestion: 0 }),
+      }),
+    );
+  });
+
   it('setzt FINISHED wenn nach letzter Frage', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,

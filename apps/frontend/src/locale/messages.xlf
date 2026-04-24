@@ -4756,6 +4756,17 @@
           <context context-type="linenumber">615,616</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="670039407720904642" datatype="html">
+        <source>Für diese Frage keine Lesephase</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">592,593</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
+          <context context-type="linenumber">328,329</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="4298652859209119138" datatype="html">
         <source>Linke Grenze (optional)</source>
         <context-group purpose="location">
@@ -6927,6 +6938,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">909,911</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.ratingScaleAria" datatype="html">
+        <source>Bewertungsskala</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">941,942</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.roundComparisonPeerInstructionAria" datatype="html">

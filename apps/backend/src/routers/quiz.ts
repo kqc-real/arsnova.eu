@@ -40,6 +40,7 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
     timer: number | null;
     difficulty: QuizUploadInput['questions'][number]['difficulty'];
     order: number;
+    skipReadingPhase: boolean;
     ratingMin: number | null;
     ratingMax: number | null;
     ratingLabelMin: string | null;
@@ -79,6 +80,7 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
       timer: question.timer,
       difficulty: question.difficulty,
       order: question.order,
+      skipReadingPhase: question.skipReadingPhase,
       ratingMin: question.ratingMin ?? undefined,
       ratingMax: question.ratingMax ?? undefined,
       ratingLabelMin: question.ratingLabelMin ?? undefined,
@@ -132,6 +134,7 @@ export const quizRouter = router({
               timer: q.timer ?? input.defaultTimer ?? null,
               difficulty: q.difficulty,
               order: q.order,
+              skipReadingPhase: q.skipReadingPhase ?? false,
               ratingMin: q.ratingMin ?? null,
               ratingMax: q.ratingMax ?? null,
               ratingLabelMin: q.ratingLabelMin ?? null,
@@ -187,6 +190,7 @@ export const quizRouter = router({
                 timer: true,
                 difficulty: true,
                 order: true,
+                skipReadingPhase: true,
                 ratingMin: true,
                 ratingMax: true,
                 ratingLabelMin: true,

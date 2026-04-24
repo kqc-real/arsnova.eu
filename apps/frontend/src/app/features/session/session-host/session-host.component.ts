@@ -82,9 +82,9 @@ import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 import {
   replaceEmojiShortcodes,
-  extractLeadingEmoji,
-  startsWithEmoji,
-  stripLeadingEmojiMarker,
+  edgeEmojiMarkerPosition,
+  extractEdgeEmoji,
+  stripEdgeEmojiMarker,
 } from '../../../shared/emoji-shortcode.util';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 import {
@@ -1624,15 +1624,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   teamNameUsesEmojiMarker(teamName: string): boolean {
-    return startsWithEmoji(teamName);
+    return edgeEmojiMarkerPosition(teamName) !== null;
   }
 
   teamNameEmojiMarker(teamName: string): string | null {
-    return extractLeadingEmoji(teamName);
+    return extractEdgeEmoji(teamName);
+  }
+
+  teamNameEmojiMarkerTrailing(teamName: string): boolean {
+    return edgeEmojiMarkerPosition(teamName) === 'trailing';
   }
 
   teamNameLabelWithoutEmojiMarker(teamName: string): string {
-    return stripLeadingEmojiMarker(teamName);
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    return label.length > 0 ? label : $localize`Team`;
   }
 
   lobbyTeamEmptyLabel(): string {

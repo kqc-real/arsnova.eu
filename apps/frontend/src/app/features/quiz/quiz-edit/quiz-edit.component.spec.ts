@@ -173,6 +173,7 @@ describe('QuizEditComponent', () => {
       type: 'SINGLE_CHOICE',
       difficulty: 'MEDIUM',
       timer: null,
+      skipReadingPhase: false,
       answers: [
         { text: 'Antwort A', isCorrect: false },
         { text: 'Antwort B', isCorrect: true },
@@ -218,8 +219,30 @@ describe('QuizEditComponent', () => {
       type: 'FREETEXT',
       difficulty: 'MEDIUM',
       timer: null,
+      skipReadingPhase: false,
       answers: [],
     });
+  });
+
+  it('speichert den Lesephasen-Override pro Frage', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.form.controls.text.setValue('Direkt loslegen?');
+    component.form.controls.questionSkipReadingPhase.setValue(true);
+    component.answersArray.at(0).controls.text.setValue('Ja');
+    component.answersArray.at(1).controls.text.setValue('Nein');
+    component.setSingleCorrect(0);
+
+    component.addQuestion();
+
+    expect(mockStore.addQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({
+        text: 'Direkt loslegen?',
+        skipReadingPhase: true,
+      }),
+    );
   });
 
   it('speichert eine SURVEY-Frage ohne korrekte Antworten', () => {
@@ -240,6 +263,7 @@ describe('QuizEditComponent', () => {
       type: 'SURVEY',
       difficulty: 'MEDIUM',
       timer: null,
+      skipReadingPhase: false,
       answers: [
         { text: 'Zu schnell', isCorrect: false },
         { text: 'Passend', isCorrect: false },
@@ -316,6 +340,7 @@ describe('QuizEditComponent', () => {
       type: 'SINGLE_CHOICE',
       difficulty: 'EASY',
       timer: null,
+      skipReadingPhase: false,
       answers: [
         { text: 'Neu A', isCorrect: false },
         { text: 'Neu B', isCorrect: true },
@@ -530,6 +555,7 @@ describe('QuizEditComponent', () => {
       type: 'SINGLE_CHOICE',
       difficulty: 'MEDIUM',
       timer: null,
+      skipReadingPhase: false,
       answers: [
         { text: 'A', isCorrect: true },
         { text: 'B', isCorrect: false },

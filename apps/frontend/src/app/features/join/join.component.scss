@@ -230,7 +230,7 @@
   }
 
   &__team-card-emoji {
-    font-size: 3em;
+    font-size: clamp(2.8rem, 5vw, 4.25rem);
     line-height: 1;
     flex-shrink: 0;
   }

@@ -2011,7 +2011,12 @@ export const sessionRouter = router({
               bonusTokenCount: true,
               questions: {
                 orderBy: { order: 'asc' },
-                select: { id: true, type: true, answers: { select: { id: true } } },
+                select: {
+                  id: true,
+                  type: true,
+                  skipReadingPhase: true,
+                  answers: { select: { id: true } },
+                },
               },
             },
           },
@@ -2059,7 +2064,10 @@ export const sessionRouter = router({
       const nextQuestion = session.quiz.questions[nextIdx];
       const skipReadingPhaseForType =
         nextQuestion?.type === 'SURVEY' || nextQuestion?.type === 'RATING';
-      const readingPhase = session.quiz.readingPhaseEnabled && !skipReadingPhaseForType;
+      const readingPhase =
+        session.quiz.readingPhaseEnabled &&
+        !skipReadingPhaseForType &&
+        nextQuestion?.skipReadingPhase !== true;
       const newStatus = readingPhase ? ('QUESTION_OPEN' as const) : ('ACTIVE' as const);
 
       let answerDisplayOrderPayload: ReturnType<typeof buildAnswerDisplayOrderForQuiz> | undefined;
