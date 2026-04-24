@@ -1355,6 +1355,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     hasExportableResults = false,
   ): Promise<boolean> {
     const participants = this.participantsPayload()?.participantCount ?? 0;
+    const shouldWarnAboutBonusCodes = await this.shouldWarnAboutBonusCodesOnLeave();
 
     const consequences: string[] = [
       $localize`:@@sessionHost.leaveConsequenceParticipantsHome:Teilnehmende und die Präsentationsansicht werden zur Startseite weitergeleitet.`,
@@ -1374,8 +1375,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         $localize`:@@sessionHost.leaveConsequenceNoResultsYet:Es liegen noch keine verwertbaren Ergebnisse vor. Nach dem Beenden wirst du direkt zur Startseite geführt.`,
       );
     }
-    const bonusTop = this.session()?.bonusTokenCount;
-    if (typeof bonusTop === 'number' && bonusTop > 0) {
+    if (shouldWarnAboutBonusCodes) {
       consequences.push(
         $localize`:@@sessionHost.leaveConsequenceBonusCodes:Für Bonus-Codes: Weise die Teilnehmenden darauf hin, ihren persönlichen Code jetzt zu kopieren (Zwischenablage), bevor sie die Seite verlassen – sonst können sie ihn leicht verlieren.`,
       );
@@ -1396,6 +1396,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
 
     return (await firstValueFrom(dialogRef.afterClosed())) === true;
+  }
+
+  private async shouldWarnAboutBonusCodesOnLeave(): Promise<boolean> {
+    const bonusTop = this.session()?.bonusTokenCount;
+    if (typeof bonusTop !== 'number' || bonusTop <= 0 || !this.code) {
+      return false;
+    }
+
+    const cached = this.leaderboard();
+    if (cached.some((entry) => entry.totalScore > 0)) {
+      return true;
+    }
+
+    try {
+      const entries = await trpc.session.getLeaderboard.query({ code: this.code.toUpperCase() });
+      return entries.some((entry) => entry.totalScore > 0);
+    } catch {
+      return false;
+    }
   }
 
   private async endSessionAndNavigateHome(): Promise<void> {

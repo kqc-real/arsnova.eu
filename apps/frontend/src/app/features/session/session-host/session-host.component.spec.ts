@@ -853,6 +853,76 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('blendet den Bonus-Code-Hinweis im Beenden-Dialog aus, wenn noch keine Ergebnisse vorliegen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 0,
+      bonusTokenCount: 3,
+    });
+    getExportDataQueryMock.mockResolvedValue({
+      sessionId: defaultSession.id,
+      sessionCode: 'ABC123',
+      quizName: 'Demo Quiz',
+      finishedAt: '2026-03-24T12:30:00.000Z',
+      participantCount: 0,
+      teamMode: false,
+      questions: [],
+      teamLeaderboard: [],
+      bonusTokens: [],
+    });
+    getLeaderboardQueryMock.mockResolvedValue([]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    dialogOpenMock.mockClear();
+    await fixture.componentInstance.onSessionEndAnchorClick();
+
+    const dialogConfig = dialogOpenMock.mock.calls[0]?.[1] as
+      | { data?: { consequences?: string[] } }
+      | undefined;
+    expect(dialogConfig?.data?.consequences?.join(' ')).not.toContain('Bonus-Code');
+    fixture.destroy();
+  });
+
+  it('zeigt den Bonus-Code-Hinweis im Beenden-Dialog nur mit verwertbaren Ergebnissen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 4,
+      bonusTokenCount: 3,
+    });
+    getExportDataQueryMock.mockResolvedValue({
+      sessionId: defaultSession.id,
+      sessionCode: 'ABC123',
+      quizName: 'Demo Quiz',
+      finishedAt: '2026-03-24T12:30:00.000Z',
+      participantCount: 4,
+      teamMode: false,
+      questions: [{ participantCount: 4, optionDistribution: [], freetextAggregates: [] }],
+      teamLeaderboard: [],
+      bonusTokens: [],
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      { participantId: 'p1', nickname: 'Ada', totalScore: 1200, rank: 1 },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    dialogOpenMock.mockClear();
+    await fixture.componentInstance.onSessionEndAnchorClick();
+
+    const dialogConfig = dialogOpenMock.mock.calls[0]?.[1] as
+      | { data?: { consequences?: string[] } }
+      | undefined;
+    expect(dialogConfig?.data?.consequences?.join(' ')).toContain('Bonus-Code');
+    fixture.destroy();
+  });
+
   it('zeigt für Q&A in der Lobby den Button Fragerunde starten', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
