@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d** (numerische Schätzfrage), **1.2e** (bewertbare Kurzantwort), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -28,6 +28,10 @@
 | 1    | 1.2c  | Fragentyp: Rating-Skala                                     | 🟡   | ✅ Fertig |
 | 1    | 1.2d  | Numerische Schätzfrage (Toleranz, 2 Runden, Statistik)      | 🟡   | ⬜ Offen  |
 | 1    | 1.2e  | Fragentyp: Kurzantwort / Short Answer mit Musterlösung      | 🟡   | ⬜ Offen  |
+| 1    | 1.2f  | Fragentyp: Hotspot auf Bild                                 | 🟡   | ⬜ Offen  |
+| 1    | 1.2g  | Fragentyp: Zuordnung / Matching                             | 🟡   | ⬜ Offen  |
+| 1    | 1.2h  | Fragentyp: Reihenfolge / Sortieren                          | 🟡   | ⬜ Offen  |
+| 1    | 1.2i  | Confidence Slider / Sicherheitsgrad mit Host-Auswertung     | 🟡   | ⬜ Offen  |
 | 1    | 1.3   | Antworten & Lösungen                                        | 🔴   | ✅ Fertig |
 | 1    | 1.4   | Sitzungs-Konfiguration                                      | 🟡   | ✅ Fertig |
 | 1    | 1.5   | Local-First Speicherung                                     | 🔴   | ✅ Fertig |
@@ -115,7 +119,7 @@
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 29 · 🟡 Should: 56 · 🟢 Could: 11 = **96 Stories gesamt** (**80** ✅ Fertig · **16** ⬜ Offen)
+> **Statistik:** 🔴 Must: 29 · 🟡 Should: 60 · 🟢 Could: 11 = **100 Stories gesamt** (**80** ✅ Fertig · **20** ⬜ Offen)
 
 ---
 
@@ -358,6 +362,106 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - Data-Stripping im aktiven Zustand,
       - Editor-Validierung,
       - Import/Export des Fragetypen.
+- **Story 1.2f (Fragentyp: Hotspot auf Bild):** 🟡 Als Lehrperson möchte ich **Hotspot-Fragen auf Bildern** stellen können, damit Teilnehmende eine **Position oder Region auf einem Bild** markieren können, z. B. in Karten, Diagrammen, anatomischen Abbildungen, Fotos oder technischen Skizzen. Als Host möchte ich nach der Ergebnisfreigabe eine **aggregierte, beamer-taugliche Visualisierung** der Klicks/Taps sehen, um typische Fehlwahrnehmungen und Cluster schnell zu erkennen – **ohne** dass während der laufenden Antwortphase ein Herdeneffekt entsteht.
+  - **Akzeptanzkriterien:**
+    - **Neuer Fragentyp:** Neuer Typ `IMAGE_HOTSPOT` (oder fachlich gleichwertige Benennung) in `@arsnova/shared-types`, klar getrennt von textbasierten Antwortformaten.
+    - **Bildquelle & Policy:** Die Lehrperson hinterlegt das Bild als **externe HTTPS-URL** gemäß bestehender Markdown-/Bild-Policy (Story **1.7a** / ADR-0015); Alt-Text bzw. beschreibender Titel sind konfigurierbar. Es gibt **keinen** separaten Uploadpfad nur für diesen Fragentyp.
+    - **Editor (Lehrperson):** Im Quiz-Editor kann die Lehrperson
+      - ein Bild auswählen bzw. referenzieren,
+      - **mindestens eine korrekte Zielzone** definieren,
+      - Zielzonen visuell auf dem Bild platzieren,
+      - **mindestens rechteckige und kreisförmige** Zielzonen konfigurieren,
+      - optional mehrere richtige Zonen hinterlegen (z. B. „markiere eine von mehreren richtigen Stellen“),
+      - optional eine **Treffer-Toleranz** bzw. Mindestgröße konfigurieren, soweit fachlich sinnvoll.
+    - **Nicht-Ziel im ersten Schritt:** Keine Freihand-Masken, kein Polygon-Editor mit beliebig vielen Punkten, keine Bildannotation mit Text-Layern, keine serverseitige Bildverarbeitung.
+    - **Teilnehmenden-UI:** Das Bild wird auf Smartphone und Desktop so dargestellt, dass ein **Tap/Klick** auf die Zielposition möglich ist. Die Interaktion ist **touch-first** und nicht auf Hover angewiesen. Vor dem Absenden ist die gewählte Position bzw. Zone klar markiert und kann geändert werden.
+    - **Barrierefreiheit / Bedienbarkeit:** Für kleine Displays gibt es eine robuste Bedienstrategie, z. B. ausreichend große Touch-Flächen, Zoom-/Vollansicht oder eine Lupe, sofern das Bild sonst nicht präzise bedienbar wäre. Die Frage bleibt auch bei `prefers-reduced-motion` und ohne Maus sinnvoll nutzbar.
+    - **Validierung:** Pro Antwort ist standardmäßig **genau eine Markierung** zulässig, außer der Fragetyp wird explizit auf mehrere Hotspots erweitert. Leere Submissions werden abgewiesen.
+    - **Wertung:** Eine Antwort gilt als **richtig**, wenn die markierte Position innerhalb einer gültigen Zielzone bzw. Toleranz liegt. Die Auswertung erfolgt serverseitig; während `ACTIVE` werden Zielzonen und Korrektheit gemäß Story **2.4** nicht an Teilnehmende offengelegt.
+    - **Scoring:** Hotspot-Fragen nehmen regulär am Quiz-Scoring teil wie andere bewertbare Fragetypen.
+    - **Host-/Presenter-Visualisierung nach Freigabe:** Nach Ergebnisfreigabe zeigt die Host-/Presenter-Ansicht mindestens
+      - das zugrunde liegende Bild,
+      - die korrekten Zielzonen als Overlay,
+      - die aggregierten Klick-/Tap-Punkte bzw. eine Heatmap/Cluster-Darstellung,
+      - Kennzahlen wie **n**, **Trefferquote** und optional häufigste Fehlcluster.
+    - **Kein Herdeneffekt:** Während der aktiven Antwortphase sind **keine** Live-Punktewolken, Heatmaps oder sonstige räumliche Verteilungen sichtbar. Erlaubt sind nur neutrale Fortschrittsanzeigen ohne Lageinformation.
+    - **Datenschutz / Anzeige:** In der öffentlichen Host-/Presenter-Ansicht werden nur **aggregierte** Daten gezeigt; keine personenscharfe Zuordnung einzelner Klicks zu Namen.
+    - **Import/Export:** Bildreferenz, Zielzonen und ggf. Toleranz sind vollständig im Quiz-JSON serialisierbar und beim Import validierbar.
+    - **Tests:** Es gibt Unit-/Komponententests für Zonentreffer, Randfälle an Zonengrenzen, Data-Stripping im aktiven Zustand, Editor-Validierung sowie Import/Export.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings für Editor, Teilnehmenden- und Host-Ansicht in **de, en, fr, es, it**.
+  - **Abhängigkeiten:** Story **1.7a** (Bild-Policy / Lightbox-Verhalten), Story **1.3** (Bewertungslogik), Story **2.4** (Data-Stripping), Story **3.3a/b** (Teilnehmenden-Flow), Story **4.1** / **4.4** (Scoring & Ergebnisvisualisierung), Story **4.7** (Export, falls Ergebnisdaten mit aufgenommen werden).
+- **Story 1.2g (Fragentyp: Zuordnung / Matching):** 🟡 Als Lehrperson möchte ich **Zuordnungsfragen** erstellen können, bei denen Teilnehmende Begriffe, Definitionen, Formeln, Beispiele oder kurze Aussagen korrekt **miteinander verknüpfen**, damit Beziehungen zwischen Konzepten statt nur Einzelantworten geprüft werden können. Als Host möchte ich nach Freigabe eine **Auswertung typischer Verwechslungen** sehen, um Misskonzepte gezielt besprechen zu können.
+  - **Akzeptanzkriterien:**
+    - **Neuer Fragentyp:** Neuer Typ `MATCHING` (oder fachlich gleichwertige Benennung) in `@arsnova/shared-types`.
+    - **Editor (Lehrperson):** Im Quiz-Editor kann die Lehrperson
+      - mindestens **2 bis 6 Paare** definieren,
+      - pro Seite kurze Texte bzw. kurze Markdown-Fragmente hinterlegen,
+      - die korrekten Zuordnungen eindeutig festlegen,
+      - optional die Reihenfolge der rechten Seite pro Teilnehmenden zufällig mischen lassen,
+      - optional zusätzliche Instruktionen im Fragetext formulieren (Markdown/KaTeX wie bisher).
+    - **Nicht-Ziel im ersten Schritt:** Keine komplexen N:M-Beziehungen, keine Gruppenbildung mit mehr als zwei Spalten, keine schwere Drag-only-Interaktion ohne mobile Alternative.
+    - **Teilnehmenden-UI:** Die Zuordnung ist auf Smartphone und Desktop **robust bedienbar**, z. B. per Tap-to-connect, Auswahl in zwei Schritten oder Drag-and-drop mit klarer Touch-Alternative. Die Interaktion darf nicht voraussetzen, dass Desktop-Hover verfügbar ist.
+    - **Validierung:** Jede linke Position muss genau einer rechten Position zugeordnet werden; unvollständige Zuordnungen können nicht abgesendet werden.
+    - **Wertung:** Im ersten Schritt ist die Frage **voll korrekt** oder **nicht voll korrekt** für das Scoring; zusätzlich werden intern pro Paar korrekte/falsche Zuordnungen ausgewertet, damit die Host-Analyse feingranularer sein kann.
+    - **Scoring:** Matching-Fragen nehmen regulär am Quiz-Scoring teil. Eine spätere Erweiterung auf Teilpunkte ist architektonisch nicht verbaut, aber **kein Pflichtumfang** dieser Story.
+    - **Host-/Presenter-Visualisierung nach Freigabe:** Die Auswertung zeigt mindestens
+      - die korrekten Paare,
+      - pro Paar die Trefferquote,
+      - eine Übersicht häufiger Fehlzuordnungen bzw. Verwechslungen,
+      - eine kompakte, beamer-taugliche Darstellung (z. B. Matrix oder „häufig falsch verbunden mit …“).
+    - **Kein Herdeneffekt:** Während `ACTIVE` gibt es keine öffentliche Zwischenanzeige, welche Paare sich als populär oder problematisch abzeichnen.
+    - **Data Stripping:** Während der aktiven Phase erhalten Teilnehmende keine Information darüber, welche Zuordnungen korrekt sind.
+    - **Import/Export:** Paare, Reihenfolge und Shuffle-Konfiguration sind vollständig serialisierbar; der JSON-Import validiert Kardinalität und Eindeutigkeit.
+    - **Tests:** Es gibt Tests für Editor-Validierung, korrekte/falsche Zuordnung, Shuffle ohne Verlust der Lösungsabbildung, Data-Stripping sowie Import/Export.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings in **de, en, fr, es, it**.
+  - **Abhängigkeiten:** Story **1.3** (Bewertungslogik), Story **1.7** (Markdown/KaTeX in Item-Texten), Story **2.4** (Data-Stripping), Story **3.3a/b** (Teilnehmenden-UI), Story **4.1** / **4.4** (Scoring & Ergebnisvisualisierung), Story **4.7** (Ergebnis-Export).
+- **Story 1.2h (Fragentyp: Reihenfolge / Sortieren):** 🟡 Als Lehrperson möchte ich **Sortier- bzw. Reihenfolgefragen** stellen können, bei denen Teilnehmende Schritte, Ereignisse, Argumente oder Prozessbestandteile in die **richtige Abfolge** bringen, damit zeitliche, logische oder prozedurale Zusammenhänge geprüft werden können. Als Host möchte ich nach der Freigabe nicht nur sehen, **wer richtig lag**, sondern auch **welche Vertauschungen typischerweise auftreten**.
+  - **Akzeptanzkriterien:**
+    - **Neuer Fragentyp:** Neuer Typ `ORDERING` (oder fachlich gleichwertige Benennung) in `@arsnova/shared-types`.
+    - **Editor (Lehrperson):** Im Quiz-Editor kann die Lehrperson
+      - mindestens **3 bis 8 Elemente** hinterlegen,
+      - die Soll-Reihenfolge definieren,
+      - optionale kurze Markdown-/KaTeX-Inhalte pro Element verwenden,
+      - festlegen, dass die Elemente bei Teilnehmenden immer in **zufälliger Startreihenfolge** angezeigt werden.
+    - **Teilnehmenden-UI:** Die Sortierung funktioniert auf Smartphone und Desktop zuverlässig, z. B. per Drag-and-drop **plus** barriereärmerer Alternative wie „nach oben / nach unten“-Steuerung oder vergleichbarer Fokus-/Tastaturbedienung.
+    - **Validierung:** Eine Abgabe ist nur möglich, wenn alle Elemente vorhanden sind und genau einmal in einer Reihenfolge angeordnet wurden.
+    - **Wertung:** Im ersten Schritt gilt die Antwort für das Scoring als **richtig**, wenn die vollständige Reihenfolge korrekt ist; für die Auswertung werden zusätzlich Positionsabweichungen bzw. typische Inversionen intern berechnet.
+    - **Scoring:** Reihenfolgefragen nehmen regulär am Quiz-Scoring teil. Teilpunkte oder Distanz-basierte Bepunktung sind **nicht** Pflicht in dieser Story.
+    - **Host-/Presenter-Visualisierung nach Freigabe:** Die Auswertung zeigt mindestens
+      - die Soll-Reihenfolge,
+      - die Trefferquote vollständig korrekter Antworten,
+      - pro Position, welches Element dort wie häufig platziert wurde,
+      - häufige Vertauschungen bzw. Inversionen (z. B. „Schritt 2 und 3 werden oft vertauscht“),
+      - eine beamer-taugliche Aggregatsdarstellung.
+    - **Kein Herdeneffekt:** Während der aktiven Phase sind keine Live-Verteilungen von Platzierungen sichtbar; nur neutrale Fortschrittsanzeigen ohne Inhaltsbezug.
+    - **Data Stripping:** Während `ACTIVE` werden Soll-Reihenfolge und Bewertung nicht an Teilnehmende übertragen.
+    - **Import/Export:** Elemente und Soll-Reihenfolge sind vollständig im Quiz-JSON enthalten; Importvalidierung erkennt doppelte oder fehlende Elemente.
+    - **Tests:** Es gibt Tests für Editor-Validierung, stabile Shuffle-Logik, korrekte/falsche Reihenfolgen, Aggregation häufiger Vertauschungen, Data-Stripping sowie Import/Export.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings in **de, en, fr, es, it**.
+  - **Abhängigkeiten:** Story **1.3** (Bewertungslogik), Story **1.7** (Markdown/KaTeX in Elementtexten), Story **2.4** (Data-Stripping), Story **3.3a/b** (Teilnehmenden-Flow), Story **4.1** / **4.4** (Scoring & Ergebnisvisualisierung), Story **6.5** (A11y, da Reorder-Interaktion dafür besonders sensibel ist).
+- **Story 1.2i (Confidence Slider / Sicherheitsgrad mit Host-Auswertung):** 🟡 Als Lehrperson möchte ich bei **bewertbaren Fragen** zusätzlich den **Sicherheitsgrad** der Teilnehmenden erfassen können, damit ich nicht nur richtige und falsche Antworten sehe, sondern auch **selbstsicher falsche** Antworten und damit verbundene **Misskonzepte** erkenne. Als Host möchte ich nach der Ergebnisfreigabe eine **eigene Confidence-Auswertung** sehen, die Antwortverhalten und Sicherheit sinnvoll zusammenführt.
+  - **Akzeptanzkriterien:**
+    - **Kein eigener Fragentyp, sondern Zusatzfunktion:** Confidence ist eine **optionale Frage-Einstellung** für bewertbare Formate. Im ersten Schritt mindestens unterstützt für `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT` und `NUMERIC_ESTIMATE`; die Modellierung soll spätere Nutzung für weitere bewertbare Typen (z. B. `IMAGE_HOTSPOT`, `MATCHING`, `ORDERING`) nicht verbauen.
+    - **Editor (Lehrperson):** Im Quiz-Editor gibt es pro unterstützter Frage einen Schalter wie **„Sicherheitsgrad abfragen“**. Die Lehrperson kann mindestens
+      - die Funktion an-/abschalten,
+      - eine **5-stufige Skala** nutzen (Standard),
+      - optionale Labels für niedrige und hohe Sicherheit konfigurieren (z. B. „geraten“ / „sehr sicher“).
+    - **Teilnehmenden-UI:** Wenn Confidence aktiviert ist, geben Teilnehmende neben der Antwort auch ihren Sicherheitsgrad an. Die UX ist auf Smartphone schnell bedienbar, z. B. als Slider, Segmentgruppe oder klar tappbare Stufen. Es ist eindeutig, dass sich der Sicherheitsgrad auf die **gerade abgegebene Antwort** bezieht.
+    - **Validierung:** Wenn Confidence aktiviert ist, ist ohne Sicherheitsangabe kein vollständiger Submit möglich. Vor dem Absenden können sowohl Antwort als auch Confidence-Wert geändert werden.
+    - **Datenspeicherung:** Der Confidence-Wert wird zusammen mit dem Vote serverseitig gespeichert und ist in tRPC-/DTO-Modellen sauber typisiert und über Zod validiert.
+    - **Data Stripping während `ACTIVE`:** Teilnehmende erhalten keine aggregierten Confidence-Daten anderer Personen. In öffentlichen Live-Ansichten wird während der aktiven Phase weder die Confidence-Verteilung noch eine Antwort-/Confidence-Kreuztabelle gezeigt.
+    - **Host-/Presenter-Visualisierung nach Freigabe:** Die Host-Ansicht zeigt mindestens
+      - die **Verteilung der Confidence-Stufen**,
+      - eine **Kreuzauswertung aus Korrektheit × Confidence** (z. B. richtig/sicher, richtig/unsicher, falsch/unsicher, falsch/sicher),
+      - einen klar sichtbaren Hinweis auf **selbstsicher falsche** Antworten als didaktisch relevante Gruppe,
+      - bei Auswahlformaten optional eine Aufschlüsselung, welche **falschen Optionen** mit hoher Sicherheit gewählt wurden,
+      - eine beamer-taugliche, schnell lesbare Darstellung ohne Mikrodetails.
+    - **Didaktischer Mehrwert / Misskonzepte:** Die Auswertung unterstützt explizit die Frage „Was wissen Teilnehmende wirklich – und wo sind sie nur sicher, obwohl sie falsch liegen?“. Entsprechend ist die Visualisierung nicht nur dekorativ, sondern fokussiert auf Fehlkonzepte.
+    - **Scoring:** Confidence beeinflusst im ersten Schritt **nicht** die Punktevergabe und **nicht** das Leaderboard; sie ist eine zusätzliche Diagnose-Dimension.
+    - **Export:** Ergebnisexporte können Confidence mindestens aggregiert enthalten; für Lehrende ist eine getrennte Auswertung von Korrektheit und Confidence exportierbar.
+    - **Tests:** Es gibt Tests für Editor-State, Vote-Validierung, Data-Stripping im aktiven Zustand, Host-Aggregation und Export.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings in **de, en, fr, es, it**.
+  - **Abhängigkeiten:** Story **1.3** (bewertbare Antwortlogik), Story **2.4** (Data-Stripping), Story **3.3b** (Abgabe-UI), Story **4.4** (Host-Ergebnisvisualisierung), Story **4.7** (Export), optional Folgebezug zu Story **2.7** (Peer Instruction), falls Confidence später rundenübergreifend verglichen werden soll.
 - **Story 1.3 (Antworten & Lösungen):** 🔴 Als Lehrperson möchte ich Antwortmöglichkeiten definieren und korrekte Antworten markieren können.
   - **Akzeptanzkriterien:**
     - Antworten können hinzugefügt, bearbeitet und gelöscht werden.
