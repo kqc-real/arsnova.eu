@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const demoDir = path.join(__dirname, '../src/assets/demo');
 const md = String.raw;
 
-const EXPORT_VERSION = 14;
+const EXPORT_VERSION = 16;
 const EXPORTED_AT = '2026-04-24T14:30:00.000Z';
 
 const EMOTION_IMAGE_URL =
@@ -69,9 +69,9 @@ function buildPayload(locale) {
       teamMode: true,
       teamCount: 2,
       teamAssignment: 'AUTO',
-      teamNames: ['Team A', 'Team B'],
+      teamNames: locale.teamNames,
       backgroundMusic: null,
-      nicknameTheme: 'HIGH_SCHOOL',
+      nicknameTheme: 'KINDERGARTEN',
       bonusTokenCount: 3,
       readingPhaseEnabled: true,
       questions: [
@@ -143,6 +143,7 @@ function buildPayload(locale) {
 const LOCALES = {
   de: {
     name: 'Praxis-Showcase: Live-Teamdemo',
+    teamNames: ['🍎 Apfel', '🍐 Birne'],
     description: md`![Praxis-Showcase](${PI_IMAGE_URL})
 
 # Praxis-Showcase für den Unterricht
@@ -259,6 +260,7 @@ ${CODE_FENCE}`,
   },
   en: {
     name: 'Teaching Showcase: Live Team Demo',
+    teamNames: ['🍎 Apple', '🍐 Pear'],
     description: md`![Teaching showcase](${PI_IMAGE_URL})
 
 # Teaching Practice Showcase
@@ -375,6 +377,7 @@ ${CODE_FENCE}`,
   },
   fr: {
     name: 'Showcase pédagogique : démo en équipe',
+    teamNames: ['🍎 Pomme', '🍐 Poire'],
     description: md`![Showcase pédagogique](${PI_IMAGE_URL})
 
 # Showcase pédagogique
@@ -491,6 +494,7 @@ ${CODE_FENCE}`,
   },
   es: {
     name: 'Showcase docente: demo por equipos',
+    teamNames: ['🍎 Manzana', '🍐 Pera'],
     description: md`![Showcase docente](${PI_IMAGE_URL})
 
 # Showcase docente
@@ -607,6 +611,7 @@ ${CODE_FENCE}`,
   },
   it: {
     name: 'Showcase didattico: demo a squadre',
+    teamNames: ['🍎 Mela', '🍐 Pera'],
     description: md`![Showcase didattico](${PI_IMAGE_URL})
 
 # Showcase didattico

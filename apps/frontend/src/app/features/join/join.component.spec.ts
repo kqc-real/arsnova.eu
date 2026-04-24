@@ -257,6 +257,26 @@ describe('JoinComponent', () => {
     expect(comp.nicknameOptions().length).toBeGreaterThan(0);
   });
 
+  it('liefert im Kita-Modus Emoji und Namen fuer den Select-Trigger', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      nicknameTheme: 'KINDERGARTEN',
+      allowCustomNicknames: false,
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    comp.selectedNickname.set('Blauer Elefant');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(comp.selectedNickname()).toBe('Blauer Elefant');
+    expect(comp.kindergartenEmojiForSelected()).toBe('🐘');
+  });
+
   it('ruft join mit Code und Nickname auf und navigiert zu vote (Story 3.2)', async () => {
     const { fixture, comp } = createWithCode('ABC123');
     const router = fixture.debugElement.injector.get(Router);

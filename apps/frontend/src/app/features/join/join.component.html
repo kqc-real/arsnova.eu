@@ -166,17 +166,16 @@
               >
                 <mat-select-trigger>
                   @if (selectedNickname()) {
-                    @if (isKindergartenNicknameTheme()) {
-                      @if (kindergartenEmojiForSelected(); as em) {
+                    <span class="join-card__nick-option join-card__nick-option--trigger">
+                      @if (isKindergartenNicknameTheme() && kindergartenEmojiForSelected(); as em) {
                         <span
-                          class="join-card__nick-emoji join-card__nick-emoji--trigger-only"
+                          class="join-card__nick-emoji join-card__nick-emoji--trigger"
                           aria-hidden="true"
                           >{{ em }}</span
                         >
                       }
-                    } @else {
-                      <span>{{ selectedNickname() }}</span>
-                    }
+                      <span class="join-card__nick-option-text">{{ selectedNickname() }}</span>
+                    </span>
                   }
                 </mat-select-trigger>
                 <mat-option value="" i18n>— Bitte wählen —</mat-option>
@@ -187,19 +186,16 @@
                     [class.join-card__option--taken]="isTaken(opt)"
                     [attr.aria-label]="nicknameOptionAriaLabel(opt, idx)"
                   >
-                    @if (isKindergartenNicknameTheme()) {
-                      <span
-                        class="join-card__nick-emoji join-card__nick-emoji--option-only"
-                        aria-hidden="true"
-                        >{{ kindergartenEmojiForOptionIndex(idx) }}</span
+                    <span class="join-card__nick-option">
+                      @if (isKindergartenNicknameTheme()) {
+                        <span class="join-card__nick-emoji" aria-hidden="true">{{
+                          kindergartenEmojiForOptionIndex(idx)
+                        }}</span>
+                      }
+                      <span class="join-card__nick-option-text"
+                        >{{ opt }}{{ isTaken(opt) ? ' ' + takenSuffix() : '' }}</span
                       >
-                    } @else {
-                      <span class="join-card__nick-option">
-                        <span class="join-card__nick-option-text"
-                          >{{ opt }}{{ isTaken(opt) ? ' ' + takenSuffix() : '' }}</span
-                        >
-                      </span>
-                    }
+                    </span>
                   </mat-option>
                 }
               </mat-select>

@@ -316,6 +316,10 @@
     min-height: 2.5rem;
   }
 
+  &__nick-option--trigger {
+    min-height: 0;
+  }
+
   &__nick-emoji {
     font-size: 1.85rem;
     line-height: 1;
@@ -325,24 +329,6 @@
   &__nick-emoji--trigger {
     font-size: 1.55rem;
     margin-inline-end: 0.35rem;
-  }
-
-  /* Kita: nur Emoji im Trigger (Label „Kita“ über mat-label). */
-  &__nick-emoji--trigger-only {
-    font-size: 2.35rem;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  &__nick-emoji--option-only {
-    font-size: 2.5rem;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
   }
 
   &__field--kindergarten-nick {
@@ -425,14 +411,6 @@
 
   .join-card__nick-emoji--trigger {
     font-size: 1.75rem;
-  }
-
-  .join-card__nick-emoji--trigger-only {
-    font-size: 2.65rem;
-  }
-
-  .join-card__nick-emoji--option-only {
-    font-size: 2.85rem;
   }
 }
 

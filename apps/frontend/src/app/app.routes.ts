@@ -37,6 +37,35 @@ function getCodeParamFromRoute(route: Parameters<CanActivateFn>[0]): string | nu
   );
 }
 
+function getLocaleParamFromRoute(route: Parameters<CanActivateFn>[0]): string | null {
+  const parentRoute = (() => {
+    try {
+      return route.parent ?? null;
+    } catch {
+      return null;
+    }
+  })();
+  const pathFromRoot = (() => {
+    try {
+      return route.pathFromRoot ?? [route];
+    } catch {
+      return [route];
+    }
+  })();
+
+  return (
+    route.paramMap.get('locale') ??
+    parentRoute?.paramMap.get('locale') ??
+    pathFromRoot
+      .map((snapshot) => snapshot.paramMap.get('locale'))
+      .find((value): value is string => typeof value === 'string' && value.length > 0) ??
+    pathFromRoot
+      .map((snapshot) => snapshot.params['locale'])
+      .find((value): value is string => typeof value === 'string' && value.length > 0) ??
+    null
+  );
+}
+
 const redirectSessionEntry: CanActivateFn = (route) => {
   const codeParam = getCodeParamFromRoute(route);
   if (!codeParam) {
@@ -53,7 +82,7 @@ const redirectJoinToPreferredLocale: CanActivateFn = (route) => {
     return router.createUrlTree(localizeCommands(['']));
   }
 
-  if (getLocaleFromPath() || getLocaleFromBaseHref()) {
+  if (getLocaleParamFromRoute(route) || getLocaleFromPath() || getLocaleFromBaseHref()) {
     return true;
   }
 

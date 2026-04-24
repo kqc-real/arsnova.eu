@@ -96,6 +96,22 @@ function createChildRouteSnapshot(parentCode: string): ActivatedRouteSnapshot {
   return child;
 }
 
+function createLocalizedJoinRouteSnapshot(locale: string, code: string): ActivatedRouteSnapshot {
+  const parent = new ActivatedRouteSnapshot();
+  parent.params = { locale };
+  const child = new ActivatedRouteSnapshot();
+  child.params = { code };
+  Object.defineProperty(child, 'parent', {
+    configurable: true,
+    get: () => parent,
+  });
+  Object.defineProperty(child, 'pathFromRoot', {
+    configurable: true,
+    get: () => [parent, child],
+  });
+  return child;
+}
+
 describe('app routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -192,12 +208,11 @@ describe('app routes', () => {
     );
   });
 
-  it('lässt Join-Links mit expliziter Locale unverändert durch', () => {
-    getLocaleFromPathMock.mockReturnValue('en');
+  it('lässt Join-Links mit expliziter Locale im Route-Tree unverändert durch', () => {
     const guard = findRoute('join/:code').canActivate?.[0] as CanActivateFn;
 
     const result = TestBed.runInInjectionContext(() =>
-      guard(createRouteSnapshot('abc123'), {} as never),
+      guard(createLocalizedJoinRouteSnapshot('en', 'abc123'), {} as never),
     );
 
     expect(getPreferredJoinLocaleMock).not.toHaveBeenCalled();
