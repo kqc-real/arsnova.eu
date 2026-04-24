@@ -1,13 +1,14 @@
 {
-  "exportVersion": 5,
-  "exportedAt": "2026-03-09T12:00:00.000Z",
+  "exportVersion": 8,
+  "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
-    "name": "Tutti i formati di domanda – quiz dimostrativo (liceo / secondaria)",
-    "description": "![Peer Instruction: nove domande concettuali e due turni di voto](/assets/demo/9_konzeptfragen_panorama.svg)\n\n**Scopo:** Questo quiz mostra che arsnova.eu supporta **due turni di voto**: prima si vota, poi si discute, poi si vota di nuovo. È centrale in metodologie come la *Peer Instruction*.\n\n**Che cos’è la Peer Instruction?** Un metodo basato su evidenze (Eric Mazur, Harvard): l’insegnante pone una domanda concettuale con distrattori plausibili. Prima ognuno risponde da solo; poi i vicini confrontano le motivazioni e rivotano — così emergono e si chiariscono i malintesi.\n\n**Vista host:** Se tra il **35 % e il 70 %** dei voti del primo turno sono completamente corretti, arsnova.eu mostra un **suggerimento** (intervallo tipico per la Peer Instruction). Il dettaglio della distribuzione resta nascosto finché non avvii la fase di discussione o non mostri il risultato.\n\n**Riferimento:** Crouch, C. H., & Mazur, E. (2001). Peer Instruction: Ten years of experience and results. *American Journal of Physics*, 69(9), 970-977.\n\n**Che cos’è Markdown?** Formattazione da tastiera, senza clic. Es. `**grassetto**` → **grassetto**, `*corsivo*` → *corsivo*, `` `codice` `` → `codice`. Titoli con `#`, elenchi con `-` o `*`. In questo quiz trovi Markdown in domande e risposte.\n\n**Che cos’è KaTeX?** Formule come sui libri di testo. Racchiudi la formula tra dollari: x^2 → $x^2$, una frazione → $\\frac{1}{2}$, f'(x) → $f'(x)$. Ideale per matematica, fisica, chimica — senza installazione, direttamente in arsnova.eu.\n\nQuesto quiz usa tutti i formati di domanda di arsnova.eu. Le domande sono raggruppate per materia.\n\n| # | Materia | Formato | Tema | Idee sbagliate / nota |\n|---|---------|---------|------|------------------------|\n| 1 | Matematica | Scelta singola | Cambio di segno di $f'$ ed estremi | Minimo invece del massimo; flesso ($f''$ confuso); radice ($f=0$ vs $f'=0$) |\n| 2 | Matematica | Scelta singola | Indipendenza stocastica | Fallacia del giocatore; «mano calda» |\n| 3 | Matematica | Scelta singola | Integrale definito ≠ area geometrica | Area positiva; somma vs bilancio; valor medio |\n| 4 | Matematica | Valutazione | Geometria vettoriale (mutue posizioni) | Autovalutazione |\n| 5 | Fisica | Scelta singola | Newton 3 – azione = reazione | Sul più leggero «agisce di più»; il più pesante «spinge di più»; le forze si annullano |\n| 6 | Fisica | Testo libero | Satellite in orbita | Argomentazione |\n| 7 | Biologia | Scelta singola | Selezione vs lamarckismo | Mutazione diretta; adattamento graduale; assuefazione |\n| 8 | Biologia | Scelta multipla | Incrocio diibrido (Mendel) | Tutta la F2 eterozigote; geni accoppiati |\n| 9 | Chimica | Scelta multipla | Le Chatelier (equilibrio) | Il catalizzatore sposta l’equilibrio |\n| 10 | — | Sondaggio | Preparazione alla maturità / esami finali | Strategie di studio |\n| 11 | — | Testo libero | Domanda con più incertezza | Riflessione |\n| 12 | — | Valutazione | Valuta questo quiz dimostrativo | Giudizio complessivo |",
-    "motifImageUrl": "/assets/demo/9_konzeptfragen_panorama.svg",
+    "name": "Showcase didattico: demo a squadre per lezioni dal vivo",
+    "description": "![Showcase didattico](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase didattico\n\nQuesta demo è pensata per un **uso reale in classe**. Non vuole essere il quiz disciplinare perfetto dall’inizio alla fine. Il suo obiettivo è un altro: mostrare a docenti, formatori e facilitatori come arsnova.eu possa rendere una sessione dal vivo più varia, più visiva e più coinvolgente.\n\nUsala come una **demo breve a squadre, in stile Kahoot, per lezioni dal vivo** per mostrare come puoi:\n- iniziare con un check-in emotivo o sociale\n- usare immagini invece di sole domande testuali\n- inserire formule e notazione scientifica nelle materie STEM\n- raccogliere risposte brevi in testo libero\n- aggiungere energia con timer, squadre, classifica e codici bonus\n- mostrare frammenti di codice in informatica o in corsi tecnici\n\nLe domande sono volutamente varie. L’idea è offrirti spunti pratici per attività rompighiaccio, verifiche rapide della comprensione, reset dell’attenzione e brevi momenti interattivi da riutilizzare in classe.",
+    "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": 60,
+    "defaultTimer": 30,
+    "timerScaleByDifficulty": true,
     "enableSoundEffects": true,
     "enableRewardEffects": true,
     "enableMotivationMessages": true,
@@ -16,254 +17,111 @@
     "teamMode": true,
     "teamCount": 2,
     "teamAssignment": "AUTO",
+    "teamNames": ["Team A", "Team B"],
     "backgroundMusic": null,
     "nicknameTheme": "HIGH_SCHOOL",
     "bonusTokenCount": 3,
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Matematica: Analisi – Funzione e derivata\n\nLa derivata $f'(x)$ **cambia segno da positivo a negativo** in $x_0$.\n\nCosa vale per $f$ in quel punto?",
-        "type": "SINGLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
+        "text": "### Che clima c’è nel gruppo in questo momento?\n\n> **Uso didattico:** Usalo come check-in rapido all’inizio della lezione, prima di un feedback o dopo una fase impegnativa.\n\n![Panoramica delle emozioni](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "EASY",
         "order": 0,
         "answers": [
           {
-            "text": "La funzione $f$ ha lì un massimo locale.",
-            "isCorrect": true
-          },
-          {
-            "text": "La funzione $f$ ha lì un minimo locale.",
+            "text": ":smile: Pronto/a a partire",
             "isCorrect": false
           },
           {
-            "text": "La funzione $f$ ha lì un punto di flesso.",
+            "text": ":cry: Un po’ sopraffatto/a",
             "isCorrect": false
           },
           {
-            "text": "La funzione $f$ ha lì uno zero.",
+            "text": ":rage: Frustrato/a",
+            "isCorrect": false
+          },
+          {
+            "text": ":neutral_face: Tutto sommato bene",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Matematica: Probabilità – Eventi indipendenti\n\nCon una moneta equa è uscito **testa** cinque volte di seguito.\n\nQual è la probabilità che al sesto lancio esca **croce**?",
-        "type": "SINGLE_CHOICE",
-        "timer": 45,
+        "text": "### Arrotonda $\\pi$ a due cifre decimali.\n\n> **Uso didattico:** Usalo come prompt STEM rapido che unisce formule, media e risposta aperta.\n\n![Il numero pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "type": "FREETEXT",
+        "timer": null,
         "difficulty": "MEDIUM",
         "order": 1,
-        "answers": [
-          {
-            "text": "Esattamente il 50%, perché ogni lancio è indipendente dai precedenti.",
-            "isCorrect": true
-          },
-          {
-            "text": "Più del 50%, perché dopo cinque teste la croce è «in ritardo».",
-            "isCorrect": false
-          },
-          {
-            "text": "Meno del 50%, perché è probabile che continui la serie di teste.",
-            "isCorrect": false
-          },
-          {
-            "text": "Non si può calcolare perché la moneta potrebbe essere truccata.",
-            "isCorrect": false
-          }
-        ]
+        "answers": []
       },
       {
-        "text": "### Matematica: Analisi – Integrale definito\n\nLa funzione $f(x) = x^2 - 4$ ha zeri in $x = -2$ e $x = 2$⁠. Tra gli zeri il grafico sta **completamente sotto** l’asse $x$.\n\nCosa rappresenta $\\int_{-2}^{2} f(x)\\,\\mathrm{d}x$?",
+        "text": "### Immagine generata dall’IA o foto reale?\n\n> **Uso didattico:** Usalo come avvio visivo, reset dell’attenzione o spunto di discussione a bassa soglia.\n\n![Foto di città](https://cdn.imago-images.de/bild/st/0105048862/s.jpg)",
         "type": "SINGLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
+        "timer": null,
+        "difficulty": "EASY",
         "order": 2,
         "answers": [
           {
-            "text": "L’area con segno tra il grafico e l’asse $x$.",
+            "text": "Immagine generata dall’IA",
+            "isCorrect": false
+          },
+          {
+            "text": "Foto reale",
+            "isCorrect": true
+          }
+        ]
+      },
+      {
+        "text": "### Quanti pezzi visibili ha il classico Cubo di Rubik?\n\n> **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 3,
+        "answers": [
+          {
+            "text": "28",
+            "isCorrect": false
+          },
+          {
+            "text": "26",
             "isCorrect": true
           },
           {
-            "text": "L’area geometrica tra il grafico e l’asse $x$ come valore positivo.",
+            "text": "24",
             "isCorrect": false
           },
           {
-            "text": "La somma di tutte le aree parziali sopra e sotto l’asse.",
-            "isCorrect": false
-          },
-          {
-            "text": "La media di tutti i valori di $f$ su $[-2, 2]$.",
+            "text": "22",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Matematica: Autovalutazione – Geometria vettoriale\n\nNella geometria analitica descrivi rette e piani con equazioni vettoriali, ad es.:\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nQuanto ti senti sicuro sui compiti sulle **mutue posizioni** di rette e piani?",
-        "type": "RATING",
-        "timer": 20,
-        "difficulty": "EASY",
-        "order": 3,
-        "answers": [],
-        "ratingMin": 1,
-        "ratingMax": 5,
-        "ratingLabelMin": "Molto insicuro",
-        "ratingLabelMax": "So spiegarlo"
-      },
-      {
-        "text": "### Fisica: Forze nell’urto\n\nUn camion pesante urta frontalmente una piccola auto.\n\nCome si comportano le forze **durante l’urto** sui due veicoli?",
+        "text": "### In quale linguaggio è scritto questo codice?\n\n> **Uso didattico:** Usalo come rapido prompt di riconoscimento in informatica, nelle attività maker o nelle materie STEM.\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
-        "timer": 60,
+        "timer": null,
         "difficulty": "MEDIUM",
         "order": 4,
         "answers": [
           {
-            "text": "La forza sull’auto ha la stessa intensità della forza sul camion.",
+            "text": "Groovy",
+            "isCorrect": false
+          },
+          {
+            "text": "Python",
+            "isCorrect": false
+          },
+          {
+            "text": "Processing",
             "isCorrect": true
           },
           {
-            "text": "La forza sull’auto è maggiore di quella sul camion.",
-            "isCorrect": false
-          },
-          {
-            "text": "La forza sul camion è maggiore di quella sull’auto.",
-            "isCorrect": false
-          },
-          {
-            "text": "Le forze sui due veicoli si annullano completamente.",
+            "text": "Scala",
             "isCorrect": false
           }
         ]
-      },
-      {
-        "text": "### Fisica: Satellite in orbita\n\nUn satellite orbita intorno alla Terra su un’orbita circolare stabile senza perdere quota.\n\nSpiega con parole tue perché il satellite non precipita sulla Terra nonostante la gravità.\n\n> Suggerimento: pensa all’interazione tra velocità e gravità.",
-        "type": "FREETEXT",
-        "timer": 90,
-        "difficulty": "MEDIUM",
-        "order": 5,
-        "answers": []
-      },
-      {
-        "text": "### Biologia: Resistenza agli antibiotici\n\nNegli ospedali compaiono sempre più ceppi batterici resistenti.\n\nQuale spiegazione descrive correttamente l’origine della resistenza?",
-        "type": "SINGLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
-        "order": 6,
-        "answers": [
-          {
-            "text": "I batteri resistenti si moltiplicano di più perché l’antibiotico uccide gli altri.",
-            "isCorrect": true
-          },
-          {
-            "text": "L’antibiotico provoca mutazioni mirate che portano alla resistenza.",
-            "isCorrect": false
-          },
-          {
-            "text": "I batteri adattano gradualmente il metabolismo all’antibiotico.",
-            "isCorrect": false
-          },
-          {
-            "text": "I batteri più forti sviluppano tolleranza per abitudine.",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Biologia: Genetica mendeliana\n\nIn un incrocio diibrido si incrociano due individui eterozigoti per entrambi i geni ($\\text{AaBb} \\times \\text{AaBb}$)⁠.\n\nQuali affermazioni sulla **generazione F2** sono corrette?\n\n*Più risposte corrette.*",
-        "type": "MULTIPLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
-        "order": 7,
-        "answers": [
-          {
-            "text": "Il rapporto fenotipico in F2 è 9 : 3 : 3 : 1.",
-            "isCorrect": true
-          },
-          {
-            "text": "In F2 compaiono combinazioni di caratteri assenti nei genitori.",
-            "isCorrect": true
-          },
-          {
-            "text": "Tutti i discendenti F2 sono eterozigoti per entrambi i geni.",
-            "isCorrect": false
-          },
-          {
-            "text": "Gli alleli di entrambi i geni sono sempre ereditati come unità accoppiata.",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Chimica: Equilibrio chimico\n\nLa sintesi dell’ammoniaca è esotermica:\n\n$$\\mathrm{N_2 + 3\\,H_2 \\rightleftharpoons 2\\,NH_3} \\quad \\Delta H < 0$$\n\nQuali misure spostano l’equilibrio **verso i prodotti**?\n\n*Più risposte corrette.*",
-        "type": "MULTIPLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
-        "order": 8,
-        "answers": [
-          {
-            "text": "Aumentare la pressione totale nel reattore",
-            "isCorrect": true
-          },
-          {
-            "text": "Abbassare la temperatura di reazione",
-            "isCorrect": true
-          },
-          {
-            "text": "Aggiungere un catalizzatore adatto",
-            "isCorrect": false
-          },
-          {
-            "text": "Rimuovere continuamente l’ammoniaca dal sistema",
-            "isCorrect": true
-          }
-        ]
-      },
-      {
-        "text": "### Sondaggio: Preparazione agli esami finali\n\nQuale **strategia di studio** usi più spesso per preparare gli esami finali?",
-        "type": "SURVEY",
-        "timer": 30,
-        "difficulty": "EASY",
-        "order": 9,
-        "answers": [
-          {
-            "text": "Svolgere tracce d’esame degli anni precedenti",
-            "isCorrect": false
-          },
-          {
-            "text": "Scrivere riassunti e schede",
-            "isCorrect": false
-          },
-          {
-            "text": "Esercitarsi in gruppo di studio",
-            "isCorrect": false
-          },
-          {
-            "text": "Guardare video lezioni e tutorial",
-            "isCorrect": false
-          },
-          {
-            "text": "Usare flashcard e ripetizione spaziata",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Riflessione\n\nPer quale domanda di questo quiz ti sei sentito **più incerto** — e perché?\n\nUsa la tua risposta come punto di partenza per la prossima sessione di studio.",
-        "type": "FREETEXT",
-        "timer": 60,
-        "difficulty": "EASY",
-        "order": 10,
-        "answers": []
-      },
-      {
-        "text": "### Valutazione complessiva\n\nCome valuti questo **quiz dimostrativo** nel complesso?\n\nConsidera:\n1. Chiarezza delle domande\n2. Varietà dei formati\n3. Difficoltà adeguata",
-        "type": "RATING",
-        "timer": 20,
-        "difficulty": "EASY",
-        "order": 11,
-        "answers": [],
-        "ratingMin": 1,
-        "ratingMax": 10,
-        "ratingLabelMin": "Da migliorare",
-        "ratingLabelMax": "Eccellente"
       }
     ]
   }

@@ -2,7 +2,7 @@ import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getDemoQuizSeedFingerprint } from './demo-quiz-payload';
+import { getDemoQuizExpectedTitle, getDemoQuizSeedFingerprint } from './demo-quiz-payload';
 import {
   DEMO_QUIZ_ID,
   QUIZ_STORAGE_KEY,
@@ -761,7 +761,7 @@ describe('QuizStoreService', () => {
       JSON.stringify([
         {
           id: DEMO_QUIZ_ID,
-          name: 'All question formats – high school demo quiz',
+          name: getDemoQuizExpectedTitle('en'),
           description: null,
           motifImageUrl: null,
           createdAt: '2026-03-08T12:00:00.000Z',
@@ -779,9 +779,7 @@ describe('QuizStoreService', () => {
     });
 
     const service = TestBed.inject(QuizStoreService);
-    expect(service.getQuizById(DEMO_QUIZ_ID)?.name).toBe(
-      'Alle Frageformate – Quiz aus der Oberstufe',
-    );
+    expect(service.getQuizById(DEMO_QUIZ_ID)?.name).toBe(getDemoQuizExpectedTitle('de'));
     expect(localStorage.getItem('arsnova-demo-quiz-seed-fp-v1')).toBe(
       getDemoQuizSeedFingerprint('de'),
     );
@@ -796,7 +794,7 @@ describe('QuizStoreService', () => {
       JSON.stringify([
         {
           id: DEMO_QUIZ_ID,
-          name: 'All question formats – high school demo quiz',
+          name: getDemoQuizExpectedTitle('en'),
           description: null,
           motifImageUrl: null,
           createdAt: '2026-03-08T12:00:00.000Z',
@@ -814,9 +812,7 @@ describe('QuizStoreService', () => {
     });
 
     const service = TestBed.inject(QuizStoreService);
-    expect(service.getQuizById(DEMO_QUIZ_ID)?.name).toBe(
-      'Alle Frageformate – Quiz aus der Oberstufe',
-    );
+    expect(service.getQuizById(DEMO_QUIZ_ID)?.name).toBe(getDemoQuizExpectedTitle('de'));
   });
 
   it('Demo-Quiz: kanonischer EN-Titel bei DE-URL → Neu-Import trotz passendem Fingerprint', () => {
@@ -827,7 +823,7 @@ describe('QuizStoreService', () => {
       JSON.stringify([
         {
           id: DEMO_QUIZ_ID,
-          name: 'All question formats – high school demo quiz',
+          name: getDemoQuizExpectedTitle('en'),
           description: null,
           motifImageUrl: null,
           createdAt: '2026-03-08T12:00:00.000Z',
@@ -847,9 +843,7 @@ describe('QuizStoreService', () => {
     });
 
     const service = TestBed.inject(QuizStoreService);
-    expect(service.getQuizById(DEMO_QUIZ_ID)?.name).toBe(
-      'Alle Frageformate – Quiz aus der Oberstufe',
-    );
+    expect(service.getQuizById(DEMO_QUIZ_ID)?.name).toBe(getDemoQuizExpectedTitle('de'));
   });
 
   it('getUploadPayload: Kita in localStorage schlägt Oberstufe-Standard im RAM (älteres LS mit Themenliste)', () => {
