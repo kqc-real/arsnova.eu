@@ -1535,7 +1535,7 @@
     transform 80ms ease,
     border-color 150ms ease,
     background 150ms ease;
-  gap: 0.85rem;
+  gap: 1rem;
   text-align: left;
 
   &:active:not(:disabled) {
@@ -1588,25 +1588,17 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
     border-radius: var(--mat-sys-corner-small, 8px);
     color: #fff;
     font-weight: 700;
     font-size: 1.05rem;
-    position: relative;
   }
 
   &__shape {
-    position: absolute;
-    font-size: 0.55rem;
-    top: 2px;
-    right: 3px;
-    opacity: 0.75;
-  }
-
-  &__letter {
-    font-size: 1.15rem;
+    font-size: 1.45rem;
+    line-height: 1;
   }
 
   &__text {

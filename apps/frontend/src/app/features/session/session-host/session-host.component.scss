@@ -2945,7 +2945,7 @@
 .session-host__answer {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.95rem;
   padding: 0.75rem 1rem;
   border-radius: var(--mat-sys-corner-small, 8px);
   background: var(--mat-sys-surface-container-low);
@@ -3046,41 +3046,27 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 8px;
   color: #fff;
   font-weight: 700;
   font-size: 1rem;
-  position: relative;
 
   &--small {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border-radius: 6px;
     font-size: 0.8rem;
   }
 }
 
 .session-host__answer-badge-shape {
-  position: absolute;
-  font-size: 0.6rem;
-  top: 2px;
-  right: 3px;
-  opacity: 0.7;
+  font-size: 1.3rem;
+  line-height: 1;
 
   .session-host__answer-badge--small & {
-    font-size: 0.45rem;
-    top: 1px;
-    right: 2px;
-  }
-}
-
-.session-host__answer-badge-letter {
-  font-size: 1.1rem;
-
-  .session-host__answer-badge--small & {
-    font-size: 0.8rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -3577,7 +3563,7 @@ button.session-host__btn-discussion {
 .session-host__vote-dist-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.7rem;
   margin-bottom: 0.25rem;
 }
 
@@ -3951,7 +3937,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 .session-host__round-comparison-option {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.7rem;
   margin-bottom: 0.6rem;
 }
 

@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const demoDir = path.join(__dirname, '../src/assets/demo');
 const md = String.raw;
 
-const EXPORT_VERSION = 8;
+const EXPORT_VERSION = 14;
 const EXPORTED_AT = '2026-04-24T14:30:00.000Z';
 
 const EMOTION_IMAGE_URL =
@@ -101,9 +101,9 @@ function buildPayload(locale) {
         },
         {
           text: locale.questions[3].text,
-          type: 'SINGLE_CHOICE',
+          type: 'MULTIPLE_CHOICE',
           timer: null,
-          difficulty: 'HARD',
+          difficulty: 'MEDIUM',
           order: 3,
           answers: locale.questions[3].answers,
         },
@@ -111,9 +111,29 @@ function buildPayload(locale) {
           text: locale.questions[4].text,
           type: 'SINGLE_CHOICE',
           timer: null,
-          difficulty: 'MEDIUM',
+          difficulty: 'HARD',
           order: 4,
           answers: locale.questions[4].answers,
+        },
+        {
+          text: locale.questions[5].text,
+          type: 'SINGLE_CHOICE',
+          timer: null,
+          difficulty: 'MEDIUM',
+          order: 5,
+          answers: locale.questions[5].answers,
+        },
+        {
+          text: locale.questions[6].text,
+          type: 'RATING',
+          timer: null,
+          difficulty: 'EASY',
+          order: 6,
+          answers: [],
+          ratingMin: 1,
+          ratingMax: 5,
+          ratingLabelMin: locale.questions[6].ratingLabelMin,
+          ratingLabelMax: locale.questions[6].ratingLabelMax,
         },
       ],
     },
@@ -122,7 +142,7 @@ function buildPayload(locale) {
 
 const LOCALES = {
   de: {
-    name: 'Praxis-Showcase: Team-Demo für den Live-Unterricht',
+    name: 'Praxis-Showcase: Live-Teamdemo',
     description: md`![Praxis-Showcase](${PI_IMAGE_URL})
 
 # Praxis-Showcase für den Unterricht
@@ -133,18 +153,27 @@ Nutze sie als kurze, **Kahoot-artige Team-Demo für den Live-Unterricht**, um zu
 - mit einem kurzen emotionalen oder sozialen Check-in startest
 - Bilder statt reiner Textfragen einsetzt
 - Formeln und wissenschaftliche Notation in MINT-Fächern einbindest
-- kurze Freitextantworten aus dem Raum sammelst
+- kurze Freitextantworten aus dem Raum sammelst, die später als Wortwolke sichtbar werden
+- Multiple-Choice- und Rating-Fragen sinnvoll einsetzt
 - mit Timer, Teams, Rangliste und Bonus-Codes mehr Energie aufbaust
 - Codebeispiele im Informatik- oder Technikunterricht einsetzt
 
-Die Fragen sind bewusst gemischt. Ziel ist es, dir konkrete Ideen für Einstiege, Verständnischecks, Aufmerksamkeitssignale und kurze interaktive Momente im Unterricht zu geben.`,
+Die Fragen sind bewusst gemischt. Ziel ist es, dir konkrete Ideen für Einstiege, Verständnischecks, Aufmerksamkeitssignale und kurze interaktive Momente im Unterricht zu geben.
+
+**Tipp für die Demo:** Tritt der Session auf einem zweiten Gerät bei, am besten per QR-Code auf dem Smartphone. So kannst du den Wechsel zwischen Host-Ansicht und Teilnehmenden-Perspektive realistisch durchspielen.
+
+**Noch ein Tipp:** Öffne danach den Bearbeitungsmodus des Quiz und schau dir an, wie die Fragen mit Markdown und KaTeX umgesetzt sind.
+
+**Und noch etwas:** Weitere Frageformate oder Features kannst du gern anfragen. Die Kontaktdaten findest du im Impressum.`,
     questions: [
       {
         text: md`### Wie ist die Stimmung im Raum gerade?
 
 > **Unterrichtsidee:** Nutze das als kurzen Check-in zu Beginn, vor Feedback oder nach einer anspruchsvollen Phase.
 
-![Emotionen im Überblick](${EMOTION_IMAGE_URL})`,
+![Emotionen im Überblick](${EMOTION_IMAGE_URL})
+
+*Für die Vollansicht anklicken.*`,
         answers: [
           { text: ':smile: Bereit loszulegen', isCorrect: false },
           { text: ':cry: Gerade etwas überfordert', isCorrect: false },
@@ -179,6 +208,19 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
         ],
       },
       {
+        text: md`### Welche dieser Einsätze eignen sich gut für einen kurzen Live-Check?
+
+> **Unterrichtsidee:** Nutze das, um Multiple Choice mit mehreren richtigen Antworten zu zeigen.
+
+*Mehrere Antworten möglich.*`,
+        answers: [
+          { text: 'Vorwissen zu Beginn einer Stunde aktivieren', isCorrect: true },
+          { text: 'Missverständnisse mitten in der Stunde sichtbar machen', isCorrect: true },
+          { text: 'Vor einer Prüfung das Sicherheitsgefühl anonym abfragen', isCorrect: true },
+          { text: 'Nur benotete Abschlusstests am Ende einer Einheit durchführen', isCorrect: false },
+        ],
+      },
+      {
         text: md`### Wie viele sichtbare Teile hat der klassische Zauberwürfel?
 
 > **Unterrichtsidee:** Nutze das für einen spielshowartigen Moment mit Tempo, Spannung und sichtbarem Teamwettbewerb.
@@ -206,10 +248,17 @@ ${CODE_FENCE}`,
           { text: 'Scala', isCorrect: false },
         ],
       },
+      {
+        text: md`### Wie wahrscheinlich ist es, dass du so ein Live-Quiz bald selbst einsetzt?
+
+> **Unterrichtsidee:** Nutze das als schnelles Meinungsbild, Exit-Ticket oder Confidence-Check.`,
+        ratingLabelMin: 'Eher noch nicht',
+        ratingLabelMax: 'Ich probiere es aus',
+      },
     ],
   },
   en: {
-    name: 'Teaching Practice Showcase: Team Demo for Live Classes',
+    name: 'Teaching Showcase: Live Team Demo',
     description: md`![Teaching showcase](${PI_IMAGE_URL})
 
 # Teaching Practice Showcase
@@ -220,18 +269,27 @@ Use it as a short, **Kahoot-style team demo for live teaching** to show how you 
 - open with a quick emotional or social check-in
 - use images instead of text-only prompts
 - bring in formulas and scientific notation in STEM
-- collect short free-text answers from the room
+- collect short free-text answers from the room that later reappear as a word cloud
+- use multiple-choice and quick rating prompts well
 - add energy with timers, teams, a leaderboard, and bonus codes
 - show code snippets in computer science or technical courses
 
-The questions are intentionally mixed. The point is to give you practical ideas for warm-ups, comprehension checks, attention resets, and short interactive moments you can reuse in your own teaching.`,
+The questions are intentionally mixed. The point is to give you practical ideas for warm-ups, comprehension checks, attention resets, and short interactive moments you can reuse in your own teaching.
+
+**Demo tip:** Join the session on a second device, ideally by scanning the QR code with your phone. That lets you rehearse the back-and-forth between the host view and the participant experience realistically.
+
+**Another tip:** Then open the quiz in edit mode to see how the questions are built with Markdown and KaTeX.
+
+**One more thing:** If you would like additional question types or features, feel free to ask. You can find the contact details in the legal notice.`,
     questions: [
       {
         text: md`### How is the room feeling right now?
 
 > **Teaching move:** Use this as a quick check-in at the start of class, before feedback, or after a demanding task.
 
-![Overview of emotions](${EMOTION_IMAGE_URL})`,
+![Overview of emotions](${EMOTION_IMAGE_URL})
+
+*Click for full view.*`,
         answers: [
           { text: ':smile: Ready to dive in', isCorrect: false },
           { text: ':cry: A little overwhelmed', isCorrect: false },
@@ -266,6 +324,19 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
         ],
       },
       {
+        text: md`### Which of these are strong use cases for a quick live check?
+
+> **Teaching move:** Use this to demonstrate multiple choice with more than one correct answer.
+
+*Select all that apply.*`,
+        answers: [
+          { text: 'Activate prior knowledge at the start of class', isCorrect: true },
+          { text: 'Surface misconceptions halfway through a lesson', isCorrect: true },
+          { text: 'Gauge confidence anonymously before exam prep', isCorrect: true },
+          { text: 'Use it only for graded tests at the end of a unit', isCorrect: false },
+        ],
+      },
+      {
         text: md`### How many visible pieces does the classic Rubik’s Cube have?
 
 > **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.
@@ -293,10 +364,17 @@ ${CODE_FENCE}`,
           { text: 'Scala', isCorrect: false },
         ],
       },
+      {
+        text: md`### How likely are you to try a live quiz like this in one of your own classes?
+
+> **Teaching move:** Use this as a quick pulse check, exit ticket, or confidence rating.`,
+        ratingLabelMin: 'Not yet',
+        ratingLabelMax: 'Ready to try it',
+      },
     ],
   },
   fr: {
-    name: 'Showcase pédagogique : démo en équipe pour les cours en direct',
+    name: 'Showcase pédagogique : démo en équipe',
     description: md`![Showcase pédagogique](${PI_IMAGE_URL})
 
 # Showcase pédagogique
@@ -307,18 +385,27 @@ Utilise-la comme une courte **démo en équipe, façon Kahoot, pour les cours en
 - démarrer avec un rapide tour d’humeur ou un check-in social
 - utiliser des images plutôt que des consignes purement textuelles
 - intégrer des formules et de la notation scientifique en STEM
-- recueillir de courtes réponses en texte libre
+- recueillir de courtes réponses en texte libre qui réapparaîtront ensuite sous forme de nuage de mots
+- utiliser à bon escient les choix multiples et les échelles d’évaluation
 - ajouter de l’énergie avec des chronos, des équipes, un classement et des codes bonus
 - afficher des extraits de code en informatique ou dans des cours techniques
 
-Les questions sont volontairement variées. L’idée est de te donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.`,
+Les questions sont volontairement variées. L’idée est de te donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.
+
+**Conseil pour la démo :** Rejoins la session sur un deuxième appareil, idéalement en scannant le QR code avec ton téléphone. Tu pourras ainsi rejouer de façon réaliste l’aller-retour entre la vue hôte et l’expérience participante.
+
+**Autre conseil :** Ouvre ensuite le quiz en mode édition pour voir comment les questions sont construites avec Markdown et KaTeX.
+
+**Et encore une chose :** Si tu souhaites d’autres formats de questions ou fonctionnalités, n’hésite pas à les demander. Les coordonnées figurent dans les mentions légales.`,
     questions: [
       {
         text: md`### Comment se sent le groupe en ce moment ?
 
 > **Usage pédagogique :** Utilise cela comme tour d’humeur rapide au début du cours, avant un retour ou après une séquence exigeante.
 
-![Aperçu des émotions](${EMOTION_IMAGE_URL})`,
+![Aperçu des émotions](${EMOTION_IMAGE_URL})
+
+*Cliquer pour agrandir.*`,
         answers: [
           { text: ':smile: Prêt·e à s’y mettre', isCorrect: false },
           { text: ':cry: Un peu dépassé·e', isCorrect: false },
@@ -353,6 +440,19 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
         ],
       },
       {
+        text: md`### Lesquels de ces usages conviennent bien à un rapide check en direct ?
+
+> **Usage pédagogique :** Utilise cela pour montrer un choix multiple avec plusieurs bonnes réponses.
+
+*Plusieurs réponses possibles.*`,
+        answers: [
+          { text: 'Activer les connaissances préalables au début du cours', isCorrect: true },
+          { text: 'Faire émerger des idées fausses au milieu d’une séance', isCorrect: true },
+          { text: 'Sonder anonymement le niveau de confiance avant une révision', isCorrect: true },
+          { text: 'L’utiliser uniquement pour des évaluations notées en fin de séquence', isCorrect: false },
+        ],
+      },
+      {
         text: md`### Combien de pièces visibles possède le Rubik’s Cube classique ?
 
 > **Usage pédagogique :** Utilise cela pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
@@ -380,10 +480,17 @@ ${CODE_FENCE}`,
           { text: 'Scala', isCorrect: false },
         ],
       },
+      {
+        text: md`### Quelle est la probabilité que tu essaies bientôt un quiz en direct comme celui-ci dans l’un de tes cours ?
+
+> **Usage pédagogique :** Utilise cela comme prise de température, ticket de sortie ou auto-évaluation rapide.`,
+        ratingLabelMin: 'Pas pour l’instant',
+        ratingLabelMax: 'Je vais l’essayer',
+      },
     ],
   },
   es: {
-    name: 'Showcase docente: demo por equipos para clases en vivo',
+    name: 'Showcase docente: demo por equipos',
     description: md`![Showcase docente](${PI_IMAGE_URL})
 
 # Showcase docente
@@ -394,18 +501,27 @@ Esta demo está pensada para el **uso real en el aula**. No pretende ser el quiz
 - arrancar con un check-in emocional o social
 - usar imágenes en lugar de preguntas solo de texto
 - incorporar fórmulas y notación científica en STEM
-- recoger respuestas breves en texto libre
+- recoger respuestas breves en texto libre que después reaparecen como nube de palabras
+- usar bien preguntas de respuesta múltiple y escalas de valoración
 - añadir energía con temporizadores, equipos, clasificación y códigos de bonificación
 - mostrar fragmentos de código en informática o en materias técnicas
 
-Las preguntas están mezcladas a propósito. La idea es darte ejemplos concretos para rompehielos, comprobaciones de comprensión, reinicios de atención y momentos interactivos breves que puedas reutilizar en clase.`,
+Las preguntas están mezcladas a propósito. La idea es darte ejemplos concretos para rompehielos, comprobaciones de comprensión, reinicios de atención y momentos interactivos breves que puedas reutilizar en clase.
+
+**Consejo para la demo:** Únete también a la sesión desde un segundo dispositivo, idealmente escaneando el código QR con el móvil. Así podrás ensayar de forma realista el cambio entre la vista del anfitrión y la experiencia del participante.
+
+**Otro consejo:** Después abre el cuestionario en modo de edición para ver cómo están hechas las preguntas con Markdown y KaTeX.
+
+**Y una cosa más:** Si echas en falta otros tipos de pregunta o funciones, puedes pedirlos sin problema. Encontrarás los datos de contacto en el aviso legal.`,
     questions: [
       {
         text: md`### ¿Cómo está el grupo ahora mismo?
 
 > **Uso didáctico:** Úsalo como check-in rápido al empezar la clase, antes de dar feedback o después de una actividad exigente.
 
-![Resumen de emociones](${EMOTION_IMAGE_URL})`,
+![Resumen de emociones](${EMOTION_IMAGE_URL})
+
+*Haz clic para ampliar.*`,
         answers: [
           { text: ':smile: Con ganas de empezar', isCorrect: false },
           { text: ':cry: Un poco saturado/a', isCorrect: false },
@@ -440,6 +556,19 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
         ],
       },
       {
+        text: md`### ¿Cuáles de estos usos encajan bien con una comprobación rápida en directo?
+
+> **Uso didáctico:** Úsalo para mostrar una pregunta de respuesta múltiple con varias opciones correctas.
+
+*Puede haber varias respuestas correctas.*`,
+        answers: [
+          { text: 'Activar conocimientos previos al inicio de la clase', isCorrect: true },
+          { text: 'Detectar malentendidos a mitad de la sesión', isCorrect: true },
+          { text: 'Medir de forma anónima la confianza antes de repasar para un examen', isCorrect: true },
+          { text: 'Usarlo solo para pruebas calificadas al final de una unidad', isCorrect: false },
+        ],
+      },
+      {
         text: md`### ¿Cuántas piezas visibles tiene el cubo de Rubik clásico?
 
 > **Uso didáctico:** Úsalo para crear un momento tipo concurso, con ritmo, suspense y competencia visible entre equipos.
@@ -467,10 +596,17 @@ ${CODE_FENCE}`,
           { text: 'Scala', isCorrect: false },
         ],
       },
+      {
+        text: md`### ¿Qué probabilidad hay de que pruebes pronto un quiz en vivo como este en una de tus clases?
+
+> **Uso didáctico:** Úsalo como pulso rápido, exit ticket o valoración breve de confianza.`,
+        ratingLabelMin: 'Todavía no',
+        ratingLabelMax: 'Lo voy a probar',
+      },
     ],
   },
   it: {
-    name: 'Showcase didattico: demo a squadre per lezioni dal vivo',
+    name: 'Showcase didattico: demo a squadre',
     description: md`![Showcase didattico](${PI_IMAGE_URL})
 
 # Showcase didattico
@@ -481,18 +617,27 @@ Usala come una **demo breve a squadre, in stile Kahoot, per lezioni dal vivo** p
 - iniziare con un check-in emotivo o sociale
 - usare immagini invece di sole domande testuali
 - inserire formule e notazione scientifica nelle materie STEM
-- raccogliere risposte brevi in testo libero
+- raccogliere risposte brevi in testo libero che poi riappaiono come nuvola di parole
+- usare bene domande a scelta multipla e scale di valutazione rapide
 - aggiungere energia con timer, squadre, classifica e codici bonus
 - mostrare frammenti di codice in informatica o in corsi tecnici
 
-Le domande sono volutamente varie. L’idea è offrirti spunti pratici per attività rompighiaccio, verifiche rapide della comprensione, reset dell’attenzione e brevi momenti interattivi da riutilizzare in classe.`,
+Le domande sono volutamente varie. L’idea è offrirti spunti pratici per attività rompighiaccio, verifiche rapide della comprensione, reset dell’attenzione e brevi momenti interattivi da riutilizzare in classe.
+
+**Suggerimento per la demo:** Entra nella sessione anche da un secondo dispositivo, idealmente scansionando il QR code con il telefono. Così puoi provare in modo realistico il passaggio tra la vista host e l’esperienza del partecipante.
+
+**Un altro suggerimento:** Poi apri il quiz in modalità modifica per vedere come le domande sono realizzate con Markdown e KaTeX.
+
+**E ancora una cosa:** Se ti servono altri tipi di domanda o funzionalità, puoi richiederli senza problemi. Trovi i contatti nelle note legali.`,
     questions: [
       {
         text: md`### Che clima c’è nel gruppo in questo momento?
 
 > **Uso didattico:** Usalo come check-in rapido all’inizio della lezione, prima di un feedback o dopo una fase impegnativa.
 
-![Panoramica delle emozioni](${EMOTION_IMAGE_URL})`,
+![Panoramica delle emozioni](${EMOTION_IMAGE_URL})
+
+*Clicca per ingrandire.*`,
         answers: [
           { text: ':smile: Pronto/a a partire', isCorrect: false },
           { text: ':cry: Un po’ sopraffatto/a', isCorrect: false },
@@ -527,6 +672,19 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
         ],
       },
       {
+        text: md`### Quali di questi usi si prestano bene a un rapido check dal vivo?
+
+> **Uso didattico:** Usalo per mostrare una domanda a scelta multipla con più risposte corrette.
+
+*Sono possibili più risposte corrette.*`,
+        answers: [
+          { text: 'Attivare le conoscenze pregresse all’inizio della lezione', isCorrect: true },
+          { text: 'Far emergere i fraintendimenti a metà attività', isCorrect: true },
+          { text: 'Rilevare in modo anonimo il livello di sicurezza prima del ripasso', isCorrect: true },
+          { text: 'Usarlo solo per verifiche valutate alla fine di un’unità', isCorrect: false },
+        ],
+      },
+      {
         text: md`### Quanti pezzi visibili ha il classico Cubo di Rubik?
 
 > **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.
@@ -553,6 +711,13 @@ ${CODE_FENCE}`,
           { text: 'Processing', isCorrect: true },
           { text: 'Scala', isCorrect: false },
         ],
+      },
+      {
+        text: md`### Quanto è probabile che tu provi presto un quiz live come questo in una tua lezione?
+
+> **Uso didattico:** Usalo come rapido polso della situazione, exit ticket o autovalutazione di fiducia.`,
+        ratingLabelMin: 'Non ancora',
+        ratingLabelMax: 'Lo provo',
       },
     ],
   },

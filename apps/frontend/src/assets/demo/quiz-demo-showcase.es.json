@@ -1,9 +1,9 @@
 {
-  "exportVersion": 8,
+  "exportVersion": 14,
   "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
-    "name": "Showcase docente: demo por equipos para clases en vivo",
-    "description": "![Showcase docente](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase docente\n\nEsta demo está pensada para el **uso real en el aula**. No pretende ser el quiz perfecto de principio a fin. Su objetivo es otro: mostrar a docentes, formadores y facilitadores cómo arsnova.eu puede hacer que una sesión en vivo sea más variada, más visual y más lúdica.\n\nÚsala como una **demo breve por equipos, al estilo Kahoot, para clases en vivo** para mostrar cómo puedes:\n- arrancar con un check-in emocional o social\n- usar imágenes en lugar de preguntas solo de texto\n- incorporar fórmulas y notación científica en STEM\n- recoger respuestas breves en texto libre\n- añadir energía con temporizadores, equipos, clasificación y códigos de bonificación\n- mostrar fragmentos de código en informática o en materias técnicas\n\nLas preguntas están mezcladas a propósito. La idea es darte ejemplos concretos para rompehielos, comprobaciones de comprensión, reinicios de atención y momentos interactivos breves que puedas reutilizar en clase.",
+    "name": "Showcase docente: demo por equipos",
+    "description": "![Showcase docente](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase docente\n\nEsta demo está pensada para el **uso real en el aula**. No pretende ser el quiz perfecto de principio a fin. Su objetivo es otro: mostrar a docentes, formadores y facilitadores cómo arsnova.eu puede hacer que una sesión en vivo sea más variada, más visual y más lúdica.\n\nÚsala como una **demo breve por equipos, al estilo Kahoot, para clases en vivo** para mostrar cómo puedes:\n- arrancar con un check-in emocional o social\n- usar imágenes en lugar de preguntas solo de texto\n- incorporar fórmulas y notación científica en STEM\n- recoger respuestas breves en texto libre que después reaparecen como nube de palabras\n- usar bien preguntas de respuesta múltiple y escalas de valoración\n- añadir energía con temporizadores, equipos, clasificación y códigos de bonificación\n- mostrar fragmentos de código en informática o en materias técnicas\n\nLas preguntas están mezcladas a propósito. La idea es darte ejemplos concretos para rompehielos, comprobaciones de comprensión, reinicios de atención y momentos interactivos breves que puedas reutilizar en clase.\n\n**Consejo para la demo:** Únete también a la sesión desde un segundo dispositivo, idealmente escaneando el código QR con el móvil. Así podrás ensayar de forma realista el cambio entre la vista del anfitrión y la experiencia del participante.\n\n**Otro consejo:** Después abre el cuestionario en modo de edición para ver cómo están hechas las preguntas con Markdown y KaTeX.\n\n**Y una cosa más:** Si echas en falta otros tipos de pregunta o funciones, puedes pedirlos sin problema. Encontrarás los datos de contacto en el aviso legal.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### ¿Cómo está el grupo ahora mismo?\n\n> **Uso didáctico:** Úsalo como check-in rápido al empezar la clase, antes de dar feedback o después de una actividad exigente.\n\n![Resumen de emociones](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)",
+        "text": "### ¿Cómo está el grupo ahora mismo?\n\n> **Uso didáctico:** Úsalo como check-in rápido al empezar la clase, antes de dar feedback o después de una actividad exigente.\n\n![Resumen de emociones](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Haz clic para ampliar.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
@@ -74,11 +74,36 @@
         ]
       },
       {
+        "text": "### ¿Cuáles de estos usos encajan bien con una comprobación rápida en directo?\n\n> **Uso didáctico:** Úsalo para mostrar una pregunta de respuesta múltiple con varias opciones correctas.\n\n*Puede haber varias respuestas correctas.*",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Activar conocimientos previos al inicio de la clase",
+            "isCorrect": true
+          },
+          {
+            "text": "Detectar malentendidos a mitad de la sesión",
+            "isCorrect": true
+          },
+          {
+            "text": "Medir de forma anónima la confianza antes de repasar para un examen",
+            "isCorrect": true
+          },
+          {
+            "text": "Usarlo solo para pruebas calificadas al final de una unidad",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
         "text": "### ¿Cuántas piezas visibles tiene el cubo de Rubik clásico?\n\n> **Uso didáctico:** Úsalo para crear un momento tipo concurso, con ritmo, suspense y competencia visible entre equipos.\n\nLa pregunta se refiere al cubo de Rubik clásico diseñado por Ernő Rubik.",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
-        "order": 3,
+        "order": 4,
         "answers": [
           {
             "text": "28",
@@ -103,7 +128,7 @@
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 4,
+        "order": 5,
         "answers": [
           {
             "text": "Groovy",
@@ -122,6 +147,18 @@
             "isCorrect": false
           }
         ]
+      },
+      {
+        "text": "### ¿Qué probabilidad hay de que pruebes pronto un quiz en vivo como este en una de tus clases?\n\n> **Uso didáctico:** Úsalo como pulso rápido, exit ticket o valoración breve de confianza.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 6,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Todavía no",
+        "ratingLabelMax": "Lo voy a probar"
       }
     ]
   }

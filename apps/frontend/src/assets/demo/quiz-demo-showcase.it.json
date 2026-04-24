@@ -1,9 +1,9 @@
 {
-  "exportVersion": 8,
+  "exportVersion": 14,
   "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
-    "name": "Showcase didattico: demo a squadre per lezioni dal vivo",
-    "description": "![Showcase didattico](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase didattico\n\nQuesta demo è pensata per un **uso reale in classe**. Non vuole essere il quiz disciplinare perfetto dall’inizio alla fine. Il suo obiettivo è un altro: mostrare a docenti, formatori e facilitatori come arsnova.eu possa rendere una sessione dal vivo più varia, più visiva e più coinvolgente.\n\nUsala come una **demo breve a squadre, in stile Kahoot, per lezioni dal vivo** per mostrare come puoi:\n- iniziare con un check-in emotivo o sociale\n- usare immagini invece di sole domande testuali\n- inserire formule e notazione scientifica nelle materie STEM\n- raccogliere risposte brevi in testo libero\n- aggiungere energia con timer, squadre, classifica e codici bonus\n- mostrare frammenti di codice in informatica o in corsi tecnici\n\nLe domande sono volutamente varie. L’idea è offrirti spunti pratici per attività rompighiaccio, verifiche rapide della comprensione, reset dell’attenzione e brevi momenti interattivi da riutilizzare in classe.",
+    "name": "Showcase didattico: demo a squadre",
+    "description": "![Showcase didattico](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase didattico\n\nQuesta demo è pensata per un **uso reale in classe**. Non vuole essere il quiz disciplinare perfetto dall’inizio alla fine. Il suo obiettivo è un altro: mostrare a docenti, formatori e facilitatori come arsnova.eu possa rendere una sessione dal vivo più varia, più visiva e più coinvolgente.\n\nUsala come una **demo breve a squadre, in stile Kahoot, per lezioni dal vivo** per mostrare come puoi:\n- iniziare con un check-in emotivo o sociale\n- usare immagini invece di sole domande testuali\n- inserire formule e notazione scientifica nelle materie STEM\n- raccogliere risposte brevi in testo libero che poi riappaiono come nuvola di parole\n- usare bene domande a scelta multipla e scale di valutazione rapide\n- aggiungere energia con timer, squadre, classifica e codici bonus\n- mostrare frammenti di codice in informatica o in corsi tecnici\n\nLe domande sono volutamente varie. L’idea è offrirti spunti pratici per attività rompighiaccio, verifiche rapide della comprensione, reset dell’attenzione e brevi momenti interattivi da riutilizzare in classe.\n\n**Suggerimento per la demo:** Entra nella sessione anche da un secondo dispositivo, idealmente scansionando il QR code con il telefono. Così puoi provare in modo realistico il passaggio tra la vista host e l’esperienza del partecipante.\n\n**Un altro suggerimento:** Poi apri il quiz in modalità modifica per vedere come le domande sono realizzate con Markdown e KaTeX.\n\n**E ancora una cosa:** Se ti servono altri tipi di domanda o funzionalità, puoi richiederli senza problemi. Trovi i contatti nelle note legali.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Che clima c’è nel gruppo in questo momento?\n\n> **Uso didattico:** Usalo come check-in rapido all’inizio della lezione, prima di un feedback o dopo una fase impegnativa.\n\n![Panoramica delle emozioni](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)",
+        "text": "### Che clima c’è nel gruppo in questo momento?\n\n> **Uso didattico:** Usalo come check-in rapido all’inizio della lezione, prima di un feedback o dopo una fase impegnativa.\n\n![Panoramica delle emozioni](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Clicca per ingrandire.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
@@ -74,11 +74,36 @@
         ]
       },
       {
+        "text": "### Quali di questi usi si prestano bene a un rapido check dal vivo?\n\n> **Uso didattico:** Usalo per mostrare una domanda a scelta multipla con più risposte corrette.\n\n*Sono possibili più risposte corrette.*",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Attivare le conoscenze pregresse all’inizio della lezione",
+            "isCorrect": true
+          },
+          {
+            "text": "Far emergere i fraintendimenti a metà attività",
+            "isCorrect": true
+          },
+          {
+            "text": "Rilevare in modo anonimo il livello di sicurezza prima del ripasso",
+            "isCorrect": true
+          },
+          {
+            "text": "Usarlo solo per verifiche valutate alla fine di un’unità",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
         "text": "### Quanti pezzi visibili ha il classico Cubo di Rubik?\n\n> **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
-        "order": 3,
+        "order": 4,
         "answers": [
           {
             "text": "28",
@@ -103,7 +128,7 @@
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 4,
+        "order": 5,
         "answers": [
           {
             "text": "Groovy",
@@ -122,6 +147,18 @@
             "isCorrect": false
           }
         ]
+      },
+      {
+        "text": "### Quanto è probabile che tu provi presto un quiz live come questo in una tua lezione?\n\n> **Uso didattico:** Usalo come rapido polso della situazione, exit ticket o autovalutazione di fiducia.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 6,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Non ancora",
+        "ratingLabelMax": "Lo provo"
       }
     ]
   }

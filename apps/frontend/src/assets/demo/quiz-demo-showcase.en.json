@@ -1,9 +1,9 @@
 {
-  "exportVersion": 8,
+  "exportVersion": 14,
   "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
-    "name": "Teaching Practice Showcase: Team Demo for Live Classes",
-    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThis demo is built for **real classroom use**. It is not trying to be the perfect subject quiz from start to finish. Its job is different: it shows teachers, trainers, and facilitators how arsnova.eu can make a live session feel more varied, more visual, and more game-like.\n\nUse it as a short, **Kahoot-style team demo for live teaching** to show how you can:\n- open with a quick emotional or social check-in\n- use images instead of text-only prompts\n- bring in formulas and scientific notation in STEM\n- collect short free-text answers from the room\n- add energy with timers, teams, a leaderboard, and bonus codes\n- show code snippets in computer science or technical courses\n\nThe questions are intentionally mixed. The point is to give you practical ideas for warm-ups, comprehension checks, attention resets, and short interactive moments you can reuse in your own teaching.",
+    "name": "Teaching Showcase: Live Team Demo",
+    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThis demo is built for **real classroom use**. It is not trying to be the perfect subject quiz from start to finish. Its job is different: it shows teachers, trainers, and facilitators how arsnova.eu can make a live session feel more varied, more visual, and more game-like.\n\nUse it as a short, **Kahoot-style team demo for live teaching** to show how you can:\n- open with a quick emotional or social check-in\n- use images instead of text-only prompts\n- bring in formulas and scientific notation in STEM\n- collect short free-text answers from the room that later reappear as a word cloud\n- use multiple-choice and quick rating prompts well\n- add energy with timers, teams, a leaderboard, and bonus codes\n- show code snippets in computer science or technical courses\n\nThe questions are intentionally mixed. The point is to give you practical ideas for warm-ups, comprehension checks, attention resets, and short interactive moments you can reuse in your own teaching.\n\n**Demo tip:** Join the session on a second device, ideally by scanning the QR code with your phone. That lets you rehearse the back-and-forth between the host view and the participant experience realistically.\n\n**Another tip:** Then open the quiz in edit mode to see how the questions are built with Markdown and KaTeX.\n\n**One more thing:** If you would like additional question types or features, feel free to ask. You can find the contact details in the legal notice.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### How is the room feeling right now?\n\n> **Teaching move:** Use this as a quick check-in at the start of class, before feedback, or after a demanding task.\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)",
+        "text": "### How is the room feeling right now?\n\n> **Teaching move:** Use this as a quick check-in at the start of class, before feedback, or after a demanding task.\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Click for full view.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
@@ -74,11 +74,36 @@
         ]
       },
       {
+        "text": "### Which of these are strong use cases for a quick live check?\n\n> **Teaching move:** Use this to demonstrate multiple choice with more than one correct answer.\n\n*Select all that apply.*",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "answers": [
+          {
+            "text": "Activate prior knowledge at the start of class",
+            "isCorrect": true
+          },
+          {
+            "text": "Surface misconceptions halfway through a lesson",
+            "isCorrect": true
+          },
+          {
+            "text": "Gauge confidence anonymously before exam prep",
+            "isCorrect": true
+          },
+          {
+            "text": "Use it only for graded tests at the end of a unit",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
         "text": "### How many visible pieces does the classic Rubik’s Cube have?\n\n> **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.\n\nThe question refers to the classic Rubik’s Cube designed by Ernő Rubik.",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
-        "order": 3,
+        "order": 4,
         "answers": [
           {
             "text": "28",
@@ -103,7 +128,7 @@
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
-        "order": 4,
+        "order": 5,
         "answers": [
           {
             "text": "Groovy",
@@ -122,6 +147,18 @@
             "isCorrect": false
           }
         ]
+      },
+      {
+        "text": "### How likely are you to try a live quiz like this in one of your own classes?\n\n> **Teaching move:** Use this as a quick pulse check, exit ticket, or confidence rating.",
+        "type": "RATING",
+        "timer": null,
+        "difficulty": "EASY",
+        "order": 6,
+        "answers": [],
+        "ratingMin": 1,
+        "ratingMax": 5,
+        "ratingLabelMin": "Not yet",
+        "ratingLabelMax": "Ready to try it"
       }
     ]
   }
