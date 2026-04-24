@@ -30,6 +30,25 @@ export function localizePath(path: string): string {
   return normalizedPath === '/' ? `/${locale}` : `/${locale}${normalizedPath}`;
 }
 
+/**
+ * Absolute App-URL für externe Kontexte wie QR-Codes oder "Link kopieren".
+ * Berücksichtigt Dev-Locale-Präfixe und lokalisierte Production-Bases (`/de/`, `/en/` ...).
+ */
+export function resolveLocalizedAppUrl(path: string): string {
+  const localizedPath = localizePath(path);
+
+  if (typeof window === 'undefined') {
+    return localizedPath;
+  }
+
+  const baseHref = typeof document === 'undefined' ? '/' : (document.baseURI ?? '/');
+  try {
+    return new URL(localizedPath.replace(/^\/+/, ''), baseHref).toString();
+  } catch {
+    return new URL(localizedPath, window.location.origin).toString();
+  }
+}
+
 export function localizeCommands(commands: readonly RouterCommand[]): RouterCommand[] {
   const normalizedCommands = normalizeCommands(commands);
   const baseLocale = getLocaleFromBaseHref();

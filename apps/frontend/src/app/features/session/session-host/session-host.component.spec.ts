@@ -447,6 +447,20 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('baut QR-Join-Links unter einem localized production base href', () => {
+    const base = document.createElement('base');
+    base.setAttribute('href', '/en/');
+    document.head.prepend(base);
+
+    try {
+      const fixture = setup();
+      expect(fixture.componentInstance.joinUrl).toBe(`${window.location.origin}/en/join/ABC123`);
+      fixture.destroy();
+    } finally {
+      base.remove();
+    }
+  });
+
   it('zeigt Lobby mit Session-Code und Button Erste Frage starten bei Status LOBBY', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
 

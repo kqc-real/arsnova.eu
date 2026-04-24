@@ -17,6 +17,14 @@ const { clearHostTokenMock, getParticipantsQueryMock } = vi.hoisted(() => ({
   getParticipantsQueryMock: vi.fn(),
 }));
 
+const { getLocaleFromPathMock, getLocaleFromBaseHrefMock, getPreferredJoinLocaleMock } = vi.hoisted(
+  () => ({
+    getLocaleFromPathMock: vi.fn(),
+    getLocaleFromBaseHrefMock: vi.fn(),
+    getPreferredJoinLocaleMock: vi.fn(),
+  }),
+);
+
 vi.mock('./core/feedback-host-token', () => ({
   hasFeedbackHostToken: hasFeedbackHostTokenMock,
   normalizeFeedbackCode: normalizeFeedbackCodeMock,
@@ -36,6 +44,16 @@ vi.mock('./core/trpc.client', () => ({
     },
   },
 }));
+
+vi.mock('./core/locale-from-path', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./core/locale-from-path')>();
+  return {
+    ...actual,
+    getLocaleFromPath: getLocaleFromPathMock,
+    getLocaleFromBaseHref: getLocaleFromBaseHrefMock,
+    getPreferredJoinLocale: getPreferredJoinLocaleMock,
+  };
+});
 
 import { routes } from './app.routes';
 
@@ -81,6 +99,9 @@ function createChildRouteSnapshot(parentCode: string): ActivatedRouteSnapshot {
 describe('app routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getLocaleFromPathMock.mockReturnValue(null);
+    getLocaleFromBaseHrefMock.mockReturnValue(null);
+    getPreferredJoinLocaleMock.mockReturnValue('de');
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
     TestBed.configureTestingModule({
       providers: [provideRouter([])],
@@ -154,5 +175,32 @@ describe('app routes', () => {
 
     expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
     expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe('/join/ABC123');
+  });
+
+  it('leitet nackte Join-Links auf die bevorzugte Locale um', () => {
+    getPreferredJoinLocaleMock.mockReturnValue('fr');
+    const guard = findRoute('join/:code').canActivate?.[0] as CanActivateFn;
+    const router = TestBed.inject(Router);
+
+    const result = TestBed.runInInjectionContext(() =>
+      guard(createRouteSnapshot('abc123'), {} as never),
+    );
+
+    expect(getPreferredJoinLocaleMock).toHaveBeenCalled();
+    expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>)).toBe(
+      '/fr/join/ABC123',
+    );
+  });
+
+  it('lässt Join-Links mit expliziter Locale unverändert durch', () => {
+    getLocaleFromPathMock.mockReturnValue('en');
+    const guard = findRoute('join/:code').canActivate?.[0] as CanActivateFn;
+
+    const result = TestBed.runInInjectionContext(() =>
+      guard(createRouteSnapshot('abc123'), {} as never),
+    );
+
+    expect(getPreferredJoinLocaleMock).not.toHaveBeenCalled();
+    expect(result).toBe(true);
   });
 });

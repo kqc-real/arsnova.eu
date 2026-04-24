@@ -38,6 +38,32 @@ export function getHomeLanguagePreference(): SupportedLocale | null {
   return null;
 }
 
+function normalizeSupportedLocaleCandidate(
+  value: string | null | undefined,
+): SupportedLocale | null {
+  if (!value) return null;
+  const base = value.trim().toLowerCase().split(/[-_]/)[0];
+  return (SUPPORTED_LOCALES as readonly string[]).includes(base) ? (base as SupportedLocale) : null;
+}
+
+export function getBrowserLanguagePreference(): SupportedLocale | null {
+  if (typeof navigator === 'undefined') return null;
+
+  const candidates = [
+    ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+    navigator.language,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeSupportedLocaleCandidate(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Lokalisierte Builds und `ng serve` mit `localize: ["en"]`: &lt;base href="/en/"&gt;.
  * Dann steht die Locale nicht im pathname (z. B. /legal/imprint), sondern nur in der Basis-URL.
@@ -75,6 +101,18 @@ export function getEffectiveLocale(fallbackFromBuild?: SupportedLocale): Support
   const fromBase = getLocaleFromBaseHref();
   if (fromBase) return fromBase;
   return fallbackFromBuild ?? 'de';
+}
+
+/**
+ * Bevorzugte Locale für nackte Einstiegs-Links ohne explizites Sprachsegment.
+ * Pfad/Base werden bewusst nicht berücksichtigt; die sind vom aufrufenden Guard bereits ausgeschlossen.
+ */
+export function getPreferredJoinLocale(fallbackFromBuild?: SupportedLocale): SupportedLocale {
+  return (
+    getHomeLanguagePreference() ??
+    getBrowserLanguagePreference() ??
+    getEffectiveLocale(fallbackFromBuild)
+  );
 }
 
 /**

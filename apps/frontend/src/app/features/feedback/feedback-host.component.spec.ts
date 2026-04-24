@@ -110,6 +110,37 @@ describe('FeedbackHostComponent', () => {
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
   });
 
+  it('baut eingebettete Join-Links unter einem localized production base href', () => {
+    const base = document.createElement('base');
+    base.setAttribute('href', '/it/');
+    document.head.prepend(base);
+
+    try {
+      const fixture = TestBed.createComponent(FeedbackHostComponent);
+      fixture.componentRef.setInput('embeddedInSession', true);
+      expect(fixture.componentInstance.joinUrl).toBe(`${window.location.origin}/it/join/ABC123`);
+      fixture.destroy();
+    } finally {
+      base.remove();
+    }
+  });
+
+  it('baut Standalone-Feedback-Links unter einem localized production base href', () => {
+    const base = document.createElement('base');
+    base.setAttribute('href', '/es/');
+    document.head.prepend(base);
+
+    try {
+      const fixture = TestBed.createComponent(FeedbackHostComponent);
+      expect(fixture.componentInstance.joinUrl).toBe(
+        `${window.location.origin}/es/feedback/ABC123/vote`,
+      );
+      fixture.destroy();
+    } finally {
+      base.remove();
+    }
+  });
+
   it('blockiert den Formatwechsel nach Stimmen und zeigt einen Hinweis', async () => {
     const { trpc } = await import('../../core/trpc.client');
     const snackBarSpy = vi.spyOn(TestBed.inject(MatSnackBar), 'open');

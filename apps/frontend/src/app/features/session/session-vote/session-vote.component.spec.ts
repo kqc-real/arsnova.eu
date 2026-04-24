@@ -204,6 +204,20 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('baut QR-Join-Links unter einem localized production base href', () => {
+    const base = document.createElement('base');
+    base.setAttribute('href', '/fr/');
+    document.head.prepend(base);
+
+    try {
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      expect(fixture.componentInstance.joinUrl).toBe(`${window.location.origin}/fr/join/ABC123`);
+      fixture.destroy();
+    } finally {
+      base.remove();
+    }
+  });
+
   it('zeigt im Ergebnisflow den Team-Fortschritt mit eigener Hervorhebung', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

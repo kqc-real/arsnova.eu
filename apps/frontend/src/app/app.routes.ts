@@ -6,6 +6,11 @@ import {
   type UrlSegment,
   Routes,
 } from '@angular/router';
+import {
+  getLocaleFromBaseHref,
+  getLocaleFromPath,
+  getPreferredJoinLocale,
+} from './core/locale-from-path';
 import { hasFeedbackHostToken, normalizeFeedbackCode } from './core/feedback-host-token';
 import {
   clearHostToken,
@@ -39,6 +44,25 @@ const redirectSessionEntry: CanActivateFn = (route) => {
   }
 
   return inject(Router).createUrlTree(localizeCommands(getSessionEntryCommands(codeParam)));
+};
+
+const redirectJoinToPreferredLocale: CanActivateFn = (route) => {
+  const router = inject(Router);
+  const codeParam = getCodeParamFromRoute(route);
+  if (!codeParam) {
+    return router.createUrlTree(localizeCommands(['']));
+  }
+
+  if (getLocaleFromPath() || getLocaleFromBaseHref()) {
+    return true;
+  }
+
+  const code = codeParam.trim().toUpperCase();
+  const preferredLocale = getPreferredJoinLocale();
+  return router.createUrlTree([preferredLocale, 'join', code], {
+    queryParams: route.queryParams,
+    fragment: route.fragment ?? undefined,
+  });
 };
 
 const requireHostToken: CanActivateFn = (route) => {
@@ -183,6 +207,7 @@ const mainRoutes: Routes = [
   },
   {
     path: 'join/:code',
+    canActivate: [redirectJoinToPreferredLocale],
     loadComponent: () => import('./features/join/join.component').then((m) => m.JoinComponent),
   },
   {
