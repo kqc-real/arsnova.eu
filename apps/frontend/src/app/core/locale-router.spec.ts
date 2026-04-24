@@ -5,6 +5,7 @@ import {
   localizeCommands,
   localizePath,
   resolveLocalizedAppUrl,
+  resolveLocalizedJoinUrl,
 } from './locale-router';
 
 vi.mock('./locale-from-path', async (importOriginal) => {
@@ -65,6 +66,12 @@ describe('locale-router', () => {
       );
     });
 
+    it('resolveLocalizedJoinUrl: ergänzt redundanten Query-Fallback', () => {
+      expect(resolveLocalizedJoinUrl('abc123')).toBe(
+        `${window.location.origin}/de/join/ABC123?join=ABC123`,
+      );
+    });
+
     it('localizeCommands: kein prepend von de', () => {
       expect(localizeCommands(['quiz', 'abc'])).toEqual(['quiz', 'abc']);
     });
@@ -90,6 +97,12 @@ describe('locale-router', () => {
     it('resolveLocalizedAppUrl: baut absolute URLs mit Locale-Präfix im Pfad', () => {
       expect(resolveLocalizedAppUrl('/join/ABC123')).toBe(
         `${window.location.origin}/de/join/ABC123`,
+      );
+    });
+
+    it('resolveLocalizedJoinUrl: ergänzt redundanten Query-Fallback', () => {
+      expect(resolveLocalizedJoinUrl('abc123')).toBe(
+        `${window.location.origin}/de/join/ABC123?join=ABC123`,
       );
     });
 

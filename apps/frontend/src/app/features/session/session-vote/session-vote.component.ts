@@ -28,7 +28,7 @@ import {
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import * as vpc from './session-vote-participant-copy';
-import { localizePath, resolveLocalizedAppUrl } from '../../../core/locale-router';
+import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import type {
   ParticipantDTO,
   PersonalScorecardDTO,
@@ -1337,7 +1337,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   get joinUrl(): string {
-    return resolveLocalizedAppUrl(`/join/${this.code}`);
+    return resolveLocalizedJoinUrl(this.code);
   }
 
   private startCountdown(q: CurrentQuestion | null): void {

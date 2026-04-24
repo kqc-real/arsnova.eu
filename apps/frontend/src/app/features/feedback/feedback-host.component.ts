@@ -22,7 +22,12 @@ import { clearFeedbackHostToken, setFeedbackHostToken } from '../../core/feedbac
 import { clearHostToken } from '../../core/host-session-token';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
-import { localizeCommands, localizePath, resolveLocalizedAppUrl } from '../../core/locale-router';
+import {
+  localizeCommands,
+  localizePath,
+  resolveLocalizedAppUrl,
+  resolveLocalizedJoinUrl,
+} from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import {
@@ -151,7 +156,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   get joinUrl(): string {
     const code = this.code();
     return this.embeddedInSession()
-      ? resolveLocalizedAppUrl(`/join/${code}`)
+      ? resolveLocalizedJoinUrl(code)
       : resolveLocalizedAppUrl(`/feedback/${code}/vote`);
   }
 

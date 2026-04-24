@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HomeComponent } from './home.component';
 import { QuizStoreService } from '../quiz/data/quiz-store.service';
@@ -75,13 +75,34 @@ function createHomeComponent(): HomeComponent {
   return fixture.componentInstance;
 }
 
+function setRouteQueryParams(params: Record<string, string>) {
+  TestBed.overrideProvider(ActivatedRoute, {
+    useValue: {
+      snapshot: {
+        queryParamMap: convertToParamMap(params),
+      },
+    },
+  });
+}
+
 describe('HomeComponent', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.useFakeTimers();
     TestBed.configureTestingModule({
       imports: [HomeComponent],
-      providers: [provideRouter([]), provideHttpClient()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: convertToParamMap({}),
+            },
+          },
+        },
+      ],
     });
   });
 
@@ -412,6 +433,20 @@ describe('HomeComponent', () => {
   });
 
   describe('MOTD overlay', () => {
+    it('überspringt MOTD und leitet bei join-Query sofort in den Onboarding-Flow um', async () => {
+      setRouteQueryParams({ join: 'abc123' });
+      const { trpc } = await import('../../core/trpc.client');
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+
+      expect(navSpy).toHaveBeenCalledWith(['join', 'ABC123'], { replaceUrl: true });
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+    });
+
     it('rendert MOTD-Bilder relativ zur aktuellen Locale-Basis und hängt die contentVersion an', async () => {
       const baseEl =
         document.querySelector('base') ?? document.head.appendChild(document.createElement('base'));

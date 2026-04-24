@@ -49,6 +49,14 @@ export function resolveLocalizedAppUrl(path: string): string {
   }
 }
 
+/** Join-Link mit redundanter `join`-Query als Fallback, falls ein IAB auf Home zurückfällt. */
+export function resolveLocalizedJoinUrl(code: string): string {
+  const normalizedCode = code.trim().toUpperCase();
+  const url = new URL(resolveLocalizedAppUrl(`/join/${normalizedCode}`));
+  url.searchParams.set('join', normalizedCode);
+  return url.toString();
+}
+
 export function localizeCommands(commands: readonly RouterCommand[]): RouterCommand[] {
   const normalizedCommands = normalizeCommands(commands);
   const baseLocale = getLocaleFromBaseHref();

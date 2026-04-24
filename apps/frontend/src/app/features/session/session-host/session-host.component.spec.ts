@@ -454,7 +454,9 @@ describe('SessionHostComponent', () => {
 
     try {
       const fixture = setup();
-      expect(fixture.componentInstance.joinUrl).toBe(`${window.location.origin}/en/join/ABC123`);
+      expect(fixture.componentInstance.joinUrl).toBe(
+        `${window.location.origin}/en/join/ABC123?join=ABC123`,
+      );
       fixture.destroy();
     } finally {
       base.remove();

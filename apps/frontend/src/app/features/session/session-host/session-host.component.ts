@@ -49,7 +49,7 @@ import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { SoundService } from '../../../core/sound.service';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
-import { localizePath, resolveLocalizedAppUrl } from '../../../core/locale-router';
+import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../../core/session-code-aria';
 import {
   ConfirmLeaveDialogComponent,
@@ -900,7 +900,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** Für Lobby: volle Beitritts-URL (präsentierbar, Story 2.1b QR-Code). */
   get joinUrl(): string {
-    return resolveLocalizedAppUrl(`/join/${this.code}`);
+    return resolveLocalizedJoinUrl(this.code);
   }
 
   async copyJoinLinkToClipboard(event?: Event): Promise<void> {

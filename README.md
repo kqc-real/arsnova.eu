@@ -56,7 +56,7 @@ arsnova.eu/
 │   ├── ENVIRONMENT.md       # 🔧 Umgebungsvariablen-Referenz
 │   ├── SECURITY-OVERVIEW.md # 🔒 Sicherheit & DSGVO (Kurz)
 │   ├── TESTING.md           # 🧪 Tests & CI-Matrix
-│   ├── GLOSSAR.md           # 📖 App-Begriffe & Prisma-Brücke
+│   ├── GLOSSAR.md           # 📖 App-Begriffe, Abkürzungen & Prisma-Brücke
 │   ├── architecture/        # 🏛️ Architecture Decision Records (ADRs) & Handbuch
 │   ├── implementation/      # 🛠️ Umsetzungs-/Betriebsdokus (z. B. Admin-Flow)
 │   └── ui/                  # 🎨 UI/UX-Guides und Audits

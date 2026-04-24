@@ -211,7 +211,9 @@ describe('SessionVoteComponent', () => {
 
     try {
       const fixture = TestBed.createComponent(SessionVoteComponent);
-      expect(fixture.componentInstance.joinUrl).toBe(`${window.location.origin}/fr/join/ABC123`);
+      expect(fixture.componentInstance.joinUrl).toBe(
+        `${window.location.origin}/fr/join/ABC123?join=ABC123`,
+      );
       fixture.destroy();
     } finally {
       base.remove();

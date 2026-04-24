@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -90,6 +90,7 @@ import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-ligh
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly localizedCommands = localizeCommands;
   readonly localizedPath = localizePath;
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
   private readonly focusService = inject(PresetSnackbarFocusService);
@@ -262,11 +263,28 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      if (this.redirectPendingJoinFromQuery()) {
+        return;
+      }
       this.loadRecentSessionCodes();
       this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
       // MOTD: bald nach erstem Paint, ohne langes Idle-Warten (max. ~400 ms)
       this.scheduleIdleWork(() => void this.loadMotdOverlay(), 400, 50);
     }
+  }
+
+  private redirectPendingJoinFromQuery(): boolean {
+    const queryJoin = (this.route.snapshot.queryParamMap.get('join') ?? '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(queryJoin)) {
+      return false;
+    }
+
+    this.scheduleTimeout(() => {
+      void this.router.navigate(localizeCommands(['join', queryJoin]), {
+        replaceUrl: true,
+      });
+    }, 0);
+    return true;
   }
 
   @HostListener('document:keydown', ['$event'])

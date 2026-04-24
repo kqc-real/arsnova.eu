@@ -118,7 +118,9 @@ describe('FeedbackHostComponent', () => {
     try {
       const fixture = TestBed.createComponent(FeedbackHostComponent);
       fixture.componentRef.setInput('embeddedInSession', true);
-      expect(fixture.componentInstance.joinUrl).toBe(`${window.location.origin}/it/join/ABC123`);
+      expect(fixture.componentInstance.joinUrl).toBe(
+        `${window.location.origin}/it/join/ABC123?join=ABC123`,
+      );
       fixture.destroy();
     } finally {
       base.remove();
