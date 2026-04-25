@@ -204,6 +204,19 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('markiert fuehrende Emojis in Antworttexten fuer ein kompakteres Live-Layout', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+
+    const rendered = component.renderMarkdown('😄 Bereit loszulegen') as unknown as {
+      changingThisBreaksApplicationSecurity?: string;
+    };
+
+    expect(rendered.changingThisBreaksApplicationSecurity).toContain('answer-leading-emoji');
+    expect(rendered.changingThisBreaksApplicationSecurity).toContain('Bereit loszulegen');
+    fixture.destroy();
+  });
+
   it('baut QR-Join-Links unter einem localized production base href', () => {
     const base = document.createElement('base');
     base.setAttribute('href', '/fr/');

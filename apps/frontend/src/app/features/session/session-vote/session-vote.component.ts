@@ -26,6 +26,7 @@ import {
   localizeKnownServerMessage,
 } from '../../../core/localize-known-server-message';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import * as vpc from './session-vote-participant-copy';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
@@ -1088,7 +1089,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return cached;
     }
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+      decorateLeadingAnswerEmoji(
+        renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+      ),
     );
     this.markdownCache.set(value, rendered);
     return rendered;

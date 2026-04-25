@@ -447,6 +447,19 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   }, 15000);
 
+  it('markiert fuehrende Emojis in Antworttexten fuer ein kompakteres Host-Layout', () => {
+    const fixture = setup();
+    const component = fixture.componentInstance;
+
+    const rendered = component.renderMarkdown('😭 Gerade etwas überfordert') as unknown as {
+      changingThisBreaksApplicationSecurity?: string;
+    };
+
+    expect(rendered.changingThisBreaksApplicationSecurity).toContain('answer-leading-emoji');
+    expect(rendered.changingThisBreaksApplicationSecurity).toContain('Gerade etwas überfordert');
+    fixture.destroy();
+  }, 15000);
+
   it('baut QR-Join-Links unter einem localized production base href', () => {
     const base = document.createElement('base');
     base.setAttribute('href', '/en/');

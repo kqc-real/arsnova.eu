@@ -628,6 +628,22 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   box-sizing: border-box;
 }
 
+.vote-answer__text .answer-leading-emoji,
+.session-host__answer-text .answer-leading-emoji {
+  display: inline-block;
+  font-size: 0.9em;
+  line-height: 1;
+  margin-inline-end: 0.55rem;
+  vertical-align: -0.06em;
+}
+
+@media (max-width: 599px) {
+  .vote-answer__text .answer-leading-emoji,
+  .session-host__answer-text .answer-leading-emoji {
+    margin-inline-end: 0.65rem;
+  }
+}
+
 /* Host-Fragetext: große Markdown-Bilder, auch verlinkte, auf sinnvolle Viewport-Höhe begrenzen. */
 .session-host__question-title-inner img,
 .session-host__question-title-inner a img {

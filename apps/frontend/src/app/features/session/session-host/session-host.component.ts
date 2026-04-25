@@ -46,6 +46,7 @@ import { clearFeedbackHostToken } from '../../../core/feedback-host-token';
 import { clearHostToken } from '../../../core/host-session-token';
 import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { SoundService } from '../../../core/sound.service';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
@@ -1828,7 +1829,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return cached;
     }
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+      decorateLeadingAnswerEmoji(
+        renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+      ),
     );
     this.markdownCache.set(value, rendered);
     return rendered;
