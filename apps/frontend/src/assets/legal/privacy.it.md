@@ -13,7 +13,7 @@ E-mail: [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org)
 
 ## 2. Ambito di applicazione
 
-Questa informativa sulla privacy si applica a **https://arsnova.eu** (sito informativo e di presentazione) e, ove indicato, all'utilizzo dell'applicazione arsnova.eu (quiz live e sondaggi). Se l'applicazione è self-hosted dalla tua organizzazione o istituzione, questa agisce in qualità di titolare del trattamento e si applica la sua rispettiva informativa sulla privacy.
+Questa informativa sulla privacy si applica a https://arsnova.eu (sito informativo e di presentazione) e, ove indicato, all'utilizzo dell'applicazione arsnova.eu (quiz live e sondaggi). Se l'applicazione è self-hosted dalla tua organizzazione o istituzione, questa agisce in qualità di titolare del trattamento e si applica la sua rispettiva informativa sulla privacy.
 
 ## 3. Dati raccolti durante la visita ad arsnova.eu
 
@@ -31,7 +31,7 @@ Su arsnova.eu troverai link a servizi esterni (ad es. GitHub). Facendo clic su q
 
 arsnova.eu è ospitato in Germania da Hetzner Online GmbH. Hetzner è controllata annualmente dal TÜV Rheinland per garantire la conformità ai rigorosi standard di sicurezza previsti dall'art. 32 del GDPR.
 
-Il sito web e l'applicazione su **https://arsnova.eu** funzionano sui server di Hetzner. Se il software è ospitato **da te o da terzi** (ad es. la tua istituzione), i dati di accesso (come l'indirizzo IP) potrebbero essere registrati sui server del rispettivo fornitore. Se l'applicazione è ospitata in un paese extra-UE (ad es. negli Stati Uniti), potrebbero verificarsi trasferimenti di dati, soggetti ad adeguate garanzie (come le clausole contrattuali tipo ai sensi dell'art. 46 del GDPR). Occasionalmente, una pagina di presentazione separata (per demo e marketing) potrebbe essere ospitata tramite **GitHub Pages** sotto un dominio diverso, senza alcun collegamento al sito principale arsnova.eu; per i dettagli, consulta l'[Informativa sulla privacy di GitHub](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). Il fornitore specifico e il luogo di archiviazione dipendono dalla configurazione scelta.
+Il sito web e l'applicazione su https://arsnova.eu funzionano sui server di Hetzner. Se il software è ospitato **da te o da terzi** (ad es. la tua istituzione), i dati di accesso (come l'indirizzo IP) potrebbero essere registrati sui server del rispettivo fornitore. Se l'applicazione è ospitata in un paese extra-UE (ad es. negli Stati Uniti), potrebbero verificarsi trasferimenti di dati, soggetti ad adeguate garanzie (come le clausole contrattuali tipo ai sensi dell'art. 46 del GDPR). Occasionalmente, una pagina di presentazione separata (per demo e marketing) potrebbe essere ospitata tramite GitHub Pages sotto un dominio diverso, senza alcun collegamento al sito principale arsnova.eu; per i dettagli, consulta l'[Informativa sulla privacy di GitHub](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). Il fornitore specifico e il luogo di archiviazione dipendono dalla configurazione scelta.
 
 ## 6. I tuoi diritti
 

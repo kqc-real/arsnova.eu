@@ -22,7 +22,7 @@ Prof. Dr.-Ing. habil. Klaus Quibeldey-Cirkel
 
 ## Hébergement
 
-Le site **arsnova.eu** est hébergé en Union européenne par :  
+Le site arsnova.eu est hébergé en Union européenne par :  
 Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Allemagne.
 
 ## Responsabilité pour le contenu et les liens

@@ -13,6 +13,15 @@ export interface MarkdownRenderResult {
 export type MarkdownImagePolicy = 'external-https-only' | 'allow-relative-and-https';
 
 const MARKDOWN_EMOJI_SHORTCODES = new Map(Object.entries(MARKDOWN_EMOJI_SHORTCODE_MAP));
+const INTERNAL_MARKDOWN_LINK_HOSTNAMES = new Set([
+  'arsnova.eu',
+  'www.arsnova.eu',
+  'localhost',
+  '127.0.0.1',
+  '0.0.0.0',
+  '::1',
+  '[::1]',
+]);
 
 const EMOJI_SHORTCODE_PATTERN = /:([a-z0-9_+-]+):/gi;
 const EXTERNAL_LINK_SVG =
@@ -94,7 +103,13 @@ function parseMarkdownEscapingInlineHtml(
   const renderer = new marked.Renderer();
   renderer.code = (token) => renderMarkdownCodeBlockHtml(token);
   renderer.html = ({ text }) => escapeHtml(text);
-  renderer.text = ({ text }) => renderMarkdownText(text);
+  renderer.text = function (token): string {
+    const inlineTokens = 'tokens' in token ? token.tokens : undefined;
+    if (inlineTokens?.length) {
+      return this.parser.parseInline(inlineTokens);
+    }
+    return renderMarkdownText(token.text);
+  };
   renderer.link = ({ href, title, text }): string => {
     const safeHref = sanitizeMarkdownUrl(href, 'link');
     if (!safeHref) {
@@ -109,12 +124,12 @@ function parseMarkdownEscapingInlineHtml(
     const effectiveTitle = buildMarkdownLinkTitle(linkTitle, isExternal ? externalLinkHint : '');
     const titleAttr = effectiveTitle ? ` title="${escapeHtml(effectiveTitle)}"` : '';
     const privacyAttrs = isExternal
-      ? ' referrerpolicy="no-referrer" data-markdown-link-kind="external"'
+      ? ' target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" data-markdown-link-kind="external"'
       : '';
     const externalIcon = isExternal
       ? `<span class="markdown-external-link-icon" aria-hidden="true">${EXTERNAL_LINK_SVG}</span><span class="sr-only">${escapeHtml(externalLinkHint)}</span>`
       : '';
-    return `<a href="${hrefEsc}"${titleAttr} target="_blank" rel="noopener noreferrer"${privacyAttrs}>${renderedText}${externalIcon}</a>`;
+    return `<a href="${hrefEsc}"${titleAttr}${privacyAttrs}>${renderedText}${externalIcon}</a>`;
   };
   /** `alt` allein löst keinen Hover-Tooltip aus; `title` schon (optional explizit in `![](url "title")`). */
   renderer.image = ({ href, title, text }): string => {
@@ -288,7 +303,10 @@ function isLoopbackHttpUrl(value: string): boolean {
 
 function isExternalHttpsMarkdownUrl(value: string): boolean {
   try {
-    return new URL(value).protocol === 'https:';
+    const url = new URL(value);
+    return (
+      url.protocol === 'https:' && !INTERNAL_MARKDOWN_LINK_HOSTNAMES.has(url.hostname.toLowerCase())
+    );
   } catch {
     return false;
   }

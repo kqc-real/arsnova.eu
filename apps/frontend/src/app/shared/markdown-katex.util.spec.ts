@@ -147,6 +147,20 @@ describe('renderMarkdownWithKatex', () => {
     );
     expect(result.html).toContain('<code>:apple:</code>');
   });
+
+  it('rendert Fettungen auch innerhalb von Listen korrekt', () => {
+    const result = renderMarkdownWithKatex(
+      [
+        'Rechte:',
+        '',
+        '- **Auskunft** über Ihre Daten',
+        '- **Berichtigung** unrichtiger Daten',
+      ].join('\n'),
+    );
+
+    expect(result.html).toContain('<li><strong>Auskunft</strong> über Ihre Daten</li>');
+    expect(result.html).toContain('<li><strong>Berichtigung</strong> unrichtiger Daten</li>');
+  });
 });
 
 describe('renderMarkdownWithoutKatex', () => {
@@ -224,10 +238,10 @@ describe('renderMarkdownWithoutKatex', () => {
 
   it('erlaubt sichere relative und https-Links weiterhin', () => {
     const html = renderMarkdownWithoutKatex(
-      '[intern](/de/datenschutz) [extern](https://arsnova.eu/info) [mail](mailto:test@example.org)',
+      '[intern](/de/datenschutz) [extern](https://example.org/info) [mail](mailto:test@example.org)',
     );
     expect(html).toContain('href="/de/datenschutz"');
-    expect(html).toContain('href="https://arsnova.eu/info"');
+    expect(html).toContain('href="https://example.org/info"');
     expect(html).toContain('href="mailto:test@example.org"');
     expect(html).toContain('target="_blank"');
     expect(html).toContain('rel="noopener noreferrer"');
@@ -236,7 +250,7 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).toContain('markdown-external-link-icon__svg');
     expect(html).toContain('<path d="M9.5 2.5h4v4"');
     expect(html).toContain(
-      'href="https://arsnova.eu/info" title="Externer Link: öffnet eine andere Website" target="_blank"',
+      'href="https://example.org/info" title="Externer Link: öffnet eine andere Website" target="_blank"',
     );
     expect(html).toContain(
       '<span class="sr-only">Externer Link: öffnet eine andere Website</span>',
@@ -244,6 +258,19 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).not.toContain(
       'href="/de/datenschutz" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"',
     );
+  });
+
+  it('markiert absolute Links zur eigenen Domain nicht als extern', () => {
+    const html = renderMarkdownWithoutKatex(
+      '[home](https://arsnova.eu/info) [www](https://www.arsnova.eu/impressum)',
+    );
+
+    expect(html).toContain('href="https://arsnova.eu/info"');
+    expect(html).toContain('href="https://www.arsnova.eu/impressum"');
+    expect(html).not.toContain('data-markdown-link-kind="external"');
+    expect(html).not.toContain('markdown-external-link-icon__svg');
+    expect(html).not.toContain('Externer Link: öffnet eine andere Website');
+    expect(html).not.toContain('target="_blank"');
   });
 
   it('ergänzt vorhandene Linktitel bei externen Links um den Extern-Hinweis', () => {

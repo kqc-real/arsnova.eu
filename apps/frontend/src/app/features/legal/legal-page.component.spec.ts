@@ -74,4 +74,35 @@ describe('LegalPageComponent', () => {
     const root: HTMLElement = fixture.nativeElement;
     expect(root.querySelector('.legal-page__md')?.textContent).toContain('Welt');
   });
+
+  it('rendert Listen und Fettungen aus dem Privacy-Markdown korrekt', async () => {
+    const route = TestBed.inject(ActivatedRoute) as {
+      snapshot: { data: { slug: string } };
+    };
+    route.snapshot.data.slug = 'privacy';
+
+    const fixture = TestBed.createComponent(LegalPageComponent);
+    fixture.detectChanges();
+
+    const req = httpMock.expectOne((r) => r.url.includes('assets/legal/privacy.de.md'));
+    req.flush(
+      [
+        '# Datenschutz',
+        '',
+        'Sie haben folgende Rechte:',
+        '',
+        '- **Auskunft** über Ihre Daten',
+        '- **Berichtigung** unrichtiger Daten',
+      ].join('\n'),
+    );
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    const listItems = Array.from(root.querySelectorAll('.legal-page__md li'));
+    expect(listItems).toHaveLength(2);
+    expect(listItems[0].querySelector('strong')?.textContent).toBe('Auskunft');
+    expect(listItems[1].querySelector('strong')?.textContent).toBe('Berichtigung');
+  });
 });

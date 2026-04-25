@@ -22,7 +22,7 @@ Prof. Dr.-Ing. habil. Klaus Quibeldey-Cirkel
 
 ## Alojamiento
 
-**arsnova.eu** está alojado en la Unión Europea por:
+arsnova.eu está alojado en la Unión Europea por:
 Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Alemania.
 
 ## Responsabilidad por contenidos y enlaces
