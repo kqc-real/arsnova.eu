@@ -295,6 +295,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
   readonly qaSeenQuestionIds = signal<Set<string>>(new Set());
   readonly qaScrolledDown = signal(false);
+  @ViewChild('hostResultsSection') hostResultsSectionRef?: ElementRef<HTMLElement>;
+  @ViewChild('hostAnswersList') hostAnswersListRef?: ElementRef<HTMLElement>;
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
   readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
@@ -2014,6 +2016,32 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSeenQuestionIds.set(allIds);
   }
 
+  private scrollHostTargetIntoView(targetRef: ElementRef<HTMLElement> | undefined): void {
+    afterNextRender(
+      () => {
+        const target = targetRef?.nativeElement;
+        if (target) {
+          try {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } catch {
+            target.scrollIntoView();
+          }
+          return;
+        }
+
+        const scrollingElement = this.document.scrollingElement as HTMLElement | null;
+        try {
+          scrollingElement?.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch {
+          if (scrollingElement) {
+            scrollingElement.scrollTop = 0;
+          }
+        }
+      },
+      { injector: this.injector },
+    );
+  }
+
   relativeTime(isoDate: string): string {
     const diff = Date.now() - new Date(isoDate).getTime();
     const seconds = Math.floor(diff / 1000);
@@ -2647,6 +2675,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.currentQuestionForHost.set(null);
       this.statusUpdate.set(result);
       await this.refreshCurrentQuestionForHost();
+      this.scrollHostTargetIntoView(this.hostAnswersListRef);
       this.startCountdown(this.currentQuestionForHost()?.timer, result.activeAt);
       this.dismissHostSteeringCallout();
     } catch {
@@ -2666,6 +2695,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const result = await trpc.session.revealResults.mutate({ code: this.code.toUpperCase() });
       this.statusUpdate.set(result);
       await this.refreshCurrentQuestionForHost();
+      this.scrollHostTargetIntoView(this.hostResultsSectionRef);
       this.dismissHostSteeringCallout();
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.revealResults());
@@ -2697,11 +2727,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.controlPending.set(true);
     try {
       this.clearEmojiNewBadge();
+      this.stopCountdown();
+      this.countdownSeconds.set(null);
       const result = await trpc.session.startSecondRound.mutate({ code: this.code.toUpperCase() });
       this.currentQuestionForHost.set(null);
       this.statusUpdate.set(result);
       await this.refreshCurrentQuestionForHost();
-      this.startCountdown(this.currentQuestionForHost()?.timer, result.activeAt);
       this.dismissHostSteeringCallout();
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.startSecondRound());

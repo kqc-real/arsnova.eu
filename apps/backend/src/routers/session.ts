@@ -1958,7 +1958,7 @@ export const sessionRouter = router({
       }
       const isActive = session.status === 'ACTIVE';
       const currentTimer =
-        isActive && session.currentQuestion !== null
+        isActive && session.currentQuestion !== null && session.currentRound !== 2
           ? resolveEffectiveQuestionTimer(
               session.quiz?.questions[session.currentQuestion]?.timer,
               session.quiz?.defaultTimer,
@@ -2284,12 +2284,15 @@ export const sessionRouter = router({
           | 'FREETEXT'
           | 'RATING'
           | 'SURVEY',
-        timer: resolveEffectiveQuestionTimer(
-          question.timer,
-          session.quiz.defaultTimer,
-          question.difficulty,
-          session.quiz.timerScaleByDifficulty ?? true,
-        ),
+        timer:
+          session.currentRound === 2
+            ? null
+            : resolveEffectiveQuestionTimer(
+                question.timer,
+                session.quiz.defaultTimer,
+                question.difficulty,
+                session.quiz.timerScaleByDifficulty ?? true,
+              ),
         answers: answersOrdered.map((a) => ({ id: a.id, text: a.text, isCorrect: a.isCorrect })),
         ratingMin: question.ratingMin ?? null,
         ratingMax: question.ratingMax ?? null,
@@ -2491,12 +2494,15 @@ export const sessionRouter = router({
           id: question.id,
           text: question.text,
           type: question.type,
-          timer: resolveEffectiveQuestionTimer(
-            question.timer,
-            session.quiz.defaultTimer,
-            question.difficulty,
-            session.quiz.timerScaleByDifficulty ?? true,
-          ),
+          timer:
+            session.currentRound === 2
+              ? null
+              : resolveEffectiveQuestionTimer(
+                  question.timer,
+                  session.quiz.defaultTimer,
+                  question.difficulty,
+                  session.quiz.timerScaleByDifficulty ?? true,
+                ),
           difficulty: question.difficulty,
           order: question.order,
           totalQuestions,

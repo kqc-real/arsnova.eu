@@ -26,6 +26,9 @@ const {
   qaToggleModerationMutateMock,
   qaOnQuestionsUpdatedSubscribeMock,
   nextQuestionMutateMock,
+  revealAnswersMutateMock,
+  revealResultsMutateMock,
+  startSecondRoundMutateMock,
   startQaMutateMock,
   attachQuizToSessionMutateMock,
   enableQaChannelMutateMock,
@@ -60,6 +63,9 @@ const {
   qaToggleModerationMutateMock: vi.fn(),
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   nextQuestionMutateMock: vi.fn(),
+  revealAnswersMutateMock: vi.fn(),
+  revealResultsMutateMock: vi.fn(),
+  startSecondRoundMutateMock: vi.fn(),
   startQaMutateMock: vi.fn(),
   attachQuizToSessionMutateMock: vi.fn(),
   enableQaChannelMutateMock: vi.fn(),
@@ -96,6 +102,9 @@ vi.mock('../../../core/trpc.client', () => ({
       getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
       getExportData: { query: getExportDataQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
+      revealAnswers: { mutate: revealAnswersMutateMock },
+      revealResults: { mutate: revealResultsMutateMock },
+      startSecondRound: { mutate: startSecondRoundMutateMock },
       startQa: { mutate: startQaMutateMock },
       attachQuizToSession: { mutate: attachQuizToSessionMutateMock },
       enableQaChannel: { mutate: enableQaChannelMutateMock },
@@ -303,6 +312,12 @@ describe('SessionHostComponent', () => {
       currentQuestion: null,
       currentRound: 1,
     });
+    startSecondRoundMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 2,
+      activeAt: '2026-03-24T12:00:00.000Z',
+    });
     attachQuizToSessionMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: false, open: false, title: null, moderationMode: false },
@@ -381,6 +396,18 @@ describe('SessionHostComponent', () => {
     nextQuestionMutateMock.mockResolvedValue({
       status: 'ACTIVE',
       currentQuestion: null,
+      currentRound: 1,
+      activeAt: null,
+    });
+    revealAnswersMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      activeAt: null,
+    });
+    revealResultsMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
       currentRound: 1,
       activeAt: null,
     });
@@ -2010,6 +2037,174 @@ describe('SessionHostComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent ?? '').toContain('0 von 0 komplett richtig');
+    fixture.destroy();
+  });
+
+  it('scrollt beim Ergebniszeigen zur Ergebniskarte', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const resultsSection = fixture.nativeElement.querySelector(
+      '.session-host__results-wrap',
+    ) as HTMLElement | null;
+    expect(resultsSection).toBeTruthy();
+    const scrollIntoViewSpy = vi.fn();
+    Object.defineProperty(resultsSection!, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoViewSpy,
+    });
+
+    await fixture.componentInstance.revealResults();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(revealResultsMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+
+    fixture.destroy();
+  });
+
+  it('scrollt beim Freigeben der Antwortoptionen zur Antwortliste', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'PAUSED' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const answersList = fixture.nativeElement.querySelector(
+      '.session-host__answers',
+    ) as HTMLElement | null;
+    expect(answersList).toBeTruthy();
+    const scrollIntoViewSpy = vi.fn();
+    Object.defineProperty(answersList!, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoViewSpy,
+    });
+
+    await fixture.componentInstance.revealAnswers();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(revealAnswersMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+
+    fixture.destroy();
+  });
+
+  it('startet in Peer-Instruction-Runde 2 keinen Countdown mehr', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'DISCUSSION' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 2,
+      timer: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    await component.startSecondRound();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
+    fixture.detectChanges();
+
+    expect(startSecondRoundMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(component.countdownSeconds()).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-host__countdown')).toBeNull();
+
     fixture.destroy();
   });
 

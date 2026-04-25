@@ -5099,6 +5099,10 @@
           <context context-type="linenumber">349,350</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quiz.bonusCodesHint" datatype="html">
+        <source>Die besten Teilnehmenden erhalten nach dem Quiz einen persönlichen Code, den sie freiwillig bei dir einreichen können.</source>
+        <target>I migliori partecipanti riceveranno un codice personale dopo il quiz che possono inviarti volontariamente.</target>
+      </trans-unit>
       <trans-unit id="6661999155510691727" datatype="html">
         <source>Anzahl Top-Plätze</source>
         <target>Numero di primi posti</target>
@@ -5110,6 +5114,10 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
           <context context-type="linenumber">353</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quiz.bonusTopRanksLabel" datatype="html">
+        <source>Anzahl Top-Plätze</source>
+        <target>Numero di primi posti</target>
       </trans-unit>
       <trans-unit id="8188805051520024249" datatype="html">
         <source>Anzahl Bonus-Codes</source>
@@ -5158,6 +5166,10 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
           <context context-type="linenumber">371</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="quiz.bonusTopRanksMax" datatype="html">
+        <source>Höchstens 50.</source>
+        <target>Al massimo 50.</target>
       </trans-unit>
       <trans-unit id="2412799113698440108" datatype="html">
         <source> Einstellungen übernommen.</source>
@@ -6288,7 +6300,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.trigger" datatype="html">
-        <source>Mit unserem Prompt zum fertigen Quiz</source>
+        <source>Mit diesem Prompt zum fertigen Quiz</source>
         <target>Genera un quiz con il nostro prompt IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
@@ -6320,7 +6332,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.title" datatype="html">
-        <source> Mit unserem Prompt zum fertigen Quiz</source>
+        <source> Mit diesem Prompt zum fertigen Quiz</source>
         <target>Dal nostro prompt al quiz pronto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
@@ -7986,6 +7998,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1496,1497</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.pointsAbbr" datatype="html">
+        <source>Pkt.</source>
+        <target>punti.</target>
       </trans-unit>
       <trans-unit id="6896435895128062952" datatype="html">
         <source>Team-Wertung</source>
@@ -11072,8 +11088,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleWinFin" datatype="html">
-        <source>Team-Sieg!</source>
-        <target>Vittoria di squadra!</target>
+        <source>Ihr gewinnt als Team!</source>
+        <target>La vostra squadra vince!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">739</context>
@@ -11120,8 +11136,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgWinFin" datatype="html">
-        <source>Gemeinsam geschafft: <x id="totalScore" equiv-text="entry.totalScore"/> Punkte und Platz 1.</source>
-        <target>Fatto insieme: <x id="totalScore" equiv-text="entry.totalScore"/> punti e 1° posto.</target>
+        <source>Gemeinsam gewonnen: Platz 1 für euch.</source>
+        <target>Avete vinto insieme: il 1° posto è vostro.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">761</context>
@@ -11195,6 +11211,22 @@
           <context context-type="linenumber">806</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.finishedTitlePlayfulWinner" datatype="html">
+        <source>Du hast gewonnen!</source>
+        <target>Hai vinto!</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.finishedTitleSeriousWinner" datatype="html">
+        <source>Du gewinnst das Quiz.</source>
+        <target>Vinici il quiz.</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.missedResultsPlayful" datatype="html">
+        <source>Diesmal keine Antwort mehr – gleich kommt die nächste Chance!</source>
+        <target>Questa volta nessuna risposta in tempo: la prossima occasione arriva subito!</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.missedResultsSerious" datatype="html">
+        <source>Keine Antwort mehr rechtzeitig abgegeben. Die nächste Frage folgt.</source>
+        <target>Nessuna risposta inviata in tempo. La prossima domanda arriva subito dopo.</target>
+      </trans-unit>
       <trans-unit id="sessionVote.teamStandingNoRank" datatype="html">
         <source><x id="teamName" equiv-text="entry.teamName"/> mit <x id="totalScore" equiv-text="entry.totalScore"/> Team-Punkten, noch ohne Rang</source>
         <target><x id="teamName" equiv-text="entry.teamName"/> con <x id="totalScore" equiv-text="entry.totalScore"/> punti di team — ancora senza classifica</target>
@@ -11202,6 +11234,10 @@
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">826</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamStandingWithMembers" datatype="html">
+        <source>Platz <x id="teamRank" equiv-text="entry.rank"/>: <x id="teamName" equiv-text="entry.teamName"/> mit <x id="memberCountLabel" equiv-text="this.teamMemberLabel(entry.memberCount)"/> und <x id="totalScore" equiv-text="entry.totalScore"/> Punkten</source>
+        <target>Posto <x id="teamRank"/>: <x id="teamName"/> con <x id="memberCountLabel"/> e <x id="totalScore"/> punti</target>
       </trans-unit>
       <trans-unit id="2056726732284037224" datatype="html">
         <source>Platz <x id="teamRank" equiv-text="entry.rank"/>: <x id="teamName" equiv-text="entry.teamName"/> mit <x id="totalScore" equiv-text="entry.totalScore"/> Punkten</source>

@@ -908,7 +908,7 @@
 
                 <!-- Karte 2: Ergebnis (schmaler, zentriert) -->
                 @if (effectiveStatus() !== 'QUESTION_OPEN') {
-                  <div class="session-host__results-wrap">
+                  <div class="session-host__results-wrap" #hostResultsSection>
                     <mat-card appearance="outlined" class="session-host__results-card">
                       <mat-card-content>
                         @if (q.type === 'RATING') {
@@ -1332,7 +1332,7 @@
                               </p>
                             </div>
                           }
-                          <ul class="session-host__answers" role="list">
+                          <ul class="session-host__answers" role="list" #hostAnswersList>
                             @for (a of q.answers; track a.id; let i = $index) {
                               <li
                                 class="session-host__answer"
@@ -1560,7 +1560,8 @@
                         </span>
                         <span class="session-host__interim-score"
                           >{{ teamMemberLabel(entry.memberCount) }} ·
-                          {{ '∅ ' + (entry.totalScore | number) }} <span i18n>Pkt.</span></span
+                          {{ '∅ ' + (entry.totalScore | number) }}
+                          <span i18n="@@sessionHost.pointsAbbr">Pkt.</span></span
                         >
                       </li>
                     }

@@ -700,6 +700,64 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt in RESULTS ohne eigene Antwort einen klaren Hinweis statt leerer Motivation', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+
+    inst.status.set('RESULTS');
+    inst.currentQuestion.set({
+      id: 'q1',
+      text: 'Frage',
+      type: 'SINGLE_CHOICE',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A', isCorrect: true, voteCount: 1, votePercentage: 100 },
+        { id: 'a2', text: 'B', isCorrect: false, voteCount: 0, votePercentage: 0 },
+      ],
+      totalVotes: 1,
+    } as never);
+    inst.voteSent.set(false);
+    inst.timeoutMessage.set(null);
+
+    expect(inst.unansweredResultsMessage()).toContain('keine Antwort');
+    fixture.destroy();
+  });
+
+  it('zeigt für Platz 1 im Finale eine explizite Sieger-Copy', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+
+    inst.personalResultLoaded.set(true);
+    inst.personalScore.set(180);
+    inst.personalRank.set(1);
+
+    expect(inst.finishedHeroTitle()).toContain('gewonnen');
+    fixture.destroy();
+  });
+
+  it('zeigt beim finalen Teamsieg eine stärkere Teamsieg-Copy', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+
+    inst.status.set('FINISHED');
+    inst.participantTeam.set({ teamName: 'Rot' } as never);
+    inst.teamLeaderboard.set([
+      {
+        rank: 1,
+        teamName: 'Rot',
+        teamColor: '#1E88E5',
+        totalScore: 240,
+        memberCount: 3,
+        averageScore: 80,
+      },
+    ]);
+
+    expect(inst.teamRewardTitle()).toContain('gewinnt');
+    expect(inst.teamRewardMessage()).toContain('Platz 1');
+    fixture.destroy();
+  });
+
   it('übernimmt bei ACTIVE → RESULTS die aufgelösten Antworten (isCorrect), statt die Student-Liste zu behalten', async () => {
     const qid = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
     const studentQ = {
@@ -1528,6 +1586,100 @@ describe('SessionVoteComponent', () => {
     fixture.detectChanges();
     expect(c.activeChannel()).toBe('quiz');
 
+    fixture.destroy();
+  });
+
+  it('entfernt in Peer-Instruction-Runde 2 den Countdown bei gleicher Frage', async () => {
+    const nowIso = new Date().toISOString();
+    let statusListener: ((data: unknown) => void) | null = null;
+    statusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        statusListener = opts.onData;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      preset: 'SERIOUS',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock
+      .mockResolvedValueOnce({
+        id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        order: 0,
+        text: 'Welche Antwort stimmt?',
+        type: 'SINGLE_CHOICE',
+        timer: 60,
+        difficulty: 'MEDIUM',
+        answers: [
+          { id: 'a1', text: 'Rot' },
+          { id: 'a2', text: 'Blau' },
+        ],
+        activeAt: nowIso,
+        participantCount: 6,
+        totalVotes: 1,
+        currentRound: 1,
+      })
+      .mockResolvedValueOnce({
+        id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        order: 0,
+        text: 'Welche Antwort stimmt?',
+        type: 'SINGLE_CHOICE',
+        timer: null,
+        difficulty: 'MEDIUM',
+        answers: [
+          { id: 'a1', text: 'Rot' },
+          { id: 'a2', text: 'Blau' },
+        ],
+        activeAt: nowIso,
+        participantCount: 6,
+        totalVotes: 1,
+        currentRound: 2,
+      });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.currentQuestion()).not.toBeNull();
+      },
+      { timeout: 3000, interval: 10 },
+    );
+
+    expect(fixture.componentInstance.countdownSeconds()).not.toBeNull();
+
+    statusListener?.({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 2,
+      activeAt: nowIso,
+      timer: null,
+      serverTime: nowIso,
+    });
+
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.currentRound()).toBe(2);
+        expect(fixture.componentInstance.countdownSeconds()).toBeNull();
+      },
+      { timeout: 3000, interval: 10 },
+    );
+
+    expect(fixture.nativeElement.querySelector('.vote-countdown')).toBeNull();
     fixture.destroy();
   });
 

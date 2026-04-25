@@ -65,6 +65,13 @@ export function voteFinishedHeroTitle(playful: boolean): string {
   return $localize`:@@sessionVote.finishedTitleSerious:Session beendet`;
 }
 
+export function voteFinishedHeroWinnerTitle(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.finishedTitlePlayfulWinner:Du hast gewonnen!`;
+  }
+  return $localize`:@@sessionVote.finishedTitleSeriousWinner:Du gewinnst das Quiz.`;
+}
+
 export function voteFinishedRankLabel(playful: boolean): string {
   if (playful) {
     return $localize`:@@sessionVote.finishedRankPlayful:Rang`;
@@ -511,6 +518,13 @@ export function voteFeedbackSnack(playful: boolean): string {
     return $localize`:@@sessionVote.feedbackSnackPlayful:Feedback gelandet – danke!`;
   }
   return $localize`:@@sessionVote.feedbackSnackSerious:Danke für dein Feedback!`;
+}
+
+export function voteMissedResultsMessage(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.missedResultsPlayful:Diesmal keine Antwort mehr – gleich kommt die nächste Chance!`;
+  }
+  return $localize`:@@sessionVote.missedResultsSerious:Keine Antwort mehr rechtzeitig abgegeben. Die nächste Frage folgt.`;
 }
 
 export function voteTeamLeaderHintPlayful(leaderName: string, leaderScore: number): string {

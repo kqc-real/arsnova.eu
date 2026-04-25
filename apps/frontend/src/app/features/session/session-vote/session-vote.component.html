@@ -981,6 +981,10 @@
                 {{ motivationMessage() }}
               </p>
             }
+          } @else if (unansweredResultsMessage(); as missedMessage) {
+            <p class="vote-motivation" id="vote-result-message" aria-live="polite">
+              {{ missedMessage }}
+            </p>
           }
           @if (showRewardEffect()) {
             <div class="vote-reward" role="status" aria-live="polite">

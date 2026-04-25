@@ -152,6 +152,44 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     expect(result!.timer).toBe(30);
   });
 
+  it('liefert in Peer-Instruction-Runde 2 keinen Host-Timer mehr', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 2,
+      answerDisplayOrder: null,
+      quiz: {
+        defaultTimer: 40,
+        timerScaleByDifficulty: true,
+        preset: 'PLAYFUL',
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            order: 0,
+            text: 'Transferfrage',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'HARD',
+            timer: 30,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            answers: [
+              { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: true },
+              { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: false },
+            ],
+          },
+        ],
+      },
+    });
+
+    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+    expect(result).not.toBeNull();
+    expect(result!.timer).toBeNull();
+  });
+
   it('liefert in aktiver Runde 1 nur Stimmenzahl plus Peer-Instruction-Empfehlung ohne Verteilung', async () => {
     const wrongId = 'aaaaaaaa-1111-4111-8111-111111111111';
     const correctId = 'bbbbbbbb-2222-4222-8222-222222222222';

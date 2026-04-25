@@ -957,7 +957,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const anyTeamScored = this.teamScoreboardHasPoints();
     if (this.isFinished()) {
       return entry.rank === 1 && anyTeamScored
-        ? $localize`:@@sessionVote.teamRewardTitleWinFin:Team-Sieg!`
+        ? $localize`:@@sessionVote.teamRewardTitleWinFin:Ihr gewinnt als Team!`
         : $localize`:@@sessionVote.teamRewardTitleFinishedOther:Im Ziel`;
     }
     if (entry.totalScore <= 0) {
@@ -979,7 +979,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const anyTeamScored = this.teamScoreboardHasPoints();
     if (this.isFinished()) {
       if (entry.rank === 1 && anyTeamScored) {
-        return $localize`:@@sessionVote.teamRewardMsgWinFin:Gemeinsam geschafft: ${entry.totalScore}:totalScore: Punkte und Platz 1.`;
+        return $localize`:@@sessionVote.teamRewardMsgWinFin:Gemeinsam gewonnen: Platz 1 für euch.`;
       }
       if (!anyTeamScored) {
         return $localize`:@@sessionVote.teamRewardMsgFinishedAllZero:Quiz beendet – es wurden keine Team-Punkte vergeben.`;
@@ -1028,7 +1028,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ? $localize`:@@sessionVote.finishedTitlePlayfulNeutral:Das war's – danke fürs Mitmachen!`
         : vpc.voteFinishedHeroTitle(false);
     }
+    if (this.personalRank() === 1) {
+      return vpc.voteFinishedHeroWinnerTitle(playful);
+    }
     return vpc.voteFinishedHeroTitle(playful);
+  }
+
+  unansweredResultsMessage(): string | null {
+    if (!this.isResults() || this.voteSent() || !this.currentQuestion()) {
+      return null;
+    }
+    return this.timeoutMessage() ?? vpc.voteMissedResultsMessage(this.isPlayfulPreset());
   }
 
   finishedHeroMatIcon(): string {
@@ -1048,7 +1058,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!this.teamScoreboardHasPoints()) {
       return $localize`:@@sessionVote.teamStandingNoRank:${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
     }
-    return $localize`Platz ${entry.rank}:teamRank:: ${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Punkten`;
+    return $localize`:@@sessionVote.teamStandingWithMembers:Platz ${entry.rank}:teamRank:: ${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Punkten`;
   }
 
   private teamNameDisplayLabel(teamName: string): string {
@@ -1216,6 +1226,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           if (data.status === 'ACTIVE' && data.activeAt && data.timer && data.timer > 0) {
             const deadline = new Date(data.activeAt).getTime() + data.timer * 1000;
             this.startCountdownFromDeadline(deadline);
+          } else if (data.status === 'ACTIVE') {
+            this.stopCountdown();
+            this.countdownSeconds.set(null);
           } else if (data.status !== 'ACTIVE') {
             this.stopCountdown();
             this.countdownSeconds.set(null);
@@ -1854,6 +1867,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.emojiSent.set(false);
         this.emojiSentEmoji.set('');
         this.startCountdown(q);
+      } else if (prevHadTimer && !newHasTimer) {
+        this.stopCountdown();
+        this.countdownSeconds.set(null);
       } else if (!prevHadTimer && newHasTimer && !this.countdownTimer) {
         this.startCountdown(q);
       }
