@@ -2318,7 +2318,7 @@ describe('SessionHostComponent', () => {
     ) as HTMLElement | null;
     expect(interimName?.textContent ?? '').toContain('Rot');
     expect(interimScore?.textContent ?? '').toContain('3 Mitglieder');
-    expect(interimScore?.textContent ?? '').toContain('220');
+    expect(interimScore?.textContent ?? '').toContain('∅ 220');
     expect(interimName?.querySelector('.session-host__interim-team-dot')).toBeNull();
     expect(interimName?.querySelector('.session-host__interim-team-emoji')?.textContent).toBe('🍎');
     fixture.destroy();

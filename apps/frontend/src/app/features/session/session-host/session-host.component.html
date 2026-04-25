@@ -722,7 +722,7 @@
                             </span>
                             <span class="session-host__team-bar-meta">
                               {{ teamMemberLabel(entry.memberCount) }} ·
-                              {{ entry.totalScore | number }}
+                              {{ '∅ ' + (entry.totalScore | number) }}
                             </span>
                           </div>
                           <div class="session-host__team-bar-track" aria-hidden="true">
@@ -1560,7 +1560,7 @@
                         </span>
                         <span class="session-host__interim-score"
                           >{{ teamMemberLabel(entry.memberCount) }} ·
-                          {{ entry.totalScore | number }} <span i18n>Pkt.</span></span
+                          {{ '∅ ' + (entry.totalScore | number) }} <span i18n>Pkt.</span></span
                         >
                       </li>
                     }

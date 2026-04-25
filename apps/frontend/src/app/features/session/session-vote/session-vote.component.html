@@ -532,7 +532,7 @@
                 </div>
                 <div class="vote-team-reward__stat">
                   <span class="vote-team-reward__stat-value">{{
-                    ownTeam.totalScore | number
+                    '∅ ' + (ownTeam.totalScore | number)
                   }}</span>
                   <span class="vote-team-reward__stat-label">{{
                     vpc.voteTeamStatPoints(isPlayfulPreset())
@@ -595,7 +595,7 @@
                             teamMemberLabel(entry.memberCount)
                           }}</span>
                           <span class="vote-team-reward__board-score">{{
-                            entry.totalScore | number
+                            '∅ ' + (entry.totalScore | number)
                           }}</span>
                         </span>
                       </div>
@@ -1204,7 +1204,7 @@
                 </div>
                 <div class="vote-team-reward__stat">
                   <span class="vote-team-reward__stat-value">{{
-                    ownTeam.totalScore | number
+                    '∅ ' + (ownTeam.totalScore | number)
                   }}</span>
                   <span class="vote-team-reward__stat-label">{{
                     vpc.voteTeamStatPoints(isPlayfulPreset())
@@ -1258,7 +1258,7 @@
                             teamMemberLabel(entry.memberCount)
                           }}</span>
                           <span class="vote-team-reward__board-score">{{
-                            entry.totalScore | number
+                            '∅ ' + (entry.totalScore | number)
                           }}</span>
                         </span>
                       </div>
