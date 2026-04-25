@@ -2250,10 +2250,25 @@
   font-weight: 600;
 }
 
+.vote-team-reward__board-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  text-align: right;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.vote-team-reward__board-members {
+  white-space: nowrap;
+}
+
 .vote-team-reward__board-score {
   font: var(--mat-sys-title-small);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-on-surface);
 }
 
 .vote-team-reward__board-track {
@@ -2279,9 +2294,11 @@
     grid-template-columns: auto 1fr;
   }
 
-  .vote-team-reward__board-score {
+  .vote-team-reward__board-meta {
     grid-column: 1 / -1;
     padding-left: 1.8rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 

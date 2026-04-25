@@ -1046,14 +1046,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   teamStandingAriaLabel(entry: TeamLeaderboardEntryDTO): string {
     const teamLabel = this.teamNameDisplayLabel(entry.teamName);
     if (!this.teamScoreboardHasPoints()) {
-      return $localize`:@@sessionVote.teamStandingNoRank:${teamLabel}:teamName: mit ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
+      return $localize`:@@sessionVote.teamStandingNoRank:${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
     }
-    return $localize`Platz ${entry.rank}:teamRank:: ${teamLabel}:teamName: mit ${entry.totalScore}:totalScore: Punkten`;
+    return $localize`Platz ${entry.rank}:teamRank:: ${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Punkten`;
   }
 
   private teamNameDisplayLabel(teamName: string): string {
     const label = stripEdgeEmojiMarker(teamName).trim();
     return label.length > 0 ? label : $localize`Team`;
+  }
+
+  teamMemberLabel(count: number): string {
+    return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
   }
 
   teamScoreBarWidth(totalScore: number): string {

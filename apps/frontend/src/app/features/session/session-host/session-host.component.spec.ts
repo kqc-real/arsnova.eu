@@ -2307,10 +2307,18 @@ describe('SessionHostComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
-    const interimName = fixture.nativeElement.querySelector(
+    const teamInterim = fixture.nativeElement.querySelector(
+      '.session-host__interim-leaderboard--teams',
+    ) as HTMLElement | null;
+    const interimName = teamInterim?.querySelector(
       '.session-host__interim-name',
     ) as HTMLElement | null;
+    const interimScore = teamInterim?.querySelector(
+      '.session-host__interim-score',
+    ) as HTMLElement | null;
     expect(interimName?.textContent ?? '').toContain('Rot');
+    expect(interimScore?.textContent ?? '').toContain('3 Mitglieder');
+    expect(interimScore?.textContent ?? '').toContain('220');
     expect(interimName?.querySelector('.session-host__interim-team-dot')).toBeNull();
     expect(interimName?.querySelector('.session-host__interim-team-emoji')?.textContent).toBe('🍎');
     fixture.destroy();

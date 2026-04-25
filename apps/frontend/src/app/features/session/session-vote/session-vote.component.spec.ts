@@ -287,6 +287,7 @@ describe('SessionVoteComponent', () => {
     expect(text).toContain('Euer Team');
     expect(text).toContain('Rot');
     expect(text).toContain('Team-Punkte');
+    expect(text).toContain('3 Mitglieder');
     expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
     fixture.destroy();
   });

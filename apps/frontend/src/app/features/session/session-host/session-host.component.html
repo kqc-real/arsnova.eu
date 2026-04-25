@@ -1558,8 +1558,9 @@
                             <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
                           }
                         </span>
-                        <span class="session-host__interim-score" i18n
-                          >{{ entry.totalScore | number }} Pkt.</span
+                        <span class="session-host__interim-score"
+                          >{{ teamMemberLabel(entry.memberCount) }} ·
+                          {{ entry.totalScore | number }} <span i18n>Pkt.</span></span
                         >
                       </li>
                     }

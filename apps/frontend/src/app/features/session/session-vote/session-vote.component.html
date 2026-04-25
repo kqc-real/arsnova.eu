@@ -590,9 +590,14 @@
                             <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
                           }
                         </span>
-                        <span class="vote-team-reward__board-score">{{
-                          entry.totalScore | number
-                        }}</span>
+                        <span class="vote-team-reward__board-meta">
+                          <span class="vote-team-reward__board-members">{{
+                            teamMemberLabel(entry.memberCount)
+                          }}</span>
+                          <span class="vote-team-reward__board-score">{{
+                            entry.totalScore | number
+                          }}</span>
+                        </span>
                       </div>
                       <div class="vote-team-reward__board-track" aria-hidden="true">
                         <div
@@ -1248,9 +1253,14 @@
                             <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
                           }
                         </span>
-                        <span class="vote-team-reward__board-score">{{
-                          entry.totalScore | number
-                        }}</span>
+                        <span class="vote-team-reward__board-meta">
+                          <span class="vote-team-reward__board-members">{{
+                            teamMemberLabel(entry.memberCount)
+                          }}</span>
+                          <span class="vote-team-reward__board-score">{{
+                            entry.totalScore | number
+                          }}</span>
+                        </span>
                       </div>
                       <div class="vote-team-reward__board-track" aria-hidden="true">
                         <div
