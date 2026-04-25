@@ -64,7 +64,7 @@ function convertArsnovaClickExport(source: JsonRecord): NormalizedQuizImportPayl
       kind: 'ignored_quiz_options',
       message:
         'Einige Quiz-Einstellungen wie Musik, Anzeige oder Namensvorgaben wurden nicht übernommen.',
-      detail: `Nicht uebernommene Felder: ${ignoredQuizOptionLabels.join(', ')}`,
+      detail: `Nicht übernommene Felder: ${ignoredQuizOptionLabels.join(', ')}`,
     });
   }
 

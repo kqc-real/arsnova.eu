@@ -4513,7 +4513,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="7951174868113052982" datatype="html">
-        <source> Die besten Teilnehmenden erhalten nach dem Quiz einen persoenlichen Code, den sie freiwillig bei dir einreichen koennen. </source>
+        <source> Die besten Teilnehmenden erhalten nach dem Quiz einen persönlichen Code, den sie freiwillig bei dir einreichen können. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">416,417</context>
@@ -4524,7 +4524,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="6661999155510691727" datatype="html">
-        <source>Anzahl Top-Plaetze</source>
+        <source>Anzahl Top-Plätze</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">420</context>
@@ -4568,7 +4568,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="5166102967830738793" datatype="html">
-        <source>Hoechstens 50.</source>
+        <source>Höchstens 50.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">438</context>

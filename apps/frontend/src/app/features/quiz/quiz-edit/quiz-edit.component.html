@@ -418,11 +418,11 @@
               </mat-checkbox>
               @if (isBonusEnabled()) {
                 <p class="quiz-edit-form__fieldset-hint" i18n>
-                  Die besten Teilnehmenden erhalten nach dem Quiz einen persoenlichen Code, den sie
-                  freiwillig bei dir einreichen koennen.
+                  Die besten Teilnehmenden erhalten nach dem Quiz einen persönlichen Code, den sie
+                  freiwillig bei dir einreichen können.
                 </p>
                 <mat-form-field appearance="outline">
-                  <mat-label i18n>Anzahl Top-Plaetze</mat-label>
+                  <mat-label i18n>Anzahl Top-Plätze</mat-label>
                   <input
                     matInput
                     type="number"
@@ -440,7 +440,7 @@
                     <mat-error i18n>Mindestens 1.</mat-error>
                   }
                   @if (bonusTokenCountControl.hasError('max')) {
-                    <mat-error i18n>Hoechstens 50.</mat-error>
+                    <mat-error i18n>Höchstens 50.</mat-error>
                   }
                 </mat-form-field>
               }

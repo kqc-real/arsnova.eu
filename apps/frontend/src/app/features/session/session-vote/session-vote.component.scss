@@ -1535,7 +1535,7 @@
     transform 80ms ease,
     border-color 150ms ease,
     background 150ms ease;
-  gap: 1rem;
+  gap: 1.15rem;
   text-align: left;
 
   &:active:not(:disabled) {
@@ -1623,6 +1623,13 @@
 
   &__spinner {
     flex-shrink: 0;
+  }
+}
+
+@media (max-width: 599px) {
+  .vote-answer {
+    gap: 1.35rem;
+    padding-inline: 1.35rem;
   }
 }
 
