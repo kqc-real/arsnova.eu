@@ -46,6 +46,10 @@ function resolveHljsLanguage(raw: string | undefined): string | null {
   return hljs.getLanguage(name) ? name : null;
 }
 
+function getMarkdownCopyCodeLabel(): string {
+  return $localize`:@@markdown.copyCode:Code kopieren`;
+}
+
 /**
  * HTML für einen Markdown-Codeblock (` ```lang ` bzw. eingerückt), inkl. Syntax-Highlighting.
  */
@@ -75,5 +79,6 @@ export function renderMarkdownCodeBlockHtml({ text, lang }: Tokens.Code): string
     ? fenceLanguageClassToken(lang)
     : `language-${escapeHtml(DEFAULT_MARKDOWN_FENCE_LANGUAGE)}`;
   const classes = ['hljs', langClass].filter(Boolean).join(' ');
-  return `<pre><code class="${classes}">${highlighted}</code></pre>\n`;
+  const copyCodeLabel = escapeHtml(getMarkdownCopyCodeLabel());
+  return `<div class="markdown-code-block" data-markdown-code-block="true"><button type="button" class="markdown-code-block__copy" data-markdown-code-copy="true" title="${copyCodeLabel}" aria-label="${copyCodeLabel}">${copyCodeLabel}</button><pre><code class="${classes}">${highlighted}</code></pre></div>\n`;
 }

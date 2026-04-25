@@ -7,6 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   MarkdownImageLightboxData,
   MarkdownImageLightboxDialogComponent,
@@ -22,7 +23,9 @@ import {
 export class MarkdownImageLightboxDirective implements AfterViewInit, OnDestroy {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly managedImages = new WeakSet<HTMLImageElement>();
+  private readonly copyResetTimers = new Map<HTMLButtonElement, number>();
   private observer: MutationObserver | null = null;
 
   ngAfterViewInit(): void {
@@ -55,11 +58,21 @@ export class MarkdownImageLightboxDirective implements AfterViewInit, OnDestroy 
   ngOnDestroy(): void {
     this.observer?.disconnect();
     this.observer = null;
+    for (const timerId of this.copyResetTimers.values()) {
+      clearTimeout(timerId);
+    }
+    this.copyResetTimers.clear();
   }
 
   @HostListener('click', ['$event'])
   onClick(event: MouseEvent): void {
     if (!(event.target instanceof Element)) {
+      return;
+    }
+
+    const copyButton = event.target.closest('button[data-markdown-code-copy="true"]');
+    if (copyButton instanceof HTMLButtonElement) {
+      void this.copyMarkdownCode(copyButton, event);
       return;
     }
 
@@ -99,6 +112,77 @@ export class MarkdownImageLightboxDirective implements AfterViewInit, OnDestroy 
       panelClass: 'markdown-image-lightbox-dialog-panel',
       backdropClass: 'markdown-image-lightbox-dialog-backdrop',
     });
+  }
+
+  private async copyMarkdownCode(button: HTMLButtonElement, event: MouseEvent): Promise<void> {
+    if (!this.elementRef.nativeElement.contains(button)) {
+      return;
+    }
+
+    const block = button.closest('[data-markdown-code-block="true"]');
+    if (!(block instanceof HTMLElement)) {
+      return;
+    }
+
+    const code = block.querySelector('pre > code');
+    const text = code?.textContent ?? '';
+    if (!text) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const clipboard = this.elementRef.nativeElement.ownerDocument.defaultView?.navigator.clipboard;
+    try {
+      if (!clipboard) {
+        throw new Error('clipboard unavailable');
+      }
+      await clipboard.writeText(text);
+      this.reflectCodeCopied(button);
+      this.snackBar.open(
+        $localize`:@@markdown.copyCodeSuccess:Code wurde in die Zwischenablage kopiert.`,
+        '',
+        {
+          duration: 2500,
+        },
+      );
+    } catch {
+      this.snackBar.open(
+        $localize`:@@markdown.copyCodeFailed:Code konnte nicht kopiert werden. Bitte manuell markieren und kopieren.`,
+        '',
+        {
+          duration: 4000,
+        },
+      );
+    }
+  }
+
+  private reflectCodeCopied(button: HTMLButtonElement): void {
+    const idleLabel = $localize`:@@markdown.copyCode:Code kopieren`;
+    const copiedLabel = $localize`:@@markdown.codeCopied:Kopiert`;
+    const existingTimer = this.copyResetTimers.get(button);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    button.disabled = true;
+    button.dataset.markdownCopyState = 'copied';
+    button.textContent = copiedLabel;
+    button.setAttribute('aria-label', copiedLabel);
+    button.setAttribute('title', copiedLabel);
+
+    const timerId = window.setTimeout(() => {
+      if (button.isConnected) {
+        button.disabled = false;
+        button.dataset.markdownCopyState = 'idle';
+        button.textContent = idleLabel;
+        button.setAttribute('aria-label', idleLabel);
+        button.setAttribute('title', idleLabel);
+      }
+      this.copyResetTimers.delete(button);
+    }, 1800);
+    this.copyResetTimers.set(button, timerId);
   }
 
   private syncMarkdownImages(): void {

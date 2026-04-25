@@ -612,11 +612,67 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   max-width: 100%;
 }
 
+.markdown-body .markdown-code-block {
+  position: relative;
+  margin: 0.65rem 0;
+  max-width: 100%;
+}
+
+.markdown-body .markdown-code-block pre {
+  margin: 0;
+}
+
 .markdown-body pre code.hljs {
   display: block;
   padding: 0.75rem 1rem;
   border-radius: var(--mat-sys-corner-small);
   font-size: 0.875em;
+}
+
+.markdown-body .markdown-code-block pre code.hljs {
+  padding-top: 2.55rem;
+}
+
+.markdown-body .markdown-code-block__copy {
+  position: absolute;
+  inset-block-start: 0.55rem;
+  inset-inline-end: 0.55rem;
+  z-index: 1;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, transparent);
+  color: var(--mat-sys-on-surface);
+  box-shadow: var(--mat-sys-level1);
+  font: var(--mat-sys-label-small);
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.38rem 0.68rem;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.markdown-body .markdown-code-block__copy:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface-container-high));
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant));
+}
+
+.markdown-body .markdown-code-block__copy:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--mat-sys-primary) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.markdown-body .markdown-code-block__copy[data-markdown-copy-state='copied'] {
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-tertiary) 18%,
+    var(--mat-sys-surface-container-high)
+  );
+  border-color: color-mix(in srgb, var(--mat-sys-tertiary) 38%, var(--mat-sys-outline-variant));
+  color: var(--mat-sys-on-surface);
 }
 
 /* Bilder an Inhaltsbreite; !important gegen evtl. Attribute/Third-Party */

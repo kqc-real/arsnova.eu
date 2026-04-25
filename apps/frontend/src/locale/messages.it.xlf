@@ -812,6 +812,37 @@
           <context context-type="linenumber">289,291</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="markdown.copyCode" datatype="html">
+        <source>Code kopieren</source>
+        <target>Copia codice</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-code-highlight.ts</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-image-lightbox/markdown-image-lightbox.directive.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="markdown.codeCopied" datatype="html">
+        <source>Kopiert</source>
+        <target>Copiato</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-image-lightbox/markdown-image-lightbox.directive.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="markdown.copyCodeSuccess" datatype="html">
+        <source>Code wurde in die Zwischenablage kopiert.</source>
+        <target>Il codice è stato copiato negli appunti.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-image-lightbox/markdown-image-lightbox.directive.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="markdown.copyCodeFailed" datatype="html">
+        <source>Code konnte nicht kopiert werden. Bitte manuell markieren und kopieren.</source>
+        <target>Impossibile copiare il codice. Selezionalo e copialo manualmente.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-image-lightbox/markdown-image-lightbox.directive.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="admin.motd.visibleArchive" datatype="html">
         <source>Im Nutzer-Archiv sichtbar</source>
         <target>Visibile nell&apos;archivio utente</target>

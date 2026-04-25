@@ -153,6 +153,9 @@ describe('renderMarkdownWithoutKatex', () => {
   it('rendert eingezäunte Codeblöcke als pre/code (ohne $-KaTeX)', () => {
     const html = renderMarkdownWithoutKatex('Text\n\n```json\n{"a":1}\n```\n');
 
+    expect(html).toContain('data-markdown-code-block="true"');
+    expect(html).toContain('data-markdown-code-copy="true"');
+    expect(html).toContain('Code kopieren');
     expect(html).toContain('<pre><code class="hljs language-json">');
     expect(html).toContain('hljs-');
     // JSON wird in Spans zerlegt; Inhalt bleibt erkennbar.
@@ -163,6 +166,7 @@ describe('renderMarkdownWithoutKatex', () => {
 
   it('behandelt Fences ohne Sprach-Tag standardmäßig als Python', () => {
     const html = renderMarkdownWithoutKatex('```\nprint(1)\n```\n');
+    expect(html).toContain('data-markdown-code-copy="true"');
     expect(html).toContain('<pre><code class="hljs language-python">');
     expect(html).toContain('hljs-');
   });
