@@ -633,14 +633,16 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   display: inline-block;
   font-size: 0.9em;
   line-height: 1;
-  margin-inline-end: 0.55rem;
+  margin-inline-end: 14px;
   vertical-align: -0.06em;
 }
 
 @media (max-width: 599px) {
   .vote-answer__text .answer-leading-emoji,
   .session-host__answer-text .answer-leading-emoji {
-    margin-inline-end: 0.65rem;
+    line-height: 0.88;
+    margin-inline-end: 14px;
+    vertical-align: -0.09em;
   }
 }
 
