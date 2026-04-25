@@ -1,5 +1,5 @@
 {
-  "exportVersion": 20,
+  "exportVersion": 21,
   "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
     "name": "Teaching Showcase: Live Team Demo",
@@ -101,7 +101,7 @@
         ]
       },
       {
-        "text": "### How many visible pieces does the classic Rubik’s Cube have?\n\n> **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.\n\nThe question refers to the classic Rubik’s Cube designed by Ernő Rubik.\n\nOptional prompt: [How to solve your Rubik’s Cube in just 2 moves 😍 (in German)](https://www.youtube.com/shorts/7Ngtk3j_QJM).",
+        "text": "### How many visible pieces does the classic Rubik’s Cube have?\n\n> **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.\n\nThe question refers to the classic Rubik’s Cube designed by Ernő Rubik.\n\nOptional prompt: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (in German)](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",

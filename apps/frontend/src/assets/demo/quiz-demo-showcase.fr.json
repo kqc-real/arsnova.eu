@@ -1,5 +1,5 @@
 {
-  "exportVersion": 20,
+  "exportVersion": 21,
   "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
     "name": "Showcase pédagogique : démo en équipe",
@@ -101,7 +101,7 @@
         ]
       },
       {
-        "text": "### Combien de pièces visibles possède le Rubik’s Cube classique ?\n\n> **Usage pédagogique :** Utilise cela pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.\n\nIl s’agit du Rubik’s Cube classique conçu par Ernő Rubik.\n\nImpulsion facultative : [Comment résoudre ton Rubik’s Cube en seulement 2 étapes 😍 (en allemand)](https://www.youtube.com/shorts/7Ngtk3j_QJM).",
+        "text": "### Combien de pièces visibles possède le Rubik’s Cube classique ?\n\n> **Usage pédagogique :** Utilise cela pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.\n\nIl s’agit du Rubik’s Cube classique conçu par Ernő Rubik.\n\nImpulsion facultative : [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (en allemand)](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
