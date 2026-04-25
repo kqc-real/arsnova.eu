@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const demoDir = path.join(__dirname, '../src/assets/demo');
 const md = String.raw;
 
-const EXPORT_VERSION = 18;
+const EXPORT_VERSION = 20;
 const EXPORTED_AT = '2026-04-24T14:30:00.000Z';
 
 const EMOTION_IMAGE_URL =
@@ -228,7 +228,9 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
 
 > **Unterrichtsidee:** Nutze das für einen spielshowartigen Moment mit Tempo, Spannung und sichtbarem Teamwettbewerb.
 
-Gemeint ist der klassische Rubik’s Cube von Ernő Rubik.`,
+Gemeint ist der klassische Rubik’s Cube von Ernő Rubik.
+
+Optionaler Impuls: [So löst du deinen Zauberwürfel mit nur 2 Schritten 😍](https://www.youtube.com/shorts/7Ngtk3j_QJM).`,
         answers: [
           { text: '28', isCorrect: false },
           { text: '26', isCorrect: true },
@@ -345,7 +347,9 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
 
 > **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.
 
-The question refers to the classic Rubik’s Cube designed by Ernő Rubik.`,
+The question refers to the classic Rubik’s Cube designed by Ernő Rubik.
+
+Optional prompt: [How to solve your Rubik’s Cube in just 2 moves 😍 (in German)](https://www.youtube.com/shorts/7Ngtk3j_QJM).`,
         answers: [
           { text: '28', isCorrect: false },
           { text: '26', isCorrect: true },
@@ -462,7 +466,9 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
 
 > **Usage pédagogique :** Utilise cela pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
 
-Il s’agit du Rubik’s Cube classique conçu par Ernő Rubik.`,
+Il s’agit du Rubik’s Cube classique conçu par Ernő Rubik.
+
+Impulsion facultative : [Comment résoudre ton Rubik’s Cube en seulement 2 étapes 😍 (en allemand)](https://www.youtube.com/shorts/7Ngtk3j_QJM).`,
         answers: [
           { text: '28', isCorrect: false },
           { text: '26', isCorrect: true },
@@ -579,7 +585,9 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
 
 > **Uso didáctico:** Úsalo para crear un momento tipo concurso, con ritmo, suspense y competencia visible entre equipos.
 
-La pregunta se refiere al cubo de Rubik clásico diseñado por Ernő Rubik.`,
+La pregunta se refiere al cubo de Rubik clásico diseñado por Ernő Rubik.
+
+Sugerencia opcional: [Cómo resolver tu cubo de Rubik en solo 2 pasos 😍 (en alemán)](https://www.youtube.com/shorts/7Ngtk3j_QJM).`,
         answers: [
           { text: '28', isCorrect: false },
           { text: '26', isCorrect: true },
@@ -696,7 +704,9 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
 
 > **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.
 
-La domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.`,
+La domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.
+
+Spunto facoltativo: [Come risolvere il tuo Cubo di Rubik in soli 2 passaggi 😍 (in tedesco)](https://www.youtube.com/shorts/7Ngtk3j_QJM).`,
         answers: [
           { text: '28', isCorrect: false },
           { text: '26', isCorrect: true },

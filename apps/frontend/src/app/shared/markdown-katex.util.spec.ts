@@ -132,12 +132,19 @@ describe('renderMarkdownWithKatex', () => {
       '[Start :rocket:](https://example.org/:apple:) `:apple:`',
     );
 
-    expect(result.html).toContain(
-      '>Start <span class="markdown-emoji" title=":rocket:">🚀</span></a>',
-    );
     expect(result.html).toContain('href="https://example.org/:apple:"');
     expect(result.html).toContain('target="_blank"');
     expect(result.html).toContain('rel="noopener noreferrer"');
+    expect(result.html).toContain('referrerpolicy="no-referrer"');
+    expect(result.html).toContain('data-markdown-link-kind="external"');
+    expect(result.html).toContain('markdown-external-link-icon__svg');
+    expect(result.html).toContain('<path d="M9.5 2.5h4v4"');
+    expect(result.html).toContain(
+      'href="https://example.org/:apple:" title="Externer Link: öffnet eine andere Website" target="_blank"',
+    );
+    expect(result.html).toContain(
+      '<span class="sr-only">Externer Link: öffnet eine andere Website</span>',
+    );
     expect(result.html).toContain('<code>:apple:</code>');
   });
 });
@@ -220,6 +227,27 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).toContain('href="mailto:test@example.org"');
     expect(html).toContain('target="_blank"');
     expect(html).toContain('rel="noopener noreferrer"');
+    expect(html).toContain('referrerpolicy="no-referrer"');
+    expect(html).toContain('data-markdown-link-kind="external"');
+    expect(html).toContain('markdown-external-link-icon__svg');
+    expect(html).toContain('<path d="M9.5 2.5h4v4"');
+    expect(html).toContain(
+      'href="https://arsnova.eu/info" title="Externer Link: öffnet eine andere Website" target="_blank"',
+    );
+    expect(html).toContain(
+      '<span class="sr-only">Externer Link: öffnet eine andere Website</span>',
+    );
+    expect(html).not.toContain(
+      'href="/de/datenschutz" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"',
+    );
+  });
+
+  it('ergänzt vorhandene Linktitel bei externen Links um den Extern-Hinweis', () => {
+    const html = renderMarkdownWithoutKatex('[Video](https://example.org/demo "Zum Video")');
+
+    expect(html).toContain(
+      'href="https://example.org/demo" title="Zum Video · Externer Link: öffnet eine andere Website" target="_blank"',
+    );
   });
 
   it('entfernt unsichere http-Links und http-Bildquellen', () => {

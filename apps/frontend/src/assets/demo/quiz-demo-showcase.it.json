@@ -1,5 +1,5 @@
 {
-  "exportVersion": 18,
+  "exportVersion": 20,
   "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
     "name": "Showcase didattico: demo a squadre",
@@ -101,7 +101,7 @@
         ]
       },
       {
-        "text": "### Quanti pezzi visibili ha il classico Cubo di Rubik?\n\n> **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.",
+        "text": "### Quanti pezzi visibili ha il classico Cubo di Rubik?\n\n> **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.\n\nSpunto facoltativo: [Come risolvere il tuo Cubo di Rubik in soli 2 passaggi 😍 (in tedesco)](https://www.youtube.com/shorts/7Ngtk3j_QJM).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",

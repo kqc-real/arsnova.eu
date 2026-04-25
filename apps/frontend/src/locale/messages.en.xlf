@@ -11787,6 +11787,13 @@
           <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="markdown.externalLink" datatype="html">
+        <source>Externer Link: öffnet eine andere Website</source>
+        <target>External link: opens another website</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex.util.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="motd.archiveCloseAria" datatype="html">
         <source>Schließen</source>
         <target>Close</target>

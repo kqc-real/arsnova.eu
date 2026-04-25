@@ -1,5 +1,5 @@
 {
-  "exportVersion": 18,
+  "exportVersion": 20,
   "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
     "name": "Praxis-Showcase: Live-Teamdemo",
@@ -101,7 +101,7 @@
         ]
       },
       {
-        "text": "### Wie viele sichtbare Teile hat der klassische Zauberwürfel?\n\n> **Unterrichtsidee:** Nutze das für einen spielshowartigen Moment mit Tempo, Spannung und sichtbarem Teamwettbewerb.\n\nGemeint ist der klassische Rubik’s Cube von Ernő Rubik.",
+        "text": "### Wie viele sichtbare Teile hat der klassische Zauberwürfel?\n\n> **Unterrichtsidee:** Nutze das für einen spielshowartigen Moment mit Tempo, Spannung und sichtbarem Teamwettbewerb.\n\nGemeint ist der klassische Rubik’s Cube von Ernő Rubik.\n\nOptionaler Impuls: [So löst du deinen Zauberwürfel mit nur 2 Schritten 😍](https://www.youtube.com/shorts/7Ngtk3j_QJM).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",

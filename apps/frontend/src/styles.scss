@@ -767,6 +767,26 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   text-underline-offset: 0.12em;
 }
 
+.markdown-body a[data-markdown-link-kind='external'] .markdown-external-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: 0.28em;
+  inline-size: 0.92em;
+  block-size: 0.92em;
+  vertical-align: 0.08em;
+}
+
+.markdown-body a[data-markdown-link-kind='external'] .markdown-external-link-icon__svg {
+  inline-size: 100%;
+  block-size: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .cdk-overlay-pane.admin-motd-template-dialog-panel
   .admin-motd-tpl-dialog__preview.markdown-body
   code {

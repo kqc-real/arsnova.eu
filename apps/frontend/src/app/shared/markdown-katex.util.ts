@@ -15,6 +15,8 @@ export type MarkdownImagePolicy = 'external-https-only' | 'allow-relative-and-ht
 const MARKDOWN_EMOJI_SHORTCODES = new Map(Object.entries(MARKDOWN_EMOJI_SHORTCODE_MAP));
 
 const EMOJI_SHORTCODE_PATTERN = /:([a-z0-9_+-]+):/gi;
+const EXTERNAL_LINK_SVG =
+  '<svg class="markdown-external-link-icon__svg" viewBox="0 0 16 16" focusable="false" aria-hidden="true"><path d="M9.5 2.5h4v4" /><path d="M8.5 7.5 13.5 2.5" /><path d="M13.5 8.5v3a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>';
 
 /**
  * Bereinigt typische Nutzer-/Escape-Artefakte vor KaTeX.
@@ -100,9 +102,19 @@ function parseMarkdownEscapingInlineHtml(
     }
     const hrefEsc = escapeHtml(safeHref);
     const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
-    const titleAttr = hasTitle ? ` title="${escapeHtml(String(title).trim())}"` : '';
     const renderedText = looksLikeRenderedHtml(text) ? text : renderMarkdownText(text);
-    return `<a href="${hrefEsc}"${titleAttr} target="_blank" rel="noopener noreferrer">${renderedText}</a>`;
+    const isExternal = isExternalHttpsMarkdownUrl(safeHref);
+    const linkTitle = hasTitle ? String(title).trim() : '';
+    const externalLinkHint = getExternalLinkHint();
+    const effectiveTitle = buildMarkdownLinkTitle(linkTitle, isExternal ? externalLinkHint : '');
+    const titleAttr = effectiveTitle ? ` title="${escapeHtml(effectiveTitle)}"` : '';
+    const privacyAttrs = isExternal
+      ? ' referrerpolicy="no-referrer" data-markdown-link-kind="external"'
+      : '';
+    const externalIcon = isExternal
+      ? `<span class="markdown-external-link-icon" aria-hidden="true">${EXTERNAL_LINK_SVG}</span><span class="sr-only">${escapeHtml(externalLinkHint)}</span>`
+      : '';
+    return `<a href="${hrefEsc}"${titleAttr} target="_blank" rel="noopener noreferrer"${privacyAttrs}>${renderedText}${externalIcon}</a>`;
   };
   /** `alt` allein löst keinen Hover-Tooltip aus; `title` schon (optional explizit in `![](url "title")`). */
   renderer.image = ({ href, title, text }): string => {
@@ -170,6 +182,14 @@ export function appendMotdContentVersionToAssetImgSrc(
 
 function mathPlaceholder(index: number): string {
   return `KATEXPLACEHOLDERTOKEN${index}`;
+}
+
+function getExternalLinkHint(): string {
+  return $localize`:@@markdown.externalLink:Externer Link: öffnet eine andere Website`;
+}
+
+function buildMarkdownLinkTitle(baseTitle: string, externalHint: string): string {
+  return [baseTitle, externalHint].filter(Boolean).join(' · ');
 }
 
 function renderMarkdownText(value: string): string {
@@ -266,6 +286,14 @@ function isLoopbackHttpUrl(value: string): boolean {
   }
 }
 
+function isExternalHttpsMarkdownUrl(value: string): boolean {
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function isSafeInlineDataImageUrl(value: string): boolean {
   return /^data:image\/(?:png|apng|avif|gif|jpeg|jpg|webp|bmp);base64,[a-z0-9+/=]+$/i.test(value);
 }
@@ -304,6 +332,8 @@ function sanitizeMarkdownHtml(html: string): string {
       'a',
       'img',
       'span',
+      'svg',
+      'path',
       // KaTeX (MathML + Annotation) – für A11y und Tests.
       'math',
       'semantics',
@@ -337,10 +367,19 @@ function sanitizeMarkdownHtml(html: string): string {
       'decoding',
       'crossorigin',
       'referrerpolicy',
+      'data-markdown-link-kind',
+      'aria-hidden',
+      'focusable',
+      'viewBox',
+      'd',
+      'fill',
+      'stroke',
+      'stroke-width',
+      'stroke-linecap',
+      'stroke-linejoin',
       'class',
       'target',
       'rel',
-      'aria-hidden',
       'xmlns',
       'encoding',
       // KaTeX: Layout über tausende inline style=… auf span; ohne diese wirken Formeln „kaputt“/abgeschnitten.
