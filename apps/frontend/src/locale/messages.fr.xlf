@@ -3123,6 +3123,14 @@
           <context context-type="linenumber">12,14</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeHero.uspTrust" datatype="html">
+        <source>Kostenlos. Open Source.</source>
+        <target>Gratuit. Open source.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">15,17</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="4642582109589985725" datatype="html">
         <source>Für Schulen, Unis, Events &amp; Business</source>
         <target>Pour les écoles, les universités, les événements et le business</target>
