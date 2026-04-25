@@ -8,6 +8,7 @@ import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service'
 
 const QUIZ_ID = '78cc92d6-a4a5-4e38-8fd5-4bf558412be6';
 const QUESTION_ID = '2e7095a8-a780-470b-a068-78d57cab6187';
+const SECOND_QUESTION_ID = 'b19e3558-e995-4598-b891-bf33fe752e43';
 
 describe('QuizEditComponent', () => {
   const quiz: QuizDocument = {
@@ -819,6 +820,78 @@ describe('QuizEditComponent', () => {
       QUIZ_ID,
       expect.objectContaining({
         text: 'Was ist neu?',
+      }),
+    );
+  });
+
+  it('behält Frageänderungen beim Wechsel lokal und speichert sie gesammelt mit saveAll', () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Erste Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        order: 0,
+        enabled: true,
+        timer: null,
+        skipReadingPhase: false,
+        answers: [
+          { id: 'a1', text: 'A1', isCorrect: true },
+          { id: 'a2', text: 'A2', isCorrect: false },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+      {
+        id: SECOND_QUESTION_ID,
+        text: 'Zweite Frage',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        order: 1,
+        enabled: true,
+        timer: null,
+        skipReadingPhase: false,
+        answers: [
+          { id: 'b1', text: 'B1', isCorrect: true },
+          { id: 'b2', text: 'B2', isCorrect: false },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      },
+    ];
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.editQuestion(QUESTION_ID);
+    component.form.controls.text.setValue('Erste Frage lokal geändert');
+    component.answersArray.at(0).controls.text.setValue('A1 neu');
+
+    component.editQuestion(SECOND_QUESTION_ID);
+
+    expect(mockStore.updateQuestion).not.toHaveBeenCalled();
+    expect(component.questions()[0]?.text).toBe('Erste Frage lokal geändert');
+
+    component.editQuestion(QUESTION_ID);
+
+    expect(component.form.controls.text.value).toBe('Erste Frage lokal geändert');
+    expect(component.answersArray.at(0).controls.text.value).toBe('A1 neu');
+
+    component.saveAll();
+
+    expect(mockStore.updateQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      QUESTION_ID,
+      expect.objectContaining({
+        text: 'Erste Frage lokal geändert',
+        answers: [
+          { text: 'A1 neu', isCorrect: true },
+          { text: 'A2', isCorrect: false },
+        ],
       }),
     );
   });

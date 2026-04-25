@@ -175,6 +175,7 @@ export class QuizEditComponent implements OnDestroy {
   readonly submitError = signal<string | null>(null);
   readonly submitted = signal(false);
   readonly editingQuestionId = signal<string | null>(null);
+  readonly questionDrafts = signal<Record<string, AddQuizQuestionInput>>({});
   readonly expandedQuestionIds = signal<Set<string>>(new Set());
   readonly showSettings = signal(false);
   readonly settingsSubmitError = signal<string | null>(null);
@@ -232,7 +233,13 @@ export class QuizEditComponent implements OnDestroy {
   readonly questions = computed(() => {
     const quiz = this.quiz();
     if (!quiz) return [];
-    return [...quiz.questions].sort((a, b) => a.order - b.order);
+    const drafts = this.questionDrafts();
+    return [...quiz.questions]
+      .sort((a, b) => a.order - b.order)
+      .map((question) => {
+        const draft = drafts[question.id];
+        return draft ? this.mergeQuestionWithDraft(question, draft) : question;
+      });
   });
   readonly isEditing = computed(() => this.editingQuestionId() !== null);
   /** Panel „Neue Frage“ (oben); Standard eingeklappt, beim Inline-Bearbeiten ausgeblendet. */
@@ -649,8 +656,21 @@ export class QuizEditComponent implements OnDestroy {
       return;
     }
 
-    if (shouldSaveQuestion && !this.validateQuestionForm()) {
+    if (this.hasActiveQuestionFormChanges() && !this.validateQuestionForm()) {
       return;
+    }
+
+    if (this.isEditing()) {
+      this.persistCurrentQuestionDraft();
+    }
+
+    if (this.hasStoredQuestionDrafts()) {
+      const invalidQuestionId = this.firstInvalidStoredQuestionDraftId();
+      if (invalidQuestionId) {
+        this.editQuestion(invalidQuestionId);
+        this.validateQuestionForm();
+        return;
+      }
     }
 
     if (shouldSaveMetadata) {
@@ -662,7 +682,7 @@ export class QuizEditComponent implements OnDestroy {
     }
 
     if (shouldSaveQuestion) {
-      this.commitQuestion();
+      this.commitAllQuestionChanges();
     }
   }
 
@@ -698,6 +718,29 @@ export class QuizEditComponent implements OnDestroy {
       }
       this.resetQuestionForm();
       this.submitted.set(false);
+      this.scheduleLivePreview();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : $localize`Speichern fehlgeschlagen.`;
+      this.submitError.set(message);
+    }
+  }
+
+  private commitAllQuestionChanges(): void {
+    try {
+      for (const [questionId, questionInput] of this.sortedStoredQuestionDraftEntries()) {
+        this.quizStore.updateQuestion(this.id, questionId, questionInput);
+      }
+
+      if (!this.isEditing() && this.hasActiveQuestionFormChanges()) {
+        this.quizStore.addQuestion(this.id, this.buildQuestionInputFromForm());
+        this.showQuestionAddedFeedback();
+      }
+
+      this.questionDrafts.set({});
+      this.editingQuestionId.set(null);
+      this.resetQuestionForm();
+      this.submitted.set(false);
+      this.submitError.set(null);
       this.scheduleLivePreview();
     } catch (error) {
       const message = error instanceof Error ? error.message : $localize`Speichern fehlgeschlagen.`;
@@ -765,16 +808,12 @@ export class QuizEditComponent implements OnDestroy {
     const question = this.questions().find((entry) => entry.id === questionId);
     if (!question) return;
 
-    this.form.controls.text.setValue(question.text);
-    this.form.controls.type.setValue(question.type);
-    this.form.controls.difficulty.setValue(question.difficulty);
-    this.form.setControl('answers', this.createAnswerArrayForType(question.type, question.answers));
-    this.form.controls.ratingMin.setValue(question.ratingMin ?? 1);
-    this.form.controls.ratingMax.setValue(question.ratingMax ?? 5);
-    this.form.controls.ratingLabelMin.setValue(question.ratingLabelMin ?? '');
-    this.form.controls.ratingLabelMax.setValue(question.ratingLabelMax ?? '');
-    this.form.controls.questionTimer.setValue(question.timer ?? null);
-    this.form.controls.questionSkipReadingPhase.setValue(question.skipReadingPhase ?? false);
+    const previousQuestionId = this.editingQuestionId();
+    if (previousQuestionId && previousQuestionId !== questionId) {
+      this.persistCurrentQuestionDraft();
+    }
+
+    this.applyQuestionInputToForm(this.toComparableQuestionInput(question));
 
     this.editingQuestionId.set(question.id);
     this.submitError.set(null);
@@ -790,6 +829,10 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   cancelEditing(): void {
+    const editingQuestionId = this.editingQuestionId();
+    if (editingQuestionId) {
+      this.removeQuestionDraft(editingQuestionId);
+    }
     this.editingQuestionId.set(null);
     this.resetQuestionForm('SINGLE_CHOICE');
     this.submitted.set(false);
@@ -801,6 +844,7 @@ export class QuizEditComponent implements OnDestroy {
 
     this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
     this.patchSettingsForm(quiz.settings);
+    this.questionDrafts.set({});
     this.resetQuestionForm('SINGLE_CHOICE');
     this.editingQuestionId.set(null);
     this.submitted.set(false);
@@ -848,6 +892,7 @@ export class QuizEditComponent implements OnDestroy {
       if (confirmed !== true) return;
       try {
         this.quizStore.deleteQuestion(this.id, questionId);
+        this.removeQuestionDraft(questionId);
         if (this.editingQuestionId() === questionId) {
           this.cancelEditing();
         }
@@ -1041,10 +1086,18 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   private hasUnsavedQuestionChanges(): boolean {
+    if (this.hasStoredQuestionDrafts()) {
+      return true;
+    }
+
+    return this.hasActiveQuestionFormChanges();
+  }
+
+  private hasActiveQuestionFormChanges(): boolean {
     if (this.isEditing()) {
       const editingQuestionId = this.editingQuestionId();
       const currentQuestion = editingQuestionId
-        ? this.questions().find((question) => question.id === editingQuestionId)
+        ? this.quiz()?.questions.find((question) => question.id === editingQuestionId)
         : null;
       if (!currentQuestion) {
         return true;
@@ -1109,6 +1162,65 @@ export class QuizEditComponent implements OnDestroy {
     return false;
   }
 
+  private hasStoredQuestionDrafts(): boolean {
+    return Object.keys(this.questionDrafts()).length > 0;
+  }
+
+  private persistCurrentQuestionDraft(): void {
+    const editingQuestionId = this.editingQuestionId();
+    if (!editingQuestionId) return;
+
+    const currentQuestion = this.quiz()?.questions.find(
+      (question) => question.id === editingQuestionId,
+    );
+    if (!currentQuestion) return;
+
+    const currentInput = this.buildQuestionInputFromForm();
+    if (
+      JSON.stringify(this.toComparableQuestionInput(currentQuestion)) ===
+      JSON.stringify(this.toComparableQuestionInput(currentInput))
+    ) {
+      this.removeQuestionDraft(editingQuestionId);
+      return;
+    }
+
+    this.questionDrafts.update((drafts) => ({
+      ...drafts,
+      [editingQuestionId]: currentInput,
+    }));
+  }
+
+  private removeQuestionDraft(questionId: string): void {
+    this.questionDrafts.update((drafts) => {
+      if (!(questionId in drafts)) {
+        return drafts;
+      }
+      const next = { ...drafts };
+      delete next[questionId];
+      return next;
+    });
+  }
+
+  private sortedStoredQuestionDraftEntries(): Array<[string, AddQuizQuestionInput]> {
+    const orderByQuestionId = new Map(
+      this.quiz()?.questions.map((question) => [question.id, question.order]) ?? [],
+    );
+    return Object.entries(this.questionDrafts()).sort(
+      ([leftId], [rightId]) =>
+        (orderByQuestionId.get(leftId) ?? Number.MAX_SAFE_INTEGER) -
+        (orderByQuestionId.get(rightId) ?? Number.MAX_SAFE_INTEGER),
+    );
+  }
+
+  private firstInvalidStoredQuestionDraftId(): string | null {
+    for (const [questionId, questionInput] of this.sortedStoredQuestionDraftEntries()) {
+      if (!this.isQuestionInputValid(questionInput)) {
+        return questionId;
+      }
+    }
+    return null;
+  }
+
   private buildQuestionInputFromForm(): AddQuizQuestionInput {
     return {
       text: this.textControl.value,
@@ -1165,6 +1277,42 @@ export class QuizEditComponent implements OnDestroy {
     };
   }
 
+  private applyQuestionInputToForm(question: AddQuizQuestionInput): void {
+    this.form.controls.text.setValue(question.text);
+    this.form.controls.type.setValue(question.type);
+    this.form.controls.difficulty.setValue(question.difficulty);
+    this.form.setControl('answers', this.createAnswerArrayForType(question.type, question.answers));
+    this.form.controls.ratingMin.setValue(question.ratingMin ?? 1);
+    this.form.controls.ratingMax.setValue(question.ratingMax ?? 5);
+    this.form.controls.ratingLabelMin.setValue(question.ratingLabelMin ?? '');
+    this.form.controls.ratingLabelMax.setValue(question.ratingLabelMax ?? '');
+    this.form.controls.questionTimer.setValue(question.timer ?? null);
+    this.form.controls.questionSkipReadingPhase.setValue(question.skipReadingPhase ?? false);
+  }
+
+  private mergeQuestionWithDraft(
+    question: QuizQuestion,
+    draft: AddQuizQuestionInput,
+  ): QuizQuestion {
+    return {
+      ...question,
+      text: draft.text,
+      type: draft.type,
+      difficulty: draft.difficulty,
+      timer: draft.timer ?? null,
+      skipReadingPhase: draft.skipReadingPhase ?? false,
+      answers: draft.answers.map((answer, index) => ({
+        id: question.answers[index]?.id ?? `${question.id}-draft-${index}`,
+        text: answer.text,
+        isCorrect: answer.isCorrect,
+      })),
+      ratingMin: draft.type === 'RATING' ? (draft.ratingMin ?? 1) : null,
+      ratingMax: draft.type === 'RATING' ? (draft.ratingMax ?? 5) : null,
+      ratingLabelMin: draft.type === 'RATING' ? (draft.ratingLabelMin ?? '') : null,
+      ratingLabelMax: draft.type === 'RATING' ? (draft.ratingLabelMax ?? '') : null,
+    };
+  }
+
   private resetQuestionForm(type: SupportedQuestionType = this.typeControl.value): void {
     this.form.controls.text.reset('');
     this.form.controls.type.reset(type);
@@ -1181,6 +1329,40 @@ export class QuizEditComponent implements OnDestroy {
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.scheduleLivePreview();
+  }
+
+  private isQuestionInputValid(question: AddQuizQuestionInput): boolean {
+    if (question.text.length === 0 || question.text.length > 2000) {
+      return false;
+    }
+
+    const timer = question.timer ?? null;
+    if (timer !== null && (timer < 5 || timer > 300)) {
+      return false;
+    }
+
+    if (question.type === 'FREETEXT' || question.type === 'RATING') {
+      return question.answers.length === 0;
+    }
+
+    if (question.answers.length < 2 || question.answers.length > 10) {
+      return false;
+    }
+
+    if (question.answers.some((answer) => answer.text.length === 0 || answer.text.length > 500)) {
+      return false;
+    }
+
+    const correctCount = question.answers.filter((answer) => answer.isCorrect).length;
+    if (question.type === 'SINGLE_CHOICE') {
+      return correctCount === 1;
+    }
+
+    if (question.type === 'MULTIPLE_CHOICE') {
+      return correctCount >= 1;
+    }
+
+    return true;
   }
 
   private buildQuestionAnswersForType(): AddQuizQuestionInput['answers'] {
