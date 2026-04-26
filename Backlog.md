@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **8.5–8.8** (Q&A-Erweiterungen + Tempo-Livekanal) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -103,6 +103,7 @@
 | 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen                 | 🟡   | ⬜ Offen  |
 | 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                     | 🟡   | ⬜ Offen  |
 | 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)               | 🟡   | ⬜ Offen  |
+| 8    | 8.8   | Tempo-Livekanal                                             | 🟡   | ⬜ Offen  |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                  | 🟡   | ✅ Fertig |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                     | 🟡   | ✅ Fertig |
 | 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft               | 🟡   | ✅ Fertig |
@@ -115,11 +116,11 @@
 | 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte          | 🟡   | ✅ Fertig |
 | 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)                | 🟡   | ✅ Fertig |
 
-> **Repo-Abgleich (Codebase 2026-04-03):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung und kein eigener Typ für bewertbare Kurzantwort in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). **Umgesetzt** sind jetzt u. a. **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
+> **Repo-Abgleich (Codebase 2026-04-03):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung und kein eigener Typ für bewertbare Kurzantwort in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; noch **kein** vierter Session-Kanal für kontinuierliches Tempo-Feedback im Session-Modell; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). **Umgesetzt** sind jetzt u. a. **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 29 · 🟡 Should: 60 · 🟢 Could: 11 = **100 Stories gesamt** (**80** ✅ Fertig · **20** ⬜ Offen)
+> **Statistik:** 🔴 Must: 29 · 🟡 Should: 61 · 🟢 Could: 11 = **101 Stories gesamt** (**80** ✅ Fertig · **21** ⬜ Offen)
 
 ---
 
@@ -1309,9 +1310,9 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ---
 
-## Epic 8: Q&A-Modus (Rolle: Lehrperson & Teilnehmende:r)
+## Epic 8: Erweiterte Live-Kanäle (Q&A, Tempo)
 
-> **Verifizierung Epic 8 (2026-03-13):** Der bisherige Kernumfang 8.1–8.4 ist umgesetzt. Offen: Story 8.5 (delegierbare Moderation), Story 8.6 (Kontroversitäts-Score), Story 8.7 („Beste Fragen“, Wilson-Score) — Spezifikation und Hintergrund [`docs/features/controversy-score.md`](docs/features/controversy-score.md).  
+> **Verifizierung Epic 8 (2026-03-13):** Der bisherige Q&A-Kernumfang 8.1–8.4 ist umgesetzt. Offen: Story 8.5 (delegierbare Moderation), Story 8.6 (Kontroversitäts-Score), Story 8.7 („Beste Fragen“, Wilson-Score) sowie Story 8.8 (Tempo-Livekanal) — Spezifikation und Hintergrund [`docs/features/controversy-score.md`](docs/features/controversy-score.md).  
 > Backend-Checks: `npm run test -w @arsnova/backend -- qa session.start-qa` ✅.  
 > Frontend-Checks: Spec-Abdeckung für Host-, Vote-, Present- und eingebettete Blitz-Feedback-Flows vorhanden ✅.  
 > Laufzeit-Review: `BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend` ✅, inklusive automatischem Fallback auf bestehende Unified-Session bei Session-Rate-Limit.
@@ -1359,6 +1360,20 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 - **Story 8.7 (Q&A: Sortierung „Beste Fragen“, Wilson-Score):** 🟡 Als Lehrperson oder Moderator:in einer Live-Veranstaltung möchte ich Fragen im Q&A optional nach statistisch belastbarer Zustimmung sortieren können („Beste Fragen“, untere Grenze des Wilson-Konfidenzintervalls), damit Einzelstimmen mit scheinbar 100 % nicht über Fragen mit vielen, fast einhelligen Stimmen rutschen.
   - **Details:** Hintergrund, Wilson-Formel, Beispiel-SQL und Abgrenzung zu Story 8.6: [`docs/features/controversy-score.md`](docs/features/controversy-score.md) (Abschnitte „Best Questions“ / Wilson und Entwicklernotizen).
   - **Hinweis:** Sortier-UI (Dropdown o. Ä.) kann mit Story 8.6 gemeinsam geplant werden; technisch eigenständiges Scoring und Tests.
+- **Story 8.8 (Tempo-Livekanal):** 🟡 Als Lehrperson möchte ich einen persistenten Tempo-Livekanal in einer laufenden ARSnova-Session aktivieren können, damit Teilnehmende während eines Vortrags jederzeit anonym signalisieren können, ob sie folgen, ob es schneller gehen darf, ob es zu schnell ist oder ob sie abgehängt sind.
+  - **Akzeptanzkriterien:**
+    - Der Tempo-Livekanal ist ein **eigenständiger Session-Kanal** und wird **nicht** als Blitzlicht-Fragetyp, Quizfrage oder Gamification-Element modelliert.
+    - Hosts können den Kanal pro Session aktivieren und wieder deaktivieren; ist der Kanal inaktiv, erscheint in der Teilnehmeransicht kein Tempo-Widget.
+    - Teilnehmende sehen genau vier Zustände mit stabiler Semantik: `speed_up` (🚀 Schneller), `following` (🙂 Ich folge), `slow_down` (🐢 Langsamer), `lost` (😵 Verloren).
+    - Teilnehmende können ihren Zustand mit **einem Tap** setzen, später jederzeit ändern und optional wieder entfernen; pro teilnehmender Person zählt immer nur der **zuletzt** gesetzte Zustand.
+    - Der Kanal läuft **parallel** zu Quiz, Q&A und Blitzlicht; Quiz-Runden, Blitzlicht-Abfragen oder Q&A-Moderation beenden oder überschreiben ihn nicht.
+    - Die Teilnehmeransicht zeigt den Tempo-Kanal als **persistentes, mobile-first erreichbares Live-Widget** innerhalb der Session, ohne zusätzlichen Submit-Button und ohne personenbeziehbare Rückmeldungen anderer.
+    - Die Host-Ansicht zeigt **nur aggregierte** Werte: Verteilung der vier Zustände, Prozentwerte, optional absolute Zahlen und eine live aktualisierte Tendenz.
+    - Einzelne Rückmeldungen oder Identitäten dürfen in Host-, Presenter- oder Admin-Ansichten nicht aus dem Tempo-Kanal rekonstruierbar sein; die UI kommuniziert die Anonymität klar.
+    - Die Tendenzlogik unterscheidet mindestens: `Die Mehrheit kann folgen.`, `Das Tempo wirkt zu hoch.`, `Mehrere Teilnehmende sind abgehängt.`, `Die Gruppe signalisiert Unterforderung.`, `Die Gruppe ist heterogen.`
+    - Die vier Zustände sind auf Smartphones ohne horizontales Scrollen erreichbar; Touch-Ziele, Fokuszustände, Screenreader-Namen und semantische Markierung des aktiven Zustands erfüllen die projektweiten A11y-Regeln.
+    - Die technische Umsetzung verwendet ein **eigenes Daten- und API-Modell** für kontinuierliches Tempo-Feedback; Blitzlicht-Logik wie Round-Lock, Vergleichsrunde oder Einmal-Vote wird dafür nicht wiederverwendet.
+  - **Abhängigkeiten:** Story 2.1c (Host-Token / serverseitige Autorisierung), Story 2.8 (produktives Smartphone-Hosting), Story 3.3b (teilnehmendengebundene Eingaben), Story 6.4 (Mobile-First), Story 6.5 (Barrierefreiheit), ADR-0009, ADR-0010, ADR-0014, ADR-0019.
 
 ---
 
