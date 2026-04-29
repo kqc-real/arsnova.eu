@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
+const { prismaMock, hostAuthMocks, readingReadyMocks } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -11,6 +11,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     extractHostTokenMock: vi.fn(),
     extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
     isHostSessionTokenValidMock: vi.fn(),
+  },
+  readingReadyMocks: {
+    clearReadingReady: vi.fn(),
   },
 }));
 
@@ -26,6 +29,10 @@ vi.mock('../lib/hostAuth', async () => {
     isHostSessionTokenValid: hostAuthMocks.isHostSessionTokenValidMock,
   });
 });
+
+vi.mock('../lib/readingReady', () => ({
+  clearReadingReady: readingReadyMocks.clearReadingReady,
+}));
 
 import { sessionRouter } from '../routers/session';
 
