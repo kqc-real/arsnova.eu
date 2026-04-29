@@ -41,11 +41,6 @@
         <p class="vote-bonus-card__code">{{ gateToken }}</p>
         <p class="vote-bonus-card__hint">{{ vpc.voteBonusHint(isPlayfulPreset()) }}</p>
       </section>
-      @if (!feedbackSubmitted()) {
-        <p class="vote-session-end-gate__hint" i18n="@@sessionVote.sessionEndFeedbackBelowBonus">
-          Optional: Bewerte die Session kurz – danach geht es zur Startseite.
-        </p>
-      }
     } @else if (!feedbackSubmitted()) {
       <p class="vote-session-end-gate__lead" i18n="@@sessionVote.sessionEndFeedbackLead">
         Die Session ist beendet. Wenn du magst, bewerte sie kurz – danach kannst du zur Startseite
@@ -489,9 +484,11 @@
                 </div>
               }
               <div class="vote-team-reward__head">
-                <p class="vote-team-reward__eyebrow">
-                  {{ vpc.voteTeamEyebrow(isPlayfulPreset()) }}
-                </p>
+                @if (teamRewardEyebrow(); as eyebrow) {
+                  <p class="vote-team-reward__eyebrow">
+                    {{ eyebrow }}
+                  </p>
+                }
                 <h2 class="vote-team-reward__title" id="team-reward-heading-finished">
                   {{ teamRewardTitle() }}
                 </h2>
@@ -757,6 +754,17 @@
                 }}</span>
               }
             </p>
+            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+              <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
+              @if (voteQuestionTypeShowsDifficulty(q.type)) {
+                <span class="vote-question__badge vote-question__badge--difficulty">
+                  <mat-icon class="vote-question__badge-icon" aria-hidden="true"
+                    >fitness_center</mat-icon
+                  >
+                  {{ voteDifficultyLabel(q.difficulty) }}
+                </span>
+              }
+            </div>
             <div
               class="vote-question__text markdown-body"
               [innerHTML]="renderMarkdown(q.text)"
@@ -802,6 +810,17 @@
                 }}</span>
               }
             </p>
+            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+              <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
+              @if (voteQuestionTypeShowsDifficulty(q.type)) {
+                <span class="vote-question__badge vote-question__badge--difficulty">
+                  <mat-icon class="vote-question__badge-icon" aria-hidden="true"
+                    >fitness_center</mat-icon
+                  >
+                  {{ voteDifficultyLabel(q.difficulty) }}
+                </span>
+              }
+            </div>
             <div
               class="vote-question__text markdown-body"
               [innerHTML]="renderMarkdown(q.text)"
@@ -849,6 +868,17 @@
                 <span class="vote-all-voted" role="status">
                   <mat-icon>how_to_vote</mat-icon>
                   <span>{{ vpc.voteAllVotedLabel(isPlayfulPreset()) }}</span>
+                </span>
+              }
+            </div>
+            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+              <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
+              @if (voteQuestionTypeShowsDifficulty(q.type)) {
+                <span class="vote-question__badge vote-question__badge--difficulty">
+                  <mat-icon class="vote-question__badge-icon" aria-hidden="true"
+                    >fitness_center</mat-icon
+                  >
+                  {{ voteDifficultyLabel(q.difficulty) }}
                 </span>
               }
             </div>
@@ -1186,9 +1216,11 @@
                 </div>
               }
               <div class="vote-team-reward__head">
-                <p class="vote-team-reward__eyebrow">
-                  {{ vpc.voteTeamEyebrow(isPlayfulPreset()) }}
-                </p>
+                @if (teamRewardEyebrow(); as eyebrow) {
+                  <p class="vote-team-reward__eyebrow">
+                    {{ eyebrow }}
+                  </p>
+                }
                 <h2 class="vote-team-reward__title" id="team-reward-heading-results">
                   {{ teamRewardTitle() }}
                 </h2>

@@ -76,6 +76,7 @@ import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { normalizeFreeTextResponseForDisplay } from '../session-present/word-cloud.util';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { questionTypeLabel } from '../../../shared/question-type-label';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
@@ -295,6 +296,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaPendingQuestionIds = signal<Set<string>>(new Set());
   readonly qaSeenQuestionIds = signal<Set<string>>(new Set());
   readonly qaScrolledDown = signal(false);
+  @ViewChild('hostQuestionCard') hostQuestionCardRef?: ElementRef<HTMLElement>;
   @ViewChild('hostResultsSection') hostResultsSectionRef?: ElementRef<HTMLElement>;
   @ViewChild('hostAnswersList') hostAnswersListRef?: ElementRef<HTMLElement>;
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
@@ -688,6 +690,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private previousStatus: string | null = null;
+  private previousReadingReadyQuestionId: string | null = null;
+  private previousAllConnectedParticipantsReady = false;
   private priorLobbyForAutoJoinMenu = false;
   private priorQrReadyForJoinMenu = false;
   /** Verhindert geplantes Öffnen des Join-Menüs nach ngOnDestroy (z. B. Vitest). */
@@ -860,6 +864,29 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (this.effectiveStatus() === 'FINISHED') {
         this.joinInfoPopoverOpen.set(false);
       }
+    });
+    effect(() => {
+      const questionId = this.currentQuestionForHost()?.questionId ?? null;
+      const allReady = this.allConnectedParticipantsReady();
+
+      if (questionId !== this.previousReadingReadyQuestionId) {
+        this.previousReadingReadyQuestionId = questionId;
+        this.previousAllConnectedParticipantsReady = false;
+      }
+
+      const shouldScroll =
+        questionId !== null &&
+        this.effectiveStatus() === 'QUESTION_OPEN' &&
+        allReady &&
+        !this.previousAllConnectedParticipantsReady;
+
+      this.previousAllConnectedParticipantsReady = allReady;
+
+      if (!shouldScroll) {
+        return;
+      }
+
+      untracked(() => this.scrollHostTargetIntoView(this.hostQuestionCardRef));
     });
     /** Nach Session-Ende automatisch Vollbild beenden (z. B. nach „Veranstaltung starten“). */
     effect(() => {
@@ -1847,6 +1874,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
     this.markdownCache.set(value, rendered);
     return rendered;
+  }
+
+  hostQuestionTypeLabel(type: HostCurrentQuestionDTO['type']): string {
+    return questionTypeLabel(type);
+  }
+
+  hostQuestionTypeShowsDifficulty(type: HostCurrentQuestionDTO['type']): boolean {
+    return type !== 'SURVEY' && type !== 'RATING';
+  }
+
+  hostDifficultyLabel(value: HostCurrentQuestionDTO['difficulty']): string {
+    switch (value) {
+      case 'EASY':
+        return $localize`:@@quiz.difficulty.easy:Leicht`;
+      case 'MEDIUM':
+        return $localize`:@@quiz.difficulty.medium:Mittel`;
+      case 'HARD':
+        return $localize`:@@quiz.difficulty.hard:Schwer`;
+      default:
+        return value;
+    }
   }
 
   channelLabel(channel: SessionChannelTab): string {

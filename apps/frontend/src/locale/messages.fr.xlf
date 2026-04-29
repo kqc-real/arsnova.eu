@@ -5216,8 +5216,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.edit.questionEditSaveHint" datatype="html">
-        <source> Du bearbeitest eine vorhandene Frage. Mit „Speichern“ übernimmst du die Änderungen.</source>
-        <target>Vous modifiez une question existante. Cliquez sur « Enregistrer » pour accepter les modifications.</target>
+        <source> Du bearbeitest eine vorhandene Frage. Mit „Änderungen speichern“ übernimmst du die Änderungen.</source>
+        <target>Vous modifiez une question existante. Cliquez sur « Enregistrer les modifications » pour appliquer les changements.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">501,505</context>
@@ -5516,19 +5516,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.edit.discardChangesButton" datatype="html">
-        <source>Änderungen verwerfen</source>
-        <target>Annuler les modifications</target>
+        <source>Verwerfen</source>
+        <target>Annuler</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">1089</context>
+          <context context-type="linenumber">1099</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.edit.saveAllButton" datatype="html">
-        <source>Alle Änderungen speichern</source>
-        <target>Enregistrer toutes les modifications</target>
+        <source>Speichern</source>
+        <target>Enregistrer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
-          <context context-type="linenumber">1098</context>
+          <context context-type="linenumber">1112</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.edit.questionSaveButton" datatype="html">
@@ -9800,8 +9800,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.bonusTitlePlayful" datatype="html">
-        <source>Dein Extra-Code</source>
-        <target>Votre code supplémentaire</target>
+        <source>Dein Bonus-Code</source>
+        <target>Ton code bonus</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">119</context>
@@ -10055,28 +10055,44 @@
           <context context-type="linenumber">226</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionVote.feedbackDoneCountPlayful" datatype="html">
-        <source><x id="count" equiv-text="total"/> Stimmen insgesamt</source>
-        <target><x id="count" equiv-text="total"/> Total des votes</target>
+      <trans-unit id="sessionVote.feedbackDoneCountPlayfulOne" datatype="html">
+        <source>1 Stimme insgesamt</source>
+        <target>1 vote au total</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">231</context>
+          <context context-type="linenumber">232</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionVote.feedbackDoneCountSerious" datatype="html">
-        <source><x id="count" equiv-text="total"/> Bewertungen insgesamt</source>
-        <target><x id="count" equiv-text="total"/> Notes totales</target>
+      <trans-unit id="sessionVote.feedbackDoneCountPlayfulMany" datatype="html">
+        <source><x id="count" equiv-text="total"/> Stimmen insgesamt</source>
+        <target><x id="count" equiv-text="total"/> votes au total</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">233</context>
+          <context context-type="linenumber">234</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.feedbackDoneCountSeriousOne" datatype="html">
+        <source>1 Bewertung insgesamt</source>
+        <target>1 évaluation au total</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">237</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.feedbackDoneCountSeriousMany" datatype="html">
+        <source><x id="count" equiv-text="total"/> Bewertungen insgesamt</source>
+        <target><x id="count" equiv-text="total"/> évaluations au total</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">239</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.questionLabelPlayful" datatype="html">
-        <source>Runde <x id="n" equiv-text="displayNumber"/></source>
-        <target>Tour <x id="n" equiv-text="displayNumber"/></target>
+        <source>Frage <x id="n" equiv-text="displayNumber"/></source>
+        <target>Question <x id="n" equiv-text="displayNumber"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">238</context>
+          <context context-type="linenumber">244</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.questionLabelSerious" datatype="html">
@@ -10084,7 +10100,7 @@
         <target>Question <x id="n" equiv-text="displayNumber"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">240</context>
+          <context context-type="linenumber">246</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.lastQuestionPlayful" datatype="html">
@@ -10751,14 +10767,6 @@
           <context context-type="linenumber">27,30</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionVote.sessionEndFeedbackBelowBonus" datatype="html">
-        <source> Optional: Bewerte die Session kurz – danach geht es zur Startseite.</source>
-        <target>En option : évalue brièvement la séance, puis tu pourras aller à l&apos;accueil.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">52,55</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionVote.sessionEndFeedbackLead" datatype="html">
         <source> Die Session ist beendet. Wenn du magst, bewerte sie kurz – danach kannst du zur Startseite wechseln.</source>
         <target>La séance est terminée. Si tu veux, évalue-la brièvement – ensuite tu pourras passer à l&apos;accueil.</target>
@@ -11165,6 +11173,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">740</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamRewardTitleFinalScore" datatype="html">
+        <source>Finaler Score</source>
+        <target>Score final</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">968</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleChasingZero" datatype="html">

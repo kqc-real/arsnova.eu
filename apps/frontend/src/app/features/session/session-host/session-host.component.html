@@ -856,7 +856,11 @@
                   </mat-card-content>
                 </mat-card>
               } @else if (currentQuestionForHost(); as q) {
-                <mat-card appearance="outlined" class="session-host__question-card">
+                <mat-card
+                  appearance="outlined"
+                  class="session-host__question-card"
+                  #hostQuestionCard
+                >
                   <mat-card-header>
                     <mat-card-subtitle class="session-host__question-subtitle">
                       @if (q.totalQuestions != null) {
@@ -895,6 +899,21 @@
                         [innerHTML]="renderMarkdown(q.text)"
                       ></span>
                     </mat-card-title>
+                    <div class="session-host__question-meta" aria-label="Frage-Metadaten">
+                      <span class="session-host__question-badge">
+                        {{ hostQuestionTypeLabel(q.type) }}
+                      </span>
+                      @if (hostQuestionTypeShowsDifficulty(q.type) && q.difficulty) {
+                        <span
+                          class="session-host__question-badge session-host__question-badge--difficulty"
+                        >
+                          <mat-icon class="session-host__question-badge-icon" aria-hidden="true"
+                            >fitness_center</mat-icon
+                          >
+                          {{ hostDifficultyLabel(q.difficulty) }}
+                        </span>
+                      }
+                    </div>
                   </mat-card-header>
                   @if (effectiveStatus() === 'QUESTION_OPEN') {
                     <mat-card-content>

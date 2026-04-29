@@ -27,6 +27,7 @@ import {
 } from '../../../core/localize-known-server-message';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
+import { questionTypeLabel } from '../../../shared/question-type-label';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import * as vpc from './session-vote-participant-copy';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
@@ -803,6 +804,27 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     () => this.showSessionEndBottomActionBar() || this.showFloatingBottomActionBar(),
   );
 
+  voteQuestionTypeLabel(type: CurrentQuestion['type']): string {
+    return questionTypeLabel(type);
+  }
+
+  voteQuestionTypeShowsDifficulty(type: CurrentQuestion['type']): boolean {
+    return type !== 'SURVEY' && type !== 'RATING';
+  }
+
+  voteDifficultyLabel(value: CurrentQuestion['difficulty']): string {
+    switch (value) {
+      case 'EASY':
+        return $localize`:@@quiz.difficulty.easy:Leicht`;
+      case 'MEDIUM':
+        return $localize`:@@quiz.difficulty.medium:Mittel`;
+      case 'HARD':
+        return $localize`:@@quiz.difficulty.hard:Schwer`;
+      default:
+        return value;
+    }
+  }
+
   ratingRange(): number[] {
     const q = this.currentQuestion();
     if (!q || !('ratingMin' in q)) return [];
@@ -964,6 +986,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!entry) {
       return '';
     }
+    if (this.showFinalTeamScoreTitle()) {
+      return $localize`:@@sessionVote.teamRewardTitleFinalScore:Finaler Score`;
+    }
     const anyTeamScored = this.teamScoreboardHasPoints();
     if (this.isFinished()) {
       return entry.rank === 1 && anyTeamScored
@@ -979,6 +1004,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return $localize`:@@sessionVote.teamRewardTitleLeading:Ihr führt gerade`;
     }
     return $localize`:@@sessionVote.teamRewardTitleChasing:Weitermachen`;
+  }
+
+  teamRewardEyebrow(): string | null {
+    if (this.showFinalTeamScoreTitle()) {
+      return null;
+    }
+    return vpc.voteTeamEyebrow(this.isPlayfulPreset());
   }
 
   teamRewardMessage(): string {
@@ -1024,6 +1056,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return this.isPlayfulPreset()
       ? vpc.voteTeamLeaderHintPlayful(leaderLabel, leader.totalScore)
       : vpc.voteTeamLeaderHintSerious(leaderLabel, leader.totalScore);
+  }
+
+  private showFinalTeamScoreTitle(): boolean {
+    if (this.isFinished()) {
+      return true;
+    }
+    if (!this.isResults()) {
+      return false;
+    }
+    const question = this.currentQuestion();
+    if (
+      !question ||
+      !('order' in question) ||
+      !('totalQuestions' in question) ||
+      typeof question.order !== 'number' ||
+      typeof question.totalQuestions !== 'number'
+    ) {
+      return false;
+    }
+    return question.totalQuestions > 0 && question.order === question.totalQuestions - 1;
   }
 
   finishedHeroTitle(): string {

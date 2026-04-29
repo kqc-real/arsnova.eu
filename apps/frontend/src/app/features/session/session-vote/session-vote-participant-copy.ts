@@ -123,7 +123,7 @@ export function voteTeamStatMembers(playful: boolean): string {
 
 export function voteBonusTitle(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.bonusTitlePlayful:Dein Extra-Code`;
+    return $localize`:@@sessionVote.bonusTitlePlayful:Dein Bonus-Code`;
   }
   return $localize`:@@sessionVote.bonusTitleSerious:Dein Bonus-Code`;
 }
@@ -235,14 +235,20 @@ export function voteFeedbackDoneTitle(playful: boolean): string {
 
 export function voteFeedbackDoneCount(playful: boolean, total: number): string {
   if (playful) {
-    return $localize`:@@sessionVote.feedbackDoneCountPlayful:${total}:count: Stimmen insgesamt`;
+    if (total === 1) {
+      return $localize`:@@sessionVote.feedbackDoneCountPlayfulOne:1 Stimme insgesamt`;
+    }
+    return $localize`:@@sessionVote.feedbackDoneCountPlayfulMany:${total}:count: Stimmen insgesamt`;
   }
-  return $localize`:@@sessionVote.feedbackDoneCountSerious:${total}:count: Bewertungen insgesamt`;
+  if (total === 1) {
+    return $localize`:@@sessionVote.feedbackDoneCountSeriousOne:1 Bewertung insgesamt`;
+  }
+  return $localize`:@@sessionVote.feedbackDoneCountSeriousMany:${total}:count: Bewertungen insgesamt`;
 }
 
 export function voteQuestionLabel(playful: boolean, displayNumber: number): string {
   if (playful) {
-    return $localize`:@@sessionVote.questionLabelPlayful:Runde ${displayNumber}:n:`;
+    return $localize`:@@sessionVote.questionLabelPlayful:Frage ${displayNumber}:n:`;
   }
   return $localize`:@@sessionVote.questionLabelSerious:Frage ${displayNumber}:n:`;
 }

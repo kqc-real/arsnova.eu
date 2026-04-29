@@ -2446,6 +2446,7 @@ export const sessionRouter = router({
           | 'FREETEXT'
           | 'RATING'
           | 'SURVEY',
+        difficulty: question.difficulty,
         timer:
           session.currentRound === 2
             ? null

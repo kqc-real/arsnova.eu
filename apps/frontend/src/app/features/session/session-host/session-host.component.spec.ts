@@ -1421,6 +1421,40 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt die Schwierigkeit der aktuellen Frage in der Host-Karte an', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'HARD' as const,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => (fixture.nativeElement.textContent ?? '').includes('Schwer'), {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Single Choice');
+    expect(text).toContain('Schwer');
+    fixture.destroy();
+  });
+
   it('markiert Markdown-Container im Quiz-Livekanal fuer responsive Bild-Styles', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -1864,6 +1898,117 @@ describe('SessionHostComponent', () => {
     expect(el.textContent).toContain(
       'Alle sind bereit – Antwortoptionen können freigegeben werden.',
     );
+
+    fixture.destroy();
+  });
+
+  it('scrollt den Host-Inhalt hoch, sobald alle verbundenen Teilnehmenden bereit sind', async () => {
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const componentAccess = component as SessionHostComponent & {
+      scrollHostTargetIntoView: (targetRef: unknown) => void;
+    };
+    const scrollSpy = vi.spyOn(componentAccess, 'scrollHostTargetIntoView');
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.session.set({ ...defaultSession, status: 'QUESTION_OPEN' });
+    component.statusUpdate.set({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      currentRound: 1,
+      activeAt: null,
+    });
+    component.currentQuestionForHost.set({
+      questionId: '33333333-3333-4333-8333-333333333333',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Lese den Aufgabentext.',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+    });
+    component.participantsPayload.set({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Linus',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 1,
+        connectedCount: 2,
+        allConnectedReady: false,
+      },
+    });
+    fixture.detectChanges();
+
+    expect(scrollSpy).not.toHaveBeenCalled();
+
+    component.participantsPayload.set({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Linus',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 2,
+        connectedCount: 2,
+        allConnectedReady: true,
+      },
+    });
+    fixture.detectChanges();
+
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+
+    component.participantsPayload.set({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Linus',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 2,
+        connectedCount: 2,
+        allConnectedReady: true,
+      },
+    });
+    fixture.detectChanges();
+
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
 
     fixture.destroy();
   });

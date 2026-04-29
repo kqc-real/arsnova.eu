@@ -605,6 +605,7 @@ export const HostCurrentQuestionDTOSchema = z.object({
   totalQuestions: z.number().int().min(1).optional(),
   text: z.string(),
   type: QuestionTypeEnum,
+  difficulty: DifficultyEnum,
   timer: z.number().nullable().optional(),
   answers: z.array(
     z.object({

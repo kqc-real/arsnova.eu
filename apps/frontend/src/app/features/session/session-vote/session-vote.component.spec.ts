@@ -8,6 +8,7 @@ import {
   focusTargetIdForAnchor,
   SessionVoteComponent,
 } from './session-vote.component';
+import * as vpc from './session-vote-participant-copy';
 
 const {
   getInfoQueryMock,
@@ -117,6 +118,13 @@ describe('SessionVoteComponent', () => {
     expect(focusTargetIdForAnchor('vote-option-0')).toBe('vote-question-anchor');
     expect(focusTargetIdForAnchor('vote-options-start')).toBe('vote-question-anchor');
     expect(focusTargetIdForAnchor('vote-result-message')).toBe('vote-result-message');
+  });
+
+  it('verwendet die aktualisierte Participant-Copy für Bonus, Singular und Frage', () => {
+    expect(vpc.voteBonusTitle(true)).toBe('Dein Bonus-Code');
+    expect(vpc.voteFeedbackDoneCount(true, 1)).toBe('1 Stimme insgesamt');
+    expect(vpc.voteFeedbackDoneCount(true, 3)).toBe('3 Stimmen insgesamt');
+    expect(vpc.voteQuestionLabel(true, 2)).toBe('Frage 2');
   });
 
   beforeEach(() => {
@@ -370,6 +378,55 @@ describe('SessionVoteComponent', () => {
     expect(text).toContain('3 Mitglieder');
     expect(text).toContain('∅');
     expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    fixture.destroy();
+  });
+
+  it('zeigt im Client Fragetyp und Schwierigkeit an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      enableRewardEffects: true,
+      preset: 'PLAYFUL',
+      enableEmojiReactions: false,
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'HARD',
+      answers: [
+        { id: 'a1', text: 'Rot' },
+        { id: 'a2', text: 'Blau' },
+      ],
+      activeAt: MOCK_SERVER_TIME,
+      participantCount: 3,
+      totalVotes: 0,
+      currentRound: 1,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.status()).toBe('ACTIVE');
+      },
+      { timeout: 5000, interval: 10 },
+    );
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Single Choice');
+    expect(text).toContain('Schwer');
     fixture.destroy();
   });
 
@@ -833,8 +890,40 @@ describe('SessionVoteComponent', () => {
       },
     ]);
 
-    expect(inst.teamRewardTitle()).toContain('gewinnt');
+    expect(inst.teamRewardTitle()).toBe('Finaler Score');
+    expect(inst.teamRewardEyebrow()).toBeNull();
     expect(inst.teamRewardMessage()).toContain('Platz 1');
+    fixture.destroy();
+  });
+
+  it('zeigt im Ergebnis der letzten Frage bereits den finalen Score-Titel', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+
+    inst.status.set('RESULTS');
+    inst.participantTeam.set({ teamName: 'Rot' } as never);
+    inst.teamLeaderboard.set([
+      {
+        rank: 1,
+        teamName: 'Rot',
+        teamColor: '#1E88E5',
+        totalScore: 240,
+        memberCount: 3,
+        averageScore: 80,
+      },
+    ]);
+    inst.currentQuestion.set({
+      id: 'q1',
+      text: 'Frage',
+      type: 'SINGLE_CHOICE',
+      order: 2,
+      totalQuestions: 3,
+      answers: [],
+      totalVotes: 3,
+    } as never);
+
+    expect(inst.teamRewardTitle()).toBe('Finaler Score');
+    expect(inst.teamRewardEyebrow()).toBeNull();
     fixture.destroy();
   });
 

@@ -499,7 +499,7 @@
       >
         @if (isEditing()) {
           <p class="quiz-edit-form__editing-hint" i18n="@@quiz.edit.questionEditSaveHint">
-            Du bearbeitest eine vorhandene Frage. Mit „Alle Änderungen speichern“ übernimmst du die
+            Du bearbeitest eine vorhandene Frage. Mit „Änderungen speichern“ übernimmst du die
             Änderungen.
           </p>
         }
@@ -1078,29 +1078,57 @@
     </section>
 
     <div class="quiz-edit__bottom-actions quiz-edit__bottom-actions--with-secondary">
-      <a mat-button routerLink=".." i18n-aria-label aria-label="Zurück zur Quiz-Liste">
-        <mat-icon>arrow_back</mat-icon>
-        <span i18n>Zurück</span>
-      </a>
-      <button
+      <a
         mat-button
-        type="button"
-        (click)="cancelAllChanges()"
-        [disabled]="!hasPendingChanges()"
+        routerLink=".."
+        class="quiz-edit__bottom-action"
+        i18n-aria-label
+        aria-label="Zurück zur Quiz-Liste"
       >
-        <mat-icon>close</mat-icon>
-        <span i18n="@@quiz.edit.discardChangesButton">Änderungen verwerfen</span>
-      </button>
-      <button
-        matButton="filled"
-        type="button"
-        class="quiz-edit__bottom-actions-save"
-        (click)="saveAll()"
-        [disabled]="!hasPendingChanges()"
-      >
-        <mat-icon>save</mat-icon>
-        <span i18n="@@quiz.edit.saveAllButton">Alle Änderungen speichern</span>
-      </button>
+        <mat-icon>arrow_back</mat-icon>
+        <span class="quiz-edit__bottom-action-label" i18n>Zurück</span>
+      </a>
+      <div class="quiz-edit__bottom-actions-right">
+        <button
+          mat-button
+          type="button"
+          class="quiz-edit__bottom-action"
+          (click)="cancelAllChanges()"
+          [disabled]="!hasPendingChanges()"
+          i18n-aria-label="@@quiz.edit.discardChangesButton"
+          aria-label="Verwerfen"
+        >
+          <mat-icon>close</mat-icon>
+          <span class="quiz-edit__bottom-action-label" i18n="@@quiz.edit.discardChangesButton"
+            >Verwerfen</span
+          >
+        </button>
+        <button
+          matButton="filled"
+          type="button"
+          class="quiz-edit__bottom-action quiz-edit__bottom-actions-save"
+          (click)="saveAll()"
+          [disabled]="!hasPendingChanges()"
+          i18n-aria-label="@@quiz.edit.saveAllButton"
+          aria-label="Speichern"
+        >
+          <mat-icon>save</mat-icon>
+          <span class="quiz-edit__bottom-action-label" i18n="@@quiz.edit.saveAllButton"
+            >Speichern</span
+          >
+        </button>
+        <a
+          mat-button
+          routerLink="preview"
+          [queryParams]="{ returnTo: 'edit' }"
+          class="quiz-edit__bottom-action"
+          i18n-aria-label
+          aria-label="Vorschau öffnen"
+        >
+          <mat-icon>visibility</mat-icon>
+          <span class="quiz-edit__bottom-action-label" i18n>Vorschau</span>
+        </a>
+      </div>
     </div>
   </section>
 } @else {
