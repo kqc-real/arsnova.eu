@@ -1813,6 +1813,115 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt in QUESTION_OPEN den Ready-Fortschritt und den Freigabe-Hinweis für den Host', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Linus',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 2,
+        connectedCount: 2,
+        allConnectedReady: true,
+      },
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'QUESTION_OPEN', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Lese den Aufgabentext.',
+      type: 'SINGLE_CHOICE' as const,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('2 von 2 bereit');
+    expect(el.textContent).toContain(
+      'Alle sind bereit – Antwortoptionen können freigegeben werden.',
+    );
+
+    fixture.destroy();
+  });
+
+  it('zeigt bei genau einer Person keine doppelte Ready-Anzahl im Live-Banner', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'QUESTION_OPEN',
+      participantCount: 1,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 1,
+        connectedCount: 1,
+        allConnectedReady: true,
+      },
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'QUESTION_OPEN', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Lese den Aufgabentext.',
+      type: 'SINGLE_CHOICE' as const,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const liveBanner = (fixture.nativeElement as HTMLElement).querySelector(
+      '.session-host__live-code-block',
+    );
+    expect(liveBanner?.textContent).toContain('1 teilnehmende Person');
+    expect(liveBanner?.textContent).toContain('1 von 1 bereit');
+    expect(liveBanner?.textContent).not.toContain('1 1 von 1 bereit');
+
+    fixture.destroy();
+  });
+
   it('zeigt bei aktiver Frage die Aktion "Ergebnis zeigen" im unteren Exit-Anker neben "Session beenden"', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(

@@ -257,6 +257,11 @@
                   liveParticipantCount === 1 ? participantLabelSingular() : participantLabelPlural()
                 }}
               </p>
+              @if (effectiveStatus() === 'QUESTION_OPEN' && readingReadyStatus(); as ready) {
+                <p class="session-host__live-participants">
+                  {{ readingReadyProgressLabel(ready.readyCount, ready.connectedCount) }}
+                </p>
+              }
             </div>
             <div class="session-host__live-actions">
               <button
@@ -901,6 +906,14 @@
                         <p class="session-host__reading-banner-hint" i18n>
                           Antworten folgen gleich.
                         </p>
+                        @if (allConnectedParticipantsReady()) {
+                          <p class="session-host__all-voted" role="status" aria-live="polite">
+                            <mat-icon aria-hidden="true">done_all</mat-icon>
+                            <span i18n
+                              >Alle sind bereit – Antwortoptionen können freigegeben werden.</span
+                            >
+                          </p>
+                        }
                       </div>
                     </mat-card-content>
                   }

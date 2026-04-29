@@ -6976,6 +6976,20 @@
           <context context-type="linenumber">855</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.readingReadyProgress" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="readyCount"/> von <x id="INTERPOLATION_1" equiv-text="connectedCount"/> bereit</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1822</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7225653335184607064" datatype="html">
+        <source>Alle sind bereit – Antwortoptionen können freigegeben werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">912</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.ratingDistributionAria" datatype="html">
         <source>Bewertungsverteilung</source>
         <context-group purpose="location">
@@ -7693,10 +7707,10 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.participantCountOne" datatype="html">
-        <source>Teilnehmende</source>
+        <source>teilnehmende Person</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1512</context>
+          <context context-type="linenumber">1624</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.participantCountMany" datatype="html">
@@ -8992,6 +9006,34 @@
           <context context-type="linenumber">261</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.readingReadyCtaPlayful" datatype="html">
+        <source>Ich bin bereit</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">273</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.readingReadyCtaSerious" datatype="html">
+        <source>Bereit bestätigen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">275</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.readingReadyDonePlayful" datatype="html">
+        <source>Bereit bestätigt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">280</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.readingReadyDoneSerious" datatype="html">
+        <source>Du bist als bereit markiert</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">282</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionVote.discussionTitlePlayful" datatype="html">
         <source>Schnell mit dem Nachbarn sprechen</source>
         <context-group purpose="location">
@@ -9466,6 +9508,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">513</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.readingReadyError" datatype="html">
+        <source>Bereitschaft konnte nicht bestätigt werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">2028</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.teamLeaderHintPlayful" datatype="html">

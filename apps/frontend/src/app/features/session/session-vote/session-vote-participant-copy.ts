@@ -268,6 +268,20 @@ export function voteReadingHint(playful: boolean): string {
   return $localize`:@@sessionVote.readingHintSerious:Lies die Frage in Ruhe – die Antwortoptionen folgen gleich.`;
 }
 
+export function voteReadingReadyCta(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.readingReadyCtaPlayful:Ich bin bereit`;
+  }
+  return $localize`:@@sessionVote.readingReadyCtaSerious:Bereit bestätigen`;
+}
+
+export function voteReadingReadyDone(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.readingReadyDonePlayful:Bereit bestätigt`;
+  }
+  return $localize`:@@sessionVote.readingReadyDoneSerious:Du bist als bereit markiert`;
+}
+
 export function voteDiscussionTitle(playful: boolean): string {
   if (playful) {
     return $localize`:@@sessionVote.discussionTitlePlayful:Schnell mit dem Nachbarn sprechen`;

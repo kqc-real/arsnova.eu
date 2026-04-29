@@ -54,6 +54,33 @@ export async function countActiveParticipantsForSessions(
   return sum;
 }
 
+export async function getActiveParticipantIdsForSession(
+  sessionId: string,
+  nowMs: number = Date.now(),
+): Promise<Set<string>> {
+  if (process.env['NODE_ENV'] === 'test') return new Set();
+  if (!sessionId) return new Set();
+
+  const cutoff = nowMs - PRESENCE_TTL_MS;
+  const redis = getRedis();
+
+  try {
+    const key = presenceKey(sessionId);
+    await redis.zremrangebyscore(key, 0, cutoff);
+    const ids = await redis.zrangebyscore(key, cutoff, '+inf');
+    return new Set(ids.filter((id) => typeof id === 'string' && id.length > 0));
+  } catch (err) {
+    if (!countWarned) {
+      countWarned = true;
+      logger.warn(
+        'presence.list: Redis nicht erreichbar, aktive Teilnahmen können nicht exakt berechnet werden.',
+        err,
+      );
+    }
+    return new Set();
+  }
+}
+
 export async function getActiveParticipantCountsForSessions(
   sessionIds: readonly string[],
   nowMs: number = Date.now(),

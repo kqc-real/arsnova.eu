@@ -478,6 +478,14 @@ export const GetSessionInfoInputSchema = z.object({
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
 
+/** Input: Aktuelle Frage für Teilnehmende inkl. optionalem Presence-/Ready-Kontext. */
+export const GetCurrentQuestionForStudentInputSchema = GetSessionInfoInputSchema.extend({
+  participantId: z.uuid().optional(),
+});
+export type GetCurrentQuestionForStudentInput = z.infer<
+  typeof GetCurrentQuestionForStudentInputSchema
+>;
+
 /** Input: Ein Quiz an eine laufende Quiz-Session anhängen. */
 export const AttachQuizToSessionInputSchema = GetSessionInfoInputSchema.extend({
   quizId: z.uuid(),
@@ -516,6 +524,27 @@ export const SessionStatusUpdateSchema = z.object({
   currentRound: z.number().int().min(1).max(2).optional(),
 });
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
+
+/** Fortschritt der Bereitschaftsbestätigungen in der Lesephase. */
+export const ReadingReadyStatusDTOSchema = z.object({
+  connectedCount: z.number().int().min(0),
+  readyCount: z.number().int().min(0),
+  allConnectedReady: z.boolean(),
+  participantReady: z.boolean().optional(),
+});
+export type ReadingReadyStatusDTO = z.infer<typeof ReadingReadyStatusDTOSchema>;
+
+/** Input: Teilnehmende bestätigen ihre Bereitschaft in der Lesephase. */
+export const ConfirmReadingReadyInputSchema = z.object({
+  code: z.string().length(6),
+  participantId: z.uuid(),
+  questionId: z.uuid(),
+});
+export type ConfirmReadingReadyInput = z.infer<typeof ConfirmReadingReadyInputSchema>;
+
+/** Output: Bestätigung der Lesephase inkl. aktualisiertem Fortschritt. */
+export const ConfirmReadingReadyOutputSchema = ReadingReadyStatusDTOSchema;
+export type ConfirmReadingReadyOutput = z.infer<typeof ConfirmReadingReadyOutputSchema>;
 
 /** DTO: Stimmenverteilung einer Runde pro Antwortoption (Story 2.7 Peer Instruction). */
 export const RoundDistributionEntrySchema = z.object({
@@ -727,6 +756,7 @@ export const QuestionPreviewDTOSchema = z.object({
   ratingMax: z.number().nullable().optional(), // Nur bei RATING
   ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING
   ratingLabelMax: z.string().nullable().optional(), // Nur bei RATING
+  participantReady: z.boolean().optional(),
 });
 export type QuestionPreviewDTO = z.infer<typeof QuestionPreviewDTOSchema>;
 
@@ -846,6 +876,7 @@ export type ParticipantDTO = z.infer<typeof ParticipantDTOSchema>;
 export const SessionParticipantsPayloadSchema = z.object({
   participants: z.array(ParticipantDTOSchema),
   participantCount: z.number(),
+  readingReady: ReadingReadyStatusDTOSchema.optional(),
 });
 export type SessionParticipantsPayload = z.infer<typeof SessionParticipantsPayloadSchema>;
 

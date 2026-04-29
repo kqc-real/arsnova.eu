@@ -13,6 +13,7 @@ const {
   getInfoQueryMock,
   statusChangedSubscribeMock,
   currentQuestionQueryMock,
+  confirmReadingReadyMutateMock,
   quickFeedbackResultsQueryMock,
   quickFeedbackOnResultsSubscribeMock,
   getParticipantSelfQueryMock,
@@ -31,6 +32,7 @@ const {
   getInfoQueryMock: vi.fn(),
   statusChangedSubscribeMock: vi.fn(),
   currentQuestionQueryMock: vi.fn(),
+  confirmReadingReadyMutateMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
   quickFeedbackOnResultsSubscribeMock: vi.fn(),
   getParticipantSelfQueryMock: vi.fn(),
@@ -53,6 +55,7 @@ vi.mock('../../../core/trpc.client', () => ({
       getInfo: { query: getInfoQueryMock },
       onStatusChanged: { subscribe: statusChangedSubscribeMock },
       getCurrentQuestionForStudent: { query: currentQuestionQueryMock },
+      confirmReadingReady: { mutate: confirmReadingReadyMutateMock },
       getParticipantSelf: { query: getParticipantSelfQueryMock },
       getTeams: { query: getTeamsQueryMock },
       getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
@@ -191,6 +194,83 @@ describe('SessionVoteComponent', () => {
         },
       ],
     });
+  });
+
+  it('zeigt in der Lesephase die Bereitschafts-CTA und bestätigt sie für den aktuellen Teilnehmenden', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: 'session-1',
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'QUESTION_OPEN',
+      serverTime: MOCK_SERVER_TIME,
+      quizName: 'Demo Quiz',
+      title: null,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+      participantCount: 2,
+      teamMode: false,
+      anonymousMode: false,
+      nicknameTheme: 'HIGH_SCHOOL',
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'aaaaaaaa-1111-4111-8111-111111111111',
+      text: 'Lies zuerst die Frage.',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      participantReady: false,
+    });
+    confirmReadingReadyMutateMock.mockResolvedValue({
+      connectedCount: 1,
+      readyCount: 1,
+      allConnectedReady: true,
+      participantReady: true,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    let button: HTMLButtonElement | null = null;
+    for (let attempt = 0; attempt < 10 && !button; attempt += 1) {
+      await fixture.whenStable();
+      await new Promise((r) => setTimeout(r, 50));
+      fixture.detectChanges();
+      button = (fixture.nativeElement as HTMLElement).querySelector('.vote-reading-banner__cta');
+    }
+    expect(button).toBeTruthy();
+
+    button?.click();
+    let textContent = '';
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      await fixture.whenStable();
+      await new Promise((r) => setTimeout(r, 50));
+      fixture.detectChanges();
+      textContent = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      if (
+        textContent.includes('Du bist als bereit markiert') ||
+        textContent.includes('Bereit bestätigt')
+      ) {
+        break;
+      }
+    }
+
+    expect(currentQuestionQueryMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      participantId: '11111111-1111-4111-8111-111111111111',
+    });
+    expect(confirmReadingReadyMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      participantId: '11111111-1111-4111-8111-111111111111',
+      questionId: 'aaaaaaaa-1111-4111-8111-111111111111',
+    });
+    expect(
+      textContent.includes('Du bist als bereit markiert') ||
+        textContent.includes('Bereit bestätigt'),
+    ).toBe(true);
+
+    fixture.destroy();
   });
 
   it('cacht gerendertes Markdown fuer identische Texte', () => {

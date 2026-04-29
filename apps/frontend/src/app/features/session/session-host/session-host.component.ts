@@ -671,6 +671,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const votes = this.getVoteCountForCurrentQuestion(this.currentQuestionForHost());
     return votes >= participants;
   });
+  readonly readingReadyStatus = computed(() => this.participantsPayload()?.readingReady ?? null);
+  readonly allConnectedParticipantsReady = computed(
+    () =>
+      this.effectiveStatus() === 'QUESTION_OPEN' &&
+      this.readingReadyStatus()?.allConnectedReady === true,
+  );
 
   shouldShowPeerInstructionSuggestion(q: HostCurrentQuestionDTO | null): boolean {
     return (
@@ -1615,7 +1621,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   /** i18n: Singular label for participant count. */
   participantLabelSingular(): string {
-    return $localize`:@@sessionHost.participantCountOne:Teilnehmende`;
+    return $localize`:@@sessionHost.participantCountOne:teilnehmende Person`;
   }
   /** i18n: Plural label for participant count. */
   participantLabelPlural(): string {
@@ -1810,6 +1816,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       FINISHED: $localize`Session beendet`,
     };
     return labels[status] ?? status;
+  }
+
+  readingReadyProgressLabel(readyCount: number, connectedCount: number): string {
+    return $localize`:@@sessionHost.readingReadyProgress:${readyCount}:readyCount: von ${connectedCount}:connectedCount: bereit`;
   }
 
   effectiveCurrentQuestion(): number | null {

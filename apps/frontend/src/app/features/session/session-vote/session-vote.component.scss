@@ -1342,6 +1342,29 @@
   line-height: 1.45;
 }
 
+.vote-reading-banner__cta,
+.vote-reading-banner__ready {
+  margin-top: 0.5rem;
+}
+
+.vote-reading-banner__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vote-reading-banner__ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font: var(--mat-sys-title-medium);
+  font-weight: 600;
+}
+
+.vote-reading-banner__ready--done {
+  color: color-mix(in srgb, var(--mat-sys-on-primary-container) 76%, var(--mat-sys-primary));
+}
+
 .vote-question__header {
   display: flex;
   align-items: center;

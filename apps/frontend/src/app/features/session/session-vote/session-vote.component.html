@@ -767,6 +767,27 @@
                 {{ vpc.voteReadingTitle(isPlayfulPreset()) }}
               </p>
               <p class="vote-reading-banner__hint">{{ vpc.voteReadingHint(isPlayfulPreset()) }}</p>
+              @if (readingReadyConfirmed()) {
+                <p class="vote-reading-banner__ready vote-reading-banner__ready--done">
+                  <mat-icon aria-hidden="true">check_circle</mat-icon>
+                  <span>{{ vpc.voteReadingReadyDone(isPlayfulPreset()) }}</span>
+                </p>
+              } @else {
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="vote-reading-banner__cta"
+                  (click)="confirmReadingReady()"
+                  [disabled]="readingReadySubmitting()"
+                >
+                  @if (readingReadySubmitting()) {
+                    <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+                  } @else {
+                    <mat-icon aria-hidden="true">done_all</mat-icon>
+                  }
+                  <span>{{ vpc.voteReadingReadyCta(isPlayfulPreset()) }}</span>
+                </button>
+              }
             </div>
           </div>
         }

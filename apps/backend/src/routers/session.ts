@@ -6,8 +6,11 @@ import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import {
   AttachQuizToSessionInputSchema,
+  ConfirmReadingReadyInputSchema,
+  ConfirmReadingReadyOutputSchema,
   CreateSessionInputSchema,
   CreateSessionOutputSchema,
+  GetCurrentQuestionForStudentInputSchema,
   GetSessionInfoInputSchema,
   GetLiveFreetextInputSchema,
   GetActiveQuizIdsInputSchema,
@@ -44,6 +47,7 @@ import {
   SubmitSessionFeedbackInputSchema,
   SessionFeedbackSummarySchema,
   PersonalScorecardDTOSchema,
+  ReadingReadyStatusDTOSchema,
   type SessionExportDTO,
   type SessionOnboardingProfileInput,
   type QuestionExportEntry,
@@ -75,8 +79,13 @@ import {
 } from '@arsnova/shared-types';
 import { questionCountsTowardsTotalQuestions, questionAffectsStreak } from '../lib/quizScoring';
 import { updateMaxParticipantsSingleSession } from '../lib/platformStatistic';
-import { touchParticipantPresence } from '../lib/presence';
+import { getActiveParticipantIdsForSession, touchParticipantPresence } from '../lib/presence';
 import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
+import {
+  clearReadingReady,
+  getReadingReadyParticipantIds,
+  markParticipantReadingReady,
+} from '../lib/readingReady';
 
 /**
  * In-Memory-Store für Emoji-Reaktionen (Story 5.8).
@@ -154,6 +163,87 @@ interface BonusTokenForExport {
   totalScore: number;
   rank: number;
   generatedAt: Date;
+}
+
+const sessionParticipantsQuerySelect = Prisma.validator<Prisma.SessionSelect>()({
+  id: true,
+  status: true,
+  currentQuestion: true,
+  participants: {
+    orderBy: { joinedAt: 'asc' },
+    select: {
+      id: true,
+      nickname: true,
+      teamId: true,
+      team: { select: { name: true } },
+    },
+  },
+  quiz: {
+    select: {
+      questions: {
+        orderBy: { order: 'asc' },
+        select: { id: true },
+      },
+    },
+  },
+});
+
+type SessionParticipantsQueryResult = Prisma.SessionGetPayload<{
+  select: typeof sessionParticipantsQuerySelect;
+}>;
+
+function getCurrentQuestionIdForReading(session: SessionParticipantsQueryResult): string | null {
+  if (session.status !== 'QUESTION_OPEN') return null;
+  const idx = session.currentQuestion;
+  if (idx === null || idx === undefined) return null;
+  return session.quiz?.questions[idx]?.id ?? null;
+}
+
+async function buildReadingReadyStatus(
+  session: SessionParticipantsQueryResult,
+  questionId: string | null,
+  participantId?: string,
+) {
+  if (!questionId) return undefined;
+
+  const activeParticipantIds = await getActiveParticipantIdsForSession(session.id);
+  const readyParticipantIds = await getReadingReadyParticipantIds(session.id, questionId);
+  const sessionParticipantIds = new Set(session.participants.map((participant) => participant.id));
+
+  const connectedParticipantIds = [...activeParticipantIds].filter((id) =>
+    sessionParticipantIds.has(id),
+  );
+  const readyConnectedCount = connectedParticipantIds.filter((id) =>
+    readyParticipantIds.has(id),
+  ).length;
+  const participantReady = participantId ? readyParticipantIds.has(participantId) : undefined;
+
+  return ReadingReadyStatusDTOSchema.parse({
+    connectedCount: connectedParticipantIds.length,
+    readyCount: readyConnectedCount,
+    allConnectedReady:
+      connectedParticipantIds.length > 0 && readyConnectedCount >= connectedParticipantIds.length,
+    participantReady,
+  });
+}
+
+async function buildSessionParticipantsPayload(
+  session: SessionParticipantsQueryResult,
+  participantId?: string,
+) {
+  const readingQuestionId = getCurrentQuestionIdForReading(session);
+  const readingReady = await buildReadingReadyStatus(session, readingQuestionId, participantId);
+
+  return SessionParticipantsPayloadSchema.parse({
+    participants: session.participants.map((p) => ({
+      id: p.id,
+      nickname: p.nickname,
+      teamId: p.teamId ?? null,
+      teamName: p.team?.name ?? null,
+    })),
+    participantCount: session.participants.length,
+    ...(readingReady ? { readingReady } : {}),
+  });
 }
 
 /** Aggregiert SessionFeedback-Zeilen (getSessionFeedbackSummary / Quiz-Sammlung). */
@@ -1706,30 +1796,12 @@ export const sessionRouter = router({
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        include: {
-          participants: {
-            orderBy: { joinedAt: 'asc' },
-            select: {
-              id: true,
-              nickname: true,
-              teamId: true,
-              team: { select: { name: true } },
-            },
-          },
-        },
+        select: sessionParticipantsQuerySelect,
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      return {
-        participants: session.participants.map((p) => ({
-          id: p.id,
-          nickname: p.nickname,
-          teamId: p.teamId ?? null,
-          teamName: p.team?.name ?? null,
-        })),
-        participantCount: session.participants.length,
-      };
+      return buildSessionParticipantsPayload(session);
     }),
 
   /** Öffentliche Nickname-Liste für Kollisionserkennung beim Join. */
@@ -1793,6 +1865,86 @@ export const sessionRouter = router({
       };
     }),
 
+  confirmReadingReady: publicProcedure
+    .input(ConfirmReadingReadyInputSchema)
+    .output(ConfirmReadingReadyOutputSchema)
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          id: true,
+          status: true,
+          currentQuestion: true,
+          participants: {
+            orderBy: { joinedAt: 'asc' },
+            select: {
+              id: true,
+              nickname: true,
+              teamId: true,
+              team: { select: { name: true } },
+            },
+          },
+          quiz: {
+            select: {
+              questions: {
+                orderBy: { order: 'asc' },
+                select: { id: true },
+              },
+            },
+          },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.status !== 'QUESTION_OPEN') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Bereitschaft kann nur in der Lesephase bestätigt werden.',
+        });
+      }
+
+      const questionIdx = session.currentQuestion;
+      const currentQuestionId =
+        questionIdx === null || questionIdx === undefined
+          ? null
+          : (session.quiz?.questions[questionIdx]?.id ?? null);
+      if (!currentQuestionId || currentQuestionId !== input.questionId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Lesephase gehört nicht mehr zu dieser Frage.',
+        });
+      }
+
+      const participantExists = session.participants.some(
+        (participant) => participant.id === input.participantId,
+      );
+      if (!participantExists) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Teilnehmende oder Session nicht gefunden.',
+        });
+      }
+
+      await markParticipantReadingReady(session.id, currentQuestionId, input.participantId);
+      void touchParticipantPresence(session.id, input.participantId);
+
+      const readingReady = await buildReadingReadyStatus(
+        session,
+        currentQuestionId,
+        input.participantId,
+      );
+      return ConfirmReadingReadyOutputSchema.parse(
+        readingReady ?? {
+          connectedCount: 0,
+          readyCount: 0,
+          allConnectedReady: false,
+          participantReady: true,
+        },
+      );
+    }),
+
   /** Teams einer Session für manuellen Join / Team-Lobby (Story 7.1). */
   getTeams: publicProcedure
     .input(GetSessionInfoInputSchema)
@@ -1847,30 +1999,12 @@ export const sessionRouter = router({
       while (true) {
         const session = await prisma.session.findUnique({
           where: { code },
-          include: {
-            participants: {
-              orderBy: { joinedAt: 'asc' },
-              select: {
-                id: true,
-                nickname: true,
-                teamId: true,
-                team: { select: { name: true } },
-              },
-            },
-          },
+          select: sessionParticipantsQuerySelect,
         });
         if (!session) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
         }
-        const payload = {
-          participants: session.participants.map((p) => ({
-            id: p.id,
-            nickname: p.nickname,
-            teamId: p.teamId ?? null,
-            teamName: p.team?.name ?? null,
-          })),
-          participantCount: session.participants.length,
-        };
+        const payload = await buildSessionParticipantsPayload(session);
         const json = JSON.stringify(payload);
         if (json !== lastJson) {
           lastJson = json;
@@ -2043,6 +2177,8 @@ export const sessionRouter = router({
 
       const currentIdx = session.currentQuestion ?? -1;
       const nextIdx = currentIdx + 1;
+      const currentQuestionId =
+        currentIdx >= 0 ? (session.quiz.questions[currentIdx]?.id ?? null) : null;
 
       if (nextIdx >= questionCount) {
         const now = new Date();
@@ -2056,6 +2192,9 @@ export const sessionRouter = router({
             endedAt: now,
           },
         });
+        if (currentQuestionId) {
+          await clearReadingReady(session.id, currentQuestionId);
+        }
         void recordSessionTransitionActivity();
         await generateBonusTokens(session);
         return { status: 'FINISHED' as const, currentQuestion: null, currentRound: 1 };
@@ -2088,6 +2227,9 @@ export const sessionRouter = router({
           ...(answerDisplayOrderPayload && { answerDisplayOrder: answerDisplayOrderPayload }),
         },
       });
+      if (currentQuestionId) {
+        await clearReadingReady(session.id, currentQuestionId);
+      }
       void recordSessionTransitionActivity();
       void markCountdownSessionActive(session.id);
       return {
@@ -2105,7 +2247,20 @@ export const sessionRouter = router({
     .mutation(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        select: { id: true, status: true, currentQuestion: true, currentRound: true },
+        select: {
+          id: true,
+          status: true,
+          currentQuestion: true,
+          currentRound: true,
+          quiz: {
+            select: {
+              questions: {
+                orderBy: { order: 'asc' },
+                select: { id: true },
+              },
+            },
+          },
+        },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -2121,6 +2276,13 @@ export const sessionRouter = router({
         where: { id: session.id },
         data: { status: 'ACTIVE', statusChangedAt: now },
       });
+      const questionId =
+        session.currentQuestion === null || session.currentQuestion === undefined
+          ? null
+          : (session.quiz?.questions[session.currentQuestion]?.id ?? null);
+      if (questionId) {
+        await clearReadingReady(session.id, questionId);
+      }
       void recordSessionTransitionActivity();
       void markCountdownSessionActive(session.id);
       return {
@@ -2422,7 +2584,7 @@ export const sessionRouter = router({
    * RESULTS → QuestionRevealedDTO (mit isCorrect + Votes), sonst null.
    */
   getCurrentQuestionForStudent: publicProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(GetCurrentQuestionForStudentInputSchema)
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
@@ -2447,6 +2609,22 @@ export const sessionRouter = router({
       const question = session.quiz.questions[idx];
       if (!question) return null;
 
+      const participantId = input.participantId;
+      let participantBelongsToSession = false;
+      if (participantId) {
+        const participant = await prisma.participant.findFirst({
+          where: {
+            id: participantId,
+            sessionId: session.id,
+          },
+          select: { id: true },
+        });
+        participantBelongsToSession = !!participant;
+        if (participantBelongsToSession) {
+          void touchParticipantPresence(session.id, participantId);
+        }
+      }
+
       const answersOrdered = orderAnswersByDisplayMap(
         question.answers,
         question.id,
@@ -2456,6 +2634,10 @@ export const sessionRouter = router({
       const totalQuestions = session.quiz.questions.length;
 
       if (session.status === 'QUESTION_OPEN') {
+        const participantReady =
+          participantBelongsToSession && participantId
+            ? (await getReadingReadyParticipantIds(session.id, question.id)).has(participantId)
+            : undefined;
         return QuestionPreviewDTOSchema.parse({
           id: question.id,
           text: question.text,
@@ -2467,6 +2649,7 @@ export const sessionRouter = router({
           ratingMax: question.ratingMax ?? null,
           ratingLabelMin: question.ratingLabelMin ?? null,
           ratingLabelMax: question.ratingLabelMax ?? null,
+          ...(participantReady !== undefined ? { participantReady } : {}),
         });
       }
 

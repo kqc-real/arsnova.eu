@@ -308,6 +308,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly voteSent = signal(false);
   readonly voteError = signal<string | null>(null);
   readonly voteSending = signal(false);
+  readonly readingReadySubmitting = signal(false);
   readonly freeTextValue = signal('');
   readonly ratingValue = signal<number | null>(null);
   readonly debounced = signal(false);
@@ -475,6 +476,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly isResults = computed(() => this.status() === 'RESULTS');
   readonly isLobby = computed(() => this.status() === 'LOBBY');
   readonly isFinished = computed(() => this.status() === 'FINISHED');
+  readonly readingReadyConfirmed = computed(() => {
+    const question = this.currentQuestion();
+    return (
+      this.isQuestionOpen() &&
+      !!question &&
+      'participantReady' in question &&
+      question.participantReady === true
+    );
+  });
 
   /**
    * Kita-Quiz: immer großes Tier-Emoji wie in der Wartelobby — kein kompaktes Badge oben.
@@ -1838,7 +1848,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   private async refreshQuestion(): Promise<void> {
     try {
-      const q = await trpc.session.getCurrentQuestionForStudent.query({ code: this.code });
+      const q = await trpc.session.getCurrentQuestionForStudent.query({
+        code: this.code,
+        participantId: this.participantId() || undefined,
+      });
       const prev = this.currentQuestion();
       const prevId = prev && 'id' in prev ? prev.id : null;
       const newId = q && 'id' in q ? q.id : null;
@@ -1857,6 +1870,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.selectedAnswerIds.set(new Set());
         this.voteSent.set(false);
         this.voteError.set(null);
+        this.readingReadySubmitting.set(false);
         this.freeTextValue.set('');
         this.ratingValue.set(null);
         this.motivationMessage.set(null);
@@ -1979,6 +1993,43 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
     } catch {
       /* noop */
+    }
+  }
+
+  async confirmReadingReady(): Promise<void> {
+    const question = this.currentQuestion();
+    if (
+      this.readingReadySubmitting() ||
+      !this.isQuestionOpen() ||
+      !question ||
+      !('participantReady' in question) ||
+      !this.participantId()
+    ) {
+      return;
+    }
+
+    this.readingReadySubmitting.set(true);
+    try {
+      await trpc.session.confirmReadingReady.mutate({
+        code: this.code,
+        participantId: this.participantId(),
+        questionId: question.id,
+      });
+      this.currentQuestion.update((current) => {
+        if (!current || !('participantReady' in current) || current.id !== question.id) {
+          return current;
+        }
+        return { ...current, participantReady: true };
+      });
+    } catch (error) {
+      this.voteError.set(
+        localizeKnownServerError(
+          error,
+          $localize`:@@sessionVote.readingReadyError:Bereitschaft konnte nicht bestätigt werden.`,
+        ),
+      );
+    } finally {
+      this.readingReadySubmitting.set(false);
     }
   }
 
