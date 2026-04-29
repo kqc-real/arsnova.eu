@@ -41,6 +41,7 @@ Für Pfade (`apps/backend`, `apps/frontend`, `libs/shared-types`), strikte Monor
 - **Unit-Tests sind Teil der Story, keine spätere Phase.** Eine Story gilt erst als fertig, wenn die in der DoD geforderten Tests mitgeliefert sind.
 - **Backend (tRPC):** Pro neuer Query/Mutation/Subscription mindestens: **ein Happy-Path-Test** (gültige Eingabe → erwartete Ausgabe) und **ein Fehlerfall** (ungültige Eingabe, NOT_FOUND, Rate-Limit o.ä.). Tests liegen in `apps/backend/src/__tests__/` (z.B. pro Router oder thematisch gruppiert).
 - **Frontend:** Pro neuer Komponente/Service eine Spec-Datei im gleichen Ordner; kritische Logik und Nutzerinteraktionen abdecken.
+- **Seiteneffekte mitdenken:** Wenn neue Logik in bestehende Statuspfade eingreift (z. B. `nextQuestion`, `revealAnswers`, `end`, `FINISHED`, Cleanup-/Redis-/Presence-Aufrufe), auch ältere Tests dieser Pfade prüfen und neue Seiteneffekte konsequent mocken. Sonst entstehen Scheinerfolge in Feature-Tests, aber CI-Fehler in fachfremden Bestands-Tests.
 - Bevor eine Story als „fertig“ markiert wird: Tests ausführen (`npm run test -w @arsnova/backend` bzw. `-w @arsnova/frontend`) und DoD-Check (inkl. DTO-Stripping-Tests wo relevant).
 
 ## ✅ Abschluss-Flow für Feature- und Bugfix-Arbeit
@@ -62,6 +63,7 @@ Bevor du eine Feature- oder Bugfix-Änderung als abgeschlossen meldest, gilt der
 5. **Lokalisierten Production-Build prüfen**
    - Bei Frontend-Änderungen vor Abschluss immer den lokalisierten Production-Build ausführen (`npm run build:prod` im Repo-Root bzw. mindestens `npm run build:localize -w @arsnova/frontend`).
    - Build-Warnungen nicht reflexhaft ignorieren; neue Warnungen aktiv einordnen und im Zweifel beheben.
+   - Bei i18n-Änderungen nicht nur auf Typecheck oder normale Tests vertrauen: der lokalisierte Build ist die maßgebliche Validierung für Message-IDs und Placeholder-Namen.
 6. **UI-/Runtime-Folgen querprüfen**
    - Prüfen, ob Anzeige, Filter, Export, Host/Present/Vote und Fehlerzustände dieselbe fachliche Logik verwenden.
    - Bei UI-Änderungen Mobile-First mitdenken; bei sprachrelevanten Änderungen Länge und Lesbarkeit gegenprüfen.
@@ -128,6 +130,7 @@ Bei Arbeit an UI-Texten, Übersetzungsdateien oder mehrsprachiger Darstellung ge
 - **Verbindliche Sync-Regel (5 Sprachen):** Neue oder geänderte deutschsprachige UI-Texte **müssen** sofort in `en`, `fr`, `es`, `it` nachgezogen werden (gleiches PR / gleicher Commit). Dazu gehören auch ARIA-Texte, Platzhalter, Fehlermeldungen, Hilfetexte und rechtliche Seiten.
 - **Definition unvollständig:** Eine Story mit geänderten DE-UI-Texten ist nicht done, solange `messages.en.xlf`, `messages.fr.xlf`, `messages.es.xlf`, `messages.it.xlf` (und bei Legal-Inhalten `imprint/privacy.{locale}.md`) nicht synchron aktualisiert sind.
 - **Stabile Message-IDs:** Neue oder häufig angepasste UI-Strings im Template mit `i18n="@@feature.key"` (bzw. `$localize`:@@…:) markieren, damit XLF-`trans-unit`-IDs bei Copy-Updates nachvollziehbar bleiben; alte, ungenutzte Einheiten entfernen.
+- **XLFs nur extraktgetreu pflegen:** Bei interpolierten `$localize`-/`i18n`-Texten müssen Placeholder-Namen und Message-IDs exakt zum aktuellen Angular-Extract passen. Keine XLF-Platzhalter „nach Gefühl“ anlegen oder beibehalten; bei Zweifel zuerst `extract-i18n`, dann Targets angleichen.
 - **Sprachstil:** Informelle Anrede (Duzen) und zeitgemäßer Stil in allen Sprachen.
 - **Referenz Deutsch:** Deutscher Quelltext ist Maßstab für Form und Länge; Übersetzungen sollen die vorgegebene Kürze/Struktur wahren.
 - **Deutschsprachige Dokumente:** In deutschsprachigen Markdown-, Text- und UI-Dokumenten normale deutsche Rechtschreibung mit Umlauten und `ß` verwenden. Umschriften wie `ae`, `oe`, `ue` oder `ss` sind nur in technisch erzwungenen Kontexten zulässig, z. B. in Dateinamen, URLs, IDs, CLI-Kommandos oder ASCII-beschränkten Formaten.
