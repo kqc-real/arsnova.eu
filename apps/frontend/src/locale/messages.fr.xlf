@@ -7836,19 +7836,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.readingReadyProgress" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="readyCount"/> von <x id="INTERPOLATION_1" equiv-text="connectedCount"/> bereit</source>
-        <target><x id="INTERPOLATION" equiv-text="readyCount"/> sur <x id="INTERPOLATION_1" equiv-text="connectedCount"/> prêts</target>
+        <source><x id="readyCount" equiv-text="readyCount"/> von <x id="connectedCount" equiv-text="connectedCount"/> bereit</source>
+        <target><x id="readyCount" equiv-text="readyCount"/> sur <x id="connectedCount" equiv-text="connectedCount"/> prêts</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1822</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7225653335184607064" datatype="html">
+      <trans-unit id="6439976003219967076" datatype="html">
         <source>Alle sind bereit – Antwortoptionen können freigegeben werden.</source>
         <target>Tout le monde est prêt — les options de réponse peuvent être affichées.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">912</context>
+          <context context-type="linenumber">913</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.ratingDistributionAria" datatype="html">
