@@ -35,6 +35,8 @@ import {
   TeamLeaderboardEntryDTOSchema,
   BonusTokenListDTOSchema,
   GetBonusTokensForQuizInputSchema,
+  GetQuizCollectionHistoryAvailabilityInputSchema,
+  GetQuizCollectionHistoryAvailabilityOutputSchema,
   BindQuizHistoryScopeInputSchema,
   BindQuizHistoryScopeOutputSchema,
   BonusTokensForQuizOutputSchema,
@@ -3335,6 +3337,41 @@ export const sessionRouter = router({
           })),
         })),
       };
+    }),
+
+  getQuizCollectionHistoryAvailability: publicProcedure
+    .input(GetQuizCollectionHistoryAvailabilityInputSchema)
+    .output(GetQuizCollectionHistoryAvailabilityOutputSchema)
+    .query(async ({ input }) => {
+      return Promise.all(
+        input.map(async (entry) => {
+          const scopedQuizIds = await resolveQuizHistoryScopeIds(entry.quizId, entry.accessProof);
+          const [bonusSession, feedbackSession] = await Promise.all([
+            prisma.session.findFirst({
+              where: {
+                quizId: { in: scopedQuizIds },
+                status: 'FINISHED',
+                bonusTokens: { some: {} },
+              },
+              select: { id: true },
+            }),
+            prisma.session.findFirst({
+              where: {
+                quizId: { in: scopedQuizIds },
+                status: 'FINISHED',
+                sessionFeedbacks: { some: {} },
+              },
+              select: { id: true },
+            }),
+          ]);
+
+          return {
+            quizId: entry.quizId,
+            hasBonusTokens: bonusSession !== null,
+            hasLastSessionFeedback: feedbackSession !== null,
+          };
+        }),
+      );
     }),
 
   /**

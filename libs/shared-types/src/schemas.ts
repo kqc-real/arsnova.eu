@@ -1158,6 +1158,29 @@ export const BonusTokensForQuizOutputSchema = z.object({
 });
 export type BonusTokensForQuizOutput = z.infer<typeof BonusTokensForQuizOutputSchema>;
 
+export const QuizCollectionHistoryAvailabilityDTOSchema = z.object({
+  quizId: z.string().uuid(),
+  hasBonusTokens: z.boolean(),
+  hasLastSessionFeedback: z.boolean(),
+});
+export type QuizCollectionHistoryAvailabilityDTO = z.infer<
+  typeof QuizCollectionHistoryAvailabilityDTOSchema
+>;
+
+export const GetQuizCollectionHistoryAvailabilityInputSchema = z
+  .array(GetBonusTokensForQuizInputSchema)
+  .max(100);
+export type GetQuizCollectionHistoryAvailabilityInput = z.infer<
+  typeof GetQuizCollectionHistoryAvailabilityInputSchema
+>;
+
+export const GetQuizCollectionHistoryAvailabilityOutputSchema = z.array(
+  QuizCollectionHistoryAvailabilityDTOSchema,
+);
+export type GetQuizCollectionHistoryAvailabilityOutput = z.infer<
+  typeof GetQuizCollectionHistoryAvailabilityOutputSchema
+>;
+
 export const VerifyBonusTokenForQuizInputSchema = z.object({
   quizId: z.string().uuid(),
   accessProof: QuizHistoryAccessProofSchema,

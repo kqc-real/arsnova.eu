@@ -1,6 +1,6 @@
 import { DatePipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
@@ -137,6 +137,9 @@ export class QuizListComponent implements OnInit {
   readonly actionInfoWarnings = signal<QuizImportWarning[]>([]);
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizParticipants = signal<Map<string, number>>(new Map());
+  readonly quizHistoryAvailability = signal<
+    Map<string, { hasBonusTokens: boolean; hasLastSessionFeedback: boolean }>
+  >(new Map());
   readonly showAiImport = signal(false);
   /** Volltext der KI-Systemvorlage im Panel (Schritt 1). */
   readonly showKiPromptPreview = signal(false);
@@ -153,9 +156,29 @@ export class QuizListComponent implements OnInit {
   readonly startLiveShortcutMode = signal(false);
   readonly bonusCodesAfterLiveTooltip = $localize`:@@quizList.bonusCodesAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
   readonly lastFeedbackAfterLiveTooltip = $localize`:@@quizList.lastFeedbackAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
+  readonly bonusCodesEmptyTooltip = $localize`:@@quizList.bonusCodesEmpty:Noch keine Bonus-Codes vorhanden.`;
+  readonly lastFeedbackEmptyTooltip = $localize`:@@quizList.lastFeedbackEmpty:Noch kein Feedback vorhanden.`;
+  private lastQuizHistoryAvailabilityKey = '';
+  private quizHistoryAvailabilityRequestId = 0;
 
   /** Wird true, während quiz.upload + session.create laufen (Story 2.1a). */
   readonly liveStartPending = signal(false);
+
+  constructor() {
+    effect(() => {
+      const entries = this.quizzes()
+        .filter(
+          (quiz) => typeof quiz.lastServerQuizId === 'string' && !!quiz.lastServerQuizAccessProof,
+        )
+        .map((quiz) => ({
+          localQuizId: quiz.id,
+          quizId: quiz.lastServerQuizId!,
+          accessProof: quiz.lastServerQuizAccessProof!,
+        }));
+      const requestKey = JSON.stringify(entries);
+      untracked(() => void this.refreshQuizHistoryAvailability(entries, requestKey));
+    });
+  }
 
   /** Für i18n-matTooltip: Mindestens eine Frage erforderlich. */
   tooltipMinQuestions(): string {
@@ -303,6 +326,37 @@ export class QuizListComponent implements OnInit {
 
     await this.handleSyncImportNoticeIfRequested();
     await this.activateLiveStartShortcutIfRequested();
+  }
+
+  hasAvailableBonusCodes(quiz: QuizSummary): boolean {
+    if (!quiz.hasBonus) {
+      return false;
+    }
+    return this.quizHistoryAvailability().get(quiz.id)?.hasBonusTokens === true;
+  }
+
+  hasAvailableLastSessionFeedback(quiz: QuizSummary): boolean {
+    return this.quizHistoryAvailability().get(quiz.id)?.hasLastSessionFeedback === true;
+  }
+
+  bonusCodesTooltip(quiz: QuizSummary): string | null {
+    if (!quiz.lastServerQuizId) {
+      return this.bonusCodesAfterLiveTooltip;
+    }
+    if (!this.hasAvailableBonusCodes(quiz)) {
+      return this.bonusCodesEmptyTooltip;
+    }
+    return null;
+  }
+
+  lastSessionFeedbackTooltip(quiz: QuizSummary): string | null {
+    if (!quiz.lastServerQuizId) {
+      return this.lastFeedbackAfterLiveTooltip;
+    }
+    if (!this.hasAvailableLastSessionFeedback(quiz)) {
+      return this.lastFeedbackEmptyTooltip;
+    }
+    return null;
   }
 
   toggleAiImport(): void {
@@ -593,6 +647,7 @@ export class QuizListComponent implements OnInit {
   }
 
   async openBonusCodesDialog(quiz: QuizSummary): Promise<void> {
+    if (!this.hasAvailableBonusCodes(quiz)) return;
     const sid = quiz.lastServerQuizId;
     if (!sid) return;
     const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
@@ -607,6 +662,7 @@ export class QuizListComponent implements OnInit {
   }
 
   async openLastSessionFeedbackDialog(quiz: QuizSummary): Promise<void> {
+    if (!this.hasAvailableLastSessionFeedback(quiz)) return;
     const sid = quiz.lastServerQuizId;
     if (!sid) return;
     const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
@@ -661,6 +717,50 @@ export class QuizListComponent implements OnInit {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  private async refreshQuizHistoryAvailability(
+    entries: Array<{ localQuizId: string; quizId: string; accessProof: string }>,
+    requestKey: string,
+  ): Promise<void> {
+    if (requestKey === this.lastQuizHistoryAvailabilityKey) {
+      return;
+    }
+    this.lastQuizHistoryAvailabilityKey = requestKey;
+
+    if (entries.length === 0) {
+      this.quizHistoryAvailability.set(new Map());
+      return;
+    }
+
+    const requestId = ++this.quizHistoryAvailabilityRequestId;
+    try {
+      const result = await trpc.session.getQuizCollectionHistoryAvailability.query(
+        entries.map((entry) => ({
+          quizId: entry.quizId,
+          accessProof: entry.accessProof,
+        })),
+      );
+      if (requestId !== this.quizHistoryAvailabilityRequestId) {
+        return;
+      }
+
+      const next = new Map<string, { hasBonusTokens: boolean; hasLastSessionFeedback: boolean }>();
+      for (const [index, availability] of result.entries()) {
+        const localQuizId = entries[index]?.localQuizId;
+        if (!localQuizId) continue;
+        next.set(localQuizId, {
+          hasBonusTokens: availability.hasBonusTokens,
+          hasLastSessionFeedback: availability.hasLastSessionFeedback,
+        });
+      }
+      this.quizHistoryAvailability.set(next);
+    } catch {
+      if (requestId !== this.quizHistoryAvailabilityRequestId) {
+        return;
+      }
+      this.quizHistoryAvailability.set(new Map());
+    }
   }
 
   private async waitForSyncImportSnapshot(): Promise<QuizSummary[]> {

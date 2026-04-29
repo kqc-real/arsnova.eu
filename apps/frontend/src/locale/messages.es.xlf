@@ -6715,6 +6715,22 @@
           <context context-type="linenumber">148</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizList.bonusCodesEmpty" datatype="html">
+        <source>Noch keine Bonus-Codes vorhanden.</source>
+        <target>Todavía no hay códigos bonus disponibles.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">159</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.lastFeedbackEmpty" datatype="html">
+        <source>Noch kein Feedback vorhanden.</source>
+        <target>Todavía no hay comentarios disponibles.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">160</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="quizList.tooltipMinQuestions" datatype="html">
         <source>Für ein Quiz brauchst du mindestens eine Frage.</source>
         <target>Para iniciar un quiz necesitas al menos una pregunta.</target>

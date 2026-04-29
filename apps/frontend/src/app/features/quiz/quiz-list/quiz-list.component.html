@@ -431,29 +431,35 @@
 
         <div class="quiz-list-item__actions">
           @if (quiz.hasBonus) {
+            <span
+              [matTooltip]="bonusCodesTooltip(quiz)"
+              [matTooltipDisabled]="!bonusCodesTooltip(quiz)"
+            >
+              <button
+                mat-button
+                type="button"
+                [disabled]="!hasAvailableBonusCodes(quiz)"
+                (click)="openBonusCodesDialog(quiz)"
+              >
+                <mat-icon>emoji_events</mat-icon>
+                <span i18n="@@quizList.bonusCodes">Bonus-Codes</span>
+              </button>
+            </span>
+          }
+          <span
+            [matTooltip]="lastSessionFeedbackTooltip(quiz)"
+            [matTooltipDisabled]="!lastSessionFeedbackTooltip(quiz)"
+          >
             <button
               mat-button
               type="button"
-              [disabled]="!quiz.lastServerQuizId"
-              [matTooltip]="bonusCodesAfterLiveTooltip"
-              [matTooltipDisabled]="!!quiz.lastServerQuizId"
-              (click)="openBonusCodesDialog(quiz)"
+              [disabled]="!hasAvailableLastSessionFeedback(quiz)"
+              (click)="openLastSessionFeedbackDialog(quiz)"
             >
-              <mat-icon>emoji_events</mat-icon>
-              <span i18n="@@quizList.bonusCodes">Bonus-Codes</span>
+              <mat-icon>feedback</mat-icon>
+              <span i18n="@@quizList.lastSessionFeedback">Letztes Feedback</span>
             </button>
-          }
-          <button
-            mat-button
-            type="button"
-            [disabled]="!quiz.lastServerQuizId"
-            [matTooltip]="lastFeedbackAfterLiveTooltip"
-            [matTooltipDisabled]="!!quiz.lastServerQuizId"
-            (click)="openLastSessionFeedbackDialog(quiz)"
-          >
-            <mat-icon>feedback</mat-icon>
-            <span i18n="@@quizList.lastSessionFeedback">Letztes Feedback</span>
-          </button>
+          </span>
           <a
             mat-button
             type="button"
