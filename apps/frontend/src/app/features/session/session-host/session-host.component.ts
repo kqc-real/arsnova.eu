@@ -666,6 +666,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return q.totalVotes ?? 0;
   }
 
+  readonly liveVoteProgress = computed(() => {
+    if (this.effectiveStatus() !== 'ACTIVE' || this.isQaSession()) {
+      return null;
+    }
+    const question = this.currentQuestionForHost();
+    const participants = this.participantsPayload()?.participantCount ?? 0;
+    if (!question || participants <= 0) {
+      return null;
+    }
+    const votes = Math.min(this.getVoteCountForCurrentQuestion(question), participants);
+    const percentage = Math.max(0, Math.min(100, Math.round((votes / participants) * 100)));
+    return {
+      votes,
+      participants,
+      percentage,
+      complete: votes >= participants,
+    };
+  });
+
   readonly allHaveVoted = computed(() => {
     if (this.effectiveStatus() !== 'ACTIVE') return false;
     const participants = this.participantsPayload()?.participantCount ?? 0;
@@ -1437,16 +1456,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const cached = this.leaderboard();
-    if (cached.some((entry) => entry.totalScore > 0)) {
+    if (this.hasPotentialBonusRecipients(cached)) {
       return true;
     }
 
     try {
       const entries = await trpc.session.getLeaderboard.query({ code: this.code.toUpperCase() });
-      return entries.some((entry) => entry.totalScore > 0);
+      return this.hasPotentialBonusRecipients(entries);
     } catch {
       return false;
     }
+  }
+
+  private hasPotentialBonusRecipients(entries: Array<{ totalScore: number }>): boolean {
+    return entries.some((entry) => entry.totalScore > 0);
   }
 
   private async endSessionAndNavigateHome(): Promise<void> {
@@ -1719,6 +1742,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return $localize`${count} von ${totalStr} hat geantwortet`;
     }
     return $localize`${count} von ${totalStr} haben geantwortet`;
+  }
+
+  voteProgressCompactLabel(votes: number, participants: number): string {
+    return $localize`${votes} von ${participants}`;
+  }
+
+  voteProgressAria(votes: number, participants: number, percentage: number): string {
+    if (votes === 1) {
+      return $localize`:@@sessionHost.voteProgressAriaOne:${votes}:votes: von ${participants}:participants: Teilnehmenden hat abgestimmt. ${percentage}:percentage: Prozent erreicht.`;
+    }
+    return $localize`:@@sessionHost.voteProgressAriaMany:${votes}:votes: von ${participants}:participants: Teilnehmenden haben abgestimmt. ${percentage}:percentage: Prozent erreicht.`;
   }
 
   normalizeFreetextResponse(value: string): string {

@@ -409,9 +409,9 @@ export function voteScorecardWrong(playful: boolean): string {
 
 export function voteScorecardNeutral(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.scoreNeutralPlayful:Notiert!`;
+    return $localize`:@@sessionVote.scoreNeutralPlayful:Punkte notiert!`;
   }
-  return $localize`:@@sessionVote.scoreNeutralSerious:Antwort registriert`;
+  return $localize`:@@sessionVote.scoreNeutralSerious:Punkte verbucht`;
 }
 
 /** Sichtbarer Callout: Serie mit Faktor und Zusatzpunkten (Story 5.5 / UX). */
@@ -542,7 +542,7 @@ export function voteFeedbackSnack(playful: boolean): string {
 
 export function voteMissedResultsMessage(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.missedResultsPlayful:Diesmal keine Antwort mehr – gleich kommt die nächste Chance!`;
+    return $localize`:@@sessionVote.missedResultsPlayful:Leider verpasst! Das nächste Mal schneller antworten.`;
   }
   return $localize`:@@sessionVote.missedResultsSerious:Keine Antwort mehr rechtzeitig abgegeben. Die nächste Frage folgt.`;
 }

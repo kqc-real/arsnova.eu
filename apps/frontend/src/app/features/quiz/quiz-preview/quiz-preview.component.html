@@ -403,10 +403,19 @@
               }
 
               <div class="quiz-preview-editor__actions">
-                <button mat-button type="button" (click)="cancelInlineEditMode()">
-                  <mat-icon>close</mat-icon>
-                  <span i18n="@@quiz.edit.discardChangesButton">Änderungen verwerfen</span>
-                </button>
+                @if (inlineEditHasChanges()) {
+                  <button mat-button type="button" (click)="cancelInlineEditMode()">
+                    <mat-icon>close</mat-icon>
+                    <span i18n="@@quizPreview.inlineEditDiscardChangesButton"
+                      >Änderungen verwerfen</span
+                    >
+                  </button>
+                } @else {
+                  <button mat-button type="button" (click)="cancelInlineEditMode()">
+                    <mat-icon>close</mat-icon>
+                    <span i18n="@@quizPreview.inlineEditCloseButton">Schließen</span>
+                  </button>
+                }
                 <button
                   matButton="filled"
                   type="button"

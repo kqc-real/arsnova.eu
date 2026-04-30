@@ -760,11 +760,11 @@
                 <p class="quiz-edit-form__preview-label" i18n="@@quizEdit.livePreviewAnswersLabel">
                   Antworten
                 </p>
-                <ol class="quiz-edit-form__preview-answers markdown-body">
+                <ul class="quiz-edit-form__preview-answers markdown-body">
                   @for (answerHtml of answerPreviewHtml(); track $index) {
                     <li [innerHTML]="answerHtml"></li>
                   }
-                </ol>
+                </ul>
               </div>
             }
           </mat-card-content>

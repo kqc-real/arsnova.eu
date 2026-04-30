@@ -79,7 +79,11 @@ import {
   createLegacyQuizHistoryAccessProof,
   resolveEffectiveQuestionTimer,
 } from '@arsnova/shared-types';
-import { questionCountsTowardsTotalQuestions, questionAffectsStreak } from '../lib/quizScoring';
+import {
+  isExactCorrectSelection,
+  questionCountsTowardsTotalQuestions,
+  questionAffectsStreak,
+} from '../lib/quizScoring';
 import { updateMaxParticipantsSingleSession } from '../lib/platformStatistic';
 import { getActiveParticipantIdsForSession, touchParticipantPresence } from '../lib/presence';
 import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
@@ -1059,6 +1063,7 @@ function generateBonusCode(): string {
  */
 async function generateBonusTokens(session: {
   id: string;
+  currentQuestion: number | null;
   quiz: { name: string; bonusTokenCount: number | null; questions: { type: string }[] } | null;
   participants: { id: string; nickname: string }[];
   bonusTokens: { id: string }[];
@@ -1066,6 +1071,14 @@ async function generateBonusTokens(session: {
   const topX = session.quiz?.bonusTokenCount;
   if (!topX || topX <= 0 || !session.quiz) return;
   if (session.bonusTokens.length > 0) return;
+  const lastQuestionIndex = session.quiz.questions.length - 1;
+  if (
+    lastQuestionIndex < 0 ||
+    session.currentQuestion === null ||
+    session.currentQuestion < lastQuestionIndex
+  ) {
+    return;
+  }
 
   const votes = await prisma.vote.findMany({
     where: { sessionId: session.id, round: 1 },
@@ -3148,8 +3161,13 @@ export const sessionRouter = router({
           participantId: true,
           score: true,
           responseTimeMs: true,
-          question: { select: { type: true } },
-          selectedAnswers: { select: { answerOption: { select: { isCorrect: true } } } },
+          question: {
+            select: {
+              type: true,
+              answers: { select: { id: true, isCorrect: true } },
+            },
+          },
+          selectedAnswers: { select: { answerOptionId: true } },
         },
       });
 
@@ -3168,10 +3186,16 @@ export const sessionRouter = router({
         s.totalResponseTimeMs += v.responseTimeMs ?? 0;
 
         if (questionCountsTowardsTotalQuestions(v.question.type as QuestionType)) {
-          const correctIds = v.selectedAnswers.filter((sa) => sa.answerOption.isCorrect);
-          const allCorrect =
-            correctIds.length > 0 && correctIds.length === v.selectedAnswers.length;
-          if (allCorrect) s.correctCount++;
+          const correctAnswerIds = v.question.answers
+            .filter((answer) => answer.isCorrect)
+            .map((answer) => answer.id);
+          const selectedAnswerIds = v.selectedAnswers.map((selected) => selected.answerOptionId);
+          if (
+            correctAnswerIds.length > 0 &&
+            isExactCorrectSelection(selectedAnswerIds, correctAnswerIds)
+          ) {
+            s.correctCount++;
+          }
         }
       }
 
@@ -3232,6 +3256,7 @@ export const sessionRouter = router({
         select: {
           id: true,
           status: true,
+          currentQuestion: true,
           quizId: true,
           quiz: {
             select: {

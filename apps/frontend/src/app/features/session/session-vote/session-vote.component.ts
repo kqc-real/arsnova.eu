@@ -1052,7 +1052,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (leader.totalScore <= 0) {
       return null;
     }
-    const leaderLabel = this.teamNameDisplayLabel(leader.teamName);
+    const leaderLabel = this.teamNameLeaderHintLabel(leader.teamName);
     return this.isPlayfulPreset()
       ? vpc.voteTeamLeaderHintPlayful(leaderLabel, leader.totalScore)
       : vpc.voteTeamLeaderHintSerious(leaderLabel, leader.totalScore);
@@ -1126,6 +1126,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private teamNameDisplayLabel(teamName: string): string {
     const label = stripEdgeEmojiMarker(teamName).trim();
     return label.length > 0 ? label : $localize`Team`;
+  }
+
+  private teamNameLeaderHintLabel(teamName: string): string {
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    if (label.length > 0) {
+      return label;
+    }
+    const raw = teamName.trim();
+    return raw.length > 0 ? raw : $localize`Team`;
   }
 
   teamMemberLabel(count: number): string {

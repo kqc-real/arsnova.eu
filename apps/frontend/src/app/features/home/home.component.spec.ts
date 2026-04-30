@@ -442,8 +442,53 @@ describe('HomeComponent', () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
       vi.runOnlyPendingTimers();
+      await vi.waitUntil(() => navSpy.mock.calls.length === 1, {
+        timeout: 1000,
+        interval: 10,
+      });
 
       expect(navSpy).toHaveBeenCalledWith(['join', 'ABC123'], { replaceUrl: true });
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+    });
+
+    it('unterbindet bei join-Query das Onboarding für bereits beendete Sessions', async () => {
+      setRouteQueryParams({ join: 'abc123' });
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValueOnce({
+        id: 'sess-finished',
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        serverTime: new Date().toISOString(),
+        quizName: 'Test',
+        title: null,
+        participantCount: 0,
+      });
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+      await vi.waitUntil(
+        () =>
+          navSpy.mock.calls.length === 1 &&
+          fixture.componentInstance.joinErrorSessionFinished() === true,
+        {
+          timeout: 1000,
+          interval: 10,
+        },
+      );
+      fixture.detectChanges();
+
+      expect(navSpy).toHaveBeenCalledWith([], {
+        replaceUrl: true,
+        queryParams: {},
+        queryParamsHandling: '',
+      });
+      expect(fixture.componentInstance.joinErrorSessionFinished()).toBe(true);
+      expect(fixture.componentInstance.joinError()).toBe('Diese Session ist bereits beendet.');
+      expect(fixture.componentInstance.sessionCode()).toBe('ABC123');
       expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
     });
 

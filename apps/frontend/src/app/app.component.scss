@@ -152,22 +152,106 @@
   top: 0;
   z-index: 79;
   display: flex;
+  justify-content: center;
+  padding: 0.6rem 1rem 0.75rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-surface)) 0%,
+    color-mix(in srgb, var(--mat-sys-primary-container) 92%, var(--mat-sys-surface)) 100%
+  );
+  color: var(--mat-sys-on-primary-container);
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: app-update-banner-enter 220ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+}
+
+.app-update-banner__inner {
+  width: min(100%, 56rem);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 88%, white);
+  box-shadow:
+    0 10px 24px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 60%, transparent);
+}
+
+.app-update-banner__icon-wrap {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
-  font: var(--mat-sys-label-medium);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  color: var(--mat-sys-primary);
+  flex-shrink: 0;
 }
+
 .app-update-banner__icon {
-  font-size: 1.25rem;
-  width: 1.25rem;
-  height: 1.25rem;
+  font-size: 1.35rem;
+  width: 1.35rem;
+  height: 1.35rem;
 }
+
+.app-update-banner__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.app-update-banner__title {
+  font: var(--mat-sys-title-small);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.app-update-banner__text {
+  font: var(--mat-sys-body-small);
+  color: color-mix(in srgb, var(--mat-sys-on-primary-container) 82%, transparent);
+}
+
 .app-update-banner__action {
-  margin-left: 0.5rem;
-  color: var(--mat-sys-on-primary-container);
+  white-space: nowrap;
+  font-weight: 700;
+  box-shadow: var(--mat-sys-level1);
+}
+
+@keyframes app-update-banner-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 599px) {
+  .app-update-banner {
+    padding: 0.5rem 0.75rem 0.65rem;
+  }
+
+  .app-update-banner__inner {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 0.7rem 0.75rem;
+    gap: 0.7rem 0.75rem;
+  }
+
+  .app-update-banner__action {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .app-footer__inner {

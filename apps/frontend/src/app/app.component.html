@@ -13,17 +13,28 @@
     </div>
   }
   @if (updateAvailable()) {
-    <output class="app-update-banner" aria-live="polite">
-      <mat-icon class="app-update-banner__icon">system_update</mat-icon>
-      <span i18n>Neue Version verfügbar.</span>
-      <button
-        matButton
-        class="app-update-banner__action"
-        (click)="reloadWithUpdate()"
-        i18n="@@app.updateBanner.reloadNow"
-      >
-        Jetzt laden
-      </button>
+    <output class="app-update-banner" aria-live="polite" role="status">
+      <div class="app-update-banner__inner">
+        <span class="app-update-banner__icon-wrap" aria-hidden="true">
+          <mat-icon class="app-update-banner__icon">system_update</mat-icon>
+        </span>
+        <div class="app-update-banner__copy">
+          <strong class="app-update-banner__title" i18n="@@app.updateBanner.title"
+            >Neue Version bereit</strong
+          >
+          <span class="app-update-banner__text" i18n="@@app.updateBanner.text"
+            >Aktualisieren für den neuesten Stand.</span
+          >
+        </div>
+        <button
+          matButton="filled"
+          class="app-update-banner__action"
+          (click)="reloadWithUpdate()"
+          i18n="@@app.updateBanner.reloadNow"
+        >
+          Jetzt aktualisieren
+        </button>
+      </div>
     </output>
   }
   <ng-container connectionBannerHost></ng-container>

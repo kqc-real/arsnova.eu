@@ -282,11 +282,38 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.scheduleTimeout(() => {
-      void this.router.navigate(localizeCommands(['join', queryJoin]), {
-        replaceUrl: true,
-      });
+      void this.handlePendingJoinFromQuery(queryJoin);
     }, 0);
     return true;
+  }
+
+  private async handlePendingJoinFromQuery(code: string): Promise<void> {
+    this.joinError.set(null);
+    this.joinErrorSessionFinished.set(false);
+    try {
+      const target = await this.resolveJoinTarget(code);
+      if (target === 'feedback') {
+        this.addToRecentSessionCodes(code);
+        await this.router.navigate(localizeCommands(['feedback', code, 'vote']), {
+          replaceUrl: true,
+        });
+        return;
+      }
+      if (target === 'finished') {
+        this.removeRecentSessionCode(code);
+        this.applyFinishedJoinError(code);
+        await this.clearPendingJoinQuery();
+        return;
+      }
+      this.addToRecentSessionCodes(code);
+      await this.router.navigate(localizeCommands(['join', code]), {
+        replaceUrl: true,
+      });
+    } catch (err: unknown) {
+      this.removeRecentSessionCode(code);
+      this.applyJoinLookupError(code, err);
+      await this.clearPendingJoinQuery();
+    }
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -312,13 +339,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async isSessionVisitable(code: string): Promise<boolean> {
-    const { active: fbActive } = await trpc.quickFeedback.isActive
-      .query({ sessionCode: code })
-      .catch(() => ({ active: false }));
-    if (fbActive) return true;
-    const session = await trpc.session.getInfo.query({ code }).catch(() => null);
-    if (!session) return false;
-    return session.status !== 'FINISHED';
+    try {
+      return (await this.resolveJoinTarget(code)) !== 'finished';
+    } catch {
+      return false;
+    }
   }
 
   private loadRecentSessionCodes(): void {
@@ -630,33 +655,57 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.joinError.set(null);
     this.isJoining.set(true);
     try {
-      const { active: fbActive } = await trpc.quickFeedback.isActive
-        .query({ sessionCode: code })
-        .catch(() => ({ active: false }));
-      if (fbActive) {
+      const target = await this.resolveJoinTarget(code);
+      if (target === 'feedback') {
         this.addToRecentSessionCodes(code);
         await this.router.navigate(localizeCommands(['feedback', code, 'vote']));
         return;
       }
-      const session = await trpc.session.getInfo.query({ code });
-      if (session.status === 'FINISHED') {
+      if (target === 'finished') {
         this.removeRecentSessionCode(code);
-        this.joinErrorSessionFinished.set(true);
-        this.joinError.set($localize`Diese Session ist bereits beendet.`);
-        this.triggerShake();
+        this.applyFinishedJoinError(code);
         return;
       }
       this.addToRecentSessionCodes(code);
       await this.router.navigate(localizeCommands(['join', code]));
     } catch (err: unknown) {
       this.removeRecentSessionCode(code);
-      this.joinErrorSessionFinished.set(false);
-      this.joinError.set(localizeKnownServerError(err, sessionNotFoundUiMessage()));
-      this.triggerShake();
+      this.applyJoinLookupError(code, err);
       this.clearSessionCodeAndFocusStart();
     } finally {
       this.isJoining.set(false);
     }
+  }
+
+  private async resolveJoinTarget(code: string): Promise<'feedback' | 'join' | 'finished'> {
+    const { active: fbActive } = await trpc.quickFeedback.isActive.query({ sessionCode: code });
+    if (fbActive) {
+      return 'feedback';
+    }
+    const session = await trpc.session.getInfo.query({ code });
+    return session.status === 'FINISHED' ? 'finished' : 'join';
+  }
+
+  private applyFinishedJoinError(code: string): void {
+    this.sessionCode.set(code);
+    this.joinErrorSessionFinished.set(true);
+    this.joinError.set($localize`Diese Session ist bereits beendet.`);
+    this.triggerShake();
+  }
+
+  private applyJoinLookupError(code: string, err: unknown): void {
+    this.sessionCode.set(code);
+    this.joinErrorSessionFinished.set(false);
+    this.joinError.set(localizeKnownServerError(err, sessionNotFoundUiMessage()));
+    this.triggerShake();
+  }
+
+  private async clearPendingJoinQuery(): Promise<void> {
+    await this.router.navigate([], {
+      replaceUrl: true,
+      queryParams: {},
+      queryParamsHandling: '',
+    });
   }
 
   private async loadMotdOverlay(): Promise<void> {

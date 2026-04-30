@@ -51,6 +51,11 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+type AppDevWindow = Window & {
+  __triggerPwaInstallHint?: () => void;
+  __triggerUpdateBanner?: () => void;
+};
+
 @Directive({ selector: '[presetToastHost]', standalone: true })
 class PresetToastHostDirective {
   readonly vcRef = inject(ViewContainerRef);
@@ -318,8 +323,8 @@ export class AppComponent implements OnInit, OnDestroy {
       window.removeEventListener('appinstalled', this.appInstalledListener);
       if (isDevMode()) {
         window.removeEventListener('pwa-install-test', this.pwaInstallTestListener);
-        delete (window as unknown as { __triggerPwaInstallHint?: () => void })
-          .__triggerPwaInstallHint;
+        delete (window as AppDevWindow).__triggerPwaInstallHint;
+        delete (window as AppDevWindow).__triggerUpdateBanner;
       }
     }
   }
@@ -400,9 +405,13 @@ export class AppComponent implements OnInit, OnDestroy {
     window.addEventListener('appinstalled', this.appInstalledListener);
     if (isDevMode()) {
       window.addEventListener('pwa-install-test', this.pwaInstallTestListener);
+      window.addEventListener('pwa-update-test', this.pwaUpdateTestListener);
       /** In DevTools-Konsole ausführen: window.__triggerPwaInstallHint() – zeigt die PWA-Install-Snackbar zum Testen. */
-      (window as unknown as { __triggerPwaInstallHint?: () => void }).__triggerPwaInstallHint =
-        () => window.dispatchEvent(new CustomEvent('pwa-install-test'));
+      (window as AppDevWindow).__triggerPwaInstallHint = () =>
+        window.dispatchEvent(new CustomEvent('pwa-install-test'));
+      /** In DevTools-Konsole ausführen: window.__triggerUpdateBanner() – zeigt den Update-Banner zum Testen. */
+      (window as AppDevWindow).__triggerUpdateBanner = () =>
+        window.dispatchEvent(new CustomEvent('pwa-update-test'));
     }
   }
 
@@ -413,6 +422,10 @@ export class AppComponent implements OnInit, OnDestroy {
     } as BeforeInstallPromptEvent;
     this.deferredInstallPrompt = mock;
     this.installSnackbarVisible.set(true);
+  };
+
+  private readonly pwaUpdateTestListener = (): void => {
+    this.updateAvailable.set(true);
   };
 
   private isStandalone(): boolean {

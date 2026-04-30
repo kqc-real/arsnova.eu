@@ -434,7 +434,7 @@ describe('QuizPreviewComponent', () => {
     expect(saveButton?.disabled).toBe(false);
   });
 
-  it('zeigt im Preview-Editor nur einen Verwerfen-Button in der Actionbar', () => {
+  it('zeigt im Preview-Editor ohne Änderungen einen Schließen-Button in der Actionbar', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
@@ -442,12 +442,41 @@ describe('QuizPreviewComponent', () => {
     component.enterInlineEditMode();
     fixture.detectChanges();
 
-    const discardButtons = Array.from(fixture.nativeElement.querySelectorAll('button')).filter(
-      (button) => (button.textContent as string).includes('Änderungen verwerfen'),
-    );
+    const actionButtons = Array.from(
+      fixture.nativeElement.querySelectorAll('.quiz-preview-editor__actions button'),
+    ) as HTMLButtonElement[];
 
-    expect(discardButtons).toHaveLength(1);
-    expect(discardButtons[0]?.closest('.quiz-preview-editor__actions')).not.toBeNull();
+    expect(
+      actionButtons.some((button) => (button.textContent as string).includes('Schließen')),
+    ).toBe(true);
+    expect(
+      actionButtons.some((button) =>
+        (button.textContent as string).includes('Änderungen verwerfen'),
+      ),
+    ).toBe(false);
+  });
+
+  it('zeigt im Preview-Editor nach Änderungen einen Verwerfen-Button in der Actionbar', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.enterInlineEditMode();
+    component.onQuestionDraftChanged('Neue Frage');
+    fixture.detectChanges();
+
+    const actionButtons = Array.from(
+      fixture.nativeElement.querySelectorAll('.quiz-preview-editor__actions button'),
+    ) as HTMLButtonElement[];
+
+    expect(
+      actionButtons.some((button) =>
+        (button.textContent as string).includes('Änderungen verwerfen'),
+      ),
+    ).toBe(true);
+    expect(
+      actionButtons.some((button) => (button.textContent as string).includes('Schließen')),
+    ).toBe(false);
   });
 
   it('deaktiviert den Save-Button wieder, wenn der Draft dem Ausgangszustand entspricht', () => {

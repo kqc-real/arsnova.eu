@@ -876,6 +876,37 @@
                       <span class="session-host__question-phase">
                         {{ phaseLabel(effectiveStatus(), allHaveVoted(), countdownEnded()) }}
                       </span>
+                      @if (liveVoteProgress(); as voteProgress) {
+                        <span
+                          class="session-host__vote-progress"
+                          [class.session-host__vote-progress--complete]="voteProgress.complete"
+                          [style.--session-host-vote-progress]="voteProgress.percentage"
+                          role="status"
+                          aria-live="polite"
+                          [attr.aria-label]="
+                            voteProgressAria(
+                              voteProgress.votes,
+                              voteProgress.participants,
+                              voteProgress.percentage
+                            )
+                          "
+                        >
+                          <span class="session-host__vote-progress-icon" aria-hidden="true">
+                            <mat-icon>how_to_vote</mat-icon>
+                          </span>
+                          <span class="session-host__vote-progress-copy">
+                            <span class="session-host__vote-progress-value"
+                              >{{ voteProgress.percentage }} %</span
+                            >
+                            <span class="session-host__vote-progress-meta">{{
+                              voteProgressCompactLabel(
+                                voteProgress.votes,
+                                voteProgress.participants
+                              )
+                            }}</span>
+                          </span>
+                        </span>
+                      }
                       @if (allHaveVoted()) {
                         <span class="session-host__all-voted" role="status" aria-live="polite">
                           <mat-icon>how_to_vote</mat-icon>
@@ -1457,12 +1488,6 @@
                         class="session-host__emoji-round-badge session-host__emoji-round-badge--round2"
                         i18n="@@sessionHost.emojiReactionsRound2"
                         >2. Runde</span
-                      >
-                    } @else {
-                      <span
-                        class="session-host__emoji-round-badge session-host__emoji-round-badge--round1"
-                        i18n="@@sessionHost.emojiReactionsRound1"
-                        >1. Runde</span
                       >
                     }
                     @if (emojiNewCount() > 0) {

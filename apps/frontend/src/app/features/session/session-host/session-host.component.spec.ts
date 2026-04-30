@@ -2126,6 +2126,150 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt im Host live den Abstimmungsfortschritt als Prozent mit Stimmenzaehler', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 3,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 3,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: null, teamName: null },
+        { id: 'p2', nickname: 'Alan', teamId: null, teamName: null },
+        { id: 'p3', nickname: 'Grace', teamId: null, teamName: null },
+      ],
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const progress = fixture.nativeElement.querySelector(
+      '.session-host__vote-progress',
+    ) as HTMLElement | null;
+
+    expect(progress).toBeTruthy();
+    expect(progress?.textContent).toContain('67 %');
+    expect(progress?.textContent).toContain('2 von 3');
+    expect(progress?.getAttribute('aria-label')).toContain(
+      '2 von 3 Teilnehmenden haben abgestimmt',
+    );
+    expect(progress?.getAttribute('aria-label')).toContain('67 Prozent erreicht');
+
+    fixture.destroy();
+  });
+
+  it('markiert den Abstimmungsfortschritt bei voller Beteiligung als abgeschlossen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 2,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: null, teamName: null },
+        { id: 'p2', nickname: 'Alan', teamId: null, teamName: null },
+      ],
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const progress = fixture.nativeElement.querySelector(
+      '.session-host__vote-progress',
+    ) as HTMLElement | null;
+
+    expect(progress).toBeTruthy();
+    expect(progress?.className).toContain('session-host__vote-progress--complete');
+    expect(progress?.textContent).toContain('100 %');
+    expect(progress?.textContent).toContain('2 von 2');
+
+    fixture.destroy();
+  });
+
   it('zeigt ohne Peer-Instruction-Empfehlung keine Diskussionsphase, auch wenn schon Stimmen vorliegen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
