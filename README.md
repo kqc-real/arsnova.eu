@@ -185,6 +185,20 @@ Die App unterstützt **fünf Sprachen** (`de`, `en`, `fr`, `es`, `it`) über Ang
 
 **Dev-Server (`ng serve`):** Standard-**`npm run dev`** baut **Deutsch** (Quellstrings, ohne `localize`); **`npm run dev:en`** baut **Englisch** (`development-en`). Andere Locales (**fr**/**it**/**es**) und Produktionsnähe: lokalisierten Build + `serve:localize:api` wie oben.
 
+**Quiz-Sync-Smoke-Test:** Der Sync-Smoke-Test erwartet denselben lokalisierten Proxy-Stack wie oben. Empfohlener Ablauf:
+
+```bash
+npm run dev -w @arsnova/backend
+npm run build:localize -w @arsnova/frontend
+npm run serve:localize:api -w @arsnova/frontend
+BASE_URL=http://localhost:4200 npm run smoke:quiz-sync -w @arsnova/frontend
+```
+
+Standard-Locale des Scripts ist **`en`**; optional z. B. `LOCALE=de` setzen.
+Da `serve:localize:api` den Build aus `dist/browser` ausliefert, muss nach relevanten Frontend-
+oder Smoke-Script-Aenderungen vor dem Test erneut `npm run build:localize -w @arsnova/frontend`
+gelaufen sein.
+
 ### 5. Production-ähnlich lokal (optional)
 
 Für einen **lokal production-ähnlichen** Lauf (optimierter Build, ein Prozess liefert alles aus, Gzip, Pre-Render) sollten Postgres und Redis laufen (wie in Schritt 2, z. B. `docker compose up -d redis postgres`).

@@ -266,6 +266,10 @@ Damit die lokalisierten Builds (de/en/fr/it/es) mit **funktionierender API, tRPC
 - **Yjs „ECONNREFUSED“:** Yjs-Server (Port 3002) wird vom Backend als Child-Prozess gestartet; Backend mit `npm run dev -w @arsnova/backend` starten. Der Proxy loggt diesen Fehler nur **einmal** pro Lauf, um die Konsole nicht zu überfluten.
 - **Icons/Manifest 404:** Der Proxy mountet `/assets` auf `dist/browser/de/assets`; ohne diesen Schritt würden Anfragen zu `/assets/icons/…` ins Leere laufen (lokalisierter Build hat keine `dist/browser/assets`).
 
+**Quiz-Sync-Smoke:** `apps/frontend/scripts/check-quiz-sync-flow.mjs` laeuft absichtlich gegen diese
+Proxy-Variante und nicht gegen reines `ng serve`, weil das Script einen lokalisierten Pfad
+(`/{locale}/...`, Default `en`) und funktionierende Yjs-WebSockets auf Port 4200 erwartet.
+
 ### 7b. Hinweis bei Sprachwechsel auf Quiz Edit/New (implementiert)
 
 Auf den Routen **Quiz bearbeiten** (`/quiz/:id`) und **Quiz neu** (`/quiz/new`) kann ein Sprachwechsel ungespeicherte Änderungen verwerfen. Dafür gibt es den **LocaleSwitchGuardService** (`core/locale-switch-guard.service.ts`):

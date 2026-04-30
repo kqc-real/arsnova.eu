@@ -552,10 +552,7 @@ describe('HomeComponent', () => {
       comp.syncLinkValue.set('https://arsnova.eu/quiz/sync/sync-room-12345678');
       await comp.openSyncLink();
 
-      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', {
-        markShared: true,
-        registerOrigin: true,
-      });
+      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', { markShared: true });
       expect(navSpy).toHaveBeenCalledWith(['quiz'], {
         queryParams: { syncImported: 1 },
       });
@@ -572,10 +569,7 @@ describe('HomeComponent', () => {
       comp.syncLinkValue.set('sync-room-12345678');
       await comp.openSyncLink();
 
-      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', {
-        markShared: true,
-        registerOrigin: true,
-      });
+      expect(activateSpy).toHaveBeenCalledWith('sync-room-12345678', { markShared: true });
       expect(navSpy).toHaveBeenCalledWith(['quiz'], {
         queryParams: { syncImported: 1 },
       });

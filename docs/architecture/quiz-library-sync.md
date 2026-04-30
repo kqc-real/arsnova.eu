@@ -3,7 +3,7 @@
 # Quiz-Sammlung – Synchronisierung
 
 **Zielgruppe:** Entwicklerinnen, Entwickler und technisch interessierte Personen  
-**Stand:** 2026-04-03  
+**Stand:** 2026-04-30  
 **Status:** Living Document
 
 ## 1. Zweck
@@ -105,6 +105,20 @@ Die URL wird im Frontend bestimmt:
 
 Damit kann dieselbe Frontend-Logik lokal und hinter Reverse Proxy betrieben werden.
 
+### 4.4 Versionsvorgabe fuer den Yjs-Stack
+
+Der Frontend-Sync ist derzeit an den **Yjs-13er-Strang** gebunden:
+
+- `yjs`: **13.6.30**
+- `y-websocket`: `3.0.0`
+- `y-indexeddb`: `9.0.12`
+
+Hintergrund: `y-websocket@3.0.0` und `y-indexeddb@9.0.12` erwarten weiterhin `yjs@^13`.
+Ein Upgrade des Frontends auf `yjs@14` fuehrte lokal reproduzierbar dazu, dass die Yjs-
+Initialisierung im Browser schon vor dem WebSocket-Aufbau scheitert und die UI dauerhaft
+`Offline (nur lokal)` anzeigt. Der Backend-Relay `@y/websocket-server` behaelt deshalb
+seine eigene `yjs@14`-Kopie, waehrend das Frontend auf `13.6.30` gepinnt bleibt.
+
 ## 5. Einstiegswege in die Synchronisierung
 
 Es gibt aktuell zwei fachlich unterschiedliche Einstiegswege:
@@ -153,6 +167,30 @@ Das ist wichtig für die UX:
 
 - Ein Gerätewechsel fühlt sich wie das Öffnen derselben Sammlung an.
 - Ein Raumwechsel ist ein echter Kontextwechsel mit separatem Mirror und separaten Metadaten.
+
+## 6a. Lokaler Smoke-Test
+
+Der eingecheckte Smoke-Test `apps/frontend/scripts/check-quiz-sync-flow.mjs` setzt fuer einen
+realistischen Lauf den **lokalisierten Build** voraus, nicht nur `ng serve`.
+
+Minimaler Ablauf:
+
+1. `npm run dev -w @arsnova/backend`
+2. `npm run build:localize -w @arsnova/frontend`
+3. `npm run serve:localize:api -w @arsnova/frontend`
+4. `BASE_URL=http://localhost:4200 npm run smoke:quiz-sync -w @arsnova/frontend`
+
+Optional: `LOCALE=de|en|fr|it|es` setzen, Standard ist `en`.
+
+Der Smoke-Test prueft aktuell:
+
+- geraeteuebergreiftes Oeffnen derselben Bibliothek per Sync-Link
+- kein Rueckschreiben eines alten lokalen Standes in den Shared-Raum
+- Live-Uebernahme einer spaeteren Umbenennung
+
+Wenn der Test auf einem UI-Selector scheitert, ist zuerst das Script an die aktuelle UI
+anzupassen. Die Sync-Regression vom 30.04.2026 war dagegen ein echter Initialisierungsfehler
+im Yjs-Stack und liess sich im Browser an `Offline (nur lokal)` ohne Yjs-WebSocket erkennen.
 
 ## 7. Datenfluss bei lokalen Änderungen
 

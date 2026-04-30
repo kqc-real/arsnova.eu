@@ -5,6 +5,7 @@ import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { localizePath } from '../../../core/locale-router';
+import { resolveLocalizedAppUrl } from '../../../core/locale-router';
 import { QuizStoreService } from '../data/quiz-store.service';
 
 /**
@@ -45,9 +46,7 @@ export class QuizSyncComponent {
     return $localize`:@@quizSync.stateOffline:Offline (nur lokal)`;
   });
   readonly syncLink = computed(() => {
-    const origin = this.document.defaultView?.location.origin;
-    const path = `/quiz/sync/${this.docId}`;
-    return origin ? `${origin}${path}` : path;
+    return resolveLocalizedAppUrl(`/quiz/sync/${this.docId}`);
   });
 
   constructor() {

@@ -58,7 +58,7 @@
     "tslib": "^2.7.0",
     "y-indexeddb": "^9.0.12",
     "y-websocket": "^3.0.0",
-    "yjs": "^14.0.0-16"
+    "yjs": "^13.6.30"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "2.4.0-beta.4",

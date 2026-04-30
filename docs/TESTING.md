@@ -59,6 +59,33 @@ Matrix: **zwei** LTS-Versionen (**20** und **22**), `fail-fast: false`.
 
 Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
 
+### Quiz-Sync-Smoke lokal
+
+Der Quiz-Sync-Smoke-Test ist **kein** reiner `ng serve`-Test. Er erwartet bewusst den
+lokalisierten Build mit HTTP-, tRPC-WS- und Yjs-WS-Proxy auf **Port 4200**, weil er gegen
+`/{locale}/...` laeuft und einen echten Yjs-Relay benoetigt.
+
+Vorgehen:
+
+1. `npm run dev -w @arsnova/backend`
+2. `npm run build:localize -w @arsnova/frontend`
+3. `npm run serve:localize:api -w @arsnova/frontend`
+4. `BASE_URL=http://localhost:4200 npm run smoke:quiz-sync -w @arsnova/frontend`
+
+Optional kann die Locale gesetzt werden, Standard ist **`en`**:
+
+```bash
+BASE_URL=http://localhost:4200 LOCALE=de npm run smoke:quiz-sync -w @arsnova/frontend
+```
+
+Der Smoke-Test nutzt die aktuellen UI-Selektoren fuer **Quiz anlegen**, **Sync-Link importieren**
+und **Quiz speichern**. Wenn er wieder auf Selektoren faellt, ist das zunaechst ein Testscript-
+Problem und nicht automatisch ein Sync-Defekt.
+
+Wichtig fuer Wiederholungsläufe: `serve:localize:api` serviert den bereits gebauten Stand aus
+`dist/browser`. Nach Frontend- oder Script-Aenderungen daher vor dem naechsten Smoke-Test erneut
+`npm run build:localize -w @arsnova/frontend` ausfuehren.
+
 `npm run build:localize -w @arsnova/frontend` ist im Repo kein nackter Angular-Build: Nach `ng build --configuration production --localize` folgen noch Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, die lokalisierten `ngsw.json` und die Root-`index.html`.
 
 ---

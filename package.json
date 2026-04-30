@@ -77,7 +77,8 @@
   "dependencies": {
     "@prisma/client": "^7.4.2",
     "prisma": "^7.4.2",
-    "qrcode-generator": "^2.0.4"
+    "qrcode-generator": "^2.0.4",
+    "yjs": "13.6.30"
   },
   "lint-staged": {
     "*.{ts,js}": "eslint --no-warn-ignored --fix",
@@ -87,6 +88,10 @@
     "@hono/node-server": "^1.19.11",
     "hono": "^4.12.5",
     "minimatch": "^10.2.1",
-    "tar": "^7.5.8"
+    "tar": "^7.5.8",
+    "yjs": "13.6.30",
+    "@y/websocket-server": {
+      "yjs": "14.0.0-16"
+    }
   }
 }
