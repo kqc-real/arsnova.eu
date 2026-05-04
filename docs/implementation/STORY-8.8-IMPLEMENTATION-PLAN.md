@@ -221,6 +221,29 @@ Empfohlen:
 - `tempo:events:<sessionCode>:<bucket>`  
   Rolling-Window-Zaehlungen fuer Trend/Tendenz
 
+### Verbindliche Vorab-Entscheidungen fuer Redis-Lifecycle
+
+Damit Phase 3 nicht in einen unscharfen Hotpath-Refactor kippt, werden fuer die erste Umsetzung folgende Punkte **vorab festgelegt**:
+
+- **Redis-Key-Basis ist `sessionCode` in Uppercase**, nicht `sessionId`.
+  Begründung: Die bestehenden Session-/Host-/Teilnehmer-Pfade und der Blitzlicht-Hotpath arbeiten bereits codezentriert; damit entfaellt ein zusatzlicher DB-Lookup pro Tap nur zur Redis-Adressierung.
+- **`tempo:state:<SESSION_CODE>` ist die minimale Quelle der Wahrheit.**
+  `tempo:counts:*` und `tempo:events:*` sind abgeleitete Caches, die deltabasiert gepflegt werden.
+- **Aktives Schliessen des Kanals loescht keine Tempo-Daten.**
+  `tempoOpen = false` blendet nur das Widget aus; beim Wiederoeffnen bleibt der Kanal ohne Neuinitialisierung nutzbar.
+- **Explizites Cleanup erfolgt beim Session-Ende.**
+  Wenn `session.finish` oder ein aequivalenter FINISHED-Uebergang erreicht wird, werden alle `tempo:*:<SESSION_CODE>`-Keys aktiv entfernt.
+- **Zusaetzlich gilt ein Fallback-TTL auf allen Tempo-Keys.**
+  Empfohlen: `24h`, erneuert bei jeder Mutation, damit liegengebliebene Keys auch dann verschwinden, wenn explizites Cleanup ausfaellt.
+- **Leere oder fehlende Redis-Keys muessen als gueltiger Leerzustand behandelbar sein.**
+  `getOwnState` und `hostSnapshot` duerfen aus fehlenden Keys keinen Serverfehler ableiten.
+
+### Drift- und Rebuild-Regeln
+
+- Counts werden im Hotpath **deltabasiert** fortgeschrieben.
+- Falls `tempo:counts:*` fehlt oder offensichtlich inkonsistent ist, darf der Host-Snapshot die Counts **einmalig aus `tempo:state:*` rekonstruieren**.
+- Trend-Buckets werden **nicht** als personenbezogene Historie verstanden, sondern nur als kurzlebige Aggregatbasis fuer die Tendenz.
+
 ### Aufgaben
 
 | #   | Task                                   | Beschreibung                                                                                                                   | Datei                               |
@@ -240,6 +263,7 @@ Empfohlen:
 - keine personenbezogenen Exporte
 - keine PostgreSQL-Schreiboperation bei jedem Tap
 - deltabasierte Zaehlerpflege statt Voll-Rescan pro Mutation
+- `tempo:state:*` bleibt die fachliche Mindestquelle; Counts/Trend bleiben abgeleitete Caches
 
 ### Ergebnis
 
@@ -349,6 +373,26 @@ Ziel: Die Story wird nicht nur technisch fertig, sondern review- und produktions
 | 7.6 | **Vote-Specs**        | Widget erscheint nur wenn offen, Auswahl wechselt korrekt, aktiver Zustand markiert. |
 | 7.7 | **A11y-/State-Specs** | `aria-pressed`, Labels, Tastaturbedienbarkeit.                                       |
 
+### Konkrete Testanker im aktuellen Repo
+
+Die Story sollte **nicht** mit neuen, losgeloesten Testinseln anfangen, sondern zunaechst die bereits vorhandenen Hotspots erweitern:
+
+- `apps/backend/src/__tests__/session.enable-channels.test.ts`
+  Fuer `enableTempoChannel`, `closeTempoChannel`, `reopenTempoChannel` und idempotente Kanalaktivierung.
+- `apps/backend/src/__tests__/tempo.test.ts` oder `apps/backend/src/__tests__/tempo.router.test.ts`
+  Neuer fokussierter Tempo-Test fuer `setState`, `getOwnState`, `hostSnapshot`, Trendlogik, Gating und Nicht-Leakage individueller Zustandslisten.
+- `apps/frontend/src/app/features/session/session-host/session-host.component.spec.ts`
+  Fuer vierten Kanal-Tab, Aktivierung, Sichtbarkeit, Host-Metadaten und Snapshot-Darstellung.
+- `apps/frontend/src/app/features/session/session-vote/session-vote.component.spec.ts`
+  Fuer persistentes Tempo-Widget, kein falscher Auto-Fokus, Zusammenspiel mit Bottom-Actions und aktiven Zustand.
+
+### Empfohlene fokussierte Checks waehrend der Umsetzung
+
+- `npm run test -w @arsnova/backend -- apps/backend/src/__tests__/session.enable-channels.test.ts`
+- `npm run test -w @arsnova/backend -- apps/backend/src/__tests__/tempo.test.ts`
+- `npm run test -w @arsnova/frontend -- apps/frontend/src/app/features/session/session-host/session-host.component.spec.ts`
+- `npm run test -w @arsnova/frontend -- apps/frontend/src/app/features/session/session-vote/session-vote.component.spec.ts`
+
 ### Review- und UX-Stufen
 
 1. **PR / Code Review**
@@ -385,6 +429,26 @@ Ziel: Die Story wird nicht nur technisch fertig, sondern review- und produktions
 
 Diese Reihenfolge minimiert Rework, weil zuerst die Vertraege und der Datenpfad stabilisiert werden und erst danach die UI aufgesetzt wird.
 
+## Empfohlenes PR-Backlog
+
+Um Review-Risiko und Regressionsflaeche zu begrenzen, sollte die Story in **mehrere kleine PRs** geschnitten werden statt in einen grossen Feature-Branch-Block.
+
+| PR   | Ziel                                  | Enthalten                                                                                                                                                      | Muss vor Merge gruen sein                                                                           |
+| ---- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| PR 1 | **Vertraege + Session-Konfiguration** | `shared-types`, `SessionChannelsDTO`, `CreateSessionInput`, Prisma-Felder `tempoEnabled`/`tempoOpen`, Migration, `buildSessionChannels()`, Session-Create-Flow | `@arsnova/shared-types` Build, Backend-Typecheck, `session.create`-/`session.enable-channels`-Tests |
+| PR 2 | **Tempo-Backend-Hotpath**             | neuer `tempoRouter`, Redis-Keying, `setState`, `getOwnState`, `hostSnapshot`, Tendenz-Aggregation, Router-Registrierung                                        | fokussierte Tempo-Backend-Tests, Backend-Typecheck                                                  |
+| PR 3 | **Shell-Refactor fuer vier Kanaele**  | `SessionChannelTab`, `visibleChannels`, `channelOpenState`, `channelLabel`, Host-/Vote-Navigation, Entfernen falscher QuickFeedback-Autofokus-Annahmen         | Host-/Vote-Specs fuer Kanalwechsel und Navigationsregeln                                            |
+| PR 4 | **Host-UI fuer Tempo**                | Tempo-Tab, Aktivieren/Schliessen/Wiederoeffnen, Snapshot-Visualisierung, Meta-/Badge-Konzept                                                                   | Host-Spec, Frontend-Typecheck                                                                       |
+| PR 5 | **Teilnehmer-Widget + A11y**          | persistentes Tempo-Widget, Own-State-Rehydrierung, Mutation, Bottom-Bar-Koordination, `aria-pressed`, mobile Layoutregeln                                      | Vote-Spec, Frontend-Typecheck                                                                       |
+| PR 6 | **Feinschliff + Nachweise**           | Tendenzschwellen kalibrieren, i18n/Copy falls noetig, Doku-Abgleich, abschliessende Review-/UX-Checkliste                                                      | fokussierte Frontend-/Backend-Tests, ggf. `npm test` und `npm run typecheck`                        |
+
+### Zuschnittsregeln fuer die PRs
+
+- **PR 1 und PR 2** sollen **keine** sichtbare Tempo-UI erzwingen.
+- **PR 3** ist ein Refactor-PR und darf bewusst ohne fertige Tempo-Visualisierung gemerged werden, wenn die bestehende 3-Kanal-Logik stabil bleibt.
+- **PR 4 und PR 5** koennen getrennt reviewed werden, weil Host-Tab und Teilnehmer-Widget unterschiedliche UI-Vertraege haben.
+- **PR 6** ist kein "Restmuell-PR", sondern die explizite Stelle fuer UX-Feintuning, Copy und harte Abschlussnachweise.
+
 ---
 
 ## Risiken und Gegenmassnahmen
@@ -417,6 +481,7 @@ Die Story gilt erst als bereit fuer Produktion, wenn:
 ## Referenzen
 
 - [`Backlog.md`](../../Backlog.md) Story `8.8`
+- [`docs/implementation/STORY-8.8-GITHUB-CHECKLIST.md`](./STORY-8.8-GITHUB-CHECKLIST.md)
 - [`docs/architecture/decisions/0022-tempo-live-channel-as-continuous-session-channel.md`](../architecture/decisions/0022-tempo-live-channel-as-continuous-session-channel.md)
 - [`docs/architecture/decisions/0009-unified-live-session-channels.md`](../architecture/decisions/0009-unified-live-session-channels.md)
 - [`docs/architecture/decisions/0010-blitzlicht-as-core-live-mode.md`](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md)
