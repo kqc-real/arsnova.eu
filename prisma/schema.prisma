@@ -147,6 +147,14 @@ model PlatformStatistic {
   updatedAt                   DateTime @updatedAt
 }
 
+// Pro UTC-Tag genau ein Rekord für die größte einzelne Session (Story 0.4a)
+model DailyStatistic {
+  id                           String   @id @default(uuid())
+  date                         DateTime @unique @db.Date
+  maxParticipantsSingleSession Int      @default(0)
+  updatedAt                    DateTime @updatedAt
+}
+
 // Ein Team in einer Live-Session (Story 7.1)
 model Team {
   id           String        @id @default(uuid())

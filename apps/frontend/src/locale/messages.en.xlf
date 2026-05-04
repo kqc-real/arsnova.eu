@@ -12647,6 +12647,30 @@
           <context context-type="linenumber">232,234</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="help.dailyHighscoresTitle" datatype="html">
+        <source> Session-Tagesrekorde der letzten 30 Tage</source>
+        <target>Session daily records for the last 30 days</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">263,267</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.dailyHighscoresHint" datatype="html">
+        <source> Jeder Punkt zeigt den Rekord der größten einzelnen Session eines UTC-Tages.</source>
+        <target>Each point shows the record for the largest single session of a UTC day.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">269,271</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.dailyHighscoresChartAria" datatype="html">
+        <source>Linienchart der Session-Tagesrekorde der letzten 30 UTC-Tage</source>
+        <target>Line chart of the session daily records for the last 30 UTC days</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">278</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="help.statsHint" datatype="html">
         <source> Bisher höchste Teilnehmerzahl in einer einzelnen Live-Session auf diesem Server.</source>
         <target>Highest number of participants so far in a single live session on this server.</target>

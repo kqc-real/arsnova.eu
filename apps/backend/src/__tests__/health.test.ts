@@ -15,13 +15,18 @@ vi.mock('../redis', () => ({
 vi.mock('../db', () => ({
   prisma: {
     session: { count: vi.fn(), findMany: vi.fn() },
+    dailyStatistic: { findMany: vi.fn() },
     platformStatistic: { findUnique: vi.fn() },
   },
 }));
 
-vi.mock('../lib/platformStatistic', () => ({
-  updateCompletedSessionsTotal: vi.fn(),
-}));
+vi.mock('../lib/platformStatistic', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/platformStatistic')>();
+  return {
+    ...actual,
+    updateCompletedSessionsTotal: vi.fn(),
+  };
+});
 
 vi.mock('../lib/presence', () => ({
   countActiveParticipantsForSessions: vi.fn(),
@@ -53,6 +58,7 @@ describe('health.check', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(prisma.session.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.dailyStatistic.findMany).mockResolvedValue([]);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(0);
     vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(new Map());
     vi.mocked(readLoadSignals).mockResolvedValue({
@@ -93,6 +99,7 @@ describe('health.footerBundle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(prisma.session.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.dailyStatistic.findMany).mockResolvedValue([]);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(0);
     vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(new Map());
     vi.mocked(readLoadSignals).mockResolvedValue({
@@ -128,6 +135,7 @@ describe('health.footerBundle', () => {
     expect(result.stats.sessionTransitionsLastMinute).toBe(0);
     expect(result.stats.activeCountdownSessions).toBe(0);
     expect(result.stats.maxParticipantsSingleSession).toBe(42);
+    expect(result.stats.dailyHighscores).toHaveLength(30);
     expect(result.stats.maxParticipantsStatisticUpdatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(result.stats.serviceStatus).toBe('stable');
     expect(result.stats.loadStatus).toBe('healthy');
@@ -138,6 +146,7 @@ describe('health.stats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(prisma.session.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.dailyStatistic.findMany).mockResolvedValue([]);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(0);
     vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(new Map());
     vi.mocked(readLoadSignals).mockResolvedValue({
@@ -167,6 +176,8 @@ describe('health.stats', () => {
     expect(result.activeCountdownSessions).toBe(0);
     expect(result.completedSessions).toBe(0);
     expect(result.maxParticipantsSingleSession).toBe(0);
+    expect(result.dailyHighscores).toHaveLength(30);
+    expect(result.dailyHighscores.every((entry) => entry.count === 0)).toBe(true);
     expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
     expect(result.serviceStatus).toBe('stable');
     expect(result.loadStatus).toBe('healthy');
@@ -362,6 +373,7 @@ describe('health.stats', () => {
         'completedSessions',
         'activeBlitzRounds',
         'maxParticipantsSingleSession',
+        'dailyHighscores',
         'maxParticipantsStatisticUpdatedAt',
         'serviceStatus',
         'loadStatus',
@@ -480,6 +492,37 @@ describe('health.stats', () => {
     expect(result.openSessions).toBe(4);
     expect(result.activeSessions).toBe(2);
     expect(result.totalParticipants).toBe(14);
+  });
+
+  it('liefert die letzten 30 UTC-Tage chronologisch und füllt Lücken mit 0 auf', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-04T15:30:00.000Z'));
+    vi.mocked(prisma.session.count).mockResolvedValueOnce(0).mockResolvedValueOnce(0);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
+    vi.mocked(prisma.dailyStatistic.findMany).mockResolvedValue([
+      {
+        date: new Date('2026-05-02T00:00:00.000Z'),
+        maxParticipantsSingleSession: 17,
+      },
+      {
+        date: new Date('2026-05-04T00:00:00.000Z'),
+        maxParticipantsSingleSession: 23,
+      },
+    ] as never);
+
+    try {
+      const result = await caller.stats(undefined);
+
+      expect(result.dailyHighscores).toHaveLength(30);
+      expect(result.dailyHighscores[0]).toEqual({ date: '2026-04-05', count: 0 });
+      expect(result.dailyHighscores.slice(-3)).toEqual([
+        { date: '2026-05-02', count: 17 },
+        { date: '2026-05-03', count: 0 },
+        { date: '2026-05-04', count: 23 },
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

@@ -11,6 +11,7 @@ vi.mock('../db', () => ({
 }));
 
 import {
+  updateDailyMaxParticipants,
   updateCompletedSessionsTotal,
   updateMaxParticipantsSingleSession,
 } from '../lib/platformStatistic';
@@ -30,6 +31,18 @@ describe('platformStatistic', () => {
 
   it('führt Update aus bei gültiger Teilnehmerzahl', async () => {
     await updateMaxParticipantsSingleSession(12);
+    expect(prismaExecuteRaw).toHaveBeenCalledTimes(1);
+  });
+
+  it('führt kein Tagesrekord-Update aus bei ungültiger Zahl', async () => {
+    await updateDailyMaxParticipants(0);
+    await updateDailyMaxParticipants(-1);
+    await updateDailyMaxParticipants(Number.NaN);
+    expect(prismaExecuteRaw).not.toHaveBeenCalled();
+  });
+
+  it('führt Tagesrekord-Update aus bei gültiger Teilnehmerzahl', async () => {
+    await updateDailyMaxParticipants(12, new Date('2026-05-04T12:00:00.000Z'));
     expect(prismaExecuteRaw).toHaveBeenCalledTimes(1);
   });
 
@@ -60,6 +73,31 @@ describe('platformStatistic', () => {
 
     const counts = [3, 11, 7, 19, 5];
     await Promise.all(counts.map((count) => updateMaxParticipantsSingleSession(count)));
+
+    expect(prismaExecuteRaw).toHaveBeenCalledTimes(counts.length);
+    expect(persistedMax).toBe(19);
+  });
+
+  it('bleibt bei parallelen Tagesrekord-Updates auf dem Maximum', async () => {
+    let persistedMax = 0;
+    prismaExecuteRaw.mockImplementation(
+      async (_strings: TemplateStringsArray, ...values: unknown[]) => {
+        const candidate = values.find((v) => typeof v === 'number') as number | undefined;
+        const delayMs = Math.max(0, 20 - (candidate ?? 0));
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        if (typeof candidate === 'number') {
+          persistedMax = Math.max(persistedMax, candidate);
+        }
+        return 1;
+      },
+    );
+
+    const counts = [3, 11, 7, 19, 5];
+    await Promise.all(
+      counts.map((count) =>
+        updateDailyMaxParticipants(count, new Date('2026-05-04T12:00:00.000Z')),
+      ),
+    );
 
     expect(prismaExecuteRaw).toHaveBeenCalledTimes(counts.length);
     expect(persistedMax).toBe(19);

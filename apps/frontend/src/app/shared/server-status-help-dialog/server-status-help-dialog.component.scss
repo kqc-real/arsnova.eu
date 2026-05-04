@@ -41,6 +41,10 @@ mat-dialog-actions {
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-surface));
 }
 
+.status-help-dialog__panel--history {
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 16%, var(--mat-sys-surface));
+}
+
 .status-help-dialog__panel-header {
   display: flex;
   align-items: center;
@@ -255,6 +259,38 @@ mat-dialog-actions {
   font-style: italic;
 }
 
+.status-help-dialog__history-chart-shell {
+  --app-status-chart-grid: color-mix(in srgb, var(--mat-sys-on-surface) 16%, transparent);
+  --app-status-chart-line: color-mix(
+    in srgb,
+    var(--mat-sys-primary) 82%,
+    var(--mat-sys-on-surface) 18%
+  );
+  --app-status-chart-point: color-mix(
+    in srgb,
+    var(--mat-sys-tertiary) 76%,
+    var(--mat-sys-on-surface) 24%
+  );
+  --app-status-chart-text: var(--mat-sys-on-surface);
+  --app-status-chart-tooltip-background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-high) 94%,
+    var(--mat-sys-surface)
+  );
+  --app-status-chart-tooltip-border: color-mix(in srgb, var(--mat-sys-on-surface) 16%, transparent);
+  --app-status-chart-tooltip-body: var(--mat-sys-on-surface);
+  --app-status-chart-tooltip-title: var(--mat-sys-on-surface);
+  position: relative;
+  min-height: 12.5rem;
+  padding-top: 0.2rem;
+}
+
+.status-help-dialog__history-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .status-help-dialog__legend {
   margin: 0;
   padding: 0;
@@ -391,6 +427,10 @@ mat-dialog-actions {
   .status-help-dialog__record-number {
     font: var(--mat-sys-headline-large);
     font-weight: 700;
+  }
+
+  .status-help-dialog__history-chart-shell {
+    min-height: 11rem;
   }
 
   .status-help-dialog__record-unit {
