@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD013 -->
 
-# ADR-0024: Tagesrekord-Verlauf fuer Session-Teilnehmende im Server-Status-Hilfedialog
+# ADR-0024: Session-Tagesrekord-Verlauf fuer Session-Teilnehmende im Server-Status-Hilfedialog
 
 **Status:** Proposed  
 **Datum:** 2026-05-04  
@@ -15,11 +15,11 @@ Der Server-Status in `arsnova.eu` besitzt bereits zwei etablierte Ebenen:
 
 Der aktuelle Produktstand zeigt im Hilfe-Dialog bereits den Allzeit-Rekord `maxParticipantsSingleSession` aus `PlatformStatistic`. Fuer Lehre, Betrieb und Produktbeobachtung fehlt jedoch eine historische Sicht darauf, wie sich Tageshoechstwerte ueber die letzten Wochen entwickeln.
 
-Wichtig ist die fachliche Abgrenzung: Der Tagesrekord meint **nicht** die Summe aller Teilnehmenden eines Tages ueber alle Sessions hinweg, sondern die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session des jeweiligen UTC-Tages**.
+Wichtig ist die fachliche Abgrenzung: Der Session-Tagesrekord meint **nicht** die Summe aller Teilnehmenden eines Tages ueber alle Sessions hinweg, sondern die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session des jeweiligen UTC-Tages**.
 
 Fuer die geplante Story `0.4a` entstehen dadurch mehrere gekoppelte Architekturfragen:
 
-- Wo wird der Tagesrekord gespeichert?
+- Wo wird der Session-Tagesrekord gespeichert?
 - Wie bleibt der Join-Flow trotz zusaetzlicher Statistikaktualisierung schnell?
 - Wie kommt die Historie typsicher in `health.stats`?
 - Wie wird die Visualisierung eingebaut, ohne das Footer-Widget oder das Initial-Bundle aufzublaehen?
@@ -32,7 +32,7 @@ Bestehende Leitplanken:
 
 ## Entscheidung
 
-### 1. Tagesrekorde werden persistent in PostgreSQL gespeichert
+### 1. Session-Tagesrekorde werden persistent in PostgreSQL gespeichert
 
 Es wird ein neues Prisma-Modell `DailyStatistic` eingefuehrt. Pro UTC-Tag existiert genau ein Datensatz mit dem Rekord der **groessten einzelnen Session dieses Tages**:
 
@@ -44,7 +44,7 @@ Die Speicherung erfolgt in PostgreSQL ueber Prisma, nicht nur fluechtig in Redis
 
 ### 2. Rekord-Updates bleiben Fire-and-Forget beim Session-Join
 
-Beim Session-Beitritt wird die Statistikaktualisierung weiterhin asynchron ausgeloest. Zusaetzlich zum bestehenden Allzeit-Rekord wird der Tagesrekord atomar per Upsert aktualisiert.
+Beim Session-Beitritt wird die Statistikaktualisierung weiterhin asynchron ausgeloest. Zusaetzlich zum bestehenden Allzeit-Rekord wird der Session-Tagesrekord atomar per Upsert aktualisiert.
 
 Damit gilt weiterhin:
 
@@ -98,7 +98,7 @@ Die Aktualisierung des Verlaufs erfolgt ueber das bestehende Polling von `health
 ## Alternativen (geprueft)
 
 - **Historie jedes Mal aus Session- und Participant-Daten ableiten:** verworfen, da teurer, fehleranfaelliger und semantisch unklarer fuer den Tagesrekordbegriff.
-- **Redis statt PostgreSQL fuer Tagesrekorde:** verworfen, da die Daten Neustarts ueberleben und zur bestehenden Prisma-Statistiklogik passen sollen.
+- **Redis statt PostgreSQL fuer Session-Tagesrekorde:** verworfen, da die Daten Neustarts ueberleben und zur bestehenden Prisma-Statistiklogik passen sollen.
 - **Mini-Sparkline direkt im Footer:** verworfen, da das kompakte Widget bewusst textbasiert und leichtgewichtig bleiben soll.
 - **Groessere Chart-Bibliothek oder Angular-Wrapper:** verworfen, da Bundle-Groesse und Integrations-Overhead fuer diesen Anwendungsfall unnoetig hoch waeren.
 - **WebSocket-Push fuer den Verlauf:** verworfen, da das bestehende Polling fuer diese langsame Kennzahl ausreicht.

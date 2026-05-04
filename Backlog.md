@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.4a** (Tagesrekord-Verlauf im Server-Status-Hilfedialog), **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **8.5–8.8** (Q&A-Erweiterungen + Tempo-Livekanal) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.4a** (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog), **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **8.5–8.8** (Q&A-Erweiterungen + Tempo-Livekanal) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -18,7 +18,7 @@
 | 0    | 0.2   | tRPC WebSocket-Adapter                                      | 🔴   | ✅ Fertig |
 | 0    | 0.3   | Yjs WebSocket-Provider                                      | 🟡   | ✅ Fertig |
 | 0    | 0.4   | Server-Status-Indikator                                     | 🟡   | ✅ Fertig |
-| 0    | 0.4a  | Tagesrekord-Verlauf im Server-Status-Hilfedialog            | 🟡   | ⬜ Offen  |
+| 0    | 0.4a  | Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog    | 🟡   | ⬜ Offen  |
 | 0    | 0.5   | Rate-Limiting & Brute-Force-Schutz                          | 🔴   | ✅ Fertig |
 | 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                             | 🔴   | ✅ Fertig |
 | 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                 | 🟡   | ⬜ Offen  |
@@ -210,7 +210,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - [x] Die Daten werden alle 30 Sekunden automatisch aktualisiert (Polling).
     - [x] Es werden keine personenbezogenen Daten exponiert (nur aggregierte Zahlen).
     - [x] ⚠️ _Abhängigkeit:_ Vor Umsetzung von Story 2.1a liefert die Query Initialwerte (`activeSessions: 0`, `totalParticipants: 0`, `completedSessions: 0`).
-- **Story 0.4a (Tagesrekord-Verlauf im Server-Status-Hilfedialog):** 🟡 Als Betreiber oder Lehrender möchte ich im Hilfe-Dialog der Betriebsstatusanzeige den Verlauf der Tagesrekorde der **groessten einzelnen Session pro UTC-Tag** sehen, damit ich die Entwicklung der jeweils groessten Session der Plattform ueber die letzten 30 Tage einschaetzen kann, ohne das kompakte Footer-Widget zu ueberladen.
+- **Story 0.4a (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog):** 🟡 Als Betreiber oder Lehrender möchte ich im Hilfe-Dialog der Betriebsstatusanzeige den Verlauf der Session-Tagesrekorde der **groessten einzelnen Session pro UTC-Tag** sehen, damit ich die Entwicklung der jeweils groessten Session der Plattform ueber die letzten 30 Tage einschaetzen kann, ohne das kompakte Footer-Widget zu ueberladen.
   - **Akzeptanzkriterien:**
     - `health.stats` liefert zusaetzlich `dailyHighscores` fuer die letzten 30 UTC-Tage in chronologischer Reihenfolge; jeder Eintrag enthaelt `date` und `count`, wobei `count` die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session dieses UTC-Tages** ist, nicht die Summe aller Tagesnutzer.
     - Tage ohne neuen Rekord werden in der API als `count = 0` ergaenzt, damit das Diagramm eine stabile 30-Tage-Achse hat.

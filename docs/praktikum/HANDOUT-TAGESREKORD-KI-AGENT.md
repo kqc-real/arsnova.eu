@@ -9,7 +9,7 @@
 
 In dieser Fallstudie betrachten wir die Erweiterung der Open-Source-Plattform **arsnova.eu**. Die Plattform wird für interaktive Vorlesungen (Audience Response System) genutzt.
 
-**Das Feature:** Die bestehende Betriebsstatusanzeige (Footer-Widget) soll um einen **taeglichen Highscore** der Teilnehmenden pro Session erweitert werden. Gemeint ist dabei immer die **groesste einzelne Session eines UTC-Tages**, **nicht** die Summe aller Nutzer dieses Tages. Diese "Ganglinie" (Line-Chart) soll im Hilfe-Dialog des Widgets visualisiert werden.
+**Das Feature:** Die bestehende Betriebsstatusanzeige (Footer-Widget) soll um einen **Session-Tagesrekord** der Teilnehmenden pro Session erweitert werden. Gemeint ist dabei immer die **groesste einzelne Session eines UTC-Tages**, **nicht** die Summe aller Nutzer dieses Tages. Diese "Ganglinie" (Line-Chart) soll im Hilfe-Dialog des Widgets visualisiert werden.
 
 **Das Lernziel:** Ihr werdet verstehen, welche Architekturschichten von diesem Feature berührt werden, wie man Performance-Fallen vermeidet und – besonders wichtig – wie man einen autonomen KI-Agenten (wie das Gemini CLI) strukturiert einsetzt, um solche Features in einer fremden, komplexen Codebasis zu konzipieren und umzusetzen.
 
@@ -17,7 +17,7 @@ In dieser Fallstudie betrachten wir die Erweiterung der Open-Source-Plattform **
 
 Dieses Handout ist bewusst **kein** reines Coding-Tutorial. Im Praktikum sollt ihr lernen, dass agentisches Software Engineering mit **Artefakten** beginnt, nicht mit blindem Code-Generieren. Fuer dieses Feature muessen vor dem ersten Prompt mindestens diese Dateien offen sein:
 
-- **Produktvertrag:** `Backlog.md`, **Story 0.4a** "Tagesrekord-Verlauf im Server-Status-Hilfedialog"
+- **Produktvertrag:** `Backlog.md`, **Story 0.4a** "Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog"
 - **Bestehender Feature-Kontext:** `docs/features/server-status-widget.md`
 - **API-Kontext:** `docs/architecture/decisions/0003-use-trpc-for-api.md`
 - **i18n-Kontext:** `docs/architecture/decisions/0008-i18n-internationalization.md`
@@ -65,7 +65,7 @@ erDiagram
 ### 2.2. Backend & API (Node.js & tRPC)
 
 - **Status Quo:** Bei jedem Beitritt (`apps/backend/src/routers/session.ts`) wird synchron der Teilnehmer gezählt und _asynchron_ (`void updateMaxParticipantsSingleSession(...)`) der Rekord geprüft.
-- **Erweiterung:** Das Backend muss zusätzlich prüfen, ob der Tagesrekord gebrochen wurde.
+- **Erweiterung:** Das Backend muss zusätzlich prüfen, ob der Session-Tagesrekord gebrochen wurde.
 - **API (`health.stats`):** Die Datenabfrage erfolgt über tRPC. Das `ServerStatsDTO` (Data Transfer Object) wird um ein Array `dailyHighscores` erweitert, welches die Werte der letzten 30 Tage liefert. Jeder Wert steht fuer die **groesste einzelne Session des jeweiligen UTC-Tages**, nicht fuer eine Tagesgesamtsumme. Damit bewegen wir uns direkt im Rahmen von **ADR-0003**.
 - **Architektur-Fokus (Echtzeit vs. Polling):** arsnova.eu ist ein Echtzeitsystem. Das Speichern des Rekords darf den Beitritt nicht verzögern (Daher: `void` = Fire-and-Forget). Die Aktualisierung der Anzeige bei allen Clients erfolgt bewusst _nicht_ über teure WebSockets, sondern über ressourcenschonendes HTTP-Polling (alle 30 Sekunden). Das passt zur bestehenden Trennung von kompaktem Footer und Detaildialog aus **ADR-0021**.
 
@@ -217,7 +217,7 @@ Dieser Plan wurde durch die Diskussion in Phase 2 vom KI-Agenten erstellt und vo
 
 ### 4.1. Objective
 
-Erweiterung der Betriebsstatusanzeige um einen taeglichen Highscore der Teilnehmer/innen pro Session. Gemeint ist jeweils die **groesste einzelne Session eines UTC-Tages**, nicht die Summe aller Nutzer dieses Tages. Diese "Ganglinie" der Tagesrekorde soll im "Allzeit-Rekord"-Panel des Server Status Help Dialogs als hochwertiges Line-Chart ("vom Feinsten") angezeigt werden. Um die Frontend-Performance nicht zu beeintraechtigen, wird `chart.js` (als leichtgewichtige Bibliothek) genutzt und lazy geladen (ohne den schweren Wrapper `ng2-charts`).
+Erweiterung der Betriebsstatusanzeige um einen Session-Tagesrekord der Teilnehmer/innen pro Session. Gemeint ist jeweils die **groesste einzelne Session eines UTC-Tages**, nicht die Summe aller Nutzer dieses Tages. Diese "Ganglinie" der Session-Tagesrekorde soll im "Allzeit-Rekord"-Panel des Server Status Help Dialogs als hochwertiges Line-Chart ("vom Feinsten") angezeigt werden. Um die Frontend-Performance nicht zu beeintraechtigen, wird `chart.js` (als leichtgewichtige Bibliothek) genutzt und lazy geladen (ohne den schweren Wrapper `ng2-charts`).
 
 ### 4.2. Key Files & Context
 
