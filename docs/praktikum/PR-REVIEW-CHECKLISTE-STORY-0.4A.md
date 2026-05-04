@@ -19,6 +19,7 @@
 
 - [ ] Das Prisma-Modell `DailyStatistic` hat genau einen Datensatz pro UTC-Tag.
 - [ ] Die Tagesrekord-Aktualisierung erfolgt atomar und nur bei hoeherem Wert.
+- [ ] `count` meint die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session des UTC-Tages**, nicht die Summe aller Tagesnutzer.
 - [ ] Der Join-Flow bleibt Fire-and-Forget und fuehrt keine neue blockierende Wartezeit ein.
 - [ ] `health.stats` liefert `dailyHighscores` fuer 30 Tage in chronologischer Reihenfolge.
 - [ ] Fehlende Tage werden serverseitig sinnvoll aufgefuellt statt dem Frontend zu ueberlassen.

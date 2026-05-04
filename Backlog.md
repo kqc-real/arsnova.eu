@@ -210,9 +210,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - [x] Die Daten werden alle 30 Sekunden automatisch aktualisiert (Polling).
     - [x] Es werden keine personenbezogenen Daten exponiert (nur aggregierte Zahlen).
     - [x] ⚠️ _Abhängigkeit:_ Vor Umsetzung von Story 2.1a liefert die Query Initialwerte (`activeSessions: 0`, `totalParticipants: 0`, `completedSessions: 0`).
-- **Story 0.4a (Tagesrekord-Verlauf im Server-Status-Hilfedialog):** 🟡 Als Betreiber oder Lehrender möchte ich im Hilfe-Dialog der Betriebsstatusanzeige den Verlauf der Tagesrekorde sehen, damit ich Auslastungsspitzen der Plattform ueber die letzten 30 Tage einschaetzen kann, ohne das kompakte Footer-Widget zu ueberladen.
+- **Story 0.4a (Tagesrekord-Verlauf im Server-Status-Hilfedialog):** 🟡 Als Betreiber oder Lehrender möchte ich im Hilfe-Dialog der Betriebsstatusanzeige den Verlauf der Tagesrekorde der **groessten einzelnen Session pro UTC-Tag** sehen, damit ich die Entwicklung der jeweils groessten Session der Plattform ueber die letzten 30 Tage einschaetzen kann, ohne das kompakte Footer-Widget zu ueberladen.
   - **Akzeptanzkriterien:**
-    - `health.stats` liefert zusaetzlich `dailyHighscores` fuer die letzten 30 UTC-Tage in chronologischer Reihenfolge; jeder Eintrag enthaelt `date` und `count`.
+    - `health.stats` liefert zusaetzlich `dailyHighscores` fuer die letzten 30 UTC-Tage in chronologischer Reihenfolge; jeder Eintrag enthaelt `date` und `count`, wobei `count` die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session dieses UTC-Tages** ist, nicht die Summe aller Tagesnutzer.
     - Tage ohne neuen Rekord werden in der API als `count = 0` ergaenzt, damit das Diagramm eine stabile 30-Tage-Achse hat.
     - Das Prisma-Schema enthaelt ein Modell `DailyStatistic` mit genau einem Datensatz pro UTC-Tag; Updates erfolgen atomar per Upsert und nur dann, wenn der aktuelle Session-Stand hoeher ist als der bisherige Tageswert.
     - Die Rekordaktualisierung bleibt beim Session-Beitritt Fire-and-Forget und darf den Join-Flow nicht verzoegern.

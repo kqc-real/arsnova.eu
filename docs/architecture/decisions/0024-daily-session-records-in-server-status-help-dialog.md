@@ -15,6 +15,8 @@ Der Server-Status in `arsnova.eu` besitzt bereits zwei etablierte Ebenen:
 
 Der aktuelle Produktstand zeigt im Hilfe-Dialog bereits den Allzeit-Rekord `maxParticipantsSingleSession` aus `PlatformStatistic`. Fuer Lehre, Betrieb und Produktbeobachtung fehlt jedoch eine historische Sicht darauf, wie sich Tageshoechstwerte ueber die letzten Wochen entwickeln.
 
+Wichtig ist die fachliche Abgrenzung: Der Tagesrekord meint **nicht** die Summe aller Teilnehmenden eines Tages ueber alle Sessions hinweg, sondern die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session des jeweiligen UTC-Tages**.
+
 Fuer die geplante Story `0.4a` entstehen dadurch mehrere gekoppelte Architekturfragen:
 
 - Wo wird der Tagesrekord gespeichert?
@@ -32,7 +34,7 @@ Bestehende Leitplanken:
 
 ### 1. Tagesrekorde werden persistent in PostgreSQL gespeichert
 
-Es wird ein neues Prisma-Modell `DailyStatistic` eingefuehrt. Pro UTC-Tag existiert genau ein Datensatz mit:
+Es wird ein neues Prisma-Modell `DailyStatistic` eingefuehrt. Pro UTC-Tag existiert genau ein Datensatz mit dem Rekord der **groessten einzelnen Session dieses Tages**:
 
 - `date`
 - `maxParticipantsSingleSession`
@@ -55,7 +57,7 @@ Damit gilt weiterhin:
 `ServerStatsDTO` wird um `dailyHighscores` erweitert. Das Feld liefert die letzten 30 UTC-Tage in chronologischer Reihenfolge mit:
 
 - `date` als ISO-String,
-- `count` als Tagesrekord.
+- `count` als maximale gleichzeitige Teilnehmendenzahl der groessten einzelnen Session dieses UTC-Tages.
 
 Fehlende Tage werden serverseitig mit `count = 0` aufgefuellt, damit die Frontend-Darstellung eine stabile Zeitachse hat.
 

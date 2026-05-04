@@ -50,6 +50,7 @@ Du sollst dabei nicht nur Code erzeugen, sondern den kompletten Arbeitsfluss sic
 ## Fachliche Leitfragen
 
 - Wird der Tagesrekord persistent und atomar gespeichert?
+- Ist fachlich klar, dass `count` die **groesste einzelne Session des UTC-Tages** meint und **nicht** die Summe aller Nutzer dieses Tages?
 - Bleibt der Join-Flow Fire-and-Forget statt synchron blockierend?
 - Liefert `health.stats` wirklich 30 Tage in chronologischer Reihenfolge?
 - Werden fehlende Tage serverseitig als `0` aufgefuellt?
