@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.4a** (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog), **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **8.5–8.8** (Q&A-Erweiterungen + Tempo-Livekanal) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **8.5–8.8** (Q&A-Erweiterungen + Tempo-Livekanal) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -18,7 +18,7 @@
 | 0    | 0.2   | tRPC WebSocket-Adapter                                      | 🔴   | ✅ Fertig |
 | 0    | 0.3   | Yjs WebSocket-Provider                                      | 🟡   | ✅ Fertig |
 | 0    | 0.4   | Server-Status-Indikator                                     | 🟡   | ✅ Fertig |
-| 0    | 0.4a  | Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog    | 🟡   | ⬜ Offen  |
+| 0    | 0.4a  | Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog    | 🟡   | ✅ Fertig |
 | 0    | 0.5   | Rate-Limiting & Brute-Force-Schutz                          | 🔴   | ✅ Fertig |
 | 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                             | 🔴   | ✅ Fertig |
 | 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                 | 🟡   | ⬜ Offen  |
@@ -117,11 +117,11 @@
 | 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte          | 🟡   | ✅ Fertig |
 | 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)                | 🟡   | ✅ Fertig |
 
-> **Repo-Abgleich (Codebase 2026-04-03):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung und kein eigener Typ für bewertbare Kurzantwort in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; noch **kein** vierter Session-Kanal für kontinuierliches Tempo-Feedback im Session-Modell; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). **Umgesetzt** sind jetzt u. a. **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
+> **Repo-Abgleich (Codebase 2026-04-03):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung und kein eigener Typ für bewertbare Kurzantwort in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; noch **kein** vierter Session-Kanal für kontinuierliches Tempo-Feedback im Session-Modell; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). **Umgesetzt** sind jetzt u. a. **0.4a** (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog mit `DailyStatistic`, `dailyHighscores` und Chart im Hilfe-Dialog), **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 29 · 🟡 Should: 62 · 🟢 Could: 11 = **102 Stories gesamt** (**80** ✅ Fertig · **22** ⬜ Offen)
+> **Statistik:** 🔴 Must: 29 · 🟡 Should: 62 · 🟢 Could: 11 = **102 Stories gesamt** (**81** ✅ Fertig · **21** ⬜ Offen)
 
 ---
 
@@ -212,15 +212,15 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - [x] ⚠️ _Abhängigkeit:_ Vor Umsetzung von Story 2.1a liefert die Query Initialwerte (`activeSessions: 0`, `totalParticipants: 0`, `completedSessions: 0`).
 - **Story 0.4a (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog):** 🟡 Als Betreiber oder Lehrender möchte ich im Hilfe-Dialog der Betriebsstatusanzeige den Verlauf der Session-Tagesrekorde der **groessten einzelnen Session pro UTC-Tag** sehen, damit ich die Entwicklung der jeweils groessten Session der Plattform ueber die letzten 30 Tage einschaetzen kann, ohne das kompakte Footer-Widget zu ueberladen.
   - **Akzeptanzkriterien:**
-    - `health.stats` liefert zusaetzlich `dailyHighscores` fuer die letzten 30 UTC-Tage in chronologischer Reihenfolge; jeder Eintrag enthaelt `date` und `count`, wobei `count` die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session dieses UTC-Tages** ist, nicht die Summe aller Tagesnutzer.
-    - Tage ohne neuen Rekord werden in der API als `count = 0` ergaenzt, damit das Diagramm eine stabile 30-Tage-Achse hat.
-    - Das Prisma-Schema enthaelt ein Modell `DailyStatistic` mit genau einem Datensatz pro UTC-Tag; Updates erfolgen atomar per Upsert und nur dann, wenn der aktuelle Session-Stand hoeher ist als der bisherige Tageswert.
-    - Die Rekordaktualisierung bleibt beim Session-Beitritt Fire-and-Forget und darf den Join-Flow nicht verzoegern.
-    - Der Hilfe-Dialog (`ServerStatusHelpDialogComponent`) zeigt unterhalb des Allzeit-Rekords ein Line-Chart fuer den 30-Tage-Verlauf; das kompakte Footer-Widget selbst bleibt unveraendert.
-    - Die Diagramm-Bibliothek wird ausschliesslich beim Oeffnen des Dialogs lazy geladen; es wird kein Angular-Wrapper eingefuehrt.
-    - Die Aktualisierung des Verlaufs bleibt beim bestehenden 30-Sekunden-Polling; es wird kein zusaetzlicher WebSocket-Kanal nur fuer diese Statistik eingefuehrt.
-    - Neue UI-Texte, Beschriftungen und ARIA-Hinweise werden gemaess ADR-0008 in allen gepflegten App-Sprachen ergaenzt.
-    - Backend- und Frontend-Tests decken mindestens den API-Vertrag sowie die Darstellung des Hilfe-Dialogs mit und ohne Verlauf ab.
+    - [x] `health.stats` liefert zusaetzlich `dailyHighscores` fuer die letzten 30 UTC-Tage in chronologischer Reihenfolge; jeder Eintrag enthaelt `date` und `count`, wobei `count` die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session dieses UTC-Tages** ist, nicht die Summe aller Tagesnutzer.
+    - [x] Tage ohne neuen Rekord werden in der API als `count = 0` ergaenzt, damit das Diagramm eine stabile 30-Tage-Achse hat.
+    - [x] Das Prisma-Schema enthaelt ein Modell `DailyStatistic` mit genau einem Datensatz pro UTC-Tag; Updates erfolgen atomar per Upsert und nur dann, wenn der aktuelle Session-Stand hoeher ist als der bisherige Tageswert.
+    - [x] Die Rekordaktualisierung bleibt beim Session-Beitritt Fire-and-Forget und darf den Join-Flow nicht verzoegern.
+    - [x] Der Hilfe-Dialog (`ServerStatusHelpDialogComponent`) zeigt unterhalb des Allzeit-Rekords ein Line-Chart fuer den 30-Tage-Verlauf; das kompakte Footer-Widget selbst bleibt unveraendert.
+    - [x] Die Diagramm-Bibliothek wird ausschliesslich beim Oeffnen des Dialogs lazy geladen; es wird kein Angular-Wrapper eingefuehrt.
+    - [x] Die Aktualisierung des Verlaufs bleibt beim bestehenden 30-Sekunden-Polling; es wird kein zusaetzlicher WebSocket-Kanal nur fuer diese Statistik eingefuehrt.
+    - [x] Neue UI-Texte, Beschriftungen und ARIA-Hinweise werden gemaess ADR-0008 in allen gepflegten App-Sprachen ergaenzt.
+    - [x] Backend- und Frontend-Tests decken mindestens den API-Vertrag sowie die Darstellung des Hilfe-Dialogs mit und ohne Verlauf ab.
 - **Story 0.5 (Rate-Limiting & Brute-Force-Schutz):** 🔴 Als System möchte ich Missbrauch durch automatisierte Anfragen verhindern, damit die Plattform stabil und fair bleibt.
   - **Akzeptanzkriterien:**
     - [x] **Session-Code-Eingabe (Story 3.1):** Maximal 5 Fehlversuche pro IP-Adresse innerhalb von 5 Minuten. Nach Überschreitung wird eine 60-Sekunden-Sperre verhängt mit Hinweismeldung.
