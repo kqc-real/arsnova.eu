@@ -22,6 +22,7 @@ const { prismaMock, rateLimitMocks, statsMocks, presenceMocks } = vi.hoisted(() 
   },
   statsMocks: {
     updateMaxParticipantsSingleSession: vi.fn(),
+    updateDailyMaxParticipants: vi.fn(),
   },
   presenceMocks: {
     touchParticipantPresence: vi.fn(),
@@ -40,6 +41,7 @@ vi.mock('../lib/rateLimit', () => ({
 
 vi.mock('../lib/platformStatistic', () => ({
   updateMaxParticipantsSingleSession: statsMocks.updateMaxParticipantsSingleSession,
+  updateDailyMaxParticipants: statsMocks.updateDailyMaxParticipants,
 }));
 
 vi.mock('../lib/presence', () => ({
@@ -154,5 +156,6 @@ describe('session.join', () => {
     expect(result.rejoinToken).toBe(PARTICIPANT_ID);
     expect(result.participantCount).toBe(4);
     expect(statsMocks.updateMaxParticipantsSingleSession).toHaveBeenCalledWith(4);
+    expect(statsMocks.updateDailyMaxParticipants).toHaveBeenCalledWith(4);
   });
 });

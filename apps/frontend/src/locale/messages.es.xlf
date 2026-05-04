@@ -12597,6 +12597,30 @@
           <context context-type="linenumber">235,237</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="help.dailyHighscoresTitle" datatype="html">
+        <source> Session-Tagesrekorde der letzten 30 Tage</source>
+        <target>Récords diarios de sesión de los últimos 30 días</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">263,267</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.dailyHighscoresHint" datatype="html">
+        <source> Jeder Punkt zeigt den Rekord der größten einzelnen Session eines UTC-Tages.</source>
+        <target>Cada punto muestra el récord de la sesión individual más grande de un día UTC.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">269,271</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.dailyHighscoresChartAria" datatype="html">
+        <source>Linienchart der Session-Tagesrekorde der letzten 30 UTC-Tage</source>
+        <target>Gráfico de líneas de los récords diarios de sesión de los últimos 30 días UTC</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">278</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="help.statsAsOf" datatype="html">
         <source> Zuletzt erhöht am <x id="INTERPOLATION" equiv-text="{{ dateLabel }}"/></source>
         <target>Último aumento el <x id="INTERPOLATION" equiv-text="{{ dateLabel }}"/></target>

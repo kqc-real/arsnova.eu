@@ -12,7 +12,11 @@ import {
 import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
 import { logger } from '../lib/logger';
-import { updateCompletedSessionsTotal } from '../lib/platformStatistic';
+import {
+  formatUtcDate,
+  getUtcDayStart,
+  updateCompletedSessionsTotal,
+} from '../lib/platformStatistic';
 import {
   countActiveParticipantsForSessions,
   getActiveParticipantCountsForSessions,
@@ -21,6 +25,7 @@ import { readLoadSignals } from '../lib/loadSignal';
 import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 
 const ACTIVE_SESSION_MIN_PARTICIPANTS = 5;
+const DAILY_HIGHSCORE_DAYS = 30;
 
 const SERVER_STATUS_SCORE_THRESHOLDS = {
   busy: 60,
@@ -40,6 +45,32 @@ type LoadStatusInputs = {
   sessionTransitionsLastMinute: number;
   activeCountdownSessions: number;
 };
+
+function addUtcDays(base: Date, days: number): Date {
+  const next = new Date(base);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+function buildDailyHighscores(
+  rows: Array<{ date: Date; maxParticipantsSingleSession: number }>,
+  today: Date = new Date(),
+) {
+  const rangeEnd = getUtcDayStart(today);
+  const rangeStart = addUtcDays(rangeEnd, -(DAILY_HIGHSCORE_DAYS - 1));
+  const entriesByDate = new Map(
+    rows.map((row) => [formatUtcDate(row.date), Math.max(0, row.maxParticipantsSingleSession)]),
+  );
+
+  return Array.from({ length: DAILY_HIGHSCORE_DAYS }, (_, index) => {
+    const currentDate = addUtcDays(rangeStart, index);
+    const dateKey = formatUtcDate(currentDate);
+    return {
+      date: dateKey,
+      count: entriesByDate.get(dateKey) ?? 0,
+    };
+  });
+}
 
 function getLoadStatus({
   activeSessions,
@@ -156,6 +187,8 @@ async function fetchServerStats() {
   const activeSessionWhere = {
     status: { not: 'FINISHED' as const },
   };
+  const dailyHighscoreRangeEnd = getUtcDayStart(new Date());
+  const dailyHighscoreRangeStart = addUtcDays(dailyHighscoreRangeEnd, -(DAILY_HIGHSCORE_DAYS - 1));
 
   let activeBlitzRounds = 0;
   try {
@@ -226,12 +259,34 @@ async function fetchServerStats() {
         }
       }
     })();
+    const dailyHighscoreRowsPromise = prisma.dailyStatistic
+      .findMany({
+        where: {
+          date: {
+            gte: dailyHighscoreRangeStart,
+            lte: dailyHighscoreRangeEnd,
+          },
+        },
+        orderBy: { date: 'asc' },
+        select: {
+          date: true,
+          maxParticipantsSingleSession: true,
+        },
+      })
+      .catch((err) => {
+        logger.warn(
+          'health.stats: dailyHighscores konnten nicht aus PostgreSQL gelesen werden, setze leere Historie.',
+          err,
+        );
+        return [];
+      });
 
     const [
       openSessions,
       activeSessionIds,
       completedSessionsNow,
       platformRow,
+      dailyHighscoreRows,
       loadSignals,
       sloSignals,
     ] = await Promise.all([
@@ -243,6 +298,7 @@ async function fetchServerStats() {
       // Momentan in DB vorhandene FINISHED-Sessions (kann durch Purge sinken).
       prisma.session.count({ where: { status: 'FINISHED' } }),
       platformStatisticPromise,
+      dailyHighscoreRowsPromise,
       readLoadSignals(),
       readSloSignals(),
     ]);
@@ -283,6 +339,7 @@ async function fetchServerStats() {
       completedSessions: completedSessionsTotal,
       activeBlitzRounds,
       maxParticipantsSingleSession: platformRow.maxParticipantsSingleSession,
+      dailyHighscores: buildDailyHighscores(dailyHighscoreRows, dailyHighscoreRangeEnd),
       maxParticipantsStatisticUpdatedAt: platformRow.updatedAtIso,
       serviceStatus: getServiceStatus(loadStatus, sloSignals),
       loadStatus,
@@ -298,6 +355,7 @@ async function fetchServerStats() {
       completedSessions: 0,
       activeBlitzRounds: 0,
       maxParticipantsSingleSession: 0,
+      dailyHighscores: buildDailyHighscores([]),
       maxParticipantsStatisticUpdatedAt: null,
       serviceStatus: 'stable' as const,
       loadStatus: 'healthy' as const,

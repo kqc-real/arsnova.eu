@@ -977,6 +977,14 @@ export const HealthCheckResponseSchema = z.object({
 
 export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 
+export const DailyHighscoreEntrySchema = z.object({
+  /** UTC-Tag als ISO-8601 Datum (`YYYY-MM-DD`). */
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  /** Tagesrekord der größten einzelnen Session dieses UTC-Tags. */
+  count: z.number().int().min(0),
+});
+export type DailyHighscoreEntry = z.infer<typeof DailyHighscoreEntrySchema>;
+
 /** DTO: Server-Auslastung für die Startseite (Story 0.4) */
 export const ServerStatsDTOSchema = z.object({
   /** Alle noch nicht beendeten Sessions. */
@@ -996,6 +1004,8 @@ export const ServerStatsDTOSchema = z.object({
   activeBlitzRounds: z.number(),
   /** Höchste je in einer Session registrierte Teilnehmerzahl (Joins, plattformweit). */
   maxParticipantsSingleSession: z.number().int().min(0),
+  /** Verlauf der Session-Tagesrekorde der letzten 30 UTC-Tage in chronologischer Reihenfolge. */
+  dailyHighscores: z.array(DailyHighscoreEntrySchema).length(30),
   /** ISO-8601: Serverzeitpunkt, als sich der Rekord zuletzt erhöhte (`PlatformStatistic.updatedAt`), sonst null — nicht Session-Start/-Ende. */
   maxParticipantsStatisticUpdatedAt: z.string().datetime().nullable(),
   /** Betriebsstatus (SLO-nah) für den Footer. */

@@ -84,7 +84,10 @@ import {
   questionCountsTowardsTotalQuestions,
   questionAffectsStreak,
 } from '../lib/quizScoring';
-import { updateMaxParticipantsSingleSession } from '../lib/platformStatistic';
+import {
+  updateDailyMaxParticipants,
+  updateMaxParticipantsSingleSession,
+} from '../lib/platformStatistic';
 import { getActiveParticipantIdsForSession, touchParticipantPresence } from '../lib/presence';
 import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
 import {
@@ -3100,6 +3103,7 @@ export const sessionRouter = router({
         where: { sessionId: session.id },
       });
       void updateMaxParticipantsSingleSession(newParticipantCount);
+      void updateDailyMaxParticipants(newParticipantCount);
       void touchParticipantPresence(session.id, participantId);
       const serverTime = new Date().toISOString();
       return {

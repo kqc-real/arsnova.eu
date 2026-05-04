@@ -29,7 +29,6 @@ import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component'
 import { trpc } from './core/trpc.client';
 import type { ServerStatsDTO } from '@arsnova/shared-types';
 import { ServerStatusWidgetComponent } from './shared/server-status-widget/server-status-widget.component';
-import { ServerStatusHelpDialogComponent } from './shared/server-status-help-dialog/server-status-help-dialog.component';
 import { localizePath } from './core/locale-router';
 import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
@@ -547,14 +546,17 @@ export class AppComponent implements OnInit, OnDestroy {
     this.apiRetrying.set(false);
   }
 
-  openServerStatusHelp(): void {
+  async openServerStatusHelp(): Promise<void> {
+    const { ServerStatusHelpDialogComponent } =
+      await import('./shared/server-status-help-dialog/server-status-help-dialog.component');
+
     this.dialog.open(ServerStatusHelpDialogComponent, {
       panelClass: 'app-status-help-dialog-panel',
       autoFocus: false,
       data: {
-        connectionOk: this.footerConnectionOk(),
-        loading: !this.footerHealthCheckDone(),
-        stats: this.footerStats(),
+        connectionOk: this.footerConnectionOk,
+        loading: computed(() => !this.footerHealthCheckDone()),
+        stats: this.footerStats,
       },
       width: 'min(54rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
