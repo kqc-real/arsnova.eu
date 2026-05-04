@@ -103,4 +103,46 @@ describe('ServerStatusHelpDialogComponent', () => {
     expect(text).toContain('Live-Daten werden geladen');
     expect(text).not.toContain('Rekordteilnahme');
   });
+
+  it('rerenders the history chart when the app theme changes', () => {
+    TestBed.configureTestingModule({
+      imports: [ServerStatusHelpDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            connectionOk: signal(true),
+            loading: signal(false),
+            stats: signal({
+              openSessions: 4,
+              activeSessions: 2,
+              totalParticipants: 48,
+              votesLastMinute: 7,
+              sessionTransitionsLastMinute: 3,
+              activeCountdownSessions: 1,
+              completedSessions: 12,
+              activeBlitzRounds: 0,
+              maxParticipantsSingleSession: 96,
+              dailyHighscores: buildDailyHighscores(),
+              maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
+              serviceStatus: 'stable',
+              loadStatus: 'healthy',
+            }),
+          },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(ServerStatusHelpDialogComponent);
+    const component = fixture.componentInstance as ServerStatusHelpDialogComponent & {
+      syncChart: (stats: unknown, canvas: HTMLCanvasElement) => Promise<void>;
+    };
+    const syncChartSpy = vi.spyOn(component, 'syncChart').mockResolvedValue();
+
+    fixture.detectChanges();
+    expect(syncChartSpy).toHaveBeenCalledTimes(1);
+
+    globalThis.dispatchEvent(new Event('arsnova:preset-updated'));
+    expect(syncChartSpy).toHaveBeenCalledTimes(2);
+  });
 });

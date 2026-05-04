@@ -22,6 +22,8 @@ import { MatIcon } from '@angular/material/icon';
 import type { ServerStatsDTO } from '@arsnova/shared-types';
 type ChartRenderer = import('./server-status-help-dialog-chart').ServerStatusHistoryChartRenderer;
 
+const THEME_PRESET_DOM_EVENT = 'arsnova:preset-updated';
+
 export interface ServerStatusHelpDialogData {
   connectionOk: Signal<boolean>;
   loading: Signal<boolean>;
@@ -374,6 +376,12 @@ export class ServerStatusHelpDialogComponent {
   readonly data = inject<ServerStatusHelpDialogData>(MAT_DIALOG_DATA);
   private chartRenderer: ChartRenderer | null = null;
   private chartRendererPromise: Promise<ChartRenderer> | null = null;
+  private readonly refreshChartForThemeChange = (): void => {
+    const stats = this.effectiveStats();
+    const canvas = this.dailyHighscoresCanvas()?.nativeElement;
+    if (!stats || !canvas) return;
+    void this.syncChart(stats, canvas);
+  };
 
   readonly effectiveStats = computed<ServerStatsDTO | null>(() => {
     return this.data.stats();
@@ -404,6 +412,13 @@ export class ServerStatusHelpDialogComponent {
 
   constructor() {
     this.destroyRef.onDestroy(() => this.destroyChart());
+
+    if (typeof globalThis.addEventListener === 'function') {
+      globalThis.addEventListener(THEME_PRESET_DOM_EVENT, this.refreshChartForThemeChange);
+      this.destroyRef.onDestroy(() => {
+        globalThis.removeEventListener(THEME_PRESET_DOM_EVENT, this.refreshChartForThemeChange);
+      });
+    }
 
     effect(() => {
       const stats = this.effectiveStats();

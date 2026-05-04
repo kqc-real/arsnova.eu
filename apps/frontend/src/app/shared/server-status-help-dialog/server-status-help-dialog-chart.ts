@@ -2,6 +2,19 @@ import type { DailyHighscoreEntry } from '@arsnova/shared-types';
 
 type ChartJsModule = typeof import('chart.js');
 type ChartInstance = import('chart.js').Chart<'line', number[], string>;
+type ChartOptions = import('chart.js').ChartOptions<'line'>;
+type ChartDataset = import('chart.js').ChartDataset<'line', number[]>;
+
+type ChartPalette = {
+  grid: string;
+  line: string;
+  point: string;
+  text: string;
+  tooltipBackground: string;
+  tooltipBorder: string;
+  tooltipBody: string;
+  tooltipTitle: string;
+};
 
 export class ServerStatusHistoryChartRenderer {
   private chartModulePromise: Promise<ChartJsModule> | null = null;
@@ -45,68 +58,9 @@ export class ServerStatusHistoryChartRenderer {
         type: 'line',
         data: {
           labels,
-          datasets: [
-            {
-              data: values,
-              borderColor: palette.line,
-              backgroundColor: palette.line,
-              pointBackgroundColor: palette.point,
-              pointBorderColor: palette.point,
-              pointHoverBackgroundColor: palette.point,
-              pointHoverBorderColor: palette.point,
-              borderWidth: 2,
-              cubicInterpolationMode: 'monotone',
-              fill: false,
-              pointHitRadius: 16,
-              pointHoverRadius: 4,
-              pointRadius: 2.5,
-              tension: 0.32,
-            },
-          ],
+          datasets: [this.buildDataset(values, palette)],
         },
-        options: {
-          animation: false,
-          maintainAspectRatio: false,
-          responsive: true,
-          interaction: {
-            intersect: false,
-            mode: 'index',
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              displayColors: false,
-              callbacks: {
-                label: (tooltipItem) =>
-                  new Intl.NumberFormat(locale).format(Number(tooltipItem.parsed.y ?? 0)),
-              },
-            },
-          },
-          scales: {
-            x: {
-              grid: {
-                display: false,
-              },
-              ticks: {
-                autoSkip: true,
-                color: palette.text,
-                maxRotation: 0,
-                maxTicksLimit: 6,
-                minRotation: 0,
-              },
-            },
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: palette.grid,
-              },
-              ticks: {
-                color: palette.text,
-                precision: 0,
-              },
-            },
-          },
-        },
+        options: this.buildOptions(locale, palette),
       });
       this.chartCanvas = canvas;
       return;
@@ -123,6 +77,7 @@ export class ServerStatusHistoryChartRenderer {
     dataset.pointBorderColor = palette.point;
     dataset.pointHoverBackgroundColor = palette.point;
     dataset.pointHoverBorderColor = palette.point;
+    this.chart.options = this.buildOptions(locale, palette);
     this.chart.update();
   }
 
@@ -176,18 +131,209 @@ export class ServerStatusHistoryChartRenderer {
     }).format(parsed);
   }
 
-  private readChartPalette(canvas: HTMLCanvasElement): {
-    grid: string;
-    line: string;
-    point: string;
-    text: string;
-  } {
+  private formatChartCount(value: number, locale: string): string {
+    return new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 0,
+    }).format(value);
+  }
+
+  private buildDataset(values: number[], palette: ChartPalette): ChartDataset {
+    return {
+      data: values,
+      backgroundColor: palette.line,
+      borderColor: palette.line,
+      borderWidth: 2,
+      cubicInterpolationMode: 'monotone',
+      fill: false,
+      pointBackgroundColor: palette.point,
+      pointBorderColor: palette.point,
+      pointHitRadius: 16,
+      pointHoverBackgroundColor: palette.point,
+      pointHoverBorderColor: palette.point,
+      pointHoverRadius: 4,
+      pointRadius: 2.5,
+      tension: 0.32,
+    };
+  }
+
+  private buildOptions(locale: string, palette: ChartPalette): ChartOptions {
+    return {
+      animation: false,
+      locale,
+      maintainAspectRatio: false,
+      responsive: true,
+      interaction: {
+        intersect: false,
+        mode: 'index',
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: palette.tooltipBackground,
+          bodyColor: palette.tooltipBody,
+          borderColor: palette.tooltipBorder,
+          borderWidth: 1,
+          displayColors: false,
+          titleColor: palette.tooltipTitle,
+          callbacks: {
+            label: (tooltipItem) =>
+              this.formatChartCount(Number(tooltipItem.parsed.y ?? 0), locale),
+          },
+        },
+      },
+      scales: {
+        x: {
+          border: {
+            display: false,
+          },
+          grid: {
+            display: false,
+          },
+          ticks: {
+            autoSkip: true,
+            color: palette.text,
+            maxRotation: 0,
+            maxTicksLimit: 6,
+            minRotation: 0,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          border: {
+            display: false,
+          },
+          grid: {
+            color: palette.grid,
+          },
+          ticks: {
+            callback: (value) => {
+              const numericValue = Number(value);
+              if (!Number.isFinite(numericValue)) {
+                return '';
+              }
+
+              return this.formatChartCount(numericValue, locale);
+            },
+            color: palette.text,
+            precision: 0,
+          },
+        },
+      },
+    };
+  }
+
+  private readChartPalette(canvas: HTMLCanvasElement): ChartPalette {
     const styles = getComputedStyle(canvas);
     return {
-      grid: styles.getPropertyValue('--mat-sys-outline-variant').trim() || '#c4c7cf',
-      line: styles.getPropertyValue('--mat-sys-primary').trim() || '#005cbb',
-      point: styles.getPropertyValue('--mat-sys-tertiary').trim() || '#7d5260',
-      text: styles.getPropertyValue('--mat-sys-on-surface-variant').trim() || '#44474e',
+      grid: this.resolveColorToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-grid').trim() ||
+          styles.getPropertyValue('--mat-sys-outline-variant').trim(),
+        '#c4c7cf',
+      ),
+      line: this.resolveColorToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-line').trim() ||
+          styles.getPropertyValue('--mat-sys-primary').trim(),
+        '#005cbb',
+      ),
+      point: this.resolveColorToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-point').trim() ||
+          styles.getPropertyValue('--mat-sys-tertiary').trim(),
+        '#7d5260',
+      ),
+      text: this.resolveColorToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-text').trim() ||
+          styles.getPropertyValue('--mat-sys-on-surface').trim(),
+        '#1c1b1f',
+      ),
+      tooltipBackground: this.resolveBackgroundToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-tooltip-background').trim() ||
+          styles.getPropertyValue('--mat-sys-surface-container-high').trim(),
+        '#f3f0f4',
+      ),
+      tooltipBorder: this.resolveColorToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-tooltip-border').trim() ||
+          styles.getPropertyValue('--mat-sys-outline-variant').trim(),
+        '#c4c7cf',
+      ),
+      tooltipBody: this.resolveColorToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-tooltip-body').trim() ||
+          styles.getPropertyValue('--mat-sys-on-surface').trim(),
+        '#1c1b1f',
+      ),
+      tooltipTitle: this.resolveColorToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-tooltip-title').trim() ||
+          styles.getPropertyValue('--mat-sys-on-surface').trim(),
+        '#1c1b1f',
+      ),
     };
+  }
+
+  private resolveColorToken(canvas: HTMLCanvasElement, token: string, fallback: string): string {
+    return this.resolveCssColor(canvas, token, fallback, 'color');
+  }
+
+  private resolveBackgroundToken(
+    canvas: HTMLCanvasElement,
+    token: string,
+    fallback: string,
+  ): string {
+    return this.resolveCssColor(canvas, token, fallback, 'backgroundColor');
+  }
+
+  private resolveCssColor(
+    canvas: HTMLCanvasElement,
+    token: string,
+    fallback: string,
+    property: 'color' | 'backgroundColor',
+  ): string {
+    if (!token) {
+      return fallback;
+    }
+
+    const host = canvas.parentElement instanceof HTMLElement ? canvas.parentElement : canvas;
+    const probe = canvas.ownerDocument.createElement('span');
+    probe.style.position = 'absolute';
+    probe.style.inlineSize = '0';
+    probe.style.blockSize = '0';
+    probe.style.overflow = 'hidden';
+    probe.style.opacity = '0';
+    probe.style.pointerEvents = 'none';
+    probe.style.setProperty('--app-status-chart-probe-color', token);
+    probe.style[property] = 'var(--app-status-chart-probe-color)';
+    host.appendChild(probe);
+
+    const probeStyles = getComputedStyle(probe);
+    const resolved =
+      property === 'backgroundColor' ? probeStyles.backgroundColor : probeStyles.color;
+    probe.remove();
+
+    return this.normalizeCanvasColor(canvas, resolved) || resolved || fallback;
+  }
+
+  private normalizeCanvasColor(canvas: HTMLCanvasElement, color: string): string | null {
+    if (!color) {
+      return null;
+    }
+
+    const normalizationCanvas = canvas.ownerDocument.createElement('canvas');
+    const context = normalizationCanvas.getContext('2d');
+    if (!context) {
+      return color;
+    }
+
+    try {
+      context.fillStyle = color;
+      return context.fillStyle || color;
+    } catch {
+      return color;
+    }
   }
 }
