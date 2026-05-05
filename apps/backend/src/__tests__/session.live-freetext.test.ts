@@ -52,6 +52,7 @@ const QUIZ_INPUT = {
   showLeaderboard: true,
   allowCustomNicknames: true,
   defaultTimer: null,
+  timerScaleByDifficulty: false,
   enableSoundEffects: true,
   enableRewardEffects: true,
   enableMotivationMessages: true,
@@ -198,7 +199,9 @@ describe('session.getActiveQuizIds', () => {
         })),
       },
     ]);
-    prismaMock.session.findMany.mockResolvedValue([{ quizId: ACTIVE_QUIZ_ID }]);
+    prismaMock.session.findMany.mockResolvedValue([
+      { quizId: ACTIVE_QUIZ_ID, _count: { participants: 5 } },
+    ]);
 
     const result = await caller.getActiveQuizIds([
       { quizId: ACTIVE_QUIZ_ID, accessProof },
@@ -208,14 +211,20 @@ describe('session.getActiveQuizIds', () => {
       },
     ]);
 
-    expect(result).toEqual([ACTIVE_QUIZ_ID]);
+    expect(result).toEqual([{ quizId: ACTIVE_QUIZ_ID, participantCountIncludingHost: 6 }]);
     expect(prismaMock.session.findMany).toHaveBeenCalledWith({
       where: {
         status: { not: 'FINISHED' },
         quizId: { in: [ACTIVE_QUIZ_ID] },
       },
-      select: { quizId: true },
-      distinct: ['quizId'],
+      select: {
+        quizId: true,
+        _count: {
+          select: {
+            participants: true,
+          },
+        },
+      },
     });
   });
 });

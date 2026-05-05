@@ -65,6 +65,13 @@ export function voteFinishedHeroTitle(playful: boolean): string {
   return $localize`:@@sessionVote.finishedTitleSerious:Session beendet`;
 }
 
+export function voteFinishedHeroWinnerTitle(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.finishedTitlePlayfulWinner:Du hast gewonnen!`;
+  }
+  return $localize`:@@sessionVote.finishedTitleSeriousWinner:Du gewinnst das Quiz.`;
+}
+
 export function voteFinishedRankLabel(playful: boolean): string {
   if (playful) {
     return $localize`:@@sessionVote.finishedRankPlayful:Rang`;
@@ -116,7 +123,7 @@ export function voteTeamStatMembers(playful: boolean): string {
 
 export function voteBonusTitle(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.bonusTitlePlayful:Dein Extra-Code`;
+    return $localize`:@@sessionVote.bonusTitlePlayful:Dein Bonus-Code`;
   }
   return $localize`:@@sessionVote.bonusTitleSerious:Dein Bonus-Code`;
 }
@@ -228,14 +235,20 @@ export function voteFeedbackDoneTitle(playful: boolean): string {
 
 export function voteFeedbackDoneCount(playful: boolean, total: number): string {
   if (playful) {
-    return $localize`:@@sessionVote.feedbackDoneCountPlayful:${total}:count: Stimmen insgesamt`;
+    if (total === 1) {
+      return $localize`:@@sessionVote.feedbackDoneCountPlayfulOne:1 Stimme insgesamt`;
+    }
+    return $localize`:@@sessionVote.feedbackDoneCountPlayfulMany:${total}:count: Stimmen insgesamt`;
   }
-  return $localize`:@@sessionVote.feedbackDoneCountSerious:${total}:count: Bewertungen insgesamt`;
+  if (total === 1) {
+    return $localize`:@@sessionVote.feedbackDoneCountSeriousOne:1 Bewertung insgesamt`;
+  }
+  return $localize`:@@sessionVote.feedbackDoneCountSeriousMany:${total}:count: Bewertungen insgesamt`;
 }
 
 export function voteQuestionLabel(playful: boolean, displayNumber: number): string {
   if (playful) {
-    return $localize`:@@sessionVote.questionLabelPlayful:Runde ${displayNumber}:n:`;
+    return $localize`:@@sessionVote.questionLabelPlayful:Frage ${displayNumber}:n:`;
   }
   return $localize`:@@sessionVote.questionLabelSerious:Frage ${displayNumber}:n:`;
 }
@@ -259,6 +272,20 @@ export function voteReadingHint(playful: boolean): string {
     return $localize`:@@sessionVote.readingHintPlayful:Nimm dir einen Moment – die Antworten kommen gleich.`;
   }
   return $localize`:@@sessionVote.readingHintSerious:Lies die Frage in Ruhe – die Antwortoptionen folgen gleich.`;
+}
+
+export function voteReadingReadyCta(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.readingReadyCtaPlayful:Ich bin bereit`;
+  }
+  return $localize`:@@sessionVote.readingReadyCtaSerious:Bereit bestätigen`;
+}
+
+export function voteReadingReadyDone(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.readingReadyDonePlayful:Bereit bestätigt`;
+  }
+  return $localize`:@@sessionVote.readingReadyDoneSerious:Du bist als bereit markiert`;
 }
 
 export function voteDiscussionTitle(playful: boolean): string {
@@ -382,9 +409,9 @@ export function voteScorecardWrong(playful: boolean): string {
 
 export function voteScorecardNeutral(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.scoreNeutralPlayful:Notiert!`;
+    return $localize`:@@sessionVote.scoreNeutralPlayful:Punkte notiert!`;
   }
-  return $localize`:@@sessionVote.scoreNeutralSerious:Antwort registriert`;
+  return $localize`:@@sessionVote.scoreNeutralSerious:Punkte verbucht`;
 }
 
 /** Sichtbarer Callout: Serie mit Faktor und Zusatzpunkten (Story 5.5 / UX). */
@@ -511,6 +538,13 @@ export function voteFeedbackSnack(playful: boolean): string {
     return $localize`:@@sessionVote.feedbackSnackPlayful:Feedback gelandet – danke!`;
   }
   return $localize`:@@sessionVote.feedbackSnackSerious:Danke für dein Feedback!`;
+}
+
+export function voteMissedResultsMessage(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.missedResultsPlayful:Leider verpasst! Das nächste Mal schneller antworten.`;
+  }
+  return $localize`:@@sessionVote.missedResultsSerious:Keine Antwort mehr rechtzeitig abgegeben. Die nächste Frage folgt.`;
 }
 
 export function voteTeamLeaderHintPlayful(leaderName: string, leaderScore: number): string {

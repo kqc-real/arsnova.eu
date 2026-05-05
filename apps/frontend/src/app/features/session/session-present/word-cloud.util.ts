@@ -11,7 +11,12 @@ export interface WeightedWordSource {
   weight?: number;
 }
 
-const MIN_WORD_LENGTH = 3;
+// Kurze Fachbegriffe wie "pi" oder "KI" sollen sichtbar bleiben.
+// Ein-Zeichen-Rauschen wird nur fuer Nicht-Zahlen gefiltert.
+const MIN_TEXT_TOKEN_LENGTH = 2;
+const NUMBER_TOKEN_PATTERN = /^-?\d+(?:[.,]\d+)*$/;
+const TOKEN_PATTERN = /-?\d+(?:[.,]\d+)*|[\p{L}\p{N}-]+/gu;
+const DECIMAL_SEPARATOR_SPACING_PATTERN = /(\d)\s*([.,])\s*(?=\d)/g;
 
 const STOPWORDS_BY_LOCALE: Record<SupportedLocale, ReadonlySet<string>> = {
   de: new Set(deu),
@@ -47,7 +52,7 @@ export function aggregateWeightedWords(
     const words = tokenize(source.text);
     const weight = normalizeWeight(source.weight);
     for (const word of words) {
-      if (word.length < MIN_WORD_LENGTH) continue;
+      if (!isNumericToken(word) && word.length < MIN_TEXT_TOKEN_LENGTH) continue;
       if (stopwords.has(word)) continue;
       counts.set(word, (counts.get(word) ?? 0) + weight);
     }
@@ -56,6 +61,20 @@ export function aggregateWeightedWords(
   return [...counts.entries()]
     .map(([word, count]) => ({ word, count }))
     .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
+}
+
+export function normalizeFreeTextResponseForDisplay(value: string): string {
+  const collapsed = collapseNumericSeparatorSpacing(value);
+  if (isNumericToken(collapsed)) {
+    return normalizeToken(collapsed);
+  }
+
+  return value.trim();
+}
+
+export function responseContainsWord(response: string, word: string): boolean {
+  const normalizedWord = normalizeToken(collapseNumericSeparatorSpacing(word).toLowerCase());
+  return tokenize(response).includes(normalizedWord);
 }
 
 function normalizeWeight(weight?: number): number {
@@ -67,10 +86,23 @@ function normalizeWeight(weight?: number): number {
 }
 
 function tokenize(value: string): string[] {
-  return value
-    .toLowerCase()
-    .replaceAll(/[^\p{L}\p{N}-]+/gu, ' ')
-    .split(/\s+/)
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
+  const normalizedInput = collapseNumericSeparatorSpacing(value).toLowerCase();
+  return Array.from(normalizedInput.matchAll(TOKEN_PATTERN), (match) => normalizeToken(match[0]!));
+}
+
+function isNumericToken(value: string): boolean {
+  return NUMBER_TOKEN_PATTERN.test(value);
+}
+
+function normalizeToken(value: string): string {
+  if (isNumericToken(value)) {
+    // "3,14" und "3.14" sollen in derselben Wolke zusammenlaufen.
+    return value.replaceAll(',', '.');
+  }
+
+  return value;
+}
+
+function collapseNumericSeparatorSpacing(value: string): string {
+  return value.trim().replace(DECIMAL_SEPARATOR_SPACING_PATTERN, '$1$2');
 }

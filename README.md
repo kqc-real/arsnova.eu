@@ -13,11 +13,12 @@
 > **Quizzen, abstimmen – gemeinsam und live.**  
 > Ein modernes, kostenloses Audience-Response-System für datensparsame, DSGVO-orientierte Lehre – ohne Anmeldung, Open Source. Entwickelt im Rahmen des Hochschul-Moduls „Software Engineering & Vibe Coding“.
 
-## ✅ Aktueller Entwicklungsstand (April 2026)
+## ✅ Aktueller Entwicklungsstand (Mai 2026)
 
-- **Produktionsreif umgesetzt:** Epics **0–5**, **7.1 (Team-Modus)**, **8**, **9 (Admin)** und **10 (MOTD / Plattform-Kommunikation, ADR-0018)** — siehe [`Backlog.md`](./Backlog.md).
+- **Produktionsreif umgesetzt:** Epics **0–5**, **7.1 (Team-Modus)**, **9 (Admin)** und **10 (MOTD / Plattform-Kommunikation, ADR-0018)**; **Epic 8 ist im Kern mit 8.1–8.4** umgesetzt — siehe [`Backlog.md`](./Backlog.md).
 - **Plattform-Qualität:** Epic **6** ist im Kern umgesetzt (Theme, i18n, Legal, Responsive); **6.5 Barrierefreiheit (Abschlussprüfung)** und **6.6 Thinking Aloud** sind noch offen.
-- **Offene Stories (Auswahl):** u. a. **2.1c** (Host-/Presenter-Token), **0.7** (Lasttests), **1.7a/1.7b** (Markdown-Erweiterungen), **8.5–8.7** (Q&A) — vollständige Liste im Backlog.
+- **Aktuell in Arbeit:** **Story 0.7** (Last- & Performance-Tests) mit ersten `k6`-Skripten unter `scripts/load/` und Smoke-Flows wie `smoke:unified-session`; die vollständige Realtime-/E2E-/CI-Strecke ist noch offen.
+- **Offene Stories (Auswahl):** u. a. **0.8** (Komplexitätsabbau), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **1.14a** (Word Cloud 2.0) und **8.5–8.8** (Q&A-Erweiterungen + Tempo-Livekanal) — vollständige Liste im Backlog. **Bereits abgeschlossen:** **2.1c**, **1.7a** und **1.7b**.
 - **Plattform-Statistik:** Rekord **max. Teilnehmer je Session** wird serverseitig gepflegt und in `health.stats` sowie auf der Hilfe-Seite genutzt (`PlatformStatistic`, siehe Backlog „Repo-Abgleich“).
 - **Lehre:** Greenfield-Demo **Story 1.7a** in **3×45 Min.** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md); Epic 10 bleibt optionales **Referenzbeispiel**, kein Ersatz für 1.7a.
 
@@ -56,7 +57,7 @@ arsnova.eu/
 │   ├── ENVIRONMENT.md       # 🔧 Umgebungsvariablen-Referenz
 │   ├── SECURITY-OVERVIEW.md # 🔒 Sicherheit & DSGVO (Kurz)
 │   ├── TESTING.md           # 🧪 Tests & CI-Matrix
-│   ├── GLOSSAR.md           # 📖 App-Begriffe & Prisma-Brücke
+│   ├── GLOSSAR.md           # 📖 App-Begriffe, Abkürzungen & Prisma-Brücke
 │   ├── architecture/        # 🏛️ Architecture Decision Records (ADRs) & Handbuch
 │   ├── implementation/      # 🛠️ Umsetzungs-/Betriebsdokus (z. B. Admin-Flow)
 │   └── ui/                  # 🎨 UI/UX-Guides und Audits
@@ -184,6 +185,20 @@ Die App unterstützt **fünf Sprachen** (`de`, `en`, `fr`, `es`, `it`) über Ang
 **Wichtig:** Nur **`serve:localize:api`** liefert tRPC (HTTP + WebSocket) und Yjs-WebSocket mit aus. Ein reines `npm run serve:localize` (statischer Serve ohne Proxy) liefert keine API – Health-Check, Subscriptions und Blitz-Feedback würden fehlschlagen. Details (Proxy-Skript, Ports, Fallstricke) siehe [docs/I18N-ANGULAR.md](./docs/I18N-ANGULAR.md) Abschnitt „Lokalisierter Build lokal“.
 
 **Dev-Server (`ng serve`):** Standard-**`npm run dev`** baut **Deutsch** (Quellstrings, ohne `localize`); **`npm run dev:en`** baut **Englisch** (`development-en`). Andere Locales (**fr**/**it**/**es**) und Produktionsnähe: lokalisierten Build + `serve:localize:api` wie oben.
+
+**Quiz-Sync-Smoke-Test:** Der Sync-Smoke-Test erwartet denselben lokalisierten Proxy-Stack wie oben. Empfohlener Ablauf:
+
+```bash
+npm run dev -w @arsnova/backend
+npm run build:localize -w @arsnova/frontend
+npm run serve:localize:api -w @arsnova/frontend
+BASE_URL=http://localhost:4200 npm run smoke:quiz-sync -w @arsnova/frontend
+```
+
+Standard-Locale des Scripts ist **`en`**; optional z. B. `LOCALE=de` setzen.
+Da `serve:localize:api` den Build aus `dist/browser` ausliefert, muss nach relevanten Frontend-
+oder Smoke-Script-Aenderungen vor dem Test erneut `npm run build:localize -w @arsnova/frontend`
+gelaufen sein.
 
 ### 5. Production-ähnlich lokal (optional)
 
@@ -325,7 +340,7 @@ Nachdem die App lokal läuft, empfiehlt sich diese Lesereihenfolge:
 7. **[docs/cursor-context.md](./docs/cursor-context.md)** – verdichtete Projektreferenz für komplexere KI-Sessions
 8. **[Vibe-Coding-Szenario](./docs/vibe-coding/vibe-coding-szenario.md)** – Zusammenarbeit mit der KI
 
-> **Tipp (aktueller Fokus):** Epics **0–5**, **7.1**, **8**, **9** und **10** sind umgesetzt. Nächste Prioritäten siehe [Backlog](./Backlog.md) (u. a. **6.5**/**6.6**, **2.1c**, **0.7**, **1.7a**/**1.7b**). Vor der Umsetzung zuerst Story und DoD lesen; bei KI-gestützter Arbeit anschließend mit `AGENT.md` arbeiten.
+> **Tipp (aktueller Fokus):** Epics **0–5**, **7.1**, **9** und **10** sind umgesetzt; **Epic 8** ist im Kern mit **8.1–8.4** produktiv. Nächste Prioritäten siehe [Backlog](./Backlog.md) (u. a. **0.7**, **0.8**, **6.5**/**6.6**, **1.2d–1.2i**, **1.6c**, **1.14a**, **8.5–8.8**). Vor der Umsetzung zuerst Story und DoD lesen; bei KI-gestützter Arbeit anschließend mit `AGENT.md` arbeiten.
 
 ## 🔄 Zurücksetzen auf einen bekannten Zustand
 

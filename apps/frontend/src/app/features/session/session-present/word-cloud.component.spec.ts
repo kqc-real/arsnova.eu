@@ -130,6 +130,37 @@ describe('WordCloudComponent', () => {
     expect(text).toContain('Größere Begriffe stehen für häufigere Nennungen.');
   });
 
+  it('zeigt sinnvolle Zwei-Zeichen-Begriffe in der Wolke an', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('responses', ['pi', 'KI', 'a']);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.words().map((entry) => entry.word)).toEqual(['ki', 'pi']);
+  });
+
+  it('zeigt numerische Freitextwerte unverstueckelt an', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('responses', ['3.14', '3,14', '7']);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.words().map((entry) => entry.word)).toEqual(['3.14', '7']);
+    expect(component.words().find((entry) => entry.word === '3.14')?.count).toBe(2);
+  });
+
+  it('zeigt gefilterte numerische Antworten in normalisierter Punktnotation', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('responses', ['3, 14529', '3.14529', '13.14529']);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.toggleWord('3.14529');
+    fixture.detectChanges();
+
+    expect(component.filteredResponses()).toEqual(['3.14529', '3.14529']);
+  });
+
   it('exportiert CSV und setzt eine Statusmeldung', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', [

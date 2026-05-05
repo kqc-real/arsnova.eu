@@ -13,6 +13,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { trpc } from '../../core/trpc.client';
+import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 
@@ -140,14 +141,6 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
   }
 
   private msg(e: unknown, fallback: string): string {
-    if (
-      e &&
-      typeof e === 'object' &&
-      'message' in e &&
-      typeof (e as { message: string }).message === 'string'
-    ) {
-      return (e as { message: string }).message;
-    }
-    return fallback;
+    return localizeKnownServerError(e, fallback);
   }
 }

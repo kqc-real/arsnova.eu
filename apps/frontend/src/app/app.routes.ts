@@ -6,13 +6,20 @@ import {
   type UrlSegment,
   Routes,
 } from '@angular/router';
+import {
+  getLocaleFromBaseHref,
+  getLocaleFromPath,
+  getPreferredJoinLocale,
+} from './core/locale-from-path';
 import { hasFeedbackHostToken, normalizeFeedbackCode } from './core/feedback-host-token';
 import {
+  clearHostToken,
   getSessionEntryCommands,
   hasHostToken,
   normalizeHostSessionCode,
 } from './core/host-session-token';
 import { localizeCommands } from './core/locale-router';
+import { trpc } from './core/trpc.client';
 import type { SessionHostComponent } from './features/session/session-host/session-host.component';
 import { newsArchivePageResolver } from './features/news-archive/news-archive-page.resolver';
 
@@ -30,6 +37,35 @@ function getCodeParamFromRoute(route: Parameters<CanActivateFn>[0]): string | nu
   );
 }
 
+function getLocaleParamFromRoute(route: Parameters<CanActivateFn>[0]): string | null {
+  const parentRoute = (() => {
+    try {
+      return route.parent ?? null;
+    } catch {
+      return null;
+    }
+  })();
+  const pathFromRoot = (() => {
+    try {
+      return route.pathFromRoot ?? [route];
+    } catch {
+      return [route];
+    }
+  })();
+
+  return (
+    route.paramMap.get('locale') ??
+    parentRoute?.paramMap.get('locale') ??
+    pathFromRoot
+      .map((snapshot) => snapshot.paramMap.get('locale'))
+      .find((value): value is string => typeof value === 'string' && value.length > 0) ??
+    pathFromRoot
+      .map((snapshot) => snapshot.params['locale'])
+      .find((value): value is string => typeof value === 'string' && value.length > 0) ??
+    null
+  );
+}
+
 const redirectSessionEntry: CanActivateFn = (route) => {
   const codeParam = getCodeParamFromRoute(route);
   if (!codeParam) {
@@ -39,18 +75,49 @@ const redirectSessionEntry: CanActivateFn = (route) => {
   return inject(Router).createUrlTree(localizeCommands(getSessionEntryCommands(codeParam)));
 };
 
-const requireHostToken: CanActivateFn = (route) => {
+const redirectJoinToPreferredLocale: CanActivateFn = (route) => {
+  const router = inject(Router);
   const codeParam = getCodeParamFromRoute(route);
   if (!codeParam) {
-    return inject(Router).createUrlTree(localizeCommands(['']));
+    return router.createUrlTree(localizeCommands(['']));
   }
 
-  const code = normalizeHostSessionCode(codeParam);
-  if (hasHostToken(code)) {
+  if (getLocaleParamFromRoute(route) || getLocaleFromPath() || getLocaleFromBaseHref()) {
     return true;
   }
 
-  return inject(Router).createUrlTree(localizeCommands(['join', code]));
+  const code = codeParam.trim().toUpperCase();
+  const preferredLocale = getPreferredJoinLocale();
+  return router.createUrlTree([preferredLocale, 'join', code], {
+    queryParams: route.queryParams,
+    fragment: route.fragment ?? undefined,
+  });
+};
+
+const requireHostToken: CanActivateFn = (route) => {
+  const router = inject(Router);
+  const codeParam = getCodeParamFromRoute(route);
+  if (!codeParam) {
+    return router.createUrlTree(localizeCommands(['']));
+  }
+
+  const code = normalizeHostSessionCode(codeParam);
+  if (!hasHostToken(code)) {
+    return router.createUrlTree(localizeCommands(['join', code]));
+  }
+
+  return trpc.session.getParticipants
+    .query({ code })
+    .then(() => true)
+    .catch((error: unknown) => {
+      const message =
+        error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+      if (message.startsWith('UNAUTHORIZED:') || message.startsWith('NOT_FOUND:')) {
+        clearHostToken(code);
+        return router.createUrlTree(localizeCommands(['join', code]));
+      }
+      return true;
+    });
 };
 
 const requireFeedbackHostToken: CanActivateFn = (route) => {
@@ -169,6 +236,7 @@ const mainRoutes: Routes = [
   },
   {
     path: 'join/:code',
+    canActivate: [redirectJoinToPreferredLocale],
     loadComponent: () => import('./features/join/join.component').then((m) => m.JoinComponent),
   },
   {

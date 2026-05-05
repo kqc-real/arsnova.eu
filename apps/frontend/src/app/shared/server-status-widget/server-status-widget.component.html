@@ -1,4 +1,14 @@
-<button matButton type="button" class="server-status" (click)="openDialog()">
+<button
+  matButton
+  type="button"
+  class="server-status"
+  (click)="openDialog()"
+  i18n-aria-label="@@app.footer.statusHelpTriggerAria"
+  aria-label="Betriebsstatus öffnen: Statusanzeige und Systemlast-Indikatoren"
+  i18n-matTooltip="@@app.footer.statusHelpTriggerTooltip"
+  matTooltip="Betriebsstatus und Systemlast-Indikatoren anzeigen"
+  matTooltipPosition="above"
+>
   <mat-icon
     class="server-status__icon"
     [class.server-status__icon--healthy]="statusColor() === 'green'"
@@ -9,6 +19,6 @@
     >lens</mat-icon
   >
   <span class="server-status__label app-footer__link-text" i18n="@@app.footer.serverHelpLabel"
-    >Server-Status</span
+    >Betriebsstatus</span
   >
 </button>

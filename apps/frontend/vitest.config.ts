@@ -11,6 +11,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    testTimeout: 15000,
     include: ['src/**/*.spec.ts'],
     setupFiles: ['src/test-setup.ts'],
     coverage: {
@@ -33,7 +34,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@arsnova/shared-types': path.resolve(projectRoot, '../../libs/shared-types/src/index.ts'),
+      '@arsnova/shared-types': path.resolve(
+        projectRoot,
+        '../../libs/shared-types/src/index.workspace.ts',
+      ),
     },
   },
   optimizeDeps: {

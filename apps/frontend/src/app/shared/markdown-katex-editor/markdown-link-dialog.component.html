@@ -1,0 +1,55 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>link</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@mdEditor.linkDialog.title"
+      >Link einfügen</span
+    >
+  </span>
+</h2>
+
+<div mat-dialog-content class="md-markdown-insert-dialog__content">
+  <form [formGroup]="form" class="md-markdown-insert-dialog__form l-stack l-stack--md">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label i18n="@@mdEditor.linkDialog.textLabel">Text</mat-label>
+      <input matInput formControlName="text" cdkFocusInitial />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label i18n="@@mdEditor.linkDialog.urlLabel">URL</mat-label>
+      <input
+        matInput
+        formControlName="url"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        i18n-placeholder="@@mdEditor.linkDialog.urlPlaceholder"
+        placeholder="https://… oder mailto:… oder tel:…"
+      />
+      @if (form.controls.url.hasError('required') && form.controls.url.touched) {
+        <mat-error i18n="@@mdEditor.linkDialog.urlRequired">Bitte gib einen Link ein.</mat-error>
+      }
+      @if (form.controls.url.hasError('markdownLinkHref') && form.controls.url.touched) {
+        <mat-error i18n="@@mdEditor.linkDialog.urlError"
+          >Bitte https://…, mailto:… oder tel:… verwenden.</mat-error
+        >
+      }
+    </mat-form-field>
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()" i18n="@@mdEditor.dialog.cancel">
+    Abbrechen
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    (click)="insert()"
+    [disabled]="form.invalid"
+    i18n="@@mdEditor.dialog.insert"
+  >
+    Einfügen
+  </button>
+</div>

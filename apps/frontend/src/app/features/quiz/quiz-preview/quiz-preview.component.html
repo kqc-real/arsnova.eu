@@ -6,9 +6,6 @@
       </span>
       <span class="dialog-title-header__copy">
         <h1 class="dialog-title-header__heading">{{ previewTitleName(quizData) }}</h1>
-        <p class="dialog-title-header__sub" i18n="@@quizPreview.pageSubtitle">
-          Vorschau für Teilnehmende
-        </p>
       </span>
     </header>
     @if (questions().length > 0) {
@@ -45,7 +42,7 @@
           </a>
         </mat-card-content>
       </mat-card>
-    } @else if (currentQuestion(); as question) {
+    } @else if (displayedQuestion(); as question) {
       @for (slide of animatedCurrentQuestion(); track slide.key) {
         <mat-card
           appearance="outlined"
@@ -71,21 +68,34 @@
                     {{ difficultyLabel(slide.question.difficulty) }}
                   </span>
                 }
+                @let timerSec = effectivePreviewTimerSeconds(slide.question);
+                <span
+                  class="quiz-preview-question__badge quiz-preview-question__badge--timer"
+                  [class.quiz-preview-question__badge--timer-off]="timerSec === null"
+                  [attr.aria-label]="previewTimerAriaLabel(slide.question)"
+                >
+                  <mat-icon class="quiz-preview-question__timer-icon" aria-hidden="true"
+                    >timer</mat-icon
+                  >
+                  @if (timerSec !== null) {
+                    <span class="quiz-preview-question__timer-value">{{ timerSec }} s</span>
+                  }
+                </span>
               </div>
               <p class="quiz-preview-question__position" i18n="@@quiz.preview.questionPosition">
                 Frage {{ currentIndex() + 1 }} von {{ questions().length }}
               </p>
             </div>
             <div
-              class="quiz-preview-question__text"
+              class="quiz-preview-question__text markdown-body"
               [innerHTML]="renderMarkdown(slide.question.text)"
             ></div>
             @if (slide.question.type === 'FREETEXT') {
               <p
                 class="quiz-preview-question__text quiz-preview-question__text--hint"
-                i18n="@@quizPreview.freeTextAnswer"
+                i18n="@@quiz.freeTextWordCloudHint"
               >
-                Freitext-Antwort
+                Freitext-Antwort als Wortwolke
               </p>
             } @else if (slide.question.type === 'RATING') {
               @let ratingValues =
@@ -105,12 +115,24 @@
                 </div>
                 @if (slide.question.ratingLabelMin || slide.question.ratingLabelMax) {
                   <p class="quiz-preview-question__rating-labels">
+                    <span class="quiz-preview-question__rating-pole">
+                      <mat-icon class="quiz-preview-question__rating-pole-icon" aria-hidden="true"
+                        >first_page</mat-icon
+                      >
+                      <span
+                        [innerHTML]="renderMarkdown(slide.question.ratingLabelMin || 'Min')"
+                      ></span>
+                    </span>
                     <span
-                      [innerHTML]="renderMarkdown(slide.question.ratingLabelMin || 'Min')"
-                    ></span>
-                    <span
-                      [innerHTML]="renderMarkdown(slide.question.ratingLabelMax || 'Max')"
-                    ></span>
+                      class="quiz-preview-question__rating-pole quiz-preview-question__rating-pole--max"
+                    >
+                      <span
+                        [innerHTML]="renderMarkdown(slide.question.ratingLabelMax || 'Max')"
+                      ></span>
+                      <mat-icon class="quiz-preview-question__rating-pole-icon" aria-hidden="true"
+                        >last_page</mat-icon
+                      >
+                    </span>
                   </p>
                 }
               </div>
@@ -144,7 +166,7 @@
                       </span>
                     }
                     <span
-                      class="quiz-preview-question__answer-content"
+                      class="quiz-preview-question__answer-content markdown-body"
                       [innerHTML]="renderMarkdown(answer.text)"
                     ></span>
                   </li>
@@ -156,145 +178,257 @@
       }
 
       @if (inlineEditMode()) {
-        <mat-card appearance="outlined" class="quiz-preview-editor">
-          <mat-card-content class="quiz-preview-editor__content">
-            <div class="quiz-preview-editor__header">
-              <div class="dialog-title-header quiz-preview-editor__title-row">
-                <span class="dialog-title-header__icon" aria-hidden="true">
-                  <mat-icon>edit_note</mat-icon>
-                </span>
-                <span class="dialog-title-header__copy">
-                  <p class="quiz-preview-editor__eyebrow" i18n="@@quizPreview.editModeEyebrow">
-                    Bearbeitungsmodus
-                  </p>
-                  <h2 class="dialog-title-header__heading" i18n="@@quizPreview.editModeTitle">
-                    Diese Folie bearbeiten
-                  </h2>
-                </span>
-              </div>
-              <button mat-button type="button" (click)="cancelInlineEditMode()">
-                <mat-icon>close</mat-icon>
-                <span i18n>Abbrechen</span>
-              </button>
-            </div>
-
-            @if (currentQuestionValidation().hasIssues) {
-              <div class="quiz-preview-editor__warning" role="alert">
-                <div class="quiz-preview-editor__warning-header">
-                  <mat-icon>warning</mat-icon>
-                  <span i18n="@@quizPreview.editorWarningTitle"
-                    >Hier braucht diese Folie noch etwas Feinschliff</span
-                  >
-                </div>
-                <div class="quiz-preview-editor__warning-list">
-                  @if (currentQuestionValidation().needsMoreAnswers) {
-                    <p i18n="@@quizPreview.editorWarningAnswers">
-                      Füge mindestens zwei Antwortoptionen hinzu.
+        <div id="quiz-preview-inline-editor" class="quiz-preview-editor-wrap">
+          <mat-card appearance="outlined" class="quiz-preview-editor">
+            <mat-card-content class="quiz-preview-editor__content">
+              <div class="quiz-preview-editor__header">
+                <div class="dialog-title-header quiz-preview-editor__title-row">
+                  <span class="dialog-title-header__icon" aria-hidden="true">
+                    <mat-icon>edit_note</mat-icon>
+                  </span>
+                  <span class="dialog-title-header__copy">
+                    <p class="quiz-preview-editor__eyebrow" i18n="@@quizPreview.editModeEyebrow">
+                      Bearbeitungsmodus
                     </p>
-                  }
-                  @if (currentQuestionValidation().needsCorrectAnswer) {
-                    @if (question.type === 'SINGLE_CHOICE') {
-                      <p i18n="@@quizPreview.editorWarningSingleCorrect">
-                        Wähle genau eine richtige Antwort aus.
-                      </p>
-                    } @else {
-                      <p i18n="@@quizPreview.editorWarningMultipleCorrect">
-                        Markiere mindestens eine richtige Antwort.
-                      </p>
-                    }
-                  }
+                    <h2 class="dialog-title-header__heading" i18n="@@quizPreview.editModeTitle">
+                      Diese Frage bearbeiten
+                    </h2>
+                  </span>
                 </div>
               </div>
-            }
 
-            <label class="quiz-preview-editor__label" i18n>Frage</label>
-            <textarea
-              #questionDraftInput
-              class="quiz-preview-editor__textarea"
-              [value]="questionDraftText()"
-              (input)="onQuestionDraftChanged(questionDraftInput.value)"
-              rows="4"
-            ></textarea>
-
-            @if (question.type !== 'FREETEXT' && question.type !== 'RATING') {
-              <div
-                class="quiz-preview-editor__answers"
-                [class.quiz-preview-editor__answers--invalid]="
-                  currentQuestionValidation().needsMoreAnswers ||
-                  currentQuestionValidation().needsCorrectAnswer
-                "
-              >
-                <p class="quiz-preview-editor__label" i18n>Antworten</p>
-                @for (answer of question.answers; track answer.id; let i = $index) {
-                  <div
-                    class="quiz-preview-editor__answer-row"
-                    [class.quiz-preview-editor__answer-row--correct]="
-                      questionTypeHasCorrectAnswers(question.type) && answer.isCorrect
-                    "
-                  >
-                    <span class="quiz-preview-editor__answer-label" aria-hidden="true">{{
-                      answerOptionLabel(i)
-                    }}</span>
-                    @if (questionTypeHasCorrectAnswers(question.type)) {
-                      <button
-                        mat-icon-button
-                        type="button"
-                        class="quiz-preview-editor__correct-toggle"
-                        (click)="toggleCorrectAnswer(i)"
-                        i18n-aria-label="@@quizPreview.toggleCorrectAria"
-                        aria-label="Richtige Antwort umschalten"
-                      >
-                        <mat-icon>
-                          @if (question.type === 'SINGLE_CHOICE') {
-                            {{
-                              answer.isCorrect ? 'radio_button_checked' : 'radio_button_unchecked'
-                            }}
-                          } @else {
-                            {{ answer.isCorrect ? 'check_box' : 'check_box_outline_blank' }}
-                          }
-                        </mat-icon>
-                      </button>
+              @if (currentQuestionValidation().hasIssues) {
+                <div class="quiz-preview-editor__warning" role="alert">
+                  <div class="quiz-preview-editor__warning-header">
+                    <mat-icon>warning</mat-icon>
+                    <span i18n="@@quizPreview.editorWarningTitle"
+                      >Hier braucht diese Folie noch etwas Feinschliff</span
+                    >
+                  </div>
+                  <div class="quiz-preview-editor__warning-list">
+                    @if (currentQuestionValidation().needsMoreAnswers) {
+                      <p i18n="@@quizPreview.editorWarningAnswers">
+                        Füge mindestens zwei Antwortoptionen hinzu.
+                      </p>
                     }
-                    <input
-                      #answerDraftInput
-                      class="quiz-preview-editor__answer-input"
-                      [value]="answerDraftTexts()[i]"
-                      (input)="onAnswerDraftChanged(i, answerDraftInput.value)"
-                    />
-                    @if (questionTypeHasCorrectAnswers(question.type)) {
-                      <span
-                        class="quiz-preview-editor__answer-state"
-                        [class.quiz-preview-editor__answer-state--correct]="answer.isCorrect"
-                      >
-                        @if (answer.isCorrect) {
-                          <span i18n="@@quizPreview.answerStateCorrect">Richtig</span>
-                        } @else {
-                          <span i18n="@@quizPreview.answerStateNeutral">Option</span>
-                        }
-                      </span>
+                    @if (currentQuestionValidation().needsCorrectAnswer) {
+                      @if (question.type === 'SINGLE_CHOICE') {
+                        <p i18n="@@quizPreview.editorWarningSingleCorrect">
+                          Wähle genau eine richtige Antwort aus.
+                        </p>
+                      } @else {
+                        <p i18n="@@quizPreview.editorWarningMultipleCorrect">
+                          Markiere mindestens eine richtige Antwort.
+                        </p>
+                      }
                     }
                   </div>
-                }
-                @if (currentQuestionValidation().needsCorrectAnswer) {
-                  <p class="quiz-preview-editor__hint" i18n="@@quizPreview.editorCorrectAnswerHint">
-                    Nutze die Auswahl links, um richtige Antworten direkt zu markieren.
-                  </p>
-                }
-              </div>
-            }
+                </div>
+              }
 
-            <div class="quiz-preview-editor__actions">
-              <button mat-button type="button" (click)="cancelInlineEditMode()">
-                <mat-icon>close</mat-icon>
-                <span i18n>Abbrechen</span>
-              </button>
-              <button matButton="filled" type="button" (click)="finishInlineEditMode()">
-                <mat-icon>check</mat-icon>
-                <span i18n>Fertig</span>
-              </button>
-            </div>
-          </mat-card-content>
-        </mat-card>
+              <label class="quiz-preview-editor__label" i18n>Frage</label>
+              <app-markdown-katex-editor
+                [value]="questionDraftText()"
+                (valueChange)="onQuestionDraftChanged($event)"
+                [rows]="4"
+                [framelessPanels]="true"
+              />
+
+              <div class="quiz-preview-editor__timer-sections">
+                <fieldset class="quiz-preview-editor__fieldset">
+                  <legend
+                    class="quiz-preview-editor__fieldset-legend"
+                    i18n="@@quizPreview.inlineTimerGlobalLegend"
+                  >
+                    Zeitlimit für das gesamte Quiz
+                  </legend>
+                  <p
+                    class="quiz-preview-editor__fieldset-hint"
+                    i18n="@@quizPreview.inlineTimerGlobalHint"
+                  >
+                    Gilt für alle Fragen ohne eigenes Limit (Voreinstellung im Editor).
+                  </p>
+                  <mat-checkbox
+                    i18n="@@quizForm.defaultTimerEnabled"
+                    [checked]="inlineGlobalTimerEnabled()"
+                    (change)="onInlineGlobalTimerEnabledChange($event.checked)"
+                    >Zeitlimit</mat-checkbox
+                  >
+                  @if (inlineGlobalTimerEnabled()) {
+                    <div class="quiz-preview-editor__default-timer-nested">
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quizForm.defaultTimerSecondsLabel"
+                          >Sekunden pro Frage</mat-label
+                        >
+                        <mat-select
+                          [value]="inlineQuizDefaultTimerDraft()!"
+                          (selectionChange)="onInlineGlobalTimerSecondsChange($event.value)"
+                          i18n-aria-label="@@quizForm.defaultTimerSecondsAria"
+                          aria-label="Sekunden pro Frage auswählen"
+                        >
+                          @for (sec of inlinePreviewDefaultTimerSelectOptions(); track sec) {
+                            <mat-option [value]="sec">
+                              {{ sec }}
+                              <span i18n="@@quizForm.timerSecondsSuffix">Sekunden</span>
+                            </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                  }
+                </fieldset>
+
+                <fieldset class="quiz-preview-editor__fieldset">
+                  <legend
+                    class="quiz-preview-editor__fieldset-legend"
+                    i18n="@@quiz.edit.questionTimerSectionLegend"
+                  >
+                    Zeit für diese Frage
+                  </legend>
+                  <p
+                    class="quiz-preview-editor__fieldset-hint"
+                    i18n="@@quiz.edit.questionTimerSectionHint"
+                  >
+                    Standard ist das Zeitlimit aus den Quiz-Einstellungen. Du kannst pro Frage ein
+                    eigenes Limit setzen.
+                  </p>
+                  <mat-checkbox
+                    i18n="@@quiz.edit.questionTimerUseQuizDefault"
+                    [checked]="questionTimerUsesQuizDefaultInPreview()"
+                    (change)="onInlineQuestionTimerInheritChange($event.checked)"
+                    >Quiz-Zeitlimit verwenden</mat-checkbox
+                  >
+                  @if (!questionTimerUsesQuizDefaultInPreview()) {
+                    <div class="quiz-preview-editor__default-timer-nested">
+                      <mat-form-field appearance="outline">
+                        <mat-label i18n="@@quiz.edit.questionTimerSecondsFieldLabel"
+                          >Sekunden für diese Frage</mat-label
+                        >
+                        <mat-select
+                          [value]="inlineQuestionTimerDraft()!"
+                          (selectionChange)="onInlineQuestionTimerSecondsChange($event.value)"
+                          i18n-aria-label="@@quiz.edit.questionTimerSecondsAria"
+                          aria-label="Sekunden für diese Frage"
+                        >
+                          @for (sec of inlinePreviewQuestionTimerSelectOptions(); track sec) {
+                            <mat-option [value]="sec">
+                              {{ sec }}
+                              <span i18n="@@quizForm.timerSecondsSuffix">Sekunden</span>
+                            </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                  }
+                  <mat-checkbox
+                    [checked]="inlineSkipReadingPhaseDraft()"
+                    (change)="onInlineSkipReadingPhaseChange($event.checked)"
+                    i18n
+                  >
+                    Für diese Frage keine Lesephase
+                  </mat-checkbox>
+                </fieldset>
+              </div>
+
+              @if (question.type !== 'FREETEXT' && question.type !== 'RATING') {
+                <div
+                  class="quiz-preview-editor__answers"
+                  [class.quiz-preview-editor__answers--invalid]="
+                    currentQuestionValidation().needsMoreAnswers ||
+                    currentQuestionValidation().needsCorrectAnswer
+                  "
+                >
+                  <p
+                    class="quiz-preview-editor__label"
+                    i18n="@@quizPreview.editorAnswerOptionsHeading"
+                  >
+                    Antwortoptionen
+                  </p>
+                  @for (answer of question.answers; track answer.id; let i = $index) {
+                    <div
+                      class="quiz-preview-editor__answer-row"
+                      [class.quiz-preview-editor__answer-row--with-correct]="
+                        questionTypeHasCorrectAnswers(question.type)
+                      "
+                      [class.quiz-preview-editor__answer-row--correct]="
+                        questionTypeHasCorrectAnswers(question.type) && draftAnswerIsCorrect(i)
+                      "
+                    >
+                      <span class="quiz-preview-editor__answer-label" aria-hidden="true">{{
+                        answerOptionLabel(i)
+                      }}</span>
+                      @if (questionTypeHasCorrectAnswers(question.type)) {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          class="quiz-preview-editor__correct-toggle"
+                          (click)="toggleCorrectAnswer(i)"
+                          i18n-aria-label="@@quizPreview.toggleCorrectAria"
+                          aria-label="Richtige Antwort umschalten"
+                        >
+                          <mat-icon>
+                            @if (question.type === 'SINGLE_CHOICE') {
+                              {{
+                                draftAnswerIsCorrect(i)
+                                  ? 'radio_button_checked'
+                                  : 'radio_button_unchecked'
+                              }}
+                            } @else {
+                              {{
+                                draftAnswerIsCorrect(i) ? 'check_box' : 'check_box_outline_blank'
+                              }}
+                            }
+                          </mat-icon>
+                        </button>
+                      }
+                      <div class="quiz-preview-editor__answer-input">
+                        <app-markdown-katex-editor
+                          [value]="answerDraftTexts()[i]"
+                          (valueChange)="onAnswerDraftChanged(i, $event)"
+                          [rows]="2"
+                          [compact]="true"
+                        />
+                      </div>
+                    </div>
+                  }
+                  @if (currentQuestionValidation().needsCorrectAnswer) {
+                    <p
+                      class="quiz-preview-editor__hint"
+                      i18n="@@quizPreview.editorCorrectAnswerHint"
+                    >
+                      Nutze die Auswahl links, um richtige Antworten direkt zu markieren.
+                    </p>
+                  }
+                </div>
+              }
+
+              <div class="quiz-preview-editor__actions">
+                @if (inlineEditHasChanges()) {
+                  <button mat-button type="button" (click)="cancelInlineEditMode()">
+                    <mat-icon>close</mat-icon>
+                    <span i18n="@@quizPreview.inlineEditDiscardChangesButton"
+                      >Änderungen verwerfen</span
+                    >
+                  </button>
+                } @else {
+                  <button mat-button type="button" (click)="cancelInlineEditMode()">
+                    <mat-icon>close</mat-icon>
+                    <span i18n="@@quizPreview.inlineEditCloseButton">Schließen</span>
+                  </button>
+                }
+                <button
+                  matButton="filled"
+                  type="button"
+                  (click)="finishInlineEditMode()"
+                  [disabled]="!inlineEditHasChanges()"
+                >
+                  <mat-icon>save</mat-icon>
+                  <span i18n="@@quiz.edit.questionSaveButton">Speichern</span>
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
       }
     }
 

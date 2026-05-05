@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HomeComponent } from './home.component';
 import { QuizStoreService } from '../quiz/data/quiz-store.service';
@@ -17,6 +17,7 @@ vi.mock('../../core/feedback-host-token', () => ({
 }));
 
 vi.mock('../../core/trpc.client', () => ({
+  setHostToken: vi.fn(),
   trpc: {
     health: {
       check: {
@@ -50,25 +51,72 @@ vi.mock('../../core/trpc.client', () => ({
           participantCount: 0,
         }),
       },
+      create: {
+        mutate: vi.fn().mockResolvedValue({
+          id: 'sess-hero',
+          code: 'HERO01',
+          hostToken: 'host-token-hero',
+        }),
+      },
     },
   },
 }));
 
-function createHomeComponent(): HomeComponent {
+const activeFixtures: Array<ReturnType<typeof TestBed.createComponent<HomeComponent>>> = [];
+
+function createHomeFixture() {
   const fixture = TestBed.createComponent(HomeComponent);
+  activeFixtures.push(fixture);
+  return fixture;
+}
+
+function createHomeComponent(): HomeComponent {
+  const fixture = createHomeFixture();
   return fixture.componentInstance;
+}
+
+function setRouteQueryParams(params: Record<string, string>) {
+  TestBed.overrideProvider(ActivatedRoute, {
+    useValue: {
+      snapshot: {
+        queryParamMap: convertToParamMap(params),
+      },
+    },
+  });
 }
 
 describe('HomeComponent', () => {
   beforeEach(() => {
     localStorage.clear();
+    vi.useFakeTimers();
     TestBed.configureTestingModule({
       imports: [HomeComponent],
-      providers: [provideRouter([]), provideHttpClient()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: convertToParamMap({}),
+            },
+          },
+        },
+      ],
     });
   });
 
-  afterEach(() => localStorage.clear());
+  afterEach(() => {
+    while (activeFixtures.length > 0) {
+      activeFixtures.pop()?.destroy();
+    }
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    TestBed.resetTestingModule();
+    localStorage.clear();
+  });
 
   describe('isPlayfulPreset', () => {
     it('ist true im Standard-Preset Spielerisch', () => {
@@ -123,7 +171,7 @@ describe('HomeComponent', () => {
 
   describe('Session-Code-Segmente (Template)', () => {
     it('zeigt grünen Haken nur bei gültigem 6-stelligem Code', () => {
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       const el = fixture.nativeElement as HTMLElement;
       fixture.detectChanges();
 
@@ -264,7 +312,186 @@ describe('HomeComponent', () => {
     });
   });
 
+  describe('openHeroHostTab', () => {
+    it('startet ohne vorhandenen Code eine neue Q&A-Host-Session', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qa',
+        code: 'QA1234',
+        hostToken: 'qa-host-token',
+      });
+
+      const comp = createHomeComponent();
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({
+        type: 'QUIZ',
+        qaEnabled: true,
+        nicknameTheme: 'KINDERGARTEN',
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA1234/host?tab=qa');
+      expect(comp.joinError()).toBeNull();
+    });
+
+    it('startet im seriösen Preset eine neue Q&A-Host-Session mit Oberstufen-Pseudonymen', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qa',
+        code: 'QA5678',
+        hostToken: 'qa-host-token-2',
+      });
+
+      const comp = createHomeComponent();
+      comp.themePreset.setPreset('serious');
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('qa');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({
+        type: 'QUIZ',
+        qaEnabled: true,
+        nicknameTheme: 'HIGH_SCHOOL',
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QA5678/host?tab=qa');
+      expect(comp.joinError()).toBeNull();
+    });
+
+    it('startet ohne vorhandenen Code eine neue Blitzlicht-Host-Session', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qf',
+        code: 'QF1234',
+        hostToken: 'qf-host-token',
+      });
+
+      const comp = createHomeComponent();
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('quickFeedback');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({
+        type: 'QUIZ',
+        quickFeedbackEnabled: true,
+        nicknameTheme: 'KINDERGARTEN',
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QF1234/host?tab=quickFeedback');
+      expect(comp.joinError()).toBeNull();
+    });
+
+    it('startet im seriösen Preset eine neue Blitzlicht-Host-Session mit Oberstufen-Pseudonymen', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
+        id: 'sess-qf',
+        code: 'QF5678',
+        hostToken: 'qf-host-token-2',
+      });
+
+      const comp = createHomeComponent();
+      comp.themePreset.setPreset('serious');
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+      await comp.openHeroHostTab('quickFeedback');
+
+      expect(trpc.session.create.mutate).toHaveBeenCalledWith({
+        type: 'QUIZ',
+        quickFeedbackEnabled: true,
+        nicknameTheme: 'HIGH_SCHOOL',
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/session/QF5678/host?tab=quickFeedback');
+      expect(comp.joinError()).toBeNull();
+    });
+  });
+
   describe('MOTD overlay', () => {
+    it('überspringt MOTD und leitet bei join-Query sofort in den Onboarding-Flow um', async () => {
+      setRouteQueryParams({ join: 'abc123' });
+      const { trpc } = await import('../../core/trpc.client');
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+      await vi.waitUntil(() => navSpy.mock.calls.length === 1, {
+        timeout: 1000,
+        interval: 10,
+      });
+
+      expect(navSpy).toHaveBeenCalledWith(['join', 'ABC123'], { replaceUrl: true });
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+    });
+
+    it('unterbindet bei join-Query das Onboarding für bereits beendete Sessions', async () => {
+      setRouteQueryParams({ join: 'abc123' });
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.session.getInfo.query).mockResolvedValueOnce({
+        id: 'sess-finished',
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        serverTime: new Date().toISOString(),
+        quizName: 'Test',
+        title: null,
+        participantCount: 0,
+      });
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      vi.runOnlyPendingTimers();
+      await vi.waitUntil(
+        () =>
+          navSpy.mock.calls.length === 1 &&
+          fixture.componentInstance.joinErrorSessionFinished() === true,
+        {
+          timeout: 1000,
+          interval: 10,
+        },
+      );
+      fixture.detectChanges();
+
+      expect(navSpy).toHaveBeenCalledWith([], {
+        replaceUrl: true,
+        queryParams: {},
+        queryParamsHandling: '',
+      });
+      expect(fixture.componentInstance.joinErrorSessionFinished()).toBe(true);
+      expect(fixture.componentInstance.joinError()).toBe('Diese Session ist bereits beendet.');
+      expect(fixture.componentInstance.sessionCode()).toBe('ABC123');
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+    });
+
     it('rendert MOTD-Bilder relativ zur aktuellen Locale-Basis und hängt die contentVersion an', async () => {
       const baseEl =
         document.querySelector('base') ?? document.head.appendChild(document.createElement('base'));
@@ -282,7 +509,7 @@ describe('HomeComponent', () => {
           },
         });
 
-        const fixture = TestBed.createComponent(HomeComponent);
+        const fixture = createHomeFixture();
         const comp = fixture.componentInstance;
 
         await comp['loadMotdOverlay']();
@@ -324,26 +551,47 @@ describe('HomeComponent', () => {
       );
       expect(comp.motd()).toBeNull();
     });
+
+    it('unterdrückt die MOTD nach Interaktion mit der Session-Eingabe', async () => {
+      const { trpc } = await import('../../core/trpc.client');
+      vi.mocked(trpc.motd.getCurrent.query).mockResolvedValueOnce({
+        motd: {
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          contentVersion: 7,
+          markdown: 'Meldung',
+          endsAt: '2099-12-31T12:00:00.000Z',
+        },
+      });
+
+      const comp = createHomeComponent();
+      comp.onSessionCodeInput({ target: { value: 'A' } } as unknown as Event);
+
+      await comp['loadMotdOverlay']();
+
+      expect(vi.mocked(trpc.motd.getCurrent.query)).not.toHaveBeenCalled();
+      expect(comp.motd()).toBeNull();
+    });
   });
 
   describe('openSyncLink', () => {
-    it('erklaert im Sync-Hinweis, dass der Link der Zugriffsschluessel ist', () => {
-      const fixture = TestBed.createComponent(HomeComponent);
+    it('ordnet Teilen- und Oeffnen-Hinweis je zum passenden Widget', () => {
+      const fixture = createHomeFixture();
       const comp = fixture.componentInstance;
 
       comp.toggleSyncLinkEntry();
       fixture.detectChanges();
 
       const text = fixture.nativeElement.textContent as string;
-      expect(text).toContain('nutze am besten den Sync-Link');
-      expect(text).toContain('Der Link ist der eigentliche Zugriffsschlüssel.');
+      expect(text).toContain('Mit anderen teilen');
+      expect(text).toContain('Empfangenen Sync-Link hier einfügen');
+      expect(text).toContain('Sync-Link anzeigen');
     });
 
     it('aktiviert mit kompletter Sync-URL den Raum und oeffnet die Quiz-Sammlung', async () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);
       const quizStore = TestBed.inject(QuizStoreService);
-      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom');
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom').mockImplementation(() => {});
       const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
       comp.syncLinkValue.set('https://arsnova.eu/quiz/sync/sync-room-12345678');
@@ -360,7 +608,7 @@ describe('HomeComponent', () => {
       const comp = createHomeComponent();
       const router = TestBed.inject(Router);
       const quizStore = TestBed.inject(QuizStoreService);
-      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom');
+      const activateSpy = vi.spyOn(quizStore, 'activateSyncRoom').mockImplementation(() => {});
       const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
       comp.syncLinkValue.set('sync-room-12345678');
@@ -382,9 +630,107 @@ describe('HomeComponent', () => {
       await comp.openSyncLink();
 
       expect(navSpy).not.toHaveBeenCalled();
-      expect(comp.syncLinkError()).toBe(
-        'Bitte eine gültige Sync-ID oder einen gültigen Sync-Link eingeben.',
-      );
+      expect(comp.syncLinkError()).toBe('Bitte einen gültigen Sync-Link einfügen.');
+    });
+  });
+
+  describe('Host-Sharing-Hinweis', () => {
+    it('zeigt ohne Verlinkung keinen Hinweis auf der Host-Karte', () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector('.home-host-sharing-hint');
+      expect(hint).toBeNull();
+    });
+
+    it('zeigt bei verlinkter Sammlung den Hinweis mit Gerätekontext', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.librarySharingMode.set('shared');
+      quizStore.originDeviceLabel.set('Mac');
+      quizStore.originBrowserLabel.set('Chrome');
+      quizStore.syncPeerInfos.set([
+        {
+          deviceId: 'peer-device-context',
+          deviceLabel: 'Mac',
+          browserLabel: 'Chrome',
+        },
+      ]);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector(
+        '.home-host-sharing-hint',
+      ) as HTMLElement | null;
+      expect(hint).not.toBeNull();
+      expect(hint?.textContent).toContain('Quizze werden mit');
+      expect(hint?.textContent).toContain('Chrome auf Mac');
+    });
+
+    it('bevorzugt den verbundenen Peer statt der eigenen Origin im Hinweis', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.librarySharingMode.set('shared');
+      quizStore.originDeviceLabel.set('Mac');
+      quizStore.originBrowserLabel.set('Firefox');
+      quizStore.syncPeerInfos.set([
+        {
+          deviceId: 'peer-device',
+          deviceLabel: 'Mac',
+          browserLabel: 'Chrome',
+        },
+      ]);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector(
+        '.home-host-sharing-hint',
+      ) as HTMLElement | null;
+      expect(hint).not.toBeNull();
+      expect(hint?.textContent).toContain('Chrome auf Mac');
+      expect(hint?.textContent).not.toContain('Firefox auf Mac');
+    });
+
+    it('zeigt nie das eigene Gerät als Gegenstelle im Hinweis', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.librarySharingMode.set('shared');
+      quizStore.originDeviceLabel.set(quizStore.currentDeviceLabel());
+      quizStore.originBrowserLabel.set(quizStore.currentBrowserLabel());
+      quizStore.syncPeerInfos.set([]);
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+
+      const hint = fixture.nativeElement.querySelector(
+        '.home-host-sharing-hint',
+      ) as HTMLElement | null;
+      expect(hint).toBeNull();
+    });
+
+    it('löst Verknüpfung nach Bestätigung und ruft Entlinken im Store auf', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      const comp = createHomeComponent();
+      const confirmSpy = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+      const unlinkSpy = vi.spyOn(quizStore, 'unlinkSharedLibrary');
+
+      comp.unlinkSharedLibrary();
+
+      expect(confirmSpy).toHaveBeenCalled();
+      expect(unlinkSpy).toHaveBeenCalledTimes(1);
+      confirmSpy.mockRestore();
+    });
+
+    it('belässt Verknüpfung bei Abbruch und ruft Entlinken nicht auf', () => {
+      const quizStore = TestBed.inject(QuizStoreService);
+      const comp = createHomeComponent();
+      const confirmSpy = vi.spyOn(globalThis, 'confirm').mockReturnValue(false);
+      const unlinkSpy = vi.spyOn(quizStore, 'unlinkSharedLibrary');
+
+      comp.unlinkSharedLibrary();
+
+      expect(confirmSpy).toHaveBeenCalled();
+      expect(unlinkSpy).not.toHaveBeenCalled();
+      confirmSpy.mockRestore();
     });
   });
 
@@ -420,7 +766,7 @@ describe('HomeComponent', () => {
     });
 
     it('zeigt ohne eigenes Quiz (nur Demo) keinen gefuellten Primaer-CTA auf der Veranstalten-Karte', () => {
-      const fixture = TestBed.createComponent(HomeComponent);
+      const fixture = createHomeFixture();
       fixture.detectChanges();
 
       const filled = fixture.nativeElement.querySelector(

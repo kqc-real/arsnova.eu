@@ -1,10 +1,14 @@
 @if (showSessionEndGate()) {
   <div
+    id="vote-top"
     class="vote-page vote-page--session-end-gate"
     appMarkdownImageLightbox
+    [class.vote-page--with-bottom-actions]="showBottomActionBar()"
+    [class.vote-page--with-session-end-actions]="showSessionEndBottomActionBar()"
+    [class.vote-page--with-floating-bottom-actions]="showFloatingBottomActionBar()"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="session-end-gate-title"
+    aria-labelledby="vote-session-end-anchor"
   >
     <header class="dialog-title-header dialog-title-header--page vote-session-end-gate__hero">
       <span class="dialog-title-header__icon" aria-hidden="true">
@@ -12,7 +16,7 @@
       </span>
       <div class="dialog-title-header__copy">
         <h1
-          id="session-end-gate-title"
+          id="vote-session-end-anchor"
           class="dialog-title-header__heading"
           i18n="@@sessionVote.sessionEndGateTitle"
         >
@@ -35,22 +39,8 @@
           <span>{{ vpc.voteBonusTitle(isPlayfulPreset()) }}</span>
         </h2>
         <p class="vote-bonus-card__code">{{ gateToken }}</p>
-        <button
-          matButton="tonal"
-          type="button"
-          class="vote-bonus-card__copy"
-          (click)="copyBonusCode()"
-        >
-          <mat-icon>content_copy</mat-icon>
-          <span>{{ vpc.voteBonusCopyCta(isPlayfulPreset()) }}</span>
-        </button>
         <p class="vote-bonus-card__hint">{{ vpc.voteBonusHint(isPlayfulPreset()) }}</p>
       </section>
-      @if (!feedbackSubmitted()) {
-        <p class="vote-session-end-gate__hint" i18n="@@sessionVote.sessionEndFeedbackBelowBonus">
-          Optional: Bewerte die Session kurz – danach geht es zur Startseite.
-        </p>
-      }
     } @else if (!feedbackSubmitted()) {
       <p class="vote-session-end-gate__lead" i18n="@@sessionVote.sessionEndFeedbackLead">
         Die Session ist beendet. Wenn du magst, bewerte sie kurz – danach kannst du zur Startseite
@@ -153,15 +143,6 @@
             </button>
           </div>
         </fieldset>
-
-        <button
-          mat-flat-button
-          class="vote-feedback-card__submit"
-          [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
-          (click)="submitFeedback()"
-        >
-          <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
-        </button>
       </section>
     } @else {
       @if (feedbackSummary(); as summary) {
@@ -178,21 +159,56 @@
       }
     }
 
-    <button
-      matButton="filled"
-      type="button"
-      class="vote-session-end-gate__continue"
-      (click)="continueToHomeAfterSessionEnd()"
+    <div
+      class="vote-page__bottom-actions vote-page__bottom-actions--session-end"
+      [class.vote-page__bottom-actions--single]="sessionEndGateActionCount() === 1"
+      [class.vote-page__bottom-actions--double]="sessionEndGateActionCount() === 2"
+      [class.vote-page__bottom-actions--triple]="sessionEndGateActionCount() === 3"
+      [class.vote-page__bottom-actions--with-primary]="showSessionEndGateFeedbackAction()"
+      aria-label="Session-Aktionen"
     >
-      <mat-icon>home</mat-icon>
-      <span i18n="@@sessionVote.sessionEndGateContinue">Zur Startseite</span>
-    </button>
+      @if (showSessionEndGateFeedbackAction()) {
+        <button
+          mat-flat-button
+          type="button"
+          class="vote-feedback-card__submit vote-page__bottom-action vote-page__bottom-action--primary"
+          [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
+          (click)="submitFeedback()"
+        >
+          <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
+        </button>
+      }
+      @if (showSessionEndGateBonusAction()) {
+        <button
+          matButton="tonal"
+          type="button"
+          class="vote-bonus-card__copy vote-page__bottom-action"
+          (click)="copyBonusCode()"
+        >
+          <mat-icon>content_copy</mat-icon>
+          <span>{{ vpc.voteBonusCopyCta(isPlayfulPreset()) }}</span>
+        </button>
+      }
+      <button
+        matButton="filled"
+        type="button"
+        class="vote-session-end-gate__continue vote-page__bottom-action"
+        (click)="continueToHomeAfterSessionEnd()"
+      >
+        <mat-icon>home</mat-icon>
+        <span i18n="@@sessionVote.sessionEndGateContinue">Zur Startseite</span>
+      </button>
+    </div>
   </div>
 } @else {
   <div
+    id="vote-top"
     class="vote-page"
     appMarkdownImageLightbox
     [class.vote-page--with-channel-tabs]="showChannelTabs()"
+    [class.vote-page--with-bottom-actions]="showBottomActionBar()"
+    [class.vote-page--with-session-end-actions]="showSessionEndBottomActionBar()"
+    [class.vote-page--with-floating-bottom-actions]="showFloatingBottomActionBar()"
   >
     @if (showChannelTabs()) {
       <div class="session-channel-tabs-shell">
@@ -239,14 +255,30 @@
         }
         @if (playerTeamName()) {
           <span class="vote-player-badge__sep" aria-hidden="true">·</span>
-          @if (playerTeamColor()) {
-            <span
-              class="vote-player-badge__team-dot"
-              [style.background]="playerTeamColor()"
-              aria-hidden="true"
-            ></span>
+          @if (teamNameEmojiMarker(playerTeamName()); as teamEmoji) {
+            @if (teamNameEmojiMarkerTrailing(playerTeamName())) {
+              <span class="vote-player-badge__team">{{
+                teamNameLabelWithoutEmojiMarker(playerTeamName())
+              }}</span>
+              <span class="vote-player-badge__team-emoji" aria-hidden="true">{{ teamEmoji }}</span>
+            } @else {
+              <span class="vote-player-badge__team-emoji" aria-hidden="true">{{ teamEmoji }}</span>
+              <span class="vote-player-badge__team">{{
+                teamNameLabelWithoutEmojiMarker(playerTeamName())
+              }}</span>
+            }
+          } @else {
+            @if (playerTeamColor()) {
+              <span
+                class="vote-player-badge__team-dot"
+                [style.background]="playerTeamColor()"
+                aria-hidden="true"
+              ></span>
+            }
+            <span class="vote-player-badge__team">{{
+              teamNameLabelWithoutEmojiMarker(playerTeamName())
+            }}</span>
           }
-          <span class="vote-player-badge__team">{{ playerTeamName() }}</span>
         }
       </div>
     }
@@ -280,7 +312,7 @@
                 <img
                   appMarkdownImageLightbox
                   [src]="qrDataUrl()"
-                  alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                  [attr.alt]="joinUrl"
                   data-markdown-image-lightbox="true"
                   class="vote-live-banner__qr app-qr-image"
                   width="320"
@@ -333,14 +365,34 @@
               <span class="vote-lobby__kita-nick">{{ playerNickname() }}</span>
               @if (playerTeamName()) {
                 <span class="vote-lobby__kita-sep" aria-hidden="true">·</span>
-                @if (playerTeamColor()) {
-                  <span
-                    class="vote-lobby__kita-team-dot"
-                    [style.background]="playerTeamColor()"
-                    aria-hidden="true"
-                  ></span>
+                @if (teamNameEmojiMarker(playerTeamName()); as teamEmoji) {
+                  @if (teamNameEmojiMarkerTrailing(playerTeamName())) {
+                    <span class="vote-lobby__kita-team">{{
+                      teamNameLabelWithoutEmojiMarker(playerTeamName())
+                    }}</span>
+                    <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
+                      teamEmoji
+                    }}</span>
+                  } @else {
+                    <span class="vote-lobby__kita-team-emoji" aria-hidden="true">{{
+                      teamEmoji
+                    }}</span>
+                    <span class="vote-lobby__kita-team">{{
+                      teamNameLabelWithoutEmojiMarker(playerTeamName())
+                    }}</span>
+                  }
+                } @else {
+                  @if (playerTeamColor()) {
+                    <span
+                      class="vote-lobby__kita-team-dot"
+                      [style.background]="playerTeamColor()"
+                      aria-hidden="true"
+                    ></span>
+                  }
+                  <span class="vote-lobby__kita-team">{{
+                    teamNameLabelWithoutEmojiMarker(playerTeamName())
+                  }}</span>
                 }
-                <span class="vote-lobby__kita-team">{{ playerTeamName() }}</span>
               }
             </p>
           </div>
@@ -363,14 +415,14 @@
           <div class="vote-lobby__wait" role="status">
             <mat-icon class="vote-lobby__icon" aria-hidden="true">schedule</mat-icon>
             <p class="vote-lobby__text">{{ vpc.voteLobbyWaitTitle(isPlayfulPreset()) }}</p>
-            @if (sessionSettings().type === 'Q_AND_A') {
+            @if (isStandaloneQaSession()) {
               <p class="vote-lobby__hint">{{ vpc.voteLobbyHintQa(isPlayfulPreset()) }}</p>
             } @else {
               <p class="vote-lobby__hint">{{ vpc.voteLobbyHintQuiz(isPlayfulPreset()) }}</p>
             }
           </div>
         </div>
-      } @else if (isActive() && sessionSettings().type === 'Q_AND_A') {
+      } @else if (isActive() && isStandaloneQaSession()) {
         <div class="vote-lobby vote-lobby--active">
           <mat-icon class="vote-lobby__icon" aria-hidden="true">forum</mat-icon>
           <p class="vote-lobby__text">{{ vpc.voteQaActiveTitle(isPlayfulPreset()) }}</p>
@@ -415,12 +467,6 @@
                 </div>
               </div>
             }
-            <div class="vote-finished-hero__actions">
-              <a matButton="filled" [routerLink]="localizedPath('/')">
-                <mat-icon>home</mat-icon>
-                <span>{{ vpc.voteBackHomeCta(isPlayfulPreset()) }}</span>
-              </a>
-            </div>
           </section>
 
           @if (showTeamRewardCard() && ownTeamEntry(); as ownTeam) {
@@ -438,21 +484,37 @@
                 </div>
               }
               <div class="vote-team-reward__head">
-                <p class="vote-team-reward__eyebrow">
-                  {{ vpc.voteTeamEyebrow(isPlayfulPreset()) }}
-                </p>
+                @if (teamRewardEyebrow(); as eyebrow) {
+                  <p class="vote-team-reward__eyebrow">
+                    {{ eyebrow }}
+                  </p>
+                }
                 <h2 class="vote-team-reward__title" id="team-reward-heading-finished">
                   {{ teamRewardTitle() }}
                 </h2>
               </div>
               <p class="vote-team-reward__summary">
                 <span class="vote-team-reward__team">
-                  <span
-                    class="vote-team-reward__dot"
-                    [style.background]="ownTeam.teamColor || 'var(--mat-sys-primary)'"
-                    aria-hidden="true"
-                  ></span>
-                  {{ ownTeam.teamName }}
+                  @if (teamNameEmojiMarker(ownTeam.teamName); as teamEmoji) {
+                    @if (teamNameEmojiMarkerTrailing(ownTeam.teamName)) {
+                      <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                    } @else {
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                      <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                    }
+                  } @else {
+                    <span
+                      class="vote-team-reward__dot"
+                      [style.background]="ownTeam.teamColor || 'var(--mat-sys-primary)'"
+                      aria-hidden="true"
+                    ></span>
+                    <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                  }
                 </span>
                 <span class="vote-team-reward__message">{{ teamRewardMessage() }}</span>
               </p>
@@ -467,7 +529,7 @@
                 </div>
                 <div class="vote-team-reward__stat">
                   <span class="vote-team-reward__stat-value">{{
-                    ownTeam.totalScore | number
+                    '∅ ' + (ownTeam.totalScore | number)
                   }}</span>
                   <span class="vote-team-reward__stat-label">{{
                     vpc.voteTeamStatPoints(isPlayfulPreset())
@@ -500,20 +562,39 @@
                       [attr.aria-label]="teamStandingAriaLabel(entry)"
                     >
                       <div class="vote-team-reward__board-head">
-                        <span class="vote-team-reward__board-rank">{{
-                          teamRewardRankDisplay(entry.rank)
+                        <span class="vote-team-reward__board-rank" [attr.aria-hidden]="true">{{
+                          teamScoreboardHasPoints() ? teamRewardRankDisplay(entry.rank) : ''
                         }}</span>
                         <span class="vote-team-reward__board-name">
-                          <span
-                            class="vote-team-reward__dot"
-                            [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                            aria-hidden="true"
-                          ></span>
-                          {{ entry.teamName }}
+                          @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
+                            @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                              <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                            } @else {
+                              <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                            }
+                          } @else {
+                            <span
+                              class="vote-team-reward__dot"
+                              [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                              aria-hidden="true"
+                            ></span>
+                            <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                          }
                         </span>
-                        <span class="vote-team-reward__board-score">{{
-                          entry.totalScore | number
-                        }}</span>
+                        <span class="vote-team-reward__board-meta">
+                          <span class="vote-team-reward__board-members">{{
+                            teamMemberLabel(entry.memberCount)
+                          }}</span>
+                          <span class="vote-team-reward__board-score">{{
+                            '∅ ' + (entry.totalScore | number)
+                          }}</span>
+                        </span>
                       </div>
                       <div class="vote-team-reward__board-track" aria-hidden="true">
                         <div
@@ -540,15 +621,6 @@
                 <span>{{ vpc.voteBonusTitle(isPlayfulPreset()) }}</span>
               </h2>
               <p class="vote-bonus-card__code">{{ token }}</p>
-              <button
-                matButton="tonal"
-                type="button"
-                class="vote-bonus-card__copy"
-                (click)="copyBonusCode()"
-              >
-                <mat-icon>content_copy</mat-icon>
-                <span>{{ vpc.voteBonusCopyCta(isPlayfulPreset()) }}</span>
-              </button>
               <p class="vote-bonus-card__hint">{{ vpc.voteBonusHint(isPlayfulPreset()) }}</p>
             </section>
           }
@@ -651,15 +723,6 @@
                   </button>
                 </div>
               </fieldset>
-
-              <button
-                mat-flat-button
-                class="vote-feedback-card__submit"
-                [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
-                (click)="submitFeedback()"
-              >
-                <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
-              </button>
             </section>
           } @else {
             @if (feedbackSummary(); as summary) {
@@ -682,7 +745,7 @@
         </div>
       } @else if (isQuestionOpen()) {
         @if (currentQuestion(); as q) {
-          <div class="vote-question" id="vote-quiz-question-anchor">
+          <div class="vote-question" id="vote-question-anchor">
             <p class="vote-question__label">
               <span>{{ vpc.voteQuestionLabel(isPlayfulPreset(), q.order + 1) }}</span>
               @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
@@ -691,19 +754,54 @@
                 }}</span>
               }
             </p>
-            <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
+            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+              <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
+              @if (voteQuestionTypeShowsDifficulty(q.type)) {
+                <span class="vote-question__badge vote-question__badge--difficulty">
+                  <mat-icon class="vote-question__badge-icon" aria-hidden="true"
+                    >fitness_center</mat-icon
+                  >
+                  {{ voteDifficultyLabel(q.difficulty) }}
+                </span>
+              }
+            </div>
+            <div
+              class="vote-question__text markdown-body"
+              [innerHTML]="renderMarkdown(q.text)"
+            ></div>
             <div class="vote-reading-banner" role="status" aria-live="polite">
               <mat-icon class="vote-reading-banner__icon" aria-hidden="true">menu_book</mat-icon>
               <p class="vote-reading-banner__title">
                 {{ vpc.voteReadingTitle(isPlayfulPreset()) }}
               </p>
               <p class="vote-reading-banner__hint">{{ vpc.voteReadingHint(isPlayfulPreset()) }}</p>
+              @if (readingReadyConfirmed()) {
+                <p class="vote-reading-banner__ready vote-reading-banner__ready--done">
+                  <mat-icon aria-hidden="true">check_circle</mat-icon>
+                  <span>{{ vpc.voteReadingReadyDone(isPlayfulPreset()) }}</span>
+                </p>
+              } @else {
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="vote-reading-banner__cta"
+                  (click)="confirmReadingReady()"
+                  [disabled]="readingReadySubmitting()"
+                >
+                  @if (readingReadySubmitting()) {
+                    <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+                  } @else {
+                    <mat-icon aria-hidden="true">done_all</mat-icon>
+                  }
+                  <span>{{ vpc.voteReadingReadyCta(isPlayfulPreset()) }}</span>
+                </button>
+              }
             </div>
           </div>
         }
       } @else if (isDiscussion()) {
         @if (currentQuestion(); as q) {
-          <div class="vote-question" id="vote-quiz-question-anchor">
+          <div class="vote-question" id="vote-question-anchor">
             <p class="vote-question__label">
               <span>{{ vpc.voteQuestionLabel(isPlayfulPreset(), q.order + 1) }}</span>
               @if ($any(q).totalQuestions != null && q.order + 1 === $any(q).totalQuestions) {
@@ -712,7 +810,21 @@
                 }}</span>
               }
             </p>
-            <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
+            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+              <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
+              @if (voteQuestionTypeShowsDifficulty(q.type)) {
+                <span class="vote-question__badge vote-question__badge--difficulty">
+                  <mat-icon class="vote-question__badge-icon" aria-hidden="true"
+                    >fitness_center</mat-icon
+                  >
+                  {{ voteDifficultyLabel(q.difficulty) }}
+                </span>
+              }
+            </div>
+            <div
+              class="vote-question__text markdown-body"
+              [innerHTML]="renderMarkdown(q.text)"
+            ></div>
           </div>
           <div class="vote-discussion" role="status" aria-live="polite">
             <div class="vote-discussion__icon-ring">
@@ -725,9 +837,12 @@
         }
       } @else if (isActive() || isResults()) {
         @if (currentQuestion(); as q) {
+          @if (isResults()) {
+            <div id="vote-result-anchor"></div>
+          }
           <div
             class="vote-question"
-            id="vote-quiz-question-anchor"
+            id="vote-question-anchor"
             [class.vote-question--round2]="currentRound() === 2"
           >
             @if (currentRound() === 2 && isActive() && !voteSent()) {
@@ -756,7 +871,21 @@
                 </span>
               }
             </div>
-            <div class="vote-question__text" [innerHTML]="renderMarkdown(q.text)"></div>
+            <div class="vote-question__meta" aria-label="Frage-Metadaten">
+              <span class="vote-question__badge">{{ voteQuestionTypeLabel(q.type) }}</span>
+              @if (voteQuestionTypeShowsDifficulty(q.type)) {
+                <span class="vote-question__badge vote-question__badge--difficulty">
+                  <mat-icon class="vote-question__badge-icon" aria-hidden="true"
+                    >fitness_center</mat-icon
+                  >
+                  {{ voteDifficultyLabel(q.difficulty) }}
+                </span>
+              }
+            </div>
+            <div
+              class="vote-question__text markdown-body"
+              [innerHTML]="renderMarkdown(q.text)"
+            ></div>
           </div>
 
           @if (timeoutMessage() && !voteSent()) {
@@ -767,22 +896,29 @@
           }
 
           @if (voteError()) {
-            <p class="vote-error" role="alert">{{ voteError() }}</p>
+            <p class="vote-error" id="vote-error" role="alert">
+              <mat-icon class="vote-error__icon" aria-hidden="true">warning</mat-icon>
+              <span class="vote-error__text">{{ voteError() }}</span>
+            </p>
           }
 
           @if (hasAnswers()) {
-            <ul class="vote-answers">
+            <ul class="vote-answers" id="vote-options-start">
               @for (a of $any(q).answers; track a.id; let i = $index) {
                 @let isSelected = selectedAnswerIds().has(a.id);
                 @let isRevealed = isResults();
-                @let isCorrect = isRevealed && a.isCorrect;
-                @let isWrong = isRevealed && isSelected && !a.isCorrect;
+                @let showsCorrectness = isRevealed && questionUsesCorrectness(q.type);
+                @let isCorrect = showsCorrectness && a.isCorrect;
+                @let isWrong = showsCorrectness && isSelected && !a.isCorrect;
+                @let isResultSelected = isRevealed && isSelected && !showsCorrectness;
                 <li>
                   <button
+                    [attr.id]="i === 0 ? 'vote-option-0' : null"
                     class="vote-answer"
                     [class.vote-answer--selected]="isSelected"
                     [class.vote-answer--correct]="isCorrect"
                     [class.vote-answer--wrong]="isWrong"
+                    [class.vote-answer--result-selected]="isResultSelected"
                     [class.vote-answer--disabled]="voteSent() || !isActive() || timerExpired()"
                     [disabled]="voteSent() || !isActive() || timerExpired()"
                     (click)="toggleAnswer(a.id)"
@@ -790,10 +926,12 @@
                   >
                     <span class="vote-answer__badge" [style.background-color]="getColor(i)">
                       <span class="vote-answer__shape">{{ getShape(i) }}</span>
-                      <span class="vote-answer__letter">{{ getLetter(i) }}</span>
                     </span>
-                    <span class="vote-answer__text" [innerHTML]="renderMarkdown(a.text)"></span>
-                    @if (isRevealed) {
+                    <span
+                      class="vote-answer__text markdown-body"
+                      [innerHTML]="renderMarkdown(a.text)"
+                    ></span>
+                    @if (showsCorrectness) {
                       @if (a.isCorrect) {
                         <mat-icon class="vote-answer__icon vote-answer__icon--correct"
                           >check_circle</mat-icon
@@ -815,21 +953,6 @@
                 </li>
               }
             </ul>
-
-            @if (!voteSent() && isActive()) {
-              <button
-                mat-flat-button
-                color="primary"
-                class="vote-submit-mc"
-                [class.vote-submit--pending]="voteSending()"
-                [disabled]="
-                  selectedAnswerIds().size === 0 || voteSending() || debounced() || timerExpired()
-                "
-                (click)="submitVote()"
-              >
-                <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
-              </button>
-            }
           } @else if ($any(q).type === 'FREETEXT' && isActive()) {
             <div class="vote-freetext">
               <textarea
@@ -841,22 +964,6 @@
                 rows="3"
                 [disabled]="voteSent() || timerExpired()"
               ></textarea>
-              <button
-                mat-flat-button
-                color="primary"
-                class="vote-freetext__submit"
-                [class.vote-submit--pending]="voteSending()"
-                [disabled]="
-                  !freeTextValue().trim() ||
-                  voteSent() ||
-                  voteSending() ||
-                  debounced() ||
-                  timerExpired()
-                "
-                (click)="submitVote()"
-              >
-                <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
-              </button>
             </div>
           } @else if ($any(q).type === 'FREETEXT' && isResults()) {
             <div class="vote-freetext vote-freetext--result">
@@ -876,12 +983,18 @@
               @let values = ratingRange();
               @if (ratingLabelMin() || ratingLabelMax()) {
                 <div class="vote-rating__labels">
-                  <span class="vote-rating__label vote-rating__label--min">{{
-                    ratingLabelMin()
-                  }}</span>
-                  <span class="vote-rating__label vote-rating__label--max">{{
-                    ratingLabelMax()
-                  }}</span>
+                  <span class="vote-rating__label vote-rating__label--min">
+                    <mat-icon class="vote-rating__label-icon" aria-hidden="true"
+                      >first_page</mat-icon
+                    >
+                    {{ ratingLabelMin() }}
+                  </span>
+                  <span class="vote-rating__label vote-rating__label--max">
+                    {{ ratingLabelMax() }}
+                    <mat-icon class="vote-rating__label-icon" aria-hidden="true"
+                      >last_page</mat-icon
+                    >
+                  </span>
                 </div>
               }
               <div class="vote-rating__buttons" [style.--rating-count]="values.length">
@@ -899,20 +1012,6 @@
                   </button>
                 }
               </div>
-              @if (!voteSent()) {
-                <button
-                  mat-flat-button
-                  color="primary"
-                  class="vote-rating__submit"
-                  [class.vote-submit--pending]="voteSending()"
-                  [disabled]="
-                    ratingValue() === null || voteSending() || debounced() || timerExpired()
-                  "
-                  (click)="submitVote()"
-                >
-                  <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
-                </button>
-              }
             </div>
           } @else if (isRating() && isResults()) {
             <div class="vote-rating vote-rating--result">
@@ -929,8 +1028,14 @@
               <span>{{ vpc.voteSentLabel(isPlayfulPreset()) }}</span>
             </div>
             @if (motivationMessage()) {
-              <p class="vote-motivation" aria-live="polite">{{ motivationMessage() }}</p>
+              <p class="vote-motivation" id="vote-result-message" aria-live="polite">
+                {{ motivationMessage() }}
+              </p>
             }
+          } @else if (unansweredResultsMessage(); as missedMessage) {
+            <p class="vote-motivation" id="vote-result-message" aria-live="polite">
+              {{ missedMessage }}
+            </p>
           }
           @if (showRewardEffect()) {
             <div class="vote-reward" role="status" aria-live="polite">
@@ -940,6 +1045,7 @@
 
           @if (scorecard(); as sc) {
             <div
+              id="vote-result-score"
               class="vote-scorecard"
               role="region"
               aria-labelledby="scorecard-heading"
@@ -1110,21 +1216,37 @@
                 </div>
               }
               <div class="vote-team-reward__head">
-                <p class="vote-team-reward__eyebrow">
-                  {{ vpc.voteTeamEyebrow(isPlayfulPreset()) }}
-                </p>
+                @if (teamRewardEyebrow(); as eyebrow) {
+                  <p class="vote-team-reward__eyebrow">
+                    {{ eyebrow }}
+                  </p>
+                }
                 <h2 class="vote-team-reward__title" id="team-reward-heading-results">
                   {{ teamRewardTitle() }}
                 </h2>
               </div>
               <p class="vote-team-reward__summary">
                 <span class="vote-team-reward__team">
-                  <span
-                    class="vote-team-reward__dot"
-                    [style.background]="ownTeam.teamColor || 'var(--mat-sys-primary)'"
-                    aria-hidden="true"
-                  ></span>
-                  {{ ownTeam.teamName }}
+                  @if (teamNameEmojiMarker(ownTeam.teamName); as teamEmoji) {
+                    @if (teamNameEmojiMarkerTrailing(ownTeam.teamName)) {
+                      <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                    } @else {
+                      <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                        teamEmoji
+                      }}</span>
+                      <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                    }
+                  } @else {
+                    <span
+                      class="vote-team-reward__dot"
+                      [style.background]="ownTeam.teamColor || 'var(--mat-sys-primary)'"
+                      aria-hidden="true"
+                    ></span>
+                    <span>{{ teamNameLabelWithoutEmojiMarker(ownTeam.teamName) }}</span>
+                  }
                 </span>
                 <span class="vote-team-reward__message">{{ teamRewardMessage() }}</span>
               </p>
@@ -1139,7 +1261,7 @@
                 </div>
                 <div class="vote-team-reward__stat">
                   <span class="vote-team-reward__stat-value">{{
-                    ownTeam.totalScore | number
+                    '∅ ' + (ownTeam.totalScore | number)
                   }}</span>
                   <span class="vote-team-reward__stat-label">{{
                     vpc.voteTeamStatPoints(isPlayfulPreset())
@@ -1163,20 +1285,39 @@
                       [attr.aria-label]="teamStandingAriaLabel(entry)"
                     >
                       <div class="vote-team-reward__board-head">
-                        <span class="vote-team-reward__board-rank">{{
-                          teamRewardRankDisplay(entry.rank)
+                        <span class="vote-team-reward__board-rank" [attr.aria-hidden]="true">{{
+                          teamScoreboardHasPoints() ? teamRewardRankDisplay(entry.rank) : ''
                         }}</span>
                         <span class="vote-team-reward__board-name">
-                          <span
-                            class="vote-team-reward__dot"
-                            [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                            aria-hidden="true"
-                          ></span>
-                          {{ entry.teamName }}
+                          @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
+                            @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                              <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                            } @else {
+                              <span class="vote-team-reward__emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                            }
+                          } @else {
+                            <span
+                              class="vote-team-reward__dot"
+                              [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                              aria-hidden="true"
+                            ></span>
+                            <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                          }
                         </span>
-                        <span class="vote-team-reward__board-score">{{
-                          entry.totalScore | number
-                        }}</span>
+                        <span class="vote-team-reward__board-meta">
+                          <span class="vote-team-reward__board-members">{{
+                            teamMemberLabel(entry.memberCount)
+                          }}</span>
+                          <span class="vote-team-reward__board-score">{{
+                            '∅ ' + (entry.totalScore | number)
+                          }}</span>
+                        </span>
                       </div>
                       <div class="vote-team-reward__board-track" aria-hidden="true">
                         <div
@@ -1253,168 +1394,278 @@
           </div>
         </div>
 
-        @if (sessionSettings().channels?.qa?.moderationMode) {
+        @if (!isQaChannelOpen()) {
+          <p class="session-channel-card__text" i18n="@@sessionTabs.qaClosedNotice">
+            Der Q&A-Kanal wurde von der Lehrperson geschlossen. Fragen und Bewertungen sind gerade
+            nicht möglich.
+          </p>
+        } @else if (sessionSettings().channels?.qa?.moderationMode) {
           <div class="session-qa-moderation-notice" role="status">
             <mat-icon aria-hidden="true">visibility</mat-icon>
             <span>{{ vpc.voteQaModerationNotice(isPlayfulPreset()) }}</span>
           </div>
         }
 
-        <div class="session-qa-form">
-          <label class="session-qa-form__label" for="qa-draft">{{
-            vpc.voteQaFormLabel(isPlayfulPreset())
-          }}</label>
-          <textarea
-            id="qa-draft"
-            #qaTextarea
-            class="session-qa-form__textarea"
-            rows="2"
-            maxlength="500"
-            [value]="qaDraft()"
-            (input)="updateQaDraft($any($event.target).value); autoResizeTextarea($event)"
-            (focus)="autoResizeTextarea($event)"
-            [placeholder]="vpc.voteQaPlaceholder(isPlayfulPreset())"
-          ></textarea>
-          <div class="session-qa-form__meta">
-            <span
-              class="session-qa-form__counter"
-              [class.session-qa-form__counter--warn]="qaDraft().trim().length >= 450"
-              >{{ qaDraft().trim().length }}/500</span
-            >
-            <button
-              mat-flat-button
-              type="button"
-              class="session-qa-form__submit"
-              [class.vote-submit--pending]="qaSubmitting()"
-              [disabled]="!qaCanSubmit()"
-              (click)="submitQaQuestion()"
-            >
-              <span>{{ vpc.voteQaSubmit(isPlayfulPreset()) }}</span>
-            </button>
-          </div>
-        </div>
-
-        @if (qaError(); as error) {
-          <p class="session-channel-card__error" role="alert">{{ error }}</p>
-        }
-        @if (qaInfo(); as info) {
-          <p class="session-channel-card__info" role="status">{{ info }}</p>
-        }
-
-        @if (qaQuestions().length === 0) {
-          <div class="session-qa-empty">
-            <mat-icon class="session-qa-empty__icon" aria-hidden="true"
-              >chat_bubble_outline</mat-icon
-            >
-            <p class="session-qa-empty__text">{{ vpc.voteQaEmpty(isPlayfulPreset()) }}</p>
-          </div>
-        } @else {
-          <div class="session-qa-list" role="list">
-            @for (question of qaQuestions(); track question.id) {
-              <article
-                class="session-qa-card"
-                role="listitem"
-                [attr.data-qa-id]="question.id"
-                [class.session-qa-card--own]="question.isOwn"
-                [class.session-qa-card--pinned]="question.status === 'PINNED'"
+        @if (isQaChannelOpen()) {
+          <div class="session-qa-form">
+            <label class="session-qa-form__label" for="qa-draft">{{
+              vpc.voteQaFormLabel(isPlayfulPreset())
+            }}</label>
+            <textarea
+              id="qa-draft"
+              #qaTextarea
+              class="session-qa-form__textarea"
+              rows="2"
+              maxlength="500"
+              [value]="qaDraft()"
+              (input)="updateQaDraft($any($event.target).value); autoResizeTextarea($event)"
+              (focus)="autoResizeTextarea($event)"
+              [placeholder]="vpc.voteQaPlaceholder(isPlayfulPreset())"
+            ></textarea>
+            <div class="session-qa-form__meta">
+              <span
+                class="session-qa-form__counter"
+                [class.session-qa-form__counter--warn]="qaDraft().trim().length >= 450"
+                >{{ qaDraft().trim().length }}/500</span
               >
-                @if (!question.isOwn) {
-                  <div
-                    class="session-qa-card__vote-stepper"
-                    [class.session-qa-card__vote-stepper--disabled]="
-                      qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
-                    "
-                  >
-                    <button
-                      type="button"
-                      class="session-qa-card__vote-arrow session-qa-card__vote-arrow--up"
-                      [class.session-qa-card__vote-arrow--active]="question.myVote === 'UP'"
-                      [disabled]="
+            </div>
+          </div>
+
+          @if (qaError(); as error) {
+            <p class="session-channel-card__error" role="alert">
+              <mat-icon class="session-channel-card__error-icon" aria-hidden="true"
+                >warning</mat-icon
+              >
+              <span class="session-channel-card__error-text">{{ error }}</span>
+            </p>
+          }
+          @if (qaInfo(); as info) {
+            <p class="session-channel-card__info" role="status">{{ info }}</p>
+          }
+
+          @if (qaQuestions().length === 0) {
+            <div class="session-qa-empty">
+              <mat-icon class="session-qa-empty__icon" aria-hidden="true"
+                >chat_bubble_outline</mat-icon
+              >
+              <p class="session-qa-empty__text">{{ vpc.voteQaEmpty(isPlayfulPreset()) }}</p>
+            </div>
+          } @else {
+            <div class="session-qa-list" role="list">
+              @for (question of qaQuestions(); track question.id) {
+                <article
+                  class="session-qa-card"
+                  role="listitem"
+                  [attr.data-qa-id]="question.id"
+                  [class.session-qa-card--own]="question.isOwn"
+                  [class.session-qa-card--pinned]="question.status === 'PINNED'"
+                >
+                  @if (!question.isOwn) {
+                    <div
+                      class="session-qa-card__vote-stepper"
+                      [class.session-qa-card__vote-stepper--disabled]="
                         qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
                       "
-                      (click)="voteQa(question.id, 'UP')"
-                      aria-label="Upvote"
                     >
-                      <mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon>
-                    </button>
-                    <span
-                      class="session-qa-card__vote-count"
-                      [class.session-qa-card__vote-count--positive]="question.upvoteCount > 0"
-                      [class.session-qa-card__vote-count--negative]="question.upvoteCount < 0"
-                    >
-                      {{ question.upvoteCount }}
-                    </span>
-                    <button
-                      type="button"
-                      class="session-qa-card__vote-arrow session-qa-card__vote-arrow--down"
-                      [class.session-qa-card__vote-arrow--active]="question.myVote === 'DOWN'"
-                      [disabled]="
-                        qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
-                      "
-                      (click)="voteQa(question.id, 'DOWN')"
-                      aria-label="Downvote"
-                    >
-                      <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
-                    </button>
-                  </div>
-                }
-                <div class="session-qa-card__body">
-                  <div class="session-qa-card__status-row">
-                    @if (question.status !== 'ACTIVE') {
-                      <span
-                        class="session-qa-card__status"
-                        [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
-                        [class.session-qa-card__status--pending]="question.status === 'PENDING'"
-                      >
-                        {{ qaStatusLabel(question.status) }}
-                      </span>
-                    }
-                    @if (question.isOwn) {
-                      <span class="session-qa-card__own-badge">{{
-                        vpc.voteQaOwnBadge(isPlayfulPreset())
-                      }}</span>
-                    }
-                    <span
-                      class="session-qa-card__score"
-                      [class.session-qa-card__score--positive]="question.upvoteCount > 0"
-                      [class.session-qa-card__score--negative]="question.upvoteCount < 0"
-                    >
-                      <mat-icon class="session-qa-card__score-icon" aria-hidden="true"
-                        >thumb_up_off_alt</mat-icon
-                      >
-                      {{ question.upvoteCount }}
-                    </span>
-                    @if (question.isOwn) {
                       <button
                         type="button"
-                        class="session-qa-card__delete-btn"
-                        [disabled]="qaPendingQuestionIds().has(question.id)"
-                        (click)="deleteOwnQuestion(question.id)"
-                        i18n-aria-label="@@sessionQa.deleteOwnAria"
-                        aria-label="Frage löschen"
+                        class="session-qa-card__vote-arrow session-qa-card__vote-arrow--up"
+                        [class.session-qa-card__vote-arrow--active]="question.myVote === 'UP'"
+                        [disabled]="
+                          qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
+                        "
+                        (click)="voteQa(question.id, 'UP')"
+                        aria-label="Upvote"
                       >
-                        <mat-icon aria-hidden="true">delete_outline</mat-icon>
+                        <mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon>
                       </button>
-                    }
+                      <span
+                        class="session-qa-card__vote-count"
+                        [class.session-qa-card__vote-count--positive]="question.upvoteCount > 0"
+                        [class.session-qa-card__vote-count--negative]="question.upvoteCount < 0"
+                      >
+                        {{ question.upvoteCount }}
+                      </span>
+                      <button
+                        type="button"
+                        class="session-qa-card__vote-arrow session-qa-card__vote-arrow--down"
+                        [class.session-qa-card__vote-arrow--active]="question.myVote === 'DOWN'"
+                        [disabled]="
+                          qaPendingQuestionIds().has(question.id) || question.status === 'PENDING'
+                        "
+                        (click)="voteQa(question.id, 'DOWN')"
+                        aria-label="Downvote"
+                      >
+                        <mat-icon aria-hidden="true">keyboard_arrow_down</mat-icon>
+                      </button>
+                    </div>
+                  }
+                  <div class="session-qa-card__body">
+                    <div class="session-qa-card__status-row">
+                      @if (question.status !== 'ACTIVE') {
+                        <span
+                          class="session-qa-card__status"
+                          [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
+                          [class.session-qa-card__status--pending]="question.status === 'PENDING'"
+                        >
+                          {{ qaStatusLabel(question.status) }}
+                        </span>
+                      }
+                      @if (question.isOwn) {
+                        <span class="session-qa-card__own-badge">{{
+                          vpc.voteQaOwnBadge(isPlayfulPreset())
+                        }}</span>
+                      }
+                      <span
+                        class="session-qa-card__score"
+                        [class.session-qa-card__score--positive]="question.upvoteCount > 0"
+                        [class.session-qa-card__score--negative]="question.upvoteCount < 0"
+                      >
+                        <mat-icon class="session-qa-card__score-icon" aria-hidden="true"
+                          >thumb_up_off_alt</mat-icon
+                        >
+                        {{ question.upvoteCount }}
+                      </span>
+                      @if (question.isOwn) {
+                        <button
+                          type="button"
+                          class="session-qa-card__delete-btn"
+                          [disabled]="qaPendingQuestionIds().has(question.id)"
+                          (click)="deleteOwnQuestion(question.id)"
+                          i18n-aria-label="@@sessionQa.deleteOwnAria"
+                          aria-label="Frage löschen"
+                        >
+                          <mat-icon aria-hidden="true">delete_outline</mat-icon>
+                        </button>
+                      }
+                    </div>
+                    <div
+                      class="session-qa-card__text markdown-body"
+                      [innerHTML]="renderMarkdown(question.text)"
+                    ></div>
+                    <span class="session-qa-card__time">{{
+                      relativeTime(question.createdAt)
+                    }}</span>
                   </div>
-                  <div
-                    class="session-qa-card__text"
-                    [innerHTML]="renderMarkdown(question.text)"
-                  ></div>
-                  <span class="session-qa-card__time">{{ relativeTime(question.createdAt) }}</span>
-                </div>
-              </article>
-            }
-          </div>
+                </article>
+              }
+            </div>
+          }
+        } @else {
+          <p class="session-channel-card__info" role="status" i18n="@@sessionTabs.qaClosedHint">
+            Die bisherigen Inhalte sind für Teilnehmende ausgeblendet, bis die Lehrperson den Kanal
+            wieder öffnet.
+          </p>
         }
       </section>
     } @else if (activeChannel() === 'quickFeedback') {
-      <app-feedback-vote
-        [sessionCode]="code"
-        [participantId]="participantId()"
-        [embeddedInSession]="true"
-        [showSessionCode]="false"
-      />
+      @if (!isQuickFeedbackChannelOpen()) {
+        <section
+          class="session-channel-card session-channel-card--quick-feedback app-live-channel-shell"
+        >
+          <div class="session-channel-card__header">
+            <mat-icon class="session-channel-card__header-lead-icon" aria-hidden="true"
+              >bolt</mat-icon
+            >
+            <div class="session-channel-card__header-main">
+              <p class="session-channel-card__eyebrow" i18n="@@sessionTabs.quickFeedback">
+                Blitzlicht
+              </p>
+              <h2 class="session-channel-card__title" i18n="@@sessionTabs.quickFeedbackClosedTitle">
+                Blitzlicht geschlossen
+              </h2>
+            </div>
+          </div>
+          <p class="session-channel-card__text" i18n="@@sessionTabs.quickFeedbackClosedNotice">
+            Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade
+            nicht möglich.
+          </p>
+        </section>
+      } @else {
+        <app-feedback-vote
+          [sessionCode]="code"
+          [participantId]="participantId()"
+          [embeddedInSession]="true"
+          [showSessionCode]="false"
+        />
+      }
+    }
+
+    @if (showFinishedActions()) {
+      <div
+        class="vote-page__bottom-actions vote-page__bottom-actions--session-end"
+        [class.vote-page__bottom-actions--single]="finishedActionCount() === 1"
+        [class.vote-page__bottom-actions--double]="finishedActionCount() === 2"
+        [class.vote-page__bottom-actions--triple]="finishedActionCount() === 3"
+        [class.vote-page__bottom-actions--with-primary]="showFinishedFeedbackAction()"
+        aria-label="Abschluss-Aktionen"
+      >
+        @if (showFinishedFeedbackAction()) {
+          <button
+            mat-flat-button
+            type="button"
+            class="vote-feedback-card__submit vote-page__bottom-action vote-page__bottom-action--primary"
+            [disabled]="feedbackOverall() === 0 || feedbackSubmitting()"
+            (click)="submitFeedback()"
+          >
+            <span>{{ vpc.voteFeedbackSubmit(isPlayfulPreset()) }}</span>
+          </button>
+        }
+        @if (showFinishedBonusAction()) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="vote-bonus-card__copy vote-page__bottom-action"
+            (click)="copyBonusCode()"
+          >
+            <mat-icon>content_copy</mat-icon>
+            <span>{{ vpc.voteBonusCopyCta(isPlayfulPreset()) }}</span>
+          </button>
+        }
+        <button
+          matButton="filled"
+          type="button"
+          class="vote-session-end-gate__continue vote-page__bottom-action"
+          (click)="continueToHomeAfterSessionEnd()"
+        >
+          <mat-icon>home</mat-icon>
+          <span>{{ vpc.voteBackHomeCta(isPlayfulPreset()) }}</span>
+        </button>
+      </div>
+    } @else if (showVoteSubmitAction()) {
+      <div
+        class="vote-page__bottom-actions vote-page__bottom-actions--floating"
+        aria-label="Quiz-Aktionen"
+      >
+        <button
+          mat-flat-button
+          color="primary"
+          id="vote-submit"
+          type="button"
+          class="vote-page__bottom-action vote-page__bottom-action--primary"
+          [class.vote-submit--pending]="voteSending()"
+          [disabled]="voteSubmitDisabled()"
+          (click)="submitVote()"
+        >
+          <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
+        </button>
+      </div>
+    } @else if (showQaSubmitAction()) {
+      <div
+        class="vote-page__bottom-actions vote-page__bottom-actions--floating"
+        aria-label="Q&A-Aktionen"
+      >
+        <button
+          mat-flat-button
+          type="button"
+          class="session-qa-form__submit vote-page__bottom-action vote-page__bottom-action--primary"
+          [class.vote-submit--pending]="qaSubmitting()"
+          [disabled]="!qaCanSubmit()"
+          (click)="submitQaQuestion()"
+        >
+          <span>{{ vpc.voteQaSubmit(isPlayfulPreset()) }}</span>
+        </button>
+      </div>
     }
   </div>
 }

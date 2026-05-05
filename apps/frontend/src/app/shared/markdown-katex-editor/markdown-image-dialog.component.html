@@ -1,0 +1,51 @@
+<h2 mat-dialog-title class="dialog-title-header">
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>image</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@mdEditor.imageDialog.title"
+      >Bild einfügen</span
+    >
+  </span>
+</h2>
+
+<div mat-dialog-content class="md-markdown-insert-dialog__content">
+  <form [formGroup]="form" class="md-markdown-insert-dialog__form l-stack l-stack--md">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label i18n="@@mdEditor.imageDialog.altLabel">Alt-Text</mat-label>
+      <input matInput formControlName="alt" cdkFocusInitial />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+      <mat-label i18n="@@mdEditor.imageDialog.urlLabel">Bild-URL</mat-label>
+      <input
+        matInput
+        formControlName="url"
+        type="url"
+        autocomplete="off"
+        i18n-placeholder="@@mdEditor.imageDialog.urlPlaceholder"
+        placeholder="Nur HTTPS, z. B. https://…"
+      />
+      @if (form.controls.url.invalid && form.controls.url.touched) {
+        <mat-error i18n="@@mdEditor.imageDialog.urlError"
+          >Bitte gib eine gültige HTTPS-URL ein.</mat-error
+        >
+      }
+    </mat-form-field>
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()" i18n="@@mdEditor.dialog.cancel">
+    Abbrechen
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    (click)="insert()"
+    [disabled]="form.invalid"
+    i18n="@@mdEditor.dialog.insert"
+  >
+    Einfügen
+  </button>
+</div>

@@ -1,15 +1,41 @@
 /* Wie admin-page: mehr Luft unter der App-Toolbar (global .l-page + first-child margin reicht hier oft knapp). */
 .join-page {
+  --join-page-inline-padding: 1rem;
+  --join-page-max-width: 36rem;
+  --join-bottom-action-bottom: max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem));
   padding-top: 1.65rem;
 
   @media (min-width: 600px) {
     padding-top: 2.35rem;
+    --join-page-inline-padding: 1.5rem;
   }
 
   @media (min-width: 840px) {
     padding-top: 3.1rem;
     padding-bottom: 0.35rem;
+    --join-page-inline-padding: 2rem;
   }
+}
+
+.join-page--with-bottom-action {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 9.5rem);
+}
+
+.join-page__bottom-action {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--join-bottom-action-bottom) + var(--app-footer-visible-offset, 0px));
+  transform: translateX(-50%);
+  z-index: 30;
+  width: min(var(--join-page-max-width), calc(100vw - (2 * var(--join-page-inline-padding))));
+  max-width: calc(100vw - (2 * var(--join-page-inline-padding)));
+  box-sizing: border-box;
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-extra-large, 1.5rem);
+  background: color-mix(in srgb, var(--mat-sys-surface) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 72%, transparent);
+  box-shadow: var(--mat-sys-level3);
+  backdrop-filter: blur(14px);
 }
 
 .join-card {
@@ -17,6 +43,17 @@
     margin: 0;
     font: var(--mat-sys-body-medium);
     color: var(--mat-sys-on-surface);
+  }
+
+  &__text--error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: var(--mat-sys-corner-medium);
+    background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--mat-sys-error) 24%, transparent);
+    color: var(--mat-sys-error);
   }
 
   &__page-head.dialog-title-header {
@@ -192,6 +229,12 @@
     flex-shrink: 0;
   }
 
+  &__team-card-emoji {
+    font-size: clamp(2.8rem, 5vw, 4.25rem);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
   &__team-card-meta {
     display: block;
     margin-top: 0.25rem;
@@ -235,9 +278,29 @@
 
   &__error {
     margin: 0.75rem 0 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: var(--mat-sys-corner-medium);
+    border: 1px solid color-mix(in srgb, var(--mat-sys-error) 24%, transparent);
+    background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
     font: var(--mat-sys-body-small);
     color: var(--mat-sys-error);
-    line-height: 1.4;
+    line-height: 1.45;
+  }
+
+  &__error-icon {
+    width: 1rem;
+    height: 1rem;
+    font-size: 1rem;
+    margin-top: 0.12rem;
+    flex-shrink: 0;
+  }
+
+  &__error-text {
+    white-space: pre-line;
+    font-weight: 600;
   }
 
   &__option--taken {
@@ -253,6 +316,10 @@
     min-height: 2.5rem;
   }
 
+  &__nick-option--trigger {
+    min-height: 0;
+  }
+
   &__nick-emoji {
     font-size: 1.85rem;
     line-height: 1;
@@ -262,24 +329,6 @@
   &__nick-emoji--trigger {
     font-size: 1.55rem;
     margin-inline-end: 0.35rem;
-  }
-
-  /* Kita: nur Emoji im Trigger (Label „Kita“ über mat-label). */
-  &__nick-emoji--trigger-only {
-    font-size: 2.35rem;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  &__nick-emoji--option-only {
-    font-size: 2.5rem;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
   }
 
   &__field--kindergarten-nick {
@@ -296,6 +345,65 @@
   }
 }
 
+.join-page__bottom-action-button.join-card__submit {
+  margin-top: 0;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .join-card__text--error,
+  .join-card__error {
+    animation: important-error-pulse 1.4s ease-in-out 3;
+  }
+
+  @media (max-width: 480px) {
+    .join-card__text--error,
+    .join-card__error {
+      animation-name: important-error-pulse-mobile;
+      animation-duration: 1.3s;
+    }
+  }
+}
+
+@keyframes important-error-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 0.28rem color-mix(in srgb, var(--mat-sys-error) 20%, transparent);
+  }
+}
+
+@keyframes important-error-pulse-mobile {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 0.17rem color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
+  }
+}
+
+@media (max-width: 599px) {
+  .join-page {
+    --join-page-inline-padding: var(--host-mobile-inline);
+    --join-bottom-action-bottom: max(0.5rem, calc(var(--host-mobile-safe-bottom) + 0.25rem));
+  }
+
+  .join-page--with-bottom-action {
+    padding-bottom: calc(var(--host-mobile-safe-bottom) + 9.75rem);
+  }
+
+  .join-page__bottom-action {
+    left: var(--join-page-inline-padding);
+    right: var(--join-page-inline-padding);
+    width: auto;
+    max-width: none;
+    transform: none;
+  }
+}
+
 @media (min-width: 600px) {
   .join-card__nick-emoji {
     font-size: 2.15rem;
@@ -303,14 +411,6 @@
 
   .join-card__nick-emoji--trigger {
     font-size: 1.75rem;
-  }
-
-  .join-card__nick-emoji--trigger-only {
-    font-size: 2.65rem;
-  }
-
-  .join-card__nick-emoji--option-only {
-    font-size: 2.85rem;
   }
 }
 

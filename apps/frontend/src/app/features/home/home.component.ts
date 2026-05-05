@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatBadge } from '@angular/material/badge';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -26,19 +26,28 @@ import {
   MatCardTitle,
 } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { setFeedbackHostToken } from '../../core/feedback-host-token';
-import { trpc } from '../../core/trpc.client';
+import { hasHostToken } from '../../core/host-session-token';
+import { setHostToken, trpc } from '../../core/trpc.client';
+import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
 import {
-  localizeKnownServerMessage,
+  localizeKnownServerError,
   sessionNotFoundUiMessage,
 } from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
+import { navigateToHostSession } from '../../core/session-host-navigation';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
 import { QUICK_FEEDBACK_PRESET_CHIPS } from '../feedback/feedback.config';
-import type { MotdInteractionKind, MotdPublicDTO, QuickFeedbackType } from '@arsnova/shared-types';
+import type {
+  MotdInteractionKind,
+  MotdPublicDTO,
+  QuickFeedbackType,
+  SessionInfoDTO,
+} from '@arsnova/shared-types';
 import {
   clearMotdThumbInteractionKeys,
   hasMotdInteractionRecorded,
@@ -81,7 +90,9 @@ import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-ligh
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly localizedCommands = localizeCommands;
   readonly localizedPath = localizePath;
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly focusService = inject(PresetSnackbarFocusService);
   @ViewChild('sessionCodeInput') private readonly sessionCodeInput?: ElementRef<HTMLInputElement>;
   @ViewChild('syncLinkInput') private readonly syncLinkInput?: ElementRef<HTMLInputElement>;
@@ -106,6 +117,33 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Nur Preset Spielerisch: Bühne-Intro und Layout-Hinweise im Template. */
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   private readonly quizStore = inject(QuizStoreService);
+  /** Sync-Raum-ID für Links zur Quiz-Sync-Seite (z. B. von der Startseite). */
+  readonly syncRoomId = this.quizStore.syncRoomId;
+  readonly librarySharingMode = this.quizStore.librarySharingMode;
+  readonly syncOriginDeviceLabel = this.quizStore.originDeviceLabel;
+  readonly syncOriginBrowserLabel = this.quizStore.originBrowserLabel;
+  readonly syncPeerInfos = this.quizStore.syncPeerInfos;
+  readonly currentDeviceLabel = this.quizStore.currentDeviceLabel;
+  readonly currentBrowserLabel = this.quizStore.currentBrowserLabel;
+  readonly hostSharingOriginSummary = computed(() => {
+    const peer = this.syncPeerInfos()[0] ?? null;
+    if (peer) {
+      return `${peer.browserLabel} auf ${peer.deviceLabel}`;
+    }
+
+    const deviceLabel = this.syncOriginDeviceLabel();
+    const browserLabel = this.syncOriginBrowserLabel();
+    if (!deviceLabel || !browserLabel) {
+      return null;
+    }
+    if (deviceLabel === this.currentDeviceLabel() && browserLabel === this.currentBrowserLabel()) {
+      return null;
+    }
+    return `${browserLabel} auf ${deviceLabel}`;
+  });
+  readonly showHostSharingHint = computed(
+    () => this.librarySharingMode() === 'shared' && this.hostSharingOriginSummary() !== null,
+  );
   readonly quizCount = computed(
     () => this.quizStore.quizzes().filter((q) => q.id !== DEMO_QUIZ_ID).length,
   );
@@ -133,6 +171,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Aktive MOTD (Epic 10); nur Browser, nach getCurrent. */
   readonly motd = signal<MotdPublicDTO | null>(null);
   readonly motdBodyHtml = signal<SafeHtml | null>(null);
+  private readonly suppressMotdForJoinIntent = signal(false);
   /** Erzwingt Neuablesung der MOTD-Interaktions-Flags aus localStorage. */
   private readonly motdInteractionRev = signal(0);
   private motdTouchStartY = 0;
@@ -154,6 +193,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Leertaste schon in keydown verarbeitet → keyup nicht erneut auslösen (vermeidet Doppel-Submit, nutzt keyup für virtuelle Tastatur). */
   private spaceHandledInKeydown = false;
+  private readonly timeoutIds = new Set<ReturnType<typeof setTimeout>>();
+  private readonly idleCallbackIds = new Set<number>();
+  private readonly animationFrameIds = new Set<number>();
 
   private static isSpaceKey(e: KeyboardEvent): boolean {
     return e.key === ' ' || e.code === 'Space' || e.keyCode === 32;
@@ -201,7 +243,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.focusService.registerInput(this.sessionCodeInput);
     // preventScroll: vermeidet Scroll des #main-content zum Code-Feld (kurze Viewports).
-    setTimeout(() => this.sessionCodeInput?.nativeElement.focus({ preventScroll: true }), 100);
+    this.scheduleTimeout(
+      () => this.sessionCodeInput?.nativeElement.focus({ preventScroll: true }),
+      100,
+    );
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', this.keydownListener, true);
       document.addEventListener('keyup', this.keyupListener, true);
@@ -210,6 +255,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.focusService.registerInput(undefined);
+    this.clearScheduledCallbacks();
     if (typeof document !== 'undefined') {
       document.removeEventListener('keydown', this.keydownListener, true);
       document.removeEventListener('keyup', this.keyupListener, true);
@@ -218,18 +264,55 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      if (this.redirectPendingJoinFromQuery()) {
+        return;
+      }
       this.loadRecentSessionCodes();
-      if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(() => void this.validateRecentSessions(), { timeout: 2000 });
-      } else {
-        setTimeout(() => void this.validateRecentSessions(), 500);
+      this.scheduleIdleWork(() => void this.validateRecentSessions(), 2000, 500);
+      // MOTD: bewusst etwas später laden, damit der Session-Einstieg auf Home
+      // nicht direkt von einem Overlay unterbrochen wird.
+      this.scheduleIdleWork(() => void this.loadMotdOverlay(), 2400, 1600);
+    }
+  }
+
+  private redirectPendingJoinFromQuery(): boolean {
+    const queryJoin = (this.route.snapshot.queryParamMap.get('join') ?? '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(queryJoin)) {
+      return false;
+    }
+
+    this.scheduleTimeout(() => {
+      void this.handlePendingJoinFromQuery(queryJoin);
+    }, 0);
+    return true;
+  }
+
+  private async handlePendingJoinFromQuery(code: string): Promise<void> {
+    this.joinError.set(null);
+    this.joinErrorSessionFinished.set(false);
+    try {
+      const target = await this.resolveJoinTarget(code);
+      if (target === 'feedback') {
+        this.addToRecentSessionCodes(code);
+        await this.router.navigate(localizeCommands(['feedback', code, 'vote']), {
+          replaceUrl: true,
+        });
+        return;
       }
-      // MOTD: bald nach erstem Paint, ohne langes Idle-Warten (max. ~400 ms)
-      if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(() => void this.loadMotdOverlay(), { timeout: 400 });
-      } else {
-        setTimeout(() => void this.loadMotdOverlay(), 50);
+      if (target === 'finished') {
+        this.removeRecentSessionCode(code);
+        this.applyFinishedJoinError(code);
+        await this.clearPendingJoinQuery();
+        return;
       }
+      this.addToRecentSessionCodes(code);
+      await this.router.navigate(localizeCommands(['join', code]), {
+        replaceUrl: true,
+      });
+    } catch (err: unknown) {
+      this.removeRecentSessionCode(code);
+      this.applyJoinLookupError(code, err);
+      await this.clearPendingJoinQuery();
     }
   }
 
@@ -256,13 +339,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async isSessionVisitable(code: string): Promise<boolean> {
-    const { active: fbActive } = await trpc.quickFeedback.isActive
-      .query({ sessionCode: code })
-      .catch(() => ({ active: false }));
-    if (fbActive) return true;
-    const session = await trpc.session.getInfo.query({ code }).catch(() => null);
-    if (!session) return false;
-    return session.status !== 'FINISHED';
+    try {
+      return (await this.resolveJoinTarget(code)) !== 'finished';
+    } catch {
+      return false;
+    }
   }
 
   private loadRecentSessionCodes(): void {
@@ -342,6 +423,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   focusCodeInput(): void {
+    this.markJoinIntentForMotd();
     this.sessionCodeInput?.nativeElement.focus();
   }
 
@@ -359,22 +441,104 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         /* ignore */
       }
     };
-    setTimeout(run, 0);
+    this.scheduleTimeout(run, 0);
   }
 
   private triggerShake(): void {
     this.codeShaking.set(true);
-    setTimeout(() => this.codeShaking.set(false), 400);
+    this.scheduleTimeout(() => this.codeShaking.set(false), 400);
   }
 
   private triggerCtaPulse(): void {
     this.ctaReady.set(false);
-    requestAnimationFrame(() => this.ctaReady.set(true));
-    setTimeout(() => this.ctaReady.set(false), 350);
+    this.scheduleAnimationFrame(() => this.ctaReady.set(true));
+    this.scheduleTimeout(() => this.ctaReady.set(false), 350);
   }
 
   preloadQuiz(): void {
     import('../quiz/quiz.component').then(() => {});
+  }
+
+  async openHeroHostTab(tab: 'qa' | 'quickFeedback'): Promise<void> {
+    this.joinError.set(null);
+    this.joinErrorSessionFinished.set(false);
+    this.quickFeedbackError.set(null);
+
+    const code = this.resolveHeroHostCode();
+    if (!code) {
+      await this.startHeroHostSession(tab);
+      return;
+    }
+
+    try {
+      const session = await trpc.session.getInfo.query({ code });
+      const queryParams = this.isHeroTabAvailableForSession(session, tab) ? { tab } : undefined;
+      await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
+        queryParams,
+      });
+    } catch {
+      await this.router.navigate(this.localizedCommands(['session', code, 'host']), {
+        queryParams: { tab },
+      });
+    }
+  }
+
+  private async startHeroHostSession(tab: 'qa' | 'quickFeedback'): Promise<void> {
+    try {
+      const onboardingProfile = createDefaultLiveSessionOnboardingProfile(
+        this.themePreset.preset(),
+      );
+      const result =
+        tab === 'qa'
+          ? await trpc.session.create.mutate({
+              type: 'QUIZ',
+              qaEnabled: true,
+              ...onboardingProfile,
+            })
+          : await trpc.session.create.mutate({
+              type: 'QUIZ',
+              quickFeedbackEnabled: true,
+              ...onboardingProfile,
+            });
+      setHostToken(result.code, result.hostToken);
+      await navigateToHostSession(this.router, result.code, tab);
+    } catch {
+      this.joinError.set(
+        $localize`:@@home.heroChipStartError:Der Kanal konnte nicht gestartet werden. Bitte versuche es erneut.`,
+      );
+    }
+  }
+
+  private resolveHeroHostCode(): string | null {
+    const inputCode = this.sessionCode().trim().toUpperCase();
+    if (/^[A-Z0-9]{6}$/.test(inputCode) && hasHostToken(inputCode)) {
+      return inputCode;
+    }
+
+    const recentHostCode =
+      this.recentSessionCodes().find((entry) => hasHostToken(entry.code))?.code ?? null;
+    if (recentHostCode) {
+      return recentHostCode;
+    }
+
+    if (/^[A-Z0-9]{6}$/.test(inputCode)) {
+      return inputCode;
+    }
+
+    return (
+      this.recentSessionCodes().find((entry) => /^[A-Z0-9]{6}$/.test(entry.code))?.code ?? null
+    );
+  }
+
+  private isHeroTabAvailableForSession(
+    session: Pick<SessionInfoDTO, 'type' | 'channels'>,
+    tab: 'qa' | 'quickFeedback',
+  ): boolean {
+    const channels = session.channels;
+    if (!channels) {
+      return tab === 'qa' && session.type === 'Q_AND_A';
+    }
+    return tab === 'qa' ? channels.qa.enabled : channels.quickFeedback.enabled;
   }
 
   toggleSyncLinkEntry(): void {
@@ -385,7 +549,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.syncLinkValue.set('');
       return;
     }
-    setTimeout(() => this.syncLinkInput?.nativeElement.focus(), 0);
+    this.scheduleTimeout(() => this.syncLinkInput?.nativeElement.focus(), 0);
   }
 
   onSyncLinkInput(event: Event): void {
@@ -398,7 +562,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const docId = this.extractSyncDocId(this.syncLinkValue());
     if (!docId) {
       this.syncLinkError.set(
-        $localize`:@@homeHostCard.syncLinkError:Bitte eine gültige Sync-ID oder einen gültigen Sync-Link eingeben.`,
+        $localize`:@@homeHostCard.syncLinkError:Bitte einen gültigen Sync-Link einfügen.`,
       );
       this.syncLinkInput?.nativeElement.focus();
       return;
@@ -409,6 +573,29 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.router.navigate(this.localizedCommands(['quiz']), {
       queryParams: { syncImported: 1 },
     });
+  }
+
+  unlinkSharedLibrary(): void {
+    const shouldUnlink =
+      typeof globalThis.confirm !== 'function'
+        ? true
+        : globalThis.confirm(
+            $localize`:@@homeHostCard.syncUnlinkConfirmPrompt:Verknüpfung wirklich lösen? Die aktuelle Quiz-Sammlung bleibt auf diesem Gerät erhalten.`,
+          );
+    if (!shouldUnlink) {
+      return;
+    }
+
+    this.quizStore.unlinkSharedLibrary();
+    this.snackBar.open(
+      $localize`:@@homeHostCard.syncUnlinkSuccess:Verknüpfung gelöst. Die Quiz-Sammlung ist jetzt nur auf diesem Gerät aktiv.`,
+      '',
+      {
+        duration: 4500,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      },
+    );
   }
 
   async startQuickFeedback(type: QuickFeedbackType): Promise<void> {
@@ -444,6 +631,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       .replace(/[^A-Z0-9]/g, '')
       .slice(0, 6);
     this.sessionCode.set(normalized);
+    if (normalized.length > 0) {
+      this.markJoinIntentForMotd();
+    }
     this.joinError.set(null);
     this.quickFeedbackError.set(null);
     if (normalized.length === 6 && prev.length < 6) {
@@ -465,44 +655,68 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.joinError.set(null);
     this.isJoining.set(true);
     try {
-      const { active: fbActive } = await trpc.quickFeedback.isActive
-        .query({ sessionCode: code })
-        .catch(() => ({ active: false }));
-      if (fbActive) {
+      const target = await this.resolveJoinTarget(code);
+      if (target === 'feedback') {
         this.addToRecentSessionCodes(code);
         await this.router.navigate(localizeCommands(['feedback', code, 'vote']));
         return;
       }
-      const session = await trpc.session.getInfo.query({ code });
-      if (session.status === 'FINISHED') {
+      if (target === 'finished') {
         this.removeRecentSessionCode(code);
-        this.joinErrorSessionFinished.set(true);
-        this.joinError.set($localize`Diese Session ist bereits beendet.`);
-        this.triggerShake();
+        this.applyFinishedJoinError(code);
         return;
       }
       this.addToRecentSessionCodes(code);
       await this.router.navigate(localizeCommands(['join', code]));
     } catch (err: unknown) {
       this.removeRecentSessionCode(code);
-      const raw =
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: string }).message === 'string'
-          ? (err as { message: string }).message
-          : sessionNotFoundUiMessage();
-      this.joinErrorSessionFinished.set(false);
-      this.joinError.set(localizeKnownServerMessage(raw));
-      this.triggerShake();
+      this.applyJoinLookupError(code, err);
       this.clearSessionCodeAndFocusStart();
     } finally {
       this.isJoining.set(false);
     }
   }
 
+  private async resolveJoinTarget(code: string): Promise<'feedback' | 'join' | 'finished'> {
+    const { active: fbActive } = await trpc.quickFeedback.isActive.query({ sessionCode: code });
+    if (fbActive) {
+      return 'feedback';
+    }
+    const session = await trpc.session.getInfo.query({ code });
+    return session.status === 'FINISHED' ? 'finished' : 'join';
+  }
+
+  private applyFinishedJoinError(code: string): void {
+    this.sessionCode.set(code);
+    this.joinErrorSessionFinished.set(true);
+    this.joinError.set($localize`Diese Session ist bereits beendet.`);
+    this.triggerShake();
+  }
+
+  private applyJoinLookupError(code: string, err: unknown): void {
+    this.sessionCode.set(code);
+    this.joinErrorSessionFinished.set(false);
+    this.joinError.set(localizeKnownServerError(err, sessionNotFoundUiMessage()));
+    this.triggerShake();
+  }
+
+  private async clearPendingJoinQuery(): Promise<void> {
+    await this.router.navigate([], {
+      replaceUrl: true,
+      queryParams: {},
+      queryParamsHandling: '',
+    });
+  }
+
   private async loadMotdOverlay(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+    if (
+      this.suppressMotdForJoinIntent() ||
+      this.sessionCode().trim().length > 0 ||
+      this.isJoining()
+    ) {
+      return;
+    }
     const motd = await this.motdCurrent.getCurrent();
     if (!motd || isMotdDismissedForVersion(motd.id, motd.contentVersion)) {
       return;
@@ -516,7 +730,73 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       motd.contentVersion,
     );
     this.motdBodyHtml.set(this.sanitizer.bypassSecurityTrustHtml(html));
-    setTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
+    this.scheduleTimeout(() => this.motdCloseBtn?.nativeElement?.focus(), 0);
+  }
+
+  private markJoinIntentForMotd(): void {
+    if (this.suppressMotdForJoinIntent()) {
+      return;
+    }
+    this.suppressMotdForJoinIntent.set(true);
+    if (this.motd()) {
+      this.clearMotdOverlay();
+    }
+  }
+
+  private scheduleTimeout(callback: () => void, delayMs: number): void {
+    const timeoutId = setTimeout(() => {
+      this.timeoutIds.delete(timeoutId);
+      callback();
+    }, delayMs);
+    this.timeoutIds.add(timeoutId);
+  }
+
+  private scheduleIdleWork(callback: () => void, timeoutMs: number, fallbackDelayMs: number): void {
+    if (typeof requestIdleCallback !== 'undefined') {
+      const idleId = requestIdleCallback(
+        () => {
+          this.idleCallbackIds.delete(idleId);
+          callback();
+        },
+        { timeout: timeoutMs },
+      );
+      this.idleCallbackIds.add(idleId);
+      return;
+    }
+    this.scheduleTimeout(callback, fallbackDelayMs);
+  }
+
+  private scheduleAnimationFrame(callback: () => void): void {
+    if (typeof requestAnimationFrame === 'undefined') {
+      this.scheduleTimeout(callback, 0);
+      return;
+    }
+    const frameId = requestAnimationFrame(() => {
+      this.animationFrameIds.delete(frameId);
+      callback();
+    });
+    this.animationFrameIds.add(frameId);
+  }
+
+  private clearScheduledCallbacks(): void {
+    for (const timeoutId of this.timeoutIds) {
+      clearTimeout(timeoutId);
+    }
+    this.timeoutIds.clear();
+
+    if (typeof cancelIdleCallback !== 'undefined') {
+      for (const idleId of this.idleCallbackIds) {
+        cancelIdleCallback(idleId);
+      }
+    }
+    this.idleCallbackIds.clear();
+
+    if (typeof cancelAnimationFrame !== 'undefined') {
+      for (const frameId of this.animationFrameIds) {
+        cancelAnimationFrame(frameId);
+      }
+    }
+    this.animationFrameIds.clear();
   }
 
   private clearMotdOverlay(): void {

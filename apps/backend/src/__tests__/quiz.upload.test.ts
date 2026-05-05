@@ -64,6 +64,7 @@ describe('quiz.upload (Story 2.1a)', () => {
       isCorrect: true,
     });
     expect(createCall.data.motifImageUrl).toBeNull();
+    expect(createCall.data.timerScaleByDifficulty).toBe(true);
   });
 
   it('speichert nicknameTheme KINDERGARTEN', async () => {
@@ -125,6 +126,40 @@ describe('quiz.upload (Story 2.1a)', () => {
     expect(prismaMock.quiz.create.mock.calls[0]![0].data.motifImageUrl).toBe(
       'https://example.com/bild.png',
     );
+  });
+
+  it('speichert deaktivierte Timer-Skalierung explizit', async () => {
+    const input = {
+      name: 'Ohne Skalierung',
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      defaultTimer: 40,
+      timerScaleByDifficulty: false,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      questions: [
+        {
+          text: 'Frage',
+          type: 'SINGLE_CHOICE' as const,
+          difficulty: 'HARD' as const,
+          order: 0,
+          answers: [
+            { text: 'A', isCorrect: true },
+            { text: 'B', isCorrect: false },
+          ],
+        },
+      ],
+    };
+
+    await caller.upload(input);
+
+    expect(prismaMock.quiz.create.mock.calls[0]![0].data.timerScaleByDifficulty).toBe(false);
   });
 
   it('akzeptiert leeres motifImageUrl (wird zu null)', async () => {
@@ -216,5 +251,40 @@ describe('quiz.upload (Story 2.1a)', () => {
     await caller.upload(input);
 
     expect(prismaMock.quiz.create.mock.calls[0]![0].data.readingPhaseEnabled).toBe(true);
+  });
+
+  it('übernimmt skipReadingPhase pro Frage', async () => {
+    const input = {
+      name: 'Quiz',
+      showLeaderboard: false,
+      allowCustomNicknames: false,
+      enableSoundEffects: false,
+      enableRewardEffects: false,
+      enableMotivationMessages: false,
+      enableEmojiReactions: false,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      questions: [
+        {
+          text: 'Frage',
+          type: 'MULTIPLE_CHOICE' as const,
+          difficulty: 'MEDIUM' as const,
+          order: 0,
+          skipReadingPhase: true,
+          answers: [
+            { text: 'A', isCorrect: true },
+            { text: 'B', isCorrect: false },
+          ],
+        },
+      ],
+    };
+
+    await caller.upload(input);
+
+    expect(
+      prismaMock.quiz.create.mock.calls[0]![0].data.questions.create[0]?.skipReadingPhase,
+    ).toBe(true);
   });
 });

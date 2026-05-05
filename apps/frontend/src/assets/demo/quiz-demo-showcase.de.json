@@ -1,13 +1,14 @@
 {
-  "exportVersion": 5,
-  "exportedAt": "2026-03-09T12:00:00.000Z",
+  "exportVersion": 21,
+  "exportedAt": "2026-04-24T14:30:00.000Z",
   "quiz": {
-    "name": "Alle Frageformate – Quiz aus der Oberstufe",
-    "description": "![Peer Instruction: Neun Konzeptfragen und zwei Abstimmungsrunden](/assets/demo/9_konzeptfragen_panorama.svg)\n\nDieses Quiz zeigt, wie arsnova.eu zwei Abstimmungsrunden unterstützt – zuerst abstimmen, dann diskutieren, dann erneut abstimmen. Das ist ein zentrales Element hochgradig interaktiver Sitzungen wie Peer Instruction.\n\n**Was ist Peer Instruction?** Eine evidenzbasierte interaktive Methode (Eric Mazur, Harvard): Es wird eine Konzeptfrage gestellt. Zuerst antwortet jede Person für sich; danach vergleichen die Teilnehmenden ihre Begründungen und stimmen erneut ab. Missverständnisse und unterschiedliche Sichtweisen werden sichtbar und gemeinsam geklärt.\n\n**Hinweis in der Host-Ansicht:** Liegen **35 % bis 70 %** der Stimmen in Runde 1 vollständig korrekt, empfiehlt arsnova.eu eine zweite Runde mit Diskussion (typischer Peer-Instruction-Korridor). Die genaue Verteilung bleibt verborgen, bis du die Diskussionsphase startest oder das Ergebnis zeigst.\n\n**Literatur:** Crouch, C. H., & Mazur, E. (2001). Peer Instruction: Ten years of experience and results. *American Journal of Physics*, 69(9), 970-977.\n\n**Was ist Markdown?** Text direkt von der Tastatur formatieren – ohne Maus. Du tippst z. B. `**fett**` → **fett**, `*kursiv*` → *kursiv*, `` `Code` `` → `Code`. Überschriften mit `#`, Aufzählungen mit `-` oder `*`. So siehst du Markdown in allen Fragen und Antworten im Einsatz.\n\n**Was ist KaTeX?** Professionelle mathematische Formeldarstellung. Setze Gleichungen in Dollarzeichen: x^2 → $x^2$, Brüche z. B. $\\frac{1}{2}$, f'(x) → $f'(x)$. Ideal für MINT, Finanzthemen und technische Präsentationen – keine Installation nötig, in arsnova.eu direkt einsatzbereit.\n\nDieses Quiz nutzt alle Frageformate von arsnova.eu. Die Einträge sind nach Thema gruppiert.\n\n| # | Fach | Format | Thema | Misskonzepte / Anmerkung |\n|---|------|--------|-------|--------------------------|\n| 1 | Mathe | Single Choice | Vorzeichenwechsel von $f'$ und Extrema | Minimum statt Maximum; Wendepunkt ($f''$ verwechselt); Nullstelle ($f=0$ statt $f'=0$) |\n| 2 | Mathe | Single Choice | Stochastische Unabhängigkeit | Gambler's Fallacy; Hot-Hand-Effekt |\n| 3 | Mathe | Single Choice | Bestimmtes Integral ≠ Flächeninhalt | Positiver Flächeninhalt; Summe statt Bilanz; Mittelwert |\n| 4 | Mathe | Rating | Vektorrechnung (Lagebeziehungen) | Selbsteinschätzung |\n| 5 | Physik | Single Choice | Newton 3 – actio = reactio | Leichteres Objekt erfährt mehr Kraft; schwereres übt mehr aus; Kräfte heben sich auf |\n| 6 | Physik | Freitext | Satellit im Orbit | Begründung |\n| 7 | Biologie | Single Choice | Selektion vs. Lamarckismus | Gezielte Mutation; schrittweise Anpassung; Gewöhnung |\n| 8 | Biologie | Multiple Choice | Dihybrider Erbgang (Mendel) | Alle F2 heterozygot; Gene sind gekoppelt |\n| 9 | Chemie | Multiple Choice | Le Chatelier (Gleichgewicht) | Katalysator verschiebt das Gleichgewicht |\n| 10 | — | Umfrage | Abiturvorbereitung | Lernstrategien |\n| 11 | — | Freitext | Unsicherste Frage | Reflexion |\n| 12 | — | Rating | Demo-Quiz bewerten | Gesamtbewertung |",
-    "motifImageUrl": "/assets/demo/9_konzeptfragen_panorama.svg",
+    "name": "Praxis-Showcase: Live-Teamdemo",
+    "description": "![Praxis-Showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Praxis-Showcase für den Unterricht\n\nDiese Demo ist für den **echten Unterrichtseinsatz** gedacht. Sie will kein perfekt durchkomponiertes Fachquiz von Anfang bis Ende sein. Ihr Zweck ist ein anderer: Sie soll Lehrkräften, Dozierenden und Trainer:innen zeigen, wie arsnova.eu eine Live-Session abwechslungsreicher, visueller und spielerischer machen kann.\n\nNutze sie als kurze, **Kahoot-artige Team-Demo für den Live-Unterricht**, um zu zeigen, wie du:\n- mit einem kurzen emotionalen oder sozialen Check-in startest\n- Bilder statt reiner Textfragen einsetzt\n- Formeln und wissenschaftliche Notation in MINT-Fächern einbindest\n- kurze Freitextantworten aus dem Raum sammelst, die später als Wortwolke sichtbar werden\n- Multiple-Choice- und Rating-Fragen sinnvoll einsetzt\n- mit Timer, Teams, Rangliste und Bonus-Codes mehr Energie aufbaust\n- Codebeispiele im Informatik- oder Technikunterricht einsetzt\n\nDie Fragen sind bewusst gemischt. Ziel ist es, dir konkrete Ideen für Einstiege, Verständnischecks, Aufmerksamkeitssignale und kurze interaktive Momente im Unterricht zu geben.\n\n**Tipp für die Demo:** Tritt der Session auf einem zweiten Gerät bei, am besten per QR-Code auf dem Smartphone. So kannst du den Wechsel zwischen Host-Ansicht und Teilnehmenden-Perspektive realistisch durchspielen.\n\n**Noch ein Tipp:** Öffne danach den Bearbeitungsmodus des Quiz und schau dir an, wie die Fragen mit Markdown und KaTeX umgesetzt sind.\n\n**Und noch etwas:** Weitere Frageformate oder Features kannst du gern anfragen. Die Kontaktdaten findest du im Impressum.",
+    "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": 60,
+    "defaultTimer": 30,
+    "timerScaleByDifficulty": true,
     "enableSoundEffects": true,
     "enableRewardEffects": true,
     "enableMotivationMessages": true,
@@ -16,215 +17,150 @@
     "teamMode": true,
     "teamCount": 2,
     "teamAssignment": "AUTO",
+    "teamNames": ["Team 🍎", "Team 🍐"],
     "backgroundMusic": null,
-    "nicknameTheme": "HIGH_SCHOOL",
+    "nicknameTheme": "KINDERGARTEN",
     "bonusTokenCount": 3,
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Mathe: Analysis – Funktion und Ableitung\n\nDie Ableitungsfunktion $f'(x)$ wechselt an der Stelle $x_0$ das Vorzeichen **von positiv zu negativ**.\n\nWas gilt für die Funktion $f$ an dieser Stelle?",
-        "type": "SINGLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
+        "text": "### Wie ist die Stimmung im Raum gerade?\n\n> **Unterrichtsidee:** Nutze das als kurzen Check-in zu Beginn, vor Feedback oder nach einer anspruchsvollen Phase.\n\n![Emotionen im Überblick](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Für die Vollansicht anklicken.*",
+        "type": "SURVEY",
+        "timer": null,
+        "difficulty": "EASY",
         "order": 0,
         "answers": [
-          { "text": "Die Funktion $f$ hat dort ein lokales Maximum.", "isCorrect": true },
-          { "text": "Die Funktion $f$ hat dort ein lokales Minimum.", "isCorrect": false },
-          { "text": "Die Funktion $f$ hat dort einen Wendepunkt.", "isCorrect": false },
-          { "text": "Die Funktion $f$ hat dort eine Nullstelle.", "isCorrect": false }
-        ]
-      },
-      {
-        "text": "### Mathe: Stochastik – Unabhängige Ereignisse\n\nBei einem fairen Münzwurf ist fünfmal hintereinander **Kopf** gefallen.\n\nWie groß ist die Wahrscheinlichkeit, dass beim sechsten Wurf **Zahl** fällt?",
-        "type": "SINGLE_CHOICE",
-        "timer": 45,
-        "difficulty": "MEDIUM",
-        "order": 1,
-        "answers": [
           {
-            "text": "Genau 50 %, weil jeder einzelne Wurf unabhängig von den vorherigen ist.",
-            "isCorrect": true
-          },
-          {
-            "text": "Mehr als 50 %, weil das Ergebnis Zahl nach fünfmal Kopf überfällig ist.",
+            "text": ":smile: Bereit loszulegen",
             "isCorrect": false
           },
           {
-            "text": "Weniger als 50 %, weil die bisherige Kopf-Serie sich wahrscheinlich fortsetzt.",
+            "text": ":cry: Gerade etwas überfordert",
             "isCorrect": false
           },
           {
-            "text": "Das lässt sich nicht berechnen, weil die Münze möglicherweise unfair ist.",
+            "text": ":rage: Genervt",
+            "isCorrect": false
+          },
+          {
+            "text": ":neutral_face: Ganz okay",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Mathe: Analysis – Bestimmtes Integral\n\nDie Funktion $f(x) = x^2 - 4$ hat Nullstellen bei $x = -2$ und $x = 2$\u2060. Zwischen den Nullstellen liegt der Graph **vollständig unterhalb** der $x$-Achse.\n\nWas berechnet $\\int_{-2}^{2} f(x)\\,\\mathrm{d}x$?",
-        "type": "SINGLE_CHOICE",
-        "timer": 60,
+        "text": "### Runde $\\pi$ auf zwei Dezimalstellen.\n\n> **Unterrichtsidee:** Nutze das als kurze MINT-Frage, die Formeln, Medien und offene Texteingaben zusammenbringt.\n\n![Die Zahl Pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "type": "FREETEXT",
+        "timer": null,
         "difficulty": "MEDIUM",
+        "order": 1,
+        "skipReadingPhase": true,
+        "answers": []
+      },
+      {
+        "text": "### KI-Bild oder echtes Foto?\n\n> **Unterrichtsidee:** Nutze das als visuellen Einstieg, als Aufmerksamkeitssignal oder als niedrigschwelligen Gesprächseinstieg.\n\n![Stadtfoto](https://cdn.imago-images.de/bild/st/0105048862/s.jpg)",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
+        "difficulty": "EASY",
         "order": 2,
         "answers": [
           {
-            "text": "Es ergibt die vorzeichenbehaftete Fläche zwischen Graph und $x$-Achse.",
+            "text": "KI-generiertes Bild",
+            "isCorrect": false
+          },
+          {
+            "text": "Echtes Foto",
+            "isCorrect": true
+          }
+        ]
+      },
+      {
+        "text": "### Welche dieser Einsätze eignen sich gut für einen kurzen Live-Check?\n\n> **Unterrichtsidee:** Nutze das, um Multiple Choice mit mehreren richtigen Antworten zu zeigen.\n\n*Mehrere Antworten möglich.*",
+        "type": "MULTIPLE_CHOICE",
+        "timer": null,
+        "difficulty": "MEDIUM",
+        "order": 3,
+        "skipReadingPhase": true,
+        "answers": [
+          {
+            "text": "Vorwissen zu Beginn einer Stunde aktivieren",
             "isCorrect": true
           },
           {
-            "text": "Es ergibt den Flächeninhalt zwischen Graph und $x$-Achse als positiven Wert.",
-            "isCorrect": false
+            "text": "Missverständnisse mitten in der Stunde sichtbar machen",
+            "isCorrect": true
           },
           {
-            "text": "Es ergibt die Summe aller Teilflächen oberhalb und unterhalb der Achse.",
-            "isCorrect": false
+            "text": "Vor einer Prüfung das Sicherheitsgefühl anonym abfragen",
+            "isCorrect": true
           },
           {
-            "text": "Es ergibt den Mittelwert aller Funktionswerte im Intervall $[-2, 2]$.",
+            "text": "Nur benotete Abschlusstests am Ende einer Einheit durchführen",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Mathe: Selbsteinschätzung – Vektorrechnung\n\nIn der analytischen Geometrie beschreibst du Geraden und Ebenen mit Vektorgleichungen, z.\u00a0B.:\n\n$$\\vec{r} = \\vec{a} + t \\cdot \\vec{u} + s \\cdot \\vec{v}$$\n\nWie sicher fühlst du dich bei Aufgaben zu **Lagebeziehungen** von Geraden und Ebenen?",
-        "type": "RATING",
-        "timer": 20,
-        "difficulty": "EASY",
-        "order": 3,
-        "answers": [],
-        "ratingMin": 1,
-        "ratingMax": 5,
-        "ratingLabelMin": "Sehr unsicher",
-        "ratingLabelMax": "Kann es erklären"
-      },
-      {
-        "text": "### Physik: Kräfte beim Aufprall\n\nEin schwerer LKW kollidiert frontal mit einem leichten Kleinwagen.\n\nWie verhalten sich die Kräfte, die **während des Aufpralls** auf die Fahrzeuge wirken?",
+        "text": "### Wie viele sichtbare Teile hat der klassische Zauberwürfel?\n\n> **Unterrichtsidee:** Nutze das für einen spielshowartigen Moment mit Tempo, Spannung und sichtbarem Teamwettbewerb.\n\nGemeint ist der klassische Rubik’s Cube von Ernő Rubik.\n\nOptionaler Impuls: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
+        "timer": null,
+        "difficulty": "HARD",
         "order": 4,
         "answers": [
           {
-            "text": "Die Kraft auf den Kleinwagen ist gleich groß wie die Kraft auf den LKW.",
+            "text": "28",
+            "isCorrect": false
+          },
+          {
+            "text": "26",
             "isCorrect": true
           },
           {
-            "text": "Die Kraft auf den Kleinwagen ist größer als die Kraft auf den LKW.",
+            "text": "24",
             "isCorrect": false
           },
           {
-            "text": "Die Kraft auf den LKW ist größer als die Kraft auf den Kleinwagen.",
-            "isCorrect": false
-          },
-          {
-            "text": "Die Kräfte auf beide Fahrzeuge heben sich gegenseitig vollständig auf.",
+            "text": "22",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Physik: Satellit im Orbit\n\nEin Satellit umkreist die Erde auf einer stabilen Kreisbahn, ohne an Höhe zu verlieren.\n\nErkläre in eigenen Worten, warum der Satellit trotz der wirkenden Gravitationskraft nicht auf die Erde stürzt.\n\n> Tipp: Denke an das Zusammenspiel von Geschwindigkeit und Gravitation.",
-        "type": "FREETEXT",
-        "timer": 90,
+        "text": "### In welcher Sprache ist dieser Code geschrieben?\n\n> **Unterrichtsidee:** Nutze das als schnellen Erkennungsimpuls für Informatik, Maker-Projekte oder technische Einführungen.\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
+        "type": "SINGLE_CHOICE",
+        "timer": null,
         "difficulty": "MEDIUM",
         "order": 5,
-        "answers": []
-      },
-      {
-        "text": "### Biologie: Antibiotikaresistenz\n\nIn Krankenhäusern treten zunehmend antibiotikaresistente Bakterienstämme auf.\n\nWelche Erklärung beschreibt die Entstehung der Resistenz **korrekt**?",
-        "type": "SINGLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
-        "order": 6,
         "answers": [
           {
-            "text": "Resistente Bakterien vermehren sich stärker, weil das Antibiotikum die übrigen abtötet.",
+            "text": "Groovy",
+            "isCorrect": false
+          },
+          {
+            "text": "Python",
+            "isCorrect": false
+          },
+          {
+            "text": "Processing",
             "isCorrect": true
           },
           {
-            "text": "Das Antibiotikum erzeugt gezielte Mutationen, die zur Resistenz der Bakterien führen.",
-            "isCorrect": false
-          },
-          {
-            "text": "Die Bakterien passen ihren Stoffwechsel schrittweise an das Antibiotikum an.",
-            "isCorrect": false
-          },
-          {
-            "text": "Die stärksten Bakterien entwickeln durch Gewöhnung eine Toleranz gegenüber dem Wirkstoff.",
+            "text": "Scala",
             "isCorrect": false
           }
         ]
       },
       {
-        "text": "### Biologie: Mendelsche Genetik\n\nBei einem dihybriden Erbgang kreuzt man zwei Individuen, die für beide Gene heterozygot sind ($\\text{AaBb} \\times \\text{AaBb}$)\u2060.\n\nWelche Aussagen über die **F2-Generation** sind korrekt?\n\n*Mehrere Antworten möglich.*",
-        "type": "MULTIPLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
-        "order": 7,
-        "answers": [
-          {
-            "text": "Das Verhältnis der Phänotypen in der F2-Generation beträgt 9 : 3 : 3 : 1.",
-            "isCorrect": true
-          },
-          {
-            "text": "In der F2-Generation treten Merkmalskombinationen auf, die bei den Eltern fehlen.",
-            "isCorrect": true
-          },
-          {
-            "text": "In der F2-Generation sind alle Nachkommen für beide Gene heterozygot.",
-            "isCorrect": false
-          },
-          {
-            "text": "Die Allele beider Gene werden immer als gekoppelte Einheit weitergegeben.",
-            "isCorrect": false
-          }
-        ]
-      },
-      {
-        "text": "### Chemie: Chemisches Gleichgewicht\n\nDie Synthese von Ammoniak verläuft exotherm:\n\n$$\\mathrm{N_2 + 3\\,H_2 \\rightleftharpoons 2\\,NH_3} \\quad \\Delta H < 0$$\n\nWelche Maßnahmen verschieben das Gleichgewicht **auf die Produktseite**?\n\n*Mehrere Antworten möglich.*",
-        "type": "MULTIPLE_CHOICE",
-        "timer": 60,
-        "difficulty": "MEDIUM",
-        "order": 8,
-        "answers": [
-          { "text": "Eine Erhöhung des Gesamtdrucks im Reaktionsgefäß", "isCorrect": true },
-          { "text": "Eine Senkung der Reaktionstemperatur", "isCorrect": true },
-          { "text": "Die Zugabe eines geeigneten Katalysators", "isCorrect": false },
-          { "text": "Das kontinuierliche Entfernen von Ammoniak aus dem System", "isCorrect": true }
-        ]
-      },
-      {
-        "text": "### Umfrage: Abiturvorbereitung\n\nWelche **Lernstrategie** nutzt du am häufigsten für die Abiturvorbereitung?",
-        "type": "SURVEY",
-        "timer": 30,
-        "difficulty": "EASY",
-        "order": 9,
-        "answers": [
-          { "text": "Abituraufgaben der Vorjahre durcharbeiten", "isCorrect": false },
-          { "text": "Zusammenfassungen und Lernzettel erstellen", "isCorrect": false },
-          { "text": "In einer Lerngruppe gemeinsam üben", "isCorrect": false },
-          { "text": "Erklärvideos und Video-Tutorials ansehen", "isCorrect": false },
-          { "text": "Karteikarten und Spaced Repetition nutzen", "isCorrect": false }
-        ]
-      },
-      {
-        "text": "### Reflexion\n\nBei welcher Frage in diesem Quiz warst du dir am **unsichersten** – und warum?\n\nNutze deine Antwort als Ausgangspunkt für die nächste Lerneinheit.",
-        "type": "FREETEXT",
-        "timer": 60,
-        "difficulty": "EASY",
-        "order": 10,
-        "answers": []
-      },
-      {
-        "text": "### Gesamtbewertung\n\nWie bewertest du dieses **Demo-Quiz** insgesamt?\n\nBerücksichtige:\n1. Verständlichkeit der Fragen\n2. Abwechslung der Formate\n3. Angemessener Schwierigkeitsgrad",
+        "text": "### Wie wahrscheinlich ist es, dass du so ein Live-Quiz bald selbst einsetzt?\n\n> **Unterrichtsidee:** Nutze das als schnelles Meinungsbild, Exit-Ticket oder Confidence-Check.",
         "type": "RATING",
-        "timer": 20,
+        "timer": null,
         "difficulty": "EASY",
-        "order": 11,
+        "order": 6,
         "answers": [],
         "ratingMin": 1,
-        "ratingMax": 10,
-        "ratingLabelMin": "Verbesserungswürdig",
-        "ratingLabelMax": "Hervorragend"
+        "ratingMax": 5,
+        "ratingLabelMin": "Eher noch nicht",
+        "ratingLabelMax": "Ich probiere es aus"
       }
     ]
   }

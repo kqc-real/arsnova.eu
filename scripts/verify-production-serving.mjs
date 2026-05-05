@@ -98,8 +98,10 @@ async function main() {
     const stats = Array.isArray(api.json) ? api.json[0]?.result?.data : null;
     printCheck(
       'ServerStatsDTO plausibel',
-      Boolean(stats && typeof stats.serverStatus === 'string'),
-      stats?.serverStatus || 'keine Daten',
+      Boolean(
+        stats && typeof stats.serviceStatus === 'string' && typeof stats.loadStatus === 'string',
+      ),
+      stats ? `${stats.serviceStatus} / ${stats.loadStatus}` : 'keine Daten',
     );
 
     if (!root.ok || !locale.ok || !api.ok) {

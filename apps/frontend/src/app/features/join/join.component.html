@@ -1,4 +1,7 @@
-<div class="l-page l-section join-page">
+<div
+  class="l-page l-section join-page"
+  [class.join-page--with-bottom-action]="!!session() && !loading() && !error()"
+>
   @if (loading()) {
     <mat-card appearance="outlined" class="join-card">
       <mat-card-content>
@@ -8,7 +11,10 @@
   } @else if (error()) {
     <mat-card appearance="outlined" class="join-card join-card--error">
       <mat-card-content>
-        <p class="join-card__text" role="alert">{{ error() }}</p>
+        <p class="join-card__text join-card__text--error" role="alert">
+          <mat-icon class="join-card__error-icon" aria-hidden="true">warning</mat-icon>
+          <span class="join-card__error-text">{{ error() }}</span>
+        </p>
         <div class="join-card__actions">
           <a [routerLink]="localizedPath('/')" matButton="filled" class="join-card__home-link">
             <mat-icon>home</mat-icon>
@@ -82,12 +88,26 @@
                     (click)="selectTeam(team.id)"
                   >
                     <span class="join-card__team-card-name">
-                      <span
-                        class="join-card__team-card-dot"
-                        [style.background]="team.color || 'var(--mat-sys-primary)'"
-                        aria-hidden="true"
-                      ></span>
-                      {{ team.name }}
+                      @if (teamNameEmojiMarker(team.name); as teamEmoji) {
+                        @if (teamNameEmojiMarkerTrailing(team.name)) {
+                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                        } @else {
+                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                        }
+                      } @else {
+                        <span
+                          class="join-card__team-card-dot"
+                          [style.background]="team.color || 'var(--mat-sys-primary)'"
+                          aria-hidden="true"
+                        ></span>
+                        <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                      }
                     </span>
                     <span class="join-card__team-card-meta">{{
                       teamMembersLabel(team.memberCount)
@@ -100,12 +120,26 @@
                     [attr.aria-label]="teamCardAriaLabel(team)"
                   >
                     <span class="join-card__team-card-name">
-                      <span
-                        class="join-card__team-card-dot"
-                        [style.background]="team.color || 'var(--mat-sys-primary)'"
-                        aria-hidden="true"
-                      ></span>
-                      {{ team.name }}
+                      @if (teamNameEmojiMarker(team.name); as teamEmoji) {
+                        @if (teamNameEmojiMarkerTrailing(team.name)) {
+                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                        } @else {
+                          <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                            teamEmoji
+                          }}</span>
+                          <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                        }
+                      } @else {
+                        <span
+                          class="join-card__team-card-dot"
+                          [style.background]="team.color || 'var(--mat-sys-primary)'"
+                          aria-hidden="true"
+                        ></span>
+                        <span>{{ teamNameLabelWithoutEmojiMarker(team.name) }}</span>
+                      }
                     </span>
                     <span class="join-card__team-card-meta">{{
                       teamMembersLabel(team.memberCount)
@@ -148,17 +182,16 @@
               >
                 <mat-select-trigger>
                   @if (selectedNickname()) {
-                    @if (isKindergartenNicknameTheme()) {
-                      @if (kindergartenEmojiForSelected(); as em) {
+                    <span class="join-card__nick-option join-card__nick-option--trigger">
+                      @if (isKindergartenNicknameTheme() && kindergartenEmojiForSelected(); as em) {
                         <span
-                          class="join-card__nick-emoji join-card__nick-emoji--trigger-only"
+                          class="join-card__nick-emoji join-card__nick-emoji--trigger"
                           aria-hidden="true"
                           >{{ em }}</span
                         >
                       }
-                    } @else {
-                      <span>{{ selectedNickname() }}</span>
-                    }
+                      <span class="join-card__nick-option-text">{{ selectedNickname() }}</span>
+                    </span>
                   }
                 </mat-select-trigger>
                 <mat-option value="" i18n>— Bitte wählen —</mat-option>
@@ -169,19 +202,16 @@
                     [class.join-card__option--taken]="isTaken(opt)"
                     [attr.aria-label]="nicknameOptionAriaLabel(opt, idx)"
                   >
-                    @if (isKindergartenNicknameTheme()) {
-                      <span
-                        class="join-card__nick-emoji join-card__nick-emoji--option-only"
-                        aria-hidden="true"
-                        >{{ kindergartenEmojiForOptionIndex(idx) }}</span
+                    <span class="join-card__nick-option">
+                      @if (isKindergartenNicknameTheme()) {
+                        <span class="join-card__nick-emoji" aria-hidden="true">{{
+                          kindergartenEmojiForOptionIndex(idx)
+                        }}</span>
+                      }
+                      <span class="join-card__nick-option-text"
+                        >{{ opt }}{{ isTaken(opt) ? ' ' + takenSuffix() : '' }}</span
                       >
-                    } @else {
-                      <span class="join-card__nick-option">
-                        <span class="join-card__nick-option-text"
-                          >{{ opt }}{{ isTaken(opt) ? ' ' + takenSuffix() : '' }}</span
-                        >
-                      </span>
-                    }
+                    </span>
                   </mat-option>
                 }
               </mat-select>
@@ -204,18 +234,23 @@
         }
 
         @if (error()) {
-          <p class="join-card__error" role="alert">{{ error() }}</p>
+          <p class="join-card__error" role="alert">
+            <mat-icon class="join-card__error-icon" aria-hidden="true">warning</mat-icon>
+            <span class="join-card__error-text">{{ error() }}</span>
+          </p>
         }
-        <button
-          mat-flat-button
-          color="primary"
-          class="join-card__submit"
-          [disabled]="!canSubmit() || joining()"
-          (click)="submitJoin()"
-        >
-          {{ joining() ? joiningLabel() : joinNowLabel() }}
-        </button>
       </mat-card-content>
     </mat-card>
+    <div class="join-page__bottom-action">
+      <button
+        mat-flat-button
+        color="primary"
+        class="join-card__submit join-page__bottom-action-button"
+        [disabled]="!canSubmit() || joining()"
+        (click)="submitJoin()"
+      >
+        {{ joining() ? joiningLabel() : joinNowLabel() }}
+      </button>
+    </div>
   }
 </div>

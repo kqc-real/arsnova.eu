@@ -11,6 +11,9 @@ const {
       findUnique: vi.fn(),
       create: vi.fn(),
     },
+    quiz: {
+      findUnique: vi.fn(),
+    },
     team: {
       findMany: vi.fn(),
       createMany: vi.fn(),
@@ -49,6 +52,17 @@ describe('session.create (Story 2.1a)', () => {
     shouldBypassSessionCreateRateMock.mockReturnValue(false);
     createHostSessionTokenMock.mockResolvedValue(HOST_TOKEN);
     prismaMock.session.findUnique.mockResolvedValue(null);
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
+      name: 'Mein Quiz',
+      nicknameTheme: 'HIGH_SCHOOL',
+      allowCustomNicknames: false,
+      anonymousMode: false,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: 'AUTO',
+      teamNames: [],
+    });
     prismaMock.session.create.mockResolvedValue({
       id: SESSION_ID,
       code: CODE,
@@ -56,9 +70,11 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: QUIZ_ID,
       qaEnabled: false,
+      qaOpen: false,
       qaTitle: null,
       qaModerationMode: false,
       quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
       quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
     });
   });
@@ -78,9 +94,19 @@ describe('session.create (Story 2.1a)', () => {
           type: 'QUIZ',
           quizId: QUIZ_ID,
           qaEnabled: false,
+          qaOpen: false,
           qaTitle: null,
           qaModerationMode: false,
           quickFeedbackEnabled: false,
+          quickFeedbackOpen: false,
+          onboardingProfileConfigured: true,
+          onboardingAllowCustomNicknames: false,
+          onboardingAnonymousMode: false,
+          onboardingTeamMode: false,
+          onboardingTeamCount: null,
+          onboardingTeamAssignment: 'AUTO',
+          onboardingTeamNames: [],
+          onboardingNicknameTheme: 'HIGH_SCHOOL',
         }),
       }),
     );
@@ -94,9 +120,11 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: QUIZ_ID,
       qaEnabled: true,
+      qaOpen: true,
       qaTitle: 'Fragen',
       qaModerationMode: true,
       quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
       quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
     });
 
@@ -110,6 +138,7 @@ describe('session.create (Story 2.1a)', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           qaEnabled: true,
+          qaOpen: true,
           qaTitle: 'Fragen',
           qaModerationMode: true,
         }),
@@ -125,9 +154,11 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: QUIZ_ID,
       qaEnabled: true,
+      qaOpen: true,
       qaTitle: 'Fragen zum Kapitel 3',
       qaModerationMode: true,
       quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
       quiz: { name: 'Mein Quiz', teamMode: false, teamCount: null, teamNames: [] },
     });
 
@@ -145,9 +176,69 @@ describe('session.create (Story 2.1a)', () => {
           type: 'QUIZ',
           quizId: QUIZ_ID,
           qaEnabled: true,
+          qaOpen: true,
           qaTitle: 'Fragen zum Kapitel 3',
           qaModerationMode: true,
           quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+        }),
+      }),
+    );
+  });
+
+  it('erstellt eine quizlose Quiz-Session mit aktiviertem Q&A-Kanal', async () => {
+    prismaMock.session.create.mockResolvedValueOnce({
+      id: SESSION_ID,
+      code: CODE,
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizId: null,
+      title: 'Offene Fragerunde',
+      moderationMode: true,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Offene Fragerunde',
+      qaModerationMode: true,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+      quiz: null,
+    });
+
+    const result = await caller.create({
+      type: 'QUIZ',
+      qaEnabled: true,
+      title: '  Offene Fragerunde  ',
+    });
+
+    expect(result).toEqual({
+      sessionId: SESSION_ID,
+      code: CODE,
+      status: 'LOBBY',
+      quizName: null,
+      hostToken: HOST_TOKEN,
+    });
+    expect(prismaMock.session.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          type: 'QUIZ',
+          quizId: null,
+          title: 'Offene Fragerunde',
+          moderationMode: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: 'Offene Fragerunde',
+          qaModerationMode: true,
+          quickFeedbackEnabled: false,
+          quickFeedbackOpen: false,
+          onboardingProfileConfigured: true,
+          onboardingAllowCustomNicknames: true,
+          onboardingAnonymousMode: false,
+          onboardingTeamMode: false,
+          onboardingTeamCount: null,
+          onboardingTeamAssignment: 'AUTO',
+          onboardingTeamNames: [],
+          onboardingNicknameTheme: 'HIGH_SCHOOL',
+          status: 'LOBBY',
         }),
       }),
     );
@@ -161,6 +252,8 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: null,
       title: 'Offene Fragerunde',
+      qaOpen: true,
+      quickFeedbackOpen: false,
       quiz: null,
     });
 
@@ -184,9 +277,19 @@ describe('session.create (Story 2.1a)', () => {
           title: 'Offene Fragerunde',
           moderationMode: true,
           qaEnabled: true,
+          qaOpen: true,
           qaTitle: 'Offene Fragerunde',
           qaModerationMode: true,
           quickFeedbackEnabled: false,
+          quickFeedbackOpen: false,
+          onboardingProfileConfigured: true,
+          onboardingAllowCustomNicknames: true,
+          onboardingAnonymousMode: false,
+          onboardingTeamMode: false,
+          onboardingTeamCount: null,
+          onboardingTeamAssignment: 'AUTO',
+          onboardingTeamNames: [],
+          onboardingNicknameTheme: 'HIGH_SCHOOL',
           status: 'LOBBY',
         }),
       }),
@@ -201,9 +304,11 @@ describe('session.create (Story 2.1a)', () => {
       status: 'LOBBY',
       quizId: null,
       qaEnabled: false,
+      qaOpen: false,
       qaTitle: null,
       qaModerationMode: false,
       quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
       quiz: null,
     });
 
@@ -225,9 +330,19 @@ describe('session.create (Story 2.1a)', () => {
           type: 'QUIZ',
           quizId: null,
           qaEnabled: false,
+          qaOpen: false,
           qaTitle: null,
           qaModerationMode: false,
           quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+          onboardingProfileConfigured: true,
+          onboardingAllowCustomNicknames: true,
+          onboardingAnonymousMode: false,
+          onboardingTeamMode: false,
+          onboardingTeamCount: null,
+          onboardingTeamAssignment: 'AUTO',
+          onboardingTeamNames: [],
+          onboardingNicknameTheme: 'HIGH_SCHOOL',
           status: 'LOBBY',
         }),
       }),

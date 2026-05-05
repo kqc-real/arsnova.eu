@@ -22,7 +22,7 @@ const DEFAULT_PRERENDER_TRPC_URL = 'https://arsnova.eu/trpc';
 
 function resolveTrpcBatchLinkUrl(): string {
   if (isBrowser) {
-    return '/trpc';
+    return new URL('/trpc', globalThis.window.location.origin).toString();
   }
   const fromEnv =
     typeof process !== 'undefined' && process.env

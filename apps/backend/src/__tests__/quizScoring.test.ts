@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateVoteScore,
   getStreakMultiplier,
+  isExactCorrectSelection,
   questionAffectsStreak,
   questionCountsTowardsTotalQuestions,
 } from '../lib/quizScoring';
@@ -71,6 +72,12 @@ describe('quizScoring', () => {
     ).toBe(0);
   });
 
+  it('erkennt vollständig korrekte Auswahl auch bei gleicher Reihenfolge-unabhängiger Menge', () => {
+    expect(isExactCorrectSelection(['a2', 'a1'], ['a1', 'a2'])).toBe(true);
+    expect(isExactCorrectSelection(['a1'], ['a1', 'a2'])).toBe(false);
+    expect(isExactCorrectSelection(['a1', 'a3'], ['a1', 'a2'])).toBe(false);
+  });
+
   describe('getStreakMultiplier (Story 5.5)', () => {
     it('gibt ×1.0 für Streak 0 und 1', () => {
       expect(getStreakMultiplier(0)).toBe(1.0);
@@ -103,4 +110,3 @@ describe('quizScoring', () => {
     });
   });
 });
-

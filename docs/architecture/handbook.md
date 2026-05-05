@@ -75,6 +75,8 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 - [ADR-0016: Markdown/KaTeX-Editor — Split-View und eigene MD3-Toolbar](./decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)
 - [ADR-0017: Markdown-Editor — UI-Umfang vs. KI-Import-Paste-Feld](./decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md)
 - [ADR-0018: Message of the Day / Plattform-Kommunikation (MOTD)](./decisions/0018-message-of-the-day-platform-communication.md)
+- [ADR-0021: Trennung von Betriebsstatus (SLO) und Systemlast mit Live-Telemetrie](./decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md)
+- [ADR-0024: Session-Tagesrekord-Verlauf fuer Session-Teilnehmende im Server-Status-Hilfedialog](./decisions/0024-daily-session-records-in-server-status-help-dialog.md)
 
 **Vertiefende Architektur-Dokumente:**
 

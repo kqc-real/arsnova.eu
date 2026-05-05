@@ -12,7 +12,7 @@ import type { SessionInfoDTO, TeamDTO } from '@arsnova/shared-types';
 import type { NicknameTheme } from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
 import {
-  localizeKnownServerMessage,
+  localizeKnownServerError,
   sessionNotFoundUiMessage,
 } from '../../core/localize-known-server-message';
 import { localizeCommands, localizePath } from '../../core/locale-router';
@@ -23,6 +23,11 @@ import {
   kindergartenEmojiAtIndex,
 } from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
+import {
+  edgeEmojiMarkerPosition,
+  extractEdgeEmoji,
+  stripEdgeEmojiMarker,
+} from '../../shared/emoji-shortcode.util';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
@@ -81,8 +86,8 @@ export class JoinComponent implements OnInit, OnDestroy {
   /** Nur die Namensliste, die der Host fürs Quiz vorgegeben hat (nicknameTheme aus Session/Quiz). */
   readonly nicknameOptions = computed(() => {
     const s = this.session();
-    if (!s || s.type !== 'QUIZ') return [];
-    const theme = (s.nicknameTheme ?? 'NOBEL_LAUREATES') as NicknameTheme;
+    if (!s) return [];
+    const theme = (s.nicknameTheme ?? 'HIGH_SCHOOL') as NicknameTheme;
     return [...getNicknameList(theme, this.locale)];
   });
 
@@ -96,7 +101,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   /** Kindergarten-Liste: große Tier-Emoji in Auswahl und (nach Join) in der Lobby. */
   readonly isKindergartenNicknameTheme = computed(() => {
     const s = this.session();
-    return s?.type === 'QUIZ' && (s.nicknameTheme ?? 'NOBEL_LAUREATES') === 'KINDERGARTEN';
+    return (s?.nicknameTheme ?? 'HIGH_SCHOOL') === 'KINDERGARTEN';
   });
 
   readonly kindergartenEmojiForSelected = computed((): string | null => {
@@ -127,8 +132,7 @@ export class JoinComponent implements OnInit, OnDestroy {
 
   /** Eigenes Namensfeld nur wenn der Host eigene Nicks erlaubt (Preset: eigener Name). */
   readonly showCustomNickname = computed(() => {
-    const s = this.session();
-    return s?.type === 'Q_AND_A' || s?.allowCustomNicknames === true;
+    return this.session()?.allowCustomNicknames === true;
   });
 
   readonly showTeamSelect = computed(() => {
@@ -192,7 +196,12 @@ export class JoinComponent implements OnInit, OnDestroy {
   teamMembersLabel = (count: number) =>
     count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
   teamCardAriaLabel = (team: TeamDTO) =>
-    $localize`${team.name}, ${this.teamMembersLabel(team.memberCount)}`;
+    $localize`${this.teamNameDisplayLabel(team.name)}, ${this.teamMembersLabel(team.memberCount)}`;
+  teamNameUsesEmojiMarker = (teamName: string) => edgeEmojiMarkerPosition(teamName) !== null;
+  teamNameEmojiMarker = (teamName: string) => extractEdgeEmoji(teamName);
+  teamNameEmojiMarkerTrailing = (teamName: string) =>
+    edgeEmojiMarkerPosition(teamName) === 'trailing';
+  teamNameLabelWithoutEmojiMarker = (teamName: string) => this.teamNameDisplayLabel(teamName);
   teamInfoHeading = () =>
     this.showTeamSelect() ? $localize`Dein Team` : $localize`Team-Modus aktiv`;
   teamInfoHint = () =>
@@ -201,11 +210,13 @@ export class JoinComponent implements OnInit, OnDestroy {
       : $localize`Teams werden automatisch verteilt. Du siehst hier schon, welche Teams bereitstehen.`;
   selectedTeamLabel = () => {
     const team = this.showTeamSelect() ? this.selectedTeam() : null;
-    return team ? $localize`Ausgewählt: ${team.name}` : null;
+    return team ? $localize`Ausgewählt: ${this.teamNameDisplayLabel(team.name)}` : null;
   };
   playfulTeamReadyLabel = () => {
     const team = this.visibleTeamChoice();
-    return team ? $localize`Perfekt! ${team.name} wartet schon auf dich.` : null;
+    return team
+      ? $localize`Perfekt! ${this.teamNameDisplayLabel(team.name)} wartet schon auf dich.`
+      : null;
   };
 
   ngOnInit(): void {
@@ -223,6 +234,11 @@ export class JoinComponent implements OnInit, OnDestroy {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
+  }
+
+  private teamNameDisplayLabel(teamName: string): string {
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    return label.length > 0 ? label : $localize`Team`;
   }
 
   private async loadSession(): Promise<void> {
@@ -246,15 +262,8 @@ export class JoinComponent implements OnInit, OnDestroy {
       await this.loadParticipants();
       this.startSessionPoll();
     } catch (err: unknown) {
-      const raw =
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: string }).message === 'string'
-          ? (err as { message: string }).message
-          : sessionNotFoundUiMessage();
       this.errorSessionFinished.set(false);
-      this.error.set(localizeKnownServerMessage(raw));
+      this.error.set(localizeKnownServerError(err, sessionNotFoundUiMessage()));
     } finally {
       this.loading.set(false);
     }
@@ -340,6 +349,13 @@ export class JoinComponent implements OnInit, OnDestroy {
     this.selectedTeamId.set(teamId);
   }
 
+  private getStoredRejoinToken(): string | undefined {
+    if (typeof localStorage === 'undefined') {
+      return undefined;
+    }
+    return localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? undefined;
+  }
+
   private async joinAnonymous(session: SessionInfoDTO): Promise<void> {
     this.joining.set(true);
     try {
@@ -348,6 +364,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         code: this.code,
         nickname,
         teamId: this.selectedTeamId().trim() || undefined,
+        rejoinToken: this.getStoredRejoinToken(),
       });
       recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
@@ -356,15 +373,8 @@ export class JoinComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
-      const raw =
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: string }).message === 'string'
-          ? (err as { message: string }).message
-          : $localize`Beitritt fehlgeschlagen.`;
       this.errorSessionFinished.set(false);
-      this.error.set(localizeKnownServerMessage(raw));
+      this.error.set(localizeKnownServerError(err, $localize`Beitritt fehlgeschlagen.`));
     } finally {
       this.joining.set(false);
       this.loading.set(false);
@@ -382,6 +392,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         code: this.code,
         nickname: nickname.slice(0, 30),
         teamId: this.selectedTeamId().trim() || undefined,
+        rejoinToken: this.getStoredRejoinToken(),
       });
       recordServerTimeIso(result.serverTime);
       if (typeof localStorage !== 'undefined') {
@@ -390,15 +401,8 @@ export class JoinComponent implements OnInit, OnDestroy {
       }
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
-      const raw =
-        err &&
-        typeof err === 'object' &&
-        'message' in err &&
-        typeof (err as { message: string }).message === 'string'
-          ? (err as { message: string }).message
-          : $localize`Beitritt fehlgeschlagen.`;
       this.errorSessionFinished.set(false);
-      this.error.set(localizeKnownServerMessage(raw));
+      this.error.set(localizeKnownServerError(err, $localize`Beitritt fehlgeschlagen.`));
     } finally {
       this.joining.set(false);
     }

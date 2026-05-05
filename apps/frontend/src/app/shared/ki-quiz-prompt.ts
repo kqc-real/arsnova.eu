@@ -18,7 +18,6 @@ export interface KiPromptContext {
   teamCount: number | null;
   teamAssignment: TeamAssignment;
   teamNames: string[];
-  backgroundMusic: string | null;
   bonusTokenCount: number | null;
 }
 
@@ -99,7 +98,6 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     `- teamCount: ${formatJsonValue(context.teamCount)}`,
     `- teamAssignment: ${context.teamAssignment}`,
     `- teamNames: ${teamNames}`,
-    `- backgroundMusic: ${formatJsonValue(context.backgroundMusic)}`,
     `- bonusTokenCount: ${formatJsonValue(context.bonusTokenCount)}`,
     '',
     'Use these defaults unless the user explicitly asks for different quiz settings.',
@@ -152,8 +150,7 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     '  "teamCount": integer 2..8 | null,',
     '  "teamAssignment": "AUTO" | "MANUAL" (optional),',
     '  "teamNames": string[] (optional),',
-    '  "backgroundMusic": string max 50 chars | null (optional); use null if unknown—no invented track ids",',
-    '  "nicknameTheme": "NOBEL_LAUREATES" | "KINDERGARTEN" | "PRIMARY_SCHOOL" | "MIDDLE_SCHOOL" | "HIGH_SCHOOL",',
+    '  "nicknameTheme": "HIGH_SCHOOL" | "NOBEL_LAUREATES" | "KINDERGARTEN" | "PRIMARY_SCHOOL" | "MIDDLE_SCHOOL" (default product preset: HIGH_SCHOOL),',
     '  "bonusTokenCount": integer 1..50 | null (optional),',
     '  "readingPhaseEnabled": boolean (optional),',
     '  "questions": [ ... at least 1 question ... ]',
@@ -166,7 +163,7 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     '{',
     '  "text": "string (1..2000, supports Markdown + KaTeX via $...$ and $$...$$)",',
     '  "type": "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "FREETEXT" | "SURVEY" | "RATING",',
-    '  "timer": integer 5..300 | null (optional),',
+    '  "timer": integer 5..300 | null (optional) — see Per-question timer below,',
     '  "difficulty": "EASY" | "MEDIUM" | "HARD",',
     '  "order": integer (0-based, sequential),',
     '  "answers": [{ "text": "string (1..500, supports Markdown + KaTeX via $...$ and $$...$$)", "isCorrect": boolean }],',
@@ -176,6 +173,12 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     '  "ratingLabelMax": string | null (optional, only for RATING)',
     '}',
     '```',
+    '',
+    'Per-question timer (`questions[].timer`):',
+    '- Optional. If omitted or set to `null`, that question uses the quiz-wide limit from `quiz.defaultTimer` (same behavior as the arsnova.eu editor: “Quiz-Zeitlimit”).',
+    '- If set to an integer 5..300, that question overrides the quiz default for timing only; other questions may still use `null` to inherit.',
+    '- Only set a per-question `timer` when the user asks for different time limits on specific questions (e.g. a quick poll vs a reflection task). Otherwise omit the key or use `null` on every question so `defaultTimer` applies uniformly.',
+    '- If `quiz.defaultTimer` is `null` (no quiz-wide countdown), then `questions[].timer: null` also means no countdown for that question unless the user explicitly requests a numeric `timer` on that row.',
     '',
     "Minimal valid example (illustrative structure only; expand `questions`, obey per-type answer rules, and match the user's brief):",
     '',
@@ -196,7 +199,6 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     '    "teamMode": false,',
     '    "teamCount": null,',
     '    "teamAssignment": "AUTO",',
-    '    "backgroundMusic": null,',
     '    "nicknameTheme": "HIGH_SCHOOL",',
     '    "bonusTokenCount": null,',
     '    "readingPhaseEnabled": false,',
@@ -228,6 +230,7 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     '- If teamMode=false, use teamCount=null and omit teamNames or set teamNames=[].',
     '- If teamMode=true and you provide teamNames, keep the number of names aligned with teamCount.',
     '- Use question.order values 0, 1, 2, ... without gaps.',
+    '- Per-question `timer`: omit or `null` to inherit `quiz.defaultTimer`; use 5..300 only for explicit overrides.',
     '',
     'Content quality rules:',
     '- Prefer concise, classroom-ready wording.',
@@ -264,6 +267,7 @@ export function buildKiQuizSystemPrompt(context: KiPromptContext): string {
     '- Validate privately that format counts add up to the total question count.',
     '- Validate privately that every requested question format appears in the correct count.',
     '- Validate privately that every question has a valid difficulty, sequential order, and schema-compliant fields only.',
+    '- Validate privately that each `questions[].timer` is either absent, null, or an integer between 5 and 300, and consistent with the Per-question timer rules.',
     '- Validate privately that Markdown/KaTeX, if used, appears only in supported text fields and remains valid JSON string content.',
     '- Validate privately that no forbidden fields are present, especially `id` and `preset`.',
     '- Validate privately that the final answer is exactly one complete `json` code block and not a fragment.',

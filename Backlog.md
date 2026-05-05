@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **6.7** (Hero-Chips; Session-Ende: Toolbar + Kanal-Button), **1.2d** (numerische Schätzfrage), **1.6c** (Sync-Sicherheit), **8.5–8.7** (Q&A-Erweiterungen) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **8.5–8.8** (Q&A-Erweiterungen + Tempo-Livekanal) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -12,108 +12,116 @@
 
 ## 📊 Story-Übersicht & Bearbeitungsstand
 
-| Epic | Story | Titel                                                       | Prio | Status    |
-| ---- | ----- | ----------------------------------------------------------- | ---- | --------- |
-| 0    | 0.1   | Redis-Setup                                                 | 🔴   | ✅ Fertig |
-| 0    | 0.2   | tRPC WebSocket-Adapter                                      | 🔴   | ✅ Fertig |
-| 0    | 0.3   | Yjs WebSocket-Provider                                      | 🟡   | ✅ Fertig |
-| 0    | 0.4   | Server-Status-Indikator                                     | 🟡   | ✅ Fertig |
-| 0    | 0.5   | Rate-Limiting & Brute-Force-Schutz                          | 🔴   | ✅ Fertig |
-| 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                             | 🔴   | ✅ Fertig |
-| 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                 | 🟡   | ⬜ Offen  |
-| 1    | 1.1   | Quiz erstellen                                              | 🔴   | ✅ Fertig |
-| 1    | 1.2a  | Fragentypen: MC & SC                                        | 🔴   | ✅ Fertig |
-| 1    | 1.2b  | Fragentypen: Freitext & Umfrage                             | 🟡   | ✅ Fertig |
-| 1    | 1.2c  | Fragentyp: Rating-Skala                                     | 🟡   | ✅ Fertig |
-| 1    | 1.2d  | Numerische Schätzfrage (Toleranz, 2 Runden, Statistik)      | 🟡   | ⬜ Offen  |
-| 1    | 1.3   | Antworten & Lösungen                                        | 🔴   | ✅ Fertig |
-| 1    | 1.4   | Sitzungs-Konfiguration                                      | 🟡   | ✅ Fertig |
-| 1    | 1.5   | Local-First Speicherung                                     | 🔴   | ✅ Fertig |
-| 1    | 1.6   | Yjs Multi-Device-Sync                                       | 🟢   | ✅ Fertig |
-| 1    | 1.6a  | Quiz auf anderem Gerät öffnen (Sync-Key/Link)               | 🟡   | ✅ Fertig |
-| 1    | 1.6b  | Preset & Optionen beim Sync mitführen                       | 🟢   | ✅ Fertig |
-| 1    | 1.6c  | Sync-Sicherheit härten                                      | 🔴   | ⬜ Offen  |
-| 1    | 1.6d  | Sync-Performance & Skalierung optimieren                    | 🟡   | ⬜ Offen  |
-| 1    | 1.7   | Markdown & KaTeX                                            | 🔴   | ✅ Fertig |
-| 1    | 1.7a  | Markdown-Bilder: nur URL + Lightbox                         | 🟡   | ✅ Fertig |
-| 1    | 1.7b  | Markdown/KaTeX-Editor mit MD3-Toolbar                       | 🟡   | ⬜ Offen  |
-| 1    | 1.8   | Quiz exportieren                                            | 🟡   | ✅ Fertig |
-| 1    | 1.9   | Quiz importieren                                            | 🟡   | ✅ Fertig |
-| 1    | 1.9a  | KI-gestützter Quiz-Import (Zod-Validierung)                 | 🟡   | ✅ Fertig |
-| 1    | 1.9b  | KI-Systemprompt (kontextbasiert, schema-getreu)             | 🟡   | ✅ Fertig |
-| 1    | 1.10  | Quiz bearbeiten & löschen                                   | 🔴   | ✅ Fertig |
-| 1    | 1.11  | Quiz-Presets                                                | 🟡   | ✅ Fertig |
-| 1    | 1.12  | SC-Schnellformate                                           | 🟡   | ✅ Fertig |
-| 1    | 1.13  | Quiz-Preview & Schnellkorrektur                             | 🟡   | ✅ Fertig |
-| 1    | 1.14  | Word Cloud (interaktiv + Export)                            | 🟡   | ✅ Fertig |
-| 1    | 1.14a | Word Cloud 2.0 (echtes Layout + Premium-UX)                 | 🟡   | ⬜ Offen  |
-| 1    | 1.15  | Preset-Konfiguration exportieren & importieren              | 🟢   | ✅ Fertig |
-| 2    | 2.1a  | Session-ID & Quiz-Upload                                    | 🔴   | ✅ Fertig |
-| 2    | 2.1b  | QR-Code                                                     | 🟢   | ✅ Fertig |
-| 2    | 2.1c  | Host-/Presenter-Zugang mit Session-Token härten             | 🔴   | ✅ Fertig |
-| 2    | 2.2   | Lobby-Ansicht                                               | 🔴   | ✅ Fertig |
-| 2    | 2.3   | Präsentations-Steuerung                                     | 🔴   | ✅ Fertig |
-| 2    | 2.4   | Security / Data-Stripping                                   | 🔴   | ✅ Fertig |
-| 2    | 2.5   | Beamer-Ansicht / Presenter-Mode                             | 🔴   | ✅ Fertig |
-| 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)                        | 🟡   | ✅ Fertig |
-| 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher)        | 🟡   | ✅ Fertig |
-| 2    | 2.8   | Produktives Smartphone-Hosting für Live-Sessions            | 🔴   | ✅ Fertig |
-| 3    | 3.1   | Beitreten                                                   | 🔴   | ✅ Fertig |
-| 3    | 3.2   | Nicknames                                                   | 🟡   | ✅ Fertig |
-| 3    | 3.3a  | Frage empfangen                                             | 🔴   | ✅ Fertig |
-| 3    | 3.3b  | Abstimmung abgeben                                          | 🔴   | ✅ Fertig |
-| 3    | 3.4   | Echtzeit-Feedback                                           | 🟡   | ✅ Fertig |
-| 3    | 3.5   | Countdown-Anzeige                                           | 🔴   | ✅ Fertig |
-| 3    | 3.5a  | Countdown Finger-Anzeige (letzte 6 Sekunden)                | 🟡   | ✅ Fertig |
-| 3    | 3.6   | Anonymer Modus                                              | 🟡   | ✅ Fertig |
-| 4    | 4.1   | Leaderboard mit Punktesystem                                | 🟡   | ✅ Fertig |
-| 4    | 4.2   | Server aufräumen                                            | 🔴   | ✅ Fertig |
-| 4    | 4.3   | WebSocket Reconnection                                      | 🟡   | ✅ Fertig |
-| 4    | 4.4   | Ergebnis-Visualisierung                                     | 🔴   | ✅ Fertig |
-| 4    | 4.5   | Freitext-Auswertung                                         | 🟡   | ✅ Fertig |
-| 4    | 4.6   | Bonus-Code für Top-Platzierungen                            | 🟡   | ✅ Fertig |
-| 4    | 4.7   | Ergebnis-Export für Lehrende (anonym)                       | 🟡   | ✅ Fertig |
-| 4    | 4.8   | Session-Bewertung durch Teilnehmende                        | 🟡   | ✅ Fertig |
-| 5    | 5.1   | Sound-Effekte                                               | 🟡   | ✅ Fertig |
-| 5    | 5.3   | Hintergrundmusik                                            | 🟢   | ✅ Fertig |
-| 5    | 5.4   | Belohnungseffekte                                           | 🟡   | ✅ Fertig |
-| 5    | 5.4a  | Foyer-Einflug im Preset Spielerisch                         | 🟡   | ⬜ Offen  |
-| 5    | 5.5   | Answer Streak                                               | 🟡   | ✅ Fertig |
-| 5    | 5.6   | Persönliche Scorecard                                       | 🔴   | ✅ Fertig |
-| 5    | 5.7   | Motivationsmeldungen                                        | 🟡   | ✅ Fertig |
-| 5    | 5.8   | Emoji-Reaktionen                                            | 🟢   | ✅ Fertig |
-| 6    | 6.1   | Dark/Light/System-Theme                                     | 🟡   | ✅ Fertig |
-| 6    | 6.2   | Internationalisierung                                       | 🟡   | ✅ Fertig |
-| 6    | 6.3   | Impressum & Datenschutz                                     | 🔴   | ✅ Fertig |
-| 6    | 6.4   | Mobile-First & Responsive                                   | 🔴   | ✅ Fertig |
-| 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)                      | 🔴   | ⬜ Offen  |
-| 6    | 6.6   | UX-Testreihen Thinking Aloud & Umsetzung                    | 🟡   | ⬜ Offen  |
-| 6    | 6.7   | Startseite: Hero-Chips; Session-Ende Toolbar + Kanal-Button | 🔴   | ⬜ Offen  |
-| 7    | 7.1   | Team-Modus                                                  | 🟢   | ✅ Fertig |
-| 8    | 8.1   | Q&A-Session starten                                         | 🟢   | ✅ Fertig |
-| 8    | 8.2   | Fragen einreichen                                           | 🟢   | ✅ Fertig |
-| 8    | 8.3   | Upvoting & Sortierung                                       | 🟢   | ✅ Fertig |
-| 8    | 8.4   | Moderation durch Lehrende                                   | 🟢   | ✅ Fertig |
-| 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen                 | 🟡   | ⬜ Offen  |
-| 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                     | 🟡   | ⬜ Offen  |
-| 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)               | 🟡   | ⬜ Offen  |
-| 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                  | 🟡   | ✅ Fertig |
-| 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                     | 🟡   | ✅ Fertig |
-| 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft               | 🟡   | ✅ Fertig |
-| 10   | 10.1  | MOTD: Datenmodell, Migration, Zod/DTOs                      | 🟡   | ✅ Fertig |
-| 10   | 10.2  | MOTD: Öffentliche Read-API + Rate-Limiting                  | 🟡   | ✅ Fertig |
-| 10   | 10.3  | MOTD: Admin tRPC (CRUD, Templates, Zeitsteuerung)           | 🟡   | ✅ Fertig |
-| 10   | 10.4  | MOTD: Admin-UI (CMS-light, Markdown, Vorschau)              | 🟡   | ✅ Fertig |
-| 10   | 10.5  | MOTD: Startseiten-Overlay + localStorage                    | 🟡   | ✅ Fertig |
-| 10   | 10.6  | MOTD: Interaktionen (Ack, Dismiss, Feedback, API)           | 🟡   | ✅ Fertig |
-| 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte          | 🟡   | ✅ Fertig |
-| 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)                | 🟡   | ✅ Fertig |
+| Epic | Story | Titel                                                       | Prio | Status       |
+| ---- | ----- | ----------------------------------------------------------- | ---- | ------------ |
+| 0    | 0.1   | Redis-Setup                                                 | 🔴   | ✅ Fertig    |
+| 0    | 0.2   | tRPC WebSocket-Adapter                                      | 🔴   | ✅ Fertig    |
+| 0    | 0.3   | Yjs WebSocket-Provider                                      | 🟡   | ✅ Fertig    |
+| 0    | 0.4   | Server-Status-Indikator                                     | 🟡   | ✅ Fertig    |
+| 0    | 0.4a  | Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog    | 🟡   | ✅ Fertig    |
+| 0    | 0.5   | Rate-Limiting & Brute-Force-Schutz                          | 🔴   | ✅ Fertig    |
+| 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                             | 🔴   | ✅ Fertig    |
+| 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                 | 🟡   | 🔨 In Arbeit |
+| 0    | 0.8   | Komplexitätsabbau (McCabe) & Refactor-Hotspots              | 🟡   | ⬜ Offen     |
+| 1    | 1.1   | Quiz erstellen                                              | 🔴   | ✅ Fertig    |
+| 1    | 1.2a  | Fragentypen: MC & SC                                        | 🔴   | ✅ Fertig    |
+| 1    | 1.2b  | Fragentypen: Freitext & Umfrage                             | 🟡   | ✅ Fertig    |
+| 1    | 1.2c  | Fragentyp: Rating-Skala                                     | 🟡   | ✅ Fertig    |
+| 1    | 1.2d  | Numerische Schätzfrage (Toleranz, 2 Runden, Statistik)      | 🟡   | ⬜ Offen     |
+| 1    | 1.2e  | Fragentyp: Kurzantwort / Short Answer mit Musterlösung      | 🟡   | ⬜ Offen     |
+| 1    | 1.2f  | Fragentyp: Hotspot auf Bild                                 | 🟡   | ⬜ Offen     |
+| 1    | 1.2g  | Fragentyp: Zuordnung / Matching                             | 🟡   | ⬜ Offen     |
+| 1    | 1.2h  | Fragentyp: Reihenfolge / Sortieren                          | 🟡   | ⬜ Offen     |
+| 1    | 1.2i  | Confidence Slider / Sicherheitsgrad mit Host-Auswertung     | 🟡   | ⬜ Offen     |
+| 1    | 1.3   | Antworten & Lösungen                                        | 🔴   | ✅ Fertig    |
+| 1    | 1.4   | Sitzungs-Konfiguration                                      | 🟡   | ✅ Fertig    |
+| 1    | 1.5   | Local-First Speicherung                                     | 🔴   | ✅ Fertig    |
+| 1    | 1.6   | Yjs Multi-Device-Sync                                       | 🟢   | ✅ Fertig    |
+| 1    | 1.6a  | Quiz auf anderem Gerät öffnen (Sync-Key/Link)               | 🟡   | ✅ Fertig    |
+| 1    | 1.6b  | Preset & Optionen beim Sync mitführen                       | 🟢   | ✅ Fertig    |
+| 1    | 1.6c  | Sync-Sicherheit härten                                      | 🔴   | ⬜ Offen     |
+| 1    | 1.6d  | Sync-Performance & Skalierung optimieren                    | 🟡   | ⬜ Offen     |
+| 1    | 1.7   | Markdown & KaTeX                                            | 🔴   | ✅ Fertig    |
+| 1    | 1.7a  | Markdown-Bilder: nur URL + Lightbox                         | 🟡   | ✅ Fertig    |
+| 1    | 1.7b  | Markdown/KaTeX-Editor mit MD3-Toolbar                       | 🟡   | ✅ Fertig    |
+| 1    | 1.8   | Quiz exportieren                                            | 🟡   | ✅ Fertig    |
+| 1    | 1.9   | Quiz importieren                                            | 🟡   | ✅ Fertig    |
+| 1    | 1.9a  | KI-gestützter Quiz-Import (Zod-Validierung)                 | 🟡   | ✅ Fertig    |
+| 1    | 1.9b  | KI-Systemprompt (kontextbasiert, schema-getreu)             | 🟡   | ✅ Fertig    |
+| 1    | 1.10  | Quiz bearbeiten & löschen                                   | 🔴   | ✅ Fertig    |
+| 1    | 1.11  | Quiz-Presets                                                | 🟡   | ✅ Fertig    |
+| 1    | 1.12  | SC-Schnellformate                                           | 🟡   | ✅ Fertig    |
+| 1    | 1.13  | Quiz-Preview & Schnellkorrektur                             | 🟡   | ✅ Fertig    |
+| 1    | 1.14  | Word Cloud (interaktiv + Export)                            | 🟡   | ✅ Fertig    |
+| 1    | 1.14a | Word Cloud 2.0 (echtes Layout + Premium-UX)                 | 🟡   | ⬜ Offen     |
+| 1    | 1.15  | Preset-Konfiguration exportieren & importieren              | 🟢   | ✅ Fertig    |
+| 2    | 2.1a  | Session-ID & Quiz-Upload                                    | 🔴   | ✅ Fertig    |
+| 2    | 2.1b  | QR-Code                                                     | 🟢   | ✅ Fertig    |
+| 2    | 2.1c  | Host-/Presenter-Zugang mit Session-Token härten             | 🔴   | ✅ Fertig    |
+| 2    | 2.2   | Lobby-Ansicht                                               | 🔴   | ✅ Fertig    |
+| 2    | 2.3   | Präsentations-Steuerung                                     | 🔴   | ✅ Fertig    |
+| 2    | 2.4   | Security / Data-Stripping                                   | 🔴   | ✅ Fertig    |
+| 2    | 2.5   | Beamer-Ansicht / Presenter-Mode                             | 🔴   | ✅ Fertig    |
+| 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)                        | 🟡   | ✅ Fertig    |
+| 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher)        | 🟡   | ✅ Fertig    |
+| 2    | 2.8   | Produktives Smartphone-Hosting für Live-Sessions            | 🔴   | ✅ Fertig    |
+| 3    | 3.1   | Beitreten                                                   | 🔴   | ✅ Fertig    |
+| 3    | 3.2   | Nicknames                                                   | 🟡   | ✅ Fertig    |
+| 3    | 3.3a  | Frage empfangen                                             | 🔴   | ✅ Fertig    |
+| 3    | 3.3b  | Abstimmung abgeben                                          | 🔴   | ✅ Fertig    |
+| 3    | 3.4   | Echtzeit-Feedback                                           | 🟡   | ✅ Fertig    |
+| 3    | 3.5   | Countdown-Anzeige                                           | 🔴   | ✅ Fertig    |
+| 3    | 3.5a  | Countdown Finger-Anzeige (letzte 6 Sekunden)                | 🟡   | ✅ Fertig    |
+| 3    | 3.6   | Anonymer Modus                                              | 🟡   | ✅ Fertig    |
+| 4    | 4.1   | Leaderboard mit Punktesystem                                | 🟡   | ✅ Fertig    |
+| 4    | 4.2   | Server aufräumen                                            | 🔴   | ✅ Fertig    |
+| 4    | 4.3   | WebSocket Reconnection                                      | 🟡   | ✅ Fertig    |
+| 4    | 4.4   | Ergebnis-Visualisierung                                     | 🔴   | ✅ Fertig    |
+| 4    | 4.5   | Freitext-Auswertung                                         | 🟡   | ✅ Fertig    |
+| 4    | 4.6   | Bonus-Code für Top-Platzierungen                            | 🟡   | ✅ Fertig    |
+| 4    | 4.7   | Ergebnis-Export für Lehrende (anonym)                       | 🟡   | ✅ Fertig    |
+| 4    | 4.8   | Session-Bewertung durch Teilnehmende                        | 🟡   | ✅ Fertig    |
+| 5    | 5.1   | Sound-Effekte                                               | 🟡   | ✅ Fertig    |
+| 5    | 5.3   | Hintergrundmusik                                            | 🟢   | ✅ Fertig    |
+| 5    | 5.4   | Belohnungseffekte                                           | 🟡   | ✅ Fertig    |
+| 5    | 5.4a  | Foyer-Einflug im Preset Spielerisch                         | 🟡   | ⬜ Offen     |
+| 5    | 5.5   | Answer Streak                                               | 🟡   | ✅ Fertig    |
+| 5    | 5.6   | Persönliche Scorecard                                       | 🔴   | ✅ Fertig    |
+| 5    | 5.7   | Motivationsmeldungen                                        | 🟡   | ✅ Fertig    |
+| 5    | 5.8   | Emoji-Reaktionen                                            | 🟢   | ✅ Fertig    |
+| 6    | 6.1   | Dark/Light/System-Theme                                     | 🟡   | ✅ Fertig    |
+| 6    | 6.2   | Internationalisierung                                       | 🟡   | ✅ Fertig    |
+| 6    | 6.3   | Impressum & Datenschutz                                     | 🔴   | ✅ Fertig    |
+| 6    | 6.4   | Mobile-First & Responsive                                   | 🔴   | ✅ Fertig    |
+| 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)                      | 🔴   | ⬜ Offen     |
+| 6    | 6.6   | UX-Testreihen Thinking Aloud & Umsetzung                    | 🟡   | ⬜ Offen     |
+| 6    | 6.7   | Startseite: Hero-Chips; Session-Ende Toolbar + Kanal-Button | 🔴   | ✅ Fertig    |
+| 7    | 7.1   | Team-Modus                                                  | 🟢   | ✅ Fertig    |
+| 8    | 8.1   | Q&A-Session starten                                         | 🟢   | ✅ Fertig    |
+| 8    | 8.2   | Fragen einreichen                                           | 🟢   | ✅ Fertig    |
+| 8    | 8.3   | Upvoting & Sortierung                                       | 🟢   | ✅ Fertig    |
+| 8    | 8.4   | Moderation durch Lehrende                                   | 🟢   | ✅ Fertig    |
+| 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen                 | 🟡   | ⬜ Offen     |
+| 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                     | 🟡   | ⬜ Offen     |
+| 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)               | 🟡   | ⬜ Offen     |
+| 8    | 8.8   | Tempo-Livekanal                                             | 🟡   | ⬜ Offen     |
+| 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                  | 🟡   | ✅ Fertig    |
+| 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                     | 🟡   | ✅ Fertig    |
+| 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft               | 🟡   | ✅ Fertig    |
+| 10   | 10.1  | MOTD: Datenmodell, Migration, Zod/DTOs                      | 🟡   | ✅ Fertig    |
+| 10   | 10.2  | MOTD: Öffentliche Read-API + Rate-Limiting                  | 🟡   | ✅ Fertig    |
+| 10   | 10.3  | MOTD: Admin tRPC (CRUD, Templates, Zeitsteuerung)           | 🟡   | ✅ Fertig    |
+| 10   | 10.4  | MOTD: Admin-UI (CMS-light, Markdown, Vorschau)              | 🟡   | ✅ Fertig    |
+| 10   | 10.5  | MOTD: Startseiten-Overlay + localStorage                    | 🟡   | ✅ Fertig    |
+| 10   | 10.6  | MOTD: Interaktionen (Ack, Dismiss, Feedback, API)           | 🟡   | ✅ Fertig    |
+| 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte          | 🟡   | ✅ Fertig    |
+| 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)                | 🟡   | ✅ Fertig    |
 
-> **Repo-Abgleich (Codebase 2026-04-03):** Die **⬜-Stories** sind weiterhin durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; kein ausführbares **k6**-/Artillery-Lasttest-Setup (ADR-0013 dokumentarisch). **Umgesetzt** sind jetzt u. a. **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
+> **Repo-Abgleich (Codebase 2026-05-05):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung und kein eigener Typ für bewertbare Kurzantwort in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad; noch **kein** vierter Session-Kanal für kontinuierliches Tempo-Feedback im Session-Modell. **Teilweise umgesetzt** ist inzwischen **0.7**: ausführbare protokollnahe Lasttest-Skripte liegen unter `scripts/load/` (u. a. `k6-trpc-health-50vu.js`, `k6-trpc-session-50vu.js`), zusätzlich existieren Frontend-Smoke-Flows wie `smoke:unified-session`; offen bleiben aber das vollständige Artillery-/Realtime-E2E-Setup, CI-Anbindung, maschinenlesbare Ergebnisaggregation und die breite Szenarioabdeckung gemäß Story 0.7. **Umgesetzt** sind jetzt u. a. **0.4a** (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog mit `DailyStatistic`, `dailyHighscores` und Chart im Hilfe-Dialog), **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 29 · 🟡 Should: 54 · 🟢 Could: 11 = **94 Stories gesamt** (**80** ✅ Fertig · **14** ⬜ Offen)
+> **Statistik:** 🔴 Must: 29 · 🟡 Should: 62 · 🟢 Could: 11 = **102 Stories gesamt** (**81** ✅ Fertig · **1** 🔨 In Arbeit · **20** ⬜ Offen)
 
 ---
 
@@ -202,6 +210,17 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - [x] Die Daten werden alle 30 Sekunden automatisch aktualisiert (Polling).
     - [x] Es werden keine personenbezogenen Daten exponiert (nur aggregierte Zahlen).
     - [x] ⚠️ _Abhängigkeit:_ Vor Umsetzung von Story 2.1a liefert die Query Initialwerte (`activeSessions: 0`, `totalParticipants: 0`, `completedSessions: 0`).
+- **Story 0.4a (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog):** 🟡 Als Betreiber oder Lehrender möchte ich im Hilfe-Dialog der Betriebsstatusanzeige den Verlauf der Session-Tagesrekorde der **groessten einzelnen Session pro UTC-Tag** sehen, damit ich die Entwicklung der jeweils groessten Session der Plattform ueber die letzten 30 Tage einschaetzen kann, ohne das kompakte Footer-Widget zu ueberladen.
+  - **Akzeptanzkriterien:**
+    - [x] `health.stats` liefert zusaetzlich `dailyHighscores` fuer die letzten 30 UTC-Tage in chronologischer Reihenfolge; jeder Eintrag enthaelt `date` und `count`, wobei `count` die **maximale gleichzeitige Teilnehmendenzahl in der groessten einzelnen Session dieses UTC-Tages** ist, nicht die Summe aller Tagesnutzer.
+    - [x] Tage ohne neuen Rekord werden in der API als `count = 0` ergaenzt, damit das Diagramm eine stabile 30-Tage-Achse hat.
+    - [x] Das Prisma-Schema enthaelt ein Modell `DailyStatistic` mit genau einem Datensatz pro UTC-Tag; Updates erfolgen atomar per Upsert und nur dann, wenn der aktuelle Session-Stand hoeher ist als der bisherige Tageswert.
+    - [x] Die Rekordaktualisierung bleibt beim Session-Beitritt Fire-and-Forget und darf den Join-Flow nicht verzoegern.
+    - [x] Der Hilfe-Dialog (`ServerStatusHelpDialogComponent`) zeigt unterhalb des Allzeit-Rekords ein Line-Chart fuer den 30-Tage-Verlauf; das kompakte Footer-Widget selbst bleibt unveraendert.
+    - [x] Die Diagramm-Bibliothek wird ausschliesslich beim Oeffnen des Dialogs lazy geladen; es wird kein Angular-Wrapper eingefuehrt.
+    - [x] Die Aktualisierung des Verlaufs bleibt beim bestehenden 30-Sekunden-Polling; es wird kein zusaetzlicher WebSocket-Kanal nur fuer diese Statistik eingefuehrt.
+    - [x] Neue UI-Texte, Beschriftungen und ARIA-Hinweise werden gemaess ADR-0008 in allen gepflegten App-Sprachen ergaenzt.
+    - [x] Backend- und Frontend-Tests decken mindestens den API-Vertrag sowie die Darstellung des Hilfe-Dialogs mit und ohne Verlauf ab.
 - **Story 0.5 (Rate-Limiting & Brute-Force-Schutz):** 🔴 Als System möchte ich Missbrauch durch automatisierte Anfragen verhindern, damit die Plattform stabil und fair bleibt.
   - **Akzeptanzkriterien:**
     - [x] **Session-Code-Eingabe (Story 3.1):** Maximal 5 Fehlversuche pro IP-Adresse innerhalb von 5 Minuten. Nach Überschreitung wird eine 60-Sekunden-Sperre verhängt mit Hinweismeldung.
@@ -259,13 +278,32 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Die Dokumentation beschreibt, wie die Lasttests gestartet werden, welche Infrastruktur benötigt wird und wie Resultate zu interpretieren sind.
     - Neue Performance-Erkenntnisse aus diesen Tests fliessen in Backlog, ADRs oder Optimierungsstories zurück.
     - **Architekturvorgabe:** Die Tool-Auswahl und Rollentrennung folgen ADR-0013; `k6` ist der Standard für protokollnahe Lasttests, `Artillery` für Realtime- und E2E-nahe Lastszenarien, `Playwright` bleibt funktionale Browser-Referenz und `autocannon` ist nur ein lokales Entwicklerwerkzeug für Hotspots.
+  - **Aktueller Implementierungsstand (Mai 2026):**
+    - Unter `scripts/load/` existieren bereits ausführbare Bausteine für leichte/protokollnahe Lasttests (`k6-trpc-health-50vu.js`, `k6-trpc-session-50vu.js`) sowie einfache Node-Simulationen (`concurrent-50-http.mjs`, `session-participants-50.mjs`).
+    - Ergänzend gibt es funktionale Smoke-Flows im Frontend, u. a. `smoke:unified-session`, die zentrale Live-Session-Pfade automatisiert prüfen.
+    - Für die volle Story-Erfüllung fehlen weiterhin Realtime-/Artillery-Szenarien, PR-/CI-Einbindung, maschinenlesbare Ergebniszusammenfassungen, Laufvergleich und die breite Abdeckung von Vote, Freitext, Q&A, Reconnect und Sync.
   - **Abhängigkeiten:** Story 0.2 (tRPC WebSocket-Adapter), Story 0.5 (Rate-Limiting), Story 0.6 (CI/CD), Story 2.1a (Session-Start), Story 2.2 (Lobby), Story 3.1 (Join), Story 3.3b (Abstimmung), Story 4.5 (Freitext-Auswertung), Story 8.1–8.4 (Q&A), optional Story 1.6/1.6a/1.6b/1.6d (Sync), ADR-0013.
+
+- **Story 0.8 (Komplexitätsabbau / McCabe-Refactor):** 🟡 Als Entwickler möchte ich überhöhte zyklomatische Komplexität in priorisierten Hotspots systematisch reduzieren, damit Wartbarkeit, Änderbarkeit und Fehlersicherheit steigen, ohne funktionale Regressionen einzuführen.
+  - **Akzeptanzkriterien:**
+    - Es liegt ein reproduzierbarer Komplexitäts-Report (McCabe/Cyclomatic) für Backend und Frontend vor, der mindestens **Durchschnitt**, **P95**, **Maximum** und die **Top-Hotspots** ausweist.
+    - Es gibt eine priorisierte Hotspot-Liste (mindestens Top-10) mit Datei, Funktion/Block und aktuellem Komplexitätswert als Arbeitsgrundlage.
+    - Für die zuerst zu bearbeitenden Hotspots ist ein Refactor-Plan dokumentiert (Schnittstellen, Zerlegungsschritte, Risiken, benötigte Tests).
+    - Die bearbeiteten Hotspots werden verhaltensgleich in kleinere Einheiten aufgeteilt (z. B. Validierung, Mapping, Orchestrierung getrennt); öffentliche API/UX bleibt unverändert.
+    - Nach Umsetzung sind Build, Typecheck und bestehende Test-Suiten grün; kritische Flows erhalten bei Bedarf zusätzliche Regressionstests.
+    - Messbarer Effekt: **P95** und **Maximum** sinken gegenüber dem initialen Report; zusätzlich werden keine neuen Funktionen mit Komplexität > 15 eingeführt.
+    - Für künftige Änderungen existiert eine dauerhafte Leitplanke (CI-Check oder verbindlicher manueller Quality-Gate-Check), damit neue Ausreißer früh sichtbar sind.
+  - **Anker im Repo (erste Hotspots):**
+    - `apps/frontend/src/app/features/session/session-vote/session-vote.component.ts`
+    - `apps/backend/src/routers/vote.ts`
+    - `apps/backend/src/routers/session.ts`
+    - `apps/frontend/src/app/features/quiz/data/quiz-store.service.ts`
 
 ---
 
 ## Epic 1: Quiz-Verwaltung (Rolle: Lehrperson / Ersteller:in)
 
-> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07):** Die **nummerierten** Kern-Stories **1.1–1.15** (ohne Buchstaben-Zusätze) sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben die Erweiterungen **1.2d**, **1.6c**, **1.6d**, **1.7b**, **1.14a** (dort ⬜). **Story 1.7a** ist umgesetzt und auf **✅ Fertig** gesetzt.
+> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07, 2026-04-17):** Die umgesetzten Kern-Stories in Epic 1 sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben aktuell **1.2d**, **1.2e**, **1.6c**, **1.6d**, **1.14a** (dort ⬜). **Story 1.7a** und **Story 1.7b** sind umgesetzt und auf **✅ Fertig** gesetzt.
 > Frontend-Checks: `npm run typecheck -w @arsnova/frontend` ✅, `npm run test -w @arsnova/frontend -- src/app/features/quiz` ✅ (54/54).  
 > Ergänzend abgeschlossen: Styleguide-/DoD-Nacharbeiten (Lesbarkeit/Spacing, Wording-Konsistenz, deutsches Datumsformat `de-DE`, Fehlerfokus auf erstes ungültiges Feld, Entfernung fragiler `::ng-deep`-Selektoren im Quiz-Feature, Preview-Interaktions- und Markdown/KaTeX-Rendering-Korrekturen).
 
@@ -296,9 +334,11 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Prisma: Neues Feld `Vote.ratingValue Int?` für den gewählten Skalenwert. Neues Feld `Question.ratingMin`, `Question.ratingMax`, `Question.ratingLabelMin`, `Question.ratingLabelMax`.
 - **Story 1.2d (Numerische Schätzfrage – Toleranz, Zwei-Runden-Option, detaillierte Statistik):** 🟡 Als Lehrperson möchte ich **numerische Schätzfragen** stellen können, bei denen ich **Zahlentyp** (ganzzahlig / Dezimal mit maximaler Nachkommastellenanzahl), **Referenzwert** und **Toleranzband** für die Wertung „richtig“ vorgebe; optional mit **zwei Abstimmungsrunden** inkl. Diskussionsphase (analog Peer Instruction). Als Host möchte ich nach Freigabe der Ergebnisse eine **beamer-taugliche Visualisierung** und eine **detaillierte statistische Auswertung beider Runden** sehen – **ohne** vorherigen Herdeneffekt durch Live-Verteilungen.
   - **Akzeptanzkriterien:**
-    - **Fragentyp & Editor (Lehrperson):** Neuer Fragentyp (Arbeitsname z. B. `NUMERIC_ESTIMATE` o. Ä.) in `@arsnova/shared-types` (Zod) und Quiz-Editor: Konfiguration mindestens von **Referenzwert** \(V\), **Toleranz** (mindestens **absolut** ±Δ; optional **relativ** in % mit klar dokumentierter Kombinationsregel, z. B. max. beider Bänder oder nur eines), **numerischer Eingabetyp** (**Ganzzahl** vs. **Dezimal** mit **max. Nachkommastellen**), optional **Min/Max** der erlaubten Eingabe (Plausibilität, nicht Lösungsverrat). Fragentext weiterhin Markdown/KaTeX (Story 1.7), wo fachlich passend.
-    - **Teilnehmenden-UI:** Eingabefeld, das den konfigurierten Typ erzwingt (z. B. `step`, Validierung); **Normalisierung** von Eingaben (Komma/Punkt) einheitlich auf Client und Server. Ungültige Eingaben: verständliche Fehlermeldung, kein stiller Vote.
-    - **Wertung:** Antwort gilt als **richtig**, wenn der geparste Zahlenwert \(x\) **innerhalb des Toleranzbands** um \(V\) liegt; sonst falsch. Der Server ist maßgeblich; `isCorrect` wird gemäß Data-Stripping **nicht** während `ACTIVE` an Teilnehmende übertragen (Story 2.4).
+    - **Fragentyp & Editor (Lehrperson):** Neuer Fragentyp (Arbeitsname z. B. `NUMERIC_ESTIMATE` o. Ä.) in `@arsnova/shared-types` (Zod) und Quiz-Editor: Konfiguration mindestens von **Toleranz (exklusiver Modus – genau einer aktiv)**, **numerischer Eingabetyp** (**Ganzzahl** vs. **Dezimal** mit **max. Nachkommastellen**), optional **Min/Max** der erlaubten Eingabe (Plausibilität, nicht Lösungsverrat). Fragentext weiterhin Markdown/KaTeX (Story 1.7), wo fachlich passend.
+      - **Modus „Absolutes Intervall“:** Lehrperson konfiguriert **linke** und **rechte Intervallgrenze** \(L, R\) (absolut; asymmetrisch erlaubt). Validierung: \(L < R\).
+      - **Modus „Relatives Toleranzband“:** Lehrperson konfiguriert **Referenzwert** \(V\) und **Prozentwert** \(p\%\). Das Band berechnet sich als \([V - |V|\cdot p,\; V + |V|\cdot p]\) (Grenzen anschließend min/max-sortiert). Sonderfall: Bei \(V = 0\) ist der relative Modus nicht zulässig (verständliche Fehlermeldung im Editor).
+    - **Teilnehmenden-UI & Validierung:** Eingabefeld, das den konfigurierten Typ erzwingt (z. B. `step`, Validierung); **Normalisierung** von Eingaben (Komma/Punkt) einheitlich auf Client und Server. Ungültige Eingaben (kein Zahlwert, zu viele Nachkommastellen, außerhalb optionaler Min/Max) werden mit einer **lokalisierten** Fehlermeldung abgewiesen; es wird kein Vote gespeichert/gesendet. In der Teilnehmendenansicht wird **nicht** angezeigt, ob die Eingabe innerhalb des Toleranzintervalls/-bands liegt (kein Lösungsverrat).
+    - **Wertung:** Antwort gilt als **richtig**, wenn der geparste Zahlenwert \(x\) **innerhalb des konfigurierten Toleranzintervalls/-bands** liegt; sonst falsch. Der Server ist maßgeblich; `isCorrect` wird gemäß Data-Stripping **nicht** während `ACTIVE` an Teilnehmende übertragen (Story 2.4).
     - **Zwei-Runden-Option (Pflicht-Feature des Typs):** Gleiches fachliches Muster wie **Peer Instruction** (Story 2.7): **Runde 1** → optionale **Diskussionsphase** (Host-Steuerung) → **Runde 2**; **getrennte Speicherung** der Werte pro Runde, **zuordenbar** zur **Teilnehmenden-Identität** (z. B. `participantId` / bestehendes Vote-Modell), damit **paarweise** Auswertung möglich ist. Ohne aktivierte zweite Runde verhält sich die Frage wie **eine** Schätzrunde (Abwärtskompatibilität des Flows).
     - **Herdeneffekt / Vorab-Visualisierung:** **Während** die Abstimmung läuft und **bis zur definierten Ergebnisfreischaltung** (Host-Aktion oder Statuswechsel analog bestehender Ergebnislogik): **keine** Histogramme, **keine** animierten Balken und **keine** aggregierte Verteilung, aus der Schätzlagen erkennbar wären (weder für Studierende noch in einer für den Saal sichtbaren Form). **Erlaubt** sind nur **neutrale** Fortschrittsanzeigen (z. B. „n von N haben abgestimmt“) ohne Wertachse/Buckets.
     - **Host-Screen nach Freigabe:** **Histogramm** (große, lesbare Balken; sinnvolles Binning), **Referenzlinie** für \(V\), **visuelles Toleranzband**, optional Balken **im Band** vs. **außerhalb** farblich differenziert; **Kennzahlenzeile** (mindestens **n**, **Median**, **Mittelwert**, **Anteil im Toleranzband** in %). Darstellung **beamer-tauglich** (Kontrast, keine Mikrotypografie-Abhängigkeit).
@@ -309,6 +349,136 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Tests:** Unit-Tests für Toleranzlogik, Parsing, Rundung/Grenzfälle (\(V=0\), leere Runde 2); mindestens ein Integrationstest-Pfad für Zwei-Runden-Speicherung; Frontend-Specs für kritische Validierung wo sinnvoll.
     - **i18n (ADR-0008):** Alle neuen UI-Strings (Lehrperson, Host, Teilnehmende, Fehlermeldungen) in **de, en, fr, es, it**.
   - **Abhängigkeiten:** Story **1.7** (Markdown/KaTeX), Story **1.3** (Antwortlogik ggf. erweitern; klären ob Antwortoptionen entfallen), Story **2.7** (Peer-Instruction-/Zweirunden-Flow als fachliches Vorbild), Story **3.3b** (Abstimmung), Story **4.1** / **4.4** (Scoring & Visualisierung), Story **2.4** (Data-Stripping).
+- **Story 1.2e (Fragentyp: Kurzantwort / Short Answer mit Musterlösung):** 🟡 Als Lehrperson möchte ich **bewertbare Kurzantwort-Fragen** stellen können, bei denen Teilnehmende ein **kurzes Wort oder eine kurze Phrase** eingeben und das System diese Antwort anhand von **vordefinierten Musterlösungen** automatisch als richtig oder falsch bewertet.
+  - **Akzeptanzkriterien:**
+    - **Neuer Fragentyp:** Neuer Typ `SHORT_TEXT` (oder fachlich gleichwertige Benennung) in `@arsnova/shared-types`, klar getrennt von `FREETEXT`.
+    - **Abgrenzung zu Freitext:** `FREETEXT` bleibt **offen, unbewertet und ohne Musterlösung**. Der neue Typ ist **bewertbar** und für kurze, erwartbare Antworten gedacht.
+    - **Editor (Lehrperson):** Im Quiz-Editor kann die Lehrperson für eine Kurzantwort-Frage
+      - eine oder mehrere **gültige Musterlösungen** hinterlegen,
+      - optional **alternative Schreibweisen** ergänzen,
+      - die **maximale Antwortlänge** konfigurieren oder einen sinnvollen Standardwert übernehmen,
+      - festlegen, ob **Groß-/Kleinschreibung relevant** ist.
+    - **Normalisierung:** Vor dem Vergleich werden Eingaben auf Client und Server nach denselben Regeln normalisiert. Mindestens:
+      - führende und nachgestellte Leerzeichen entfernen,
+      - Mehrfach-Leerzeichen im Inneren vereinheitlichen,
+      - optional Groß-/Kleinschreibung ignorieren.
+    - **Nicht-Ziel im ersten Schritt:** Kein semantisches Matching, keine KI-Auswertung, keine Fuzzy-Suche, keine automatische Tippfehler-Toleranz.
+    - **Teilnehmenden-UI:** Die Antwort erfolgt über ein kompaktes Texteingabefeld für kurze Antworten, nicht über eine große Freitextbox.
+    - **Validierung:** Leere Eingaben werden abgewiesen. Antworten oberhalb der zulässigen Länge werden mit einer **lokalisierten** Fehlermeldung abgewiesen; es wird kein Vote gespeichert/gesendet.
+    - **Wertung:** Die Antwort gilt als **richtig**, wenn sie nach Normalisierung exakt einer hinterlegten Musterlösung entspricht; sonst falsch.
+    - **Scoring:** Kurzantwort-Fragen nehmen regulär am Quiz-Scoring teil wie andere bewertbare Fragetypen.
+    - **Data Stripping:** Während `ACTIVE` erhalten Teilnehmende **keine** Information über Musterlösungen oder Korrektheit. `isCorrect` und richtige Lösungen werden erst in `RESULTS` offengelegt.
+    - **Ergebnis-Visualisierung:** In der Host-/Presenter-Ansicht werden mindestens angezeigt:
+      - Anzahl richtiger und falscher Antworten,
+      - die hinterlegten Musterlösungen,
+      - optional aggregierte falsche Eingaben in gekürzter Form, soweit datenschutz- und UX-seitig vertretbar.
+    - **Import/Export:** Der Fragetyp samt Musterlösungen ist im Quiz-JSON vollständig serialisierbar. Der Ergebnisexport behandelt Kurzantworten getrennt von offenem Freitext; mindestens richtige/falsche Anzahl und Musterlösungen sind exportierbar.
+    - **Tests:** Es gibt Unit-/Komponententests für
+      - Normalisierung,
+      - korrekte/falsche Bewertung,
+      - Data-Stripping im aktiven Zustand,
+      - Editor-Validierung,
+      - Import/Export des Fragetypen.
+- **Story 1.2f (Fragentyp: Hotspot auf Bild):** 🟡 Als Lehrperson möchte ich **Hotspot-Fragen auf Bildern** stellen können, damit Teilnehmende eine **Position oder Region auf einem Bild** markieren können, z. B. in Karten, Diagrammen, anatomischen Abbildungen, Fotos oder technischen Skizzen. Als Host möchte ich nach der Ergebnisfreigabe eine **aggregierte, beamer-taugliche Visualisierung** der Klicks/Taps sehen, um typische Fehlwahrnehmungen und Cluster schnell zu erkennen – **ohne** dass während der laufenden Antwortphase ein Herdeneffekt entsteht.
+  - **Akzeptanzkriterien:**
+    - **Neuer Fragentyp:** Neuer Typ `IMAGE_HOTSPOT` (oder fachlich gleichwertige Benennung) in `@arsnova/shared-types`, klar getrennt von textbasierten Antwortformaten.
+    - **Bildquelle & Policy:** Die Lehrperson hinterlegt das Bild als **externe HTTPS-URL** gemäß bestehender Markdown-/Bild-Policy (Story **1.7a** / ADR-0015); Alt-Text bzw. beschreibender Titel sind konfigurierbar. Es gibt **keinen** separaten Uploadpfad nur für diesen Fragentyp.
+    - **Editor (Lehrperson):** Im Quiz-Editor kann die Lehrperson
+      - ein Bild auswählen bzw. referenzieren,
+      - **mindestens eine korrekte Zielzone** definieren,
+      - Zielzonen visuell auf dem Bild platzieren,
+      - **mindestens rechteckige und kreisförmige** Zielzonen konfigurieren,
+      - optional mehrere richtige Zonen hinterlegen (z. B. „markiere eine von mehreren richtigen Stellen“),
+      - optional eine **Treffer-Toleranz** bzw. Mindestgröße konfigurieren, soweit fachlich sinnvoll.
+    - **Nicht-Ziel im ersten Schritt:** Keine Freihand-Masken, kein Polygon-Editor mit beliebig vielen Punkten, keine Bildannotation mit Text-Layern, keine serverseitige Bildverarbeitung.
+    - **Teilnehmenden-UI:** Das Bild wird auf Smartphone und Desktop so dargestellt, dass ein **Tap/Klick** auf die Zielposition möglich ist. Die Interaktion ist **touch-first** und nicht auf Hover angewiesen. Vor dem Absenden ist die gewählte Position bzw. Zone klar markiert und kann geändert werden.
+    - **Barrierefreiheit / Bedienbarkeit:** Für kleine Displays gibt es eine robuste Bedienstrategie, z. B. ausreichend große Touch-Flächen, Zoom-/Vollansicht oder eine Lupe, sofern das Bild sonst nicht präzise bedienbar wäre. Die Frage bleibt auch bei `prefers-reduced-motion` und ohne Maus sinnvoll nutzbar.
+    - **Validierung:** Pro Antwort ist standardmäßig **genau eine Markierung** zulässig, außer der Fragetyp wird explizit auf mehrere Hotspots erweitert. Leere Submissions werden abgewiesen.
+    - **Wertung:** Eine Antwort gilt als **richtig**, wenn die markierte Position innerhalb einer gültigen Zielzone bzw. Toleranz liegt. Die Auswertung erfolgt serverseitig; während `ACTIVE` werden Zielzonen und Korrektheit gemäß Story **2.4** nicht an Teilnehmende offengelegt.
+    - **Scoring:** Hotspot-Fragen nehmen regulär am Quiz-Scoring teil wie andere bewertbare Fragetypen.
+    - **Host-/Presenter-Visualisierung nach Freigabe:** Nach Ergebnisfreigabe zeigt die Host-/Presenter-Ansicht mindestens
+      - das zugrunde liegende Bild,
+      - die korrekten Zielzonen als Overlay,
+      - die aggregierten Klick-/Tap-Punkte bzw. eine Heatmap/Cluster-Darstellung,
+      - Kennzahlen wie **n**, **Trefferquote** und optional häufigste Fehlcluster.
+    - **Kein Herdeneffekt:** Während der aktiven Antwortphase sind **keine** Live-Punktewolken, Heatmaps oder sonstige räumliche Verteilungen sichtbar. Erlaubt sind nur neutrale Fortschrittsanzeigen ohne Lageinformation.
+    - **Datenschutz / Anzeige:** In der öffentlichen Host-/Presenter-Ansicht werden nur **aggregierte** Daten gezeigt; keine personenscharfe Zuordnung einzelner Klicks zu Namen.
+    - **Import/Export:** Bildreferenz, Zielzonen und ggf. Toleranz sind vollständig im Quiz-JSON serialisierbar und beim Import validierbar.
+    - **Tests:** Es gibt Unit-/Komponententests für Zonentreffer, Randfälle an Zonengrenzen, Data-Stripping im aktiven Zustand, Editor-Validierung sowie Import/Export.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings für Editor, Teilnehmenden- und Host-Ansicht in **de, en, fr, es, it**.
+  - **Abhängigkeiten:** Story **1.7a** (Bild-Policy / Lightbox-Verhalten), Story **1.3** (Bewertungslogik), Story **2.4** (Data-Stripping), Story **3.3a/b** (Teilnehmenden-Flow), Story **4.1** / **4.4** (Scoring & Ergebnisvisualisierung), Story **4.7** (Export, falls Ergebnisdaten mit aufgenommen werden).
+- **Story 1.2g (Fragentyp: Zuordnung / Matching):** 🟡 Als Lehrperson möchte ich **Zuordnungsfragen** erstellen können, bei denen Teilnehmende Begriffe, Definitionen, Formeln, Beispiele oder kurze Aussagen korrekt **miteinander verknüpfen**, damit Beziehungen zwischen Konzepten statt nur Einzelantworten geprüft werden können. Als Host möchte ich nach Freigabe eine **Auswertung typischer Verwechslungen** sehen, um Misskonzepte gezielt besprechen zu können.
+  - **Akzeptanzkriterien:**
+    - **Neuer Fragentyp:** Neuer Typ `MATCHING` (oder fachlich gleichwertige Benennung) in `@arsnova/shared-types`.
+    - **Editor (Lehrperson):** Im Quiz-Editor kann die Lehrperson
+      - mindestens **2 bis 6 Paare** definieren,
+      - pro Seite kurze Texte bzw. kurze Markdown-Fragmente hinterlegen,
+      - die korrekten Zuordnungen eindeutig festlegen,
+      - optional die Reihenfolge der rechten Seite pro Teilnehmenden zufällig mischen lassen,
+      - optional zusätzliche Instruktionen im Fragetext formulieren (Markdown/KaTeX wie bisher).
+    - **Nicht-Ziel im ersten Schritt:** Keine komplexen N:M-Beziehungen, keine Gruppenbildung mit mehr als zwei Spalten, keine schwere Drag-only-Interaktion ohne mobile Alternative.
+    - **Teilnehmenden-UI:** Die Zuordnung ist auf Smartphone und Desktop **robust bedienbar**, z. B. per Tap-to-connect, Auswahl in zwei Schritten oder Drag-and-drop mit klarer Touch-Alternative. Die Interaktion darf nicht voraussetzen, dass Desktop-Hover verfügbar ist.
+    - **Validierung:** Jede linke Position muss genau einer rechten Position zugeordnet werden; unvollständige Zuordnungen können nicht abgesendet werden.
+    - **Wertung:** Im ersten Schritt ist die Frage **voll korrekt** oder **nicht voll korrekt** für das Scoring; zusätzlich werden intern pro Paar korrekte/falsche Zuordnungen ausgewertet, damit die Host-Analyse feingranularer sein kann.
+    - **Scoring:** Matching-Fragen nehmen regulär am Quiz-Scoring teil. Eine spätere Erweiterung auf Teilpunkte ist architektonisch nicht verbaut, aber **kein Pflichtumfang** dieser Story.
+    - **Host-/Presenter-Visualisierung nach Freigabe:** Die Auswertung zeigt mindestens
+      - die korrekten Paare,
+      - pro Paar die Trefferquote,
+      - eine Übersicht häufiger Fehlzuordnungen bzw. Verwechslungen,
+      - eine kompakte, beamer-taugliche Darstellung (z. B. Matrix oder „häufig falsch verbunden mit …“).
+    - **Kein Herdeneffekt:** Während `ACTIVE` gibt es keine öffentliche Zwischenanzeige, welche Paare sich als populär oder problematisch abzeichnen.
+    - **Data Stripping:** Während der aktiven Phase erhalten Teilnehmende keine Information darüber, welche Zuordnungen korrekt sind.
+    - **Import/Export:** Paare, Reihenfolge und Shuffle-Konfiguration sind vollständig serialisierbar; der JSON-Import validiert Kardinalität und Eindeutigkeit.
+    - **Tests:** Es gibt Tests für Editor-Validierung, korrekte/falsche Zuordnung, Shuffle ohne Verlust der Lösungsabbildung, Data-Stripping sowie Import/Export.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings in **de, en, fr, es, it**.
+  - **Abhängigkeiten:** Story **1.3** (Bewertungslogik), Story **1.7** (Markdown/KaTeX in Item-Texten), Story **2.4** (Data-Stripping), Story **3.3a/b** (Teilnehmenden-UI), Story **4.1** / **4.4** (Scoring & Ergebnisvisualisierung), Story **4.7** (Ergebnis-Export).
+- **Story 1.2h (Fragentyp: Reihenfolge / Sortieren):** 🟡 Als Lehrperson möchte ich **Sortier- bzw. Reihenfolgefragen** stellen können, bei denen Teilnehmende Schritte, Ereignisse, Argumente oder Prozessbestandteile in die **richtige Abfolge** bringen, damit zeitliche, logische oder prozedurale Zusammenhänge geprüft werden können. Als Host möchte ich nach der Freigabe nicht nur sehen, **wer richtig lag**, sondern auch **welche Vertauschungen typischerweise auftreten**.
+  - **Akzeptanzkriterien:**
+    - **Neuer Fragentyp:** Neuer Typ `ORDERING` (oder fachlich gleichwertige Benennung) in `@arsnova/shared-types`.
+    - **Editor (Lehrperson):** Im Quiz-Editor kann die Lehrperson
+      - mindestens **3 bis 8 Elemente** hinterlegen,
+      - die Soll-Reihenfolge definieren,
+      - optionale kurze Markdown-/KaTeX-Inhalte pro Element verwenden,
+      - festlegen, dass die Elemente bei Teilnehmenden immer in **zufälliger Startreihenfolge** angezeigt werden.
+    - **Teilnehmenden-UI:** Die Sortierung funktioniert auf Smartphone und Desktop zuverlässig, z. B. per Drag-and-drop **plus** barriereärmerer Alternative wie „nach oben / nach unten“-Steuerung oder vergleichbarer Fokus-/Tastaturbedienung.
+    - **Validierung:** Eine Abgabe ist nur möglich, wenn alle Elemente vorhanden sind und genau einmal in einer Reihenfolge angeordnet wurden.
+    - **Wertung:** Im ersten Schritt gilt die Antwort für das Scoring als **richtig**, wenn die vollständige Reihenfolge korrekt ist; für die Auswertung werden zusätzlich Positionsabweichungen bzw. typische Inversionen intern berechnet.
+    - **Scoring:** Reihenfolgefragen nehmen regulär am Quiz-Scoring teil. Teilpunkte oder Distanz-basierte Bepunktung sind **nicht** Pflicht in dieser Story.
+    - **Host-/Presenter-Visualisierung nach Freigabe:** Die Auswertung zeigt mindestens
+      - die Soll-Reihenfolge,
+      - die Trefferquote vollständig korrekter Antworten,
+      - pro Position, welches Element dort wie häufig platziert wurde,
+      - häufige Vertauschungen bzw. Inversionen (z. B. „Schritt 2 und 3 werden oft vertauscht“),
+      - eine beamer-taugliche Aggregatsdarstellung.
+    - **Kein Herdeneffekt:** Während der aktiven Phase sind keine Live-Verteilungen von Platzierungen sichtbar; nur neutrale Fortschrittsanzeigen ohne Inhaltsbezug.
+    - **Data Stripping:** Während `ACTIVE` werden Soll-Reihenfolge und Bewertung nicht an Teilnehmende übertragen.
+    - **Import/Export:** Elemente und Soll-Reihenfolge sind vollständig im Quiz-JSON enthalten; Importvalidierung erkennt doppelte oder fehlende Elemente.
+    - **Tests:** Es gibt Tests für Editor-Validierung, stabile Shuffle-Logik, korrekte/falsche Reihenfolgen, Aggregation häufiger Vertauschungen, Data-Stripping sowie Import/Export.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings in **de, en, fr, es, it**.
+  - **Abhängigkeiten:** Story **1.3** (Bewertungslogik), Story **1.7** (Markdown/KaTeX in Elementtexten), Story **2.4** (Data-Stripping), Story **3.3a/b** (Teilnehmenden-Flow), Story **4.1** / **4.4** (Scoring & Ergebnisvisualisierung), Story **6.5** (A11y, da Reorder-Interaktion dafür besonders sensibel ist).
+- **Story 1.2i (Confidence Slider / Sicherheitsgrad mit Host-Auswertung):** 🟡 Als Lehrperson möchte ich bei **bewertbaren Fragen** zusätzlich den **Sicherheitsgrad** der Teilnehmenden erfassen können, damit ich nicht nur richtige und falsche Antworten sehe, sondern auch **selbstsicher falsche** Antworten und damit verbundene **Misskonzepte** erkenne. Als Host möchte ich nach der Ergebnisfreigabe eine **eigene Confidence-Auswertung** sehen, die Antwortverhalten und Sicherheit sinnvoll zusammenführt.
+  - **Akzeptanzkriterien:**
+    - **Kein eigener Fragentyp, sondern Zusatzfunktion:** Confidence ist eine **optionale Frage-Einstellung** für bewertbare Formate. Im ersten Schritt mindestens unterstützt für `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT` und `NUMERIC_ESTIMATE`; die Modellierung soll spätere Nutzung für weitere bewertbare Typen (z. B. `IMAGE_HOTSPOT`, `MATCHING`, `ORDERING`) nicht verbauen.
+    - **Editor (Lehrperson):** Im Quiz-Editor gibt es pro unterstützter Frage einen Schalter wie **„Sicherheitsgrad abfragen“**. Die Lehrperson kann mindestens
+      - die Funktion an-/abschalten,
+      - eine **5-stufige Skala** nutzen (Standard),
+      - optionale Labels für niedrige und hohe Sicherheit konfigurieren (z. B. „geraten“ / „sehr sicher“).
+    - **Teilnehmenden-UI:** Wenn Confidence aktiviert ist, geben Teilnehmende neben der Antwort auch ihren Sicherheitsgrad an. Die UX ist auf Smartphone schnell bedienbar, z. B. als Slider, Segmentgruppe oder klar tappbare Stufen. Es ist eindeutig, dass sich der Sicherheitsgrad auf die **gerade abgegebene Antwort** bezieht.
+    - **Validierung:** Wenn Confidence aktiviert ist, ist ohne Sicherheitsangabe kein vollständiger Submit möglich. Vor dem Absenden können sowohl Antwort als auch Confidence-Wert geändert werden.
+    - **Datenspeicherung:** Der Confidence-Wert wird zusammen mit dem Vote serverseitig gespeichert und ist in tRPC-/DTO-Modellen sauber typisiert und über Zod validiert.
+    - **Data Stripping während `ACTIVE`:** Teilnehmende erhalten keine aggregierten Confidence-Daten anderer Personen. In öffentlichen Live-Ansichten wird während der aktiven Phase weder die Confidence-Verteilung noch eine Antwort-/Confidence-Kreuztabelle gezeigt.
+    - **Host-/Presenter-Visualisierung nach Freigabe:** Die Host-Ansicht zeigt mindestens
+      - die **Verteilung der Confidence-Stufen**,
+      - eine **Kreuzauswertung aus Korrektheit × Confidence** (z. B. richtig/sicher, richtig/unsicher, falsch/unsicher, falsch/sicher),
+      - einen klar sichtbaren Hinweis auf **selbstsicher falsche** Antworten als didaktisch relevante Gruppe,
+      - bei Auswahlformaten optional eine Aufschlüsselung, welche **falschen Optionen** mit hoher Sicherheit gewählt wurden,
+      - eine beamer-taugliche, schnell lesbare Darstellung ohne Mikrodetails.
+    - **Didaktischer Mehrwert / Misskonzepte:** Die Auswertung unterstützt explizit die Frage „Was wissen Teilnehmende wirklich – und wo sind sie nur sicher, obwohl sie falsch liegen?“. Entsprechend ist die Visualisierung nicht nur dekorativ, sondern fokussiert auf Fehlkonzepte.
+    - **Scoring:** Confidence beeinflusst im ersten Schritt **nicht** die Punktevergabe und **nicht** das Leaderboard; sie ist eine zusätzliche Diagnose-Dimension.
+    - **Export:** Ergebnisexporte können Confidence mindestens aggregiert enthalten; für Lehrende ist eine getrennte Auswertung von Korrektheit und Confidence exportierbar.
+    - **Tests:** Es gibt Tests für Editor-State, Vote-Validierung, Data-Stripping im aktiven Zustand, Host-Aggregation und Export.
+    - **i18n (ADR-0008):** Alle neuen UI-Strings in **de, en, fr, es, it**.
+  - **Abhängigkeiten:** Story **1.3** (bewertbare Antwortlogik), Story **2.4** (Data-Stripping), Story **3.3b** (Abgabe-UI), Story **4.4** (Host-Ergebnisvisualisierung), Story **4.7** (Export), optional Folgebezug zu Story **2.7** (Peer Instruction), falls Confidence später rundenübergreifend verglichen werden soll.
 - **Story 1.3 (Antworten & Lösungen):** 🔴 Als Lehrperson möchte ich Antwortmöglichkeiten definieren und korrekte Antworten markieren können.
   - **Akzeptanzkriterien:**
     - Antworten können hinzugefügt, bearbeitet und gelöscht werden.
@@ -349,10 +519,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Ohne aktiven Sync bleibt das bisherige Verhalten (nur localStorage); mit Sync werden Änderungen an Preset/Optionen ins Yjs-Dokument geschrieben und so auf andere Clients übertragen.
     - Abhängig von Story 1.6 bzw. 1.6a (Sync-Link/Key muss vorhanden sein).
 - **Story 1.6c (Sync-Sicherheit härten):** 🔴 Als Lehrperson möchte ich, dass geteilte Quiz-Sammlungen sicherer geöffnet werden können, damit ein versehentlich weitergegebener oder missverstandener Sync-Zugang nicht stillschweigend Vollzugriff gewährt.
-  - **Teilstand 2026-04-03:** Die UI-Kommunikation wurde geschärft: Der **Sync-Link** wird als eigentlicher Zugriffsschlüssel benannt, die verkürzte Anzeige nur noch als **Sync-Kurzcode (Anzeigehilfe)** kommuniziert, und Geräte-/Herkunftsangaben werden in UI und Architektur-Doku ausdrücklich als **Vertrauenssignale** beschrieben. Die Story bleibt dennoch offen, weil der serverseitige Missbrauchsschutz für Sync-Raum-Zugriffe sowie der Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** noch fehlen.
+  - **Teilstand 2026-04-03:** Die UI-Kommunikation wurde geschärft: Der **Sync-Link** wird als eigentlicher Zugriffsschlüssel benannt, und Geräte-/Herkunftsangaben werden in UI und Architektur-Doku ausdrücklich als **Vertrauenssignale** beschrieben. Die Story bleibt dennoch offen, weil der serverseitige Missbrauchsschutz für Sync-Raum-Zugriffe sowie der Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** noch fehlen.
   - **Akzeptanzkriterien:**
     - Die UI erklärt klar, dass der **Sync-Link** der eigentliche Zugriffsschlüssel ist.
-    - Die aktuell verkürzte Anzeige der **Sync-ID** wird fachlich bereinigt: entweder nur noch als Anzeigehilfe oder durch einen echten, technisch auflösbaren Kurzcode ersetzt.
     - Für Sync-Raum-Zugriffe existiert ein Schutzkonzept gegen Missbrauch (mindestens Rate-Limit oder gleichwertige Begrenzung auf Relay-/Proxy-Ebene).
     - Ein Härtungspfad für **signierte Share-Tokens** und **Link-Rotation** ist konzipiert und dokumentiert.
     - Herkunfts- und Geräteangaben werden im UI und in der Doku ausdrücklich als **Vertrauenssignale**, nicht als manipulationssichere Sicherheitsnachweise beschrieben.
@@ -380,10 +549,38 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Schließen** der Ansicht: Backdrop-Tap, Schließen-Steuerung und **Escape** (Desktop); **Fokus** und **ARIA** für Barrierefreiheit.
     - **i18n:** UI-Strings (z. B. Schließen, optionaler Hinweis) in **de/en/fr/es/it** (ADR-0008).
     - Architekturentscheidung und Policy sind in **ADR-0015** festgehalten.
-- **Story 1.7b (Markdown/KaTeX-Editor mit MD3-Toolbar):** 🟡 Als Lehrperson möchte ich Fragen- und Antworttexte in einem **Split-View** bearbeiten (**Markdown-Quelle** + **Live-Vorschau** mit KaTeX) und Formatierungen, Links, **externe Bild-URLs** und Formeln **per Klick auf eine eigene Material-3-Toolbar** einfügen, damit die Bearbeitung auf dem **Smartphone** nutzbar bleibt und dieselbe Darstellung wie in der **Live-Session** zuverlässig widerspiegelt wird.
+- **Story 1.7b (Markdown/KaTeX-Editor mit MD3-Toolbar):** ✅ Als Lehrperson möchte ich Fragen- und Antworttexte in einem **Split-View** bearbeiten (**Markdown-Quelle** + **Live-Vorschau** mit KaTeX) und Formatierungen, Links, **externe Bild-URLs** und Formeln **per Klick auf eine eigene Material-3-Toolbar** einfügen, damit die Bearbeitung auf dem **Smartphone** nutzbar bleibt und dieselbe Darstellung wie in der **Live-Session** zuverlässig widerspiegelt wird.
   - **Akzeptanzkriterien:**
     - **Split-View:** Markdown-Quelltext und Vorschau sind gleichzeitig nutzbar; die Vorschau aktualisiert sich mit **Debouncing** (z. B. ≤ 300 ms) wie bei Story 1.7.
     - **Gemeinsame Logik:** Vorschau nutzt dieselbe **Markdown-/KaTeX- und Sanitize-Strategie** wie die bestehende Session-/Preview-Darstellung (kein „zweites, stilles“ Rendering ohne Abgleich).
+    - **Implementierungs-Skizze (verbindliche Bausteine, ohne WYSIWYG-Pflicht):**
+      - **Shared Render-Pipeline:** Eine zentrale, wiederverwendbare Einheit (z. B. `renderMarkdownWithKatex(...)` + Sanitizing + URL-Policy aus ADR-0015) erzeugt das Preview-/Session-HTML. **Alle** Views (Editor-Preview, Host/Present/Vote/Preview) nutzen **denselben** Pfad bzw. dieselbe Konfiguration.
+      - **Editor-Komponente:** Eine Standalone-Editor-Komponente kapselt `textarea` (Quelle), debounced Preview und Toolbar-State mit **Signals** (kein rxjs-Zwang). Sie ist so gebaut, dass sie für **Fragetext** und **Antwortoptionen** wiederverwendbar ist (Inputs: `value`, `disabled`, `placeholder`, optional `compact`; Output: `valueChange`).
+      - **Toolbar + Actions:** Toolbar-Aktionen sind als kleine, testbare Funktionen/Services modelliert (Insert/Wrap/Replace anhand von Selection-Range), damit Edge-Cases (mehrzeilig, Cursor, Undo/Redo) robust bleiben. Dialoge/Sheets (Link/Bild/Formel) liefern strukturierte Werte zurück; das Einfügen erfolgt anschließend über dieselben Action-Funktionen.
+    - **Security (Angular v22 Best Practices):**
+      - **Kein ungeprüftes HTML:** Es wird **kein** untrusted HTML ohne Sanitizing per `[innerHTML]` gerendert. `DomSanitizer.bypassSecurityTrustHtml(...)` wird **nur** als letzter Schritt auf **bereits sanitiztem** HTML eingesetzt (Angular Security Best Practices).
+      - **Sanitizing explizit:** Die Render-Pipeline verwendet einen expliziten Sanitizer (z. B. **DOMPurify**) und eine dokumentierte Policy (Tags/Attributes/URL-Schemata). Links/Bilder müssen die URL-Policy aus ADR-0015 durchsetzen (mindestens `https:`); externe Links erhalten `rel="noopener noreferrer"` und ein sicheres `target`-Verhalten.
+      - **Sanitizing-Policy (konkret, Allowlist-orientiert):**
+        - **Erlaubte Tags (Minimum):** `p`, `br`, `hr`, `strong`, `em`, `s`, `code`, `pre`, `blockquote`, `ul`, `ol`, `li`, `h1`–`h4`, `a`, `img` sowie KaTeX-Output-Container (`span`) für gerenderte Formeln. Weitere Tags nur bei begründetem Bedarf ergänzen.
+        - **Erlaubte Attribute:** Für Links `href`, `title`; für Bilder `src`, `alt`, `title`. **Kein** User-`style`, **keine** `on*`-Handler, keine iframes/forms/embeds. Falls für KaTeX nötig: `class` auf `span`/KaTeX-Elementen zulassen (nur zur Darstellung, nicht als Authoring-Feature).
+        - **URL-Schemata:** `img[src]` **nur `https:`** (ADR-0015). `a[href]` nur aus definierter Allowlist (mind. `https:`; optional `http:`/`mailto:`). Alle anderen Schemata entfernen/neutralisieren.
+        - **Link-Härtung:** Externe Links werden mit `rel="noopener noreferrer"` versehen; `target="_blank"` nur, wenn UX-seitig explizit gewünscht und konsistent umgesetzt.
+    - **Empfohlene Libraries / Angular-Komponenten (Stand 2026, konform zu ADRs & Angular v22 Security):**
+      - **Markdown-Parsing:** `marked` (wie Story 1.7); Security erfolgt **nicht** im Parser, sondern in der gemeinsamen Render-Pipeline.
+      - **Sanitizing:** `dompurify` (Allowlist-Policy wie oben; optional `RETURN_TRUSTED_TYPE` bei strikter CSP/Trusted Types).
+      - **KaTeX:** `katex` mit `trust: false` und gesetzten Limits (`maxExpand`, `maxSize`) gemäß „untrusted input“.
+      - **Textarea-Insert/Wrapping (Undo/Redo best effort):** `text-field-edit` (Insert/Wrap mit besserer Browser-Unterstützung) plus eigene, testbare Action-Funktionen für Selection-Handling.
+      - **MD3 UI:** `MatIconButton`/`MatButton` + `MatMenu` (Overflow), `MatDialog` (Link/Bild/Formel-Dialoge), `MatBottomSheet` (mobile Overflow/Actionsheets).
+      - **A11y/Fokus:** `@angular/cdk/a11y` (z. B. `cdkTrapFocus`, `cdkFocusInitial`, `FocusMonitor`) falls über Standardverhalten hinaus benötigt.
+    - **KaTeX-Sicherheit & Robustheit:**
+      - KaTeX läuft mit **untrusted-input**-tauglicher Konfiguration: `trust` ist **false** (bzw. nur per enger Allowlist-Funktion, falls jemals nötig) und es sind **Limits** gesetzt (`maxExpand`, `maxSize`), um Missbrauch/DoS durch extreme Formeln zu begrenzen.
+      - Fehler in KaTeX werden als **lesbare** Preview-Fehlermeldung angezeigt (kein Crash); die App bleibt interaktiv.
+    - **Mobile-Definition Split-View (320 px):**
+      - Auf kleinen Viewports ist „Split-View“ als **gestapelter** Split (Quelle/Preview untereinander) oder als **schneller Umschaltmodus** mit stabiler Kontextwahrung definiert; beide Paneele bleiben ohne Layout-Brüche nutzbar (keine horizontale Scroll-Fallen).
+    - **A11y für Dialoge/Sheets (Link/Bild/Formel):**
+      - Dialoge/Sheets setzen initialen Fokus sinnvoll, halten Fokus innerhalb des Overlays, schließen per **Escape** (wo passend) und geben Fokus nach Close an den auslösenden Toolbar-Button zurück; Titel/Labels sind über `aria-labelledby`/`aria-label` angebunden.
+    - **Undo/Redo (Best-Effort):**
+      - Toolbar-Inserts/Wrapping respektieren native Undo/Redo **best effort**; browserbedingte Unterschiede sind akzeptiert, aber Cursor/Selection werden nach jeder Aktion deterministisch gesetzt.
     - **MD3-Toolbar (Klick/Tap):** Aktionen mindestens für Fett, Kursiv, Überschrift (sinnvolle Stufen), Listen, Zitat, Inline-Code, Codeblock, Link (Sheet/Dialog mit Text + URL), **Bild nur per HTTPS-URL** (+ Alt-Text, **kein Upload** — **ADR-0015**), **Inline- und Block-Formel** (Delimiters wie in der App dokumentiert).
     - **Mobile:** häufige Aktionen in der ersten Zeile; weitere über **Menü** oder **Bottom Sheet**; Touch-Ziele ausreichend groß (Mobile-First).
     - **Open Source:** eingesetzte Abhängigkeiten für Parsing/Hilfen sind **Open Source** und zur Projektlizenz kompatibel (**ADR-0016**); keine Pflicht-Komponente aus kommerziellen Rich-Text-Suites.
@@ -436,9 +633,9 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Alle Operationen erfolgen rein clientseitig (Local-First).
 - **Story 1.11 (Quiz-Presets):** 🟡 Als Lehrperson möchte ich beim Erstellen eines Quizzes ein Preset auswählen können, das alle Gamification-Einstellungen auf einmal setzt, damit ich schnell zwischen spielerischem und seriösem Modus wechseln kann.
   - **Akzeptanzkriterien:**
-    - Es gibt **zwei** Presets in der Quiz-Konfiguration:
-      - **🎮 Spielerisch** (default): setzt `showLeaderboard=true`, `enableSoundEffects=true`, `enableRewardEffects=true`, `enableMotivationMessages=true`, `enableEmojiReactions=true`, `anonymousMode=false`.
-      - **🎓 Seriös**: setzt `showLeaderboard=false`, `enableSoundEffects=false`, `enableRewardEffects=false`, `enableMotivationMessages=false`, `enableEmojiReactions=false`, `anonymousMode=true`, `defaultTimer=null` (offene Antwortphase).
+    - Es gibt **zwei** Presets in der Quiz-Konfiguration (Implementierung: `QUIZ_PRESETS` in `@arsnova/shared-types`):
+      - **🎮 Spielerisch** (default): u. a. `showLeaderboard=true`, `enableSoundEffects=true`, `enableRewardEffects=true`, `enableMotivationMessages=true`, `enableEmojiReactions=true`, `anonymousMode=false`, `allowCustomNicknames=false`, `nicknameTheme=HIGH_SCHOOL`, `defaultTimer` = Standard-Countdown (`DEFAULT_TIMER_SECONDS`), `readingPhaseEnabled=false`.
+      - **🎓 Seriös**: u. a. `showLeaderboard=false`, `enableSoundEffects=false`, `enableRewardEffects=false`, `enableMotivationMessages=false`, `enableEmojiReactions=false`, `anonymousMode=false` (Pseudonyme aus Themenliste, nicht reiner Anonym-Modus), `allowCustomNicknames=false`, `nicknameTheme=HIGH_SCHOOL`, `defaultTimer=null` (offene Antwortphase), `readingPhaseEnabled=true`.
     - **Einzeloptionen sind auswählbar:** Jede Option kann unabhängig an- oder abgewählt bzw. gesetzt werden; die UI bietet pro Option einen klaren Toggle oder ein Eingabefeld. Nach Auswahl eines Presets kann die Lehrperson jede Einzeloption überschreiben. Die gewählten **Einzelwerte werden gespeichert** — im Quiz-Dokument (Yjs) und damit persistent (Local-First, Sync über Yjs).
     - Das Preset dient nur als Komfortfunktion zum einmaligen Vorsetzen der Werte; **maßgeblich und gespeichert sind die Einzelwerte** (über Yjs), nicht das Preset selbst.
     - Ein visueller Hinweis (Badge „Spielerisch" / „Seriös") zeigt an, welchem Preset die aktuelle Konfiguration entspricht. Wenn Einzelwerte abweichen, wird „Benutzerdefiniert" angezeigt.
@@ -446,7 +643,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - **showLeaderboard** — Leaderboard mit Rangfolge anzeigen (ja/nein).
       - **allowCustomNicknames** — Eigene Pseudonyme erlauben oder nur vordefinierte Liste (Story 1.4) (ja/nein).
       - **defaultTimer** — Standard-Countdown in Sekunden pro Frage (Zahl oder „offen" / null).
-      - **enableSoundEffects** — Sound-Effekte bei Aktionen (ja/nein).
+      - **enableSoundEffects** — **Action Sounds**: kurze SFX (z. B. Countdown), nicht Phasen-Hintergrundmusik (ja/nein).
       - **enableRewardEffects** — Belohnungseffekte (ja/nein).
       - **enableMotivationMessages** — Motivationsmeldungen (ja/nein).
       - **enableEmojiReactions** — Emoji-Reaktionen (ja/nein).
@@ -709,7 +906,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Doppelte Nicknames in derselben Session werden abgelehnt (DB-Constraint).
 - **Story 3.6 (Anonymer Modus):** 🟡 Als Lehrperson möchte ich einen anonymen Modus aktivieren können, bei dem keine Nicknames angezeigt werden, damit die Teilnahme psychologisch druckfrei ist.
   - **Akzeptanzkriterien:**
-    - Neues Quiz-Konfigurationsfeld `anonymousMode` (default: false; wird automatisch durch Preset „Seriös" aktiviert, Story 1.11).
+    - Neues Quiz-Konfigurationsfeld `anonymousMode` (default: false; **Preset „Seriös“ setzt `anonymousMode=false`** — reiner Anonym-Modus ist optional separat aktivierbar, Story 1.11).
     - Wenn aktiviert:
       - Teilnehmende erhalten beim Beitreten eine automatisch generierte ID (z. B. „Teilnehmer #7“) — kein Nickname-Auswahlschritt.
       - In der Lobby (Story 2.2) wird nur die **Zahl der Teilnehmenden** angezeigt, keine Namensliste.
@@ -1042,7 +1239,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Umsetzung:** Die als **Should/Must für die Reihe** markierten UX-Anpassungen werden **im Code umgesetzt** (Wording gemäß ADR-0008 in allen Locales, Layout/Interaktion gemäß ADR-0005/ADR-0014 wo betroffen); nachvollziehbar z. B. über Verweis von Maßnahmenliste auf PRs oder kurze Changelog-Notiz im Repo/`docs/`.
     - Optional aber wünschenswert: **kurze Lessons Learned** (1 Seite) für künftige Testrunden.
 
-- **Story 6.7 (Startseite: Hero-Chips & Kanal-Einstiege zuverlässig):** 🔴
+- **Story 6.7 (Startseite: Hero-Chips & Kanal-Einstiege zuverlässig):** 🟢
 
   **Kurz (User Story):** Als Veranstaltende\*r nutze ich die **Hero-Chips** auf der Startseite, lande nach dem Start **zuverlässig** im richtigen Host-Kanal und kann die laufende Session **ohne inkonsistentes Verhalten** beenden oder zur App zurückkehren — **unabhängig vom aktiven Kanal** (Quiz, Q&A, Blitzlicht).
 
@@ -1074,13 +1271,18 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
   - **Springender oder kanalabhängiger Ort für Pfad B:** „Session beenden“ darf **nicht** je nach aktivem Kanal an **unterschiedlichen** Stellen (z. B. nur unten in der Blitzlicht-Karte, links in Q&A) erscheinen — **ein** Anker, **eine** Position.
 
   **Akzeptanzkriterien (abnahmefähig):**
-  - [ ] Start über **jeden der drei Hero-Chips** (s. Tabelle; Labels in allen Locales **de/en/fr/it/es**) landet reproduzierbar im **richtigen Ziel** (Quiz-Bibliothek bzw. Host-Tab Q&A / Blitzlicht) (manuell + ggf. Smoke).
-  - [ ] **Pfad A:** Navigation von `/session/…/host` zur Startseite über **Top-Toolbar** (Home/Brand) zeigt bei aktiver Session den **Bestätigungsdialog** und endet die Session nach Zustimmung konsistent.
-  - [ ] **Pfad B:** Button **„Session beenden“** ist **immer am gleichen Host-Anker** platziert (sichtbar beim Wechsel **aller** relevanter Kanal-Tabs: Quiz, Q&A, Blitzlicht), **nicht** in `app-top-toolbar`, mit **demselben** Bestätigungsmuster wie Pfad A (inhaltlich vergleichbare Konsequenzen); **kein** Ortswechsel des Buttons nur durch Kanalwechsel.
-  - [ ] **Vollbild** + **Toolbar eingeklappt/ausgeblendet:** Pfad B bleibt nutzbar; Session-Ende ist **ohne** sichtbare Toolbar möglich.
-  - [ ] Nach Ende: **Host-Token** und **Feedback-Host-Token** (falls gesetzt) sind clientseitig konsistent entfernt; keine Zombie-Requests.
-  - [ ] **i18n (ADR-0008):** Chip-Labels **exakt** wie in der Tabelle für alle fünf Locales; XLF/`messages.*.xlf` synchron.
-  - [ ] **Keine redundanten Session-Exits:** Code-Review / kurzes UI-Audit: **keine** weiteren sichtbaren Einstiege „Session beenden“ (oder unterschiedlich benannt, **gleiche** Wirkung) außer **Pfad A** (Toolbar-Navigation mit Guard) und **Pfad B** (Host-Kanal-Button); alte Duplikate sind entfernt oder auf den gemeinsamen Dialog refaktoriert.
+  - [x] Start über **jeden der drei Hero-Chips** (s. Tabelle; Labels in allen Locales **de/en/fr/it/es**) landet reproduzierbar im **richtigen Ziel** (Quiz-Bibliothek bzw. Host-Tab Q&A / Blitzlicht) (manuell + ggf. Smoke).
+  - [x] **Pfad A:** Navigation von `/session/…/host` zur Startseite über **Top-Toolbar** (Home/Brand) zeigt bei aktiver Session den **Bestätigungsdialog** und endet die Session nach Zustimmung konsistent.
+  - [x] **Pfad B:** Button **„Session beenden“** ist **immer am gleichen Host-Anker** platziert (sichtbar beim Wechsel **aller** relevanter Kanal-Tabs: Quiz, Q&A, Blitzlicht), **nicht** in `app-top-toolbar`, mit **demselben** Bestätigungsmuster wie Pfad A (inhaltlich vergleichbare Konsequenzen); **kein** Ortswechsel des Buttons nur durch Kanalwechsel.
+  - [x] **Vollbild** + **Toolbar eingeklappt/ausgeblendet:** Pfad B bleibt nutzbar; Session-Ende ist **ohne** sichtbare Toolbar möglich.
+  - [x] Nach Ende: **Host-Token** und **Feedback-Host-Token** (falls gesetzt) sind clientseitig konsistent entfernt; keine Zombie-Requests.
+  - [x] **i18n (ADR-0008):** Chip-Labels **exakt** wie in der Tabelle für alle fünf Locales; XLF/`messages.*.xlf` synchron.
+  - [x] **Keine redundanten Session-Exits:** Code-Review / kurzes UI-Audit: **keine** weiteren sichtbaren Einstiege „Session beenden“ (oder unterschiedlich benannt, **gleiche** Wirkung) außer **Pfad A** (Toolbar-Navigation mit Guard) und **Pfad B** (Host-Kanal-Button); alte Duplikate sind entfernt oder auf den gemeinsamen Dialog refaktoriert.
+
+  **Verifizierung (April 2026):**
+  - Frontend-Specs (u. a. `home.component.spec.ts`, `session-host.component.spec.ts`) für Hero-Chip-/Host-Ende-Flows grün.
+  - Kanalübergreifender End-Flow (Quiz/Q&A/Blitzlicht), Token-Cleanup und Host-Route-Erkennung gegen Query-Parameter umgesetzt.
+  - Build-Check: `npm run -w apps/frontend build` erfolgreich.
 
   **Anker im Repo (Orientierung für Agent:innen, nicht abschließend):** `apps/frontend/src/app/features/home/home.component.ts` (Hero-Chips / Navigation zum Host), `apps/frontend/src/app/app.routes.ts` (`canDeactivate` Host-Route), `apps/frontend/src/app/features/session/session-host/session-host.component.ts` + Template, `apps/frontend/src/app/features/session/session.component.ts` (Host-Layout-Erkennung vs. Query), `apps/frontend/src/app/shared/confirm-leave-dialog/`, `apps/frontend/src/app/shared/top-toolbar/`, eingebettetes `FeedbackHostComponent` bei Blitzlicht, `docs/ui/STYLEGUIDE.md`, ADR-0008.
 
@@ -1124,9 +1326,9 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ---
 
-## Epic 8: Q&A-Modus (Rolle: Lehrperson & Teilnehmende:r)
+## Epic 8: Erweiterte Live-Kanäle (Q&A, Tempo)
 
-> **Verifizierung Epic 8 (2026-03-13):** Der bisherige Kernumfang 8.1–8.4 ist umgesetzt. Offen: Story 8.5 (delegierbare Moderation), Story 8.6 (Kontroversitäts-Score), Story 8.7 („Beste Fragen“, Wilson-Score) — Spezifikation und Hintergrund [`docs/features/controversy-score.md`](docs/features/controversy-score.md).  
+> **Verifizierung Epic 8 (2026-03-13):** Der bisherige Q&A-Kernumfang 8.1–8.4 ist umgesetzt. Offen: Story 8.5 (delegierbare Moderation), Story 8.6 (Kontroversitäts-Score), Story 8.7 („Beste Fragen“, Wilson-Score) sowie Story 8.8 (Tempo-Livekanal) — Spezifikation und Hintergrund [`docs/features/controversy-score.md`](docs/features/controversy-score.md).  
 > Backend-Checks: `npm run test -w @arsnova/backend -- qa session.start-qa` ✅.  
 > Frontend-Checks: Spec-Abdeckung für Host-, Vote-, Present- und eingebettete Blitz-Feedback-Flows vorhanden ✅.  
 > Laufzeit-Review: `BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend` ✅, inklusive automatischem Fallback auf bestehende Unified-Session bei Session-Rate-Limit.
@@ -1174,6 +1376,20 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 - **Story 8.7 (Q&A: Sortierung „Beste Fragen“, Wilson-Score):** 🟡 Als Lehrperson oder Moderator:in einer Live-Veranstaltung möchte ich Fragen im Q&A optional nach statistisch belastbarer Zustimmung sortieren können („Beste Fragen“, untere Grenze des Wilson-Konfidenzintervalls), damit Einzelstimmen mit scheinbar 100 % nicht über Fragen mit vielen, fast einhelligen Stimmen rutschen.
   - **Details:** Hintergrund, Wilson-Formel, Beispiel-SQL und Abgrenzung zu Story 8.6: [`docs/features/controversy-score.md`](docs/features/controversy-score.md) (Abschnitte „Best Questions“ / Wilson und Entwicklernotizen).
   - **Hinweis:** Sortier-UI (Dropdown o. Ä.) kann mit Story 8.6 gemeinsam geplant werden; technisch eigenständiges Scoring und Tests.
+- **Story 8.8 (Tempo-Livekanal):** 🟡 Als Lehrperson möchte ich einen persistenten Tempo-Livekanal in einer laufenden ARSnova-Session aktivieren können, damit Teilnehmende während eines Vortrags jederzeit anonym signalisieren können, ob sie folgen, ob es schneller gehen darf, ob es zu schnell ist oder ob sie abgehängt sind.
+  - **Akzeptanzkriterien:**
+    - Der Tempo-Livekanal ist ein **eigenständiger Session-Kanal** und wird **nicht** als Blitzlicht-Fragetyp, Quizfrage oder Gamification-Element modelliert.
+    - Hosts können den Kanal pro Session aktivieren und wieder deaktivieren; ist der Kanal inaktiv, erscheint in der Teilnehmeransicht kein Tempo-Widget.
+    - Teilnehmende sehen genau vier Zustände mit stabiler Semantik: `speed_up` (🚀 Schneller), `following` (🙂 Ich folge), `slow_down` (🐢 Langsamer), `lost` (😵 Verloren).
+    - Teilnehmende können ihren Zustand mit **einem Tap** setzen, später jederzeit ändern und optional wieder entfernen; pro teilnehmender Person zählt immer nur der **zuletzt** gesetzte Zustand.
+    - Der Kanal läuft **parallel** zu Quiz, Q&A und Blitzlicht; Quiz-Runden, Blitzlicht-Abfragen oder Q&A-Moderation beenden oder überschreiben ihn nicht.
+    - Die Teilnehmeransicht zeigt den Tempo-Kanal als **persistentes, mobile-first erreichbares Live-Widget** innerhalb der Session, ohne zusätzlichen Submit-Button und ohne personenbeziehbare Rückmeldungen anderer.
+    - Die Host-Ansicht zeigt **nur aggregierte** Werte: Verteilung der vier Zustände, Prozentwerte, optional absolute Zahlen und eine live aktualisierte Tendenz.
+    - Einzelne Rückmeldungen oder Identitäten dürfen in Host-, Presenter- oder Admin-Ansichten nicht aus dem Tempo-Kanal rekonstruierbar sein; die UI kommuniziert die Anonymität klar.
+    - Die Tendenzlogik unterscheidet mindestens: `Die Mehrheit kann folgen.`, `Das Tempo wirkt zu hoch.`, `Mehrere Teilnehmende sind abgehängt.`, `Die Gruppe signalisiert Unterforderung.`, `Die Gruppe ist heterogen.`
+    - Die vier Zustände sind auf Smartphones ohne horizontales Scrollen erreichbar; Touch-Ziele, Fokuszustände, Screenreader-Namen und semantische Markierung des aktiven Zustands erfüllen die projektweiten A11y-Regeln.
+    - Die technische Umsetzung verwendet ein **eigenes Daten- und API-Modell** für kontinuierliches Tempo-Feedback; Blitzlicht-Logik wie Round-Lock, Vergleichsrunde oder Einmal-Vote wird dafür nicht wiederverwendet.
+  - **Abhängigkeiten:** Story 2.1c (Host-Token / serverseitige Autorisierung), Story 2.8 (produktives Smartphone-Hosting), Story 3.3b (teilnehmendengebundene Eingaben), Story 6.4 (Mobile-First), Story 6.5 (Barrierefreiheit), ADR-0009, ADR-0010, ADR-0014, ADR-0019.
 
 ---
 

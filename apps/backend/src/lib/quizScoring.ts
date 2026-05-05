@@ -40,6 +40,15 @@ interface CalculateVoteScoreInput {
   timerDurationMs?: number | null;
 }
 
+export function isExactCorrectSelection(
+  selectedAnswerIds: string[],
+  correctAnswerIds: string[],
+): boolean {
+  const selected = new Set(selectedAnswerIds);
+  const correct = new Set(correctAnswerIds);
+  return selected.size === correct.size && [...selected].every((id) => correct.has(id));
+}
+
 /**
  * Punkte für eine abgegebene Antwort (Story 4.1).
  * Formel: difficultyMultiplier × timeBonus.
@@ -52,22 +61,21 @@ export function calculateVoteScore(input: CalculateVoteScoreInput): number {
     return 0;
   }
 
-  const selected = new Set(input.selectedAnswerIds);
-  const correct = new Set(input.correctAnswerIds);
-  const isCorrect =
-    selected.size === correct.size && [...selected].every((id) => correct.has(id));
-
-  if (!isCorrect) {
+  if (!isExactCorrectSelection(input.selectedAnswerIds, input.correctAnswerIds)) {
     return 0;
   }
 
   const multiplier = DIFFICULTY_MULTIPLIER[input.difficulty];
 
-  if (input.timerDurationMs && input.timerDurationMs > 0 && input.responseTimeMs !== null && input.responseTimeMs !== undefined) {
+  if (
+    input.timerDurationMs &&
+    input.timerDurationMs > 0 &&
+    input.responseTimeMs !== null &&
+    input.responseTimeMs !== undefined
+  ) {
     const timeFraction = Math.max(0, 1 - input.responseTimeMs / input.timerDurationMs);
     return Math.round(multiplier * MAX_BASE_POINTS * timeFraction);
   }
 
   return MAX_BASE_POINTS * multiplier;
 }
-

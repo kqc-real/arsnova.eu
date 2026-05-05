@@ -1,10 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionHostComponent } from './session-host.component';
+import { ThemePresetService } from '../../../core/theme-preset.service';
+import { QuizStoreService } from '../../quiz/data/quiz-store.service';
 
 const unsubscribeMock = vi.fn();
 
@@ -23,9 +26,24 @@ const {
   qaToggleModerationMutateMock,
   qaOnQuestionsUpdatedSubscribeMock,
   nextQuestionMutateMock,
+  revealAnswersMutateMock,
+  revealResultsMutateMock,
+  startSecondRoundMutateMock,
   startQaMutateMock,
+  attachQuizToSessionMutateMock,
+  enableQaChannelMutateMock,
+  enableQuickFeedbackChannelMutateMock,
+  closeQaChannelMutateMock,
+  reopenQaChannelMutateMock,
+  closeQuickFeedbackChannelMutateMock,
+  reopenQuickFeedbackChannelMutateMock,
   endMutateMock,
+  updatePresetMutateMock,
+  quickFeedbackHostResultsQueryMock,
+  quickFeedbackToggleLockMutateMock,
+  quickFeedbackUpdateStyleMutateMock,
   updateQaTitleMutateMock,
+  quizUploadMutateMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
   clearHostTokenMock,
@@ -45,9 +63,24 @@ const {
   qaToggleModerationMutateMock: vi.fn(),
   qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   nextQuestionMutateMock: vi.fn(),
+  revealAnswersMutateMock: vi.fn(),
+  revealResultsMutateMock: vi.fn(),
+  startSecondRoundMutateMock: vi.fn(),
   startQaMutateMock: vi.fn(),
+  attachQuizToSessionMutateMock: vi.fn(),
+  enableQaChannelMutateMock: vi.fn(),
+  enableQuickFeedbackChannelMutateMock: vi.fn(),
+  closeQaChannelMutateMock: vi.fn(),
+  reopenQaChannelMutateMock: vi.fn(),
+  closeQuickFeedbackChannelMutateMock: vi.fn(),
+  reopenQuickFeedbackChannelMutateMock: vi.fn(),
   endMutateMock: vi.fn(),
+  updatePresetMutateMock: vi.fn(),
+  quickFeedbackHostResultsQueryMock: vi.fn(),
+  quickFeedbackToggleLockMutateMock: vi.fn(),
+  quickFeedbackUpdateStyleMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
+  quizUploadMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   clearHostTokenMock: vi.fn(),
@@ -69,11 +102,25 @@ vi.mock('../../../core/trpc.client', () => ({
       getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
       getExportData: { query: getExportDataQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
+      revealAnswers: { mutate: revealAnswersMutateMock },
+      revealResults: { mutate: revealResultsMutateMock },
+      startSecondRound: { mutate: startSecondRoundMutateMock },
       startQa: { mutate: startQaMutateMock },
+      attachQuizToSession: { mutate: attachQuizToSessionMutateMock },
+      enableQaChannel: { mutate: enableQaChannelMutateMock },
+      enableQuickFeedbackChannel: { mutate: enableQuickFeedbackChannelMutateMock },
+      closeQaChannel: { mutate: closeQaChannelMutateMock },
+      reopenQaChannel: { mutate: reopenQaChannelMutateMock },
+      closeQuickFeedbackChannel: { mutate: closeQuickFeedbackChannelMutateMock },
+      reopenQuickFeedbackChannel: { mutate: reopenQuickFeedbackChannelMutateMock },
       end: { mutate: endMutateMock },
+      updatePreset: { mutate: updatePresetMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
+    },
+    quiz: {
+      upload: { mutate: quizUploadMutateMock },
     },
     qa: {
       list: { query: qaListQueryMock },
@@ -83,6 +130,9 @@ vi.mock('../../../core/trpc.client', () => ({
     },
     quickFeedback: {
       results: { query: vi.fn().mockResolvedValue({ totalVotes: 0, options: [] }) },
+      hostResults: { query: quickFeedbackHostResultsQueryMock },
+      toggleLock: { mutate: quickFeedbackToggleLockMutateMock },
+      updateStyle: { mutate: quickFeedbackUpdateStyleMutateMock },
     },
   },
 }));
@@ -105,6 +155,13 @@ const defaultSession = {
   quizMotifImageUrl: null as string | null,
   title: null,
   participantCount: 0,
+  nicknameTheme: 'HIGH_SCHOOL' as const,
+  allowCustomNicknames: false,
+  anonymousMode: false,
+  teamMode: false,
+  teamCount: null,
+  teamAssignment: null,
+  teamNames: [] as string[],
 };
 
 const defaultLiveFreetext = {
@@ -117,9 +174,120 @@ const defaultLiveFreetext = {
   updatedAt: '2026-03-08T12:00:00.000Z',
 };
 
+const quizStoreMock = {
+  quizzes: signal([
+    {
+      id: 'local-quiz-1',
+      name: 'Quiz Sammlung',
+      description: 'Mitgebrachte Fragen',
+      createdAt: '2026-03-20T12:00:00.000Z',
+      updatedAt: '2026-03-24T12:00:00.000Z',
+      questionCount: 3,
+      teamMode: false,
+      hasBonus: false,
+      lastServerQuizId: null,
+      lastServerQuizAccessProof: null,
+    },
+  ]),
+  getQuizById: vi.fn((id: string) =>
+    id === 'local-quiz-1'
+      ? {
+          id: 'local-quiz-1',
+          name: 'Quiz Sammlung',
+          description: 'Mitgebrachte Fragen',
+          motifImageUrl: null,
+          createdAt: '2026-03-20T12:00:00.000Z',
+          updatedAt: '2026-03-24T12:00:00.000Z',
+          settings: {
+            showLeaderboard: true,
+            allowCustomNicknames: false,
+            defaultTimer: 60,
+            enableSoundEffects: true,
+            enableRewardEffects: true,
+            enableMotivationMessages: true,
+            enableEmojiReactions: true,
+            anonymousMode: false,
+            teamMode: false,
+            teamCount: null,
+            teamAssignment: 'AUTO',
+            teamNames: [],
+            backgroundMusic: null,
+            nicknameTheme: 'HIGH_SCHOOL',
+            bonusTokenCount: null,
+            readingPhaseEnabled: true,
+            preset: 'PLAYFUL',
+          },
+          questions: [],
+        }
+      : id === 'local-quiz-incompatible'
+        ? {
+            id: 'local-quiz-incompatible',
+            name: 'Team Quiz',
+            description: 'Nur für Teams',
+            motifImageUrl: null,
+            createdAt: '2026-03-21T12:00:00.000Z',
+            updatedAt: '2026-03-25T12:00:00.000Z',
+            settings: {
+              showLeaderboard: true,
+              allowCustomNicknames: false,
+              defaultTimer: 60,
+              enableSoundEffects: true,
+              enableRewardEffects: true,
+              enableMotivationMessages: true,
+              enableEmojiReactions: true,
+              anonymousMode: false,
+              teamMode: true,
+              teamCount: 2,
+              teamAssignment: 'MANUAL',
+              teamNames: ['Rot', 'Blau'],
+              backgroundMusic: null,
+              nicknameTheme: 'HIGH_SCHOOL',
+              bonusTokenCount: null,
+              readingPhaseEnabled: true,
+              preset: 'PLAYFUL',
+            },
+            questions: [],
+          }
+        : null,
+  ),
+  getUploadPayload: vi.fn(),
+  setLastServerUploadAccess: vi.fn(),
+};
+
 describe('SessionHostComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('crypto', {
+      subtle: {
+        digest: vi.fn().mockResolvedValue(new Uint8Array(32).buffer),
+      },
+    });
+    quizStoreMock.quizzes.set([
+      {
+        id: 'local-quiz-1',
+        name: 'Quiz Sammlung',
+        description: 'Mitgebrachte Fragen',
+        createdAt: '2026-03-20T12:00:00.000Z',
+        updatedAt: '2026-03-24T12:00:00.000Z',
+        questionCount: 3,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+      {
+        id: 'local-quiz-incompatible',
+        name: 'Team Quiz',
+        description: 'Nur für Teams',
+        createdAt: '2026-03-21T12:00:00.000Z',
+        updatedAt: '2026-03-25T12:00:00.000Z',
+        questionCount: 4,
+        teamMode: true,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+    ]);
     unsubscribeMock.mockClear();
     healthCheckQueryMock.mockResolvedValue({
       status: 'ok',
@@ -144,9 +312,102 @@ describe('SessionHostComponent', () => {
       currentQuestion: null,
       currentRound: 1,
     });
+    startSecondRoundMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 2,
+      activeAt: '2026-03-24T12:00:00.000Z',
+    });
+    attachQuizToSessionMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: false, open: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true, open: true },
+    });
+    enableQaChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: true, open: true, title: null, moderationMode: true },
+      quickFeedback: { enabled: false, open: false },
+    });
+    enableQuickFeedbackChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: false, open: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true, open: true },
+    });
+    closeQaChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: true, open: false, title: 'Fragen', moderationMode: true },
+      quickFeedback: { enabled: false, open: false },
+    });
+    reopenQaChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+      quickFeedback: { enabled: false, open: false },
+    });
+    closeQuickFeedbackChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: false, open: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true, open: false },
+    });
+    reopenQuickFeedbackChannelMutateMock.mockResolvedValue({
+      quiz: { enabled: true },
+      qa: { enabled: false, open: false, title: null, moderationMode: false },
+      quickFeedback: { enabled: true, open: true },
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({ totalVotes: 0, options: [] });
+    quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true });
+    quizUploadMutateMock.mockResolvedValue({
+      quizId: '44444444-4444-4444-8444-444444444444',
+    });
+    quizStoreMock.getUploadPayload.mockReturnValue({
+      name: 'Quiz Sammlung',
+      description: 'Mitgebrachte Fragen',
+      motifImageUrl: null,
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      defaultTimer: 30,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamCount: null,
+      teamAssignment: 'AUTO',
+      teamNames: [],
+      backgroundMusic: null,
+      nicknameTheme: 'HIGH_SCHOOL',
+      bonusTokenCount: null,
+      readingPhaseEnabled: true,
+      preset: 'PLAYFUL',
+      questions: [
+        {
+          text: 'Frage 1',
+          type: 'SINGLE_CHOICE',
+          difficulty: 'MEDIUM',
+          order: 0,
+          timer: 30,
+          answers: [
+            { text: 'A', isCorrect: true },
+            { text: 'B', isCorrect: false },
+          ],
+        },
+      ],
+    });
     nextQuestionMutateMock.mockResolvedValue({
       status: 'ACTIVE',
       currentQuestion: null,
+      currentRound: 1,
+      activeAt: null,
+    });
+    revealAnswersMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      activeAt: null,
+    });
+    revealResultsMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
       currentRound: 1,
       activeAt: null,
     });
@@ -155,6 +416,11 @@ describe('SessionHostComponent', () => {
       currentQuestion: null,
       activeAt: null,
     });
+    updatePresetMutateMock.mockResolvedValue({
+      code: 'ABC123',
+      preset: 'SERIOUS',
+    });
+    quickFeedbackUpdateStyleMutateMock.mockResolvedValue({});
     updateQaTitleMutateMock.mockResolvedValue({
       title: 'Titel',
       qaTitle: 'Titel',
@@ -162,8 +428,14 @@ describe('SessionHostComponent', () => {
     qaToggleModerationMutateMock.mockResolvedValue({ enabled: true });
     dialogOpenMock.mockReturnValue({ afterClosed: () => of(true) });
     getExportDataQueryMock.mockResolvedValue({
+      sessionId: defaultSession.id,
       sessionCode: 'ABC123',
+      quizName: 'Demo Quiz',
+      finishedAt: '2026-03-24T12:30:00.000Z',
+      participantCount: 0,
+      teamMode: false,
       questions: [],
+      teamLeaderboard: [],
       bonusTokens: [],
     });
   });
@@ -175,6 +447,7 @@ describe('SessionHostComponent', () => {
         provideRouter([]),
         { provide: MatDialog, useValue: { open: dialogOpenMock } },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        { provide: QuizStoreService, useValue: quizStoreMock },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -190,6 +463,46 @@ describe('SessionHostComponent', () => {
     return TestBed.createComponent(SessionHostComponent);
   };
 
+  it('cacht gerendertes Markdown fuer identische Texte', () => {
+    const fixture = setup();
+    const component = fixture.componentInstance;
+
+    const first = component.renderMarkdown('![Bild](https://example.org/test.png)');
+    const second = component.renderMarkdown('![Bild](https://example.org/test.png)');
+
+    expect(second).toBe(first);
+    fixture.destroy();
+  }, 15000);
+
+  it('markiert fuehrende Emojis in Antworttexten fuer ein kompakteres Host-Layout', () => {
+    const fixture = setup();
+    const component = fixture.componentInstance;
+
+    const rendered = component.renderMarkdown('😭 Gerade etwas überfordert') as unknown as {
+      changingThisBreaksApplicationSecurity?: string;
+    };
+
+    expect(rendered.changingThisBreaksApplicationSecurity).toContain('answer-leading-emoji');
+    expect(rendered.changingThisBreaksApplicationSecurity).toContain('Gerade etwas überfordert');
+    fixture.destroy();
+  }, 15000);
+
+  it('baut QR-Join-Links unter einem localized production base href', () => {
+    const base = document.createElement('base');
+    base.setAttribute('href', '/en/');
+    document.head.prepend(base);
+
+    try {
+      const fixture = setup();
+      expect(fixture.componentInstance.joinUrl).toBe(
+        `${window.location.origin}/en/join/ABC123?join=ABC123`,
+      );
+      fixture.destroy();
+    } finally {
+      base.remove();
+    }
+  });
+
   it('zeigt Lobby mit Session-Code und Button Erste Frage starten bei Status LOBBY', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
 
@@ -201,6 +514,288 @@ describe('SessionHostComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('ABC123');
     expect(text).toContain('Erste Frage starten');
+    fixture.destroy();
+  });
+
+  it('zeigt bei Rating-Fragen auf dem Host die komplette Skala', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 6 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 6,
+      totalQuestions: 7,
+      text: 'Wie sicher fühlst du dich?',
+      type: 'RATING',
+      timer: 30,
+      answers: [],
+      ratingMin: 1,
+      ratingMax: 5,
+      ratingLabelMin: 'Unsicher',
+      ratingLabelMax: 'Sicher',
+      currentRound: 1,
+      ratingCount: 0,
+      totalVotes: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () =>
+        fixture.nativeElement.querySelectorAll('.session-host__rating-scale-value').length === 5,
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    fixture.detectChanges();
+
+    const scaleValues = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-host__rating-scale-value'),
+    ).map((node: Element) => node.textContent?.trim());
+
+    expect(scaleValues).toEqual(['1', '2', '3', '4', '5']);
+    fixture.destroy();
+  });
+
+  it('aktiviert im Quiz-Foyer bereits die immersive Host-Ansicht', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.isImmersiveMode()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('.session-host__view-controls--inline'),
+    ).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt im Host auch noch inaktive Kanaele als Tabs an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Quiz');
+    expect(text).toContain('Q&A');
+    expect(text).toContain('Blitzlicht');
+    expect(text).toContain('Aus');
+    fixture.destroy();
+  });
+
+  it('aktiviert den Q&A-Tab beim Klick auf einen inaktiven Kanal', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    qaOnQuestionsUpdatedSubscribeMock.mockClear();
+
+    await fixture.componentInstance.selectChannel('qa');
+    fixture.detectChanges();
+
+    expect(enableQaChannelMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(qaOnQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+      { sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad', moderatorView: true },
+      expect.any(Object),
+    );
+    expect(fixture.componentInstance.activeChannel()).toBe('qa');
+    expect(fixture.componentInstance.channels().qa).toBe(true);
+    fixture.destroy();
+  });
+
+  it('öffnet beim inaktiven Quiz-Tab die Sammlung, lädt das Quiz hoch und hängt es an die Session', async () => {
+    getInfoQueryMock
+      .mockResolvedValueOnce({
+        ...defaultSession,
+        quizName: null,
+        channels: {
+          quiz: { enabled: false },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: true, open: true },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...defaultSession,
+        quizName: 'Quiz Sammlung',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    await fixture.componentInstance.selectChannel('quiz');
+    fixture.detectChanges();
+
+    expect(dialogOpenMock).toHaveBeenCalled();
+    expect(quizStoreMock.getUploadPayload).toHaveBeenCalledWith('local-quiz-1');
+    expect(quizUploadMutateMock).toHaveBeenCalledTimes(1);
+    expect(attachQuizToSessionMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      quizId: '44444444-4444-4444-8444-444444444444',
+    });
+    expect(quizStoreMock.setLastServerUploadAccess).toHaveBeenCalledTimes(1);
+    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
+    expect(fixture.componentInstance.channels().quiz).toBe(true);
+    expect(fixture.componentInstance.session()?.quizName).toBe('Quiz Sammlung');
+    fixture.destroy();
+  });
+
+  it('zeigt vor dem ersten Quizstart nur kompatible Quizze zum Wechsel an', async () => {
+    getInfoQueryMock
+      .mockResolvedValueOnce({
+        ...defaultSession,
+        quizName: 'Erstes Quiz',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      })
+      .mockResolvedValueOnce({
+        ...defaultSession,
+        quizName: 'Quiz Sammlung',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.canReplaceQuizBeforeStart()).toBe(true);
+    await fixture.componentInstance.replaceQuizBeforeStart();
+    fixture.detectChanges();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          sessionProfile: expect.objectContaining({
+            nicknameTheme: 'HIGH_SCHOOL',
+            allowCustomNicknames: false,
+            anonymousMode: false,
+            teamMode: false,
+            teamCount: null,
+            teamAssignment: 'AUTO',
+          }),
+          quizzes: [
+            expect.objectContaining({
+              id: 'local-quiz-1',
+              name: 'Quiz Sammlung',
+            }),
+          ],
+        }),
+      }),
+    );
+    expect(quizStoreMock.getUploadPayload).toHaveBeenCalledWith('local-quiz-1');
+    expect(attachQuizToSessionMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      quizId: '44444444-4444-4444-8444-444444444444',
+    });
+    fixture.destroy();
+  });
+
+  it('schließt den aktiven Q&A-Kanal über die Sichtbarkeitsaktion', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await fixture.componentInstance.selectChannel('qa');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe('Kanal schließen');
+    expect(fixture.componentInstance.activeChannelVisibilityIcon()).toBe('visibility_off');
+
+    await fixture.componentInstance.toggleActiveChannelOpen();
+    fixture.detectChanges();
+
+    expect(closeQaChannelMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.isChannelOpen('qa')).toBe(false);
+    expect(fixture.componentInstance.channelTabMetaLabel('qa')).toBe('Zu');
+    fixture.destroy();
+  });
+
+  it('öffnet den aktiven Blitzlicht-Kanal über die Sichtbarkeitsaktion wieder', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: false },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.activeChannelVisibilityActionLabel()).toBe(
+      'Kanal wieder öffnen',
+    );
+    expect(fixture.componentInstance.activeChannelVisibilityIcon()).toBe('visibility');
+
+    await fixture.componentInstance.toggleActiveChannelOpen();
+    fixture.detectChanges();
+
+    expect(reopenQuickFeedbackChannelMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(fixture.componentInstance.isChannelOpen('quickFeedback')).toBe(true);
     fixture.destroy();
   });
 
@@ -240,6 +835,85 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('schaltet Musik beim Preset-Wechsel sofort um', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', preset: 'PLAYFUL' });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    const syncMusicSpy = vi.spyOn(component as never, 'syncMusic' as never);
+    syncMusicSpy.mockClear();
+
+    const themePreset = TestBed.inject(ThemePresetService);
+    themePreset.setPreset('serious');
+
+    await vi.waitUntil(() => component.musicMuted() === true, {
+      timeout: 1000,
+      interval: 10,
+    });
+    await vi.waitUntil(() => syncMusicSpy.mock.calls.length > 0, {
+      timeout: 1000,
+      interval: 10,
+    });
+    expect(component.musicMuted()).toBe(true);
+    expect(syncMusicSpy.mock.calls.length).toBeGreaterThan(0);
+    expect(updatePresetMutateMock).toHaveBeenCalledWith({ code: 'ABC123', preset: 'SERIOUS' });
+    fixture.destroy();
+  });
+
+  it('schaltet Musik nach Kanalwechsel von Q&A zu Blitzlicht beim Preset-Wechsel sofort um', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    component.selectChannel('qa');
+    component.selectChannel('quickFeedback');
+    expect(component.activeChannel()).toBe('quickFeedback');
+
+    const syncMusicSpy = vi.spyOn(component as never, 'syncMusic' as never);
+    syncMusicSpy.mockClear();
+    updatePresetMutateMock.mockClear();
+
+    const themePreset = TestBed.inject(ThemePresetService);
+    themePreset.setPreset('spielerisch');
+    themePreset.setPreset('serious');
+
+    await vi.waitUntil(() => component.musicMuted() === true, {
+      timeout: 1000,
+      interval: 10,
+    });
+    await vi.waitUntil(() => syncMusicSpy.mock.calls.length > 0, {
+      timeout: 1000,
+      interval: 10,
+    });
+    expect(component.musicMuted()).toBe(true);
+    expect(syncMusicSpy.mock.calls.length).toBeGreaterThan(0);
+    expect(updatePresetMutateMock).toHaveBeenCalledWith({ code: 'ABC123', preset: 'SERIOUS' });
+    fixture.destroy();
+  });
+
   it('navigiert bei verwaister Session mit Session beenden zurück nach Home', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     endMutateMock.mockRejectedValueOnce(new Error('Session nicht gefunden.'));
@@ -255,6 +929,99 @@ describe('SessionHostComponent', () => {
     expect(clearHostTokenMock).toHaveBeenCalledWith('ABC123');
     expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
     expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('öffnet per Klick auf den fixierten Exit-Button den Beenden-Dialog', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor-button',
+    ) as HTMLButtonElement | null;
+    expect(button).not.toBeNull();
+
+    dialogOpenMock.mockClear();
+    button?.click();
+    await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 1, {
+      timeout: 1000,
+      interval: 10,
+    });
+    expect(dialogOpenMock).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
+  it('blendet den Bonus-Code-Hinweis im Beenden-Dialog aus, wenn noch keine Ergebnisse vorliegen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 0,
+      bonusTokenCount: 3,
+    });
+    getExportDataQueryMock.mockResolvedValue({
+      sessionId: defaultSession.id,
+      sessionCode: 'ABC123',
+      quizName: 'Demo Quiz',
+      finishedAt: '2026-03-24T12:30:00.000Z',
+      participantCount: 0,
+      teamMode: false,
+      questions: [],
+      teamLeaderboard: [],
+      bonusTokens: [],
+    });
+    getLeaderboardQueryMock.mockResolvedValue([]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    dialogOpenMock.mockClear();
+    await fixture.componentInstance.onSessionEndAnchorClick();
+
+    const dialogConfig = dialogOpenMock.mock.calls[0]?.[1] as
+      | { data?: { consequences?: string[] } }
+      | undefined;
+    expect(dialogConfig?.data?.consequences?.join(' ')).not.toContain('Bonus-Code');
+    fixture.destroy();
+  });
+
+  it('zeigt den Bonus-Code-Hinweis im Beenden-Dialog nur mit verwertbaren Ergebnissen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 4,
+      bonusTokenCount: 3,
+    });
+    getExportDataQueryMock.mockResolvedValue({
+      sessionId: defaultSession.id,
+      sessionCode: 'ABC123',
+      quizName: 'Demo Quiz',
+      finishedAt: '2026-03-24T12:30:00.000Z',
+      participantCount: 4,
+      teamMode: false,
+      questions: [{ participantCount: 4, optionDistribution: [], freetextAggregates: [] }],
+      teamLeaderboard: [],
+      bonusTokens: [],
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      { participantId: 'p1', nickname: 'Ada', totalScore: 1200, rank: 1 },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    dialogOpenMock.mockClear();
+    await fixture.componentInstance.onSessionEndAnchorClick();
+
+    const dialogConfig = dialogOpenMock.mock.calls[0]?.[1] as
+      | { data?: { consequences?: string[] } }
+      | undefined;
+    expect(dialogConfig?.data?.consequences?.join(' ')).toContain('Bonus-Code');
     fixture.destroy();
   });
 
@@ -283,8 +1050,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: false },
-        quickFeedback: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
       },
     });
 
@@ -351,8 +1118,8 @@ describe('SessionHostComponent', () => {
       status: 'ACTIVE',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -416,6 +1183,50 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('markiert Markdown-Container im Q&A-Kanal fuer responsive Bild-Styles', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: '![Frage](https://example.com/qa.png)',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.qaQuestions().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const qaText = fixture.nativeElement.querySelector(
+      '.session-qa-card__text',
+    ) as HTMLElement | null;
+
+    expect(qaText?.classList.contains('markdown-body')).toBe(true);
+    fixture.destroy();
+  });
+
   it('zeigt bei aktiver reiner Q&A-Session das Fragen-Panel statt nur der Live-Karte', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -425,8 +1236,8 @@ describe('SessionHostComponent', () => {
       status: 'ACTIVE',
       channels: {
         quiz: { enabled: false },
-        qa: { enabled: true, title: 'Offene Fragen', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Offene Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -452,10 +1263,14 @@ describe('SessionHostComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(fixture.componentInstance.showPrimaryLiveView()).toBe(false);
     expect(text).toContain('Vorab-Moderation');
-    expect(text).toContain('Fragerunde beenden');
+    expect(text).toContain('Session beenden');
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--fixed');
     expect(text).toContain('Q&A-Word-Cloud anzeigen');
     fixture.destroy();
   });
@@ -465,8 +1280,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -505,8 +1320,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -538,8 +1353,8 @@ describe('SessionHostComponent', () => {
       ...defaultSession,
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: true, title: 'Fragen aus dem Publikum', moderationMode: true },
-        quickFeedback: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -606,6 +1421,86 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt die Schwierigkeit der aktuellen Frage in der Host-Karte an', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'HARD' as const,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => (fixture.nativeElement.textContent ?? '').includes('Schwer'), {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Single Choice');
+    expect(text).toContain('Schwer');
+    fixture.destroy();
+  });
+
+  it('markiert Markdown-Container im Quiz-Livekanal fuer responsive Bild-Styles', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: '![Frage](https://example.com/question.png)',
+      type: 'SINGLE_CHOICE' as const,
+      answers: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: '![Antwort](https://example.com/answer.png)',
+          isCorrect: false,
+        },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'Text', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () => fixture.nativeElement.querySelector('.session-host__question-title-inner') !== null,
+      {
+        timeout: 5000,
+        interval: 25,
+      },
+    );
+    fixture.detectChanges();
+
+    const questionText = fixture.nativeElement.querySelector(
+      '.session-host__question-title-inner',
+    ) as HTMLElement | null;
+    const answerText = fixture.nativeElement.querySelector(
+      '.session-host__answer-text',
+    ) as HTMLElement | null;
+
+    expect(questionText?.classList.contains('markdown-body')).toBe(true);
+    expect(answerText?.classList.contains('markdown-body')).toBe(true);
+    fixture.destroy();
+  });
+
   it('empfiehlt bei passendem Korridor eine zweite Runde statt aktiver Ergebnisanzeige', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 4, participants: [] });
@@ -643,11 +1538,274 @@ describe('SessionHostComponent', () => {
     );
     fixture.detectChanges();
 
-    const text = fixture.nativeElement.textContent ?? '';
+    const el = fixture.nativeElement as HTMLElement;
+    const text = el.textContent ?? '';
     expect(text).toContain('Peer Instruction empfohlen');
     expect(text).toMatch(/35\s*[–-]\s*70/);
-    expect(text).toContain('Ergebnis trotzdem zeigen');
-    expect(text).toContain('Diskussionsphase');
+    const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').replace(/^groups/, '').trim(),
+    );
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual([
+      'Diskussionsphase',
+      'Ergebnis trotzdem zeigen',
+      'Session beenden',
+    ]);
+    fixture.destroy();
+  });
+
+  it('stoppt Musik, sobald alle abgestimmt haben, und aktiviert sie wieder bei neuer Abstimmung', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE', preset: 'PLAYFUL' });
+    getParticipantsQueryMock.mockResolvedValue({ participantCount: 4, participants: [] });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE' as const,
+      currentRound: 1,
+      totalVotes: 4,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.musicMuted.set(false);
+    fixture.detectChanges();
+
+    expect(component.allHaveVoted()).toBe(true);
+    expect(component.activeMusicTrack()).toBeNull();
+
+    component.currentQuestionForHost.update((q) => (q ? { ...q, totalVotes: 2 } : q));
+    fixture.detectChanges();
+
+    expect(component.allHaveVoted()).toBe(false);
+    expect(component.activeMusicTrack()).toBe('COUNTDOWN_0');
+    fixture.destroy();
+  });
+
+  it('aktiviert nach einer beendeten Countdown-Phase wieder Lesephasen-Musik', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'QUESTION_OPEN',
+      preset: 'PLAYFUL',
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.musicMuted.set(false);
+    component.countdownEnded.set(true);
+    component.countdownSfxPhase.set(true);
+    component.statusUpdate.set({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      activeAt: null,
+    });
+    fixture.detectChanges();
+
+    expect(component.currentMusicPhase()).toBe('reading');
+    expect(component.activeMusicTrack()).toBe('READING_0');
+    fixture.destroy();
+  });
+
+  it('startet die passende Live-Musik bei Musik-Phasenwechseln sofort', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', preset: 'PLAYFUL' });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
+    const stopMusicSpy = vi.spyOn(component.sound, 'stopMusic').mockImplementation(() => {});
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    component.musicMuted.set(false);
+    playMusicSpy.mockClear();
+    stopMusicSpy.mockClear();
+
+    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
+      | ((data: {
+          status: string;
+          currentQuestion: number | null;
+          activeAt?: string | null;
+        }) => void)
+      | undefined;
+
+    expect(statusHandler).toBeTypeOf('function');
+
+    statusHandler?.({ status: 'QUESTION_OPEN', currentQuestion: 0, activeAt: null });
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'READING_0'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    statusHandler?.({ status: 'ACTIVE', currentQuestion: 0, activeAt: null });
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'COUNTDOWN_0'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    stopMusicSpy.mockClear();
+    statusHandler?.({ status: 'RESULTS', currentQuestion: 0, activeAt: null });
+    await vi.waitUntil(() => stopMusicSpy.mock.calls.length > 0, {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    statusHandler?.({ status: 'LOBBY', currentQuestion: null, activeAt: null });
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'LOBBY_2'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    fixture.destroy();
+  });
+
+  it('startet bei Phasenwechseln keine Live-Musik, wenn das Preset sie deaktiviert', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', preset: 'SERIOUS' });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
+    const stopMusicSpy = vi.spyOn(component.sound, 'stopMusic').mockImplementation(() => {});
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+    await vi.waitUntil(() => component.musicMuted() === true, {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    stopMusicSpy.mockClear();
+
+    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
+      | ((data: {
+          status: string;
+          currentQuestion: number | null;
+          activeAt?: string | null;
+        }) => void)
+      | undefined;
+
+    statusHandler?.({ status: 'QUESTION_OPEN', currentQuestion: 0, activeAt: null });
+    statusHandler?.({ status: 'ACTIVE', currentQuestion: 0, activeAt: null });
+    statusHandler?.({ status: 'LOBBY', currentQuestion: null, activeAt: null });
+    await new Promise((r) => setTimeout(r, 25));
+
+    expect(component.activeMusicTrack()).toBeNull();
+    expect(playMusicSpy).not.toHaveBeenCalled();
+
+    fixture.destroy();
+  });
+
+  it('deaktiviert Hintergrundmusik im Q&A-Kanal und startet sie im Quiz-Kanal wieder', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'QUESTION_OPEN',
+      preset: 'PLAYFUL',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
+    const stopMusicSpy = vi.spyOn(component.sound, 'stopMusic').mockImplementation(() => {});
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    component.musicMuted.set(false);
+    fixture.detectChanges();
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'READING_0'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    stopMusicSpy.mockClear();
+    await component.selectChannel('qa');
+    fixture.detectChanges();
+
+    expect(component.activeChannel()).toBe('qa');
+    expect(component.activeMusicTrack()).toBeNull();
+    await vi.waitUntil(() => stopMusicSpy.mock.calls.length > 0, {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    playMusicSpy.mockClear();
+    await component.selectChannel('quiz');
+    fixture.detectChanges();
+
+    expect(component.activeChannel()).toBe('quiz');
+    expect(component.activeMusicTrack()).toBe('READING_0');
+    await vi.waitUntil(() => playMusicSpy.mock.calls.some(([track]) => track === 'READING_0'), {
+      timeout: 1000,
+      interval: 10,
+    });
+
+    fixture.destroy();
+  });
+
+  it('laesst Hintergrundmusik nach Q&A aus, wenn sie vorher bereits stumm war', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'QUESTION_OPEN',
+      preset: 'PLAYFUL',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    component.musicMuted.set(true);
+    fixture.detectChanges();
+    playMusicSpy.mockClear();
+
+    await component.selectChannel('qa');
+    fixture.detectChanges();
+    await component.selectChannel('quiz');
+    fixture.detectChanges();
+
+    expect(component.musicMuted()).toBe(true);
+    expect(component.activeMusicTrack()).toBeNull();
+    expect(playMusicSpy).not.toHaveBeenCalled();
+
     fixture.destroy();
   });
 
@@ -678,8 +1836,501 @@ describe('SessionHostComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Lies die Frage zuerst.');
     expect(el.textContent).toContain('Lesephase');
-    expect(el.textContent).toContain('Antworten freigeben');
+    expect(el.textContent).toContain('Antwortoptionen freigeben');
+    const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').trim(),
+    );
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Antwortoptionen freigeben', 'Session beenden']);
     expect(el.querySelector('.session-host__answers')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt in QUESTION_OPEN den Ready-Fortschritt und den Freigabe-Hinweis für den Host', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Linus',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 2,
+        connectedCount: 2,
+        allConnectedReady: true,
+      },
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'QUESTION_OPEN', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Lese den Aufgabentext.',
+      type: 'SINGLE_CHOICE' as const,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('2 von 2 bereit');
+    expect(el.textContent).toContain(
+      'Alle sind bereit – Antwortoptionen können freigegeben werden.',
+    );
+
+    fixture.destroy();
+  });
+
+  it('scrollt den Host-Inhalt hoch, sobald alle verbundenen Teilnehmenden bereit sind', async () => {
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const componentAccess = component as SessionHostComponent & {
+      scrollHostTargetIntoView: (targetRef: unknown) => void;
+    };
+    const scrollSpy = vi.spyOn(componentAccess, 'scrollHostTargetIntoView');
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.session.set({ ...defaultSession, status: 'QUESTION_OPEN' });
+    component.statusUpdate.set({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      currentRound: 1,
+      activeAt: null,
+    });
+    component.currentQuestionForHost.set({
+      questionId: '33333333-3333-4333-8333-333333333333',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Lese den Aufgabentext.',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+    });
+    component.participantsPayload.set({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Linus',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 1,
+        connectedCount: 2,
+        allConnectedReady: false,
+      },
+    });
+    fixture.detectChanges();
+
+    expect(scrollSpy).not.toHaveBeenCalled();
+
+    component.participantsPayload.set({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Linus',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 2,
+        connectedCount: 2,
+        allConnectedReady: true,
+      },
+    });
+    fixture.detectChanges();
+
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+
+    component.participantsPayload.set({
+      participantCount: 2,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          nickname: 'Linus',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 2,
+        connectedCount: 2,
+        allConnectedReady: true,
+      },
+    });
+    fixture.detectChanges();
+
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+
+    fixture.destroy();
+  });
+
+  it('zeigt bei genau einer Person keine doppelte Ready-Anzahl im Live-Banner', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'QUESTION_OPEN',
+      participantCount: 1,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 1,
+        connectedCount: 1,
+        allConnectedReady: true,
+      },
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'QUESTION_OPEN', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Lese den Aufgabentext.',
+      type: 'SINGLE_CHOICE' as const,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const liveBanner = (fixture.nativeElement as HTMLElement).querySelector(
+      '.session-host__live-code-block',
+    );
+    expect(liveBanner?.textContent).toContain('1 teilnehmende Person');
+    expect(liveBanner?.textContent).toContain('1 von 1 bereit');
+    expect(liveBanner?.textContent).not.toContain('1 1 von 1 bereit');
+
+    fixture.destroy();
+  });
+
+  it('zeigt bei aktiver Frage die Aktion "Ergebnis zeigen" im unteren Exit-Anker neben "Session beenden"', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').trim(),
+    );
+
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Session beenden']);
+    fixture.destroy();
+  });
+
+  it('zeigt im Host live den Abstimmungsfortschritt als Prozent mit Stimmenzaehler', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 3,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 3,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: null, teamName: null },
+        { id: 'p2', nickname: 'Alan', teamId: null, teamName: null },
+        { id: 'p3', nickname: 'Grace', teamId: null, teamName: null },
+      ],
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const progress = fixture.nativeElement.querySelector(
+      '.session-host__vote-progress',
+    ) as HTMLElement | null;
+
+    expect(progress).toBeTruthy();
+    expect(progress?.textContent).toContain('67 %');
+    expect(progress?.textContent).toContain('2 von 3');
+    expect(progress?.getAttribute('aria-label')).toContain(
+      '2 von 3 Teilnehmenden haben abgestimmt',
+    );
+    expect(progress?.getAttribute('aria-label')).toContain('67 Prozent erreicht');
+
+    fixture.destroy();
+  });
+
+  it('markiert den Abstimmungsfortschritt bei voller Beteiligung als abgeschlossen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 2,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: null, teamName: null },
+        { id: 'p2', nickname: 'Alan', teamId: null, teamName: null },
+      ],
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const progress = fixture.nativeElement.querySelector(
+      '.session-host__vote-progress',
+    ) as HTMLElement | null;
+
+    expect(progress).toBeTruthy();
+    expect(progress?.className).toContain('session-host__vote-progress--complete');
+    expect(progress?.textContent).toContain('100 %');
+    expect(progress?.textContent).toContain('2 von 2');
+
+    fixture.destroy();
+  });
+
+  it('zeigt ohne Peer-Instruction-Empfehlung keine Diskussionsphase, auch wenn schon Stimmen vorliegen', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+      peerInstructionSuggestion: {
+        suggested: false,
+        reason: 'CORRECTNESS_WINDOW' as const,
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').trim(),
+    );
+    const text = fixture.nativeElement.textContent ?? '';
+
+    expect(text).not.toContain('Peer Instruction empfohlen');
+    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Session beenden']);
     fixture.destroy();
   });
 
@@ -787,6 +2438,333 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('scrollt beim Ergebniszeigen zur Ergebniskarte', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const resultsSection = fixture.nativeElement.querySelector(
+      '.session-host__results-wrap',
+    ) as HTMLElement | null;
+    expect(resultsSection).toBeTruthy();
+    const scrollIntoViewSpy = vi.fn();
+    Object.defineProperty(resultsSection!, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoViewSpy,
+    });
+
+    await fixture.componentInstance.revealResults();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(revealResultsMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+
+    fixture.destroy();
+  });
+
+  it('scrollt beim Freigeben der Antwortoptionen zur Antwortliste', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'PAUSED' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const answersList = fixture.nativeElement.querySelector(
+      '.session-host__answers',
+    ) as HTMLElement | null;
+    expect(answersList).toBeTruthy();
+    const scrollIntoViewSpy = vi.fn();
+    Object.defineProperty(answersList!, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoViewSpy,
+    });
+
+    await fixture.componentInstance.revealAnswers();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(revealAnswersMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+
+    fixture.destroy();
+  });
+
+  it('startet in Peer-Instruction-Runde 2 keinen Countdown mehr', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'DISCUSSION' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 2,
+      timer: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    await component.startSecondRound();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
+    fixture.detectChanges();
+
+    expect(startSecondRoundMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(component.countdownSeconds()).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-host__countdown')).toBeNull();
+
+    fixture.destroy();
+  });
+
+  it('zeigt bei Ergebnisstand die Aktion "Nächste Frage" im unteren Exit-Anker neben "Session beenden"', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 0,
+          votePercentage: 0,
+        },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').trim(),
+    );
+
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Nächste Frage', 'Session beenden']);
+    fixture.destroy();
+  });
+
+  it('zeigt in der Diskussionsphase die Aktionen "Zweite Abstimmung" und "Überspringen" im unteren Exit-Anker', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'DISCUSSION' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'DISCUSSION', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      timer: 30,
+      activeAt: null,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'A',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'B',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
+      (button.textContent ?? '').replace(/^replay/, '').trim(),
+    );
+
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Zweite Abstimmung', 'Überspringen', 'Session beenden']);
+    fixture.destroy();
+  });
+
+  it('zieht im Blitzlicht-Kanal die Aktion "Stopp" in die untere Action-Bar neben "Session beenden"', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 2,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+
+    const exitAnchor = fixture.nativeElement.querySelector(
+      '.session-host__exit-anchor',
+    ) as HTMLElement;
+    const buttons = Array.from(exitAnchor.querySelectorAll('button'));
+    const buttonTexts = buttons.map((button) =>
+      (button.textContent ?? '').replace(/^stop/, '').trim(),
+    );
+
+    expect(exitAnchor.className).toContain('session-host__exit-anchor--with-primary');
+    expect(buttonTexts).toEqual(['Stopp', 'Session beenden']);
+
+    (buttons[0] as HTMLButtonElement | undefined)?.click();
+    await fixture.whenStable();
+
+    expect(quickFeedbackToggleLockMutateMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    fixture.destroy();
+  });
+
   it('ruft onParticipantJoined und onStatusChanged subscribe auf', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
     const fixture = setup();
@@ -853,6 +2831,92 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('blendet im Host-Team-Leaderboard den Farbpunkt bei Emoji-Shortcodes aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      teamMode: true,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'FINISHED', currentQuestion: null });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: ':apple: Rot',
+        teamColor: '#1E88E5',
+        totalScore: 220,
+        memberCount: 3,
+        averageScore: 220,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const boardName = fixture.nativeElement.querySelector(
+      '.session-host__team-bar-name',
+    ) as HTMLElement | null;
+    expect(boardName?.textContent ?? '').toContain('Rot');
+    expect(boardName?.querySelector('.session-host__team-bar-dot')).toBeNull();
+    expect(boardName?.querySelector('.session-host__team-bar-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
+  it('blendet in der Host-Teamwertung bei RESULTS den Farbpunkt bei Emoji-Shortcodes aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'RESULTS',
+      teamMode: true,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: ':apple: Rot',
+        teamColor: '#1E88E5',
+        totalScore: 220,
+        memberCount: 3,
+        averageScore: 220,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const teamInterim = fixture.nativeElement.querySelector(
+      '.session-host__interim-leaderboard--teams',
+    ) as HTMLElement | null;
+    const interimName = teamInterim?.querySelector(
+      '.session-host__interim-name',
+    ) as HTMLElement | null;
+    const interimScore = teamInterim?.querySelector(
+      '.session-host__interim-score',
+    ) as HTMLElement | null;
+    expect(interimName?.textContent ?? '').toContain('Rot');
+    expect(interimScore?.textContent ?? '').toContain('3 Mitglieder');
+    expect(interimScore?.textContent ?? '').toContain('∅ 220');
+    expect(interimName?.querySelector('.session-host__interim-team-dot')).toBeNull();
+    expect(interimName?.querySelector('.session-host__interim-team-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
   it('zeigt in der Lobby eine Teamübersicht mit Mitgliedern', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -901,6 +2965,122 @@ describe('SessionHostComponent', () => {
     expect(text).toContain('Blau');
     expect(text).toContain('Ada');
     expect(text).toContain('Grace');
+    fixture.destroy();
+  });
+
+  it('blendet den Farbpunkt aus, wenn der Teamname mit Emoji beginnt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: '🍎 Rot', color: '#1E88E5', memberCount: 1 }],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: '🍎 Rot' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({
+          participantCount: 1,
+          participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: '🍎 Rot' }],
+        });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
+    expect(card.textContent ?? '').toContain('Rot');
+    expect(card.querySelector('.session-lobby__team-card-dot')).toBeNull();
+    expect(card.querySelector('.session-lobby__team-card-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
+  it('zeigt bei emoji-only Teamnamen einen generischen Team-Text in der Lobby', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: ':apple:', color: '#1E88E5', memberCount: 1 }],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: ':apple:' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({
+          participantCount: 1,
+          participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: ':apple:' }],
+        });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
+    expect(card.textContent ?? '').toContain('Team');
+    expect(card.querySelector('.session-lobby__team-card-dot')).toBeNull();
+    expect(card.querySelector('.session-lobby__team-card-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
+  it('zeigt bei Teamnamen mit nachgestelltem Emoji keinen Farbpunk in der Lobby', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: 'Team :apple:', color: '#1E88E5', memberCount: 1 }],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Team :apple:' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({
+          participantCount: 1,
+          participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Team :apple:' }],
+        });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
+    expect(card.querySelector('.session-lobby__team-card-name')?.textContent ?? '').toContain(
+      'Team',
+    );
+    expect(card.querySelector('.session-lobby__team-card-dot')).toBeNull();
+    expect(card.querySelector('.session-lobby__team-card-emoji')?.textContent).toBe('🍎');
     fixture.destroy();
   });
 
@@ -956,8 +3136,8 @@ describe('SessionHostComponent', () => {
         ...defaultSession,
         channels: {
           quiz: { enabled: true },
-          qa: { enabled: true, title: 'Fragen', moderationMode: true },
-          quickFeedback: { enabled: false },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
         },
       });
       qaListQueryMock.mockResolvedValue([
@@ -994,8 +3174,8 @@ describe('SessionHostComponent', () => {
         ...defaultSession,
         channels: {
           quiz: { enabled: true },
-          qa: { enabled: true, title: 'Fragen', moderationMode: false },
-          quickFeedback: { enabled: false },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
         },
       });
 
@@ -1025,6 +3205,96 @@ describe('SessionHostComponent', () => {
 
       expect(fixture.componentInstance.hostSteeringCallout()?.title).toContain(exportCalloutTitle);
       fixture.destroy();
+    });
+
+    it('exportiert die Team-Wertung im Ergebnis-CSV', async () => {
+      let exportedBlob: Blob | null = null;
+      let exportedCsv = '';
+      const createObjectURLMock = vi.fn((blob: Blob) => {
+        exportedBlob = blob;
+        return 'blob:test-export';
+      });
+      const revokeObjectURLMock = vi.fn();
+      const anchorClickSpy = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+      const originalCreateObjectURL = URL.createObjectURL;
+      const originalRevokeObjectURL = URL.revokeObjectURL;
+      const originalBlob = Blob;
+      class CaptureBlob extends Blob {
+        constructor(parts: BlobPart[], options?: BlobPropertyBag) {
+          super(parts, options);
+          exportedCsv = parts
+            .map((part) => (typeof part === 'string' ? part : String(part)))
+            .join('');
+        }
+      }
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: createObjectURLMock,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: revokeObjectURLMock,
+      });
+      Object.defineProperty(globalThis, 'Blob', {
+        configurable: true,
+        writable: true,
+        value: CaptureBlob,
+      });
+      getExportDataQueryMock.mockResolvedValueOnce({
+        sessionId: defaultSession.id,
+        sessionCode: 'ABC123',
+        quizName: 'Demo Quiz',
+        finishedAt: '2026-03-24T12:30:00.000Z',
+        participantCount: 3,
+        teamMode: true,
+        questions: [],
+        teamLeaderboard: [
+          {
+            rank: 1,
+            teamName: ':apple: Rot',
+            teamColor: '#1E88E5',
+            memberCount: 2,
+            totalScore: 220,
+            averageScore: 220,
+          },
+        ],
+        bonusTokens: [],
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(createObjectURLMock).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:test-export');
+      expect(exportedBlob).not.toBeNull();
+      expect(exportedCsv).toContain('Team-Wertung');
+      expect(exportedCsv).toContain('Rang;Team;Farbe;Mitglieder;Team-Punkte;Ø Punkte pro Mitglied');
+      expect(exportedCsv).toContain('1;"🍎 Rot";#1E88E5;2;220;220');
+
+      fixture.destroy();
+      anchorClickSpy.mockRestore();
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalCreateObjectURL,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalRevokeObjectURL,
+      });
+      Object.defineProperty(globalThis, 'Blob', {
+        configurable: true,
+        writable: true,
+        value: originalBlob,
+      });
     });
 
     it('schließt den Callout bei „Okay“ und führt Retry erneut aus', async () => {

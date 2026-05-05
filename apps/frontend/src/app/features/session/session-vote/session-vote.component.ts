@@ -13,7 +13,7 @@ import {
   afterNextRender,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
@@ -21,10 +21,16 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { trpc } from '../../../core/trpc.client';
+import {
+  localizeKnownServerError,
+  localizeKnownServerMessage,
+} from '../../../core/localize-known-server-message';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
+import { questionTypeLabel } from '../../../shared/question-type-label';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import * as vpc from './session-vote-participant-copy';
-import { localizePath } from '../../../core/locale-router';
+import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import type {
   ParticipantDTO,
   PersonalScorecardDTO,
@@ -43,15 +49,38 @@ import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-l
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
+import {
+  edgeEmojiMarkerPosition,
+  extractEdgeEmoji,
+  stripEdgeEmojiMarker,
+} from '../../../shared/emoji-shortcode.util';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
+const VOTE_RESPONSE_STORAGE_KEY = 'arsnova-vote-response';
 const VOTE_FALLBACK_POLL_MS = 2000;
+const VOTE_ANCHOR_TOP = 'vote-top';
+const VOTE_ANCHOR_QUESTION = 'vote-question-anchor';
+const VOTE_ANCHOR_OPTIONS_START = 'vote-options-start';
+const VOTE_ANCHOR_OPTION_0 = 'vote-option-0';
+const VOTE_ANCHOR_RESULT_CONTAINER = 'vote-result-anchor';
+const VOTE_ANCHOR_RESULT_SCORE = 'vote-result-score';
+const VOTE_ANCHOR_RESULT_MESSAGE = 'vote-result-message';
+const VOTE_ANCHOR_ERROR = 'vote-error';
+
+export type VoteAutoScrollPhase = 'read' | 'vote' | 'result';
 
 type CurrentQuestion = QuestionStudentDTO | QuestionPreviewDTO | QuestionRevealedDTO;
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
+type StoredVoteResponse = {
+  answerIds?: string[];
+  freeText?: string;
+  ratingValue?: number;
+  sent: true;
+  updatedAt: string;
+};
 
 const ANSWER_COLORS = [
   '#1565c0',
@@ -124,6 +153,50 @@ function pickRandom(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+export function anchorCandidatesForPhase(
+  phase: VoteAutoScrollPhase,
+  hadReadPhase: boolean,
+  prioritizeQuestionOnVote = false,
+): string[] {
+  if (phase === 'read') {
+    return [VOTE_ANCHOR_QUESTION, VOTE_ANCHOR_OPTIONS_START, VOTE_ANCHOR_TOP];
+  }
+  if (phase === 'vote') {
+    if (prioritizeQuestionOnVote) {
+      return [
+        VOTE_ANCHOR_QUESTION,
+        VOTE_ANCHOR_OPTIONS_START,
+        VOTE_ANCHOR_OPTION_0,
+        VOTE_ANCHOR_TOP,
+      ];
+    }
+    if (hadReadPhase) {
+      return [
+        VOTE_ANCHOR_OPTION_0,
+        VOTE_ANCHOR_OPTIONS_START,
+        VOTE_ANCHOR_QUESTION,
+        VOTE_ANCHOR_TOP,
+      ];
+    }
+    return [VOTE_ANCHOR_QUESTION, VOTE_ANCHOR_OPTIONS_START, VOTE_ANCHOR_OPTION_0, VOTE_ANCHOR_TOP];
+  }
+  return [
+    VOTE_ANCHOR_RESULT_MESSAGE,
+    VOTE_ANCHOR_RESULT_SCORE,
+    VOTE_ANCHOR_RESULT_CONTAINER,
+    VOTE_ANCHOR_TOP,
+    VOTE_ANCHOR_ERROR,
+  ];
+}
+
+export function focusTargetIdForAnchor(anchorId: string | null | undefined): string | null {
+  if (!anchorId) return null;
+  if (anchorId === VOTE_ANCHOR_OPTION_0 || anchorId === VOTE_ANCHOR_OPTIONS_START) {
+    return VOTE_ANCHOR_QUESTION;
+  }
+  return anchorId;
+}
+
 /**
  * Kontextbasierte Motivationsmeldung aus Scorecard-Daten (Story 5.7).
  * Liefert eine passende Meldung basierend auf wasCorrect, streakCount, rankChange, currentRank und totalParticipants.
@@ -175,7 +248,6 @@ function getContextMotivation(
   standalone: true,
   imports: [
     MatButton,
-    RouterLink,
     MatButtonToggle,
     MatButtonToggleGroup,
     MatIcon,
@@ -210,6 +282,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private reorderLockUntil = 0;
   private qaInfoTimeout: ReturnType<typeof setTimeout> | null = null;
   private qaErrorTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly questionIdsWithReadPhase = new Set<string>();
+  private readonly questionIdsWithRound2QuestionScroll = new Set<string>();
+  private lastAutoScrollToken: string | null = null;
+  private lastResultContentScrollToken: string | null = null;
 
   @ViewChild('qaTextarea') qaTextareaRef?: ElementRef<HTMLTextAreaElement>;
 
@@ -233,6 +309,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly voteSent = signal(false);
   readonly voteError = signal<string | null>(null);
   readonly voteSending = signal(false);
+  readonly readingReadySubmitting = signal(false);
   readonly freeTextValue = signal('');
   readonly ratingValue = signal<number | null>(null);
   readonly debounced = signal(false);
@@ -281,7 +358,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const session = this.sessionSettings();
     return (
       session.type === 'QUIZ' &&
-      (session.nicknameTheme ?? 'NOBEL_LAUREATES') === 'KINDERGARTEN' &&
+      (session.nicknameTheme ?? 'HIGH_SCHOOL') === 'KINDERGARTEN' &&
       session.anonymousMode !== true
     );
   });
@@ -296,10 +373,29 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const nick = this.playerNickname()?.trim() ?? '';
     const team = this.playerTeamName()?.trim();
     if (team) {
-      return `${nick}, ${team}`;
+      return `${nick}, ${this.teamNameDisplayLabel(team)}`;
     }
     return nick;
   });
+
+  teamNameUsesEmojiMarker(teamName: string | null | undefined): boolean {
+    return typeof teamName === 'string' && edgeEmojiMarkerPosition(teamName) !== null;
+  }
+
+  teamNameEmojiMarker(teamName: string | null | undefined): string | null {
+    return typeof teamName === 'string' ? extractEdgeEmoji(teamName) : null;
+  }
+
+  teamNameEmojiMarkerTrailing(teamName: string | null | undefined): boolean {
+    return typeof teamName === 'string' && edgeEmojiMarkerPosition(teamName) === 'trailing';
+  }
+
+  teamNameLabelWithoutEmojiMarker(teamName: string | null | undefined): string {
+    if (typeof teamName !== 'string') {
+      return '';
+    }
+    return this.teamNameDisplayLabel(teamName);
+  }
 
   /** Story 5.6: Persönliche Scorecard pro Frage */
   readonly scorecard = signal<PersonalScorecardDTO | null>(null);
@@ -336,6 +432,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     overallAverage: number;
     overallDistribution: Record<string, number>;
   } | null>(null);
+  private readonly markdownCache = new Map<string, SafeHtml>();
   private feedbackStateLoaded = false;
 
   /**
@@ -358,6 +455,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         void this.loadFeedbackState();
       }
     });
+    effect(() => {
+      if (!this.showPrimaryLiveView() || !this.isResults() || !this.voteSent()) {
+        return;
+      }
+      const q = this.currentQuestion();
+      const questionId = q && 'id' in q ? q.id : null;
+      const message = this.motivationMessage();
+      if (!questionId || !message) {
+        return;
+      }
+      const sc = this.scorecard();
+      const token = `${questionId}:${message}:${sc ? `${sc.questionOrder}:${sc.totalScore}:${sc.currentRank}` : 'pending'}`;
+      this.scheduleResultContentScroll(token);
+    });
   }
 
   readonly isActive = computed(() => this.status() === 'ACTIVE');
@@ -366,6 +477,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly isResults = computed(() => this.status() === 'RESULTS');
   readonly isLobby = computed(() => this.status() === 'LOBBY');
   readonly isFinished = computed(() => this.status() === 'FINISHED');
+  readonly readingReadyConfirmed = computed(() => {
+    const question = this.currentQuestion();
+    return (
+      this.isQuestionOpen() &&
+      !!question &&
+      'participantReady' in question &&
+      question.participantReady === true
+    );
+  });
 
   /**
    * Kita-Quiz: immer großes Tier-Emoji wie in der Wartelobby — kein kompaktes Badge oben.
@@ -421,6 +541,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       quickFeedback: false,
     };
   });
+  readonly channelOpenState = computed(() => {
+    const session = this.sessionSettings();
+    const ch = session.channels;
+    if (ch) {
+      return {
+        quiz: true,
+        qa: ch.qa.open,
+        quickFeedback: ch.quickFeedback.open,
+      };
+    }
+    return {
+      quiz: true,
+      qa: session.type === 'Q_AND_A',
+      quickFeedback: false,
+    };
+  });
   readonly visibleChannels = computed<SessionChannelTab[]>(() => {
     const result: SessionChannelTab[] = [];
     const channels = this.channels();
@@ -430,11 +566,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return result;
   });
   readonly showChannelTabs = computed(() => this.visibleChannels().length > 1);
-  readonly isLegacyQaOnlySession = computed(
-    () =>
-      this.sessionSettings().type === 'Q_AND_A' &&
-      this.channels().quiz === false &&
-      this.channels().qa === true,
+  readonly isStandaloneQaSession = computed(
+    () => this.channels().quiz === false && this.channels().qa === true,
   );
   readonly showPrimaryLiveView = computed(() => {
     const active = this.activeChannel();
@@ -442,8 +575,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return this.channels().quiz;
     }
 
-    if (active === 'qa' && this.isLegacyQaOnlySession()) {
-      return true;
+    if (active === 'qa' && this.isStandaloneQaSession()) {
+      // Standalone-Q&A must render the actual Q&A form once the round is live.
+      // Lobby and finished states still use the primary session shell.
+      return this.status() !== 'ACTIVE';
     }
 
     return false;
@@ -454,6 +589,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionSettings().title ??
       $localize`:@@sessionTabs.qaTitleDefault:Fragen zur Veranstaltung...`,
   );
+  readonly isQaChannelOpen = computed(() => this.channelOpenState().qa);
+  readonly isQuickFeedbackChannelOpen = computed(() => this.channelOpenState().quickFeedback);
   /** Live-Banner: Quiztitel (Anzeige mit Ellipse im Template). */
   readonly liveHeading = computed(
     () => this.sessionSettings().quizName ?? this.sessionSettings().title ?? null,
@@ -521,6 +658,172 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'RATING';
   });
+  readonly isFreetext = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'FREETEXT';
+  });
+
+  questionUsesCorrectness(type: string | null | undefined): boolean {
+    return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
+  }
+
+  private voteResponseStorageKey(questionId: string, round: number): string | null {
+    if (typeof localStorage === 'undefined' || !this.code) {
+      return null;
+    }
+
+    const participantId =
+      this.participantId() || localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) || '';
+    if (!participantId) {
+      return null;
+    }
+
+    return `${VOTE_RESPONSE_STORAGE_KEY}-${this.code}-${participantId}-${questionId}-${round}`;
+  }
+
+  private questionRoundForStorage(question: CurrentQuestion): number {
+    return 'currentRound' in question && typeof question.currentRound === 'number'
+      ? question.currentRound
+      : this.currentRound();
+  }
+
+  private hasLocalVoteState(): boolean {
+    return (
+      this.selectedAnswerIds().size > 0 ||
+      this.freeTextValue().trim().length > 0 ||
+      this.ratingValue() !== null
+    );
+  }
+
+  private restoreStoredVoteResponse(question: CurrentQuestion): void {
+    const key = this.voteResponseStorageKey(question.id, this.questionRoundForStorage(question));
+    if (!key || this.voteSent() || this.hasLocalVoteState()) {
+      return;
+    }
+
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as StoredVoteResponse;
+      this.selectedAnswerIds.set(new Set(parsed.answerIds ?? []));
+      this.freeTextValue.set(parsed.freeText ?? '');
+      this.ratingValue.set(typeof parsed.ratingValue === 'number' ? parsed.ratingValue : null);
+      this.voteSent.set(parsed.sent === true);
+    } catch {
+      /* noop */
+    }
+  }
+
+  private storeVoteResponse(
+    question: CurrentQuestion,
+    answerIds: string[],
+    freeText: string | undefined,
+    ratingValue: number | undefined,
+  ): void {
+    const key = this.voteResponseStorageKey(question.id, this.questionRoundForStorage(question));
+    if (!key || typeof localStorage === 'undefined') {
+      return;
+    }
+
+    const payload: StoredVoteResponse = {
+      answerIds: answerIds.length > 0 ? answerIds : undefined,
+      freeText: freeText || undefined,
+      ratingValue,
+      sent: true,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem(key, JSON.stringify(payload));
+    } catch {
+      /* noop */
+    }
+  }
+
+  readonly showVoteSubmitAction = computed(() => {
+    if (this.showSessionEndGate() || this.isFinished()) return false;
+    if (this.activeChannel() !== 'quiz' || !this.isActive() || this.voteSent()) return false;
+    return this.hasAnswers() || this.isFreetext() || this.isRating();
+  });
+  readonly voteSubmitDisabled = computed(() => {
+    if (!this.showVoteSubmitAction()) return true;
+    if (this.voteSending() || this.debounced() || this.timerExpired()) return true;
+    if (this.hasAnswers()) {
+      return this.selectedAnswerIds().size === 0;
+    }
+    if (this.isFreetext()) {
+      return !this.freeTextValue().trim();
+    }
+    if (this.isRating()) {
+      return this.ratingValue() === null;
+    }
+    return true;
+  });
+  readonly showQaSubmitAction = computed(
+    () =>
+      !this.showSessionEndGate() &&
+      !this.isFinished() &&
+      this.activeChannel() === 'qa' &&
+      this.isQaChannelOpen(),
+  );
+  readonly showFinishedActions = computed(() => this.isFinished() && !this.showSessionEndGate());
+  readonly showSessionEndGateBonusAction = computed(
+    () => this.showSessionEndGate() && Boolean(this.bonusToken()),
+  );
+  readonly showSessionEndGateFeedbackAction = computed(
+    () => this.showSessionEndGate() && !this.feedbackSubmitted(),
+  );
+  readonly showFinishedBonusAction = computed(
+    () => this.showFinishedActions() && Boolean(this.bonusToken()),
+  );
+  readonly showFinishedFeedbackAction = computed(
+    () => this.showFinishedActions() && !this.feedbackSubmitted(),
+  );
+  readonly sessionEndGateActionCount = computed(
+    () =>
+      Number(this.showSessionEndGateFeedbackAction()) +
+      Number(this.showSessionEndGateBonusAction()) +
+      Number(this.showSessionEndGate()),
+  );
+  readonly finishedActionCount = computed(
+    () =>
+      Number(this.showFinishedFeedbackAction()) +
+      Number(this.showFinishedBonusAction()) +
+      Number(this.showFinishedActions()),
+  );
+  readonly showSessionEndBottomActionBar = computed(
+    () => this.showSessionEndGate() || this.showFinishedActions(),
+  );
+  readonly showFloatingBottomActionBar = computed(
+    () => this.showVoteSubmitAction() || this.showQaSubmitAction(),
+  );
+  readonly showBottomActionBar = computed(
+    () => this.showSessionEndBottomActionBar() || this.showFloatingBottomActionBar(),
+  );
+
+  voteQuestionTypeLabel(type: CurrentQuestion['type']): string {
+    return questionTypeLabel(type);
+  }
+
+  voteQuestionTypeShowsDifficulty(type: CurrentQuestion['type']): boolean {
+    return type !== 'SURVEY' && type !== 'RATING';
+  }
+
+  voteDifficultyLabel(value: CurrentQuestion['difficulty']): string {
+    switch (value) {
+      case 'EASY':
+        return $localize`:@@quiz.difficulty.easy:Leicht`;
+      case 'MEDIUM':
+        return $localize`:@@quiz.difficulty.medium:Mittel`;
+      case 'HARD':
+        return $localize`:@@quiz.difficulty.hard:Schwer`;
+      default:
+        return value;
+    }
+  }
 
   ratingRange(): number[] {
     const q = this.currentQuestion();
@@ -578,6 +881,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   quickFeedbackTabMetaLabel(): string | null {
+    if (this.channels().quickFeedback && !this.isQuickFeedbackChannelOpen()) {
+      return $localize`:@@sessionTabs.channelClosed:Zu`;
+    }
     const result = this.quickFeedbackResult();
     if (!result) {
       return null;
@@ -680,10 +986,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!entry) {
       return '';
     }
+    if (this.showFinalTeamScoreTitle()) {
+      return $localize`:@@sessionVote.teamRewardTitleFinalScore:Finaler Score`;
+    }
     const anyTeamScored = this.teamScoreboardHasPoints();
     if (this.isFinished()) {
       return entry.rank === 1 && anyTeamScored
-        ? $localize`:@@sessionVote.teamRewardTitleWinFin:Team-Sieg!`
+        ? $localize`:@@sessionVote.teamRewardTitleWinFin:Ihr gewinnt als Team!`
         : $localize`:@@sessionVote.teamRewardTitleFinishedOther:Im Ziel`;
     }
     if (entry.totalScore <= 0) {
@@ -697,6 +1006,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionVote.teamRewardTitleChasing:Weitermachen`;
   }
 
+  teamRewardEyebrow(): string | null {
+    if (this.showFinalTeamScoreTitle()) {
+      return null;
+    }
+    return vpc.voteTeamEyebrow(this.isPlayfulPreset());
+  }
+
   teamRewardMessage(): string {
     const entry = this.ownTeamEntry();
     if (!entry) {
@@ -705,7 +1021,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const anyTeamScored = this.teamScoreboardHasPoints();
     if (this.isFinished()) {
       if (entry.rank === 1 && anyTeamScored) {
-        return $localize`:@@sessionVote.teamRewardMsgWinFin:Gemeinsam geschafft: ${entry.totalScore}:totalScore: Punkte und Platz 1.`;
+        return $localize`:@@sessionVote.teamRewardMsgWinFin:Gemeinsam gewonnen: Platz 1 für euch.`;
       }
       if (!anyTeamScored) {
         return $localize`:@@sessionVote.teamRewardMsgFinishedAllZero:Quiz beendet – es wurden keine Team-Punkte vergeben.`;
@@ -736,9 +1052,30 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (leader.totalScore <= 0) {
       return null;
     }
+    const leaderLabel = this.teamNameLeaderHintLabel(leader.teamName);
     return this.isPlayfulPreset()
-      ? vpc.voteTeamLeaderHintPlayful(leader.teamName, leader.totalScore)
-      : vpc.voteTeamLeaderHintSerious(leader.teamName, leader.totalScore);
+      ? vpc.voteTeamLeaderHintPlayful(leaderLabel, leader.totalScore)
+      : vpc.voteTeamLeaderHintSerious(leaderLabel, leader.totalScore);
+  }
+
+  private showFinalTeamScoreTitle(): boolean {
+    if (this.isFinished()) {
+      return true;
+    }
+    if (!this.isResults()) {
+      return false;
+    }
+    const question = this.currentQuestion();
+    if (
+      !question ||
+      !('order' in question) ||
+      !('totalQuestions' in question) ||
+      typeof question.order !== 'number' ||
+      typeof question.totalQuestions !== 'number'
+    ) {
+      return false;
+    }
+    return question.totalQuestions > 0 && question.order === question.totalQuestions - 1;
   }
 
   finishedHeroTitle(): string {
@@ -753,7 +1090,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ? $localize`:@@sessionVote.finishedTitlePlayfulNeutral:Das war's – danke fürs Mitmachen!`
         : vpc.voteFinishedHeroTitle(false);
     }
+    if (this.personalRank() === 1) {
+      return vpc.voteFinishedHeroWinnerTitle(playful);
+    }
     return vpc.voteFinishedHeroTitle(playful);
+  }
+
+  unansweredResultsMessage(): string | null {
+    if (!this.isResults() || this.voteSent() || !this.currentQuestion()) {
+      return null;
+    }
+    return this.timeoutMessage() ?? vpc.voteMissedResultsMessage(this.isPlayfulPreset());
   }
 
   finishedHeroMatIcon(): string {
@@ -769,10 +1116,29 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   teamStandingAriaLabel(entry: TeamLeaderboardEntryDTO): string {
+    const teamLabel = this.teamNameDisplayLabel(entry.teamName);
     if (!this.teamScoreboardHasPoints()) {
-      return $localize`:@@sessionVote.teamStandingNoRank:${entry.teamName}:teamName: mit ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
+      return $localize`:@@sessionVote.teamStandingNoRank:${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
     }
-    return $localize`Platz ${entry.rank}:teamRank:: ${entry.teamName}:teamName: mit ${entry.totalScore}:totalScore: Punkten`;
+    return $localize`:@@sessionVote.teamStandingWithMembers:Platz ${entry.rank}:teamRank:: ${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Punkten`;
+  }
+
+  private teamNameDisplayLabel(teamName: string): string {
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    return label.length > 0 ? label : $localize`Team`;
+  }
+
+  private teamNameLeaderHintLabel(teamName: string): string {
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    if (label.length > 0) {
+      return label;
+    }
+    const raw = teamName.trim();
+    return raw.length > 0 ? raw : $localize`Team`;
+  }
+
+  teamMemberLabel(count: number): string {
+    return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
   }
 
   teamScoreBarWidth(totalScore: number): string {
@@ -803,7 +1169,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+    const cached = this.markdownCache.get(value);
+    if (cached) {
+      return cached;
+    }
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(
+      decorateLeadingAnswerEmoji(
+        renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+      ),
+    );
+    this.markdownCache.set(value, rendered);
+    return rendered;
   }
 
   /** Nach Session-Ende: optional Bonus-Code zeigen, sonst direkt zur Startseite. */
@@ -921,6 +1297,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           if (data.status === 'ACTIVE' && data.activeAt && data.timer && data.timer > 0) {
             const deadline = new Date(data.activeAt).getTime() + data.timer * 1000;
             this.startCountdownFromDeadline(deadline);
+          } else if (data.status === 'ACTIVE') {
+            this.stopCountdown();
+            this.countdownSeconds.set(null);
           } else if (data.status !== 'ACTIVE') {
             this.stopCountdown();
             this.countdownSeconds.set(null);
@@ -939,7 +1318,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
     this.ensureQaSubscription();
 
-    void this.refreshQuestion();
     this.pollTimer = setInterval(() => {
       void this.refreshSessionInfoFallback();
       void this.refreshQuestion();
@@ -959,7 +1337,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
       this.ensureQaSubscription();
       await this.refreshQaQuestions();
-      await this.refreshQuickFeedbackResult();
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
           silent: true,
@@ -971,13 +1348,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           await this.loadTeamLeaderboard();
         }
       }
+      await this.refreshQuestion();
+      await this.refreshQuickFeedbackResult();
     } catch {
       // Parent-Shell validiert bereits; Retry läuft über Polling.
     }
   }
 
   private ensureQaSubscription(): void {
-    if (this.qaSub || !this.channels().qa || !this.sessionId()) {
+    if (!this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
+      this.qaSub?.unsubscribe();
+      this.qaSub = null;
+      return;
+    }
+
+    if (this.qaSub) {
       return;
     }
 
@@ -1009,6 +1394,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       recordServerTimeIso(session.serverTime);
       const nextStatus = session.status as SessionStatus;
       const prevStatus = this.status();
+      const previousTeamMode = this.sessionSettings().teamMode === true;
       this.sessionId.set(session.id);
       this.sessionSettings.set(session);
       this.status.set(nextStatus);
@@ -1017,6 +1403,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         return;
       }
       this.ensureQaSubscription();
+      if (session.teamMode && !previousTeamMode) {
+        await Promise.all([this.loadParticipantTeam(), this.loadSessionTeams()]);
+      }
       if (session.preset === 'PLAYFUL' || session.preset === 'SERIOUS') {
         this.themePreset.setPreset(session.preset === 'PLAYFUL' ? 'spielerisch' : 'serious', {
           silent: true,
@@ -1050,9 +1439,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   get joinUrl(): string {
-    const origin =
-      typeof globalThis.location?.origin === 'string' ? globalThis.location.origin : '';
-    return origin ? `${origin}/join/${this.code}` : `/join/${this.code}`;
+    return resolveLocalizedJoinUrl(this.code);
   }
 
   private startCountdown(q: CurrentQuestion | null): void {
@@ -1133,12 +1520,40 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (
-      active === 'quiz' &&
+    const quizContentVisible =
+      visible.includes('quiz') &&
+      this.currentQuestion() !== null &&
+      (this.status() === 'QUESTION_OPEN' ||
+        this.status() === 'ACTIVE' ||
+        this.status() === 'DISCUSSION' ||
+        this.status() === 'RESULTS');
+    const quickFeedbackRoundVisible =
+      visible.includes('quickFeedback') &&
+      this.isQuickFeedbackChannelOpen() &&
+      this.quickFeedbackResult() !== null &&
+      !quizContentVisible;
+    const qaRoundVisible =
       visible.includes('qa') &&
+      this.isQaChannelOpen() &&
       this.status() === 'ACTIVE' &&
-      this.currentQuestion() === null
+      this.currentQuestion() === null;
+
+    if (active !== 'quickFeedback' && quickFeedbackRoundVisible) {
+      this.activeChannel.set('quickFeedback');
+      return;
+    }
+
+    if (
+      active === 'quickFeedback' &&
+      this.isQuickFeedbackChannelOpen() &&
+      !quickFeedbackRoundVisible &&
+      qaRoundVisible
     ) {
+      this.activeChannel.set('qa');
+      return;
+    }
+
+    if (active === 'quiz' && qaRoundVisible) {
       this.activeChannel.set('qa');
       return;
     }
@@ -1174,7 +1589,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private async refreshQaQuestions(): Promise<void> {
-    if (!this.channels().qa || !this.sessionId()) {
+    if (!this.channels().qa || !this.isQaChannelOpen() || !this.sessionId()) {
       this.qaQuestions.set([]);
       return;
     }
@@ -1194,7 +1609,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private async refreshQuickFeedbackResult(): Promise<void> {
-    if (!this.channels().quickFeedback || !this.code) {
+    if (!this.channels().quickFeedback || !this.isQuickFeedbackChannelOpen() || !this.code) {
       this.quickFeedbackResult.set(null);
       return;
     }
@@ -1208,7 +1623,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   async submitQaQuestion(): Promise<void> {
-    if (!this.qaCanSubmit()) {
+    if (!this.isQaChannelOpen() || !this.qaCanSubmit()) {
       return;
     }
 
@@ -1235,11 +1650,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.showQaInfo($localize`:@@sessionQa.submitSuccess:Frage gesendet.`);
       await this.refreshQaQuestions();
     } catch (error) {
-      const message =
-        error && typeof error === 'object' && 'message' in error
-          ? String((error as { message: string }).message)
-          : $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`;
-      this.showQaError(message);
+      this.showQaError(
+        localizeKnownServerError(
+          error,
+          $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`,
+        ),
+      );
     } finally {
       this.qaSubmitting.set(false);
     }
@@ -1287,11 +1703,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, autoNickname);
         }
       } catch (error) {
-        const message =
-          error && typeof error === 'object' && 'message' in error
-            ? String((error as { message: string }).message)
-            : $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`;
-        this.showQaError(message);
+        this.showQaError(
+          localizeKnownServerError(
+            error,
+            $localize`:@@sessionQa.submitError:Frage konnte nicht gesendet werden.`,
+          ),
+        );
         return null;
       }
     }
@@ -1305,7 +1722,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   async voteQa(questionId: string, direction: 'UP' | 'DOWN'): Promise<void> {
-    if (!this.participantId() || this.qaPendingQuestionIds().has(questionId)) {
+    if (
+      !this.isQaChannelOpen() ||
+      !this.participantId() ||
+      this.qaPendingQuestionIds().has(questionId)
+    ) {
       return;
     }
 
@@ -1344,7 +1765,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   async deleteOwnQuestion(questionId: string): Promise<void> {
-    if (!this.participantId() || this.qaPendingQuestionIds().has(questionId)) return;
+    if (
+      !this.isQaChannelOpen() ||
+      !this.participantId() ||
+      this.qaPendingQuestionIds().has(questionId)
+    )
+      return;
 
     const pending = new Set(this.qaPendingQuestionIds());
     pending.add(questionId);
@@ -1483,11 +1909,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   private async refreshQuestion(): Promise<void> {
     try {
-      const q = await trpc.session.getCurrentQuestionForStudent.query({ code: this.code });
+      const q = await trpc.session.getCurrentQuestionForStudent.query({
+        code: this.code,
+        participantId: this.participantId() || undefined,
+      });
       const prev = this.currentQuestion();
       const prevId = prev && 'id' in prev ? prev.id : null;
       const newId = q && 'id' in q ? q.id : null;
-      const shouldScrollToQuestionOnRender = newId !== null && newId !== prevId;
       const prevHadTimer = prev && 'timer' in prev && prev.timer;
       const newHasTimer = q && 'timer' in q && q.timer;
 
@@ -1503,6 +1931,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.selectedAnswerIds.set(new Set());
         this.voteSent.set(false);
         this.voteError.set(null);
+        this.readingReadySubmitting.set(false);
         this.freeTextValue.set('');
         this.ratingValue.set(null);
         this.motivationMessage.set(null);
@@ -1513,8 +1942,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.emojiSent.set(false);
         this.emojiSentEmoji.set('');
         this.startCountdown(q);
+      } else if (prevHadTimer && !newHasTimer) {
+        this.stopCountdown();
+        this.countdownSeconds.set(null);
       } else if (!prevHadTimer && newHasTimer && !this.countdownTimer) {
         this.startCountdown(q);
+      }
+
+      if (q && this.isResults()) {
+        this.restoreStoredVoteResponse(q);
       }
 
       if (q && this.isResults() && this.voteSent() && !this.motivationMessage()) {
@@ -1549,12 +1985,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
               ),
             );
           }
-        } else if (settings.enableMotivationMessages) {
-          this.motivationMessage.set(
-            pickRandom(
-              this.isPlayfulPreset() ? MESSAGES_NEUTRAL_PLAYFUL : MESSAGES_NEUTRAL_SERIOUS,
-            ),
-          );
         }
       }
 
@@ -1590,6 +2020,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       } else {
         this.currentQuestion.set(q);
       }
+      this.ensureActiveChannel();
 
       const pc =
         q && 'participantCount' in q
@@ -1600,19 +2031,105 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.stopCountdown();
         this.countdownSeconds.set(null);
       }
-
-      if (shouldScrollToQuestionOnRender) {
-        this.scheduleScrollVoteQuestionToStart();
+      const phase = this.resolveVoteAutoScrollPhase();
+      if (newId && phase === 'read') {
+        this.questionIdsWithReadPhase.add(newId);
+      }
+      if (newId && phase) {
+        const hadReadPhase = this.questionIdsWithReadPhase.has(newId);
+        const prioritizeQuestionOnVote =
+          phase === 'vote' &&
+          this.currentRound() === 2 &&
+          !this.questionIdsWithRound2QuestionScroll.has(newId);
+        this.schedulePhaseDrivenVoteScroll(
+          newId,
+          phase,
+          hadReadPhase,
+          this.currentRound(),
+          prioritizeQuestionOnVote,
+        );
+        if (prioritizeQuestionOnVote) {
+          this.questionIdsWithRound2QuestionScroll.add(newId);
+        }
       }
     } catch {
       /* noop */
     }
   }
 
-  private scheduleScrollVoteQuestionToStart(): void {
+  async confirmReadingReady(): Promise<void> {
+    const question = this.currentQuestion();
+    if (
+      this.readingReadySubmitting() ||
+      !this.isQuestionOpen() ||
+      !question ||
+      !('participantReady' in question) ||
+      !this.participantId()
+    ) {
+      return;
+    }
+
+    this.readingReadySubmitting.set(true);
+    try {
+      await trpc.session.confirmReadingReady.mutate({
+        code: this.code,
+        participantId: this.participantId(),
+        questionId: question.id,
+      });
+      this.currentQuestion.update((current) => {
+        if (!current || !('participantReady' in current) || current.id !== question.id) {
+          return current;
+        }
+        return { ...current, participantReady: true };
+      });
+    } catch (error) {
+      this.voteError.set(
+        localizeKnownServerError(
+          error,
+          $localize`:@@sessionVote.readingReadyError:Bereitschaft konnte nicht bestätigt werden.`,
+        ),
+      );
+    } finally {
+      this.readingReadySubmitting.set(false);
+    }
+  }
+
+  private resolveVoteAutoScrollPhase(): VoteAutoScrollPhase | null {
+    if (!this.showPrimaryLiveView()) return null;
+    if (this.isQuestionOpen()) return 'read';
+    if (this.isActive()) return 'vote';
+    if (this.isResults()) return 'result';
+    return null;
+  }
+
+  private schedulePhaseDrivenVoteScroll(
+    questionId: string,
+    phase: VoteAutoScrollPhase,
+    hadReadPhase: boolean,
+    round: number,
+    prioritizeQuestionOnVote: boolean,
+  ): void {
+    const token = `${questionId}:${phase}:${hadReadPhase ? 'read' : 'direct'}:r${round}`;
+    if (this.lastAutoScrollToken === token) {
+      return;
+    }
+    this.lastAutoScrollToken = token;
     afterNextRender(
       () => {
-        this.scrollVoteQuestionIntoView();
+        this.scrollVoteAnchorIntoView(phase, hadReadPhase, prioritizeQuestionOnVote);
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private scheduleResultContentScroll(token: string): void {
+    if (this.lastResultContentScrollToken === token) {
+      return;
+    }
+    this.lastResultContentScrollToken = token;
+    afterNextRender(
+      () => {
+        this.scrollVoteAnchorIntoView('result', false, false);
       },
       { injector: this.injector },
     );
@@ -1623,19 +2140,47 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
   }
 
-  private scrollVoteQuestionIntoView(): void {
+  private findFirstAvailableVoteAnchor(candidateIds: string[]): HTMLElement | null {
+    const host = this.el.nativeElement as HTMLElement;
+    for (const anchorId of candidateIds) {
+      const anchor = host.querySelector(`#${anchorId}`) as HTMLElement | null;
+      if (anchor) return anchor;
+    }
+    return null;
+  }
+
+  private ensureFocusable(element: HTMLElement): void {
+    if (element.tabIndex < 0 && !element.hasAttribute('tabindex')) {
+      element.setAttribute('tabindex', '-1');
+    }
+  }
+
+  private scrollVoteAnchorIntoView(
+    phase: VoteAutoScrollPhase,
+    hadReadPhase: boolean,
+    prioritizeQuestionOnVote: boolean,
+  ): void {
     if (!this.showPrimaryLiveView()) return;
     const host = this.el.nativeElement as HTMLElement;
     const scrollRoot = host.closest('.app-main') as HTMLElement | null;
-    const anchor = host.querySelector('#vote-quiz-question-anchor') as HTMLElement | null;
+    const anchor = this.findFirstAvailableVoteAnchor(
+      anchorCandidatesForPhase(phase, hadReadPhase, prioritizeQuestionOnVote),
+    );
     if (!scrollRoot) return;
     const behavior = this.voteScrollBehavior();
     if (anchor) {
       const rootRect = scrollRoot.getBoundingClientRect();
       const anchorRect = anchor.getBoundingClientRect();
-      const margin = 8;
-      const y = anchorRect.top - rootRect.top + scrollRoot.scrollTop - margin;
+      const toolbarClearancePx = parseFloat(getComputedStyle(scrollRoot).paddingTop) || 0;
+      const gapPx = 8;
+      const y = anchorRect.top - rootRect.top + scrollRoot.scrollTop - toolbarClearancePx - gapPx;
       scrollRoot.scrollTo({ top: Math.max(0, y), behavior });
+      const focusTargetId = focusTargetIdForAnchor(anchor.id);
+      const focusTarget =
+        (focusTargetId ? (host.querySelector(`#${focusTargetId}`) as HTMLElement | null) : null) ??
+        anchor;
+      this.ensureFocusable(focusTarget);
+      focusTarget.focus({ preventScroll: true });
     } else {
       scrollRoot.scrollTo({ top: 0, behavior });
     }
@@ -1688,6 +2233,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         ratingValue: rating,
         round: this.currentRound(),
       });
+      this.storeVoteResponse(q, answerIds, freeText, rating);
       try {
         navigator.vibrate?.(10);
       } catch {
@@ -1695,11 +2241,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
     } catch (err: unknown) {
       this.voteSent.set(false);
-      const msg =
-        err && typeof err === 'object' && 'message' in err
-          ? (err as { message: string }).message
-          : 'Abstimmung fehlgeschlagen.';
-      this.voteError.set(msg);
+      this.voteError.set(localizeKnownServerError(err, 'Abstimmung fehlgeschlagen.'));
       if (!overrideIds) this.selectedAnswerIds.set(new Set());
     } finally {
       this.voteSending.set(false);
@@ -1867,15 +2409,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.snackBar.open(vpc.voteFeedbackSnack(this.isPlayfulPreset()), '', { duration: 2000 });
       void this.loadFeedbackSummary();
     } catch (err: unknown) {
-      const msg =
+      const raw =
         err && typeof err === 'object' && 'message' in err
-          ? (err as { message: string }).message
+          ? String((err as { message: string }).message)
           : '';
+      const msg = localizeKnownServerMessage(raw);
       if (msg.includes('bereits bewertet')) {
         this.feedbackSubmitted.set(true);
         void this.loadFeedbackSummary();
       } else {
-        this.snackBar.open('Feedback konnte nicht gesendet werden.', '', { duration: 2000 });
+        this.snackBar.open(
+          localizeKnownServerError(err, 'Feedback konnte nicht gesendet werden.'),
+          '',
+          {
+            duration: 6000,
+          },
+        );
       }
     } finally {
       this.feedbackSubmitting.set(false);

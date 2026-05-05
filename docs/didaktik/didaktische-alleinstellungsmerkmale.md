@@ -32,7 +32,7 @@
 - **Story 1.14 (Word Cloud)** ist im ARS-Vergleich genannt, fehlt aber in der Backlog-Tabelle → als Story aufnehmen und als „Mentimeter-Level Freitext-Auswertung“ kommunizieren.
 - **Story 2.6 (Lesephase)** in Außendarstellung klar als didaktisches Alleinstellungsmerkmal hervorheben („Frage zuerst lesen, dann antworten“).
 - **Story 2.8 (Produktives Smartphone-Hosting)** als strategisches Gegenmodell zu Desktop-zentrierten ARS-Systemen kommunizieren: „Live unterrichten, moderieren und steuern direkt vom Smartphone aus.“
-- **Presets (1.11)** in Docs und UI mit kurzer didaktischer Begründung versehen („Spielerisch: Motivation & Wettbewerb“ / „Seriös: Druckfreiheit & Fokus“).
+- **Presets (1.11)** in Docs und UI mit kurzer didaktischer Begründung versehen („Spielerisch: Motivation, Wettbewerb, Action Sounds“ / „Seriös: Lesephase, ohne Leaderboard-Druck, Pseudonyme statt freier Namen“) — siehe [`preset-modes.md`](../features/preset-modes.md).
 
 ### 2.3 Neue / erweiterte Backlog-Ideen (didaktisch)
 

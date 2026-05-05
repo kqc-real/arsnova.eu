@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
+import {
+  createLegacyQuizHistoryAccessProof,
+  createQuizHistoryAccessProof,
+} from '@arsnova/shared-types';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
     quiz: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     session: {
       findMany: vi.fn(),
@@ -20,6 +24,7 @@ import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
 const QUIZ_ID = '11111111-1111-4111-8111-111111111111';
+const OTHER_QUIZ_ID = '22222222-2222-4222-8222-222222222222';
 const QUIZ_INPUT = {
   name: 'Chemie',
   description: undefined,
@@ -27,6 +32,7 @@ const QUIZ_INPUT = {
   showLeaderboard: true,
   allowCustomNicknames: true,
   defaultTimer: null,
+  timerScaleByDifficulty: false,
   enableSoundEffects: true,
   enableRewardEffects: true,
   enableMotivationMessages: true,
@@ -64,6 +70,7 @@ describe('session.getBonusTokensForQuiz', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
       ...QUIZ_INPUT,
       description: null,
       teamCount: null,
@@ -76,6 +83,22 @@ describe('session.getBonusTokensForQuiz', () => {
         ratingLabelMax: null,
       })),
     });
+    prismaMock.quiz.findMany.mockResolvedValue([
+      {
+        id: QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+    ]);
   });
 
   it('liefert beendete Sessions mit Bonus-Tokens zur Server-Quiz-ID', async () => {
@@ -107,7 +130,7 @@ describe('session.getBonusTokensForQuiz', () => {
     expect(prismaMock.session.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          quizId: QUIZ_ID,
+          quizId: { in: [QUIZ_ID] },
           status: 'FINISHED',
         }),
       }),
@@ -130,5 +153,84 @@ describe('session.getBonusTokensForQuiz', () => {
     });
 
     expect(prismaMock.session.findMany).not.toHaveBeenCalled();
+  });
+
+  it('aggregiert Sessions aus mehreren serverseitigen Quizkopien mit identischem Proof', async () => {
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.quiz.findMany.mockResolvedValue([
+      {
+        id: QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+      {
+        id: OTHER_QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+    ]);
+    prismaMock.session.findMany.mockResolvedValue([]);
+
+    await caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof });
+
+    expect(prismaMock.session.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          quizId: { in: [QUIZ_ID, OTHER_QUIZ_ID] },
+          status: 'FINISHED',
+        }),
+      }),
+    );
+  });
+
+  it('akzeptiert legacy-proof auch dann, wenn die serverkopie bereits an einen stabilen scope gebunden ist', async () => {
+    const stableHistoryScopeId = '33333333-3333-4333-8333-333333333333';
+    const accessProof = await createLegacyQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
+      historyScopeId: stableHistoryScopeId,
+      ...QUIZ_INPUT,
+      description: null,
+      teamCount: null,
+      backgroundMusic: null,
+      questions: QUIZ_INPUT.questions.map((question) => ({
+        ...question,
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+      })),
+    });
+    prismaMock.quiz.findMany.mockResolvedValue([{ id: QUIZ_ID }, { id: OTHER_QUIZ_ID }]);
+    prismaMock.session.findMany.mockResolvedValue([]);
+
+    await caller.getBonusTokensForQuiz({ quizId: QUIZ_ID, accessProof });
+
+    expect(prismaMock.session.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          quizId: { in: [QUIZ_ID, OTHER_QUIZ_ID] },
+          status: 'FINISHED',
+        }),
+      }),
+    );
   });
 });

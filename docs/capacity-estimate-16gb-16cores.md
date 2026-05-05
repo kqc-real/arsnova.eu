@@ -76,4 +76,56 @@ Wenn nicht alle Teilnehmer gleichzeitig verbunden sind (z. B. nur 70 % im Raum),
 - **Node:** Cluster-Modus (z. B. ein Prozess pro Kern) oder mehrere Backend-Instanzen hinter Load-Balancer; WebSocket-Sticky-Sessions.
 - **PostgreSQL:** `max_connections` und Prisma-Pool anpassen; Connection-Pooler (z. B. PgBouncer).
 - **Redis:** Speicher und Verbindungslimits prüfen; bei künftigem Pub/Sub für Live-Events zusätzlich Durchsatz messen.
-- **Monitoring:** `health.stats.serverStatus` (healthy < 50, busy < 200, overloaded ≥ 200 aktive Sessions) nutzen und bei „busy“/„overloaded“ Last reduzieren oder skalieren.
+- **Monitoring:** `health.stats.serviceStatus` (SLO) und `health.stats.loadStatus` (Lastindikator) zusammen mit den SLOs aus Abschnitt 7 nutzen.
+
+---
+
+## 7. SLO-Vorschlag (CAX31: 8 vCPU, 16 GB RAM)
+
+Die folgenden SLOs sind so gewählt, dass sie mit dem aktuellen Architekturstand (ein Backend-Prozess, tRPC-WebSockets, Redis, PostgreSQL, Subscription-Polling) realistisch erreichbar und messbar sind.
+
+### 7.1 SLO 1 – Vote-Bestätigung (Teilnehmerpfad)
+
+- **SLI:** Zeit von `vote.submit`-Request bis erfolgreicher API-Response (`200`) am Client.
+- **Ziel:** Bei **50 gleichzeitig aktiven Teilnehmenden** gilt:
+  - **p95 <= 1000 ms**
+  - **p99 <= 2000 ms**
+- **Messfenster:** Rolling 5 Minuten im Lasttest und im Produktionsbetrieb als 1-Minuten-Buckets.
+
+### 7.2 SLO 2 – Host-Statuswechsel sichtbar bei Teilnehmern
+
+- **SLI:** Zeit von Host-Aktion (`nextQuestion`, `revealAnswers`, `revealResults`) bis Anzeige des neuen Status beim Teilnehmer.
+- **Ziel:** Bei **50 gleichzeitig aktiven Teilnehmenden** gilt:
+  - **p95 <= 1500 ms**
+  - **p99 <= 3000 ms**
+- **Messfenster:** Rolling 5 Minuten.
+
+### 7.3 SLO 3 – API-Fehlerquote in Live-Pfaden
+
+- **SLI:** Anteil fehlgeschlagener Requests (`5xx` und `429`) für Live-Endpunkte (`vote.submit`, `session.*` Host-Aktionen, `quickFeedback.vote`).
+- **Ziel:**
+  - **Erfolgsrate >= 99,5 %** (entspricht Fehlerquote <= 0,5 %) pro 15-Minuten-Fenster.
+- **Messfenster:** Rolling 15 Minuten.
+
+### 7.4 SLO 4 – WebSocket-Verfügbarkeit (Live-Kanal)
+
+- **SLI:** Anteil erfolgreicher Verbindungsaufbauten und stabil gehaltener tRPC-WebSocket-Sessions (ohne ungeplanten Disconnect < 60 s).
+- **Ziel:**
+  - **>= 99,0 %** pro Kalendertag.
+- **Messfenster:** Tagesaggregat + 15-Minuten-Drilldown.
+
+### 7.5 SLO 5 – Reconnect-Erholung nach kurzzeitigem Verbindungsverlust
+
+- **SLI:** Zeit vom Client-Reconnect bis wieder gültige Session-Daten vorliegen (`getInfo` + erste gültige Status-/Datenaktualisierung).
+- **Ziel:** Bei stabiler Serververfügbarkeit:
+  - **p95 <= 3000 ms**
+  - **p99 <= 5000 ms**
+- **Messfenster:** Rolling 15 Minuten.
+
+### 7.6 Auswertung und Ampel-Bezug
+
+- **Grün:** Alle SLOs im Zielbereich.
+- **Gelb:** Mindestens ein SLO in den letzten 15 Minuten verletzt oder p95 deutlich nahe am Grenzwert.
+- **Rot:** Kritische Verletzung (z. B. p99 deutlich über Ziel oder Erfolgsrate < 99,0 %).
+
+Diese Zuordnung macht die Ampel direkt auf Nutzererlebnis und Systemqualität bezogen, nicht nur auf rohe Lastindikatoren.

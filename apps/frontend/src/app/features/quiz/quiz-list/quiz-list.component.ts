@@ -1,6 +1,6 @@
 import { DatePipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
@@ -16,6 +16,7 @@ import {
   QUIZ_PRESETS,
   PresetStorageEntrySchema,
   createQuizHistoryAccessProof,
+  createLegacyQuizHistoryAccessProof,
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TIMER_SECONDS,
   type CreateSessionOutput,
@@ -27,6 +28,8 @@ import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
   DEMO_QUIZ_ID,
   QuizStoreService,
+  type QuizImportResult,
+  type QuizImportWarning,
   type QuizSettings,
   type QuizSummary,
 } from '../data/quiz-store.service';
@@ -38,11 +41,12 @@ import {
 } from '../../../core/trpc.client';
 import { navigateToHostSession } from '../../../core/session-host-navigation';
 import { buildKiQuizSystemPrompt } from '../../../shared/ki-quiz-prompt';
+import { resolveMotdAssetOrigin } from '../../../core/motd-asset-origin';
 import {
+  absolutizeMarkdownHtmlRootAssetImgSrc,
   renderMarkdownWithKatex,
   renderMarkdownWithoutKatex,
 } from '../../../shared/markdown-katex.util';
-import { LiveSessionDialogComponent } from './live-session-dialog.component';
 import { BonusCodesDialogComponent } from './bonus-codes-dialog.component';
 import { LastSessionFeedbackDialogComponent } from './last-session-feedback-dialog.component';
 import {
@@ -50,6 +54,11 @@ import {
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { localizeKnownServerError } from '../../../core/localize-known-server-message';
+import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
+
+const QUIZ_HISTORY_SCOPE_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Quiz-Liste (Epic 1).
@@ -125,8 +134,12 @@ export class QuizListComponent implements OnInit {
   readonly currentBrowserLabel = this.quizStore.currentBrowserLabel;
   readonly syncPeerInfos = this.quizStore.syncPeerInfos;
   readonly actionInfo = signal<string | null>(null);
+  readonly actionInfoWarnings = signal<QuizImportWarning[]>([]);
   readonly actionError = signal<string | null>(null);
-  readonly activeLiveQuizIds = signal<Set<string>>(new Set());
+  readonly activeLiveQuizParticipants = signal<Map<string, number>>(new Map());
+  readonly quizHistoryAvailability = signal<
+    Map<string, { hasBonusTokens: boolean; hasLastSessionFeedback: boolean }>
+  >(new Map());
   readonly showAiImport = signal(false);
   /** Volltext der KI-Systemvorlage im Panel (Schritt 1). */
   readonly showKiPromptPreview = signal(false);
@@ -143,9 +156,29 @@ export class QuizListComponent implements OnInit {
   readonly startLiveShortcutMode = signal(false);
   readonly bonusCodesAfterLiveTooltip = $localize`:@@quizList.bonusCodesAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
   readonly lastFeedbackAfterLiveTooltip = $localize`:@@quizList.lastFeedbackAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
+  readonly bonusCodesEmptyTooltip = $localize`:@@quizList.bonusCodesEmpty:Noch keine Bonus-Codes vorhanden.`;
+  readonly lastFeedbackEmptyTooltip = $localize`:@@quizList.lastFeedbackEmpty:Noch kein Feedback vorhanden.`;
+  private lastQuizHistoryAvailabilityKey = '';
+  private quizHistoryAvailabilityRequestId = 0;
 
   /** Wird true, während quiz.upload + session.create laufen (Story 2.1a). */
   readonly liveStartPending = signal(false);
+
+  constructor() {
+    effect(() => {
+      const entries = this.quizzes()
+        .filter(
+          (quiz) => typeof quiz.lastServerQuizId === 'string' && !!quiz.lastServerQuizAccessProof,
+        )
+        .map((quiz) => ({
+          localQuizId: quiz.id,
+          quizId: quiz.lastServerQuizId!,
+          accessProof: quiz.lastServerQuizAccessProof!,
+        }));
+      const requestKey = JSON.stringify(entries);
+      untracked(() => void this.refreshQuizHistoryAvailability(entries, requestKey));
+    });
+  }
 
   /** Für i18n-matTooltip: Mindestens eine Frage erforderlich. */
   tooltipMinQuestions(): string {
@@ -166,7 +199,19 @@ export class QuizListComponent implements OnInit {
   }
 
   renderDescription(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+    const raw = renderMarkdownWithKatex(value, {
+      imagePolicy: 'allow-relative-and-https',
+    }).html;
+    const html = absolutizeMarkdownHtmlRootAssetImgSrc(raw, resolveMotdAssetOrigin());
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  renderImportWarningQuestion(value: string): SafeHtml {
+    const raw = renderMarkdownWithKatex(value, {
+      imagePolicy: 'allow-relative-and-https',
+    }).html;
+    const html = absolutizeMarkdownHtmlRootAssetImgSrc(raw, resolveMotdAssetOrigin());
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
   isSharedLibrary(): boolean {
@@ -175,17 +220,18 @@ export class QuizListComponent implements OnInit {
 
   syncStatusLabel(): string {
     const state = this.syncConnectionState();
-    if (state === 'connected') return $localize`:@@quizList.syncStatusConnected:Verbunden`;
+    if (state === 'connected') {
+      return this.hasConnectedSyncPeer()
+        ? $localize`:@@quizList.syncStatusConnected:Verbunden`
+        : $localize`:@@quizList.syncStatusReady:Bereit`;
+    }
     if (state === 'connecting')
       return $localize`:@@quizList.syncStatusConnecting:Verbindung wird aufgebaut`;
     return $localize`:@@quizList.syncStatusOffline:Offline`;
   }
 
-  syncCode(): string {
-    return this.syncRoomId()
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .slice(0, 8)
-      .toUpperCase();
+  hasConnectedSyncPeer(): boolean {
+    return this.syncConnectionState() === 'connected' && this.syncPeerInfos().length > 0;
   }
 
   syncPeerCountLabel(): string {
@@ -266,16 +312,51 @@ export class QuizListComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const activeQuizIds = await trpc.session.getActiveQuizIds.query(
+      const activeQuizStates = await trpc.session.getActiveQuizIds.query(
         await this.collectActiveQuizLookupEntries(),
       );
-      this.activeLiveQuizIds.set(new Set(activeQuizIds));
+      this.activeLiveQuizParticipants.set(
+        new Map(
+          activeQuizStates.map((entry) => [entry.quizId, entry.participantCountIncludingHost]),
+        ),
+      );
     } catch {
-      this.activeLiveQuizIds.set(new Set());
+      this.activeLiveQuizParticipants.set(new Map());
     }
 
     await this.handleSyncImportNoticeIfRequested();
     await this.activateLiveStartShortcutIfRequested();
+  }
+
+  hasAvailableBonusCodes(quiz: QuizSummary): boolean {
+    if (!quiz.hasBonus) {
+      return false;
+    }
+    return this.quizHistoryAvailability().get(quiz.id)?.hasBonusTokens === true;
+  }
+
+  hasAvailableLastSessionFeedback(quiz: QuizSummary): boolean {
+    return this.quizHistoryAvailability().get(quiz.id)?.hasLastSessionFeedback === true;
+  }
+
+  bonusCodesTooltip(quiz: QuizSummary): string | null {
+    if (!quiz.lastServerQuizId) {
+      return this.bonusCodesAfterLiveTooltip;
+    }
+    if (!this.hasAvailableBonusCodes(quiz)) {
+      return this.bonusCodesEmptyTooltip;
+    }
+    return null;
+  }
+
+  lastSessionFeedbackTooltip(quiz: QuizSummary): string | null {
+    if (!quiz.lastServerQuizId) {
+      return this.lastFeedbackAfterLiveTooltip;
+    }
+    if (!this.hasAvailableLastSessionFeedback(quiz)) {
+      return this.lastFeedbackEmptyTooltip;
+    }
+    return null;
   }
 
   toggleAiImport(): void {
@@ -283,6 +364,7 @@ export class QuizListComponent implements OnInit {
     this.showKiPromptPreview.set(false);
     this.actionError.set(null);
     this.actionInfo.set(null);
+    this.actionInfoWarnings.set([]);
   }
 
   toggleKiPromptPreview(): void {
@@ -297,12 +379,14 @@ export class QuizListComponent implements OnInit {
     this.aiJsonInput.set('');
     this.actionError.set(null);
     this.actionInfo.set(null);
+    this.actionInfoWarnings.set([]);
   }
 
   duplicateQuiz(quizId: string): void {
     this.actionError.set(null);
     try {
       const duplicate = this.quizStore.duplicateQuiz(quizId);
+      this.actionInfoWarnings.set([]);
       this.actionInfo.set($localize`„${duplicate.name}“ wurde dupliziert.`);
     } catch (error) {
       this.actionError.set(
@@ -314,6 +398,7 @@ export class QuizListComponent implements OnInit {
   deleteQuiz(quizId: string, quizName: string): void {
     this.actionError.set(null);
     if (this.isQuizLive(quizId)) {
+      this.actionInfoWarnings.set([]);
       this.actionInfo.set($localize`„${quizName}“ ist gerade live und kann nicht gelöscht werden.`);
       return;
     }
@@ -323,6 +408,7 @@ export class QuizListComponent implements OnInit {
         message: $localize`:@@quizList.deleteQuizDialogMessage:Das Quiz „${quizName}“ wird aus deiner Sammlung entfernt.`,
         consequences: [
           $localize`:@@quiz.deleteIrreversible:Das lässt sich nicht rückgängig machen.`,
+          $localize`:@@quizList.deleteQuizBonusCodesHint:Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über „Bonus-Codes“ > „CSV exportieren“.`,
         ],
         confirmLabel: $localize`:@@quizList.deleteQuizConfirm:Löschen`,
         cancelLabel: $localize`:@@quizList.deleteQuizCancel:Abbrechen`,
@@ -336,6 +422,7 @@ export class QuizListComponent implements OnInit {
       if (confirmed !== true) return;
       try {
         this.quizStore.deleteQuiz(quizId);
+        this.actionInfoWarnings.set([]);
         this.actionInfo.set($localize`„${quizName}“ wurde gelöscht.`);
       } catch (error) {
         this.actionError.set(
@@ -358,6 +445,7 @@ export class QuizListComponent implements OnInit {
       anchor.download = filename;
       anchor.click();
       URL.revokeObjectURL(url);
+      this.actionInfoWarnings.set([]);
       this.actionInfo.set($localize`„${quiz.quiz.name}“ wurde exportiert.`);
     } catch (error) {
       this.actionError.set(
@@ -376,7 +464,7 @@ export class QuizListComponent implements OnInit {
       const raw = await file.text();
       const parsed = JSON.parse(raw) as unknown;
       const imported = this.quizStore.importQuiz(parsed);
-      this.actionInfo.set($localize`„${imported.name}“ wurde importiert.`);
+      this.actionInfo.set(this.buildImportInfoMessage(imported));
       target.value = '';
     } catch (error) {
       const message = error instanceof Error ? error.message : $localize`Import fehlgeschlagen.`;
@@ -389,6 +477,7 @@ export class QuizListComponent implements OnInit {
     const prompt = this.buildCurrentKiPromptText();
     try {
       await navigator.clipboard.writeText(prompt);
+      this.actionInfoWarnings.set([]);
       this.actionInfo.set(
         $localize`:@@quizList.aiImport.copySuccess:Die Textvorlage ist jetzt in deiner Zwischenablage.`,
       );
@@ -419,7 +508,6 @@ export class QuizListComponent implements OnInit {
       teamCount: settings.teamCount,
       teamAssignment: settings.teamAssignment,
       teamNames: settings.teamNames,
-      backgroundMusic: settings.backgroundMusic,
       bonusTokenCount: settings.bonusTokenCount,
     });
   }
@@ -436,13 +524,13 @@ export class QuizListComponent implements OnInit {
       enableRewardEffects: presetDefaults.enableRewardEffects ?? true,
       enableMotivationMessages: presetDefaults.enableMotivationMessages ?? true,
       enableEmojiReactions: presetDefaults.enableEmojiReactions ?? true,
-      anonymousMode: preset === 'SERIOUS',
+      anonymousMode: presetDefaults.anonymousMode ?? false,
       teamMode: false,
       teamCount: null,
       teamAssignment: 'AUTO',
       teamNames: [],
       backgroundMusic: null,
-      nicknameTheme: 'NOBEL_LAUREATES',
+      nicknameTheme: presetDefaults.nicknameTheme ?? 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: presetDefaults.readingPhaseEnabled ?? false,
       preset,
@@ -507,6 +595,7 @@ export class QuizListComponent implements OnInit {
   importAiJson(): void {
     this.actionError.set(null);
     this.actionInfo.set(null);
+    this.actionInfoWarnings.set([]);
 
     const raw = this.aiJsonInput().trim();
     if (!raw) {
@@ -519,9 +608,7 @@ export class QuizListComponent implements OnInit {
     try {
       const parsed = parseAiImportPayload(raw);
       const imported = this.quizStore.importQuiz(parsed);
-      this.actionInfo.set(
-        $localize`:@@quizList.aiImport.success:„${imported.name}:quizName:“ wurde importiert.`,
-      );
+      this.actionInfo.set(this.buildImportInfoMessage(imported));
       this.aiJsonInput.set('');
       this.showAiImport.set(false);
     } catch (error) {
@@ -535,48 +622,32 @@ export class QuizListComponent implements OnInit {
 
   isQuizLive(quizId: string): boolean {
     const serverQuizId = this.quizzes().find((quiz) => quiz.id === quizId)?.lastServerQuizId;
-    return typeof serverQuizId === 'string' && this.activeLiveQuizIds().has(serverQuizId);
+    return typeof serverQuizId === 'string' && this.activeLiveQuizParticipants().has(serverQuizId);
+  }
+
+  liveParticipantCountIncludingHost(quizId: string): number | null {
+    const serverQuizId = this.quizzes().find((quiz) => quiz.id === quizId)?.lastServerQuizId;
+    if (typeof serverQuizId !== 'string') {
+      return null;
+    }
+    return this.activeLiveQuizParticipants().get(serverQuizId) ?? null;
   }
 
   async openLiveStartDialog(
     quizId: string,
-    quizName: string,
+    _quizName: string,
     questionCount: number,
   ): Promise<void> {
-    if (this.liveStartPending()) {
+    if (this.liveStartPending() || questionCount <= 0) {
       return;
     }
 
     await this.clearLiveStartShortcut();
-
-    const dialogRef = this.dialog.open(LiveSessionDialogComponent, {
-      width: 'min(32rem, calc(100vw - 1.5rem))',
-      maxWidth: '100vw',
-      autoFocus: false,
-      panelClass: 'live-session-dialog-panel',
-      backdropClass: 'live-session-dialog-backdrop',
-      data: {
-        quizName,
-        quizCanStart: questionCount > 0,
-      },
-    });
-
-    const result = await firstValueFrom(dialogRef.afterClosed());
-    if (!result) {
-      return;
-    }
-
-    await this.startLiveSession({
-      quizId,
-      includeQuiz: result.enableQuiz,
-      includeQa: result.enableQa,
-      includeQuickFeedback: result.enableQuickFeedback,
-      startWithQa: result.startChannel === 'qa',
-      initialTab: result.startChannel,
-    });
+    await this.startLiveSession({ quizId });
   }
 
   async openBonusCodesDialog(quiz: QuizSummary): Promise<void> {
+    if (!this.hasAvailableBonusCodes(quiz)) return;
     const sid = quiz.lastServerQuizId;
     if (!sid) return;
     const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
@@ -591,6 +662,7 @@ export class QuizListComponent implements OnInit {
   }
 
   async openLastSessionFeedbackDialog(quiz: QuizSummary): Promise<void> {
+    if (!this.hasAvailableLastSessionFeedback(quiz)) return;
     const sid = quiz.lastServerQuizId;
     if (!sid) return;
     const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
@@ -647,6 +719,50 @@ export class QuizListComponent implements OnInit {
     });
   }
 
+  private async refreshQuizHistoryAvailability(
+    entries: Array<{ localQuizId: string; quizId: string; accessProof: string }>,
+    requestKey: string,
+  ): Promise<void> {
+    if (requestKey === this.lastQuizHistoryAvailabilityKey) {
+      return;
+    }
+    this.lastQuizHistoryAvailabilityKey = requestKey;
+
+    if (entries.length === 0) {
+      this.quizHistoryAvailability.set(new Map());
+      return;
+    }
+
+    const requestId = ++this.quizHistoryAvailabilityRequestId;
+    try {
+      const result = await trpc.session.getQuizCollectionHistoryAvailability.query(
+        entries.map((entry) => ({
+          quizId: entry.quizId,
+          accessProof: entry.accessProof,
+        })),
+      );
+      if (requestId !== this.quizHistoryAvailabilityRequestId) {
+        return;
+      }
+
+      const next = new Map<string, { hasBonusTokens: boolean; hasLastSessionFeedback: boolean }>();
+      for (const [index, availability] of result.entries()) {
+        const localQuizId = entries[index]?.localQuizId;
+        if (!localQuizId) continue;
+        next.set(localQuizId, {
+          hasBonusTokens: availability.hasBonusTokens,
+          hasLastSessionFeedback: availability.hasLastSessionFeedback,
+        });
+      }
+      this.quizHistoryAvailability.set(next);
+    } catch {
+      if (requestId !== this.quizHistoryAvailabilityRequestId) {
+        return;
+      }
+      this.quizHistoryAvailability.set(new Map());
+    }
+  }
+
   private async waitForSyncImportSnapshot(): Promise<QuizSummary[]> {
     const currentQuizzes = this.quizzes();
     if (currentQuizzes.length > 0 || this.syncConnectionState() !== 'connecting') {
@@ -683,6 +799,17 @@ export class QuizListComponent implements OnInit {
     }
 
     return $localize`:@@quizList.syncImportedSuccessWithTimestamp:Quiz-Sammlung erfolgreich synchronisiert. Neuester Stand vom ${formattedTimestamp}:timestamp:.`;
+  }
+
+  private buildImportInfoMessage(result: QuizImportResult): string {
+    const skipped = result.warnings.filter((warning) => warning.kind === 'skipped_question');
+    this.actionInfoWarnings.set(skipped);
+    return `„${result.quiz.name}“ wurde importiert.`;
+  }
+
+  formatImportWarning(warning: QuizImportResult['warnings'][number]): string {
+    const label = warning.questionNumber ? `Frage ${warning.questionNumber}` : 'Quiz';
+    return `${label}: ${warning.message}`;
   }
 
   private formatSyncTimestamp(value: string): string | null {
@@ -723,115 +850,84 @@ export class QuizListComponent implements OnInit {
    * Quiz live schalten (Story 2.1a): Upload + Session erstellen, dann zur Host-Ansicht.
    * Übernimmt das aktuell gewählte Home-Preset (z. B. Altersgruppe Kita) in den Upload-Payload.
    */
-  private async startLiveSession(options: {
-    quizId: string;
-    includeQuiz: boolean;
-    includeQa: boolean;
-    includeQuickFeedback: boolean;
-    startWithQa: boolean;
-    initialTab: 'quiz' | 'qa' | 'quickFeedback';
-  }): Promise<void> {
+  private async startLiveSession(options: { quizId: string }): Promise<void> {
     this.actionError.set(null);
     this.actionInfo.set(null);
+    this.actionInfoWarnings.set([]);
     this.liveStartPending.set(true);
+    tryRequestDocumentFullscreen(this.document);
     try {
-      let result: CreateSessionOutput;
-
-      if (options.includeQuiz) {
-        let payload = this.quizStore.getUploadPayload(options.quizId);
-        const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
-        try {
-          const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
-          const parsed = raw ? (JSON.parse(raw) as unknown) : null;
-          const entry = PresetStorageEntrySchema.safeParse(parsed);
-          if (entry.success) {
-            const storedOptions = entry.data.options;
-            /** Fehlender Chip-Schlüssel = Quiz-Wert behalten (wie Quiz-Vorschau). */
-            const optionEnabled = (id: string, fallback: boolean) =>
-              id in storedOptions ? storedOptions[id] === true : fallback;
-            const effectiveTeamMode = optionEnabled('teamMode', false) || payload.teamMode;
-            payload = {
-              ...payload,
-              // Namensliste / Anonymität: immer aus dem Quiz (Snackbar-Preset überschreibt das nicht).
-              showLeaderboard: optionEnabled('showLeaderboard', payload.showLeaderboard),
-              enableRewardEffects: optionEnabled(
-                'enableRewardEffects',
-                payload.enableRewardEffects,
-              ),
-              enableMotivationMessages: optionEnabled(
-                'enableMotivationMessages',
-                payload.enableMotivationMessages,
-              ),
-              enableEmojiReactions: optionEnabled(
-                'enableEmojiReactions',
-                payload.enableEmojiReactions,
-              ),
-              enableSoundEffects: optionEnabled('enableSoundEffects', payload.enableSoundEffects),
-              readingPhaseEnabled: optionEnabled(
-                'readingPhaseEnabled',
-                payload.readingPhaseEnabled ?? true,
-              ),
-              teamMode: effectiveTeamMode,
-              teamAssignment: optionEnabled('teamMode', false)
-                ? optionEnabled('teamAssignment', false)
-                  ? 'MANUAL'
-                  : 'AUTO'
-                : (payload.teamAssignment ?? 'AUTO'),
-              teamCount: optionEnabled('teamMode', false)
-                ? (entry.data.teamCountValue ?? payload.teamCount)
-                : payload.teamCount,
-              bonusTokenCount: optionEnabled('bonusTokenCount', false)
-                ? (payload.bonusTokenCount ?? DEFAULT_BONUS_TOKEN_COUNT)
-                : payload.bonusTokenCount,
-              defaultTimer: optionEnabled('defaultTimer', typeof payload.defaultTimer === 'number')
-                ? (payload.defaultTimer ?? DEFAULT_TIMER_SECONDS)
-                : null,
-            };
-          }
-        } catch {
-          // Preset-Optionen nicht lesbar → Quiz-Einstellungen unverändert nutzen
+      let payload = this.quizStore.getUploadPayload(options.quizId);
+      const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
+      try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;
+        const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+        const entry = PresetStorageEntrySchema.safeParse(parsed);
+        if (entry.success) {
+          const storedOptions = entry.data.options;
+          /** Fehlender Chip-Schlüssel = Quiz-Wert behalten (wie Quiz-Vorschau). */
+          const optionEnabled = (id: string, fallback: boolean) =>
+            id in storedOptions ? storedOptions[id] === true : fallback;
+          const effectiveTeamMode = optionEnabled('teamMode', false) || payload.teamMode;
+          payload = {
+            ...payload,
+            // Namensliste / Anonymität: immer aus dem Quiz (Snackbar-Preset überschreibt das nicht).
+            showLeaderboard: optionEnabled('showLeaderboard', payload.showLeaderboard),
+            enableRewardEffects: optionEnabled('enableRewardEffects', payload.enableRewardEffects),
+            enableMotivationMessages: optionEnabled(
+              'enableMotivationMessages',
+              payload.enableMotivationMessages,
+            ),
+            enableEmojiReactions: optionEnabled(
+              'enableEmojiReactions',
+              payload.enableEmojiReactions,
+            ),
+            enableSoundEffects: optionEnabled('enableSoundEffects', payload.enableSoundEffects),
+            readingPhaseEnabled: optionEnabled(
+              'readingPhaseEnabled',
+              payload.readingPhaseEnabled ?? true,
+            ),
+            teamMode: effectiveTeamMode,
+            teamAssignment: optionEnabled('teamMode', false)
+              ? optionEnabled('teamAssignment', false)
+                ? 'MANUAL'
+                : 'AUTO'
+              : (payload.teamAssignment ?? 'AUTO'),
+            teamCount: optionEnabled('teamMode', false)
+              ? (entry.data.teamCountValue ?? payload.teamCount)
+              : payload.teamCount,
+            bonusTokenCount: optionEnabled('bonusTokenCount', false)
+              ? (payload.bonusTokenCount ?? DEFAULT_BONUS_TOKEN_COUNT)
+              : payload.bonusTokenCount,
+            defaultTimer: optionEnabled('defaultTimer', typeof payload.defaultTimer === 'number')
+              ? (payload.defaultTimer ?? DEFAULT_TIMER_SECONDS)
+              : null,
+          };
         }
-        const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
-        this.quizStore.setLastServerUploadAccess(
-          options.quizId,
-          uploadedQuizId,
-          await createQuizHistoryAccessProof(payload),
-        );
-        result = await trpc.session.create.mutate({
-          quizId: uploadedQuizId,
-          type: 'QUIZ',
-          qaEnabled: options.includeQa,
-          quickFeedbackEnabled: options.includeQuickFeedback,
-        });
-      } else {
-        result = await trpc.session.create.mutate({
-          type: options.includeQa ? 'Q_AND_A' : 'QUIZ',
-          quickFeedbackEnabled: options.includeQuickFeedback,
-        });
+      } catch {
+        // Preset-Optionen nicht lesbar → Quiz-Einstellungen unverändert nutzen
       }
+      const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
+      this.quizStore.setLastServerUploadAccess(
+        options.quizId,
+        uploadedQuizId,
+        await createQuizHistoryAccessProof(payload),
+      );
+      const result: CreateSessionOutput = await trpc.session.create.mutate({
+        quizId: uploadedQuizId,
+        type: 'QUIZ',
+      });
 
       setHostToken(result.code, result.hostToken);
       setPendingHostSessionCode(result.code);
       try {
-        if (options.startWithQa) {
-          await trpc.session.startQa.mutate({ code: result.code });
-        }
-
-        await navigateToHostSession(this.router, result.code, options.initialTab);
+        await navigateToHostSession(this.router, result.code, 'quiz');
         this.actionInfo.set($localize`Session ${result.code} gestartet.`);
       } finally {
         clearPendingHostSessionCode();
       }
     } catch (error) {
-      const msg =
-        error && typeof error === 'object' && 'message' in error
-          ? String((error as { message: string }).message)
-          : $localize`Live-Start fehlgeschlagen.`;
-      if (msg.includes('TOO_MANY_REQUESTS') || msg.includes('Sessions pro Stunde')) {
-        this.actionError.set($localize`Zu viele Sessions – bitte später erneut versuchen.`);
-      } else {
-        this.actionError.set(msg);
-      }
+      this.actionError.set(localizeKnownServerError(error, $localize`Live-Start fehlgeschlagen.`));
     } finally {
       this.liveStartPending.set(false);
     }
@@ -849,12 +945,64 @@ export class QuizListComponent implements OnInit {
   }
 
   private async resolveQuizHistoryAccessProof(quiz: QuizSummary): Promise<string | null> {
+    if (
+      quiz.lastServerQuizAccessProof &&
+      QUIZ_HISTORY_SCOPE_ID_PATTERN.test(quiz.lastServerQuizAccessProof)
+    ) {
+      return quiz.lastServerQuizAccessProof;
+    }
+
+    const legacyAccessProof = await this.resolveLegacyQuizHistoryAccessProof(quiz);
+    if (quiz.lastServerQuizId && legacyAccessProof) {
+      const reboundAccessProof = await this.bindLegacyQuizHistoryScope(quiz, legacyAccessProof);
+      if (reboundAccessProof) {
+        return reboundAccessProof;
+      }
+      return legacyAccessProof;
+    }
+
     if (quiz.lastServerQuizAccessProof) {
       return quiz.lastServerQuizAccessProof;
     }
 
     try {
       return await createQuizHistoryAccessProof(this.quizStore.getUploadPayload(quiz.id));
+    } catch {
+      return null;
+    }
+  }
+
+  private async resolveLegacyQuizHistoryAccessProof(quiz: QuizSummary): Promise<string | null> {
+    if (
+      quiz.lastServerQuizAccessProof &&
+      !QUIZ_HISTORY_SCOPE_ID_PATTERN.test(quiz.lastServerQuizAccessProof)
+    ) {
+      return quiz.lastServerQuizAccessProof;
+    }
+
+    try {
+      return await createLegacyQuizHistoryAccessProof(this.quizStore.getUploadPayload(quiz.id));
+    } catch {
+      return null;
+    }
+  }
+
+  private async bindLegacyQuizHistoryScope(
+    quiz: QuizSummary,
+    accessProof: string,
+  ): Promise<string | null> {
+    if (!quiz.lastServerQuizId) {
+      return null;
+    }
+
+    try {
+      const result = await trpc.session.bindQuizHistoryScope.mutate({
+        quizId: quiz.lastServerQuizId,
+        accessProof,
+        historyScopeId: quiz.id,
+      });
+      this.quizStore.setLastServerQuizAccessProof(quiz.id, result.accessProof);
+      return result.accessProof;
     } catch {
       return null;
     }

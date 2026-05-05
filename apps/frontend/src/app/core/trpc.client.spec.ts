@@ -58,11 +58,13 @@ describe('trpc.client host transport', () => {
     await loadClientModule('/de/session/abc123/present');
 
     const httpOptions = httpBatchLinkMock.mock.calls[0]?.[0] as {
+      url: string;
       headers: () => Record<string, string>;
     };
     const headers = httpOptions.headers();
 
     expect(normalizeHostSessionCodeMock).toHaveBeenCalledWith('abc123');
+    expect(httpOptions.url).toBe('http://localhost:3000/trpc');
     expect(headers).toEqual({ 'x-host-token': 'host-token-123' });
   });
 

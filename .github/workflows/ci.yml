@@ -159,6 +159,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prisma generate
+        run: npx prisma generate --schema prisma/schema.prisma
+
       - name: Run tests
         run: npm test
 

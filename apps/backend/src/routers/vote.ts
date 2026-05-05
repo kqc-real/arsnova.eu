@@ -6,6 +6,7 @@ import { TRPCError } from '@trpc/server';
 import {
   SubmitVoteInputSchema,
   SubmitVoteOutputSchema,
+  resolveEffectiveQuestionTimer,
   type QuestionType,
   type Difficulty,
 } from '@arsnova/shared-types';
@@ -13,6 +14,8 @@ import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
 import { checkVoteRate } from '../lib/rateLimit';
 import { calculateVoteScore, getStreakMultiplier, questionAffectsStreak } from '../lib/quizScoring';
+import { touchParticipantPresence } from '../lib/presence';
+import { recordVoteActivity } from '../lib/loadSignal';
 
 export const voteRouter = router({
   submit: publicProcedure
@@ -43,6 +46,8 @@ export const voteRouter = router({
       if (participant.session.status !== 'ACTIVE') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Die Frage ist nicht mehr aktiv.' });
       }
+      void touchParticipantPresence(input.sessionId, input.participantId);
+      void recordVoteActivity();
       const question = await prisma.question.findFirst({
         where: { id: input.questionId, quizId: participant.session.quizId ?? undefined },
         include: { answers: { select: { id: true, isCorrect: true } } },
@@ -51,9 +56,20 @@ export const voteRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
 
-      if (question.timer && question.timer > 0 && participant.session.statusChangedAt) {
+      const quiz = await prisma.quiz.findUnique({
+        where: { id: participant.session.quizId ?? '' },
+        select: { defaultTimer: true, timerScaleByDifficulty: true },
+      });
+      const timerSeconds = resolveEffectiveQuestionTimer(
+        question.timer,
+        quiz?.defaultTimer,
+        question.difficulty as Difficulty,
+        quiz?.timerScaleByDifficulty ?? true,
+      );
+
+      if (timerSeconds && timerSeconds > 0 && participant.session.statusChangedAt) {
         const deadline =
-          new Date(participant.session.statusChangedAt).getTime() + question.timer * 1000;
+          new Date(participant.session.statusChangedAt).getTime() + timerSeconds * 1000;
         if (Date.now() > deadline + 2000) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
@@ -156,12 +172,6 @@ export const voteRouter = router({
       }
 
       const round = input.round ?? 1;
-
-      const quiz = await prisma.quiz.findUnique({
-        where: { id: participant.session.quizId ?? '' },
-        select: { defaultTimer: true },
-      });
-      const timerSeconds = question.timer ?? quiz?.defaultTimer ?? null;
 
       const correctAnswerIds = question.answers
         .filter((answer) => answer.isCorrect)

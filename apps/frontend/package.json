@@ -10,7 +10,7 @@
     "build": "ng build",
     "build:prod": "npm run build:localize",
     "serve:dist": "npx serve dist/browser -s",
-    "build:localize": "ng build --configuration production --localize && node scripts/patch-prerender-noscript.mjs && node scripts/patch-sitemap-lastmod.mjs && node scripts/patch-pwa-manifest-per-locale.mjs && node scripts/regenerate-ngsw-localized.mjs && node -e \"require('fs').copyFileSync('static-root-index.html', 'dist/browser/index.html')\" && node scripts/check-motd-assets-postbuild.mjs",
+    "build:localize": "ng run frontend:build:production && ng run frontend:server:production && node scripts/prerender-localized.mjs && node scripts/patch-prerender-noscript.mjs && node scripts/patch-sitemap-lastmod.mjs && node scripts/patch-pwa-manifest-per-locale.mjs && node scripts/regenerate-ngsw-localized.mjs && node -e \"require('fs').copyFileSync('static-root-index.html', 'dist/browser/index.html')\" && node scripts/check-motd-assets-postbuild.mjs",
     "serve:localize": "npx serve dist/browser -p 4200",
     "serve:localize:api": "node scripts/serve-localized-with-api.mjs",
     "lighthouse:serve": "npm run build:prod && npm run serve:dist",
@@ -47,7 +47,10 @@
     "@arsnova/shared-types": "*",
     "@trpc/client": "^11.0.0",
     "@trpc/server": "^11.0.0",
+    "chart.js": "^4.5.1",
+    "dompurify": "^3.4.0",
     "express": "^5.1.0",
+    "highlight.js": "^11.11.1",
     "katex": "^0.16.32",
     "marked": "^17.0.3",
     "material-icons": "^1.13.14",
@@ -56,11 +59,12 @@
     "tslib": "^2.7.0",
     "y-indexeddb": "^9.0.12",
     "y-websocket": "^3.0.0",
-    "yjs": "^14.0.0-16"
+    "yjs": "^13.6.30"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "2.4.0-beta.4",
     "@analogjs/vitest-angular": "2.4.0-beta.4",
+    "@angular-devkit/build-angular": "^21.2.0",
     "@angular/build": "^21.2.0",
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",

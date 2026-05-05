@@ -81,6 +81,7 @@ describe('qa router (Epic 8)', () => {
       code: 'CODE12',
       type: 'QUIZ',
       qaEnabled: true,
+      qaOpen: true,
       qaModerationMode: false,
     });
     prismaMock.qaQuestion.findMany.mockResolvedValue([
@@ -119,6 +120,7 @@ describe('qa router (Epic 8)', () => {
         id: SESSION_ID,
         type: 'QUIZ',
         qaEnabled: true,
+        qaOpen: true,
         qaModerationMode: false,
         moderationMode: false,
         status: 'ACTIVE',
@@ -161,6 +163,7 @@ describe('qa router (Epic 8)', () => {
         id: SESSION_ID,
         type: 'QUIZ',
         qaEnabled: true,
+        qaOpen: true,
         qaModerationMode: false,
         moderationMode: false,
         status: 'FINISHED',
@@ -186,6 +189,7 @@ describe('qa router (Epic 8)', () => {
         id: SESSION_ID,
         type: 'QUIZ',
         qaEnabled: true,
+        qaOpen: true,
         qaModerationMode: false,
         moderationMode: false,
         status: 'ACTIVE',
@@ -211,7 +215,7 @@ describe('qa router (Epic 8)', () => {
         sessionId: SESSION_ID,
         status: 'ACTIVE',
         upvoteCount: 1,
-        session: { id: SESSION_ID, type: 'QUIZ', qaEnabled: true, status: 'ACTIVE' },
+        session: { id: SESSION_ID, type: 'QUIZ', qaEnabled: true, qaOpen: true, status: 'ACTIVE' },
       })
       .mockResolvedValueOnce({ upvoteCount: 2 });
     prismaMock.participant.findUnique.mockResolvedValue({
@@ -239,6 +243,7 @@ describe('qa router (Epic 8)', () => {
       id: SESSION_ID,
       type: 'QUIZ',
       qaEnabled: true,
+      qaOpen: true,
       status: 'ACTIVE',
     });
     prismaMock.qaQuestion.findUnique
@@ -312,6 +317,7 @@ describe('qa router (Epic 8)', () => {
       code: 'ABC123',
       type: 'QUIZ',
       qaEnabled: true,
+      qaOpen: true,
       qaModerationMode: true,
     });
 
@@ -329,6 +335,7 @@ describe('qa router (Epic 8)', () => {
       code: 'ABC123',
       type: 'QUIZ',
       qaEnabled: true,
+      qaOpen: true,
       qaModerationMode: true,
     });
     prismaMock.qaQuestion.findMany.mockResolvedValue([
@@ -364,6 +371,7 @@ describe('qa router (Epic 8)', () => {
       code: 'ABC123',
       type: 'QUIZ',
       qaEnabled: true,
+      qaOpen: true,
     });
 
     const stream = await caller.onQuestionsUpdated({ sessionId: SESSION_ID, moderatorView: true });
@@ -384,11 +392,13 @@ describe('qa router (Epic 8)', () => {
         code: 'ABC123',
         type: 'QUIZ',
         qaEnabled: true,
+        qaOpen: true,
       })
       .mockResolvedValueOnce({
         id: SESSION_ID,
         type: 'QUIZ',
         qaEnabled: true,
+        qaOpen: true,
       });
     prismaMock.qaQuestion.findMany.mockResolvedValue([
       {
@@ -426,5 +436,49 @@ describe('qa router (Epic 8)', () => {
     ]);
 
     await iterator.return?.(undefined);
+  });
+
+  it('liefert für Teilnehmende keine Q&A-Inhalte, wenn der Kanal geschlossen ist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'CODE12',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: false,
+      qaModerationMode: false,
+    });
+
+    const result = await caller.list({ sessionId: SESSION_ID, participantId: PARTICIPANT_ID });
+
+    expect(result).toEqual([]);
+    expect(prismaMock.qaQuestion.findMany).not.toHaveBeenCalled();
+  });
+
+  it('lehnt neue Fragen ab, wenn der Q&A-Kanal geschlossen ist', async () => {
+    prismaMock.participant.findUnique.mockResolvedValue({
+      id: PARTICIPANT_ID,
+      sessionId: SESSION_ID,
+      session: {
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: false,
+        qaModerationMode: false,
+        moderationMode: false,
+        status: 'ACTIVE',
+      },
+    });
+
+    await expect(
+      caller.submit({
+        sessionId: SESSION_ID,
+        participantId: PARTICIPANT_ID,
+        text: 'Noch eine Frage?',
+      }),
+    ).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+      message: 'Der Q&A-Kanal ist aktuell geschlossen.',
+    });
+    expect(prismaMock.qaQuestion.create).not.toHaveBeenCalled();
   });
 });

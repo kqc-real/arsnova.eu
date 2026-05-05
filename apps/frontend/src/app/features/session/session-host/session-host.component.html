@@ -10,7 +10,7 @@
   @if (session(); as s) {
     @if (hostSteeringCallout(); as steer) {
       <div
-        class="session-host__steering-callout app-live-channel-shell"
+        class="session-host__steering-callout"
         role="alert"
         aria-live="assertive"
         i18n-aria-label="@@sessionHost.steeringCalloutAria"
@@ -50,18 +50,26 @@
           class="session-channel-tabs"
           [value]="activeChannel()"
           (valueChange)="selectChannel($event)"
+          [disabled]="channelActivationPending() !== null"
           i18n-aria-label="@@sessionTabs.hostAria"
           aria-label="Live-Bereich wählen"
         >
-          @for (channel of visibleChannels(); track channel) {
-            <mat-button-toggle [value]="channel">
+          @for (channel of availableChannels(); track channel) {
+            <mat-button-toggle
+              [value]="channel"
+              [class.session-channel-tabs__toggle--inactive]="!isChannelEnabled(channel)"
+              [class.session-channel-tabs__toggle--pending]="channelActivationPending() === channel"
+            >
               <span class="session-channel-tabs__label">{{ channelLabel(channel) }}</span>
               @if (channelTabMetaLabel(channel); as metaLabel) {
                 <span
                   class="session-channel-tabs__badge"
+                  [class.session-channel-tabs__badge--inactive]="!isChannelEnabled(channel)"
                   [class.session-channel-tabs__badge--alert]="isChannelBadgeAlert(channel)"
                   [class.session-channel-tabs__badge--status]="
-                    channel === 'quickFeedback' && !isChannelBadgeAlert(channel)
+                    isChannelEnabled(channel) &&
+                    channel === 'quickFeedback' &&
+                    !isChannelBadgeAlert(channel)
                   "
                 >
                   {{ metaLabel }}
@@ -71,7 +79,21 @@
           }
         </mat-button-toggle-group>
 
-        @if (isRunningSession()) {
+        @if (activeChannelVisibilityActionLabel(); as visibilityActionLabel) {
+          <button
+            mat-button
+            type="button"
+            class="session-host__channel-visibility-action"
+            [disabled]="channelVisibilityPending() !== null"
+            (click)="toggleActiveChannelOpen()"
+            [attr.aria-label]="visibilityActionLabel"
+          >
+            <mat-icon aria-hidden="true">{{ activeChannelVisibilityIcon() }}</mat-icon>
+            <span class="session-host__channel-visibility-label">{{ visibilityActionLabel }}</span>
+          </button>
+        }
+
+        @if (showHostViewControls()) {
           <div class="session-host__view-controls session-host__view-controls--inline">
             <button
               mat-icon-button
@@ -206,7 +228,7 @@
 
     @if (effectiveStatus() !== 'FINISHED') {
       @let liveParticipantCount = participantsPayload()?.participantCount ?? s.participantCount;
-      <section class="session-host__live-banner app-live-channel-shell">
+      <section class="session-host__live-banner">
         <div class="session-host__live-banner-main">
           <div class="session-host__live-access">
             <button
@@ -235,6 +257,11 @@
                   liveParticipantCount === 1 ? participantLabelSingular() : participantLabelPlural()
                 }}
               </p>
+              @if (effectiveStatus() === 'QUESTION_OPEN' && readingReadyStatus(); as ready) {
+                <p class="session-host__live-participants">
+                  {{ readingReadyProgressLabel(ready.readyCount, ready.connectedCount) }}
+                </p>
+              }
             </div>
             <div class="session-host__live-actions">
               <button
@@ -254,7 +281,7 @@
                 }
                 <span class="session-host__live-sound-label">{{ activeMusicLabel() }}</span>
               </button>
-              @if (isRunningSession() && !showChannelTabs()) {
+              @if (showHostViewControls() && !showChannelTabs()) {
                 <div class="session-host__view-controls session-host__view-controls--meta">
                   <button
                     mat-icon-button
@@ -302,7 +329,7 @@
               class="session-host__join-viewport-overlay__surface session-host__join-menu-panel"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="session-host-join-lead session-host-join-origin"
+              aria-labelledby="session-host-join-origin"
               id="session-host-join-info"
               tabindex="-1"
               (click)="$event.stopPropagation()"
@@ -324,31 +351,17 @@
                   <mat-icon>qr_code_2</mat-icon>
                 </span>
                 <div class="dialog-title-header__copy session-host__join-menu-title-copy">
-                  <p
-                    class="session-host__join-menu-lead"
-                    id="session-host-join-lead"
-                    i18n="@@sessionHost.joinMenuLead"
-                  >
-                    Gehe auf
-                  </p>
                   <p class="session-host__join-menu-origin" id="session-host-join-origin">
                     {{ joinOriginForMenu() }}
                   </p>
                 </div>
               </div>
               @if (qrDataUrl()) {
-                <p
-                  class="session-host__join-menu-qr-hint"
-                  i18n="@@sessionHost.joinMenuFullscreenHint"
-                >
-                  Wenn etwas abgeschnitten wirkt: Hier nach unten scrollen. Für eine größere Ansicht
-                  reicht ein Klick auf den QR-Code.
-                </p>
                 <div class="session-host__join-menu-qr-wrap">
                   <img
                     appMarkdownImageLightbox
                     [src]="qrDataUrl()"
-                    alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                    [attr.alt]="joinUrl"
                     data-markdown-image-lightbox="true"
                     class="session-host__join-menu-qr session-host__join-menu-qr--viewport-overlay app-qr-image"
                     width="320"
@@ -447,13 +460,38 @@
                       class="session-lobby__team-card"
                       [class.session-lobby__team-card--playful]="isPlayfulPreset()"
                     >
-                      <div class="session-lobby__team-card-head">
-                        <span
-                          class="session-lobby__team-card-dot"
-                          [style.background]="team.color || 'var(--mat-sys-primary)'"
-                          aria-hidden="true"
-                        ></span>
-                        <span class="session-lobby__team-card-name">{{ team.name }}</span>
+                      <div
+                        class="session-lobby__team-card-head"
+                        [class.session-lobby__team-card-head--emoji]="
+                          teamNameUsesEmojiMarker(team.name)
+                        "
+                      >
+                        @if (teamNameEmojiMarker(team.name); as teamEmoji) {
+                          @if (teamNameEmojiMarkerTrailing(team.name)) {
+                            <span class="session-lobby__team-card-name">{{
+                              teamNameLabelWithoutEmojiMarker(team.name)
+                            }}</span>
+                            <span class="session-lobby__team-card-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                          } @else {
+                            <span class="session-lobby__team-card-emoji" aria-hidden="true">{{
+                              teamEmoji
+                            }}</span>
+                            <span class="session-lobby__team-card-name">{{
+                              teamNameLabelWithoutEmojiMarker(team.name)
+                            }}</span>
+                          }
+                        } @else {
+                          <span
+                            class="session-lobby__team-card-dot"
+                            [style.background]="team.color || 'var(--mat-sys-primary)'"
+                            aria-hidden="true"
+                          ></span>
+                          <span class="session-lobby__team-card-name">{{
+                            teamNameLabelWithoutEmojiMarker(team.name)
+                          }}</span>
+                        }
                         <span class="session-lobby__team-card-count">{{
                           teamMemberLabel(team.memberCount)
                         }}</span>
@@ -676,15 +714,29 @@
                               >{{ teamLeaderboardRankDisplay(entry.rank) }}</span
                             >
                             <span class="session-host__team-bar-name">
-                              <span
-                                class="session-host__team-bar-dot"
-                                [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                              ></span>
-                              {{ entry.teamName }}
+                              @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
+                                @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
+                                  <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                                  <span class="session-host__team-bar-emoji" aria-hidden="true">{{
+                                    teamEmoji
+                                  }}</span>
+                                } @else {
+                                  <span class="session-host__team-bar-emoji" aria-hidden="true">{{
+                                    teamEmoji
+                                  }}</span>
+                                  <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                                }
+                              } @else {
+                                <span
+                                  class="session-host__team-bar-dot"
+                                  [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                                ></span>
+                                <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                              }
                             </span>
                             <span class="session-host__team-bar-meta">
                               {{ teamMemberLabel(entry.memberCount) }} ·
-                              {{ entry.totalScore | number }}
+                              {{ '∅ ' + (entry.totalScore | number) }}
                             </span>
                           </div>
                           <div class="session-host__team-bar-track" aria-hidden="true">
@@ -813,7 +865,11 @@
                   </mat-card-content>
                 </mat-card>
               } @else if (currentQuestionForHost(); as q) {
-                <mat-card appearance="outlined" class="session-host__question-card">
+                <mat-card
+                  appearance="outlined"
+                  class="session-host__question-card"
+                  #hostQuestionCard
+                >
                   <mat-card-header>
                     <mat-card-subtitle class="session-host__question-subtitle">
                       @if (q.totalQuestions != null) {
@@ -829,6 +885,37 @@
                       <span class="session-host__question-phase">
                         {{ phaseLabel(effectiveStatus(), allHaveVoted(), countdownEnded()) }}
                       </span>
+                      @if (liveVoteProgress(); as voteProgress) {
+                        <span
+                          class="session-host__vote-progress"
+                          [class.session-host__vote-progress--complete]="voteProgress.complete"
+                          [style.--session-host-vote-progress]="voteProgress.percentage"
+                          role="status"
+                          aria-live="polite"
+                          [attr.aria-label]="
+                            voteProgressAria(
+                              voteProgress.votes,
+                              voteProgress.participants,
+                              voteProgress.percentage
+                            )
+                          "
+                        >
+                          <span class="session-host__vote-progress-icon" aria-hidden="true">
+                            <mat-icon>how_to_vote</mat-icon>
+                          </span>
+                          <span class="session-host__vote-progress-copy">
+                            <span class="session-host__vote-progress-value"
+                              >{{ voteProgress.percentage }} %</span
+                            >
+                            <span class="session-host__vote-progress-meta">{{
+                              voteProgressCompactLabel(
+                                voteProgress.votes,
+                                voteProgress.participants
+                              )
+                            }}</span>
+                          </span>
+                        </span>
+                      }
                       @if (allHaveVoted()) {
                         <span class="session-host__all-voted" role="status" aria-live="polite">
                           <mat-icon>how_to_vote</mat-icon>
@@ -848,10 +935,25 @@
                     </mat-card-subtitle>
                     <mat-card-title class="session-host__question-title">
                       <span
-                        class="session-host__question-title-inner"
+                        class="session-host__question-title-inner markdown-body"
                         [innerHTML]="renderMarkdown(q.text)"
                       ></span>
                     </mat-card-title>
+                    <div class="session-host__question-meta" aria-label="Frage-Metadaten">
+                      <span class="session-host__question-badge">
+                        {{ hostQuestionTypeLabel(q.type) }}
+                      </span>
+                      @if (hostQuestionTypeShowsDifficulty(q.type) && q.difficulty) {
+                        <span
+                          class="session-host__question-badge session-host__question-badge--difficulty"
+                        >
+                          <mat-icon class="session-host__question-badge-icon" aria-hidden="true"
+                            >fitness_center</mat-icon
+                          >
+                          {{ hostDifficultyLabel(q.difficulty) }}
+                        </span>
+                      }
+                    </div>
                   </mat-card-header>
                   @if (effectiveStatus() === 'QUESTION_OPEN') {
                     <mat-card-content>
@@ -863,6 +965,14 @@
                         <p class="session-host__reading-banner-hint" i18n>
                           Antworten folgen gleich.
                         </p>
+                        @if (allConnectedParticipantsReady()) {
+                          <p class="session-host__all-voted" role="status" aria-live="polite">
+                            <mat-icon aria-hidden="true">done_all</mat-icon>
+                            <span i18n
+                              >Alle sind bereit – Antwortoptionen können freigegeben werden.</span
+                            >
+                          </p>
+                        }
                       </div>
                     </mat-card-content>
                   }
@@ -870,17 +980,45 @@
 
                 <!-- Karte 2: Ergebnis (schmaler, zentriert) -->
                 @if (effectiveStatus() !== 'QUESTION_OPEN') {
-                  <div class="session-host__results-wrap">
+                  <div class="session-host__results-wrap" #hostResultsSection>
                     <mat-card appearance="outlined" class="session-host__results-card">
                       <mat-card-content>
                         @if (q.type === 'RATING') {
                           <div class="session-host__rating">
                             @if (q.ratingLabelMin || q.ratingLabelMax) {
                               <div class="session-host__rating-labels">
-                                <span>{{ q.ratingLabelMin }}</span>
-                                <span>{{ q.ratingLabelMax }}</span>
+                                <span class="session-host__rating-pole">
+                                  <mat-icon
+                                    class="session-host__rating-pole-icon"
+                                    aria-hidden="true"
+                                    >first_page</mat-icon
+                                  >
+                                  {{ q.ratingLabelMin }}
+                                </span>
+                                <span
+                                  class="session-host__rating-pole session-host__rating-pole--max"
+                                >
+                                  {{ q.ratingLabelMax }}
+                                  <mat-icon
+                                    class="session-host__rating-pole-icon"
+                                    aria-hidden="true"
+                                    >last_page</mat-icon
+                                  >
+                                </span>
                               </div>
                             }
+                            <div
+                              class="session-host__rating-scale"
+                              role="list"
+                              i18n-aria-label="@@sessionHost.ratingScaleAria"
+                              aria-label="Bewertungsskala"
+                            >
+                              @for (val of ratingBarRange(q); track val) {
+                                <span class="session-host__rating-scale-value" role="listitem">
+                                  {{ val }}
+                                </span>
+                              }
+                            </div>
                             @if (
                               effectiveStatus() === 'RESULTS' &&
                               q.ratingAvg !== null &&
@@ -938,7 +1076,9 @@
                               </p>
                               <ul class="session-host__freetext-list" role="list">
                                 @for (text of q.freeTextResponses; track text) {
-                                  <li class="session-host__freetext-item">{{ text }}</li>
+                                  <li class="session-host__freetext-item">
+                                    {{ normalizeFreetextResponse(text) }}
+                                  </li>
                                 }
                               </ul>
                             } @else {
@@ -956,16 +1096,34 @@
                             aria-label="Vorher/Nachher-Vergleich Peer Instruction"
                           >
                             <div class="session-host__round-comparison-header">
-                              <span
-                                class="session-host__round-comparison-label session-host__round-comparison-label--r1"
-                                i18n
-                                >Runde 1 ({{ q.roundComparison.round1Total }} Stimmen)</span
-                              >
-                              <span
-                                class="session-host__round-comparison-label session-host__round-comparison-label--r2"
-                                i18n
-                                >Runde 2 ({{ q.roundComparison.round2Total }} Stimmen)</span
-                              >
+                              @let round1Votes = q.roundComparison.round1Total;
+                              @if (round1Votes === 1) {
+                                <span
+                                  class="session-host__round-comparison-label session-host__round-comparison-label--r1"
+                                  i18n="@@sessionHost.roundComparisonRound1VotesLabelOne"
+                                  >Runde 1 ({{ round1Votes }} Stimme)</span
+                                >
+                              } @else {
+                                <span
+                                  class="session-host__round-comparison-label session-host__round-comparison-label--r1"
+                                  i18n="@@sessionHost.roundComparisonRound1VotesLabelMany"
+                                  >Runde 1 ({{ round1Votes }} Stimmen)</span
+                                >
+                              }
+                              @let round2Votes = q.roundComparison.round2Total;
+                              @if (round2Votes === 1) {
+                                <span
+                                  class="session-host__round-comparison-label session-host__round-comparison-label--r2"
+                                  i18n="@@sessionHost.roundComparisonRound2VotesLabelOne"
+                                  >Runde 2 ({{ round2Votes }} Stimme)</span
+                                >
+                              } @else {
+                                <span
+                                  class="session-host__round-comparison-label session-host__round-comparison-label--r2"
+                                  i18n="@@sessionHost.roundComparisonRound2VotesLabelMany"
+                                  >Runde 2 ({{ round2Votes }} Stimmen)</span
+                                >
+                              }
                             </div>
                             @if (
                               q.roundComparison.round1CorrectCount !== null &&
@@ -974,8 +1132,10 @@
                             ) {
                               <p class="session-host__round-comparison-correct">
                                 <mat-icon>check_circle</mat-icon>
-                                Richtig: {{ q.roundComparison.round1CorrectCount }} →
-                                {{ q.roundComparison.round2CorrectCount }}
+                                <span i18n="@@sessionHost.roundComparisonCorrectCounts"
+                                  >Richtig: {{ q.roundComparison.round1CorrectCount }} in Runde 1,
+                                  danach {{ q.roundComparison.round2CorrectCount }} in Runde 2</span
+                                >
                                 @if (
                                   q.roundComparison.round1Total > 0 &&
                                   q.roundComparison.round2Total > 0
@@ -1018,12 +1178,9 @@
                                       <span class="session-host__answer-badge-shape">{{
                                         getShape(i)
                                       }}</span>
-                                      <span class="session-host__answer-badge-letter">{{
-                                        getLetter(i)
-                                      }}</span>
                                     </span>
                                     <span
-                                      class="session-host__round-comparison-text session-host__rich-text"
+                                      class="session-host__round-comparison-text session-host__rich-text markdown-body"
                                       [innerHTML]="renderMarkdown(a.text)"
                                     ></span>
                                     @if (a.isCorrect && q.type !== 'SURVEY') {
@@ -1159,12 +1316,9 @@
                                       <span class="session-host__answer-badge-shape">{{
                                         getShape(i)
                                       }}</span>
-                                      <span class="session-host__answer-badge-letter">{{
-                                        getLetter(i)
-                                      }}</span>
                                     </span>
                                     <span
-                                      class="session-host__vote-dist-text session-host__rich-text"
+                                      class="session-host__vote-dist-text session-host__rich-text markdown-body"
                                       [innerHTML]="renderMarkdown(a.text)"
                                     ></span>
                                     @if (a.isCorrect && q.type !== 'SURVEY') {
@@ -1250,7 +1404,7 @@
                               </p>
                             </div>
                           }
-                          <ul class="session-host__answers" role="list">
+                          <ul class="session-host__answers" role="list" #hostAnswersList>
                             @for (a of q.answers; track a.id; let i = $index) {
                               <li
                                 class="session-host__answer"
@@ -1268,12 +1422,9 @@
                                   <span class="session-host__answer-badge-shape">{{
                                     getShape(i)
                                   }}</span>
-                                  <span class="session-host__answer-badge-letter">{{
-                                    getLetter(i)
-                                  }}</span>
                                 </span>
                                 <span
-                                  class="session-host__answer-text session-host__rich-text"
+                                  class="session-host__answer-text session-host__rich-text markdown-body"
                                   [innerHTML]="renderMarkdown(a.text)"
                                 ></span>
                                 @if (effectiveStatus() === 'RESULTS' && a.isCorrect) {
@@ -1346,12 +1497,6 @@
                         class="session-host__emoji-round-badge session-host__emoji-round-badge--round2"
                         i18n="@@sessionHost.emojiReactionsRound2"
                         >2. Runde</span
-                      >
-                    } @else {
-                      <span
-                        class="session-host__emoji-round-badge session-host__emoji-round-badge--round1"
-                        i18n="@@sessionHost.emojiReactionsRound1"
-                        >1. Runde</span
                       >
                     }
                     @if (emojiNewCount() > 0) {
@@ -1458,15 +1603,31 @@
                           }
                         </span>
                         <span class="session-host__interim-name">
-                          <span
-                            class="session-host__interim-team-dot"
-                            [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
-                            aria-hidden="true"
-                          ></span>
-                          {{ entry.teamName }}
+                          @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
+                            @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                              <span class="session-host__interim-team-emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                            } @else {
+                              <span class="session-host__interim-team-emoji" aria-hidden="true">{{
+                                teamEmoji
+                              }}</span>
+                              <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                            }
+                          } @else {
+                            <span
+                              class="session-host__interim-team-dot"
+                              [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                              aria-hidden="true"
+                            ></span>
+                            <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
+                          }
                         </span>
-                        <span class="session-host__interim-score" i18n
-                          >{{ entry.totalScore | number }} Pkt.</span
+                        <span class="session-host__interim-score"
+                          >{{ teamMemberLabel(entry.memberCount) }} ·
+                          {{ '∅ ' + (entry.totalScore | number) }}
+                          <span i18n="@@sessionHost.pointsAbbr">Pkt.</span></span
                         >
                       </li>
                     }
@@ -1476,82 +1637,17 @@
 
               <!-- Steuerungs-Buttons (primär) -->
               <div class="session-host__steering">
-                @if (effectiveStatus() === 'QUESTION_OPEN') {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="revealAnswers()"
-                  >
-                    <span i18n>Antworten freigeben</span>
-                  </button>
-                }
-                @if (effectiveStatus() === 'ACTIVE' && isQaSession()) {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="endSession()"
-                  >
-                    <span i18n="@@sessionHost.endQa">Fragerunde beenden</span>
-                  </button>
-                }
-                @if (
-                  effectiveStatus() === 'ACTIVE' && !isQaSession() && currentQuestionForHost();
-                  as liveQ
-                ) {
-                  @if (shouldShowPeerInstructionSuggestion(liveQ)) {
-                    <button
-                      mat-flat-button
-                      color="primary"
-                      type="button"
-                      [disabled]="controlPending()"
-                      (click)="startDiscussion()"
-                      i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
-                      aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
-                    >
-                      <mat-icon aria-hidden="true">groups</mat-icon>
-                      <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
-                    </button>
+                @if (isQuizAwaitingFirstQuestion()) {
+                  @if (canReplaceQuizBeforeStart()) {
                     <button
                       matButton="tonal"
                       type="button"
-                      [disabled]="controlPending()"
-                      (click)="revealResults()"
+                      [disabled]="controlPending() || channelActivationPending() === 'quiz'"
+                      (click)="replaceQuizBeforeStart()"
                     >
-                      <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
-                        >Ergebnis trotzdem zeigen</span
-                      >
+                      <span i18n="@@sessionHost.replaceQuizBeforeStart">Quiz wechseln</span>
                     </button>
-                  } @else {
-                    <button
-                      mat-flat-button
-                      color="primary"
-                      type="button"
-                      [disabled]="controlPending()"
-                      (click)="revealResults()"
-                    >
-                      <span i18n>Ergebnis zeigen</span>
-                    </button>
-                    @if (liveQ.currentRound === 1 && (liveQ.totalVotes ?? 0) > 0) {
-                      <button
-                        matButton="tonal"
-                        type="button"
-                        class="session-host__btn-discussion"
-                        [disabled]="controlPending()"
-                        (click)="startDiscussion()"
-                        i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
-                        aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
-                      >
-                        <mat-icon aria-hidden="true">groups</mat-icon>
-                        <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
-                      </button>
-                    }
                   }
-                }
-                @if (isQuizAwaitingFirstQuestion()) {
                   <button
                     mat-flat-button
                     color="primary"
@@ -1561,53 +1657,6 @@
                   >
                     <span i18n>Erste Frage starten</span>
                   </button>
-                }
-                @if (effectiveStatus() === 'DISCUSSION') {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="startSecondRound()"
-                  >
-                    <mat-icon>replay</mat-icon>
-                    <span i18n>Zweite Abstimmung</span>
-                  </button>
-                  <button
-                    matButton="tonal"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="nextQuestion()"
-                  >
-                    <span i18n>Überspringen</span>
-                  </button>
-                }
-                @if (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="nextQuestion()"
-                  >
-                    @if (isLastQuestion()) {
-                      <span i18n>Session beenden</span>
-                    } @else {
-                      <span i18n>Nächste Frage</span>
-                    }
-                  </button>
-                  @if (!isLastQuestion()) {
-                    <button
-                      matButton="tonal"
-                      type="button"
-                      class="session-host__btn-end-secondary"
-                      [disabled]="controlPending()"
-                      (click)="endSession()"
-                    >
-                      <mat-icon aria-hidden="true">stop_circle</mat-icon>
-                      <span i18n>Session beenden</span>
-                    </button>
-                  }
                 }
               </div>
 
@@ -1646,10 +1695,7 @@
         }
       } @else if (activeChannel() === 'qa') {
         <div class="session-host__channel-panel session-host__channel-panel--qa">
-          <mat-card
-            appearance="outlined"
-            class="session-channel-card session-channel-card--qa app-live-channel-shell"
-          >
+          <mat-card appearance="outlined" class="session-channel-card session-channel-card--qa">
             <mat-card-content
               class="session-channel-card__content session-channel-card__content--left"
             >
@@ -1729,20 +1775,6 @@
 
               @if (qaInfo(); as info) {
                 <p class="session-channel-card__info" role="status">{{ info }}</p>
-              }
-
-              @if (isQaSession() && effectiveStatus() === 'ACTIVE') {
-                <div class="session-host__qa-panel-actions">
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="controlPending()"
-                    (click)="endSession()"
-                  >
-                    <span i18n="@@sessionHost.endQa">Fragerunde beenden</span>
-                  </button>
-                </div>
               }
 
               <div class="session-qa-moderation-toggle">
@@ -1935,7 +1967,7 @@
                         </span>
                       </div>
                       <div
-                        class="session-qa-card__text"
+                        class="session-qa-card__text markdown-body"
                         [innerHTML]="renderMarkdown(question.text)"
                       ></div>
                       <div class="session-qa-card__meta">
@@ -1996,6 +2028,135 @@
         </div>
       }
     </div>
+    @if (effectiveStatus() !== 'FINISHED') {
+      <div
+        class="session-host__exit-anchor"
+        [class.session-host__exit-anchor--fixed]="showChannelTabs()"
+        [class.session-host__exit-anchor--with-primary]="
+          effectiveStatus() === 'QUESTION_OPEN' ||
+          effectiveStatus() === 'DISCUSSION' ||
+          showQuickFeedbackAnchorAction() ||
+          ((effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
+            !isLastQuestion()) ||
+          (effectiveStatus() === 'ACTIVE' && !isQaSession() && !!currentQuestionForHost())
+        "
+      >
+        @if (showQuickFeedbackAnchorAction()) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            [disabled]="quickFeedbackActionPending()"
+            (click)="toggleQuickFeedbackRoundLock()"
+          >
+            <mat-icon aria-hidden="true">{{ quickFeedbackAnchorActionIcon() }}</mat-icon>
+            <span>{{ quickFeedbackAnchorActionLabel() }}</span>
+          </button>
+        }
+        @if (effectiveStatus() === 'QUESTION_OPEN') {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            [disabled]="controlPending()"
+            (click)="revealAnswers()"
+          >
+            <span i18n="@@sessionHost.revealAnswerOptions">Antwortoptionen freigeben</span>
+          </button>
+        }
+        @if (
+          effectiveStatus() === 'ACTIVE' && !isQaSession() && currentQuestionForHost();
+          as liveQ
+        ) {
+          @if (shouldShowPeerInstructionSuggestion(liveQ)) {
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+              [disabled]="controlPending()"
+              (click)="startDiscussion()"
+              i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
+              aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
+            >
+              <mat-icon aria-hidden="true">groups</mat-icon>
+              <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
+            </button>
+            <button
+              matButton="tonal"
+              type="button"
+              class="session-host__exit-anchor-button"
+              [disabled]="controlPending()"
+              (click)="revealResults()"
+            >
+              <span i18n="@@sessionHost.revealResultsDespiteSuggestion"
+                >Ergebnis trotzdem zeigen</span
+              >
+            </button>
+          } @else {
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+              [disabled]="controlPending()"
+              (click)="revealResults()"
+              i18n="@@sessionHost.revealResultsAnchor"
+            >
+              Ergebnis zeigen
+            </button>
+          }
+        }
+        @if (
+          (effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') && !isLastQuestion()
+        ) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            [disabled]="controlPending()"
+            (click)="nextQuestion()"
+            i18n="@@sessionHost.nextQuestionAnchor"
+          >
+            Nächste Frage
+          </button>
+        }
+        @if (effectiveStatus() === 'DISCUSSION') {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+            [disabled]="controlPending()"
+            (click)="startSecondRound()"
+          >
+            <mat-icon aria-hidden="true">replay</mat-icon>
+            <span i18n>Zweite Abstimmung</span>
+          </button>
+          <button
+            matButton="tonal"
+            type="button"
+            class="session-host__exit-anchor-button"
+            [disabled]="controlPending()"
+            (click)="nextQuestion()"
+          >
+            <span i18n>Überspringen</span>
+          </button>
+        }
+        <button
+          matButton="tonal"
+          type="button"
+          class="session-host__exit-anchor-button"
+          (click)="onSessionEndAnchorClick()"
+          i18n="@@sessionHost.endSessionAnchor"
+        >
+          Session beenden
+        </button>
+      </div>
+    }
   } @else {
     <mat-card appearance="outlined" class="session-placeholder">
       <mat-card-content>

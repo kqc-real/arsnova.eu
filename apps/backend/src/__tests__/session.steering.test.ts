@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
+const { prismaMock, hostAuthMocks, readingReadyMocks } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -11,6 +11,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     extractHostTokenMock: vi.fn(),
     extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
     isHostSessionTokenValidMock: vi.fn(),
+  },
+  readingReadyMocks: {
+    clearReadingReady: vi.fn(),
   },
 }));
 
@@ -26,6 +29,10 @@ vi.mock('../lib/hostAuth', async () => {
     isHostSessionTokenValid: hostAuthMocks.isHostSessionTokenValidMock,
   });
 });
+
+vi.mock('../lib/readingReady', () => ({
+  clearReadingReady: readingReadyMocks.clearReadingReady,
+}));
 
 import { sessionRouter } from '../routers/session';
 
@@ -105,6 +112,34 @@ describe('session.nextQuestion (Story 2.3)', () => {
       quiz: {
         readingPhaseEnabled: true,
         questions: [{ id: 'q1', type: 'SURVEY' }],
+      },
+    });
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+    });
+
+    const result = await caller.nextQuestion({ code: CODE });
+
+    expect(result.status).toBe('ACTIVE');
+    expect(result.currentQuestion).toBe(0);
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'ACTIVE', currentQuestion: 0 }),
+      }),
+    );
+  });
+
+  it('überspringt Lesephase bei explizitem Frage-Override trotz aktivierter Lesephase', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'LOBBY',
+      currentQuestion: null,
+      quiz: {
+        readingPhaseEnabled: true,
+        questions: [{ id: 'q1', type: 'MULTIPLE_CHOICE', skipReadingPhase: true }],
       },
     });
     prismaMock.session.update.mockResolvedValue({

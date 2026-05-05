@@ -4,15 +4,24 @@
  * Verifiziert insbesondere, dass ein importierendes Geraet keinen alten lokalen Stand
  * in einen fremden Shared-Raum zurueckschreibt und dass spaetere Aenderungen live ankommen.
  *
+ * Voraussetzungen:
+ * - Backend laeuft (`npm run dev -w @arsnova/backend`) mit HTTP 3000, tRPC-WS 3001, Yjs-WS 3002
+ * - Lokalisierter Frontend-Build wurde erzeugt (`npm run build:localize -w @arsnova/frontend`)
+ * - Lokalisierter Proxy laeuft (`npm run serve:localize:api -w @arsnova/frontend`)
+ *
  * Run:
  *   BASE_URL=http://localhost:4200 npm run smoke:quiz-sync -w @arsnova/frontend
+ *
+ * Optional:
+ *   LOCALE=de|en|fr|it|es   (Default: en)
  */
 import { chromium, webkit } from 'playwright';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:4200';
 const LOCALE = (process.env.LOCALE || 'en').trim().toLowerCase();
-const APP_URL = `${BASE_URL}/${LOCALE}`;
+const APP_URL = `${BASE_URL.replace(/\/+$/, '')}/${LOCALE}`;
 const DESKTOP = { width: 1440, height: 1000 };
+const SAVE_LABEL_RE = /^(save|speichern)$/i;
 
 async function waitForServer(url, maxAttempts = 30) {
   for (let index = 0; index < maxAttempts; index += 1) {
@@ -56,7 +65,7 @@ async function dismissMotdIfPresent(page) {
 async function createQuiz(page, quizName) {
   await page.goto(`${APP_URL}/quiz/new`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await page.locator('input[formcontrolname="name"]').first().fill(quizName);
-  await page.locator('form').first().locator('button[type="submit"]').click();
+  await page.locator('button[type="submit"]').click();
   await page.waitForFunction(() => /\/quiz\/[^/]+$/.test(location.pathname), null, {
     timeout: 30_000,
   });
@@ -95,8 +104,20 @@ async function importSharedLibrary(page, syncUrl) {
 async function renameQuiz(page, editUrl, nextName) {
   await page.goto(editUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await page.waitForTimeout(1_000);
-  await page.locator('input[formcontrolname="name"]').first().fill(nextName);
-  await page.locator('form').first().locator('button[type="submit"]').click();
+  const nameInput = page.locator('input[formcontrolname="name"]').first();
+  const saveButton = page.locator('button.quiz-edit__bottom-actions-save');
+  await nameInput.fill(nextName);
+  await nameInput.blur();
+  await saveButton.waitFor({ state: 'visible', timeout: 30_000 });
+  await page.waitForFunction(
+    () => {
+      const button = document.querySelector('button.quiz-edit__bottom-actions-save');
+      return button instanceof HTMLButtonElement && !button.disabled;
+    },
+    null,
+    { timeout: 30_000 },
+  );
+  await saveButton.click();
   await page.waitForTimeout(1_500);
 }
 

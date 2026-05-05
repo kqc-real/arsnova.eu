@@ -7,8 +7,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizListComponent } from './quiz-list.component';
 import { QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
 
-const { getActiveQuizIdsQueryMock, snackBarOpenMock } = vi.hoisted(() => ({
+const {
+  getActiveQuizIdsQueryMock,
+  getQuizCollectionHistoryAvailabilityQueryMock,
+  bindQuizHistoryScopeMutationMock,
+  snackBarOpenMock,
+} = vi.hoisted(() => ({
   getActiveQuizIdsQueryMock: vi.fn(),
+  getQuizCollectionHistoryAvailabilityQueryMock: vi.fn(),
+  bindQuizHistoryScopeMutationMock: vi.fn(),
   snackBarOpenMock: vi.fn(),
 }));
 
@@ -20,6 +27,12 @@ vi.mock('../../../core/trpc.client', () => ({
     session: {
       getActiveQuizIds: {
         query: getActiveQuizIdsQueryMock,
+      },
+      getQuizCollectionHistoryAvailability: {
+        query: getQuizCollectionHistoryAvailabilityQueryMock,
+      },
+      bindQuizHistoryScope: {
+        mutate: bindQuizHistoryScopeMutationMock,
       },
     },
   },
@@ -58,6 +71,7 @@ describe('QuizListComponent', () => {
     getUploadPayload: vi.fn(),
     importQuiz: vi.fn(),
     setLastServerUploadAccess: vi.fn(),
+    setLastServerQuizAccessProof: vi.fn(),
   };
 
   beforeEach(() => {
@@ -80,6 +94,8 @@ describe('QuizListComponent', () => {
     mockStore.currentBrowserLabel.set('Firefox');
     mockStore.syncPeerInfos.set([]);
     getActiveQuizIdsQueryMock.mockResolvedValue([]);
+    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([]);
+    bindQuizHistoryScopeMutationMock.mockReset();
     TestBed.configureTestingModule({
       imports: [QuizListComponent, NoopAnimationsModule],
       providers: [
@@ -112,7 +128,7 @@ describe('QuizListComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Sync-Code erzeugen');
+    expect(text).toContain('Sammlung teilen');
   });
 
   it('zeigt bei geteilter Bibliothek einen sichtbaren Sync-Status', () => {
@@ -140,7 +156,7 @@ describe('QuizListComponent', () => {
     expect(text).toContain('Diese Angaben helfen nur bei der Orientierung');
     expect(text).toContain('Entscheidend bleibt der Sync-Link');
     expect(text).toContain('Verbunden');
-    expect(text).toContain('Sync-Kurzcode (Anzeigehilfe): SYNCROOM');
+    expect(text).not.toContain('Sync-Kurzcode');
     expect(text).toContain('Du arbeitest gerade auf');
     expect(text).toContain('Mac · Firefox');
     expect(text).toContain('Gerade 1 weiteres Gerät aktiv');
@@ -155,6 +171,19 @@ describe('QuizListComponent', () => {
     expect(text).toContain('Kam von');
     expect(text).toContain('iPad · Safari');
     expect(text).toContain('Zuletzt hier geändert');
+  });
+
+  it('zeigt bei geteilter Bibliothek ohne weitere Geräte den Status "Bereit"', () => {
+    mockStore.librarySharingMode.set('shared');
+    mockStore.syncConnectionState.set('connected');
+    mockStore.syncPeerInfos.set([]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Bereit');
+    expect(text).not.toContain('Verbunden');
   });
 
   it('zeigt nach einem Sync-Import einen Snackbar-Hinweis', async () => {
@@ -248,6 +277,32 @@ describe('QuizListComponent', () => {
     expect(description.innerHTML).toContain('<strong>Deep Learning</strong>');
   });
 
+  it('rendert Bilder mit relativem /assets-Pfad in der Quiz-Beschreibung', () => {
+    quizzesSignal.set([
+      {
+        id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+        name: 'Demo',
+        description: '![Banner](/assets/demo/9_konzeptfragen_panorama.svg)',
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 1,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const description = fixture.nativeElement.querySelector(
+      '.quiz-list-item__description',
+    ) as HTMLElement;
+    expect(description.innerHTML).toContain('<img');
+    expect(description.innerHTML).toContain('assets/demo/9_konzeptfragen_panorama.svg');
+  });
+
   it('zeigt im More-Menü den Eintrag Bearbeiten', async () => {
     quizzesSignal.set([
       {
@@ -295,7 +350,12 @@ describe('QuizListComponent', () => {
           'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       },
     ]);
-    getActiveQuizIdsQueryMock.mockResolvedValue(['11111111-1111-4111-8111-111111111111']);
+    getActiveQuizIdsQueryMock.mockResolvedValue([
+      {
+        quizId: '11111111-1111-4111-8111-111111111111',
+        participantCountIncludingHost: 7,
+      },
+    ]);
 
     const fixture = TestBed.createComponent(QuizListComponent);
     await fixture.componentInstance.ngOnInit();
@@ -307,10 +367,101 @@ describe('QuizListComponent', () => {
       },
     ]);
 
-    fixture.componentInstance['activeLiveQuizIds'].set(
-      new Set(['11111111-1111-4111-8111-111111111111']),
+    fixture.componentInstance['activeLiveQuizParticipants'].set(
+      new Map([['11111111-1111-4111-8111-111111111111', 7]]),
     );
     expect(fixture.componentInstance.isQuizLive('e31fef3f-f7b1-4705-a739-28c8ec4486bf')).toBe(true);
+    expect(
+      fixture.componentInstance.liveParticipantCountIncludingHost(
+        'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      ),
+    ).toBe(7);
+  });
+
+  it('graut Bonus-Codes und Letztes Feedback aus, wenn noch keine Inhalte vorhanden sind', async () => {
+    quizzesSignal.set([
+      {
+        id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: true,
+        lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+        lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      },
+    ]);
+    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([
+      {
+        quizId: '11111111-1111-4111-8111-111111111111',
+        hasBonusTokens: false,
+        hasLastSessionFeedback: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('.quiz-list-item__actions button'),
+    ) as HTMLButtonElement[];
+    const bonusButton = buttons.find((button) => button.textContent?.includes('Bonus-Codes'));
+    const feedbackButton = buttons.find((button) =>
+      button.textContent?.includes('Letztes Feedback'),
+    );
+
+    expect(getQuizCollectionHistoryAvailabilityQueryMock).toHaveBeenCalledWith([
+      {
+        quizId: '11111111-1111-4111-8111-111111111111',
+        accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      },
+    ]);
+    expect(bonusButton?.disabled).toBe(true);
+    expect(feedbackButton?.disabled).toBe(true);
+  });
+
+  it('aktiviert Bonus-Codes und Letztes Feedback nur bei vorhandenen Inhalten', async () => {
+    quizzesSignal.set([
+      {
+        id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: true,
+        lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+        lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      },
+    ]);
+    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([
+      {
+        quizId: '11111111-1111-4111-8111-111111111111',
+        hasBonusTokens: true,
+        hasLastSessionFeedback: true,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('.quiz-list-item__actions button'),
+    ) as HTMLButtonElement[];
+    const bonusButton = buttons.find((button) => button.textContent?.includes('Bonus-Codes'));
+    const feedbackButton = buttons.find((button) =>
+      button.textContent?.includes('Letztes Feedback'),
+    );
+
+    expect(bonusButton?.disabled).toBe(false);
+    expect(feedbackButton?.disabled).toBe(false);
   });
 
   it('blendet die Prompt-Vorschau in Schritt 1 ein und aus', () => {
@@ -358,8 +509,11 @@ describe('QuizListComponent', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     const component = fixture.componentInstance;
     mockStore.importQuiz.mockReturnValue({
-      id: 'caece014-f7cd-4d26-a101-bd494379f95f',
-      name: 'KI Import',
+      quiz: {
+        id: 'caece014-f7cd-4d26-a101-bd494379f95f',
+        name: 'KI Import',
+      },
+      warnings: [],
     });
 
     component.updateAiJsonInput(`Hier ist dein Quiz:
@@ -373,6 +527,82 @@ Viel Erfolg beim Import.`);
     component.importAiJson();
 
     expect(mockStore.importQuiz).toHaveBeenCalledWith({ quiz: { name: 'KI Import' } });
+    expect(component.actionError()).toBeNull();
+    expect(component.actionInfo()).toContain('KI Import');
+  });
+
+  it('importiert ueber den Datei-Import der Quiz-Sammlung und zeigt nur nicht uebernommene Fragen', async () => {
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+    mockStore.importQuiz.mockReturnValue({
+      quiz: {
+        id: 'caece014-f7cd-4d26-a101-bd494379f95f',
+        name: 'Datei Import',
+      },
+      warnings: [
+        {
+          kind: 'skipped_question',
+          questionNumber: 1,
+          questionText: 'Schätzfrage',
+          message: 'Dieser Fragetyp wird in arsnova.eu noch nicht unterstützt.',
+        },
+        {
+          kind: 'simplified_question',
+          questionNumber: 2,
+          questionText: 'Freitext',
+          message: 'Sonderregeln für Freitext-Antworten wurden nicht übernommen.',
+        },
+      ],
+    });
+
+    const file = {
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          name: 'Click Import',
+          questionList: [
+            {
+              TYPE: 'SingleChoiceQuestion',
+              questionText: 'Eine Frage',
+              answerOptionList: [
+                { answerText: 'A', isCorrect: false },
+                { answerText: 'B', isCorrect: true },
+              ],
+            },
+          ],
+        }),
+      ),
+    } as unknown as File;
+    const input = document.createElement('input');
+    Object.defineProperty(input, 'files', {
+      configurable: true,
+      value: [file],
+    });
+
+    await component.onImportFileSelected({ target: input } as Event);
+    fixture.detectChanges();
+
+    expect(mockStore.importQuiz).toHaveBeenCalledWith({
+      name: 'Click Import',
+      questionList: [
+        {
+          TYPE: 'SingleChoiceQuestion',
+          questionText: 'Eine Frage',
+          answerOptionList: [
+            { answerText: 'A', isCorrect: false },
+            { answerText: 'B', isCorrect: true },
+          ],
+        },
+      ],
+    });
+    expect(component.actionInfo()).toContain('Datei Import');
+    expect(component.actionInfoWarnings()).toHaveLength(1);
+    const infoText = fixture.nativeElement.querySelector('.quiz-list__info')?.textContent as string;
+    expect(infoText).toContain('Nicht übernommen:');
+    expect(infoText).toContain(
+      'Frage 1: Dieser Fragetyp wird in arsnova.eu noch nicht unterstützt.',
+    );
+    expect(infoText).toContain('Schätzfrage');
+    expect(infoText).not.toContain('Freitext');
     expect(component.actionError()).toBeNull();
   });
 
@@ -415,7 +645,7 @@ Viel Erfolg beim Import.`);
     expect(fixture.componentInstance.startLiveShortcutMode()).toBe(true);
   });
 
-  it('oeffnet den Startdialog direkt fuer das angeforderte Quiz', async () => {
+  it('startet die angeforderte Live-Session direkt fuer das angeforderte Quiz', async () => {
     quizzesSignal.set([
       {
         id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
@@ -464,6 +694,57 @@ Viel Erfolg beim Import.`);
     const fixture = TestBed.createComponent(QuizListComponent);
     const component = fixture.componentInstance;
     const dialogOpenSpy = vi.spyOn(component['dialog'], 'open').mockReturnValue({} as never);
+    component.quizHistoryAvailability.set(
+      new Map([
+        [
+          'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+          { hasBonusTokens: true, hasLastSessionFeedback: false },
+        ],
+      ]),
+    );
+
+    await component.openBonusCodesDialog({
+      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      name: 'Datenbanken',
+      description: null,
+      createdAt: '2026-03-08T10:00:00.000Z',
+      updatedAt: '2026-03-08T11:30:00.000Z',
+      questionCount: 2,
+      teamMode: false,
+      hasBonus: true,
+      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+
+    expect(dialogOpenSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          serverQuizId: '11111111-1111-4111-8111-111111111111',
+          accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+          quizName: 'Datenbanken',
+        }),
+      }),
+    );
+    expect(bindQuizHistoryScopeMutationMock).not.toHaveBeenCalled();
+  });
+
+  it('bindet legacy quiz-historie beim ersten oeffnen an die stabile quiz-id', async () => {
+    bindQuizHistoryScopeMutationMock.mockResolvedValue({
+      accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+    const dialogOpenSpy = vi.spyOn(component['dialog'], 'open').mockReturnValue({} as never);
+    component.quizHistoryAvailability.set(
+      new Map([
+        [
+          'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+          { hasBonusTokens: true, hasLastSessionFeedback: false },
+        ],
+      ]),
+    );
 
     await component.openBonusCodesDialog({
       id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
@@ -478,12 +759,75 @@ Viel Erfolg beim Import.`);
       lastServerQuizAccessProof: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     });
 
+    expect(bindQuizHistoryScopeMutationMock).toHaveBeenCalledWith({
+      quizId: '11111111-1111-4111-8111-111111111111',
+      accessProof: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      historyScopeId: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+    expect(mockStore.setLastServerQuizAccessProof).toHaveBeenCalledWith(
+      'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    );
     expect(dialogOpenSpy).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         data: expect.objectContaining({
           serverQuizId: '11111111-1111-4111-8111-111111111111',
-          accessProof: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+          quizName: 'Datenbanken',
+        }),
+      }),
+    );
+  });
+
+  it('oeffnet das Letzte-Feedback-Dialogfenster nur bei vorhandenem Feedback', async () => {
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+    const dialogOpenSpy = vi.spyOn(component['dialog'], 'open').mockReturnValue({} as never);
+
+    await component.openLastSessionFeedbackDialog({
+      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      name: 'Datenbanken',
+      description: null,
+      createdAt: '2026-03-08T10:00:00.000Z',
+      updatedAt: '2026-03-08T11:30:00.000Z',
+      questionCount: 2,
+      teamMode: false,
+      hasBonus: true,
+      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+
+    expect(dialogOpenSpy).not.toHaveBeenCalled();
+
+    component.quizHistoryAvailability.set(
+      new Map([
+        [
+          'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+          { hasBonusTokens: false, hasLastSessionFeedback: true },
+        ],
+      ]),
+    );
+
+    await component.openLastSessionFeedbackDialog({
+      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      name: 'Datenbanken',
+      description: null,
+      createdAt: '2026-03-08T10:00:00.000Z',
+      updatedAt: '2026-03-08T11:30:00.000Z',
+      questionCount: 2,
+      teamMode: false,
+      hasBonus: true,
+      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+
+    expect(dialogOpenSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          serverQuizId: '11111111-1111-4111-8111-111111111111',
+          accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
           quizName: 'Datenbanken',
         }),
       }),

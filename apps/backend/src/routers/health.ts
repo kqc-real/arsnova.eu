@@ -11,25 +11,138 @@ import {
 } from '@arsnova/shared-types';
 import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
+import { logger } from '../lib/logger';
+import {
+  formatUtcDate,
+  getUtcDayStart,
+  updateCompletedSessionsTotal,
+} from '../lib/platformStatistic';
+import {
+  countActiveParticipantsForSessions,
+  getActiveParticipantCountsForSessions,
+} from '../lib/presence';
+import { readLoadSignals } from '../lib/loadSignal';
+import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 
-const SERVER_STATUS_THRESHOLDS = {
-  healthy: 50,
-  busy: 200,
+const ACTIVE_SESSION_MIN_PARTICIPANTS = 5;
+const DAILY_HIGHSCORE_DAYS = 30;
+
+const SERVER_STATUS_SCORE_THRESHOLDS = {
+  busy: 60,
+  overloaded: 170,
 } as const;
 
-const ACTIVE_SESSION_STATUSES = [
-  'LOBBY',
-  'QUESTION_OPEN',
-  'ACTIVE',
-  'PAUSED',
-  'RESULTS',
-  'DISCUSSION',
-] as const;
+const PARTICIPANT_HARD_LIMITS = {
+  busy: 65,
+  overloaded: 220,
+} as const;
 
-function getServerStatus(activeSessions: number): 'healthy' | 'busy' | 'overloaded' {
-  if (activeSessions < SERVER_STATUS_THRESHOLDS.healthy) return 'healthy';
-  if (activeSessions < SERVER_STATUS_THRESHOLDS.busy) return 'busy';
-  return 'overloaded';
+type LoadStatusInputs = {
+  activeSessions: number;
+  totalParticipants: number;
+  activeBlitzRounds: number;
+  votesLastMinute: number;
+  sessionTransitionsLastMinute: number;
+  activeCountdownSessions: number;
+};
+
+function addUtcDays(base: Date, days: number): Date {
+  const next = new Date(base);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+function buildDailyHighscores(
+  rows: Array<{ date: Date; maxParticipantsSingleSession: number; updatedAt: Date | null }>,
+  today: Date = new Date(),
+) {
+  const rangeEnd = getUtcDayStart(today);
+  const rangeStart = addUtcDays(rangeEnd, -(DAILY_HIGHSCORE_DAYS - 1));
+  const entriesByDate = new Map(
+    rows.map((row) => [
+      formatUtcDate(row.date),
+      {
+        count: Math.max(0, row.maxParticipantsSingleSession),
+        updatedAt: row.updatedAt?.toISOString() ?? null,
+      },
+    ]),
+  );
+
+  return Array.from({ length: DAILY_HIGHSCORE_DAYS }, (_, index) => {
+    const currentDate = addUtcDays(rangeStart, index);
+    const dateKey = formatUtcDate(currentDate);
+    const entry = entriesByDate.get(dateKey);
+    return {
+      date: dateKey,
+      count: entry?.count ?? 0,
+      updatedAt: entry?.updatedAt ?? null,
+    };
+  });
+}
+
+function getLoadStatus({
+  activeSessions,
+  totalParticipants,
+  activeBlitzRounds,
+  votesLastMinute,
+  sessionTransitionsLastMinute,
+  activeCountdownSessions,
+}: LoadStatusInputs): 'healthy' | 'busy' | 'overloaded' {
+  if (totalParticipants >= PARTICIPANT_HARD_LIMITS.overloaded) return 'overloaded';
+  if (totalParticipants >= PARTICIPANT_HARD_LIMITS.busy) return 'busy';
+
+  const loadScore =
+    activeSessions * 1 +
+    totalParticipants * 0.45 +
+    activeBlitzRounds * 3 +
+    activeCountdownSessions * 2 +
+    votesLastMinute * 0.12 +
+    sessionTransitionsLastMinute * 1.5;
+
+  if (loadScore >= SERVER_STATUS_SCORE_THRESHOLDS.overloaded) return 'overloaded';
+  if (loadScore >= SERVER_STATUS_SCORE_THRESHOLDS.busy) return 'busy';
+  return 'healthy';
+}
+
+function mapLoadStatusToServiceStatus(
+  loadStatus: 'healthy' | 'busy' | 'overloaded',
+): 'stable' | 'limited' | 'critical' {
+  switch (loadStatus) {
+    case 'healthy':
+      return 'stable';
+    case 'busy':
+      return 'limited';
+    case 'overloaded':
+      return 'critical';
+  }
+}
+
+function getServiceStatus(
+  loadStatus: 'healthy' | 'busy' | 'overloaded',
+  sloSignals: SloSignals,
+): 'stable' | 'limited' | 'critical' {
+  // Für sehr kleine Samples bleibt der Status auf dem Lastindikator, um Ausreißer zu vermeiden.
+  if (sloSignals.totalRequestsLastMinute < 20) {
+    return mapLoadStatusToServiceStatus(loadStatus);
+  }
+
+  if (
+    sloSignals.errorRatePercentLastMinute <= 0.5 &&
+    sloSignals.p95LatencyMsLastMinute <= 1000 &&
+    sloSignals.p99LatencyMsLastMinute <= 2000
+  ) {
+    return 'stable';
+  }
+
+  if (
+    sloSignals.errorRatePercentLastMinute <= 1.0 &&
+    sloSignals.p95LatencyMsLastMinute <= 1500 &&
+    sloSignals.p99LatencyMsLastMinute <= 3000
+  ) {
+    return 'limited';
+  }
+
+  return 'critical';
 }
 
 /**
@@ -79,40 +192,182 @@ async function fetchHealthCheck() {
 
 /** Server-Statistik für Startseite (Story 0.4). Bei nicht erreichbarer DB: Fallback (0 Werte), keine Prisma-Fehler. */
 async function fetchServerStats() {
+  const activeSessionWhere = {
+    status: { not: 'FINISHED' as const },
+  };
+  const dailyHighscoreRangeEnd = getUtcDayStart(new Date());
+  const dailyHighscoreRangeStart = addUtcDays(dailyHighscoreRangeEnd, -(DAILY_HIGHSCORE_DAYS - 1));
+
+  let activeBlitzRounds = 0;
   try {
-    const [activeSessions, completedSessions, totalParticipants, blitzKeys, platformRow] =
-      await Promise.all([
-        prisma.session.count({ where: { status: { in: [...ACTIVE_SESSION_STATUSES] } } }),
-        // Kumulativ: Session-Zeilen mit Status FINISHED (Quiz & Q&A; nicht gelöscht).
-        prisma.session.count({ where: { status: 'FINISHED' } }),
-        // Alle Teilnehmer-Einträge zu Sessions, die noch nicht FINISHED sind (Summe über laufende Live-Sessions).
-        prisma.participant.count({
-          where: { session: { status: { in: [...ACTIVE_SESSION_STATUSES] } } },
-        }),
-        countActiveBlitzRounds(),
-        prisma.platformStatistic.findUnique({
-          where: { id: 'default' },
-          select: { maxParticipantsSingleSession: true, updatedAt: true },
-        }),
-      ]);
-    return {
+    activeBlitzRounds = await countActiveBlitzRounds();
+  } catch (err) {
+    logger.warn(
+      'health.stats: activeBlitzRounds konnte nicht aus Redis gelesen werden, setze 0.',
+      err,
+    );
+  }
+
+  try {
+    const platformStatisticPromise = (async () => {
+      try {
+        const rows = await prisma.$queryRaw<
+          Array<{
+            maxParticipantsSingleSession: number | null;
+            completedSessionsTotal: number | null;
+            updatedAt: Date | null;
+          }>
+        >`
+          SELECT "maxParticipantsSingleSession", "completedSessionsTotal", "updatedAt"
+          FROM "PlatformStatistic"
+          WHERE "id" = 'default'
+          LIMIT 1
+        `;
+        const row = rows[0] ?? null;
+        return {
+          maxParticipantsSingleSession: row?.maxParticipantsSingleSession ?? 0,
+          completedSessionsTotal: row?.completedSessionsTotal ?? null,
+          updatedAtIso: row?.updatedAt?.toISOString() ?? null,
+        };
+      } catch {
+        try {
+          // DB-Drift-Fallback: ältere Schemas ohne completedSessionsTotal weiterhin unterstützen.
+          const rows = await prisma.$queryRaw<
+            Array<{
+              maxParticipantsSingleSession: number | null;
+              updatedAt: Date | null;
+            }>
+          >`
+            SELECT "maxParticipantsSingleSession", "updatedAt"
+            FROM "PlatformStatistic"
+            WHERE "id" = 'default'
+            LIMIT 1
+          `;
+          const row = rows[0] ?? null;
+          return {
+            maxParticipantsSingleSession: row?.maxParticipantsSingleSession ?? 0,
+            completedSessionsTotal: null,
+            updatedAtIso: row?.updatedAt?.toISOString() ?? null,
+          };
+        } catch {
+          // Test-/Mock-Fallback ohne Raw-SQL.
+          const row = await prisma.platformStatistic.findUnique({
+            where: { id: 'default' },
+            select: {
+              maxParticipantsSingleSession: true,
+              completedSessionsTotal: true,
+              updatedAt: true,
+            },
+          });
+          return {
+            maxParticipantsSingleSession: row?.maxParticipantsSingleSession ?? 0,
+            completedSessionsTotal: row?.completedSessionsTotal ?? null,
+            updatedAtIso: row?.updatedAt?.toISOString() ?? null,
+          };
+        }
+      }
+    })();
+    const dailyHighscoreRowsPromise = prisma.dailyStatistic
+      .findMany({
+        where: {
+          date: {
+            gte: dailyHighscoreRangeStart,
+            lte: dailyHighscoreRangeEnd,
+          },
+        },
+        orderBy: { date: 'asc' },
+        select: {
+          date: true,
+          maxParticipantsSingleSession: true,
+          updatedAt: true,
+        },
+      })
+      .catch((err) => {
+        logger.warn(
+          'health.stats: dailyHighscores konnten nicht aus PostgreSQL gelesen werden, setze leere Historie.',
+          err,
+        );
+        return [];
+      });
+
+    const [
+      openSessions,
+      activeSessionIds,
+      completedSessionsNow,
+      platformRow,
+      dailyHighscoreRows,
+      loadSignals,
+      sloSignals,
+    ] = await Promise.all([
+      prisma.session.count({ where: activeSessionWhere }),
+      prisma.session.findMany({
+        where: activeSessionWhere,
+        select: { id: true },
+      }),
+      // Momentan in DB vorhandene FINISHED-Sessions (kann durch Purge sinken).
+      prisma.session.count({ where: { status: 'FINISHED' } }),
+      platformStatisticPromise,
+      dailyHighscoreRowsPromise,
+      readLoadSignals(),
+      readSloSignals(),
+    ]);
+    const openSessionIds = activeSessionIds.map((session) => session.id);
+    const [participantCounts, totalParticipants] = await Promise.all([
+      getActiveParticipantCountsForSessions(openSessionIds),
+      countActiveParticipantsForSessions(openSessionIds),
+    ]);
+    const activeSessions = [...participantCounts.values()].filter(
+      (count) => count >= ACTIVE_SESSION_MIN_PARTICIPANTS,
+    ).length;
+    const persistedCompletedSessionsTotal = platformRow.completedSessionsTotal;
+    const completedSessionsTotal =
+      typeof persistedCompletedSessionsTotal === 'number'
+        ? Math.max(completedSessionsNow, persistedCompletedSessionsTotal)
+        : completedSessionsNow;
+    if (
+      typeof persistedCompletedSessionsTotal === 'number' &&
+      completedSessionsNow > persistedCompletedSessionsTotal
+    ) {
+      void updateCompletedSessionsTotal(completedSessionsNow);
+    }
+    const loadStatus = getLoadStatus({
       activeSessions,
       totalParticipants,
-      completedSessions,
-      activeBlitzRounds: blitzKeys,
-      maxParticipantsSingleSession: platformRow?.maxParticipantsSingleSession ?? 0,
-      maxParticipantsStatisticUpdatedAt: platformRow?.updatedAt?.toISOString() ?? null,
-      serverStatus: getServerStatus(activeSessions),
+      activeBlitzRounds,
+      votesLastMinute: loadSignals.votesLastMinute,
+      sessionTransitionsLastMinute: loadSignals.sessionTransitionsLastMinute,
+      activeCountdownSessions: loadSignals.activeCountdownSessions,
+    });
+    return {
+      openSessions,
+      activeSessions,
+      totalParticipants,
+      votesLastMinute: loadSignals.votesLastMinute,
+      sessionTransitionsLastMinute: loadSignals.sessionTransitionsLastMinute,
+      activeCountdownSessions: loadSignals.activeCountdownSessions,
+      completedSessions: completedSessionsTotal,
+      activeBlitzRounds,
+      maxParticipantsSingleSession: platformRow.maxParticipantsSingleSession,
+      dailyHighscores: buildDailyHighscores(dailyHighscoreRows, dailyHighscoreRangeEnd),
+      maxParticipantsStatisticUpdatedAt: platformRow.updatedAtIso,
+      serviceStatus: getServiceStatus(loadStatus, sloSignals),
+      loadStatus,
     };
   } catch {
     return {
+      openSessions: 0,
       activeSessions: 0,
       totalParticipants: 0,
+      votesLastMinute: 0,
+      sessionTransitionsLastMinute: 0,
+      activeCountdownSessions: 0,
       completedSessions: 0,
       activeBlitzRounds: 0,
       maxParticipantsSingleSession: 0,
+      dailyHighscores: buildDailyHighscores([]),
       maxParticipantsStatisticUpdatedAt: null,
-      serverStatus: 'healthy' as const,
+      serviceStatus: 'stable' as const,
+      loadStatus: 'healthy' as const,
     };
   }
 }

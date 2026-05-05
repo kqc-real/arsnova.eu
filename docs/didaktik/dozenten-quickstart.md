@@ -54,7 +54,7 @@ Wenn die Kohorte klein ist, kann eine Person mehr übernehmen. Wenn die Kohorte 
 Nutzen, wenn du möchtest, dass Studierende erst lesen, dann antworten, und wenn sozialer Druck eher reduziert werden soll.
 
 - gut für: Verständnisfragen, sensible Themen, formatives Assessment
-- kombinieren mit: **Lesephase**, anonymer Teilnahme, Q&A
+- kombinieren mit: **Lesephase**, Pseudonymen / wenig Druck, Q&A
 
 ### Preset "Spielerisch"
 

@@ -1,0 +1,457 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.mk-editor {
+  display: grid;
+  gap: 0.5rem;
+  /* In Grid-/Flex-Eltern (z. B. Quiz-Antwortzeilen) sonst Mindestbreite = Toolbar-Breite → Overflow */
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  container-type: inline-size;
+  container-name: mk-editor;
+}
+
+.mk-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.25rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  min-width: 0;
+}
+
+.mk-editor__tool--active {
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  color: var(--mat-sys-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
+}
+
+.mk-editor__tool--active:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+}
+
+/* Schmale Spalte: nur Überschrift/Fett/Kursiv + „Mehr“; Rest im Menü */
+.mk-editor__toolbar-rest {
+  display: none;
+}
+
+.mk-editor__toolbar-wide {
+  display: none;
+}
+
+/*
+ * Ab ca. 26rem Editor-Breite: alle Icons in der Leiste, kein Overflow-Button.
+ */
+@container mk-editor (min-width: 26rem) {
+  .mk-editor__toolbar-rest {
+    display: contents;
+  }
+
+  .mk-editor__toolbar-wide {
+    display: contents;
+  }
+
+  /* Material setzt am Icon-Button display: inline-flex — ohne !important gewinnt es */
+  .mk-editor__toolbar > button.mk-editor__toolbar-overflow {
+    display: none !important;
+  }
+}
+
+/*
+ * Kompakt (Preview / enge Antwortspalte): Container ist oft ≥26rem, trotzdem nur kurze Leiste + „Mehr“.
+ * Überschreibt das Container-Query-Expand oben.
+ */
+.mk-editor--compact .mk-editor__toolbar {
+  flex-wrap: nowrap;
+}
+
+.mk-editor--compact .mk-editor__toolbar-rest {
+  display: none !important;
+}
+
+.mk-editor--compact .mk-editor__toolbar-wide {
+  display: none !important;
+}
+
+.mk-editor--compact .mk-editor__toolbar > button.mk-editor__toolbar-overflow {
+  display: inline-flex !important;
+}
+
+/*
+ * Quelltext + Vorschau ohne durchgehenden 1px-Rahmen wie im Standard-Editor,
+ * aber klar vom umgebenden Surface getrennt (höhere Container-Stufe + leichter Schatten).
+ */
+.mk-editor--frameless-panels .mk-editor__field {
+  border: none;
+  background: var(--mat-sys-surface-container-high);
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-outline-variant) 35%, transparent);
+}
+
+.mk-editor--frameless-panels .mk-editor__field:focus {
+  border-color: transparent;
+}
+
+.mk-editor--frameless-panels .mk-editor__preview {
+  border: none;
+  background: var(--mat-sys-surface-container-high);
+  box-shadow:
+    var(--mat-sys-level1),
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-outline-variant) 35%, transparent);
+}
+
+.mk-editor__help {
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 85%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, white 8%),
+    var(--mat-sys-surface-container)
+  );
+  box-shadow: var(--mat-sys-level1);
+}
+
+.mk-editor__help-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+  color: var(--mat-sys-on-surface);
+}
+
+.mk-editor__help-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.mk-editor__help-card {
+  min-width: 0;
+  padding: 0.75rem 0.8rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 90%, white 10%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-outline-variant) 45%, transparent);
+}
+
+.mk-editor__help-label {
+  margin: 0 0 0.55rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+}
+
+.mk-editor__help-card code {
+  display: block;
+  margin: 0.25rem 0;
+  padding: 0.28rem 0.45rem;
+  border-radius: var(--mat-sys-corner-small);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 82%, black 4%);
+  overflow-x: auto;
+}
+
+.mk-editor__help-note,
+.mk-editor__help-shortcut {
+  margin: 0.45rem 0 0;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+}
+
+.mk-editor__help-shortcut kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0.08rem 0.32rem;
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+  background: var(--mat-sys-surface-container-high);
+  font: var(--mat-sys-label-small);
+  text-align: center;
+}
+
+.mk-editor__split {
+  display: grid;
+  gap: 0.75rem;
+  /* minmax(0, …): sonst wächst die Spalte mit breiten Bildern über den Grid-Track hinaus */
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+.mk-editor__source {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (min-width: 900px) {
+  .mk-editor__split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    /* Gleiche Zeilenhöhe: Quelle und Vorschau so hoch wie die jeweils höhere Spalte */
+    align-items: stretch;
+  }
+}
+
+.mk-editor__field {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  font: inherit;
+  resize: vertical;
+  min-height: 6rem;
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  line-height: 1.5;
+
+  &:focus {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 1px;
+    border-color: var(--mat-sys-primary);
+  }
+}
+
+.mk-editor__preview {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  padding: 0.75rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  box-shadow: var(--mat-sys-level1);
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+}
+
+.mk-editor__preview-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  margin: -0.15rem 0 0.65rem;
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+}
+
+.mk-editor__preview-toggle {
+  display: none;
+}
+
+.mk-editor__preview-toggle-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mk-editor__preview-toggle-chevron {
+  margin-left: auto;
+}
+
+.mk-editor__preview-error {
+  margin: 0 0 0.65rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--mat-sys-corner-medium);
+  border-left: 3px solid var(--mat-sys-error);
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+}
+
+.mk-editor__preview-error strong {
+  color: var(--mat-sys-error);
+}
+
+.mk-editor__preview-icon {
+  width: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+}
+
+.mk-editor__preview-body {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  overflow-x: auto;
+}
+
+.mk-editor__preview :where(p, ul, ol, blockquote, pre) {
+  margin: 0.6rem 0;
+}
+
+.mk-editor__preview :where(h1, h2, h3, h4) {
+  margin: 0.8rem 0 0.45rem;
+  font: var(--mat-sys-title-medium);
+  line-height: 1.25;
+}
+
+.mk-editor__preview :where(ul, ol) {
+  padding-left: 1.25rem;
+}
+
+.mk-editor__preview :where(li) {
+  margin: 0.25rem 0;
+}
+
+.mk-editor__preview :where(blockquote) {
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  border-radius: var(--mat-sys-corner-medium);
+}
+
+.mk-editor__preview :where(code) {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+}
+
+.mk-editor__preview :where(pre) {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  overflow: auto;
+}
+
+.mk-editor__preview :where(pre code) {
+  display: block;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.mk-editor__preview :where(.markdown-katex-error) {
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
+.mk-editor__preview :where(a) {
+  color: var(--mat-sys-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.08em;
+}
+
+.mk-editor__preview :where(a:hover) {
+  color: color-mix(in srgb, var(--mat-sys-primary) 85%, var(--mat-sys-on-surface));
+}
+
+.mk-editor__preview :where(a:focus-visible) {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  border-radius: var(--mat-sys-corner-small);
+}
+
+.mk-editor__preview :where(img) {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: scale-down;
+  box-sizing: border-box;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+}
+
+.mk-editor__preview :where(img[data-markdown-image-lightbox='true']) {
+  cursor: zoom-in;
+}
+
+.mk-editor__preview :where(img[data-markdown-image-lightbox='true']:focus-visible) {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.mk-editor--disabled {
+  opacity: 0.75;
+}
+
+.mk-editor--compact {
+  gap: 0.375rem;
+}
+
+.mk-editor--compact .mk-editor__split {
+  gap: 0.5rem;
+}
+
+.mk-editor--compact .mk-editor__source {
+  max-height: 8rem;
+}
+
+.mk-editor--compact .mk-editor__field {
+  min-height: 4rem;
+}
+
+/* Kompakt: Höhe für gerenderten Vorschau-Inhalt, nicht nur für Badge */
+.mk-editor--compact .mk-editor__preview {
+  overflow: visible;
+}
+
+.mk-editor--compact .mk-editor__preview-head {
+  margin: 0 0 0.35rem;
+  padding: 0.1rem 0.45rem;
+}
+
+.mk-editor--compact .mk-editor__preview-body {
+  max-height: 8rem;
+  min-height: 4.5rem;
+  overflow: auto;
+}
+
+@media (max-width: 599px) {
+  .mk-editor__preview-head {
+    display: none;
+  }
+
+  .mk-editor__preview-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.2rem 0.1rem 0.45rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mk-editor__preview-toggle:disabled {
+    opacity: 0.72;
+    cursor: default;
+  }
+
+  .mk-editor__preview-toggle:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+    border-radius: var(--mat-sys-corner-medium);
+  }
+
+  .mk-editor__preview--collapsed {
+    padding-bottom: 0.3rem;
+  }
+}

@@ -163,7 +163,7 @@ Priorisierung: 🔴 Must, 🟡 Should, 🟢 Could. Abhängigkeiten: Epic 0 → 1
 - **Router:** apps/backend/src/routers/index.ts, apps/backend/src/routers/\*.ts.
 - **Diagramme:** docs/diagrams/diagrams.md (detailliert), docs/diagrams/architecture-overview.md (Übersicht).
 - **Regeln:** .cursorrules (Pfade, Monorepo, Stack, UX, i18n inkl. stabiler `@@`-IDs); AGENT.md (Arbeitsweise, Baby-Steps, Tests, Leere-Zustände, Layout-`order` vor großen HTML-Umbauten). **UI-Referenz:** `docs/ui/STYLEGUIDE.md` (u. a. leere Listen/Einstieg, Blitzlicht Standalone + Session-Host eingebettet, Platzhalter-Hinweise). **Englische UI-Copy:** `docs/ui/ENGLISH-UI-COPY.md` (Ton, Terminologie, XLF-Ziele für `en`).
-- **Architekturentscheidungen:** Für Rechte-/Routenmodell und die aktuelle Host-Härtung insbesondere ADR-0006 und ADR-0019 beachten; MOTD siehe ADR-0018.
+- **Architekturentscheidungen:** Für Rechte-/Routenmodell und die aktuelle Host-Härtung insbesondere ADR-0006 und ADR-0019 beachten; MOTD siehe ADR-0018; Betriebsstatus-vs-Last mit Live-SLO-Telemetrie siehe ADR-0021.
 
 Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (neue Epics, neuer Session-Status, neuer Router) einmalig diesen Kontext aktualisieren, damit Context Caching weiterhin den gleichen stabilen Prefix nutzen kann.
 
@@ -201,7 +201,7 @@ Dieses Dokument bewusst kompakt und stabil halten. Bei größeren Änderungen (n
 - Enums/Schemas: SessionStatusEnum, QuestionTypeEnum, DifficultyEnum, NicknameThemeEnum, TeamAssignmentEnum, SessionTypeEnum, QaQuestionStatusEnum.
 - Input-Schemas: CreateSessionInputSchema, JoinSessionInputSchema, CreateQuizInputSchema, QuizUploadInputSchema, SubmitVoteInputSchema, AddQuestionInputSchema, AnswerOptionInputSchema, GetExportDataInputSchema (Story 4.7).
 - DTO-Schemas: SessionInfoDTOSchema, QuestionPreviewDTOSchema, QuestionStudentDTOSchema, QuestionRevealedDTOSchema (AnswerOptionRevealedDTO), LeaderboardEntryDTOSchema, PersonalScorecardDTOSchema, BonusTokenListDTO, SessionExportDTOSchema (Story 4.7); ParticipantDTO, QuizExportSchema.
-- Presets: QUIZ_PRESETS (PLAYFUL, SERIOUS) mit readingPhaseEnabled, defaultTimer, anonymousMode etc.
+- Presets: `QUIZ_PRESETS` (PLAYFUL, SERIOUS) in `libs/shared-types` — u. a. `readingPhaseEnabled`, `defaultTimer`, `nicknameTheme` (Standard **Oberstufe**), `allowCustomNicknames`, `anonymousMode` (in beiden Presets derzeit **false**; reiner Anonym-Modus optional manuell).
 - **Live-Start (`quiz.upload`):** Payload aus `getUploadPayload` (Quiz); Home-Preset überschreibt nur boolesche Chips, deren Schlüssel **explizit** in `localStorage` `options` steht (`id in options`). Fehlender Schlüssel → Quiz-Wert. Details: `docs/features/preset-modes.md` § Live-Start.
 - **MOTD (Epic 10):** u. a. `MotdGetCurrentInputSchema`, `MotdPublicDTOSchema`; `ServerStatsDTOSchema` enthält u. a. `maxParticipantsSingleSession`; Admin-MOTD unter `admin.motd.*`.
 - **Host/Historie:** `QuizHistoryAccessProofSchema` und Hilfen zur Proof-Erzeugung liegen in shared-types; bei neuen owner-gebundenen Quiz-Endpunkten dieses Modell mitprüfen.

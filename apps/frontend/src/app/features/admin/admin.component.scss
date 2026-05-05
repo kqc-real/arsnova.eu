@@ -96,13 +96,6 @@
   gap: 1.25rem;
 }
 
-@media (min-width: 960px) {
-  .admin-session-grid {
-    grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);
-    align-items: start;
-  }
-}
-
 .admin-tabs {
   width: 100%;
 }
@@ -221,13 +214,68 @@
   gap: 0.65rem;
 }
 
+.admin-list__group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-list__group + .admin-list__group {
+  margin-top: 0.35rem;
+}
+
+.admin-list__group-title {
+  margin: 0;
+  padding-top: 0.2rem;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-primary);
+}
+
+.admin-list__group-items {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-list__detail {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.95rem 1rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-outline-variant));
+  border-radius: var(--mat-sys-corner-large);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 80%, white 20%);
+}
+
+.admin-danger-zone {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.65rem;
+}
+
 .admin-list__item {
+  --mdc-text-button-container-height: auto;
   width: 100%;
+  height: auto;
+  min-height: 4.2rem;
   justify-content: flex-start;
+  align-items: flex-start;
   text-align: left;
   padding: 0.75rem 0.85rem;
   border-radius: var(--mat-sys-corner-medium);
-  min-height: 4.2rem;
+  white-space: normal;
+}
+
+.admin-list__item--selected {
+  outline: 2px solid color-mix(in srgb, var(--mat-sys-primary) 38%, transparent);
+  outline-offset: 0;
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 28%, transparent);
+}
+
+.admin-list__item.mdc-button,
+.admin-list__item.mat-mdc-button-base,
+.admin-list__item.mat-mdc-button {
+  height: auto !important;
+  min-height: 4.2rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
 }
 
 .admin-list__code {
@@ -243,6 +291,40 @@
   color: var(--mat-sys-on-surface-variant);
   line-height: 1.35;
   overflow-wrap: break-word;
+}
+
+.admin-list__chip {
+  display: inline-block;
+  width: fit-content;
+  max-width: min(100%, 24rem);
+  margin-top: 0.3rem;
+  padding: 0.32rem 0.72rem;
+  border-radius: var(--mat-sys-corner-full);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 38%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 48%, transparent);
+  color: var(--mat-sys-on-primary-container);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+  vertical-align: top;
+}
+
+.admin-list__item :is(.mdc-button__label, .mat-mdc-button-persistent-ripple) {
+  height: auto;
+}
+
+.admin-list__item .mdc-button__label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.16rem;
+  width: 100%;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .admin-detail__meta {
@@ -283,6 +365,15 @@
   font: var(--mat-sys-body-medium);
   line-height: 1.45;
   overflow-wrap: break-word;
+  min-width: 0;
+}
+
+.admin-question__text.markdown-body :deep(p) {
+  margin: 0 0 0.4rem;
+}
+
+.admin-question__text.markdown-body :deep(p:last-child) {
+  margin-bottom: 0;
 }
 
 .admin-question__answers {
@@ -291,30 +382,92 @@
   font: var(--mat-sys-body-small);
   line-height: 1.35;
   overflow-wrap: break-word;
+  list-style-position: outside;
 }
 
 .admin-question__answers li + li {
-  margin-top: 0.2rem;
+  margin-top: 0.45rem;
+}
+
+.admin-question__answer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.25rem 0.5rem;
+}
+
+.admin-answer-text {
+  min-width: 0;
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+}
+
+.admin-answer-text.markdown-body :deep(p) {
+  margin: 0;
+}
+
+.admin-answer-text.markdown-body :deep(p + p) {
+  margin-top: 0.35rem;
+}
+
+.admin-answer__correct {
+  flex-shrink: 0;
+  font: var(--mat-sys-label-small);
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  white-space: nowrap;
 }
 
 .admin-delete {
-  margin-top: 0.5rem;
-  padding: 0.95rem;
+  margin-top: 0.6rem;
+  padding: 1.15rem;
+  display: grid;
+  gap: 0.75rem;
   border-top: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-medium);
   background: color-mix(in srgb, var(--mat-sys-error-container) 55%, transparent);
   outline: 1px solid color-mix(in srgb, var(--mat-sys-error) 30%, transparent);
+  border-inline-start: 0.3rem solid color-mix(in srgb, var(--mat-sys-error) 65%, transparent);
+}
+
+.admin-delete--bulk {
+  background: color-mix(in srgb, var(--mat-sys-error-container) 42%, transparent);
+}
+
+.admin-delete--record {
+  background: color-mix(in srgb, var(--mat-sys-error-container) 32%, transparent);
+}
+
+.admin-delete--single {
+  background: color-mix(in srgb, var(--mat-sys-error-container) 62%, transparent);
 }
 
 .admin-delete__title {
-  margin: 0 0 0.3rem;
+  margin: 0;
   font: var(--mat-sys-title-small);
   color: var(--mat-sys-error);
 }
 
+.admin-delete__phrase {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--mat-sys-corner-small);
+  border: 1px dashed color-mix(in srgb, var(--mat-sys-error) 55%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-error-container) 35%, transparent);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-label-medium);
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-field--danger-confirm {
+  margin-top: 0.2rem;
+}
+
 .admin-actions--delete {
   justify-content: flex-start;
-  margin-top: 0.25rem;
+  margin-top: 0.45rem;
   margin-bottom: 0;
 }
 
@@ -323,10 +476,19 @@
   max-width: 100%;
 }
 
+.admin-action-btn--with-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .admin-btn-danger {
   background: color-mix(in srgb, var(--mat-sys-error) 90%, #000 10%);
   color: var(--mat-sys-on-error);
   box-shadow: var(--mat-sys-level1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 :host ::ng-deep .admin-card .mdc-button__label {
@@ -368,7 +530,8 @@
   }
 
   .admin-delete {
-    padding: 0.75rem;
+    padding: 0.9rem;
+    gap: 0.65rem;
   }
 
   .admin-question {

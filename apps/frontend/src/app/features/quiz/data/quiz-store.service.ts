@@ -1,6 +1,7 @@
 import {
   Injectable,
   LOCALE_ID,
+  OnDestroy,
   PLATFORM_ID,
   Signal,
   computed,
@@ -9,10 +10,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
-import * as Y from 'yjs';
-import { IndexeddbPersistence } from 'y-indexeddb';
-import { WebsocketProvider } from 'y-websocket';
+import { Subscription, filter } from 'rxjs';
 import {
   AddQuestionInputSchema,
   CreateQuizInputSchema,
@@ -45,6 +43,9 @@ import {
   getDemoQuizSeedFingerprint,
   normalizeDemoQuizLocale,
 } from './demo-quiz-payload';
+import { normalizeQuizImportPayload, type QuizImportWarning } from './quiz-import-normalizer';
+import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
+export type { QuizImportWarning } from './quiz-import-normalizer';
 
 export type SupportedQuestionType =
   | 'MULTIPLE_CHOICE'
@@ -67,7 +68,12 @@ export interface QuizQuestion {
   order: number;
   /** false: nicht in Vorschau/Live-Upload; bleibt in der Liste zum späteren Aktivieren */
   enabled: boolean;
+  /**
+   * Zeitlimit nur für diese Frage (Sekunden). `null` = Quiz-`defaultTimer` verwenden.
+   */
+  timer: number | null;
   answers: QuizAnswer[];
+  skipReadingPhase?: boolean;
   ratingMin: number | null;
   ratingMax: number | null;
   ratingLabelMin: string | null;
@@ -78,6 +84,7 @@ export interface QuizSettings {
   showLeaderboard: boolean;
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
+  timerScaleByDifficulty?: boolean;
   enableSoundEffects: boolean;
   enableRewardEffects: boolean;
   enableMotivationMessages: boolean;
@@ -107,7 +114,7 @@ export interface QuizDocument {
   updatedByBrowserLabel?: string | null;
   /** Letzte Server-Quiz-ID nach quiz.upload (für Bonus-Codes in der Sammlung, nicht am Live-Host). */
   lastServerQuizId?: string | null;
-  /** Besitz-Nachweis für die zuletzt hochgeladene Server-Quizkopie. */
+  /** Stable Quiz-ID für den zuletzt hochgeladenen Historien-Scope. */
   lastServerQuizAccessProof?: string | null;
   settings: QuizSettings;
   questions: QuizQuestion[];
@@ -127,9 +134,14 @@ export interface QuizSummary {
   lastServerQuizAccessProof: string | null;
 }
 
+export interface QuizImportResult {
+  quiz: QuizDocument;
+  warnings: QuizImportWarning[];
+}
+
 /**
  * Für Live-Upload: Namensliste aus RAM vs. localStorage zusammenführen.
- * Wenn genau eine Seite eine „spezielle“ Liste hat (nicht Nobel), gewinnt diese —
+ * Wenn genau eine Seite eine „spezielle“ Liste hat (nicht Oberstufe-Standard), gewinnt diese —
  * auch wenn der andere Stand ein neueres updatedAt hat (typisch: RAM durch Yjs/Tab veraltet, LS noch Kita).
  */
 function pickNameParticipationSettings(
@@ -138,12 +150,12 @@ function pickNameParticipationSettings(
 ): Pick<QuizSettings, 'nicknameTheme' | 'allowCustomNicknames' | 'anonymousMode'> {
   const themeMem = NicknameThemeEnum.safeParse(mem.settings.nicknameTheme).success
     ? mem.settings.nicknameTheme
-    : ('NOBEL_LAUREATES' as NicknameTheme);
+    : ('HIGH_SCHOOL' as NicknameTheme);
   const themeLs = NicknameThemeEnum.safeParse(ls.settings.nicknameTheme).success
     ? ls.settings.nicknameTheme
-    : ('NOBEL_LAUREATES' as NicknameTheme);
-  const memRich = themeMem !== 'NOBEL_LAUREATES';
-  const lsRich = themeLs !== 'NOBEL_LAUREATES';
+    : ('HIGH_SCHOOL' as NicknameTheme);
+  const memRich = themeMem !== 'HIGH_SCHOOL';
+  const lsRich = themeLs !== 'HIGH_SCHOOL';
   const memT = Date.parse(mem.updatedAt);
   const lsT = Date.parse(ls.updatedAt);
 
@@ -191,7 +203,10 @@ export interface AddQuizQuestionInput {
   text: string;
   type: SupportedQuestionType;
   difficulty: Difficulty;
+  /** `null` oder auslassen = Quiz-`defaultTimer` */
+  timer?: number | null;
   answers: Array<{ text: string; isCorrect: boolean }>;
+  skipReadingPhase?: boolean;
   ratingMin?: number | null;
   ratingMax?: number | null;
   ratingLabelMin?: string | null;
@@ -211,7 +226,9 @@ type ValidatedQuestionInput = {
   text: string;
   type: SupportedQuestionType;
   difficulty: Difficulty;
+  timer: number | null;
   answers: Array<{ text: string; isCorrect: boolean }>;
+  skipReadingPhase: boolean;
   ratingMin: number | null;
   ratingMax: number | null;
   ratingLabelMin: string | null;
@@ -243,6 +260,14 @@ interface SyncClientPresence {
   deviceLabel: string;
   browserLabel: string;
 }
+
+type YDoc = import('yjs').Doc;
+type YMapDoc<T> = import('yjs').Map<T>;
+type YjsModule = typeof import('yjs');
+type IndexedDbPersistenceCtor = typeof import('y-indexeddb').IndexeddbPersistence;
+type IndexedDbPersistenceInstance = import('y-indexeddb').IndexeddbPersistence;
+type WebsocketProviderCtor = typeof import('y-websocket').WebsocketProvider;
+type WebsocketProviderInstance = import('y-websocket').WebsocketProvider;
 
 export interface SyncPeerInfo {
   deviceId: string;
@@ -276,6 +301,7 @@ const QuizSettingsSchema = CreateQuizInputSchema.pick({
   showLeaderboard: true,
   allowCustomNicknames: true,
   defaultTimer: true,
+  timerScaleByDifficulty: true,
   enableSoundEffects: true,
   enableRewardEffects: true,
   enableMotivationMessages: true,
@@ -297,10 +323,12 @@ const QuestionCreateSchema = AddQuestionInputSchema.pick({
   type: true,
   difficulty: true,
   answers: true,
+  skipReadingPhase: true,
   ratingMin: true,
   ratingMax: true,
   ratingLabelMin: true,
   ratingLabelMax: true,
+  timer: true,
 }).superRefine((value, ctx) => {
   if (
     value.type !== 'MULTIPLE_CHOICE' &&
@@ -412,6 +440,7 @@ const QuestionCreateSchema = AddQuestionInputSchema.pick({
 });
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const LEGACY_QUIZ_HISTORY_ACCESS_PROOF_PATTERN = /^[a-f0-9]{64}$/i;
 
 const DEFAULT_QUIZ_SETTINGS: QuizSettings = parseQuizSettings({});
 type SyncConnectionState = 'connected' | 'connecting' | 'disconnected';
@@ -426,7 +455,7 @@ export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
 const DEMO_QUIZ_SEED_FINGERPRINT_KEY = 'arsnova-demo-quiz-seed-fp-v1';
 
 @Injectable({ providedIn: 'root' })
-export class QuizStoreService {
+export class QuizStoreService implements OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly quizDocuments = signal<QuizDocument[]>([]);
   readonly syncRoomId = signal('');
@@ -445,10 +474,14 @@ export class QuizStoreService {
   readonly currentDeviceLabel = signal('Dieses Gerät');
   readonly currentBrowserLabel = signal('');
   readonly syncPeerInfos = signal<SyncPeerInfo[]>([]);
-  private yDoc: Y.Doc | null = null;
-  private yRoot: Y.Map<string> | null = null;
-  private yPersistence: IndexeddbPersistence | null = null;
-  private yProvider: WebsocketProvider | null = null;
+  private yDoc: YDoc | null = null;
+  private yRoot: YMapDoc<string> | null = null;
+  private yPersistence: IndexedDbPersistenceInstance | null = null;
+  private yProvider: WebsocketProviderInstance | null = null;
+  private yjsModulePromise: Promise<YjsModule> | null = null;
+  private indexedDbPersistencePromise: Promise<IndexedDbPersistenceCtor> | null = null;
+  private websocketProviderPromise: Promise<WebsocketProviderCtor> | null = null;
+  private yjsInitGeneration = 0;
   private isApplyingYjsSnapshot = false;
   private hasStoredSyncRoomId = false;
   private lastSerializedQuizDocuments = '[]';
@@ -459,6 +492,7 @@ export class QuizStoreService {
   private readonly currentSyncDeviceId = this.resolveCurrentSyncDeviceId();
   private readonly localeId = inject(LOCALE_ID);
   private readonly router = inject(Router);
+  private routerEventsSub: Subscription | null = null;
   private readonly onPresetUpdated = (): void => {
     this.writePresetSnapshotToYjs();
   };
@@ -491,16 +525,25 @@ export class QuizStoreService {
     this.loadSyncMetadata(roomId);
     this.loadFromStorage(roomId, !this.hasStoredSyncRoomId);
     this.ensureDemoQuiz();
-    this.initYjsPersistence(roomId);
+    void this.initYjsPersistence(roomId);
     if (isPlatformBrowser(this.platformId)) {
       globalThis.addEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
       // Demo-Quiz-Sprache an URL-Segment koppeln (/de/quiz → /en/quiz ohne Reload).
-      this.router.events
+      this.routerEventsSub = this.router.events
         .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
         .subscribe(() => {
           this.ensureDemoQuiz();
         });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.routerEventsSub?.unsubscribe();
+    this.routerEventsSub = null;
+    if (isPlatformBrowser(this.platformId)) {
+      globalThis.removeEventListener(PRESET_UPDATED_EVENT, this.onPresetUpdated);
+    }
+    this.teardownYjs();
   }
 
   getDemoQuizId(): string | null {
@@ -667,6 +710,28 @@ export class QuizStoreService {
     this.persistToStorage();
   }
 
+  setLastServerQuizAccessProof(localQuizId: string, accessProof: string): void {
+    if (
+      !UUID_PATTERN.test(localQuizId) ||
+      (!UUID_PATTERN.test(accessProof) &&
+        !LEGACY_QUIZ_HISTORY_ACCESS_PROOF_PATTERN.test(accessProof))
+    ) {
+      return;
+    }
+
+    this.quizDocuments.update((current) =>
+      current.map((quiz) =>
+        quiz.id === localQuizId
+          ? {
+              ...quiz,
+              lastServerQuizAccessProof: accessProof,
+            }
+          : quiz,
+      ),
+    );
+    this.persistToStorage();
+  }
+
   deleteQuiz(quizId: string): void {
     const exists = this.quizDocuments().some((quiz) => quiz.id === quizId);
     if (!exists) {
@@ -693,6 +758,7 @@ export class QuizStoreService {
         showLeaderboard: document.settings.showLeaderboard,
         allowCustomNicknames: document.settings.allowCustomNicknames,
         defaultTimer: document.settings.defaultTimer,
+        timerScaleByDifficulty: document.settings.timerScaleByDifficulty ?? true,
         enableSoundEffects: document.settings.enableSoundEffects,
         enableRewardEffects: document.settings.enableRewardEffects,
         enableMotivationMessages: document.settings.enableMotivationMessages,
@@ -711,10 +777,12 @@ export class QuizStoreService {
           type: question.type,
           difficulty: question.difficulty,
           order: question.order,
+          ...(typeof question.timer === 'number' ? { timer: question.timer } : {}),
           answers: question.answers.map((answer) => ({
             text: answer.text,
             isCorrect: answer.isCorrect,
           })),
+          skipReadingPhase: question.skipReadingPhase,
           ratingMin: question.ratingMin,
           ratingMax: question.ratingMax,
           ratingLabelMin: question.ratingLabelMin,
@@ -757,7 +825,7 @@ export class QuizStoreService {
 
   /**
    * Baut den effektiven Quiz-Datensatz für Live-Upload: Fragen/Metadaten vom neueren Stand (RAM vs. LS),
-   * Namensliste/Anonymität per pickNameParticipationSettings (Kita gewinnt gegen veraltetes Nobel im RAM).
+   * Namensliste/Anonymität per pickNameParticipationSettings (spezielle Themenliste gewinnt gegen Oberstufe-Standard im RAM).
    */
   private composeQuizDocumentForLiveUpload(quizId: string): QuizDocument | null {
     const memDoc = this.getQuizById(quizId);
@@ -810,12 +878,14 @@ export class QuizStoreService {
         : document.description;
 
     const payload: QuizUploadInput = {
+      historyScopeId: document.id,
       name: document.name,
       ...(description ? { description } : {}),
       motifImageUrl: normalizeMotifImageUrlInput(document.motifImageUrl) ?? null,
       showLeaderboard: document.settings.showLeaderboard,
       allowCustomNicknames: document.settings.allowCustomNicknames,
       defaultTimer: document.settings.defaultTimer,
+      timerScaleByDifficulty: document.settings.timerScaleByDifficulty ?? true,
       enableSoundEffects: document.settings.enableSoundEffects,
       enableRewardEffects: document.settings.enableRewardEffects,
       enableMotivationMessages: document.settings.enableMotivationMessages,
@@ -835,7 +905,9 @@ export class QuizStoreService {
         type: q.type,
         difficulty: q.difficulty,
         order: index,
+        timer: q.timer ?? null,
         answers: q.answers.map((a) => ({ text: a.text, isCorrect: a.isCorrect })),
+        skipReadingPhase: q.skipReadingPhase ?? false,
         ratingMin: q.ratingMin ?? undefined,
         ratingMax: q.ratingMax ?? undefined,
         ratingLabelMin: q.ratingLabelMin ?? undefined,
@@ -852,46 +924,76 @@ export class QuizStoreService {
     return parsed.data;
   }
 
-  importQuiz(payload: unknown, overrideId?: string): QuizDocument {
-    const parsed = QuizImportSchema.safeParse(payload);
-    if (!parsed.success) {
-      const issue = parsed.error.issues[0];
-      const message = issue
-        ? `${formatQuizImportIssuePath(issue.path)}: ${issue.message}`
-        : $localize`Ungültige Import-Datei.`;
+  importQuiz(payload: unknown, overrideId?: string): QuizImportResult {
+    let normalizedPayload: unknown;
+    let normalizedSourceQuiz: QuizExport['quiz'] | undefined;
+    let warnings: QuizImportWarning[];
+    try {
+      ({
+        payload: normalizedPayload,
+        sourceQuiz: normalizedSourceQuiz,
+        warnings,
+      } = normalizeQuizImportPayload(payload));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : $localize`Ungültige Import-Datei.`;
+      throw new Error(`Import fehlgeschlagen: ${message}`, { cause: error });
+    }
+
+    let quizData: QuizExport['quiz'];
+    if (normalizedSourceQuiz) {
+      quizData = normalizedSourceQuiz;
+    } else {
+      const parsed = QuizImportSchema.safeParse(normalizedPayload);
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const message = issue
+          ? `${formatQuizImportIssuePath(issue.path)}: ${issue.message}`
+          : $localize`Ungültige Import-Datei.`;
+        throw new Error(`Import fehlgeschlagen: ${message}`);
+      }
+      quizData = parsed.data.quiz;
+    }
+
+    const metadata = QuizMetadataSchema.safeParse({
+      name: quizData.name.trim(),
+      description: normalizeDescription(quizData.description),
+      motifImageUrl: normalizeMotifImageUrlInput(quizData.motifImageUrl),
+    });
+    if (!metadata.success) {
+      const message = metadata.error.issues[0]?.message ?? $localize`Ungültige Import-Datei.`;
       throw new Error(`Import fehlgeschlagen: ${message}`);
     }
 
     const now = new Date().toISOString();
     const imported: QuizDocument = {
       id: overrideId ?? generateUuid(),
-      name: parsed.data.quiz.name,
-      description: normalizeDescription(parsed.data.quiz.description) ?? null,
-      motifImageUrl: parsed.data.quiz.motifImageUrl ?? null,
+      name: metadata.data.name,
+      description: metadata.data.description ?? null,
+      motifImageUrl: metadata.data.motifImageUrl ?? null,
       createdAt: now,
       updatedAt: now,
       ...this.currentQuizUpdateSource(),
       settings: parseQuizSettings({
-        showLeaderboard: parsed.data.quiz.showLeaderboard,
-        allowCustomNicknames: parsed.data.quiz.allowCustomNicknames,
-        defaultTimer: parsed.data.quiz.defaultTimer ?? null,
-        enableSoundEffects: parsed.data.quiz.enableSoundEffects,
-        enableRewardEffects: parsed.data.quiz.enableRewardEffects,
-        enableMotivationMessages: parsed.data.quiz.enableMotivationMessages,
-        enableEmojiReactions: parsed.data.quiz.enableEmojiReactions,
-        anonymousMode: parsed.data.quiz.anonymousMode,
-        teamMode: parsed.data.quiz.teamMode,
-        teamCount: parsed.data.quiz.teamCount ?? null,
-        teamAssignment: parsed.data.quiz.teamAssignment,
-        teamNames: parsed.data.quiz.teamNames ?? [],
-        backgroundMusic: parsed.data.quiz.backgroundMusic ?? null,
-        nicknameTheme: parsed.data.quiz.nicknameTheme,
-        bonusTokenCount: parsed.data.quiz.bonusTokenCount ?? null,
-        readingPhaseEnabled: parsed.data.quiz.readingPhaseEnabled ?? true,
-        preset:
-          ((parsed.data.quiz as Record<string, unknown>)['preset'] as QuizPreset) ?? 'PLAYFUL',
+        showLeaderboard: quizData.showLeaderboard,
+        allowCustomNicknames: quizData.allowCustomNicknames,
+        defaultTimer: quizData.defaultTimer ?? null,
+        timerScaleByDifficulty: quizData.timerScaleByDifficulty ?? true,
+        enableSoundEffects: quizData.enableSoundEffects,
+        enableRewardEffects: quizData.enableRewardEffects,
+        enableMotivationMessages: quizData.enableMotivationMessages,
+        enableEmojiReactions: quizData.enableEmojiReactions,
+        anonymousMode: quizData.anonymousMode,
+        teamMode: quizData.teamMode,
+        teamCount: quizData.teamCount ?? null,
+        teamAssignment: quizData.teamAssignment,
+        teamNames: quizData.teamNames ?? [],
+        backgroundMusic: quizData.backgroundMusic ?? null,
+        nicknameTheme: quizData.nicknameTheme,
+        bonusTokenCount: quizData.bonusTokenCount ?? null,
+        readingPhaseEnabled: quizData.readingPhaseEnabled ?? true,
+        preset: ((quizData as Record<string, unknown>)['preset'] as QuizPreset) ?? 'PLAYFUL',
       }),
-      questions: parsed.data.quiz.questions
+      questions: quizData.questions
         .sort((a, b) => a.order - b.order)
         .map((question, index) => ({
           id: generateUuid(),
@@ -900,11 +1002,13 @@ export class QuizStoreService {
           difficulty: question.difficulty,
           order: index,
           enabled: question.enabled !== false,
+          timer: question.timer === undefined || question.timer === null ? null : question.timer,
           answers: question.answers.map((answer) => ({
             id: generateUuid(),
             text: answer.text,
             isCorrect: answer.isCorrect,
           })),
+          skipReadingPhase: question.skipReadingPhase ?? false,
           ratingMin: question.type === 'RATING' ? (question.ratingMin ?? 1) : null,
           ratingMax: question.type === 'RATING' ? (question.ratingMax ?? 5) : null,
           ratingLabelMin:
@@ -920,7 +1024,10 @@ export class QuizStoreService {
 
     this.quizDocuments.update((current) => [imported, ...current]);
     this.persistToStorage();
-    return imported;
+    return {
+      quiz: imported,
+      warnings,
+    };
   }
 
   addQuestion(quizId: string, input: AddQuizQuestionInput): QuizQuestion {
@@ -938,11 +1045,13 @@ export class QuizStoreService {
       difficulty: parsed.difficulty,
       order: document.questions.length,
       enabled: true,
+      timer: parsed.timer,
       answers: parsed.answers.map((answer) => ({
         id: generateUuid(),
         text: answer.text,
         isCorrect: answer.isCorrect,
       })),
+      skipReadingPhase: parsed.skipReadingPhase,
       ratingMin: parsed.ratingMin,
       ratingMax: parsed.ratingMax,
       ratingLabelMin: parsed.ratingLabelMin,
@@ -986,11 +1095,13 @@ export class QuizStoreService {
       text: parsed.text,
       type: parsed.type,
       difficulty: parsed.difficulty,
+      timer: parsed.timer,
       answers: parsed.answers.map((answer, index) => ({
         id: existingQuestion.answers[index]?.id ?? generateUuid(),
         text: answer.text,
         isCorrect: answer.isCorrect,
       })),
+      skipReadingPhase: parsed.skipReadingPhase,
       ratingMin: parsed.ratingMin,
       ratingMax: parsed.ratingMax,
       ratingLabelMin: parsed.ratingLabelMin,
@@ -1189,13 +1300,13 @@ export class QuizStoreService {
     if (!normalizedRoomId) {
       throw new Error($localize`Ungültige Sync-ID.`);
     }
-    const shouldRegisterOrigin = options?.registerOrigin && this.librarySharingMode() === 'local';
+    const shouldRegisterOrigin = options?.registerOrigin === true;
     if (options?.markShared) {
       this.setLibrarySharingMode('shared');
     }
     if (this.syncRoomId() === normalizedRoomId) {
       if (options?.markShared) {
-        this.attachYjsWebSocketProviderIfNeeded();
+        void this.attachYjsWebSocketProviderIfNeeded();
       }
       if (shouldRegisterOrigin) {
         this.recordSyncOriginIfMissing();
@@ -1212,7 +1323,28 @@ export class QuizStoreService {
     }
 
     this.loadFromStorage(normalizedRoomId, false);
-    this.initYjsPersistence(normalizedRoomId);
+    void this.initYjsPersistence(normalizedRoomId);
+  }
+
+  /**
+   * Trennt die geteilte Quiz-Sammlung und wechselt auf einen neuen lokalen Sync-Raum.
+   * Vorhandene Quizze bleiben auf diesem Gerät erhalten.
+   */
+  unlinkSharedLibrary(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const serialized = this.serializeQuizDocuments();
+    const newLocalRoomId = generateUuid();
+
+    this.teardownYjs();
+    this.setLibrarySharingMode('local');
+    this.syncRoomId.set(newLocalRoomId);
+    this.storeSyncRoomId(newLocalRoomId);
+    this.loadSyncMetadata(newLocalRoomId);
+    this.persistLocalMirror(serialized);
+    this.updateSerializedQuizCache(newLocalRoomId, serialized);
+    this.ensureDemoQuiz();
+    void this.initYjsPersistence(newLocalRoomId);
   }
 
   private loadFromStorage(roomId: string, allowLegacyFallback: boolean): void {
@@ -1269,30 +1401,50 @@ export class QuizStoreService {
     }
   }
 
-  private initYjsPersistence(roomId: string): void {
+  private async initYjsPersistence(roomId: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    const generation = ++this.yjsInitGeneration;
+
     try {
-      this.yDoc = new Y.Doc();
-      this.yRoot = this.yDoc.getMap<string>('quiz-library');
-      this.yRoot.observe(this.onYjsRootChanged);
+      const Y = await this.loadYjsModule();
+      if (!this.canUseYjsSetupResult(generation, roomId)) return;
+
+      const yDoc = new Y.Doc();
+      const yRoot = yDoc.getMap<string>('quiz-library');
+      yRoot.observe(this.onYjsRootChanged);
+      this.yDoc = yDoc;
+      this.yRoot = yRoot;
 
       if (hasIndexedDbSupport()) {
-        this.yPersistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, this.yDoc);
+        const IndexeddbPersistence = await this.loadIndexedDbPersistenceCtor();
+        if (!this.canUseYjsSetupResult(generation, roomId)) {
+          yRoot.unobserve(this.onYjsRootChanged);
+          yDoc.destroy();
+          return;
+        }
+        this.yPersistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, yDoc);
         this.yPersistence.once('synced', () => {
-          this.syncFromYjsOrSeed();
+          if (this.yDoc === yDoc && this.syncRoomId() === roomId) {
+            this.syncFromYjsOrSeed();
+          }
         });
       }
 
-      this.attachYjsWebSocketProviderIfNeeded();
+      await this.attachYjsWebSocketProviderIfNeeded(generation, roomId);
     } catch {
-      this.teardownYjs();
-      this.syncConnectionState.set('disconnected');
+      if (this.canUseYjsSetupResult(generation, roomId)) {
+        this.teardownYjs();
+        this.syncConnectionState.set('disconnected');
+      }
     }
   }
 
   /** Yjs-WebSocket nur bei geteilter Bibliothek – lokal reicht IndexedDB (keine WS-Konsolenfehler ohne Server). */
-  private attachYjsWebSocketProviderIfNeeded(): void {
+  private async attachYjsWebSocketProviderIfNeeded(
+    expectedGeneration = this.yjsInitGeneration,
+    expectedRoomId = this.syncRoomId(),
+  ): Promise<void> {
     if (!isPlatformBrowser(this.platformId) || !this.yDoc || this.yProvider) return;
     if (this.librarySharingMode() !== 'shared') {
       this.syncConnectionState.set('disconnected');
@@ -1310,10 +1462,16 @@ export class QuizStoreService {
     }
 
     this.syncConnectionState.set('connecting');
+    const WebsocketProvider = await this.loadWebsocketProviderCtor();
+    if (!this.canUseYjsSetupResult(expectedGeneration, expectedRoomId) || !this.yDoc) {
+      return;
+    }
+
+    const yDoc = this.yDoc;
     this.yProvider = new WebsocketProvider(
       getYjsWsUrl(),
-      `${QUIZ_SYNC_ROOM_PREFIX}${roomId}`,
-      this.yDoc,
+      `${QUIZ_SYNC_ROOM_PREFIX}${expectedRoomId}`,
+      yDoc,
     );
     this.yProvider.awareness.setLocalStateField(
       'syncClient',
@@ -1321,7 +1479,9 @@ export class QuizStoreService {
     );
     this.yProvider.awareness.on('change', this.onAwarenessChanged);
     this.yProvider.on('sync', (isSynced: boolean) => {
-      if (isSynced) this.syncFromYjsOrSeed();
+      if (isSynced && this.yDoc === yDoc && this.syncRoomId() === expectedRoomId) {
+        this.syncFromYjsOrSeed();
+      }
     });
     this.yProvider.on('status', ({ status }: { status: SyncConnectionState }) => {
       const nextState =
@@ -1338,6 +1498,7 @@ export class QuizStoreService {
   }
 
   private teardownYjs(): void {
+    this.yjsInitGeneration++;
     try {
       this.yRoot?.unobserve(this.onYjsRootChanged);
     } catch {
@@ -1356,6 +1517,33 @@ export class QuizStoreService {
     this.yRoot = null;
     this.yDoc = null;
     this.syncPeerInfos.set([]);
+  }
+
+  private canUseYjsSetupResult(generation: number, roomId: string): boolean {
+    return (
+      isPlatformBrowser(this.platformId) &&
+      generation === this.yjsInitGeneration &&
+      this.syncRoomId() === roomId
+    );
+  }
+
+  private loadYjsModule(): Promise<YjsModule> {
+    this.yjsModulePromise ??= import('yjs');
+    return this.yjsModulePromise;
+  }
+
+  private loadIndexedDbPersistenceCtor(): Promise<IndexedDbPersistenceCtor> {
+    this.indexedDbPersistencePromise ??= import('y-indexeddb').then(
+      (module) => module.IndexeddbPersistence,
+    );
+    return this.indexedDbPersistencePromise;
+  }
+
+  private loadWebsocketProviderCtor(): Promise<WebsocketProviderCtor> {
+    this.websocketProviderPromise ??= import('y-websocket').then(
+      (module) => module.WebsocketProvider,
+    );
+    return this.websocketProviderPromise;
   }
 
   private syncFromYjsOrSeed(): void {
@@ -1732,7 +1920,8 @@ function normalizeStoredQuiz(value: unknown): QuizDocument | null {
   const lastServerQuizId = rawLastServer && UUID_PATTERN.test(rawLastServer) ? rawLastServer : null;
   const rawLastServerAccessProof = readStringOrNull(candidate['lastServerQuizAccessProof']);
   const lastServerQuizAccessProof =
-    rawLastServerAccessProof && /^[a-f0-9]{64}$/.test(rawLastServerAccessProof)
+    rawLastServerAccessProof &&
+    (UUID_PATTERN.test(rawLastServerAccessProof) || /^[a-f0-9]{64}$/.test(rawLastServerAccessProof))
       ? rawLastServerAccessProof
       : null;
 
@@ -1790,6 +1979,7 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
     showLeaderboard: input.showLeaderboard,
     allowCustomNicknames: input.allowCustomNicknames,
     defaultTimer: input.defaultTimer ?? null,
+    timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,
     enableSoundEffects: input.enableSoundEffects,
     enableRewardEffects: input.enableRewardEffects,
     enableMotivationMessages: input.enableMotivationMessages,
@@ -1815,6 +2005,7 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
     showLeaderboard: parsed.data.showLeaderboard,
     allowCustomNicknames: parsed.data.allowCustomNicknames,
     defaultTimer: parsed.data.defaultTimer ?? null,
+    timerScaleByDifficulty: parsed.data.timerScaleByDifficulty ?? true,
     enableSoundEffects: parsed.data.enableSoundEffects,
     enableRewardEffects: parsed.data.enableRewardEffects,
     enableMotivationMessages: parsed.data.enableMotivationMessages,
@@ -1844,6 +2035,7 @@ function normalizeStoredQuizSettings(value: unknown): QuizSettings {
       showLeaderboard: readBoolean(candidate['showLeaderboard']),
       allowCustomNicknames: readBoolean(candidate['allowCustomNicknames']),
       defaultTimer: readNumberOrNull(candidate['defaultTimer']),
+      timerScaleByDifficulty: readBoolean(candidate['timerScaleByDifficulty']),
       enableSoundEffects: readBoolean(candidate['enableSoundEffects']),
       enableRewardEffects: readBoolean(candidate['enableRewardEffects']),
       enableMotivationMessages: readBoolean(candidate['enableMotivationMessages']),
@@ -1881,10 +2073,12 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
       text: answer.text.trim(),
       isCorrect: answer.isCorrect,
     })),
+    skipReadingPhase: input.skipReadingPhase ?? false,
     ratingMin: input.ratingMin ?? undefined,
     ratingMax: input.ratingMax ?? undefined,
     ratingLabelMin: normalizeNullableLabel(input.ratingLabelMin),
     ratingLabelMax: normalizeNullableLabel(input.ratingLabelMax),
+    timer: input.timer === undefined ? undefined : input.timer,
   });
 
   if (!parsed.success) {
@@ -1915,7 +2109,9 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     text: parsed.data.text,
     type: parsed.data.type as SupportedQuestionType,
     difficulty: parsed.data.difficulty,
+    timer: parsed.data.timer ?? null,
     answers,
+    skipReadingPhase: parsed.data.skipReadingPhase ?? false,
     ratingMin,
     ratingMax,
     ratingLabelMin,
@@ -1950,10 +2146,12 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
       text: answer.text,
       isCorrect: answer.isCorrect,
     })),
+    skipReadingPhase: readBoolean(candidate['skipReadingPhase']) ?? false,
     ratingMin: readNumberOrNull(candidate['ratingMin']) ?? undefined,
     ratingMax: readNumberOrNull(candidate['ratingMax']) ?? undefined,
     ratingLabelMin: readStringOrNull(candidate['ratingLabelMin']) ?? undefined,
     ratingLabelMax: readStringOrNull(candidate['ratingLabelMax']) ?? undefined,
+    timer: readNumberOrNull(candidate['timer']) ?? undefined,
   });
   if (!parsed.success) return null;
 
@@ -1973,7 +2171,9 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     difficulty: parsed.data.difficulty,
     order,
     enabled,
+    timer: parsed.data.timer ?? null,
     answers,
+    skipReadingPhase: parsed.data.skipReadingPhase ?? false,
     ratingMin: parsed.data.type === 'RATING' ? (parsed.data.ratingMin ?? 1) : null,
     ratingMax: parsed.data.type === 'RATING' ? (parsed.data.ratingMax ?? 5) : null,
     ratingLabelMin:
@@ -2038,7 +2238,7 @@ function normalizeTeamNames(value: string[] | null | undefined): string[] | unde
 
   return value
     .filter((entry): entry is string => typeof entry === 'string')
-    .map((entry) => entry.trim())
+    .map((entry) => replaceEmojiShortcodes(entry.trim()))
     .filter((entry) => entry.length > 0);
 }
 

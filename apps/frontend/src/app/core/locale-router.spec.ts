@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getLocaleFromPath } from './locale-from-path';
-import { isAppHomeRouterUrl, localizeCommands, localizePath } from './locale-router';
+import {
+  isAppHomeRouterUrl,
+  localizeCommands,
+  localizePath,
+  resolveLocalizedAppUrl,
+  resolveLocalizedJoinUrl,
+} from './locale-router';
 
 vi.mock('./locale-from-path', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./locale-from-path')>();
@@ -54,6 +60,18 @@ describe('locale-router', () => {
       expect(localizePath('/de/legal/privacy')).toBe('/legal/privacy');
     });
 
+    it('resolveLocalizedAppUrl: baut absolute URLs unter dem localized base href', () => {
+      expect(resolveLocalizedAppUrl('/join/ABC123')).toBe(
+        `${window.location.origin}/de/join/ABC123`,
+      );
+    });
+
+    it('resolveLocalizedJoinUrl: ergänzt redundanten Query-Fallback', () => {
+      expect(resolveLocalizedJoinUrl('abc123')).toBe(
+        `${window.location.origin}/de/join/ABC123?join=ABC123`,
+      );
+    });
+
     it('localizeCommands: kein prepend von de', () => {
       expect(localizeCommands(['quiz', 'abc'])).toEqual(['quiz', 'abc']);
     });
@@ -74,6 +92,18 @@ describe('locale-router', () => {
     it('localizePath: Locale voranstellen', () => {
       expect(localizePath('/legal/privacy')).toBe('/de/legal/privacy');
       expect(localizePath('/')).toBe('/de');
+    });
+
+    it('resolveLocalizedAppUrl: baut absolute URLs mit Locale-Präfix im Pfad', () => {
+      expect(resolveLocalizedAppUrl('/join/ABC123')).toBe(
+        `${window.location.origin}/de/join/ABC123`,
+      );
+    });
+
+    it('resolveLocalizedJoinUrl: ergänzt redundanten Query-Fallback', () => {
+      expect(resolveLocalizedJoinUrl('abc123')).toBe(
+        `${window.location.origin}/de/join/ABC123?join=ABC123`,
+      );
     });
 
     it('localizeCommands: Locale voranstellen', () => {

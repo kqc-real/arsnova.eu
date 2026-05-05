@@ -13,6 +13,7 @@ import { MotdHeaderRefreshService } from '../../core/motd-header-refresh.service
 import { setMotdArchiveSeenUpToEndsAtIso } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
+import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { sortMotdArchiveItemsNewFirst } from '../../shared/motd-archive-sort.util';
@@ -146,13 +147,10 @@ export class NewsArchivePageComponent {
         return next;
       });
     } catch (e) {
-      const msg =
-        e &&
-        typeof e === 'object' &&
-        'message' in e &&
-        typeof (e as { message: string }).message === 'string'
-          ? (e as { message: string }).message
-          : $localize`:@@motd.archiveLoadMoreError:Weitere Meldungen konnten nicht geladen werden.`;
+      const msg = localizeKnownServerError(
+        e,
+        $localize`:@@motd.archiveLoadMoreError:Weitere Meldungen konnten nicht geladen werden.`,
+      );
       this.snackBar.open(msg, undefined, { duration: 4000 });
     } finally {
       this.loadingMore.set(false);

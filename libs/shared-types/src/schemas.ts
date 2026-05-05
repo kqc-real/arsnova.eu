@@ -27,6 +27,12 @@ export type SessionStatus = z.infer<typeof SessionStatusEnum>;
 export const DifficultyEnum = z.enum(['EASY', 'MEDIUM', 'HARD']);
 export type Difficulty = z.infer<typeof DifficultyEnum>;
 
+export const TIMER_DIFFICULTY_SCALE_FACTORS: Record<Difficulty, number> = {
+  EASY: 1,
+  MEDIUM: 1.5,
+  HARD: 2,
+};
+
 export const NicknameThemeEnum = z.enum([
   'NOBEL_LAUREATES',
   'KINDERGARTEN',
@@ -100,6 +106,40 @@ export const DEFAULT_TEAM_COUNT = 2;
 export const DEFAULT_BONUS_TOKEN_COUNT = 3;
 export const DEFAULT_TIMER_SECONDS = 60;
 
+export function scaleTimerByDifficulty(
+  timerSeconds: number | null | undefined,
+  difficulty: Difficulty,
+  enabled = true,
+): number | null {
+  if (typeof timerSeconds !== 'number' || timerSeconds <= 0) {
+    return null;
+  }
+  if (!enabled) {
+    return timerSeconds;
+  }
+  const factor = (TIMER_DIFFICULTY_SCALE_FACTORS as Record<string, number>)[difficulty] ?? 1;
+  return Math.ceil(timerSeconds * factor);
+}
+
+export function resolveEffectiveQuestionTimer(
+  questionTimer: number | null | undefined,
+  defaultTimer: number | null | undefined,
+  difficulty: Difficulty,
+  scaleByDifficulty = true,
+): number | null {
+  // Ein explizit pro Frage gesetzter Timer ist bereits die finale Host-Entscheidung
+  // und darf nicht mehr durch die Schwierigkeits-Skalierung verändert werden.
+  if (typeof questionTimer === 'number' && questionTimer > 0) {
+    return questionTimer;
+  }
+
+  if (typeof defaultTimer === 'number' && defaultTimer > 0) {
+    return scaleTimerByDifficulty(defaultTimer, difficulty, scaleByDifficulty);
+  }
+
+  return null;
+}
+
 /** Obergrenze Motivbild-URL (typische Bild-URLs; lange signierte CDN-Links bleiben i. d. R. darunter). */
 export const MOTIF_IMAGE_URL_MAX_LENGTH = 1024;
 
@@ -150,8 +190,9 @@ export const CreateQuizInputSchema = z.object({
   description: z.string().max(5000).optional(),
   motifImageUrl: QuizMotifImageUrlInputSchema,
   showLeaderboard: z.boolean().optional().default(true),
-  allowCustomNicknames: z.boolean().optional().default(true),
+  allowCustomNicknames: z.boolean().optional().default(false),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
+  timerScaleByDifficulty: z.boolean().optional().default(true),
   enableSoundEffects: z.boolean().optional().default(true),
   enableRewardEffects: z.boolean().optional().default(true),
   enableMotivationMessages: z.boolean().optional().default(true),
@@ -162,12 +203,24 @@ export const CreateQuizInputSchema = z.object({
   teamAssignment: TeamAssignmentEnum.optional().default('AUTO'),
   teamNames: TeamNamesSchema.optional().default([]),
   backgroundMusic: z.string().max(50).nullable().optional().default(null),
-  nicknameTheme: NicknameThemeEnum.optional().default('NOBEL_LAUREATES'),
+  nicknameTheme: NicknameThemeEnum.optional().default('HIGH_SCHOOL'),
   bonusTokenCount: z.number().int().min(1).max(50).nullable().optional().default(null), // Story 4.6
   readingPhaseEnabled: z.boolean().optional().default(true),
   preset: QuizPresetEnum.optional().default('PLAYFUL'),
 });
 export type CreateQuizInput = z.infer<typeof CreateQuizInputSchema>;
+
+/** Session-weites Onboarding-Profil (Join-/Team-/Pseudonym-Regeln, getrennt vom Visual Preset). */
+export const SessionOnboardingProfileInputSchema = z.object({
+  allowCustomNicknames: z.boolean().optional(),
+  anonymousMode: z.boolean().optional(),
+  teamMode: z.boolean().optional(),
+  teamCount: z.number().int().min(2).max(8).nullable().optional(),
+  teamAssignment: TeamAssignmentEnum.optional(),
+  teamNames: TeamNamesSchema.optional(),
+  nicknameTheme: NicknameThemeEnum.optional(),
+});
+export type SessionOnboardingProfileInput = z.infer<typeof SessionOnboardingProfileInputSchema>;
 
 /** Schema für eine einzelne Antwortoption beim Hinzufügen/Bearbeiten */
 export const AnswerOptionInputSchema = z.object({
@@ -184,6 +237,7 @@ export const AddQuestionInputSchema = z.object({
   difficulty: DifficultyEnum.optional().default('MEDIUM'),
   order: z.number().int().min(0),
   answers: z.array(AnswerOptionInputSchema).max(10),
+  skipReadingPhase: z.boolean().optional(),
   ratingMin: z.number().int().min(0).max(10).optional(), // Nur bei RATING
   ratingMax: z.number().int().min(1).max(10).optional(), // Nur bei RATING
   ratingLabelMin: z.string().max(50).optional(), // Nur bei RATING
@@ -193,6 +247,7 @@ export type AddQuestionInput = z.infer<typeof AddQuestionInputSchema>;
 
 /** Schema für den Quiz-Upload beim Live-Schalten (Story 2.1a) */
 export const QuizUploadInputSchema = z.object({
+  historyScopeId: z.uuid().optional(),
   name: z.string().min(1).max(200),
   description: z.string().max(5000).optional(),
   /** Wie CreateQuiz: Leerstring/undefined → null (vermeidet Upload-Fehler bei leerem Feld). */
@@ -200,6 +255,7 @@ export const QuizUploadInputSchema = z.object({
   showLeaderboard: z.boolean(),
   allowCustomNicknames: z.boolean(),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
+  timerScaleByDifficulty: z.boolean().optional(),
   enableSoundEffects: z.boolean(),
   enableRewardEffects: z.boolean(),
   enableMotivationMessages: z.boolean(),
@@ -226,7 +282,16 @@ export const QuizUploadOutputSchema = z.object({
 });
 export type QuizUploadOutput = z.infer<typeof QuizUploadOutputSchema>;
 
-export const QuizHistoryAccessProofSchema = z.string().regex(/^[a-f0-9]{64}$/);
+const LEGACY_QUIZ_HISTORY_ACCESS_PROOF_REGEX = /^[a-f0-9]{64}$/;
+export const QuizHistoryAccessProofSchema = z
+  .string()
+  .refine(
+    (value) =>
+      z.uuid().safeParse(value).success || LEGACY_QUIZ_HISTORY_ACCESS_PROOF_REGEX.test(value),
+    {
+      message: 'Ungültiger Quiz-Historie-Zugriff.',
+    },
+  );
 export type QuizHistoryAccessProof = z.infer<typeof QuizHistoryAccessProofSchema>;
 
 type QuizHistoryAccessMaterial = {
@@ -236,6 +301,7 @@ type QuizHistoryAccessMaterial = {
   showLeaderboard: boolean;
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
+  timerScaleByDifficulty: boolean;
   enableSoundEffects: boolean;
   enableRewardEffects: boolean;
   enableMotivationMessages: boolean;
@@ -256,6 +322,7 @@ type QuizHistoryAccessMaterial = {
     timer: number | null;
     difficulty: Difficulty;
     order: number;
+    skipReadingPhase: boolean;
     ratingMin: number | null;
     ratingMax: number | null;
     ratingLabelMin: string | null;
@@ -283,6 +350,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
     showLeaderboard: parsed.showLeaderboard,
     allowCustomNicknames: parsed.allowCustomNicknames,
     defaultTimer: parsed.defaultTimer ?? null,
+    timerScaleByDifficulty: parsed.timerScaleByDifficulty ?? true,
     enableSoundEffects: parsed.enableSoundEffects,
     enableRewardEffects: parsed.enableRewardEffects,
     enableMotivationMessages: parsed.enableMotivationMessages,
@@ -305,6 +373,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
         timer: question.timer ?? null,
         difficulty: question.difficulty,
         order: question.order,
+        skipReadingPhase: question.skipReadingPhase ?? false,
         ratingMin: question.ratingMin ?? null,
         ratingMax: question.ratingMax ?? null,
         ratingLabelMin: question.ratingLabelMin ?? null,
@@ -334,12 +403,22 @@ async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export async function createQuizHistoryAccessProof(
+export async function createLegacyQuizHistoryAccessProof(
   input: QuizUploadInput,
 ): Promise<QuizHistoryAccessProof> {
   return QuizHistoryAccessProofSchema.parse(
     await sha256Hex(serializeQuizHistoryAccessMaterial(input)),
   );
+}
+
+export async function createQuizHistoryAccessProof(
+  input: QuizUploadInput,
+): Promise<QuizHistoryAccessProof> {
+  const parsed = QuizUploadInputSchema.parse(input);
+  if (parsed.historyScopeId) {
+    return QuizHistoryAccessProofSchema.parse(parsed.historyScopeId);
+  }
+  return createLegacyQuizHistoryAccessProof(parsed);
 }
 
 // ---------------------------------------------------------------------------
@@ -350,22 +429,22 @@ export async function createQuizHistoryAccessProof(
 export const CreateSessionInputSchema = z
   .object({
     type: SessionTypeEnum.optional().default('QUIZ'), // Story 8.1: Quiz oder Q&A
-    quizId: z.uuid().optional(), // Pflicht bei QUIZ, null bei Q_AND_A
+    quizId: z.uuid().optional(), // Pflicht bei Quiz-Session, optional bei kanalbasiertem Q&A/Blitzlicht
     title: z.string().trim().max(200).optional(), // Story 8.1: Titel für Q&A-Runde
     moderationMode: z.boolean().optional().default(true), // Story 8.4 / Q&A: Vorab-Moderation (Default an)
     qaEnabled: z.boolean().optional().default(false), // ADR-0009: Q&A-Kanal in Quiz-Session
     qaTitle: z.string().trim().max(200).optional(), // ADR-0009: Titel des Q&A-Tabs
     qaModerationMode: z.boolean().optional().default(true), // ADR-0009: Q&A-Vorab-Moderation (Default an)
     quickFeedbackEnabled: z.boolean().optional().default(false), // ADR-0009: Blitz-Feedback-Kanal
+    ...SessionOnboardingProfileInputSchema.shape,
   })
   .superRefine((value, ctx) => {
-    const isQuickFeedbackOnlySession =
+    const isQuizlessChannelSession =
       value.type === 'QUIZ' &&
       !value.quizId &&
-      value.qaEnabled !== true &&
-      value.quickFeedbackEnabled === true;
+      (value.qaEnabled === true || value.quickFeedbackEnabled === true);
 
-    if (value.type === 'QUIZ' && !value.quizId && !isQuickFeedbackOnlySession) {
+    if (value.type === 'QUIZ' && !value.quizId && !isQuizlessChannelSession) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['quizId'],
@@ -399,6 +478,20 @@ export const GetSessionInfoInputSchema = z.object({
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
 
+/** Input: Aktuelle Frage für Teilnehmende inkl. optionalem Presence-/Ready-Kontext. */
+export const GetCurrentQuestionForStudentInputSchema = GetSessionInfoInputSchema.extend({
+  participantId: z.uuid().optional(),
+});
+export type GetCurrentQuestionForStudentInput = z.infer<
+  typeof GetCurrentQuestionForStudentInputSchema
+>;
+
+/** Input: Ein Quiz an eine laufende Quiz-Session anhängen. */
+export const AttachQuizToSessionInputSchema = GetSessionInfoInputSchema.extend({
+  quizId: z.uuid(),
+});
+export type AttachQuizToSessionInput = z.infer<typeof AttachQuizToSessionInputSchema>;
+
 /** Input: Preset zur Laufzeit ändern (Host → alle Clients). */
 export const UpdateSessionPresetInputSchema = z.object({
   code: z.string().length(6),
@@ -431,6 +524,27 @@ export const SessionStatusUpdateSchema = z.object({
   currentRound: z.number().int().min(1).max(2).optional(),
 });
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
+
+/** Fortschritt der Bereitschaftsbestätigungen in der Lesephase. */
+export const ReadingReadyStatusDTOSchema = z.object({
+  connectedCount: z.number().int().min(0),
+  readyCount: z.number().int().min(0),
+  allConnectedReady: z.boolean(),
+  participantReady: z.boolean().optional(),
+});
+export type ReadingReadyStatusDTO = z.infer<typeof ReadingReadyStatusDTOSchema>;
+
+/** Input: Teilnehmende bestätigen ihre Bereitschaft in der Lesephase. */
+export const ConfirmReadingReadyInputSchema = z.object({
+  code: z.string().length(6),
+  participantId: z.uuid(),
+  questionId: z.uuid(),
+});
+export type ConfirmReadingReadyInput = z.infer<typeof ConfirmReadingReadyInputSchema>;
+
+/** Output: Bestätigung der Lesephase inkl. aktualisiertem Fortschritt. */
+export const ConfirmReadingReadyOutputSchema = ReadingReadyStatusDTOSchema;
+export type ConfirmReadingReadyOutput = z.infer<typeof ConfirmReadingReadyOutputSchema>;
 
 /** DTO: Stimmenverteilung einer Runde pro Antwortoption (Story 2.7 Peer Instruction). */
 export const RoundDistributionEntrySchema = z.object({
@@ -491,6 +605,7 @@ export const HostCurrentQuestionDTOSchema = z.object({
   totalQuestions: z.number().int().min(1).optional(),
   text: z.string(),
   type: QuestionTypeEnum,
+  difficulty: DifficultyEnum,
   timer: z.number().nullable().optional(),
   answers: z.array(
     z.object({
@@ -531,6 +646,7 @@ export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   nickname: z.string().min(1).max(30),
   teamId: z.uuid().optional(),
+  rejoinToken: z.uuid().optional(),
 });
 export type JoinSessionInput = z.infer<typeof JoinSessionInputSchema>;
 
@@ -641,6 +757,7 @@ export const QuestionPreviewDTOSchema = z.object({
   ratingMax: z.number().nullable().optional(), // Nur bei RATING
   ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING
   ratingLabelMax: z.string().nullable().optional(), // Nur bei RATING
+  participantReady: z.boolean().optional(),
 });
 export type QuestionPreviewDTO = z.infer<typeof QuestionPreviewDTOSchema>;
 
@@ -651,14 +768,20 @@ export const SessionChannelsDTOSchema = z.object({
   }),
   qa: z.object({
     enabled: z.boolean(),
+    open: z.boolean(),
     title: z.string().nullable(),
     moderationMode: z.boolean(),
   }),
   quickFeedback: z.object({
     enabled: z.boolean(),
+    open: z.boolean(),
   }),
 });
 export type SessionChannelsDTO = z.infer<typeof SessionChannelsDTOSchema>;
+
+/** Output: Kanalstatus nach Zuschalten eines Session-Kanals (Host, ADR-0009). */
+export const UpdateSessionChannelsOutputSchema = SessionChannelsDTOSchema;
+export type UpdateSessionChannelsOutput = z.infer<typeof UpdateSessionChannelsOutputSchema>;
 
 export const SessionInfoDTOSchema = z.object({
   id: z.uuid(),
@@ -683,6 +806,7 @@ export const SessionInfoDTOSchema = z.object({
   enableEmojiReactions: z.boolean().optional(),
   readingPhaseEnabled: z.boolean().optional(),
   defaultTimer: z.number().nullable().optional(),
+  timerScaleByDifficulty: z.boolean().optional(),
   backgroundMusic: z.string().nullable().optional(),
   teamMode: z.boolean().optional(),
   teamCount: z.number().nullable().optional(),
@@ -696,6 +820,7 @@ export type SessionInfoDTO = z.infer<typeof SessionInfoDTOSchema>;
 /** Output: Nach Join (Session-Info + eigene Participant-ID für vote.submit). */
 export const JoinSessionOutputSchema = SessionInfoDTOSchema.extend({
   participantId: z.uuid(),
+  rejoinToken: z.uuid(),
   teamId: z.uuid().nullable().optional(),
   teamName: z.string().nullable().optional(),
 });
@@ -719,9 +844,16 @@ export const LiveFreetextDTOSchema = z.object({
 });
 export type LiveFreetextDTO = z.infer<typeof LiveFreetextDTOSchema>;
 
-/** DTO: Quiz-IDs mit aktuell laufender Session (Story 1.10). */
-export const ActiveQuizIdsDTOSchema = z.array(z.uuid());
-export type ActiveQuizIdsDTO = z.infer<typeof ActiveQuizIdsDTOSchema>;
+/** DTO: Live-Zustand authorisierter Quiz-Kopien (Story 1.10). */
+export const ActiveQuizLiveStateDTOSchema = z.object({
+  quizId: z.uuid(),
+  /** Aktuell verbundene Personen inkl. Host/Dozent:in. */
+  participantCountIncludingHost: z.number().int().min(1),
+});
+export type ActiveQuizLiveStateDTO = z.infer<typeof ActiveQuizLiveStateDTOSchema>;
+
+export const ActiveQuizLiveStatesDTOSchema = z.array(ActiveQuizLiveStateDTOSchema);
+export type ActiveQuizLiveStatesDTO = z.infer<typeof ActiveQuizLiveStatesDTOSchema>;
 
 export const ActiveQuizLookupEntrySchema = z.object({
   quizId: z.uuid(),
@@ -745,6 +877,7 @@ export type ParticipantDTO = z.infer<typeof ParticipantDTOSchema>;
 export const SessionParticipantsPayloadSchema = z.object({
   participants: z.array(ParticipantDTOSchema),
   participantCount: z.number(),
+  readingReady: ReadingReadyStatusDTOSchema.optional(),
 });
 export type SessionParticipantsPayload = z.infer<typeof SessionParticipantsPayloadSchema>;
 
@@ -814,9 +947,9 @@ export const TeamLeaderboardEntryDTOSchema = z.object({
   rank: z.number(),
   teamName: z.string(),
   teamColor: z.string().nullable(),
-  totalScore: z.number(), // Summe aller Mitglieder-Scores
+  totalScore: z.number(), // Harmonisierte Team-Punkte (Gesamtpunkte / Teamgröße)
   memberCount: z.number(),
-  averageScore: z.number(), // Durchschnitt pro Mitglied
+  averageScore: z.number(), // Durchschnitt pro Mitglied (derzeit identisch zu totalScore)
 });
 export type TeamLeaderboardEntryDTO = z.infer<typeof TeamLeaderboardEntryDTOSchema>;
 
@@ -844,19 +977,43 @@ export const HealthCheckResponseSchema = z.object({
 
 export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 
+export const DailyHighscoreEntrySchema = z.object({
+  /** UTC-Tag als ISO-8601 Datum (`YYYY-MM-DD`). */
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  /** Tagesrekord der größten einzelnen Session dieses UTC-Tags. */
+  count: z.number().int().min(0),
+  /** ISO-8601: UTC-Zeitpunkt, als sich der Tagesrekord zuletzt erhöht hat; bei aufgefüllten Lückentagen null. */
+  updatedAt: z.string().datetime().nullable(),
+});
+export type DailyHighscoreEntry = z.infer<typeof DailyHighscoreEntrySchema>;
+
 /** DTO: Server-Auslastung für die Startseite (Story 0.4) */
 export const ServerStatsDTOSchema = z.object({
+  /** Alle noch nicht beendeten Sessions. */
+  openSessions: z.number(),
+  /** Offene Sessions mit mindestens 5 aktiven Teilnehmenden in den letzten 3 Minuten. */
   activeSessions: z.number(),
-  /** Summe der Teilnehmer-Einträge über alle nicht beendeten Sessions (LOBBY … DISCUSSION). */
+  /** Aktive Teilnahmen über laufende Sessions (letzte 3 Minuten Redis-Presence). */
   totalParticipants: z.number(),
+  /** Abstimmungen der letzten Minute über alle offenen Sessions. */
+  votesLastMinute: z.number(),
+  /** Statuswechsel der letzten Minute über alle offenen Sessions. */
+  sessionTransitionsLastMinute: z.number(),
+  /** Sessions mit aktivem Countdown im aktuellen Zeitfenster. */
+  activeCountdownSessions: z.number(),
   /** Kumulativ: Anzahl Session-Zeilen mit Status FINISHED (lebenslang in dieser DB). */
   completedSessions: z.number(),
   activeBlitzRounds: z.number(),
   /** Höchste je in einer Session registrierte Teilnehmerzahl (Joins, plattformweit). */
   maxParticipantsSingleSession: z.number().int().min(0),
+  /** Verlauf der Session-Tagesrekorde der letzten 30 UTC-Tage in chronologischer Reihenfolge. */
+  dailyHighscores: z.array(DailyHighscoreEntrySchema).length(30),
   /** ISO-8601: Serverzeitpunkt, als sich der Rekord zuletzt erhöhte (`PlatformStatistic.updatedAt`), sonst null — nicht Session-Start/-Ende. */
   maxParticipantsStatisticUpdatedAt: z.string().datetime().nullable(),
-  serverStatus: z.enum(['healthy', 'busy', 'overloaded']),
+  /** Betriebsstatus (SLO-nah) für den Footer. */
+  serviceStatus: z.enum(['stable', 'limited', 'critical']),
+  /** Lastindikator für Diagnose im Detaildialog. */
+  loadStatus: z.enum(['healthy', 'busy', 'overloaded']),
 });
 
 export type ServerStatsDTO = z.infer<typeof ServerStatsDTOSchema>;
@@ -895,6 +1052,7 @@ const ExportedQuestionSchema = z.object({
   difficulty: DifficultyEnum,
   order: z.number(),
   answers: z.array(ExportedAnswerOptionSchema),
+  skipReadingPhase: z.boolean().optional(),
   ratingMin: z.number().nullable().optional(), // Nur bei RATING
   ratingMax: z.number().nullable().optional(), // Nur bei RATING
   ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING
@@ -914,6 +1072,7 @@ export const QuizExportSchema = z.object({
     showLeaderboard: z.boolean(),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
+    timerScaleByDifficulty: z.boolean().optional(),
     enableSoundEffects: z.boolean(),
     enableRewardEffects: z.boolean(),
     enableMotivationMessages: z.boolean(),
@@ -994,10 +1153,86 @@ export const GetBonusTokensForQuizInputSchema = z.object({
 });
 export type GetBonusTokensForQuizInput = z.infer<typeof GetBonusTokensForQuizInputSchema>;
 
+export const BindQuizHistoryScopeInputSchema = z.object({
+  quizId: z.string().uuid(),
+  accessProof: QuizHistoryAccessProofSchema,
+  historyScopeId: z.string().uuid(),
+});
+export type BindQuizHistoryScopeInput = z.infer<typeof BindQuizHistoryScopeInputSchema>;
+
+export const BindQuizHistoryScopeOutputSchema = z.object({
+  accessProof: QuizHistoryAccessProofSchema,
+});
+export type BindQuizHistoryScopeOutput = z.infer<typeof BindQuizHistoryScopeOutputSchema>;
+
 export const BonusTokensForQuizOutputSchema = z.object({
   sessions: z.array(BonusTokenListWithSessionMetaDTOSchema),
 });
 export type BonusTokensForQuizOutput = z.infer<typeof BonusTokensForQuizOutputSchema>;
+
+export const QuizCollectionHistoryAvailabilityDTOSchema = z.object({
+  quizId: z.string().uuid(),
+  hasBonusTokens: z.boolean(),
+  hasLastSessionFeedback: z.boolean(),
+});
+export type QuizCollectionHistoryAvailabilityDTO = z.infer<
+  typeof QuizCollectionHistoryAvailabilityDTOSchema
+>;
+
+export const GetQuizCollectionHistoryAvailabilityInputSchema = z
+  .array(GetBonusTokensForQuizInputSchema)
+  .max(100);
+export type GetQuizCollectionHistoryAvailabilityInput = z.infer<
+  typeof GetQuizCollectionHistoryAvailabilityInputSchema
+>;
+
+export const GetQuizCollectionHistoryAvailabilityOutputSchema = z.array(
+  QuizCollectionHistoryAvailabilityDTOSchema,
+);
+export type GetQuizCollectionHistoryAvailabilityOutput = z.infer<
+  typeof GetQuizCollectionHistoryAvailabilityOutputSchema
+>;
+
+export const VerifyBonusTokenForQuizInputSchema = z.object({
+  quizId: z.string().uuid(),
+  accessProof: QuizHistoryAccessProofSchema,
+  bonusCode: z
+    .string()
+    .trim()
+    .min(4)
+    .max(32)
+    .regex(/^[A-Za-z0-9-]+$/),
+});
+export type VerifyBonusTokenForQuizInput = z.infer<typeof VerifyBonusTokenForQuizInputSchema>;
+
+export const VerifyBonusTokenForQuizOutputSchema = z.discriminatedUnion('valid', [
+  z.object({
+    valid: z.literal(true),
+    sessionCode: z.string(),
+    nickname: z.string(),
+    rank: z.number().int().min(1),
+    totalScore: z.number(),
+  }),
+  z.object({
+    valid: z.literal(false),
+  }),
+]);
+export type VerifyBonusTokenForQuizOutput = z.infer<typeof VerifyBonusTokenForQuizOutputSchema>;
+
+export const DeleteBonusTokenForQuizInputSchema = z.object({
+  quizId: z.string().uuid(),
+  accessProof: QuizHistoryAccessProofSchema,
+  bonusCode: z
+    .string()
+    .trim()
+    .regex(/^BNS-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$/),
+});
+export type DeleteBonusTokenForQuizInput = z.infer<typeof DeleteBonusTokenForQuizInputSchema>;
+
+export const DeleteBonusTokenForQuizOutputSchema = z.object({
+  deleted: z.boolean(),
+});
+export type DeleteBonusTokenForQuizOutput = z.infer<typeof DeleteBonusTokenForQuizOutputSchema>;
 
 // ---------------------------------------------------------------------------
 // Ergebnis-Export für Dozenten (Story 4.7) – nur aggregierte/anonyme Daten
@@ -1064,7 +1299,9 @@ export const SessionExportDTOSchema = z.object({
   quizName: z.string(),
   finishedAt: z.string(), // ISO-8601
   participantCount: z.number(),
+  teamMode: z.boolean(),
   questions: z.array(QuestionExportEntrySchema),
+  teamLeaderboard: z.array(TeamLeaderboardEntryDTOSchema).optional(),
   bonusTokens: z.array(BonusTokenEntryDTOSchema).optional(), // optional einbeziehen (Pseudonyme)
 });
 export type SessionExportDTO = z.infer<typeof SessionExportDTOSchema>;
@@ -1130,6 +1367,7 @@ export const AdminSessionSummaryDTOSchema = z.object({
   participantCount: z.number().int().min(0),
   startedAt: z.string(),
   endedAt: z.string().nullable(),
+  lastActivityAt: z.string(),
   retention: AdminRetentionStateDTOSchema,
 });
 export type AdminSessionSummaryDTO = z.infer<typeof AdminSessionSummaryDTOSchema>;
@@ -1190,6 +1428,40 @@ export const AdminDeleteSessionOutputSchema = z.object({
   sessionCode: z.string().length(6),
 });
 export type AdminDeleteSessionOutput = z.infer<typeof AdminDeleteSessionOutputSchema>;
+
+/** Input: Alle Sessions endgültig löschen (nur mit Sicherheitsphrase). */
+export const AdminDeleteAllSessionsInputSchema = z.object({
+  confirmationText: z.string().trim().min(1).max(200),
+  expectedSessionCount: z.number().int().min(0),
+  reason: z.string().trim().max(1000).optional(),
+});
+export type AdminDeleteAllSessionsInput = z.infer<typeof AdminDeleteAllSessionsInputSchema>;
+
+/** Output: Massenlöschung von Sessions bestätigt. */
+export const AdminDeleteAllSessionsOutputSchema = z.object({
+  deleted: z.literal(true),
+  deletedSessionCount: z.number().int().min(0),
+  deletedQuizCount: z.number().int().min(0),
+});
+export type AdminDeleteAllSessionsOutput = z.infer<typeof AdminDeleteAllSessionsOutputSchema>;
+
+/** Input: Rekord-Teilnehmerzahl zurücksetzen (mit Sicherheitsphrase). */
+export const AdminResetMaxParticipantsRecordInputSchema = z.object({
+  confirmationText: z.string().trim().min(1).max(200),
+});
+export type AdminResetMaxParticipantsRecordInput = z.infer<
+  typeof AdminResetMaxParticipantsRecordInputSchema
+>;
+
+/** Output: Rekord-Teilnehmerzahl wurde zurückgesetzt. */
+export const AdminResetMaxParticipantsRecordOutputSchema = z.object({
+  reset: z.literal(true),
+  previousMaxParticipantsSingleSession: z.number().int().min(0),
+  currentMaxParticipantsSingleSession: z.number().int().min(0),
+});
+export type AdminResetMaxParticipantsRecordOutput = z.infer<
+  typeof AdminResetMaxParticipantsRecordOutputSchema
+>;
 
 /** Export-Format für Behördenauszug (Story 9.3). */
 export const AdminExportFormatEnum = z.enum(['PDF', 'JSON']);
@@ -1356,6 +1628,10 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
     enableMotivationMessages: true,
     enableEmojiReactions: true,
     anonymousMode: false,
+    allowCustomNicknames: false,
+    nicknameTheme: 'HIGH_SCHOOL',
+    defaultTimer: DEFAULT_TIMER_SECONDS,
+    timerScaleByDifficulty: true,
     readingPhaseEnabled: false, // Story 2.6: Schnelles Spieltempo
   },
   SERIOUS: {
@@ -1364,8 +1640,12 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
     enableRewardEffects: false,
     enableMotivationMessages: false,
     enableEmojiReactions: false,
-    anonymousMode: true,
+    /** Pseudonyme aus Themenliste (Oberstufe), nicht reiner Anonym-Modus */
+    anonymousMode: false,
+    allowCustomNicknames: false,
+    nicknameTheme: 'HIGH_SCHOOL',
     defaultTimer: null, // Offene Antwortphase (kein Countdown)
+    timerScaleByDifficulty: true,
     readingPhaseEnabled: true, // Story 2.6: Frage zuerst lesen
   },
 };

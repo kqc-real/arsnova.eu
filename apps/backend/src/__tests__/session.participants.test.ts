@@ -73,7 +73,10 @@ describe('session participant access (Story 2.2)', () => {
     });
     expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
       where: { code: 'ABC123' },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        currentQuestion: true,
         participants: {
           orderBy: { joinedAt: 'asc' },
           select: {
@@ -81,6 +84,14 @@ describe('session participant access (Story 2.2)', () => {
             nickname: true,
             teamId: true,
             team: { select: { name: true } },
+          },
+        },
+        quiz: {
+          select: {
+            questions: {
+              orderBy: { order: 'asc' },
+              select: { id: true },
+            },
           },
         },
       },

@@ -5,6 +5,7 @@ const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
     quiz: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     session: {
       findFirst: vi.fn(),
@@ -23,6 +24,7 @@ import { sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
 const QUIZ_ID = '11111111-1111-4111-8111-111111111111';
+const OTHER_QUIZ_ID = '22222222-2222-4222-8222-222222222222';
 const QUIZ_INPUT = {
   name: 'Chemie',
   description: undefined,
@@ -30,6 +32,7 @@ const QUIZ_INPUT = {
   showLeaderboard: true,
   allowCustomNicknames: true,
   defaultTimer: null,
+  timerScaleByDifficulty: false,
   enableSoundEffects: true,
   enableRewardEffects: true,
   enableMotivationMessages: true,
@@ -67,6 +70,7 @@ describe('session.getLastSessionFeedbackForQuiz', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.quiz.findUnique.mockResolvedValue({
+      id: QUIZ_ID,
       ...QUIZ_INPUT,
       description: null,
       teamCount: null,
@@ -79,6 +83,22 @@ describe('session.getLastSessionFeedbackForQuiz', () => {
         ratingLabelMax: null,
       })),
     });
+    prismaMock.quiz.findMany.mockResolvedValue([
+      {
+        id: QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+    ]);
   });
 
   it('liefert aggregiertes Feedback fuer den letzten passenden Durchlauf', async () => {
@@ -120,5 +140,51 @@ describe('session.getLastSessionFeedbackForQuiz', () => {
     });
 
     expect(prismaMock.session.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('sucht das letzte Feedback ueber alle passenden Quizkopien mit identischem Proof', async () => {
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.quiz.findMany.mockResolvedValue([
+      {
+        id: QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+      {
+        id: OTHER_QUIZ_ID,
+        ...QUIZ_INPUT,
+        description: null,
+        teamCount: null,
+        backgroundMusic: null,
+        questions: QUIZ_INPUT.questions.map((question) => ({
+          ...question,
+          ratingMin: null,
+          ratingMax: null,
+          ratingLabelMin: null,
+          ratingLabelMax: null,
+        })),
+      },
+    ]);
+    prismaMock.session.findFirst.mockResolvedValue(null);
+
+    await caller.getLastSessionFeedbackForQuiz({ quizId: QUIZ_ID, accessProof });
+
+    expect(prismaMock.session.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          quizId: { in: [QUIZ_ID, OTHER_QUIZ_ID] },
+          status: 'FINISHED',
+        }),
+      }),
+    );
   });
 });

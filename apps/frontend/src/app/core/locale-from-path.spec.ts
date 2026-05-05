@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  getBrowserLanguagePreference,
   getEffectiveLocale,
   getHomeLanguagePreference,
   getLocaleFromBaseHref,
   getLocaleFromPath,
   HOME_LANGUAGE_LOCAL_STORAGE_KEY,
+  getPreferredJoinLocale,
   localeIdToSupported,
   parseLeadingLocaleFromPathOrUrl,
   resolveAssetUrlFromBase,
@@ -14,6 +16,7 @@ describe('locale-from-path', () => {
   afterEach(() => {
     document.querySelectorAll('base').forEach((el) => el.remove());
     window.history.pushState({}, '', '/');
+    localStorage.removeItem(HOME_LANGUAGE_LOCAL_STORAGE_KEY);
   });
 
   describe('getLocaleFromBaseHref', () => {
@@ -115,6 +118,89 @@ describe('locale-from-path', () => {
       expect(getHomeLanguagePreference()).toBe('es');
       localStorage.removeItem(HOME_LANGUAGE_LOCAL_STORAGE_KEY);
       expect(getHomeLanguagePreference()).toBeNull();
+    });
+  });
+
+  describe('getBrowserLanguagePreference', () => {
+    it('normalisiert navigator.languages auf unterstützte Locale', () => {
+      const originalLanguages = navigator.languages;
+      const originalLanguage = navigator.language;
+      Object.defineProperty(navigator, 'languages', {
+        configurable: true,
+        value: ['fr-FR', 'en-US'],
+      });
+      Object.defineProperty(navigator, 'language', {
+        configurable: true,
+        value: 'fr-FR',
+      });
+
+      try {
+        expect(getBrowserLanguagePreference()).toBe('fr');
+      } finally {
+        Object.defineProperty(navigator, 'languages', {
+          configurable: true,
+          value: originalLanguages,
+        });
+        Object.defineProperty(navigator, 'language', {
+          configurable: true,
+          value: originalLanguage,
+        });
+      }
+    });
+  });
+
+  describe('getPreferredJoinLocale', () => {
+    it('bevorzugt gespeicherte Sprache vor Browser-Sprache', () => {
+      const originalLanguages = navigator.languages;
+      const originalLanguage = navigator.language;
+      Object.defineProperty(navigator, 'languages', {
+        configurable: true,
+        value: ['fr-FR', 'en-US'],
+      });
+      Object.defineProperty(navigator, 'language', {
+        configurable: true,
+        value: 'fr-FR',
+      });
+      localStorage.setItem(HOME_LANGUAGE_LOCAL_STORAGE_KEY, 'it');
+
+      try {
+        expect(getPreferredJoinLocale()).toBe('it');
+      } finally {
+        Object.defineProperty(navigator, 'languages', {
+          configurable: true,
+          value: originalLanguages,
+        });
+        Object.defineProperty(navigator, 'language', {
+          configurable: true,
+          value: originalLanguage,
+        });
+      }
+    });
+
+    it('fällt auf Browser-Sprache zurück, wenn nichts gespeichert ist', () => {
+      const originalLanguages = navigator.languages;
+      const originalLanguage = navigator.language;
+      Object.defineProperty(navigator, 'languages', {
+        configurable: true,
+        value: ['es-ES', 'en-US'],
+      });
+      Object.defineProperty(navigator, 'language', {
+        configurable: true,
+        value: 'es-ES',
+      });
+
+      try {
+        expect(getPreferredJoinLocale()).toBe('es');
+      } finally {
+        Object.defineProperty(navigator, 'languages', {
+          configurable: true,
+          value: originalLanguages,
+        });
+        Object.defineProperty(navigator, 'language', {
+          configurable: true,
+          value: originalLanguage,
+        });
+      }
     });
   });
 });

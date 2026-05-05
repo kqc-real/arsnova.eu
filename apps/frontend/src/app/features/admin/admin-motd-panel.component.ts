@@ -41,6 +41,7 @@ import {
   formatMotdEndsAtForDisplay,
 } from '../../core/motd-ends-display';
 import { trpc } from '../../core/trpc.client';
+import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
@@ -596,14 +597,6 @@ export class AdminMotdPanelComponent implements OnInit {
   }
 
   private msg(e: unknown, fallback: string): string {
-    if (
-      e &&
-      typeof e === 'object' &&
-      'message' in e &&
-      typeof (e as { message: string }).message === 'string'
-    ) {
-      return (e as { message: string }).message;
-    }
-    return fallback;
+    return localizeKnownServerError(e, fallback);
   }
 }

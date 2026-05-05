@@ -23,6 +23,7 @@ import {
 import { publicProcedure, router } from '../trpc';
 import { getRedis } from '../redis';
 import { prisma } from '../db';
+import { recordVoteActivity } from '../lib/loadSignal';
 import { assertHostSessionAccessFromContext, type HostTokenContext } from '../lib/hostAuth';
 import {
   assertFeedbackHostAccess,
@@ -101,21 +102,49 @@ async function assertSessionQuickFeedbackEnabled(code: string): Promise<void> {
   }
 }
 
-/** Teilnehmer-Abstimmung nur solange die Live-Session nicht beendet ist. */
-async function assertSessionAllowsQuickFeedbackVote(code: string): Promise<void> {
+async function loadSessionQuickFeedbackGate(code: string): Promise<{
+  id: string;
+  quickFeedbackEnabled: boolean;
+  quickFeedbackOpen: boolean;
+  status: string;
+}> {
   const session = await prisma.session.findUnique({
     where: { code },
-    select: { id: true, quickFeedbackEnabled: true, status: true },
+    select: {
+      id: true,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      status: true,
+    },
   });
 
   if (!session) {
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
   }
 
-  if (session.quickFeedbackEnabled !== true) {
+  return {
+    id: session.id,
+    quickFeedbackEnabled: session.quickFeedbackEnabled === true,
+    quickFeedbackOpen: session.quickFeedbackOpen !== false,
+    status: session.status,
+  };
+}
+
+/** Teilnehmer-Abstimmung nur solange die Live-Session nicht beendet ist. */
+async function assertSessionAllowsQuickFeedbackVote(code: string): Promise<void> {
+  const session = await loadSessionQuickFeedbackGate(code);
+
+  if (!session.quickFeedbackEnabled) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Blitz-Feedback ist für diese Session nicht aktiviert.',
+    });
+  }
+
+  if (!session.quickFeedbackOpen) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Der Blitzlicht-Kanal ist aktuell geschlossen.',
     });
   }
 
@@ -416,6 +445,7 @@ export const quickFeedbackRouter = router({
     multi.hset(cKey, input.voterId, input.value);
     multi.expire(cKey, FEEDBACK_TTL_SECONDS);
     await multi.exec();
+    void recordVoteActivity();
 
     return { ok: true };
   }),
@@ -424,6 +454,24 @@ export const quickFeedbackRouter = router({
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .output(QuickFeedbackResultSchema)
     .query(async ({ input }) => {
+      const gate = await loadSessionQuickFeedbackGate(input.sessionCode.toUpperCase()).catch(
+        () => null,
+      );
+      if (gate) {
+        if (!gate.quickFeedbackEnabled) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Blitz-Feedback ist für diese Session nicht aktiviert.',
+          });
+        }
+        if (!gate.quickFeedbackOpen) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Der Blitzlicht-Kanal ist aktuell geschlossen.',
+          });
+        }
+      }
+
       const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
       const key = feedbackKey(code);
@@ -441,6 +489,16 @@ export const quickFeedbackRouter = router({
       return QuickFeedbackResultSchema.parse(result);
     }),
 
+  hostResults: publicProcedure
+    .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .output(QuickFeedbackResultSchema)
+    .query(async ({ input, ctx }) => {
+      const code = input.sessionCode.toUpperCase();
+      const result = await loadQuickFeedbackForHost(ctx, code);
+      await enrichOpinionShift(result, code);
+      return QuickFeedbackResultSchema.parse(result);
+    }),
+
   onResults: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .subscription(async function* ({ input }) {
@@ -450,10 +508,43 @@ export const quickFeedbackRouter = router({
       let lastJson = '';
 
       while (true) {
+        const gate = await loadSessionQuickFeedbackGate(code).catch(() => null);
+        if (gate) {
+          if (!gate.quickFeedbackEnabled || !gate.quickFeedbackOpen) {
+            return;
+          }
+        }
         const raw = await redis.get(key);
         if (!raw) return;
 
         const result = JSON.parse(raw) as QuickFeedbackResult;
+        await enrichOpinionShift(result, code);
+        const payload = QuickFeedbackResultSchema.parse(result);
+        const json = JSON.stringify(payload);
+        if (json !== lastJson) {
+          lastJson = json;
+          yield payload;
+        }
+        const pollMs =
+          payload.locked || payload.discussion
+            ? QUICK_FEEDBACK_POLL_IDLE_MS
+            : QUICK_FEEDBACK_POLL_ACTIVE_MS;
+        await new Promise((r) => setTimeout(r, pollMs));
+      }
+    }),
+
+  onHostResults: publicProcedure
+    .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .subscription(async function* ({ input, ctx }) {
+      const code = input.sessionCode.toUpperCase();
+      let lastJson = '';
+
+      while (true) {
+        const result = await loadQuickFeedbackForHost(ctx, code).catch(() => null);
+        if (!result) {
+          return;
+        }
+
         await enrichOpinionShift(result, code);
         const payload = QuickFeedbackResultSchema.parse(result);
         const json = JSON.stringify(payload);

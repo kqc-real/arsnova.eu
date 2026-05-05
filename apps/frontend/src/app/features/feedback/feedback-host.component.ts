@@ -22,7 +22,12 @@ import { clearFeedbackHostToken, setFeedbackHostToken } from '../../core/feedbac
 import { clearHostToken } from '../../core/host-session-token';
 import { trpc } from '../../core/trpc.client';
 import { ThemePresetService } from '../../core/theme-preset.service';
-import { localizeCommands, localizePath } from '../../core/locale-router';
+import {
+  localizeCommands,
+  localizePath,
+  resolveLocalizedAppUrl,
+  resolveLocalizedJoinUrl,
+} from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
 import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import {
@@ -82,6 +87,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly feedbackJoinPopoverOpen = signal(false);
   readonly showEmbeddedEmptyState = computed(
     () => this.embeddedInSession() && this.result() === null,
+  );
+  readonly showStandaloneBottomActionBar = computed(
+    () => !this.embeddedInSession() && this.result() !== null && this.isStandaloneFeedbackRoute(),
   );
   readonly presetChips = QUICK_FEEDBACK_PRESET_CHIPS;
 
@@ -146,12 +154,13 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   get joinUrl(): string {
-    const base = globalThis.location?.origin ?? '';
     const code = this.code();
-    return this.embeddedInSession() ? `${base}/join/${code}` : `${base}/feedback/${code}/vote`;
+    return this.embeddedInSession()
+      ? resolveLocalizedJoinUrl(code)
+      : resolveLocalizedAppUrl(`/feedback/${code}/vote`);
   }
 
-  /** Hostname für Join-Menü („Gehe auf …“), analog Session-Host. */
+  /** Hostname für Join-Menü, analog Session-Host. */
   toggleFeedbackJoinPopover(): void {
     this.feedbackJoinPopoverOpen.update((v) => !v);
   }
@@ -203,6 +212,10 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     return typeof host === 'string' && host.length > 0 ? host : '';
   }
 
+  private isStandaloneFeedbackRoute(): boolean {
+    return this.document.defaultView?.location?.pathname?.includes('/feedback/') ?? false;
+  }
+
   async ngOnInit(): Promise<void> {
     await this.generateQrCode();
     await this.loadInitialResult();
@@ -227,7 +240,9 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       return;
     }
     this.pollTimer = setInterval(() => {
-      if (this.subscription) {
+      // Embedded in the session host: keep a light HTTP fallback even with an active WS subscription.
+      // This closes WS gaps where the first live result update does not arrive until a full reload.
+      if (this.subscription && !this.embeddedInSession()) {
         return;
       }
       void this.loadInitialResult();
@@ -242,7 +257,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const data = await trpc.quickFeedback.results.query({ sessionCode: code });
+      const data = await trpc.quickFeedback.hostResults.query({ sessionCode: code });
       this.result.set(data);
       this.locked.set(data.locked);
       this.error.set(null);
@@ -267,7 +282,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.subscription = trpc.quickFeedback.onResults.subscribe(
+    this.subscription = trpc.quickFeedback.onHostResults.subscribe(
       { sessionCode: code },
       {
         onData: (data) => {
@@ -337,6 +352,66 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
   lockToggleAriaLabel(): string {
     return this.locked() ? $localize`Abstimmung fortsetzen` : $localize`Abstimmung einfrieren`;
+  }
+
+  standalonePrimaryActionKind(): 'second-round' | 'discussion' | 'lock-toggle' {
+    const data = this.result();
+    if (!data) {
+      return 'lock-toggle';
+    }
+    if (this.isDiscussion()) {
+      return 'second-round';
+    }
+    if (!this.isRound2() && data.totalVotes > 0) {
+      return 'discussion';
+    }
+    return 'lock-toggle';
+  }
+
+  standalonePrimaryActionLabel(): string {
+    switch (this.standalonePrimaryActionKind()) {
+      case 'second-round':
+        return $localize`Zweite Abstimmung`;
+      case 'discussion':
+        return $localize`:@@feedback.compareRoundLabel:Vergleichsrunde`;
+      default:
+        return this.lockToggleLabel();
+    }
+  }
+
+  standalonePrimaryActionAriaLabel(): string {
+    switch (this.standalonePrimaryActionKind()) {
+      case 'second-round':
+        return $localize`Zweite Abstimmung starten`;
+      case 'discussion':
+        return $localize`:@@feedback.compareRoundStartAria:Vergleichsrunde starten`;
+      default:
+        return this.lockToggleAriaLabel();
+    }
+  }
+
+  standalonePrimaryActionIcon(): string {
+    switch (this.standalonePrimaryActionKind()) {
+      case 'second-round':
+        return 'replay';
+      case 'discussion':
+        return 'groups';
+      default:
+        return this.locked() ? 'play_arrow' : 'stop';
+    }
+  }
+
+  async runStandalonePrimaryAction(): Promise<void> {
+    switch (this.standalonePrimaryActionKind()) {
+      case 'second-round':
+        await this.startSecondRound();
+        return;
+      case 'discussion':
+        await this.startDiscussion();
+        return;
+      default:
+        await this.toggleLock();
+    }
   }
 
   readonly isDiscussion = computed(() => !!this.result()?.discussion);

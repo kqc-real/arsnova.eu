@@ -2,6 +2,7 @@ import {
   Component,
   ComponentRef,
   Directive,
+  ElementRef,
   HostListener,
   OnInit,
   OnDestroy,
@@ -28,7 +29,6 @@ import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component'
 import { trpc } from './core/trpc.client';
 import type { ServerStatsDTO } from '@arsnova/shared-types';
 import { ServerStatusWidgetComponent } from './shared/server-status-widget/server-status-widget.component';
-import { ServerStatusHelpDialogComponent } from './shared/server-status-help-dialog/server-status-help-dialog.component';
 import { localizePath } from './core/locale-router';
 import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
@@ -36,6 +36,7 @@ import { MotdHeaderStateService } from './core/motd-header-state.service';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
+const DEV_SERVICE_WORKER_RESET_MARKER = 'dev-service-worker-reset-v1';
 const PWA_INSTALL_DISMISSED_DAYS = 7;
 /** Ohne regelmäßige `checkForUpdate()`-Aufrufe feuert `versionUpdates` nicht — Banner erscheint nie. */
 const PWA_UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -48,6 +49,11 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
+
+type AppDevWindow = Window & {
+  __triggerPwaInstallHint?: () => void;
+  __triggerUpdateBanner?: () => void;
+};
 
 @Directive({ selector: '[presetToastHost]', standalone: true })
 class PresetToastHostDirective {
@@ -97,6 +103,13 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(PresetToastHostDirective) private presetToastHost?: PresetToastHostDirective;
   @ViewChild(ConnectionBannerHostDirective)
   private connectionBannerHost?: ConnectionBannerHostDirective;
+  @ViewChild('appFooter')
+  set appFooterRef(value: ElementRef<HTMLElement> | undefined) {
+    this._appFooterRef = value;
+    if (isPlatformBrowser(this.platformId)) {
+      queueMicrotask(() => this.syncFooterOffsetObserver());
+    }
+  }
   private presetToastRef: ComponentRef<unknown> | null = null;
   private connectionBannerRef: ComponentRef<unknown> | null = null;
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
@@ -122,6 +135,9 @@ export class AppComponent implements OnInit, OnDestroy {
   private pwaUpdateReadyFallbackId: number | null = null;
   private footerStatsIntervalId: number | null = null;
   private pwaUpdatePollingArmed = false;
+  private _appFooterRef?: ElementRef<HTMLElement>;
+  private footerResizeObserver: ResizeObserver | null = null;
+  private observedFooterElement: HTMLElement | null = null;
 
   /** true wenn gescrollt wurde (für stärkeren Schatten, Elevation). */
   hasScrolled = signal(false);
@@ -160,6 +176,8 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Offline-Styling + Retry nur nach abgeschlossenem Check und fehlgeschlagenem API-Status. */
   footerShowApiOffline = computed(() => this.footerHealthCheckDone() && !this.apiStatus());
   isImmersiveHostView = computed(() => this.hostDisplayMode.immersiveHostActive());
+  footerVisible = computed(() => !this.isFeedbackRoute() && !this.isImmersiveHostView());
+  footerVisibleOffset = signal(0);
 
   /** Footer: Badge mit ungelesenen Archiv-Meldungen (max. „99+“), wie Toolbar-Megafon. */
   footerNewsArchiveBadgeText = computed(() => {
@@ -182,7 +200,25 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.seo.applyFromRouter();
     this.presetSub = this.themePreset.presetChanged$.subscribe(() => this.onPresetChanged());
+    this.routerSub = this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(() => {
+        this.seo.applyFromRouter();
+        if (!isPlatformBrowser(this.platformId)) {
+          return;
+        }
+        this.toolbarHidden.set(false);
+        this.updateRouteFlags();
+        queueMicrotask(() => this.syncFooterOffsetObserver());
+        /* Nur bei Folge-Navigationen: #main-content scrollen (nicht window). Erstes Event überspringen — vermeidet sichtbares „Zucken“. */
+        if (this.pendingInitialNavigationEnd) {
+          this.pendingInitialNavigationEnd = false;
+        } else {
+          requestAnimationFrame(() => this.scrollPrimaryScrollContainerToTop());
+        }
+      });
     if (isPlatformBrowser(this.platformId)) {
+      void this.resetDevServiceWorkerState();
       this.updateRouteFlags();
       this.isOnline.set(navigator.onLine);
       this.startFooterStatsPolling();
@@ -195,19 +231,6 @@ export class AppComponent implements OnInit, OnDestroy {
       }
       this.checkForUpdates();
       this.setupPwaInstallPrompt();
-      this.routerSub = this.router.events
-        .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-        .subscribe(() => {
-          this.toolbarHidden.set(false);
-          this.updateRouteFlags();
-          this.seo.applyFromRouter();
-          /* Nur bei Folge-Navigationen: #main-content scrollen (nicht window). Erstes Event überspringen — vermeidet sichtbares „Zucken“. */
-          if (this.pendingInitialNavigationEnd) {
-            this.pendingInitialNavigationEnd = false;
-          } else {
-            requestAnimationFrame(() => this.scrollPrimaryScrollContainerToTop());
-          }
-        });
     }
   }
 
@@ -220,6 +243,57 @@ export class AppComponent implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+  }
+
+  /**
+   * Dev-Server auf `localhost` und frühere PWA-/Preview-Server teilen sich dieselbe Origin.
+   * Ein alter ngsw kann deshalb weiterhin alte Chunks oder Responses liefern, obwohl `ng serve`
+   * längst neuen Code baut. Im Dev-Modus räumen wir alte Registrierungen/Caches einmalig weg und
+   * laden danach neu.
+   */
+  private async resetDevServiceWorkerState(): Promise<void> {
+    if (!isDevMode()) return;
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+    if (!('serviceWorker' in navigator)) return;
+    if (!this.isLocalDevHost(window.location.hostname)) return;
+
+    const hadController = !!navigator.serviceWorker.controller;
+    let changed = false;
+
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        changed = (await registration.unregister()) || changed;
+      }
+    } catch {
+      /* ignore */
+    }
+
+    if (typeof caches !== 'undefined') {
+      try {
+        const cacheKeys = await caches.keys();
+        for (const cacheKey of cacheKeys) {
+          changed = (await caches.delete(cacheKey)) || changed;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    if (!changed || !hadController) return;
+
+    try {
+      if (sessionStorage.getItem(DEV_SERVICE_WORKER_RESET_MARKER) === '1') return;
+      sessionStorage.setItem(DEV_SERVICE_WORKER_RESET_MARKER, '1');
+    } catch {
+      /* ignore */
+    }
+
+    window.location.reload();
+  }
+
+  private isLocalDevHost(hostname: string): boolean {
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
   }
 
   ngOnDestroy(): void {
@@ -243,12 +317,13 @@ export class AppComponent implements OnInit, OnDestroy {
         clearInterval(this.footerStatsIntervalId);
         this.footerStatsIntervalId = null;
       }
+      this.disconnectFooterOffsetObserver();
       window.removeEventListener('beforeinstallprompt', this.beforeInstallPromptListener);
       window.removeEventListener('appinstalled', this.appInstalledListener);
       if (isDevMode()) {
         window.removeEventListener('pwa-install-test', this.pwaInstallTestListener);
-        delete (window as unknown as { __triggerPwaInstallHint?: () => void })
-          .__triggerPwaInstallHint;
+        delete (window as AppDevWindow).__triggerPwaInstallHint;
+        delete (window as AppDevWindow).__triggerUpdateBanner;
       }
     }
   }
@@ -329,9 +404,13 @@ export class AppComponent implements OnInit, OnDestroy {
     window.addEventListener('appinstalled', this.appInstalledListener);
     if (isDevMode()) {
       window.addEventListener('pwa-install-test', this.pwaInstallTestListener);
+      window.addEventListener('pwa-update-test', this.pwaUpdateTestListener);
       /** In DevTools-Konsole ausführen: window.__triggerPwaInstallHint() – zeigt die PWA-Install-Snackbar zum Testen. */
-      (window as unknown as { __triggerPwaInstallHint?: () => void }).__triggerPwaInstallHint =
-        () => window.dispatchEvent(new CustomEvent('pwa-install-test'));
+      (window as AppDevWindow).__triggerPwaInstallHint = () =>
+        window.dispatchEvent(new CustomEvent('pwa-install-test'));
+      /** In DevTools-Konsole ausführen: window.__triggerUpdateBanner() – zeigt den Update-Banner zum Testen. */
+      (window as AppDevWindow).__triggerUpdateBanner = () =>
+        window.dispatchEvent(new CustomEvent('pwa-update-test'));
     }
   }
 
@@ -342,6 +421,10 @@ export class AppComponent implements OnInit, OnDestroy {
     } as BeforeInstallPromptEvent;
     this.deferredInstallPrompt = mock;
     this.installSnackbarVisible.set(true);
+  };
+
+  private readonly pwaUpdateTestListener = (): void => {
+    this.updateAvailable.set(true);
   };
 
   private isStandalone(): boolean {
@@ -463,16 +546,19 @@ export class AppComponent implements OnInit, OnDestroy {
     this.apiRetrying.set(false);
   }
 
-  openServerStatusHelp(): void {
+  async openServerStatusHelp(): Promise<void> {
+    const { ServerStatusHelpDialogComponent } =
+      await import('./shared/server-status-help-dialog/server-status-help-dialog.component');
+
     this.dialog.open(ServerStatusHelpDialogComponent, {
       panelClass: 'app-status-help-dialog-panel',
       autoFocus: false,
       data: {
-        connectionOk: this.footerConnectionOk(),
-        loading: !this.footerHealthCheckDone(),
-        stats: this.footerStats(),
+        connectionOk: this.footerConnectionOk,
+        loading: computed(() => !this.footerHealthCheckDone()),
+        stats: this.footerStats,
       },
-      width: 'min(40rem, calc(100vw - 1.5rem))',
+      width: 'min(54rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
     });
   }
@@ -571,6 +657,41 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isPreviewRoute.set(
       this.matchesPreviewRoute(routerPath) || this.matchesPreviewRoute(windowPath),
     );
+    if (!this.footerVisible()) {
+      this.disconnectFooterOffsetObserver();
+      this.footerVisibleOffset.set(0);
+    }
+  }
+
+  private syncFooterOffsetObserver(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.footerVisible()) {
+      this.disconnectFooterOffsetObserver();
+      this.footerVisibleOffset.set(0);
+      return;
+    }
+    const footer = this._appFooterRef?.nativeElement;
+    if (!footer) {
+      this.footerVisibleOffset.set(0);
+      return;
+    }
+    this.footerVisibleOffset.set(Math.ceil(footer.getBoundingClientRect().height));
+    if (typeof ResizeObserver === 'undefined') return;
+    if (this.observedFooterElement === footer && this.footerResizeObserver) return;
+    this.disconnectFooterOffsetObserver();
+    this.footerResizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      this.footerVisibleOffset.set(Math.ceil(entry.contentRect.height));
+    });
+    this.footerResizeObserver.observe(footer);
+    this.observedFooterElement = footer;
+  }
+
+  private disconnectFooterOffsetObserver(): void {
+    this.footerResizeObserver?.disconnect();
+    this.footerResizeObserver = null;
+    this.observedFooterElement = null;
   }
 
   private static stripQueryAndHash(url: string): string {

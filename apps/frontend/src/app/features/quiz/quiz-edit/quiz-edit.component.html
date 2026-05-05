@@ -50,7 +50,7 @@
             #metadataFormElement
             class="quiz-edit-form l-stack l-stack--md"
             [formGroup]="metadataForm"
-            (ngSubmit)="saveMetadata()"
+            (ngSubmit)="saveAll()"
           >
             <mat-form-field appearance="outline">
               <mat-label i18n>Name</mat-label>
@@ -63,20 +63,36 @@
                 <mat-error i18n>Der Name darf maximal 200 Zeichen lang sein.</mat-error>
               }
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label i18n>Beschreibung (optional)</mat-label>
-              <textarea matInput formControlName="description" rows="3" maxlength="5000"></textarea>
-              <mat-hint align="end"
-                >{{ metadataForm.controls.description.value.length }}/5000</mat-hint
-              >
-              @if (metadataForm.controls.description.hasError('maxlength')) {
-                <mat-error i18n="@@quizEdit.descriptionMaxLengthError"
-                  >Die Beschreibung darf maximal 5000 Zeichen lang sein.</mat-error
+            <div
+              class="quiz-edit-form__markdown-field"
+              role="group"
+              i18n-aria-label
+              aria-label="Quiz-Beschreibung"
+            >
+              <label class="quiz-edit-form__markdown-label" i18n>Beschreibung (optional)</label>
+              <app-markdown-katex-editor
+                [value]="metadataForm.controls.description.value"
+                (valueChange)="onMetadataDescriptionChange($event)"
+                [rows]="8"
+              />
+              <div class="quiz-edit-form__markdown-hints">
+                <span class="quiz-edit-form__markdown-count"
+                  >{{ metadataForm.controls.description.value.length }}/5000</span
                 >
+              </div>
+              @if (
+                metadataForm.controls.description.hasError('maxlength') &&
+                metadataForm.controls.description.touched
+              ) {
+                <p class="quiz-edit-form__error" i18n="@@quizEdit.descriptionMaxLengthError">
+                  Die Beschreibung darf maximal 5000 Zeichen lang sein.
+                </p>
               }
-            </mat-form-field>
+            </div>
             <mat-form-field appearance="outline" floatLabel="always">
-              <mat-label i18n="@@quizForm.motifImageUrlLabel">Motivbild (optional)</mat-label>
+              <mat-label i18n="@@quizForm.motifImageUrlLabel"
+                >Motivbild beim Quizstart (optional)</mat-label
+              >
               <input
                 matInput
                 formControlName="motifImageUrl"
@@ -86,7 +102,7 @@
                 i18n-placeholder="@@quizForm.motifImageUrlPlaceholder"
                 placeholder="Nur HTTPS, z. B. https://…"
                 i18n-aria-label="@@quizForm.motifImageUrlAria"
-                aria-label="HTTPS-URL zum Motivbild (optional)"
+                aria-label="HTTPS-URL zum optionalen Motivbild (wird beim Quizstart angezeigt)"
               />
               <mat-hint align="end"
                 >{{ metadataForm.controls.motifImageUrl.value.length }}/{{
@@ -113,9 +129,6 @@
             @if (metadataSaved()) {
               <p class="quiz-edit-form__editing-hint" role="status" i18n>Gespeichert.</p>
             }
-            <mat-card-actions class="quiz-edit-form__actions">
-              <button matButton="filled" type="submit" i18n>Speichern</button>
-            </mat-card-actions>
           </form>
         </mat-card-content>
       </mat-expansion-panel>
@@ -129,10 +142,6 @@
         >
           <mat-icon>visibility</mat-icon>
           <span i18n>Vorschau</span>
-        </a>
-        <a mat-button routerLink=".." i18n-aria-label aria-label="Zurück zur Quiz-Liste">
-          <mat-icon>arrow_back</mat-icon>
-          <span i18n>Zurück</span>
         </a>
       </mat-card-actions>
     </mat-card>
@@ -182,7 +191,7 @@
             #settingsFormElement
             class="quiz-edit-form l-stack l-stack--md"
             [formGroup]="settingsForm"
-            (ngSubmit)="saveSettings()"
+            (ngSubmit)="saveAll()"
           >
             <div class="quiz-edit-form__preset-actions">
               @for (preset of presetOptions; track preset.value) {
@@ -258,6 +267,18 @@
                       <mat-error i18n>Höchstens 300 Sekunden.</mat-error>
                     }
                   </mat-form-field>
+                  <mat-checkbox
+                    formControlName="timerScaleByDifficulty"
+                    i18n="@@quizForm.timerScaleByDifficultyLabel"
+                  >
+                    Fragezeit nach Schwierigkeit anpassen
+                  </mat-checkbox>
+                  <div
+                    class="quiz-edit-form__timer-scale"
+                    i18n="@@quizForm.timerScaleByDifficultyHint"
+                  >
+                    Leicht = wie eingestellt, Mittel = ×1,5, Schwer = ×2,0
+                  </div>
                 </div>
               }
             </fieldset>
@@ -387,9 +408,7 @@
 
             <fieldset class="quiz-edit-form__fieldset">
               <legend class="quiz-edit-form__legend" i18n>Ton &amp; Musik</legend>
-              <mat-checkbox formControlName="enableSoundEffects" i18n
-                >Sounds abspielen</mat-checkbox
-              >
+              <mat-checkbox formControlName="enableSoundEffects" i18n>Action Sounds</mat-checkbox>
             </fieldset>
 
             <fieldset class="quiz-edit-form__fieldset">
@@ -398,12 +417,12 @@
                 Bonus-Codes vergeben
               </mat-checkbox>
               @if (isBonusEnabled()) {
-                <p class="quiz-edit-form__fieldset-hint" i18n>
-                  Die besten Teilnehmenden erhalten nach dem Quiz einen persoenlichen Code, den sie
-                  freiwillig bei dir einreichen koennen.
+                <p class="quiz-edit-form__fieldset-hint" i18n="@@quiz.bonusCodesHint">
+                  Die besten Teilnehmenden erhalten nach dem Quiz einen persönlichen Code, den sie
+                  freiwillig bei dir einreichen können.
                 </p>
                 <mat-form-field appearance="outline">
-                  <mat-label i18n>Anzahl Top-Plaetze</mat-label>
+                  <mat-label i18n="@@quiz.bonusTopRanksLabel">Anzahl Top-Plätze</mat-label>
                   <input
                     matInput
                     type="number"
@@ -421,7 +440,7 @@
                     <mat-error i18n>Mindestens 1.</mat-error>
                   }
                   @if (bonusTokenCountControl.hasError('max')) {
-                    <mat-error i18n>Hoechstens 50.</mat-error>
+                    <mat-error i18n="@@quiz.bonusTopRanksMax">Höchstens 50.</mat-error>
                   }
                 </mat-form-field>
               }
@@ -435,10 +454,6 @@
                 Einstellungen übernommen.
               </p>
             }
-
-            <mat-card-actions class="quiz-edit-form__actions">
-              <button matButton="filled" type="submit" i18n>Übernehmen</button>
-            </mat-card-actions>
           </form>
         </mat-card-content>
       </mat-card>
@@ -480,37 +495,32 @@
         #questionFormElement
         class="quiz-edit-form l-stack l-stack--md"
         [formGroup]="form"
-        (ngSubmit)="addQuestion()"
+        (ngSubmit)="saveAll()"
       >
         @if (isEditing()) {
-          <p class="quiz-edit-form__editing-hint" i18n>
-            Du bearbeitest eine vorhandene Frage. Klicke auf „Aktualisieren", um die Änderungen zu
-            speichern.
+          <p class="quiz-edit-form__editing-hint" i18n="@@quiz.edit.questionEditSaveHint">
+            Du bearbeitest eine vorhandene Frage. Mit „Änderungen speichern“ übernimmst du die
+            Änderungen.
           </p>
         }
 
-        <mat-form-field appearance="outline">
-          <mat-label i18n>Fragetext</mat-label>
-          <textarea
-            matInput
-            formControlName="text"
-            rows="4"
-            maxlength="2000"
-            (input)="onLivePreviewInput()"
-            i18n-aria-label
-            aria-label="Fragetext eingeben"
-          ></textarea>
-          <mat-hint align="end">{{ textControl.value.length }}/2000</mat-hint>
-          <mat-hint i18n="@@quiz.edit.markdownKatexPreviewHint"
-            >Unten in der Vorschau: Markdown, KaTeX.</mat-hint
-          >
+        <div class="quiz-edit-form__markdown-field">
+          <label class="quiz-edit-form__markdown-label" i18n>Fragetext</label>
+          <app-markdown-katex-editor
+            [value]="textControl.value"
+            (valueChange)="textControl.setValue($event); onLivePreviewInput()"
+            [rows]="4"
+          />
+          <div class="quiz-edit-form__markdown-hints">
+            <span class="quiz-edit-form__markdown-count">{{ textControl.value.length }}/2000</span>
+          </div>
           @if (textControl.hasError('required') && (textControl.touched || submitted())) {
             <mat-error i18n>Gib einen Fragetext ein.</mat-error>
           }
           @if (textControl.hasError('maxlength') && (textControl.touched || submitted())) {
             <mat-error i18n>Der Fragetext darf maximal 2000 Zeichen lang sein.</mat-error>
           }
-        </mat-form-field>
+        </div>
 
         <div class="quiz-edit-form__grid">
           <mat-form-field appearance="outline">
@@ -542,6 +552,46 @@
             </mat-form-field>
           }
         </div>
+
+        <fieldset class="quiz-edit-form__fieldset">
+          <legend class="quiz-edit-form__legend" i18n="@@quiz.edit.questionTimerSectionLegend">
+            Zeit für diese Frage
+          </legend>
+          <p class="quiz-edit-form__fieldset-hint" i18n="@@quiz.edit.questionTimerSectionHint">
+            Standard ist das Zeitlimit aus den Quiz-Einstellungen. Du kannst pro Frage ein eigenes
+            Limit setzen.
+          </p>
+          <mat-checkbox
+            i18n="@@quiz.edit.questionTimerUseQuizDefault"
+            [checked]="questionTimerUsesQuizDefault()"
+            (change)="onQuestionTimerInheritChange($event.checked)"
+            >Quiz-Zeitlimit verwenden</mat-checkbox
+          >
+          @if (!questionTimerUsesQuizDefault()) {
+            <div class="quiz-edit-form__default-timer quiz-edit-form__default-timer--nested">
+              <mat-form-field appearance="outline">
+                <mat-label i18n="@@quiz.edit.questionTimerSecondsFieldLabel"
+                  >Sekunden für diese Frage</mat-label
+                >
+                <mat-select
+                  formControlName="questionTimer"
+                  i18n-aria-label="@@quiz.edit.questionTimerSecondsAria"
+                  aria-label="Sekunden für diese Frage"
+                >
+                  @for (sec of questionTimerSelectOptions(); track sec) {
+                    <mat-option [value]="sec">
+                      {{ sec }}
+                      <span i18n="@@quizForm.timerSecondsSuffix">Sekunden</span>
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+          <mat-checkbox formControlName="questionSkipReadingPhase" i18n>
+            Für diese Frage keine Lesephase
+          </mat-checkbox>
+        </fieldset>
 
         @if (isSingleChoiceType()) {
           <mat-form-field appearance="outline">
@@ -575,12 +625,26 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label i18n>Label Minimum (optional)</mat-label>
+              <mat-label>
+                <span class="quiz-edit-form__rating-boundary-inner">
+                  <mat-icon class="quiz-edit-form__rating-boundary-icon" aria-hidden="true"
+                    >first_page</mat-icon
+                  >
+                  <span i18n>Linke Grenze (optional)</span>
+                </span>
+              </mat-label>
               <input matInput formControlName="ratingLabelMin" maxlength="50" />
             </mat-form-field>
           </div>
           <mat-form-field appearance="outline">
-            <mat-label i18n>Label Maximum (optional)</mat-label>
+            <mat-label>
+              <span class="quiz-edit-form__rating-boundary-inner">
+                <span i18n>Rechte Grenze (optional)</span>
+                <mat-icon class="quiz-edit-form__rating-boundary-icon" aria-hidden="true"
+                  >last_page</mat-icon
+                >
+              </span>
+            </mat-label>
             <input matInput formControlName="ratingLabelMax" maxlength="50" />
           </mat-form-field>
         }
@@ -614,16 +678,19 @@
                   }
                 </div>
 
-                <mat-form-field appearance="outline" class="quiz-edit-answer__field">
-                  <mat-label i18n>Antwort {{ i + 1 }}</mat-label>
-                  <input
-                    matInput
-                    formControlName="text"
-                    maxlength="500"
-                    (input)="onLivePreviewInput()"
-                    aria-label="Antworttext eingeben"
+                <div class="quiz-edit-answer__field">
+                  <label class="quiz-edit-answer__label" i18n>Antwort {{ i + 1 }}</label>
+                  <app-markdown-katex-editor
+                    [value]="answerTextControl(i).value"
+                    (valueChange)="answerTextControl(i).setValue($event); onLivePreviewInput()"
+                    [rows]="2"
+                    [compact]="true"
                   />
-                  <mat-hint align="end">{{ answerTextControl(i).value.length }}/500</mat-hint>
+                  <div class="quiz-edit-answer__hints">
+                    <span class="quiz-edit-answer__count"
+                      >{{ answerTextControl(i).value.length }}/500</span
+                    >
+                  </div>
                   @if (
                     answerTextControl(i).hasError('required') &&
                     (answerTextControl(i).touched || submitted())
@@ -636,7 +703,7 @@
                   ) {
                     <mat-error i18n>Maximal 500 Zeichen.</mat-error>
                   }
-                </mat-form-field>
+                </div>
 
                 <button
                   mat-icon-button
@@ -671,7 +738,7 @@
             </span>
             <div class="dialog-title-header__copy">
               <h3 class="dialog-title-header__heading" i18n="@@quiz.edit.livePreviewCardTitle">
-                Live-Vorschau
+                Gesamtvorschau
               </h3>
             </div>
           </div>
@@ -684,18 +751,20 @@
             <div class="quiz-edit-form__preview-block">
               <p class="quiz-edit-form__preview-label" i18n>Frage</p>
               <div
-                class="quiz-edit-form__preview-content"
+                class="quiz-edit-form__preview-content markdown-body"
                 [innerHTML]="questionPreviewHtml()"
               ></div>
             </div>
             @if (answerPreviewHtml().length > 0) {
               <div class="quiz-edit-form__preview-block">
-                <p class="quiz-edit-form__preview-label" i18n>Antworten</p>
-                <ol class="quiz-edit-form__preview-answers">
+                <p class="quiz-edit-form__preview-label" i18n="@@quizEdit.livePreviewAnswersLabel">
+                  Antworten
+                </p>
+                <ul class="quiz-edit-form__preview-answers markdown-body">
                   @for (answerHtml of answerPreviewHtml(); track $index) {
                     <li [innerHTML]="answerHtml"></li>
                   }
-                </ol>
+                </ul>
               </div>
             }
           </mat-card-content>
@@ -704,29 +773,6 @@
         @if (submitError()) {
           <p class="quiz-edit-form__error" role="alert">{{ submitError() }}</p>
         }
-
-        <mat-card-actions class="quiz-edit-form__actions">
-          @if (isEditing()) {
-            <button mat-button type="button" (click)="cancelEditing()">
-              <mat-icon>close</mat-icon>
-              <span i18n>Abbrechen</span>
-            </button>
-          }
-          <button matButton="filled" type="submit">
-            <mat-icon>
-              @if (isEditing()) {
-                save
-              } @else {
-                playlist_add
-              }
-            </mat-icon>
-            @if (isEditing()) {
-              <span i18n>Aktualisieren</span>
-            } @else {
-              <span i18n>Hinzufügen</span>
-            }
-          </button>
-        </mat-card-actions>
       </form>
     </ng-template>
 
@@ -798,6 +844,13 @@
                           {{ difficultyLabel(question.difficulty) }}
                         </span>
                       }
+                      <span class="quiz-edit-question__timer-line">
+                        ·
+                        <mat-icon class="quiz-edit-question__timer-icon" aria-hidden="true"
+                          >timer</mat-icon
+                        >
+                        {{ questionTimerDisplay(question) }}
+                      </span>
                       @if (question.enabled === false) {
                         <span
                           class="quiz-edit-question__disabled-badge"
@@ -849,11 +902,17 @@
                           <mat-icon>edit_note</mat-icon>
                         </span>
                         <div class="dialog-title-header__copy">
+                          <p
+                            class="quiz-edit-question__inline-editor-eyebrow"
+                            i18n="@@quiz.edit.inlineEditEyebrow"
+                          >
+                            Bearbeitungsmodus
+                          </p>
                           <h3
                             class="dialog-title-header__heading"
                             i18n="@@quiz.edit.editQuestionTitle"
                           >
-                            Frage bearbeiten
+                            Diese Frage bearbeiten
                           </h3>
                           <p
                             class="dialog-title-header__sub"
@@ -868,13 +927,16 @@
                     </div>
                   } @else if (isQuestionExpanded(question.id)) {
                     <div
-                      class="quiz-edit-question__text"
+                      class="quiz-edit-question__text markdown-body"
                       [innerHTML]="renderMarkdown(question.text)"
                     ></div>
 
                     @if (question.type === 'FREETEXT') {
-                      <p class="quiz-edit-question__text quiz-edit-question__text--hint" i18n>
-                        Freitext-Antwort
+                      <p
+                        class="quiz-edit-question__text quiz-edit-question__text--hint"
+                        i18n="@@quiz.freeTextWordCloudHint"
+                      >
+                        Freitext-Antwort als Wortwolke
                       </p>
                     } @else if (question.type === 'RATING') {
                       <div class="quiz-edit-question__rating">
@@ -887,14 +949,28 @@
                           <div class="quiz-edit-question__rating-cell">
                             <span class="quiz-edit-question__rating-step">{{ step }}</span>
                             @if (first && question.ratingLabelMin) {
-                              <span class="quiz-edit-question__rating-label">{{
-                                question.ratingLabelMin
-                              }}</span>
+                              <span
+                                class="quiz-edit-question__rating-label quiz-edit-question__rating-label--min"
+                              >
+                                <mat-icon
+                                  class="quiz-edit-question__rating-label-icon"
+                                  aria-hidden="true"
+                                  >first_page</mat-icon
+                                >
+                                {{ question.ratingLabelMin }}
+                              </span>
                             }
                             @if (last && question.ratingLabelMax) {
-                              <span class="quiz-edit-question__rating-label">{{
-                                question.ratingLabelMax
-                              }}</span>
+                              <span
+                                class="quiz-edit-question__rating-label quiz-edit-question__rating-label--max"
+                              >
+                                {{ question.ratingLabelMax }}
+                                <mat-icon
+                                  class="quiz-edit-question__rating-label-icon"
+                                  aria-hidden="true"
+                                  >last_page</mat-icon
+                                >
+                              </span>
                             }
                           </div>
                         }
@@ -921,7 +997,7 @@
                               </mat-icon>
                             }
                             <span
-                              class="quiz-edit-question__answer-text"
+                              class="quiz-edit-question__answer-text markdown-body"
                               [innerHTML]="renderMarkdown(answer.text)"
                             ></span>
                           </li>
@@ -1000,6 +1076,60 @@
         </div>
       }
     </section>
+
+    <div class="quiz-edit__bottom-actions quiz-edit__bottom-actions--with-secondary">
+      <a
+        mat-button
+        routerLink=".."
+        class="quiz-edit__bottom-action"
+        i18n-aria-label
+        aria-label="Zurück zur Quiz-Liste"
+      >
+        <mat-icon>arrow_back</mat-icon>
+        <span class="quiz-edit__bottom-action-label" i18n>Zurück</span>
+      </a>
+      <div class="quiz-edit__bottom-actions-right">
+        <button
+          mat-button
+          type="button"
+          class="quiz-edit__bottom-action"
+          (click)="cancelAllChanges()"
+          [disabled]="!hasPendingChanges()"
+          i18n-aria-label="@@quiz.edit.discardChangesButton"
+          aria-label="Verwerfen"
+        >
+          <mat-icon>close</mat-icon>
+          <span class="quiz-edit__bottom-action-label" i18n="@@quiz.edit.discardChangesButton"
+            >Verwerfen</span
+          >
+        </button>
+        <button
+          matButton="filled"
+          type="button"
+          class="quiz-edit__bottom-action quiz-edit__bottom-actions-save"
+          (click)="saveAll()"
+          [disabled]="!hasPendingChanges()"
+          i18n-aria-label="@@quiz.edit.saveAllButton"
+          aria-label="Speichern"
+        >
+          <mat-icon>save</mat-icon>
+          <span class="quiz-edit__bottom-action-label" i18n="@@quiz.edit.saveAllButton"
+            >Speichern</span
+          >
+        </button>
+        <a
+          mat-button
+          routerLink="preview"
+          [queryParams]="{ returnTo: 'edit' }"
+          class="quiz-edit__bottom-action"
+          i18n-aria-label
+          aria-label="Vorschau öffnen"
+        >
+          <mat-icon>visibility</mat-icon>
+          <span class="quiz-edit__bottom-action-label" i18n>Vorschau</span>
+        </a>
+      </div>
+    </div>
   </section>
 } @else {
   <mat-card appearance="outlined" class="quiz-edit__not-found">

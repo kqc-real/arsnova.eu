@@ -3,7 +3,6 @@ import { Component, inject, LOCALE_ID, NgZone, OnDestroy, OnInit, signal } from 
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { marked } from 'marked';
 import { Subject, takeUntil } from 'rxjs';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -13,6 +12,7 @@ import {
   resolveAssetUrlFromBase,
   type SupportedLocale,
 } from '../../core/locale-from-path';
+import { renderMarkdownWithoutKatex } from '../../shared/markdown-katex.util';
 
 @Component({
   selector: 'app-legal-page',
@@ -69,12 +69,11 @@ export class LegalPageComponent implements OnInit, OnDestroy {
         const path = resolveAssetUrlFromBase(`assets/legal/${slug}.${lang}.md`);
         this.http.get(path, { responseType: 'text' }).subscribe({
           next: (md) => {
-            Promise.resolve(marked.parse(md)).then((html: string) => {
-              this.ngZone.run(() => {
-                const withoutH1 = html.replace(/<h1\b[^>]*>[\s\S]*?<\/h1>\s*/i, '');
-                this.content.set(this.sanitizer.bypassSecurityTrustHtml(withoutH1));
-                this.loading.set(false);
-              });
+            this.ngZone.run(() => {
+              const html = renderMarkdownWithoutKatex(md);
+              const withoutH1 = html.replace(/<h1\b[^>]*>[\s\S]*?<\/h1>\s*/i, '');
+              this.content.set(this.sanitizer.bypassSecurityTrustHtml(withoutH1));
+              this.loading.set(false);
             });
           },
           error: () => {

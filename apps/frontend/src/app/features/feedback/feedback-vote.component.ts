@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, inject, input, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatFabButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -52,6 +52,7 @@ function hasAlreadyVoted(code: string): boolean {
 export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly themePreset = inject(ThemePresetService);
   private styleTimer: ReturnType<typeof setInterval> | null = null;
   private subscription: Unsubscribable | null = null;
@@ -111,6 +112,20 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.embeddedInSession()) {
+      try {
+        const session = await trpc.session.getInfo.query({ code });
+        if (session.type === 'QUIZ') {
+          await this.router.navigateByUrl(this.localizedPath(`/session/${code}/vote`), {
+            replaceUrl: true,
+          });
+          return;
+        }
+      } catch {
+        // Fallback: standalone Blitzlicht-Route normal weiter behandeln.
+      }
+    }
+
     this.voted.set(hasAlreadyVoted(code));
     await this.pollStyle();
     this.subscribeToResults();
@@ -134,12 +149,12 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     try {
       const result = await trpc.quickFeedback.results.query({ sessionCode: code });
       this.applyResult(result);
-    } catch {
+    } catch (error) {
       if (this.embeddedInSession()) {
         this.clearEmbeddedState();
         this.error.set(null);
       } else {
-        this.error.set('Feedback-Runde nicht gefunden oder abgelaufen.');
+        this.error.set(this.localizeFeedbackLoadError(error));
       }
     }
   }
@@ -160,9 +175,22 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
         onError: () => {
           this.subscription?.unsubscribe();
           this.subscription = null;
+          if (!this.embeddedInSession()) {
+            this.error.set(
+              $localize`:@@sessionTabs.quickFeedbackClosedNotice:Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.`,
+            );
+          }
         },
       },
     );
+  }
+
+  private localizeFeedbackLoadError(error: unknown): string {
+    const message = (error as { message?: string } | null)?.message ?? '';
+    if (message.includes('geschlossen')) {
+      return $localize`:@@sessionTabs.quickFeedbackClosedNotice:Der Blitzlicht-Kanal wurde von der Lehrperson geschlossen. Neue Abstimmungen sind gerade nicht möglich.`;
+    }
+    return $localize`:@@feedback.voteMissing:Feedback-Runde nicht gefunden oder abgelaufen.`;
   }
 
   private applyResult(result: QuickFeedbackResult): void {

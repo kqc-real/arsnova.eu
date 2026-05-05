@@ -2,7 +2,7 @@
   margin: 0;
   padding: 0 1rem 0.5rem !important;
   display: grid;
-  gap: 0.75rem;
+  gap: 0.95rem;
   overflow: visible;
   max-height: none;
 }
@@ -16,20 +16,20 @@ mat-dialog-actions {
   margin: 0;
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .status-help-dialog__copy--compact {
   font: var(--mat-sys-body-small);
-  line-height: 1.3;
+  line-height: 1.5;
 }
 
 .status-help-dialog__panel,
 .status-help-dialog__record,
 .status-help-dialog__state {
-  padding: 0.75rem;
+  padding: 0.9rem;
   border-radius: var(--mat-sys-corner-large);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 42%, transparent);
   background: var(--mat-sys-surface-container-low);
 }
 
@@ -41,16 +41,20 @@ mat-dialog-actions {
   background: color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-surface));
 }
 
+.status-help-dialog__panel--history {
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 16%, var(--mat-sys-surface));
+}
+
 .status-help-dialog__panel-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.8rem;
 }
 
 .status-help-dialog__panel-header--stacked {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.35rem;
   align-items: start;
 }
 
@@ -60,19 +64,83 @@ mat-dialog-actions {
   color: var(--mat-sys-on-surface);
 }
 
+.status-help-dialog__metric-groups {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.45rem;
+}
+
+.status-help-dialog__metric-group {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.status-help-dialog__metric-group--dynamic {
+  padding: 0.65rem;
+  border-radius: var(--mat-sys-corner-large);
+  background: color-mix(in srgb, var(--mat-sys-secondary-container) 24%, var(--mat-sys-surface));
+}
+
+.status-help-dialog__metric-group-title {
+  margin: 0;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.status-help-dialog__metric-group--dynamic .status-help-dialog__metric-group-title {
+  color: var(--mat-sys-secondary);
+}
+
 .status-help-dialog__metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.45rem;
+  gap: 0.6rem;
 }
 
 .status-help-dialog__metric {
   display: grid;
-  gap: 0.28rem;
-  padding: 0.6rem;
+  gap: 0.5rem;
+  padding: 0.7rem;
   border-radius: var(--mat-sys-corner-medium);
-  background: color-mix(in srgb, var(--mat-sys-surface) 76%, var(--mat-sys-primary-container));
-  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, var(--mat-sys-surface-container-high));
+}
+
+.status-help-dialog__metric--key {
+  background: color-mix(in srgb, var(--mat-sys-surface) 58%, var(--mat-sys-primary-container));
+}
+
+.status-help-dialog__metrics--overview
+  .status-help-dialog__metric:not(.status-help-dialog__metric--key) {
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-surface) 36%,
+    var(--mat-sys-surface-container-highest)
+  );
+}
+
+.status-help-dialog__metric--dynamic {
+  background: color-mix(in srgb, var(--mat-sys-surface) 28%, var(--mat-sys-secondary-container));
+}
+
+.status-help-dialog__metric--dynamic .status-help-dialog__metric-head mat-icon {
+  color: var(--mat-sys-secondary);
+}
+
+.status-help-dialog__metric--dynamic strong {
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.status-help-dialog__metric--dynamic .status-help-dialog__metric-head {
+  color: color-mix(in srgb, var(--mat-sys-on-secondary-container) 76%, var(--mat-sys-secondary));
+}
+
+.status-help-dialog__metric--dynamic .status-help-dialog__metric-hint {
+  color: color-mix(
+    in srgb,
+    var(--mat-sys-on-secondary-container) 72%,
+    var(--mat-sys-on-surface-variant)
+  );
 }
 
 .status-help-dialog__metric-head {
@@ -92,17 +160,47 @@ mat-dialog-actions {
   color: var(--mat-sys-primary);
 }
 
+.status-help-dialog__status-badge-wrapper {
+  font-weight: 600;
+}
+
+.status-help-dialog__status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: var(--mat-sys-corner-full);
+  font: var(--mat-sys-label-medium);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.status-help-dialog__status-badge--healthy {
+  color: var(--mat-sys-on-primary-container);
+  background: var(--mat-sys-primary-container);
+}
+
+.status-help-dialog__status-badge--busy {
+  color: var(--mat-sys-on-secondary-container);
+  background: var(--mat-sys-secondary-container);
+}
+
+.status-help-dialog__status-badge--overloaded {
+  color: var(--mat-sys-on-error-container);
+  background: var(--mat-sys-error-container);
+}
+
 .status-help-dialog__metric strong {
   font: var(--mat-sys-headline-medium);
   font-variant-numeric: tabular-nums;
   color: var(--mat-sys-on-surface);
-  line-height: 1;
+  line-height: 1.05;
 }
 
 .status-help-dialog__metric-hint {
   margin: 0;
   font: var(--mat-sys-body-small);
-  line-height: 1.3;
+  line-height: 1.5;
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -161,6 +259,38 @@ mat-dialog-actions {
   font-style: italic;
 }
 
+.status-help-dialog__history-chart-shell {
+  --app-status-chart-grid: color-mix(in srgb, var(--mat-sys-on-surface) 16%, transparent);
+  --app-status-chart-line: color-mix(
+    in srgb,
+    var(--mat-sys-primary) 82%,
+    var(--mat-sys-on-surface) 18%
+  );
+  --app-status-chart-point: color-mix(
+    in srgb,
+    var(--mat-sys-tertiary) 76%,
+    var(--mat-sys-on-surface) 24%
+  );
+  --app-status-chart-text: var(--mat-sys-on-surface);
+  --app-status-chart-tooltip-background: color-mix(
+    in srgb,
+    var(--mat-sys-surface-container-high) 94%,
+    var(--mat-sys-surface)
+  );
+  --app-status-chart-tooltip-border: color-mix(in srgb, var(--mat-sys-on-surface) 16%, transparent);
+  --app-status-chart-tooltip-body: var(--mat-sys-on-surface);
+  --app-status-chart-tooltip-title: var(--mat-sys-on-surface);
+  position: relative;
+  min-height: 12.5rem;
+  padding-top: 0.2rem;
+}
+
+.status-help-dialog__history-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .status-help-dialog__legend {
   margin: 0;
   padding: 0;
@@ -182,7 +312,25 @@ mat-dialog-actions {
   padding: 0.35rem 0.5rem;
   border-radius: var(--mat-sys-corner-medium);
   background: var(--mat-sys-surface);
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+}
+
+.status-help-dialog__legend-item--healthy {
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 88%, var(--mat-sys-surface));
+  border-color: color-mix(in srgb, var(--app-status-healthy) 16%, transparent);
+}
+
+.status-help-dialog__legend-item--busy {
+  background: color-mix(in srgb, var(--mat-sys-secondary-container) 88%, var(--mat-sys-surface));
+  border-color: color-mix(in srgb, var(--app-status-busy) 18%, transparent);
+}
+
+.status-help-dialog__legend-item--overloaded {
+  background: color-mix(in srgb, var(--mat-sys-error-container) 90%, var(--mat-sys-surface));
+  border-color: color-mix(in srgb, var(--mat-sys-error) 18%, transparent);
+}
+
+.status-help-dialog__legend-item--unknown {
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 82%, var(--mat-sys-surface));
 }
 
 .status-help-dialog__legend li span:last-child {
@@ -215,24 +363,48 @@ mat-dialog-actions {
   background: var(--mat-sys-outline-variant);
 }
 
+@media (min-width: 960px) {
+  .status-help-dialog__metric-groups {
+    grid-template-columns: minmax(0, 1.45fr) minmax(17rem, 1fr);
+    align-items: start;
+  }
+
+  .status-help-dialog__metrics--dynamic {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .status-help-dialog__metric--wide {
+    grid-column: 1 / -1;
+  }
+
+  .status-help-dialog__legend {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 599px) {
   .status-help-dialog__content {
     padding: 0 0.875rem 0.5rem !important;
-    gap: 0.6rem;
+    gap: 0.8rem;
   }
 
   .status-help-dialog__panel,
   .status-help-dialog__record,
   .status-help-dialog__state {
-    padding: 0.65rem;
+    padding: 0.75rem;
   }
 
+  .status-help-dialog__metric-group--dynamic {
+    padding: 0.55rem;
+  }
+
+  .status-help-dialog__metric-groups,
   .status-help-dialog__metrics {
-    gap: 0.35rem;
+    gap: 0.5rem;
   }
 
   .status-help-dialog__metric {
-    padding: 0.5rem 0.55rem;
+    padding: 0.65rem;
   }
 
   .status-help-dialog__metric strong {
@@ -255,6 +427,10 @@ mat-dialog-actions {
   .status-help-dialog__record-number {
     font: var(--mat-sys-headline-large);
     font-weight: 700;
+  }
+
+  .status-help-dialog__history-chart-shell {
+    min-height: 11rem;
   }
 
   .status-help-dialog__record-unit {

@@ -8,7 +8,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import {
   AbstractControl,
@@ -29,7 +28,7 @@ import {
   CdkDropList,
 } from '@angular/cdk/drag-drop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { debounceTime, firstValueFrom, merge } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
@@ -59,14 +58,18 @@ import {
   DEMO_QUIZ_ID,
   QuizStoreService,
   type AddQuizQuestionInput,
+  type QuizQuestion,
   type QuizSettings,
   type SupportedQuestionType,
 } from '../data/quiz-store.service';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
+import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import {
   focusAndScrollElement,
   focusFirstInvalidField,
+  scrollElementIntoAppShell,
 } from '../../../shared/focus-invalid-field.util';
 import {
   ConfirmLeaveDialogComponent,
@@ -82,6 +85,9 @@ type QuestionFormGroup = FormGroup<{
   text: FormControl<string>;
   type: FormControl<SupportedQuestionType>;
   difficulty: FormControl<Difficulty>;
+  /** `null` = Quiz-`defaultTimer` */
+  questionTimer: FormControl<number | null>;
+  questionSkipReadingPhase: FormControl<boolean>;
   answers: FormArray<AnswerFormGroup>;
   ratingMin: FormControl<number | null>;
   ratingMax: FormControl<number | null>;
@@ -93,6 +99,7 @@ type QuizSettingsFormGroup = FormGroup<{
   showLeaderboard: FormControl<boolean>;
   allowCustomNicknames: FormControl<boolean>;
   defaultTimer: FormControl<number | null>;
+  timerScaleByDifficulty: FormControl<boolean>;
   enableSoundEffects: FormControl<boolean>;
   enableRewardEffects: FormControl<boolean>;
   enableMotivationMessages: FormControl<boolean>;
@@ -147,6 +154,7 @@ type QuizMetadataFormGroup = FormGroup<{
     CdkDragHandle,
     CdkDragPlaceholder,
     MarkdownImageLightboxDirective,
+    MarkdownKatexEditorComponent,
   ],
   templateUrl: './quiz-edit.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-edit.component.scss'],
@@ -167,6 +175,7 @@ export class QuizEditComponent implements OnDestroy {
   readonly submitError = signal<string | null>(null);
   readonly submitted = signal(false);
   readonly editingQuestionId = signal<string | null>(null);
+  readonly questionDrafts = signal<Record<string, AddQuizQuestionInput>>({});
   readonly expandedQuestionIds = signal<Set<string>>(new Set());
   readonly showSettings = signal(false);
   readonly settingsSubmitError = signal<string | null>(null);
@@ -224,7 +233,13 @@ export class QuizEditComponent implements OnDestroy {
   readonly questions = computed(() => {
     const quiz = this.quiz();
     if (!quiz) return [];
-    return [...quiz.questions].sort((a, b) => a.order - b.order);
+    const drafts = this.questionDrafts();
+    return [...quiz.questions]
+      .sort((a, b) => a.order - b.order)
+      .map((question) => {
+        const draft = drafts[question.id];
+        return draft ? this.mergeQuestionWithDraft(question, draft) : question;
+      });
   });
   readonly isEditing = computed(() => this.editingQuestionId() !== null);
   /** Panel „Neue Frage“ (oben); Standard eingeklappt, beim Inline-Bearbeiten ausgeblendet. */
@@ -241,6 +256,8 @@ export class QuizEditComponent implements OnDestroy {
     }),
     type: this.formBuilder.control<SupportedQuestionType>('SINGLE_CHOICE'),
     difficulty: this.formBuilder.control<Difficulty>('MEDIUM'),
+    questionTimer: this.formBuilder.control<number | null>(null),
+    questionSkipReadingPhase: this.formBuilder.control(false),
     answers: this.createAnswerArrayForType('SINGLE_CHOICE'),
     ratingMin: this.formBuilder.control<number | null>(1),
     ratingMax: this.formBuilder.control<number | null>(5),
@@ -250,10 +267,11 @@ export class QuizEditComponent implements OnDestroy {
 
   readonly settingsForm: QuizSettingsFormGroup = this.formBuilder.group({
     showLeaderboard: this.formBuilder.control(true),
-    allowCustomNicknames: this.formBuilder.control(true),
+    allowCustomNicknames: this.formBuilder.control(false),
     defaultTimer: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(5), Validators.max(300)],
     }),
+    timerScaleByDifficulty: this.formBuilder.control(true),
     enableSoundEffects: this.formBuilder.control(true),
     enableRewardEffects: this.formBuilder.control(true),
     enableMotivationMessages: this.formBuilder.control(true),
@@ -266,7 +284,7 @@ export class QuizEditComponent implements OnDestroy {
     }),
     teamAssignment: this.formBuilder.control<TeamAssignment>('AUTO'),
     teamNamesText: this.formBuilder.control(''),
-    nicknameTheme: this.formBuilder.control<NicknameTheme>('NOBEL_LAUREATES'),
+    nicknameTheme: this.formBuilder.control<NicknameTheme>('HIGH_SCHOOL'),
     bonusEnabled: this.formBuilder.control(false),
     bonusTokenCount: this.formBuilder.control<number | null>(DEFAULT_BONUS_TOKEN_COUNT, {
       validators: [Validators.min(1), Validators.max(50)],
@@ -308,20 +326,9 @@ export class QuizEditComponent implements OnDestroy {
         });
       });
     }
-    merge(
-      this.settingsForm.controls.nicknameTheme.valueChanges,
-      this.settingsForm.controls.allowCustomNicknames.valueChanges,
-      this.settingsForm.controls.anonymousMode.valueChanges,
-    )
-      .pipe(takeUntilDestroyed())
-      .subscribe(() => this.persistNameSettingsFromFormToStore());
-    this.settingsForm.valueChanges.pipe(debounceTime(450), takeUntilDestroyed()).subscribe(() => {
-      if (!this.quiz() || this.settingsForm.invalid) return;
-      this.syncAllSettingsFromFormToStore();
-    });
     this.scheduleLivePreview();
     this.localeGuard.register(
-      () => this.form.dirty || this.settingsForm.dirty || this.metadataForm.dirty,
+      () => this.metadataForm.dirty || this.settingsForm.dirty || this.hasUnsavedQuestionChanges(),
     );
   }
 
@@ -381,8 +388,27 @@ export class QuizEditComponent implements OnDestroy {
     return this.difficultyOptions.find((option) => option.value === value)?.label ?? value;
   }
 
+  /** Kurztext für die Fragenliste: eigenes Limit oder Quiz-Standard. */
+  questionTimerDisplay(question: QuizQuestion): string {
+    if (question.timer !== null) {
+      return `${question.timer} s`;
+    }
+    return $localize`:@@quiz.edit.questionTimerQuizDefault:Quiz-Standard`;
+  }
+
   isPreviewActive(): boolean {
     return this.route.snapshot.firstChild?.routeConfig?.path === 'preview';
+  }
+
+  hasPendingChanges(): boolean {
+    return this.metadataForm.dirty || this.settingsForm.dirty || this.hasUnsavedQuestionChanges();
+  }
+
+  onMetadataDescriptionChange(value: string): void {
+    const control = this.metadataForm.controls.description;
+    control.setValue(value);
+    control.markAsDirty();
+    control.markAsTouched();
   }
 
   isTeamModeEnabled(): boolean {
@@ -396,6 +422,26 @@ export class QuizEditComponent implements OnDestroy {
 
   defaultTimerSelectOptions(): number[] {
     return mergeTimerPresetOptions(this.settingsTimerControl.value);
+  }
+
+  questionTimerUsesQuizDefault(): boolean {
+    return this.form.controls.questionTimer.value === null;
+  }
+
+  questionTimerSelectOptions(): number[] {
+    return mergeTimerPresetOptions(this.form.controls.questionTimer.value);
+  }
+
+  onQuestionTimerInheritChange(useQuizDefault: boolean): void {
+    const c = this.form.controls.questionTimer;
+    if (useQuizDefault) {
+      c.setValue(null);
+    } else {
+      if (c.value === null) {
+        const fallback = this.quiz()?.settings.defaultTimer ?? DEFAULT_TIMER_SECONDS;
+        c.setValue(fallback);
+      }
+    }
   }
 
   onDefaultTimerEnabledChange(checked: boolean): void {
@@ -441,13 +487,15 @@ export class QuizEditComponent implements OnDestroy {
         enableMotivationMessages: values.enableMotivationMessages ?? true,
         enableEmojiReactions: values.enableEmojiReactions ?? true,
         anonymousMode: values.anonymousMode ?? false,
+        allowCustomNicknames: values.allowCustomNicknames ?? false,
+        nicknameTheme: values.nicknameTheme ?? 'HIGH_SCHOOL',
         readingPhaseEnabled: values.readingPhaseEnabled ?? false,
         defaultTimer: values.defaultTimer ?? null,
         preset,
       },
       { emitEvent: false },
     );
-    this.syncAllSettingsFromFormToStore();
+    this.settingsForm.markAsDirty();
   }
 
   hasAnswerOptions(): boolean {
@@ -488,7 +536,9 @@ export class QuizEditComponent implements OnDestroy {
 
   renderMarkdown(value: string | null | undefined): SafeHtml {
     const source = value ?? '';
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(source).html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      renderMarkdownWithKatex(source, { imagePolicy: 'allow-relative-and-https' }).html,
+    );
   }
 
   addAnswer(): void {
@@ -579,40 +629,83 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   addQuestion(): void {
-    this.submitted.set(true);
-    this.submitError.set(null);
-
-    this.normalizeCorrectSelectionForType();
-    const selectionError = this.getCorrectSelectionError();
-
-    if (this.form.invalid || selectionError) {
-      this.form.markAllAsTouched();
-      this.submitError.set(selectionError);
-      if (this.form.invalid) {
-        focusFirstInvalidField(this.questionFormElement?.nativeElement, this.form);
-      } else if (selectionError) {
-        const selectionControl = this.questionFormElement?.nativeElement.querySelector<HTMLElement>(
-          '.quiz-edit-answer__selector button, .quiz-edit-answer__selector .mat-mdc-checkbox input',
-        );
-        focusAndScrollElement(selectionControl);
-      }
+    if (!this.validateQuestionForm()) {
       return;
     }
 
-    const questionInput: AddQuizQuestionInput = {
-      text: this.textControl.value,
-      type: this.typeControl.value,
-      difficulty: this.form.controls.difficulty.value,
-      answers: this.buildQuestionAnswersForType(),
-      ...(this.isRatingType()
-        ? {
-            ratingMin: this.form.controls.ratingMin.value,
-            ratingMax: this.form.controls.ratingMax.value,
-            ratingLabelMin: this.form.controls.ratingLabelMin.value,
-            ratingLabelMax: this.form.controls.ratingLabelMax.value,
-          }
-        : {}),
-    };
+    this.commitQuestion();
+  }
+
+  saveAll(): void {
+    this.metadataSaved.set(false);
+    this.settingsSaved.set(false);
+
+    const shouldSaveMetadata = this.metadataForm.dirty;
+    const shouldSaveSettings = this.settingsForm.dirty;
+    const shouldSaveQuestion = this.hasUnsavedQuestionChanges();
+
+    if (!shouldSaveMetadata && !shouldSaveSettings && !shouldSaveQuestion) {
+      return;
+    }
+
+    if (shouldSaveMetadata && !this.validateMetadataForm()) {
+      return;
+    }
+
+    if (shouldSaveSettings && !this.validateSettingsForm()) {
+      return;
+    }
+
+    if (this.hasActiveQuestionFormChanges() && !this.validateQuestionForm()) {
+      return;
+    }
+
+    if (this.isEditing()) {
+      this.persistCurrentQuestionDraft();
+    }
+
+    if (this.hasStoredQuestionDrafts()) {
+      const invalidQuestionId = this.firstInvalidStoredQuestionDraftId();
+      if (invalidQuestionId) {
+        this.editQuestion(invalidQuestionId);
+        this.validateQuestionForm();
+        return;
+      }
+    }
+
+    if (shouldSaveMetadata) {
+      this.commitMetadata();
+    }
+
+    if (shouldSaveSettings) {
+      this.commitSettings();
+    }
+
+    if (shouldSaveQuestion) {
+      this.commitAllQuestionChanges();
+    }
+  }
+
+  saveSettings(): void {
+    this.settingsSaved.set(false);
+    if (!this.validateSettingsForm()) {
+      return;
+    }
+
+    this.commitSettings();
+  }
+
+  saveMetadata(): void {
+    this.metadataSaved.set(false);
+    if (!this.validateMetadataForm()) {
+      return;
+    }
+
+    this.commitMetadata();
+  }
+
+  private commitQuestion(): void {
+    const questionInput = this.buildQuestionInputFromForm();
 
     try {
       const editingQuestionId = this.editingQuestionId();
@@ -632,17 +725,30 @@ export class QuizEditComponent implements OnDestroy {
     }
   }
 
-  saveSettings(): void {
-    this.settingsSaved.set(false);
-    this.settingsSubmitError.set(null);
-    this.syncTeamNamesValidation();
+  private commitAllQuestionChanges(): void {
+    try {
+      for (const [questionId, questionInput] of this.sortedStoredQuestionDraftEntries()) {
+        this.quizStore.updateQuestion(this.id, questionId, questionInput);
+      }
 
-    if (this.settingsForm.invalid) {
-      this.settingsForm.markAllAsTouched();
-      focusFirstInvalidField(this.settingsFormElement?.nativeElement, this.settingsForm);
-      return;
+      if (!this.isEditing() && this.hasActiveQuestionFormChanges()) {
+        this.quizStore.addQuestion(this.id, this.buildQuestionInputFromForm());
+        this.showQuestionAddedFeedback();
+      }
+
+      this.questionDrafts.set({});
+      this.editingQuestionId.set(null);
+      this.resetQuestionForm();
+      this.submitted.set(false);
+      this.submitError.set(null);
+      this.scheduleLivePreview();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : $localize`Speichern fehlgeschlagen.`;
+      this.submitError.set(message);
     }
+  }
 
+  private commitSettings(): void {
     try {
       const updated = this.quizStore.updateQuizSettings(this.id, this.readSettingsFromForm());
       this.patchSettingsForm(updated);
@@ -656,16 +762,7 @@ export class QuizEditComponent implements OnDestroy {
     }
   }
 
-  saveMetadata(): void {
-    this.metadataSaved.set(false);
-    this.metadataSubmitError.set(null);
-
-    if (this.metadataForm.invalid) {
-      this.metadataForm.markAllAsTouched();
-      focusFirstInvalidField(this.metadataFormElement?.nativeElement, this.metadataForm);
-      return;
-    }
-
+  private commitMetadata(): void {
     try {
       const updated = this.quizStore.updateQuizMetadata(this.id, {
         name: this.metadataForm.controls.name.value,
@@ -711,14 +808,12 @@ export class QuizEditComponent implements OnDestroy {
     const question = this.questions().find((entry) => entry.id === questionId);
     if (!question) return;
 
-    this.form.controls.text.setValue(question.text);
-    this.form.controls.type.setValue(question.type);
-    this.form.controls.difficulty.setValue(question.difficulty);
-    this.form.setControl('answers', this.createAnswerArrayForType(question.type, question.answers));
-    this.form.controls.ratingMin.setValue(question.ratingMin ?? 1);
-    this.form.controls.ratingMax.setValue(question.ratingMax ?? 5);
-    this.form.controls.ratingLabelMin.setValue(question.ratingLabelMin ?? '');
-    this.form.controls.ratingLabelMax.setValue(question.ratingLabelMax ?? '');
+    const previousQuestionId = this.editingQuestionId();
+    if (previousQuestionId && previousQuestionId !== questionId) {
+      this.persistCurrentQuestionDraft();
+    }
+
+    this.applyQuestionInputToForm(this.toComparableQuestionInput(question));
 
     this.editingQuestionId.set(question.id);
     this.submitError.set(null);
@@ -729,16 +824,35 @@ export class QuizEditComponent implements OnDestroy {
 
     requestAnimationFrame(() => {
       const el = this.questionFormElement?.nativeElement;
-      if (el && typeof el.scrollIntoView === 'function') {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      scrollElementIntoAppShell(el, 'start');
     });
   }
 
   cancelEditing(): void {
+    const editingQuestionId = this.editingQuestionId();
+    if (editingQuestionId) {
+      this.removeQuestionDraft(editingQuestionId);
+    }
     this.editingQuestionId.set(null);
     this.resetQuestionForm('SINGLE_CHOICE');
     this.submitted.set(false);
+  }
+
+  cancelAllChanges(): void {
+    const quiz = this.quiz();
+    if (!quiz) return;
+
+    this.patchMetadataForm(quiz.name, quiz.description, quiz.motifImageUrl);
+    this.patchSettingsForm(quiz.settings);
+    this.questionDrafts.set({});
+    this.resetQuestionForm('SINGLE_CHOICE');
+    this.editingQuestionId.set(null);
+    this.submitted.set(false);
+    this.submitError.set(null);
+    this.metadataSubmitError.set(null);
+    this.settingsSubmitError.set(null);
+    this.metadataSaved.set(false);
+    this.settingsSaved.set(false);
   }
 
   setQuestionEnabledFlag(questionId: string, enabled: boolean): void {
@@ -778,6 +892,7 @@ export class QuizEditComponent implements OnDestroy {
       if (confirmed !== true) return;
       try {
         this.quizStore.deleteQuestion(this.id, questionId);
+        this.removeQuestionDraft(questionId);
         if (this.editingQuestionId() === questionId) {
           this.cancelEditing();
         }
@@ -831,6 +946,7 @@ export class QuizEditComponent implements OnDestroy {
         showLeaderboard: settings.showLeaderboard,
         allowCustomNicknames: settings.allowCustomNicknames,
         defaultTimer: settings.defaultTimer,
+        timerScaleByDifficulty: settings.timerScaleByDifficulty ?? true,
         enableSoundEffects: settings.enableSoundEffects,
         enableRewardEffects: settings.enableRewardEffects,
         enableMotivationMessages: settings.enableMotivationMessages,
@@ -855,35 +971,12 @@ export class QuizEditComponent implements OnDestroy {
     this.settingsForm.markAsUntouched();
   }
 
-  /** Namensliste / Anonymität: sofort in den Store (Live-Start liest nur den Store, nicht nur das Formular). */
-  private persistNameSettingsFromFormToStore(): void {
-    if (!this.quiz()) return;
-    try {
-      this.quizStore.updateQuizSettings(this.id, {
-        nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
-        allowCustomNicknames: this.settingsForm.controls.allowCustomNicknames.value,
-        anonymousMode: this.settingsForm.controls.anonymousMode.value,
-      });
-    } catch {
-      /* z. B. Demo-Quiz gesperrt */
-    }
-  }
-
-  /** Nach Preset-Chips: gesamte Einstellungen wie bei „Übernehmen“ in den Store. */
-  private syncAllSettingsFromFormToStore(): void {
-    if (!this.quiz()) return;
-    try {
-      this.quizStore.updateQuizSettings(this.id, this.readSettingsFromForm());
-    } catch {
-      /* ungültige Team-/Bonus-Kombination — Nutzer kann „Übernehmen“ nutzen */
-    }
-  }
-
   private readSettingsFromForm(): QuizSettings {
     return {
       showLeaderboard: this.settingsForm.controls.showLeaderboard.value,
       allowCustomNicknames: this.settingsForm.controls.allowCustomNicknames.value,
       defaultTimer: this.settingsForm.controls.defaultTimer.value,
+      timerScaleByDifficulty: this.settingsForm.controls.timerScaleByDifficulty.value,
       enableSoundEffects: this.settingsForm.controls.enableSoundEffects.value,
       enableRewardEffects: this.settingsForm.controls.enableRewardEffects.value,
       enableMotivationMessages: this.settingsForm.controls.enableMotivationMessages.value,
@@ -896,7 +989,7 @@ export class QuizEditComponent implements OnDestroy {
       teamAssignment: this.settingsForm.controls.teamAssignment.value,
       teamNames: parseTeamNamesText(this.settingsForm.controls.teamNamesText.value),
       backgroundMusic: null,
-      nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
+      nicknameTheme: this.settingsForm.controls.nicknameTheme.value ?? 'HIGH_SCHOOL',
       bonusTokenCount: this.settingsForm.controls.bonusEnabled.value
         ? (this.settingsForm.controls.bonusTokenCount.value ?? DEFAULT_BONUS_TOKEN_COUNT)
         : null,
@@ -918,7 +1011,12 @@ export class QuizEditComponent implements OnDestroy {
         (target.enableEmojiReactions ?? current.enableEmojiReactions) &&
       current.anonymousMode === (target.anonymousMode ?? current.anonymousMode) &&
       current.readingPhaseEnabled === (target.readingPhaseEnabled ?? current.readingPhaseEnabled) &&
-      current.defaultTimer === (target.defaultTimer ?? current.defaultTimer)
+      current.defaultTimer === (target.defaultTimer ?? current.defaultTimer) &&
+      current.timerScaleByDifficulty ===
+        (target.timerScaleByDifficulty ?? current.timerScaleByDifficulty) &&
+      current.allowCustomNicknames ===
+        (target.allowCustomNicknames ?? current.allowCustomNicknames) &&
+      current.nicknameTheme === (target.nicknameTheme ?? current.nicknameTheme)
     );
   }
 
@@ -936,10 +1034,291 @@ export class QuizEditComponent implements OnDestroy {
     this.metadataForm.markAsUntouched();
   }
 
+  private validateMetadataForm(): boolean {
+    this.metadataSubmitError.set(null);
+    if (this.metadataForm.invalid) {
+      this.metadataPanelExpanded.set(true);
+      this.metadataForm.markAllAsTouched();
+      focusFirstInvalidField(this.metadataFormElement?.nativeElement, this.metadataForm);
+      return false;
+    }
+    return true;
+  }
+
+  private validateSettingsForm(): boolean {
+    this.settingsSubmitError.set(null);
+    this.syncTeamNamesValidation();
+
+    if (this.settingsForm.invalid) {
+      this.showSettings.set(true);
+      this.settingsForm.markAllAsTouched();
+      focusFirstInvalidField(this.settingsFormElement?.nativeElement, this.settingsForm);
+      return false;
+    }
+    return true;
+  }
+
+  private validateQuestionForm(): boolean {
+    this.submitted.set(true);
+    this.submitError.set(null);
+
+    this.normalizeCorrectSelectionForType();
+    const selectionError = this.getCorrectSelectionError();
+
+    if (this.form.invalid || selectionError) {
+      if (!this.isEditing()) {
+        this.questionFormPanelOpen.set(true);
+      }
+      this.form.markAllAsTouched();
+      this.submitError.set(selectionError);
+      if (this.form.invalid) {
+        focusFirstInvalidField(this.questionFormElement?.nativeElement, this.form);
+      } else if (selectionError) {
+        const selectionControl = this.questionFormElement?.nativeElement.querySelector<HTMLElement>(
+          '.quiz-edit-answer__selector button, .quiz-edit-answer__selector .mat-mdc-checkbox input',
+        );
+        focusAndScrollElement(selectionControl);
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  private hasUnsavedQuestionChanges(): boolean {
+    if (this.hasStoredQuestionDrafts()) {
+      return true;
+    }
+
+    return this.hasActiveQuestionFormChanges();
+  }
+
+  private hasActiveQuestionFormChanges(): boolean {
+    if (this.isEditing()) {
+      const editingQuestionId = this.editingQuestionId();
+      const currentQuestion = editingQuestionId
+        ? this.quiz()?.questions.find((question) => question.id === editingQuestionId)
+        : null;
+      if (!currentQuestion) {
+        return true;
+      }
+
+      return (
+        JSON.stringify(this.toComparableQuestionInput(currentQuestion)) !==
+        JSON.stringify(this.toComparableQuestionInput(this.buildQuestionInputFromForm()))
+      );
+    }
+
+    if (this.textControl.value.trim().length > 0) {
+      return true;
+    }
+
+    if (this.typeControl.value !== 'SINGLE_CHOICE') {
+      return true;
+    }
+
+    if (this.form.controls.difficulty.value !== 'MEDIUM') {
+      return true;
+    }
+
+    if (this.form.controls.questionTimer.value !== null) {
+      return true;
+    }
+
+    if (this.form.controls.questionSkipReadingPhase.value) {
+      return true;
+    }
+
+    if (this.answersArray.length !== 2) {
+      return true;
+    }
+
+    const hasNonDefaultSingleChoiceAnswers =
+      this.typeControl.value === 'SINGLE_CHOICE' &&
+      this.answersArray.length === 2 &&
+      this.answersArray.at(0).controls.text.value.trim().length === 0 &&
+      this.answersArray.at(1).controls.text.value.trim().length === 0 &&
+      this.answersArray.at(0).controls.isCorrect.value === true &&
+      this.answersArray.at(1).controls.isCorrect.value === false;
+
+    if (
+      !hasNonDefaultSingleChoiceAnswers &&
+      this.answersArray.controls.some(
+        (answer) => answer.controls.text.value.trim().length > 0 || answer.controls.isCorrect.value,
+      )
+    ) {
+      return true;
+    }
+
+    if (
+      this.form.controls.ratingMin.value !== 1 ||
+      this.form.controls.ratingMax.value !== 5 ||
+      this.form.controls.ratingLabelMin.value.trim().length > 0 ||
+      this.form.controls.ratingLabelMax.value.trim().length > 0
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private hasStoredQuestionDrafts(): boolean {
+    return Object.keys(this.questionDrafts()).length > 0;
+  }
+
+  private persistCurrentQuestionDraft(): void {
+    const editingQuestionId = this.editingQuestionId();
+    if (!editingQuestionId) return;
+
+    const currentQuestion = this.quiz()?.questions.find(
+      (question) => question.id === editingQuestionId,
+    );
+    if (!currentQuestion) return;
+
+    const currentInput = this.buildQuestionInputFromForm();
+    if (
+      JSON.stringify(this.toComparableQuestionInput(currentQuestion)) ===
+      JSON.stringify(this.toComparableQuestionInput(currentInput))
+    ) {
+      this.removeQuestionDraft(editingQuestionId);
+      return;
+    }
+
+    this.questionDrafts.update((drafts) => ({
+      ...drafts,
+      [editingQuestionId]: currentInput,
+    }));
+  }
+
+  private removeQuestionDraft(questionId: string): void {
+    this.questionDrafts.update((drafts) => {
+      if (!(questionId in drafts)) {
+        return drafts;
+      }
+      const next = { ...drafts };
+      delete next[questionId];
+      return next;
+    });
+  }
+
+  private sortedStoredQuestionDraftEntries(): Array<[string, AddQuizQuestionInput]> {
+    const orderByQuestionId = new Map(
+      this.quiz()?.questions.map((question) => [question.id, question.order]) ?? [],
+    );
+    return Object.entries(this.questionDrafts()).sort(
+      ([leftId], [rightId]) =>
+        (orderByQuestionId.get(leftId) ?? Number.MAX_SAFE_INTEGER) -
+        (orderByQuestionId.get(rightId) ?? Number.MAX_SAFE_INTEGER),
+    );
+  }
+
+  private firstInvalidStoredQuestionDraftId(): string | null {
+    for (const [questionId, questionInput] of this.sortedStoredQuestionDraftEntries()) {
+      if (!this.isQuestionInputValid(questionInput)) {
+        return questionId;
+      }
+    }
+    return null;
+  }
+
+  private buildQuestionInputFromForm(): AddQuizQuestionInput {
+    return {
+      text: this.textControl.value,
+      type: this.typeControl.value,
+      difficulty: this.form.controls.difficulty.value,
+      timer: this.form.controls.questionTimer.value,
+      answers: this.buildQuestionAnswersForType(),
+      skipReadingPhase: this.form.controls.questionSkipReadingPhase.value,
+      ...(this.isRatingType()
+        ? {
+            ratingMin: this.form.controls.ratingMin.value,
+            ratingMax: this.form.controls.ratingMax.value,
+            ratingLabelMin: this.form.controls.ratingLabelMin.value,
+            ratingLabelMax: this.form.controls.ratingLabelMax.value,
+          }
+        : {}),
+    };
+  }
+
+  private toComparableQuestionInput(
+    question:
+      | AddQuizQuestionInput
+      | {
+          text: string;
+          type: SupportedQuestionType;
+          difficulty: Difficulty;
+          timer: number | null;
+          answers: Array<{ text: string; isCorrect: boolean }>;
+          skipReadingPhase?: boolean;
+          ratingMin?: number | null;
+          ratingMax?: number | null;
+          ratingLabelMin?: string | null;
+          ratingLabelMax?: string | null;
+        },
+  ): AddQuizQuestionInput {
+    return {
+      text: question.text,
+      type: question.type,
+      difficulty: question.difficulty,
+      timer: question.timer ?? null,
+      answers: question.answers.map((answer) => ({
+        text: answer.text,
+        isCorrect: answer.isCorrect,
+      })),
+      skipReadingPhase: question.skipReadingPhase ?? false,
+      ...(question.type === 'RATING'
+        ? {
+            ratingMin: question.ratingMin ?? 1,
+            ratingMax: question.ratingMax ?? 5,
+            ratingLabelMin: question.ratingLabelMin ?? '',
+            ratingLabelMax: question.ratingLabelMax ?? '',
+          }
+        : {}),
+    };
+  }
+
+  private applyQuestionInputToForm(question: AddQuizQuestionInput): void {
+    this.form.controls.text.setValue(question.text);
+    this.form.controls.type.setValue(question.type);
+    this.form.controls.difficulty.setValue(question.difficulty);
+    this.form.setControl('answers', this.createAnswerArrayForType(question.type, question.answers));
+    this.form.controls.ratingMin.setValue(question.ratingMin ?? 1);
+    this.form.controls.ratingMax.setValue(question.ratingMax ?? 5);
+    this.form.controls.ratingLabelMin.setValue(question.ratingLabelMin ?? '');
+    this.form.controls.ratingLabelMax.setValue(question.ratingLabelMax ?? '');
+    this.form.controls.questionTimer.setValue(question.timer ?? null);
+    this.form.controls.questionSkipReadingPhase.setValue(question.skipReadingPhase ?? false);
+  }
+
+  private mergeQuestionWithDraft(
+    question: QuizQuestion,
+    draft: AddQuizQuestionInput,
+  ): QuizQuestion {
+    return {
+      ...question,
+      text: draft.text,
+      type: draft.type,
+      difficulty: draft.difficulty,
+      timer: draft.timer ?? null,
+      skipReadingPhase: draft.skipReadingPhase ?? false,
+      answers: draft.answers.map((answer, index) => ({
+        id: question.answers[index]?.id ?? `${question.id}-draft-${index}`,
+        text: answer.text,
+        isCorrect: answer.isCorrect,
+      })),
+      ratingMin: draft.type === 'RATING' ? (draft.ratingMin ?? 1) : null,
+      ratingMax: draft.type === 'RATING' ? (draft.ratingMax ?? 5) : null,
+      ratingLabelMin: draft.type === 'RATING' ? (draft.ratingLabelMin ?? '') : null,
+      ratingLabelMax: draft.type === 'RATING' ? (draft.ratingLabelMax ?? '') : null,
+    };
+  }
+
   private resetQuestionForm(type: SupportedQuestionType = this.typeControl.value): void {
     this.form.controls.text.reset('');
     this.form.controls.type.reset(type);
     this.form.controls.difficulty.reset('MEDIUM');
+    this.form.controls.questionTimer.reset(null);
+    this.form.controls.questionSkipReadingPhase.reset(false);
     this.form.setControl('answers', this.createAnswerArrayForType(type));
     this.form.controls.ratingMin.reset(1);
     this.form.controls.ratingMax.reset(5);
@@ -950,6 +1329,40 @@ export class QuizEditComponent implements OnDestroy {
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.scheduleLivePreview();
+  }
+
+  private isQuestionInputValid(question: AddQuizQuestionInput): boolean {
+    if (question.text.length === 0 || question.text.length > 2000) {
+      return false;
+    }
+
+    const timer = question.timer ?? null;
+    if (timer !== null && (timer < 5 || timer > 300)) {
+      return false;
+    }
+
+    if (question.type === 'FREETEXT' || question.type === 'RATING') {
+      return question.answers.length === 0;
+    }
+
+    if (question.answers.length < 2 || question.answers.length > 10) {
+      return false;
+    }
+
+    if (question.answers.some((answer) => answer.text.length === 0 || answer.text.length > 500)) {
+      return false;
+    }
+
+    const correctCount = question.answers.filter((answer) => answer.isCorrect).length;
+    if (question.type === 'SINGLE_CHOICE') {
+      return correctCount === 1;
+    }
+
+    if (question.type === 'MULTIPLE_CHOICE') {
+      return correctCount >= 1;
+    }
+
+    return true;
   }
 
   private buildQuestionAnswersForType(): AddQuizQuestionInput['answers'] {
@@ -1032,11 +1445,15 @@ export class QuizEditComponent implements OnDestroy {
     }
 
     this.previewTimer = setTimeout(() => {
-      const questionResult = renderMarkdownWithKatex(this.textControl.value);
+      const questionResult = renderMarkdownWithKatex(this.textControl.value, {
+        imagePolicy: 'allow-relative-and-https',
+      });
       this.questionPreviewHtml.set(this.sanitizer.bypassSecurityTrustHtml(questionResult.html));
 
       const answerResults = this.answersArray.controls.map((answer) =>
-        renderMarkdownWithKatex(answer.controls.text.value),
+        renderMarkdownWithKatex(answer.controls.text.value, {
+          imagePolicy: 'allow-relative-and-https',
+        }),
       );
       this.answerPreviewHtml.set(
         answerResults.map((result) => this.sanitizer.bypassSecurityTrustHtml(result.html)),
@@ -1068,7 +1485,7 @@ function motifImageUrlOptionalHttpsValidator(control: AbstractControl): Validati
 function parseTeamNamesText(value: string): string[] {
   return value
     .split('\n')
-    .map((entry) => entry.trim())
+    .map((entry) => replaceEmojiShortcodes(entry.trim()))
     .filter((entry) => entry.length > 0);
 }
 

@@ -22,6 +22,8 @@ import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-fr
 import {
   aggregateWeightedWords,
   getStopwordsForLocale,
+  normalizeFreeTextResponseForDisplay,
+  responseContainsWord,
   type WeightedWordSource,
 } from './word-cloud.util';
 
@@ -140,8 +142,9 @@ export class WordCloudComponent {
 
   readonly filteredResponses = computed(() => {
     const selected = this.selectedWord();
-    if (!selected) return this.responses();
-    return this.responses().filter((response) => response.toLowerCase().includes(selected));
+    return this.responses()
+      .filter((response) => !selected || responseContainsWord(response, selected))
+      .map((response) => normalizeFreeTextResponseForDisplay(response));
   });
 
   readonly stageMinHeight = computed(() => {

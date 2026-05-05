@@ -1,5 +1,7 @@
 import { AbstractControl, FormArray, FormControl, FormGroup } from '@angular/forms';
 
+type ScrollAlign = 'start' | 'center';
+
 function isVisible(element: HTMLElement): boolean {
   const view = element.ownerDocument.defaultView;
   if (!view) return true;
@@ -15,9 +17,7 @@ function isVisible(element: HTMLElement): boolean {
 export function focusAndScrollElement(element: HTMLElement | null | undefined): boolean {
   if (!element) return false;
 
-  if (typeof element.scrollIntoView === 'function') {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-  }
+  scrollElementIntoAppShell(element, 'center');
 
   try {
     element.focus({ preventScroll: true });
@@ -26,6 +26,40 @@ export function focusAndScrollElement(element: HTMLElement | null | undefined): 
   }
 
   return true;
+}
+
+export function scrollElementIntoAppShell(
+  element: HTMLElement | null | undefined,
+  align: ScrollAlign = 'start',
+): boolean {
+  if (!element) return false;
+
+  const scrollRoot = element.closest('.app-main') as HTMLElement | null;
+  if (scrollRoot) {
+    const rootRect = scrollRoot.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+    const toolbarClearancePx = parseFloat(getComputedStyle(scrollRoot).paddingTop) || 0;
+    const elementTop = elementRect.top - rootRect.top + scrollRoot.scrollTop;
+    const gapPx = 8;
+    const visibleHeight = Math.max(1, scrollRoot.clientHeight - toolbarClearancePx);
+    const nextTop =
+      align === 'center'
+        ? elementTop - toolbarClearancePx - Math.max(0, (visibleHeight - elementRect.height) / 2)
+        : elementTop - toolbarClearancePx - gapPx;
+    scrollRoot.scrollTo({ top: Math.max(0, nextTop), behavior: 'smooth' });
+    return true;
+  }
+
+  if (typeof element.scrollIntoView === 'function') {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: align,
+      inline: 'nearest',
+    });
+    return true;
+  }
+
+  return false;
 }
 
 function findFirstInvalidPath(
@@ -107,9 +141,7 @@ export function focusFirstInvalidField(
 
       const lastSegment = path[path.length - 1];
       if (lastSegment) {
-        const fallback = container.querySelector<HTMLElement>(
-          `[formcontrolname="${lastSegment}"]`,
-        );
+        const fallback = container.querySelector<HTMLElement>(`[formcontrolname="${lastSegment}"]`);
         if (focusAndScrollElement(fallback)) {
           return true;
         }
@@ -125,8 +157,8 @@ export function focusFirstInvalidField(
     'mat-checkbox.ng-invalid',
   ].join(', ');
 
-  const candidates = Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(
-    (field) => isVisible(field),
+  const candidates = Array.from(container.querySelectorAll<HTMLElement>(selector)).filter((field) =>
+    isVisible(field),
   );
   const first = candidates[0];
   if (!first) return false;

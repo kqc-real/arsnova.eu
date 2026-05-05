@@ -12,12 +12,14 @@ datasource db {
 // Kein creatorId/User – die App ist accountfrei (Zero-Account, Local-First).
 model Quiz {
   id                   String     @id @default(uuid())
+  historyScopeId       String?    @db.Uuid // Stabile Quiz-Identität über mehrere Upload-Kopien hinweg
   name                 String
   description          String?
   motifImageUrl        String?    // HTTPS-URL, optionales Motivbild (Host, Quiz-Kanal)
   showLeaderboard      Boolean    @default(true)   // Story 1.4: Leaderboard an/aus
   allowCustomNicknames Boolean    @default(true)   // Story 1.4: Eigene Pseudonyme erlauben
   defaultTimer         Int?                         // Story 1.4: Standard-Countdown in Sekunden
+  timerScaleByDifficulty Boolean  @default(true)   // Story 1.4: Timer nach EASY/MEDIUM/HARD skalieren
   enableSoundEffects   Boolean    @default(true)   // Story 5.1: Sound-Effekte an/aus
   enableRewardEffects  Boolean    @default(true)   // Story 5.4: Belohnungseffekte an/aus
   enableMotivationMessages Boolean @default(true) // Story 5.7: Motivationsmeldungen an/aus
@@ -36,6 +38,8 @@ model Quiz {
   sessions             Session[]
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
+
+  @@index([historyScopeId])
 }
 
 // Eine einzelne Frage
@@ -45,6 +49,7 @@ model Question {
   type       QuestionType
   timer      Int?           // Optionaler Countdown in Sekunden (überschreibt Quiz.defaultTimer)
   difficulty Difficulty     @default(MEDIUM) // Schwierigkeitsgrad für Punkteberechnung
+  skipReadingPhase Boolean  @default(false) // Story 2.6a: Frage überspringt die globale Lesephase
   ratingMin  Int?           // Story 1.2c: Untere Skalengrenze (nur bei RATING, default: 1)
   ratingMax  Int?           // Story 1.2c: Obere Skalengrenze (nur bei RATING, default: 5)
   ratingLabelMin String?    // Story 1.2c: Label für Minimum (z.B. "Stimme gar nicht zu")
@@ -80,9 +85,19 @@ model Session {
   title           String?                          // Story 8.1: Titel für Q&A-Runden
   moderationMode  Boolean       @default(false)   // Story 8.4: Q&A-Fragen vorab moderieren
   qaEnabled       Boolean       @default(false)   // ADR-0009: Q&A-Kanal innerhalb einer Live-Session
+  qaOpen          Boolean       @default(false)   // ADR-0009: Q&A-Kanal aktuell für Teilnehmende geöffnet
   qaTitle         String?                          // ADR-0009: Titel des Q&A-Kanals
   qaModerationMode Boolean      @default(true)    // ADR-0009: Vorab-Moderation für Q&A-Kanal (Default: an)
   quickFeedbackEnabled Boolean  @default(false)   // ADR-0009: Blitz-Feedback-Kanal innerhalb einer Session
+  quickFeedbackOpen Boolean     @default(false)   // ADR-0009: Blitz-Feedback-Kanal aktuell für Teilnehmende geöffnet
+  onboardingProfileConfigured Boolean @default(false) // Session-weites Onboarding-Profil aktiv
+  onboardingAllowCustomNicknames Boolean?
+  onboardingAnonymousMode Boolean?
+  onboardingTeamMode Boolean?
+  onboardingTeamCount Int?
+  onboardingTeamAssignment TeamAssignment?
+  onboardingTeamNames String[]  @default([])
+  onboardingNicknameTheme NicknameTheme?
   currentQuestion Int?                             // Index der aktuell aktiven Frage (0-basiert)
   currentRound    Int              @default(1)     // Story 2.7: Peer Instruction – aktuelle Abstimmungsrunde (1 oder 2)
   quizId          String?                          // null bei Q&A-Sessions
@@ -128,7 +143,16 @@ model Participant {
 model PlatformStatistic {
   id                          String @id // fest: "default"
   maxParticipantsSingleSession Int   @default(0)
+  completedSessionsTotal      Int   @default(0) // Monotone Gesamtzahl beendeter Sessions (für health.stats)
   updatedAt                   DateTime @updatedAt
+}
+
+// Pro UTC-Tag genau ein Rekord für die größte einzelne Session (Story 0.4a)
+model DailyStatistic {
+  id                           String   @id @default(uuid())
+  date                         DateTime @unique @db.Date
+  maxParticipantsSingleSession Int      @default(0)
+  updatedAt                    DateTime @updatedAt
 }
 
 // Ein Team in einer Live-Session (Story 7.1)

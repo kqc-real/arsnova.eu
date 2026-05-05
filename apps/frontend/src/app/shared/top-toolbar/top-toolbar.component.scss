@@ -1,12 +1,19 @@
 /* Standard: sticky; mit --fixed (position: fixed) für Hide-on-Scroll. Fluchtlinien wie .l-page (Karten). */
 .top-toolbar {
+  --top-toolbar-inline: 1rem;
+  --top-toolbar-width: min(
+    var(--app-toolbar-max-width),
+    calc(100vw - (2 * var(--top-toolbar-inline)))
+  );
   position: sticky;
   top: 0;
   z-index: 10;
+  box-sizing: border-box;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
   margin-inline: auto;
-  max-width: 56rem;
+  width: var(--top-toolbar-width);
+  max-width: 100%;
   padding-inline: 1rem;
   border-radius: var(--mat-sys-corner-extra-large);
   background: var(--mat-sys-surface-container);
@@ -16,11 +23,13 @@
   transition: box-shadow 0.2s ease;
 
   @media (min-width: 600px) {
+    --top-toolbar-inline: 1.5rem;
     margin-top: 0.75rem;
     margin-bottom: 1.25rem;
     padding-inline: 1.5rem;
   }
   @media (min-width: 840px) {
+    --top-toolbar-inline: 2rem;
     margin-top: 1rem;
     margin-bottom: 1.5rem;
     padding-inline: 2rem;
@@ -44,27 +53,24 @@
 .top-toolbar--fixed {
   position: fixed;
   top: 0.5rem;
-  left: max(1rem, (100% - 56rem) / 2);
-  right: max(1rem, (100% - 56rem) / 2);
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: var(--top-toolbar-width);
   margin-bottom: 0;
-  max-width: none;
   margin-inline: 0;
 
   @media (min-width: 600px) {
     top: 0.75rem;
-    left: max(1.5rem, (100% - 56rem) / 2);
-    right: max(1.5rem, (100% - 56rem) / 2);
   }
   @media (min-width: 840px) {
     top: 1rem;
-    left: max(2rem, (100% - 56rem) / 2);
-    right: max(2rem, (100% - 56rem) / 2);
   }
 }
 
 /* Vollständig aus dem Viewport: über Oberkante schieben (inkl. Top-Inset + Puffer). */
 .top-toolbar--fixed.top-toolbar--hidden {
-  transform: translateY(-100vh);
+  transform: translate(-50%, -100vh);
 }
 
 @media (max-width: 599px) {

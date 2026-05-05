@@ -29,7 +29,7 @@
           <p class="session-present__winner-text">{{ winnerText }}</p>
         }
         <p class="session-present__winner-meta">
-          {{ teamMemberLabel(winner.memberCount) }} · {{ winner.totalScore | number }}
+          {{ teamMemberLabel(winner.memberCount) }} · {{ '∅ ' + (winner.totalScore | number) }}
           <span i18n>Punkte</span>
         </p>
       </mat-card-content>
@@ -61,7 +61,8 @@
                   {{ entry.teamName }}
                 </span>
                 <span class="session-present__team-board-meta">
-                  {{ teamMemberLabel(entry.memberCount) }} · {{ entry.totalScore | number }}
+                  {{ teamMemberLabel(entry.memberCount) }} ·
+                  {{ '∅ ' + (entry.totalScore | number) }}
                 </span>
               </div>
               <div class="session-present__team-board-track" aria-hidden="true">

@@ -7,7 +7,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { WordCloudComponent } from './word-cloud.component';
 import {
-  localizeKnownServerMessage,
+  localizeKnownServerError,
   sessionNotFoundUiMessage,
 } from '../../../core/localize-known-server-message';
 import { trpc } from '../../../core/trpc.client';
@@ -180,7 +180,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(renderMarkdownWithKatex(value).html);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      renderMarkdownWithKatex(value, { imagePolicy: 'external-https-only' }).html,
+    );
   }
 
   quickFeedbackHeading(type: string): string {
@@ -242,16 +244,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       }
       this.teamLeaderboard.set([]);
     } catch (error: unknown) {
-      const raw =
-        error &&
-        typeof error === 'object' &&
-        'message' in error &&
-        typeof (error as { message: string }).message === 'string'
-          ? (error as { message: string }).message
-          : sessionNotFoundUiMessage();
       this.session.set(null);
       this.showHomeCta.set(true);
-      this.presenterInfo.set(localizeKnownServerMessage(raw));
+      this.presenterInfo.set(localizeKnownServerError(error, sessionNotFoundUiMessage()));
       this.teamLeaderboard.set([]);
       this.pinnedQaQuestion.set(null);
       this.presenterQaQuestions.set([]);

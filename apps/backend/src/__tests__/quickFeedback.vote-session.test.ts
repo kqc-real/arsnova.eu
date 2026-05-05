@@ -106,6 +106,7 @@ describe('quickFeedback.vote und Session-Status', () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
       status: 'FINISHED',
     });
 
@@ -118,6 +119,37 @@ describe('quickFeedback.vote und Session-Status', () => {
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
 
     expect(redisMock.get).toHaveBeenCalledWith('qf:ABCDEF');
+  });
+
+  it('lehnt ab, wenn der Blitzlicht-Kanal für Teilnehmende geschlossen ist', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'MOOD',
+        theme: 'light',
+        preset: 'serious',
+        locked: false,
+        totalVotes: 0,
+        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+        sessionBound: true,
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: false,
+      status: 'ACTIVE',
+    });
+
+    await expect(
+      caller.vote({
+        sessionCode: 'ABCDEF',
+        voterId: VOTER_ID,
+        value: 'POSITIVE',
+      }),
+    ).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+      message: 'Der Blitzlicht-Kanal ist aktuell geschlossen.',
+    });
   });
 
   it('erlaubt Standalone-Blitzlicht-Stimmen ohne Session-Nachschlag', async () => {

@@ -5,6 +5,7 @@ import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { localizePath } from '../../../core/locale-router';
+import { resolveLocalizedAppUrl } from '../../../core/locale-router';
 import { QuizStoreService } from '../data/quiz-store.service';
 
 /**
@@ -26,24 +27,26 @@ export class QuizSyncComponent {
 
   readonly docId = this.route.snapshot.paramMap.get('docId') ?? '';
   readonly syncConnectionState = this.quizStore.syncConnectionState;
+  readonly syncPeerInfos = this.quizStore.syncPeerInfos;
   readonly syncError = signal<string | null>(null);
   readonly copyStatus = signal<string | null>(null);
-  readonly syncCode = computed(() =>
-    this.docId
-      .replaceAll(/[^a-zA-Z0-9]/g, '')
-      .slice(0, 8)
-      .toUpperCase(),
+  readonly hasConnectedPeer = computed(
+    () => this.syncConnectionState() === 'connected' && this.syncPeerInfos().length > 0,
   );
   readonly syncStatusLabel = computed(() => {
     const state = this.syncConnectionState();
-    if (state === 'connected') return 'Verbunden';
-    if (state === 'connecting') return 'Verbindung wird aufgebaut';
-    return 'Offline (nur lokal)';
+    if (state === 'connected') {
+      return this.hasConnectedPeer()
+        ? $localize`:@@quizSync.stateConnected:Verbunden`
+        : $localize`:@@quizSync.stateReady:Bereit (warte auf weiteres Gerät)`;
+    }
+    if (state === 'connecting') {
+      return $localize`:@@quizSync.stateConnecting:Verbindung wird aufgebaut`;
+    }
+    return $localize`:@@quizSync.stateOffline:Offline (nur lokal)`;
   });
   readonly syncLink = computed(() => {
-    const origin = this.document.defaultView?.location.origin;
-    const path = `/quiz/sync/${this.docId}`;
-    return origin ? `${origin}${path}` : path;
+    return resolveLocalizedAppUrl(`/quiz/sync/${this.docId}`);
   });
 
   constructor() {
@@ -57,11 +60,10 @@ export class QuizSyncComponent {
   }
 
   async copySyncLink(): Promise<void> {
-    await this.copyText(this.syncLink(), 'Sync-Link wurde kopiert.');
-  }
-
-  async copySyncCode(): Promise<void> {
-    await this.copyText(this.syncCode(), 'Kurzcode wurde kopiert.');
+    await this.copyText(
+      this.syncLink(),
+      $localize`:@@quizSync.copyLinkDone:Sync-Link wurde kopiert.`,
+    );
   }
 
   private async copyText(value: string, successMessage: string): Promise<void> {
@@ -74,7 +76,9 @@ export class QuizSyncComponent {
       await clipboard.writeText(value);
       this.copyStatus.set(successMessage);
     } catch {
-      this.copyStatus.set($localize`Kopieren nicht möglich. Bitte manuell markieren und kopieren.`);
+      this.copyStatus.set(
+        $localize`:@@quizSync.copyFailed:Kopieren nicht möglich. Bitte manuell markieren und kopieren.`,
+      );
     }
   }
 }

@@ -88,6 +88,9 @@ const statements = [
   // Quiz: readingPhaseEnabled
   `ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "readingPhaseEnabled" BOOLEAN NOT NULL DEFAULT true`,
 
+  // Question: per-Frage-Override für die Lesephase
+  `ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS "skipReadingPhase" BOOLEAN NOT NULL DEFAULT false`,
+
   // Quiz: bonusTokenCount
   `ALTER TABLE "Quiz" ADD COLUMN IF NOT EXISTS "bonusTokenCount" INTEGER`,
 

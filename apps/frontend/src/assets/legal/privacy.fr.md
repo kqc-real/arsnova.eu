@@ -13,7 +13,7 @@ E-mail : [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org)
 
 ## 2. Champ d'application
 
-Cette politique de confidentialité s'applique à **https://arsnova.eu** (site d'information et de présentation) et, le cas échéant, à votre utilisation de l'application arsnova.eu (quiz et sondages en direct). Si l'application est auto-hébergée par votre organisation ou institution, cette dernière agit en tant que responsable du traitement, et sa propre politique de confidentialité s'applique.
+Cette politique de confidentialité s'applique à https://arsnova.eu (site d'information et de présentation) et, le cas échéant, à votre utilisation de l'application arsnova.eu (quiz et sondages en direct). Si l'application est auto-hébergée par votre organisation ou institution, cette dernière agit en tant que responsable du traitement, et sa propre politique de confidentialité s'applique.
 
 ## 3. Données collectées lors de la visite d'arsnova.eu
 
@@ -31,7 +31,7 @@ Sur arsnova.eu, vous trouverez des liens vers des services externes (par ex. Git
 
 arsnova.eu est hébergé en Allemagne par Hetzner Online GmbH. Hetzner est audité chaque année par le TÜV Rheinland afin de garantir le respect des normes de sécurité strictes prévues à l'art. 32 du RGPD.
 
-Le site web et l'application sur **https://arsnova.eu** fonctionnent sur les serveurs de Hetzner. Si le logiciel est hébergé **par vous ou un tiers** (par ex. votre établissement), les données d'accès (comme l'adresse IP) peuvent être enregistrées sur les serveurs du prestataire concerné. Si l'application est hébergée dans un pays hors de l'UE (ex. : aux États-Unis), des transferts de données peuvent avoir lieu, sous réserve de garanties appropriées (telles que les clauses contractuelles types selon l'art. 46 du RGPD). Une page de présentation distincte (pour les démos et le marketing) peut occasionnellement être hébergée via **GitHub Pages** sous un autre nom de domaine — sans lien avec le site principal arsnova.eu ; pour plus de détails, consultez la [Déclaration de confidentialité de GitHub](https://docs.github.com/fr/site-policy/privacy-policies/github-privacy-statement). Le fournisseur spécifique et le lieu de stockage dépendent de la configuration choisie.
+Le site web et l'application sur https://arsnova.eu fonctionnent sur les serveurs de Hetzner. Si le logiciel est hébergé **par vous ou un tiers** (par ex. votre établissement), les données d'accès (comme l'adresse IP) peuvent être enregistrées sur les serveurs du prestataire concerné. Si l'application est hébergée dans un pays hors de l'UE (ex. : aux États-Unis), des transferts de données peuvent avoir lieu, sous réserve de garanties appropriées (telles que les clauses contractuelles types selon l'art. 46 du RGPD). Une page de présentation distincte (pour les démos et le marketing) peut occasionnellement être hébergée via GitHub Pages sous un autre nom de domaine — sans lien avec le site principal arsnova.eu ; pour plus de détails, consultez la [Déclaration de confidentialité de GitHub](https://docs.github.com/fr/site-policy/privacy-policies/github-privacy-statement). Le fournisseur spécifique et le lieu de stockage dépendent de la configuration choisie.
 
 ## 6. Vos droits
 

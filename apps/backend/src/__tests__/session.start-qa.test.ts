@@ -54,8 +54,10 @@ describe('session.startQa (Story 8.1)', () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       type: 'Q_AND_A',
+      quizId: null,
       status: 'LOBBY',
       qaEnabled: true,
+      qaOpen: true,
     });
 
     const result = await caller.startQa({ code: 'abc123' });
@@ -66,7 +68,7 @@ describe('session.startQa (Story 8.1)', () => {
     expect(result.activeAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
       where: { code: 'ABC123' },
-      select: { id: true, status: true, type: true, qaEnabled: true },
+      select: { id: true, status: true, type: true, quizId: true, qaEnabled: true, qaOpen: true },
     });
     expect(prismaMock.session.update).toHaveBeenCalledWith({
       where: { id: SESSION_ID },
@@ -78,8 +80,10 @@ describe('session.startQa (Story 8.1)', () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
       status: 'LOBBY',
       qaEnabled: true,
+      qaOpen: true,
     });
 
     const result = await caller.startQa({ code: 'ABC123' });
@@ -90,12 +94,35 @@ describe('session.startQa (Story 8.1)', () => {
     expect(prismaMock.session.update).not.toHaveBeenCalled();
   });
 
+  it('startet eine quizlose Quiz-Session mit Q&A-Kanal in ACTIVE', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      type: 'QUIZ',
+      quizId: null,
+      status: 'LOBBY',
+      qaEnabled: true,
+      qaOpen: true,
+    });
+
+    const result = await caller.startQa({ code: 'ABC123' });
+
+    expect(result.status).toBe('ACTIVE');
+    expect(result.currentQuestion).toBeNull();
+    expect(result.currentRound).toBe(1);
+    expect(prismaMock.session.update).toHaveBeenCalledWith({
+      where: { id: SESSION_ID },
+      data: expect.objectContaining({ status: 'ACTIVE' }),
+    });
+  });
+
   it('lehnt den Start außerhalb der Lobby ab', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       type: 'Q_AND_A',
+      quizId: null,
       status: 'ACTIVE',
       qaEnabled: true,
+      qaOpen: true,
     });
 
     await expect(caller.startQa({ code: 'ABC123' })).rejects.toMatchObject({

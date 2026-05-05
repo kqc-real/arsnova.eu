@@ -25,7 +25,7 @@
 - **Lesephase:** Frage sichtbar, Antwortoptionen noch nicht (Status `QUESTION_OPEN`). Vorkommen: Quiz-Ablauf. Vertiefung: Story 2.6, DTO „Preview“.
 - **Antwortphase:** Antworten wählbar (Status `ACTIVE`); ohne `isCorrect` für Teilnehmende. Vorkommen: Quiz. Vertiefung: Data-Stripping.
 - **Ergebnisphase:** Auflösung mit Lösungen und Punkten (`RESULTS`). Vorkommen: Quiz, Beamer. Vertiefung: Story 2.4.
-- **Preset:** Voreinstellung **Seriös** oder **Spielerisch** (Gamification, Zeit, Lesephase, …). Vorkommen: Startseite, Header-Toggle. Vertiefung: [preset-modes](features/preset-modes.md).
+- **Preset:** Voreinstellung **Seriös** oder **Spielerisch** (Gamification, Zeit, Lesephase, **Action Sounds**, …). Vorkommen: Quiz neu/bearbeiten, Startseite, Header-Toggle. Kanonische Quiz-Defaults: `QUIZ_PRESETS` in shared-types. Vertiefung: [preset-modes](features/preset-modes.md).
 - **Preset-Toast:** Overlay zum Feintuning der Preset-Optionen und Speichern in `localStorage`. Vorkommen: Startseite. Vertiefung: `PresetToastComponent`.
 - **Bonus-Code:** Token `BNS-…` für Top-Plätze nach Session-Ende; freiwillige Einreichung bei Dozenten. Vorkommen: Ergebnis, Host. Vertiefung: [bonus-codes](features/bonus-codes.md).
 - **Team-Modus:** Teilnehmende in 2–8 Teams; Auto- oder Manual-Zuweisung beim Join. Vorkommen: Quiz-Settings, Join, Ergebnis. Vertiefung: [team-mode](features/team-mode.md).
@@ -36,6 +36,35 @@
 - **Scorecard:** Persönliche Auswertung (Punkte, Streak, Rang) für Teilnehmende. Vorkommen: Nach Fragen / Ende. Vertiefung: Story 5.6.
 - **Peer Instruction:** Zweite Abstimmungsrunde **im Quiz** (Vorher/Nachher), unabhängig von Blitzlicht-Vergleichsrunde. Vorkommen: Session `currentRound`. Vertiefung: Story 2.7.
 - **Server-Status:** Footer-Kennzahlen (aktive Sessions, Blitz-Runden, …) via `health.stats`. Vorkommen: App-Footer. Vertiefung: [server-status-widget](features/server-status-widget.md).
+
+---
+
+## Abkürzungsverzeichnis (projektbezogen)
+
+Diese Kürzel tauchen in Doku, Tickets, Reviews, Commits und im technischen Gespräch rund um arsnova.eu regelmäßig auf.
+
+| Kürzel     | Bedeutung                                | Kontext in arsnova.eu                                                                             |
+| ---------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **ADR**    | Architecture Decision Record             | Architekturentscheidungen unter [`docs/architecture/decisions/`](architecture/decisions/)         |
+| **A11y**   | Accessibility / Barrierefreiheit         | Story 6.5, UI-Review, Tastatur, Screenreader, Kontraste                                           |
+| **CSR**    | Client-Side Rendering                    | Normales Angular-Routing und UI-Rendering im Browser                                              |
+| **DTO**    | Data Transfer Object                     | Geteilte API-Form zwischen Backend und Frontend; siehe `libs/shared-types`                        |
+| **DoD**    | Definition of Done                       | Verbindliche Abnahmekriterien pro Story im [`Backlog.md`](../Backlog.md)                          |
+| **IAB**    | In-App Browser                           | Eingebetteter Browser z. B. aus QR-Scanner, Mail- oder Messenger-App; relevant für Join-/QR-Flows |
+| **i18n**   | Internationalization                     | Mehrsprachigkeit der App-Struktur, Message-IDs, Locale-Routing                                    |
+| **l10n**   | Localization                             | Konkrete Übersetzung und Lokalisierung pro Sprache (`de`, `en`, `fr`, `it`, `es`)                 |
+| **MOTD**   | Message of the Day                       | Plattform-/News-Overlay und Archiv; siehe [features/motd.md](features/motd.md)                    |
+| **NLP**    | Natural Language Processing              | Freitext-Auswertung, Wortwolke, semantische Bündelung                                             |
+| **PWA**    | Progressive Web App                      | Installierbare Web-App mit Service Worker und Offline-/Update-Mechanik                            |
+| **Prisma** | Prisma ORM / Schema-Tooling              | Datenmodell und Datenbankzugriff; Quelle: [`prisma/schema.prisma`](../prisma/schema.prisma)       |
+| **QR**     | Quick Response Code                      | Session-Beitritt, Join-Link, Einstieg per Kamera-Scan                                             |
+| **Redis**  | In-Memory-Datenspeicher / Pub-Sub-Broker | Echtzeit, Blitzlicht-Zustand (`qf:*`), Live-Signale                                               |
+| **SPA**    | Single-Page Application                  | Grundform des Frontends: eine Angular-App statt klassischer Mehrseiten-App                        |
+| **SSR**    | Server-Side Rendering                    | Angular-Server-/Prerender-Pfad für SEO, Social Previews und lokalisierte Builds                   |
+| **tRPC**   | Typed Remote Procedure Call              | End-to-End typisierte API zwischen Frontend und Backend                                           |
+| **UI**     | User Interface                           | Oberfläche, Komponenten, Layout, Beschriftung                                                     |
+| **UX**     | User Experience                          | Bedienerlebnis, Verständlichkeit, Fluss, Feedback                                                 |
+| **Yjs**    | CRDT-Bibliothek für kollaborative Daten  | Local-First Quiz-Sammlung, Sync zwischen Geräten                                                  |
 
 ---
 

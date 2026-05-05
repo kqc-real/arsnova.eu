@@ -21,7 +21,6 @@ describe('buildKiQuizSystemPrompt', () => {
       teamCount: 4,
       teamAssignment: 'MANUAL',
       teamNames: ['Team A', 'Team B', 'Team C', 'Team D'],
-      backgroundMusic: 'CALM_LOFI',
       bonusTokenCount: 3,
     });
 
@@ -90,6 +89,11 @@ describe('buildKiQuizSystemPrompt', () => {
     );
     expect(prompt).toContain(
       '"type": "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "FREETEXT" | "SURVEY" | "RATING"',
+    );
+    expect(prompt).toContain('Per-question timer (`questions[].timer`):');
+    expect(prompt).toContain('uses the quiz-wide limit from `quiz.defaultTimer`');
+    expect(prompt).toContain(
+      'Validate privately that each `questions[].timer` is either absent, null, or an integer between 5 and 300',
     );
     expect(prompt.match(/```json/g)?.length).toBe(4);
     expect(prompt).toContain('Efficient dialogue (use injected defaults):');

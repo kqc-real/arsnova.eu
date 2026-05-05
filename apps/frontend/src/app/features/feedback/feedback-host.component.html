@@ -66,7 +66,7 @@
 } @else if (result(); as data) {
   <ng-template #feedbackHostJoinActions>
     <div class="feedback-host__actions">
-      @if (isDiscussion()) {
+      @if (isDiscussion() && embeddedInSession()) {
         <button
           mat-flat-button
           color="primary"
@@ -80,16 +80,7 @@
           <span i18n>Zweite Abstimmung</span>
         </button>
       } @else if (!isRound2()) {
-        <button
-          mat-button
-          type="button"
-          (click)="toggleLock()"
-          [attr.aria-label]="lockToggleAriaLabel()"
-        >
-          <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
-          {{ lockToggleLabel() }}
-        </button>
-        @if (data.totalVotes > 0) {
+        @if (data.totalVotes > 0 && embeddedInSession()) {
           <button
             mat-button
             type="button"
@@ -101,16 +92,6 @@
             <span i18n="@@feedback.compareRoundLabel">Vergleichsrunde</span>
           </button>
         }
-      } @else {
-        <button
-          mat-button
-          type="button"
-          (click)="toggleLock()"
-          [attr.aria-label]="lockToggleAriaLabel()"
-        >
-          <mat-icon>{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
-          {{ lockToggleLabel() }}
-        </button>
       }
       <button
         mat-button
@@ -136,15 +117,6 @@
       >
         <mat-icon>restart_alt</mat-icon>
         <span i18n>Zurücksetzen</span>
-      </button>
-      <button
-        mat-button
-        type="button"
-        class="feedback-host__action-link feedback-host__end-session-link"
-        (click)="endSession()"
-      >
-        <mat-icon>stop_circle</mat-icon>
-        <span i18n>Session beenden</span>
       </button>
     </div>
     <div class="feedback-host__template-switch">
@@ -185,6 +157,7 @@
   <div
     class="feedback-host app-live-channel-shell"
     [class.feedback-host--embedded]="embeddedInSession()"
+    [class.feedback-host--with-bottom-actions]="showStandaloneBottomActionBar()"
   >
     <div class="feedback-host__wrapper">
       <section
@@ -232,7 +205,7 @@
                   class="feedback-host__join-viewport-overlay__surface feedback-host__join-menu-panel"
                   role="dialog"
                   aria-modal="true"
-                  aria-labelledby="feedback-host-join-lead feedback-host-join-origin"
+                  aria-labelledby="feedback-host-join-origin"
                   id="feedback-host-join-info"
                   tabindex="-1"
                   (click)="$event.stopPropagation()"
@@ -254,31 +227,17 @@
                       <mat-icon>qr_code_2</mat-icon>
                     </span>
                     <div class="dialog-title-header__copy feedback-host__join-menu-title-copy">
-                      <p
-                        id="feedback-host-join-lead"
-                        class="feedback-host__join-menu-lead"
-                        i18n="@@sessionHost.joinMenuLead"
-                      >
-                        Gehe auf
-                      </p>
                       <p id="feedback-host-join-origin" class="feedback-host__join-menu-origin">
                         {{ joinOriginForMenu() }}
                       </p>
                     </div>
                   </div>
                   @if (qrDataUrl()) {
-                    <p
-                      class="feedback-host__join-menu-qr-hint"
-                      i18n="@@sessionHost.joinMenuFullscreenHint"
-                    >
-                      Wenn etwas abgeschnitten wirkt: Hier nach unten scrollen. Für eine größere
-                      Ansicht reicht ein Klick auf den QR-Code.
-                    </p>
                     <div class="feedback-host__join-menu-qr-wrap">
                       <img
                         appMarkdownImageLightbox
                         [src]="qrDataUrl()"
-                        alt="QR-Code: Beitritts-Link {{ joinUrl }}"
+                        [attr.alt]="joinUrl"
                         data-markdown-image-lightbox="true"
                         class="feedback-host__join-menu-qr feedback-host__join-menu-qr--viewport-overlay app-qr-image"
                         width="320"
@@ -576,6 +535,30 @@
         }
       </section>
     </div>
+    @if (showStandaloneBottomActionBar()) {
+      <div class="feedback-host__bottom-actions">
+        <button
+          mat-button
+          type="button"
+          class="feedback-host__bottom-action-secondary"
+          (click)="endSession()"
+        >
+          <mat-icon>stop_circle</mat-icon>
+          <span i18n>Session beenden</span>
+        </button>
+        <button
+          matButton="filled"
+          type="button"
+          class="feedback-host__bottom-action-primary"
+          [class.feedback-host__next-round-cta]="standalonePrimaryActionKind() === 'second-round'"
+          (click)="runStandalonePrimaryAction()"
+          [attr.aria-label]="standalonePrimaryActionAriaLabel()"
+        >
+          <mat-icon>{{ standalonePrimaryActionIcon() }}</mat-icon>
+          <span>{{ standalonePrimaryActionLabel() }}</span>
+        </button>
+      </div>
+    }
   </div>
 } @else {
   <div class="feedback-host__loading">

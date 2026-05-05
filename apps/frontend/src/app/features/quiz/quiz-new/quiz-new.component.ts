@@ -1,4 +1,13 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -22,6 +31,7 @@ import {
   DEFAULT_TIMER_SECONDS,
   MOTIF_IMAGE_URL_MAX_LENGTH,
   MotifImageUrlSchema,
+  PresetStorageEntrySchema,
   QUIZ_PRESETS,
   type NicknameTheme,
   type QuizPreset,
@@ -29,7 +39,11 @@ import {
 } from '@arsnova/shared-types';
 import { mergeTimerPresetOptions } from '../default-timer-presets';
 import { QuizStoreService, type QuizSettings } from '../data/quiz-store.service';
+import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
+import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import { localizeCommands } from '../../../core/locale-router';
 import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util';
@@ -57,6 +71,8 @@ import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util
     MatLabel,
     MatOption,
     MatSelect,
+    MarkdownImageLightboxDirective,
+    MarkdownKatexEditorComponent,
   ],
   templateUrl: './quiz-new.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-new.component.scss'],
@@ -91,6 +107,9 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   readonly submitError = signal<string | null>(null);
   readonly submitted = signal(false);
   readonly showSettings = signal(false);
+  readonly hasLocalPresetOverrides = computed(() =>
+    hasLocalPresetOverridesForQuizPreset(this.currentQuizPreset()),
+  );
   @ViewChild('quizCreateForm') private quizCreateForm?: ElementRef<HTMLFormElement>;
 
   readonly form = this.formBuilder.nonNullable.group({
@@ -101,10 +120,11 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       [Validators.maxLength(MOTIF_IMAGE_URL_MAX_LENGTH), motifImageUrlOptionalHttpsValidator],
     ],
     showLeaderboard: [true],
-    allowCustomNicknames: [true],
+    allowCustomNicknames: [false],
     defaultTimer: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(5), Validators.max(300)],
     }),
+    timerScaleByDifficulty: [true],
     enableSoundEffects: [true],
     enableRewardEffects: [true],
     enableMotivationMessages: [true],
@@ -117,7 +137,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     }),
     teamAssignment: this.formBuilder.control<TeamAssignment>('AUTO'),
     teamNamesText: [''],
-    nicknameTheme: this.formBuilder.control<NicknameTheme>('NOBEL_LAUREATES'),
+    nicknameTheme: this.formBuilder.control<NicknameTheme>('HIGH_SCHOOL'),
     bonusEnabled: [false],
     bonusTokenCount: this.formBuilder.control<number | null>(DEFAULT_BONUS_TOKEN_COUNT, {
       validators: [Validators.min(1), Validators.max(50)],
@@ -157,6 +177,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    /** Vollständige Preset-Defaults zum Home-Thema (nicht nur Timer/Nickname), damit die Maske initial stimmt. */
+    this.applyPreset(this.currentQuizPreset());
     this.syncTeamNamesValidation();
     this.localeGuard.register(() => this.form.dirty);
   }
@@ -187,6 +209,10 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     return $localize`Benutzerdefiniert`;
   }
 
+  openSettingsForPresetReview(): void {
+    this.showSettings.set(true);
+  }
+
   applyPreset(preset: QuizPreset): void {
     const values = QUIZ_PRESETS[preset];
     this.form.patchValue({
@@ -196,8 +222,11 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       enableMotivationMessages: values.enableMotivationMessages ?? true,
       enableEmojiReactions: values.enableEmojiReactions ?? true,
       anonymousMode: values.anonymousMode ?? false,
+      allowCustomNicknames: values.allowCustomNicknames ?? false,
+      nicknameTheme: values.nicknameTheme ?? 'HIGH_SCHOOL',
       readingPhaseEnabled: values.readingPhaseEnabled ?? false,
       defaultTimer: values.defaultTimer ?? null,
+      timerScaleByDifficulty: values.timerScaleByDifficulty ?? true,
     });
   }
 
@@ -214,15 +243,22 @@ export class QuizNewComponent implements OnInit, OnDestroy {
         (target.enableEmojiReactions ?? current.enableEmojiReactions) &&
       current.anonymousMode === (target.anonymousMode ?? current.anonymousMode) &&
       current.readingPhaseEnabled === (target.readingPhaseEnabled ?? current.readingPhaseEnabled) &&
-      current.defaultTimer === (target.defaultTimer ?? current.defaultTimer)
+      current.defaultTimer === (target.defaultTimer ?? current.defaultTimer) &&
+      current.timerScaleByDifficulty ===
+        (target.timerScaleByDifficulty ?? current.timerScaleByDifficulty) &&
+      current.allowCustomNicknames ===
+        (target.allowCustomNicknames ?? current.allowCustomNicknames) &&
+      current.nicknameTheme === (target.nicknameTheme ?? current.nicknameTheme)
     );
   }
 
   private readSettingsFromForm(): QuizSettings {
+    const selectedPreset = this.currentQuizPreset();
     return {
       showLeaderboard: this.form.controls.showLeaderboard.value,
       allowCustomNicknames: this.form.controls.allowCustomNicknames.value,
       defaultTimer: this.defaultTimerControl.value,
+      timerScaleByDifficulty: this.form.controls.timerScaleByDifficulty.value,
       enableSoundEffects: this.form.controls.enableSoundEffects.value,
       enableRewardEffects: this.form.controls.enableRewardEffects.value,
       enableMotivationMessages: this.form.controls.enableMotivationMessages.value,
@@ -233,13 +269,17 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       teamAssignment: this.form.controls.teamAssignment.value ?? 'AUTO',
       teamNames: parseTeamNamesText(this.form.controls.teamNamesText.value),
       backgroundMusic: null,
-      nicknameTheme: this.form.controls.nicknameTheme.value ?? 'NOBEL_LAUREATES',
+      nicknameTheme: this.form.controls.nicknameTheme.value ?? 'HIGH_SCHOOL',
       bonusTokenCount: this.form.controls.bonusEnabled.value
         ? (this.bonusTokenCountControl.value ?? DEFAULT_BONUS_TOKEN_COUNT)
         : null,
       readingPhaseEnabled: this.form.controls.readingPhaseEnabled.value,
-      preset: this.themePreset.preset() === 'serious' ? ('SERIOUS' as const) : ('PLAYFUL' as const),
+      preset: selectedPreset,
     };
+  }
+
+  private currentQuizPreset(): QuizPreset {
+    return this.themePreset.preset() === 'serious' ? 'SERIOUS' : 'PLAYFUL';
   }
 
   async submit(): Promise<void> {
@@ -295,7 +335,7 @@ function motifImageUrlOptionalHttpsValidator(control: AbstractControl): Validati
 function parseTeamNamesText(value: string): string[] {
   return value
     .split('\n')
-    .map((entry) => entry.trim())
+    .map((entry) => replaceEmojiShortcodes(entry.trim()))
     .filter((entry) => entry.length > 0);
 }
 
@@ -342,4 +382,59 @@ function normalizeTeamCount(teamCount: number | null | undefined): number {
 
 function buildDefaultTeamName(index: number): string {
   return `Team ${String.fromCharCode(65 + index)}`;
+}
+
+function presetDefaultOptions(quizPreset: QuizPreset): Record<string, boolean> {
+  if (quizPreset === 'SERIOUS') {
+    return {
+      showLeaderboard: false,
+      enableRewardEffects: false,
+      enableMotivationMessages: false,
+      enableEmojiReactions: false,
+      bonusTokenCount: false,
+      defaultTimer: false,
+      readingPhaseEnabled: true,
+      teamMode: false,
+      teamAssignment: false,
+      enableSoundEffects: false,
+    };
+  }
+  return {
+    showLeaderboard: true,
+    enableRewardEffects: true,
+    enableMotivationMessages: true,
+    enableEmojiReactions: true,
+    bonusTokenCount: false,
+    defaultTimer: true,
+    readingPhaseEnabled: false,
+    teamMode: false,
+    teamAssignment: false,
+    enableSoundEffects: true,
+  };
+}
+
+function hasLocalPresetOverridesForQuizPreset(quizPreset: QuizPreset): boolean {
+  const storage = typeof localStorage === 'undefined' ? null : localStorage;
+  if (!storage) return false;
+  try {
+    const key = homePresetOptionsKeyForQuizPreset(quizPreset);
+    const raw = storage.getItem(key);
+    if (!raw) return false;
+    const parsed = PresetStorageEntrySchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) return false;
+    const defaults = presetDefaultOptions(quizPreset);
+    const entry = parsed.data;
+    const hasOptionOverride = Object.entries(defaults).some(
+      ([id, defaultValue]) => id in entry.options && entry.options[id] !== defaultValue,
+    );
+    const defaultNameMode = 'nicknameTheme';
+    return (
+      hasOptionOverride ||
+      entry.nameMode !== defaultNameMode ||
+      entry.nicknameThemeValue !== 'HIGH_SCHOOL' ||
+      entry.teamCountValue !== DEFAULT_TEAM_COUNT
+    );
+  } catch {
+    return false;
+  }
 }
