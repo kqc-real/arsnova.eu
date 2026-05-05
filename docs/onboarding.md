@@ -230,9 +230,9 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ## 4. Aktueller Stand vs. Ziel-Architektur
 
-> **Epics 0–5, 7.1, 8, 9 und 10 (MOTD) sind umgesetzt.** Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind die Living Docs in `docs/diagrams/` und die ADRs maßgeblich. Offene Stories: [`Backlog.md`](../Backlog.md).
+> **Epics 0–5, 7.1, 9 und 10 (MOTD) sind umgesetzt; Epic 8 ist im Kern mit 8.1–8.4 umgesetzt.** Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind die Living Docs in `docs/diagrams/` und die ADRs maßgeblich. Offene Stories: [`Backlog.md`](../Backlog.md).
 
-### Was bereits funktioniert (✅ Implementiert – Stand: 2026-04-03)
+### Was bereits funktioniert (✅ Implementiert – Stand: 2026-05-05)
 
 | Komponente                                                 | Beschreibung                                                                                                               |
 | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -249,22 +249,23 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 | Docker Compose                                             | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up`                                                 |
 | CI/CD-Pipeline                                             | GitHub Actions: Prisma validate/generate, TypeScript, ESLint, Tests, Docker-Build (Node 20/22)                             |
 | Session- und Besitzhärtung                                 | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie        |
+| Basis-Lasttest-Bausteine                                   | `scripts/load/` mit `k6`-Skripten und Node-Simulationen; Frontend-Smoke-Flow `smoke:unified-session` vorhanden             |
 
 ### Was als nächstes ansteht (🔲 Geplant / offen)
 
-| Thema                 | Kurzbeschreibung                                               | Backlog / Referenz    |
-| --------------------- | -------------------------------------------------------------- | --------------------- |
-| Barrierefreiheit & UX | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)     | Epic 6                |
-| Markdown & Editor     | **1.7a** und **1.7b** umgesetzt (Lightbox, MD3-Toolbar-Editor) | Epic 1, ADR-0015–0017 |
-| Q&A-Erweiterungen     | Delegation, Kontrovers-/Wilson-Sortierung (**8.5–8.7**)        | Epic 8                |
-| Last & Performance    | Ausführbares Lasttest-Setup (**0.7**)                          | Epic 0, ADR-0013      |
-| Weitere UX-Politur    | Feinschliff Startseite, Presenter, Beamer, Mobile/Tablet       | laufend               |
+| Thema                        | Kurzbeschreibung                                                                                    | Backlog / Referenz |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- | ------------------ |
+| Barrierefreiheit & UX        | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)                                          | Epic 6             |
+| Neue Fragentypen             | **1.2d–1.2i**: numerische Schätzung, Kurzantwort, Hotspot, Matching, Reihenfolge, Confidence        | Epic 1             |
+| Q&A und Tempo                | Delegation, Kontrovers-/Wilson-Sortierung und Tempo-Livekanal (**8.5–8.8**)                         | Epic 8             |
+| Last & Performance           | **0.7** in Arbeit: vorhandene `k6`-/Smoke-Bausteine zu vollständiger E2E-/Realtime-Strecke ausbauen | Epic 0, ADR-0013   |
+| Sync & Word Cloud / Refactor | **1.6c**, **1.6d**, **1.14a** sowie **0.8** (Komplexitätsabbau / McCabe-Hotspots)                   | Backlog            |
 
 Vollständige Story-Liste und Status: [`Backlog.md`](../Backlog.md).
 
 ---
 
-## 5. Komponentenbeschreibung (Stand: 2026-04-01)
+## 5. Komponentenbeschreibung (Stand: 2026-05-05)
 
 Das folgende Diagramm zeigt eine vereinfachte **Backend-Architektur**. Neben Quiz und Session sind `Q&A`, `Blitzlicht`, `Admin` und **`motd` (Epic 10)** integriert.
 
