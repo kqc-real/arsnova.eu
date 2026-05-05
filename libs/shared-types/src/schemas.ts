@@ -982,6 +982,8 @@ export const DailyHighscoreEntrySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   /** Tagesrekord der größten einzelnen Session dieses UTC-Tags. */
   count: z.number().int().min(0),
+  /** ISO-8601: UTC-Zeitpunkt, als sich der Tagesrekord zuletzt erhöht hat; bei aufgefüllten Lückentagen null. */
+  updatedAt: z.string().datetime().nullable(),
 });
 export type DailyHighscoreEntry = z.infer<typeof DailyHighscoreEntrySchema>;
 

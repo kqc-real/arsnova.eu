@@ -53,21 +53,29 @@ function addUtcDays(base: Date, days: number): Date {
 }
 
 function buildDailyHighscores(
-  rows: Array<{ date: Date; maxParticipantsSingleSession: number }>,
+  rows: Array<{ date: Date; maxParticipantsSingleSession: number; updatedAt: Date | null }>,
   today: Date = new Date(),
 ) {
   const rangeEnd = getUtcDayStart(today);
   const rangeStart = addUtcDays(rangeEnd, -(DAILY_HIGHSCORE_DAYS - 1));
   const entriesByDate = new Map(
-    rows.map((row) => [formatUtcDate(row.date), Math.max(0, row.maxParticipantsSingleSession)]),
+    rows.map((row) => [
+      formatUtcDate(row.date),
+      {
+        count: Math.max(0, row.maxParticipantsSingleSession),
+        updatedAt: row.updatedAt?.toISOString() ?? null,
+      },
+    ]),
   );
 
   return Array.from({ length: DAILY_HIGHSCORE_DAYS }, (_, index) => {
     const currentDate = addUtcDays(rangeStart, index);
     const dateKey = formatUtcDate(currentDate);
+    const entry = entriesByDate.get(dateKey);
     return {
       date: dateKey,
-      count: entriesByDate.get(dateKey) ?? 0,
+      count: entry?.count ?? 0,
+      updatedAt: entry?.updatedAt ?? null,
     };
   });
 }
@@ -271,6 +279,7 @@ async function fetchServerStats() {
         select: {
           date: true,
           maxParticipantsSingleSession: true,
+          updatedAt: true,
         },
       })
       .catch((err) => {

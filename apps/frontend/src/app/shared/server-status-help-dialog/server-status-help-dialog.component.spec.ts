@@ -8,6 +8,7 @@ function buildDailyHighscores() {
   return Array.from({ length: 30 }, (_, index) => ({
     date: `2026-04-${String(index + 1).padStart(2, '0')}`,
     count: index + 1,
+    updatedAt: `2026-04-${String(index + 1).padStart(2, '0')}T12:00:00.000Z`,
   }));
 }
 

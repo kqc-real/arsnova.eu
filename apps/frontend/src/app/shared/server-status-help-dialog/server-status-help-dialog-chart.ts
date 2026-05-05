@@ -60,7 +60,7 @@ export class ServerStatusHistoryChartRenderer {
           labels,
           datasets: [this.buildDataset(values, palette)],
         },
-        options: this.buildOptions(locale, palette),
+        options: this.buildOptions(points, locale, palette),
       });
       this.chartCanvas = canvas;
       return;
@@ -77,7 +77,7 @@ export class ServerStatusHistoryChartRenderer {
     dataset.pointBorderColor = palette.point;
     dataset.pointHoverBackgroundColor = palette.point;
     dataset.pointHoverBorderColor = palette.point;
-    this.chart.options = this.buildOptions(locale, palette);
+    this.chart.options = this.buildOptions(points, locale, palette);
     this.chart.update();
   }
 
@@ -137,6 +137,40 @@ export class ServerStatusHistoryChartRenderer {
     }).format(value);
   }
 
+  private formatTooltipDate(date: string, locale: string): string {
+    const parsed = new Date(`${date}T00:00:00.000Z`);
+    if (Number.isNaN(parsed.getTime())) {
+      return date;
+    }
+
+    return new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(parsed);
+  }
+
+  private formatTooltipTime(updatedAt: string | null, locale: string): string | undefined {
+    if (!updatedAt) {
+      return undefined;
+    }
+
+    const parsed = new Date(updatedAt);
+    if (Number.isNaN(parsed.getTime())) {
+      return undefined;
+    }
+
+    const timeLabel = new Intl.DateTimeFormat(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'UTC',
+    }).format(parsed);
+
+    return `${timeLabel} UTC`;
+  }
+
   private buildDataset(values: number[], palette: ChartPalette): ChartDataset {
     return {
       data: values,
@@ -156,7 +190,11 @@ export class ServerStatusHistoryChartRenderer {
     };
   }
 
-  private buildOptions(locale: string, palette: ChartPalette): ChartOptions {
+  private buildOptions(
+    points: DailyHighscoreEntry[],
+    locale: string,
+    palette: ChartPalette,
+  ): ChartOptions {
     return {
       animation: false,
       locale,
@@ -176,8 +214,16 @@ export class ServerStatusHistoryChartRenderer {
           displayColors: false,
           titleColor: palette.tooltipTitle,
           callbacks: {
+            title: (tooltipItems) => {
+              const point = tooltipItems[0] ? points[tooltipItems[0].dataIndex] : undefined;
+              return point
+                ? this.formatTooltipDate(point.date, locale)
+                : (tooltipItems[0]?.label ?? '');
+            },
             label: (tooltipItem) =>
               this.formatChartCount(Number(tooltipItem.parsed.y ?? 0), locale),
+            afterLabel: (tooltipItem) =>
+              this.formatTooltipTime(points[tooltipItem.dataIndex]?.updatedAt ?? null, locale),
           },
         },
       },

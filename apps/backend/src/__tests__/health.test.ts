@@ -177,7 +177,9 @@ describe('health.stats', () => {
     expect(result.completedSessions).toBe(0);
     expect(result.maxParticipantsSingleSession).toBe(0);
     expect(result.dailyHighscores).toHaveLength(30);
-    expect(result.dailyHighscores.every((entry) => entry.count === 0)).toBe(true);
+    expect(
+      result.dailyHighscores.every((entry) => entry.count === 0 && entry.updatedAt === null),
+    ).toBe(true);
     expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
     expect(result.serviceStatus).toBe('stable');
     expect(result.loadStatus).toBe('healthy');
@@ -503,10 +505,12 @@ describe('health.stats', () => {
       {
         date: new Date('2026-05-02T00:00:00.000Z'),
         maxParticipantsSingleSession: 17,
+        updatedAt: new Date('2026-05-02T10:15:30.000Z'),
       },
       {
         date: new Date('2026-05-04T00:00:00.000Z'),
         maxParticipantsSingleSession: 23,
+        updatedAt: new Date('2026-05-04T12:45:00.000Z'),
       },
     ] as never);
 
@@ -514,11 +518,15 @@ describe('health.stats', () => {
       const result = await caller.stats(undefined);
 
       expect(result.dailyHighscores).toHaveLength(30);
-      expect(result.dailyHighscores[0]).toEqual({ date: '2026-04-05', count: 0 });
+      expect(result.dailyHighscores[0]).toEqual({
+        date: '2026-04-05',
+        count: 0,
+        updatedAt: null,
+      });
       expect(result.dailyHighscores.slice(-3)).toEqual([
-        { date: '2026-05-02', count: 17 },
-        { date: '2026-05-03', count: 0 },
-        { date: '2026-05-04', count: 23 },
+        { date: '2026-05-02', count: 17, updatedAt: '2026-05-02T10:15:30.000Z' },
+        { date: '2026-05-03', count: 0, updatedAt: null },
+        { date: '2026-05-04', count: 23, updatedAt: '2026-05-04T12:45:00.000Z' },
       ]);
     } finally {
       vi.useRealTimers();
