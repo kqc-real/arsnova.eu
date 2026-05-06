@@ -10,7 +10,7 @@ const KINDERGARTEN_LOCALES: SupportedLocale[] = ['de', 'en', 'fr', 'es', 'it'];
 /** Parallel zu `NICKNAME_LISTS.KINDERGARTEN`. */
 export const KINDERGARTEN_NICKNAME_EMOJIS: readonly string[] = [
   '🐘', // Blauer Elefant
-  '🦄', // Rotes Einhorn
+  '🐉', // Roter Drache
   '🐸', // Grüner Frosch
   '🦁', // Gelber Löwe
   '🐬', // Lila Delfin
@@ -21,8 +21,8 @@ export const KINDERGARTEN_NICKNAME_EMOJIS: readonly string[] = [
   '🐆', // Schwarzer Panther
   '🐇', // Weißer Hase
   '🐺', // Grauer Wolf
-  '🐠', // Goldener Fisch
-  '🐦', // Silberner Vogel
+  '🦪', // Goldene Auster
+  '🦤', // Silberner Dodo
   '🦜', // Bunter Papagei
   '🦢', // Hellblauer Schwan
   '🐍', // Dunkelgrüne Schlange
@@ -39,7 +39,7 @@ export const KINDERGARTEN_NICKNAME_EMOJIS: readonly string[] = [
   '🦫', // Tannengrüner Biber
   '🐛', // Apfelgrüne Raupe
   '🐹', // Maulwurfsgrauer Hamster
-  '🐎', // Kastanienbraunes Pony
+  '🐒', // Kastanienbrauner Pavian
   '🐊', // Salbeigrünes Krokodil
   '🦡', // Terrakottafarbener Dachs
   '🦗', // Smaragdgrüne Libelle (näherungsweise)
@@ -109,6 +109,12 @@ export const KINDERGARTEN_NICKNAME_EMOJIS: readonly string[] = [
   '🦖', // Kirschroter T-Rex
   '🐂', // Stahlgrauer Ochse
   '🐔', // Honiggelbe Henne
+  '🐈‍⬛', // Schwarze Katze
+  '🐥', // Goldgelbes Küken
+  '🐣', // Silbernes Schlüpfküken
+  '🐕‍🦺', // Türkiser Assistenzhund
+  '🐦‍⬛', // Kobaltblauer Rabe
+  '🐲', // Korallenfarbener Drachenkopf
 ] as const;
 
 export function kindergartenEmojiAtIndex(index: number): string | null {

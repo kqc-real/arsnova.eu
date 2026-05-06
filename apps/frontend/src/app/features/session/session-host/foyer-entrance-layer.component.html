@@ -1,0 +1,53 @@
+<section
+  class="foyer-entrance-layer"
+  [class.foyer-entrance-layer--active]="chips().length > 0"
+  [class.foyer-entrance-layer--compact]="compact()"
+  [class.foyer-entrance-layer--overlay]="overlay()"
+  aria-hidden="true"
+>
+  <div class="foyer-entrance-layer__stage">
+    @for (chip of chips(); track chip.id) {
+      <div
+        class="foyer-entrance-layer__chip-shell"
+        [class.foyer-entrance-layer__chip-shell--from-right]="chip.direction === 'right'"
+        [class.foyer-entrance-layer__chip-shell--summary]="isSummaryChip(chip)"
+        [style.--foyer-sequence]="chip.sequence"
+        [style.--foyer-delay-ms]="chip.delayMs + 'ms'"
+        [style.--foyer-lane]="chip.lane"
+        [style.--foyer-z-order]="chip.sequence"
+        [style.--foyer-arrive-duration]="chip.enterDurationMs + 'ms'"
+        [style.--foyer-presence-duration]="chip.presenceMs + 'ms'"
+        [style.--foyer-settle-delay]="chip.settleDelayMs + 'ms'"
+        [style.--foyer-overlay-inline-start]="overlayInlineStart(chip)"
+        [style.--foyer-overlay-block-start]="overlayBlockStart(chip)"
+        [style.--foyer-overlay-travel-x]="overlayTravelX(chip)"
+        [style.--foyer-overlay-travel-y]="overlayTravelY(chip)"
+        [style.--foyer-overlay-tilt-start]="overlayTiltStart(chip)"
+        [style.grid-column]="overlayGridColumn(chip)"
+        [style.grid-row]="overlayGridRow(chip)"
+      >
+        <div
+          class="foyer-entrance-layer__content"
+          [class.foyer-entrance-layer__content--with-badge]="showOverlayNameBadge(chip)"
+          [class.foyer-entrance-layer__content--badge-before]="overlayNameBadgeBefore(chip)"
+        >
+          <div
+            class="foyer-entrance-layer__chip"
+            [class]="chipKindClass(chip.kind)"
+            [class.foyer-entrance-layer__chip--summary]="isSummaryChip(chip)"
+          >
+            @if (chip.emoji) {
+              <span class="foyer-entrance-layer__chip-emoji">{{ chip.emoji }}</span>
+            }
+            @if (chip.text) {
+              <span class="foyer-entrance-layer__chip-text">{{ chip.text }}</span>
+            }
+          </div>
+          @if (showOverlayNameBadge(chip)) {
+            <span class="foyer-entrance-layer__name-badge">{{ chip.fullLabel }}</span>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</section>

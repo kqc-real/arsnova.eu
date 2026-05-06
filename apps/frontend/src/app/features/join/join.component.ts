@@ -23,6 +23,7 @@ import {
   kindergartenEmojiAtIndex,
 } from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
+import { setParticipantJoinArrival } from '../../core/participant-join-arrival';
 import {
   edgeEmojiMarkerPosition,
   extractEdgeEmoji,
@@ -371,6 +372,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
       }
+      setParticipantJoinArrival(this.code);
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
       this.errorSessionFinished.set(false);
@@ -399,6 +401,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname.slice(0, 30));
       }
+      setParticipantJoinArrival(this.code);
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
       this.errorSessionFinished.set(false);

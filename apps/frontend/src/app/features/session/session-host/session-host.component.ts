@@ -14,9 +14,12 @@ import {
   NgZone,
   OnDestroy,
   OnInit,
+  QueryList,
   ViewChild,
+  ViewChildren,
   afterNextRender,
   inject,
+  isDevMode,
   signal,
   computed,
   effect,
@@ -93,6 +96,11 @@ import {
   SessionQuizPickerDialogComponent,
   type SessionQuizPickerDialogData,
 } from '../session-quiz-picker-dialog.component';
+import {
+  FoyerEntranceLayerComponent,
+  type FoyerEntranceChip,
+} from './foyer-entrance-layer.component';
+import { buildFoyerChipLabel } from './foyer-chip-label.util';
 
 const ANSWER_COLORS = [
   '#1565c0',
@@ -115,7 +123,26 @@ const ANSWER_SHAPES = [
   '\u2BC6',
 ];
 const HOST_FALLBACK_POLL_MS = 3000;
+const FOYER_MAX_ACTIVE_CHIPS = 6;
+const FOYER_CHIP_LIFETIME_MS = 1100;
+const FOYER_CHIP_DEV_LIFETIME_MS = 3500;
+const FOYER_LANE_COUNT = 3;
+const FOYER_TEAM_DELAY_STEP_MS = 720;
+const FOYER_TEAM_PRESENTATION_BUFFER_MS = 440;
+const FOYER_NON_TEAM_DELAY_STEP_MS = 920;
+const FOYER_NON_TEAM_PRESENTATION_BUFFER_MS = 240;
+const FOYER_KINDERGARTEN_DELAY_STEP_MS = 5400;
 const SESSION_NOT_FOUND_MESSAGE = 'Session nicht gefunden.';
+
+type FoyerArrivalMotionProfile = {
+  stepMs: number;
+  enterDurationMs: number;
+  presenceMs: number;
+  settleDelayMs: number;
+  badgeDelayMs: number;
+  badgePresenceMs: number;
+  pulseDelayMs: number;
+};
 type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
 type SessionOnboardingProfile = {
   nicknameTheme: NicknameTheme;
@@ -275,6 +302,7 @@ function musicTracksForPhase(
     MusicEqualizerIconComponent,
     FeedbackHostComponent,
     MarkdownImageLightboxDirective,
+    FoyerEntranceLayerComponent,
   ],
   templateUrl: './session-host.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-host.component.scss'],
@@ -285,6 +313,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly sessionUnavailable = signal(false);
   /** Lobby: Live-Teilnehmerliste (Story 2.2). */
   readonly participantsPayload = signal<SessionParticipantsPayload | null>(null);
+  readonly foyerArrivalChips = signal<FoyerEntranceChip[]>([]);
+  readonly hiddenFoyerParticipantIds = signal<Set<string>>(new Set());
+  readonly foyerTeamDirections = signal<Record<string, 'left' | 'right'>>({});
   /** Live-Status für Steuerung (Story 2.3). */
   readonly statusUpdate = signal<SessionStatusUpdate | null>(null);
   readonly controlPending = signal(false);
@@ -301,6 +332,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('hostAnswersList') hostAnswersListRef?: ElementRef<HTMLElement>;
   @ViewChild('qaListContainer') qaListContainerRef?: ElementRef<HTMLElement>;
   @ViewChild('qaTitleInput') qaTitleInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChildren('lobbyTeamCard') lobbyTeamCardRefs?: QueryList<ElementRef<HTMLElement>>;
   readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly quickFeedbackSeenVoteCount = signal(0);
@@ -309,6 +341,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private statusSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
   private qaSubscriptionSessionId: string | null = null;
+  private participantBaselineReady = false;
+  private knownParticipantIds = new Set<string>();
+  private foyerArrivalSequence = 0;
+  private foyerGlobalLaneCursor = 0;
+  private readonly foyerTeamLaneCursor = new Map<string, number>();
+  private readonly foyerArrivalTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly foyerTeamPulseTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly foyerTeamPulseClearTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly hiddenLobbyParticipantTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly landedTeamEchoTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  readonly landedTeamEchoSequences = signal<Record<string, number>>({});
+  readonly foyerTeamPulseSequences = signal<Record<string, number>>({});
+  private readonly foyerChipLifetimeMs = isDevMode()
+    ? FOYER_CHIP_DEV_LIFETIME_MS
+    : FOYER_CHIP_LIFETIME_MS;
   private readonly document = inject(DOCUMENT);
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
@@ -459,6 +506,48 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () => this.channels().quiz === false && this.channels().qa === true,
   );
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
+  readonly canShowFoyerEntrance = computed(() => {
+    const session = this.session();
+    return (
+      !!session &&
+      this.showPrimaryLiveView() &&
+      this.effectiveStatus() === 'LOBBY' &&
+      this.isPlayfulPreset() &&
+      session.enableRewardEffects !== false
+    );
+  });
+  readonly showFoyerEntranceLayer = computed(
+    () => this.canShowFoyerEntrance() && this.session()?.teamMode !== true,
+  );
+  readonly showTeamFoyerEntranceLayers = computed(
+    () => this.canShowFoyerEntrance() && this.session()?.teamMode === true,
+  );
+  readonly foyerArrivalChipsByTeam = computed(() => {
+    const grouped = new Map<string, FoyerEntranceChip[]>();
+    for (const chip of this.foyerArrivalChips()) {
+      if (!chip.teamId) {
+        continue;
+      }
+      const entries = grouped.get(chip.teamId) ?? [];
+      entries.push(chip);
+      grouped.set(chip.teamId, entries);
+    }
+    return grouped;
+  });
+  readonly hiddenLobbyParticipantIds = computed(() => {
+    if (!this.showTeamFoyerEntranceLayers()) {
+      return new Set<string>();
+    }
+
+    const hidden = new Set(this.hiddenFoyerParticipantIds());
+    for (const chip of this.foyerArrivalChips()) {
+      if (chip.participantId) {
+        hidden.add(chip.participantId);
+      }
+      chip.hiddenParticipantIds?.forEach((participantId) => hidden.add(participantId));
+    }
+    return hidden;
+  });
   readonly isRunningSession = computed(() => {
     const status = this.effectiveStatus();
     return this.session() !== null && status !== 'LOBBY' && status !== 'FINISHED';
@@ -625,15 +714,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const teams = this.lobbyTeams();
     const participants = this.participantsPayload()?.participants ?? [];
     const showNames = this.session()?.anonymousMode !== true;
-    const participantMap = new Map<string, string[]>();
+    const hiddenParticipantIds = this.hiddenLobbyParticipantIds();
+    const participantMap = new Map<string, Array<{ id: string; nickname: string }>>();
 
     for (const participant of participants) {
       if (!participant.teamId || !participant.nickname) {
         continue;
       }
       const names = participantMap.get(participant.teamId) ?? [];
-      if (showNames) {
-        names.push(participant.nickname);
+      if (showNames && !hiddenParticipantIds.has(participant.id)) {
+        names.unshift({ id: participant.id, nickname: participant.nickname });
       }
       participantMap.set(participant.teamId, names);
     }
@@ -642,6 +732,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ...team,
       participants: participantMap.get(team.id) ?? [],
     }));
+  });
+  readonly lobbyParticipantsNewestFirst = computed(() => {
+    const participants = this.participantsPayload()?.participants ?? [];
+    return [...participants].reverse();
   });
 
   /** Reihenfolge der Emojis für die Reaktions-Anzeige (Story 5.8). */
@@ -731,6 +825,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       void sessionId;
       void qaEnabled;
       untracked(() => this.ensureQaSubscription());
+    });
+    effect(() => {
+      const teamMode = this.showTeamFoyerEntranceLayers();
+      const teamIds = this.lobbyTeams()
+        .map((team) => team.id)
+        .join('|');
+
+      if (!teamMode || teamIds.length === 0) {
+        this.foyerTeamDirections.set({});
+        return;
+      }
+
+      afterNextRender(
+        () => {
+          this.recalculateTeamFoyerDirections();
+        },
+        { injector: this.injector },
+      );
     });
     effect(() => {
       const allVoted = this.allHaveVoted();
@@ -1048,7 +1160,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         { code: this.code.toUpperCase() },
         {
           onData: (data) => {
-            this.participantsPayload.set(data);
+            this.updateParticipantsPayload(data);
             void this.refreshLobbyTeams();
           },
           onError: () => this.burstHostFallbackAfterWsGap(),
@@ -1133,6 +1245,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
+    this.clearFoyerArrivalState();
     this.stopCountdown();
     this.sound.stopAll();
     if (this.emojiPulseTimer) {
@@ -1712,6 +1825,551 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return findKindergartenNicknameEmoji(nickname);
   }
 
+  foyerArrivalChipsForTeam(teamId: string): readonly FoyerEntranceChip[] {
+    return this.foyerArrivalChipsByTeam().get(teamId) ?? [];
+  }
+
+  latestFoyerArrivalChipForTeam(teamId: string): FoyerEntranceChip | null {
+    const chips = this.foyerArrivalChipsForTeam(teamId);
+    return chips.reduce<FoyerEntranceChip | null>(
+      (latest, chip) => (latest === null || chip.sequence > latest.sequence ? chip : latest),
+      null,
+    );
+  }
+
+  latestFoyerArrivalSequenceForTeam(teamId: string): number {
+    return this.latestFoyerArrivalChipForTeam(teamId)?.sequence ?? 0;
+  }
+
+  teamArrivalPulseSequenceForTeam(teamId: string): number | null {
+    return this.foyerTeamPulseSequences()[teamId] ?? null;
+  }
+
+  teamArrivalPulseActive(teamId: string): boolean {
+    return this.teamArrivalPulseSequenceForTeam(teamId) !== null;
+  }
+
+  teamArrivalPulseVariant(teamId: string): 'a' | 'b' {
+    return (this.teamArrivalPulseSequenceForTeam(teamId) ?? 0) % 2 === 0 ? 'a' : 'b';
+  }
+
+  teamLandingEchoActive(teamId: string): boolean {
+    return this.landedTeamEchoSequences()[teamId] !== undefined;
+  }
+
+  teamHasHiddenLobbyArrivals(teamId: string): boolean {
+    const hiddenIds = this.hiddenLobbyParticipantIds();
+    if (hiddenIds.size === 0) {
+      return false;
+    }
+
+    return (this.participantsPayload()?.participants ?? []).some(
+      (participant) => participant.teamId === teamId && hiddenIds.has(participant.id),
+    );
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (!this.showTeamFoyerEntranceLayers()) {
+      return;
+    }
+
+    this.recalculateTeamFoyerDirections();
+  }
+
+  private recalculateTeamFoyerDirections(): void {
+    const cards = this.lobbyTeamCardRefs?.toArray() ?? [];
+    if (cards.length === 0) {
+      this.foyerTeamDirections.set({});
+      return;
+    }
+
+    const viewportWidth = this.document.defaultView?.innerWidth ?? 0;
+    const viewportMidpoint = viewportWidth > 0 ? viewportWidth / 2 : 0;
+    const nextDirections: Record<string, 'left' | 'right'> = {};
+
+    for (const cardRef of cards) {
+      const element = cardRef.nativeElement;
+      const teamId = element.dataset['teamId'];
+      if (!teamId) {
+        continue;
+      }
+      const rect = element.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      nextDirections[teamId] = centerX <= viewportMidpoint ? 'left' : 'right';
+    }
+
+    this.foyerTeamDirections.set(nextDirections);
+    this.foyerArrivalChips.update((chips) =>
+      chips.map((chip) => {
+        if (!chip.teamId) {
+          return chip;
+        }
+        const direction = nextDirections[chip.teamId];
+        return direction ? { ...chip, direction } : chip;
+      }),
+    );
+  }
+
+  private updateParticipantsPayload(
+    payload: SessionParticipantsPayload,
+    allowArrivalEvents = true,
+  ): void {
+    const nextParticipantIds = new Set(payload.participants.map((participant) => participant.id));
+    const newParticipants =
+      allowArrivalEvents && this.participantBaselineReady
+        ? payload.participants.filter(
+            (participant) => !this.knownParticipantIds.has(participant.id),
+          )
+        : [];
+
+    this.participantsPayload.set(payload);
+    this.knownParticipantIds = nextParticipantIds;
+    this.participantBaselineReady = true;
+
+    if (newParticipants.length > 0) {
+      this.enqueueFoyerArrivalChips(newParticipants, payload.participantCount);
+    }
+  }
+
+  private enqueueFoyerArrivalChips(
+    participants: SessionParticipantsPayload['participants'],
+    totalParticipantCount: number,
+  ): void {
+    if (!this.canShowFoyerEntrance()) {
+      return;
+    }
+
+    const dense = participants.length >= 3 || totalParticipantCount >= 16;
+    const teamDirections = this.foyerTeamDirections();
+    const additions =
+      this.session()?.teamMode === true
+        ? this.buildTeamFoyerArrivalBurst(participants, dense, teamDirections)
+        : this.buildNonTeamFoyerArrivalBurst(participants, dense, teamDirections);
+
+    if (additions.length === 0) {
+      return;
+    }
+
+    const timedAdditions =
+      this.session()?.teamMode === true
+        ? this.withCalmTeamArrivalDelays(this.foyerArrivalChips(), additions)
+        : this.withCalmNonTeamArrivalDelays(this.foyerArrivalChips(), additions);
+
+    if (this.session()?.teamMode === true) {
+      for (const chip of timedAdditions) {
+        const hiddenIds = new Set<string>();
+        if (chip.participantId) {
+          hiddenIds.add(chip.participantId);
+        }
+        chip.hiddenParticipantIds?.forEach((participantId) => hiddenIds.add(participantId));
+        this.registerHiddenLobbyParticipants([...hiddenIds], chip.presenceMs + chip.delayMs);
+        this.scheduleTeamLandingEcho(chip.teamId, chip.sequence, chip.presenceMs + chip.delayMs);
+      }
+    }
+
+    this.foyerArrivalChips.update((current) => [
+      ...current.slice(-Math.max(0, FOYER_MAX_ACTIVE_CHIPS - timedAdditions.length)),
+      ...timedAdditions,
+    ]);
+    timedAdditions.forEach((chip) => {
+      this.scheduleFoyerArrivalCleanup(chip.id, chip.delayMs);
+      this.scheduleTeamArrivalPulse(chip.teamId, chip.sequence, chip.delayMs + chip.pulseDelayMs);
+    });
+  }
+
+  private buildNonTeamFoyerArrivalBurst(
+    participants: SessionParticipantsPayload['participants'],
+    dense: boolean,
+    teamDirections: Record<string, 'left' | 'right'>,
+  ): FoyerEntranceChip[] {
+    return participants.map((participant, index) =>
+      this.createFoyerArrivalChip(participant, index, dense, teamDirections),
+    );
+  }
+
+  private buildTeamFoyerArrivalBurst(
+    participants: SessionParticipantsPayload['participants'],
+    dense: boolean,
+    teamDirections: Record<string, 'left' | 'right'>,
+  ): FoyerEntranceChip[] {
+    const groupedParticipants = new Map<string, SessionParticipantsPayload['participants']>();
+
+    for (const participant of participants) {
+      const teamId = participant.teamId ?? `__unassigned__:${participant.id}`;
+      const entries = groupedParticipants.get(teamId) ?? [];
+      entries.push(participant);
+      groupedParticipants.set(teamId, entries);
+    }
+
+    const additions: FoyerEntranceChip[] = [];
+    for (const [, grouped] of groupedParticipants) {
+      additions.push(
+        ...grouped.map((participant, index) =>
+          this.createFoyerArrivalChip(participant, index, dense, teamDirections),
+        ),
+      );
+    }
+
+    return additions;
+  }
+
+  private createFoyerArrivalChip(
+    participant: SessionParticipantsPayload['participants'][number],
+    _index: number,
+    dense: boolean,
+    teamDirections: Record<string, 'left' | 'right'>,
+  ): FoyerEntranceChip {
+    const session = this.session();
+    const sequence = this.foyerArrivalSequence++;
+    const kindergartenEmoji = this.lobbyKindergartenEmoji(participant.nickname);
+    const label = buildFoyerChipLabel({
+      nickname: participant.nickname,
+      anonymousMode: session?.anonymousMode === true,
+      kindergartenEmoji,
+      dense,
+      preferEmojiOnly: session?.teamMode === true && !!kindergartenEmoji,
+      preferReadableText:
+        session?.teamMode !== true ||
+        (session?.allowCustomNicknames === false &&
+          session?.anonymousMode !== true &&
+          participant.nickname.trim().includes(' ')),
+    });
+    const teamDirection = participant.teamId ? teamDirections[participant.teamId] : null;
+
+    return {
+      id: `${participant.id}-${sequence}`,
+      participantId: participant.id,
+      teamId: participant.teamId ?? null,
+      sequence,
+      delayMs: 0,
+      lane: this.nextFoyerLane(participant.teamId ?? null),
+      direction: teamDirection ?? (sequence % 2 === 0 ? 'left' : 'right'),
+      ...this.defaultFoyerArrivalMotionProfile(
+        participant.teamId !== null && participant.teamId !== undefined,
+      ),
+      ...label,
+    } satisfies FoyerEntranceChip;
+  }
+
+  private defaultFoyerArrivalMotionProfile(
+    teamMode: boolean,
+  ): Pick<
+    FoyerEntranceChip,
+    | 'enterDurationMs'
+    | 'presenceMs'
+    | 'settleDelayMs'
+    | 'badgeDelayMs'
+    | 'badgePresenceMs'
+    | 'pulseDelayMs'
+  > {
+    const enterDurationMs = teamMode ? 1760 : 680;
+    const presenceMs = teamMode ? 3200 : this.foyerChipLifetimeMs;
+    return {
+      enterDurationMs,
+      presenceMs,
+      settleDelayMs: teamMode ? 1280 : 0,
+      badgeDelayMs: teamMode ? 1440 : 0,
+      badgePresenceMs: teamMode ? 1380 : 0,
+      pulseDelayMs: teamMode ? 1880 : 0,
+    };
+  }
+
+  private withCalmTeamArrivalDelays(
+    current: readonly FoyerEntranceChip[],
+    additions: readonly FoyerEntranceChip[],
+  ): FoyerEntranceChip[] {
+    if (this.session()?.nicknameTheme === 'KINDERGARTEN') {
+      return this.withKindergartenArrivalDelays(current, additions);
+    }
+
+    const nextSlots = new Map<string, number>();
+    for (const chip of current) {
+      if (!chip.teamId) {
+        continue;
+      }
+      const scheduledDelay = chip.delayMs + this.teamArrivalPresentationStepMs(chip);
+      const currentDelay = nextSlots.get(chip.teamId) ?? 0;
+      nextSlots.set(chip.teamId, Math.max(currentDelay, scheduledDelay));
+    }
+
+    return additions.map((chip) => {
+      if (!chip.teamId) {
+        return chip;
+      }
+
+      const delayMs = nextSlots.get(chip.teamId) ?? 0;
+      nextSlots.set(chip.teamId, delayMs + this.teamArrivalPresentationStepMs(chip));
+      return { ...chip, delayMs };
+    });
+  }
+
+  private teamArrivalPresentationStepMs(chip: Pick<FoyerEntranceChip, 'badgeDelayMs'>): number {
+    return Math.max(
+      FOYER_TEAM_DELAY_STEP_MS,
+      chip.badgeDelayMs + FOYER_TEAM_PRESENTATION_BUFFER_MS,
+    );
+  }
+
+  private withCalmNonTeamArrivalDelays(
+    current: readonly FoyerEntranceChip[],
+    additions: readonly FoyerEntranceChip[],
+  ): FoyerEntranceChip[] {
+    if (additions.length === 0) {
+      return [];
+    }
+
+    const activeCurrent = current.filter((chip) => chip.teamId === null);
+    let nextDelay =
+      activeCurrent.length > 0
+        ? Math.max(
+            ...activeCurrent.map(
+              (chip) => chip.delayMs + this.nonTeamArrivalPresentationStepMs(chip),
+            ),
+          )
+        : 0;
+
+    return additions.map((chip) => {
+      const delayMs = nextDelay;
+      nextDelay += this.nonTeamArrivalPresentationStepMs(chip);
+      return { ...chip, delayMs };
+    });
+  }
+
+  private nonTeamArrivalPresentationStepMs(
+    chip: Pick<FoyerEntranceChip, 'enterDurationMs'>,
+  ): number {
+    return Math.max(
+      FOYER_NON_TEAM_DELAY_STEP_MS,
+      chip.enterDurationMs + FOYER_NON_TEAM_PRESENTATION_BUFFER_MS,
+    );
+  }
+
+  private withKindergartenArrivalDelays(
+    current: readonly FoyerEntranceChip[],
+    additions: readonly FoyerEntranceChip[],
+  ): FoyerEntranceChip[] {
+    const activeCurrent = current.filter((chip) => chip.teamId !== null);
+    let queueDepth = activeCurrent.length;
+    let nextDelay =
+      activeCurrent.length > 0
+        ? Math.max(...activeCurrent.map((chip) => chip.delayMs)) +
+          this.kindergartenArrivalMotionProfile(queueDepth).stepMs
+        : 0;
+
+    return additions.map((chip) => {
+      const profile = this.kindergartenArrivalMotionProfile(queueDepth);
+      const delayMs = nextDelay;
+      nextDelay += profile.stepMs;
+      queueDepth += 1;
+      return {
+        ...chip,
+        delayMs,
+        enterDurationMs: profile.enterDurationMs,
+        presenceMs: profile.presenceMs,
+        settleDelayMs: profile.settleDelayMs,
+        badgeDelayMs: profile.badgeDelayMs,
+        badgePresenceMs: profile.badgePresenceMs,
+        pulseDelayMs: profile.pulseDelayMs,
+      };
+    });
+  }
+
+  private kindergartenArrivalMotionProfile(queueDepth: number): FoyerArrivalMotionProfile {
+    if (queueDepth <= 0) {
+      return {
+        stepMs: FOYER_KINDERGARTEN_DELAY_STEP_MS,
+        enterDurationMs: 2600,
+        presenceMs: 5200,
+        settleDelayMs: 1940,
+        badgeDelayMs: 2140,
+        badgePresenceMs: 2140,
+        pulseDelayMs: 2780,
+      };
+    }
+
+    if (queueDepth <= 2) {
+      return {
+        stepMs: 4800,
+        enterDurationMs: 2360,
+        presenceMs: 4700,
+        settleDelayMs: 1760,
+        badgeDelayMs: 1940,
+        badgePresenceMs: 1880,
+        pulseDelayMs: 2520,
+      };
+    }
+
+    return {
+      stepMs: 4100,
+      enterDurationMs: 2080,
+      presenceMs: 3980,
+      settleDelayMs: 1520,
+      badgeDelayMs: 1700,
+      badgePresenceMs: 1560,
+      pulseDelayMs: 2220,
+    };
+  }
+
+  private nextFoyerLane(teamId: string | null): number {
+    if (!teamId) {
+      const lane = this.foyerGlobalLaneCursor % FOYER_LANE_COUNT;
+      this.foyerGlobalLaneCursor += 1;
+      return lane;
+    }
+
+    const cursor = this.foyerTeamLaneCursor.get(teamId) ?? 0;
+    this.foyerTeamLaneCursor.set(teamId, cursor + 1);
+    return cursor % FOYER_LANE_COUNT;
+  }
+
+  private scheduleFoyerArrivalCleanup(chipId: string, delayMs = 0): void {
+    const existing = this.foyerArrivalTimers.get(chipId);
+    if (existing) {
+      clearTimeout(existing);
+    }
+
+    const chip = this.foyerArrivalChips().find((currentChip) => currentChip.id === chipId);
+    const lifetimeMs = chip?.presenceMs ?? this.foyerChipLifetimeMs;
+
+    const timer = setTimeout(() => {
+      this.foyerArrivalChips.update((current) => current.filter((chip) => chip.id !== chipId));
+      this.foyerArrivalTimers.delete(chipId);
+    }, lifetimeMs + delayMs);
+
+    this.foyerArrivalTimers.set(chipId, timer);
+  }
+
+  private scheduleTeamArrivalPulse(teamId: string | null, sequence: number, delayMs: number): void {
+    if (!teamId) {
+      return;
+    }
+
+    const timerKey = `${teamId}:${sequence}`;
+    const existing = this.foyerTeamPulseTimers.get(timerKey);
+    if (existing) {
+      clearTimeout(existing);
+    }
+
+    const timer = setTimeout(() => {
+      this.foyerTeamPulseTimers.delete(timerKey);
+      this.foyerTeamPulseSequences.update((current) => ({ ...current, [teamId]: sequence }));
+
+      const clearKey = `${teamId}:${sequence}:clear`;
+      const existingClear = this.foyerTeamPulseClearTimers.get(clearKey);
+      if (existingClear) {
+        clearTimeout(existingClear);
+      }
+
+      const clearTimer = setTimeout(() => {
+        this.foyerTeamPulseClearTimers.delete(clearKey);
+        this.foyerTeamPulseSequences.update((current) => {
+          if (current[teamId] !== sequence) {
+            return current;
+          }
+
+          const next = { ...current };
+          delete next[teamId];
+          return next;
+        });
+      }, 980);
+
+      this.foyerTeamPulseClearTimers.set(clearKey, clearTimer);
+    }, delayMs);
+
+    this.foyerTeamPulseTimers.set(timerKey, timer);
+  }
+
+  private scheduleTeamLandingEcho(teamId: string | null, sequence: number, delayMs: number): void {
+    if (!teamId) {
+      return;
+    }
+
+    const timerKey = `${teamId}:${sequence}`;
+    const existing = this.landedTeamEchoTimers.get(timerKey);
+    if (existing) {
+      clearTimeout(existing);
+    }
+
+    const timer = setTimeout(() => {
+      this.landedTeamEchoTimers.delete(timerKey);
+      this.landedTeamEchoSequences.update((current) => ({ ...current, [teamId]: sequence }));
+
+      const clearKey = `${teamId}:${sequence}:clear`;
+      const clearTimer = setTimeout(() => {
+        this.landedTeamEchoSequences.update((current) => {
+          if (current[teamId] !== sequence) {
+            return current;
+          }
+
+          const next = { ...current };
+          delete next[teamId];
+          return next;
+        });
+      }, 420);
+
+      this.landedTeamEchoTimers.set(clearKey, clearTimer);
+    }, delayMs);
+
+    this.landedTeamEchoTimers.set(timerKey, timer);
+  }
+
+  private registerHiddenLobbyParticipants(
+    participantIds: readonly string[],
+    holdMs = this.foyerChipLifetimeMs,
+  ): void {
+    if (participantIds.length === 0) {
+      return;
+    }
+
+    this.hiddenFoyerParticipantIds.update((current) => {
+      const next = new Set(current);
+      participantIds.forEach((participantId) => next.add(participantId));
+      return next;
+    });
+
+    participantIds.forEach((participantId) => {
+      const existing = this.hiddenLobbyParticipantTimers.get(participantId);
+      if (existing) {
+        clearTimeout(existing);
+      }
+
+      const timer = setTimeout(() => {
+        this.hiddenFoyerParticipantIds.update((current) => {
+          if (!current.has(participantId)) {
+            return current;
+          }
+          const next = new Set(current);
+          next.delete(participantId);
+          return next;
+        });
+        this.hiddenLobbyParticipantTimers.delete(participantId);
+      }, holdMs);
+
+      this.hiddenLobbyParticipantTimers.set(participantId, timer);
+    });
+  }
+
+  private clearFoyerArrivalState(): void {
+    this.foyerArrivalTimers.forEach((timer) => clearTimeout(timer));
+    this.foyerArrivalTimers.clear();
+    this.foyerTeamPulseTimers.forEach((timer) => clearTimeout(timer));
+    this.foyerTeamPulseTimers.clear();
+    this.foyerTeamPulseClearTimers.forEach((timer) => clearTimeout(timer));
+    this.foyerTeamPulseClearTimers.clear();
+    this.landedTeamEchoTimers.forEach((timer) => clearTimeout(timer));
+    this.landedTeamEchoTimers.clear();
+    this.hiddenLobbyParticipantTimers.forEach((timer) => clearTimeout(timer));
+    this.hiddenLobbyParticipantTimers.clear();
+    this.foyerArrivalChips.set([]);
+    this.foyerTeamPulseSequences.set({});
+    this.landedTeamEchoSequences.set({});
+    this.hiddenFoyerParticipantIds.set(new Set());
+    this.foyerTeamDirections.set({});
+    this.foyerGlobalLaneCursor = 0;
+    this.foyerTeamLaneCursor.clear();
+  }
+
   /** i18n: Feedback rating count (singular). */
   feedbackRatingSingular(): string {
     return $localize`Bewertung`;
@@ -1835,11 +2493,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async refreshParticipantsPayload(): Promise<void> {
     if (!this.code) {
       this.participantsPayload.set(null);
+      this.participantBaselineReady = false;
+      this.knownParticipantIds.clear();
+      this.clearFoyerArrivalState();
       return;
     }
     try {
       const payload = await trpc.session.getParticipants.query({ code: this.code.toUpperCase() });
-      this.participantsPayload.set(payload);
+      this.updateParticipantsPayload(payload, this.participantBaselineReady);
     } catch {
       // Subscription updates remain the primary live path; keep the last payload on transient failures.
     }

@@ -236,6 +236,7 @@
     @if (showCompactPlayerBadge()) {
       <div
         class="vote-player-badge"
+        [class.vote-player-badge--arrival]="showLobbyArrivalMoment()"
         [class.vote-player-badge--kindergarten]="playerKindergartenEmoji()"
         role="status"
         [attr.aria-label]="playerBadgeAriaLabel()"
@@ -357,6 +358,7 @@
         <div class="vote-kita-hero-host">
           <div
             class="vote-lobby__kita-hero"
+            [class.vote-lobby__kita-hero--arrival]="showLobbyArrivalMoment()"
             role="group"
             [attr.aria-label]="playerBadgeAriaLabel()"
           >
@@ -399,7 +401,11 @@
         </div>
       }
       @if (isLobby()) {
-        <div class="vote-lobby" [class.vote-lobby--kindergarten]="playerKindergartenEmoji()">
+        <div
+          class="vote-lobby"
+          [class.vote-lobby--arrival]="showLobbyArrivalMoment()"
+          [class.vote-lobby--kindergarten]="playerKindergartenEmoji()"
+        >
           <p class="vote-lobby__badge" role="status">{{ vpc.voteLobbyBadge(isPlayfulPreset()) }}</p>
           <p
             class="vote-lobby__code"
