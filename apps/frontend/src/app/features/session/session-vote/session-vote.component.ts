@@ -532,8 +532,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
 
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
+  readonly canShowLobbyArrivalMoment = computed(
+    () =>
+      this.isLobby() &&
+      this.isPlayfulPreset() &&
+      this.sessionSettings().enableRewardEffects !== false,
+  );
   readonly showLobbyArrivalMoment = computed(
-    () => this.lobbyArrivalActive() && this.isLobby() && this.isPlayfulPreset(),
+    () => this.lobbyArrivalActive() && this.canShowLobbyArrivalMoment(),
   );
   readonly channels = computed(() => {
     const session = this.sessionSettings();
@@ -1459,7 +1465,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private triggerLobbyArrivalMoment(): void {
-    if (this.status() !== 'LOBBY' || !this.isPlayfulPreset()) {
+    if (!this.canShowLobbyArrivalMoment()) {
       return;
     }
 

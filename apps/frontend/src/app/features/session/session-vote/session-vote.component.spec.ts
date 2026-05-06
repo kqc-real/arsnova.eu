@@ -1478,6 +1478,41 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('unterdrueckt den Arrival-Moment, wenn Belohnungseffekte deaktiviert sind', async () => {
+    localStorage.setItem('arsnova-nickname-ABC123', 'Ada');
+    setParticipantJoinArrival('ABC123');
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      enableRewardEffects: false,
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-player-badge--arrival')).toBeNull();
+    expect(host.querySelector('.vote-lobby--arrival')).toBeNull();
+    expect(sessionStorage.getItem('arsnova-join-arrival:ABC123')).toBeNull();
+    fixture.destroy();
+  });
+
   it('behaelt das Arrival-Flag bis zum ersten erfolgreichen Session-Load', async () => {
     localStorage.setItem('arsnova-nickname-ABC123', 'Ada');
     setParticipantJoinArrival('ABC123');
