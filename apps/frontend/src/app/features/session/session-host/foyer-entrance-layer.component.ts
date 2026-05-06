@@ -40,7 +40,8 @@ export class FoyerEntranceLayerComponent implements OnDestroy {
   readonly compact = input(false);
   readonly overlay = input(false);
   private readonly visibleOverlayBadgeIds = signal<Set<string>>(new Set());
-  private readonly overlayBadgeTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly overlayBadgeRevealTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly overlayBadgeHideTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   constructor() {
     effect(() => {
@@ -57,12 +58,20 @@ export class FoyerEntranceLayerComponent implements OnDestroy {
           .map((chip) => chip.id),
       );
 
-      for (const [chipId, timer] of this.overlayBadgeTimers.entries()) {
+      for (const [chipId, timer] of this.overlayBadgeRevealTimers.entries()) {
         if (eligibleIds.has(chipId)) {
           continue;
         }
         clearTimeout(timer);
-        this.overlayBadgeTimers.delete(chipId);
+        this.overlayBadgeRevealTimers.delete(chipId);
+      }
+
+      for (const [chipId, timer] of this.overlayBadgeHideTimers.entries()) {
+        if (eligibleIds.has(chipId)) {
+          continue;
+        }
+        clearTimeout(timer);
+        this.overlayBadgeHideTimers.delete(chipId);
       }
 
       this.visibleOverlayBadgeIds.update((current) => {
@@ -83,31 +92,62 @@ export class FoyerEntranceLayerComponent implements OnDestroy {
           !this.hasExpandableOverlayLabel(chip) ||
           chip.fullLabel.length === 0 ||
           visibleBadgeIds.has(chip.id) ||
-          this.overlayBadgeTimers.has(chip.id)
+          this.overlayBadgeRevealTimers.has(chip.id)
         ) {
           continue;
         }
 
         const badgeRevealDelayMs = chip.delayMs + chip.badgeDelayMs;
 
-        if (badgeRevealDelayMs <= 0) {
+        const revealBadge = () => {
+          this.overlayBadgeRevealTimers.delete(chip.id);
           this.visibleOverlayBadgeIds.update((current) => new Set(current).add(chip.id));
+          this.scheduleOverlayBadgeHide(chip);
+        };
+
+        if (badgeRevealDelayMs <= 0) {
+          revealBadge();
           continue;
         }
 
-        const timer = setTimeout(() => {
-          this.overlayBadgeTimers.delete(chip.id);
-          this.visibleOverlayBadgeIds.update((current) => new Set(current).add(chip.id));
-        }, badgeRevealDelayMs);
-        this.overlayBadgeTimers.set(chip.id, timer);
+        const timer = setTimeout(revealBadge, badgeRevealDelayMs);
+        this.overlayBadgeRevealTimers.set(chip.id, timer);
       }
     });
   }
 
   ngOnDestroy(): void {
-    this.overlayBadgeTimers.forEach((timer) => clearTimeout(timer));
-    this.overlayBadgeTimers.clear();
+    this.overlayBadgeRevealTimers.forEach((timer) => clearTimeout(timer));
+    this.overlayBadgeRevealTimers.clear();
+    this.overlayBadgeHideTimers.forEach((timer) => clearTimeout(timer));
+    this.overlayBadgeHideTimers.clear();
     this.visibleOverlayBadgeIds.set(new Set());
+  }
+
+  private scheduleOverlayBadgeHide(chip: FoyerEntranceChip): void {
+    if (chip.badgePresenceMs <= 0) {
+      return;
+    }
+
+    const existing = this.overlayBadgeHideTimers.get(chip.id);
+    if (existing) {
+      clearTimeout(existing);
+    }
+
+    const timer = setTimeout(() => {
+      this.overlayBadgeHideTimers.delete(chip.id);
+      this.visibleOverlayBadgeIds.update((current) => {
+        if (!current.has(chip.id)) {
+          return current;
+        }
+
+        const next = new Set(current);
+        next.delete(chip.id);
+        return next;
+      });
+    }, chip.badgePresenceMs);
+
+    this.overlayBadgeHideTimers.set(chip.id, timer);
   }
 
   chipKindClass(kind: FoyerChipLabelKind): string {

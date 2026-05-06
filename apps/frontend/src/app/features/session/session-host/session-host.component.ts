@@ -128,7 +128,9 @@ const FOYER_CHIP_LIFETIME_MS = 1100;
 const FOYER_CHIP_DEV_LIFETIME_MS = 3500;
 const FOYER_LANE_COUNT = 3;
 const FOYER_TEAM_DELAY_STEP_MS = 720;
-const FOYER_TEAM_MAX_DELAY_MS = 1800;
+const FOYER_TEAM_PRESENTATION_BUFFER_MS = 440;
+const FOYER_NON_TEAM_DELAY_STEP_MS = 920;
+const FOYER_NON_TEAM_PRESENTATION_BUFFER_MS = 240;
 const FOYER_KINDERGARTEN_DELAY_STEP_MS = 5400;
 const SESSION_NOT_FOUND_MESSAGE = 'Session nicht gefunden.';
 
@@ -730,6 +732,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ...team,
       participants: participantMap.get(team.id) ?? [],
     }));
+  });
+  readonly lobbyParticipantsNewestFirst = computed(() => {
+    const participants = this.participantsPayload()?.participants ?? [];
+    return [...participants].reverse();
   });
 
   /** Reihenfolge der Emojis für die Reaktions-Anzeige (Story 5.8). */
@@ -1948,7 +1954,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const timedAdditions =
       this.session()?.teamMode === true
         ? this.withCalmTeamArrivalDelays(this.foyerArrivalChips(), additions)
-        : additions;
+        : this.withCalmNonTeamArrivalDelays(this.foyerArrivalChips(), additions);
 
     if (this.session()?.teamMode === true) {
       for (const chip of timedAdditions) {
@@ -2024,9 +2030,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       dense,
       preferEmojiOnly: session?.teamMode === true && !!kindergartenEmoji,
       preferReadableText:
-        session?.allowCustomNicknames === false &&
-        session?.anonymousMode !== true &&
-        participant.nickname.trim().includes(' '),
+        session?.teamMode !== true ||
+        (session?.allowCustomNicknames === false &&
+          session?.anonymousMode !== true &&
+          participant.nickname.trim().includes(' ')),
     });
     const teamDirection = participant.teamId ? teamDirections[participant.teamId] : null;
 
@@ -2038,7 +2045,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       delayMs: 0,
       lane: this.nextFoyerLane(participant.teamId ?? null),
       direction: teamDirection ?? (sequence % 2 === 0 ? 'left' : 'right'),
-      ...this.defaultFoyerArrivalMotionProfile(participant.teamId !== null),
+      ...this.defaultFoyerArrivalMotionProfile(
+        participant.teamId !== null && participant.teamId !== undefined,
+      ),
       ...label,
     } satisfies FoyerEntranceChip;
   }
@@ -2079,10 +2088,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (!chip.teamId) {
         continue;
       }
-      const scheduledDelay = Math.min(
-        FOYER_TEAM_MAX_DELAY_MS,
-        chip.delayMs + FOYER_TEAM_DELAY_STEP_MS,
-      );
+      const scheduledDelay = chip.delayMs + this.teamArrivalPresentationStepMs(chip);
       const currentDelay = nextSlots.get(chip.teamId) ?? 0;
       nextSlots.set(chip.teamId, Math.max(currentDelay, scheduledDelay));
     }
@@ -2093,12 +2099,50 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       const delayMs = nextSlots.get(chip.teamId) ?? 0;
-      nextSlots.set(
-        chip.teamId,
-        Math.min(FOYER_TEAM_MAX_DELAY_MS, delayMs + FOYER_TEAM_DELAY_STEP_MS),
-      );
+      nextSlots.set(chip.teamId, delayMs + this.teamArrivalPresentationStepMs(chip));
       return { ...chip, delayMs };
     });
+  }
+
+  private teamArrivalPresentationStepMs(chip: Pick<FoyerEntranceChip, 'badgeDelayMs'>): number {
+    return Math.max(
+      FOYER_TEAM_DELAY_STEP_MS,
+      chip.badgeDelayMs + FOYER_TEAM_PRESENTATION_BUFFER_MS,
+    );
+  }
+
+  private withCalmNonTeamArrivalDelays(
+    current: readonly FoyerEntranceChip[],
+    additions: readonly FoyerEntranceChip[],
+  ): FoyerEntranceChip[] {
+    if (additions.length === 0) {
+      return [];
+    }
+
+    const activeCurrent = current.filter((chip) => chip.teamId === null);
+    let nextDelay =
+      activeCurrent.length > 0
+        ? Math.max(
+            ...activeCurrent.map(
+              (chip) => chip.delayMs + this.nonTeamArrivalPresentationStepMs(chip),
+            ),
+          )
+        : 0;
+
+    return additions.map((chip) => {
+      const delayMs = nextDelay;
+      nextDelay += this.nonTeamArrivalPresentationStepMs(chip);
+      return { ...chip, delayMs };
+    });
+  }
+
+  private nonTeamArrivalPresentationStepMs(
+    chip: Pick<FoyerEntranceChip, 'enterDurationMs'>,
+  ): number {
+    return Math.max(
+      FOYER_NON_TEAM_DELAY_STEP_MS,
+      chip.enterDurationMs + FOYER_NON_TEAM_PRESENTATION_BUFFER_MS,
+    );
   }
 
   private withKindergartenArrivalDelays(

@@ -517,6 +517,38 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('rendert Nicht-Team-Teilnehmende in der Lobby als zentrierte Chips', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', teamMode: false });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 3,
+      participants: [
+        { id: 'p1', nickname: 'Ada' },
+        { id: 'p2', nickname: 'Linus' },
+        { id: 'p3', nickname: 'Grace' },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const list = fixture.nativeElement.querySelector(
+      '.session-lobby__list--chips',
+    ) as HTMLElement | null;
+    const chips = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-lobby__list-item--chip'),
+    ) as HTMLElement[];
+    const foyerStage = fixture.nativeElement.querySelector('.session-lobby__foyer-stage');
+
+    expect(list).not.toBeNull();
+    expect(chips).toHaveLength(3);
+    expect(chips.map((chip) => (chip.textContent ?? '').trim())).toEqual(['Grace', 'Linus', 'Ada']);
+    expect(foyerStage).toBeNull();
+    fixture.destroy();
+  });
+
   it('zeigt bei Rating-Fragen auf dem Host die komplette Skala', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -2953,8 +2985,132 @@ describe('SessionHostComponent', () => {
     fixture.detectChanges();
 
     const chips = fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip');
+    const shells = Array.from(
+      fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+    ) as HTMLElement[];
+    const chipTexts = Array.from(
+      fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-text'),
+    ).map((element) => (element.textContent ?? '').trim());
 
     expect(chips).toHaveLength(6);
+    expect(shells.map((shell) => shell.style.getPropertyValue('--foyer-delay-ms'))).toEqual([
+      '0ms',
+      '920ms',
+      '1840ms',
+      '2760ms',
+      '3680ms',
+      '4600ms',
+    ]);
+    expect(chipTexts).toEqual(['Linus', 'Grace', 'Alan', 'Emmy', 'Hedy', 'Niels']);
+    fixture.destroy();
+  });
+
+  it('staffelt spaetere Non-Team-Joins hinter bereits sichtbare Arrival-Chips', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 1,
+        participants: [{ id: 'p1', nickname: 'Ada' }],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (data: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Ada' },
+          { id: 'p2', nickname: 'Linus' },
+        ],
+      });
+      fixture.detectChanges();
+
+      participantJoinedHandler?.({
+        participantCount: 3,
+        participants: [
+          { id: 'p1', nickname: 'Ada' },
+          { id: 'p2', nickname: 'Linus' },
+          { id: 'p3', nickname: 'Grace' },
+        ],
+      });
+      fixture.detectChanges();
+
+      const shells = Array.from(
+        fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+      ) as HTMLElement[];
+      expect(shells).toHaveLength(2);
+      expect(shells[0]?.style.getPropertyValue('--foyer-delay-ms')).toBe('0ms');
+      expect(shells[1]?.style.getPropertyValue('--foyer-delay-ms')).toBe('920ms');
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('staffelt normale Team-Arrivals so, dass Namens-Badges nacheinander vorgestellt werden', async () => {
+    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      preset: 'PLAYFUL',
+      enableRewardEffects: true,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 }],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        participantJoinedHandler = opts.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    participantJoinedHandler?.({
+      participantCount: 3,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p2', nickname: 'Linus', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p3', nickname: 'Grace Hopper', teamId: 'team-a', teamName: 'Rot' },
+      ],
+    });
+    fixture.detectChanges();
+
+    const shells = Array.from(
+      fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+    ) as HTMLElement[];
+
+    expect(shells).toHaveLength(2);
+    expect(shells[0]?.style.getPropertyValue('--foyer-delay-ms')).toBe('0ms');
+    expect(shells[1]?.style.getPropertyValue('--foyer-delay-ms')).toBe('1880ms');
     fixture.destroy();
   });
 

@@ -433,7 +433,7 @@
               </section>
             }
             @let payload = participantsPayload();
-            @if (showFoyerEntranceLayer()) {
+            @if (showFoyerEntranceLayer() && foyerArrivalChips().length > 0) {
               <div class="session-lobby__foyer-stage">
                 <app-foyer-entrance-layer [chips]="foyerArrivalChips()" />
               </div>
@@ -549,9 +549,14 @@
               </section>
             }
             @if (!s.teamMode && !s.anonymousMode && payload && payload.participants.length > 0) {
-              <ul class="session-lobby__list" role="list" i18n-aria-label aria-label="Teilnehmende">
-                @for (p of payload.participants; track p.id) {
-                  <li class="session-lobby__list-item">
+              <ul
+                class="session-lobby__list session-lobby__list--chips"
+                role="list"
+                i18n-aria-label
+                aria-label="Teilnehmende"
+              >
+                @for (p of lobbyParticipantsNewestFirst(); track p.id) {
+                  <li class="session-lobby__list-item session-lobby__list-item--chip">
                     @if (lobbyKindergartenEmoji(p.nickname); as em) {
                       <span
                         class="session-lobby__nick-emoji session-lobby__nick-emoji--host-lobby"

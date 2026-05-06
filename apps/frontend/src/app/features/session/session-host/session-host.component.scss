@@ -2024,7 +2024,22 @@
   margin: 0;
   padding: 1.5rem 1.75rem;
   list-style: none;
-  text-align: left;
+}
+
+.session-lobby__list--chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.7rem 0.8rem;
+  padding: 0.65rem 1rem 0.35rem;
+  width: min(100%, 52rem);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.session-lobby__list--chips:has(.session-lobby__nick-emoji--host-lobby) {
+  padding-block: 0.35rem 0.1rem;
 }
 
 .session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) {
@@ -2039,18 +2054,22 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.6rem 0;
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface);
+}
 
-  &:not(:last-child) {
-    margin-bottom: 0.35rem;
-  }
+.session-lobby__list-item--chip {
+  justify-content: center;
+  min-height: 2.65rem;
+  padding: 0.6rem 0.95rem;
+  border-radius: var(--mat-sys-corner-full);
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, var(--mat-sys-surface));
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--mat-sys-shadow) 10%, transparent);
+  font-weight: 600;
 }
 
 .session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) .session-lobby__list-item {
   justify-content: center;
-  margin-bottom: 0;
 }
 
 .session-lobby__quiz-name {
@@ -2060,7 +2079,11 @@
 }
 
 .session-lobby__actions {
-  margin-top: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.session-lobby__list--chips + .session-lobby__actions {
+  margin-top: 0;
 }
 
 .session-lobby__actions--hero {
@@ -2085,6 +2108,11 @@
 
   .session-lobby__list {
     padding: 1.25rem 1.35rem;
+  }
+
+  .session-lobby__list--chips {
+    padding: 0.5rem 0.75rem 0.2rem;
+    gap: 0.55rem 0.6rem;
   }
 
   .session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) {

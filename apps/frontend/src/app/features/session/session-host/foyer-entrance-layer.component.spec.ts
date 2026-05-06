@@ -315,4 +315,50 @@ describe('FoyerEntranceLayerComponent', () => {
       vi.useRealTimers();
     }
   });
+
+  it('blendet Overlay-Namens-Badges nach ihrer Presence-Dauer wieder aus', async () => {
+    vi.useFakeTimers();
+    try {
+      const fixture = TestBed.configureTestingModule({
+        imports: [FoyerEntranceLayerComponent],
+      }).createComponent(FoyerEntranceLayerComponent);
+
+      fixture.componentRef.setInput('chips', [
+        {
+          id: 'chip-temporary-badge',
+          teamId: 'team-a',
+          kind: 'text',
+          fullLabel: 'Barbara McClintock',
+          ariaLabel: 'Barbara McClintock',
+          emoji: null,
+          text: 'Barbara',
+          sequence: 0,
+          delayMs: 0,
+          lane: 0,
+          direction: 'left',
+          ...motion,
+          badgeDelayMs: 120,
+          badgePresenceMs: 240,
+        },
+      ]);
+      fixture.componentRef.setInput('overlay', true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.foyer-entrance-layer__name-badge')).toBeNull();
+
+      await vi.advanceTimersByTimeAsync(120);
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement
+          .querySelector('.foyer-entrance-layer__name-badge')
+          ?.textContent?.trim(),
+      ).toBe('Barbara McClintock');
+
+      await vi.advanceTimersByTimeAsync(240);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.foyer-entrance-layer__name-badge')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
