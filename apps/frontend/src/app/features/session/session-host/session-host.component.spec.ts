@@ -2784,6 +2784,180 @@ describe('SessionHostComponent', () => {
     expect(unsubscribeMock).toHaveBeenCalledTimes(2);
   });
 
+  it('zeigt im spielerischen Quiz-Foyer nur fuer echte Neuzugaenge einen Arrival-Chip', async () => {
+    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      enableRewardEffects: true,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (data: unknown) => void }) => {
+        participantJoinedHandler = opts.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip')).toHaveLength(0);
+
+    participantJoinedHandler?.({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Ada' },
+        { id: 'p2', nickname: 'Linus' },
+      ],
+    });
+    fixture.detectChanges();
+
+    const chips = fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip');
+    expect(chips).toHaveLength(1);
+    expect(fixture.nativeElement.textContent ?? '').toContain('Linus');
+    fixture.destroy();
+  });
+
+  it('haelt Arrival-Chips im Dev-Host lange genug sichtbar, um sie im Browser wahrzunehmen', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 1,
+        participants: [{ id: 'p1', nickname: 'Ada' }],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (data: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Ada' },
+          { id: 'p2', nickname: 'Linus' },
+        ],
+      });
+      fixture.detectChanges();
+
+      await vi.advanceTimersByTimeAsync(1200);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip')).toHaveLength(1);
+
+      await vi.advanceTimersByTimeAsync(2500);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip')).toHaveLength(0);
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('unterdrueckt den Foyer-Einflug im serioesen Preset', async () => {
+    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      preset: 'SERIOUS',
+      enableRewardEffects: true,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (data: unknown) => void }) => {
+        participantJoinedHandler = opts.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    participantJoinedHandler?.({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Ada' },
+        { id: 'p2', nickname: 'Linus' },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip')).toHaveLength(0);
+    fixture.destroy();
+  });
+
+  it('zeigt groessere Join-Wellen im Quiz-Foyer nur noch als Einzelankuenfte', async () => {
+    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      enableRewardEffects: true,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (data: unknown) => void }) => {
+        participantJoinedHandler = opts.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    participantJoinedHandler?.({
+      participantCount: 7,
+      participants: [
+        { id: 'p1', nickname: 'Ada' },
+        { id: 'p2', nickname: 'Linus' },
+        { id: 'p3', nickname: 'Grace' },
+        { id: 'p4', nickname: 'Alan' },
+        { id: 'p5', nickname: 'Emmy' },
+        { id: 'p6', nickname: 'Hedy' },
+        { id: 'p7', nickname: 'Niels' },
+      ],
+    });
+    fixture.detectChanges();
+
+    const chips = fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip');
+
+    expect(chips).toHaveLength(6);
+    fixture.destroy();
+  });
+
   it('zeigt Team-Leaderboard bei Teammodus im Abschlussstatus', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -2965,7 +3139,830 @@ describe('SessionHostComponent', () => {
     expect(text).toContain('Blau');
     expect(text).toContain('Ada');
     expect(text).toContain('Grace');
+    const cards = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-lobby__team-card'),
+    ) as HTMLElement[];
+    const teamAMembers = Array.from(cards[0].querySelectorAll('.session-lobby__team-member')).map(
+      (element) => (element.textContent ?? '').trim(),
+    );
+    expect(teamAMembers).toEqual(['Linus', 'Ada']);
     fixture.destroy();
+  });
+
+  it('rendert Team-Einfluege lokal in der passenden Teamkarte und nutzt die Kartenrichtung', async () => {
+    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      preset: 'PLAYFUL',
+      enableRewardEffects: true,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 1 },
+      ],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p2', nickname: 'Linus', teamId: 'team-b', teamName: 'Blau' },
+      ],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        participantJoinedHandler = opts.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const cards = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-lobby__team-card'),
+    ) as HTMLElement[];
+    expect(cards).toHaveLength(2);
+
+    vi.spyOn(cards[0], 'getBoundingClientRect').mockReturnValue({
+      left: 40,
+      top: 0,
+      width: 220,
+      height: 180,
+      right: 260,
+      bottom: 180,
+      x: 40,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+    vi.spyOn(cards[1], 'getBoundingClientRect').mockReturnValue({
+      left: 700,
+      top: 0,
+      width: 220,
+      height: 180,
+      right: 920,
+      bottom: 180,
+      x: 700,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    window.dispatchEvent(new Event('resize'));
+    fixture.detectChanges();
+
+    participantJoinedHandler?.({
+      participantCount: 3,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p2', nickname: 'Linus', teamId: 'team-b', teamName: 'Blau' },
+        { id: 'p3', nickname: 'Grace', teamId: 'team-b', teamName: 'Blau' },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(cards[0].querySelectorAll('.foyer-entrance-layer__chip')).toHaveLength(0);
+    expect(cards[1].querySelectorAll('.foyer-entrance-layer__chip')).toHaveLength(1);
+    expect(cards[0].className).not.toContain('session-lobby__team-card--arrival');
+    expect(cards[1].className).toContain('session-lobby__team-card--arrival');
+    expect(cards[1].querySelector('.foyer-entrance-layer--overlay')).not.toBeNull();
+    expect(cards[1].querySelector('.foyer-entrance-layer__chip-shell--from-right')).not.toBeNull();
+    expect(cards[1].textContent ?? '').toContain('Grace');
+    const teamBMembers = Array.from(cards[1].querySelectorAll('.session-lobby__team-member')).map(
+      (element) => (element.textContent ?? '').trim(),
+    );
+    expect(teamBMembers).toEqual(['Linus']);
+    fixture.destroy();
+  });
+
+  it('zeigt groessere Team-Join-Wellen lokal nur noch als Einzelankuenfte', async () => {
+    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      preset: 'PLAYFUL',
+      enableRewardEffects: true,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 1 },
+      ],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p2', nickname: 'Linus', teamId: 'team-b', teamName: 'Blau' },
+      ],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        participantJoinedHandler = opts.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const cards = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-lobby__team-card'),
+    ) as HTMLElement[];
+    expect(cards).toHaveLength(2);
+
+    vi.spyOn(cards[0], 'getBoundingClientRect').mockReturnValue({
+      left: 40,
+      top: 0,
+      width: 220,
+      height: 180,
+      right: 260,
+      bottom: 180,
+      x: 40,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+    vi.spyOn(cards[1], 'getBoundingClientRect').mockReturnValue({
+      left: 700,
+      top: 0,
+      width: 220,
+      height: 180,
+      right: 920,
+      bottom: 180,
+      x: 700,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    window.dispatchEvent(new Event('resize'));
+    fixture.detectChanges();
+
+    participantJoinedHandler?.({
+      participantCount: 7,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p2', nickname: 'Linus', teamId: 'team-b', teamName: 'Blau' },
+        { id: 'p3', nickname: 'Grace', teamId: 'team-b', teamName: 'Blau' },
+        { id: 'p4', nickname: 'Alan', teamId: 'team-b', teamName: 'Blau' },
+        { id: 'p5', nickname: 'Emmy', teamId: 'team-b', teamName: 'Blau' },
+        { id: 'p6', nickname: 'Hedy', teamId: 'team-b', teamName: 'Blau' },
+        { id: 'p7', nickname: 'Niels', teamId: 'team-b', teamName: 'Blau' },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(cards[0].querySelectorAll('.foyer-entrance-layer__chip')).toHaveLength(0);
+    expect(cards[1].querySelectorAll('.foyer-entrance-layer__chip')).toHaveLength(5);
+    expect(cards[1].querySelector('.foyer-entrance-layer__chip-shell--from-right')).not.toBeNull();
+    const teamBMembers = Array.from(cards[1].querySelectorAll('.session-lobby__team-member')).map(
+      (element) => (element.textContent ?? '').trim(),
+    );
+    expect(teamBMembers).toEqual(['Linus']);
+    expect(cards[1].querySelector('.session-lobby__team-empty')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('rendert Kindergarten-Team-Arrivals mit Icon und separatem Namens-Badge', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 1,
+        participants: [{ id: 'p1', nickname: 'Brauner Bär', teamId: 'team-a', teamName: 'Rot' }],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      const cards = Array.from(
+        fixture.nativeElement.querySelectorAll('.session-lobby__team-card'),
+      ) as HTMLElement[];
+      expect(cards).toHaveLength(2);
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Brauner Bär', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Gelber Löwe', teamId: 'team-b', teamName: 'Blau' },
+        ],
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(2140);
+      fixture.detectChanges();
+
+      const overlayChip = cards[1].querySelector(
+        '.foyer-entrance-layer__chip',
+      ) as HTMLElement | null;
+      const overlayBadge = cards[1].querySelector(
+        '.foyer-entrance-layer__name-badge',
+      ) as HTMLElement | null;
+      expect(overlayChip).not.toBeNull();
+      expect(overlayChip?.className).toContain('foyer-entrance-layer__chip--emoji-only');
+      expect(
+        overlayChip?.querySelector('.foyer-entrance-layer__chip-emoji')?.textContent?.trim().length,
+      ).toBeGreaterThan(0);
+      expect(overlayChip?.querySelector('.foyer-entrance-layer__chip-text')).toBeNull();
+      expect(overlayBadge?.textContent?.trim()).toBe('Gelber Löwe');
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('zeigt bei Nobelpreistraeger-Arrivals in der Kindergarten-Session den Vollnamen als Badge', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 1,
+        participants: [{ id: 'p1', nickname: 'Brauner Bär', teamId: 'team-a', teamName: 'Rot' }],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      const cards = Array.from(
+        fixture.nativeElement.querySelectorAll('.session-lobby__team-card'),
+      ) as HTMLElement[];
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Brauner Bär', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Barbara McClintock', teamId: 'team-b', teamName: 'Blau' },
+        ],
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(2140);
+      fixture.detectChanges();
+
+      const overlayChip = cards[1].querySelector(
+        '.foyer-entrance-layer__chip',
+      ) as HTMLElement | null;
+      const overlayBadge = cards[1].querySelector(
+        '.foyer-entrance-layer__name-badge',
+      ) as HTMLElement | null;
+
+      expect(
+        overlayChip?.querySelector('.foyer-entrance-layer__chip-text')?.textContent?.trim(),
+      ).toBe('Barbara');
+      expect(overlayBadge?.textContent?.trim()).toBe('Barbara McClintock');
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('stellt mehrteilige Pseudonym-Namen mit Vornamen im Chip und Vollnamen im Badge vor', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        allowCustomNicknames: false,
+        nicknameTheme: 'HIGH_SCHOOL',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 1,
+        participants: [{ id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' }],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      const cards = Array.from(
+        fixture.nativeElement.querySelectorAll('.session-lobby__team-card'),
+      ) as HTMLElement[];
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Ada Lovelace', teamId: 'team-b', teamName: 'Blau' },
+        ],
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(1440);
+      fixture.detectChanges();
+
+      const overlayChip = cards[1].querySelector(
+        '.foyer-entrance-layer__chip',
+      ) as HTMLElement | null;
+      const overlayBadge = cards[1].querySelector(
+        '.foyer-entrance-layer__name-badge',
+      ) as HTMLElement | null;
+
+      expect(
+        overlayChip?.querySelector('.foyer-entrance-layer__chip-text')?.textContent?.trim(),
+      ).toBe('Ada');
+      expect(overlayBadge?.textContent?.trim()).toBe('Ada Lovelace');
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('staffelt Kindergarten-Team-Arrivals global, damit Tiere einzeln eintreten', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 0,
+        participants: [],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      const cards = Array.from(
+        fixture.nativeElement.querySelectorAll('.session-lobby__team-card'),
+      ) as HTMLElement[];
+      expect(cards).toHaveLength(2);
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Rosa Schmetterling', teamId: 'team-b', teamName: 'Blau' },
+        ],
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+      const firstShell = cards[0].querySelector(
+        '.foyer-entrance-layer__chip-shell',
+      ) as HTMLElement | null;
+      const secondShell = cards[1].querySelector(
+        '.foyer-entrance-layer__chip-shell',
+      ) as HTMLElement | null;
+      expect(firstShell).not.toBeNull();
+      expect(secondShell).not.toBeNull();
+      expect(firstShell?.style.getPropertyValue('--foyer-delay-ms')).toBe('0ms');
+      expect(secondShell?.style.getPropertyValue('--foyer-delay-ms')).toBe('5400ms');
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('vermeidet bei laengeren Kindergarten-Serien sichtbare Ueberlappungen zwischen den Tieren', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 0,
+        participants: [],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      participantJoinedHandler?.({
+        participantCount: 3,
+        participants: [
+          { id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Rosa Schmetterling', teamId: 'team-b', teamName: 'Blau' },
+          { id: 'p3', nickname: 'Brauner Bär', teamId: 'team-a', teamName: 'Rot' },
+        ],
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+      const delays = Array.from(
+        fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+      ).map((element) => (element as HTMLElement).style.getPropertyValue('--foyer-delay-ms'));
+      expect(delays).toEqual(['0ms', '5400ms', '10200ms']);
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('klemmt groessere Kindergarten-Wellen nicht mehr auf denselben Startzeitpunkt', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 0,
+        participants: [],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      participantJoinedHandler?.({
+        participantCount: 5,
+        participants: [
+          { id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Rosa Schmetterling', teamId: 'team-b', teamName: 'Blau' },
+          { id: 'p3', nickname: 'Brauner Bär', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p4', nickname: 'Oranger Fuchs', teamId: 'team-b', teamName: 'Blau' },
+          { id: 'p5', nickname: 'Grüner Frosch', teamId: 'team-a', teamName: 'Rot' },
+        ],
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+
+      const delays = Array.from(
+        fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+      ).map((element) => (element as HTMLElement).style.getPropertyValue('--foyer-delay-ms'));
+
+      expect(delays).toEqual(['0ms', '5400ms', '10200ms', '15000ms', '19100ms']);
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('staffelt einen neuen Kindergarten-Einflug hinter ein bereits sichtbares Tier', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 0,
+        participants: [],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      participantJoinedHandler?.({
+        participantCount: 1,
+        participants: [{ id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' }],
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+      ).toHaveLength(1);
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Rosa Schmetterling', teamId: 'team-b', teamName: 'Blau' },
+        ],
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+
+      const shells = Array.from(
+        fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+      ) as HTMLElement[];
+      expect(shells).toHaveLength(2);
+      expect(shells[1]?.style.getPropertyValue('--foyer-delay-ms')).toBe('4800ms');
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('retriggert die Team-Pulse-Variante fuer spaetere Kindergarten-Ankuenfte derselben Karte', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 0,
+        participants: [],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      const firstCard = () =>
+        fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement | null;
+
+      participantJoinedHandler?.({
+        participantCount: 1,
+        participants: [{ id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' }],
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+      expect(firstCard()?.className).not.toContain('session-lobby__team-card--arrival-a');
+      expect(firstCard()?.className).not.toContain('session-lobby__team-card--arrival-b');
+
+      await vi.advanceTimersByTimeAsync(2779);
+      fixture.detectChanges();
+      expect(firstCard()?.className).not.toMatch(/session-lobby__team-card--arrival-[ab]/);
+
+      await vi.advanceTimersByTimeAsync(1);
+      fixture.detectChanges();
+      expect(firstCard()?.className).toMatch(/session-lobby__team-card--arrival-[ab]/);
+
+      await vi.advanceTimersByTimeAsync(980);
+      fixture.detectChanges();
+      expect(firstCard()?.className).not.toMatch(/session-lobby__team-card--arrival-[ab]/);
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Brauner Bär', teamId: 'team-a', teamName: 'Rot' },
+        ],
+      });
+
+      await vi.advanceTimersByTimeAsync(7319);
+      fixture.detectChanges();
+      expect(firstCard()?.className).not.toMatch(/session-lobby__team-card--arrival-[ab]/);
+
+      await vi.advanceTimersByTimeAsync(1);
+      fixture.detectChanges();
+      expect(firstCard()?.className).toMatch(/session-lobby__team-card--arrival-[ab]/);
+
+      await vi.advanceTimersByTimeAsync(980);
+      fixture.detectChanges();
+      expect(firstCard()?.className).not.toMatch(/session-lobby__team-card--arrival-[ab]/);
+      fixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('raeumt die Kindergarten-Queue beim Reload auf und startet nicht mit alten Pending-Tieren neu', async () => {
+    vi.useFakeTimers();
+    try {
+      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        teamMode: true,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+        preset: 'PLAYFUL',
+        enableRewardEffects: true,
+      });
+      getTeamsQueryMock.mockResolvedValue({
+        teamCount: 2,
+        teams: [
+          { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+          { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+        ],
+      });
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 0,
+        participants: [],
+      });
+      onParticipantJoinedSubscribeMock.mockImplementation(
+        (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+          participantJoinedHandler = opts.onData;
+          return { unsubscribe: unsubscribeMock };
+        },
+      );
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      fixture.detectChanges();
+
+      participantJoinedHandler?.({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Rosa Schmetterling', teamId: 'team-b', teamName: 'Blau' },
+        ],
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      fixture.detectChanges();
+
+      fixture.destroy();
+
+      await vi.advanceTimersByTimeAsync(6000);
+      TestBed.resetTestingModule();
+
+      getParticipantsQueryMock.mockResolvedValue({
+        participantCount: 2,
+        participants: [
+          { id: 'p1', nickname: 'Gelber Löwe', teamId: 'team-a', teamName: 'Rot' },
+          { id: 'p2', nickname: 'Rosa Schmetterling', teamId: 'team-b', teamName: 'Blau' },
+        ],
+      });
+
+      const reloadFixture = setup();
+      reloadFixture.detectChanges();
+      await reloadFixture.whenStable();
+      await vi.advanceTimersByTimeAsync(50);
+      reloadFixture.detectChanges();
+
+      expect(
+        reloadFixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+      ).toHaveLength(0);
+      reloadFixture.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('blendet den Farbpunkt aus, wenn der Teamname mit Emoji beginnt', async () => {
@@ -3041,6 +4038,49 @@ describe('SessionHostComponent', () => {
     expect(card.textContent ?? '').toContain('Team');
     expect(card.querySelector('.session-lobby__team-card-dot')).toBeNull();
     expect(card.querySelector('.session-lobby__team-card-emoji')?.textContent).toBe('🍎');
+    fixture.destroy();
+  });
+
+  it('zeigt in der Kindergarten-Teamlobby nur das Emoji und haelt den Tiernamen sr-only', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [{ id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 }],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [
+        { id: 'p1', nickname: 'Mintgrüne Eidechse', teamId: 'team-a', teamName: 'Rot' },
+      ],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({
+          participantCount: 1,
+          participants: [
+            { id: 'p1', nickname: 'Mintgrüne Eidechse', teamId: 'team-a', teamName: 'Rot' },
+          ],
+        });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
+    expect(card.querySelector('.session-lobby__nick-emoji--host-lobby')).not.toBeNull();
+    expect(card.querySelector('.session-lobby__nick-label--host-lobby')).toBeNull();
+    expect(card.querySelector('.sr-only')?.textContent?.trim()).toBe('Mintgrüne Eidechse');
     fixture.destroy();
   });
 

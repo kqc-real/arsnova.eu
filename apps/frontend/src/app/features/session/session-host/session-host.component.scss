@@ -78,6 +78,28 @@
   width: 100%;
   --session-host-shell-max-width: var(--app-toolbar-max-width);
   --session-host-shell-inline: 1rem;
+  --session-foyer-arrival-surface: color-mix(
+    in srgb,
+    var(--mat-sys-primary-container) 18%,
+    var(--mat-sys-surface-container-high)
+  );
+  --session-foyer-arrival-outline: color-mix(
+    in srgb,
+    var(--mat-sys-primary) 24%,
+    var(--mat-sys-outline-variant)
+  );
+  --session-foyer-arrival-glow: color-mix(
+    in srgb,
+    var(--mat-sys-primary-container) 70%,
+    transparent
+  );
+  --session-foyer-arrival-tertiary-glow: color-mix(
+    in srgb,
+    var(--mat-sys-tertiary-container) 56%,
+    transparent
+  );
+  --session-foyer-shadow-soft: color-mix(in srgb, var(--mat-sys-shadow) 10%, transparent);
+  --session-foyer-shadow-strong: color-mix(in srgb, var(--mat-sys-shadow) 20%, transparent);
   --session-host-shell-width: min(
     var(--session-host-shell-max-width),
     calc(100vw - (2 * var(--session-host-shell-inline)))
@@ -1718,6 +1740,12 @@
   text-align: left;
 }
 
+.session-lobby__foyer-stage {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
 .session-lobby__teams--hero {
   margin-top: 0;
 }
@@ -1737,10 +1765,75 @@
 }
 
 .session-lobby__team-card {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
   padding: 1.1rem 1.25rem;
   border-radius: var(--mat-sys-corner-large, 1rem);
-  background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-high));
-  box-shadow: 0 1px 3px color-mix(in srgb, black 4%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--mat-sys-primary-container) 10%,
+    var(--mat-sys-surface-container-high)
+  );
+  box-shadow: 0 1px 3px var(--session-foyer-shadow-soft);
+  transition:
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.session-lobby__team-card::after {
+  content: '';
+  position: absolute;
+  inset: -0.2rem;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.session-lobby__team-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.session-lobby__team-card--arrival {
+  background: var(--session-foyer-arrival-surface);
+  box-shadow:
+    0 0 0 2px var(--session-foyer-arrival-outline),
+    0 16px 34px -24px color-mix(in srgb, var(--session-foyer-arrival-glow) 74%, transparent),
+    0 6px 18px -16px var(--session-foyer-shadow-strong);
+}
+
+.session-lobby__team-card--arrival::after {
+  background:
+    radial-gradient(
+      circle at 18% 50%,
+      color-mix(in srgb, var(--session-foyer-arrival-glow) 42%, transparent) 0%,
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 82% 45%,
+      color-mix(in srgb, var(--session-foyer-arrival-tertiary-glow) 34%, transparent) 0%,
+      transparent 38%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--mat-sys-primary) 10%, transparent) 22%,
+      color-mix(in srgb, var(--session-foyer-arrival-glow) 24%, transparent) 50%,
+      color-mix(in srgb, var(--mat-sys-primary) 10%, transparent) 78%,
+      transparent 100%
+    );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .session-lobby__team-card--arrival-a::after {
+    animation: lobby-team-card-arrival-flash-a 1200ms ease-out both;
+  }
+
+  .session-lobby__team-card--arrival-b::after {
+    animation: lobby-team-card-arrival-flash-b 1200ms ease-out both;
+  }
 }
 
 .session-lobby__team-card--playful {
@@ -1772,6 +1865,18 @@
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .session-lobby__team-card--arrival-a .session-lobby__team-card-dot,
+  .session-lobby__team-card--arrival-a .session-lobby__team-card-emoji {
+    animation: lobby-team-arrival-emphasis-a 920ms cubic-bezier(0.2, 0.9, 0.28, 1) both;
+  }
+
+  .session-lobby__team-card--arrival-b .session-lobby__team-card-dot,
+  .session-lobby__team-card--arrival-b .session-lobby__team-card-emoji {
+    animation: lobby-team-arrival-emphasis-b 920ms cubic-bezier(0.2, 0.9, 0.28, 1) both;
+  }
+}
+
 .session-lobby__team-card-emoji {
   font-size: clamp(3.2rem, 5vw, 4.8rem);
   line-height: 1;
@@ -1789,6 +1894,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+.session-lobby__team-foyer-stage {
+  position: absolute;
+  inset-block: -0.65rem;
+  inset-inline: -6.25rem;
+  min-height: 0;
+  pointer-events: none;
+  z-index: 24;
+}
+
 .session-lobby__team-members {
   list-style: none;
   margin: 0.95rem 0 0;
@@ -1796,6 +1910,16 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+  position: relative;
+  z-index: 0;
+}
+
+.session-lobby__team-members:has(.session-lobby__nick-emoji--host-lobby) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.25rem, 1fr));
+  gap: 0.7rem 0.9rem;
+  justify-items: center;
+  align-items: start;
 }
 
 .session-lobby__team-member {
@@ -1808,6 +1932,33 @@
   font: var(--mat-sys-body-small);
   font-weight: 500;
   color: var(--mat-sys-on-surface);
+  position: relative;
+  z-index: 1;
+}
+
+.session-lobby__team-member--landed-echo .session-lobby__nick-emoji--host-lobby {
+  position: relative;
+}
+
+.session-lobby__team-member--landed-echo .session-lobby__nick-emoji--host-lobby::after {
+  content: attr(data-echo-emoji);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0.48;
+  transform: translate(0.42rem, 0.16rem) scale(0.92);
+  filter: blur(0.02rem);
+  pointer-events: none;
+  color: color-mix(in srgb, var(--mat-sys-primary) 54%, transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: session-lobby-landed-echo-fade 420ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: session-lobby-landed-echo-fade 220ms ease-out both;
+  }
 }
 
 .session-lobby__nick-emoji {
@@ -1839,7 +1990,8 @@
 .session-lobby__list-item:has(.session-lobby__nick-emoji--host-lobby) {
   display: grid;
   place-items: center;
-  min-width: 6.25rem;
+  inline-size: 100%;
+  min-width: 0;
   min-height: 6.25rem;
   padding: 0.5rem;
   background: transparent;
@@ -1847,11 +1999,25 @@
   box-shadow: none;
 }
 
+@keyframes session-lobby-landed-echo-fade {
+  0% {
+    opacity: 0.48;
+    transform: translate(0.42rem, 0.16rem) scale(0.92);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(0.82rem, 0.28rem) scale(1.02);
+  }
+}
+
 .session-lobby__team-empty {
   margin: 0.95rem 0 0;
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
   line-height: 1.4;
+  position: relative;
+  z-index: 0;
 }
 
 .session-lobby__list {
@@ -1965,7 +2131,91 @@
     }
     50% {
       transform: scale(1.08);
-      box-shadow: 0 0 0.65rem color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
+      box-shadow: 0 0 0.65rem color-mix(in srgb, var(--session-foyer-arrival-glow) 42%, transparent);
+    }
+  }
+
+  @keyframes lobby-team-card-arrival-flash-a {
+    0% {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+
+    24% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(1.04);
+    }
+  }
+
+  @keyframes lobby-team-card-arrival-flash-b {
+    0% {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+
+    24% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(1.04);
+    }
+  }
+
+  @keyframes lobby-team-arrival-emphasis-a {
+    0% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 color-mix(in srgb, var(--mat-sys-shadow) 0%, transparent));
+    }
+
+    32% {
+      transform: scale(1.16);
+      filter: drop-shadow(
+        0 0 0.8rem color-mix(in srgb, var(--session-foyer-arrival-glow) 38%, transparent)
+      );
+    }
+
+    58% {
+      transform: scale(1.03);
+      filter: drop-shadow(
+        0 0 0.28rem color-mix(in srgb, var(--session-foyer-arrival-glow) 20%, transparent)
+      );
+    }
+
+    100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 color-mix(in srgb, var(--mat-sys-shadow) 0%, transparent));
+    }
+  }
+
+  @keyframes lobby-team-arrival-emphasis-b {
+    0% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 color-mix(in srgb, var(--mat-sys-shadow) 0%, transparent));
+    }
+
+    30% {
+      transform: scale(1.14);
+      filter: drop-shadow(
+        0 0 0.72rem color-mix(in srgb, var(--session-foyer-arrival-glow) 34%, transparent)
+      );
+    }
+
+    56% {
+      transform: scale(1.03);
+      filter: drop-shadow(
+        0 0 0.24rem color-mix(in srgb, var(--session-foyer-arrival-glow) 18%, transparent)
+      );
+    }
+
+    100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 color-mix(in srgb, var(--mat-sys-shadow) 0%, transparent));
     }
   }
 }

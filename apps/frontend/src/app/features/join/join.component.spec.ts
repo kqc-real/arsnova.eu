@@ -6,6 +6,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, ActivatedRoute, Router } from '@angular/router';
 import { JoinComponent } from './join.component';
 import { trpc } from '../../core/trpc.client';
+import { consumeParticipantJoinArrival } from '../../core/participant-join-arrival';
 
 const mockSession = {
   id: 'sess-1',
@@ -68,6 +69,7 @@ vi.mock('../../core/trpc.client', () => ({
 describe('JoinComponent', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue(mockSession);
     vi.mocked(trpc.session.getTeams.query).mockResolvedValue({ teams: [], teamCount: 0 });
     vi.mocked(trpc.session.getParticipantNicknames.query).mockResolvedValue({
@@ -295,6 +297,7 @@ describe('JoinComponent', () => {
       nickname: 'Ada Yonath',
       rejoinToken: undefined,
     });
+    expect(consumeParticipantJoinArrival('ABC123')).toBe(true);
     expect(navSpy).toHaveBeenCalledWith(['session', 'ABC123', 'vote']);
   });
 

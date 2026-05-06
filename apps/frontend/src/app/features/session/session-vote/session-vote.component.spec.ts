@@ -9,6 +9,10 @@ import {
   SessionVoteComponent,
 } from './session-vote.component';
 import * as vpc from './session-vote-participant-copy';
+import {
+  hasParticipantJoinArrival,
+  setParticipantJoinArrival,
+} from '../../../core/participant-join-arrival';
 
 const {
   getInfoQueryMock,
@@ -130,6 +134,8 @@ describe('SessionVoteComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.setItem('arsnova-participant-ABC123', '11111111-1111-4111-8111-111111111111');
+    localStorage.removeItem('arsnova-nickname-ABC123');
+    sessionStorage.clear();
 
     statusChangedSubscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
     getParticipantSelfQueryMock.mockResolvedValue({
@@ -1435,6 +1441,81 @@ describe('SessionVoteComponent', () => {
     expect(text).toContain('Quiz');
     expect(text).toContain('Q&A');
     expect(text).toContain('Blitzlicht');
+    fixture.destroy();
+  });
+
+  it('zeigt nach frischem Join im spielerischen Lobby-Client einen einmaligen Arrival-Moment', async () => {
+    localStorage.setItem('arsnova-nickname-ABC123', 'Ada');
+    setParticipantJoinArrival('ABC123');
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-player-badge--arrival')).not.toBeNull();
+    expect(host.querySelector('.vote-lobby--arrival')).not.toBeNull();
+    expect(sessionStorage.getItem('arsnova-join-arrival:ABC123')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('behaelt das Arrival-Flag bis zum ersten erfolgreichen Session-Load', async () => {
+    localStorage.setItem('arsnova-nickname-ABC123', 'Ada');
+    setParticipantJoinArrival('ABC123');
+    getInfoQueryMock.mockRejectedValueOnce(new Error('temporary offline')).mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-player-badge--arrival')).toBeNull();
+    expect(hasParticipantJoinArrival('ABC123')).toBe(true);
+
+    await (
+      fixture.componentInstance as unknown as { refreshSessionInfoFallback: () => Promise<void> }
+    ).refreshSessionInfoFallback();
+    fixture.detectChanges();
+
+    expect(host.querySelector('.vote-player-badge--arrival')).not.toBeNull();
+    expect(sessionStorage.getItem('arsnova-join-arrival:ABC123')).toBeNull();
     fixture.destroy();
   });
 

@@ -48,6 +48,10 @@ import { CountdownFingersComponent } from '../../../shared/countdown-fingers/cou
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import { recordServerTimeIso } from '../session-server-clock';
+import {
+  consumeParticipantJoinArrival,
+  hasParticipantJoinArrival,
+} from '../../../core/participant-join-arrival';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 import {
   edgeEmojiMarkerPosition,
@@ -294,6 +298,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly participantId = signal('');
   readonly status = signal<SessionStatus>('LOBBY');
   readonly sessionSettings = signal<Partial<SessionInfoDTO>>({});
+  readonly lobbyArrivalActive = signal(false);
   readonly qrDataUrl = signal('');
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
@@ -319,6 +324,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly timeoutMessage = signal<string | null>(null);
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
+  private lobbyArrivalTimeout: ReturnType<typeof setTimeout> | null = null;
+  private pendingJoinArrival = false;
 
   readonly currentRound = signal(1);
   readonly personalRank = signal<number | null>(null);
@@ -525,6 +532,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
 
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
+  readonly showLobbyArrivalMoment = computed(
+    () => this.lobbyArrivalActive() && this.isLobby() && this.isPlayfulPreset(),
+  );
   readonly channels = computed(() => {
     const session = this.sessionSettings();
     const ch = session.channels;
@@ -1238,6 +1248,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     if (!this.code) return;
+    this.pendingJoinArrival = hasParticipantJoinArrival(this.code);
 
     if (typeof localStorage !== 'undefined') {
       this.participantId.set(localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? '');
@@ -1324,7 +1335,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       void this.refreshQuickFeedbackResult();
     }, VOTE_FALLBACK_POLL_MS);
   }
-  private async loadSessionInfo(): Promise<void> {
+  private async loadSessionInfo(): Promise<boolean> {
     try {
       const session = await trpc.session.getInfo.query({ code: this.code });
       recordServerTimeIso(session.serverTime);
@@ -1333,7 +1344,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionSettings.set(session);
       if (session.status === 'FINISHED') {
         this.redirectToHomeIfSessionFinished();
-        return;
+        this.applyPendingLobbyArrivalIfNeeded();
+        return true;
       }
       this.ensureQaSubscription();
       await this.refreshQaQuestions();
@@ -1350,8 +1362,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
       await this.refreshQuestion();
       await this.refreshQuickFeedbackResult();
+      this.applyPendingLobbyArrivalIfNeeded();
+      return true;
     } catch {
       // Parent-Shell validiert bereits; Retry läuft über Polling.
+      return false;
     }
   }
 
@@ -1421,6 +1436,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (nextStatus === 'ACTIVE' && this.countdownSeconds() === null) {
         this.startCountdown(this.currentQuestion());
       }
+      this.applyPendingLobbyArrivalIfNeeded();
     } catch {
       // best-effort fallback, WebSocket bleibt primärer Kanal
     }
@@ -1435,7 +1451,38 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
+    if (this.lobbyArrivalTimeout) {
+      clearTimeout(this.lobbyArrivalTimeout);
+      this.lobbyArrivalTimeout = null;
+    }
     this.stopCountdown();
+  }
+
+  private triggerLobbyArrivalMoment(): void {
+    if (this.status() !== 'LOBBY' || !this.isPlayfulPreset()) {
+      return;
+    }
+
+    this.lobbyArrivalActive.set(true);
+    if (this.lobbyArrivalTimeout) {
+      clearTimeout(this.lobbyArrivalTimeout);
+    }
+
+    this.lobbyArrivalTimeout = setTimeout(() => {
+      this.lobbyArrivalActive.set(false);
+      this.lobbyArrivalTimeout = null;
+    }, 1100);
+  }
+
+  private applyPendingLobbyArrivalIfNeeded(): void {
+    if (!this.pendingJoinArrival || !this.code) {
+      return;
+    }
+
+    this.pendingJoinArrival = false;
+    if (consumeParticipantJoinArrival(this.code)) {
+      this.triggerLobbyArrivalMoment();
+    }
   }
 
   get joinUrl(): string {

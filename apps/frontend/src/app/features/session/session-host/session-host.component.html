@@ -433,6 +433,11 @@
               </section>
             }
             @let payload = participantsPayload();
+            @if (showFoyerEntranceLayer()) {
+              <div class="session-lobby__foyer-stage">
+                <app-foyer-entrance-layer [chips]="foyerArrivalChips()" />
+              </div>
+            }
             @if (s.teamMode && lobbyTeamsWithParticipants().length > 0) {
               <section
                 class="session-lobby__teams session-lobby__teams--hero"
@@ -448,7 +453,19 @@
                 <div class="session-lobby__teams-grid">
                   @for (team of lobbyTeamsWithParticipants(); track team.id) {
                     <article
+                      #lobbyTeamCard
                       class="session-lobby__team-card"
+                      [attr.data-team-id]="team.id"
+                      [class.session-lobby__team-card--arrival]="
+                        showTeamFoyerEntranceLayers() &&
+                        foyerArrivalChipsForTeam(team.id).length > 0
+                      "
+                      [class.session-lobby__team-card--arrival-a]="
+                        teamArrivalPulseActive(team.id) && teamArrivalPulseVariant(team.id) === 'a'
+                      "
+                      [class.session-lobby__team-card--arrival-b]="
+                        teamArrivalPulseActive(team.id) && teamArrivalPulseVariant(team.id) === 'b'
+                      "
                       [class.session-lobby__team-card--playful]="isPlayfulPreset()"
                     >
                       <div
@@ -487,24 +504,43 @@
                           teamMemberLabel(team.memberCount)
                         }}</span>
                       </div>
+                      @if (showTeamFoyerEntranceLayers()) {
+                        <div class="session-lobby__team-foyer-stage">
+                          <app-foyer-entrance-layer
+                            [chips]="foyerArrivalChipsForTeam(team.id)"
+                            [compact]="true"
+                            [overlay]="true"
+                          />
+                        </div>
+                      }
                       @if (!s.anonymousMode && team.participants.length > 0) {
                         <ul class="session-lobby__team-members" role="list">
-                          @for (nickname of team.participants; track nickname) {
-                            <li class="session-lobby__team-member">
-                              @if (lobbyKindergartenEmoji(nickname); as em) {
+                          @for (
+                            participant of team.participants;
+                            track participant.id;
+                            let isFirst = $first
+                          ) {
+                            <li
+                              class="session-lobby__team-member"
+                              [class.session-lobby__team-member--landed-echo]="
+                                isFirst && teamLandingEchoActive(team.id)
+                              "
+                            >
+                              @if (lobbyKindergartenEmoji(participant.nickname); as em) {
                                 <span
                                   class="session-lobby__nick-emoji session-lobby__nick-emoji--host-lobby"
+                                  [attr.data-echo-emoji]="em"
                                   aria-hidden="true"
                                   >{{ em }}</span
                                 >
-                                <span class="sr-only">{{ nickname }}</span>
+                                <span class="sr-only">{{ participant.nickname }}</span>
                               } @else {
-                                <span>{{ nickname }}</span>
+                                <span>{{ participant.nickname }}</span>
                               }
                             </li>
                           }
                         </ul>
-                      } @else if (!s.anonymousMode) {
+                      } @else if (!s.anonymousMode && !teamHasHiddenLobbyArrivals(team.id)) {
                         <p class="session-lobby__team-empty">{{ lobbyTeamEmptyLabel() }}</p>
                       }
                     </article>
