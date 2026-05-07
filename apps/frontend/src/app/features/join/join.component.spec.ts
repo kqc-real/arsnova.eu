@@ -271,12 +271,12 @@ describe('JoinComponent', () => {
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
 
-    comp.selectedNickname.set('Blauer Elefant');
+    comp.selectedNickname.set('Roter Drache');
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(comp.selectedNickname()).toBe('Blauer Elefant');
-    expect(comp.kindergartenEmojiForSelected()).toBe('🐘');
+    expect(comp.selectedNickname()).toBe('Roter Drache');
+    expect(comp.kindergartenEmojiForSelected()).toBe('🐉');
   });
 
   it('ruft join mit Code und Nickname auf und navigiert zu vote (Story 3.2)', async () => {

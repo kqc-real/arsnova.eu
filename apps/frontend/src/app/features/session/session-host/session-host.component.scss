@@ -1928,9 +1928,11 @@
   gap: 0.45rem;
   padding: 0.4rem 0.8rem;
   border-radius: var(--mat-sys-corner-full);
-  background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, var(--mat-sys-surface));
+  background: var(--mat-sys-surface-container-high);
+  border: 1px solid var(--mat-sys-outline-variant);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--mat-sys-shadow) 10%, transparent);
   font: var(--mat-sys-body-small);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--mat-sys-on-surface);
   position: relative;
   z-index: 1;
@@ -1978,6 +1980,8 @@
   font-size: 3.75rem;
   line-height: 1;
   flex-shrink: 0;
+  cursor: default;
+  user-select: none;
 }
 
 @media (min-width: 600px) {
@@ -1995,6 +1999,7 @@
   min-height: 6.25rem;
   padding: 0.5rem;
   background: transparent;
+  border: none;
   border-radius: 0;
   box-shadow: none;
 }

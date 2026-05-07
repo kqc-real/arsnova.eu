@@ -73,7 +73,6 @@ export const NICKNAME_LISTS: Record<NicknameTheme, readonly string[]> = {
     'Heinrich Rohrer',
   ],
   KINDERGARTEN: [
-    'Blauer Elefant',
     'Roter Drache',
     'Grüner Frosch',
     'Gelber Löwe',
@@ -454,7 +453,6 @@ export const NICKNAME_LISTS_BY_LOCALE: Record<
       'Heinrich Rohrer',
     ],
     KINDERGARTEN: [
-      'Blue elephant',
       'Red dragon',
       'Green frog',
       'Yellow lion',
@@ -829,7 +827,6 @@ export const NICKNAME_LISTS_BY_LOCALE: Record<
       'Heinrich Rohrer',
     ],
     KINDERGARTEN: [
-      'Éléphant bleu',
       'Dragon rouge',
       'Grenouille verte',
       'Lion jaune',
@@ -1204,7 +1201,6 @@ export const NICKNAME_LISTS_BY_LOCALE: Record<
       'Heinrich Rohrer',
     ],
     KINDERGARTEN: [
-      'Elefante azul',
       'Dragón rojo',
       'Rana verde',
       'León amarillo',
@@ -1579,7 +1575,6 @@ export const NICKNAME_LISTS_BY_LOCALE: Record<
       'Heinrich Rohrer',
     ],
     KINDERGARTEN: [
-      'Elefante blu',
       'Drago rosso',
       'Rana verde',
       'Leone giallo',

@@ -530,6 +530,7 @@
                                 <span
                                   class="session-lobby__nick-emoji session-lobby__nick-emoji--host-lobby"
                                   [attr.data-echo-emoji]="em"
+                                  [attr.title]="participant.nickname"
                                   aria-hidden="true"
                                   >{{ em }}</span
                                 >
@@ -560,6 +561,7 @@
                     @if (lobbyKindergartenEmoji(p.nickname); as em) {
                       <span
                         class="session-lobby__nick-emoji session-lobby__nick-emoji--host-lobby"
+                        [attr.title]="p.nickname"
                         aria-hidden="true"
                         >{{ em }}</span
                       >

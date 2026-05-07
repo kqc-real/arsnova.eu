@@ -22,11 +22,16 @@ describe('kindergarten-nickname-icons', () => {
     expect(new Set(KINDERGARTEN_NICKNAME_EMOJIS).size).toBe(KINDERGARTEN_NICKNAME_EMOJIS.length);
   });
 
-  it('findet Index und Emoji für deutsche und englische Labels', () => {
-    expect(findKindergartenNicknameIndex('Blauer Elefant')).toBe(0);
-    expect(findKindergartenNicknameEmoji('Blauer Elefant')).toBe('🐘');
-    expect(findKindergartenNicknameIndex('Blue elephant')).toBe(0);
-    expect(findKindergartenNicknameEmoji('Blue elephant')).toBe('🐘');
+  it('findet Index und Emoji für deutsche Labels in der Standard-Locale', () => {
+    expect(findKindergartenNicknameIndex('Roter Drache')).toBe(0);
+    expect(findKindergartenNicknameEmoji('Roter Drache')).toBe('🐉');
+  });
+
+  it('findet englische Labels nur in der englischen Locale', () => {
+    expect(findKindergartenNicknameIndex('Red dragon')).toBeNull();
+    expect(findKindergartenNicknameEmoji('Red dragon')).toBeNull();
+    expect(findKindergartenNicknameIndex('Red dragon', 'en')).toBe(0);
+    expect(findKindergartenNicknameEmoji('Red dragon', 'en')).toBe('🐉');
   });
 
   it('gibt null für unbekannte Strings zurück', () => {
