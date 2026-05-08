@@ -116,7 +116,6 @@
                 } @else {
                   <div
                     class="join-card__team-card join-card__team-card--readonly"
-                    [class.join-card__team-card--suggested]="autoPreviewTeam()?.id === team.id"
                     [attr.aria-label]="teamCardAriaLabel(team)"
                   >
                     <span class="join-card__team-card-name">
@@ -151,13 +150,26 @@
             @if (selectedTeamLabel(); as selectedTeamLabelText) {
               <p class="join-card__team-selected" role="status">{{ selectedTeamLabelText }}</p>
             }
-            @if (
-              isPlayfulPreset() && visibleTeamChoice() && playfulTeamReadyLabel();
-              as playfulReadyText
-            ) {
+            @if (isPlayfulPreset() && selectedTeam(); as selectedTeam) {
               <div class="join-card__team-playful" role="status" aria-live="polite">
                 <mat-icon aria-hidden="true">celebration</mat-icon>
-                <span>{{ playfulReadyText }}</span>
+                <span>{{ playfulTeamReadyPrefix() }}</span>
+                @if (teamNameEmojiMarker(selectedTeam.name); as teamEmoji) {
+                  @if (teamNameEmojiMarkerTrailing(selectedTeam.name)) {
+                    <span>{{ teamNameLabelWithoutEmojiMarker(selectedTeam.name) }}</span>
+                    <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                      teamEmoji
+                    }}</span>
+                  } @else {
+                    <span class="join-card__team-card-emoji" aria-hidden="true">{{
+                      teamEmoji
+                    }}</span>
+                    <span>{{ teamNameLabelWithoutEmojiMarker(selectedTeam.name) }}</span>
+                  }
+                } @else {
+                  <span>{{ teamNameLabelWithoutEmojiMarker(selectedTeam.name) }}</span>
+                }
+                <span>{{ playfulTeamReadySuffix() }}</span>
               </div>
             }
           </div>

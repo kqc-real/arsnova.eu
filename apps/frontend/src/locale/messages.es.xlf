@@ -3973,7 +3973,7 @@
           <context context-type="linenumber">206</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2734421585608935278" datatype="html">
+      <trans-unit id="join.teamInfoHintManual" datatype="html">
         <source>Wähle ein Team, bevor du beitrittst.</source>
         <target>Elige un equipo antes de unirte.</target>
         <context-group purpose="location">
@@ -3981,9 +3981,9 @@
           <context context-type="linenumber">209</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="5207126952231558325" datatype="html">
-        <source>Teams werden automatisch verteilt. Du siehst hier schon, welche Teams bereitstehen.</source>
-        <target>Los equipos se asignan automáticamente. Aquí ya puedes ver qué equipos están listos.</target>
+      <trans-unit id="join.teamInfoHintAuto" datatype="html">
+        <source>Teams werden beim Beitritt automatisch zugeteilt. Hier siehst du, welche Teams bereitstehen.</source>
+        <target>Los equipos se asignan automáticamente al unirte. Aquí puedes ver qué equipos están listos.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
           <context context-type="linenumber">210</context>
@@ -3997,12 +3997,20 @@
           <context context-type="linenumber">213</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="5809086812588413372" datatype="html">
-        <source>Perfekt! <x id="PH" equiv-text="this.teamNameDisplayLabel(team.name)"/> wartet schon auf dich.</source>
-        <target>Perfecto: <x id="PH"/> ya te está esperando.</target>
+      <trans-unit id="join.teamReadyPrefixPlayful" datatype="html">
+        <source>Perfekt!</source>
+        <target>¡Perfecto!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
-          <context context-type="linenumber">218</context>
+          <context context-type="linenumber">204</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="join.teamReadySuffixPlayful" datatype="html">
+        <source>wartet schon auf dich.</source>
+        <target>ya te está esperando.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
+          <context context-type="linenumber">205</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7007758554861161679" datatype="html">
@@ -10055,6 +10063,38 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">191</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamArrivalPrefixPlayful" datatype="html">
+        <source>Perfekt!</source>
+        <target>¡Perfecto!</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">372</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamArrivalPrefixSerious" datatype="html">
+        <source>Du bist jetzt</source>
+        <target>Ahora estás en</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">373</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamArrivalSuffixPlayful" datatype="html">
+        <source>wartet schon auf dich.</source>
+        <target>ya te está esperando.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">376</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.teamArrivalSuffixSerious" datatype="html">
+        <source>zugeordnet.</source>
+        <target>.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">377</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.fbAriaOverallPlayful" datatype="html">

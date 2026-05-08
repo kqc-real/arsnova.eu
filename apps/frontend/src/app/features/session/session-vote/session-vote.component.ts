@@ -52,6 +52,10 @@ import {
   consumeParticipantJoinArrival,
   hasParticipantJoinArrival,
 } from '../../../core/participant-join-arrival';
+import {
+  consumeConfirmedParticipantTeam,
+  peekConfirmedParticipantTeam,
+} from '../../../core/participant-team-confirmation';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 import {
   edgeEmojiMarkerPosition,
@@ -360,6 +364,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const team = this.sessionTeams().find((t) => t.name === teamName);
     return team?.color ?? null;
   });
+  readonly showLobbyTeamArrivalMessage = computed(
+    () => this.isLobby() && this.showLobbyArrivalMoment() && !!this.playerTeamName(),
+  );
+  lobbyTeamArrivalPrefix = () =>
+    this.isPlayfulPreset()
+      ? $localize`:@@sessionVote.teamArrivalPrefixPlayful:Perfekt!`
+      : $localize`:@@sessionVote.teamArrivalPrefixSerious:Du bist jetzt`;
+  lobbyTeamArrivalSuffix = () =>
+    this.isPlayfulPreset()
+      ? $localize`:@@sessionVote.teamArrivalSuffixPlayful:wartet schon auf dich.`
+      : $localize`:@@sessionVote.teamArrivalSuffixSerious:zugeordnet.`;
 
   readonly isKindergartenQuizNickname = computed(() => {
     const session = this.sessionSettings();
@@ -1255,10 +1270,27 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     if (!this.code) return;
     this.pendingJoinArrival = hasParticipantJoinArrival(this.code);
+    const confirmedTeam = peekConfirmedParticipantTeam(this.code);
 
     if (typeof localStorage !== 'undefined') {
       this.participantId.set(localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? '');
       this.playerNickname.set(localStorage.getItem(`${NICKNAME_STORAGE_KEY}-${this.code}`) ?? null);
+    }
+    if (confirmedTeam) {
+      this.participantTeam.set({
+        id: this.participantId() || '00000000-0000-4000-8000-000000000000',
+        nickname: this.playerNickname() ?? '',
+        teamId: confirmedTeam.id,
+        teamName: confirmedTeam.name,
+      });
+      this.sessionTeams.set([
+        {
+          id: confirmedTeam.id,
+          name: confirmedTeam.name,
+          color: confirmedTeam.color ?? null,
+          memberCount: 0,
+        },
+      ]);
     }
 
     await this.generateQrCode();
@@ -2375,6 +2407,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         participantId: pid,
       });
       this.participantTeam.set(me);
+      consumeConfirmedParticipantTeam(this.code);
       if (me?.nickname && !this.playerNickname()) {
         this.playerNickname.set(me.nickname);
       }

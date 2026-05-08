@@ -407,6 +407,27 @@
           [class.vote-lobby--kindergarten]="playerKindergartenEmoji()"
         >
           <p class="vote-lobby__badge" role="status">{{ vpc.voteLobbyBadge(isPlayfulPreset()) }}</p>
+          @if (showLobbyTeamArrivalMessage()) {
+            <p class="vote-lobby__badge" role="status">
+              <span>{{ lobbyTeamArrivalPrefix() }}</span>
+              @if (teamNameEmojiMarker(playerTeamName()); as teamEmoji) {
+                @if (teamNameEmojiMarkerTrailing(playerTeamName())) {
+                  <span>{{ teamNameLabelWithoutEmojiMarker(playerTeamName()) }}</span>
+                  <span class="vote-player-badge__team-emoji" aria-hidden="true">{{
+                    teamEmoji
+                  }}</span>
+                } @else {
+                  <span class="vote-player-badge__team-emoji" aria-hidden="true">{{
+                    teamEmoji
+                  }}</span>
+                  <span>{{ teamNameLabelWithoutEmojiMarker(playerTeamName()) }}</span>
+                }
+              } @else {
+                <span>{{ teamNameLabelWithoutEmojiMarker(playerTeamName()) }}</span>
+              }
+              <span>{{ lobbyTeamArrivalSuffix() }}</span>
+            </p>
+          }
           <p
             class="vote-lobby__code"
             [attr.aria-label]="vpc.voteLiveBannerCodeLabel(isPlayfulPreset()) + ' ' + code"

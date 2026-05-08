@@ -13,6 +13,10 @@ import {
   hasParticipantJoinArrival,
   setParticipantJoinArrival,
 } from '../../../core/participant-join-arrival';
+import {
+  peekConfirmedParticipantTeam,
+  setConfirmedParticipantTeam,
+} from '../../../core/participant-team-confirmation';
 
 const {
   getInfoQueryMock,
@@ -1447,6 +1451,11 @@ describe('SessionVoteComponent', () => {
   it('zeigt nach frischem Join im spielerischen Lobby-Client einen einmaligen Arrival-Moment', async () => {
     localStorage.setItem('arsnova-nickname-ABC123', 'Ada');
     setParticipantJoinArrival('ABC123');
+    setConfirmedParticipantTeam('ABC123', {
+      id: '22222222-2222-4222-8222-222222222222',
+      name: ':apple:',
+      color: '#1E88E5',
+    });
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -1457,11 +1466,29 @@ describe('SessionVoteComponent', () => {
       quizName: 'Team-Quiz',
       title: null,
       participantCount: 6,
+      teamMode: true,
       channels: {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
       },
+    });
+    getParticipantSelfQueryMock.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      nickname: 'Ada',
+      teamId: '22222222-2222-4222-8222-222222222222',
+      teamName: ':apple:',
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 1,
+      teams: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          name: ':apple:',
+          color: '#1E88E5',
+          memberCount: 2,
+        },
+      ],
     });
     currentQuestionQueryMock.mockResolvedValue(null);
 
@@ -1474,7 +1501,11 @@ describe('SessionVoteComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('.vote-player-badge--arrival')).not.toBeNull();
     expect(host.querySelector('.vote-lobby--arrival')).not.toBeNull();
+    expect(host.querySelector('.vote-player-badge__team-emoji')?.textContent).toBe('🍎');
+    expect(host.textContent ?? '').toContain('Perfekt!');
+    expect(host.textContent ?? '').toContain('wartet schon auf dich.');
     expect(sessionStorage.getItem('arsnova-join-arrival:ABC123')).toBeNull();
+    expect(peekConfirmedParticipantTeam('ABC123')).toBeNull();
     fixture.destroy();
   });
 

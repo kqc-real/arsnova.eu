@@ -24,6 +24,7 @@ import {
 } from './kindergarten-nickname-icons';
 import { recordServerTimeIso } from '../session/session-server-clock';
 import { setParticipantJoinArrival } from '../../core/participant-join-arrival';
+import { setConfirmedParticipantTeam } from '../../core/participant-team-confirmation';
 import {
   edgeEmojiMarkerPosition,
   extractEdgeEmoji,
@@ -147,19 +148,6 @@ export class JoinComponent implements OnInit, OnDestroy {
   readonly selectedTeam = computed(
     () => this.teams().find((team) => team.id === this.selectedTeamId()) ?? null,
   );
-  readonly autoPreviewTeam = computed(() => {
-    if (!this.showTeamInfo() || this.showTeamSelect()) {
-      return null;
-    }
-    const list = [...this.teams()].sort((a, b) => a.name.localeCompare(b.name, this.locale));
-    if (list.length === 0) return null;
-    const participantIndex = this.session()?.participantCount ?? 0;
-    const teamIndex = participantIndex % list.length;
-    return list[teamIndex] ?? null;
-  });
-  readonly visibleTeamChoice = computed(() =>
-    this.showTeamSelect() ? this.selectedTeam() : this.autoPreviewTeam(),
-  );
 
   readonly canSubmit = computed(() => {
     const sel = this.selectedNickname().trim();
@@ -207,18 +195,14 @@ export class JoinComponent implements OnInit, OnDestroy {
     this.showTeamSelect() ? $localize`Dein Team` : $localize`Team-Modus aktiv`;
   teamInfoHint = () =>
     this.showTeamSelect()
-      ? $localize`Wähle ein Team, bevor du beitrittst.`
-      : $localize`Teams werden automatisch verteilt. Du siehst hier schon, welche Teams bereitstehen.`;
+      ? $localize`:@@join.teamInfoHintManual:Wähle ein Team, bevor du beitrittst.`
+      : $localize`:@@join.teamInfoHintAuto:Teams werden beim Beitritt automatisch zugeteilt. Hier siehst du, welche Teams bereitstehen.`;
   selectedTeamLabel = () => {
-    const team = this.showTeamSelect() ? this.selectedTeam() : null;
+    const team = this.selectedTeam();
     return team ? $localize`Ausgewählt: ${this.teamNameDisplayLabel(team.name)}` : null;
   };
-  playfulTeamReadyLabel = () => {
-    const team = this.visibleTeamChoice();
-    return team
-      ? $localize`Perfekt! ${this.teamNameDisplayLabel(team.name)} wartet schon auf dich.`
-      : null;
-  };
+  playfulTeamReadyPrefix = () => $localize`:@@join.teamReadyPrefixPlayful:Perfekt!`;
+  playfulTeamReadySuffix = () => $localize`:@@join.teamReadySuffixPlayful:wartet schon auf dich.`;
 
   ngOnInit(): void {
     if (this.code.length !== 6) {
@@ -357,6 +341,20 @@ export class JoinComponent implements OnInit, OnDestroy {
     return localStorage.getItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`) ?? undefined;
   }
 
+  private persistConfirmedTeam(teamId: string | null | undefined): void {
+    const team = teamId ? (this.teams().find((entry) => entry.id === teamId) ?? null) : null;
+    setConfirmedParticipantTeam(
+      this.code,
+      team
+        ? {
+            id: team.id,
+            name: team.name,
+            color: team.color ?? null,
+          }
+        : null,
+    );
+  }
+
   private async joinAnonymous(session: SessionInfoDTO): Promise<void> {
     this.joining.set(true);
     try {
@@ -372,6 +370,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname);
       }
+      this.persistConfirmedTeam(result.teamId);
       setParticipantJoinArrival(this.code);
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {
@@ -401,6 +400,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, nickname.slice(0, 30));
       }
+      this.persistConfirmedTeam(result.teamId);
       setParticipantJoinArrival(this.code);
       await this.router.navigate(localizeCommands(['session', this.code, 'vote']));
     } catch (err: unknown) {

@@ -7,6 +7,7 @@ import { provideRouter, ActivatedRoute, Router } from '@angular/router';
 import { JoinComponent } from './join.component';
 import { trpc } from '../../core/trpc.client';
 import { consumeParticipantJoinArrival } from '../../core/participant-join-arrival';
+import { peekConfirmedParticipantTeam } from '../../core/participant-team-confirmation';
 
 const mockSession = {
   id: 'sess-1',
@@ -400,6 +401,44 @@ describe('JoinComponent', () => {
     expect(comp.showTeamInfo()).toBe(true);
     expect(comp.showTeamSelect()).toBe(false);
     expect(comp.teams().map((team) => team.name)).toEqual(['Rot', 'Blau']);
+    expect(comp.selectedTeam()).toBeNull();
+  });
+
+  it('speichert nach bestaetigter Teamwahl das Team fuer den Vote-Header', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      teamMode: true,
+      teamAssignment: 'MANUAL',
+    });
+    vi.mocked(trpc.session.getTeams.query).mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: ':apple:', color: '#1E88E5', memberCount: 1 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 2 },
+      ],
+    });
+    vi.mocked(trpc.session.join.mutate).mockResolvedValue({
+      ...mockSession,
+      participantId: participantIds.current,
+      rejoinToken: participantIds.current,
+      teamId: 'team-a',
+      teamName: ':apple:',
+    });
+
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 80));
+
+    comp.customNickname.set('Ada');
+    comp.selectedTeamId.set('team-a');
+    await comp.submitJoin();
+
+    expect(peekConfirmedParticipantTeam('ABC123')).toEqual({
+      id: 'team-a',
+      name: ':apple:',
+      color: '#1E88E5',
+    });
   });
 
   it('zeigt bei Teamnamen mit fuehrendem Emoji keinen Farbpunk und rendert das Emoji separat', async () => {
