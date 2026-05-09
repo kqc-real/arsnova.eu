@@ -14,13 +14,10 @@ import { WsConnectionService } from '../../core/ws-connection.service';
     @if (ws.disconnected()) {
       <div class="connection-banner" role="alert" aria-live="assertive">
         <mat-icon>wifi_off</mat-icon>
-        <span>
-          @if (ws.state() === 'reconnecting') {
-            Verbindung unterbrochen – Reconnect läuft…
-          } @else {
-            Keine Verbindung zum Server
-          }
-        </span>
+        <div class="connection-banner__copy">
+          <span>{{ bannerStatusText() }}</span>
+          <span class="connection-banner__hint">{{ bannerReloadHint() }}</span>
+        </div>
       </div>
     }
   `,
@@ -47,12 +44,39 @@ import { WsConnectionService } from '../../core/ws-connection.service';
         animation: connection-banner-enter 300ms cubic-bezier(0.4, 0, 0.2, 1);
       }
     }
+    .connection-banner__copy {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.1rem;
+    }
+    .connection-banner__hint {
+      font: var(--mat-sys-body-small);
+      opacity: 0.9;
+    }
     @keyframes connection-banner-enter {
-      from { transform: translateY(-100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
   `,
 })
 export class ConnectionBannerComponent {
   protected readonly ws = inject(WsConnectionService);
+
+  protected bannerStatusText(): string {
+    if (this.ws.state() === 'reconnecting') {
+      return $localize`:@@connectionBanner.reconnecting:Verbindung unterbrochen. Reconnect läuft…`;
+    }
+    return $localize`:@@connectionBanner.disconnected:Keine Verbindung zum Server.`;
+  }
+
+  protected bannerReloadHint(): string {
+    return $localize`:@@connectionBanner.reloadHint:Wenn das bleibt: Seite neu laden.`;
+  }
 }

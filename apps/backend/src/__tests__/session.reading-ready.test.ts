@@ -21,6 +21,7 @@ const { prismaMock, hostAuthMocks, presenceMocks, readingReadyMocks } = vi.hoist
   },
   presenceMocks: {
     touchParticipantPresence: vi.fn(),
+    getActiveParticipantCountForSession: vi.fn(),
     getActiveParticipantIdsForSession: vi.fn(),
   },
   readingReadyMocks: {
@@ -36,6 +37,7 @@ vi.mock('../db', () => ({
 
 vi.mock('../lib/presence', () => ({
   touchParticipantPresence: presenceMocks.touchParticipantPresence,
+  getActiveParticipantCountForSession: presenceMocks.getActiveParticipantCountForSession,
   getActiveParticipantIdsForSession: presenceMocks.getActiveParticipantIdsForSession,
 }));
 
@@ -77,6 +79,7 @@ describe('session reading-ready flow', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    presenceMocks.getActiveParticipantCountForSession.mockResolvedValue(0);
     presenceMocks.getActiveParticipantIdsForSession.mockResolvedValue(new Set());
     readingReadyMocks.getReadingReadyParticipantIds.mockResolvedValue(new Set());
     prismaMock.session.update.mockResolvedValue(undefined);
@@ -138,6 +141,7 @@ describe('session reading-ready flow', () => {
       readyCount: 1,
       allConnectedReady: false,
     });
+    expect(result).toMatchObject({ connectedCount: 2 });
   });
 
   it('liefert Teilnehmenden den eigenen Ready-Status in QUESTION_OPEN zurück', async () => {

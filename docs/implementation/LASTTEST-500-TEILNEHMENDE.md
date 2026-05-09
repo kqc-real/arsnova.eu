@@ -266,6 +266,13 @@ Der reale Produktions-Join-Lauf gegen `arsnova.eu` fuer die Session `6LTFZF` ist
 
 Der Produktionsbericht enthaelt zusaetzlich konkrete Folge-Befunde fuer den Teammodus bei 500+ Teilnehmenden und leitet daraus einen priorisierten Fix-Katalog ab.
 
+Wichtig fuer die Einordnung der Host-Beobachtungen:
+
+- die `500` Lasttest-Teilnehmenden im Produktions-Join-Lauf wurden ueber `k6` erzeugt und trugen synthetische Namen vom Muster `k6-...`
+- auch bei auf Kindergarten gesetztem Nickname-Theme wurden diese synthetischen Namen nicht als Tier-Icons erkannt
+- fuer grosse Join-Wellen im Teammodus wird der Foyer-Einflug auf dem Host bewusst gedrosselt bzw. unterdrueckt
+- daraus folgt: sichtbare Teamkarten ohne individuellen Einflug einzelner spaeter realer Tier-Icon-Nutzender sind unter Hochlast erwartbares Verhalten und kein eigener Fehlerbefund
+
 ## Durchgefuehrte Lasttests am 2026-05-09
 
 Am 2026-05-09 wurde ein **realer lokaler 500er-Lastlauf** gegen den aktuellen Entwicklungsstand gefahren.
@@ -1063,6 +1070,9 @@ Lokales Ergebnis:
 - waehrend `ACTIVE` stieg der Host-Fortschritt live auf `484` Stimmen
 - nach `RESULTS` waren Teamwerte ungleich `0` sichtbar
 - die frueheren fachlichen Kernbefunde aus dem Produktionslauf sind damit lokal nicht mehr reproduzierbar
+- fuer die Teamdarstellung gilt seit diesem Retest bewusst:
+  - unter hoher Gesamtlast hat die Beruhigung der Teamkarten Vorrang
+  - auch echte Kindergarten-/Tier-Icon-Nutzende erhalten dann keinen garantierten individuellen Einflug mehr
 
 Offen bleibt:
 

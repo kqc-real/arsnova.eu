@@ -220,6 +220,9 @@ Stand 2026-05-09:
 - die internen Session-EventEmitter wurden fuer hohe Parallelitaet auf unlimitierte Listener umgestellt, damit 500 Subscription-Clients keine Warn- oder Nebeneffekte erzeugen
 - Reichweitenmetriken wurden bereits um `usedSessions` als zusaetzliche Nutzungskennzahl erweitert
 - am 2026-05-09 wurde ein realer lokaler 500er-Lastlauf fuer Join-Welle, Status-Fan-out, Active-Question-Pfad und Vote-Spike erfolgreich gefahren
+- fuer den teambasierten Host-Pfad wurde ausserdem festgezogen:
+  - bei grossen Join-Wellen werden Teamfoyer-Animationen bewusst global unterdrueckt, um minutenlanges Nachzucken und unruhige Re-Renders zu vermeiden
+  - synthetische `k6-...`-Namen aus Lasttests sind im Kindergarten-Theme keine Tier-Icons; daraus darf fuer Produktionsbeobachtungen kein separater UI-Fehler abgeleitet werden
 - dieser Lauf hat die priorisierten roten Hotpaths bestaetigt und gleichzeitig zwei Restprobleme sichtbar gemacht:
   - lokale Dev-DB musste fuer `PlatformStatistic` schema-synchronisiert werden
   - Standard-Listenerlimits der EventEmitter mussten fuer hohe Subscription-Zahlen angehoben werden

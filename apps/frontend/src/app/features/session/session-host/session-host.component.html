@@ -257,6 +257,15 @@
                   liveParticipantCount === 1 ? participantLabelSingular() : participantLabelPlural()
                 }}
               </p>
+              @if (
+                connectedParticipantStatusLabel(
+                  participantsPayload()?.connectedCount,
+                  liveParticipantCount
+                );
+                as connectedStatus
+              ) {
+                <p class="session-host__live-participants">{{ connectedStatus }}</p>
+              }
               @if (effectiveStatus() === 'QUESTION_OPEN' && readingReadyStatus(); as ready) {
                 <p class="session-host__live-participants">
                   {{
@@ -1012,7 +1021,8 @@
                               readingReadyReleaseHint(
                                 readingReadyStatus()?.connectedCount ?? 0,
                                 participantsPayload()?.participantCount ??
-                                  readingReadyStatus()?.connectedCount ?? 0
+                                  readingReadyStatus()?.connectedCount ??
+                                  0
                               )
                             }}</span>
                           </p>

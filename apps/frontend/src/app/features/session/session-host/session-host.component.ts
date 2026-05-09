@@ -1959,6 +1959,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionHost.participantCountMany:Teilnehmende`;
   }
 
+  connectedParticipantStatusLabel(
+    connectedCount: number | null | undefined,
+    totalParticipantCount: number | null | undefined,
+  ): string | null {
+    if (
+      typeof connectedCount !== 'number' ||
+      typeof totalParticipantCount !== 'number' ||
+      connectedCount <= 0 ||
+      totalParticipantCount <= 0 ||
+      connectedCount >= totalParticipantCount
+    ) {
+      return null;
+    }
+    if (connectedCount === 1) {
+      return $localize`:@@sessionHost.connectedParticipantCountOne:1 live verbunden`;
+    }
+    return $localize`:@@sessionHost.connectedParticipantCountMany:${connectedCount}:connectedCount: live verbunden`;
+  }
+
   teamMemberLabel(count: number): string {
     return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
   }

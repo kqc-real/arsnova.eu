@@ -190,6 +190,10 @@ Wichtig fuer die aktuelle Gesamtbewertung:
   - Teamscore-Sichtbarkeit bei grossen Teams
   - Stabilisierung der Teamkarten auf dem Host
     abgeleitet.
+- Der Produktionsbeobachtungskontext ist dabei wichtig:
+  - die `500` Lasttest-Teilnehmenden kamen aus `k6` und trugen synthetische `k6-...`-Namen
+  - im Kindergarten-Theme wurden diese daher nicht als Tier-Icons dargestellt
+  - fuer Teamkarten unter Grosslast wird der Foyer-Einflug bewusst global gedrosselt bzw. unterdrueckt; ein fehlender Einflug einzelner spaeter realer Tier-Icon-Nutzender ist daher erwartbares Verhalten und kein zusaetzlicher Produktionsbug
 
 ## Lokaler Nachtest der Prioritaet-A-Fixes
 
@@ -208,6 +212,7 @@ Die aus dem Produktionslauf abgeleiteten Prioritaet-A-Punkte wurden anschliessen
 - `participantCount = 500`
 - `http_req_duration p95 = 1.87 s`
 - `0` Fehler
+- Teamfoyer-Einflug im Teammodus erwartungsgemaess unterdrueckt, damit die Karten nach der Join-Welle nicht minutenlang nachzucken
 
 ### Host-Fortschritt waehrend `ACTIVE`
 

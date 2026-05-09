@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
+const { prismaMock, hostAuthMocks, presenceMocks } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -14,10 +14,19 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
     isHostSessionTokenValidMock: vi.fn(),
   },
+  presenceMocks: {
+    getActiveParticipantCountForSession: vi.fn(),
+  },
 }));
 
 vi.mock('../db', () => ({
   prisma: prismaMock,
+}));
+
+vi.mock('../lib/presence', () => ({
+  getActiveParticipantCountForSession: presenceMocks.getActiveParticipantCountForSession,
+  getActiveParticipantIdsForSession: vi.fn(),
+  touchParticipantPresence: vi.fn(),
 }));
 
 vi.mock('../lib/hostAuth', async () => {
@@ -45,6 +54,7 @@ describe('session participant access (Story 2.2)', () => {
     vi.clearAllMocks();
     resetParticipantNicknameCacheForTests();
     resetSessionReadCachesForTests();
+    presenceMocks.getActiveParticipantCountForSession.mockResolvedValue(0);
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
@@ -64,7 +74,10 @@ describe('session participant access (Story 2.2)', () => {
 
     const result = await hostCaller.getParticipants({ code: 'ABC123' });
 
-    expect(result.participantCount).toBe(2);
+    expect(result).toMatchObject({
+      participantCount: 2,
+      connectedCount: 0,
+    });
     expect(result.participants).toHaveLength(2);
     expect(result.participants[0]).toEqual({
       id: p1Id,
@@ -114,7 +127,10 @@ describe('session participant access (Story 2.2)', () => {
 
     const result = await hostCaller.getParticipants({ code: 'XYZ789' });
 
-    expect(result.participantCount).toBe(0);
+    expect(result).toMatchObject({
+      participantCount: 0,
+      connectedCount: 0,
+    });
     expect(result.participants).toEqual([]);
   });
 
@@ -216,6 +232,7 @@ describe('session participant access (Story 2.2)', () => {
     const { value } = await iterator.next();
 
     expect(value).toEqual({
+      connectedCount: 0,
       participantCount: 1,
       participants: [
         {
@@ -276,6 +293,7 @@ describe('session participant access (Story 2.2)', () => {
 
     const first = await iterator.next();
     expect(first.value).toEqual({
+      connectedCount: 0,
       participantCount: 1,
       participants: [
         {
@@ -293,6 +311,7 @@ describe('session participant access (Story 2.2)', () => {
     const second = await secondPromise;
 
     expect(second.value).toEqual({
+      connectedCount: 0,
       participantCount: 2,
       participants: [
         {

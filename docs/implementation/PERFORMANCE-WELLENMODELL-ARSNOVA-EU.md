@@ -533,6 +533,11 @@ Fuer das Wellenmodell bedeutet das:
   - Host-Vote-Fortschritt waehrend `ACTIVE`
   - Teamkarten-Stabilisierung
   - Teamwertungsdarstellung
+- fuer die Interpretation des beobachteten Host-Bilds gilt:
+  - die `500` Lasttest-Clients kamen aus `k6` und hatten synthetische `k6-...`-Namen
+  - im Kindergarten-Theme erzeugen diese Namen keine Tier-Icon-Chips
+  - bei grossen Join-Wellen wird der Teamfoyer-Einflug zusaetzlich global unterdrueckt, damit die Karten nicht minutenlang nachzucken
+  - ein fehlender Einflug einzelner spaeter realer Tier-Icon-Nutzender ist in diesem Lastmodus deshalb erwartbar und kein separater Defekt
 
 - zusammen ca. **209 req/s**
 
@@ -704,6 +709,7 @@ Nachweisbar lokal behoben:
 - Teamwertung fuer grosse Teams bleibt nach `RESULTS` sichtbar ungleich `0`
 - Reading-Ready-Text trennt jetzt zwischen verbundenen und gesamten Teilnehmenden
 - Teamfoyer-Animationen werden bei grossen Join-Wellen unterdrueckt, um minutenlanges Nachzucken zu vermeiden
+- diese Unterdrueckung gilt global fuer den Teammodus; auch echte Kindergarten-/Tier-Icon-Nutzende bekommen unter hoher Gesamtlast keinen garantierten individuellen Einflug mehr
 
 Lokal blieb jedoch ein Restbefund im Vote-Spike:
 

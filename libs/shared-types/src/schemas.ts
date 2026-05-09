@@ -877,6 +877,7 @@ export type ParticipantDTO = z.infer<typeof ParticipantDTOSchema>;
 export const SessionParticipantsPayloadSchema = z.object({
   participants: z.array(ParticipantDTOSchema),
   participantCount: z.number(),
+  connectedCount: z.number().int().min(0).optional(),
   readingReady: ReadingReadyStatusDTOSchema.optional(),
 });
 export type SessionParticipantsPayload = z.infer<typeof SessionParticipantsPayloadSchema>;

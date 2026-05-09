@@ -100,12 +100,26 @@ Beobachtung:
 
 - ein weiterer realer Teilnehmer konnte nach dem 500er-Lauf noch als `501.` beitreten
 - der Beitritt gelang ueber ein Tier-Icon-Pseudonym im Team `Apfel`
+- im Host wurden anschliessend zeitweise `502` Teilnehmende insgesamt, aber nur `2` verbundene Clients angezeigt
+- obwohl die Session auf das Kindergarten-Pseudonymset konfiguriert war, trugen die `500` per `k6` erzeugten Lasttest-Teilnehmenden synthetische Namen vom Muster `k6-...`
+- fuer den zusaetzlichen realen Tier-Icon-Teilnehmenden war auf der Teamkarte kein sichtbarer Foyer-Einflug zu sehen
 
 Einordnung:
 
 - die Plattform besitzt derzeit **keine harte Session-Obergrenze bei 500**
 - das ist technisch konsistent mit dem Pseudonym-Fallback nach Erschoepfung des Ursprungssatzes
 - fuer Lasttests bedeutet das: `500` ist aktuell kein hartes Cap, sondern nur die Zielgroesse des Tests
+- die beiden Host-Werte beschreiben unterschiedliche Groessen:
+  - `Teilnehmende gesamt` zaehlt die in der Session vorhandenen Teilnehmerobjekte
+  - `verbunden` zaehlt nur die zum Messzeitpunkt noch aktiv erkannten Clients
+- die Kombination `502 gesamt`, aber nur `2 verbunden` ist fuer diesen Lasttest plausibel, weil die erzeugten Lasttest-Clients nach dem Join nur kurz aktiv waren und danach nicht als dauerhaft verbundene Live-Clients in der Session verblieben
+- die hohe Gesamtzahl bei sehr kleiner Zahl verbundener Clients ist daher kein Hinweis auf verlorene Teilnehmende, sondern auf die notwendige semantische Trennung zwischen Session-Gesamtzahl und aktueller Live-Verbindung
+- die synthetischen `k6-...`-Namen wurden im Kindergarten-Theme nicht als Tier-Icons erkannt; sie erschienen deshalb nur als normale Text-/Kurzlabel auf den Teamkarten
+- der fehlende Einflug des realen Tier-Icon-Teilnehmers ist in diesem Lastbild dennoch **kein eigener Fehlerbefund**, weil die Teamfoyer-Animation bei grossen Join-Wellen bewusst global gedrosselt bzw. unterdrueckt wird
+- fuer Produktionsbeobachtungen nach einem 500er-Join ist deshalb korrekt zu erwarten:
+  - Teamkarten aktualisieren sich weiter
+  - einzelne spaete reale Beitritte koennen sichtbar auf der Karte erscheinen
+  - ein animierter Einflug ist unter dieser Hochlast aber gerade **nicht** mehr garantiert
 
 ### 2. Reading-Ready-Anzeige auf dem Host wirkte fachlich irrefuehrend
 
@@ -264,6 +278,7 @@ Lokal verifiziert:
 - Reading-Ready unterscheidet nun sichtbar zwischen verbundenen und gesamten Teilnehmenden
 - Teamwertung bleibt bei grossen Teams nach `RESULTS` sichtbar ungleich `0`
 - Teamfoyer-Animationen werden bei grossen Join-Wellen gedrosselt bzw. unterdrueckt
+- im Teammodus ist damit auch fuer echte Kindergarten-/Tier-Icon-Nutzende unter hoher Gesamtlast kein individueller Einflug mehr zu erwarten; die Beruhigung der Teamkarten hat Vorrang vor Show-Effekten
 
 Damit ist dieser Produktionsbefund fachlich **nicht mehr der aktuelle lokale Entwicklungsstand**, sondern der Ausgangspunkt fuer den nun noetigen Produktions-Retest derselben Pfade.
 

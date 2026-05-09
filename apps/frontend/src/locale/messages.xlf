@@ -9,6 +9,24 @@
           <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="connectionBanner.reconnecting" datatype="html">
+        <source>Verbindung unterbrochen. Reconnect läuft…</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/connection-banner/connection-banner.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="connectionBanner.disconnected" datatype="html">
+        <source>Keine Verbindung zum Server.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/connection-banner/connection-banner.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="connectionBanner.reloadHint" datatype="html">
+        <source>Wenn das bleibt: Seite neu laden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/connection-banner/connection-banner.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="app.updateBanner.title" datatype="html">
         <source>Neue Version bereit</source>
         <context-group purpose="location">

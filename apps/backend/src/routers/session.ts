@@ -90,7 +90,11 @@ import {
   incrementCompletedSessionsTotal,
   updateMaxParticipantsSingleSession,
 } from '../lib/platformStatistic';
-import { getActiveParticipantIdsForSession, touchParticipantPresence } from '../lib/presence';
+import {
+  getActiveParticipantCountForSession,
+  getActiveParticipantIdsForSession,
+  touchParticipantPresence,
+} from '../lib/presence';
 import { markCountdownSessionActive, recordSessionTransitionActivity } from '../lib/loadSignal';
 import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
 import {
@@ -847,16 +851,15 @@ async function buildReadingReadyStatus(
   session: SessionParticipantsQueryResult,
   questionId: string | null,
   participantId?: string,
+  activeParticipantIds?: Set<string>,
 ) {
   if (!questionId) return undefined;
 
-  const activeParticipantIds = await getActiveParticipantIdsForSession(session.id);
+  const activeIds = activeParticipantIds ?? (await getActiveParticipantIdsForSession(session.id));
   const readyParticipantIds = await getReadingReadyParticipantIds(session.id, questionId);
   const sessionParticipantIds = new Set(session.participants.map((participant) => participant.id));
 
-  const connectedParticipantIds = [...activeParticipantIds].filter((id) =>
-    sessionParticipantIds.has(id),
-  );
+  const connectedParticipantIds = [...activeIds].filter((id) => sessionParticipantIds.has(id));
   const readyConnectedCount = connectedParticipantIds.filter((id) =>
     readyParticipantIds.has(id),
   ).length;
@@ -876,7 +879,21 @@ async function buildSessionParticipantsPayload(
   participantId?: string,
 ) {
   const readingQuestionId = getCurrentQuestionIdForReading(session);
-  const readingReady = await buildReadingReadyStatus(session, readingQuestionId, participantId);
+  let connectedCount = 0;
+  let readingReady: z.infer<typeof ReadingReadyStatusDTOSchema> | undefined;
+
+  if (readingQuestionId) {
+    const activeParticipantIds = await getActiveParticipantIdsForSession(session.id);
+    readingReady = await buildReadingReadyStatus(
+      session,
+      readingQuestionId,
+      participantId,
+      activeParticipantIds,
+    );
+    connectedCount = readingReady?.connectedCount ?? 0;
+  } else if (session.participants.length > 0) {
+    connectedCount = await getActiveParticipantCountForSession(session.id);
+  }
 
   return SessionParticipantsPayloadSchema.parse({
     participants: session.participants.map((p) => ({
@@ -886,6 +903,7 @@ async function buildSessionParticipantsPayload(
       teamName: p.team?.name ?? null,
     })),
     participantCount: session.participants.length,
+    connectedCount,
     ...(readingReady ? { readingReady } : {}),
   });
 }

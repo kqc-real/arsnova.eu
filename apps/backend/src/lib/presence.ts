@@ -54,6 +54,17 @@ export async function countActiveParticipantsForSessions(
   return sum;
 }
 
+export async function getActiveParticipantCountForSession(
+  sessionId: string,
+  nowMs: number = Date.now(),
+): Promise<number> {
+  if (process.env['NODE_ENV'] === 'test') return 0;
+  if (!sessionId) return 0;
+
+  const counts = await getActiveParticipantCountsForSessions([sessionId], nowMs);
+  return counts.get(sessionId) ?? 0;
+}
+
 export async function getActiveParticipantIdsForSession(
   sessionId: string,
   nowMs: number = Date.now(),
