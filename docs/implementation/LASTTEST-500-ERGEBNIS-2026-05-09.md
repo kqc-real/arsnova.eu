@@ -178,3 +178,73 @@ Noch offen bleibt:
 Der Entwicklungsstand vom 2026-05-09 ist fuer 500 gleichzeitige Teilnehmende deutlich robuster als zuvor.
 
 Der lokale Integrationslasttest liefert ein positives technisches Signal. Die naechste Pflichtstufe ist der produktionsnahe Lasttest auf dem Zielsystem.
+
+Der anschliessende reale Produktions-Join-Lauf ist separat dokumentiert in [LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md](./LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md).
+
+Wichtig fuer die aktuelle Gesamtbewertung:
+
+- Der Produktionslauf hat zusaetzliche fachliche Befunde im Teammodus gezeigt.
+- Daraus wurden dort explizite Fix-Punkte fuer:
+  - Host-Vote-Fortschritt waehrend `ACTIVE`
+  - Reading-Ready-Semantik bei Grosslast
+  - Teamscore-Sichtbarkeit bei grossen Teams
+  - Stabilisierung der Teamkarten auf dem Host
+    abgeleitet.
+
+## Lokaler Nachtest der Prioritaet-A-Fixes
+
+Die aus dem Produktionslauf abgeleiteten Prioritaet-A-Punkte wurden anschliessend lokal umgesetzt und erneut unter 500 Teilnehmenden geprueft.
+
+### Frische lokale Retest-Session
+
+- Session-Code: `ZF62DN`
+- Quiz: `Codex Local 500 Team Quiz`
+- Teammodus: `Apfel` / `Birne`
+- Join-Welle: `500` Teilnehmende
+
+### Join-Welle
+
+- `500` Teilnehmende erfolgreich aufgenommen
+- `participantCount = 500`
+- `http_req_duration p95 = 1.87 s`
+- `0` Fehler
+
+### Host-Fortschritt waehrend `ACTIVE`
+
+Nach `nextQuestion` und `revealAnswers` wurde ein 500er-Vote-Spike gegen die aktive Frage gefahren.
+
+Ergebnis:
+
+- im Host-Pfad wurde waehrend `ACTIVE` live `totalVotes = 484` gesehen
+- damit ist der fruehere Befund `0 von n haben abgestimmt` lokal nicht mehr reproduzierbar
+
+Einordnung:
+
+- der Host-Pfad zieht neue Votes jetzt waehrend laufender Fragen nach
+- die fruehere Stale-Anzeige im Moderationspfad ist lokal behoben
+
+### Teamscore nach `RESULTS`
+
+Nach `revealResults` ergab die Teamwertung erstmals auch unter grossen Teams sichtbare Werte:
+
+- `Birne`: `1899.1`
+- `Apfel`: `1876.1`
+
+Einordnung:
+
+- die fruehere Nullanzeige der Teamwertung ist lokal nicht mehr reproduzierbar
+- grosse Teams werden jetzt auch in fruehen Live-Phasen sichtbar differenziert
+
+### Restbefund im lokalen Vote-Spike
+
+Der lokale 500er-Vote-Spike zeigte weiterhin einen Restbefund:
+
+- `484 / 500` Vote-Requests erfolgreich
+- `16 / 500` Requests mit `dial: i/o timeout`
+- `http_req_duration p95 = 661.98 ms`
+
+Einordnung:
+
+- funktional ist der Host-/Team-Pfad jetzt sichtbar korrigiert
+- fuer den Lastpfad selbst bleibt lokal ein Restproblem mit einzelnen Langlaeufern bzw. Timeouts im Docker-zu-Localhost-Pfad
+- dieser Punkt muss im produktionsnahen bzw. echten Produktions-Retest separat beobachtet werden

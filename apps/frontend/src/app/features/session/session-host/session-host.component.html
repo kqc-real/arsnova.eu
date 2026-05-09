@@ -259,7 +259,13 @@
               </p>
               @if (effectiveStatus() === 'QUESTION_OPEN' && readingReadyStatus(); as ready) {
                 <p class="session-host__live-participants">
-                  {{ readingReadyProgressLabel(ready.readyCount, ready.connectedCount) }}
+                  {{
+                    readingReadyProgressLabel(
+                      ready.readyCount,
+                      ready.connectedCount,
+                      participantsPayload()?.participantCount ?? ready.connectedCount
+                    )
+                  }}
                 </p>
               }
             </div>
@@ -1002,9 +1008,13 @@
                         @if (allConnectedParticipantsReady()) {
                           <p class="session-host__all-voted" role="status" aria-live="polite">
                             <mat-icon aria-hidden="true">done_all</mat-icon>
-                            <span i18n
-                              >Alle sind bereit – Antwortoptionen können freigegeben werden.</span
-                            >
+                            <span>{{
+                              readingReadyReleaseHint(
+                                readingReadyStatus()?.connectedCount ?? 0,
+                                participantsPayload()?.participantCount ??
+                                  readingReadyStatus()?.connectedCount ?? 0
+                              )
+                            }}</span>
                           </p>
                         }
                       </div>

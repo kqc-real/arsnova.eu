@@ -210,7 +210,7 @@ describe('session team mode (Story 7.1)', () => {
     expect(result.teamName).toBe('Team A');
   });
 
-  it('rundet harmonisierte Team-Scores auf volle Hunderter ohne Nachkommastellen', async () => {
+  it('liefert harmonisierte Team-Scores als sichtbaren Durchschnitt auch fuer groessere Teams', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,
       quiz: { teamMode: true, teamCount: 2, teamNames: [] },
@@ -237,9 +237,9 @@ describe('session team mode (Story 7.1)', () => {
         rank: 1,
         teamName: 'Team A',
         teamColor: '#1E88E5',
-        totalScore: 2800,
+        totalScore: 2767.7,
         memberCount: 2,
-        averageScore: 2800,
+        averageScore: 2767.7,
       },
       {
         rank: 2,

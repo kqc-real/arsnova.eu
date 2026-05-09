@@ -46,6 +46,7 @@ const {
   quizUploadMutateMock,
   onParticipantJoinedSubscribeMock,
   onStatusChangedSubscribeMock,
+  onCurrentQuestionForHostChangedSubscribeMock,
   clearHostTokenMock,
   dialogOpenMock,
 } = vi.hoisted(() => ({
@@ -83,6 +84,7 @@ const {
   quizUploadMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
+  onCurrentQuestionForHostChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
   clearHostTokenMock: vi.fn(),
   dialogOpenMock: vi.fn(),
 }));
@@ -118,6 +120,7 @@ vi.mock('../../../core/trpc.client', () => ({
       updateQaTitle: { mutate: updateQaTitleMutateMock },
       onParticipantJoined: { subscribe: onParticipantJoinedSubscribeMock },
       onStatusChanged: { subscribe: onStatusChangedSubscribeMock },
+      onCurrentQuestionForHostChanged: { subscribe: onCurrentQuestionForHostChangedSubscribeMock },
     },
     quiz: {
       upload: { mutate: quizUploadMutateMock },
@@ -299,6 +302,9 @@ describe('SessionHostComponent', () => {
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
     onParticipantJoinedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
     onStatusChangedSubscribeMock.mockImplementation(() => ({ unsubscribe: unsubscribeMock }));
+    onCurrentQuestionForHostChangedSubscribeMock.mockImplementation(() => ({
+      unsubscribe: unsubscribeMock,
+    }));
     getTeamsQueryMock.mockResolvedValue({ teams: [], teamCount: 0 });
     getLiveFreetextQueryMock.mockResolvedValue({ ...defaultLiveFreetext });
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
@@ -514,6 +520,78 @@ describe('SessionHostComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('ABC123');
     expect(text).toContain('Erste Frage starten');
+    fixture.destroy();
+  });
+
+  it('aktualisiert den Host-Abstimmungsfortschritt ueber die Current-Question-Subscription waehrend ACTIVE', async () => {
+    let onData:
+      | ((
+          data: {
+            questionId: string;
+            order: number;
+            totalQuestions: number;
+            text: string;
+            type: 'SINGLE_CHOICE';
+            difficulty: 'MEDIUM';
+            timer: number;
+            answers: Array<{ id: string; text: string; isCorrect: boolean }>;
+            totalVotes: number;
+            currentRound: number;
+          } | null,
+        ) => void)
+      | undefined;
+
+    onCurrentQuestionForHostChangedSubscribeMock.mockImplementation(
+      (_input, observer: { onData?: typeof onData }) => {
+        onData = observer.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 501,
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+      totalVotes: 0,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    onData?.({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+      totalVotes: 1,
+      currentRound: 1,
+    });
+    fixture.detectChanges();
+
+    expect(onData).toBeTypeOf('function');
+    expect(fixture.componentInstance.currentQuestionForHost()?.totalVotes).toBe(1);
     fixture.destroy();
   });
 
@@ -1928,9 +2006,58 @@ describe('SessionHostComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('2 von 2 bereit');
     expect(el.textContent).toContain(
-      'Alle sind bereit – Antwortoptionen können freigegeben werden.',
+      'Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.',
     );
 
+    fixture.destroy();
+  });
+
+  it('unterscheidet in QUESTION_OPEN zwischen verbundenen und insgesamt teilnehmenden Personen', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 501,
+      participants: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          nickname: 'Ada',
+          teamId: null,
+          teamName: null,
+        },
+      ],
+      readingReady: {
+        readyCount: 1,
+        connectedCount: 1,
+        allConnectedReady: true,
+      },
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'QUESTION_OPEN', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      order: 0,
+      text: 'Lese den Aufgabentext.',
+      type: 'SINGLE_CHOICE' as const,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('1 von 1 verbunden bereit');
+    expect(text).toContain('501 insgesamt');
+    expect(text).toContain(
+      'Alle verbundenen Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.',
+    );
     fixture.destroy();
   });
 
@@ -2797,7 +2924,7 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
-  it('ruft onParticipantJoined und onStatusChanged subscribe auf', async () => {
+  it('ruft onParticipantJoined, onStatusChanged und onCurrentQuestionForHostChanged subscribe auf', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
     const fixture = setup();
     fixture.detectChanges();
@@ -2812,8 +2939,12 @@ describe('SessionHostComponent', () => {
       { code: 'ABC123' },
       expect.objectContaining({ onData: expect.any(Function) }),
     );
+    expect(onCurrentQuestionForHostChangedSubscribeMock).toHaveBeenCalledWith(
+      { code: 'ABC123' },
+      expect.objectContaining({ onData: expect.any(Function) }),
+    );
     fixture.destroy();
-    expect(unsubscribeMock).toHaveBeenCalledTimes(2);
+    expect(unsubscribeMock).toHaveBeenCalledTimes(3);
   });
 
   it('zeigt im spielerischen Quiz-Foyer nur fuer echte Neuzugaenge einen Arrival-Chip', async () => {
@@ -3293,6 +3424,8 @@ describe('SessionHostComponent', () => {
     expect(text).toContain('Warten auf die anderen...');
     expect(text).toContain('Rot');
     expect(text).toContain('Blau');
+    expect(text).toContain('2 Mitglieder');
+    expect(text).toContain('1 Mitglied');
     expect(text).toContain('Ada');
     expect(text).toContain('Grace');
     const cards = Array.from(
@@ -3302,6 +3435,42 @@ describe('SessionHostComponent', () => {
       (element) => (element.textContent ?? '').trim(),
     );
     expect(teamAMembers).toEqual(['Linus', 'Ada']);
+    fixture.destroy();
+  });
+
+  it('aktualisiert Team-Mitgliedszahlen in der Lobby aus dem Teilnehmer-Payload ohne weiteren Team-Reload', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      preset: 'PLAYFUL',
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+      ],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p2', nickname: 'Linus', teamId: 'team-a', teamName: 'Rot' },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('2 Mitglieder');
+    expect(text).toContain('0 Mitglieder');
+    expect(getTeamsQueryMock).toHaveBeenCalledTimes(1);
     fixture.destroy();
   });
 
@@ -3394,6 +3563,56 @@ describe('SessionHostComponent', () => {
       (element) => (element.textContent ?? '').trim(),
     );
     expect(teamBMembers).toEqual(['Linus']);
+    fixture.destroy();
+  });
+
+  it('unterdrueckt Team-Foyer-Animationen bei sehr grossen Join-Wellen', async () => {
+    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      preset: 'PLAYFUL',
+      enableRewardEffects: true,
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+      ],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 0,
+      participants: [],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        participantJoinedHandler = opts.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    participantJoinedHandler?.({
+      participantCount: 120,
+      participants: Array.from({ length: 30 }, (_, index) => ({
+        id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+        nickname: `Tier ${index + 1}`,
+        teamId: index % 2 === 0 ? 'team-a' : 'team-b',
+        teamName: index % 2 === 0 ? 'Rot' : 'Blau',
+      })),
+    });
+    fixture.detectChanges();
+
+    expect(component.foyerArrivalChips().length).toBe(0);
+    expect(fixture.nativeElement.querySelector('.session-lobby__team-foyer-stage')).toBeNull();
     fixture.destroy();
   });
 

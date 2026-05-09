@@ -505,6 +505,35 @@ Das Wellenmodell wurde durch den Lauf nicht widerlegt, sondern bestaetigt:
 
 Weiterhin offen bleibt die produktionsnahe Verifikation auf dem Hetzner-Zielsystem unter realem Monitoring und mit realistischen Netzbedingungen vor Ort.
 
+## Produktionsbefund am 2026-05-09
+
+Am 2026-05-09 wurde zusaetzlich ein realer 500er-Join-Lauf gegen die Produktionsinstanz `https://arsnova.eu` fuer die Session `6LTFZF` gefahren.
+
+Beobachtung:
+
+- 500 reale Joins wurden ohne HTTP-Fehler verarbeitet
+- die Session stand danach bei `participantCount = 500`
+- die Join-Welle war damit funktional erfolgreich
+
+Gleichzeitig zeigte sich:
+
+- `http_req_duration p95 = 3.57 s`
+- damit ist die Produktions-Join-Welle machbar, aber qualitativ bereits im Grenzbereich
+
+Fuer das Wellenmodell bedeutet das:
+
+- die Join-Welle ist in Produktion **beherrschbar, aber weiter rot**
+- die bisherige Join-Glattung und Vorlastreduktion wirken sichtbar
+- fuer eine echte Gesamtfreigabe eines 500er-Szenarios fehlen aber noch Produktionsdaten fuer:
+  - aktive Frage
+  - Status-Fan-out unter Host-Steuerung
+  - Vote-Spike
+- zusaetzlich hat der reale Teammodus-Betrieb gezeigt, dass nicht nur Server-Hotpaths, sondern auch **Moderations- und Visualisierungspfade** bei 500+ kritisch werden koennen:
+  - Reading-Ready-Semantik
+  - Host-Vote-Fortschritt waehrend `ACTIVE`
+  - Teamkarten-Stabilisierung
+  - Teamwertungsdarstellung
+
 - zusammen ca. **209 req/s**
 
 Gewinn:
@@ -664,6 +693,27 @@ Wenn ein neuer Hotpath, ein neues Feature oder eine neue Metrik bewertet wird, s
 Das Performance-Risiko von arsnova.eu ist phasenbezogen und wellenfoermig.
 
 Fuer Grossveranstaltungen reicht es deshalb nicht, nur eine abstrakte Maximalzahl gleichzeitiger Teilnehmender zu betrachten. Entscheidend ist, welche **Wellen** auftreten, wie sie sich **ueberlagern** und welche **Gegenmassnahmen** fuer jede Phase bereits umgesetzt sind.
+
+## Nachweisstand vom 2026-05-09
+
+Die aus dem Produktionsbefund abgeleiteten Prioritaet-A-Korrekturen wurden lokal nochmals unter `500` Teilnehmenden pruefbar gemacht.
+
+Nachweisbar lokal behoben:
+
+- Host-Vote-Fortschritt waehrend `ACTIVE` zieht live nach
+- Teamwertung fuer grosse Teams bleibt nach `RESULTS` sichtbar ungleich `0`
+- Reading-Ready-Text trennt jetzt zwischen verbundenen und gesamten Teilnehmenden
+- Teamfoyer-Animationen werden bei grossen Join-Wellen unterdrueckt, um minutenlanges Nachzucken zu vermeiden
+
+Lokal blieb jedoch ein Restbefund im Vote-Spike:
+
+- `16 / 500` Requests liefen in einen `dial: i/o timeout`
+- gleichzeitig blieb `p95` mit `661.98 ms` deutlich unterhalb der gesetzten Antwortzeitgrenze
+
+Operative Schlussfolgerung:
+
+- die fachlich sichtbaren Teammodus-Befunde gelten lokal als behoben
+- fuer die eigentliche Lastresistenz des Vote-Pfads ist ein kurzer Produktions-Retest weiter Pflicht
 
 ---
 

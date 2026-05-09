@@ -262,6 +262,10 @@ Damit lassen sich Join-Welle, Active-Question-Hotpath, Vote-Spike und Realtime-S
 
 Der konkrete Ergebnisbericht des heute bereits gefahrenen lokalen 500er-Laufs ist in [LASTTEST-500-ERGEBNIS-2026-05-09.md](./LASTTEST-500-ERGEBNIS-2026-05-09.md) dokumentiert.
 
+Der reale Produktions-Join-Lauf gegen `arsnova.eu` fuer die Session `6LTFZF` ist in [LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md](./LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md) dokumentiert.
+
+Der Produktionsbericht enthaelt zusaetzlich konkrete Folge-Befunde fuer den Teammodus bei 500+ Teilnehmenden und leitet daraus einen priorisierten Fix-Katalog ab.
+
 ## Durchgefuehrte Lasttests am 2026-05-09
 
 Am 2026-05-09 wurde ein **realer lokaler 500er-Lastlauf** gegen den aktuellen Entwicklungsstand gefahren.
@@ -1040,3 +1044,28 @@ Ziele:
 ## Freigabevermerk
 
 Die Freigabe fuer Konferenzszenarien mit 500 Teilnehmenden darf erst erfolgen, wenn dieses Dokument mit realen Messergebnissen ergaenzt und von der technischen Leitung ausdruecklich abgenommen wurde.
+
+## Nachtrag vom 2026-05-09: Lokaler Retest der Prioritaet-A-Pfade
+
+Nach den Produktionsbefunden im Teammodus wurden dieselben Pfade lokal erneut unter `500` Teilnehmenden validiert.
+
+Geprueft wurden:
+
+- Host-Vote-Fortschritt waehrend `ACTIVE`
+- Reading-Ready-Semantik auf dem Host
+- Teamscore-Sichtbarkeit bei grossen Teams
+- Stabilisierung der Teamdarstellung nach Join-Wellen
+
+Lokales Ergebnis:
+
+- frische Retest-Session `ZF62DN`
+- Join-Welle mit `500` Teilnehmenden erfolgreich
+- waehrend `ACTIVE` stieg der Host-Fortschritt live auf `484` Stimmen
+- nach `RESULTS` waren Teamwerte ungleich `0` sichtbar
+- die frueheren fachlichen Kernbefunde aus dem Produktionslauf sind damit lokal nicht mehr reproduzierbar
+
+Offen bleibt:
+
+- ein kurzer Produktions-Retest derselben Pfade
+- Beobachtung, ob die Korrekturen auch auf der Hetzner-Zielumgebung unter echter Netz- und Laufzeitbedingung stabil greifen
+- weiterer Blick auf vereinzelte Vote-Timeouts im lokalen Docker-zu-Localhost-Lastpfad

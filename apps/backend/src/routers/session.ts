@@ -164,6 +164,7 @@ const CURRENT_QUESTION_CACHE_TTL_MS = 500;
 const PARTICIPANT_MEMBERSHIP_CACHE_TTL_MS = 30_000;
 const VOTE_COUNT_CACHE_TTL_MS = 15 * 60_000;
 const VOTE_SUMMARY_CACHE_TTL_MS = 15 * 60_000;
+const CURRENT_QUESTION_EVENT_WAIT_MS = 10_000;
 const STATUS_EVENT_WAIT_ACTIVE_MS = 10_000;
 const STATUS_EVENT_WAIT_IDLE_MS = 30_000;
 const PARTICIPANT_EVENT_WAIT_ACTIVE_MS = 10_000;
@@ -230,8 +231,11 @@ const sessionStatusEvents = new EventEmitter();
 const sessionStatusVersions = new Map<string, number>();
 const sessionParticipantEvents = new EventEmitter();
 const sessionParticipantVersions = new Map<string, number>();
+const sessionCurrentQuestionEvents = new EventEmitter();
+const sessionCurrentQuestionVersions = new Map<string, number>();
 sessionStatusEvents.setMaxListeners(0);
 sessionParticipantEvents.setMaxListeners(0);
+sessionCurrentQuestionEvents.setMaxListeners(0);
 
 function getCachedValue<T>(cache: Map<string, CacheEntry<T>>, key: string): T | null {
   const entry = cache.get(key);
@@ -325,8 +329,10 @@ export function resetSessionReadCachesForTests(): void {
   clearSessionReadCaches();
   sessionStatusVersions.clear();
   sessionParticipantVersions.clear();
+  sessionCurrentQuestionVersions.clear();
   sessionStatusEvents.removeAllListeners();
   sessionParticipantEvents.removeAllListeners();
+  sessionCurrentQuestionEvents.removeAllListeners();
 }
 
 function clearSessionInfoCache(code: string): void {
@@ -397,6 +403,10 @@ function sessionParticipantEventName(code: string): string {
   return `participants:${code}`;
 }
 
+function sessionCurrentQuestionEventName(code: string): string {
+  return `current-question:${code}`;
+}
+
 function emitSessionStatusSignal(code: string): void {
   const normalizedCode = code.toUpperCase();
   const nextVersion = (sessionStatusVersions.get(normalizedCode) ?? 0) + 1;
@@ -411,12 +421,23 @@ function emitSessionParticipantSignal(code: string): void {
   sessionParticipantEvents.emit(sessionParticipantEventName(normalizedCode), nextVersion);
 }
 
+function emitSessionCurrentQuestionSignal(code: string): void {
+  const normalizedCode = code.toUpperCase();
+  const nextVersion = (sessionCurrentQuestionVersions.get(normalizedCode) ?? 0) + 1;
+  sessionCurrentQuestionVersions.set(normalizedCode, nextVersion);
+  sessionCurrentQuestionEvents.emit(sessionCurrentQuestionEventName(normalizedCode), nextVersion);
+}
+
 function getSessionStatusSignalVersion(code: string): number {
   return sessionStatusVersions.get(code.toUpperCase()) ?? 0;
 }
 
 function getSessionParticipantSignalVersion(code: string): number {
   return sessionParticipantVersions.get(code.toUpperCase()) ?? 0;
+}
+
+function getSessionCurrentQuestionSignalVersion(code: string): number {
+  return sessionCurrentQuestionVersions.get(code.toUpperCase()) ?? 0;
 }
 
 async function waitForSessionStatusSignal(
@@ -446,6 +467,36 @@ async function waitForSessionStatusSignal(
     };
 
     sessionStatusEvents.on(eventName, onSignal);
+  });
+}
+
+async function waitForSessionCurrentQuestionSignal(
+  code: string,
+  currentVersion: number,
+  timeoutMs: number,
+): Promise<void> {
+  const normalizedCode = code.toUpperCase();
+  if (getSessionCurrentQuestionSignalVersion(normalizedCode) !== currentVersion) {
+    return;
+  }
+  await new Promise<void>((resolve) => {
+    const eventName = sessionCurrentQuestionEventName(normalizedCode);
+    let timer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+      sessionCurrentQuestionEvents.off(eventName, onSignal);
+      timer = null;
+      resolve();
+    }, timeoutMs);
+
+    const onSignal = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      sessionCurrentQuestionEvents.off(eventName, onSignal);
+      resolve();
+    };
+
+    sessionCurrentQuestionEvents.on(eventName, onSignal);
   });
 }
 
@@ -571,6 +622,7 @@ export function invalidateSessionStatusCachesForCode(code: string): void {
   clearCurrentQuestionCache(normalizedCode);
   emitSessionStatusSignal(normalizedCode);
   emitSessionParticipantSignal(normalizedCode);
+  emitSessionCurrentQuestionSignal(normalizedCode);
 }
 
 export function invalidateJoinCachesForCode(code: string): void {
@@ -583,7 +635,9 @@ export function invalidateJoinCachesForCode(code: string): void {
 }
 
 export function invalidateCurrentQuestionCachesForCode(code: string): void {
-  clearCurrentQuestionCache(code.toUpperCase());
+  const normalizedCode = code.toUpperCase();
+  clearCurrentQuestionCache(normalizedCode);
+  emitSessionCurrentQuestionSignal(normalizedCode);
 }
 
 export function resetVoteAggregationCachesForTests(): void {
@@ -729,11 +783,7 @@ function normalizeTeamLeaderboardScore(rawTotalScore: number, memberCount: numbe
   }
 
   const averageScore = rawTotalScore / memberCount;
-  if (memberCount === 1) {
-    return Math.round(averageScore);
-  }
-
-  return Math.round(averageScore / 100) * 100;
+  return Math.round(averageScore * 10) / 10;
 }
 
 /** Typen für getExportData-Callbacks (vermeidet implizites any). */
@@ -1705,6 +1755,217 @@ async function generateBonusTokens(session: {
   }));
 
   await prisma.bonusToken.createMany({ data: tokenData });
+}
+
+type HostCurrentQuestionSession = {
+  id: string;
+  status: string;
+  currentQuestion: number | null;
+  currentRound: number;
+  answerDisplayOrder: Prisma.JsonValue | null;
+  quiz: {
+    defaultTimer: number | null;
+    timerScaleByDifficulty: boolean | null;
+    preset: string | null;
+    questions: Array<{
+      id: string;
+      order: number;
+      text: string;
+      type: string;
+      timer: number | null;
+      difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+      ratingMin: number | null;
+      ratingMax: number | null;
+      ratingLabelMin: string | null;
+      ratingLabelMax: string | null;
+      answers: Array<{ id: string; text: string; isCorrect: boolean }>;
+    }>;
+  } | null;
+};
+
+async function buildHostCurrentQuestionDto(
+  session: HostCurrentQuestionSession | null,
+): Promise<z.infer<typeof HostCurrentQuestionDTOSchema> | null> {
+  if (!session?.quiz) return null;
+  const idx = session.currentQuestion;
+  if (idx === null || idx === undefined) return null;
+  const questions = session.quiz.questions;
+  const question = questions[idx] ?? null;
+  if (!question) return null;
+
+  const answersOrdered = orderAnswersByDisplayMap(
+    question.answers,
+    question.id,
+    session.answerDisplayOrder,
+  );
+
+  const base = {
+    questionId: question.id,
+    order: question.order,
+    totalQuestions: questions.length,
+    text: question.text,
+    type: question.type as 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'FREETEXT' | 'RATING' | 'SURVEY',
+    difficulty: question.difficulty,
+    timer:
+      session.currentRound === 2
+        ? null
+        : resolveEffectiveQuestionTimer(
+            question.timer,
+            session.quiz.defaultTimer,
+            question.difficulty,
+            session.quiz.timerScaleByDifficulty ?? true,
+          ),
+    answers: answersOrdered.map((a) => ({ id: a.id, text: a.text, isCorrect: a.isCorrect })),
+    ratingMin: question.ratingMin ?? null,
+    ratingMax: question.ratingMax ?? null,
+    ratingLabelMin: question.ratingLabelMin ?? null,
+    ratingLabelMax: question.ratingLabelMax ?? null,
+    currentRound: session.currentRound,
+  };
+
+  if (session.status === 'DISCUSSION') {
+    return base;
+  }
+
+  if (session.status === 'RESULTS' || session.status === 'ACTIVE') {
+    const currentRound = session.currentRound;
+    const voteWhere = { sessionId: session.id, questionId: question.id, round: currentRound };
+
+    if (question.type === 'RATING') {
+      const ratingVotes = await prisma.vote.findMany({
+        where: voteWhere,
+        select: { ratingValue: true },
+      });
+      const values = ratingVotes
+        .map((v) => v.ratingValue)
+        .filter((v): v is number => v !== null && v !== undefined);
+      const count = values.length;
+      const avg =
+        count > 0 ? Math.round((values.reduce((s, v) => s + v, 0) / count) * 10) / 10 : null;
+      const dist: Record<string, number> = {};
+      for (const v of values) {
+        const key = String(v);
+        dist[key] = (dist[key] ?? 0) + 1;
+      }
+      return {
+        ...base,
+        ratingAvg: avg,
+        ratingCount: count,
+        ratingDistribution: dist,
+        totalVotes: count,
+      };
+    }
+
+    if (question.type === 'FREETEXT') {
+      const freeTextVotes = await prisma.vote.findMany({
+        where: voteWhere,
+        select: { freeText: true },
+      });
+      const texts = freeTextVotes.map((v) => v.freeText?.trim()).filter((t): t is string => !!t);
+      return { ...base, freeTextResponses: texts, totalVotes: freeTextVotes.length };
+    }
+
+    const choiceVotes = await prisma.vote.findMany({
+      where: voteWhere,
+      select: { selectedAnswers: { select: { answerOptionId: true } } },
+    });
+
+    const totalVotes = choiceVotes.length;
+    const answerVoteCounts = new Map<string, number>();
+    for (const v of choiceVotes) {
+      for (const sa of v.selectedAnswers) {
+        answerVoteCounts.set(sa.answerOptionId, (answerVoteCounts.get(sa.answerOptionId) ?? 0) + 1);
+      }
+    }
+
+    const correctIds = new Set(answersOrdered.filter((a) => a.isCorrect).map((a) => a.id));
+    const correctVoterCount =
+      correctIds.size > 0
+        ? choiceVotes.filter((v) => {
+            const selected = new Set(v.selectedAnswers.map((sa) => sa.answerOptionId));
+            if (selected.size !== correctIds.size) return false;
+            for (const id of correctIds) {
+              if (!selected.has(id)) return false;
+            }
+            return true;
+          }).length
+        : undefined;
+
+    const peerInstructionSuggestion = buildPeerInstructionSuggestion(
+      question.type as QuestionType,
+      currentRound,
+      correctVoterCount,
+      totalVotes,
+    );
+
+    if (session.status === 'ACTIVE') {
+      return {
+        ...base,
+        totalVotes,
+        peerInstructionSuggestion,
+      };
+    }
+
+    const voteDistribution = answersOrdered.map((a) => ({
+      id: a.id,
+      text: a.text,
+      isCorrect: a.isCorrect,
+      voteCount: answerVoteCounts.get(a.id) ?? 0,
+      votePercentage:
+        totalVotes > 0 ? Math.round(((answerVoteCounts.get(a.id) ?? 0) / totalVotes) * 100) : 0,
+    }));
+
+    let roundComparison: RoundComparisonDTO | undefined;
+    if (session.status === 'RESULTS' && currentRound === 2) {
+      roundComparison = await buildRoundComparison(session.id, question.id, answersOrdered);
+    }
+
+    return {
+      ...base,
+      totalVotes,
+      correctVoterCount,
+      peerInstructionSuggestion,
+      voteDistribution,
+      roundComparison,
+    };
+  }
+
+  return base;
+}
+
+async function fetchHostCurrentQuestion(
+  code: string,
+): Promise<z.infer<typeof HostCurrentQuestionDTOSchema> | null> {
+  const normalizedCode = code.toUpperCase();
+  const session = await prisma.session.findUnique({
+    where: { code: normalizedCode },
+    include: {
+      quiz: {
+        select: {
+          questions: {
+            orderBy: { order: 'asc' },
+            select: {
+              id: true,
+              order: true,
+              text: true,
+              type: true,
+              timer: true,
+              difficulty: true,
+              ratingMin: true,
+              ratingMax: true,
+              ratingLabelMin: true,
+              ratingLabelMax: true,
+              answers: { select: { id: true, text: true, isCorrect: true } },
+            },
+          },
+          defaultTimer: true,
+          timerScaleByDifficulty: true,
+          preset: true,
+        },
+      },
+    },
+  });
+  return buildHostCurrentQuestionDto(session);
 }
 
 export const sessionRouter = router({
@@ -2998,190 +3259,27 @@ export const sessionRouter = router({
   getCurrentQuestionForHost: hostProcedure
     .input(GetSessionInfoInputSchema)
     .output(HostCurrentQuestionDTOSchema.nullable())
-    .query(async ({ input }) => {
-      const session = await prisma.session.findUnique({
-        where: { code: input.code.toUpperCase() },
-        include: {
-          quiz: {
-            select: {
-              questions: {
-                orderBy: { order: 'asc' },
-                select: {
-                  id: true,
-                  order: true,
-                  text: true,
-                  type: true,
-                  timer: true,
-                  difficulty: true,
-                  ratingMin: true,
-                  ratingMax: true,
-                  ratingLabelMin: true,
-                  ratingLabelMax: true,
-                  answers: { select: { id: true, text: true, isCorrect: true } },
-                },
-              },
-              defaultTimer: true,
-              timerScaleByDifficulty: true,
-              preset: true,
-            },
-          },
-        },
-      });
-      if (!session?.quiz) return null;
-      const idx = session.currentQuestion;
-      if (idx === null || idx === undefined) return null;
-      const questions = session.quiz.questions;
-      const question = questions[idx] ?? null;
-      if (!question) return null;
+    .query(async ({ input }) => fetchHostCurrentQuestion(input.code)),
 
-      const answersOrdered = orderAnswersByDisplayMap(
-        question.answers,
-        question.id,
-        session.answerDisplayOrder,
-      );
-
-      const base = {
-        questionId: question.id,
-        order: question.order,
-        totalQuestions: questions.length,
-        text: question.text,
-        type: question.type as
-          | 'SINGLE_CHOICE'
-          | 'MULTIPLE_CHOICE'
-          | 'FREETEXT'
-          | 'RATING'
-          | 'SURVEY',
-        difficulty: question.difficulty,
-        timer:
-          session.currentRound === 2
-            ? null
-            : resolveEffectiveQuestionTimer(
-                question.timer,
-                session.quiz.defaultTimer,
-                question.difficulty,
-                session.quiz.timerScaleByDifficulty ?? true,
-              ),
-        answers: answersOrdered.map((a) => ({ id: a.id, text: a.text, isCorrect: a.isCorrect })),
-        ratingMin: question.ratingMin ?? null,
-        ratingMax: question.ratingMax ?? null,
-        ratingLabelMin: question.ratingLabelMin ?? null,
-        ratingLabelMax: question.ratingLabelMax ?? null,
-        currentRound: session.currentRound,
-      };
-
-      if (session.status === 'DISCUSSION') {
-        return base;
-      }
-
-      if (session.status === 'RESULTS' || session.status === 'ACTIVE') {
-        const currentRound = session.currentRound;
-        const voteWhere = { sessionId: session.id, questionId: question.id, round: currentRound };
-
-        if (question.type === 'RATING') {
-          const ratingVotes = await prisma.vote.findMany({
-            where: voteWhere,
-            select: { ratingValue: true },
-          });
-          const values = ratingVotes
-            .map((v) => v.ratingValue)
-            .filter((v): v is number => v !== null && v !== undefined);
-          const count = values.length;
-          const avg =
-            count > 0 ? Math.round((values.reduce((s, v) => s + v, 0) / count) * 10) / 10 : null;
-          const dist: Record<string, number> = {};
-          for (const v of values) {
-            const key = String(v);
-            dist[key] = (dist[key] ?? 0) + 1;
-          }
-          return {
-            ...base,
-            ratingAvg: avg,
-            ratingCount: count,
-            ratingDistribution: dist,
-            totalVotes: count,
-          };
+  onCurrentQuestionForHostChanged: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .subscription(async function* ({ input }) {
+      const code = input.code.toUpperCase();
+      let lastJson = '';
+      while (true) {
+        const payload = await fetchHostCurrentQuestion(code);
+        const json = JSON.stringify(payload);
+        if (json !== lastJson) {
+          lastJson = json;
+          yield payload;
         }
-
-        if (question.type === 'FREETEXT') {
-          const freeTextVotes = await prisma.vote.findMany({
-            where: voteWhere,
-            select: { freeText: true },
-          });
-          const texts = freeTextVotes
-            .map((v) => v.freeText?.trim())
-            .filter((t): t is string => !!t);
-          return { ...base, freeTextResponses: texts, totalVotes: freeTextVotes.length };
-        }
-
-        const choiceVotes = await prisma.vote.findMany({
-          where: voteWhere,
-          select: { selectedAnswers: { select: { answerOptionId: true } } },
-        });
-
-        const totalVotes = choiceVotes.length;
-        const answerVoteCounts = new Map<string, number>();
-        for (const v of choiceVotes) {
-          for (const sa of v.selectedAnswers) {
-            answerVoteCounts.set(
-              sa.answerOptionId,
-              (answerVoteCounts.get(sa.answerOptionId) ?? 0) + 1,
-            );
-          }
-        }
-
-        const correctIds = new Set(answersOrdered.filter((a) => a.isCorrect).map((a) => a.id));
-        const correctVoterCount =
-          correctIds.size > 0
-            ? choiceVotes.filter((v) => {
-                const selected = new Set(v.selectedAnswers.map((sa) => sa.answerOptionId));
-                if (selected.size !== correctIds.size) return false;
-                for (const id of correctIds) {
-                  if (!selected.has(id)) return false;
-                }
-                return true;
-              }).length
-            : undefined;
-
-        const peerInstructionSuggestion = buildPeerInstructionSuggestion(
-          question.type as QuestionType,
-          currentRound,
-          correctVoterCount,
-          totalVotes,
+        const currentVersion = getSessionCurrentQuestionSignalVersion(code);
+        await waitForSessionCurrentQuestionSignal(
+          code,
+          currentVersion,
+          CURRENT_QUESTION_EVENT_WAIT_MS,
         );
-
-        if (session.status === 'ACTIVE') {
-          return {
-            ...base,
-            totalVotes,
-            peerInstructionSuggestion,
-          };
-        }
-
-        const voteDistribution = answersOrdered.map((a) => ({
-          id: a.id,
-          text: a.text,
-          isCorrect: a.isCorrect,
-          voteCount: answerVoteCounts.get(a.id) ?? 0,
-          votePercentage:
-            totalVotes > 0 ? Math.round(((answerVoteCounts.get(a.id) ?? 0) / totalVotes) * 100) : 0,
-        }));
-
-        let roundComparison: RoundComparisonDTO | undefined;
-        if (session.status === 'RESULTS' && currentRound === 2) {
-          roundComparison = await buildRoundComparison(session.id, question.id, answersOrdered);
-        }
-
-        return {
-          ...base,
-          totalVotes,
-          correctVoterCount,
-          peerInstructionSuggestion,
-          voteDistribution,
-          roundComparison,
-        };
       }
-
-      return base;
     }),
 
   /**

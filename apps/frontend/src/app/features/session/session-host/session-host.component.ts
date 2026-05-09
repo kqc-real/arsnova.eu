@@ -133,6 +133,8 @@ const FOYER_TEAM_PRESENTATION_BUFFER_MS = 440;
 const FOYER_NON_TEAM_DELAY_STEP_MS = 920;
 const FOYER_NON_TEAM_PRESENTATION_BUFFER_MS = 240;
 const FOYER_KINDERGARTEN_DELAY_STEP_MS = 5400;
+const TEAM_FOYER_SUPPRESSION_PARTICIPANT_THRESHOLD = 100;
+const TEAM_FOYER_SUPPRESSION_BURST_THRESHOLD = 24;
 const SESSION_NOT_FOUND_MESSAGE = 'Session nicht gefunden.';
 
 type FoyerArrivalMotionProfile = {
@@ -340,6 +342,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly quickFeedbackActionPending = signal(false);
   private participantSub: Unsubscribable | null = null;
   private statusSub: Unsubscribable | null = null;
+  private currentQuestionSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
   private qaSubscriptionSessionId: string | null = null;
   private hostRealtimeFallbackActive = false;
@@ -399,6 +402,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.ensureParticipantSubscription();
     this.ensureStatusSubscription();
+    this.ensureCurrentQuestionSubscription();
     this.startHostPolling();
     this.runAuxiliaryPollCycle();
     if (this.hostRealtimeFallbackActive) {
@@ -536,8 +540,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showFoyerEntranceLayer = computed(
     () => this.canShowFoyerEntrance() && this.session()?.teamMode !== true,
   );
+  readonly suppressTeamFoyerEntrance = computed(() => {
+    if (this.session()?.teamMode !== true) {
+      return false;
+    }
+    return (
+      (this.participantsPayload()?.participantCount ?? 0) >=
+      TEAM_FOYER_SUPPRESSION_PARTICIPANT_THRESHOLD
+    );
+  });
   readonly showTeamFoyerEntranceLayers = computed(
-    () => this.canShowFoyerEntrance() && this.session()?.teamMode === true,
+    () =>
+      this.canShowFoyerEntrance() &&
+      this.session()?.teamMode === true &&
+      !this.suppressTeamFoyerEntrance(),
   );
   readonly foyerArrivalChipsByTeam = computed(() => {
     const grouped = new Map<string, FoyerEntranceChip[]>();
@@ -733,11 +749,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const showNames = this.session()?.anonymousMode !== true;
     const hiddenParticipantIds = this.hiddenLobbyParticipantIds();
     const participantMap = new Map<string, Array<{ id: string; nickname: string }>>();
+    const teamMemberCounts = new Map<string, number>();
 
     for (const participant of participants) {
       if (!participant.teamId || !participant.nickname) {
         continue;
       }
+      teamMemberCounts.set(participant.teamId, (teamMemberCounts.get(participant.teamId) ?? 0) + 1);
       const names = participantMap.get(participant.teamId) ?? [];
       if (showNames && !hiddenParticipantIds.has(participant.id)) {
         names.unshift({ id: participant.id, nickname: participant.nickname });
@@ -747,6 +765,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     return teams.map((team) => ({
       ...team,
+      memberCount: teamMemberCounts.get(team.id) ?? 0,
       participants: participantMap.get(team.id) ?? [],
     }));
   });
@@ -1168,6 +1187,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.code.length === 6) {
       this.ensureParticipantSubscription();
       this.ensureStatusSubscription();
+      this.ensureCurrentQuestionSubscription();
 
       this.document.addEventListener('click', this.unlockListener, { once: true });
       this.document.addEventListener('keydown', this.unlockListener, { once: true });
@@ -1198,7 +1218,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         onData: (data) => {
           this.hostRealtimeFallbackActive = false;
           this.updateParticipantsPayload(data);
-          void this.refreshLobbyTeams();
         },
         onError: () => {
           this.participantSub?.unsubscribe();
@@ -1230,6 +1249,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         onError: () => {
           this.statusSub?.unsubscribe();
           this.statusSub = null;
+          this.burstHostFallbackAfterWsGap();
+        },
+      },
+    );
+  }
+
+  private ensureCurrentQuestionSubscription(): void {
+    if (!this.code || this.currentQuestionSub) {
+      return;
+    }
+    this.currentQuestionSub = trpc.session.onCurrentQuestionForHostChanged.subscribe(
+      { code: this.code.toUpperCase() },
+      {
+        onData: (data) => {
+          this.hostRealtimeFallbackActive = false;
+          this.currentQuestionForHost.set(data);
+        },
+        onError: () => {
+          this.currentQuestionSub?.unsubscribe();
+          this.currentQuestionSub = null;
           this.burstHostFallbackAfterWsGap();
         },
       },
@@ -1343,6 +1382,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.hostRealtimeFallbackActive = true;
     this.ensureParticipantSubscription();
     this.ensureStatusSubscription();
+    this.ensureCurrentQuestionSubscription();
     this.runRealtimeFallbackCycle();
     this.runAuxiliaryPollCycle();
   }
@@ -1367,6 +1407,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.participantSub = null;
     this.statusSub?.unsubscribe();
     this.statusSub = null;
+    this.currentQuestionSub?.unsubscribe();
+    this.currentQuestionSub = null;
     this.qaSub?.unsubscribe();
     this.qaSub = null;
     this.qaSubscriptionSessionId = null;
@@ -2053,6 +2095,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.knownParticipantIds = nextParticipantIds;
     this.participantBaselineReady = true;
 
+    if (this.session()?.teamMode === true && this.suppressTeamFoyerEntrance()) {
+      this.clearFoyerArrivalState();
+      return;
+    }
+
     if (newParticipants.length > 0) {
       this.enqueueFoyerArrivalChips(newParticipants, payload.participantCount);
     }
@@ -2063,6 +2110,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     totalParticipantCount: number,
   ): void {
     if (!this.canShowFoyerEntrance()) {
+      return;
+    }
+    if (
+      this.session()?.teamMode === true &&
+      (totalParticipantCount >= TEAM_FOYER_SUPPRESSION_PARTICIPANT_THRESHOLD ||
+        participants.length >= TEAM_FOYER_SUPPRESSION_BURST_THRESHOLD)
+    ) {
+      this.clearFoyerArrivalState();
       return;
     }
 
@@ -2666,8 +2721,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return labels[status] ?? status;
   }
 
-  readingReadyProgressLabel(readyCount: number, connectedCount: number): string {
-    return $localize`:@@sessionHost.readingReadyProgress:${readyCount}:readyCount: von ${connectedCount}:connectedCount: bereit`;
+  readingReadyProgressLabel(
+    readyCount: number,
+    connectedCount: number,
+    totalParticipantCount: number,
+  ): string {
+    if (connectedCount >= totalParticipantCount) {
+      return $localize`:@@sessionHost.readingReadyProgressAll:${readyCount}:readyCount: von ${connectedCount}:connectedCount: bereit`;
+    }
+    return $localize`${readyCount} von ${connectedCount} verbunden bereit · ${totalParticipantCount} insgesamt`;
+  }
+
+  readingReadyReleaseHint(connectedCount: number, totalParticipantCount: number): string {
+    if (connectedCount >= totalParticipantCount) {
+      return $localize`Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.`;
+    }
+    return $localize`Alle verbundenen Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.`;
   }
 
   effectiveCurrentQuestion(): number | null {
