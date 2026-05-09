@@ -571,7 +571,7 @@ describe('SessionHostComponent', () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await vi.waitFor(() => expect(onData).toBeTypeOf('function'));
 
     onData?.({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -590,7 +590,6 @@ describe('SessionHostComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(onData).toBeTypeOf('function');
     expect(fixture.componentInstance.currentQuestionForHost()?.totalVotes).toBe(1);
     fixture.destroy();
   });
