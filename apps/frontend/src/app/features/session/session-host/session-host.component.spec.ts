@@ -626,6 +626,44 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt in der Kindergarten-Nicht-Team-Lobby nur zentrierte Tier-Icons mit sr-only Namen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: false,
+      anonymousMode: false,
+      nicknameTheme: 'KINDERGARTEN',
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Mintgrüne Eidechse' },
+        { id: 'p2', nickname: 'Lila Delfin' },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const list = fixture.nativeElement.querySelector(
+      '.session-lobby__list--chips',
+    ) as HTMLElement | null;
+    const icons = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby'),
+    ) as HTMLElement[];
+    const srOnlyLabels = Array.from(fixture.nativeElement.querySelectorAll('.sr-only'), (el) =>
+      (el.textContent ?? '').trim(),
+    );
+
+    expect(list).not.toBeNull();
+    expect(icons.map((icon) => icon.textContent?.trim())).toEqual(['🐬', '🦎']);
+    expect(srOnlyLabels).toEqual(['Lila Delfin', 'Mintgrüne Eidechse']);
+    fixture.destroy();
+  });
+
   it('zeigt bei Rating-Fragen auf dem Host die komplette Skala', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(

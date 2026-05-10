@@ -2049,7 +2049,7 @@
 
 .session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(6.25rem, 1fr));
   gap: 1rem 1.2rem;
   justify-items: center;
   align-items: start;
@@ -2121,7 +2121,7 @@
   }
 
   .session-lobby__list:has(.session-lobby__nick-emoji--host-lobby) {
-    grid-template-columns: repeat(auto-fill, minmax(4.1rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(4.1rem, 1fr));
     gap: 0.45rem 0.6rem;
   }
 }
