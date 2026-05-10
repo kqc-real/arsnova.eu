@@ -3889,7 +3889,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const url = URL.createObjectURL(blob);
       const a = this.document.createElement('a');
       a.href = url;
-      a.download = `ergebnis-export-${data.sessionCode}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `session-results-${data.sessionCode}-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       this.exportStatus.set($localize`Ergebnis-CSV exportiert.`);

@@ -4934,6 +4934,71 @@ describe('SessionHostComponent', () => {
       });
     });
 
+    it('verwendet für den Ergebnis-Export einen einheitlichen englischen Dateinamen', async () => {
+      const createObjectURLMock = vi.fn(() => 'blob:test-export');
+      const revokeObjectURLMock = vi.fn();
+      const anchorClickSpy = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+      const originalCreateElement = document.createElement.bind(document);
+      const createElementSpy = vi.spyOn(document, 'createElement');
+      const originalCreateObjectURL = URL.createObjectURL;
+      const originalRevokeObjectURL = URL.revokeObjectURL;
+
+      let createdAnchor: HTMLAnchorElement | null = null;
+      createElementSpy.mockImplementation((tagName: string): HTMLElement => {
+        const element = originalCreateElement(tagName);
+        if (tagName.toLowerCase() === 'a') {
+          createdAnchor = element as HTMLAnchorElement;
+        }
+        return element as HTMLElement;
+      });
+
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: createObjectURLMock,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: revokeObjectURLMock,
+      });
+      getExportDataQueryMock.mockResolvedValueOnce({
+        sessionId: defaultSession.id,
+        sessionCode: 'ABC123',
+        quizName: 'Demo Quiz',
+        finishedAt: '2026-03-24T12:30:00.000Z',
+        participantCount: 3,
+        teamMode: false,
+        questions: [],
+        teamLeaderboard: [],
+        bonusTokens: [],
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(createdAnchor?.download).toBe('session-results-ABC123-2026-05-10.csv');
+
+      fixture.destroy();
+      anchorClickSpy.mockRestore();
+      createElementSpy.mockRestore();
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalCreateObjectURL,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalRevokeObjectURL,
+      });
+    });
+
     it('schließt den Callout bei „Okay“ und führt Retry erneut aus', async () => {
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
