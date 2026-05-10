@@ -166,17 +166,16 @@ export class QuizListComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      const entries = this.quizzes()
-        .filter(
-          (quiz) => typeof quiz.lastServerQuizId === 'string' && !!quiz.lastServerQuizAccessProof,
-        )
-        .map((quiz) => ({
-          localQuizId: quiz.id,
-          quizId: quiz.lastServerQuizId!,
-          accessProof: quiz.lastServerQuizAccessProof!,
-        }));
-      const requestKey = JSON.stringify(entries);
-      untracked(() => void this.refreshQuizHistoryAvailability(entries, requestKey));
+      const quizzes = this.quizzes();
+      const requestKey = JSON.stringify(
+        quizzes.map((quiz) => ({
+          id: quiz.id,
+          lastServerQuizId: quiz.lastServerQuizId ?? null,
+          lastServerQuizAccessProof: quiz.lastServerQuizAccessProof ?? null,
+          updatedAt: quiz.updatedAt,
+        })),
+      );
+      untracked(() => void this.refreshQuizHistoryAvailability(quizzes, requestKey));
     });
   }
 
@@ -720,7 +719,7 @@ export class QuizListComponent implements OnInit {
   }
 
   private async refreshQuizHistoryAvailability(
-    entries: Array<{ localQuizId: string; quizId: string; accessProof: string }>,
+    quizzes: QuizSummary[],
     requestKey: string,
   ): Promise<void> {
     if (requestKey === this.lastQuizHistoryAvailabilityKey) {
@@ -728,15 +727,53 @@ export class QuizListComponent implements OnInit {
     }
     this.lastQuizHistoryAvailabilityKey = requestKey;
 
-    if (entries.length === 0) {
+    if (quizzes.length === 0) {
       this.quizHistoryAvailability.set(new Map());
       return;
     }
 
     const requestId = ++this.quizHistoryAvailabilityRequestId;
     try {
+      const resolvedEntries = (
+        await Promise.all(
+          quizzes.map(async (quiz) => {
+            if (!quiz.lastServerQuizId) {
+              return null;
+            }
+
+            const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
+            if (!accessProof) {
+              return null;
+            }
+
+            return {
+              localQuizId: quiz.id,
+              quizId: quiz.lastServerQuizId,
+              accessProof,
+            };
+          }),
+        )
+      ).filter(
+        (
+          entry,
+        ): entry is {
+          localQuizId: string;
+          quizId: string;
+          accessProof: string;
+        } => !!entry,
+      );
+
+      if (requestId !== this.quizHistoryAvailabilityRequestId) {
+        return;
+      }
+
+      if (resolvedEntries.length === 0) {
+        this.quizHistoryAvailability.set(new Map());
+        return;
+      }
+
       const result = await trpc.session.getQuizCollectionHistoryAvailability.query(
-        entries.map((entry) => ({
+        resolvedEntries.map((entry) => ({
           quizId: entry.quizId,
           accessProof: entry.accessProof,
         })),
@@ -747,7 +784,7 @@ export class QuizListComponent implements OnInit {
 
       const next = new Map<string, { hasBonusTokens: boolean; hasLastSessionFeedback: boolean }>();
       for (const [index, availability] of result.entries()) {
-        const localQuizId = entries[index]?.localQuizId;
+        const localQuizId = resolvedEntries[index]?.localQuizId;
         if (!localQuizId) continue;
         next.set(localQuizId, {
           hasBonusTokens: availability.hasBonusTokens,

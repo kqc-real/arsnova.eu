@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
+import { webcrypto } from 'node:crypto';
+import { createLegacyQuizHistoryAccessProof } from '@arsnova/shared-types';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizListComponent } from './quiz-list.component';
 import { QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
@@ -38,7 +40,53 @@ vi.mock('../../../core/trpc.client', () => ({
   },
 }));
 
+async function flushAsyncEffects(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 describe('QuizListComponent', () => {
+  const uploadPayload = {
+    name: 'Datenbanken',
+    description: undefined,
+    motifImageUrl: null,
+    showLeaderboard: true,
+    allowCustomNicknames: true,
+    defaultTimer: null,
+    timerScaleByDifficulty: false,
+    enableSoundEffects: true,
+    enableRewardEffects: true,
+    enableMotivationMessages: true,
+    enableEmojiReactions: true,
+    anonymousMode: false,
+    teamMode: false,
+    teamCount: undefined,
+    teamAssignment: 'AUTO' as const,
+    teamNames: [],
+    backgroundMusic: undefined,
+    nicknameTheme: 'NOBEL_LAUREATES' as const,
+    bonusTokenCount: 3,
+    readingPhaseEnabled: true,
+    preset: 'PLAYFUL' as const,
+    questions: [
+      {
+        text: 'Welche Sprache nutzt SQL?',
+        type: 'SINGLE_CHOICE' as const,
+        timer: null,
+        difficulty: 'EASY' as const,
+        order: 0,
+        ratingMin: undefined,
+        ratingMax: undefined,
+        ratingLabelMin: undefined,
+        ratingLabelMax: undefined,
+        answers: [
+          { text: 'Strukturierte Abfragen', isCorrect: true },
+          { text: 'Nur Binärcode', isCorrect: false },
+        ],
+      },
+    ],
+  };
   const quizzesSignal = signal<QuizSummary[]>([]);
   const mockRoute = {
     snapshot: {
@@ -93,6 +141,8 @@ describe('QuizListComponent', () => {
     mockStore.currentDeviceLabel.set('Mac');
     mockStore.currentBrowserLabel.set('Firefox');
     mockStore.syncPeerInfos.set([]);
+    mockStore.getUploadPayload.mockReturnValue(uploadPayload);
+    vi.stubGlobal('crypto', webcrypto);
     getActiveQuizIdsQueryMock.mockResolvedValue([]);
     getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([]);
     bindQuizHistoryScopeMutationMock.mockReset();
@@ -322,6 +372,7 @@ describe('QuizListComponent', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     fixture.detectChanges();
     await fixture.whenStable();
+    await flushAsyncEffects();
     fixture.detectChanges();
 
     const trigger = fixture.nativeElement.querySelector(
@@ -404,6 +455,9 @@ describe('QuizListComponent', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     fixture.detectChanges();
     await fixture.whenStable();
+    await flushAsyncEffects();
+    fixture.detectChanges();
+    await flushAsyncEffects();
     fixture.detectChanges();
 
     const buttons = Array.from(
@@ -439,17 +493,16 @@ describe('QuizListComponent', () => {
         lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
       },
     ]);
-    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([
-      {
-        quizId: '11111111-1111-4111-8111-111111111111',
-        hasBonusTokens: true,
-        hasLastSessionFeedback: true,
-      },
-    ]);
-
     const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.componentInstance.quizHistoryAvailability.set(
+      new Map([
+        [
+          'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+          { hasBonusTokens: true, hasLastSessionFeedback: true },
+        ],
+      ]),
+    );
     fixture.detectChanges();
-    await fixture.whenStable();
     fixture.detectChanges();
 
     const buttons = Array.from(
@@ -462,6 +515,63 @@ describe('QuizListComponent', () => {
 
     expect(bonusButton?.disabled).toBe(false);
     expect(feedbackButton?.disabled).toBe(false);
+  });
+
+  it('fragt Historie auch ohne gespeicherten Zugriffsnachweis ab und migriert Legacy-Scopes', async () => {
+    quizzesSignal.set([
+      {
+        id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+        name: 'Datenbanken',
+        description: null,
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: true,
+        lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+        lastServerQuizAccessProof: null,
+      },
+    ]);
+    const legacyAccessProof = await createLegacyQuizHistoryAccessProof(uploadPayload);
+    bindQuizHistoryScopeMutationMock.mockResolvedValue({
+      accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([
+      {
+        quizId: '11111111-1111-4111-8111-111111111111',
+        hasBonusTokens: true,
+        hasLastSessionFeedback: true,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushAsyncEffects();
+
+    expect(bindQuizHistoryScopeMutationMock).toHaveBeenCalledWith({
+      quizId: '11111111-1111-4111-8111-111111111111',
+      accessProof: legacyAccessProof,
+      historyScopeId: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    });
+    expect(mockStore.setLastServerQuizAccessProof).toHaveBeenCalledWith(
+      'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    );
+    expect(getQuizCollectionHistoryAvailabilityQueryMock).toHaveBeenCalledWith([
+      {
+        quizId: '11111111-1111-4111-8111-111111111111',
+        accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      },
+    ]);
+    expect(
+      fixture.componentInstance
+        .quizHistoryAvailability()
+        .get('e31fef3f-f7b1-4705-a739-28c8ec4486bf'),
+    ).toEqual({
+      hasBonusTokens: true,
+      hasLastSessionFeedback: true,
+    });
   });
 
   it('blendet die Prompt-Vorschau in Schritt 1 ein und aus', () => {
