@@ -5,6 +5,7 @@ import { FoyerEntranceLayerComponent } from './foyer-entrance-layer.component';
 
 describe('FoyerEntranceLayerComponent', () => {
   const motion = {
+    colorVariant: 0 as const,
     enterDurationMs: 1800,
     presenceMs: 3600,
     settleDelayMs: 1200,
@@ -356,5 +357,69 @@ describe('FoyerEntranceLayerComponent', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('gibt jedem Chip-Shell das korrekte data-color-variant-Attribut', () => {
+    const fixture = TestBed.configureTestingModule({
+      imports: [FoyerEntranceLayerComponent],
+    }).createComponent(FoyerEntranceLayerComponent);
+
+    fixture.componentRef.setInput('chips', [
+      {
+        id: 'chip-a',
+        teamId: null,
+        kind: 'text',
+        fullLabel: 'Ada',
+        ariaLabel: 'Ada',
+        emoji: null,
+        text: 'Ada',
+        sequence: 0,
+        delayMs: 0,
+        lane: 0,
+        direction: 'left' as const,
+        ...motion,
+        colorVariant: 0 as const,
+      },
+      {
+        id: 'chip-b',
+        teamId: null,
+        kind: 'text',
+        fullLabel: 'Linus',
+        ariaLabel: 'Linus',
+        emoji: null,
+        text: 'Linus',
+        sequence: 1,
+        delayMs: 0,
+        lane: 1,
+        direction: 'right' as const,
+        ...motion,
+        colorVariant: 1 as const,
+      },
+      {
+        id: 'chip-c',
+        teamId: null,
+        kind: 'text',
+        fullLabel: 'Grace',
+        ariaLabel: 'Grace',
+        emoji: null,
+        text: 'Grace',
+        sequence: 2,
+        delayMs: 0,
+        lane: 2,
+        direction: 'left' as const,
+        ...motion,
+        colorVariant: 2 as const,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const shells = Array.from(
+      fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+    ) as HTMLElement[];
+
+    expect(shells).toHaveLength(3);
+    expect(shells[0].getAttribute('data-color-variant')).toBe('0');
+    expect(shells[1].getAttribute('data-color-variant')).toBe('1');
+    expect(shells[2].getAttribute('data-color-variant')).toBe('2');
   });
 });

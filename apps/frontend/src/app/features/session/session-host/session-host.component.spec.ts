@@ -3199,6 +3199,52 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('rotiert Chip-Farben (colorVariant 0/1/2) bei aufeinanderfolgenden Joins', async () => {
+    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      preset: 'PLAYFUL',
+      enableRewardEffects: true,
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 1,
+      participants: [{ id: 'p1', nickname: 'Ada' }],
+    });
+    onParticipantJoinedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (data: unknown) => void }) => {
+        participantJoinedHandler = opts.onData;
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    participantJoinedHandler?.({
+      participantCount: 4,
+      participants: [
+        { id: 'p1', nickname: 'Ada' },
+        { id: 'p2', nickname: 'Linus' },
+        { id: 'p3', nickname: 'Grace' },
+        { id: 'p4', nickname: 'Alan' },
+      ],
+    });
+    fixture.detectChanges();
+
+    const shells = Array.from(
+      fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
+    ) as HTMLElement[];
+
+    expect(shells).toHaveLength(3);
+    const variants = shells.map((s) => s.getAttribute('data-color-variant'));
+    expect(variants).toEqual(['0', '1', '2']);
+    fixture.destroy();
+  });
+
   it('zeigt groessere Join-Wellen im Quiz-Foyer nur noch als Einzelankuenfte', async () => {
     let participantJoinedHandler: ((data: unknown) => void) | null = null;
     getInfoQueryMock.mockResolvedValue({

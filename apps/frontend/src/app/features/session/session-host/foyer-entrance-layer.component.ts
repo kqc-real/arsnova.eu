@@ -11,6 +11,8 @@ import {
 
 import type { FoyerChipLabel, FoyerChipLabelKind } from './foyer-chip-label.util';
 
+export type FoyerChipColorVariant = 0 | 1 | 2;
+
 export type FoyerEntranceChip = FoyerChipLabel & {
   id: string;
   participantId?: string;
@@ -21,6 +23,7 @@ export type FoyerEntranceChip = FoyerChipLabel & {
   delayMs: number;
   lane: number;
   direction: 'left' | 'right';
+  colorVariant: FoyerChipColorVariant;
   enterDurationMs: number;
   presenceMs: number;
   settleDelayMs: number;
