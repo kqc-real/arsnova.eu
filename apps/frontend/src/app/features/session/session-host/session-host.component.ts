@@ -101,6 +101,7 @@ import {
   FoyerEntranceLayerComponent,
   type FoyerEntranceChip,
 } from './foyer-entrance-layer.component';
+import { TempoHostComponent } from './tempo-host.component';
 import { buildFoyerChipLabel } from './foyer-chip-label.util';
 
 const ANSWER_COLORS = [
@@ -147,7 +148,7 @@ type FoyerArrivalMotionProfile = {
   badgePresenceMs: number;
   pulseDelayMs: number;
 };
-type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
+type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback' | 'tempo';
 type SessionOnboardingProfile = {
   nicknameTheme: NicknameTheme;
   allowCustomNicknames: boolean;
@@ -347,6 +348,7 @@ function musicTracksForPhase(
     FeedbackHostComponent,
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
+    TempoHostComponent,
   ],
   templateUrl: './session-host.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-host.component.scss'],
@@ -477,7 +479,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly channelActivationPending = signal<SessionChannelTab | null>(null);
   readonly channelVisibilityPending = signal<Extract<
     SessionChannelTab,
-    'qa' | 'quickFeedback'
+    'qa' | 'quickFeedback' | 'tempo'
   > | null>(null);
   readonly Math = Math;
   /** ARIA für sichtbaren Session-Code (Lokalisation wie Blitzlicht-Teilnehmeransicht). */
@@ -517,12 +519,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         quiz: ch.quiz.enabled,
         qa: ch.qa.enabled,
         quickFeedback: ch.quickFeedback.enabled,
+        tempo: ch.tempo.enabled,
       };
     }
     return {
       quiz: session?.type === 'QUIZ',
       qa: session?.type === 'Q_AND_A',
       quickFeedback: false,
+      tempo: false,
     };
   });
   readonly channelOpenState = computed(() => {
@@ -533,12 +537,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         quiz: true,
         qa: ch.qa.open,
         quickFeedback: ch.quickFeedback.open,
+        tempo: ch.tempo.open,
       };
     }
     return {
       quiz: true,
       qa: session?.type === 'Q_AND_A',
       quickFeedback: false,
+      tempo: false,
     };
   });
   readonly visibleChannels = computed<SessionChannelTab[]>(() => {
@@ -547,12 +553,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (channels.quiz) result.push('quiz');
     if (channels.qa) result.push('qa');
     if (channels.quickFeedback) result.push('quickFeedback');
+    if (channels.tempo) result.push('tempo');
     return result;
   });
   readonly availableChannels = computed<SessionChannelTab[]>(() => {
     const session = this.session();
     if (!session) return [];
-    return ['quiz', 'qa', 'quickFeedback'];
+    return ['quiz', 'qa', 'quickFeedback', 'tempo'];
   });
   readonly showChannelTabs = computed(
     () => this.effectiveStatus() !== 'FINISHED' && this.availableChannels().length > 1,
@@ -3005,7 +3012,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionTabs.questions:Q&A`;
       case 'quickFeedback':
         return $localize`:@@sessionTabs.quickFeedback:Blitzlicht`;
+      case 'tempo':
+        return $localize`:@@sessionTabs.tempo:Tempo`;
     }
+  }
+
+  onTempoChannelClosed(): void {
+    this.activeChannel.set('quiz');
+    this.ensureActiveChannel();
   }
 
   qaTabMetaLabel(): string | null {
@@ -3291,7 +3305,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async selectChannel(channel: string): Promise<void> {
-    if (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') {
+    if (
+      channel === 'quiz' ||
+      channel === 'qa' ||
+      channel === 'quickFeedback' ||
+      channel === 'tempo'
+    ) {
       if (!this.isChannelEnabled(channel)) {
         if (channel === 'quiz') {
           await this.activateQuizChannel();
@@ -3453,7 +3472,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async enableChannel(
-    channel: Extract<SessionChannelTab, 'qa' | 'quickFeedback'>,
+    channel: Extract<SessionChannelTab, 'qa' | 'quickFeedback' | 'tempo'>,
   ): Promise<void> {
     if (this.channelActivationPending() || !this.code) {
       return;
@@ -3461,15 +3480,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     this.channelActivationPending.set(channel);
     try {
-      const channels =
-        channel === 'qa'
-          ? await trpc.session.enableQaChannel.mutate({ code: this.code.toUpperCase() })
-          : await trpc.session.enableQuickFeedbackChannel.mutate({ code: this.code.toUpperCase() });
+      let channels;
+      if (channel === 'qa') {
+        channels = await trpc.session.enableQaChannel.mutate({ code: this.code.toUpperCase() });
+      } else if (channel === 'quickFeedback') {
+        channels = await trpc.session.enableQuickFeedbackChannel.mutate({
+          code: this.code.toUpperCase(),
+        });
+      } else {
+        channels = await trpc.session.enableTempoChannel.mutate({ code: this.code.toUpperCase() });
+      }
       this.patchSessionChannels(channels);
       if (channel === 'qa') {
         this.syncQaTitleDraftFromSession();
         await this.refreshQaQuestions();
-      } else {
+      } else if (channel === 'quickFeedback') {
         await this.refreshQuickFeedbackResult();
       }
       this.activeChannel.set(channel);
@@ -3502,7 +3527,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   activeChannelVisibilityActionLabel(): string | null {
     const active = this.activeChannel();
-    if (active !== 'qa' && active !== 'quickFeedback') {
+    if (active !== 'qa' && active !== 'quickFeedback' && active !== 'tempo') {
       return null;
     }
     if (!this.isChannelEnabled(active)) {
@@ -3515,7 +3540,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   activeChannelVisibilityIcon(): string {
     const active = this.activeChannel();
-    if (active !== 'qa' && active !== 'quickFeedback') {
+    if (active !== 'qa' && active !== 'quickFeedback' && active !== 'tempo') {
       return 'visibility';
     }
     return this.isChannelOpen(active) ? 'visibility_off' : 'visibility';
@@ -3523,7 +3548,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async toggleActiveChannelOpen(): Promise<void> {
     const active = this.activeChannel();
-    if (active !== 'qa' && active !== 'quickFeedback') {
+    if (active !== 'qa' && active !== 'quickFeedback' && active !== 'tempo') {
       return;
     }
     if (this.channelVisibilityPending() || !this.isChannelEnabled(active) || !this.code) {
@@ -3532,21 +3557,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     this.channelVisibilityPending.set(active);
     try {
-      const channels =
-        active === 'qa'
-          ? this.isChannelOpen(active)
-            ? await trpc.session.closeQaChannel.mutate({ code: this.code.toUpperCase() })
-            : await trpc.session.reopenQaChannel.mutate({ code: this.code.toUpperCase() })
-          : this.isChannelOpen(active)
-            ? await trpc.session.closeQuickFeedbackChannel.mutate({ code: this.code.toUpperCase() })
-            : await trpc.session.reopenQuickFeedbackChannel.mutate({
-                code: this.code.toUpperCase(),
-              });
-      this.patchSessionChannels(channels);
       if (active === 'qa') {
+        const channels = this.isChannelOpen(active)
+          ? await trpc.session.closeQaChannel.mutate({ code: this.code.toUpperCase() })
+          : await trpc.session.reopenQaChannel.mutate({ code: this.code.toUpperCase() });
+        this.patchSessionChannels(channels);
         await this.refreshQaQuestions();
-      } else {
+      } else if (active === 'quickFeedback') {
+        const channels = this.isChannelOpen(active)
+          ? await trpc.session.closeQuickFeedbackChannel.mutate({ code: this.code.toUpperCase() })
+          : await trpc.session.reopenQuickFeedbackChannel.mutate({ code: this.code.toUpperCase() });
+        this.patchSessionChannels(channels);
         await this.refreshQuickFeedbackResult();
+      } else {
+        await trpc.tempo.setOpen.mutate({
+          sessionCode: this.code.toUpperCase(),
+          open: !this.isChannelOpen(active),
+        });
+        const updated = await trpc.session.getInfo.query({ code: this.code.toUpperCase() });
+        if (updated.channels) this.patchSessionChannels(updated.channels);
       }
       this.dismissHostSteeringCallout();
     } catch {

@@ -9401,6 +9401,30 @@
           <context context-type="linenumber">2418</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionTabs.tempo" datatype="html"><source>Tempo</source><target>Tempo</target></trans-unit>
+      <trans-unit id="tempo.host.title" datatype="html"><source>Tempo-Livekanal</source><target>Live Pace Channel</target></trans-unit>
+      <trans-unit id="tempo.host.closeAria" datatype="html"><source>Tempo-Kanal schließen</source><target>Close Tempo channel</target></trans-unit>
+      <trans-unit id="tempo.host.totalVotes" datatype="html"><source><x id="INTERPOLATION"/> Rückmeldung(en)</source><target><x id="INTERPOLATION"/> response(s)</target></trans-unit>
+      <trans-unit id="tempo.host.closeChannel" datatype="html"><source>Kanal schließen</source><target>Close channel</target></trans-unit>
+      <trans-unit id="tempo.host.noData" datatype="html"><source>Noch keine Rückmeldungen.</source><target>No responses yet.</target></trans-unit>
+      <trans-unit id="tempo.host.anonHint" datatype="html"><source>Das Feedback ist anonym – Hosts sehen nur aggregierte Werte.</source><target>Feedback is anonymous – hosts only see aggregated values.</target></trans-unit>
+      <trans-unit id="tempo.state.speedUp" datatype="html"><source>Schneller</source><target>Faster</target></trans-unit>
+      <trans-unit id="tempo.state.following" datatype="html"><source>Ich folge</source><target>Following</target></trans-unit>
+      <trans-unit id="tempo.state.slowDown" datatype="html"><source>Langsamer</source><target>Slower</target></trans-unit>
+      <trans-unit id="tempo.state.lost" datatype="html"><source>Verloren</source><target>Lost</target></trans-unit>
+      <trans-unit id="tempo.tendency.following" datatype="html"><source>Die Mehrheit kann folgen.</source><target>The majority is following.</target></trans-unit>
+      <trans-unit id="tempo.tendency.tooFast" datatype="html"><source>Das Tempo wirkt zu hoch.</source><target>The pace seems too fast.</target></trans-unit>
+      <trans-unit id="tempo.tendency.lost" datatype="html"><source>Mehrere Teilnehmende sind abgehängt.</source><target>Several participants are lost.</target></trans-unit>
+      <trans-unit id="tempo.tendency.underchallenged" datatype="html"><source>Die Gruppe signalisiert Unterforderung.</source><target>The group signals underchallenge.</target></trans-unit>
+      <trans-unit id="tempo.tendency.heterogeneous" datatype="html"><source>Die Gruppe ist heterogen.</source><target>The group is heterogeneous.</target></trans-unit>
+      <trans-unit id="tempo.tendency.noData" datatype="html"><source>Noch keine Daten.</source><target>No data yet.</target></trans-unit>
+      <trans-unit id="tempo.vote.groupAria" datatype="html"><source>Tempo-Rückmeldung</source><target>Pace feedback</target></trans-unit>
+      <trans-unit id="tempo.vote.prompt" datatype="html"><source>Wie läuft das Tempo für dich?</source><target>How is the pace for you?</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaSpeedUp" datatype="html"><source>Schneller – Ich kann gut folgen, das Tempo darf höher sein</source><target>Faster – I can follow well, the pace can be higher</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaFollowing" datatype="html"><source>Ich folge – Das Tempo passt</source><target>Following – The pace is fine</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaSlowDown" datatype="html"><source>Langsamer – Es geht zu schnell</source><target>Slower – It is too fast</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaLost" datatype="html"><source>Verloren – Ich bin abgehängt</source><target>Lost – I am left behind</target></trans-unit>
+      <trans-unit id="tempo.vote.anonHint" datatype="html"><source>Dein Feedback ist anonym.</source><target>Your feedback is anonymous.</target></trans-unit>
       <trans-unit id="sessionQa.moderationEnabled" datatype="html">
         <source>Vorab-Moderation aktiviert.</source>
         <target>Pre-moderation enabled.</target>

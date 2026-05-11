@@ -90,6 +90,8 @@ model Session {
   qaModerationMode Boolean      @default(true)    // ADR-0009: Vorab-Moderation für Q&A-Kanal (Default: an)
   quickFeedbackEnabled Boolean  @default(false)   // ADR-0009: Blitz-Feedback-Kanal innerhalb einer Session
   quickFeedbackOpen Boolean     @default(false)   // ADR-0009: Blitz-Feedback-Kanal aktuell für Teilnehmende geöffnet
+  tempoEnabled     Boolean      @default(false)   // ADR-0022: Tempo-Livekanal innerhalb einer Session
+  tempoOpen        Boolean      @default(false)   // ADR-0022: Tempo-Livekanal aktuell für Teilnehmende geöffnet
   onboardingProfileConfigured Boolean @default(false) // Session-weites Onboarding-Profil aktiv
   onboardingAllowCustomNicknames Boolean?
   onboardingAnonymousMode Boolean?

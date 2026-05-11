@@ -559,6 +559,8 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
           status: true,
           currentQuestion: true,
           currentRound: true,
@@ -1523,11 +1525,15 @@ function buildSessionChannels(session: {
   moderationMode?: boolean | null;
   quickFeedbackEnabled?: boolean | null;
   quickFeedbackOpen?: boolean | null;
+  tempoEnabled?: boolean | null;
+  tempoOpen?: boolean | null;
 }) {
   const qaEnabled = session.type === 'Q_AND_A' || session.qaEnabled === true;
   const qaOpen = qaEnabled && session.qaOpen !== false;
   const quickFeedbackEnabled = session.quickFeedbackEnabled === true;
   const quickFeedbackOpen = quickFeedbackEnabled && session.quickFeedbackOpen !== false;
+  const tempoEnabled = session.tempoEnabled === true;
+  const tempoOpen = tempoEnabled && session.tempoOpen === true;
 
   return {
     quiz: {
@@ -1546,6 +1552,10 @@ function buildSessionChannels(session: {
       enabled: quickFeedbackEnabled,
       open: quickFeedbackOpen,
     },
+    tempo: {
+      enabled: tempoEnabled,
+      open: tempoOpen,
+    },
   };
 }
 
@@ -1555,6 +1565,7 @@ function defaultPreferredLiveChannel(
   if (channels.quiz.enabled) return 'quiz';
   if (channels.qa.enabled) return 'qa';
   if (channels.quickFeedback.enabled) return 'quickFeedback';
+  if (channels.tempo.enabled) return 'tempo';
   return 'quiz';
 }
 
@@ -1566,6 +1577,7 @@ function resolvePreferredLiveChannel(
   if (stored === 'quiz' && channels.quiz.enabled) return stored;
   if (stored === 'qa' && channels.qa.enabled) return stored;
   if (stored === 'quickFeedback' && channels.quickFeedback.enabled) return stored;
+  if (stored === 'tempo' && channels.tempo.enabled) return stored;
   return defaultPreferredLiveChannel(channels);
 }
 
@@ -2187,6 +2199,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       if (!session) {
@@ -2212,6 +2226,8 @@ export const sessionRouter = router({
             moderationMode: true,
             quickFeedbackEnabled: true,
             quickFeedbackOpen: true,
+            tempoEnabled: true,
+            tempoOpen: true,
           },
         });
         invalidateSessionMetadataCachesForCode(code);
@@ -2240,6 +2256,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       if (!session) {
@@ -2261,6 +2279,61 @@ export const sessionRouter = router({
             moderationMode: true,
             quickFeedbackEnabled: true,
             quickFeedbackOpen: true,
+            tempoEnabled: true,
+            tempoOpen: true,
+          },
+        });
+        invalidateSessionMetadataCachesForCode(code);
+        return buildSessionChannels(updated);
+      }
+
+      return buildSessionChannels(session);
+    }),
+
+  enableTempoChannel: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(UpdateSessionChannelsOutputSchema)
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          id: true,
+          type: true,
+          quizId: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaTitle: true,
+          qaModerationMode: true,
+          title: true,
+          moderationMode: true,
+          quickFeedbackEnabled: true,
+          quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+
+      if (session.tempoEnabled !== true) {
+        const updated = await prisma.session.update({
+          where: { id: session.id },
+          data: { tempoEnabled: true, tempoOpen: true },
+          select: {
+            type: true,
+            quizId: true,
+            qaEnabled: true,
+            qaOpen: true,
+            qaTitle: true,
+            qaModerationMode: true,
+            title: true,
+            moderationMode: true,
+            quickFeedbackEnabled: true,
+            quickFeedbackOpen: true,
+            tempoEnabled: true,
+            tempoOpen: true,
           },
         });
         invalidateSessionMetadataCachesForCode(code);
@@ -2291,6 +2364,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
           onboardingProfileConfigured: true,
           onboardingAllowCustomNicknames: true,
           onboardingAnonymousMode: true,
@@ -2406,6 +2481,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
 
@@ -2446,6 +2523,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       if (!session) {
@@ -2475,6 +2554,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       invalidateSessionMetadataCachesForCode(code);
@@ -2500,6 +2581,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       if (!session) {
@@ -2529,6 +2612,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       invalidateSessionMetadataCachesForCode(code);
@@ -2554,6 +2639,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       if (!session) {
@@ -2585,6 +2672,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       invalidateSessionMetadataCachesForCode(code);
@@ -2610,6 +2699,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       if (!session) {
@@ -2641,6 +2732,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       invalidateSessionMetadataCachesForCode(code);
@@ -3044,6 +3137,8 @@ export const sessionRouter = router({
           moderationMode: true,
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
+          tempoEnabled: true,
+          tempoOpen: true,
         },
       });
       if (!session) {

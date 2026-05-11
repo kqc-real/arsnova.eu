@@ -9346,6 +9346,30 @@
           <context context-type="linenumber">2418</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionTabs.tempo" datatype="html"><source>Tempo</source><target>Tempo</target></trans-unit>
+      <trans-unit id="tempo.host.title" datatype="html"><source>Tempo-Livekanal</source><target>Canal de rythme en direct</target></trans-unit>
+      <trans-unit id="tempo.host.closeAria" datatype="html"><source>Tempo-Kanal schließen</source><target>Fermer le canal Tempo</target></trans-unit>
+      <trans-unit id="tempo.host.totalVotes" datatype="html"><source><x id="INTERPOLATION"/> Rückmeldung(en)</source><target><x id="INTERPOLATION"/> réponse(s)</target></trans-unit>
+      <trans-unit id="tempo.host.closeChannel" datatype="html"><source>Kanal schließen</source><target>Fermer le canal</target></trans-unit>
+      <trans-unit id="tempo.host.noData" datatype="html"><source>Noch keine Rückmeldungen.</source><target>Pas encore de réponses.</target></trans-unit>
+      <trans-unit id="tempo.host.anonHint" datatype="html"><source>Das Feedback ist anonym – Hosts sehen nur aggregierte Werte.</source><target>Les retours sont anonymes – les hôtes ne voient que des valeurs agrégées.</target></trans-unit>
+      <trans-unit id="tempo.state.speedUp" datatype="html"><source>Schneller</source><target>Plus vite</target></trans-unit>
+      <trans-unit id="tempo.state.following" datatype="html"><source>Ich folge</source><target>Je suis</target></trans-unit>
+      <trans-unit id="tempo.state.slowDown" datatype="html"><source>Langsamer</source><target>Plus lentement</target></trans-unit>
+      <trans-unit id="tempo.state.lost" datatype="html"><source>Verloren</source><target>Perdu(e)</target></trans-unit>
+      <trans-unit id="tempo.tendency.following" datatype="html"><source>Die Mehrheit kann folgen.</source><target>La majorité suit.</target></trans-unit>
+      <trans-unit id="tempo.tendency.tooFast" datatype="html"><source>Das Tempo wirkt zu hoch.</source><target>Le rythme semble trop rapide.</target></trans-unit>
+      <trans-unit id="tempo.tendency.lost" datatype="html"><source>Mehrere Teilnehmende sind abgehängt.</source><target>Plusieurs participant·e·s sont perdus.</target></trans-unit>
+      <trans-unit id="tempo.tendency.underchallenged" datatype="html"><source>Die Gruppe signalisiert Unterforderung.</source><target>Le groupe signale un manque de challenge.</target></trans-unit>
+      <trans-unit id="tempo.tendency.heterogeneous" datatype="html"><source>Die Gruppe ist heterogen.</source><target>Le groupe est hétérogène.</target></trans-unit>
+      <trans-unit id="tempo.tendency.noData" datatype="html"><source>Noch keine Daten.</source><target>Pas encore de données.</target></trans-unit>
+      <trans-unit id="tempo.vote.groupAria" datatype="html"><source>Tempo-Rückmeldung</source><target>Retour sur le rythme</target></trans-unit>
+      <trans-unit id="tempo.vote.prompt" datatype="html"><source>Wie läuft das Tempo für dich?</source><target>Comment trouvez-vous le rythme ?</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaSpeedUp" datatype="html"><source>Schneller – Ich kann gut folgen, das Tempo darf höher sein</source><target>Plus vite – Je suis bien, le rythme peut augmenter</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaFollowing" datatype="html"><source>Ich folge – Das Tempo passt</source><target>Je suis – Le rythme convient</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaSlowDown" datatype="html"><source>Langsamer – Es geht zu schnell</source><target>Plus lentement – C'est trop rapide</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaLost" datatype="html"><source>Verloren – Ich bin abgehängt</source><target>Perdu(e) – Je suis décroché(e)</target></trans-unit>
+      <trans-unit id="tempo.vote.anonHint" datatype="html"><source>Dein Feedback ist anonym.</source><target>Votre retour est anonyme.</target></trans-unit>
       <trans-unit id="sessionQa.moderationEnabled" datatype="html">
         <source>Vorab-Moderation aktiviert.</source>
         <target>Pré-modération activée.</target>

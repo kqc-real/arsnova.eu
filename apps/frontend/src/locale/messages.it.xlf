@@ -9346,6 +9346,206 @@
           <context context-type="linenumber">2418</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionTabs.tempo" datatype="html">
+        <source>Tempo</source>
+        <target>Ritmo</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.title" datatype="html">
+        <source>Tempo-Rückmeldung</source>
+        <target>Feedback sul ritmo</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.closeAria" datatype="html">
+        <source>Tempo-Kanal schließen</source>
+        <target>Chiudi il canale del ritmo</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.totalVotes" datatype="html">
+        <source>Rückmeldungen gesamt: {$INTERPOLATION}</source>
+        <target>Feedback totali: {$INTERPOLATION}</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.closeChannel" datatype="html">
+        <source>Kanal schließen</source>
+        <target>Chiudi canale</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.noData" datatype="html">
+        <source>Noch keine Rückmeldungen</source>
+        <target>Ancora nessun feedback</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.anonHint" datatype="html">
+        <source>Antworten sind anonym aggregiert.</source>
+        <target>Le risposte sono aggregate in forma anonima.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.toggleAbsolute" datatype="html">
+        <source>Absolut-/Prozentwerte umschalten</source>
+        <target>Passa tra valori assoluti e percentuali</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.state.speedUp" datatype="html">
+        <source>Schneller</source>
+        <target>Più veloce</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.state.following" datatype="html">
+        <source>Ich folge</source>
+        <target>Sto seguendo</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.state.slowDown" datatype="html">
+        <source>Langsamer</source>
+        <target>Più lento</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.state.lost" datatype="html">
+        <source>Verloren</source>
+        <target>Perso</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.following" datatype="html">
+        <source>Tempo passt – weiter so!</source>
+        <target>Il ritmo va bene – continua così!</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.tooFast" datatype="html">
+        <source>Zu schnell – bitte verlangsamen</source>
+        <target>Troppo veloce – rallenta</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.lost" datatype="html">
+        <source>Viele sind abgehängt – bitte Pause einlegen</source>
+        <target>Molti sono rimasti indietro – fai una pausa</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.underchallenged" datatype="html">
+        <source>Tempo zu langsam – du kannst beschleunigen</source>
+        <target>Ritmo troppo lento – puoi accelerare</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.heterogeneous" datatype="html">
+        <source>Gemischtes Bild – unterschiedliche Bedürfnisse</source>
+        <target>Quadro misto – esigenze diverse</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.noData" datatype="html">
+        <source>Noch keine Rückmeldungen</source>
+        <target>Ancora nessun feedback</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.groupAria" datatype="html">
+        <source>Tempo-Rückmeldung</source>
+        <target>Feedback sul ritmo</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.prompt" datatype="html">
+        <source>Wie läuft das Tempo für dich?</source>
+        <target>Come ti sembra il ritmo?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.ariaSpeedUp" datatype="html">
+        <source>Schneller – Ich kann gut folgen, das Tempo darf höher sein</source>
+        <target>Più veloce – Riesco a seguire bene, si può aumentare il ritmo</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.ariaFollowing" datatype="html">
+        <source>Ich folge – Das Tempo passt</source>
+        <target>Sto seguendo – Il ritmo va bene</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.ariaSlowDown" datatype="html">
+        <source>Langsamer – Es geht zu schnell</source>
+        <target>Più lento – Va troppo veloce</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.ariaLost" datatype="html">
+        <source>Verloren – Ich bin abgehängt</source>
+        <target>Perso – Sono rimasto indietro</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.anonHint" datatype="html">
+        <source>Dein Feedback ist anonym.</source>
+        <target>Il tuo feedback è anonimo.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.moderationEnabled" datatype="html">
         <source>Vorab-Moderation aktiviert.</source>
         <target>Pre-moderazione attivata.</target>

@@ -47,6 +47,8 @@ describe('session.getInfo (ADR-0009)', () => {
       qaModerationMode: true,
       quickFeedbackEnabled: true,
       quickFeedbackOpen: true,
+      tempoEnabled: false,
+      tempoOpen: false,
       _count: { participants: 12 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({
@@ -83,6 +85,7 @@ describe('session.getInfo (ADR-0009)', () => {
         moderationMode: true,
       },
       quickFeedback: { enabled: true, open: true },
+      tempo: { enabled: false, open: false },
     });
     expect(result.quizName).toBe('Demo Quiz');
     expect(result.nicknameTheme).toBe('NOBEL_LAUREATES');
@@ -145,6 +148,8 @@ describe('session.getInfo (ADR-0009)', () => {
       qaModerationMode: true,
       quickFeedbackEnabled: true,
       quickFeedbackOpen: true,
+      tempoEnabled: false,
+      tempoOpen: false,
       _count: { participants: 0 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue(null);
@@ -160,6 +165,7 @@ describe('session.getInfo (ADR-0009)', () => {
         moderationMode: false,
       },
       quickFeedback: { enabled: true, open: true },
+      tempo: { enabled: false, open: false },
     });
     expect(result.quizName).toBeNull();
   });
@@ -179,6 +185,8 @@ describe('session.getInfo (ADR-0009)', () => {
       qaModerationMode: true,
       quickFeedbackEnabled: false,
       quickFeedbackOpen: false,
+      tempoEnabled: false,
+      tempoOpen: false,
       _count: { participants: 3 },
     });
 
@@ -195,6 +203,7 @@ describe('session.getInfo (ADR-0009)', () => {
         moderationMode: true,
       },
       quickFeedback: { enabled: false, open: false },
+      tempo: { enabled: false, open: false },
     });
     expect(result.quizName).toBeNull();
     expect(result.title).toBe('Offene Fragerunde');

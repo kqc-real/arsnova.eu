@@ -331,37 +331,44 @@ describe('SessionHostComponent', () => {
       quiz: { enabled: true },
       qa: { enabled: false, open: false, title: null, moderationMode: false },
       quickFeedback: { enabled: true, open: true },
+      tempo: { enabled: false, open: false },
     });
     enableQaChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: true, open: true, title: null, moderationMode: true },
       quickFeedback: { enabled: false, open: false },
+      tempo: { enabled: false, open: false },
     });
     enableQuickFeedbackChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: false, open: false, title: null, moderationMode: false },
       quickFeedback: { enabled: true, open: true },
+      tempo: { enabled: false, open: false },
     });
     setPreferredLiveChannelMutateMock.mockResolvedValue({ preferredChannel: 'quiz' });
     closeQaChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: true, open: false, title: 'Fragen', moderationMode: true },
       quickFeedback: { enabled: false, open: false },
+      tempo: { enabled: false, open: false },
     });
     reopenQaChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
       quickFeedback: { enabled: false, open: false },
+      tempo: { enabled: false, open: false },
     });
     closeQuickFeedbackChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: false, open: false, title: null, moderationMode: false },
       quickFeedback: { enabled: true, open: false },
+      tempo: { enabled: false, open: false },
     });
     reopenQuickFeedbackChannelMutateMock.mockResolvedValue({
       quiz: { enabled: true },
       qa: { enabled: false, open: false, title: null, moderationMode: false },
       quickFeedback: { enabled: true, open: true },
+      tempo: { enabled: false, open: false },
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({ totalVotes: 0, options: [] });
     quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true });
@@ -749,6 +756,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -771,6 +779,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -796,6 +805,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     fixture.detectChanges();
@@ -812,6 +822,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -843,6 +854,7 @@ describe('SessionHostComponent', () => {
           quiz: { enabled: false },
           qa: { enabled: false, open: false, title: null, moderationMode: false },
           quickFeedback: { enabled: true, open: true },
+          tempo: { enabled: false, open: false },
         },
       })
       .mockResolvedValueOnce({
@@ -852,6 +864,7 @@ describe('SessionHostComponent', () => {
           quiz: { enabled: true },
           qa: { enabled: false, open: false, title: null, moderationMode: false },
           quickFeedback: { enabled: true, open: true },
+          tempo: { enabled: false, open: false },
         },
       });
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
@@ -887,6 +900,7 @@ describe('SessionHostComponent', () => {
           quiz: { enabled: true },
           qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
           quickFeedback: { enabled: false, open: false },
+          tempo: { enabled: false, open: false },
         },
       })
       .mockResolvedValueOnce({
@@ -896,6 +910,7 @@ describe('SessionHostComponent', () => {
           quiz: { enabled: true },
           qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
           quickFeedback: { enabled: false, open: false },
+          tempo: { enabled: false, open: false },
         },
       });
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of('local-quiz-1') });
@@ -945,6 +960,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -973,6 +989,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: true, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -1072,6 +1089,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -1248,6 +1266,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -1316,6 +1335,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -1387,6 +1407,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -1434,6 +1455,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: false },
         qa: { enabled: true, open: true, title: 'Offene Fragen', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -1478,6 +1500,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -1518,6 +1541,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -1551,6 +1575,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -1924,6 +1949,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -1978,6 +2004,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
 
@@ -3105,6 +3132,7 @@ describe('SessionHostComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({
@@ -4880,6 +4908,7 @@ describe('SessionHostComponent', () => {
           quiz: { enabled: true },
           qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
           quickFeedback: { enabled: false, open: false },
+          tempo: { enabled: false, open: false },
         },
       });
       qaListQueryMock.mockResolvedValue([
@@ -4918,6 +4947,7 @@ describe('SessionHostComponent', () => {
           quiz: { enabled: true },
           qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
           quickFeedback: { enabled: false, open: false },
+          tempo: { enabled: false, open: false },
         },
       });
 
