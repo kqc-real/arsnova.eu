@@ -227,6 +227,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
       participantCount: 2,
       teamMode: false,
@@ -1009,6 +1010,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     } as never);
     fixture.detectChanges();
@@ -1443,6 +1445,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -1504,6 +1507,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1544,6 +1548,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     getParticipantSelfQueryMock.mockResolvedValue({
@@ -1600,6 +1605,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1634,6 +1640,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1672,6 +1679,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1711,6 +1719,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1746,6 +1755,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1774,6 +1784,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: true, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1809,6 +1820,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1841,6 +1853,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -1881,6 +1894,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -1939,6 +1953,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -1997,6 +2012,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -2040,6 +2056,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -2093,6 +2110,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -2113,6 +2131,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
       preferredChannel: 'quickFeedback',
     } as never);
@@ -2210,6 +2229,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock
@@ -2297,6 +2317,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: false, open: false, title: null, moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock
@@ -2389,6 +2410,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: true, open: true },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue({
@@ -2434,6 +2456,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     qaListQueryMock.mockResolvedValue([
@@ -2483,6 +2506,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -2535,6 +2559,7 @@ describe('SessionVoteComponent', () => {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
         quickFeedback: { enabled: false, open: false },
+        tempo: { enabled: false, open: false },
       },
     });
     currentQuestionQueryMock.mockResolvedValue(null);

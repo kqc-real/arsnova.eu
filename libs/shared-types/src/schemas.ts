@@ -513,8 +513,57 @@ export const UpdateSessionQaTitleOutputSchema = z.object({
 });
 export type UpdateSessionQaTitleOutput = z.infer<typeof UpdateSessionQaTitleOutputSchema>;
 
-export const SessionLiveChannelSchema = z.enum(['quiz', 'qa', 'quickFeedback']);
+export const SessionLiveChannelSchema = z.enum(['quiz', 'qa', 'quickFeedback', 'tempo']);
 export type SessionLiveChannel = z.infer<typeof SessionLiveChannelSchema>;
+
+// ADR-0022: Tempo-Livekanal (Story 8.8)
+export const TempoStateSchema = z.enum(['speed_up', 'following', 'slow_down', 'lost']);
+export type TempoState = z.infer<typeof TempoStateSchema>;
+
+export const TempoTendencySchema = z.enum([
+  'following',
+  'too_fast',
+  'lost',
+  'underchallenged',
+  'heterogeneous',
+  'no_data',
+]);
+export type TempoTendency = z.infer<typeof TempoTendencySchema>;
+
+/** Aggregierter Snapshot des Tempo-Kanals (für Host und Teilnehmer). */
+export const TempoSnapshotSchema = z.object({
+  totalVotes: z.number().int().min(0),
+  distribution: z.object({
+    speed_up: z.number().int().min(0),
+    following: z.number().int().min(0),
+    slow_down: z.number().int().min(0),
+    lost: z.number().int().min(0),
+  }),
+  tendency: TempoTendencySchema,
+});
+export type TempoSnapshot = z.infer<typeof TempoSnapshotSchema>;
+
+/** Input: Teilnehmende setzen ihren Tempo-Zustand. */
+export const TempoVoteInputSchema = z.object({
+  sessionCode: z.string().length(6),
+  participantId: z.uuid(),
+  state: TempoStateSchema,
+});
+export type TempoVoteInput = z.infer<typeof TempoVoteInputSchema>;
+
+/** Input: Teilnehmende entfernen ihren Tempo-Zustand. */
+export const TempoRemoveVoteInputSchema = z.object({
+  sessionCode: z.string().length(6),
+  participantId: z.uuid(),
+});
+export type TempoRemoveVoteInput = z.infer<typeof TempoRemoveVoteInputSchema>;
+
+/** Input: Host öffnet oder schließt den Tempo-Kanal. */
+export const TempoSetOpenInputSchema = z.object({
+  sessionCode: z.string().length(6),
+  open: z.boolean(),
+});
+export type TempoSetOpenInput = z.infer<typeof TempoSetOpenInputSchema>;
 
 /** Output: Status-Update nach nextQuestion / revealAnswers / revealResults (Story 2.3, 3.5). */
 export const SessionStatusUpdateSchema = z.object({
@@ -779,6 +828,11 @@ export const SessionChannelsDTOSchema = z.object({
     moderationMode: z.boolean(),
   }),
   quickFeedback: z.object({
+    enabled: z.boolean(),
+    open: z.boolean(),
+  }),
+  // ADR-0022: Tempo-Livekanal (Story 8.8)
+  tempo: z.object({
     enabled: z.boolean(),
     open: z.boolean(),
   }),

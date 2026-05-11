@@ -8277,6 +8277,181 @@
           <context context-type="linenumber">3079</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionTabs.tempo" datatype="html">
+        <source>Tempo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.title" datatype="html">
+        <source>Tempo-Livekanal</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.closeAria" datatype="html">
+        <source>Tempo-Kanal schließen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.totalVotes" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ snap.totalVotes }}"/> Rückmeldung(en)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.toggleAbsolute" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ showAbsolute() ? 'Absolut ausblenden' : 'Absolut anzeigen' }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.closeChannel" datatype="html">
+        <source>Kanal schließen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.noData" datatype="html">
+        <source>Noch keine Rückmeldungen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.host.anonHint" datatype="html">
+        <source>Das Feedback ist anonym – Hosts sehen nur aggregierte Werte.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.state.speedUp" datatype="html">
+        <source>Schneller</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.state.following" datatype="html">
+        <source>Ich folge</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.state.slowDown" datatype="html">
+        <source>Langsamer</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.state.lost" datatype="html">
+        <source>Verloren</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.following" datatype="html">
+        <source>Die Mehrheit kann folgen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.tooFast" datatype="html">
+        <source>Das Tempo wirkt zu hoch.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.lost" datatype="html">
+        <source>Mehrere Teilnehmende sind abgehängt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.underchallenged" datatype="html">
+        <source>Die Gruppe signalisiert Unterforderung.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.heterogeneous" datatype="html">
+        <source>Die Gruppe ist heterogen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.tendency.noData" datatype="html">
+        <source>Noch keine Daten.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/tempo-host.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.groupAria" datatype="html">
+        <source>Tempo-Rückmeldung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.prompt" datatype="html">
+        <source>Wie läuft das Tempo für dich?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.ariaSpeedUp" datatype="html">
+        <source>Schneller – Ich kann gut folgen, das Tempo darf höher sein</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.ariaFollowing" datatype="html">
+        <source>Ich folge – Das Tempo passt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.ariaSlowDown" datatype="html">
+        <source>Langsamer – Es geht zu schnell</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.ariaLost" datatype="html">
+        <source>Verloren – Ich bin abgehängt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="tempo.vote.anonHint" datatype="html">
+        <source>Dein Feedback ist anonym.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/tempo-vote.component.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.moderationEnabled" datatype="html">
         <source>Vorab-Moderation aktiviert.</source>
         <context-group purpose="location">

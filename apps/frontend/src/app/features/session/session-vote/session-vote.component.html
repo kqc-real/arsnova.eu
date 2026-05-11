@@ -1618,6 +1618,10 @@
       }
     }
 
+    @if (isTempoOpen() && participantId()) {
+      <app-tempo-vote [sessionCode]="code" [participantId]="participantId()" />
+    }
+
     @if (showFinishedActions()) {
       <div
         class="vote-page__bottom-actions vote-page__bottom-actions--session-end"

@@ -9346,6 +9346,30 @@
           <context context-type="linenumber">2418</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionTabs.tempo" datatype="html"><source>Tempo</source><target>Tempo</target></trans-unit>
+      <trans-unit id="tempo.host.title" datatype="html"><source>Tempo-Livekanal</source><target>Canal de ritmo en vivo</target></trans-unit>
+      <trans-unit id="tempo.host.closeAria" datatype="html"><source>Tempo-Kanal schließen</source><target>Cerrar canal Tempo</target></trans-unit>
+      <trans-unit id="tempo.host.totalVotes" datatype="html"><source><x id="INTERPOLATION"/> Rückmeldung(en)</source><target><x id="INTERPOLATION"/> respuesta(s)</target></trans-unit>
+      <trans-unit id="tempo.host.closeChannel" datatype="html"><source>Kanal schließen</source><target>Cerrar canal</target></trans-unit>
+      <trans-unit id="tempo.host.noData" datatype="html"><source>Noch keine Rückmeldungen.</source><target>Aún no hay respuestas.</target></trans-unit>
+      <trans-unit id="tempo.host.anonHint" datatype="html"><source>Das Feedback ist anonym – Hosts sehen nur aggregierte Werte.</source><target>El feedback es anónimo – los anfitriones solo ven valores agregados.</target></trans-unit>
+      <trans-unit id="tempo.state.speedUp" datatype="html"><source>Schneller</source><target>Más rápido</target></trans-unit>
+      <trans-unit id="tempo.state.following" datatype="html"><source>Ich folge</source><target>Sigo</target></trans-unit>
+      <trans-unit id="tempo.state.slowDown" datatype="html"><source>Langsamer</source><target>Más lento</target></trans-unit>
+      <trans-unit id="tempo.state.lost" datatype="html"><source>Verloren</source><target>Perdido/a</target></trans-unit>
+      <trans-unit id="tempo.tendency.following" datatype="html"><source>Die Mehrheit kann folgen.</source><target>La mayoría puede seguir.</target></trans-unit>
+      <trans-unit id="tempo.tendency.tooFast" datatype="html"><source>Das Tempo wirkt zu hoch.</source><target>El ritmo parece demasiado rápido.</target></trans-unit>
+      <trans-unit id="tempo.tendency.lost" datatype="html"><source>Mehrere Teilnehmende sind abgehängt.</source><target>Varios participantes se han perdido.</target></trans-unit>
+      <trans-unit id="tempo.tendency.underchallenged" datatype="html"><source>Die Gruppe signalisiert Unterforderung.</source><target>El grupo señala falta de desafío.</target></trans-unit>
+      <trans-unit id="tempo.tendency.heterogeneous" datatype="html"><source>Die Gruppe ist heterogen.</source><target>El grupo es heterogéneo.</target></trans-unit>
+      <trans-unit id="tempo.tendency.noData" datatype="html"><source>Noch keine Daten.</source><target>Aún no hay datos.</target></trans-unit>
+      <trans-unit id="tempo.vote.groupAria" datatype="html"><source>Tempo-Rückmeldung</source><target>Opinión sobre el ritmo</target></trans-unit>
+      <trans-unit id="tempo.vote.prompt" datatype="html"><source>Wie läuft das Tempo für dich?</source><target>¿Cómo va el ritmo para ti?</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaSpeedUp" datatype="html"><source>Schneller – Ich kann gut folgen, das Tempo darf höher sein</source><target>Más rápido – Puedo seguir bien, el ritmo puede ser mayor</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaFollowing" datatype="html"><source>Ich folge – Das Tempo passt</source><target>Sigo – El ritmo está bien</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaSlowDown" datatype="html"><source>Langsamer – Es geht zu schnell</source><target>Más lento – Va demasiado rápido</target></trans-unit>
+      <trans-unit id="tempo.vote.ariaLost" datatype="html"><source>Verloren – Ich bin abgehängt</source><target>Perdido/a – Me he quedado atrás</target></trans-unit>
+      <trans-unit id="tempo.vote.anonHint" datatype="html"><source>Dein Feedback ist anonym.</source><target>Tu opinión es anónima.</target></trans-unit>
       <trans-unit id="sessionQa.moderationEnabled" datatype="html">
         <source>Vorab-Moderation aktiviert.</source>
         <target>Pre-moderación activada.</target>

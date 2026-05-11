@@ -66,6 +66,7 @@ import {
 } from '../../../shared/emoji-shortcode.util';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
+import { TempoVoteComponent } from './tempo-vote.component';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
 const NICKNAME_STORAGE_KEY = 'arsnova-nickname';
@@ -84,7 +85,7 @@ const VOTE_ANCHOR_ERROR = 'vote-error';
 export type VoteAutoScrollPhase = 'read' | 'vote' | 'result';
 
 type CurrentQuestion = QuestionStudentDTO | QuestionPreviewDTO | QuestionRevealedDTO;
-type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
+type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback' | 'tempo';
 type StoredVoteResponse = {
   answerIds?: string[];
   freeText?: string;
@@ -271,6 +272,7 @@ function getContextMotivation(
     DecimalPipe,
     FeedbackVoteComponent,
     MarkdownImageLightboxDirective,
+    TempoVoteComponent,
   ],
   templateUrl: './session-vote.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './session-vote.component.scss'],
@@ -591,12 +593,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         quiz: ch.quiz.enabled,
         qa: ch.qa.enabled,
         quickFeedback: ch.quickFeedback.enabled,
+        tempo: ch.tempo.enabled,
       };
     }
     return {
       quiz: session.type === 'QUIZ',
       qa: session.type === 'Q_AND_A',
       quickFeedback: false,
+      tempo: false,
     };
   });
   readonly channelOpenState = computed(() => {
@@ -607,12 +611,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         quiz: true,
         qa: ch.qa.open,
         quickFeedback: ch.quickFeedback.open,
+        tempo: ch.tempo.open,
       };
     }
     return {
       quiz: true,
       qa: session.type === 'Q_AND_A',
       quickFeedback: false,
+      tempo: false,
     };
   });
   readonly visibleChannels = computed<SessionChannelTab[]>(() => {
@@ -621,8 +627,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (channels.quiz) result.push('quiz');
     if (channels.qa) result.push('qa');
     if (channels.quickFeedback) result.push('quickFeedback');
+    // Tempo ist kein eigenständiger Tab – Widget wird persistent unten angezeigt
     return result;
   });
+  readonly isTempoOpen = computed(() => this.channelOpenState().tempo);
   readonly showChannelTabs = computed(
     () => !this.isFinished() && this.visibleChannels().length > 1,
   );
@@ -958,6 +966,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionTabs.questions:Q&A`;
       case 'quickFeedback':
         return $localize`:@@sessionTabs.quickFeedback:Blitzlicht`;
+      case 'tempo':
+        return $localize`:@@sessionTabs.tempo:Tempo`;
     }
   }
 
