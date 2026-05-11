@@ -23,6 +23,24 @@
   --foyer-shadow-strong: color-mix(in srgb, var(--mat-sys-shadow) 32%, transparent);
 }
 
+.foyer-entrance-layer__chip-shell[data-color-variant='1'] {
+  --foyer-accent: var(--mat-sys-secondary);
+  --foyer-accent-surface: var(--mat-sys-secondary-container);
+  --foyer-accent-color: var(--mat-sys-on-secondary-container);
+  --foyer-accent-glow: color-mix(in srgb, var(--mat-sys-secondary-container) 68%, transparent);
+  --foyer-overlay-surface: var(--mat-sys-secondary-container);
+  --foyer-overlay-color: var(--mat-sys-on-secondary-container);
+}
+
+.foyer-entrance-layer__chip-shell[data-color-variant='2'] {
+  --foyer-accent: var(--mat-sys-tertiary);
+  --foyer-accent-surface: var(--mat-sys-tertiary-container);
+  --foyer-accent-color: var(--mat-sys-on-tertiary-container);
+  --foyer-accent-glow: color-mix(in srgb, var(--mat-sys-tertiary-container) 68%, transparent);
+  --foyer-overlay-surface: var(--mat-sys-tertiary-container);
+  --foyer-overlay-color: var(--mat-sys-on-tertiary-container);
+}
+
 .foyer-entrance-layer {
   position: relative;
   padding: 0.25rem 0 0.5rem;
