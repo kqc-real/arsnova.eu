@@ -129,6 +129,7 @@ import {
 } from '../session-quiz-picker-dialog.component';
 import {
   FoyerEntranceLayerComponent,
+  type FoyerChipColorVariant,
   type FoyerEntranceChip,
 } from './foyer-entrance-layer.component';
 import { buildFoyerChipLabel } from './foyer-chip-label.util';
@@ -2639,6 +2640,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       delayMs: 0,
       lane: this.nextFoyerLane(participant.teamId ?? null),
       direction: teamDirection ?? (sequence % 2 === 0 ? 'left' : 'right'),
+      colorVariant: (sequence % 3) as FoyerChipColorVariant,
       ...this.defaultFoyerArrivalMotionProfile(
         participant.teamId !== null && participant.teamId !== undefined,
       ),
