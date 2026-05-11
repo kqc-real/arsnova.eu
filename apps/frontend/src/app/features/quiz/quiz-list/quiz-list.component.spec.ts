@@ -582,12 +582,14 @@ describe('QuizListComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     await flushAsyncEffects();
-
-    expect(bindQuizHistoryScopeMutationMock).toHaveBeenCalledWith({
-      quizId: '11111111-1111-4111-8111-111111111111',
-      accessProof: legacyAccessProof,
-      historyScopeId: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    await vi.waitFor(() => {
+      expect(bindQuizHistoryScopeMutationMock).toHaveBeenCalledWith({
+        quizId: '11111111-1111-4111-8111-111111111111',
+        accessProof: legacyAccessProof,
+        historyScopeId: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      });
     });
+
     expect(mockStore.setLastServerQuizAccessProof).toHaveBeenCalledWith(
       'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
       'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
