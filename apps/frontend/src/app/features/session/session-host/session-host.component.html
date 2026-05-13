@@ -625,43 +625,6 @@
           <div class="session-host__run l-page">
             @if (effectiveStatus() === 'FINISHED') {
               <div class="session-host__results">
-                <header class="session-host__finished">
-                  <mat-icon class="session-host__finished-icon" aria-hidden="true"
-                    >verified</mat-icon
-                  >
-                  <h1 class="session-host__finished-text" id="session-finished-heading" i18n>
-                    Session beendet
-                  </h1>
-                  <p class="session-host__finished-sub" i18n>Alle Ergebnisse sind gespeichert.</p>
-                  <div class="session-host__export-actions">
-                    <a matButton="filled" [routerLink]="localizedPath('/')">
-                      <mat-icon>home</mat-icon>
-                      <span i18n>Zur Startseite</span>
-                    </a>
-                    <button
-                      matButton="tonal"
-                      type="button"
-                      (click)="exportSessionResultsCsv()"
-                      [disabled]="exportExporting()"
-                      [attr.aria-busy]="exportExporting()"
-                      i18n-aria-label
-                      aria-label="Ergebnis als CSV exportieren"
-                    >
-                      <mat-icon>download</mat-icon>
-                      <span i18n>Ergebnis exportieren</span>
-                    </button>
-                    @if (exportExporting()) {
-                      <p class="session-host__export-hint" role="status" i18n>Wird exportiert…</p>
-                    }
-                    @if (exportStatus(); as status) {
-                      <p class="session-host__export-hint" role="status">{{ status }}</p>
-                    }
-                    <p class="session-host__export-dsgvo" i18n>
-                      Export für Dokumentation und Evaluation – keine personenbezogenen Daten.
-                    </p>
-                  </div>
-                </header>
-
                 @if (leaderboard().length > 0) {
                   <section
                     class="session-host__leaderboard-card"
@@ -680,12 +643,18 @@
                         <p class="session-host__leaderboard-winner-name">
                           @if (lobbyKindergartenEmoji(leader.nickname); as em) {
                             <span
-                              class="session-host__kindergarten-emoji session-host__kindergarten-emoji--winner"
-                              [attr.title]="leader.nickname"
-                              aria-hidden="true"
-                              >{{ em }}</span
+                              class="session-host__kindergarten-entry session-host__kindergarten-entry--winner"
                             >
-                            <span class="sr-only">{{ leader.nickname }}</span>
+                              <span
+                                class="session-host__kindergarten-emoji session-host__kindergarten-emoji--winner"
+                                [attr.title]="leader.nickname"
+                                aria-hidden="true"
+                                >{{ em }}</span
+                              >
+                              <span class="session-host__kindergarten-label">{{
+                                leader.nickname
+                              }}</span>
+                            </span>
                           } @else {
                             {{ leader.nickname }}
                           }
@@ -731,12 +700,18 @@
                               <td class="session-host__lb-col--name">
                                 @if (lobbyKindergartenEmoji(entry.nickname); as em) {
                                   <span
-                                    class="session-host__kindergarten-emoji session-host__kindergarten-emoji--table"
-                                    [attr.title]="entry.nickname"
-                                    aria-hidden="true"
-                                    >{{ em }}</span
+                                    class="session-host__kindergarten-entry session-host__kindergarten-entry--table"
                                   >
-                                  <span class="sr-only">{{ entry.nickname }}</span>
+                                    <span
+                                      class="session-host__kindergarten-emoji session-host__kindergarten-emoji--table"
+                                      [attr.title]="entry.nickname"
+                                      aria-hidden="true"
+                                      >{{ em }}</span
+                                    >
+                                    <span class="session-host__kindergarten-label">{{
+                                      entry.nickname
+                                    }}</span>
+                                  </span>
                                 } @else {
                                   {{ entry.nickname }}
                                 }
@@ -890,6 +865,40 @@
                     </div>
                   </section>
                 }
+
+                <header class="session-host__finished">
+                  <mat-icon class="session-host__finished-icon" aria-hidden="true"
+                    >verified</mat-icon
+                  >
+                  <h1 class="session-host__finished-text" id="session-finished-heading" i18n>
+                    Session beendet
+                  </h1>
+                  <p class="session-host__finished-sub" i18n>Alle Ergebnisse sind gespeichert.</p>
+                  <div class="session-host__export-actions">
+                    <a matButton="filled" [routerLink]="localizedPath('/')">
+                      <mat-icon>home</mat-icon>
+                      <span i18n>Zur Startseite</span>
+                    </a>
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      (click)="exportSessionResultsCsv()"
+                      [disabled]="exportExporting()"
+                      [attr.aria-busy]="exportExporting()"
+                      i18n-aria-label
+                      aria-label="Ergebnis als CSV exportieren"
+                    >
+                      <mat-icon>download</mat-icon>
+                      <span i18n>Ergebnis exportieren</span>
+                    </button>
+                    @if (exportExporting()) {
+                      <p class="session-host__export-hint" role="status" i18n>Wird exportiert…</p>
+                    }
+                    @if (exportStatus(); as status) {
+                      <p class="session-host__export-hint" role="status">{{ status }}</p>
+                    }
+                  </div>
+                </header>
               </div>
             } @else {
               @if (showFingerCountdown()) {
@@ -1625,12 +1634,18 @@
                         <span class="session-host__interim-name">
                           @if (lobbyKindergartenEmoji(entry.nickname); as em) {
                             <span
-                              class="session-host__kindergarten-emoji session-host__kindergarten-emoji--interim"
-                              [attr.title]="entry.nickname"
-                              aria-hidden="true"
-                              >{{ em }}</span
+                              class="session-host__kindergarten-entry session-host__kindergarten-entry--interim"
                             >
-                            <span class="sr-only">{{ entry.nickname }}</span>
+                              <span
+                                class="session-host__kindergarten-emoji session-host__kindergarten-emoji--interim"
+                                [attr.title]="entry.nickname"
+                                aria-hidden="true"
+                                >{{ em }}</span
+                              >
+                              <span class="session-host__kindergarten-label">{{
+                                entry.nickname
+                              }}</span>
+                            </span>
                           } @else {
                             {{ entry.nickname }}
                           }

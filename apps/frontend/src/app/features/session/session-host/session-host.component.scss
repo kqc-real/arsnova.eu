@@ -2506,14 +2506,6 @@
   line-height: 1.4;
 }
 
-.session-host__export-dsgvo {
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
-  margin: 0;
-  line-height: 1.5;
-  max-width: 28rem;
-}
-
 .session-host__end-btn {
   margin-top: 1rem;
 }
@@ -2600,6 +2592,33 @@
 .session-host__kindergarten-emoji {
   line-height: 1;
   display: inline-block;
+  flex-shrink: 0;
+}
+
+.session-host__kindergarten-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: middle;
+}
+
+.session-host__kindergarten-entry--winner {
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.session-host__kindergarten-entry--table,
+.session-host__kindergarten-entry--interim {
+  justify-content: flex-start;
+}
+
+.session-host__kindergarten-label {
+  min-width: 0;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .session-host__kindergarten-emoji--winner {
@@ -3049,6 +3068,7 @@
 
 .session-host__interim-name {
   flex: 1;
+  min-width: 0;
   text-align: left;
 }
 

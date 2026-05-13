@@ -3554,22 +3554,37 @@ describe('SessionHostComponent', () => {
     const winnerEmoji = fixture.nativeElement.querySelector(
       '.session-host__kindergarten-emoji--winner',
     ) as HTMLElement | null;
-    const tableEmojis = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-host__kindergarten-emoji--table'),
+    const tableEntries = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-host__kindergarten-entry--table'),
     ) as HTMLElement[];
+    const tableEmojis = tableEntries
+      .map((entry) => entry.querySelector('.session-host__kindergarten-emoji--table'))
+      .filter((entry): entry is HTMLElement => entry instanceof HTMLElement);
+    const tableLabels = tableEntries.map(
+      (entry) =>
+        entry.querySelector('.session-host__kindergarten-label')?.textContent?.trim() ?? '',
+    );
 
     expect(text).toContain('Gewonnen hat');
     expect(text).toContain('Lila Delfin');
     expect(text).toMatch(/Mit 9[.,]400 Punkten/);
     expect(winnerEmoji?.getAttribute('title')).toBe('Lila Delfin');
+    expect(
+      fixture.nativeElement
+        .querySelector(
+          '.session-host__kindergarten-entry--winner .session-host__kindergarten-label',
+        )
+        ?.textContent?.trim(),
+    ).toBe('Lila Delfin');
     expect(tableEmojis.map((emoji) => emoji.getAttribute('title'))).toEqual([
       'Lila Delfin',
       'Lagunenblaue Qualle',
     ]);
+    expect(tableLabels).toEqual(['Lila Delfin', 'Lagunenblaue Qualle']);
     fixture.destroy();
   });
 
-  it('zeigt im Host-Zwischenleaderboard Titles an Kindergarten-Tiericons', async () => {
+  it('zeigt im Host-Zwischenleaderboard Titles und Labels an Kindergarten-Tiericons', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'RESULTS',
@@ -3635,14 +3650,22 @@ describe('SessionHostComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
-    const interimEmojis = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-host__kindergarten-emoji--interim'),
+    const interimEntries = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-host__kindergarten-entry--interim'),
     ) as HTMLElement[];
+    const interimEmojis = interimEntries
+      .map((entry) => entry.querySelector('.session-host__kindergarten-emoji--interim'))
+      .filter((entry): entry is HTMLElement => entry instanceof HTMLElement);
+    const interimLabels = interimEntries.map(
+      (entry) =>
+        entry.querySelector('.session-host__kindergarten-label')?.textContent?.trim() ?? '',
+    );
 
     expect(interimEmojis.map((emoji) => emoji.getAttribute('title'))).toEqual([
       'Lila Delfin',
       'Lagunenblaue Qualle',
     ]);
+    expect(interimLabels).toEqual(['Lila Delfin', 'Lagunenblaue Qualle']);
     fixture.destroy();
   });
 

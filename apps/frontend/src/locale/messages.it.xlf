@@ -7769,14 +7769,6 @@
           <context context-type="linenumber">654</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2660273723194515191" datatype="html">
-        <source> Export für Dokumentation und Evaluation – keine personenbezogenen Daten.</source>
-        <target>Esportazione per documentazione e valutazione – nessun dato personale.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">659,661</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="7139999409916594388" datatype="html">
         <source>Leaderboard</source>
         <target>Classifica</target>
