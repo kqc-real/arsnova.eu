@@ -27,7 +27,7 @@ import {
           <rect x="5.2" y="5.2" width="13.6" height="13.6" rx="1.4" />
         }
         @case ('diamond') {
-          <path d="M12 3.4 20.6 12 12 20.6 3.4 12Z" />
+          <path d="M12 2.4 21.6 12 12 21.6 2.4 12Z" />
         }
         @case ('star') {
           <path d="m12 4.2 2.2 4.8 5.2.6-3.9 3.6 1.1 5.1-4.6-2.6-4.6 2.6 1.1-5.1-3.9-3.6 5.2-.6Z" />
@@ -50,9 +50,14 @@ import {
       :host {
         --answer-option-badge-icon-size: 64%;
         --answer-option-badge-stroke-width: 2.6;
+        --answer-option-badge-offset-y: -1px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
+        line-height: 1;
+        vertical-align: middle;
+        transform: translateY(var(--answer-option-badge-offset-y));
         color: #fff;
       }
 

@@ -697,6 +697,8 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   --answer-leading-emoji-visual-scale: 1;
   --answer-leading-emoji-transform-origin: center center;
   --answer-leading-emoji-gap: 0.45em;
+  --answer-leading-emoji-offset-y: 0;
+  --answer-leading-emoji-text-line-height: 1.18;
   --answer-leading-emoji-slot: calc(
     var(--answer-leading-emoji-layout-size) + var(--answer-leading-emoji-gap)
   );
@@ -714,6 +716,7 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   grid-template-columns: var(--answer-leading-emoji-layout-size) minmax(0, 1fr);
   column-gap: var(--answer-leading-emoji-gap);
   align-items: center;
+  line-height: var(--answer-leading-emoji-text-line-height);
 }
 
 .quiz-edit-answer .mk-editor__preview-body,
@@ -745,6 +748,7 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   grid-template-columns: var(--answer-leading-emoji-layout-size) minmax(0, 1fr);
   column-gap: var(--answer-leading-emoji-gap);
   align-items: center;
+  line-height: var(--answer-leading-emoji-text-line-height);
 }
 
 .vote-answer__text > p:has(> .answer-leading-emoji),
@@ -759,6 +763,7 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   grid-template-columns: var(--answer-leading-emoji-layout-size) minmax(0, 1fr);
   column-gap: var(--answer-leading-emoji-gap);
   align-items: center;
+  line-height: var(--answer-leading-emoji-text-line-height);
 }
 
 .session-host__answer-text:has(> .answer-leading-emoji),
@@ -811,7 +816,8 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   align-self: center;
   justify-self: start;
   text-indent: 0;
-  transform: scale(var(--answer-leading-emoji-visual-scale));
+  transform: translateY(var(--answer-leading-emoji-offset-y))
+    scale(var(--answer-leading-emoji-visual-scale));
   transform-origin: var(--answer-leading-emoji-transform-origin);
 }
 
@@ -837,6 +843,8 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
 .answer-leading-emoji-text {
   display: block;
   min-width: 0;
+  align-self: center;
+  line-height: var(--answer-leading-emoji-text-line-height);
 }
 
 @media (max-width: 599px) {
@@ -918,7 +926,8 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   font-size: var(--answer-leading-emoji-layout-size);
   vertical-align: middle;
   text-indent: 0;
-  transform: scale(var(--answer-leading-emoji-visual-scale));
+  transform: translateY(var(--answer-leading-emoji-offset-y))
+    scale(var(--answer-leading-emoji-visual-scale));
   transform-origin: var(--answer-leading-emoji-transform-origin);
 }
 

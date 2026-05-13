@@ -3319,6 +3319,7 @@
 .session-host__answer-text {
   flex: 1;
   min-width: 0;
+  align-self: center;
   font-weight: 400;
   line-height: 1.45;
   --answer-leading-emoji-size: 3.2em;
@@ -3326,6 +3327,7 @@
   --answer-leading-emoji-visual-scale: 1.45;
   --answer-leading-emoji-transform-origin: left center;
   --answer-leading-emoji-gap: 1.45em;
+  --answer-leading-emoji-text-line-height: 1.16;
   --answer-leading-emoji-slot: calc(
     var(--answer-leading-emoji-layout-size) + var(--answer-leading-emoji-gap)
   );
@@ -3401,11 +3403,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
   flex-shrink: 0;
   width: 42px;
   height: 42px;
   border-radius: 8px;
   color: #fff;
+  line-height: 1;
   --answer-option-badge-icon-size: 64%;
   --answer-option-badge-stroke-width: 2.7;
 
@@ -4029,6 +4033,7 @@ button.session-host__btn-discussion {
 .session-host__vote-dist-text {
   flex: 1;
   min-width: 0;
+  align-self: center;
   font: var(--mat-sys-body-large);
   color: var(--mat-sys-on-surface);
   --answer-leading-emoji-size: 2.55em;
@@ -4036,6 +4041,7 @@ button.session-host__btn-discussion {
   --answer-leading-emoji-visual-scale: 1.65;
   --answer-leading-emoji-transform-origin: left center;
   --answer-leading-emoji-gap: 1.55em;
+  --answer-leading-emoji-text-line-height: 1.16;
   --answer-leading-emoji-slot: calc(
     var(--answer-leading-emoji-layout-size) + var(--answer-leading-emoji-gap)
   );
@@ -4431,12 +4437,14 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 .session-host__round-comparison-text {
   flex: 1;
   min-width: 0;
+  align-self: center;
   font: var(--mat-sys-body-large);
   --answer-leading-emoji-size: 2.45em;
   --answer-leading-emoji-layout-size: 1.5em;
   --answer-leading-emoji-visual-scale: 1.63;
   --answer-leading-emoji-transform-origin: left center;
   --answer-leading-emoji-gap: 0.9em;
+  --answer-leading-emoji-text-line-height: 1.16;
   --answer-leading-emoji-slot: calc(
     var(--answer-leading-emoji-layout-size) + var(--answer-leading-emoji-gap)
   );
@@ -4661,7 +4669,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   }
 
   .session-host__round-comparison-option {
-    align-items: flex-start;
+    align-items: center;
     gap: 0.8rem;
     margin-bottom: 0.5rem;
   }

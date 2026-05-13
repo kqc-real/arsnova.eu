@@ -691,11 +691,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
   width: 2rem;
   height: 2rem;
   border-radius: 0.45rem;
   color: #fff;
   justify-self: center;
+  line-height: 1;
   --answer-option-badge-icon-size: 64%;
   --answer-option-badge-stroke-width: 2.6;
 }
@@ -703,6 +705,8 @@
 .quiz-edit-form__preview-answer-text {
   display: block;
   min-width: 0;
+  align-self: center;
+  --answer-leading-emoji-text-line-height: 1.16;
 }
 
 .quiz-edit-form mat-hint,
@@ -929,7 +933,7 @@
 .quiz-edit-question__answers li {
   margin: 0.35rem 0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.85rem;
   line-height: 1.5;
 }
@@ -945,7 +949,6 @@
   font-size: 1.25rem;
   width: 1.25rem;
   height: 1.25rem;
-  margin-top: 0.125rem;
   color: var(--mat-sys-outline);
 
   &--correct {
@@ -956,7 +959,9 @@
 .quiz-edit-question__answer-text {
   display: block;
   min-width: 0;
+  align-self: center;
   line-height: 1.55;
+  --answer-leading-emoji-text-line-height: 1.16;
 }
 
 .quiz-edit-question__rating {

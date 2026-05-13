@@ -1824,11 +1824,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    align-self: center;
     flex-shrink: 0;
     width: 46px;
     height: 46px;
     border-radius: var(--mat-sys-corner-small, 8px);
     color: #fff;
+    line-height: 1;
     --answer-option-badge-icon-size: 64%;
     --answer-option-badge-stroke-width: 2.7;
   }
@@ -1836,6 +1838,7 @@
   &__text {
     flex: 1;
     min-width: 0;
+    align-self: center;
     overflow: visible;
     text-overflow: clip;
     line-height: 1.4;
@@ -1844,6 +1847,7 @@
     --answer-leading-emoji-visual-scale: 1;
     --answer-leading-emoji-transform-origin: center center;
     --answer-leading-emoji-gap: 1em;
+    --answer-leading-emoji-text-line-height: 1.16;
   }
 
   &__icon {
