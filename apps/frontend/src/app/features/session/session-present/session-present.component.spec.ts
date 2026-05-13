@@ -101,6 +101,10 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Live-Freitext');
     expect(text).toContain('Frage 2: Was war hilfreich?');
     expect(text).toContain('Antworten verdichten sich live zu einem gemeinsamen Themenbild.');
+    expect(text).not.toContain('CSV exportieren');
+    expect(text).not.toContain('PNG exportieren');
+    expect(text).not.toContain('Antwort anzeigen');
+    expect(text).not.toContain('Maximieren');
     fixture.destroy();
   });
 
@@ -296,7 +300,11 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Q&A-Word-Cloud');
     expect(text).toContain('2 Fragen');
     expect(fixture.componentInstance.presenterQaWordCloudQuestions()).toHaveLength(2);
-    expect(fixture.componentInstance.presenterQaWordCloudWeightedResponses()[0]?.weight).toBe(5);
+    expect(fixture.componentInstance.presenterQaWordCloudWeightedResponses()[0]?.weight).toBe(3);
+    expect(text).not.toContain('CSV exportieren');
+    expect(text).not.toContain('PNG exportieren');
+    expect(text).not.toContain('Antwort anzeigen');
+    expect(text).not.toContain('Maximieren');
     fixture.destroy();
   });
 

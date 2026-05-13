@@ -199,6 +199,32 @@ Die nachgelagerte Ausbaustufe `2.2` hat die 2.1-Logik produktseitig stabilisiert
 
 ---
 
+## Word Cloud 2.3 – Q&A-Profil
+
+Die gemeinsame Wortwolken-Komponente hat zusaetzlich ein eigenes Q&A-Profil bekommen, ohne den Freitext-Pfad zu verbiegen.
+
+Der Q&A-spezifische Ausbau umfasst:
+
+- ein explizites Analyseprofil `qa` statt stiller Sonderfaelle in Host oder Presenter
+- abgeflachte Upvote-Gewichtung ueber `1 + round(sqrt(upvotes))` statt linearer Dominanz
+- zusaetzliche Frage-Fuelltokens pro Locale, damit Woerter wie `genau`, `bitte` oder `need` die Wolke weniger verschlechtern
+- leichte, regelbasierte Themenphrasen fuer haeufige Bigramme wie `kapitel 4` oder `lineare regression`
+- eine `outputOnly`-Buehnenansicht fuer oeffentliche Presenter-Screens ohne Export-, Antworten- oder Maximieren-UI
+
+Wichtig ist dabei:
+
+- Das ist weiterhin **kein semantischer 3.x-Layer**.
+- Es bleibt eine kontrollierte lexikalische Verdichtung.
+- Die Q&A-Wolke soll dadurch weniger nach kompletten Fragesaetzen und mehr nach Themenraum aussehen.
+
+Technisch bleibt die Trennung sauber:
+
+- Fachlogik in `word-cloud.util.ts`
+- Visualisierung in `word-cloud.component.ts`
+- Q&A-Host/Presenter reichen nur noch Profil und Gewichte ein
+
+---
+
 ## Was bewusst noch nicht passiert
 
 - keine semantische Synonym- oder Themen-Clusterung

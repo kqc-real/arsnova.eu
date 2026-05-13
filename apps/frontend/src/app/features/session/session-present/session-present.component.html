@@ -145,14 +145,15 @@
         <app-word-cloud
           [responses]="presenterQaWordCloudResponses()"
           [weightedResponses]="presenterQaWordCloudWeightedResponses()"
+          [analysisMode]="'qa'"
           [eyebrow]="qaWordCloudEyebrow"
           [description]="qaWordCloudDescription"
           [title]="'Q&A-Word-Cloud (Upvotes gewichtet)'"
           [itemLabelSingular]="'Frage'"
           [itemLabelPlural]="'Fragen'"
           [weightingHint]="qaWordCloudWeightingHint"
-          [showResponsesPanel]="true"
-          [showReleaseNote]="false"
+          [presentationMode]="true"
+          [outputOnly]="true"
         />
       </section>
     }
@@ -233,10 +234,8 @@
         [title]="freetextWordCloudStageTitle()"
         [eyebrow]="freetextWordCloudEyebrow"
         [description]="freetextWordCloudDescription"
-        [showResponsesPanel]="false"
-        [showMaximizeAction]="false"
         [presentationMode]="true"
-        [showReleaseNote]="false"
+        [outputOnly]="true"
       />
     } @else {
       <mat-card appearance="outlined" class="session-placeholder">

@@ -1,6 +1,8 @@
 import { deu, eng, fra, ita, spa } from 'stopword';
 import type { SupportedLocale } from '../../../core/locale-from-path';
 
+export type WordCloudAnalysisMode = 'default' | 'qa';
+
 export interface WordAggregate {
   word: string;
   count: number;
@@ -13,14 +15,19 @@ export interface WeightedWordSource {
   weight?: number;
 }
 
+type GroupingKind = 'token' | 'phrase';
+
 interface WordGrouping {
   readonly groupKey: string;
   readonly display: string;
   readonly preferredDisplay: string | null;
+  readonly kind: GroupingKind;
+  readonly containsNumeric: boolean;
 }
 
 interface AggregateBucket {
   readonly groupKey: string;
+  readonly kind: GroupingKind;
   count: number;
   readonly variants: Map<string, number>;
   preferredDisplay: string | null;
@@ -28,6 +35,8 @@ interface AggregateBucket {
 
 interface ResponseGroupingBucket {
   readonly groupKey: string;
+  readonly kind: GroupingKind;
+  readonly containsNumeric: boolean;
   readonly displays: Set<string>;
   preferredDisplay: string | null;
 }
@@ -115,6 +124,36 @@ const STOPWORDS_BY_LOCALE: Record<SupportedLocale, ReadonlySet<string>> = {
   es: new Set(spa),
 };
 
+const QA_EXTRA_STOPWORDS_BY_LOCALE: Partial<Record<SupportedLocale, readonly string[]>> = {
+  de: [
+    'bitte',
+    'genau',
+    'einmal',
+    'nochmal',
+    'nochmals',
+    'kommt',
+    'kommen',
+    'kann',
+    'kannst',
+    'könnt',
+    'koennt',
+    'können',
+    'koennen',
+    'brauchen',
+    'braucht',
+    'muss',
+    'müssen',
+    'muessen',
+    'soll',
+    'sollen',
+    'gemeint',
+  ],
+  en: ['please', 'exactly', 'again', 'could', 'would', 'should', 'need', 'needs', 'needed'],
+  fr: ['svp', "s'il", 'vous', 'plait', 'encore', 'exactement', 'faut', 'doit', 'doivent'],
+  it: ['per', 'favore', 'ancora', 'esattamente', 'serve', 'servono', 'devo', 'dobbiamo'],
+  es: ['favor', 'exactamente', 'otra', 'vez', 'puede', 'pueden', 'necesito', 'necesitamos'],
+};
+
 export const DEFAULT_STOPWORDS = STOPWORDS_BY_LOCALE.de;
 
 export function getStopwordsForLocale(locale: SupportedLocale): ReadonlySet<string> {
@@ -124,19 +163,22 @@ export function getStopwordsForLocale(locale: SupportedLocale): ReadonlySet<stri
 export function createWordCloudStopwordLookup(
   stopwords: ReadonlySet<string> = DEFAULT_STOPWORDS,
   locale: SupportedLocale = 'de',
+  analysisMode: WordCloudAnalysisMode = 'default',
 ): ReadonlySet<string> {
-  return createStopwordLookup(stopwords, locale);
+  return createStopwordLookup(stopwords, locale, analysisMode);
 }
 
 export function aggregateWords(
   responses: string[],
   stopwords: ReadonlySet<string> = DEFAULT_STOPWORDS,
   locale: SupportedLocale = 'de',
+  analysisMode: WordCloudAnalysisMode = 'default',
 ): WordAggregate[] {
   return aggregateWeightedWords(
     responses.map((response) => ({ text: response })),
     stopwords,
     locale,
+    analysisMode,
   );
 }
 
@@ -144,18 +186,49 @@ export function aggregateWeightedWords(
   sources: WeightedWordSource[],
   stopwords: ReadonlySet<string> = DEFAULT_STOPWORDS,
   locale: SupportedLocale = 'de',
+  analysisMode: WordCloudAnalysisMode = 'default',
 ): WordAggregate[] {
   const buckets = new Map<string, AggregateBucket>();
-  const stopwordLookup = createWordCloudStopwordLookup(stopwords, locale);
+  const stopwordLookup = createWordCloudStopwordLookup(stopwords, locale, analysisMode);
+  const groupedSources = sources.map((source) => ({
+    weight: normalizeWeight(source.weight),
+    groupings: [
+      ...collectResponseGroupings(source.text, stopwordLookup, locale, analysisMode).values(),
+    ],
+  }));
+  const phraseResponseSupport = new Map<string, number>();
+  const phraseWeightedSupport = new Map<string, number>();
 
-  for (const source of sources) {
-    const groupings = collectResponseGroupings(source.text, stopwordLookup, locale);
-    const weight = normalizeWeight(source.weight);
-    for (const grouping of groupings.values()) {
-      const bucket = getOrCreateBucket(buckets, grouping.groupKey);
-      bucket.count += weight;
+  for (const source of groupedSources) {
+    for (const grouping of source.groupings) {
+      if (grouping.kind !== 'phrase') {
+        continue;
+      }
+
+      phraseResponseSupport.set(
+        grouping.groupKey,
+        (phraseResponseSupport.get(grouping.groupKey) ?? 0) + 1,
+      );
+      phraseWeightedSupport.set(
+        grouping.groupKey,
+        (phraseWeightedSupport.get(grouping.groupKey) ?? 0) + source.weight,
+      );
+    }
+  }
+
+  for (const source of groupedSources) {
+    for (const grouping of source.groupings) {
+      if (
+        grouping.kind === 'phrase' &&
+        !shouldAggregatePhrase(grouping, phraseResponseSupport, phraseWeightedSupport)
+      ) {
+        continue;
+      }
+
+      const bucket = getOrCreateBucket(buckets, grouping);
+      bucket.count += source.weight;
       for (const display of grouping.displays) {
-        bucket.variants.set(display, (bucket.variants.get(display) ?? 0) + weight);
+        bucket.variants.set(display, (bucket.variants.get(display) ?? 0) + source.weight);
       }
       if (grouping.preferredDisplay) {
         bucket.preferredDisplay = bucket.preferredDisplay ?? grouping.preferredDisplay;
@@ -173,7 +246,25 @@ export function aggregateWeightedWords(
         variants,
       };
     })
-    .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
+    .sort((a, b) => {
+      const rightBucket = buckets.get(b.groupKey);
+      const leftBucket = buckets.get(a.groupKey);
+      return (
+        b.count - a.count ||
+        scoreGroupingKind(rightBucket?.kind ?? 'token') -
+          scoreGroupingKind(leftBucket?.kind ?? 'token') ||
+        a.word.localeCompare(b.word)
+      );
+    });
+}
+
+export function getWordCloudWeightFromUpvotes(upvoteCount: number): number {
+  if (!Number.isFinite(upvoteCount)) {
+    return 1;
+  }
+
+  const normalized = Math.max(0, Math.round(upvoteCount));
+  return 1 + Math.max(0, Math.round(Math.sqrt(normalized)));
 }
 
 export function normalizeFreeTextResponseForDisplay(value: string): string {
@@ -189,22 +280,25 @@ export function responseContainsWord(
   response: string,
   word: string,
   locale: SupportedLocale = 'de',
+  analysisMode: WordCloudAnalysisMode = 'default',
 ): boolean {
-  const normalizedWord = normalizeLookupToken(word);
-  if (!normalizedWord) {
+  const targetGroupKey = getLookupGroupKey(word, locale);
+  if (!targetGroupKey) {
     return false;
   }
 
-  const targetGroupKey = getWordGrouping(normalizedWord, locale).groupKey;
-  return collectResponseGroupings(response, new Set<string>(), locale).has(targetGroupKey);
+  return collectResponseGroupings(response, new Set<string>(), locale, analysisMode).has(
+    targetGroupKey,
+  );
 }
 
 export function extractResponseGroupKeys(
   response: string,
   stopwordLookup: ReadonlySet<string>,
   locale: SupportedLocale = 'de',
+  analysisMode: WordCloudAnalysisMode = 'default',
 ): string[] {
-  return [...collectResponseGroupings(response, stopwordLookup, locale).keys()];
+  return [...collectResponseGroupings(response, stopwordLookup, locale, analysisMode).keys()];
 }
 
 function normalizeWeight(weight?: number): number {
@@ -217,20 +311,21 @@ function normalizeWeight(weight?: number): number {
 
 function getOrCreateBucket(
   buckets: Map<string, AggregateBucket>,
-  groupKey: string,
+  grouping: ResponseGroupingBucket,
 ): AggregateBucket {
-  const existing = buckets.get(groupKey);
+  const existing = buckets.get(grouping.groupKey);
   if (existing) {
     return existing;
   }
 
   const created: AggregateBucket = {
-    groupKey,
+    groupKey: grouping.groupKey,
+    kind: grouping.kind,
     count: 0,
     variants: new Map<string, number>(),
     preferredDisplay: null,
   };
-  buckets.set(groupKey, created);
+  buckets.set(grouping.groupKey, created);
   return created;
 }
 
@@ -238,39 +333,57 @@ function collectResponseGroupings(
   response: string,
   stopwordLookup: ReadonlySet<string>,
   locale: SupportedLocale,
+  analysisMode: WordCloudAnalysisMode,
 ): Map<string, ResponseGroupingBucket> {
   const groupings = new Map<string, ResponseGroupingBucket>();
+  const tokenGroupings: WordGrouping[] = [];
 
   for (const word of tokenize(response)) {
     if (!isNumericToken(word) && word.length < MIN_TEXT_TOKEN_LENGTH) continue;
     const grouping = getWordGrouping(word, locale);
     if (stopwordLookup.has(word) || stopwordLookup.has(grouping.groupKey)) continue;
 
-    const bucket = getOrCreateResponseGroupingBucket(groupings, grouping.groupKey);
-    bucket.displays.add(grouping.display);
-    if (grouping.preferredDisplay) {
-      bucket.preferredDisplay = bucket.preferredDisplay ?? grouping.preferredDisplay;
+    tokenGroupings.push(grouping);
+    addResponseGrouping(groupings, grouping);
+  }
+
+  if (analysisMode === 'qa') {
+    for (const phrase of buildQaPhraseGroupings(tokenGroupings)) {
+      addResponseGrouping(groupings, phrase);
     }
   }
 
   return groupings;
 }
 
+function addResponseGrouping(
+  groupings: Map<string, ResponseGroupingBucket>,
+  grouping: WordGrouping,
+): void {
+  const bucket = getOrCreateResponseGroupingBucket(groupings, grouping);
+  bucket.displays.add(grouping.display);
+  if (grouping.preferredDisplay) {
+    bucket.preferredDisplay = bucket.preferredDisplay ?? grouping.preferredDisplay;
+  }
+}
+
 function getOrCreateResponseGroupingBucket(
   groupings: Map<string, ResponseGroupingBucket>,
-  groupKey: string,
+  grouping: WordGrouping,
 ): ResponseGroupingBucket {
-  const existing = groupings.get(groupKey);
+  const existing = groupings.get(grouping.groupKey);
   if (existing) {
     return existing;
   }
 
   const created: ResponseGroupingBucket = {
-    groupKey,
+    groupKey: grouping.groupKey,
+    kind: grouping.kind,
+    containsNumeric: grouping.containsNumeric,
     displays: new Set<string>(),
     preferredDisplay: null,
   };
-  groupings.set(groupKey, created);
+  groupings.set(grouping.groupKey, created);
   return created;
 }
 
@@ -295,9 +408,10 @@ function normalizeToken(value: string): string {
 function createStopwordLookup(
   stopwords: ReadonlySet<string>,
   locale: SupportedLocale,
+  analysisMode: WordCloudAnalysisMode,
 ): ReadonlySet<string> {
   const lookup = new Set<string>();
-  for (const stopword of stopwords) {
+  for (const stopword of [...stopwords, ...getAnalysisStopwords(locale, analysisMode)]) {
     const normalized = normalizeLookupToken(stopword);
     if (!normalized) {
       continue;
@@ -314,12 +428,25 @@ function normalizeLookupToken(value: string): string {
   return normalizeToken(collapseNumericSeparatorSpacing(value).trim().toLowerCase());
 }
 
+function getLookupGroupKey(value: string, locale: SupportedLocale): string {
+  const tokens = tokenize(value).filter(
+    (token) => isNumericToken(token) || token.length >= MIN_TEXT_TOKEN_LENGTH,
+  );
+  if (tokens.length === 0) {
+    return '';
+  }
+
+  return tokens.map((token) => getWordGrouping(token, locale).groupKey).join(' ');
+}
+
 function getWordGrouping(token: string, locale: SupportedLocale): WordGrouping {
   if (isNumericToken(token)) {
     return {
       groupKey: token,
       display: token,
       preferredDisplay: token,
+      kind: 'token',
+      containsNumeric: true,
     };
   }
 
@@ -335,6 +462,8 @@ function getWordGrouping(token: string, locale: SupportedLocale): WordGrouping {
       groupKey: rule.toGroupKey(match),
       display: token,
       preferredDisplay: rule.toDisplay?.(match) ?? null,
+      kind: 'token',
+      containsNumeric: false,
     };
   }
 
@@ -342,7 +471,79 @@ function getWordGrouping(token: string, locale: SupportedLocale): WordGrouping {
     groupKey: comparableToken,
     display: token,
     preferredDisplay: null,
+    kind: 'token',
+    containsNumeric: false,
   };
+}
+
+function getAnalysisStopwords(
+  locale: SupportedLocale,
+  analysisMode: WordCloudAnalysisMode,
+): readonly string[] {
+  if (analysisMode !== 'qa') {
+    return [];
+  }
+
+  return QA_EXTRA_STOPWORDS_BY_LOCALE[locale] ?? [];
+}
+
+function buildQaPhraseGroupings(tokens: readonly WordGrouping[]): WordGrouping[] {
+  const phrases: WordGrouping[] = [];
+  for (let index = 0; index < tokens.length - 1; index += 1) {
+    const left = tokens[index]!;
+    const right = tokens[index + 1]!;
+    if (!shouldCreateQaPhrase(left, right)) {
+      continue;
+    }
+
+    phrases.push({
+      groupKey: `${left.groupKey} ${right.groupKey}`,
+      display: `${left.display} ${right.display}`,
+      preferredDisplay: `${left.preferredDisplay ?? left.display} ${
+        right.preferredDisplay ?? right.display
+      }`,
+      kind: 'phrase',
+      containsNumeric: left.containsNumeric || right.containsNumeric,
+    });
+  }
+
+  return phrases;
+}
+
+function shouldCreateQaPhrase(left: WordGrouping, right: WordGrouping): boolean {
+  if (left.containsNumeric || left.groupKey === right.groupKey) {
+    return false;
+  }
+
+  const leftLabel = left.preferredDisplay ?? left.display;
+  const rightLabel = right.preferredDisplay ?? right.display;
+  if (
+    (!left.containsNumeric && leftLabel.length < 3) ||
+    (!right.containsNumeric && rightLabel.length < 3)
+  ) {
+    return false;
+  }
+
+  if (right.containsNumeric) {
+    return true;
+  }
+
+  return leftLabel.length >= 4 && rightLabel.length >= 4;
+}
+
+function shouldAggregatePhrase(
+  grouping: ResponseGroupingBucket,
+  phraseResponseSupport: ReadonlyMap<string, number>,
+  phraseWeightedSupport: ReadonlyMap<string, number>,
+): boolean {
+  if (grouping.containsNumeric) {
+    return true;
+  }
+
+  return (
+    (phraseResponseSupport.get(grouping.groupKey) ?? 0) > 1 ||
+    (phraseWeightedSupport.get(grouping.groupKey) ?? 0) >= 3
+  );
 }
 
 function normalizeTokenForGrouping(token: string, locale: SupportedLocale): string {
@@ -382,6 +583,10 @@ function scoreDisplayVariant(value: string, locale: SupportedLocale): number {
   }
 
   return score;
+}
+
+function scoreGroupingKind(kind: GroupingKind): number {
+  return kind === 'phrase' ? 1 : 0;
 }
 
 function isAscii(value: string): boolean {

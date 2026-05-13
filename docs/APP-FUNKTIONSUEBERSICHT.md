@@ -314,6 +314,7 @@ Der Host sieht zusätzlich:
 - aktuelle Frage inklusive korrekter Antworten
 - Live-Freitextdaten
 - Freitext-Wortwolke inklusive Einfrieren/Live-Fortsetzen sowie CSV-/PNG-Export
+- Q&A-Wortwolke mit abgeflachter Upvote-Gewichtung, leichten Themenphrasen und Antwortenliste
 - Q&A-Fragenliste
 - Blitzlicht-Ergebnisse
 - Emoji-Reaktionen
@@ -367,6 +368,7 @@ Sie zeigt je nach Situation:
 - Ergebnisse
 - Team-Finale
 - grosse Freitext-Wortwolke als Standard-Buehnenansicht bei aktiver Freitextfrage
+- reduzierte Q&A-Wortwolke als oeffentliche Themenbuehne ohne Bedien-UI
 - sichtbare Q&A-Fragen
 - angepinnte Q&A-Frage
 - Blitzlicht-Balkendiagramm
@@ -480,7 +482,7 @@ Der Q&A-Kanal kann:
 Q&A erscheint:
 
 - in der Host-Ansicht als Moderations- und Steuerbereich
-- in der Present-Ansicht als sichtbare Fragenliste, Pin-Highlight und Wortwolke
+- in der Present-Ansicht als sichtbare Fragenliste, Pin-Highlight und reduzierte Themen-Wortwolke
 - in der Vote-Ansicht als Einreichungs- und Abstimmungsoberfläche
 
 ## 6. Blitzlicht / Quick Feedback

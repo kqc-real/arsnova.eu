@@ -29,6 +29,7 @@ import type {
 import { recordServerTimeIso } from '../session-server-clock';
 import { localizePath } from '../../../core/locale-router';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { getWordCloudWeightFromUpvotes } from './word-cloud.util';
 
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
@@ -111,7 +112,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly presenterQaWordCloudWeightedResponses = computed(() =>
     this.presenterQaWordCloudQuestions().map((question) => ({
       text: question.text,
-      weight: 1 + Math.max(0, question.upvoteCount),
+      weight: getWordCloudWeightFromUpvotes(question.upvoteCount),
     })),
   );
   readonly showQuickFeedbackCard = computed(

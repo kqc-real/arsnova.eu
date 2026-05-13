@@ -36,6 +36,7 @@ import {
   extractResponseGroupKeys,
   getStopwordsForLocale,
   normalizeFreeTextResponseForDisplay,
+  type WordCloudAnalysisMode,
   type WeightedWordSource,
 } from './word-cloud.util';
 import type { WordCloudDialogData } from './word-cloud-dialog.component';
@@ -140,6 +141,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   readonly responses = input<string[]>([]);
   readonly weightedResponses = input<WeightedWordSource[] | null>(null);
+  readonly analysisMode = input<WordCloudAnalysisMode>('default');
   readonly selectionScopeKey = input<string | null>(null);
   readonly title = input($localize`:@@wordCloud.title:Word-Cloud (Freitext)`);
   readonly eyebrow = input<string | null>(null);
@@ -147,7 +149,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     $localize`:@@wordCloud.description:Antworten verdichten sich live zu einem schnellen Themenbild.`,
   );
   readonly presentationMode = input(false);
+  readonly outputOnly = input(false);
   readonly showMaximizeAction = input(true);
+  readonly showExportActions = input(true);
   readonly emptyMessage = input(
     $localize`:@@wordCloud.empty:Noch keine Freitext-Antworten vorhanden.`,
   );
@@ -175,15 +179,22 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly maximizeLabel = $localize`:@@wordCloud.maximize:Maximieren`;
   readonly maximizeAriaLabel = $localize`:@@wordCloud.maximizeAria:Wortwolke maximieren`;
   readonly exportPngLabel = $localize`:@@wordCloud.exportPngOrdered:PNG exportieren (geordnet)`;
+  readonly showActionsPanel = computed(
+    () => !this.outputOnly() && (this.showMaximizeAction() || this.showExportActions()),
+  );
+  readonly showSupportingSection = computed(
+    () =>
+      this.showActionsPanel() ||
+      (!this.outputOnly() && (this.showResponsesPanel() || this.showReleaseNote())),
+  );
 
   private readonly stageWidth = signal(0);
   private readonly renderedCloudStageWidth = signal(0);
   private readonly renderedCloudStageHeight = signal(0);
   private readonly layoutFontFamily = signal('system-ui');
   private readonly activeLayoutSignature = signal('');
-  private readonly stopwordLookup = createWordCloudStopwordLookup(
-    this.stopwords,
-    this.activeLocale,
+  private readonly stopwordLookup = computed(() =>
+    createWordCloudStopwordLookup(this.stopwords, this.activeLocale, this.analysisMode()),
   );
 
   private readonly aggregationSources = computed<WeightedWordSource[]>(() => {
@@ -200,6 +211,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       this.aggregationSources(),
       this.stopwords,
       this.activeLocale,
+      this.analysisMode(),
     );
     const maxCount = aggregated[0]?.count ?? 1;
     const minFontSize = this.presentationMode() ? 16 : 14;
@@ -273,7 +285,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.responses().map((response) => ({
       response: normalizeFreeTextResponseForDisplay(response),
       groupKeys: new Set(
-        extractResponseGroupKeys(response, this.stopwordLookup, this.activeLocale),
+        extractResponseGroupKeys(
+          response,
+          this.stopwordLookup(),
+          this.activeLocale,
+          this.analysisMode(),
+        ),
       ),
     })),
   );
@@ -811,6 +828,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return {
       responses: this.responses(),
       weightedResponses: this.weightedResponses(),
+      analysisMode: this.analysisMode(),
       title: this.title(),
       eyebrow: this.eyebrow(),
       description: this.description(),

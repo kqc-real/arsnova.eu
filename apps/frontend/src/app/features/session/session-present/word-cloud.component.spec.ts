@@ -144,6 +144,49 @@ describe('WordCloudComponent', () => {
     expect(text).toContain('Größere Begriffe stehen für häufigere Nennungen.');
   });
 
+  it('kann öffentliche Presenter-Ansichten im Output-only-Modus ohne Bedien-UI rendern', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('responses', ['Motivation', 'Teamarbeit']);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).not.toContain('Maximieren');
+    expect(text).not.toContain('CSV exportieren');
+    expect(text).not.toContain('PNG exportieren');
+    expect(text).not.toContain('Antwort anzeigen');
+    expect(fixture.nativeElement.querySelector('.word-cloud__supporting')).toBeNull();
+  });
+
+  it('nutzt im Q&A-Profil leichte Themenphrasen fuer Fragenwolken', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('title', 'Q&A-Word-Cloud');
+    fixture.componentRef.setInput('itemLabelSingular', 'Frage');
+    fixture.componentRef.setInput('itemLabelPlural', 'Fragen');
+    fixture.componentRef.setInput('responses', [
+      'Wie funktioniert lineare Regression im Praxisprojekt?',
+      'Wann nutzen wir lineare Regression fuer Prognosen?',
+      'Kommt Kapitel 4 in der Klausur vor?',
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(
+      component.words().find((entry) => entry.groupKey === 'lineare regression'),
+    ).toMatchObject({
+      word: 'lineare regression',
+      count: 2,
+      groupKey: 'lineare regression',
+    });
+    expect(component.words().find((entry) => entry.groupKey === 'kapitel 4')).toMatchObject({
+      word: 'kapitel 4',
+      count: 1,
+      groupKey: 'kapitel 4',
+    });
+  });
+
   it('zeigt sinnvolle Zwei-Zeichen-Begriffe in der Wolke an', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['pi', 'KI', 'a']);

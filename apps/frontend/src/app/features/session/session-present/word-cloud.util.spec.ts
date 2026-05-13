@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_STOPWORDS,
   aggregateWords,
+  getWordCloudWeightFromUpvotes,
   getStopwordsForLocale,
   normalizeFreeTextResponseForDisplay,
   responseContainsWord,
@@ -26,17 +27,47 @@ describe('aggregateWords', () => {
   });
 
   it('filtert haeufige deutsche Fragewoerter aus der Q&A-Wortwolke', () => {
-    const result = aggregateWords([
-      'Wie funktioniert das Beispiel genau?',
-      'Welche Formel brauchen wir hier?',
-      'Was bedeutet das fuer die Klausur?',
-      'Wie laesst sich die Formel herleiten?',
-    ]);
+    const result = aggregateWords(
+      [
+        'Wie funktioniert das Beispiel genau?',
+        'Welche Formel brauchen wir hier?',
+        'Was bedeutet das fuer die Klausur?',
+        'Kannst du die Formel bitte noch einmal herleiten?',
+      ],
+      DEFAULT_STOPWORDS,
+      'de',
+      'qa',
+    );
 
     expect(result.some((entry) => entry.word === 'wie')).toBe(false);
     expect(result.some((entry) => entry.word === 'welche')).toBe(false);
     expect(result.some((entry) => entry.word === 'was')).toBe(false);
+    expect(result.some((entry) => entry.word === 'genau')).toBe(false);
+    expect(result.some((entry) => entry.word === 'bitte')).toBe(false);
     expect(result.some((entry) => entry.word === 'formel')).toBe(true);
+  });
+
+  it('bildet in der Q&A-Wortwolke leichte Themenphrasen statt nur Einzelwoerter', () => {
+    const result = aggregateWords(
+      [
+        'Kommt Kapitel 4 in der Klausur vor?',
+        'Wie funktioniert lineare Regression im Praxisprojekt?',
+        'Wann nutzen wir lineare Regression fuer Prognosen?',
+      ],
+      DEFAULT_STOPWORDS,
+      'de',
+      'qa',
+    );
+
+    expect(result.find((entry) => entry.groupKey === 'kapitel 4')).toMatchObject({
+      word: 'kapitel 4',
+      groupKey: 'kapitel 4',
+    });
+    expect(result.find((entry) => entry.groupKey === 'lineare regression')).toMatchObject({
+      word: 'lineare regression',
+      count: 2,
+      groupKey: 'lineare regression',
+    });
   });
 
   it('laesst fachliche Kurzbegriffe mit zwei Zeichen zu, filtert aber Einzelzeichen', () => {
@@ -95,6 +126,28 @@ describe('aggregateWords', () => {
     expect(responseContainsWord('3, 14', '3.14')).toBe(true);
     expect(responseContainsWord('13.14', '3.14')).toBe(false);
     expect(responseContainsWord('spiel', 'pi')).toBe(false);
+  });
+
+  it('filtert Q&A-Antworten auch ueber Themenphrasen', () => {
+    expect(
+      responseContainsWord('Kommt Kapitel 4 in der Klausur vor?', 'kapitel 4', 'de', 'qa'),
+    ).toBe(true);
+    expect(
+      responseContainsWord(
+        'Wie funktioniert lineare Regression im Praxisprojekt?',
+        'lineare regression',
+        'de',
+        'qa',
+      ),
+    ).toBe(true);
+    expect(
+      responseContainsWord(
+        'Wie funktioniert lineare Regression im Praxisprojekt?',
+        'kapitel 4',
+        'de',
+        'qa',
+      ),
+    ).toBe(false);
   });
 
   it('bündelt deutsche Wortfamilien auf Gruppenbasis und waehlt eine lesbare Anzeigeform', () => {
@@ -176,5 +229,14 @@ describe('aggregateWords', () => {
 
     expect(spanish.some((entry) => entry.word === 'qué')).toBe(false);
     expect(spanish.some((entry) => entry.word === 'fórmula')).toBe(true);
+  });
+
+  it('flacht Upvotes fuer die Q&A-Wortwolke per Wurzelgewicht ab', () => {
+    expect(getWordCloudWeightFromUpvotes(-5)).toBe(1);
+    expect(getWordCloudWeightFromUpvotes(0)).toBe(1);
+    expect(getWordCloudWeightFromUpvotes(1)).toBe(2);
+    expect(getWordCloudWeightFromUpvotes(4)).toBe(3);
+    expect(getWordCloudWeightFromUpvotes(9)).toBe(4);
+    expect(getWordCloudWeightFromUpvotes(25)).toBe(6);
   });
 });

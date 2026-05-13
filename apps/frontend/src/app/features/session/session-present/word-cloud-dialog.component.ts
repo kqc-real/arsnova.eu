@@ -3,11 +3,12 @@ import { MatIconButton } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { WordCloudComponent } from './word-cloud.component';
-import type { WeightedWordSource } from './word-cloud.util';
+import type { WeightedWordSource, WordCloudAnalysisMode } from './word-cloud.util';
 
 export type WordCloudDialogData = {
   responses: string[];
   weightedResponses: WeightedWordSource[] | null;
+  analysisMode: WordCloudAnalysisMode;
   title: string;
   eyebrow: string | null;
   description: string | null;

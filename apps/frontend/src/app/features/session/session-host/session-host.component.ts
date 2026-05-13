@@ -82,7 +82,10 @@ import type {
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
-import { normalizeFreeTextResponseForDisplay } from '../session-present/word-cloud.util';
+import {
+  getWordCloudWeightFromUpvotes,
+  normalizeFreeTextResponseForDisplay,
+} from '../session-present/word-cloud.util';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel } from '../../../shared/question-type-label';
@@ -751,7 +754,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudWeightedResponses = computed(() =>
     this.qaWordCloudQuestions().map((question) => ({
       text: question.text,
-      weight: 1 + Math.max(0, question.upvoteCount),
+      weight: getWordCloudWeightFromUpvotes(question.upvoteCount),
     })),
   );
   readonly qaWordCloudExpanded = signal(false);

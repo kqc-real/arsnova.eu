@@ -1431,7 +1431,7 @@ describe('SessionHostComponent', () => {
     expect(text).toContain('Q&A-Word-Cloud anzeigen');
     expect(text).toContain('2 Fragen');
     expect(fixture.componentInstance.qaWordCloudQuestions()).toHaveLength(2);
-    expect(fixture.componentInstance.qaWordCloudWeightedResponses()[0]?.weight).toBe(10);
+    expect(fixture.componentInstance.qaWordCloudWeightedResponses()[0]?.weight).toBe(4);
 
     fixture.componentInstance.qaWordCloudExpanded.set(true);
     fixture.detectChanges();
