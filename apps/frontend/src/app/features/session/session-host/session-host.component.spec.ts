@@ -829,7 +829,11 @@ describe('SessionHostComponent', () => {
 
     expect(enableQaChannelMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(qaOnQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
-      { sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad', moderatorView: true },
+      {
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        moderatorView: true,
+        sort: 'TOP',
+      },
       expect.any(Object),
     );
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
@@ -1429,18 +1433,19 @@ describe('SessionHostComponent', () => {
 
     let text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Q&A-Word-Cloud anzeigen');
-    expect(text).toContain('2 Fragen');
+    expect(text).toContain('2 Fragen · Netto-Score gewichtet');
     expect(fixture.componentInstance.qaWordCloudQuestions()).toHaveLength(2);
     expect(fixture.componentInstance.qaWordCloudWeightedResponses()[0]?.weight).toBe(4);
+    expect(fixture.componentInstance.qaWordCloudTitle()).toBe('Q&A-Word-Cloud (Netto-Score)');
 
     fixture.componentInstance.qaWordCloudExpanded.set(true);
     fixture.detectChanges();
 
     text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Q&A-Word-Cloud ausblenden');
-    expect(text).toContain('Q&A-Word-Cloud (Upvotes gewichtet)');
+    expect(text).toContain('Q&A-Word-Cloud (Netto-Score)');
     expect(text).toContain('Publikumsfragen');
-    expect(text).toContain('Größere Begriffe verbinden Häufigkeit und Upvotes.');
+    expect(text).toContain('Größere Begriffe stammen aus Fragen mit höherem Netto-Score.');
     fixture.destroy();
   });
 
@@ -1573,6 +1578,179 @@ describe('SessionHostComponent', () => {
       questionId: '44444444-4444-4444-8444-444444444444',
       action: 'APPROVE',
     });
+    fixture.destroy();
+  });
+
+  it('schaltet im Host zwischen Q&A-Sortiermodi um und lädt BEST neu', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Welche Frage gewinnt?',
+        upvoteCount: 4,
+        score: 4,
+        positiveVoteCount: 5,
+        negativeVoteCount: 1,
+        voteCount: 6,
+        bestScore: 0.71,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    qaListQueryMock.mockClear();
+    qaOnQuestionsUpdatedSubscribeMock.mockClear();
+
+    await component.setQaSortMode('BEST');
+    fixture.detectChanges();
+
+    expect(qaListQueryMock).toHaveBeenCalledWith({
+      sessionId: defaultSession.id,
+      moderatorView: true,
+      sort: 'BEST',
+    });
+    expect(qaOnQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
+      {
+        sessionId: defaultSession.id,
+        moderatorView: true,
+        sort: 'BEST',
+      },
+      expect.any(Object),
+    );
+    expect(component.qaSortMode()).toBe('BEST');
+    expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(21);
+    expect(component.qaWordCloudTitle()).toBe('Q&A-Word-Cloud (Wilson-Score)');
+    expect(component.qaWordCloudInfo()).toBe('1 Frage · Wilson-Score gewichtet');
+    expect(fixture.nativeElement.textContent ?? '').toContain(
+      'Wilson-Score bevorzugt belastbare Zustimmung.',
+    );
+    fixture.destroy();
+  });
+
+  it('kennzeichnet kontroverse Fragen in der Host-Liste sichtbar', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Das Publikum ist gespalten.',
+        upvoteCount: 0,
+        score: 0,
+        positiveVoteCount: 8,
+        negativeVoteCount: 8,
+        voteCount: 16,
+        controversyScore: 0.8,
+        isControversial: true,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    await component.setQaSortMode('CONTROVERSIAL');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(27);
+    expect(component.qaWordCloudTitle()).toBe('Q&A-Word-Cloud (Kontroversität)');
+    expect(component.qaWordCloudInfo()).toBe('1 Frage · Kontroversität gewichtet');
+    expect(text).toContain('Umstritten');
+    expect(text).toContain('8 positiv · 8 negativ');
+    expect(text).toContain('Kontroversität 80 %');
+    fixture.destroy();
+  });
+
+  it('oeffnet die Q&A-Wortwolke im Vollbild mit Sortierzustand des Hosts', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Welche Frage gewinnt?',
+        upvoteCount: 0,
+        score: 0,
+        positiveVoteCount: 8,
+        negativeVoteCount: 8,
+        voteCount: 16,
+        controversyScore: 0.8,
+        isControversial: true,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    await component.setQaSortMode('CONTROVERSIAL');
+    fixture.detectChanges();
+
+    dialogOpenMock.mockClear();
+    await component.openQaWordCloudDialog();
+
+    expect(dialogOpenMock).toHaveBeenCalledTimes(1);
+    const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
+    expect(config['panelClass']).toBe('word-cloud-dialog-panel');
+    expect(config['height']).toBe('100dvh');
+    const data = config['data'] as {
+      sortMode: () => string;
+      title: () => string;
+      tooltipMetricLabel: () => string;
+      weightingHint: () => string | null;
+    };
+    expect(data.sortMode()).toBe('CONTROVERSIAL');
+    expect(data.title()).toBe('Q&A-Word-Cloud (Kontroversität)');
+    expect(data.tooltipMetricLabel()).toBe('Kontroversität');
+    expect(data.weightingHint()).toContain('stärker umstrittenen Fragen');
     fixture.destroy();
   });
 
@@ -5117,6 +5295,7 @@ describe('SessionHostComponent', () => {
       expect(qaListQueryMock).toHaveBeenCalledWith({
         sessionId: defaultSession.id,
         moderatorView: true,
+        sort: 'TOP',
       });
       expect(fixture.componentInstance.hostSteeringCallout()?.title).toContain(qaCalloutTitle);
       fixture.destroy();

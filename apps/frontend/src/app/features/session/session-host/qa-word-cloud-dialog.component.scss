@@ -1,0 +1,87 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.qa-word-cloud-dialog {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  justify-items: stretch;
+  gap: clamp(0.9rem, 2vw, 1.35rem);
+  width: 100%;
+  height: 100%;
+  padding: clamp(0.9rem, 2vw, 1.55rem);
+  box-sizing: border-box;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--mat-sys-primary) 18%, transparent),
+      transparent 46%
+    ),
+    radial-gradient(
+      circle at 10% 100%,
+      color-mix(in srgb, var(--mat-sys-tertiary) 16%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--mat-sys-surface-container-highest) 76%, black 24%),
+      color-mix(in srgb, var(--mat-sys-surface) 86%, black 14%)
+    );
+}
+
+.qa-word-cloud-dialog__toolbar {
+  display: flex;
+  justify-content: center;
+  justify-self: center;
+  padding-inline: clamp(0.25rem, 1vw, 0.75rem);
+}
+
+.qa-word-cloud-dialog__sort-toggle {
+  max-width: min(100%, 36rem);
+  background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+  box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.qa-word-cloud-dialog__cloud {
+  display: block;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  justify-self: stretch;
+}
+
+.qa-word-cloud-dialog__close {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top, 0px) + 0.35rem);
+  right: max(1rem, env(safe-area-inset-right, 0px) + 0.35rem);
+  z-index: 3;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
+  color: var(--mat-sys-on-surface);
+  box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+
+@media (max-width: 700px) {
+  .qa-word-cloud-dialog {
+    padding: max(0.65rem, env(safe-area-inset-top, 0px)) 0.65rem
+      max(0.65rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .qa-word-cloud-dialog__toolbar {
+    justify-content: stretch;
+    padding-right: 3.25rem;
+  }
+
+  .qa-word-cloud-dialog__sort-toggle {
+    width: 100%;
+  }
+}

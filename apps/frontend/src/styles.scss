@@ -622,6 +622,16 @@ html {
   backdrop-filter: blur(12px) saturate(1.15);
 }
 
+.word-cloud-tooltip .mdc-tooltip__surface {
+  max-width: min(34rem, calc(100vw - 1.5rem));
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.95rem;
+  text-align: left;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  font: var(--mat-sys-body-small);
+}
+
 .markdown-lightbox-enabled img[data-markdown-image-lightbox='true'],
 img[data-markdown-image-lightbox='true'] {
   cursor: -webkit-zoom-in !important;

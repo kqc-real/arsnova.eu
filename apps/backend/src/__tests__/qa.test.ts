@@ -10,6 +10,7 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     },
     participant: {
       findUnique: vi.fn(),
+      count: vi.fn(),
     },
     qaQuestion: {
       findMany: vi.fn(),
@@ -346,6 +347,7 @@ describe('qa router (Epic 8)', () => {
         upvoteCount: 0,
         status: 'PENDING',
         createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        upvotes: [],
       },
     ]);
 
@@ -356,13 +358,146 @@ describe('qa router (Epic 8)', () => {
         id: QUESTION_ID,
         text: 'Noch nicht freigegeben',
         upvoteCount: 0,
+        score: 0,
         status: 'PENDING',
         createdAt: '2026-03-13T12:00:00.000Z',
+        positiveVoteCount: 0,
+        negativeVoteCount: 0,
+        voteCount: 0,
+        bestScore: 0,
+        isControversial: false,
         hasUpvoted: false,
         isOwn: false,
         myVote: null,
       },
     ]);
+  });
+
+  it('sortiert Host-Q&A im BEST-Modus nach Wilson-Score', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+    });
+    prismaMock.qaQuestion.findMany.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        participantId: PARTICIPANT_ID,
+        text: 'Nur eine Zustimmung',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        upvotes: [{ direction: 'UP' }],
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        participantId: PARTICIPANT_ID,
+        text: 'Robuste Zustimmung',
+        upvoteCount: 5,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:01:00.000Z'),
+        upvotes: Array.from({ length: 5 }, () => ({ direction: 'UP' })),
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        participantId: PARTICIPANT_ID,
+        text: 'Mehrheit mit Gegenstimme',
+        upvoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:02:00.000Z'),
+        upvotes: [...Array.from({ length: 4 }, () => ({ direction: 'UP' })), { direction: 'DOWN' }],
+      },
+    ]);
+
+    const result = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      sort: 'BEST',
+    });
+
+    expect(result.map((question) => question.id)).toEqual([
+      '22222222-2222-4222-8222-222222222222',
+      '33333333-3333-4333-8333-333333333333',
+      '11111111-1111-4111-8111-111111111111',
+    ]);
+    expect(result[0]).toMatchObject({
+      score: 5,
+      positiveVoteCount: 5,
+      negativeVoteCount: 0,
+      voteCount: 5,
+    });
+    expect(result[0]?.bestScore).toBeGreaterThan(result[1]?.bestScore ?? 0);
+    expect(result[1]?.bestScore).toBeGreaterThan(result[2]?.bestScore ?? 0);
+  });
+
+  it('sortiert Host-Q&A im CONTROVERSIAL-Modus nach Kontroversität und kennzeichnet starke Polarität', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+    });
+    prismaMock.participant.count.mockResolvedValue(20);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        participantId: PARTICIPANT_ID,
+        text: 'Polarisiert stark',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        upvotes: [
+          ...Array.from({ length: 5 }, () => ({ direction: 'UP' })),
+          ...Array.from({ length: 5 }, () => ({ direction: 'DOWN' })),
+        ],
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        participantId: PARTICIPANT_ID,
+        text: 'Nur Zustimmung',
+        upvoteCount: 10,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:01:00.000Z'),
+        upvotes: Array.from({ length: 10 }, () => ({ direction: 'UP' })),
+      },
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        participantId: PARTICIPANT_ID,
+        text: 'Leicht kontrovers',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:02:00.000Z'),
+        upvotes: [{ direction: 'UP' }, { direction: 'DOWN' }],
+      },
+    ]);
+
+    const result = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      sort: 'CONTROVERSIAL',
+    });
+
+    expect(result.map((question) => question.id)).toEqual([
+      '11111111-1111-4111-8111-111111111111',
+      '33333333-3333-4333-8333-333333333333',
+      '22222222-2222-4222-8222-222222222222',
+    ]);
+    expect(result[0]).toMatchObject({
+      score: 0,
+      positiveVoteCount: 5,
+      negativeVoteCount: 5,
+      voteCount: 10,
+      isControversial: true,
+    });
+    expect(result[0]?.controversyScore).toBeGreaterThan(0.8);
+    expect(result[1]?.controversyScore).toBe(0.5);
+    expect(result[1]?.isControversial).toBe(false);
+    expect(result[2]?.controversyScore).toBe(0);
   });
 
   it('lehnt qa.onQuestionsUpdated mit moderatorView ohne Host-Token ab', async () => {
@@ -408,6 +543,7 @@ describe('qa router (Epic 8)', () => {
         upvoteCount: 0,
         status: 'PENDING',
         createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        upvotes: [],
       },
     ]);
 
@@ -427,8 +563,14 @@ describe('qa router (Epic 8)', () => {
         id: QUESTION_ID,
         text: 'Noch nicht freigegeben',
         upvoteCount: 0,
+        score: 0,
         status: 'PENDING',
         createdAt: '2026-03-13T12:00:00.000Z',
+        positiveVoteCount: 0,
+        negativeVoteCount: 0,
+        voteCount: 0,
+        bestScore: 0,
+        isControversial: false,
         hasUpvoted: false,
         isOwn: false,
         myVote: null,

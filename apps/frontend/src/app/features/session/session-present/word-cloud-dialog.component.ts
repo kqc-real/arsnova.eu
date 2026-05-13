@@ -21,6 +21,7 @@ export type WordCloudDialogData = {
   showResponsesPluralLabel: string;
   showResponsesPanel: boolean;
   weightingHint: string | null;
+  tooltipMetricLabel: string | null;
 };
 
 @Component({

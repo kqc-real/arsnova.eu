@@ -314,7 +314,7 @@ Der Host sieht zusätzlich:
 - aktuelle Frage inklusive korrekter Antworten
 - Live-Freitextdaten
 - Freitext-Wortwolke inklusive Einfrieren/Live-Fortsetzen sowie CSV-/PNG-Export
-- Q&A-Wortwolke mit abgeflachter Upvote-Gewichtung, leichten Themenphrasen und Antwortenliste
+- Q&A-Wortwolke mit Host-Sortiermodi (`Top`, `Beste Fragen`, `Umstritten`), leichten Themenphrasen, thematischen Tooltips und Vollansicht mit Sortiertoggle
 - Q&A-Fragenliste
 - Blitzlicht-Ergebnisse
 - Emoji-Reaktionen
@@ -481,7 +481,7 @@ Der Q&A-Kanal kann:
 
 Q&A erscheint:
 
-- in der Host-Ansicht als Moderations- und Steuerbereich
+- in der Host-Ansicht als Moderations- und Steuerbereich inklusive Sortiermodi `Top` / `Beste Fragen` / `Umstritten`, Bewertungsmetriken und sortierabhaengiger Q&A-Wortwolke
 - in der Present-Ansicht als sichtbare Fragenliste, Pin-Highlight und reduzierte Themen-Wortwolke
 - in der Vote-Ansicht als Einreichungs- und Abstimmungsoberfläche
 

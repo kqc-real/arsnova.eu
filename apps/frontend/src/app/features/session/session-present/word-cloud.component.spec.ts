@@ -322,10 +322,43 @@ describe('WordCloudComponent', () => {
     const entry = component.words().find((item) => item.groupKey === 'validieren');
 
     expect(entry).toBeTruthy();
+    expect(component.wordTooltip(entry!)).toContain('Nennungen: 3');
     expect(component.wordTooltip(entry!)).toContain('Formen:');
     expect(component.wordTooltip(entry!)).toContain('validierung');
     expect(component.wordTooltip(entry!)).toContain('validiert');
     expect(component.wordTooltip(entry!)).toContain('validieren');
+  });
+
+  it('zeigt im Q&A-Tooltip den gewichteten Wert, die Metrikbasis und zugehörige Fragen', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('itemLabelSingular', 'Frage');
+    fixture.componentRef.setInput('itemLabelPlural', 'Fragen');
+    fixture.componentRef.setInput('tooltipMetricLabel', 'Wilson-Score');
+    fixture.componentRef.setInput('responses', [
+      'Sollten wir zuerst Python oder zuerst die Formel herleiten?',
+      'Brauchen wir noch ein Rechenbeispiel zur Standardabweichung?',
+      'Sollten wir Python Beispiele als Hausaufgabe vorbereiten?',
+    ]);
+    fixture.componentRef.setInput('weightedResponses', [
+      { text: 'Sollten wir zuerst Python oder zuerst die Formel herleiten?', weight: 21 },
+      { text: 'Brauchen wir noch ein Rechenbeispiel zur Standardabweichung?', weight: 8 },
+      { text: 'Sollten wir Python Beispiele als Hausaufgabe vorbereiten?', weight: 5 },
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    const entry = component.words().find((item) => item.groupKey === 'python');
+
+    expect(entry).toBeTruthy();
+    const tooltip = component.wordTooltipDisplay(entry!);
+    expect(tooltip).toContain('Gewichteter Wert: 26');
+    expect(tooltip).toContain('Basis: Wilson-Score');
+    expect(tooltip).toContain('Fragen:');
+    expect(tooltip).toContain('• Sollten wir zuerst Python oder zuerst');
+    expect(tooltip).toContain('   Formel herleiten?');
+    expect(tooltip).toContain('• Sollten wir Python Beispiele als');
+    expect(tooltip).toContain('   Hausaufgabe vorbereiten?');
   });
 
   it('exportiert CSV mit Variantenliste und setzt eine Statusmeldung', async () => {
@@ -436,5 +469,17 @@ describe('WordCloudComponent', () => {
       responses: ['Motivation durch Teamarbeit', 'Teamarbeit schafft Fokus'],
       title: 'Word-Cloud (Freitext)',
     });
+  });
+
+  it('nutzt optional einen benutzerdefinierten Maximieren-Handler', () => {
+    const maximizeSpy = vi.fn();
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('maximizeActionHandler', maximizeSpy);
+    fixture.componentRef.setInput('responses', ['Motivation durch Teamarbeit']);
+    fixture.detectChanges();
+
+    fixture.componentInstance.handleMaximize();
+
+    expect(maximizeSpy).toHaveBeenCalledTimes(1);
   });
 });

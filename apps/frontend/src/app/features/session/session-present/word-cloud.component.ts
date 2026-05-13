@@ -22,6 +22,7 @@ import {
 } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import d3Cloud, { type CloudLayout } from 'd3-cloud';
 import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
 import {
@@ -114,6 +115,7 @@ interface RoundedRectStyle {
     MatCardSubtitle,
     MatCardTitle,
     MatIcon,
+    MatTooltip,
   ],
   templateUrl: './word-cloud.component.html',
   styleUrl: './word-cloud.component.scss',
@@ -123,6 +125,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly dialog = inject(MatDialog, { optional: true });
   private readonly localeId = inject(LOCALE_ID);
   private readonly exportSurface = viewChild<ElementRef<HTMLElement>>('exportSurface');
+  private readonly visualFrame = viewChild<ElementRef<HTMLElement>>('visualFrame');
   private readonly layoutStage = viewChild<ElementRef<HTMLElement>>('layoutStage');
   private readonly activeLocale = getEffectiveLocale(localeIdToSupported(this.localeId));
   private readonly stopwords = getStopwordsForLocale(this.activeLocale);
@@ -135,6 +138,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private resizeObserver: ResizeObserver | null = null;
   private observedStage: HTMLElement | null = null;
+  private frameResizeObserver: ResizeObserver | null = null;
+  private observedVisualFrame: HTMLElement | null = null;
   private layoutTimer: ReturnType<typeof setTimeout> | null = null;
   private activeCloudLayout: CloudLayout<LayoutWord> | null = null;
   private layoutRunId = 0;
@@ -149,9 +154,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly description = input<string | null>(
     $localize`:@@wordCloud.description:Antworten verdichten sich live zu einem schnellen Themenbild.`,
   );
+  readonly tooltipMetricLabel = input<string | null>(null);
   readonly presentationMode = input(false);
   readonly outputOnly = input(false);
   readonly showMaximizeAction = input(true);
+  readonly maximizeActionHandler = input<(() => void | Promise<void>) | null>(null);
   readonly showExportActions = input(true);
   readonly emptyMessage = input(
     $localize`:@@wordCloud.empty:Noch keine Freitext-Antworten vorhanden.`,
@@ -190,6 +197,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   );
 
   private readonly stageWidth = signal(0);
+  private readonly availableVisualFrameHeight = signal(0);
   private readonly renderedCloudStageWidth = signal(0);
   private readonly renderedCloudStageHeight = signal(0);
   private readonly layoutFontFamily = signal('system-ui');
@@ -241,7 +249,17 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return 0;
     }
 
-    return getWordCloudLayoutHeight(width, wordCount, this.presentationMode());
+    const preferredHeight = getWordCloudLayoutHeight(width, wordCount, this.presentationMode());
+    if (!this.presentationMode()) {
+      return preferredHeight;
+    }
+
+    const availableHeight = this.availableVisualFrameHeight();
+    if (availableHeight <= 0) {
+      return preferredHeight;
+    }
+
+    return Math.max(240, Math.min(preferredHeight, availableHeight));
   });
 
   readonly layoutInputSignature = computed(() => {
@@ -289,6 +307,28 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     })),
   );
 
+  private readonly tooltipResponseIndex = computed(() => {
+    const grouped = new Map<string, string[]>();
+    const seenByGroup = new Map<string, Set<string>>();
+
+    for (const entry of this.responseSearchIndex()) {
+      for (const groupKey of entry.groupKeys) {
+        const seen = seenByGroup.get(groupKey) ?? new Set<string>();
+        if (seen.has(entry.response)) {
+          continue;
+        }
+
+        seen.add(entry.response);
+        seenByGroup.set(groupKey, seen);
+        const responses = grouped.get(groupKey) ?? [];
+        responses.push(entry.response);
+        grouped.set(groupKey, responses);
+      }
+    }
+
+    return grouped;
+  });
+
   readonly filteredResponses = computed(() => {
     const selected = this.selectedGroupKey();
     return this.responseSearchIndex()
@@ -309,10 +349,14 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly stageMinHeight = computed(() => {
     const wordCount = this.displayWords().length;
     if (this.presentationMode()) {
-      if (wordCount <= 6) return '22rem';
-      if (wordCount <= 14) return '28rem';
-      if (wordCount <= 28) return '36rem';
-      return '44rem';
+      const preferredHeightPx =
+        wordCount <= 6 ? 352 : wordCount <= 14 ? 448 : wordCount <= 28 ? 576 : 704;
+      const availableHeight = this.availableVisualFrameHeight();
+      if (availableHeight > 0) {
+        return `${Math.max(240, Math.min(preferredHeightPx, availableHeight))}px`;
+      }
+
+      return `${preferredHeightPx}px`;
     }
 
     if (wordCount <= 6) return '10.5rem';
@@ -330,6 +374,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const stage = this.layoutStage()?.nativeElement ?? null;
       queueMicrotask(() => this.observeStage(stage));
+    });
+
+    effect(() => {
+      const frame = this.visualFrame()?.nativeElement ?? null;
+      queueMicrotask(() => this.observeVisualFrame(frame));
     });
 
     effect(() => {
@@ -388,6 +437,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.observeVisualFrame(this.visualFrame()?.nativeElement ?? null);
     this.observeStage(this.layoutStage()?.nativeElement ?? null);
   }
 
@@ -395,6 +445,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.clearScheduledLayout();
     this.stopCloudLayout();
     this.resizeObserver?.disconnect();
+    this.frameResizeObserver?.disconnect();
   }
 
   itemLabel(count: number): string {
@@ -419,6 +470,16 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   showMoreResponses(): void {
     this.responsesVisibleLimit.update((value) => value + WordCloudComponent.RESPONSES_PAGE_SIZE);
+  }
+
+  handleMaximize(): void {
+    const customHandler = this.maximizeActionHandler();
+    if (customHandler) {
+      void customHandler();
+      return;
+    }
+
+    void this.openInDialog();
   }
 
   async openInDialog(): Promise<void> {
@@ -466,13 +527,49 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   wordTooltip(entry: CloudWord): string {
-    const base = $localize`:@@wordCloud.countTooltip:Anzahl: ${entry.count}:count:`;
-    if (entry.variants.length <= 1) {
-      return base;
+    const lines = [this.tooltipValueLine(entry.count)];
+    const metricLine = this.tooltipMetricLine();
+    if (metricLine) {
+      lines.push(metricLine);
     }
 
-    const variants = this.wordVariantPreview(entry.variants);
-    return $localize`:@@wordCloud.variantsTooltip:${base}:base: · Formen: ${variants}:variants:`;
+    if (entry.variants.length > 1) {
+      const variants = this.wordVariantPreview(entry.variants);
+      lines.push($localize`:@@wordCloud.variantsTooltip:Formen: ${variants}:variants:`);
+    }
+
+    if (this.analysisMode() === 'qa') {
+      const relatedResponses = this.relatedResponsePreview(entry.groupKey);
+      if (relatedResponses.length > 0) {
+        lines.push(`${this.itemLabel(relatedResponses.length)}:`);
+        lines.push(...relatedResponses.map((response) => `- ${response}`));
+      }
+    }
+
+    return lines.join('\n');
+  }
+
+  wordTooltipDisplay(entry: CloudWord): string {
+    const lines = [this.tooltipValueLine(entry.count)];
+    const metricLine = this.tooltipMetricLine();
+    if (metricLine) {
+      lines.push(metricLine);
+    }
+
+    if (entry.variants.length > 1) {
+      const variants = this.wordVariantPreview(entry.variants);
+      lines.push($localize`:@@wordCloud.variantsTooltip:Formen: ${variants}:variants:`);
+    }
+
+    if (this.analysisMode() === 'qa') {
+      const relatedResponses = this.relatedResponsePreview(entry.groupKey);
+      if (relatedResponses.length > 0) {
+        lines.push(`${this.itemLabel(relatedResponses.length)}:`);
+        lines.push(...relatedResponses.map((response) => this.formatTooltipListItem(response)));
+      }
+    }
+
+    return lines.join('\n');
   }
 
   loadMoreResponsesLabel(): string {
@@ -592,6 +689,32 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.resizeObserver.observe(stage);
   }
 
+  private observeVisualFrame(frame: HTMLElement | null): void {
+    if (frame === this.observedVisualFrame) {
+      if (frame) {
+        this.updateVisualFrameMetrics(frame);
+      }
+      return;
+    }
+
+    this.frameResizeObserver?.disconnect();
+    this.frameResizeObserver = null;
+    this.observedVisualFrame = frame;
+
+    if (!frame) {
+      this.availableVisualFrameHeight.set(0);
+      return;
+    }
+
+    this.updateVisualFrameMetrics(frame);
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    this.frameResizeObserver = new ResizeObserver(() => this.updateVisualFrameMetrics(frame));
+    this.frameResizeObserver.observe(frame);
+  }
+
   private updateStageMetrics(stage: HTMLElement): void {
     const width = Math.max(0, Math.round(stage.clientWidth));
     if (width !== this.stageWidth()) {
@@ -601,6 +724,20 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const fontFamily = this.readComputedStyle(stage).fontFamily || 'system-ui';
     if (fontFamily !== this.layoutFontFamily()) {
       this.layoutFontFamily.set(fontFamily);
+    }
+  }
+
+  private updateVisualFrameMetrics(frame: HTMLElement): void {
+    const frameStyle = this.readComputedStyle(frame);
+    const paddingTop = Number.parseFloat(frameStyle.paddingTop || '0');
+    const paddingBottom = Number.parseFloat(frameStyle.paddingBottom || '0');
+    const availableHeight = Math.max(
+      0,
+      Math.round(frame.clientHeight - paddingTop - paddingBottom),
+    );
+
+    if (availableHeight !== this.availableVisualFrameHeight()) {
+      this.availableVisualFrameHeight.set(availableHeight);
     }
   }
 
@@ -741,6 +878,77 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return variants.length > 4 ? `${preview} | …` : preview;
   }
 
+  private tooltipValueLine(count: number): string {
+    if (this.analysisMode() === 'qa') {
+      return $localize`:@@wordCloud.weightedValueTooltip:Gewichteter Wert: ${count}:count:`;
+    }
+
+    return $localize`:@@wordCloud.mentionsTooltip:Nennungen: ${count}:count:`;
+  }
+
+  private tooltipMetricLine(): string | null {
+    const metricLabel = this.tooltipMetricLabel()?.trim();
+    if (!metricLabel) {
+      return null;
+    }
+
+    return $localize`:@@wordCloud.metricBasisTooltip:Basis: ${metricLabel}:metric:`;
+  }
+
+  private relatedResponsePreview(groupKey: string): string[] {
+    const responses = this.tooltipResponseIndex().get(groupKey) ?? [];
+    const preview = responses.slice(0, 4);
+    return responses.length > 4 ? [...preview, '...'] : preview;
+  }
+
+  private formatTooltipListItem(value: string): string {
+    if (value === '...') {
+      return '…';
+    }
+
+    return this.wrapTooltipLine(value, '• ', '   ', 44);
+  }
+
+  private wrapTooltipLine(
+    value: string,
+    firstPrefix: string,
+    continuationPrefix: string,
+    maxCharactersPerLine: number,
+  ): string {
+    const normalized = value.trim().replace(/\s+/g, ' ');
+    if (!normalized) {
+      return firstPrefix.trimEnd();
+    }
+
+    const words = normalized.split(' ');
+    const lines: string[] = [];
+    let current = '';
+    let currentLimit = Math.max(8, maxCharactersPerLine - firstPrefix.length);
+
+    const flush = (prefix: string) => {
+      lines.push(`${prefix}${current}`.trimEnd());
+      current = '';
+      currentLimit = Math.max(8, maxCharactersPerLine - continuationPrefix.length);
+    };
+
+    for (const word of words) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (candidate.length <= currentLimit || current.length === 0) {
+        current = candidate;
+        continue;
+      }
+
+      flush(lines.length === 0 ? firstPrefix : continuationPrefix);
+      current = word;
+    }
+
+    if (current) {
+      lines.push(`${lines.length === 0 ? firstPrefix : continuationPrefix}${current}`.trimEnd());
+    }
+
+    return lines.join('\n');
+  }
+
   private createExportLayout(
     ctx: CanvasRenderingContext2D,
     palette: ExportPalette,
@@ -835,6 +1043,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       showResponsesPluralLabel: this.showResponsesPluralLabel(),
       showResponsesPanel: this.showResponsesPanel(),
       weightingHint: this.weightingHint(),
+      tooltipMetricLabel: this.tooltipMetricLabel(),
     };
   }
 

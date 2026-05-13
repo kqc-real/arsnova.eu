@@ -180,7 +180,8 @@ Varianten bleiben parallel erhalten, damit UI und Export erklaeren koennen, was 
 Die Gruppierung wirkt heute bis in die Oberflaeche hinein:
 
 - Wortauswahl und Antwortfilter arbeiten auf `groupKey`-Basis
-- Tooltips zeigen `Anzahl` und bei Bedarf die wichtigsten `Formen`
+- Tooltips zeigen im Quiz-Freitext `Nennungen` und in gewichteten Q&A-Wolken `Gewichteter Wert` plus optionale `Basis`
+- Q&A-Tooltips koennen zusaetzlich die wichtigsten zugehoerigen Fragen mit lesbarem haengendem Einzug listen
 - CSV exportiert `word,count,variants`
 - Stopwoerter sind produktseitig fest ausgeblendet
 - die sichtbare Wolke bleibt ein lesbares d3-Layout, keine Stem-Liste
@@ -222,6 +223,36 @@ Technisch bleibt die Trennung sauber:
 - Fachlogik in `word-cloud.util.ts`
 - Visualisierung in `word-cloud.component.ts`
 - Q&A-Host/Presenter reichen nur noch Profil und Gewichte ein
+
+---
+
+## Word Cloud 2.4 – Sortierabhaengige Q&A-Hostansicht
+
+Die naechste Ausbaustufe hat die Q&A-Wortwolke enger an die Host-Moderation gekoppelt, ohne den Presenter-Pfad aufzublaehen.
+
+Der Host nutzt heute dieselbe Q&A-Wolke in drei Analyse-Linsen:
+
+- `TOP`: Gewichtung ueber Netto-Score
+- `BEST`: Gewichtung ueber den Wilson-Score
+- `CONTROVERSIAL`: Gewichtung ueber den Kontroversitaets-Score
+
+Dabei wechseln nicht nur die Gewichte, sondern auch:
+
+- Titel und Hint der Q&A-Wolke
+- Tooltip-Metrik (`Gewichteter Wert`, `Basis`)
+- die inhaltliche Lesart des Themenraums
+
+Fuer die Host-Vollansicht gilt zusaetzlich:
+
+- der Sortierumschalter bleibt **oberhalb** der Wolke sichtbar
+- die Wolke nutzt die volle verfuegbare Dialogbreite
+- die Layout-Hoehe orientiert sich an der real verfuegbaren Buehnenflaeche statt nur an einer statischen Wortzahlheuristik
+- der Tooltip nutzt einen echten UI-Tooltip statt des nativen `title`, damit Umbruch, Lesbarkeit und haengender Einzug der zugehoerigen Fragen kontrollierbar bleiben
+
+Wichtig ist dabei:
+
+- Der Presenter bleibt bewusst bei einer reduzierten oeffentlichen Q&A-Buehne ohne diese Host-Steuerung.
+- Der PNG-Export bleibt weiterhin ein geordneter Zeilenexport; die Host-Vollansicht ist eine Analyse- und Moderationsansicht, kein WYSIWYG-Export.
 
 ---
 

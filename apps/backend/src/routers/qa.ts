@@ -17,6 +17,40 @@ import { prisma } from '../db';
 import { hostProcedure, publicProcedure, router } from '../trpc';
 
 const QA_SUBSCRIPTION_POLL_MS = 1000;
+const QA_WILSON_Z = 1.96;
+const QA_WILSON_Z_SQUARED = QA_WILSON_Z * QA_WILSON_Z;
+
+type QaQuestionVoteRecord = {
+  participantId?: string;
+  direction?: string | null;
+};
+
+type QaQuestionRecord = {
+  id: string;
+  text: string;
+  upvoteCount: number;
+  status: 'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED' | 'DELETED';
+  createdAt: Date;
+  participantId: string;
+  upvotes?: QaQuestionVoteRecord[];
+};
+
+type QaQuestionVoteStats = {
+  score: number;
+  positiveVoteCount?: number;
+  negativeVoteCount?: number;
+  voteCount?: number;
+  bestScore?: number;
+  controversyScore?: number;
+  isControversial?: boolean;
+};
+
+type QaQuestionSortMode = z.infer<typeof GetQaQuestionsInputSchema>['sort'];
+
+type DecoratedQaQuestion = {
+  question: QaQuestionRecord;
+  voteStats: QaQuestionVoteStats;
+};
 
 /** Schreibende Q&A-Aktionen nach Session-Ende blockieren (Missbrauchsschutz). */
 function assertQaSessionOpenForParticipants(sessionStatus: string | null | undefined): void {
@@ -40,39 +74,160 @@ function isQaOpenForParticipants(session: {
   return isQaEnabled(session) && session.qaOpen !== false;
 }
 
-function sortQuestions<T extends { status: string; upvoteCount: number; createdAt: Date | string }>(
-  questions: T[],
-): T[] {
+function normalizeQaSortMode(moderatorView: boolean | undefined, sortMode: QaQuestionSortMode) {
+  return moderatorView ? sortMode : 'TOP';
+}
+
+function computeWilsonBestScore(positiveVoteCount: number, negativeVoteCount: number): number {
+  const voteCount = positiveVoteCount + negativeVoteCount;
+  if (voteCount <= 0) {
+    return 0;
+  }
+
+  const observedPositiveRate = positiveVoteCount / voteCount;
+  const denominator = 1 + QA_WILSON_Z_SQUARED / voteCount;
+  const center = observedPositiveRate + QA_WILSON_Z_SQUARED / (2 * voteCount);
+  const margin =
+    QA_WILSON_Z *
+    Math.sqrt(
+      (observedPositiveRate * (1 - observedPositiveRate)) / voteCount +
+        QA_WILSON_Z_SQUARED / (4 * voteCount * voteCount),
+    );
+
+  return Math.max(0, Math.min(1, (center - margin) / denominator));
+}
+
+function resolveQaControversyThreshold(participantCount: number): number {
+  return Math.max(1, 0.1 * Math.max(0, participantCount));
+}
+
+function computeControversyScore(
+  positiveVoteCount: number,
+  negativeVoteCount: number,
+  participantCount: number,
+): number {
+  const voteCount = positiveVoteCount + negativeVoteCount;
+  if (voteCount <= 0) {
+    return 0;
+  }
+
+  const denominator = voteCount + resolveQaControversyThreshold(participantCount);
+  if (denominator <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    Math.min(1, (2 * Math.min(positiveVoteCount, negativeVoteCount)) / denominator),
+  );
+}
+
+function createQaVoteStats(
+  question: QaQuestionRecord,
+  includeVoteMetrics: boolean,
+  participantCountForControversy?: number,
+): QaQuestionVoteStats {
+  const score = question.upvoteCount;
+  if (!includeVoteMetrics) {
+    return { score };
+  }
+
+  const positiveVoteCount = (question.upvotes ?? []).filter(
+    (vote) => vote.direction !== 'DOWN',
+  ).length;
+  const negativeVoteCount = (question.upvotes ?? []).filter(
+    (vote) => vote.direction === 'DOWN',
+  ).length;
+  const voteCount = positiveVoteCount + negativeVoteCount;
+  const bestScore = computeWilsonBestScore(positiveVoteCount, negativeVoteCount);
+  const controversyScore =
+    typeof participantCountForControversy === 'number'
+      ? computeControversyScore(
+          positiveVoteCount,
+          negativeVoteCount,
+          participantCountForControversy,
+        )
+      : undefined;
+  const controversyThreshold =
+    typeof participantCountForControversy === 'number'
+      ? resolveQaControversyThreshold(participantCountForControversy)
+      : undefined;
+
+  return {
+    score,
+    positiveVoteCount,
+    negativeVoteCount,
+    voteCount,
+    bestScore,
+    controversyScore,
+    isControversial:
+      controversyScore !== undefined &&
+      controversyThreshold !== undefined &&
+      controversyScore > 0.5 &&
+      voteCount >= controversyThreshold,
+  };
+}
+
+function sortQuestions(
+  questions: DecoratedQaQuestion[],
+  sortMode: QaQuestionSortMode,
+): DecoratedQaQuestion[] {
   const statusOrder = new Map([
     ['PINNED', 0],
     ['ACTIVE', 1],
     ['PENDING', 2],
     ['ARCHIVED', 3],
+    ['DELETED', 4],
   ]);
 
   return [...questions].sort((left, right) => {
-    const statusDiff = (statusOrder.get(left.status) ?? 99) - (statusOrder.get(right.status) ?? 99);
+    const statusDiff =
+      (statusOrder.get(left.question.status) ?? 99) -
+      (statusOrder.get(right.question.status) ?? 99);
     if (statusDiff !== 0) {
       return statusDiff;
     }
-    if (right.upvoteCount !== left.upvoteCount) {
-      return right.upvoteCount - left.upvoteCount;
+
+    if (sortMode === 'BEST') {
+      const bestScoreDiff = (right.voteStats.bestScore ?? 0) - (left.voteStats.bestScore ?? 0);
+      if (bestScoreDiff !== 0) {
+        return bestScoreDiff;
+      }
+
+      const positiveVoteDiff =
+        (right.voteStats.positiveVoteCount ?? 0) - (left.voteStats.positiveVoteCount ?? 0);
+      if (positiveVoteDiff !== 0) {
+        return positiveVoteDiff;
+      }
     }
-    return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+
+    if (sortMode === 'CONTROVERSIAL') {
+      const controversyScoreDiff =
+        (right.voteStats.controversyScore ?? 0) - (left.voteStats.controversyScore ?? 0);
+      if (controversyScoreDiff !== 0) {
+        return controversyScoreDiff;
+      }
+
+      const positiveVoteDiff =
+        (right.voteStats.positiveVoteCount ?? 0) - (left.voteStats.positiveVoteCount ?? 0);
+      if (positiveVoteDiff !== 0) {
+        return positiveVoteDiff;
+      }
+    }
+
+    if (right.voteStats.score !== left.voteStats.score) {
+      return right.voteStats.score - left.voteStats.score;
+    }
+
+    return left.question.createdAt.getTime() - right.question.createdAt.getTime();
   });
 }
 
 function mapQaQuestion(
-  question: {
-    id: string;
-    text: string;
-    upvoteCount: number;
-    status: 'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED' | 'DELETED';
-    createdAt: Date;
-    participantId: string;
-    upvotes?: Array<{ participantId: string; direction?: string }>;
-  },
+  question: QaQuestionRecord,
   participantId?: string,
+  voteStats?: QaQuestionVoteStats,
+  includeVoteMetrics = false,
 ) {
   const myUpvote = participantId
     ? (question.upvotes ?? []).find((v) => v.participantId === participantId)
@@ -81,6 +236,29 @@ function mapQaQuestion(
     id: question.id,
     text: question.text,
     upvoteCount: question.upvoteCount,
+    ...(includeVoteMetrics
+      ? {
+          score: voteStats?.score ?? question.upvoteCount,
+        }
+      : {}),
+    ...(includeVoteMetrics && voteStats?.positiveVoteCount !== undefined
+      ? { positiveVoteCount: voteStats.positiveVoteCount }
+      : {}),
+    ...(includeVoteMetrics && voteStats?.negativeVoteCount !== undefined
+      ? { negativeVoteCount: voteStats.negativeVoteCount }
+      : {}),
+    ...(includeVoteMetrics && voteStats?.voteCount !== undefined
+      ? { voteCount: voteStats.voteCount }
+      : {}),
+    ...(includeVoteMetrics && voteStats?.bestScore !== undefined
+      ? { bestScore: voteStats.bestScore }
+      : {}),
+    ...(includeVoteMetrics && voteStats?.controversyScore !== undefined
+      ? { controversyScore: voteStats.controversyScore }
+      : {}),
+    ...(includeVoteMetrics && voteStats?.isControversial !== undefined
+      ? { isControversial: voteStats.isControversial }
+      : {}),
     status: question.status,
     createdAt: question.createdAt.toISOString(),
     myVote: myUpvote ? (myUpvote.direction === 'DOWN' ? 'DOWN' : 'UP') : null,
@@ -89,11 +267,29 @@ function mapQaQuestion(
   });
 }
 
+function buildQaQuestionListPayload(
+  questions: QaQuestionRecord[],
+  participantId: string | undefined,
+  sortMode: QaQuestionSortMode,
+  includeVoteMetrics: boolean,
+  participantCountForControversy?: number,
+) {
+  const decoratedQuestions = questions.map((question) => ({
+    question,
+    voteStats: createQaVoteStats(question, includeVoteMetrics, participantCountForControversy),
+  }));
+
+  return sortQuestions(decoratedQuestions, sortMode).map(({ question, voteStats }) =>
+    mapQaQuestion(question, participantId, voteStats, includeVoteMetrics),
+  );
+}
+
 export const qaRouter = router({
   list: publicProcedure
     .input(GetQaQuestionsInputSchema)
     .output(QaQuestionsListDTOSchema)
     .query(async ({ input, ctx }) => {
+      const sortMode = normalizeQaSortMode(input.moderatorView, input.sort);
       const session = await prisma.session.findUnique({
         where: { id: input.sessionId },
         select: {
@@ -117,6 +313,13 @@ export const qaRouter = router({
         return [];
       }
 
+      const participantCountForControversy =
+        input.moderatorView && sortMode === 'CONTROVERSIAL'
+          ? await prisma.participant.count({
+              where: { sessionId: session.id },
+            })
+          : undefined;
+
       const questions = await prisma.qaQuestion.findMany({
         where: {
           sessionId: session.id,
@@ -132,17 +335,25 @@ export const qaRouter = router({
               : { status: { not: 'DELETED' } }),
         },
         include: {
-          upvotes: input.participantId
+          upvotes: input.moderatorView
             ? {
-                where: { participantId: input.participantId },
-                select: { participantId: true, direction: true },
+                select: { direction: true },
               }
-            : false,
+            : input.participantId
+              ? {
+                  where: { participantId: input.participantId },
+                  select: { participantId: true, direction: true },
+                }
+              : false,
         },
       });
 
-      return sortQuestions(questions).map((question) =>
-        mapQaQuestion(question, input.participantId),
+      return buildQaQuestionListPayload(
+        questions,
+        input.participantId,
+        sortMode,
+        input.moderatorView === true,
+        participantCountForControversy,
       );
     }),
 
@@ -623,6 +834,7 @@ export const qaRouter = router({
     .input(GetQaQuestionsInputSchema)
     .subscription(async function* ({ input, ctx }) {
       let lastJson = '';
+      const sortMode = normalizeQaSortMode(input.moderatorView, input.sort);
 
       const gateSession = await prisma.session.findUnique({
         where: { id: input.sessionId },
@@ -660,6 +872,13 @@ export const qaRouter = router({
           return;
         }
 
+        const participantCountForControversy =
+          input.moderatorView && sortMode === 'CONTROVERSIAL'
+            ? await prisma.participant.count({
+                where: { sessionId: input.sessionId },
+              })
+            : undefined;
+
         const questions = await prisma.qaQuestion.findMany({
           where: {
             sessionId: input.sessionId,
@@ -675,17 +894,25 @@ export const qaRouter = router({
                 : { status: { not: 'DELETED' } }),
           },
           include: {
-            upvotes: input.participantId
+            upvotes: input.moderatorView
               ? {
-                  where: { participantId: input.participantId },
-                  select: { participantId: true, direction: true },
+                  select: { direction: true },
                 }
-              : false,
+              : input.participantId
+                ? {
+                    where: { participantId: input.participantId },
+                    select: { participantId: true, direction: true },
+                  }
+                : false,
           },
         });
 
-        const payload = sortQuestions(questions).map((question) =>
-          mapQaQuestion(question, input.participantId),
+        const payload = buildQaQuestionListPayload(
+          questions,
+          input.participantId,
+          sortMode,
+          input.moderatorView === true,
+          participantCountForControversy,
         );
         const json = JSON.stringify(payload);
         if (json !== lastJson) {

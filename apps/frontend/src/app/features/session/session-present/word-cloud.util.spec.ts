@@ -4,6 +4,7 @@ import {
   aggregateWords,
   createWordCloudStopwordContext,
   extractResponseGroupKeys,
+  getWordCloudWeightFromNormalizedMetric,
   getWordCloudWeightFromUpvotes,
   getStopwordsForLocale,
   normalizeFreeTextResponseForDisplay,
@@ -475,5 +476,15 @@ describe('aggregateWords', () => {
     expect(getWordCloudWeightFromUpvotes(4)).toBe(3);
     expect(getWordCloudWeightFromUpvotes(9)).toBe(4);
     expect(getWordCloudWeightFromUpvotes(25)).toBe(6);
+  });
+
+  it('gewichtet normalisierte Q&A-Metriken staerker bei hohen Scores', () => {
+    expect(getWordCloudWeightFromNormalizedMetric(undefined)).toBe(1);
+    expect(getWordCloudWeightFromNormalizedMetric(-0.2)).toBe(1);
+    expect(getWordCloudWeightFromNormalizedMetric(0)).toBe(1);
+    expect(getWordCloudWeightFromNormalizedMetric(0.25)).toBe(4);
+    expect(getWordCloudWeightFromNormalizedMetric(0.5)).toBe(11);
+    expect(getWordCloudWeightFromNormalizedMetric(0.75)).toBe(24);
+    expect(getWordCloudWeightFromNormalizedMetric(1.2)).toBe(41);
   });
 });

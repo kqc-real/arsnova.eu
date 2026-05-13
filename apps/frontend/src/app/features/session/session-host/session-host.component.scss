@@ -1189,6 +1189,14 @@
   flex-wrap: wrap;
 }
 
+.session-qa-summary__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .session-qa-summary__chip {
   display: inline-flex;
   align-items: center;
@@ -1235,6 +1243,21 @@
   font-size: 0.9rem;
   width: 0.9rem;
   height: 0.9rem;
+}
+
+.session-qa-sort-toggle {
+  --mat-standard-button-toggle-height: 2.15rem;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 88%, var(--mat-sys-surface));
+}
+
+.session-qa-sort-hint {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.82;
 }
 
 .session-qa-filter-btn {
@@ -1455,6 +1478,24 @@
   box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--app-status-healthy) 18%, transparent);
 }
 
+.session-qa-card__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.4rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font: var(--mat-sys-label-small);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.session-qa-card__badge--controversial {
+  background: color-mix(in srgb, var(--mat-sys-secondary) 16%, transparent);
+  color: var(--mat-sys-secondary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-secondary) 18%, transparent);
+}
+
 .session-qa-card__votes {
   display: inline-flex;
   align-items: center;
@@ -1500,12 +1541,35 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .session-qa-card__time {
   font: var(--mat-sys-label-small);
   color: var(--mat-sys-on-surface-variant);
   opacity: 0.65;
+}
+
+.session-qa-card__metric {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-surface));
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+  white-space: nowrap;
+}
+
+.session-qa-card__metric--best {
+  color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+}
+
+.session-qa-card__metric--controversial {
+  color: var(--mat-sys-secondary);
+  background: color-mix(in srgb, var(--mat-sys-secondary) 10%, transparent);
 }
 
 .session-qa-card__actions {
@@ -1582,6 +1646,15 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+  }
+
+  .session-qa-summary__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .session-qa-sort-toggle {
+    width: 100%;
   }
 
   .session-qa-card {

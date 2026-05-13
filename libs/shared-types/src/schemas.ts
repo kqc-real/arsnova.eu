@@ -67,6 +67,9 @@ export type TeamNames = z.infer<typeof TeamNamesSchema>;
 export const QaQuestionStatusEnum = z.enum(['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED', 'DELETED']);
 export type QaQuestionStatus = z.infer<typeof QaQuestionStatusEnum>;
 
+export const QaQuestionSortModeEnum = z.enum(['TOP', 'BEST', 'CONTROVERSIAL']);
+export type QaQuestionSortMode = z.infer<typeof QaQuestionSortModeEnum>;
+
 export const SessionTypeEnum = z.enum(['QUIZ', 'Q_AND_A']);
 export type SessionType = z.infer<typeof SessionTypeEnum>;
 
@@ -1543,8 +1546,15 @@ export const QaQuestionDTOSchema = z.object({
   id: z.uuid(),
   text: z.string(),
   upvoteCount: z.number(),
+  score: z.number().optional(),
   status: QaQuestionStatusEnum,
   createdAt: z.string(),
+  positiveVoteCount: z.number().int().min(0).optional(),
+  negativeVoteCount: z.number().int().min(0).optional(),
+  voteCount: z.number().int().min(0).optional(),
+  bestScore: z.number().min(0).max(1).optional(),
+  controversyScore: z.number().min(0).max(1).optional(),
+  isControversial: z.boolean().optional(),
   /** 'UP' | 'DOWN' | null — aktueller Vote-Status dieses Teilnehmers */
   myVote: z.enum(['UP', 'DOWN']).nullable(),
   /** true wenn die Frage vom aktuellen Teilnehmer stammt */
@@ -1561,6 +1571,7 @@ export const GetQaQuestionsInputSchema = z.object({
   sessionId: z.uuid(),
   participantId: z.uuid().optional(),
   moderatorView: z.boolean().optional().default(false),
+  sort: QaQuestionSortModeEnum.optional().default('TOP'),
 });
 export type GetQaQuestionsInput = z.infer<typeof GetQaQuestionsInputSchema>;
 

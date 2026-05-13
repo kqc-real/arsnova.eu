@@ -1,0 +1,46 @@
+<section class="qa-word-cloud-dialog">
+  <button
+    mat-icon-button
+    type="button"
+    class="qa-word-cloud-dialog__close"
+    matDialogClose
+    i18n-aria-label="@@wordCloud.dialogCloseAria"
+    aria-label="Wortwolke schließen"
+  >
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+
+  <div class="qa-word-cloud-dialog__toolbar">
+    <mat-button-toggle-group
+      class="qa-word-cloud-dialog__sort-toggle"
+      [value]="sortMode()"
+      (valueChange)="setSortMode($any($event))"
+      aria-label="Q&A-Sortierung"
+      i18n-aria-label="@@sessionQa.sortAria"
+    >
+      <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop">Top</mat-button-toggle>
+      <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest">Beste Fragen</mat-button-toggle>
+      <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
+        >Umstritten</mat-button-toggle
+      >
+    </mat-button-toggle-group>
+  </div>
+
+  <app-word-cloud
+    class="qa-word-cloud-dialog__cloud"
+    [responses]="responses()"
+    [weightedResponses]="weightedResponses()"
+    [analysisMode]="'qa'"
+    [title]="title()"
+    [eyebrow]="data.eyebrow"
+    [description]="data.description"
+    [itemLabelSingular]="data.itemLabelSingular"
+    [itemLabelPlural]="data.itemLabelPlural"
+    [showResponsesPanel]="false"
+    [weightingHint]="weightingHint()"
+    [tooltipMetricLabel]="tooltipMetricLabel()"
+    [showReleaseNote]="false"
+    [showMaximizeAction]="false"
+    [presentationMode]="true"
+  />
+</section>

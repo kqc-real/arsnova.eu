@@ -1946,30 +1946,50 @@
                       </span>
                     }
                   </div>
-                  @if (qaShowPinnedOnly()) {
-                    <button
-                      type="button"
-                      class="session-qa-filter-btn session-qa-filter-btn--active"
-                      (click)="qaShowPinnedOnly.set(false)"
-                      i18n-aria-label="@@sessionQa.filterShowAllAria"
-                      aria-label="Alle Fragen anzeigen"
+                  <div class="session-qa-summary__actions">
+                    <mat-button-toggle-group
+                      class="session-qa-sort-toggle"
+                      [value]="qaSortMode()"
+                      (valueChange)="setQaSortMode($any($event))"
+                      aria-label="Q&A-Sortierung"
+                      i18n-aria-label="@@sessionQa.sortAria"
                     >
-                      <mat-icon aria-hidden="true">visibility</mat-icon>
-                      <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
-                    </button>
-                  } @else {
-                    <button
-                      type="button"
-                      class="session-qa-filter-btn"
-                      (click)="qaShowPinnedOnly.set(true)"
-                      i18n-aria-label="@@sessionQa.filterPinnedAria"
-                      aria-label="Sichere Ansicht – nur freigegebene Fragen"
-                    >
-                      <mat-icon aria-hidden="true">shield</mat-icon>
-                      <span i18n="@@sessionQa.filterPinnedLabel">Sichere Ansicht</span>
-                    </button>
-                  }
+                      <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
+                        >Top</mat-button-toggle
+                      >
+                      <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
+                        >Beste Fragen</mat-button-toggle
+                      >
+                      <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
+                        >Umstritten</mat-button-toggle
+                      >
+                    </mat-button-toggle-group>
+                    @if (qaShowPinnedOnly()) {
+                      <button
+                        type="button"
+                        class="session-qa-filter-btn session-qa-filter-btn--active"
+                        (click)="qaShowPinnedOnly.set(false)"
+                        i18n-aria-label="@@sessionQa.filterShowAllAria"
+                        aria-label="Alle Fragen anzeigen"
+                      >
+                        <mat-icon aria-hidden="true">visibility</mat-icon>
+                        <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="session-qa-filter-btn"
+                        (click)="qaShowPinnedOnly.set(true)"
+                        i18n-aria-label="@@sessionQa.filterPinnedAria"
+                        aria-label="Sichere Ansicht – nur freigegebene Fragen"
+                      >
+                        <mat-icon aria-hidden="true">shield</mat-icon>
+                        <span i18n="@@sessionQa.filterPinnedLabel">Sichere Ansicht</span>
+                      </button>
+                    }
+                  </div>
                 </div>
+                <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
                 @if (qaShowNewBanner()) {
                   <button
                     type="button"
@@ -2006,10 +2026,12 @@
                           [analysisMode]="'qa'"
                           [eyebrow]="qaWordCloudEyebrow"
                           [description]="qaWordCloudDescription"
-                          [title]="'Q&A-Word-Cloud (Upvotes gewichtet)'"
+                          [title]="qaWordCloudTitle()"
                           [itemLabelSingular]="'Frage'"
                           [itemLabelPlural]="'Fragen'"
-                          [weightingHint]="qaWordCloudWeightingHint"
+                          [weightingHint]="qaWordCloudWeightingHint()"
+                          [tooltipMetricLabel]="qaWordCloudMetricLabel()"
+                          [maximizeActionHandler]="openQaWordCloudDialog"
                           [showResponsesPanel]="true"
                           [showReleaseNote]="false"
                         />
@@ -2056,16 +2078,23 @@
                           @if (isQaQuestionHighlighted(question.id)) {
                             <span class="session-qa-card__marker" aria-hidden="true"></span>
                           }
+                          @if (question.isControversial) {
+                            <span
+                              class="session-qa-card__badge session-qa-card__badge--controversial"
+                              i18n="@@sessionQa.badgeControversial"
+                              >Umstritten</span
+                            >
+                          }
                         </div>
                         <span
                           class="session-qa-card__votes"
-                          [class.session-qa-card__votes--positive]="question.upvoteCount > 0"
-                          [class.session-qa-card__votes--negative]="question.upvoteCount < 0"
+                          [class.session-qa-card__votes--positive]="qaQuestionScore(question) > 0"
+                          [class.session-qa-card__votes--negative]="qaQuestionScore(question) < 0"
                         >
                           <mat-icon class="session-qa-card__votes-icon" aria-hidden="true"
                             >thumb_up_off_alt</mat-icon
                           >
-                          {{ question.upvoteCount }}
+                          {{ qaQuestionScore(question) }}
                         </span>
                       </div>
                       <div
@@ -2076,6 +2105,32 @@
                         <span class="session-qa-card__time">{{
                           relativeTime(question.createdAt)
                         }}</span>
+                        @if (
+                          question.positiveVoteCount !== undefined &&
+                          question.negativeVoteCount !== undefined
+                        ) {
+                          <span class="session-qa-card__metric" i18n="@@sessionQa.voteBreakdown"
+                            >{{ question.positiveVoteCount }} positiv ·
+                            {{ question.negativeVoteCount }} negativ</span
+                          >
+                        }
+                        @if (qaSortMode() === 'BEST' && question.bestScore !== undefined) {
+                          <span
+                            class="session-qa-card__metric session-qa-card__metric--best"
+                            i18n="@@sessionQa.bestMetric"
+                            >Wilson {{ formatQaPercent(question.bestScore) }}</span
+                          >
+                        }
+                        @if (
+                          qaSortMode() === 'CONTROVERSIAL' &&
+                          question.controversyScore !== undefined
+                        ) {
+                          <span
+                            class="session-qa-card__metric session-qa-card__metric--controversial"
+                            i18n="@@sessionQa.controversyMetric"
+                            >Kontroversität {{ formatQaPercent(question.controversyScore) }}</span
+                          >
+                        }
                       </div>
                       <div class="session-qa-card__actions">
                         @for (

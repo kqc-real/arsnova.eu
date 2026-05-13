@@ -61,6 +61,7 @@ const NUMBER_TOKEN_PATTERN = /^-?\d+(?:[.,]\d+)*$/;
 const TOKEN_PATTERN = /-?\d+(?:[.,]\d+)*|[\p{L}\p{N}-]+/gu;
 const DECIMAL_SEPARATOR_SPACING_PATTERN = /(\d)\s*([.,])\s*(?=\d)/g;
 const COMBINING_MARK_PATTERN = /\p{M}+/gu;
+const NORMALIZED_METRIC_WEIGHT_SCALE = 40;
 
 const GERMAN_GROUPING_RULES: readonly GroupingRule[] = [
   {
@@ -408,6 +409,15 @@ export function getWordCloudWeightFromUpvotes(upvoteCount: number): number {
 
   const normalized = Math.max(0, Math.round(upvoteCount));
   return 1 + Math.max(0, Math.round(Math.sqrt(normalized)));
+}
+
+export function getWordCloudWeightFromNormalizedMetric(metric: number | null | undefined): number {
+  if (!Number.isFinite(metric)) {
+    return 1;
+  }
+
+  const normalized = Math.max(0, Math.min(1, metric ?? 0));
+  return 1 + Math.max(0, Math.round(normalized * normalized * NORMALIZED_METRIC_WEIGHT_SCALE));
 }
 
 export function normalizeFreeTextResponseForDisplay(value: string): string {

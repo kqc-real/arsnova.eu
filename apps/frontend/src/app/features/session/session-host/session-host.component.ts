@@ -71,6 +71,7 @@ import type {
   LeaderboardEntryDTO,
   NicknameTheme,
   QaQuestionDTO,
+  QaQuestionSortMode,
   QuickFeedbackResult,
   SessionChannelsDTO,
   SessionFeedbackSummary,
@@ -83,6 +84,7 @@ import type {
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import {
+  getWordCloudWeightFromNormalizedMetric,
   getWordCloudWeightFromUpvotes,
   normalizeFreeTextResponseForDisplay,
 } from '../session-present/word-cloud.util';
@@ -375,7 +377,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private statusSub: Unsubscribable | null = null;
   private currentQuestionSub: Unsubscribable | null = null;
   private qaSub: Unsubscribable | null = null;
-  private qaSubscriptionSessionId: string | null = null;
+  private qaSubscriptionKey: string | null = null;
   private hostRealtimeFallbackActive = false;
   private participantBaselineReady = false;
   private knownParticipantIds = new Set<string>();
@@ -419,7 +421,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudDescription = $localize`:@@sessionWordCloud.freetextDescription:Antworten verdichten sich live zu einem gemeinsamen Themenbild.`;
   readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Publikumsfragen`;
   readonly qaWordCloudDescription = $localize`:@@sessionWordCloud.qaDescription:Sichtbare Fragen werden als Themenraum lesbar gebündelt.`;
-  readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Größere Begriffe verbinden Häufigkeit und Upvotes.`;
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly exportStatus = signal<string | null>(null);
   readonly exportExporting = signal(false);
@@ -735,6 +736,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const draft = this.qaTitleDraft().trim();
     return draft === server || this.qaTitleSaving();
   });
+  readonly qaSortMode = signal<QaQuestionSortMode>('TOP');
   readonly qaShowPinnedOnly = signal(false);
   readonly qaFilteredQuestions = computed(() => {
     const all = this.qaQuestions();
@@ -751,13 +753,47 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudResponses = computed(() =>
     this.qaWordCloudQuestions().map((question) => question.text),
   );
+  readonly qaWordCloudMetricLabel = computed(() => {
+    switch (this.qaSortMode()) {
+      case 'BEST':
+        return $localize`:@@sessionQa.wordCloudMetricBest:Wilson-Score`;
+      case 'CONTROVERSIAL':
+        return $localize`:@@sessionQa.wordCloudMetricControversial:Kontroversität`;
+      default:
+        return $localize`:@@sessionQa.wordCloudMetricTop:Netto-Score`;
+    }
+  });
+  readonly qaWordCloudTitle = computed(
+    () =>
+      $localize`:@@sessionQa.wordCloudTitleMetric:Q&A-Word-Cloud (${this.qaWordCloudMetricLabel()}:metric:)`,
+  );
+  readonly qaWordCloudWeightingHint = computed(() => {
+    switch (this.qaSortMode()) {
+      case 'BEST':
+        return $localize`:@@sessionQa.wordCloudHintBest:Größere Begriffe stammen aus Fragen mit höherem Wilson-Score.`;
+      case 'CONTROVERSIAL':
+        return $localize`:@@sessionQa.wordCloudHintControversial:Größere Begriffe stammen aus stärker umstrittenen Fragen. Mit der Maus über einen Begriff fahren, um Gewichtung und zugehörige Fragen zu sehen.`;
+      default:
+        return $localize`:@@sessionQa.wordCloudHintTop:Größere Begriffe stammen aus Fragen mit höherem Netto-Score.`;
+    }
+  });
   readonly qaWordCloudWeightedResponses = computed(() =>
     this.qaWordCloudQuestions().map((question) => ({
       text: question.text,
-      weight: getWordCloudWeightFromUpvotes(question.upvoteCount),
+      weight: this.qaWordCloudQuestionWeight(question),
     })),
   );
   readonly qaWordCloudExpanded = signal(false);
+  readonly qaSortHint = computed(() => {
+    switch (this.qaSortMode()) {
+      case 'BEST':
+        return $localize`:@@sessionQa.sortHintBest:Wilson-Score bevorzugt belastbare Zustimmung.`;
+      case 'CONTROVERSIAL':
+        return $localize`:@@sessionQa.sortHintControversial:Kontroversität bevorzugt ausgeglichene Beteiligung.`;
+      default:
+        return $localize`:@@sessionQa.sortHintTop:Netto-Score zuerst.`;
+    }
+  });
   readonly qaWordCloudToggleLabel = computed(() =>
     this.qaWordCloudExpanded()
       ? $localize`:@@sessionQa.wordCloudHide:Q&A-Word-Cloud ausblenden`
@@ -765,10 +801,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   );
   readonly qaWordCloudInfo = computed(() => {
     const count = this.qaWordCloudQuestions().length;
+    const metric = this.qaWordCloudMetricLabel();
     if (count === 1) {
-      return $localize`:@@sessionQa.wordCloudCountOneWeighted:1 Frage · Upvotes gewichtet`;
+      return $localize`:@@sessionQa.wordCloudCountOneMetric:1 Frage · ${metric}:metric: gewichtet`;
     }
-    return $localize`:@@sessionQa.wordCloudCountManyWeighted:${count}:count: Fragen · Upvotes gewichtet`;
+    return $localize`:@@sessionQa.wordCloudCountManyMetric:${count}:count: Fragen · ${metric}:metric: gewichtet`;
   });
   readonly qaPinnedCount = computed(
     () => this.qaQuestions().filter((q) => q.status === 'PINNED').length,
@@ -782,6 +819,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaDeletedCount = computed(
     () => this.qaQuestions().filter((q) => q.status === 'DELETED').length,
   );
+  readonly openQaWordCloudDialog = async (): Promise<void> => {
+    const { QaWordCloudDialogComponent } = await import('./qa-word-cloud-dialog.component');
+    this.dialog.open(QaWordCloudDialogComponent, {
+      data: {
+        responses: () => this.qaWordCloudResponses(),
+        weightedResponses: () => this.qaWordCloudWeightedResponses(),
+        title: () => this.qaWordCloudTitle(),
+        eyebrow: this.qaWordCloudEyebrow,
+        description: this.qaWordCloudDescription,
+        weightingHint: () => this.qaWordCloudWeightingHint(),
+        tooltipMetricLabel: () => this.qaWordCloudMetricLabel(),
+        sortMode: () => this.qaSortMode(),
+        setSortMode: (mode: QaQuestionSortMode) => this.setQaSortMode(mode),
+        itemLabelSingular: 'Frage',
+        itemLabelPlural: 'Fragen',
+      },
+      autoFocus: false,
+      restoreFocus: true,
+      enterAnimationDuration: 180,
+      exitAnimationDuration: 140,
+      width: '100vw',
+      maxWidth: '100vw',
+      height: '100dvh',
+      maxHeight: '100dvh',
+      panelClass: 'word-cloud-dialog-panel',
+      backdropClass: 'word-cloud-dialog-backdrop',
+    });
+  };
   readonly qaShowNewBanner = computed(() => this.qaUnseenCount() > 0 && this.qaScrolledDown());
   readonly qaUnseenCount = computed(
     () =>
@@ -911,8 +976,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     effect(() => {
       const sessionId = this.session()?.id ?? null;
       const qaEnabled = this.channels().qa;
+      const qaSortMode = this.qaSortMode();
       void sessionId;
       void qaEnabled;
+      void qaSortMode;
       untracked(() => this.ensureQaSubscription());
     });
     effect(() => {
@@ -1486,7 +1553,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.currentQuestionSub = null;
     this.qaSub?.unsubscribe();
     this.qaSub = null;
-    this.qaSubscriptionSessionId = null;
+    this.qaSubscriptionKey = null;
     this.stopHostPolling();
     this.clearFoyerArrivalState();
     this.stopCountdown();
@@ -3330,6 +3397,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.qaHighlightedQuestionIds().has(questionId);
   }
 
+  qaQuestionScore(question: QaQuestionDTO): number {
+    return question.score ?? question.upvoteCount;
+  }
+
+  qaWordCloudQuestionWeight(question: QaQuestionDTO): number {
+    switch (this.qaSortMode()) {
+      case 'BEST':
+        return question.bestScore !== undefined
+          ? getWordCloudWeightFromNormalizedMetric(question.bestScore)
+          : getWordCloudWeightFromUpvotes(this.qaQuestionScore(question));
+      case 'CONTROVERSIAL':
+        return question.controversyScore !== undefined
+          ? getWordCloudWeightFromNormalizedMetric(question.controversyScore)
+          : getWordCloudWeightFromUpvotes(this.qaQuestionScore(question));
+      default:
+        return getWordCloudWeightFromUpvotes(this.qaQuestionScore(question));
+    }
+  }
+
+  formatQaPercent(value: number | undefined): string {
+    if (!Number.isFinite(value)) {
+      return '0 %';
+    }
+
+    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  }
+
+  async setQaSortMode(mode: QaQuestionSortMode): Promise<void> {
+    if (this.qaSortMode() === mode) {
+      return;
+    }
+
+    this.qaSortMode.set(mode);
+    this.ensureQaSubscription();
+    await this.refreshQaQuestions();
+  }
+
   async selectChannel(channel: string): Promise<void> {
     if (channel === 'quiz' || channel === 'qa' || channel === 'quickFeedback') {
       if (!this.isChannelEnabled(channel)) {
@@ -3599,20 +3703,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private ensureQaSubscription(): void {
     const sessionId = this.session()?.id ?? null;
     const qaEnabled = this.channels().qa;
+    const sortMode = this.qaSortMode();
+    const subscriptionKey = sessionId ? `${sessionId}:${sortMode}` : null;
     if (!sessionId || !qaEnabled) {
       this.qaSub?.unsubscribe();
       this.qaSub = null;
-      this.qaSubscriptionSessionId = null;
+      this.qaSubscriptionKey = null;
       return;
     }
 
-    if (this.qaSub && this.qaSubscriptionSessionId === sessionId) {
+    if (this.qaSub && this.qaSubscriptionKey === subscriptionKey) {
       return;
     }
 
     this.qaSub?.unsubscribe();
     this.qaSub = trpc.qa.onQuestionsUpdated.subscribe(
-      { sessionId, moderatorView: true },
+      { sessionId, moderatorView: true, sort: sortMode },
       {
         onData: (data) => {
           this.qaQuestions.set(data);
@@ -3621,7 +3727,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         onError: () => this.burstHostFallbackAfterWsGap(),
       },
     );
-    this.qaSubscriptionSessionId = sessionId;
+    this.qaSubscriptionKey = subscriptionKey;
   }
 
   private syncQaTitleDraftFromSession(): void {
@@ -3791,7 +3897,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const questions = await trpc.qa.list.query({ sessionId, moderatorView: true });
+      const questions = await trpc.qa.list.query({
+        sessionId,
+        moderatorView: true,
+        sort: this.qaSortMode(),
+      });
       this.qaQuestions.set(questions);
       if (
         this.qaWordCloudExpanded() &&

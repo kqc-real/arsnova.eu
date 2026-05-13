@@ -99,11 +99,11 @@
 | 7    | 7.1   | Team-Modus                                                  | 🟢   | ✅ Fertig    |
 | 8    | 8.1   | Q&A-Session starten                                         | 🟢   | ✅ Fertig    |
 | 8    | 8.2   | Fragen einreichen                                           | 🟢   | ✅ Fertig    |
-| 8    | 8.3   | Upvoting & Sortierung                                       | 🟢   | ✅ Fertig    |
+| 8    | 8.3   | Voting & Sortierung                                         | 🟢   | ✅ Fertig    |
 | 8    | 8.4   | Moderation durch Lehrende                                   | 🟢   | ✅ Fertig    |
 | 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen                 | 🟡   | ⬜ Offen     |
-| 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                     | 🟡   | ⬜ Offen     |
-| 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)               | 🟡   | ⬜ Offen     |
+| 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                     | 🟡   | ✅ Fertig    |
+| 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)               | 🟡   | ✅ Fertig    |
 | 8    | 8.8   | Tempo-Livekanal                                             | 🟡   | ⬜ Offen     |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                  | 🟡   | ✅ Fertig    |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                     | 🟡   | ✅ Fertig    |
@@ -117,11 +117,11 @@
 | 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte          | 🟡   | ✅ Fertig    |
 | 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)                | 🟡   | ✅ Fertig    |
 
-> **Repo-Abgleich (Codebase 2026-05-05):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung und kein eigener Typ für bewertbare Kurzantwort in `QuestionTypeEnum` (`libs/shared-types`); Word Cloud weiterhin ohne ADR-0012/`d3-cloud`-Layout (vgl. `word-cloud.component`); Q&A-Sortierung nur nach Upvotes, **keine** Kontrovers-/Wilson-Berechnung im Router; Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad; noch **kein** vierter Session-Kanal für kontinuierliches Tempo-Feedback im Session-Modell. **Teilweise umgesetzt** ist inzwischen **0.7**: ausführbare protokollnahe Lasttest-Skripte liegen unter `scripts/load/` (u. a. `k6-trpc-health-50vu.js`, `k6-trpc-session-50vu.js`), zusätzlich existieren Frontend-Smoke-Flows wie `smoke:unified-session`; offen bleiben aber das vollständige Artillery-/Realtime-E2E-Setup, CI-Anbindung, maschinenlesbare Ergebnisaggregation und die breite Szenarioabdeckung gemäß Story 0.7. **Umgesetzt** sind jetzt u. a. **0.4a** (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog mit `DailyStatistic`, `dailyHighscores` und Chart im Hilfe-Dialog), **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
+> **Repo-Abgleich (Codebase 2026-05-13):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. kein Fragentyp numerische Schätzung und kein eigener Typ für bewertbare Kurzantwort in `QuestionTypeEnum` (`libs/shared-types`); Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad; noch **kein** vierter Session-Kanal für kontinuierliches Tempo-Feedback im Session-Modell. **Teilweise umgesetzt** ist inzwischen **0.7**: ausführbare protokollnahe Lasttest-Skripte liegen unter `scripts/load/` (u. a. `k6-trpc-health-50vu.js`, `k6-trpc-session-50vu.js`), zusätzlich existieren Frontend-Smoke-Flows wie `smoke:unified-session`; offen bleiben aber das vollständige Artillery-/Realtime-E2E-Setup, CI-Anbindung, maschinenlesbare Ergebnisaggregation und die breite Szenarioabdeckung gemäß Story 0.7. **Umgesetzt** sind jetzt u. a. **0.4a** (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog mit `DailyStatistic`, `dailyHighscores` und Chart im Hilfe-Dialog), **1.14** (interaktive Freitext-Wortwolke mit `d3-cloud`-Layout und Export), **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`), **8.6/8.7** (Q&A-Sortiermodi `Top` / `Beste Fragen` / `Umstritten` inklusive Wilson-/Kontroversitätsberechnung im Router) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
 >
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 29 · 🟡 Should: 62 · 🟢 Could: 11 = **102 Stories gesamt** (**81** ✅ Fertig · **1** 🔨 In Arbeit · **20** ⬜ Offen)
+> **Statistik:** 🔴 Must: 29 · 🟡 Should: 62 · 🟢 Could: 11 = **102 Stories gesamt** (**83** ✅ Fertig · **1** 🔨 In Arbeit · **18** ⬜ Offen)
 
 ---
 
@@ -709,12 +709,12 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Abhängigkeiten: Story 1.7 (Markdown/KaTeX), Story 1.2a–c (Fragentypen), Story 1.5 (Local-First).
 - **Story 1.14 (Word Cloud – interaktiv + Export):** 🟡 Als Lehrperson möchte ich Freitext-Antworten als interaktive Word-Cloud sehen und die Auswertung exportieren können, damit ich auf Mentimeter-Niveau präsentieren und Ergebnisse für Nachbereitung oder Lehrevaluation nutzen kann.
   - **Akzeptanzkriterien:**
-    - **Interaktive Word-Cloud:** In Beamer-Ansicht (Story 2.5) und Host-Steuerung wird bei FREETEXT-Fragen mit mindestens einer Antwort eine Word-Cloud angezeigt; Begriffe werden nach Häufigkeit skaliert (Stopwörter optional ausblendbar).
-    - Klick auf einen Begriff hebt ihn hervor oder filtert die zugehörigen Antworten in einer Liste (Toggle); Tooltip zeigt exakte Anzahl.
+    - **Interaktive Word-Cloud:** In Beamer-Ansicht (Story 2.5) und Host-Steuerung wird bei FREETEXT-Fragen mit mindestens einer Antwort eine Word-Cloud angezeigt; Begriffe werden nach Häufigkeit skaliert, Stopwörter sind produktseitig fest und sprachsensitiv ausgeblendet.
+    - Klick auf einen Begriff hebt ihn hervor oder filtert die zugehörigen Antworten in einer Liste (Toggle); Tooltip oder Fokuszustand zeigt die `Nennungen` der aggregierten Wortfamilie.
     - Word-Cloud aktualisiert sich live bei eingehenden Votes (Echtzeit, konsistent mit Story 4.5).
     - **Export:** Die Lehrperson kann pro Frage oder für die gesamte Session exportieren:
-      - **CSV:** Alle Freitext-Antworten (aggregiert: Text, Anzahl), ohne Nicknames; optional Bonus-Code-Liste (Story 4.6) in separatem Export.
-      - **Bild/PNG (optional):** Screenshot der Word-Cloud oder der Ergebnis-Visualisierung für eine Frage.
+      - **CSV:** Aggregierte Begriffe/Wortfamilien als `word,count,variants`, ohne Nicknames; optional Bonus-Code-Liste (Story 4.6) in separatem Export.
+      - **Bild/PNG (optional):** Geordneter PNG-Export der Wortwolke oder der Ergebnis-Visualisierung für eine Frage.
     - Export ist nur für die Lehrperson zugänglich (kein Zugriff für Teilnehmende); Daten nur aggregiert bzw. pseudonym (Bonus-Code-Liste), DSGVO-konform.
     - Abhängigkeiten: Story 4.5 (Freitext-Auswertung), Story 2.5 (Beamer), Story 4.4 (Ergebnis-Visualisierung).
 - **Story 1.14a (Word Cloud 2.0 – echtes Layout + Premium-UX):** 🟡 Als Lehrperson möchte ich Freitext-Antworten in einer echten, dichten und präsentationstauglichen Word-Cloud sehen, damit arsnova.eu bei Live-Freitext mindestens so stark wie Kahoot oder Mentimeter wirkt und in Lesbarkeit, Interaktion und Export sichtbar darüber liegt.
@@ -733,8 +733,8 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Größe adaptiv:** Die Word-Cloud passt sich an verschiedene Viewports und Seitenverhältnisse an, ohne dass die Layoutqualität auf Mobilgeräten, Laptops oder Projektionsflächen sichtbar kollabiert.
     - **Presenter und Host konsistent:** Host- und Presenter-Ansicht nutzen dieselbe fachliche Aggregation und dasselbe Layoutprinzip; Unterschiede dürfen nur bewusst in Dichte, Bedienelementen oder Rahmung bestehen.
     - **Echte Interaktion:** Klick oder Fokus auf ein Wort markiert es sichtbar und filtert die zugrundeliegenden Antworten; das aktive Wort kann wieder deaktiviert werden.
-    - **Exakte Mengen sichtbar:** Für jedes Wort ist die genaue Häufigkeit per Tooltip, Overlay oder Fokuszustand klar erkennbar.
-    - **Stopwörter professionell:** Stopwörter können ein- und ausgeblendet werden; das Umschalten führt zu einer nachvollziehbaren, konsistenten Neuberechnung statt zu einem kompletten visuellen Neustart.
+    - **Exakte Mengen sichtbar:** Für jedes Wort ist der konkrete Wolkenwert per Tooltip, Overlay oder Fokuszustand klar erkennbar; bei gewichteten Q&A-Wolken kann das ein modusspezifischer Wert statt einer rohen Anzahl sein.
+    - **Stopwörter professionell:** Stopwortfilter sind sprachsensitiv, kuratiert und kanalabhängig; Änderungen an der Stopwortlogik führen zu einer nachvollziehbaren, konsistenten Neuberechnung statt zu einem kompletten visuellen Neustart.
     - **Semantische Robustheit:** Tokenisierung, Stopwortlogik und Mindestwortlänge bleiben getrennt vom Layout und können später ohne Austausch der Layout-Engine erweitert werden.
     - **Lexikonform per NLP:** Wörter werden vor der Aggregation über geeignete NLP-Komponenten in ihre möglichst fehlerfreie Lexikonform überführt, damit Beugungen, Flexionen und naheliegende Wortformen nicht als getrennte Begriffe erscheinen.
     - **Ähnliche Wörter zusammenfassen:** Fachlich gleichartige Wortformen wie Singular/Plural, konjugierte Verbformen oder flektierte Adjektive können auf einen gemeinsamen Begriff aggregiert und als ein Wort in der Cloud dargestellt werden; als Referenz für die Qualität gilt ein Ansatz mit NLP-Bausteinen auf dem Niveau von spaCy.
@@ -1331,7 +1331,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
 
 ## Epic 8: Erweiterte Live-Kanäle (Q&A, Tempo)
 
-> **Verifizierung Epic 8 (2026-03-13):** Der bisherige Q&A-Kernumfang 8.1–8.4 ist umgesetzt. Offen: Story 8.5 (delegierbare Moderation), Story 8.6 (Kontroversitäts-Score), Story 8.7 („Beste Fragen“, Wilson-Score) sowie Story 8.8 (Tempo-Livekanal) — Spezifikation und Hintergrund [`docs/features/controversy-score.md`](docs/features/controversy-score.md).  
+> **Verifizierung Epic 8 (2026-05-13):** Der bisherige Q&A-Kernumfang 8.1–8.4 sowie die Host-Sortiermodi 8.6/8.7 sind umgesetzt. Offen: Story 8.5 (delegierbare Moderation) und Story 8.8 (Tempo-Livekanal) — Spezifikation und Hintergrund [`docs/features/controversy-score.md`](docs/features/controversy-score.md).  
 > Backend-Checks: `npm run test -w @arsnova/backend -- qa session.start-qa` ✅.  
 > Frontend-Checks: Spec-Abdeckung für Host-, Vote-, Present- und eingebettete Blitz-Feedback-Flows vorhanden ✅.  
 > Laufzeit-Review: `BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend` ✅, inklusive automatischem Fallback auf bestehende Unified-Session bei Session-Rate-Limit.
@@ -1350,13 +1350,13 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Markdown wird in Fragen unterstützt (Story 1.7).
     - Maximal 3 Fragen pro teilnehmender Person pro Session (Spam-Schutz).
     - Fragen erscheinen sofort im Teilnehmenden-Tab und in der Host-Moderation; freigegebene bzw. hervorgehobene Fragen sind auf der Presenter-Ansicht sichtbar.
-- **Story 8.3 (Upvoting & Sortierung):** 🟢 Als Teilnehmende:r möchte ich die Fragen anderer Teilnehmender upvoten können, damit die relevantesten Fragen nach oben wandern.
+- **Story 8.3 (Voting & Sortierung):** 🟢 Als Teilnehmende:r möchte ich die Fragen anderer Teilnehmender bewerten können, damit die relevantesten Fragen nach oben wandern.
   - **Akzeptanzkriterien:**
-    - Jede Frage hat einen Upvote-Button (👍 / ▲) mit aktueller Stimmenanzahl.
-    - Maximal 1 Upvote pro teilnehmender Person pro Frage (Toggle: erneuter Tap entfernt den Upvote).
-    - Fragen werden in Echtzeit nach Upvote-Anzahl sortiert (höchste zuerst).
+    - Jede Frage hat eine Up-/Downvote-Steuerung mit aktuellem Score.
+    - Maximal 1 Stimme pro teilnehmender Person pro Frage; Richtungswechsel und Toggle-off sind moeglich.
+    - Fragen werden in Echtzeit nach aktuellem Score sortiert (Teilnehmenden-Default `Top`).
     - tRPC-Subscription `qa.onQuestionsUpdated` pusht die aktuelle Fragenliste.
-    - Prisma: Neues Modell `QaUpvote` mit `@@unique([qaQuestionId, participantId])` für Upvote-Toggle.
+    - Prisma: Modell `QaUpvote` mit `@@unique([qaQuestionId, participantId])` und Richtungsfeld fuer `UP`/`DOWN`.
 - **Story 8.4 (Moderation durch Lehrende):** 🟢 Als Lehrperson möchte ich eingereichte Fragen moderieren können.
   - **Akzeptanzkriterien:**
     - Die Lehrperson kann Fragen:
@@ -1376,10 +1376,14 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Sicherheits- und Integrationstests decken unzulässige Rolleneskalation ausdrücklich ab.
 - **Story 8.6 (Q&A: Kontroversitäts-Score & Sortierung):** 🟡 Als Lehrperson oder Moderator:in einer Live-Veranstaltung möchte ich Fragen im Q&A nach Kontroversität (ausgeglichene Up- und Downvotes) sortieren können, damit polarisierende Themen sichtbar werden und nicht nur durch hohe Upvote-Zahlen dominieren.
   - **Details:** Formel, Sortier-Tie-Breaker, UI-Schwellen, Testfälle und Beispiel-SQL: [`docs/features/controversy-score.md`](docs/features/controversy-score.md).
+  - **Produktabgleich Stand 2026-05-13:** Umsetzung im heutigen Produkt als **optionaler Sortiermodus in der Host-Ansicht**, nicht als neue globale Standardsortierung; `PINNED` bleibt oberhalb jeder Score-Sortierung, Scoring wirkt nur innerhalb sichtbarer Statusgruppen. Eine spätere Erweiterung auf Moderator:innen bleibt möglich.
+  - **Umsetzungsstand Stand 2026-05-13:** Der Host bietet den Modus `Umstritten` inklusive sichtbarer Kennzeichnung, getrennten `UP`/`DOWN`-Metriken in der Fragenliste und einer sortierabhaengigen Q&A-Wortwolke; Teilnehmende bleiben auf der Standardsortierung.
   - **Performance-Hinweis:** Die Story ist nach [ADR-0025](docs/architecture/decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md) beobachtungspflichtig bis performance-kritisch, weil Scoring und Resortierung im laufenden Q&A-Kanal potenziell in den Live-Pfad geraten und bei vielen Fragen/Votes nicht naiv pro Update neu berechnet werden duerfen.
 - **Story 8.7 (Q&A: Sortierung „Beste Fragen“, Wilson-Score):** 🟡 Als Lehrperson oder Moderator:in einer Live-Veranstaltung möchte ich Fragen im Q&A optional nach statistisch belastbarer Zustimmung sortieren können („Beste Fragen“, untere Grenze des Wilson-Konfidenzintervalls), damit Einzelstimmen mit scheinbar 100 % nicht über Fragen mit vielen, fast einhelligen Stimmen rutschen.
   - **Details:** Hintergrund, Wilson-Formel, Beispiel-SQL und Abgrenzung zu Story 8.6: [`docs/features/controversy-score.md`](docs/features/controversy-score.md) (Abschnitte „Best Questions“ / Wilson und Entwicklernotizen).
   - **Hinweis:** Sortier-UI (Dropdown o. Ä.) kann mit Story 8.6 gemeinsam geplant werden; technisch eigenständiges Scoring und Tests.
+  - **Produktabgleich Stand 2026-05-13:** Story 8.7 ist im heutigen Produkt der passendere erste Ausbau, weil sie das bestehende Ziel „relevante Fragen nach oben“ stärkt; Grundlage sind getrennte `UP`-/`DOWN`-Aggregationen aus dem Q&A-Voting, nicht nur das bestehende Nettofeld `upvoteCount`.
+  - **Umsetzungsstand Stand 2026-05-13:** Der Host bietet den Modus `Beste Fragen` auf Basis der unteren Wilson-Grenze; Host-DTOs liefern dafuer getrennte `UP`-/`DOWN`-Aggregationen sowie `score`, `voteCount`, `bestScore` und `controversyScore`.
   - **Performance-Hinweis:** Auch diese Story faellt unter [ADR-0025](docs/architecture/decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md), weil Wilson-Score-Berechnung, Ranking und Live-Neusortierung bei hohem Q&A-Aufkommen Aggregations- und Datenbanklast erzeugen koennen.
 - **Story 8.8 (Tempo-Livekanal):** 🟡 Als Lehrperson möchte ich einen persistenten Tempo-Livekanal in einer laufenden ARSnova-Session aktivieren können, damit Teilnehmende während eines Vortrags jederzeit anonym signalisieren können, ob sie folgen, ob es schneller gehen darf, ob es zu schnell ist oder ob sie abgehängt sind.
   - **Akzeptanzkriterien:**

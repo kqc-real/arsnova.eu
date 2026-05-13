@@ -15,6 +15,7 @@
 .word-cloud-card--presentation {
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 100%;
   border-radius: clamp(1.35rem, 2.4vw, 1.85rem);
   background:
@@ -148,11 +149,13 @@
 }
 
 .word-cloud--presentation .word-cloud__visual-frame {
+  flex: 1 1 auto;
   min-height: 0;
   padding: clamp(1.3rem, 2.4vw, 1.95rem);
   border-radius: clamp(1.2rem, 2.2vw, 1.8rem);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .word-cloud__empty {

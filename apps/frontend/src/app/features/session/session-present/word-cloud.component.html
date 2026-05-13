@@ -41,7 +41,7 @@
         <span>{{ weightingHint() }}</span>
       </div>
     }
-    <div #exportSurface class="word-cloud__visual-frame">
+    <div #exportSurface #visualFrame class="word-cloud__visual-frame">
       @if (words().length === 0) {
         <p class="word-cloud__empty">{{ emptyMessage() }}</p>
       } @else {
@@ -67,7 +67,9 @@
                 [style.top.px]="cloudWordTop(entry)"
                 [style.transform]="cloudWordTransform(entry)"
                 [style.z-index]="wordZIndex(entry.rank)"
-                [attr.title]="wordTooltip(entry)"
+                [matTooltip]="wordTooltipDisplay(entry)"
+                matTooltipClass="word-cloud-tooltip"
+                [matTooltipShowDelay]="120"
                 [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
                 (click)="toggleWord(entry.groupKey)"
               >
@@ -84,7 +86,9 @@
                 [class.word-cloud__word--top]="entry.rank < 2"
                 [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
                 [style.font-size.px]="entry.size"
-                [attr.title]="wordTooltip(entry)"
+                [matTooltip]="wordTooltipDisplay(entry)"
+                matTooltipClass="word-cloud-tooltip"
+                [matTooltipShowDelay]="120"
                 [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
                 (click)="toggleWord(entry.groupKey)"
               >
@@ -107,7 +111,7 @@
                   class="word-cloud__action word-cloud__action--maximize"
                   aria-haspopup="dialog"
                   [attr.aria-label]="maximizeAriaLabel"
-                  (click)="openInDialog()"
+                  (click)="handleMaximize()"
                 >
                   <mat-icon>open_in_full</mat-icon>
                   {{ maximizeLabel }}

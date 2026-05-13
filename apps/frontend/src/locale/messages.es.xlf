@@ -8205,6 +8205,38 @@
           <context context-type="linenumber">1920,1921</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.sortAria" datatype="html">
+        <source>Q&amp;A-Sortierung</source>
+        <target>Orden de Q&amp;A</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1954</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortTop" datatype="html">
+        <source>Top</source>
+        <target>Principales</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1958</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortBest" datatype="html">
+        <source>Beste Fragen</source>
+        <target>Mejores preguntas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1961</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortControversial" datatype="html">
+        <source>Umstritten</source>
+        <target>Polémicas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1966</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.filterShowAllAria" datatype="html">
         <source>Alle Fragen anzeigen</source>
         <target>Mostrar todas las preguntas</target>
@@ -8251,6 +8283,38 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1985</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.badgeControversial" datatype="html">
+        <source>Umstritten</source>
+        <target>Polémica</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">2085</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.voteBreakdown" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="}}"/> positiv · <x id="INTERPOLATION_1" equiv-text="{{ question.negativeVoteCount }}"/> negativ</source>
+        <target><x id="INTERPOLATION" equiv-text="question.positiveVoteCount"/> positivas · <x id="INTERPOLATION_1" equiv-text="question.negativeVoteCount"/> negativas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">2113,2114</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.bestMetric" datatype="html">
+        <source>Wilson <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.bestScore) }}"/></source>
+        <target>Wilson <x id="INTERPOLATION" equiv-text="formatQaPercent(question.bestScore)"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">2121,2122</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.controversyMetric" datatype="html">
+        <source>Kontroversität <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.controversyScore) }}"/></source>
+        <target>Controversia <x id="INTERPOLATION" equiv-text="formatQaPercent(question.controversyScore)"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">2131,2133</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.filterEmptyHint" datatype="html">
@@ -8541,6 +8605,30 @@
           <context context-type="linenumber">699</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.sortHintBest" datatype="html">
+        <source>Wilson-Score bevorzugt belastbare Zustimmung.</source>
+        <target>La puntuación de Wilson prioriza el apoyo sólido.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">766</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHintControversial" datatype="html">
+        <source>Kontroversität bevorzugt ausgeglichene Beteiligung.</source>
+        <target>La controversia prioriza una participación equilibrada.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">768</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHintTop" datatype="html">
+        <source>Netto-Score zuerst.</source>
+        <target>Primero la puntuación neta.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">770</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.wordCloudHide" datatype="html">
         <source>Q&amp;A-Word-Cloud ausblenden</source>
         <target>Ocultar nube de palabras de Q&amp;A</target>
@@ -8557,20 +8645,76 @@
           <context context-type="linenumber">761</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.wordCloudCountOneWeighted" datatype="html">
-        <source>1 Frage · Upvotes gewichtet</source>
-        <target>1 pregunta · ponderada por votos positivos</target>
+      <trans-unit id="sessionQa.wordCloudMetricBest" datatype="html">
+        <source>Wilson-Score</source>
+        <target>puntuación de Wilson</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">757</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudMetricControversial" datatype="html">
+        <source>Kontroversität</source>
+        <target>controversia</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">759</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudMetricTop" datatype="html">
+        <source>Netto-Score</source>
+        <target>puntuación neta</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">761</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudTitleMetric" datatype="html">
+        <source>Q&amp;A-Word-Cloud (<x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/>)</source>
+        <target>Nube de palabras de Q&amp;A (<x id="metric" equiv-text="this.qaWordCloudMetricLabel()"/>)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">766</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.wordCloudCountManyWeighted" datatype="html">
-        <source><x id="count" equiv-text="count"/> Fragen · Upvotes gewichtet</source>
-        <target><x id="count" equiv-text="count"/> preguntas · ponderadas por votos positivos</target>
+      <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
+        <source>Größere Begriffe stammen aus Fragen mit höherem Wilson-Score.</source>
+        <target>Los términos más grandes provienen de preguntas con una puntuación de Wilson más alta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">768</context>
+          <context context-type="linenumber">771</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
+        <source>Größere Begriffe stammen aus stärker umstrittenen Fragen. Mit der Maus über einen Begriff fahren, um Gewichtung und zugehörige Fragen zu sehen.</source>
+        <target>Los términos más grandes provienen de preguntas más controvertidas. Pasa el cursor sobre un término para ver su peso y las preguntas relacionadas.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">773</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudHintTop" datatype="html">
+        <source>Größere Begriffe stammen aus Fragen mit höherem Netto-Score.</source>
+        <target>Los términos más grandes provienen de preguntas con una puntuación neta más alta.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">775</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCountOneMetric" datatype="html">
+        <source>1 Frage · <x id="metric" equiv-text="metric"/> gewichtet</source>
+        <target>1 pregunta · ponderada por <x id="metric" equiv-text="metric"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">797</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCountManyMetric" datatype="html">
+        <source><x id="count" equiv-text="count"/> Fragen · <x id="metric" equiv-text="metric"/> gewichtet</source>
+        <target><x id="count" equiv-text="count"/> preguntas · ponderadas por <x id="metric" equiv-text="metric"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">799</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.responseCountOne" datatype="html">
@@ -9673,20 +9817,36 @@
           <context context-type="linenumber">177</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="wordCloud.countTooltip" datatype="html">
-        <source>Anzahl: <x id="count" equiv-text="entry.count"/></source>
-        <target>Cantidad: <x id="count" equiv-text="entry.count"/></target>
+      <trans-unit id="wordCloud.weightedValueTooltip" datatype="html">
+        <source>Gewichteter Wert: <x id="count" equiv-text="count"/></source>
+        <target>Valor ponderado: <x id="count" equiv-text="count"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">453</context>
+          <context context-type="linenumber">490</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.mentionsTooltip" datatype="html">
+        <source>Nennungen: <x id="count" equiv-text="count"/></source>
+        <target>Menciones: <x id="count" equiv-text="count"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">493</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.metricBasisTooltip" datatype="html">
+        <source>Basis: <x id="metric" equiv-text="metricLabel"/></source>
+        <target>Base: <x id="metric" equiv-text="metricLabel"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">502</context>
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.variantsTooltip" datatype="html">
-        <source><x id="base" equiv-text="base"/> · Formen: <x id="variants" equiv-text="variants"/></source>
-        <target><x id="base" equiv-text="base"/> · Formas: <x id="variants" equiv-text="variants"/></target>
+        <source>Formen: <x id="variants" equiv-text="variants"/></source>
+        <target>Formas: <x id="variants" equiv-text="variants"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">459</context>
+          <context context-type="linenumber">476</context>
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.loadMoreOne" datatype="html">
