@@ -1326,7 +1326,7 @@ describe('SessionHostComponent', () => {
     expect(text).toContain('2 Antworten');
     expect(text).toContain('Live-Freitext wird aktualisiert.');
     expect(text).toContain('Live-Freitext');
-    expect(text).toContain('Häufige Begriffe aus den Antworten.');
+    expect(text).toContain('Häufige Wörter aus den Antworten.');
     expect(text).toContain('Wortwolke einfrieren');
     fixture.destroy();
   });
@@ -1448,7 +1448,9 @@ describe('SessionHostComponent', () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Wortwolke anzeigen');
-    expect(text).toContain('2 sichtbare Fragen · Größe der Begriffe: belastbare Zustimmung');
+    expect(text).toContain(
+      '2 sichtbare Fragen · Größe von Wörtern und Phrasen: belastbare Zustimmung',
+    );
     expect(fixture.componentInstance.qaWordCloudQuestions()).toHaveLength(2);
     expect(fixture.componentInstance.qaWordCloudWeightedResponses()[0]?.weight).toBe(4);
     expect(fixture.componentInstance.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
@@ -1469,9 +1471,11 @@ describe('SessionHostComponent', () => {
     const data = config['data'] as {
       title: () => string;
       weightingHint: () => string | null;
+      terms: () => Array<{ key: string }>;
     };
     expect(data.title()).toBe('Q&A-Wortwolke');
     expect(data.weightingHint()).toContain('viel Zustimmung');
+    expect(data.terms().some((term) => term.key === 'kapitel')).toBe(true);
     fixture.destroy();
   });
 
@@ -1607,6 +1611,56 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('zählt gelöschte Q&A-Fragen nicht mehr im Gesamtstand des Forums', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Sichtbare Frage',
+        upvoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        text: 'Bereits entfernte Frage',
+        upvoteCount: 0,
+        status: 'DELETED',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Gesamt: 1');
+    expect(text).not.toContain('Gesamt: 2');
+    expect(text).toContain('Sichtbare Frage');
+    expect(text).not.toContain('Bereits entfernte Frage');
+    expect(fixture.nativeElement.querySelectorAll('.session-qa-card')).toHaveLength(1);
+    fixture.destroy();
+  });
+
   it('schaltet im Host zwischen Q&A-Sortiermodi um und lädt BEST neu', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -1643,13 +1697,25 @@ describe('SessionHostComponent', () => {
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
     fixture.detectChanges();
+    const qaList = fixture.nativeElement.querySelector('.session-qa-list') as HTMLElement | null;
+    expect(qaList).toBeTruthy();
+    Object.defineProperty(qaList!, 'scrollTo', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(),
+    });
+    const scrollToSpy = vi.spyOn(qaList!, 'scrollTo').mockImplementation(() => undefined);
+
     await component.setQaSortMode('TOP');
     fixture.detectChanges();
     qaListQueryMock.mockClear();
     qaOnQuestionsUpdatedSubscribeMock.mockClear();
+    scrollToSpy.mockClear();
 
     await component.setQaSortMode('BEST');
     fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(qaListQueryMock).toHaveBeenCalledWith({
       sessionId: defaultSession.id,
@@ -1668,11 +1734,13 @@ describe('SessionHostComponent', () => {
     expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(21);
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
     expect(component.qaWordCloudInfo()).toBe(
-      '1 sichtbare Frage · Größe der Begriffe: belastbare Zustimmung',
+      '1 sichtbare Frage · Größe von Wörtern und Phrasen: belastbare Zustimmung',
     );
     expect(fixture.nativeElement.textContent ?? '').toContain(
-      'Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen bleiben oben.',
+      'Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.',
     );
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+    scrollToSpy.mockRestore();
     fixture.destroy();
   });
 
@@ -1718,7 +1786,9 @@ describe('SessionHostComponent', () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(27);
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
-    expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage · Größe der Begriffe: Kontroverse');
+    expect(component.qaWordCloudInfo()).toBe(
+      '1 sichtbare Frage · Größe von Wörtern und Phrasen: Kontroverse',
+    );
     expect(text).toContain('Umstritten');
     expect(text).toContain('8 positiv · 8 negativ');
     expect(text).toContain('Geteilte Reaktionen 80 %');
@@ -1907,7 +1977,7 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
-  it('deaktiviert den Themenmodus fuer Q&A-Live-Lokalisierungen ohne Theme-Analyzer', async () => {
+  it('nutzt den lokalen Themenmodus fuer Q&A-Live-Lokalisierungen ohne Backend-Analyzer', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -1944,17 +2014,20 @@ describe('SessionHostComponent', () => {
 
     expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
     expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBeNull();
-    expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('LEXICAL');
+    expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('THEME');
+    expect(fixture.componentInstance.qaWordCloudTerms().length).toBeGreaterThan(0);
 
     const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
     const data = config['data'] as {
       analysisVariant: () => string;
       themeModeAvailable: () => boolean;
       themeFallbackHint: () => string | null;
+      terms: () => Array<{ key: string }>;
     };
-    expect(data.analysisVariant()).toBe('LEXICAL');
-    expect(data.themeModeAvailable()).toBe(false);
-    expect(data.themeFallbackHint()).toContain('einzelne Wörter');
+    expect(data.analysisVariant()).toBe('THEME');
+    expect(data.themeModeAvailable()).toBe(true);
+    expect(data.themeFallbackHint()).toBeNull();
+    expect(data.terms().length).toBeGreaterThan(0);
     fixture.destroy();
   });
 
@@ -2188,7 +2261,7 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt im Themenmodus einen Fallback-Hinweis, wenn der Backend-Pfad lexikalisch zurueckfaellt', async () => {
+  it('unterdrueckt Backend-Fallback-Hinweise, wenn lokale Terme verfuegbar sind', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -2260,17 +2333,19 @@ describe('SessionHostComponent', () => {
     });
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toContain('einzelne Wörter');
+    expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBeNull();
 
     const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
     const data = config['data'] as {
       analysisVariant: () => string;
       themeModeAvailable: () => boolean;
       themeFallbackHint: () => string | null;
+      terms: () => Array<{ key: string }>;
     };
     expect(data.analysisVariant()).toBe('THEME');
     expect(data.themeModeAvailable()).toBe(true);
-    expect(data.themeFallbackHint()).toContain('einzelne Wörter');
+    expect(data.themeFallbackHint()).toBeNull();
+    expect(data.terms().length).toBeGreaterThan(0);
     fixture.destroy();
   });
 
@@ -5832,6 +5907,133 @@ describe('SessionHostComponent', () => {
 
       expect(fixture.componentInstance.hostSteeringCallout()?.title).toContain(exportCalloutTitle);
       fixture.destroy();
+    });
+
+    it('exportiert geladene Q&A-Fragen als CSV ohne Zusatzabfrage', async () => {
+      let exportedCsv = '';
+      const createObjectURLMock = vi.fn(() => 'blob:test-export');
+      const revokeObjectURLMock = vi.fn();
+      const anchorClickSpy = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+      const originalCreateObjectURL = URL.createObjectURL;
+      const originalRevokeObjectURL = URL.revokeObjectURL;
+      const originalBlob = Blob;
+      class CaptureBlob extends Blob {
+        constructor(parts: BlobPart[], options?: BlobPropertyBag) {
+          super(parts, options);
+          exportedCsv = parts
+            .map((part) => (typeof part === 'string' ? part : String(part)))
+            .join('');
+        }
+      }
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: createObjectURLMock,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: revokeObjectURLMock,
+      });
+      Object.defineProperty(globalThis, 'Blob', {
+        configurable: true,
+        writable: true,
+        value: CaptureBlob,
+      });
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Wann startet der Test?',
+          upvoteCount: 4,
+          score: 4,
+          positiveVoteCount: 6,
+          negativeVoteCount: 2,
+          voteCount: 8,
+          bestScore: 0.625,
+          controversyScore: 0.375,
+          isControversial: false,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          text: 'Ist die Abgabe schon geschlossen?',
+          upvoteCount: -1,
+          score: -1,
+          positiveVoteCount: 1,
+          negativeVoteCount: 2,
+          voteCount: 3,
+          bestScore: 0.12,
+          controversyScore: 0.52,
+          isControversial: true,
+          status: 'DELETED',
+          createdAt: '2026-03-13T12:01:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await vi.waitUntil(() => fixture.componentInstance.qaQuestions().length === 2, {
+        timeout: 5000,
+        interval: 25,
+      });
+
+      fixture.componentInstance.activeChannel.set('qa');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const qaQueryCallCount = qaListQueryMock.mock.calls.length;
+
+      await fixture.componentInstance.exportQaQuestionsCsv();
+      fixture.detectChanges();
+
+      expect(qaListQueryMock).toHaveBeenCalledTimes(qaQueryCallCount);
+      expect(getExportDataQueryMock).not.toHaveBeenCalled();
+      expect(exportedCsv).toContain(
+        'Nr.;Frage-ID;Status;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Erstellt am',
+      );
+      expect(exportedCsv).toContain(
+        '1;11111111-1111-4111-8111-111111111111;ACTIVE;"Wann startet der Test?";4;6;2;8;0.625;0.375;false;2026-03-13T12:00:00.000Z',
+      );
+      expect(exportedCsv).toContain(
+        '2;22222222-2222-4222-8222-222222222222;DELETED;"Ist die Abgabe schon geschlossen?";-1;1;2;3;0.12;0.52;true;2026-03-13T12:01:00.000Z',
+      );
+      expect(fixture.componentInstance.exportStatus()).toBe('Q&A-CSV exportiert.');
+
+      fixture.destroy();
+      anchorClickSpy.mockRestore();
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalCreateObjectURL,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        writable: true,
+        value: originalRevokeObjectURL,
+      });
+      Object.defineProperty(globalThis, 'Blob', {
+        configurable: true,
+        writable: true,
+        value: originalBlob,
+      });
     });
 
     it('exportiert die Team-Wertung im Ergebnis-CSV', async () => {

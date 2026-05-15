@@ -145,6 +145,7 @@
         <app-word-cloud
           [responses]="presenterQaWordCloudResponses()"
           [weightedResponses]="presenterQaWordCloudWeightedResponses()"
+          [terms]="presenterQaWordCloudTerms()"
           [analysisMode]="'qa'"
           [eyebrow]="qaWordCloudEyebrow"
           [description]="qaWordCloudDescription"
@@ -230,6 +231,7 @@
       <app-word-cloud
         class="session-present__word-cloud-stage"
         [responses]="freetextResponses()"
+        [terms]="freetextWordCloudTerms()"
         [selectionScopeKey]="freetextQuestionId()"
         [title]="freetextWordCloudStageTitle()"
         [eyebrow]="freetextWordCloudEyebrow"

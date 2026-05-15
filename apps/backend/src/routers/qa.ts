@@ -180,19 +180,12 @@ function createQaVoteStats(
 function sortQuestions(
   questions: DecoratedQaQuestion[],
   sortMode: QaQuestionSortMode,
+  includeVoteMetrics: boolean,
 ): DecoratedQaQuestion[] {
-  const statusOrder = new Map([
-    ['PINNED', 0],
-    ['ACTIVE', 1],
-    ['PENDING', 2],
-    ['ARCHIVED', 3],
-    ['DELETED', 4],
-  ]);
-
   return [...questions].sort((left, right) => {
     const statusDiff =
-      (statusOrder.get(left.question.status) ?? 99) -
-      (statusOrder.get(right.question.status) ?? 99);
+      statusSortBucket(left.question.status, includeVoteMetrics) -
+      statusSortBucket(right.question.status, includeVoteMetrics);
     if (statusDiff !== 0) {
       return statusDiff;
     }
@@ -228,6 +221,12 @@ function sortQuestions(
       return right.voteStats.score - left.voteStats.score;
     }
 
+    const statusTieDiff =
+      statusTieOrder(left.question.status) - statusTieOrder(right.question.status);
+    if (statusTieDiff !== 0) {
+      return statusTieDiff;
+    }
+
     const createdAtDiff = left.question.createdAt.getTime() - right.question.createdAt.getTime();
     if (createdAtDiff !== 0) {
       return createdAtDiff;
@@ -235,6 +234,50 @@ function sortQuestions(
 
     return left.question.id.localeCompare(right.question.id);
   });
+}
+
+function statusSortBucket(status: QaQuestionRecord['status'], includeVoteMetrics: boolean): number {
+  if (includeVoteMetrics) {
+    switch (status) {
+      case 'PINNED':
+      case 'ACTIVE':
+        return 0;
+      case 'PENDING':
+        return 1;
+      case 'ARCHIVED':
+        return 2;
+      case 'DELETED':
+        return 3;
+    }
+  }
+
+  switch (status) {
+    case 'PINNED':
+      return 0;
+    case 'ACTIVE':
+      return 1;
+    case 'PENDING':
+      return 2;
+    case 'ARCHIVED':
+      return 3;
+    case 'DELETED':
+      return 4;
+  }
+}
+
+function statusTieOrder(status: QaQuestionRecord['status']): number {
+  switch (status) {
+    case 'PINNED':
+      return 0;
+    case 'ACTIVE':
+      return 1;
+    case 'PENDING':
+      return 2;
+    case 'ARCHIVED':
+      return 3;
+    case 'DELETED':
+      return 4;
+  }
 }
 
 function mapQaQuestion(
@@ -299,8 +342,9 @@ function buildQaQuestionListPayload(
     ),
   }));
 
-  return sortQuestions(decoratedQuestions, sortMode).map(({ question, voteStats }) =>
-    mapQaQuestion(question, participantId, voteStats, includeVoteMetrics),
+  return sortQuestions(decoratedQuestions, sortMode, includeVoteMetrics).map(
+    ({ question, voteStats }) =>
+      mapQaQuestion(question, participantId, voteStats, includeVoteMetrics),
   );
 }
 
@@ -499,6 +543,20 @@ export const qaRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
 
+      if (input.action === 'DELETE') {
+        await prisma.qaQuestion.delete({ where: { id: question.id } });
+        return QaQuestionDTOSchema.parse({
+          id: question.id,
+          text: question.text,
+          upvoteCount: question.upvoteCount,
+          status: 'DELETED',
+          createdAt: question.createdAt.toISOString(),
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        });
+      }
+
       let nextStatus = question.status;
       switch (input.action) {
         case 'APPROVE':
@@ -511,23 +569,6 @@ export const qaRouter = router({
         case 'ARCHIVE':
           nextStatus = 'ARCHIVED';
           break;
-        case 'DELETE':
-          nextStatus = 'DELETED';
-          break;
-      }
-
-      if (question.status === 'DELETED' && input.action === 'DELETE') {
-        await prisma.qaQuestion.delete({ where: { id: question.id } });
-        return QaQuestionDTOSchema.parse({
-          id: question.id,
-          text: question.text,
-          upvoteCount: question.upvoteCount,
-          status: 'DELETED',
-          createdAt: question.createdAt.toISOString(),
-          myVote: null,
-          isOwn: false,
-          hasUpvoted: false,
-        });
       }
 
       if (question.status === 'DELETED') {

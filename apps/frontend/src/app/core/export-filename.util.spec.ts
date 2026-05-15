@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildBonusCodesCsvFilename,
+  buildQaQuestionsCsvFilename,
   buildQuizExportJsonFilename,
   buildSessionResultsCsvFilename,
   sanitizeExportFilenameSegment,
@@ -23,6 +24,7 @@ describe('export filename util', () => {
     expect(buildSessionResultsCsvFilename('Überprüfung / SQL? 101', 'ABC123')).toBe(
       'arsnova-results-Uberprufung-SQL-101-ABC123.csv',
     );
+    expect(buildQaQuestionsCsvFilename('ABC123')).toBe('arsnova-qa-questions-ABC123.csv');
     expect(buildBonusCodesCsvFilename('Überprüfung / SQL? 101')).toBe(
       'arsnova-bonus-codes-Uberprufung-SQL-101.csv',
     );

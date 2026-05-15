@@ -47,7 +47,11 @@ import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { clearFeedbackHostToken } from '../../../core/feedback-host-token';
 import { clearHostToken } from '../../../core/host-session-token';
-import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
+import {
+  getEffectiveLocale,
+  localeIdToSupported,
+  type SupportedLocale,
+} from '../../../core/locale-from-path';
 import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
@@ -93,6 +97,11 @@ import {
   getWordCloudWeightFromUpvotes,
   normalizeFreeTextResponseForDisplay,
 } from '../session-present/word-cloud.util';
+import {
+  WordCloudTermExtractorService,
+  type WordCloudTerm,
+  type WordCloudTermDocument,
+} from '../session-present/word-cloud-term.service';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel } from '../../../shared/question-type-label';
@@ -101,7 +110,10 @@ import { recordServerTimeIso } from '../session-server-clock';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
 import { FeedbackHostComponent } from '../../feedback/feedback-host.component';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
-import { buildSessionResultsCsvFilename } from '../../../core/export-filename.util';
+import {
+  buildQaQuestionsCsvFilename,
+  buildSessionResultsCsvFilename,
+} from '../../../core/export-filename.util';
 import {
   replaceEmojiShortcodes,
   edgeEmojiMarkerPosition,
@@ -413,6 +425,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly quizStore = inject(QuizStoreService);
+  private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
   private auxPollTimer: ReturnType<typeof setInterval> | null = null;
   private clockPollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
@@ -425,9 +438,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly wordCloudFrozen = signal(false);
   readonly frozenWordCloudResponses = signal<string[] | null>(null);
   readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
-  readonly freetextWordCloudDescription = $localize`:@@sessionWordCloud.freetextDescription:Häufige Begriffe aus den Antworten.`;
+  readonly freetextWordCloudDescription = $localize`:@@sessionWordCloud.freetextDescription:Häufige Wörter aus den Antworten.`;
   readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
-  readonly qaWordCloudDescription = $localize`:@@sessionWordCloud.qaDescription:Zeigt, welche Begriffe in den sichtbaren Q&A-Fragen dominieren.`;
+  readonly qaWordCloudDescription = $localize`:@@sessionWordCloud.qaDescription:Zeigt, welche Wörter und Phrasen in den sichtbaren Q&A-Fragen dominieren.`;
   readonly qaWordCloudAnalysisVariant = signal<WordCloudAnalysisVariant>('THEME');
   readonly qaWordCloudDialogOpen = signal(false);
   readonly qaWordCloudFrozen = signal(false);
@@ -527,6 +540,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.wordCloudFrozen()
       ? (this.frozenWordCloudResponses() ?? this.freetextResponses())
       : this.freetextResponses(),
+  );
+  readonly wordCloudTermLocale = computed<SupportedLocale>(() =>
+    getEffectiveLocale(localeIdToSupported(this.localeId)),
+  );
+  readonly displayedFreetextWordCloudTerms = computed<WordCloudTerm[]>(() =>
+    this.wordCloudTermExtractor.extractTerms(
+      this.displayedFreetextResponses().map((response, index) => ({
+        id: `response-${index}`,
+        body: response,
+      })),
+      {
+        locale: this.wordCloudTermLocale(),
+        maxEntries: 80,
+        maxNgramLength: 3,
+      },
+    ),
   );
   readonly displayedWordCloudInfo = computed(() =>
     this.wordCloudFrozen()
@@ -755,8 +784,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly qaSortMode = signal<QaQuestionSortMode>('BEST');
   readonly qaShowPinnedOnly = signal(false);
+  readonly qaForumQuestions = computed(() =>
+    this.qaQuestions().filter((question) => question.status !== 'DELETED'),
+  );
+  readonly qaForumQuestionCount = computed(() => this.qaForumQuestions().length);
   readonly qaFilteredQuestions = computed(() => {
-    const all = this.qaQuestions();
+    const all = this.qaForumQuestions();
     return this.qaShowPinnedOnly() ? all.filter((q) => q.status === 'PINNED') : all;
   });
   readonly liveQaWordCloudQuestions = computed(() => {
@@ -779,12 +812,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const locale = getEffectiveLocale(localeIdToSupported(this.localeId));
     return locale === 'de' || locale === 'en' ? locale : null;
   });
-  readonly qaWordCloudThemeModeAvailable = computed(
-    () => this.qaWordCloudAnalysisLocale() !== null,
+  readonly qaWordCloudTermLocale = computed<SupportedLocale>(() =>
+    getEffectiveLocale(localeIdToSupported(this.localeId)),
   );
+  readonly qaWordCloudThemeModeAvailable = computed(() => true);
   readonly qaWordCloudEffectiveAnalysisVariant = computed<WordCloudAnalysisVariant>(() => {
-    const variant = this.qaWordCloudAnalysisVariant();
-    return variant === 'THEME' && !this.qaWordCloudThemeModeAvailable() ? 'LEXICAL' : variant;
+    return this.qaWordCloudAnalysisVariant();
   });
   readonly qaWordCloudMetricLabel = computed(() => {
     switch (this.qaSortMode()) {
@@ -800,11 +833,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudWeightingHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.wordCloudHintBest:Große Begriffe kommen aus Fragen mit viel Zustimmung und ausreichend Stimmen.`;
+        return $localize`:@@sessionQa.wordCloudHintBest:Große Wörter und Phrasen kommen aus Fragen mit viel Zustimmung und ausreichend Stimmen.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.wordCloudHintControversial:Große Begriffe kommen aus Fragen mit gegensätzlichen Reaktionen. Darüberfahren zeigt die zugehörigen Fragen.`;
+        return $localize`:@@sessionQa.wordCloudHintControversial:Große Wörter und Phrasen kommen aus Fragen mit gegensätzlichen Reaktionen. Darüberfahren zeigt die zugehörigen Fragen.`;
       default:
-        return $localize`:@@sessionQa.wordCloudHintTop:Große Begriffe kommen aus Fragen mit vielen positiven Stimmen.`;
+        return $localize`:@@sessionQa.wordCloudHintTop:Große Wörter und Phrasen kommen aus Fragen mit vielen positiven Stimmen.`;
     }
   });
   readonly qaWordCloudWeightedResponses = computed(() =>
@@ -812,6 +845,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       text: question.text,
       weight: this.qaWordCloudQuestionWeight(question),
     })),
+  );
+  readonly qaWordCloudTermDocuments = computed<WordCloudTermDocument[]>(() =>
+    this.qaWordCloudQuestions().map((question) => ({
+      id: question.id,
+      title: question.text,
+      weight: this.qaWordCloudQuestionWeight(question),
+    })),
+  );
+  readonly qaWordCloudTerms = computed<WordCloudTerm[]>(() =>
+    this.wordCloudTermExtractor.extractTerms(this.qaWordCloudTermDocuments(), {
+      locale: this.qaWordCloudTermLocale(),
+      maxEntries: 80,
+      maxNgramLength: this.qaWordCloudEffectiveAnalysisVariant() === 'THEME' ? 3 : 1,
+    }),
   );
   readonly qaWordCloudAnalysisRequest = computed<AnalyzeWordCloudInput | null>(() =>
     this.buildQaWordCloudAnalysisRequest(),
@@ -824,8 +871,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.qaWordCloudThemeAnalysisResult()?.entries ?? null;
   });
   readonly qaWordCloudThemeFallbackHint = computed(() => {
-    if (this.qaWordCloudAnalysisVariant() === 'THEME' && !this.qaWordCloudThemeModeAvailable()) {
-      return $localize`:@@sessionQa.wordCloudThemeUnavailableHint:Themen gibt es für diese Sprache noch nicht. Es werden einzelne Wörter gezählt.`;
+    if (this.qaWordCloudTerms().length > 0) {
+      return null;
     }
 
     if (this.qaWordCloudEffectiveAnalysisVariant() !== 'THEME') {
@@ -836,16 +883,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    return $localize`:@@sessionQa.wordCloudThemeFallbackHint:Es werden einzelne Wörter gezählt, weil noch keine sicheren Themen erkannt wurden.`;
+    return $localize`:@@sessionQa.wordCloudThemeFallbackHint:Es werden Einzelwörter gezeigt, bis Wortgruppen und Phrasen belastbar sind.`;
   });
   readonly qaSortHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen bleiben oben.`;
+        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortHintControversial:Zeigt Fragen mit gemischter Reaktion zuerst. Angeheftete Fragen bleiben oben.`;
+        return $localize`:@@sessionQa.sortHintControversial:Zeigt Fragen mit gemischter Reaktion zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.`;
       default:
-        return $localize`:@@sessionQa.sortHintTop:Zeigt Fragen mit den meisten positiven Stimmen zuerst. Angeheftete Fragen bleiben oben.`;
+        return $localize`:@@sessionQa.sortHintTop:Zeigt Fragen mit den meisten positiven Stimmen zuerst. Angeheftete Fragen sind markiert, aber nicht vorgezogen.`;
     }
   });
   readonly qaWordCloudOpenLabel = computed(
@@ -860,18 +907,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const count = this.qaWordCloudQuestions().length;
     const metric = this.qaWordCloudMetricLabel();
     if (count === 1) {
-      return $localize`:@@sessionQa.wordCloudCountOneMetric:1 sichtbare Frage · Größe der Begriffe: ${metric}:metric:`;
+      return $localize`:@@sessionQa.wordCloudCountOneMetric:1 sichtbare Frage · Größe von Wörtern und Phrasen: ${metric}:metric:`;
     }
-    return $localize`:@@sessionQa.wordCloudCountManyMetric:${count}:count: sichtbare Fragen · Größe der Begriffe: ${metric}:metric:`;
+    return $localize`:@@sessionQa.wordCloudCountManyMetric:${count}:count: sichtbare Fragen · Größe von Wörtern und Phrasen: ${metric}:metric:`;
   });
   readonly qaPinnedCount = computed(
-    () => this.qaQuestions().filter((q) => q.status === 'PINNED').length,
+    () => this.qaForumQuestions().filter((q) => q.status === 'PINNED').length,
   );
   readonly qaPendingCount = computed(
-    () => this.qaQuestions().filter((question) => question.status === 'PENDING').length,
+    () => this.qaForumQuestions().filter((question) => question.status === 'PENDING').length,
   );
   readonly qaArchivedCount = computed(
-    () => this.qaQuestions().filter((q) => q.status === 'ARCHIVED').length,
+    () => this.qaForumQuestions().filter((q) => q.status === 'ARCHIVED').length,
   );
   readonly qaDeletedCount = computed(
     () => this.qaQuestions().filter((q) => q.status === 'DELETED').length,
@@ -890,6 +937,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         data: {
           responses: () => this.qaWordCloudResponses(),
           weightedResponses: () => this.qaWordCloudWeightedResponses(),
+          terms: () => this.qaWordCloudTerms(),
           analysisEntries: () => this.qaWordCloudAnalysisEntries(),
           title: () => this.qaWordCloudTitle(),
           eyebrow: this.qaWordCloudEyebrow,
@@ -3227,8 +3275,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return $localize`:@@sessionTabs.questionsBadgeNew:${this.qaUnseenCount()}:count: neu`;
     }
 
-    if (this.qaQuestions().length > 0) {
-      return String(this.qaQuestions().length);
+    if (this.qaForumQuestionCount() > 0) {
+      return String(this.qaForumQuestionCount());
     }
 
     return null;
@@ -3379,13 +3427,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   scrollToQaTop(): void {
+    this.scrollQaListToTop({ markSeen: true });
+  }
+
+  private scrollQaListToTop(options: { markSeen?: boolean } = {}): void {
     const el = this.qaListContainerRef?.nativeElement;
     if (el) {
-      el.scrollTo({ top: 0, behavior: 'smooth' });
+      try {
+        el.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch {
+        el.scrollTop = 0;
+      }
     }
     this.qaScrolledDown.set(false);
-    const allIds = new Set(this.qaQuestions().map((q) => q.id));
-    this.qaSeenQuestionIds.set(allIds);
+    if (options.markSeen) {
+      const allIds = new Set(this.qaQuestions().map((q) => q.id));
+      this.qaSeenQuestionIds.set(allIds);
+    }
   }
 
   private scrollHostTargetIntoView(targetRef: ElementRef<HTMLElement> | undefined): void {
@@ -3558,6 +3616,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSortMode.set(mode);
     this.ensureQaSubscription();
     await this.refreshQaQuestions();
+    this.scrollQaListToTop();
   }
 
   setQaWordCloudAnalysisVariant(variant: WordCloudAnalysisVariant): void {
@@ -4452,14 +4511,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
       }
 
-      const csv = '\uFEFF' + rows.join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = this.document.createElement('a');
-      a.href = url;
-      a.download = buildSessionResultsCsvFilename(data.quizName, data.sessionCode);
-      a.click();
-      URL.revokeObjectURL(url);
+      this.downloadCsvExport(rows, buildSessionResultsCsvFilename(data.quizName, data.sessionCode));
       this.exportStatus.set($localize`Ergebnis-CSV exportiert.`);
       this.dismissHostSteeringCallout();
     } catch {
@@ -4467,6 +4519,71 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } finally {
       this.exportExporting.set(false);
     }
+  }
+
+  async exportQaQuestionsCsv(): Promise<void> {
+    if (!this.code || this.exportExporting()) {
+      return;
+    }
+
+    const questions = this.qaQuestions();
+    if (questions.length === 0) {
+      return;
+    }
+
+    this.exportStatus.set(null);
+    this.exportExporting.set(true);
+
+    try {
+      const rows: string[] = [
+        $localize`:@@sessionQa.exportHeader:Nr.;Frage-ID;Status;Frage;Score;Positive Stimmen;Negative Stimmen;Stimmen gesamt;Wilson-Score;Kontroverse-Score;Umstritten;Erstellt am`,
+      ];
+
+      for (const [index, question] of questions.entries()) {
+        rows.push(
+          [
+            index + 1,
+            question.id,
+            question.status,
+            escapeCsv(stripMarkdownToPlainText(question.text)),
+            this.qaQuestionScore(question),
+            question.positiveVoteCount ?? '',
+            question.negativeVoteCount ?? '',
+            question.voteCount ?? '',
+            this.formatQaExportMetric(question.bestScore),
+            this.formatQaExportMetric(question.controversyScore),
+            question.isControversial === undefined ? '' : String(question.isControversial),
+            question.createdAt,
+          ].join(';'),
+        );
+      }
+
+      this.downloadCsvExport(rows, buildQaQuestionsCsvFilename(this.code.toUpperCase()));
+      this.exportStatus.set($localize`:@@sessionQa.exportDone:Q&A-CSV exportiert.`);
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForExportFailure(() => void this.exportQaQuestionsCsv());
+    } finally {
+      this.exportExporting.set(false);
+    }
+  }
+
+  private formatQaExportMetric(value: number | undefined): string {
+    if (value === undefined) {
+      return '';
+    }
+    return formatNumber(value, this.localeId, '1.0-4');
+  }
+
+  private downloadCsvExport(rows: string[], fileName: string): void {
+    const csv = '\uFEFF' + rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = this.document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async endSession(): Promise<void> {

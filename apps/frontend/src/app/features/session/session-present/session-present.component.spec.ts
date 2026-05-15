@@ -100,7 +100,7 @@ describe('SessionPresentComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Live-Freitext');
     expect(text).toContain('Frage 2: Was war hilfreich?');
-    expect(text).toContain('Häufige Begriffe aus den Antworten.');
+    expect(text).toContain('Häufige Wörter aus den Antworten.');
     expect(text).not.toContain('CSV speichern');
     expect(text).not.toContain('PNG speichern');
     expect(text).not.toContain('Antwort anzeigen');

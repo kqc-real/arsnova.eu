@@ -4,11 +4,13 @@ import { MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import type { WordCloudAnalysisEntryDTO } from '@arsnova/shared-types';
 import { WordCloudComponent } from './word-cloud.component';
+import type { WordCloudTerm } from './word-cloud-term.service';
 import type { WeightedWordSource, WordCloudAnalysisMode } from './word-cloud.util';
 
 export type WordCloudDialogData = {
   responses: string[];
   weightedResponses: WeightedWordSource[] | null;
+  terms: WordCloudTerm[] | null;
   analysisEntries: WordCloudAnalysisEntryDTO[] | null;
   analysisMode: WordCloudAnalysisMode;
   disableCloudLayout: boolean;

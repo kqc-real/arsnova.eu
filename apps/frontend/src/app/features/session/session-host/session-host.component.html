@@ -1783,6 +1783,7 @@
                     }
                     <app-word-cloud
                       [responses]="displayedFreetextResponses()"
+                      [terms]="displayedFreetextWordCloudTerms()"
                       [selectionScopeKey]="currentQuestionForHost()?.questionId ?? null"
                       [eyebrow]="freetextWordCloudEyebrow"
                       [description]="freetextWordCloudDescription"
@@ -1893,7 +1894,7 @@
                 }
               </div>
 
-              @if (qaQuestions().length === 0) {
+              @if (qaForumQuestionCount() === 0) {
                 <div class="session-qa-empty">
                   <mat-icon class="session-qa-empty__icon" aria-hidden="true">forum</mat-icon>
                   <p class="session-qa-empty__text" i18n="@@sessionTabs.qaHostPlaceholder">
@@ -1908,7 +1909,7 @@
                         >question_answer</mat-icon
                       >
                       <span i18n="@@sessionQa.summaryTotal"
-                        >Gesamt: {{ qaQuestions().length }}</span
+                        >Gesamt: {{ qaForumQuestionCount() }}</span
                       >
                     </span>
                     @if (qaPendingCount() > 0) {
@@ -1955,7 +1956,7 @@
                       i18n-aria-label="@@sessionQa.sortAria"
                     >
                       <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
-                        >Top</mat-button-toggle
+                        >Meist unterstützt</mat-button-toggle
                       >
                       <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
                         >Beste Fragen</mat-button-toggle
@@ -2006,19 +2007,53 @@
                     >
                   </button>
                 }
-                @if (qaWordCloudQuestions().length > 0) {
+                @if (qaWordCloudQuestions().length > 0 || qaQuestions().length > 0) {
                   <div class="session-host__extra">
-                    <button
-                      type="button"
-                      class="session-host__extra-summary session-host__extra-summary--button"
-                      (click)="openQaWordCloudDialog()"
-                    >
-                      <span class="session-host__extra-summary-main">
-                        <mat-icon aria-hidden="true">bubble_chart</mat-icon>
-                        <span>{{ qaWordCloudOpenLabel() }}</span>
-                      </span>
-                      <span class="session-host__extra-summary-meta">{{ qaWordCloudInfo() }}</span>
-                    </button>
+                    @if (qaWordCloudQuestions().length > 0) {
+                      <button
+                        type="button"
+                        class="session-host__extra-summary session-host__extra-summary--button"
+                        (click)="openQaWordCloudDialog()"
+                      >
+                        <span class="session-host__extra-summary-main">
+                          <mat-icon aria-hidden="true">bubble_chart</mat-icon>
+                          <span>{{ qaWordCloudOpenLabel() }}</span>
+                        </span>
+                        <span class="session-host__extra-summary-meta">{{
+                          qaWordCloudInfo()
+                        }}</span>
+                      </button>
+                    }
+                    @if (qaQuestions().length > 0) {
+                      <div
+                        class="session-host__extra-actions session-host__extra-actions--separated"
+                      >
+                        <button
+                          type="button"
+                          class="session-qa-filter-btn session-host__extra-action"
+                          (click)="exportQaQuestionsCsv()"
+                          [disabled]="exportExporting()"
+                          [attr.aria-busy]="exportExporting()"
+                          i18n-aria-label="@@sessionQa.exportAria"
+                          aria-label="Fragen als CSV exportieren"
+                        >
+                          <mat-icon aria-hidden="true">download</mat-icon>
+                          <span i18n="@@sessionQa.exportLabel">Fragen exportieren</span>
+                        </button>
+                      </div>
+                      @if (exportExporting()) {
+                        <p
+                          class="session-host__export-status"
+                          role="status"
+                          i18n="@@sessionQa.exportLoading"
+                        >
+                          Wird exportiert…
+                        </p>
+                      }
+                      @if (exportStatus(); as status) {
+                        <p class="session-host__export-status" role="status">{{ status }}</p>
+                      }
+                    }
                   </div>
                 }
                 <div

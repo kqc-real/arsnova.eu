@@ -38,6 +38,7 @@
     "seed:motd-archive-demo": "node scripts/seed-motd-archive-demo.mjs",
     "seed:motd-ai-revolution": "node scripts/seed-motd-ai-revolution.mjs",
     "seed:motd-templates": "node scripts/seed-motd-templates.mjs",
+    "seed:qa-forum": "npm run seed:qa-forum -w @arsnova/backend",
     "setup:dev": "npm run docker:up:dev && npm run prisma:push && npm run prisma:generate && npm run build -w @arsnova/shared-types",
     "docker:up": "docker compose up -d",
     "docker:up:dev": "docker compose up -d postgres redis",

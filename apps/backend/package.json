@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "seed:finished-demo": "tsx scripts/seed-finished-demo.ts"
+    "seed:finished-demo": "tsx scripts/seed-finished-demo.ts",
+    "seed:qa-forum": "tsx scripts/seed-qa-forum.ts"
   },
   "dependencies": {
     "@arsnova/shared-types": "*",

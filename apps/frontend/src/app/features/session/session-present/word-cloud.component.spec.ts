@@ -49,7 +49,7 @@ describe('WordCloudComponent', () => {
     expect(component.words().find((entry) => entry.word === 'motivation')?.count).toBe(2);
   });
 
-  it('nutzt Singularformen fuer genau einen Begriff und eine sichtbare Antwort', () => {
+  it('nutzt Singularformen fuer genau ein Wort und eine sichtbare Antwort', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation']);
     fixture.detectChanges();
@@ -112,6 +112,47 @@ describe('WordCloudComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('2 Fragen');
   });
 
+  it('rendert vorgewichtete Terme ohne Rohtexte erneut zu analysieren', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('responses', ['rohtext soll nicht als wolkenwort erscheinen']);
+    fixture.componentRef.setInput('terms', [
+      {
+        key: 'docker compose',
+        label: 'docker compose',
+        score: 12.5,
+        documentFrequency: 2,
+        sourceCount: 2,
+        variants: ['docker compose'],
+        kind: 'protected',
+        basisLabel: 'docker compose',
+        confidence: null,
+        members: [
+          { sourceId: 'q1', text: 'docker compose startet nicht', weight: 4 },
+          { sourceId: 'q2', text: 'docker compose zeigt HTTP 404', weight: 2 },
+        ],
+      },
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.words()).toMatchObject([
+      {
+        word: 'docker compose',
+        count: 13,
+        sourceCount: 2,
+        groupKey: 'docker compose',
+      },
+    ]);
+    expect(component.words().some((entry) => entry.word === 'rohtext')).toBe(false);
+
+    component.toggleWord('docker compose');
+    expect(component.filteredResponses()).toEqual([
+      'docker compose startet nicht',
+      'docker compose zeigt HTTP 404',
+    ]);
+  });
+
   it('blendet Antworten standardmäßig eingeklappt ein und kann sie umschalten', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', [
@@ -140,8 +181,8 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Häufig genannte Begriffe erscheinen größer.');
-    expect(text).toContain('Je größer ein Begriff, desto öfter wurde er genannt.');
+    expect(text).toContain('Häufig genannte Wörter erscheinen größer.');
+    expect(text).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
   });
 
   it('kann öffentliche Presenter-Ansichten im Output-only-Modus ohne Bedien-UI rendern', () => {

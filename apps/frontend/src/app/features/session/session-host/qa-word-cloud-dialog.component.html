@@ -18,7 +18,9 @@
       aria-label="Q&A-Sortierung"
       i18n-aria-label="@@sessionQa.sortAria"
     >
-      <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop">Top</mat-button-toggle>
+      <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
+        >Meist unterstützt</mat-button-toggle
+      >
       <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest">Beste Fragen</mat-button-toggle>
       <mat-button-toggle value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
         >Umstritten</mat-button-toggle
@@ -32,13 +34,13 @@
       aria-label="Wortwolken-Ansicht"
     >
       <mat-button-toggle value="LEXICAL" i18n="@@sessionQa.wordCloudAnalysisLexical"
-        >Wörter</mat-button-toggle
+        >Einzelwörter</mat-button-toggle
       >
       <mat-button-toggle
         value="THEME"
         [disabled]="!themeModeAvailable()"
         i18n="@@sessionQa.wordCloudAnalysisTheme"
-        >Themen</mat-button-toggle
+        >Wörter &amp; Phrasen</mat-button-toggle
       >
     </mat-button-toggle-group>
     <button
@@ -62,6 +64,7 @@
     class="qa-word-cloud-dialog__cloud"
     [responses]="responses()"
     [weightedResponses]="weightedResponses()"
+    [terms]="terms()"
     [analysisEntries]="analysisEntries()"
     [analysisMode]="'qa'"
     [title]="title()"

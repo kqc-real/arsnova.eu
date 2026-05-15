@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, LOCALE_ID, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
@@ -28,8 +28,18 @@ import type {
 } from '@arsnova/shared-types';
 import { recordServerTimeIso } from '../session-server-clock';
 import { localizePath } from '../../../core/locale-router';
+import {
+  getEffectiveLocale,
+  localeIdToSupported,
+  type SupportedLocale,
+} from '../../../core/locale-from-path';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { getWordCloudWeightFromUpvotes } from './word-cloud.util';
+import {
+  WordCloudTermExtractorService,
+  type WordCloudTerm,
+  type WordCloudTermDocument,
+} from './word-cloud-term.service';
 
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
@@ -57,6 +67,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly localeId = inject(LOCALE_ID);
+  private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
   private metaPollTimer: ReturnType<typeof setInterval> | null = null;
   private livePollTimer: ReturnType<typeof setInterval> | null = null;
   private readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
@@ -84,20 +96,36 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly presenterFreetextActive = signal(false);
   readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
-  readonly freetextWordCloudDescription = $localize`:@@sessionWordCloud.freetextDescription:Häufige Begriffe aus den Antworten.`;
+  readonly freetextWordCloudDescription = $localize`:@@sessionWordCloud.freetextDescription:Häufige Wörter aus den Antworten.`;
   readonly freetextWordCloudStageTitle = computed(
     () => this.currentQuestionLabel() ?? $localize`:@@wordCloud.title:Wortwolke`,
   );
   readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
-  readonly qaWordCloudDescription = $localize`:@@sessionWordCloud.qaDescription:Zeigt, welche Begriffe in den sichtbaren Q&A-Fragen dominieren.`;
+  readonly qaWordCloudDescription = $localize`:@@sessionWordCloud.qaDescription:Zeigt, welche Wörter und Phrasen in den sichtbaren Q&A-Fragen dominieren.`;
   readonly qaWordCloudTitle = $localize`:@@sessionQa.wordCloudTitle:Q&A-Wortwolke`;
-  readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Große Begriffe kommen aus häufiger genannten oder stärker unterstützten Fragen.`;
+  readonly qaWordCloudWeightingHint = $localize`:@@sessionWordCloud.qaHint:Große Wörter und Phrasen kommen aus häufiger genannten oder stärker unterstützten Fragen.`;
   readonly isPlayfulPreset = computed(() => this.session()?.preset === 'PLAYFUL');
   readonly showPinnedQaQuestion = computed(
     () => this.pinnedQaQuestion() !== null && !this.showTeamFinish(),
   );
   readonly showQaQueue = computed(
     () => this.presenterQaQuestions().length > 0 && !this.showTeamFinish(),
+  );
+  readonly wordCloudTermLocale = computed<SupportedLocale>(() =>
+    getEffectiveLocale(localeIdToSupported(this.localeId)),
+  );
+  readonly freetextWordCloudTerms = computed<WordCloudTerm[]>(() =>
+    this.wordCloudTermExtractor.extractTerms(
+      this.freetextResponses().map((response, index) => ({
+        id: `response-${index}`,
+        body: response,
+      })),
+      {
+        locale: this.wordCloudTermLocale(),
+        maxEntries: 80,
+        maxNgramLength: 3,
+      },
+    ),
   );
   readonly presenterQaWordCloudQuestions = computed(() => {
     const questions: QaQuestionDTO[] = [];
@@ -109,6 +137,20 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   });
   readonly presenterQaWordCloudResponses = computed(() =>
     this.presenterQaWordCloudQuestions().map((question) => question.text),
+  );
+  readonly presenterQaWordCloudTermDocuments = computed<WordCloudTermDocument[]>(() =>
+    this.presenterQaWordCloudQuestions().map((question) => ({
+      id: question.id,
+      title: question.text,
+      weight: getWordCloudWeightFromUpvotes(question.upvoteCount),
+    })),
+  );
+  readonly presenterQaWordCloudTerms = computed<WordCloudTerm[]>(() =>
+    this.wordCloudTermExtractor.extractTerms(this.presenterQaWordCloudTermDocuments(), {
+      locale: this.wordCloudTermLocale(),
+      maxEntries: 80,
+      maxNgramLength: 3,
+    }),
   );
   readonly presenterQaWordCloudWeightedResponses = computed(() =>
     this.presenterQaWordCloudQuestions().map((question) => ({

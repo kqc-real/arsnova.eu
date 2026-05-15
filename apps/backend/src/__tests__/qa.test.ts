@@ -20,6 +20,7 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+      delete: vi.fn(),
     },
     qaUpvote: {
       findUnique: vi.fn(),
@@ -291,6 +292,43 @@ describe('qa router (Epic 8)', () => {
     expect(result.status).toBe('PINNED');
   });
 
+  it('löscht Fragen bei Host-Moderation physisch aus PostgreSQL', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      status: 'ACTIVE',
+    });
+    prismaMock.qaQuestion.findUnique.mockResolvedValueOnce({
+      id: QUESTION_ID,
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+      text: 'Diese Frage soll entfernt werden',
+      upvoteCount: 5,
+      status: 'ACTIVE',
+      createdAt: new Date('2026-03-13T12:00:00.000Z'),
+    });
+    prismaMock.qaQuestion.delete.mockResolvedValue({});
+
+    const result = await hostCaller.moderate({
+      sessionCode: 'ABC123',
+      questionId: QUESTION_ID,
+      action: 'DELETE',
+    });
+
+    expect(prismaMock.qaQuestion.delete).toHaveBeenCalledWith({
+      where: { id: QUESTION_ID },
+    });
+    expect(prismaMock.qaQuestion.update).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      id: QUESTION_ID,
+      text: 'Diese Frage soll entfernt werden',
+      upvoteCount: 5,
+      status: 'DELETED',
+    });
+  });
+
   it('lehnt Moderation ohne gültigen Host-Token ab', async () => {
     await expect(
       caller.moderate({
@@ -556,6 +594,72 @@ describe('qa router (Epic 8)', () => {
     expect(result[1]?.controversyScore).toBe(0.5);
     expect(result[1]?.isControversial).toBe(false);
     expect(result[2]?.controversyScore).toBe(0);
+  });
+
+  it('sortiert im Host-CONTROVERSIAL-Modus die kontroverseste Frage vor weniger kontroversen angehefteten Fragen', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+    });
+    prismaMock.participant.count.mockResolvedValue(20);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        participantId: PARTICIPANT_ID,
+        text: 'Angeheftet, aber eindeutig',
+        upvoteCount: 10,
+        status: 'PINNED',
+        createdAt: new Date('2026-03-13T12:00:00.000Z'),
+        upvotes: Array.from({ length: 10 }, () => ({ direction: 'UP' })),
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        participantId: PARTICIPANT_ID,
+        text: 'Nicht angeheftet, aber polarisiert',
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: new Date('2026-03-13T12:01:00.000Z'),
+        upvotes: [
+          ...Array.from({ length: 5 }, () => ({ direction: 'UP' })),
+          ...Array.from({ length: 5 }, () => ({ direction: 'DOWN' })),
+        ],
+      },
+    ]);
+    prismaMock.qaUpvote.groupBy.mockResolvedValue([
+      {
+        qaQuestionId: '11111111-1111-4111-8111-111111111111',
+        direction: 'UP',
+        _count: { _all: 10 },
+      },
+      {
+        qaQuestionId: '22222222-2222-4222-8222-222222222222',
+        direction: 'UP',
+        _count: { _all: 5 },
+      },
+      {
+        qaQuestionId: '22222222-2222-4222-8222-222222222222',
+        direction: 'DOWN',
+        _count: { _all: 5 },
+      },
+    ]);
+
+    const result = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      sort: 'CONTROVERSIAL',
+    });
+
+    expect(result.map((question) => question.id)).toEqual([
+      '22222222-2222-4222-8222-222222222222',
+      '11111111-1111-4111-8111-111111111111',
+    ]);
+    expect(result[0]?.status).toBe('ACTIVE');
+    expect(result[1]?.status).toBe('PINNED');
+    expect(result[0]?.controversyScore).toBeGreaterThan(result[1]?.controversyScore ?? 0);
   });
 
   it('lehnt qa.onQuestionsUpdated mit moderatorView ohne Host-Token ab', async () => {

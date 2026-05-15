@@ -9,11 +9,13 @@ import type {
   WordCloudAnalysisVariant,
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
+import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
 import type { WeightedWordSource } from '../session-present/word-cloud.util';
 
 export type QaWordCloudDialogData = {
   responses: () => string[];
   weightedResponses: () => WeightedWordSource[];
+  terms: () => WordCloudTerm[];
   analysisEntries: () => WordCloudAnalysisEntryDTO[] | null;
   title: () => string;
   eyebrow: string | null;
@@ -53,6 +55,7 @@ export class QaWordCloudDialogComponent {
 
   readonly responses = computed(() => this.data.responses());
   readonly weightedResponses = computed(() => this.data.weightedResponses());
+  readonly terms = computed(() => this.data.terms());
   readonly analysisEntries = computed(() => this.data.analysisEntries());
   readonly title = computed(() => this.data.title());
   readonly weightingHint = computed(() => this.data.weightingHint());

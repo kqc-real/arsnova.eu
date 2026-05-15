@@ -79,7 +79,7 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 
 ## Epic 8 – Q&A
 
-- Start, Einreichen, bidirektionales Voting, Host-Sortiermodi (`Top`, `Beste Fragen`, `Umstritten`), Q&A-Wortwolke und Moderation umgesetzt.
+- Start, Einreichen, bidirektionales Voting, Host-Sortiermodi (`Meist unterstuetzt`, `Beste Fragen`, `Umstritten`), Q&A-Wortwolke und Moderation umgesetzt.
 - Offen: delegierbare Moderation.
 
 ## Epic 9 – Admin/Recht

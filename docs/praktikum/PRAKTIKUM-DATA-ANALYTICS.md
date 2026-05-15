@@ -33,7 +33,7 @@
 
 ## 1. Was ist das Ziel?
 
-In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Token zählen, Stopwörter, siehe `word-cloud.util.ts`). **Geplant** ist eine **intelligentere** Auswertung: ähnliche **Bedeutungen** und **Formulierungen** sollen **sinnvoll gebündelt** werden (Kanontoken, Themenlabels, nachvollziehbare Gewichte).
+In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Stopwörter, Wortfamilien, Phrasen und Document-Frequency-Gewichtung, siehe `word-cloud-term.service.ts` und `word-cloud.util.ts`). **Geplant** ist eine **intelligentere** Auswertung: ähnliche **Bedeutungen** und **Formulierungen** sollen **sinnvoll gebündelt** werden (Kanontoken, Themenlabels, nachvollziehbare Gewichte).
 
 **Dein Praktikum** fokussiert **Data Analytics und NLP**:
 
@@ -153,7 +153,7 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 
 | Thema              | Wo im Repo (Orientierung)                                                                                                                              |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Lexikalische Wolke | `apps/frontend/.../word-cloud.util.ts`, `word-cloud.component.ts`                                                                                      |
+| Lexikalische Wolke | `apps/frontend/.../word-cloud-term.service.ts`, `word-cloud.util.ts`, `word-cloud.component.ts`                                                        |
 | Architektur Wolke  | [`docs/architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md`](../architecture/decisions/0012-use-d3-cloud-for-freetext-word-clouds.md) |
 | Produkt-Stories    | [`Backlog.md`](../../Backlog.md) — u. a. **1.14**, **1.14a**                                                                                           |
 | Produktintegration | ggf. spätere Anbindung über tRPC, Zod und UI; in diesem Praktikum nur zur Einordnung relevant                                                          |

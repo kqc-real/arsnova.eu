@@ -47,6 +47,7 @@ import {
   type WordCloudStopwordContext,
   type WeightedWordSource,
 } from './word-cloud.util';
+import type { WordCloudTerm } from './word-cloud-term.service';
 import type { WordCloudDialogData } from './word-cloud-dialog.component';
 
 const CLOUD_LAYOUT_DEBOUNCE_MS = 120;
@@ -175,13 +176,14 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   readonly responses = input<string[]>([]);
   readonly weightedResponses = input<WeightedWordSource[] | null>(null);
+  readonly terms = input<WordCloudTerm[] | null>(null);
   readonly analysisEntries = input<WordCloudAnalysisEntryDTO[] | null>(null);
   readonly analysisMode = input<WordCloudAnalysisMode>('default');
   readonly selectionScopeKey = input<string | null>(null);
   readonly title = input($localize`:@@wordCloud.title:Wortwolke`);
   readonly eyebrow = input<string | null>(null);
   readonly description = input<string | null>(
-    $localize`:@@wordCloud.description:Häufig genannte Begriffe erscheinen größer.`,
+    $localize`:@@wordCloud.description:Häufig genannte Wörter erscheinen größer.`,
   );
   readonly tooltipMetricLabel = input<string | null>(null);
   readonly disableCloudLayout = input(false);
@@ -205,7 +207,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   );
   readonly showResponsesPanel = input(true);
   readonly weightingHint = input<string | null>(
-    $localize`:@@wordCloud.weightingHint:Je größer ein Begriff, desto öfter wurde er genannt.`,
+    $localize`:@@wordCloud.weightingHint:Je größer ein Wort, desto öfter wurde es genannt.`,
   );
   readonly showReleaseNote = input(false);
   readonly selectedGroupKey = signal<string | null>(null);
@@ -286,8 +288,62 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return responses;
   });
 
+  private readonly termResponsesByGroupKey = computed(() => {
+    const grouped = new Map<string, string[]>();
+
+    for (const term of this.filteredTerms() ?? []) {
+      const responses: string[] = [];
+      const seenSourceIds = new Set<string>();
+      for (const member of term.members) {
+        if (seenSourceIds.has(member.sourceId)) {
+          continue;
+        }
+        seenSourceIds.add(member.sourceId);
+        responses.push(normalizeFreeTextResponseForDisplay(member.text));
+      }
+      grouped.set(term.key, responses);
+    }
+
+    return grouped;
+  });
+
+  private readonly allTermResponses = computed(() => {
+    const responses: string[] = [];
+    const seenSourceIds = new Set<string>();
+
+    for (const term of this.filteredTerms() ?? []) {
+      for (const member of term.members) {
+        if (seenSourceIds.has(member.sourceId)) {
+          continue;
+        }
+        seenSourceIds.add(member.sourceId);
+        responses.push(normalizeFreeTextResponseForDisplay(member.text));
+      }
+    }
+
+    return responses;
+  });
+
+  private readonly filteredTerms = computed(() => {
+    const terms = this.terms();
+    if (terms === null) {
+      return null;
+    }
+
+    if (!terms.some((term) => this.resolveConfidenceFilterTier(term.confidence))) {
+      return terms;
+    }
+
+    const filter = this.confidenceFilter();
+    if (filter === 'all') {
+      return terms;
+    }
+
+    return terms.filter((term) => this.matchesConfidenceFilter(term.confidence, filter));
+  });
+
   readonly confidenceFilterOptions = computed<ConfidenceFilterOption[]>(() => {
-    const entries = this.analysisEntries() ?? [];
+    const entries = this.terms() ?? this.analysisEntries() ?? [];
     const counts = {
       high: 0,
       medium: 0,
@@ -354,10 +410,32 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly words = computed<CloudWord[]>(() => {
+    const providedTerms = this.filteredTerms();
     const providedEntries = this.filteredAnalysisEntries();
     const fontSizeRange = this.resolveFontSizeRange(
-      providedEntries?.length ?? this.aggregationSources().length,
+      providedTerms?.length ?? providedEntries?.length ?? this.aggregationSources().length,
     );
+    if (providedTerms !== null) {
+      if (providedTerms.length === 0) {
+        return [];
+      }
+
+      const maxScore = Math.max(0.01, ...providedTerms.map((term) => term.score));
+      const { min: minFontSize, max: maxFontSize } = fontSizeRange;
+
+      return providedTerms.map((term, index) => ({
+        word: term.label,
+        count: Math.max(1, Math.round(term.score)),
+        sourceCount: term.sourceCount,
+        groupKey: term.key,
+        variants: term.variants.length > 0 ? term.variants : [term.label],
+        basisLabel: term.basisLabel,
+        confidence: term.confidence,
+        size: minFontSize + Math.round((term.score / maxScore) * (maxFontSize - minFontSize)),
+        rank: index,
+      }));
+    }
+
     if (providedEntries && providedEntries.length > 0) {
       const maxCount = Math.max(1, ...providedEntries.map((entry) => entry.count));
       const { min: minFontSize, max: maxFontSize } = fontSizeRange;
@@ -498,7 +576,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return selected;
     }
 
-    if ((this.analysisEntries()?.length ?? 0) === 0) {
+    if (this.terms() === null && (this.analysisEntries()?.length ?? 0) === 0) {
       return null;
     }
 
@@ -560,6 +638,15 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   readonly filteredResponses = computed(() => {
     const selected = this.selectedGroupKey();
+    const termResponsesByGroupKey = this.termResponsesByGroupKey();
+    if (this.terms() !== null) {
+      if (selected) {
+        return termResponsesByGroupKey.get(selected) ?? [];
+      }
+
+      return this.allTermResponses();
+    }
+
     const analysisResponsesByGroupKey = this.analysisResponsesByGroupKey();
     if (this.analysisEntries() !== null) {
       if (selected) {
@@ -620,7 +707,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly responseSummary = computed(() => ({
-    total: this.responses().length || this.allAnalysisResponses().length,
+    total:
+      this.responses().length ||
+      this.allTermResponses().length ||
+      this.allAnalysisResponses().length,
     visible: this.filteredResponses().length,
   }));
 
@@ -889,6 +979,30 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   exportCsv(): void {
+    const terms = this.terms();
+    if (terms && terms.length > 0) {
+      const rows = [
+        'label,score,documentFrequency,kind,variants,members',
+        ...terms.map((term) =>
+          [
+            this.escapeCsvField(term.label),
+            String(Math.round(term.score)),
+            String(term.documentFrequency),
+            term.kind,
+            this.escapeCsvField(term.variants.join(' | ')),
+            this.escapeCsvField(term.members.map((member) => member.text).join(' | ')),
+          ].join(','),
+        ),
+      ];
+      this.downloadBlob(
+        rows.join('\n'),
+        `wordcloud_${new Date().toISOString().slice(0, 10)}.csv`,
+        'text/csv;charset=utf-8',
+      );
+      this.statusMessage.set($localize`CSV exportiert.`);
+      return;
+    }
+
     const analysisEntries = this.analysisEntries();
     if (analysisEntries && analysisEntries.length > 0) {
       const rows = [
@@ -1485,6 +1599,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private relatedResponsePreview(groupKey: string): string[] {
     const responses =
+      this.termResponsesByGroupKey().get(groupKey) ??
       this.analysisResponsesByGroupKey().get(groupKey) ??
       this.tooltipResponseIndex().get(groupKey) ??
       [];
@@ -1621,6 +1736,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return {
       responses: this.responses(),
       weightedResponses: this.weightedResponses(),
+      terms: this.terms(),
       analysisEntries: this.analysisEntries(),
       analysisMode: this.analysisMode(),
       disableCloudLayout: false,

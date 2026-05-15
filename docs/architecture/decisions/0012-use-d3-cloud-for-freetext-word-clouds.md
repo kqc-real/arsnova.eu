@@ -119,9 +119,9 @@ Die Entscheidung ist inzwischen umgesetzt. Der aktuelle Produktstand ist:
 - Die Presenter-Ansicht zeigt die Freitext-Wortwolke bei aktiver Freitextfrage standardmaessig als grosse Buehnenansicht. Die Host-Ansicht nutzt dieselbe Komponente im Steuerkontext und kann die Wolke explizit einfrieren bzw. wieder live fortsetzen.
 - Das Layout ist bewusst begrenzt: `50` Woerter mobil, `100` Woerter im Desktop-Host und `150` Woerter in breiten Presenter-Ansichten.
 - Relayouts laufen mit `120 ms` Debounce und `8 ms` Time-Slicing. Die zuvor sichtbare Wolke bleibt stehen, bis das neue Layout fertig berechnet ist.
-- Die fachliche Vorverarbeitung bleibt von `d3-cloud` getrennt und wurde parallel in `Word Cloud 2.1/2.2` ausgebaut: locale-spezifische Group-Keys, regelbasierte Wortfamilien-Gruppierung, Antwortfilter auf Gruppenbasis und Zaehlung pro Antwort maximal einmal pro Gruppe.
+- Die fachliche Vorverarbeitung bleibt von `d3-cloud` getrennt und wurde bis `Word Cloud 2.5` ausgebaut: locale-spezifische Group-Keys, regelbasierte Wortfamilien-Gruppierung, geschuetzte technische Begriffe, Phrasenbildung und Document-Frequency-Gewichtung pro Antwort bzw. Frage.
 - Stopwoerter werden produktseitig standardmaessig ausgeblendet; der fruehere Umschalter wurde aus der UI entfernt, weil er die Live-Darstellung in Host und Presenter meist nur verschlechtert hat.
-- Der CSV-Export liefert `word,count,variants`.
+- Der CSV-Export liefert fuer den aktuellen Termpfad Label, Score, Document-Frequency, Typ, Varianten und Quellen; alte Rohaggregationen bleiben kompatibel.
 - Der PNG-Export bleibt bewusst ein geordneter Zeilenexport nach Wortgroesse. Er bildet nicht den exakten d3-Livezustand ab, weil diese Variante fuer Doku, Versand und Moderationsunterlagen stabiler und lesbarer ist als ein fragiler WYSIWYG-Snapshot.
 
 ## Konsequenzen

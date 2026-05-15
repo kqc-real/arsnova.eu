@@ -49,6 +49,15 @@ export function buildSessionResultsCsvFilename(quizTitle: string, sessionCode: s
   return `arsnova-results-${safeTitle}-${safeSessionCode}.csv`;
 }
 
+export function buildQaQuestionsCsvFilename(sessionCode: string): string {
+  const safeSessionCode = sanitizeExportFilenameSegment(
+    sessionCode,
+    'session',
+    SESSION_CODE_MAX_LENGTH,
+  );
+  return `arsnova-qa-questions-${safeSessionCode}.csv`;
+}
+
 export function buildBonusCodesCsvFilename(quizTitle: string): string {
   const safeTitle = sanitizeExportFilenameSegment(quizTitle, 'quiz');
   return `arsnova-bonus-codes-${safeTitle}.csv`;

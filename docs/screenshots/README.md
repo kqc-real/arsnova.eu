@@ -4,8 +4,8 @@ Dieser Ordner enthält kuratierte Screenshots zu Wortwolken, Stopwörtern und zu
 
 ## Produktstand (Mai 2026)
 
-- Die aktuelle Freitext-Wortwolke nutzt in Host und Presenter ein echtes `d3-cloud`-Layout mit gruppierten Wortfamilien (`Word Cloud 2.1/2.2`).
-- Die Q&A-Wortwolke nutzt dieselbe Basis, aber mit eigenem Q&A-Profil: abgeflachte Grundgewichtung, zusaetzliche Frage-Fuelltokens inklusive kanaltypischer Traegerwoerter wie `frage`/`question`, leichte Themenphrasen wie `kapitel 4` oder `lineare regression` sowie Host-Sortiermodi `Top`, `Beste Fragen` und `Umstritten`.
+- Die aktuelle Freitext-Wortwolke nutzt in Host und Presenter ein echtes `d3-cloud`-Layout; die fachliche Termliste kommt aus einer Document-Frequency-Gewichtung pro Antwort (`Word Cloud 2.5`).
+- Die Q&A-Wortwolke nutzt dieselbe Term-Pipeline, aber mit Q&A-Gewichten aus dem aktiven Sortiermodus: `Meist unterstuetzt`, `Beste Fragen` oder `Umstritten`. Begriffe zaehlen pro Frage maximal einmal, Phrasen werden staerker gewichtet, technische Begriffe bleiben geschuetzt.
 - Die Presenter-Ansichten fuer Freitext und Q&A zeigen die Wortwolke oeffentlich als reine Buehnenansicht ohne Export-, Antwort- oder Maximieren-UI.
 - Stopwörter werden im Produkt standardmäßig ausgeblendet. Die Dateien mit `Eingeblendet` sind deshalb Vergleichs- und Erklärbilder, kein aktueller Laufzeit-Umschalter in der UI.
 - Der PNG-Export der Wortwolke ist bewusst ein geordneter Zeilenexport nach Wortgröße; die Live-Ansicht bleibt die freie Bühnenwolke.
@@ -51,6 +51,6 @@ Dieser Ordner enthält kuratierte Screenshots zu Wortwolken, Stopwörtern und zu
 
 ## Begriffsabgrenzung
 
-- Lexikalische Wortwolke: gleiche oder ähnliche Tokens werden gezählt und gewichtet. Sie zeigt also vor allem Wörter, nicht automatisch Bedeutungen.
+- Lexikalische Wortwolke: gleiche oder ähnliche Tokens und Phrasen werden pro Antwort/Frage document-frequency-basiert gewichtet. Sie zeigt also vor allem sprachliche Oberflaechenmerkmale, nicht automatisch Bedeutungen.
 - Stopwort-Filter: häufige, wenig aussagekräftige Wörter werden im Produkt standardmäßig ausgeblendet. Die Vergleichsbilder mit eingeblendeten Stopwörtern dienen nur noch der Erklärung und Bewertung.
 - Semantische Begriffwolke: ähnliche Aussagen, Varianten und Paraphrasen werden zu Themenclustern zusammengeführt und mit sprechenden Labels versehen. Sie ist deshalb näher an einer inhaltlichen Interpretation als an einer reinen Worthäufigkeit.

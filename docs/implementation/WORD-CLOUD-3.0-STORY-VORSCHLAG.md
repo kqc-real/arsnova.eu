@@ -4,7 +4,7 @@
 
 **Arbeitstitel:** `Word Cloud 3.0`  
 **Folgt auf:** `Story 1.14`, `Story 1.14a`, `Word Cloud 2.1/2.2/2.3/2.4`  
-**Status:** als Host-first-Basis umgesetzt (Mai 2026), weitere Heuristik-Kalibrierung moeglich  
+**Status:** konzeptioneller Zielpfad; die aktuelle Produkt-UI nutzt seit `Word Cloud 2.5` bewusst `Einzelwoerter` / `Begriffe & Phrasen` statt `Themen`
 **Architekturbezug:** `ADR-0012`, `docs/implementation/WORD-CLOUD-2.1-LEMMA-STRATEGY.md`
 
 ---
@@ -13,10 +13,10 @@
 
 Der erste echte `3.0`-Schritt soll **nicht** die gesamte Wortwolke auf einmal semantisieren.
 
-Stattdessen bekommt der **Host im Q&A-Kanal** zusaetzlich zur heutigen lexikalischen Ansicht einen **erklaerbaren Themenmodus**:
+Stattdessen soll der **Host im Q&A-Kanal** spaeter zusaetzlich zur heutigen lexikalischen Ansicht einen **erklaerbaren semantischen Themenmodus** bekommen:
 
 - die bisherige lexikalische Wolke bleibt voll funktionsfaehig
-- der Host kann zwischen `Lexikalisch` und `Themen` wechseln
+- der Host kann dann zwischen lexikalischen Begriffen/Phrasen und semantischen Themenclustern wechseln
 - die bestehenden Sortierlinsen `TOP`, `BEST`, `CONTROVERSIAL` bleiben erhalten
 - Themen werden aus sichtbaren Fragen gebildet, nicht aus opaken Blackbox-Labels
 - Tooltips und Export erklaeren, welche Fragen in einem Thema gelandet sind
@@ -28,23 +28,24 @@ Damit wird `3.0` zu einer **Host-first-Moderationsstory** mit hohem Nutzwert und
 
 ## Stand Mai 2026
 
-Der Host-first-Pfad ist inzwischen produktseitig durchgaengig vorhanden:
+Der lokale Host-first-Pfad ist inzwischen produktseitig vorhanden, aber nicht als echter semantischer Themenmodus beschriftet:
 
 - gemeinsamer Analysevertrag in `libs/shared-types/src/schemas.ts`
 - Backend-Router in `apps/backend/src/routers/wordCloud.ts`
 - deterministischer Theme-Analyzer in `apps/backend/src/lib/wordCloudAnalysis.ts`
-- Host-Toggle `Lexikalisch` / `Themen` in `apps/frontend/src/app/features/session/session-host/session-host.component.ts`
+- Host-Toggle `Einzelwoerter` / `Begriffe & Phrasen` in `apps/frontend/src/app/features/session/session-host/qa-word-cloud-dialog.component.html`
 - Vollbilddialog fuer denselben Analysemodus in `apps/frontend/src/app/features/session/session-host/qa-word-cloud-dialog.component.ts`
 - gemeinsamer Renderer fuer gelieferte Analyse-Entries in `apps/frontend/src/app/features/session/session-present/word-cloud.component.ts`
-- erklaerbare Tooltips, CSV-Ausgabe, `Basis`-Anzeige und Confidence-Badges `hoch` / `mittel` / `vorsichtig`
+- erklaerbare Tooltips, CSV-Ausgabe und Quellenlisten
 
 Nicht umgesetzt als Teil dieses Standes sind weiterhin:
 
+- ein echter, sichtbar beschrifteter semantischer Themenmodus
+- Confidence-Filter fuer den lokalen Document-Frequency-Pfad
 - Presenter-Q&A-Rollout als eigener Produktpfad
 - semantischer Quiz-Freitext-Rollout
-- mehrsprachige Heuristik ueber `de` / `en` hinaus
 - LLM- oder Embedding-basierte Labelbildung im Livepfad
-- eigenes Timeout-/Budget-Management, weil der aktuelle Analyzer lokal und deterministisch im Backend laeuft
+- eigenes Timeout-/Budget-Management fuer einen spaeteren semantischen Pfad
 
 ---
 
@@ -82,14 +83,14 @@ Nicht jede spaetere `3.x`-Faehigkeit muss in diese erste Story hinein.
 
 ## Akzeptanzkriterien
 
-1. **Zwei Analysemodi im Host:** Die Q&A-Wortwolke im Host bietet zusaetzlich zur bestehenden Ansicht einen expliziten Modus `Themen`.
-2. **Kein Regressionspfad fuer `Lexikalisch`:** Der heutige `2.x`-Pfad bleibt funktional identisch, inklusive Sortiermodi, Tooltips, Antwortfilter und Export.
-3. **Erklaerbare Themencluster:** Im Modus `Themen` werden sichtbare `PINNED`-/`ACTIVE`-Fragen zu Themenclustern zusammengefasst, wenn die Zusammenlegung nachvollziehbar belegbar ist.
+1. **Zwei Analysemodi im Host:** Die Q&A-Wortwolke im Host bietet zusaetzlich zur bestehenden Ansicht einen expliziten semantischen Themenmodus.
+2. **Kein Regressionspfad fuer den lokalen Termpfad:** Der heutige `2.x`-Pfad bleibt funktional identisch, inklusive Sortiermodi, Tooltips, Antwortfilter und Export.
+3. **Erklaerbare Themencluster:** Im semantischen Modus werden sichtbare `PINNED`-/`ACTIVE`-Fragen zu Themenclustern zusammengefasst, wenn die Zusammenlegung nachvollziehbar belegbar ist.
 4. **Moderationsgewichte bleiben erhalten:** `TOP`, `BEST` und `CONTROVERSIAL` wirken auch im Themenmodus weiter als Gewichtungsbasis.
 5. **Tooltip mit Evidenz:** Ein Themen-Tooltip zeigt mindestens Thema, gewichteten Wert, zugrunde liegende Metrik und eine kleine Liste zugehoeriger Beispiel-Fragen.
 6. **Export bleibt lesbar:** CSV exportiert im Themenmodus mindestens `label,count,members,basis`.
-7. **Fallback ohne UI-Bruch:** Wenn der Themenpfad keine belastbaren Themenanker findet oder kein brauchbares Ergebnis liefert, faellt die UI automatisch auf `Lexikalisch` zurueck, ohne leere oder kaputte Karte. Der Backend-Fallback liefert dabei tokenisierte Begriffe, keine kompletten Fragesaetze.
-8. **Sprachgrenze bewusst:** `de` und `en` sind fuer den Themenmodus in dieser Story Pflicht; andere Locales fallen kontrolliert auf den lexikalischen Pfad zurueck und deaktivieren den `Themen`-Toggle.
+7. **Fallback ohne UI-Bruch:** Wenn der Themenpfad keine belastbaren Themenanker findet oder kein brauchbares Ergebnis liefert, faellt die UI automatisch auf den lokalen Termpfad zurueck, ohne leere oder kaputte Karte. Der Backend-Fallback liefert dabei tokenisierte Begriffe, keine kompletten Fragesaetze.
+8. **Sprachgrenze bewusst:** `de` und `en` sind fuer den Themenmodus in dieser Story Pflicht; andere Locales fallen kontrolliert auf den lokalen Termpfad zurueck.
 9. **Scope-Grenze bleibt stabil:** Presenter-Q&A und Quiz-Freitext verhalten sich nach dieser Story weiterhin wie heute.
 
 ---
@@ -100,9 +101,9 @@ Die bestehende Architektur bleibt erhalten:
 
 `daten holen -> analysieren -> rendern -> tooltip/export/filter`
 
-Neu ist nur, dass `analysieren` zwei Pfade bekommt:
+Seit `Word Cloud 2.5` bekommt die Visualisierung keine Rohtexte mehr als primaere Analysequelle, sondern bereits gewichtete Terme. `analysieren` hat damit zwei klar getrennte Pfade:
 
-- **lexikalisch**: heutiger `2.x`-Pfad in `word-cloud.util.ts`
+- **lexikalisch**: heutiger `2.x`-Pfad in `word-cloud-term.service.ts` plus `word-cloud.util.ts`
 - **themenbasiert**: neuer `3.0`-Pfad fuer den Host-Q&A-Kontext
 
 Wichtig ist dabei:
@@ -172,7 +173,7 @@ Der Vertrag ist damit nicht mehr nur eine theoretische Option, sondern bereits d
 
 ### 3. Lexikalischer Pfad bleibt der sichere Fallback
 
-Die bestehende Logik in `word-cloud.util.ts` bleibt erhalten und ist weiterhin der sofort verfuegbare, deterministische Fallback.
+Die bestehende Logik in `word-cloud-term.service.ts` und `word-cloud.util.ts` bleibt erhalten und ist weiterhin der sofort verfuegbare, deterministische Fallback.
 
 Das ist keine Uebergangsnotloesung, sondern eine bewusste Resilienzgrenze.
 
@@ -250,7 +251,7 @@ Aufgaben:
 
 - Analysemodus im Host einfuehren, z. B. `lexical | theme`
 - Toggle in Host-Karte und Host-Dialog einbauen
-- `app-word-cloud` so vorbereiten, dass spaeter nicht nur rohe Antworten, sondern auch analysierte Entries darstellbar sind
+- `app-word-cloud` so vorbereiten, dass spaeter nicht nur lokale `WordCloudTerm[]`, sondern auch semantische Analyse-Entries darstellbar sind
 - bestehende Specs fuer `Lexikalisch` gruen halten
 
 Ergebnis:
@@ -286,7 +287,7 @@ Aufgaben:
 
 Ergebnis:
 
-- Themenmodus ist im Host-Vollbilddialog nutzbar, analysierte Entries werden dort gerendert, die lexikalische Sicht bleibt jederzeit verfuegbar, und der gemeinsame Renderer zeigt inzwischen auch `Basis` und Confidence-Badges fuer Theme-Entries. Fuer nicht unterstuetzte Locales (`fr`, `it`, `es`) bleibt der Dialog explizit lexikalisch.
+- Der Host-Vollbilddialog ist fuer zwei lokale Ansichten nutzbar: `Einzelwoerter` sowie `Begriffe & Phrasen`. Analysierte semantische Entries bleiben eine spaetere Ausbaustufe; der gemeinsame Renderer kann solche Entries weiterhin darstellen.
 
 ### Phase 4: Tests, Fixtures und Performance-Grenzen absichern
 
@@ -295,7 +296,7 @@ Ziel: `3.0` bleibt ueber Zeit wartbar und erklaerbar.
 Pflichtchecks:
 
 - `de`-/`en`-Fixtures mit echten Paraphrasen
-- keine Regression in `Lexikalisch`
+- keine Regression im lokalen Termpfad
 - Theme-Fallback bei Fehler/Timeout
 - Tooltip- und CSV-Integritaet
 - keine deutliche Verlangsamung der Host-Karte im normalen Livebetrieb
@@ -345,11 +346,11 @@ Ein zweiter sinnvoller Kalibrierfall fuer den aktuellen Analyzer ist:
 
 ## Empfohlene Definition of Done
 
-- Host-Q&A bietet `Lexikalisch` und `Themen`
-- `Lexikalisch` bleibt regressionsfrei
+- Host-Q&A bietet neben `Einzelwoerter` / `Begriffe & Phrasen` einen klar getrennten semantischen Themenmodus
+- der lokale Termpfad bleibt regressionsfrei
 - Themenmodus liefert fuer `de` und `en` sichtbar nuetzlichere Cluster als `2.x`
 - jede Themenkarte bleibt ueber Tooltip/Export erklaerbar
-- Fehler und Timeouts kippen kontrolliert auf `Lexikalisch`
+- Fehler und Timeouts kippen kontrolliert auf den lokalen Termpfad
 - relevante Backend- und Frontend-Tests sind gruen
 
 ---
