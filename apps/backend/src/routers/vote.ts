@@ -6,9 +6,14 @@ import { TRPCError } from '@trpc/server';
 import {
   SubmitVoteInputSchema,
   SubmitVoteOutputSchema,
+  evaluateShortAnswer,
+  normalizeShortTextValue,
   resolveEffectiveQuestionTimer,
+  resolveShortTextMaxLength,
   type QuestionType,
   type Difficulty,
+  type ShortAnswerEvaluationMode,
+  type ToleranceLevel,
 } from '@arsnova/shared-types';
 import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
@@ -51,7 +56,9 @@ export const voteRouter = router({
       void recordVoteActivity();
       const question = await prisma.question.findFirst({
         where: { id: input.questionId, quizId: participant.session.quizId ?? undefined },
-        include: { answers: { select: { id: true, isCorrect: true } } },
+        include: {
+          answers: { select: { id: true, text: true, isCorrect: true } },
+        },
       });
       if (!question) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
@@ -83,7 +90,26 @@ export const voteRouter = router({
       const answerIds = [...new Set(input.answerIds ?? [])];
       const allowedAnswerIds = new Set(question.answers.map((answer) => answer.id));
       const hasInvalidAnswerId = answerIds.some((answerId) => !allowedAnswerIds.has(answerId));
-      const freeText = input.freeText?.trim() ?? null;
+      const trimmedFreeText = input.freeText?.trim() ?? null;
+      const shortTextSettings = {
+        caseSensitive: question.shortTextCaseSensitive ?? false,
+        evaluationMode:
+          (question.shortTextEvaluationMode as ShortAnswerEvaluationMode | null | undefined) ??
+          'auto',
+        toleranceLevel:
+          (question.shortTextToleranceLevel as ToleranceLevel | null | undefined) ?? 'low',
+        allowPartialCredit: question.shortTextAllowPartialCredit ?? true,
+        trimWhitespace: question.shortTextTrimWhitespace ?? true,
+        normalizeWhitespace: question.shortTextNormalizeWhitespace ?? true,
+      };
+      const normalizedShortText = input.freeText
+        ? normalizeShortTextValue(input.freeText, {
+            caseSensitive: true,
+            trimWhitespace: shortTextSettings.trimWhitespace,
+            normalizeWhitespace: shortTextSettings.normalizeWhitespace,
+          })
+        : null;
+      const freeText = questionType === 'SHORT_TEXT' ? normalizedShortText : trimmedFreeText;
 
       if (hasInvalidAnswerId) {
         throw new TRPCError({
@@ -131,6 +157,28 @@ export const voteRouter = router({
             });
           }
           break;
+        case 'SHORT_TEXT': {
+          if (answerIds.length > 0) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Kurzantwort-Fragen akzeptieren keine Antwortoptionen.',
+            });
+          }
+          if (!freeText) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Kurzantwort darf nicht leer sein.',
+            });
+          }
+          const maxLength = resolveShortTextMaxLength(question.shortTextMaxLength);
+          if (freeText.length > maxLength) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `Kurzantwort darf maximal ${maxLength} Zeichen lang sein.`,
+            });
+          }
+          break;
+        }
         case 'RATING':
           if (answerIds.length > 0) {
             throw new TRPCError({
@@ -159,7 +207,7 @@ export const voteRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Unbekannter Fragetyp.' });
       }
 
-      if (questionType !== 'FREETEXT' && freeText) {
+      if (questionType !== 'FREETEXT' && questionType !== 'SHORT_TEXT' && freeText) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Freitext ist nur für Freitext-Fragen erlaubt.',
@@ -178,11 +226,42 @@ export const voteRouter = router({
         .filter((answer) => answer.isCorrect)
         .map((answer) => answer.id);
 
+      const shortTextEvaluation =
+        questionType === 'SHORT_TEXT'
+          ? evaluateShortAnswer({
+              modelAnswers: question.answers
+                .filter((answer) => answer.isCorrect)
+                .map((answer) => answer.text),
+              studentAnswer: freeText ?? '',
+              maxPoints: 1,
+              maxLength: question.shortTextMaxLength,
+              settings: shortTextSettings,
+            })
+          : null;
+      const shortTextMatchedAnswer =
+        questionType === 'SHORT_TEXT' && shortTextEvaluation?.matchedModelAnswer
+          ? (question.answers.find(
+              (answer) =>
+                answer.isCorrect && answer.text === shortTextEvaluation.matchedModelAnswer,
+            ) ?? null)
+          : null;
+
       const baseScore = calculateVoteScore({
         type: questionType,
         difficulty: question.difficulty as Difficulty,
         selectedAnswerIds: answerIds,
         correctAnswerIds,
+        freeText,
+        correctShortTextAnswers: question.answers
+          .filter((answer) => answer.isCorrect)
+          .map((answer) => answer.text),
+        shortTextMaxLength: question.shortTextMaxLength,
+        shortTextCaseSensitive: shortTextSettings.caseSensitive,
+        shortTextEvaluationMode: shortTextSettings.evaluationMode,
+        shortTextToleranceLevel: shortTextSettings.toleranceLevel,
+        shortTextAllowPartialCredit: shortTextSettings.allowPartialCredit,
+        shortTextTrimWhitespace: shortTextSettings.trimWhitespace,
+        shortTextNormalizeWhitespace: shortTextSettings.normalizeWhitespace,
         responseTimeMs: input.responseTimeMs ?? null,
         timerDurationMs: timerSeconds ? timerSeconds * 1000 : null,
       });
@@ -254,8 +333,11 @@ export const voteRouter = router({
       });
       if (participant.session.code) {
         recordVoteCachesForCode(participant.session.code, input.questionId, round, {
-          answerIds,
+          answerIds: shortTextMatchedAnswer ? [shortTextMatchedAnswer.id] : answerIds,
           freeText,
+          questionType,
+          isCorrect:
+            questionType === 'SHORT_TEXT' ? (shortTextEvaluation?.points ?? 0) > 0 : undefined,
         });
         invalidateCurrentQuestionCachesForCode(participant.session.code);
       }

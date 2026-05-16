@@ -306,6 +306,66 @@ describe('session reading-ready flow', () => {
     expect(prismaMock.participant.findFirst).toHaveBeenCalledTimes(1);
   });
 
+  it('liefert bei ACTIVE fuer SHORT_TEXT keine Musterloesungen an Teilnehmende', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      statusChangedAt: new Date('2026-04-28T10:00:00.000Z'),
+      quiz: {
+        defaultTimer: 30,
+        timerScaleByDifficulty: true,
+        preset: 'SERIOUS',
+        questions: [
+          {
+            id: QUESTION_ID,
+            text: 'Nenne die Autorin des ersten Algorithmus.',
+            type: 'SHORT_TEXT',
+            difficulty: 'MEDIUM',
+            order: 0,
+            timer: 30,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            shortTextMaxLength: 40,
+            shortTextCaseSensitive: false,
+            answers: [
+              {
+                id: '55555555-5555-4555-8555-555555555555',
+                text: 'Ada Lovelace',
+                isCorrect: true,
+              },
+            ],
+          },
+        ],
+      },
+      _count: { participants: 2 },
+    });
+    prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
+    prismaMock.vote.count.mockResolvedValue(1);
+
+    const result = await caller.getCurrentQuestionForStudent({
+      code: 'ABC123',
+      participantId: PARTICIPANT_ID,
+    });
+
+    expect(result).toMatchObject({
+      id: QUESTION_ID,
+      type: 'SHORT_TEXT',
+      shortTextMaxLength: 40,
+      shortTextCaseSensitive: false,
+      totalVotes: 1,
+    });
+    expect(result?.type).toBe('SHORT_TEXT');
+    if (!result || result.type !== 'SHORT_TEXT') {
+      throw new Error('Expected a SHORT_TEXT question result');
+    }
+    expect((result as { answers?: unknown[] }).answers).toEqual([]);
+  });
+
   it('haelt den Vote-Count nach Current-Question-Invalidierung im eigenen Cache', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,

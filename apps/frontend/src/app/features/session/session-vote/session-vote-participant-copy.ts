@@ -344,6 +344,13 @@ export function voteFreetextPlaceholder(playful: boolean): string {
   return $localize`:@@sessionVote.freetextPhSerious:Deine Antwort…`;
 }
 
+export function voteShortTextPlaceholder(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.shortTextPhPlayful:Kurze Antwort …`;
+  }
+  return $localize`:@@sessionVote.shortTextPhSerious:Kurze Antwort…`;
+}
+
 export function voteFreetextOwnPrefix(playful: boolean): string {
   if (playful) {
     return $localize`:@@sessionVote.freetextOwnPlayful:Du sagst:`;
@@ -356,6 +363,13 @@ export function voteFreetextEmpty(playful: boolean): string {
     return $localize`:@@sessionVote.freetextEmptyPlayful:Diese Runde ohne Text – nächste Chance wartet.`;
   }
   return $localize`:@@sessionVote.freetextEmptySerious:Keine Antwort abgegeben.`;
+}
+
+export function voteShortTextSolutionsLabel(playful: boolean): string {
+  if (playful) {
+    return $localize`:@@sessionVote.shortTextSolutionsPlayful:Gültige Lösungen:`;
+  }
+  return $localize`:@@sessionVote.shortTextSolutionsSerious:Akzeptierte Lösungen:`;
 }
 
 export function voteRatingResultPrefix(playful: boolean): string {

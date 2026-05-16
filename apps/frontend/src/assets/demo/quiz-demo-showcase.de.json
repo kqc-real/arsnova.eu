@@ -1,6 +1,6 @@
 {
-  "exportVersion": 21,
-  "exportedAt": "2026-04-24T14:30:00.000Z",
+  "exportVersion": 22,
+  "exportedAt": "2026-05-16T09:15:00.000Z",
   "quiz": {
     "name": "Praxis-Showcase: Live-Teamdemo",
     "description": "![Praxis-Showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Praxis-Showcase für den Unterricht\n\nDiese Demo ist für den **echten Unterrichtseinsatz** gedacht. Sie will kein perfekt durchkomponiertes Fachquiz von Anfang bis Ende sein. Ihr Zweck ist ein anderer: Sie soll Lehrkräften, Dozierenden und Trainer:innen zeigen, wie arsnova.eu eine Live-Session abwechslungsreicher, visueller und spielerischer machen kann.\n\nNutze sie als kurze, **Kahoot-artige Team-Demo für den Live-Unterricht**, um zu zeigen, wie du:\n- mit einem kurzen emotionalen oder sozialen Check-in startest\n- Bilder statt reiner Textfragen einsetzt\n- Formeln und wissenschaftliche Notation in MINT-Fächern einbindest\n- kurze Freitextantworten aus dem Raum sammelst, die später als Wortwolke sichtbar werden\n- Multiple-Choice- und Rating-Fragen sinnvoll einsetzt\n- mit Timer, Teams, Rangliste und Bonus-Codes mehr Energie aufbaust\n- Codebeispiele im Informatik- oder Technikunterricht einsetzt\n\nDie Fragen sind bewusst gemischt. Ziel ist es, dir konkrete Ideen für Einstiege, Verständnischecks, Aufmerksamkeitssignale und kurze interaktive Momente im Unterricht zu geben.\n\n**Tipp für die Demo:** Tritt der Session auf einem zweiten Gerät bei, am besten per QR-Code auf dem Smartphone. So kannst du den Wechsel zwischen Host-Ansicht und Teilnehmenden-Perspektive realistisch durchspielen.\n\n**Noch ein Tipp:** Öffne danach den Bearbeitungsmodus des Quiz und schau dir an, wie die Fragen mit Markdown und KaTeX umgesetzt sind.\n\n**Und noch etwas:** Weitere Frageformate oder Features kannst du gern anfragen. Die Kontaktdaten findest du im Impressum.",
@@ -151,11 +151,39 @@
         ]
       },
       {
+        "text": "### Wie heißt die Methode, bei der Lernende erst individuell abstimmen, dann kurz diskutieren und anschließend erneut abstimmen?\n\n> **Unterrichtsidee:** Nutze das als anspruchsvolle Fachbegriffsfrage, um tolerante Kurzantworten mit kleinen Tippfehlern und Teilpunkten zu demonstrieren.\n\nGesucht ist der etablierte didaktische Begriff für diesen Ablauf.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Peer Instruction",
+            "isCorrect": true
+          },
+          {
+            "text": "Peer-Instruction",
+            "isCorrect": true
+          },
+          {
+            "text": "Mazur-Methode",
+            "isCorrect": true
+          }
+        ],
+        "shortTextMaxLength": 32,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "auto",
+        "shortTextToleranceLevel": "medium",
+        "shortTextAllowPartialCredit": true,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true
+      },
+      {
         "text": "### Wie wahrscheinlich ist es, dass du so ein Live-Quiz bald selbst einsetzt?\n\n> **Unterrichtsidee:** Nutze das als schnelles Meinungsbild, Exit-Ticket oder Confidence-Check.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 6,
+        "order": 7,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,

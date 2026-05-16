@@ -1,0 +1,6 @@
+ALTER TABLE "Question"
+ADD COLUMN IF NOT EXISTS "shortTextEvaluationMode" TEXT NOT NULL DEFAULT 'auto',
+ADD COLUMN IF NOT EXISTS "shortTextToleranceLevel" TEXT NOT NULL DEFAULT 'low',
+ADD COLUMN IF NOT EXISTS "shortTextAllowPartialCredit" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN IF NOT EXISTS "shortTextTrimWhitespace" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN IF NOT EXISTS "shortTextNormalizeWhitespace" BOOLEAN NOT NULL DEFAULT true;

@@ -307,4 +307,64 @@ describe('session team mode (Story 7.1)', () => {
       },
     ]);
   });
+
+  it('exportiert SHORT_TEXT-Ergebnisse getrennt von offenem Freitext', async () => {
+    const shortTextQuestionId = '44444444-4444-4444-8444-444444444444';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: 'ABC123',
+      status: 'FINISHED',
+      type: 'QUIZ',
+      endedAt: new Date('2026-04-23T08:00:00.000Z'),
+      quiz: {
+        name: 'Kurzantwort-Quiz',
+        teamMode: false,
+        teamCount: null,
+        teamNames: [],
+        questions: [
+          {
+            id: shortTextQuestionId,
+            order: 0,
+            text: 'Wer schrieb den ersten Algorithmus?',
+            type: 'SHORT_TEXT',
+            shortTextMaxLength: 40,
+            shortTextCaseSensitive: false,
+            answers: [
+              { id: 'a1', text: 'Ada Lovelace', isCorrect: true },
+              { id: 'a2', text: 'Ada', isCorrect: true },
+            ],
+          },
+        ],
+      },
+      votes: [
+        {
+          questionId: shortTextQuestionId,
+          freeText: 'Ada Lovelace',
+          selectedAnswers: [],
+          score: 2000,
+        },
+        { questionId: shortTextQuestionId, freeText: 'Ada', selectedAnswers: [], score: 2000 },
+        {
+          questionId: shortTextQuestionId,
+          freeText: 'Grace Hopper',
+          selectedAnswers: [],
+          score: 0,
+        },
+      ],
+      bonusTokens: [],
+      participants: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }],
+    });
+
+    const result = await hostCaller.getExportData({ code: 'ABC123' });
+
+    expect(result.questions[0]).toMatchObject({
+      type: 'SHORT_TEXT',
+      participantCount: 3,
+      shortTextSolutions: ['Ada Lovelace', 'Ada'],
+      correctCount: 2,
+      incorrectCount: 1,
+      shortTextIncorrectAggregates: [{ text: 'Grace Hopper', count: 1 }],
+    });
+    expect(result.questions[0]?.freetextAggregates).toBeUndefined();
+  });
 });

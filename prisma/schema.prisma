@@ -55,6 +55,13 @@ model Question {
   ratingMax  Int?           // Story 1.2c: Obere Skalengrenze (nur bei RATING, default: 5)
   ratingLabelMin String?    // Story 1.2c: Label für Minimum (z.B. "Stimme gar nicht zu")
   ratingLabelMax String?    // Story 1.2c: Label für Maximum (z.B. "Stimme voll zu")
+  shortTextMaxLength Int?    // Story 1.2e: Maximale Eingabelänge für SHORT_TEXT
+  shortTextCaseSensitive Boolean @default(false) // Story 1.2e: Groß-/Kleinschreibung relevant
+  shortTextEvaluationMode String @default("auto") // Story 1.2e+: exact, hamming, levenshtein, auto
+  shortTextToleranceLevel String @default("low") // Story 1.2e+: none, low, medium, high
+  shortTextAllowPartialCredit Boolean @default(true) // Story 1.2e+: Teilpunkte nach Distanz erlauben
+  shortTextTrimWhitespace Boolean @default(true) // Story 1.2e+: Leerzeichen am Rand entfernen
+  shortTextNormalizeWhitespace Boolean @default(true) // Story 1.2e+: Mehrfach-Leerzeichen vereinheitlichen
   quizId     String
   quiz       Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers    AnswerOption[]
@@ -178,8 +185,8 @@ model Vote {
   participant    Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
   questionId     String
   question       Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  selectedAnswers VoteAnswer[] // MC: mehrere, SC: genau eine, FREETEXT/RATING: keine
-  freeText       String?      // Freitext-Antwort (nur bei QuestionType.FREETEXT)
+  selectedAnswers VoteAnswer[] // MC: mehrere, SC: genau eine, FREETEXT/SHORT_TEXT/RATING: keine
+  freeText       String?      // Text-Antwort (bei QuestionType.FREETEXT oder SHORT_TEXT)
   ratingValue    Int?         // Story 1.2c: Gewählter Skalenwert (nur bei QuestionType.RATING)
   responseTimeMs Int?         // Antwortzeit in Millisekunden (für Zeitbonus)
   score          Int          @default(0) // Berechnete Punkte (Schwierigkeit × Zeitbonus)
@@ -210,6 +217,7 @@ enum QuestionType {
   MULTIPLE_CHOICE
   SINGLE_CHOICE
   FREETEXT
+  SHORT_TEXT
   SURVEY
   RATING       // Story 1.2c: Bewertungsskala (1–5 oder 1–10)
 }

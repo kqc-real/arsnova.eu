@@ -3,11 +3,14 @@ import {
   MAX_BASE_POINTS,
   STREAK_MULTIPLIER,
   STREAK_MULTIPLIER_MAX,
+  evaluateShortAnswer,
   type Difficulty,
   type QuestionType,
+  type ShortAnswerEvaluationMode,
+  type ToleranceLevel,
 } from '@arsnova/shared-types';
 
-const SCORED_QUESTION_TYPES: QuestionType[] = ['MULTIPLE_CHOICE', 'SINGLE_CHOICE'];
+const SCORED_QUESTION_TYPES: QuestionType[] = ['MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'SHORT_TEXT'];
 
 /**
  * Streak-Multiplikator basierend auf der aktuellen Serie (Story 5.5).
@@ -25,7 +28,7 @@ export function questionAffectsStreak(type: QuestionType): boolean {
 }
 
 /**
- * Nur MC/SC zählen in Leaderboard-Metriken wie totalQuestions (Story 1.2b / 4.1).
+ * Bewertbare Fragetypen zählen in Leaderboard-Metriken wie totalQuestions (Story 1.2b / 4.1).
  */
 export function questionCountsTowardsTotalQuestions(type: QuestionType): boolean {
   return SCORED_QUESTION_TYPES.includes(type);
@@ -36,6 +39,15 @@ interface CalculateVoteScoreInput {
   difficulty: Difficulty;
   selectedAnswerIds: string[];
   correctAnswerIds: string[];
+  freeText?: string | null;
+  correctShortTextAnswers?: string[];
+  shortTextMaxLength?: number | null;
+  shortTextCaseSensitive?: boolean;
+  shortTextEvaluationMode?: ShortAnswerEvaluationMode;
+  shortTextToleranceLevel?: ToleranceLevel;
+  shortTextAllowPartialCredit?: boolean;
+  shortTextTrimWhitespace?: boolean;
+  shortTextNormalizeWhitespace?: boolean;
   responseTimeMs?: number | null;
   timerDurationMs?: number | null;
 }
@@ -61,7 +73,29 @@ export function calculateVoteScore(input: CalculateVoteScoreInput): number {
     return 0;
   }
 
-  if (!isExactCorrectSelection(input.selectedAnswerIds, input.correctAnswerIds)) {
+  let basePoints = MAX_BASE_POINTS;
+
+  if (input.type === 'SHORT_TEXT') {
+    const shortTextEvaluation = evaluateShortAnswer({
+      modelAnswers: input.correctShortTextAnswers ?? [],
+      studentAnswer: input.freeText ?? '',
+      maxPoints: MAX_BASE_POINTS,
+      maxLength: input.shortTextMaxLength,
+      settings: {
+        caseSensitive: input.shortTextCaseSensitive,
+        evaluationMode: input.shortTextEvaluationMode,
+        toleranceLevel: input.shortTextToleranceLevel,
+        allowPartialCredit: input.shortTextAllowPartialCredit,
+        trimWhitespace: input.shortTextTrimWhitespace,
+        normalizeWhitespace: input.shortTextNormalizeWhitespace,
+      },
+    });
+
+    if (shortTextEvaluation.points <= 0) {
+      return 0;
+    }
+    basePoints = shortTextEvaluation.points;
+  } else if (!isExactCorrectSelection(input.selectedAnswerIds, input.correctAnswerIds)) {
     return 0;
   }
 
@@ -74,8 +108,8 @@ export function calculateVoteScore(input: CalculateVoteScoreInput): number {
     input.responseTimeMs !== undefined
   ) {
     const timeFraction = Math.max(0, 1 - input.responseTimeMs / input.timerDurationMs);
-    return Math.round(multiplier * MAX_BASE_POINTS * timeFraction);
+    return Math.round(multiplier * basePoints * timeFraction);
   }
 
-  return MAX_BASE_POINTS * multiplier;
+  return Math.round(basePoints * multiplier);
 }

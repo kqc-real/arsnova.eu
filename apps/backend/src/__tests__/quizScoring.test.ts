@@ -8,9 +8,10 @@ import {
 } from '../lib/quizScoring';
 
 describe('quizScoring', () => {
-  it('zählt nur MC/SC zu totalQuestions', () => {
+  it('zählt bewertbare Fragetypen zu totalQuestions', () => {
     expect(questionCountsTowardsTotalQuestions('MULTIPLE_CHOICE')).toBe(true);
     expect(questionCountsTowardsTotalQuestions('SINGLE_CHOICE')).toBe(true);
+    expect(questionCountsTowardsTotalQuestions('SHORT_TEXT')).toBe(true);
     expect(questionCountsTowardsTotalQuestions('FREETEXT')).toBe(false);
     expect(questionCountsTowardsTotalQuestions('SURVEY')).toBe(false);
     expect(questionCountsTowardsTotalQuestions('RATING')).toBe(false);
@@ -72,6 +73,67 @@ describe('quizScoring', () => {
     ).toBe(0);
   });
 
+  it('bewertet SHORT_TEXT nach gemeinsamer Normalisierung', () => {
+    expect(
+      calculateVoteScore({
+        type: 'SHORT_TEXT',
+        difficulty: 'MEDIUM',
+        selectedAnswerIds: [],
+        correctAnswerIds: [],
+        freeText: '  Ada   Lovelace ',
+        correctShortTextAnswers: ['ada lovelace'],
+        shortTextCaseSensitive: false,
+      }),
+    ).toBe(2000);
+
+    expect(
+      calculateVoteScore({
+        type: 'SHORT_TEXT',
+        difficulty: 'MEDIUM',
+        selectedAnswerIds: [],
+        correctAnswerIds: [],
+        freeText: 'Ada',
+        correctShortTextAnswers: ['ada'],
+        shortTextCaseSensitive: true,
+      }),
+    ).toBe(0);
+  });
+
+  it('vergibt Teilpunkte fuer kleine Tippfehler bei SHORT_TEXT', () => {
+    const score = calculateVoteScore({
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      selectedAnswerIds: [],
+      correctAnswerIds: [],
+      freeText: 'Photoyynthese',
+      correctShortTextAnswers: ['Photosynthese'],
+      shortTextCaseSensitive: false,
+      shortTextEvaluationMode: 'hamming',
+      shortTextToleranceLevel: 'low',
+      shortTextAllowPartialCredit: true,
+    });
+
+    expect(score).toBeGreaterThan(1800);
+    expect(score).toBeLessThan(2000);
+  });
+
+  it('gibt bei deaktivierten Teilpunkten trotz Tippfehlern die volle Punktzahl innerhalb der Toleranz', () => {
+    expect(
+      calculateVoteScore({
+        type: 'SHORT_TEXT',
+        difficulty: 'MEDIUM',
+        selectedAnswerIds: [],
+        correctAnswerIds: [],
+        freeText: 'Photosynthesee',
+        correctShortTextAnswers: ['Photosynthese'],
+        shortTextCaseSensitive: false,
+        shortTextEvaluationMode: 'levenshtein',
+        shortTextToleranceLevel: 'low',
+        shortTextAllowPartialCredit: false,
+      }),
+    ).toBe(2000);
+  });
+
   it('erkennt vollständig korrekte Auswahl auch bei gleicher Reihenfolge-unabhängiger Menge', () => {
     expect(isExactCorrectSelection(['a2', 'a1'], ['a1', 'a2'])).toBe(true);
     expect(isExactCorrectSelection(['a1'], ['a1', 'a2'])).toBe(false);
@@ -98,9 +160,10 @@ describe('quizScoring', () => {
   });
 
   describe('questionAffectsStreak (Story 5.5)', () => {
-    it('SC und MC beeinflussen den Streak', () => {
+    it('SC, MC und SHORT_TEXT beeinflussen den Streak', () => {
       expect(questionAffectsStreak('SINGLE_CHOICE')).toBe(true);
       expect(questionAffectsStreak('MULTIPLE_CHOICE')).toBe(true);
+      expect(questionAffectsStreak('SHORT_TEXT')).toBe(true);
     });
 
     it('FREETEXT, SURVEY und RATING unterbrechen den Streak nicht', () => {

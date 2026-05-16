@@ -99,6 +99,29 @@
               >
                 Freitext-Antwort als Wortwolke
               </p>
+            } @else if (slide.question.type === 'SHORT_TEXT') {
+              <p
+                class="quiz-preview-question__text quiz-preview-question__text--hint"
+                i18n="@@quizEdit.shortTextQuestionHint"
+              >
+                Kurzantwort mit automatischem Abgleich gegen Musterlösungen
+              </p>
+              <p class="quiz-preview-question__text quiz-preview-question__text--hint">
+                {{ shortTextConfigSummary(slide.question) }}
+              </p>
+              <p class="quiz-preview-question__text quiz-preview-question__text--hint">
+                {{ shortTextDidacticWarning() }}
+              </p>
+              <ol class="quiz-preview-question__answers">
+                @for (answer of slide.question.answers; track answer.id) {
+                  <li class="quiz-preview-question__answer-row">
+                    <span
+                      class="quiz-preview-question__answer-content markdown-body"
+                      [innerHTML]="renderAnswerMarkdown(answer.text)"
+                    ></span>
+                  </li>
+                }
+              </ol>
             } @else if (slide.question.type === 'RATING') {
               @let ratingValues =
                 ratingScaleValues(slide.question.ratingMin ?? 1, slide.question.ratingMax ?? 5);
@@ -214,6 +237,11 @@
                     @if (currentQuestionValidation().needsMoreAnswers) {
                       <p i18n="@@quizPreview.editorWarningAnswers">
                         Füge mindestens zwei Antwortoptionen hinzu.
+                      </p>
+                    }
+                    @if (currentQuestionValidation().needsShortTextSolutions) {
+                      <p i18n="@@quizPreview.editorWarningShortTextSolutions">
+                        Füge mindestens eine Musterlösung hinzu.
                       </p>
                     }
                     @if (currentQuestionValidation().needsCorrectAnswer) {

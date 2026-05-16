@@ -155,6 +155,30 @@ describe('QuizStoreService', () => {
     expect(question?.answers).toEqual([]);
   });
 
+  it('fügt eine SHORT_TEXT-Frage mit Musterlösungen hinzu', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Kurzantwort Quiz' });
+
+    service.addQuestion(created.id, {
+      text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
+      type: 'SHORT_TEXT',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'Paris', isCorrect: true },
+        { text: 'Die Stadt Paris', isCorrect: true },
+      ],
+      shortTextMaxLength: 80,
+      shortTextCaseSensitive: false,
+    });
+
+    const question = service.getQuizById(created.id)?.questions[0];
+    expect(question?.type).toBe('SHORT_TEXT');
+    expect(question?.shortTextMaxLength).toBe(80);
+    expect(question?.shortTextCaseSensitive).toBe(false);
+    expect(question?.answers.map((answer) => answer.text)).toEqual(['Paris', 'Die Stadt Paris']);
+    expect(question?.answers.every((answer) => answer.isCorrect)).toBe(true);
+  });
+
   it('fügt eine SURVEY-Frage ohne korrekte Antworten hinzu', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({ name: 'Umfrage Quiz' });
@@ -464,6 +488,34 @@ describe('QuizStoreService', () => {
     expect(aus?.enabled).toBe(false);
     const an = imported.quiz.questions.find((q) => q.text === 'An');
     expect(an?.enabled).toBe(true);
+  });
+
+  it('exportiert SHORT_TEXT-Konfiguration mit Musterlösungen', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Kurzantwort Export' });
+
+    service.addQuestion(created.id, {
+      text: 'Nenne ein Edelgas.',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      answers: [
+        { text: 'Neon', isCorrect: true },
+        { text: 'Argon', isCorrect: true },
+      ],
+      shortTextMaxLength: 40,
+      shortTextCaseSensitive: true,
+    });
+
+    const exportedQuestion = service.exportQuiz(created.id).quiz.questions[0];
+    expect(exportedQuestion).toMatchObject({
+      type: 'SHORT_TEXT',
+      shortTextMaxLength: 40,
+      shortTextCaseSensitive: true,
+      answers: [
+        { text: 'Neon', isCorrect: true },
+        { text: 'Argon', isCorrect: true },
+      ],
+    });
   });
 
   it('importiert arsnova.click-Exporte ueber einen Kompatibilitaetsfilter', () => {

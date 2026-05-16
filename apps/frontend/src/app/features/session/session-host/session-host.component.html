@@ -1062,7 +1062,8 @@
                 <!-- Karte 2: Ergebnis (schmaler, zentriert) -->
                 @if (
                   effectiveStatus() !== 'QUESTION_OPEN' &&
-                  !(effectiveStatus() === 'RESULTS' && q.type === 'FREETEXT')
+                  !(effectiveStatus() === 'RESULTS' && q.type === 'FREETEXT') &&
+                  !(q.type === 'SHORT_TEXT' && effectiveStatus() !== 'RESULTS')
                 ) {
                   <div class="session-host__results-wrap" #hostResultsSection>
                     <mat-card appearance="outlined" class="session-host__results-card">
@@ -1425,7 +1426,10 @@
                               }
                             </ul>
                           </div>
-                        } @else if (q.answers.length > 0) {
+                        } @else if (
+                          q.answers.length > 0 &&
+                          (q.type !== 'SHORT_TEXT' || effectiveStatus() === 'RESULTS')
+                        ) {
                           @if (shouldShowPeerInstructionSuggestion(q)) {
                             <div
                               class="session-host__peer-suggestion"

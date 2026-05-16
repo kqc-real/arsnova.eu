@@ -759,6 +759,53 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('blendet bei aktiven SHORT_TEXT-Fragen die Musterlösungen in der Host-Ansicht aus', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Welcher Fachbegriff ist gesucht?',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      timer: 30,
+      answers: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: 'Peer Instruction',
+          isCorrect: true,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: 'Mazur-Methode',
+          isCorrect: true,
+        },
+      ],
+      totalVotes: 0,
+      currentRound: 1,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Welcher Fachbegriff ist gesucht?');
+    expect(host.textContent).not.toContain('Peer Instruction');
+    expect(host.textContent).not.toContain('Mazur-Methode');
+    expect(host.querySelector('.session-host__results-wrap')).toBeNull();
+    expect(host.querySelector('.session-host__answers')).toBeNull();
+    fixture.destroy();
+  });
+
   it('aktiviert im Quiz-Foyer bereits die immersive Host-Ansicht', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

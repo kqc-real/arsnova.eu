@@ -22,6 +22,7 @@ import {
   AdminWhoAmIOutputSchema,
   QUIZ_EXPORT_VERSION,
   QuizExportSchema,
+  resolveShortTextMaxLength,
 } from '@arsnova/shared-types';
 import { adminProcedure, publicProcedure, router } from '../trpc';
 import { createHash, randomUUID } from 'crypto';
@@ -1029,6 +1030,13 @@ export const adminRouter = router({
                   ratingMax: true,
                   ratingLabelMin: true,
                   ratingLabelMax: true,
+                  shortTextMaxLength: true,
+                  shortTextCaseSensitive: true,
+                  shortTextEvaluationMode: true,
+                  shortTextToleranceLevel: true,
+                  shortTextAllowPartialCredit: true,
+                  shortTextTrimWhitespace: true,
+                  shortTextNormalizeWhitespace: true,
                   answers: {
                     orderBy: { id: 'asc' },
                     select: { text: true, isCorrect: true },
@@ -1098,6 +1106,17 @@ export const adminRouter = router({
             ratingMax: question.ratingMax ?? null,
             ratingLabelMin: question.ratingLabelMin ?? null,
             ratingLabelMax: question.ratingLabelMax ?? null,
+            ...(question.type === 'SHORT_TEXT'
+              ? {
+                  shortTextMaxLength: resolveShortTextMaxLength(question.shortTextMaxLength),
+                  shortTextCaseSensitive: question.shortTextCaseSensitive ?? false,
+                  shortTextEvaluationMode: question.shortTextEvaluationMode,
+                  shortTextToleranceLevel: question.shortTextToleranceLevel,
+                  shortTextAllowPartialCredit: question.shortTextAllowPartialCredit,
+                  shortTextTrimWhitespace: question.shortTextTrimWhitespace,
+                  shortTextNormalizeWhitespace: question.shortTextNormalizeWhitespace,
+                }
+              : {}),
             enabled: true,
           })),
         },

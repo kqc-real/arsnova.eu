@@ -21,12 +21,20 @@ import {
   QuizExportSchema,
   QuizUploadInputSchema,
   QUIZ_EXPORT_VERSION,
+  SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+  SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+  normalizeShortTextValue,
+  resolveShortAnswerEvaluationSettings,
+  resolveShortTextMaxLength,
   type Difficulty,
+  type AddQuestionInput,
   type NicknameTheme,
   type QuizPreset,
   type QuizExport,
   type QuizUploadInput,
+  type ShortAnswerEvaluationMode,
   type TeamAssignment,
+  type ToleranceLevel,
 } from '@arsnova/shared-types';
 import { getYjsWsUrl } from '../../../core/ws-urls';
 import {
@@ -51,6 +59,7 @@ export type SupportedQuestionType =
   | 'MULTIPLE_CHOICE'
   | 'SINGLE_CHOICE'
   | 'FREETEXT'
+  | 'SHORT_TEXT'
   | 'SURVEY'
   | 'RATING';
 
@@ -78,6 +87,13 @@ export interface QuizQuestion {
   ratingMax: number | null;
   ratingLabelMin: string | null;
   ratingLabelMax: string | null;
+  shortTextMaxLength?: number | null;
+  shortTextCaseSensitive?: boolean | null;
+  shortTextEvaluationMode?: ShortAnswerEvaluationMode | null;
+  shortTextToleranceLevel?: ToleranceLevel | null;
+  shortTextAllowPartialCredit?: boolean | null;
+  shortTextTrimWhitespace?: boolean | null;
+  shortTextNormalizeWhitespace?: boolean | null;
 }
 
 export interface QuizSettings {
@@ -212,6 +228,13 @@ export interface AddQuizQuestionInput {
   ratingMax?: number | null;
   ratingLabelMin?: string | null;
   ratingLabelMax?: string | null;
+  shortTextMaxLength?: number | null;
+  shortTextCaseSensitive?: boolean | null;
+  shortTextEvaluationMode?: ShortAnswerEvaluationMode | null;
+  shortTextToleranceLevel?: ToleranceLevel | null;
+  shortTextAllowPartialCredit?: boolean | null;
+  shortTextTrimWhitespace?: boolean | null;
+  shortTextNormalizeWhitespace?: boolean | null;
 }
 
 export interface CreateQuizDocumentInput {
@@ -234,7 +257,72 @@ type ValidatedQuestionInput = {
   ratingMax: number | null;
   ratingLabelMin: string | null;
   ratingLabelMax: string | null;
+  shortTextMaxLength: number | null;
+  shortTextCaseSensitive: boolean | null;
+  shortTextEvaluationMode: ShortAnswerEvaluationMode | null;
+  shortTextToleranceLevel: ToleranceLevel | null;
+  shortTextAllowPartialCredit: boolean | null;
+  shortTextTrimWhitespace: boolean | null;
+  shortTextNormalizeWhitespace: boolean | null;
 };
+
+type ShortTextQuestionSettingsInput = {
+  type: string;
+  shortTextMaxLength?: number | null;
+  shortTextCaseSensitive?: boolean | null;
+  shortTextEvaluationMode?: ShortAnswerEvaluationMode | null;
+  shortTextToleranceLevel?: ToleranceLevel | null;
+  shortTextAllowPartialCredit?: boolean | null;
+  shortTextTrimWhitespace?: boolean | null;
+  shortTextNormalizeWhitespace?: boolean | null;
+};
+
+type ResolvedShortTextQuestionSettings = {
+  shortTextMaxLength: number | null;
+  shortTextCaseSensitive: boolean | null;
+  shortTextEvaluationMode: ShortAnswerEvaluationMode | null;
+  shortTextToleranceLevel: ToleranceLevel | null;
+  shortTextAllowPartialCredit: boolean | null;
+  shortTextTrimWhitespace: boolean | null;
+  shortTextNormalizeWhitespace: boolean | null;
+};
+
+function resolveQuestionShortTextSettings(
+  question: ShortTextQuestionSettingsInput,
+): ResolvedShortTextQuestionSettings {
+  if (question.type !== 'SHORT_TEXT') {
+    return {
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: null,
+      shortTextEvaluationMode: null,
+      shortTextToleranceLevel: null,
+      shortTextAllowPartialCredit: null,
+      shortTextTrimWhitespace: null,
+      shortTextNormalizeWhitespace: null,
+    };
+  }
+
+  const settings = resolveShortAnswerEvaluationSettings({
+    evaluationMode: question.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+    toleranceLevel: question.shortTextToleranceLevel ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+    allowPartialCredit: question.shortTextAllowPartialCredit ?? true,
+    caseSensitive: question.shortTextCaseSensitive ?? false,
+    trimWhitespace: question.shortTextTrimWhitespace ?? true,
+    normalizeWhitespace: question.shortTextNormalizeWhitespace ?? true,
+  });
+
+  return {
+    shortTextMaxLength: resolveShortTextMaxLength(question.shortTextMaxLength),
+    shortTextCaseSensitive: settings.caseSensitive,
+    shortTextEvaluationMode: settings.evaluationMode,
+    shortTextToleranceLevel: settings.toleranceLevel,
+    shortTextAllowPartialCredit: settings.allowPartialCredit,
+    shortTextTrimWhitespace: settings.trimWhitespace,
+    shortTextNormalizeWhitespace: settings.normalizeWhitespace,
+  };
+}
+
+type QuestionCreateData = Omit<AddQuestionInput, 'order'>;
 
 interface HomePresetSnapshot {
   theme: string | null;
@@ -320,49 +408,100 @@ const QuizSettingsSchema = CreateQuizInputSchema.pick({
   preset: true,
 });
 
-const QuestionCreateSchema = AddQuestionInputSchema.pick({
-  text: true,
-  type: true,
-  difficulty: true,
-  answers: true,
-  skipReadingPhase: true,
-  ratingMin: true,
-  ratingMax: true,
-  ratingLabelMin: true,
-  ratingLabelMax: true,
-  timer: true,
-}).superRefine((value, ctx) => {
-  if (
-    value.type !== 'MULTIPLE_CHOICE' &&
-    value.type !== 'SINGLE_CHOICE' &&
-    value.type !== 'FREETEXT' &&
-    value.type !== 'SURVEY' &&
-    value.type !== 'RATING'
-  ) {
-    ctx.addIssue({
-      code: 'custom',
-      path: ['type'],
-      message:
-        'Nur Single Choice, Multiple Choice, Freitext, Umfrage oder Rating ist hier erlaubt.',
+function getLocalQuestionValidationIssues(
+  value: QuestionCreateData,
+): Array<{ path: Array<string | number>; message: string }> {
+  const issues: Array<{ path: Array<string | number>; message: string }> = [];
+  const normalizedRatingLabelMin = normalizeNullableLabel(value.ratingLabelMin);
+  const normalizedRatingLabelMax = normalizeNullableLabel(value.ratingLabelMax);
+  const hasRatingConfig =
+    value.ratingMin !== undefined ||
+    value.ratingMax !== undefined ||
+    normalizedRatingLabelMin !== undefined ||
+    normalizedRatingLabelMax !== undefined;
+  const hasShortTextConfig =
+    value.shortTextMaxLength !== undefined ||
+    value.shortTextCaseSensitive !== undefined ||
+    value.shortTextEvaluationMode !== undefined ||
+    value.shortTextToleranceLevel !== undefined ||
+    value.shortTextAllowPartialCredit !== undefined ||
+    value.shortTextTrimWhitespace !== undefined ||
+    value.shortTextNormalizeWhitespace !== undefined;
+
+  if (value.type !== 'RATING' && hasRatingConfig) {
+    issues.push({
+      path: ['ratingMin'],
+      message: $localize`Rating-Grenzen sind nur für Rating-Fragen erlaubt.`,
     });
-    return;
   }
 
-  if (value.type === 'FREETEXT' && value.answers.length > 0) {
-    ctx.addIssue({
-      code: 'custom',
-      path: ['answers'],
-      message: $localize`Freitext-Fragen dürfen keine Antwortoptionen enthalten.`,
+  if (value.type !== 'SHORT_TEXT' && hasShortTextConfig) {
+    issues.push({
+      path: ['shortTextMaxLength'],
+      message: $localize`:@@quizEdit.shortTextConfigTypeError:Kurzantwort-Einstellungen sind nur für Kurzantwort-Fragen erlaubt.`,
     });
-    return;
   }
 
-  if (value.type === 'FREETEXT') return;
+  if (value.type === 'FREETEXT') {
+    if (value.answers.length > 0) {
+      issues.push({
+        path: ['answers'],
+        message: $localize`Freitext-Fragen dürfen keine Antwortoptionen enthalten.`,
+      });
+    }
+    return issues;
+  }
+
+  if (value.type === 'SHORT_TEXT') {
+    if (value.answers.length < 1) {
+      issues.push({
+        path: ['answers'],
+        message: $localize`:@@quizEdit.shortTextSolutionsRequired:Kurzantwort-Fragen brauchen mindestens eine Musterlösung.`,
+      });
+      return issues;
+    }
+
+    const seenSolutions = new Set<string>();
+    const shortTextSettings = resolveQuestionShortTextSettings({
+      type: value.type,
+      shortTextMaxLength: value.shortTextMaxLength,
+      shortTextCaseSensitive: value.shortTextCaseSensitive,
+      shortTextEvaluationMode: value.shortTextEvaluationMode,
+      shortTextToleranceLevel: value.shortTextToleranceLevel,
+      shortTextAllowPartialCredit: value.shortTextAllowPartialCredit,
+      shortTextTrimWhitespace: value.shortTextTrimWhitespace,
+      shortTextNormalizeWhitespace: value.shortTextNormalizeWhitespace,
+    });
+
+    for (const [index, answer] of value.answers.entries()) {
+      if (!answer.isCorrect) {
+        issues.push({
+          path: ['answers', index, 'isCorrect'],
+          message: $localize`:@@quizEdit.shortTextSolutionsAlwaysValid:Musterlösungen sind immer gültige Lösungen.`,
+        });
+      }
+
+      const normalized = normalizeShortTextValue(answer.text, {
+        caseSensitive: shortTextSettings.shortTextCaseSensitive ?? false,
+        maxLength: shortTextSettings.shortTextMaxLength,
+        trimWhitespace: shortTextSettings.shortTextTrimWhitespace ?? true,
+        normalizeWhitespace: shortTextSettings.shortTextNormalizeWhitespace ?? true,
+      });
+      if (seenSolutions.has(normalized)) {
+        issues.push({
+          path: ['answers', index, 'text'],
+          message: $localize`:@@quizEdit.shortTextDuplicateSolutions:Doppelte Musterlösungen sind nicht erlaubt.`,
+        });
+      }
+      seenSolutions.add(normalized);
+    }
+
+    return issues;
+  }
 
   if (value.type === 'RATING') {
     if (value.answers.length > 0) {
-      ctx.addIssue({
-        code: 'custom',
+      issues.push({
         path: ['answers'],
         message: $localize`Rating-Fragen dürfen keine Antwortoptionen enthalten.`,
       });
@@ -372,74 +511,61 @@ const QuestionCreateSchema = AddQuestionInputSchema.pick({
     const max = value.ratingMax ?? 5;
 
     if (min !== 1) {
-      ctx.addIssue({
-        code: 'custom',
+      issues.push({
         path: ['ratingMin'],
         message: 'Das Rating-Minimum muss 1 sein.',
       });
     }
 
     if (max !== 5 && max !== 10) {
-      ctx.addIssue({
-        code: 'custom',
+      issues.push({
         path: ['ratingMax'],
         message: 'Das Rating-Maximum muss 5 oder 10 sein.',
       });
     }
 
     if (max <= min) {
-      ctx.addIssue({
-        code: 'custom',
+      issues.push({
         path: ['ratingMax'],
         message: $localize`Das Rating-Maximum muss größer als das Minimum sein.`,
       });
     }
 
-    return;
+    return issues;
   }
 
   if (value.answers.length < 2) {
-    ctx.addIssue({
-      code: 'custom',
+    issues.push({
       path: ['answers'],
       message: 'Mindestens zwei Antwortoptionen sind erforderlich.',
     });
-    return;
+    return issues;
   }
 
   const correctCount = value.answers.filter((answer) => answer.isCorrect).length;
   if (value.type === 'SURVEY' && correctCount > 0) {
-    ctx.addIssue({
-      code: 'custom',
+    issues.push({
       path: ['answers'],
       message: $localize`Umfrage-Fragen dürfen keine korrekten Antworten markieren.`,
     });
   }
 
   if (value.type === 'SINGLE_CHOICE' && correctCount !== 1) {
-    ctx.addIssue({
-      code: 'custom',
+    issues.push({
       path: ['answers'],
       message: 'Bei Single Choice muss genau eine Antwort korrekt sein.',
     });
   }
 
   if (value.type === 'MULTIPLE_CHOICE' && correctCount < 1) {
-    ctx.addIssue({
-      code: 'custom',
+    issues.push({
       path: ['answers'],
       message: 'Bei Multiple Choice muss mindestens eine Antwort korrekt sein.',
     });
   }
 
-  if (value.ratingMin !== undefined || value.ratingMax !== undefined) {
-    ctx.addIssue({
-      code: 'custom',
-      path: ['ratingMin'],
-      message: $localize`Rating-Grenzen sind nur für Rating-Fragen erlaubt.`,
-    });
-  }
-});
+  return issues;
+}
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const LEGACY_QUIZ_HISTORY_ACCESS_PROOF_PATTERN = /^[a-f0-9]{64}$/i;
@@ -775,23 +901,39 @@ export class QuizStoreService implements OnDestroy {
         nicknameTheme: document.settings.nicknameTheme,
         bonusTokenCount: document.settings.bonusTokenCount,
         readingPhaseEnabled: document.settings.readingPhaseEnabled,
-        questions: document.questions.map((question) => ({
-          text: question.text,
-          type: question.type,
-          difficulty: question.difficulty,
-          order: question.order,
-          ...(typeof question.timer === 'number' ? { timer: question.timer } : {}),
-          answers: question.answers.map((answer) => ({
-            text: answer.text,
-            isCorrect: answer.isCorrect,
-          })),
-          skipReadingPhase: question.skipReadingPhase,
-          ratingMin: question.ratingMin,
-          ratingMax: question.ratingMax,
-          ratingLabelMin: question.ratingLabelMin,
-          ratingLabelMax: question.ratingLabelMax,
-          enabled: question.enabled !== false,
-        })),
+        questions: document.questions.map((question) => {
+          const shortTextSettings = resolveQuestionShortTextSettings(question);
+          return {
+            text: question.text,
+            type: question.type,
+            difficulty: question.difficulty,
+            order: question.order,
+            ...(typeof question.timer === 'number' ? { timer: question.timer } : {}),
+            answers: question.answers.map((answer) => ({
+              text: answer.text,
+              isCorrect: answer.isCorrect,
+            })),
+            skipReadingPhase: question.skipReadingPhase,
+            ratingMin: question.ratingMin,
+            ratingMax: question.ratingMax,
+            ratingLabelMin: question.ratingLabelMin,
+            ratingLabelMax: question.ratingLabelMax,
+            ...(question.type === 'SHORT_TEXT'
+              ? {
+                  shortTextMaxLength: shortTextSettings.shortTextMaxLength ?? undefined,
+                  shortTextCaseSensitive: shortTextSettings.shortTextCaseSensitive ?? undefined,
+                  shortTextEvaluationMode: shortTextSettings.shortTextEvaluationMode ?? undefined,
+                  shortTextToleranceLevel: shortTextSettings.shortTextToleranceLevel ?? undefined,
+                  shortTextAllowPartialCredit:
+                    shortTextSettings.shortTextAllowPartialCredit ?? undefined,
+                  shortTextTrimWhitespace: shortTextSettings.shortTextTrimWhitespace ?? undefined,
+                  shortTextNormalizeWhitespace:
+                    shortTextSettings.shortTextNormalizeWhitespace ?? undefined,
+                }
+              : {}),
+            enabled: question.enabled !== false,
+          };
+        }),
       },
     };
 
@@ -916,6 +1058,13 @@ export class QuizStoreService implements OnDestroy {
         ratingMax: q.ratingMax ?? undefined,
         ratingLabelMin: q.ratingLabelMin ?? undefined,
         ratingLabelMax: q.ratingLabelMax ?? undefined,
+        shortTextMaxLength: q.shortTextMaxLength ?? undefined,
+        shortTextCaseSensitive: q.shortTextCaseSensitive ?? undefined,
+        shortTextEvaluationMode: q.shortTextEvaluationMode ?? undefined,
+        shortTextToleranceLevel: q.shortTextToleranceLevel ?? undefined,
+        shortTextAllowPartialCredit: q.shortTextAllowPartialCredit ?? undefined,
+        shortTextTrimWhitespace: q.shortTextTrimWhitespace ?? undefined,
+        shortTextNormalizeWhitespace: q.shortTextNormalizeWhitespace ?? undefined,
       })),
     };
 
@@ -1024,6 +1173,7 @@ export class QuizStoreService implements OnDestroy {
             question.type === 'RATING'
               ? (normalizeNullableLabel(question.ratingLabelMax) ?? null)
               : null,
+          ...resolveQuestionShortTextSettings(question),
         })),
     };
 
@@ -1061,6 +1211,13 @@ export class QuizStoreService implements OnDestroy {
       ratingMax: parsed.ratingMax,
       ratingLabelMin: parsed.ratingLabelMin,
       ratingLabelMax: parsed.ratingLabelMax,
+      shortTextMaxLength: parsed.shortTextMaxLength,
+      shortTextCaseSensitive: parsed.shortTextCaseSensitive,
+      shortTextEvaluationMode: parsed.shortTextEvaluationMode,
+      shortTextToleranceLevel: parsed.shortTextToleranceLevel,
+      shortTextAllowPartialCredit: parsed.shortTextAllowPartialCredit,
+      shortTextTrimWhitespace: parsed.shortTextTrimWhitespace,
+      shortTextNormalizeWhitespace: parsed.shortTextNormalizeWhitespace,
     };
 
     const updatedAt = new Date().toISOString();
@@ -1111,6 +1268,13 @@ export class QuizStoreService implements OnDestroy {
       ratingMax: parsed.ratingMax,
       ratingLabelMin: parsed.ratingLabelMin,
       ratingLabelMax: parsed.ratingLabelMax,
+      shortTextMaxLength: parsed.shortTextMaxLength,
+      shortTextCaseSensitive: parsed.shortTextCaseSensitive,
+      shortTextEvaluationMode: parsed.shortTextEvaluationMode,
+      shortTextToleranceLevel: parsed.shortTextToleranceLevel,
+      shortTextAllowPartialCredit: parsed.shortTextAllowPartialCredit,
+      shortTextTrimWhitespace: parsed.shortTextTrimWhitespace,
+      shortTextNormalizeWhitespace: parsed.shortTextNormalizeWhitespace,
     };
 
     const updatedAt = new Date().toISOString();
@@ -2073,10 +2237,11 @@ function normalizeStoredQuizSettings(value: unknown): QuizSettings {
 }
 
 function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionInput {
-  const parsed = QuestionCreateSchema.safeParse({
+  const parsed = AddQuestionInputSchema.safeParse({
     text: input.text.trim(),
     type: input.type,
     difficulty: input.difficulty,
+    order: 0,
     answers: input.answers.map((answer) => ({
       text: answer.text.trim(),
       isCorrect: answer.isCorrect,
@@ -2086,12 +2251,24 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     ratingMax: input.ratingMax ?? undefined,
     ratingLabelMin: normalizeNullableLabel(input.ratingLabelMin),
     ratingLabelMax: normalizeNullableLabel(input.ratingLabelMax),
+    shortTextMaxLength: input.shortTextMaxLength ?? undefined,
+    shortTextCaseSensitive: input.shortTextCaseSensitive ?? undefined,
+    shortTextEvaluationMode: input.shortTextEvaluationMode ?? undefined,
+    shortTextToleranceLevel: input.shortTextToleranceLevel ?? undefined,
+    shortTextAllowPartialCredit: input.shortTextAllowPartialCredit ?? undefined,
+    shortTextTrimWhitespace: input.shortTextTrimWhitespace ?? undefined,
+    shortTextNormalizeWhitespace: input.shortTextNormalizeWhitespace ?? undefined,
     timer: input.timer === undefined ? undefined : input.timer,
   });
 
   if (!parsed.success) {
     const message = parsed.error.issues[0]?.message ?? $localize`Ungültige Frage.`;
     throw new Error(message);
+  }
+
+  const localIssue = getLocalQuestionValidationIssues(parsed.data)[0];
+  if (localIssue) {
+    throw new Error(localIssue.message);
   }
 
   const answers =
@@ -2112,6 +2289,7 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     parsed.data.type === 'RATING'
       ? (normalizeNullableLabel(parsed.data.ratingLabelMax) ?? null)
       : null;
+  const shortTextSettings = resolveQuestionShortTextSettings(parsed.data);
 
   return {
     text: parsed.data.text,
@@ -2124,6 +2302,7 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     ratingMax,
     ratingLabelMin,
     ratingLabelMax,
+    ...shortTextSettings,
   };
 }
 
@@ -2146,10 +2325,11 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
   const difficultyParsed = DifficultyEnum.safeParse(difficultyRaw);
   if (!difficultyParsed.success) return null;
 
-  const parsed = QuestionCreateSchema.safeParse({
+  const parsed = AddQuestionInputSchema.safeParse({
     text: candidate['text'],
     type: candidate['type'],
     difficulty: difficultyParsed.data,
+    order: 0,
     answers: answers.map((answer) => ({
       text: answer.text,
       isCorrect: answer.isCorrect,
@@ -2159,9 +2339,21 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     ratingMax: readNumberOrNull(candidate['ratingMax']) ?? undefined,
     ratingLabelMin: readStringOrNull(candidate['ratingLabelMin']) ?? undefined,
     ratingLabelMax: readStringOrNull(candidate['ratingLabelMax']) ?? undefined,
+    shortTextMaxLength: readNumberOrNull(candidate['shortTextMaxLength']) ?? undefined,
+    shortTextCaseSensitive: readBoolean(candidate['shortTextCaseSensitive']) ?? undefined,
+    shortTextEvaluationMode: readStringOrNull(candidate['shortTextEvaluationMode']) ?? undefined,
+    shortTextToleranceLevel: readStringOrNull(candidate['shortTextToleranceLevel']) ?? undefined,
+    shortTextAllowPartialCredit: readBoolean(candidate['shortTextAllowPartialCredit']) ?? undefined,
+    shortTextTrimWhitespace: readBoolean(candidate['shortTextTrimWhitespace']) ?? undefined,
+    shortTextNormalizeWhitespace:
+      readBoolean(candidate['shortTextNormalizeWhitespace']) ?? undefined,
     timer: readNumberOrNull(candidate['timer']) ?? undefined,
   });
   if (!parsed.success) return null;
+
+  if (getLocalQuestionValidationIssues(parsed.data).length > 0) {
+    return null;
+  }
 
   const storedOrder = candidate['order'];
   const order =
@@ -2171,6 +2363,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
 
   const enabledRaw = candidate['enabled'];
   const enabled = enabledRaw !== false;
+  const shortTextSettings = resolveQuestionShortTextSettings(parsed.data);
 
   return {
     id,
@@ -2192,6 +2385,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
       parsed.data.type === 'RATING'
         ? (normalizeNullableLabel(parsed.data.ratingLabelMax) ?? null)
         : null,
+    ...shortTextSettings,
   };
 }
 

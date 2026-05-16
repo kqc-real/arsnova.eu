@@ -23,6 +23,7 @@ const {
   getInfoQueryMock,
   statusChangedSubscribeMock,
   currentQuestionQueryMock,
+  voteSubmitMutateMock,
   confirmReadingReadyMutateMock,
   quickFeedbackResultsQueryMock,
   quickFeedbackOnResultsSubscribeMock,
@@ -44,6 +45,7 @@ const {
   getInfoQueryMock: vi.fn(),
   statusChangedSubscribeMock: vi.fn(),
   currentQuestionQueryMock: vi.fn(),
+  voteSubmitMutateMock: vi.fn(),
   confirmReadingReadyMutateMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
   quickFeedbackOnResultsSubscribeMock: vi.fn(),
@@ -65,6 +67,9 @@ const {
 
 vi.mock('../../../core/trpc.client', () => ({
   trpc: {
+    vote: {
+      submit: { mutate: voteSubmitMutateMock },
+    },
     session: {
       getInfo: { query: getInfoQueryMock },
       onStatusChanged: { subscribe: statusChangedSubscribeMock },
@@ -195,6 +200,7 @@ describe('SessionVoteComponent', () => {
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '11111111-1111-4111-8111-111111111111',
     });
+    voteSubmitMutateMock.mockResolvedValue({});
     quickFeedbackResultsQueryMock.mockRejectedValue(new Error('not found'));
     quickFeedbackOnResultsSubscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
     qaListQueryMock.mockResolvedValue([]);
@@ -1301,6 +1307,167 @@ describe('SessionVoteComponent', () => {
     expect(loadScorecardSpy).not.toHaveBeenCalled();
     expect(component.scorecard()).toBeNull();
     expect(fixture.nativeElement.querySelector('.vote-scorecard')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('sendet SHORT_TEXT-Antworten als freie Textabgabe', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'short-text-question',
+      text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      currentRound: 1,
+      shortTextMaxLength: 80,
+      shortTextCaseSensitive: false,
+      totalVotes: 0,
+      participantCount: 2,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.onTextVoteInput(' Paris ');
+    await component.submitVote();
+
+    expect(voteSubmitMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        questionId: 'short-text-question',
+        freeText: 'Paris',
+        answerIds: undefined,
+      }),
+    );
+    fixture.destroy();
+  });
+
+  it('zeigt in RESULTS bei SHORT_TEXT die akzeptierten Lösungen statt Antwort-Buttons', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'short-text-results',
+      text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [{ id: 's1', text: 'Paris', isCorrect: true, voteCount: 1, votePercentage: 100 }],
+      totalVotes: 1,
+      shortTextMaxLength: 80,
+      shortTextCaseSensitive: false,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const loadScorecardSpy = vi
+      .spyOn(fixture.componentInstance, 'loadScorecard')
+      .mockResolvedValue(undefined);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.voteSent.set(true);
+    component.freeTextValue.set('Paris');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(loadScorecardSpy).toHaveBeenCalled();
+    expect(host.querySelector('.vote-freetext__solutions')).not.toBeNull();
+    expect(host.querySelector('.vote-answer')).toBeNull();
+    expect(host.textContent).toContain('Paris');
+    fixture.destroy();
+  });
+
+  it('markiert teilbewertete SHORT_TEXT-Antworten in RESULTS sichtbar', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'short-text-results-partial',
+      text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [{ id: 's1', text: 'Paris', isCorrect: true, voteCount: 1, votePercentage: 100 }],
+      totalVotes: 1,
+      shortTextMaxLength: 80,
+      shortTextCaseSensitive: false,
+      shortTextEvaluationMode: 'levenshtein',
+      shortTextToleranceLevel: 'medium',
+      shortTextAllowPartialCredit: true,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    vi.spyOn(fixture.componentInstance, 'loadScorecard').mockResolvedValue(undefined);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.voteSent.set(true);
+    component.freeTextValue.set('Pari');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-freetext__own--partial')).not.toBeNull();
+    expect(host.textContent).toContain('Teilweise gewertet');
     fixture.destroy();
   });
 

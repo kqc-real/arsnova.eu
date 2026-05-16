@@ -39,21 +39,24 @@ import { questionTypeLabel } from '../../../shared/question-type-label';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import * as vpc from './session-vote-participant-copy';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
-import type {
-  NicknameTheme,
-  ParticipantDTO,
-  PersonalScorecardDTO,
-  QaQuestionDTO,
-  QuickFeedbackResult,
-  QuestionPreviewDTO,
-  QuestionRevealedDTO,
-  QuestionStudentDTO,
-  SessionChannelsDTO,
-  SessionLiveChannel,
-  SessionInfoDTO,
-  SessionStatus,
-  TeamDTO,
-  TeamLeaderboardEntryDTO,
+import {
+  evaluateShortAnswer,
+  normalizeShortTextValue,
+  resolveShortTextMaxLength,
+  type NicknameTheme,
+  type ParticipantDTO,
+  type PersonalScorecardDTO,
+  type QaQuestionDTO,
+  type QuickFeedbackResult,
+  type QuestionPreviewDTO,
+  type QuestionRevealedDTO,
+  type QuestionStudentDTO,
+  type SessionChannelsDTO,
+  type SessionLiveChannel,
+  type SessionInfoDTO,
+  type SessionStatus,
+  type TeamDTO,
+  type TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
@@ -167,7 +170,7 @@ function pickRandom(arr: string[]): string {
 }
 
 function isScoredQuestionType(type: CurrentQuestion['type'] | null | undefined): boolean {
-  return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
+  return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE' || type === 'SHORT_TEXT';
 }
 
 export function anchorCandidatesForPhase(
@@ -775,7 +778,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   readonly hasAnswers = computed(() => {
     const q = this.currentQuestion();
-    return q && 'answers' in q && Array.isArray(q.answers) && q.answers.length > 0;
+    return (
+      !!q &&
+      'type' in q &&
+      (q.type === 'SINGLE_CHOICE' || q.type === 'MULTIPLE_CHOICE' || q.type === 'SURVEY') &&
+      'answers' in q &&
+      Array.isArray(q.answers) &&
+      q.answers.length > 0
+    );
   });
 
   readonly showFingerCountdown = computed(() => {
@@ -1004,9 +1014,133 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'FREETEXT';
   });
+  readonly isShortText = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'SHORT_TEXT';
+  });
+  readonly shortTextMaxLength = computed(() => {
+    const q = this.currentQuestion();
+    if (!q || !('type' in q) || q.type !== 'SHORT_TEXT') {
+      return resolveShortTextMaxLength(undefined);
+    }
+
+    return resolveShortTextMaxLength(q.shortTextMaxLength);
+  });
+  readonly shortTextSolutions = computed(() => {
+    const q = this.currentQuestion();
+    if (!q || !('type' in q) || q.type !== 'SHORT_TEXT' || !('answers' in q)) {
+      return [] as string[];
+    }
+
+    return Array.isArray(q.answers) ? q.answers.map((answer) => answer.text) : [];
+  });
+  readonly shortTextValidationError = computed(() => {
+    const q = this.currentQuestion();
+    if (!q || !('type' in q) || q.type !== 'SHORT_TEXT' || !this.isActive()) {
+      return null;
+    }
+
+    const value = normalizeShortTextValue(this.freeTextValue(), {
+      caseSensitive: true,
+      trimWhitespace: q.shortTextTrimWhitespace ?? true,
+      normalizeWhitespace: q.shortTextNormalizeWhitespace ?? true,
+    });
+    const maxLength = this.shortTextMaxLength();
+    if (value.length > maxLength) {
+      return $localize`:@@sessionVote.shortTextTooLong:Maximal ${maxLength}:maxLength: Zeichen erlaubt.`;
+    }
+
+    return null;
+  });
+  readonly shortTextEvaluationResult = computed(() => {
+    const q = this.currentQuestion();
+    if (!q || !('type' in q) || q.type !== 'SHORT_TEXT' || !('answers' in q)) {
+      return null;
+    }
+
+    return evaluateShortAnswer({
+      modelAnswers: q.answers.map((answer) => answer.text),
+      studentAnswer: this.freeTextValue(),
+      maxPoints: 100,
+      maxLength: resolveShortTextMaxLength(q.shortTextMaxLength),
+      settings: {
+        caseSensitive: q.shortTextCaseSensitive ?? false,
+        evaluationMode: q.shortTextEvaluationMode ?? undefined,
+        toleranceLevel: q.shortTextToleranceLevel ?? undefined,
+        allowPartialCredit: q.shortTextAllowPartialCredit ?? undefined,
+        trimWhitespace: q.shortTextTrimWhitespace ?? undefined,
+        normalizeWhitespace: q.shortTextNormalizeWhitespace ?? undefined,
+      },
+    });
+  });
+  readonly shortTextResponseCorrect = computed(() => {
+    return (this.shortTextEvaluationResult()?.points ?? 0) > 0;
+  });
+  readonly shortTextResponseTone = computed<'correct' | 'partial' | 'wrong'>(() => {
+    const result = this.shortTextEvaluationResult();
+    if (!result || result.points <= 0) {
+      return 'wrong';
+    }
+    if (result.points >= result.maxPoints) {
+      return 'correct';
+    }
+    return 'partial';
+  });
 
   questionUsesCorrectness(type: string | null | undefined): boolean {
-    return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
+    return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE' || type === 'SHORT_TEXT';
+  }
+
+  onTextVoteInput(value: string): void {
+    this.freeTextValue.set(value);
+    if (this.voteError()) {
+      this.voteError.set(null);
+    }
+  }
+
+  private isShortTextResponseCorrectForQuestion(question: CurrentQuestion): boolean {
+    const result = this.evaluateShortTextResponse(question);
+    return (result?.points ?? 0) > 0;
+  }
+
+  shortTextResultLabel(): string | null {
+    const result = this.shortTextEvaluationResult();
+    if (!result) {
+      return null;
+    }
+
+    if (result.points >= result.maxPoints && result.maxPoints > 0) {
+      return result.normalizedDistance === 0
+        ? $localize`:@@sessionVote.shortTextResultFull:Voll gewertet`
+        : $localize`:@@sessionVote.shortTextResultAccepted:Akzeptiert`;
+    }
+
+    if (result.points > 0) {
+      return $localize`:@@sessionVote.shortTextResultPartial:Teilweise gewertet (${result.points}:points: %)`;
+    }
+
+    return $localize`:@@sessionVote.shortTextResultRejected:Nicht akzeptiert`;
+  }
+
+  private evaluateShortTextResponse(question: CurrentQuestion) {
+    if (!('type' in question) || question.type !== 'SHORT_TEXT' || !('answers' in question)) {
+      return null;
+    }
+
+    return evaluateShortAnswer({
+      modelAnswers: question.answers.map((answer) => answer.text),
+      studentAnswer: this.freeTextValue(),
+      maxPoints: 100,
+      maxLength: resolveShortTextMaxLength(question.shortTextMaxLength),
+      settings: {
+        caseSensitive: question.shortTextCaseSensitive ?? false,
+        evaluationMode: question.shortTextEvaluationMode ?? undefined,
+        toleranceLevel: question.shortTextToleranceLevel ?? undefined,
+        allowPartialCredit: question.shortTextAllowPartialCredit ?? undefined,
+        trimWhitespace: question.shortTextTrimWhitespace ?? undefined,
+        normalizeWhitespace: question.shortTextNormalizeWhitespace ?? undefined,
+      },
+    });
   }
 
   private voteResponseStorageKey(questionId: string, round: number): string | null {
@@ -1088,13 +1222,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly showVoteSubmitAction = computed(() => {
     if (this.showSessionEndGate() || this.isFinished()) return false;
     if (this.activeChannel() !== 'quiz' || !this.isActive() || this.voteSent()) return false;
-    return this.hasAnswers() || this.isFreetext() || this.isRating();
+    return this.hasAnswers() || this.isFreetext() || this.isShortText() || this.isRating();
   });
   readonly voteSubmitDisabled = computed(() => {
     if (!this.showVoteSubmitAction()) return true;
     if (this.voteSending() || this.debounced() || this.timerExpired()) return true;
     if (this.hasAnswers()) {
       return this.selectedAnswerIds().size === 0;
+    }
+    if (this.isShortText()) {
+      return !this.freeTextValue().trim() || this.shortTextValidationError() !== null;
     }
     if (this.isFreetext()) {
       return !this.freeTextValue().trim();
@@ -2502,24 +2639,30 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const qType = 'type' in q ? q.type : null;
         const isScored = isScoredQuestionType(qType);
 
-        if (isScored && 'answers' in q) {
-          const selected = this.selectedAnswerIds();
-          const revealed = (q as QuestionRevealedDTO).answers;
-          const correctIds = new Set(revealed.filter((a) => a.isCorrect).map((a) => a.id));
-          const allCorrect =
-            correctIds.size > 0 &&
-            selected.size > 0 &&
-            [...correctIds].every((id) => selected.has(id)) &&
-            [...selected].every((id) => correctIds.has(id));
+        if (isScored) {
+          let answeredCorrectly = false;
 
-          if (allCorrect && settings.enableRewardEffects) {
+          if ('type' in q && q.type === 'SHORT_TEXT') {
+            answeredCorrectly = this.isShortTextResponseCorrectForQuestion(q);
+          } else if ('answers' in q) {
+            const selected = this.selectedAnswerIds();
+            const revealed = (q as QuestionRevealedDTO).answers;
+            const correctIds = new Set(revealed.filter((a) => a.isCorrect).map((a) => a.id));
+            answeredCorrectly =
+              correctIds.size > 0 &&
+              selected.size > 0 &&
+              [...correctIds].every((id) => selected.has(id)) &&
+              [...selected].every((id) => correctIds.has(id));
+          }
+
+          if (answeredCorrectly && settings.enableRewardEffects) {
             this.showRewardEffect.set(true);
           }
           if (settings.enableMotivationMessages) {
             const playful = this.isPlayfulPreset();
             this.motivationMessage.set(
               pickRandom(
-                allCorrect
+                answeredCorrectly
                   ? playful
                     ? MESSAGES_CORRECT_PLAYFUL
                     : MESSAGES_CORRECT_SERIOUS
@@ -2761,8 +2904,30 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!q || !('id' in q)) return;
 
     const answerIds = overrideIds ?? [...this.selectedAnswerIds()];
-    const freeText = q.type === 'FREETEXT' ? this.freeTextValue().trim() : undefined;
+    const preserveShortTextWhitespace =
+      q.type === 'SHORT_TEXT' &&
+      ((q.shortTextTrimWhitespace ?? true) === false ||
+        (q.shortTextNormalizeWhitespace ?? true) === false);
+    const freeText =
+      q.type === 'FREETEXT'
+        ? this.freeTextValue().trim()
+        : q.type === 'SHORT_TEXT'
+          ? preserveShortTextWhitespace
+            ? this.freeTextValue()
+            : this.freeTextValue().trim()
+          : undefined;
     const rating = q.type === 'RATING' ? (this.ratingValue() ?? undefined) : undefined;
+
+    if (q.type === 'SHORT_TEXT') {
+      const validationError = this.shortTextValidationError();
+      if (validationError) {
+        this.voteError.set(validationError);
+        return;
+      }
+      if (!freeText) {
+        return;
+      }
+    }
 
     this.debounced.set(true);
     this.voteSending.set(true);

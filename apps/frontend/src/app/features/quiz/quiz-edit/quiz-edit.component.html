@@ -654,7 +654,152 @@
           </mat-form-field>
         }
 
+        @if (hasShortTextConfig()) {
+          <fieldset class="quiz-edit-form__fieldset">
+            <legend class="quiz-edit-form__legend" i18n="@@quizEdit.shortTextConfigLegend">
+              Tippfehler und Schreibvarianten
+            </legend>
+            <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.shortTextConfigHint">
+              Lege fest, wie tolerant Kurzantworten bewertet werden und wann kleine Abweichungen
+              noch zählen.
+            </p>
+            <div class="quiz-edit-form__grid">
+              <mat-form-field appearance="outline">
+                <mat-label i18n="@@quizEdit.shortTextEvaluationModeFieldLabel">Bewertung</mat-label>
+                <mat-select formControlName="shortTextEvaluationMode">
+                  @for (option of shortTextEvaluationModeOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label i18n="@@quizEdit.shortTextToleranceFieldLabel">Toleranz</mat-label>
+                <mat-select formControlName="shortTextToleranceLevel">
+                  @for (option of shortTextToleranceOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+                <mat-hint i18n="@@quizEdit.shortTextToleranceHint"
+                  >Wirkt nur bei toleranter Bewertung.</mat-hint
+                >
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label i18n="@@quizEdit.shortTextMaxLengthFieldLabel"
+                  >Maximale Antwortlänge</mat-label
+                >
+                <input
+                  matInput
+                  type="number"
+                  formControlName="shortTextMaxLength"
+                  min="1"
+                  max="500"
+                />
+                <mat-hint i18n="@@quizEdit.shortTextMaxLengthHint">1 bis 500 Zeichen</mat-hint>
+              </mat-form-field>
+
+              <div class="quiz-edit-form__short-text-toggle">
+                <mat-checkbox
+                  formControlName="shortTextAllowPartialCredit"
+                  i18n="@@quizEdit.shortTextAllowPartialCreditToggle"
+                >
+                  Teilpunkte vergeben
+                </mat-checkbox>
+                <mat-checkbox
+                  formControlName="shortTextCaseSensitive"
+                  i18n="@@quizEdit.shortTextCaseSensitiveToggle"
+                >
+                  Groß- und Kleinschreibung beachten
+                </mat-checkbox>
+              </div>
+            </div>
+
+            <p class="quiz-edit-form__fieldset-hint">{{ shortTextSelectedEvaluationHint() }}</p>
+
+            <div class="quiz-edit-form__preview-block">
+              <p class="quiz-edit-form__preview-label" i18n="@@quizEdit.shortTextPreviewLegend">
+                So wirkt die Bewertung
+              </p>
+              <p class="quiz-edit-form__fieldset-hint">
+                {{
+                  shortTextConfigSummary({
+                    shortTextMaxLength: shortTextMaxLengthControl.value,
+                    shortTextCaseSensitive: form.controls.shortTextCaseSensitive.value,
+                    shortTextEvaluationMode: form.controls.shortTextEvaluationMode.value,
+                    shortTextToleranceLevel: form.controls.shortTextToleranceLevel.value,
+                    shortTextAllowPartialCredit: form.controls.shortTextAllowPartialCredit.value,
+                    shortTextTrimWhitespace: form.controls.shortTextTrimWhitespace.value,
+                    shortTextNormalizeWhitespace: form.controls.shortTextNormalizeWhitespace.value,
+                  })
+                }}
+              </p>
+              @if (shortTextPreviewExamples().length > 0) {
+                <ul
+                  class="quiz-edit-form__preview-answers quiz-edit-form__preview-answers--plain markdown-body"
+                >
+                  @for (
+                    example of shortTextPreviewExamples();
+                    track example.label + example.studentAnswer
+                  ) {
+                    <li>
+                      <div class="quiz-edit-form__preview-answer-text">
+                        <strong>{{ example.label }}:</strong>
+                        <span> „{{ example.studentAnswer }}“ </span>
+                        <span>· {{ example.outcome }}</span>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+
+            <p class="quiz-edit-form__fieldset-hint">
+              <strong i18n="@@quizEdit.shortTextDidacticWarningLabel">Didaktischer Hinweis:</strong>
+              {{ shortTextDidacticWarning() }}
+            </p>
+
+            <mat-accordion>
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title i18n="@@quizEdit.shortTextTechnicalDetailsToggle">
+                    Technische Details anzeigen
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <p
+                  class="quiz-edit-form__fieldset-hint"
+                  i18n="@@quizEdit.shortTextTechnicalDetailsIntro"
+                >
+                  Auto wählt passend zwischen Hamming und Levenshtein. Hamming eignet sich für
+                  einzelne falsche Zeichen bei gleicher Länge, Levenshtein zusätzlich für fehlende
+                  oder extra Zeichen.
+                </p>
+                <div class="quiz-edit-form__short-text-toggle">
+                  <mat-checkbox
+                    formControlName="shortTextTrimWhitespace"
+                    i18n="@@quizEdit.shortTextTrimWhitespaceToggle"
+                  >
+                    Leerzeichen am Anfang und Ende ignorieren
+                  </mat-checkbox>
+                  <mat-checkbox
+                    formControlName="shortTextNormalizeWhitespace"
+                    i18n="@@quizEdit.shortTextNormalizeWhitespaceToggle"
+                  >
+                    Mehrfache Leerzeichen zusammenfassen
+                  </mat-checkbox>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </fieldset>
+        }
+
         @if (hasAnswerOptions()) {
+          @if (isShortTextType()) {
+            <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.shortTextSolutionsHint">
+              Hinterlege mindestens eine und höchstens zehn Musterlösungen. Alle Varianten gelten
+              als richtige Kurzantwort.
+            </p>
+          }
           <div formArrayName="answers" class="quiz-edit-answers l-stack l-stack--md">
             @for (answer of answersArray.controls; track $index; let i = $index) {
               <div class="quiz-edit-answer" [formGroupName]="i">
@@ -678,13 +823,20 @@
                     >
                       Richtig
                     </mat-checkbox>
+                  } @else if (isShortTextType()) {
+                    <span
+                      class="quiz-edit-answer__survey-hint"
+                      i18n="@@quizEdit.shortTextValidSolutionHint"
+                    >
+                      Gültig
+                    </span>
                   } @else {
                     <span class="quiz-edit-answer__survey-hint" i18n>Option</span>
                   }
                 </div>
 
                 <div class="quiz-edit-answer__field">
-                  <label class="quiz-edit-answer__label" i18n>Antwort {{ i + 1 }}</label>
+                  <label class="quiz-edit-answer__label">{{ answerEditorLabel(i) }}</label>
                   <app-markdown-katex-editor
                     [value]="answerTextControl(i).value"
                     (valueChange)="answerTextControl(i).setValue($event); onLivePreviewInput()"
@@ -728,7 +880,7 @@
           <div class="quiz-edit-form__answer-actions">
             <button mat-button type="button" (click)="addAnswer()" [disabled]="!canAddAnswer()">
               <mat-icon>add</mat-icon>
-              <span i18n>Weitere Antwort</span>
+              <span>{{ addAnswerButtonLabel() }}</span>
             </button>
           </div>
         } @else {
@@ -763,19 +915,41 @@
             </div>
             @if (answerPreviewHtml().length > 0) {
               <div class="quiz-edit-form__preview-block">
-                <p class="quiz-edit-form__preview-label" i18n="@@quizEdit.livePreviewAnswersLabel">
-                  Antworten
-                </p>
-                <ul class="quiz-edit-form__preview-answers markdown-body">
+                <p class="quiz-edit-form__preview-label">{{ answerPreviewLabel() }}</p>
+                @if (isShortTextType()) {
+                  <p class="quiz-edit-form__fieldset-hint">
+                    {{
+                      shortTextConfigSummary({
+                        shortTextMaxLength: shortTextMaxLengthControl.value,
+                        shortTextCaseSensitive: form.controls.shortTextCaseSensitive.value,
+                        shortTextEvaluationMode: form.controls.shortTextEvaluationMode.value,
+                        shortTextToleranceLevel: form.controls.shortTextToleranceLevel.value,
+                        shortTextAllowPartialCredit:
+                          form.controls.shortTextAllowPartialCredit.value,
+                        shortTextTrimWhitespace: form.controls.shortTextTrimWhitespace.value,
+                        shortTextNormalizeWhitespace:
+                          form.controls.shortTextNormalizeWhitespace.value,
+                      })
+                    }}
+                  </p>
+                }
+                <ul
+                  class="quiz-edit-form__preview-answers markdown-body"
+                  [class.quiz-edit-form__preview-answers--plain]="isShortTextType()"
+                >
                   @for (answerHtml of answerPreviewHtml(); track $index) {
                     <li>
-                      <app-answer-option-badge
-                        class="quiz-edit-form__preview-answer-badge"
-                        [index]="$index"
-                        [questionType]="typeControl.value"
-                        [showTypeIndicator]="settingsForm.controls.showQuestionTypeIndicators.value"
-                      >
-                      </app-answer-option-badge>
+                      @if (!isShortTextType()) {
+                        <app-answer-option-badge
+                          class="quiz-edit-form__preview-answer-badge"
+                          [index]="$index"
+                          [questionType]="typeControl.value"
+                          [showTypeIndicator]="
+                            settingsForm.controls.showQuestionTypeIndicators.value
+                          "
+                        >
+                        </app-answer-option-badge>
+                      }
                       <div
                         class="quiz-edit-form__preview-answer-text"
                         [innerHTML]="answerHtml"
@@ -958,6 +1132,28 @@
                       >
                         Freitext-Antwort als Wortwolke
                       </p>
+                    } @else if (question.type === 'SHORT_TEXT') {
+                      <p
+                        class="quiz-edit-question__text quiz-edit-question__text--hint"
+                        i18n="@@quizEdit.shortTextQuestionHint"
+                      >
+                        Kurzantwort mit automatischem Abgleich gegen Musterlösungen
+                      </p>
+                      <p class="quiz-edit-form__fieldset-hint">
+                        {{ shortTextConfigSummary(question) }}
+                      </p>
+                      <ul
+                        class="quiz-edit-question__answers quiz-edit-question__answers--short-text"
+                      >
+                        @for (answer of question.answers; track answer.id) {
+                          <li>
+                            <span
+                              class="quiz-edit-question__answer-text markdown-body"
+                              [innerHTML]="renderAnswerMarkdown(answer.text)"
+                            ></span>
+                          </li>
+                        }
+                      </ul>
                     } @else if (question.type === 'RATING') {
                       <div class="quiz-edit-question__rating">
                         @for (

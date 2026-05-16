@@ -26,9 +26,14 @@ import {
   PresetStorageEntrySchema,
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TIMER_SECONDS,
+  SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+  SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+  resolveShortTextMaxLength,
   resolveEffectiveQuestionTimer,
   type CreateSessionOutput,
   type Difficulty,
+  type ShortAnswerEvaluationMode,
+  type ToleranceLevel,
 } from '@arsnova/shared-types';
 import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
 import {
@@ -231,6 +236,12 @@ export class QuizPreviewComponent implements OnDestroy {
             };
           }
         }
+        if (question.type === 'SHORT_TEXT' && question.answers.length < 1) {
+          return {
+            index,
+            message: $localize`:@@quizPreview.warningShortTextSolutionsMissing:Frage ${index + 1}:questionNumber:: mindestens eine Musterlösung fehlt`,
+          };
+        }
         return null;
       })
       .filter((entry): entry is { index: number; message: string } => entry !== null),
@@ -238,7 +249,12 @@ export class QuizPreviewComponent implements OnDestroy {
   readonly currentQuestionValidation = computed(() => {
     const question = this.displayedQuestion();
     if (!question) {
-      return { hasIssues: false, needsMoreAnswers: false, needsCorrectAnswer: false };
+      return {
+        hasIssues: false,
+        needsMoreAnswers: false,
+        needsCorrectAnswer: false,
+        needsShortTextSolutions: false,
+      };
     }
 
     const needsMoreAnswers =
@@ -246,6 +262,7 @@ export class QuizPreviewComponent implements OnDestroy {
         question.type === 'MULTIPLE_CHOICE' ||
         question.type === 'SURVEY') &&
       question.answers.length < 2;
+    const needsShortTextSolutions = question.type === 'SHORT_TEXT' && question.answers.length < 1;
 
     const correctCount = question.answers.filter((answer) => answer.isCorrect).length;
     const needsCorrectAnswer =
@@ -253,9 +270,10 @@ export class QuizPreviewComponent implements OnDestroy {
       (question.type === 'MULTIPLE_CHOICE' && correctCount < 1);
 
     return {
-      hasIssues: needsMoreAnswers || needsCorrectAnswer,
+      hasIssues: needsMoreAnswers || needsCorrectAnswer || needsShortTextSolutions,
       needsMoreAnswers,
       needsCorrectAnswer,
+      needsShortTextSolutions,
     };
   });
 
@@ -598,6 +616,74 @@ export class QuizPreviewComponent implements OnDestroy {
 
   questionTypeHasCorrectAnswers(type: SupportedQuestionType): boolean {
     return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE';
+  }
+
+  shortTextConfigSummary(
+    question: Pick<
+      QuizQuestion,
+      | 'shortTextMaxLength'
+      | 'shortTextCaseSensitive'
+      | 'shortTextEvaluationMode'
+      | 'shortTextToleranceLevel'
+      | 'shortTextAllowPartialCredit'
+      | 'shortTextTrimWhitespace'
+      | 'shortTextNormalizeWhitespace'
+    >,
+  ): string {
+    const parts = [
+      $localize`:@@quizEdit.shortTextMaxLengthSummary:Max. ${resolveShortTextMaxLength(question.shortTextMaxLength)}:maxLength: Zeichen`,
+      this.shortTextEvaluationModeLabel(question.shortTextEvaluationMode),
+    ];
+    if ((question.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE) !== 'exact') {
+      parts.push(
+        $localize`:@@quizEdit.shortTextToleranceSummary:${this.shortTextToleranceLabel(question.shortTextToleranceLevel)}:tolerance: Toleranz`,
+      );
+    }
+    if (question.shortTextCaseSensitive) {
+      parts.push($localize`:@@quizEdit.shortTextCaseSensitiveSummary:Groß-/Kleinschreibung zählt`);
+    }
+    if ((question.shortTextAllowPartialCredit ?? true) === false) {
+      parts.push($localize`:@@quizEdit.shortTextFullCreditOnlySummary:Nur volle Punkte`);
+    }
+    if (
+      (question.shortTextTrimWhitespace ?? true) === false ||
+      (question.shortTextNormalizeWhitespace ?? true) === false
+    ) {
+      parts.push(
+        $localize`:@@quizEdit.shortTextWhitespaceStrictSummary:Leerzeichen werden streng geprüft`,
+      );
+    }
+    return parts.join(' · ');
+  }
+
+  shortTextEvaluationModeLabel(mode: ShortAnswerEvaluationMode | null | undefined): string {
+    switch (mode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE) {
+      case 'exact':
+        return $localize`:@@quizEdit.shortTextModeExactLabel:Nur exakt gleich`;
+      case 'hamming':
+        return $localize`:@@quizEdit.shortTextModeHammingLabel:Gleiche Länge, kleine Buchstabendreher`;
+      case 'levenshtein':
+        return $localize`:@@quizEdit.shortTextModeLevenshteinLabel:Auch fehlende oder zusätzliche Zeichen erlauben`;
+      default:
+        return $localize`:@@quizEdit.shortTextModeAutoLabel:Kleine Tippfehler erlauben`;
+    }
+  }
+
+  shortTextToleranceLabel(level: ToleranceLevel | null | undefined): string {
+    switch (level ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL) {
+      case 'none':
+        return $localize`:@@quizEdit.shortTextToleranceNone:Keine Toleranz`;
+      case 'medium':
+        return $localize`:@@quizEdit.shortTextToleranceMedium:Mittel`;
+      case 'high':
+        return $localize`:@@quizEdit.shortTextToleranceHigh:Großzügig`;
+      default:
+        return $localize`:@@quizEdit.shortTextToleranceLow:Wenig`;
+    }
+  }
+
+  shortTextDidacticWarning(): string {
+    return $localize`:@@quizEdit.shortTextDidacticWarning:Verwende tolerante Bewertung nur bei eindeutigen Fachbegriffen. Für offene Formulierungen sind mehrere Musterlösungen meist fairer als hohe Toleranz.`;
   }
 
   questionTypeShowsDifficulty(type: SupportedQuestionType): boolean {

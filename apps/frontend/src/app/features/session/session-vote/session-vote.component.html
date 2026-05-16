@@ -994,7 +994,7 @@
               <textarea
                 class="vote-freetext__input"
                 [value]="freeTextValue()"
-                (input)="freeTextValue.set($any($event.target).value)"
+                (input)="onTextVoteInput($any($event.target).value)"
                 [placeholder]="vpc.voteFreetextPlaceholder(isPlayfulPreset())"
                 maxlength="500"
                 rows="3"
@@ -1012,6 +1012,60 @@
                 <p class="vote-freetext__own vote-freetext__own--empty">
                   {{ vpc.voteFreetextEmpty(isPlayfulPreset()) }}
                 </p>
+              }
+            </div>
+          } @else if ($any(q).type === 'SHORT_TEXT' && isActive()) {
+            <div class="vote-freetext vote-freetext--short">
+              <input
+                class="vote-freetext__input vote-freetext__input--short"
+                type="text"
+                [value]="freeTextValue()"
+                (input)="onTextVoteInput($any($event.target).value)"
+                [placeholder]="vpc.voteShortTextPlaceholder(isPlayfulPreset())"
+                [attr.maxlength]="shortTextMaxLength()"
+                [disabled]="voteSent() || timerExpired()"
+              />
+              <div class="vote-freetext__meta">
+                <span
+                  class="vote-freetext__counter"
+                  [class.vote-freetext__counter--warn]="shortTextValidationError() !== null"
+                >
+                  {{ freeTextValue().trim().length }}/{{ shortTextMaxLength() }}
+                </span>
+              </div>
+            </div>
+          } @else if ($any(q).type === 'SHORT_TEXT' && isResults()) {
+            <div class="vote-freetext vote-freetext--result vote-freetext--short-result">
+              @if (freeTextValue()) {
+                <p
+                  class="vote-freetext__own"
+                  [class.vote-freetext__own--correct]="shortTextResponseTone() === 'correct'"
+                  [class.vote-freetext__own--partial]="shortTextResponseTone() === 'partial'"
+                  [class.vote-freetext__own--wrong]="shortTextResponseTone() === 'wrong'"
+                >
+                  {{ vpc.voteFreetextOwnPrefix(isPlayfulPreset()) }}
+                  <strong>{{ freeTextValue() }}</strong>
+                </p>
+                @if (shortTextResultLabel()) {
+                  <p class="vote-freetext__solutions-label">{{ shortTextResultLabel() }}</p>
+                }
+              } @else {
+                <p class="vote-freetext__own vote-freetext__own--empty">
+                  {{ vpc.voteFreetextEmpty(isPlayfulPreset()) }}
+                </p>
+              }
+
+              @if (shortTextSolutions().length > 0) {
+                <div class="vote-freetext__solutions">
+                  <p class="vote-freetext__solutions-label">
+                    {{ vpc.voteShortTextSolutionsLabel(isPlayfulPreset()) }}
+                  </p>
+                  <ul class="vote-freetext__solutions-list">
+                    @for (solution of shortTextSolutions(); track solution) {
+                      <li class="vote-freetext__solution">{{ solution }}</li>
+                    }
+                  </ul>
+                </div>
               }
             </div>
           } @else if (isRating() && isActive()) {

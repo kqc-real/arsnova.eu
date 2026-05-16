@@ -17,7 +17,7 @@
 
 - **Produktionsreif umgesetzt:** Epics **0–5**, **7.1 (Team-Modus)**, **9 (Admin)** und **10 (MOTD / Plattform-Kommunikation, ADR-0018)**; **Epic 8 ist im Kern mit 8.1–8.4** umgesetzt — siehe [`Backlog.md`](./Backlog.md).
 - **Plattform-Qualität:** Epic **6** ist im Kern umgesetzt (Theme, i18n, Legal, Responsive); **6.5 Barrierefreiheit (Abschlussprüfung)** und **6.6 Thinking Aloud** sind noch offen.
-- **Aktuell in Arbeit:** **Story 0.7** (Last- & Performance-Tests) mit ersten `k6`-Skripten unter `scripts/load/` und Smoke-Flows wie `smoke:unified-session`; die vollständige Realtime-/E2E-/CI-Strecke ist noch offen.
+- **Aktuell in Arbeit:** **Story 0.7** (Last- & Performance-Tests) mit ersten `k6`-Skripten unter `scripts/load/` und Smoke-Flows wie `smoke:unified-session` und `smoke:short-text`; die vollständige Realtime-/E2E-/CI-Strecke ist noch offen.
 - **Offene Stories (Auswahl):** u. a. **0.8** (Komplexitätsabbau), **1.2d–1.2i** (neue Fragentypen & Confidence), **1.6c** (Sync-Sicherheit), **1.14a** (Word Cloud 2.0) und **8.5–8.8** (Q&A-Erweiterungen + Tempo-Livekanal) — vollständige Liste im Backlog. **Bereits abgeschlossen:** **2.1c**, **1.7a** und **1.7b**.
 - **Plattform-Statistik:** Rekord **max. Teilnehmer je Session** wird serverseitig gepflegt und in `health.stats` sowie auf der Hilfe-Seite genutzt (`PlatformStatistic`, siehe Backlog „Repo-Abgleich“).
 - **Lehre:** Greenfield-Demo **Story 1.7a** in **3×45 Min.** — Leitfaden [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md); Epic 10 bleibt optionales **Referenzbeispiel**, kein Ersatz für 1.7a.
@@ -199,6 +199,16 @@ Standard-Locale des Scripts ist **`en`**; optional z. B. `LOCALE=de` setzen.
 Da `serve:localize:api` den Build aus `dist/browser` ausliefert, muss nach relevanten Frontend-
 oder Smoke-Script-Aenderungen vor dem Test erneut `npm run build:localize -w @arsnova/frontend`
 gelaufen sein.
+
+**SHORT_TEXT-Smoke-Test:** Fuer den fokussierten Host-/Teilnehmer-Flow der toleranten Kurzantwort reicht der normale Dev-Stack. Das Script legt per tRPC ein minimales Quiz mit genau einer `SHORT_TEXT`-Frage an, startet eine Session, sendet absichtlich `Peer Instrction` und erwartet Teilpunkte in der Teilnehmeransicht sowie die Aggregation unter der kanonischen Musterloesung im Host.
+
+```bash
+npm run dev:backend
+npm run dev:frontend
+npm run smoke:short-text -w @arsnova/frontend
+```
+
+Default-URLs sind `http://localhost:4200/de` fuer den Browser-Flow und `http://localhost:3000/trpc` fuer tRPC. Bei abweichenden Ports oder Locale kann wie bei den anderen Smoke-Scripts mit `BASE_URL=...` und `TRPC_URL=...` ueberschrieben werden.
 
 ### 5. Production-ähnlich lokal (optional)
 

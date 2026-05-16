@@ -5,8 +5,13 @@
 import {
   QuizUploadInputSchema,
   QuizUploadOutputSchema,
+  SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+  SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
   createLegacyQuizHistoryAccessProof,
+  resolveShortTextMaxLength,
   type QuizUploadInput,
+  type ShortAnswerEvaluationMode,
+  type ToleranceLevel,
 } from '@arsnova/shared-types';
 import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
@@ -46,6 +51,13 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
     ratingMax: number | null;
     ratingLabelMin: string | null;
     ratingLabelMax: string | null;
+    shortTextMaxLength: number | null;
+    shortTextCaseSensitive: boolean;
+    shortTextEvaluationMode: string;
+    shortTextToleranceLevel: string;
+    shortTextAllowPartialCredit: boolean;
+    shortTextTrimWhitespace: boolean;
+    shortTextNormalizeWhitespace: boolean;
     answers: Array<{
       text: string;
       isCorrect: boolean;
@@ -87,6 +99,21 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
       ratingMax: question.ratingMax ?? undefined,
       ratingLabelMin: question.ratingLabelMin ?? undefined,
       ratingLabelMax: question.ratingLabelMax ?? undefined,
+      ...(question.type === 'SHORT_TEXT'
+        ? {
+            shortTextMaxLength: resolveShortTextMaxLength(question.shortTextMaxLength),
+            shortTextCaseSensitive: question.shortTextCaseSensitive ?? false,
+            shortTextEvaluationMode:
+              (question.shortTextEvaluationMode as ShortAnswerEvaluationMode) ??
+              SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+            shortTextToleranceLevel:
+              (question.shortTextToleranceLevel as ToleranceLevel) ??
+              SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+            shortTextAllowPartialCredit: question.shortTextAllowPartialCredit ?? true,
+            shortTextTrimWhitespace: question.shortTextTrimWhitespace ?? true,
+            shortTextNormalizeWhitespace: question.shortTextNormalizeWhitespace ?? true,
+          }
+        : {}),
       answers: question.answers.map((answer) => ({
         text: answer.text,
         isCorrect: answer.isCorrect,
@@ -142,6 +169,24 @@ export const quizRouter = router({
               ratingMax: q.ratingMax ?? null,
               ratingLabelMin: q.ratingLabelMin ?? null,
               ratingLabelMax: q.ratingLabelMax ?? null,
+              shortTextMaxLength:
+                q.type === 'SHORT_TEXT' ? resolveShortTextMaxLength(q.shortTextMaxLength) : null,
+              shortTextCaseSensitive:
+                q.type === 'SHORT_TEXT' ? (q.shortTextCaseSensitive ?? false) : false,
+              shortTextEvaluationMode:
+                q.type === 'SHORT_TEXT'
+                  ? (q.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE)
+                  : SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+              shortTextToleranceLevel:
+                q.type === 'SHORT_TEXT'
+                  ? (q.shortTextToleranceLevel ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL)
+                  : SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+              shortTextAllowPartialCredit:
+                q.type === 'SHORT_TEXT' ? (q.shortTextAllowPartialCredit ?? true) : true,
+              shortTextTrimWhitespace:
+                q.type === 'SHORT_TEXT' ? (q.shortTextTrimWhitespace ?? true) : true,
+              shortTextNormalizeWhitespace:
+                q.type === 'SHORT_TEXT' ? (q.shortTextNormalizeWhitespace ?? true) : true,
               answers: {
                 create: q.answers.map((a) => ({
                   text: a.text,
@@ -199,6 +244,13 @@ export const quizRouter = router({
                 ratingMax: true,
                 ratingLabelMin: true,
                 ratingLabelMax: true,
+                shortTextMaxLength: true,
+                shortTextCaseSensitive: true,
+                shortTextEvaluationMode: true,
+                shortTextToleranceLevel: true,
+                shortTextAllowPartialCredit: true,
+                shortTextTrimWhitespace: true,
+                shortTextNormalizeWhitespace: true,
                 answers: {
                   select: {
                     text: true,

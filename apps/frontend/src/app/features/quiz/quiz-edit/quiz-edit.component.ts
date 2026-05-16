@@ -47,11 +47,20 @@ import {
   MotifImageUrlSchema,
   QUIZ_PRESETS,
   SC_FORMAT_PRESETS,
+  SHORT_TEXT_DEFAULT_MAX_LENGTH,
+  SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+  SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+  SHORT_TEXT_MAX_LENGTH_LIMIT,
+  evaluateShortAnswer,
+  normalizeShortTextValue,
+  resolveShortTextMaxLength,
   type Difficulty,
   type NicknameTheme,
   type QuizPreset,
   type ScFormat,
+  type ShortAnswerEvaluationMode,
   type TeamAssignment,
+  type ToleranceLevel,
 } from '@arsnova/shared-types';
 import { mergeTimerPresetOptions } from '../default-timer-presets';
 import {
@@ -96,7 +105,21 @@ type QuestionFormGroup = FormGroup<{
   ratingMax: FormControl<number | null>;
   ratingLabelMin: FormControl<string>;
   ratingLabelMax: FormControl<string>;
+  shortTextMaxLength: FormControl<number | null>;
+  shortTextCaseSensitive: FormControl<boolean>;
+  shortTextEvaluationMode: FormControl<ShortAnswerEvaluationMode>;
+  shortTextToleranceLevel: FormControl<ToleranceLevel>;
+  shortTextAllowPartialCredit: FormControl<boolean>;
+  shortTextTrimWhitespace: FormControl<boolean>;
+  shortTextNormalizeWhitespace: FormControl<boolean>;
 }>;
+
+type ShortTextPreviewExample = {
+  label: string;
+  studentAnswer: string;
+  outcome: string;
+  tone: 'full' | 'partial' | 'rejected';
+};
 
 type QuizSettingsFormGroup = FormGroup<{
   showLeaderboard: FormControl<boolean>;
@@ -201,6 +224,7 @@ export class QuizEditComponent implements OnDestroy {
     { value: 'SINGLE_CHOICE', label: $localize`Single Choice` },
     { value: 'MULTIPLE_CHOICE', label: $localize`Multiple Choice` },
     { value: 'FREETEXT', label: $localize`Freitext` },
+    { value: 'SHORT_TEXT', label: $localize`:@@quizPreview.typeShortText:Kurzantwort` },
     { value: 'SURVEY', label: $localize`Umfrage` },
     { value: 'RATING', label: $localize`Bewertung (1–5 / 1–10)` },
   ];
@@ -221,6 +245,40 @@ export class QuizEditComponent implements OnDestroy {
     { value: 'EASY', label: $localize`:@@quiz.difficulty.easy:Leicht` },
     { value: 'MEDIUM', label: $localize`:@@quiz.difficulty.medium:Mittel` },
     { value: 'HARD', label: $localize`:@@quiz.difficulty.hard:Schwer` },
+  ];
+
+  readonly shortTextEvaluationModeOptions: Array<{
+    value: ShortAnswerEvaluationMode;
+    label: string;
+    hint: string;
+  }> = [
+    {
+      value: 'exact',
+      label: $localize`:@@quizEdit.shortTextModeExactLabel:Nur exakt gleich`,
+      hint: $localize`:@@quizEdit.shortTextModeExactHint:Akzeptiert nur identische Schreibweisen.`,
+    },
+    {
+      value: 'auto',
+      label: $localize`:@@quizEdit.shortTextModeAutoLabel:Kleine Tippfehler erlauben`,
+      hint: $localize`:@@quizEdit.shortTextModeAutoHint:Wählt automatisch die passende Fehlertoleranz für Ersetzungen oder fehlende Zeichen.`,
+    },
+    {
+      value: 'hamming',
+      label: $localize`:@@quizEdit.shortTextModeHammingLabel:Gleiche Länge, kleine Buchstabendreher`,
+      hint: $localize`:@@quizEdit.shortTextModeHammingHint:Gut für einzelne falsche Zeichen bei gleicher Wortlänge.`,
+    },
+    {
+      value: 'levenshtein',
+      label: $localize`:@@quizEdit.shortTextModeLevenshteinLabel:Auch fehlende oder zusätzliche Zeichen erlauben`,
+      hint: $localize`:@@quizEdit.shortTextModeLevenshteinHint:Geeignet für Auslassungen oder zusätzliche Buchstaben.`,
+    },
+  ];
+
+  readonly shortTextToleranceOptions: Array<{ value: ToleranceLevel; label: string }> = [
+    { value: 'none', label: $localize`:@@quizEdit.shortTextToleranceNone:Keine Toleranz` },
+    { value: 'low', label: $localize`:@@quizEdit.shortTextToleranceLow:Wenig` },
+    { value: 'medium', label: $localize`:@@quizEdit.shortTextToleranceMedium:Mittel` },
+    { value: 'high', label: $localize`:@@quizEdit.shortTextToleranceHigh:Großzügig` },
   ];
 
   readonly nicknameThemeOptions: Array<{ value: NicknameTheme; label: string }> = [
@@ -268,6 +326,19 @@ export class QuizEditComponent implements OnDestroy {
     ratingMax: this.formBuilder.control<number | null>(5),
     ratingLabelMin: this.formBuilder.control(''),
     ratingLabelMax: this.formBuilder.control(''),
+    shortTextMaxLength: this.formBuilder.control<number | null>(SHORT_TEXT_DEFAULT_MAX_LENGTH, {
+      validators: [Validators.min(1), Validators.max(SHORT_TEXT_MAX_LENGTH_LIMIT)],
+    }),
+    shortTextCaseSensitive: this.formBuilder.control(false),
+    shortTextEvaluationMode: this.formBuilder.control<ShortAnswerEvaluationMode>(
+      SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+    ),
+    shortTextToleranceLevel: this.formBuilder.control<ToleranceLevel>(
+      SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+    ),
+    shortTextAllowPartialCredit: this.formBuilder.control(true),
+    shortTextTrimWhitespace: this.formBuilder.control(true),
+    shortTextNormalizeWhitespace: this.formBuilder.control(true),
   });
 
   readonly settingsForm: QuizSettingsFormGroup = this.formBuilder.group({
@@ -360,6 +431,10 @@ export class QuizEditComponent implements OnDestroy {
 
   get answersArray(): FormArray<AnswerFormGroup> {
     return this.form.controls.answers;
+  }
+
+  get shortTextMaxLengthControl(): FormControl<number | null> {
+    return this.form.controls.shortTextMaxLength;
   }
 
   get settingsTimerControl(): FormControl<number | null> {
@@ -521,6 +596,10 @@ export class QuizEditComponent implements OnDestroy {
     return this.typeControl.value === 'SURVEY';
   }
 
+  isShortTextType(): boolean {
+    return this.typeControl.value === 'SHORT_TEXT';
+  }
+
   showDifficultySelection(): boolean {
     return this.questionTypeShowsDifficulty(this.typeControl.value);
   }
@@ -531,6 +610,10 @@ export class QuizEditComponent implements OnDestroy {
 
   hasRatingConfig(): boolean {
     return this.isRatingType();
+  }
+
+  hasShortTextConfig(): boolean {
+    return this.isShortTextType();
   }
 
   questionTypeHasCorrectAnswers(type: SupportedQuestionType): boolean {
@@ -573,9 +656,252 @@ export class QuizEditComponent implements OnDestroy {
     return this.settingsForm.controls.showQuestionTypeIndicators.value;
   }
 
+  answerEditorLabel(index: number): string {
+    if (this.isShortTextType()) {
+      return $localize`:@@quizEdit.shortTextSolutionLabel:Musterlösung ${index + 1}:solutionNumber:`;
+    }
+
+    return $localize`:@@quizEdit.answerLabel:Antwort ${index + 1}:answerNumber:`;
+  }
+
+  answerPreviewLabel(): string {
+    return this.isShortTextType()
+      ? $localize`:@@quizEdit.shortTextSolutionsPreviewLabel:Musterlösungen`
+      : $localize`:@@quizEdit.livePreviewAnswersLabel:Antworten`;
+  }
+
+  addAnswerButtonLabel(): string {
+    return this.isShortTextType()
+      ? $localize`:@@quizEdit.addShortTextSolution:Weitere Musterlösung`
+      : $localize`Weitere Antwort`;
+  }
+
+  shortTextEvaluationModeLabel(mode: ShortAnswerEvaluationMode | null | undefined): string {
+    return (
+      this.shortTextEvaluationModeOptions.find((option) => option.value === mode)?.label ??
+      this.shortTextEvaluationModeOptions.find(
+        (option) => option.value === SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+      )?.label ??
+      mode ??
+      SHORT_TEXT_DEFAULT_EVALUATION_MODE
+    );
+  }
+
+  shortTextToleranceLabel(level: ToleranceLevel | null | undefined): string {
+    return (
+      this.shortTextToleranceOptions.find((option) => option.value === level)?.label ??
+      this.shortTextToleranceOptions.find(
+        (option) => option.value === SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+      )?.label ??
+      level ??
+      SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL
+    );
+  }
+
+  shortTextSelectedEvaluationHint(): string {
+    return (
+      this.shortTextEvaluationModeOptions.find(
+        (option) => option.value === this.form.controls.shortTextEvaluationMode.value,
+      )?.hint ?? ''
+    );
+  }
+
+  shortTextConfigSummary(
+    question: Pick<
+      QuizQuestion,
+      | 'shortTextMaxLength'
+      | 'shortTextCaseSensitive'
+      | 'shortTextEvaluationMode'
+      | 'shortTextToleranceLevel'
+      | 'shortTextAllowPartialCredit'
+      | 'shortTextTrimWhitespace'
+      | 'shortTextNormalizeWhitespace'
+    >,
+  ): string {
+    const parts = [
+      $localize`:@@quizEdit.shortTextMaxLengthSummary:Max. ${resolveShortTextMaxLength(question.shortTextMaxLength)}:maxLength: Zeichen`,
+      this.shortTextEvaluationModeLabel(question.shortTextEvaluationMode),
+    ];
+    if ((question.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE) !== 'exact') {
+      parts.push(
+        $localize`:@@quizEdit.shortTextToleranceSummary:${this.shortTextToleranceLabel(question.shortTextToleranceLevel)}:tolerance: Toleranz`,
+      );
+    }
+    if (question.shortTextCaseSensitive) {
+      parts.push($localize`:@@quizEdit.shortTextCaseSensitiveSummary:Groß-/Kleinschreibung zählt`);
+    }
+    if ((question.shortTextAllowPartialCredit ?? true) === false) {
+      parts.push($localize`:@@quizEdit.shortTextFullCreditOnlySummary:Nur volle Punkte`);
+    }
+    if (
+      (question.shortTextTrimWhitespace ?? true) === false ||
+      (question.shortTextNormalizeWhitespace ?? true) === false
+    ) {
+      parts.push(
+        $localize`:@@quizEdit.shortTextWhitespaceStrictSummary:Leerzeichen werden streng geprüft`,
+      );
+    }
+    return parts.join(' · ');
+  }
+
+  shortTextDidacticWarning(): string {
+    return $localize`:@@quizEdit.shortTextDidacticWarning:Verwende tolerante Bewertung nur bei eindeutigen Fachbegriffen. Für offene Formulierungen sind mehrere Musterlösungen meist fairer als hohe Toleranz.`;
+  }
+
+  shortTextPreviewExamples(): ShortTextPreviewExample[] {
+    if (!this.isShortTextType()) {
+      return [];
+    }
+
+    const modelAnswers = this.answersArray.controls
+      .map((answer) => answer.controls.text.value.trim())
+      .filter((answer) => answer.length > 0);
+    if (modelAnswers.length === 0) {
+      return [];
+    }
+
+    const baseAnswer = modelAnswers[0]!;
+    const examples = [
+      {
+        label: $localize`:@@quizEdit.shortTextPreviewExactLabel:Exakte Eingabe`,
+        studentAnswer: baseAnswer,
+      },
+      {
+        label: $localize`:@@quizEdit.shortTextPreviewTypoLabel:Kleiner Tippfehler`,
+        studentAnswer: this.createShortTextMinorTypo(baseAnswer),
+      },
+      {
+        label: $localize`:@@quizEdit.shortTextPreviewLengthLabel:Fehlendes oder zusätzliches Zeichen`,
+        studentAnswer: this.createShortTextLengthVariation(baseAnswer),
+      },
+      {
+        label: $localize`:@@quizEdit.shortTextPreviewWrongLabel:Anderer Begriff`,
+        studentAnswer: this.createShortTextWrongExample(baseAnswer, modelAnswers),
+      },
+    ];
+
+    const seenExamples = new Set<string>();
+    return examples
+      .filter((example) => {
+        if (!example.studentAnswer.trim() || seenExamples.has(example.studentAnswer)) {
+          return false;
+        }
+        seenExamples.add(example.studentAnswer);
+        return true;
+      })
+      .map((example) => {
+        const result = evaluateShortAnswer({
+          modelAnswers,
+          studentAnswer: example.studentAnswer,
+          maxPoints: 100,
+          maxLength: resolveShortTextMaxLength(this.form.controls.shortTextMaxLength.value),
+          settings: {
+            caseSensitive: this.form.controls.shortTextCaseSensitive.value,
+            evaluationMode: this.form.controls.shortTextEvaluationMode.value,
+            toleranceLevel: this.form.controls.shortTextToleranceLevel.value,
+            allowPartialCredit: this.form.controls.shortTextAllowPartialCredit.value,
+            trimWhitespace: this.form.controls.shortTextTrimWhitespace.value,
+            normalizeWhitespace: this.form.controls.shortTextNormalizeWhitespace.value,
+          },
+        });
+
+        let outcome: string;
+        let tone: ShortTextPreviewExample['tone'];
+        if (result.points >= result.maxPoints && result.maxPoints > 0) {
+          outcome =
+            result.normalizedDistance === 0
+              ? $localize`:@@quizEdit.shortTextPreviewOutcomeFull:Volle Punkte`
+              : $localize`:@@quizEdit.shortTextPreviewOutcomeAccepted:Akzeptiert`;
+          tone = 'full';
+        } else if (result.points > 0) {
+          outcome = $localize`:@@quizEdit.shortTextPreviewOutcomePartial:Teilpunkte (${result.points}:points: %)`;
+          tone = 'partial';
+        } else {
+          outcome = $localize`:@@quizEdit.shortTextPreviewOutcomeRejected:Nicht akzeptiert`;
+          tone = 'rejected';
+        }
+
+        return {
+          label: example.label,
+          studentAnswer: example.studentAnswer,
+          outcome,
+          tone,
+        };
+      });
+  }
+
+  private createShortTextMinorTypo(value: string): string {
+    if (value.length === 0) {
+      return value;
+    }
+
+    const index = Math.min(1, value.length - 1);
+    const currentChar = value[index] ?? 'x';
+    const replacement = currentChar.toLowerCase() === 'x' ? 'z' : 'x';
+    return `${value.slice(0, index)}${replacement}${value.slice(index + 1)}`;
+  }
+
+  private createShortTextLengthVariation(value: string): string {
+    if (value.length >= 5) {
+      return value.slice(0, -1);
+    }
+    return `${value}x`;
+  }
+
+  private createShortTextWrongExample(value: string, modelAnswers: string[]): string {
+    const candidates = ['andere Antwort', 'ganz falsch', `${value}???`];
+    return (
+      candidates.find((candidate) => !modelAnswers.includes(candidate) && candidate !== value) ??
+      `${value}??`
+    );
+  }
+
+  private resolveShortTextQuestionSettings(question: {
+    type: string;
+    shortTextMaxLength?: number | null;
+    shortTextCaseSensitive?: boolean | null;
+    shortTextEvaluationMode?: ShortAnswerEvaluationMode | null;
+    shortTextToleranceLevel?: ToleranceLevel | null;
+    shortTextAllowPartialCredit?: boolean | null;
+    shortTextTrimWhitespace?: boolean | null;
+    shortTextNormalizeWhitespace?: boolean | null;
+  }): {
+    shortTextMaxLength: number | null;
+    shortTextCaseSensitive: boolean | null;
+    shortTextEvaluationMode: ShortAnswerEvaluationMode | null;
+    shortTextToleranceLevel: ToleranceLevel | null;
+    shortTextAllowPartialCredit: boolean | null;
+    shortTextTrimWhitespace: boolean | null;
+    shortTextNormalizeWhitespace: boolean | null;
+  } {
+    if (question.type !== 'SHORT_TEXT') {
+      return {
+        shortTextMaxLength: null,
+        shortTextCaseSensitive: null,
+        shortTextEvaluationMode: null,
+        shortTextToleranceLevel: null,
+        shortTextAllowPartialCredit: null,
+        shortTextTrimWhitespace: null,
+        shortTextNormalizeWhitespace: null,
+      };
+    }
+
+    return {
+      shortTextMaxLength: resolveShortTextMaxLength(question.shortTextMaxLength),
+      shortTextCaseSensitive: question.shortTextCaseSensitive ?? false,
+      shortTextEvaluationMode:
+        question.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+      shortTextToleranceLevel:
+        question.shortTextToleranceLevel ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+      shortTextAllowPartialCredit: question.shortTextAllowPartialCredit ?? true,
+      shortTextTrimWhitespace: question.shortTextTrimWhitespace ?? true,
+      shortTextNormalizeWhitespace: question.shortTextNormalizeWhitespace ?? true,
+    };
+  }
+
   addAnswer(): void {
     if (!this.canAddAnswer()) return;
-    this.answersArray.push(this.createAnswerGroup(false));
+    this.answersArray.push(this.createAnswerGroup(this.isShortTextType()));
     this.scheduleLivePreview();
   }
 
@@ -591,7 +917,11 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   canRemoveAnswer(): boolean {
-    return this.hasAnswerOptions() && this.answersArray.length > 2;
+    if (!this.hasAnswerOptions()) {
+      return false;
+    }
+
+    return this.isShortTextType() ? this.answersArray.length > 1 : this.answersArray.length > 2;
   }
 
   onTypeChanged(): void {
@@ -1195,6 +1525,18 @@ export class QuizEditComponent implements OnDestroy {
       return true;
     }
 
+    if (
+      this.form.controls.shortTextMaxLength.value !== SHORT_TEXT_DEFAULT_MAX_LENGTH ||
+      this.form.controls.shortTextCaseSensitive.value !== false ||
+      this.form.controls.shortTextEvaluationMode.value !== SHORT_TEXT_DEFAULT_EVALUATION_MODE ||
+      this.form.controls.shortTextToleranceLevel.value !== SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL ||
+      this.form.controls.shortTextAllowPartialCredit.value !== true ||
+      this.form.controls.shortTextTrimWhitespace.value !== true ||
+      this.form.controls.shortTextNormalizeWhitespace.value !== true
+    ) {
+      return true;
+    }
+
     return false;
   }
 
@@ -1273,6 +1615,17 @@ export class QuizEditComponent implements OnDestroy {
             ratingLabelMax: this.form.controls.ratingLabelMax.value,
           }
         : {}),
+      ...(this.isShortTextType()
+        ? {
+            shortTextMaxLength: this.form.controls.shortTextMaxLength.value,
+            shortTextCaseSensitive: this.form.controls.shortTextCaseSensitive.value,
+            shortTextEvaluationMode: this.form.controls.shortTextEvaluationMode.value,
+            shortTextToleranceLevel: this.form.controls.shortTextToleranceLevel.value,
+            shortTextAllowPartialCredit: this.form.controls.shortTextAllowPartialCredit.value,
+            shortTextTrimWhitespace: this.form.controls.shortTextTrimWhitespace.value,
+            shortTextNormalizeWhitespace: this.form.controls.shortTextNormalizeWhitespace.value,
+          }
+        : {}),
     };
   }
 
@@ -1290,8 +1643,16 @@ export class QuizEditComponent implements OnDestroy {
           ratingMax?: number | null;
           ratingLabelMin?: string | null;
           ratingLabelMax?: string | null;
+          shortTextMaxLength?: number | null;
+          shortTextCaseSensitive?: boolean | null;
+          shortTextEvaluationMode?: ShortAnswerEvaluationMode | null;
+          shortTextToleranceLevel?: ToleranceLevel | null;
+          shortTextAllowPartialCredit?: boolean | null;
+          shortTextTrimWhitespace?: boolean | null;
+          shortTextNormalizeWhitespace?: boolean | null;
         },
   ): AddQuizQuestionInput {
+    const shortTextSettings = this.resolveShortTextQuestionSettings(question);
     return {
       text: question.text,
       type: question.type,
@@ -1310,6 +1671,11 @@ export class QuizEditComponent implements OnDestroy {
             ratingLabelMax: question.ratingLabelMax ?? '',
           }
         : {}),
+      ...(question.type === 'SHORT_TEXT'
+        ? {
+            ...shortTextSettings,
+          }
+        : {}),
     };
   }
 
@@ -1322,6 +1688,26 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.ratingMax.setValue(question.ratingMax ?? 5);
     this.form.controls.ratingLabelMin.setValue(question.ratingLabelMin ?? '');
     this.form.controls.ratingLabelMax.setValue(question.ratingLabelMax ?? '');
+    const shortTextSettings = this.resolveShortTextQuestionSettings(question);
+    this.form.controls.shortTextMaxLength.setValue(shortTextSettings.shortTextMaxLength);
+    this.form.controls.shortTextCaseSensitive.setValue(
+      shortTextSettings.shortTextCaseSensitive ?? false,
+    );
+    this.form.controls.shortTextEvaluationMode.setValue(
+      shortTextSettings.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+    );
+    this.form.controls.shortTextToleranceLevel.setValue(
+      shortTextSettings.shortTextToleranceLevel ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+    );
+    this.form.controls.shortTextAllowPartialCredit.setValue(
+      shortTextSettings.shortTextAllowPartialCredit ?? true,
+    );
+    this.form.controls.shortTextTrimWhitespace.setValue(
+      shortTextSettings.shortTextTrimWhitespace ?? true,
+    );
+    this.form.controls.shortTextNormalizeWhitespace.setValue(
+      shortTextSettings.shortTextNormalizeWhitespace ?? true,
+    );
     this.form.controls.questionTimer.setValue(question.timer ?? null);
     this.form.controls.questionSkipReadingPhase.setValue(question.skipReadingPhase ?? false);
   }
@@ -1330,6 +1716,7 @@ export class QuizEditComponent implements OnDestroy {
     question: QuizQuestion,
     draft: AddQuizQuestionInput,
   ): QuizQuestion {
+    const shortTextSettings = this.resolveShortTextQuestionSettings(draft);
     return {
       ...question,
       text: draft.text,
@@ -1346,6 +1733,7 @@ export class QuizEditComponent implements OnDestroy {
       ratingMax: draft.type === 'RATING' ? (draft.ratingMax ?? 5) : null,
       ratingLabelMin: draft.type === 'RATING' ? (draft.ratingLabelMin ?? '') : null,
       ratingLabelMax: draft.type === 'RATING' ? (draft.ratingLabelMax ?? '') : null,
+      ...shortTextSettings,
     };
   }
 
@@ -1360,6 +1748,13 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.ratingMax.reset(5);
     this.form.controls.ratingLabelMin.reset('');
     this.form.controls.ratingLabelMax.reset('');
+    this.form.controls.shortTextMaxLength.reset(SHORT_TEXT_DEFAULT_MAX_LENGTH);
+    this.form.controls.shortTextCaseSensitive.reset(false);
+    this.form.controls.shortTextEvaluationMode.reset(SHORT_TEXT_DEFAULT_EVALUATION_MODE);
+    this.form.controls.shortTextToleranceLevel.reset(SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL);
+    this.form.controls.shortTextAllowPartialCredit.reset(true);
+    this.form.controls.shortTextTrimWhitespace.reset(true);
+    this.form.controls.shortTextNormalizeWhitespace.reset(true);
 
     this.submitError.set(null);
     this.form.markAsPristine();
@@ -1379,6 +1774,34 @@ export class QuizEditComponent implements OnDestroy {
 
     if (question.type === 'FREETEXT' || question.type === 'RATING') {
       return question.answers.length === 0;
+    }
+
+    if (question.type === 'SHORT_TEXT') {
+      if (question.answers.length < 1 || question.answers.length > 10) {
+        return false;
+      }
+
+      const shortTextSettings = this.resolveShortTextQuestionSettings(question);
+      const seenSolutions = new Set<string>();
+
+      for (const answer of question.answers) {
+        if (answer.text.length === 0 || answer.text.length > 500 || !answer.isCorrect) {
+          return false;
+        }
+
+        const normalized = normalizeShortTextValue(answer.text, {
+          caseSensitive: shortTextSettings.shortTextCaseSensitive ?? false,
+          maxLength: shortTextSettings.shortTextMaxLength,
+          trimWhitespace: shortTextSettings.shortTextTrimWhitespace ?? true,
+          normalizeWhitespace: shortTextSettings.shortTextNormalizeWhitespace ?? true,
+        });
+        if (seenSolutions.has(normalized)) {
+          return false;
+        }
+        seenSolutions.add(normalized);
+      }
+
+      return true;
     }
 
     if (question.answers.length < 2 || question.answers.length > 10) {
@@ -1408,7 +1831,11 @@ export class QuizEditComponent implements OnDestroy {
 
     return this.answersArray.controls.map((answer) => ({
       text: answer.controls.text.value,
-      isCorrect: this.isSurveyType() ? false : answer.controls.isCorrect.value,
+      isCorrect: this.isSurveyType()
+        ? false
+        : this.isShortTextType()
+          ? true
+          : answer.controls.isCorrect.value,
     }));
   }
 
@@ -1421,11 +1848,19 @@ export class QuizEditComponent implements OnDestroy {
     }
 
     const groups = existingAnswers.map((answer) =>
-      this.createAnswerGroup(type === 'SURVEY' ? false : answer.isCorrect, answer.text),
+      this.createAnswerGroup(
+        type === 'SURVEY' ? false : type === 'SHORT_TEXT' ? true : answer.isCorrect,
+        answer.text,
+      ),
     );
 
-    while (groups.length < 2) {
-      groups.push(this.createAnswerGroup(type === 'SINGLE_CHOICE' && groups.length === 0));
+    const minimumAnswers = type === 'SHORT_TEXT' ? 1 : 2;
+    while (groups.length < minimumAnswers) {
+      groups.push(
+        this.createAnswerGroup(
+          type === 'SHORT_TEXT' || (type === 'SINGLE_CHOICE' && groups.length === 0),
+        ),
+      );
     }
 
     return this.formBuilder.array<AnswerFormGroup>(groups);
@@ -1439,6 +1874,20 @@ export class QuizEditComponent implements OnDestroy {
       this.form.controls.ratingMax.setValue(max === 10 ? 10 : 5);
     }
 
+    if (type === 'SHORT_TEXT' && this.form.controls.shortTextMaxLength.value === null) {
+      this.form.controls.shortTextMaxLength.setValue(SHORT_TEXT_DEFAULT_MAX_LENGTH);
+    }
+
+    if (type === 'SHORT_TEXT') {
+      const hasAnySolutionText = this.answersArray.controls.some(
+        (answer) => answer.controls.text.value.trim().length > 0,
+      );
+      if (!hasAnySolutionText && this.answersArray.length !== 1) {
+        this.form.setControl('answers', this.createAnswerArrayForType(type));
+        return;
+      }
+    }
+
     if (!this.hasAnswerOptions()) {
       if (this.answersArray.length > 0) {
         this.form.setControl('answers', this.createAnswerArrayForType(type));
@@ -1446,13 +1895,21 @@ export class QuizEditComponent implements OnDestroy {
       return;
     }
 
-    if (this.answersArray.length < 2) {
+    const minimumAnswers = type === 'SHORT_TEXT' ? 1 : 2;
+    if (this.answersArray.length < minimumAnswers) {
       this.form.setControl('answers', this.createAnswerArrayForType(type));
     }
   }
 
   private normalizeCorrectSelectionForType(): void {
     if (!this.hasAnswerOptions() || this.answersArray.length === 0) return;
+
+    if (this.isShortTextType()) {
+      this.answersArray.controls.forEach((answer) => {
+        answer.controls.isCorrect.setValue(true);
+      });
+      return;
+    }
 
     if (this.isSurveyType()) {
       this.answersArray.controls.forEach((answer) => {

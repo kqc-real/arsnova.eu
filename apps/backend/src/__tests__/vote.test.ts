@@ -57,6 +57,8 @@ describe('vote.submit', () => {
       quizId: 'quiz-1',
       type: 'FREETEXT',
       difficulty: 'MEDIUM',
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
       ratingMin: null,
       ratingMax: null,
       answers: [],
@@ -86,11 +88,13 @@ describe('vote.submit', () => {
       quizId: 'quiz-1',
       type: 'SURVEY',
       difficulty: 'MEDIUM',
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
       ratingMin: null,
       ratingMax: null,
       answers: [
-        { id: ANSWER_ID_1, isCorrect: false },
-        { id: ANSWER_ID_2, isCorrect: false },
+        { id: ANSWER_ID_1, text: 'A', isCorrect: false },
+        { id: ANSWER_ID_2, text: 'B', isCorrect: false },
       ],
     });
 
@@ -117,11 +121,13 @@ describe('vote.submit', () => {
       quizId: 'quiz-1',
       type: 'SINGLE_CHOICE',
       difficulty: 'MEDIUM',
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
       ratingMin: null,
       ratingMax: null,
       answers: [
-        { id: ANSWER_ID_1, isCorrect: true },
-        { id: ANSWER_ID_2, isCorrect: false },
+        { id: ANSWER_ID_1, text: '4', isCorrect: true },
+        { id: ANSWER_ID_2, text: '5', isCorrect: false },
       ],
     });
 
@@ -154,11 +160,13 @@ describe('vote.submit', () => {
       type: 'SINGLE_CHOICE',
       difficulty: 'HARD',
       timer: null,
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
       ratingMin: null,
       ratingMax: null,
       answers: [
-        { id: ANSWER_ID_1, isCorrect: true },
-        { id: ANSWER_ID_2, isCorrect: false },
+        { id: ANSWER_ID_1, text: 'A', isCorrect: true },
+        { id: ANSWER_ID_2, text: 'B', isCorrect: false },
       ],
     });
 
@@ -190,11 +198,13 @@ describe('vote.submit', () => {
       type: 'SINGLE_CHOICE',
       difficulty: 'HARD',
       timer: 30,
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
       ratingMin: null,
       ratingMax: null,
       answers: [
-        { id: ANSWER_ID_1, isCorrect: true },
-        { id: ANSWER_ID_2, isCorrect: false },
+        { id: ANSWER_ID_1, text: 'A', isCorrect: true },
+        { id: ANSWER_ID_2, text: 'B', isCorrect: false },
       ],
     });
 
@@ -221,11 +231,13 @@ describe('vote.submit', () => {
       quizId: 'quiz-1',
       type: 'SINGLE_CHOICE',
       difficulty: 'MEDIUM',
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
       ratingMin: null,
       ratingMax: null,
       answers: [
-        { id: ANSWER_ID_1, isCorrect: true },
-        { id: ANSWER_ID_2, isCorrect: false },
+        { id: ANSWER_ID_1, text: 'A', isCorrect: true },
+        { id: ANSWER_ID_2, text: 'B', isCorrect: false },
       ],
     });
     prismaMock.vote.findFirst.mockResolvedValue({
@@ -257,11 +269,13 @@ describe('vote.submit', () => {
       quizId: 'quiz-1',
       type: 'SINGLE_CHOICE',
       difficulty: 'MEDIUM',
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
       ratingMin: null,
       ratingMax: null,
       answers: [
-        { id: ANSWER_ID_1, isCorrect: true },
-        { id: ANSWER_ID_2, isCorrect: false },
+        { id: ANSWER_ID_1, text: 'A', isCorrect: true },
+        { id: ANSWER_ID_2, text: 'B', isCorrect: false },
       ],
     });
     prismaMock.vote.findFirst.mockResolvedValue({
@@ -293,6 +307,8 @@ describe('vote.submit', () => {
       quizId: 'quiz-1',
       type: 'FREETEXT',
       difficulty: 'MEDIUM',
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
       ratingMin: null,
       ratingMax: null,
       answers: [],
@@ -305,6 +321,64 @@ describe('vote.submit', () => {
         questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
         answerIds: [ANSWER_ID_1],
         freeText: 'Antwort',
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  });
+
+  it('bewertet SHORT_TEXT korrekt und speichert normalisierte Kurzantwort', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      shortTextMaxLength: 40,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [
+        { id: ANSWER_ID_1, text: 'Ada Lovelace', isCorrect: true },
+        { id: ANSWER_ID_2, text: 'A. Lovelace', isCorrect: true },
+      ],
+    });
+
+    await caller.submit({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      freeText: '  Ada   Lovelace  ',
+    });
+
+    expect(prismaMock.vote.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          score: 2000,
+          freeText: 'Ada Lovelace',
+          selectedAnswers: undefined,
+          streakCount: 1,
+        }),
+      }),
+    );
+  });
+
+  it('lehnt zu lange SHORT_TEXT-Antworten ab', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      shortTextMaxLength: 5,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [{ id: ANSWER_ID_1, text: 'Ada', isCorrect: true }],
+    });
+
+    await expect(
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        freeText: 'Ada Lovelace',
       }),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
   });

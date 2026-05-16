@@ -17,6 +17,7 @@
     "check:viewport": "node scripts/check-viewport-320.mjs",
     "smoke:host-present-auth": "node scripts/check-host-present-auth-flow.mjs",
     "smoke:host-music": "node scripts/check-host-music-flow.mjs",
+    "smoke:short-text": "node scripts/check-short-text-flow.mjs",
     "smoke:quiz-sync": "node scripts/check-quiz-sync-flow.mjs",
     "smoke:unified-session": "node scripts/check-unified-session-flow.mjs",
     "lighthouse:a11y": "node scripts/lighthouse-a11y.mjs",

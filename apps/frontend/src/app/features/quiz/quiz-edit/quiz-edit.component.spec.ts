@@ -256,6 +256,33 @@ describe('QuizEditComponent', () => {
     expect(leadingEmoji?.getAttribute('title')).toBe(':apple:');
   });
 
+  it('nutzt fuer SHORT_TEXT-Vorschauen keine leere Badge-Spalte', () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.questionFormPanelOpen.set(true);
+    component.form.controls.type.setValue('SHORT_TEXT');
+    component.onTypeChanged();
+    component.form.controls.text.setValue('Welcher Fachbegriff ist gesucht?');
+    component.answersArray.at(0).controls.text.setValue('Peer Instruction');
+    fixture.detectChanges();
+    vi.advanceTimersByTime(250);
+    fixture.detectChanges();
+
+    const plainPreviewLists = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll(
+        '.quiz-edit-form__preview-answers--plain',
+      ),
+    );
+    const plainPreviewBadges = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.quiz-edit-form__preview-answers--plain .quiz-edit-form__preview-answer-badge',
+    );
+
+    expect(plainPreviewLists).toHaveLength(2);
+    expect(plainPreviewBadges).toHaveLength(0);
+  });
+
   it('speichert eine FREETEXT-Frage ohne Antwortoptionen', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
@@ -274,6 +301,73 @@ describe('QuizEditComponent', () => {
       skipReadingPhase: false,
       answers: [],
     });
+  });
+
+  it('speichert eine SHORT_TEXT-Frage mit Musterlösungen und Konfiguration', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.form.controls.type.setValue('SHORT_TEXT');
+    component.onTypeChanged();
+    component.form.controls.text.setValue('Welche Stadt ist die Hauptstadt von Frankreich?');
+    component.form.controls.shortTextMaxLength.setValue(80);
+    component.form.controls.shortTextCaseSensitive.setValue(true);
+    expect(component.answersArray.length).toBe(1);
+    component.answersArray.at(0).controls.text.setValue('Paris');
+    component.addAnswer();
+    component.answersArray.at(1).controls.text.setValue('PARIS');
+
+    component.addQuestion();
+
+    expect(mockStore.addQuestion).toHaveBeenCalledWith(QUIZ_ID, {
+      text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      timer: null,
+      skipReadingPhase: false,
+      answers: [
+        { text: 'Paris', isCorrect: true },
+        { text: 'PARIS', isCorrect: true },
+      ],
+      shortTextMaxLength: 80,
+      shortTextCaseSensitive: true,
+      shortTextEvaluationMode: 'auto',
+      shortTextToleranceLevel: 'low',
+      shortTextAllowPartialCredit: true,
+      shortTextTrimWhitespace: true,
+      shortTextNormalizeWhitespace: true,
+    });
+  });
+
+  it('speichert erweiterte SHORT_TEXT-Bewertungseinstellungen', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.form.controls.type.setValue('SHORT_TEXT');
+    component.onTypeChanged();
+    component.form.controls.text.setValue('Nenne die Hauptstadt von Frankreich.');
+    component.form.controls.shortTextMaxLength.setValue(60);
+    component.form.controls.shortTextEvaluationMode.setValue('levenshtein');
+    component.form.controls.shortTextToleranceLevel.setValue('medium');
+    component.form.controls.shortTextAllowPartialCredit.setValue(false);
+    component.form.controls.shortTextTrimWhitespace.setValue(false);
+    component.form.controls.shortTextNormalizeWhitespace.setValue(false);
+    component.answersArray.at(0).controls.text.setValue('Paris');
+
+    component.addQuestion();
+
+    expect(mockStore.addQuestion).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({
+        type: 'SHORT_TEXT',
+        shortTextMaxLength: 60,
+        shortTextEvaluationMode: 'levenshtein',
+        shortTextToleranceLevel: 'medium',
+        shortTextAllowPartialCredit: false,
+        shortTextTrimWhitespace: false,
+        shortTextNormalizeWhitespace: false,
+      }),
+    );
   });
 
   it('speichert den Lesephasen-Override pro Frage', () => {
@@ -526,6 +620,60 @@ describe('QuizEditComponent', () => {
     expect(summary).toBeTruthy();
     expect(summary!.innerHTML).toContain('<strong>Warm-up:</strong>');
     expect(summary!.innerHTML).toContain('katex');
+  });
+
+  it('markiert expandierte SHORT_TEXT-Musterlösungen mit einem Vollbreiten-Layout', () => {
+    quiz.questions = [
+      {
+        id: QUESTION_ID,
+        text: 'Nenne den passenden Fachbegriff.',
+        type: 'SHORT_TEXT',
+        difficulty: 'MEDIUM',
+        order: 0,
+        enabled: true,
+        timer: null,
+        answers: [
+          {
+            id: '1f013086-724d-4c5f-8354-53b3dcda4f27',
+            text: 'Peer Instruction',
+            isCorrect: true,
+          },
+          {
+            id: 'f38fcd4b-f1ca-4188-8e22-f80244e8a3d0',
+            text: 'Mazur-Methode',
+            isCorrect: true,
+          },
+        ],
+        ratingMin: null,
+        ratingMax: null,
+        ratingLabelMin: null,
+        ratingLabelMax: null,
+        shortTextMaxLength: 32,
+        shortTextCaseSensitive: false,
+        shortTextEvaluationMode: 'auto',
+        shortTextToleranceLevel: 'medium',
+        shortTextAllowPartialCredit: true,
+        shortTextTrimWhitespace: true,
+        shortTextNormalizeWhitespace: true,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const expandBtn = fixture.nativeElement.querySelector(
+      '.quiz-edit-question__expand-btn',
+    ) as HTMLButtonElement;
+    expandBtn.click();
+    fixture.detectChanges();
+
+    const answers = fixture.nativeElement.querySelector(
+      '.quiz-edit-question__answers--short-text',
+    ) as HTMLElement | null;
+
+    expect(answers).not.toBeNull();
+    expect(answers?.textContent).toContain('Peer Instruction');
+    expect(answers?.textContent).toContain('Mazur-Methode');
   });
 
   it('löscht eine vorhandene Frage nach Bestätigung im Dialog', async () => {

@@ -66,8 +66,10 @@ import {
   type PeerInstructionSuggestionDTO,
   type TeamLeaderboardEntryDTO,
   type TeamAssignment,
+  type ToleranceLevel,
   type RoundComparisonDTO,
   type RoundDistributionEntry,
+  type ShortAnswerEvaluationMode,
   type VoterMigrationEntry,
   UpdateSessionPresetInputSchema,
   UpdateSessionQaTitleInputSchema,
@@ -78,9 +80,14 @@ import {
   EMOJI_REACTIONS,
   DEFAULT_TEAM_COUNT,
   NicknameThemeEnum,
+  SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+  SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
   createQuizHistoryAccessProof,
   createLegacyQuizHistoryAccessProof,
+  evaluateShortAnswer,
+  normalizeShortTextValue,
   resolveEffectiveQuestionTimer,
+  resolveShortTextMaxLength,
 } from '@arsnova/shared-types';
 import {
   isExactCorrectSelection,
@@ -207,6 +214,9 @@ type VoteSummary = {
   totalVotes: number;
   answerVoteCounts: Record<string, number>;
   freeTextResponses: string[];
+  incorrectFreeTextResponses: string[];
+  correctVoteCount: number;
+  incorrectVoteCount: number;
 };
 
 const sessionInfoCache = new Map<
@@ -691,12 +701,121 @@ async function getVoteCountCached(
   );
 }
 
+type ShortTextQuestionConfig = {
+  shortTextMaxLength?: number | null;
+  shortTextCaseSensitive?: boolean | null;
+  shortTextEvaluationMode?: string | null;
+  shortTextToleranceLevel?: string | null;
+  shortTextAllowPartialCredit?: boolean | null;
+  shortTextTrimWhitespace?: boolean | null;
+  shortTextNormalizeWhitespace?: boolean | null;
+};
+
+type ShortTextAnswerOption = { id: string; text: string; isCorrect: boolean };
+
+function resolveShortTextQuestionConfig(config?: ShortTextQuestionConfig) {
+  return {
+    shortTextMaxLength: config?.shortTextMaxLength ?? null,
+    shortTextCaseSensitive: config?.shortTextCaseSensitive ?? false,
+    shortTextEvaluationMode:
+      (config?.shortTextEvaluationMode as ShortAnswerEvaluationMode | null | undefined) ??
+      SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+    shortTextToleranceLevel:
+      (config?.shortTextToleranceLevel as ToleranceLevel | null | undefined) ??
+      SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+    shortTextAllowPartialCredit: config?.shortTextAllowPartialCredit ?? true,
+    shortTextTrimWhitespace: config?.shortTextTrimWhitespace ?? true,
+    shortTextNormalizeWhitespace: config?.shortTextNormalizeWhitespace ?? true,
+  };
+}
+
+function getShortTextDtoFields(
+  questionType: string,
+  config?: ShortTextQuestionConfig,
+): {
+  shortTextMaxLength: number | null;
+  shortTextCaseSensitive?: boolean;
+  shortTextEvaluationMode?: ShortAnswerEvaluationMode;
+  shortTextToleranceLevel?: ToleranceLevel;
+  shortTextAllowPartialCredit?: boolean;
+  shortTextTrimWhitespace?: boolean;
+  shortTextNormalizeWhitespace?: boolean;
+} {
+  if (questionType !== 'SHORT_TEXT') {
+    return {
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: undefined,
+      shortTextEvaluationMode: undefined,
+      shortTextToleranceLevel: undefined,
+      shortTextAllowPartialCredit: undefined,
+      shortTextTrimWhitespace: undefined,
+      shortTextNormalizeWhitespace: undefined,
+    };
+  }
+
+  const resolved = resolveShortTextQuestionConfig(config);
+  return {
+    shortTextMaxLength: resolveShortTextMaxLength(resolved.shortTextMaxLength),
+    shortTextCaseSensitive: resolved.shortTextCaseSensitive,
+    shortTextEvaluationMode: resolved.shortTextEvaluationMode,
+    shortTextToleranceLevel: resolved.shortTextToleranceLevel,
+    shortTextAllowPartialCredit: resolved.shortTextAllowPartialCredit,
+    shortTextTrimWhitespace: resolved.shortTextTrimWhitespace,
+    shortTextNormalizeWhitespace: resolved.shortTextNormalizeWhitespace,
+  };
+}
+
+function getShortTextDisplayValue(value: string, config?: ShortTextQuestionConfig): string {
+  const resolved = resolveShortTextQuestionConfig(config);
+  return normalizeShortTextValue(value, {
+    caseSensitive: true,
+    trimWhitespace: resolved.shortTextTrimWhitespace,
+    normalizeWhitespace: resolved.shortTextNormalizeWhitespace,
+  });
+}
+
+function getShortTextMatchedAnswerId(
+  value: string,
+  options?: ShortTextQuestionConfig & { answers?: ShortTextAnswerOption[] },
+): string | undefined {
+  const answers = options?.answers ?? [];
+  if (!answers.length) {
+    return undefined;
+  }
+
+  const resolved = resolveShortTextQuestionConfig(options);
+  const evaluation = evaluateShortAnswer({
+    modelAnswers: answers.filter((answer) => answer.isCorrect).map((answer) => answer.text),
+    studentAnswer: value,
+    maxPoints: 1,
+    maxLength: resolved.shortTextMaxLength,
+    settings: {
+      caseSensitive: resolved.shortTextCaseSensitive,
+      evaluationMode: resolved.shortTextEvaluationMode,
+      toleranceLevel: resolved.shortTextToleranceLevel,
+      allowPartialCredit: resolved.shortTextAllowPartialCredit,
+      trimWhitespace: resolved.shortTextTrimWhitespace,
+      normalizeWhitespace: resolved.shortTextNormalizeWhitespace,
+    },
+  });
+
+  if (evaluation.points <= 0 || !evaluation.matchedModelAnswer) {
+    return undefined;
+  }
+
+  return answers.find((answer) => answer.isCorrect && answer.text === evaluation.matchedModelAnswer)
+    ?.id;
+}
+
 async function getVoteSummaryCached(
   code: string,
   sessionId: string,
   questionId: string,
   round: number,
   questionType: QuestionType,
+  options?: {
+    answers?: Array<{ id: string; text: string; isCorrect: boolean }>;
+  } & ShortTextQuestionConfig,
 ): Promise<VoteSummary> {
   const key = voteCacheKey(code, questionId, round);
   return getOrComputeCached(
@@ -716,6 +835,45 @@ async function getVoteSummaryCached(
           freeTextResponses: votes
             .map((vote) => vote.freeText?.trim())
             .filter((value): value is string => !!value),
+          incorrectFreeTextResponses: [],
+          correctVoteCount: 0,
+          incorrectVoteCount: 0,
+        };
+      }
+
+      if (questionType === 'SHORT_TEXT') {
+        const votes = await prisma.vote.findMany({
+          where: { sessionId, questionId, round },
+          select: { freeText: true },
+        });
+
+        const answerVoteCounts: Record<string, number> = {};
+        const incorrectFreeTextResponses: string[] = [];
+        let correctVoteCount = 0;
+        let incorrectVoteCount = 0;
+
+        for (const vote of votes) {
+          const displayValue = getShortTextDisplayValue(vote.freeText ?? '', options);
+          const matchedAnswerId = getShortTextMatchedAnswerId(vote.freeText ?? '', options);
+
+          if (matchedAnswerId) {
+            answerVoteCounts[matchedAnswerId] = (answerVoteCounts[matchedAnswerId] ?? 0) + 1;
+            correctVoteCount += 1;
+          } else {
+            incorrectVoteCount += 1;
+            if (displayValue) {
+              incorrectFreeTextResponses.push(displayValue);
+            }
+          }
+        }
+
+        return {
+          totalVotes: votes.length,
+          answerVoteCounts,
+          freeTextResponses: [],
+          incorrectFreeTextResponses,
+          correctVoteCount,
+          incorrectVoteCount,
         };
       }
 
@@ -734,6 +892,9 @@ async function getVoteSummaryCached(
         totalVotes: votes.length,
         answerVoteCounts,
         freeTextResponses: [],
+        incorrectFreeTextResponses: [],
+        correctVoteCount: 0,
+        incorrectVoteCount: 0,
       };
     },
   );
@@ -743,7 +904,12 @@ export function recordVoteCachesForCode(
   code: string,
   questionId: string,
   round: number,
-  payload: { answerIds: string[]; freeText: string | null },
+  payload: {
+    answerIds: string[];
+    freeText: string | null;
+    questionType: QuestionType;
+    isCorrect?: boolean;
+  },
 ): void {
   const normalizedCode = code.toUpperCase();
   const key = voteCacheKey(normalizedCode, questionId, round);
@@ -758,13 +924,26 @@ export function recordVoteCachesForCode(
       totalVotes: cachedSummary.totalVotes + 1,
       answerVoteCounts: { ...cachedSummary.answerVoteCounts },
       freeTextResponses: [...cachedSummary.freeTextResponses],
+      incorrectFreeTextResponses: [...cachedSummary.incorrectFreeTextResponses],
+      correctVoteCount: cachedSummary.correctVoteCount,
+      incorrectVoteCount: cachedSummary.incorrectVoteCount,
     };
     for (const answerId of payload.answerIds) {
       nextSummary.answerVoteCounts[answerId] = (nextSummary.answerVoteCounts[answerId] ?? 0) + 1;
     }
     const trimmedFreeText = payload.freeText?.trim();
-    if (trimmedFreeText) {
+    if (payload.questionType === 'FREETEXT' && trimmedFreeText) {
       nextSummary.freeTextResponses.push(trimmedFreeText);
+    }
+    if (payload.questionType === 'SHORT_TEXT') {
+      if (payload.isCorrect) {
+        nextSummary.correctVoteCount += 1;
+      } else {
+        nextSummary.incorrectVoteCount += 1;
+        if (trimmedFreeText) {
+          nextSummary.incorrectFreeTextResponses.push(trimmedFreeText);
+        }
+      }
     }
     setCachedValue(voteSummaryCache, key, nextSummary, VOTE_SUMMARY_CACHE_TTL_MS);
   }
@@ -814,6 +993,13 @@ interface QuestionWithAnswersForExport {
   order: number;
   text: string;
   type: string;
+  shortTextMaxLength: number | null;
+  shortTextCaseSensitive: boolean;
+  shortTextEvaluationMode: string;
+  shortTextToleranceLevel: string;
+  shortTextAllowPartialCredit: boolean;
+  shortTextTrimWhitespace: boolean;
+  shortTextNormalizeWhitespace: boolean;
   answers: Array<{ id: string; text: string; isCorrect: boolean }>;
 }
 interface VoteForExport {
@@ -1817,6 +2003,7 @@ async function generateBonusTokens(session: {
 
 type HostCurrentQuestionSession = {
   id: string;
+  code: string;
   status: string;
   currentQuestion: number | null;
   currentRound: number;
@@ -1837,6 +2024,13 @@ type HostCurrentQuestionSession = {
       ratingMax: number | null;
       ratingLabelMin: string | null;
       ratingLabelMax: string | null;
+      shortTextMaxLength: number | null;
+      shortTextCaseSensitive: boolean;
+      shortTextEvaluationMode: string;
+      shortTextToleranceLevel: string;
+      shortTextAllowPartialCredit: boolean;
+      shortTextTrimWhitespace: boolean;
+      shortTextNormalizeWhitespace: boolean;
       answers: Array<{ id: string; text: string; isCorrect: boolean }>;
     }>;
   } | null;
@@ -1863,7 +2057,7 @@ async function buildHostCurrentQuestionDto(
     order: question.order,
     totalQuestions: questions.length,
     text: question.text,
-    type: question.type as 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'FREETEXT' | 'RATING' | 'SURVEY',
+    type: question.type as QuestionType,
     difficulty: question.difficulty,
     showQuestionTypeIndicators: session.quiz.showQuestionTypeIndicators ?? true,
     timer:
@@ -1880,6 +2074,7 @@ async function buildHostCurrentQuestionDto(
     ratingMax: question.ratingMax ?? null,
     ratingLabelMin: question.ratingLabelMin ?? null,
     ratingLabelMax: question.ratingLabelMax ?? null,
+    ...getShortTextDtoFields(question.type, question),
     currentRound: session.currentRound,
   };
 
@@ -1923,6 +2118,54 @@ async function buildHostCurrentQuestionDto(
       });
       const texts = freeTextVotes.map((v) => v.freeText?.trim()).filter((t): t is string => !!t);
       return { ...base, freeTextResponses: texts, totalVotes: freeTextVotes.length };
+    }
+
+    if (question.type === 'SHORT_TEXT') {
+      const voteSummary = await getVoteSummaryCached(
+        session.code,
+        session.id,
+        question.id,
+        currentRound,
+        question.type as QuestionType,
+        {
+          answers: answersOrdered,
+          ...resolveShortTextQuestionConfig(question),
+        },
+      );
+
+      if (session.status === 'ACTIVE') {
+        return {
+          ...base,
+          totalVotes: voteSummary.totalVotes,
+          correctVoterCount: voteSummary.correctVoteCount,
+          incorrectVoterCount: voteSummary.incorrectVoteCount,
+        };
+      }
+
+      const voteDistribution = answersOrdered.map((answer) => ({
+        id: answer.id,
+        text: answer.text,
+        isCorrect: answer.isCorrect,
+        voteCount: voteSummary.answerVoteCounts[answer.id] ?? 0,
+        votePercentage:
+          voteSummary.totalVotes > 0
+            ? Math.round(
+                ((voteSummary.answerVoteCounts[answer.id] ?? 0) / voteSummary.totalVotes) * 100,
+              )
+            : 0,
+      }));
+
+      return {
+        ...base,
+        totalVotes: voteSummary.totalVotes,
+        correctVoterCount: voteSummary.correctVoteCount,
+        incorrectVoterCount: voteSummary.incorrectVoteCount,
+        incorrectFreeTextResponses:
+          voteSummary.incorrectFreeTextResponses.length > 0
+            ? voteSummary.incorrectFreeTextResponses
+            : undefined,
+        voteDistribution,
+      };
     }
 
     const choiceVotes = await prisma.vote.findMany({
@@ -1999,7 +2242,13 @@ async function fetchHostCurrentQuestion(
   const normalizedCode = code.toUpperCase();
   const session = await prisma.session.findUnique({
     where: { code: normalizedCode },
-    include: {
+    select: {
+      id: true,
+      code: true,
+      status: true,
+      currentQuestion: true,
+      currentRound: true,
+      answerDisplayOrder: true,
       quiz: {
         select: {
           questions: {
@@ -2015,6 +2264,13 @@ async function fetchHostCurrentQuestion(
               ratingMax: true,
               ratingLabelMin: true,
               ratingLabelMax: true,
+              shortTextMaxLength: true,
+              shortTextCaseSensitive: true,
+              shortTextEvaluationMode: true,
+              shortTextToleranceLevel: true,
+              shortTextAllowPartialCredit: true,
+              shortTextTrimWhitespace: true,
+              shortTextNormalizeWhitespace: true,
               answers: { select: { id: true, text: true, isCorrect: true } },
             },
           },
@@ -3467,6 +3723,7 @@ export const sessionRouter = router({
           ratingMax: question.ratingMax ?? null,
           ratingLabelMin: question.ratingLabelMin ?? null,
           ratingLabelMax: question.ratingLabelMax ?? null,
+          ...getShortTextDtoFields(question.type, question),
           ...(participantReady !== undefined ? { participantReady } : {}),
         });
       }
@@ -3484,6 +3741,7 @@ export const sessionRouter = router({
           ratingMax: question.ratingMax ?? null,
           ratingLabelMin: question.ratingLabelMin ?? null,
           ratingLabelMax: question.ratingLabelMax ?? null,
+          ...getShortTextDtoFields(question.type, question),
         });
       }
 
@@ -3517,12 +3775,16 @@ export const sessionRouter = router({
               difficulty: question.difficulty,
               order: question.order,
               totalQuestions,
-              answers: answersOrdered.map((a) => ({ id: a.id, text: a.text })),
+              answers:
+                question.type === 'SHORT_TEXT'
+                  ? []
+                  : answersOrdered.map((a) => ({ id: a.id, text: a.text })),
               activeAt: session.statusChangedAt.toISOString(),
               ratingMin: question.ratingMin ?? null,
               ratingMax: question.ratingMax ?? null,
               ratingLabelMin: question.ratingLabelMin ?? null,
               ratingLabelMax: question.ratingLabelMax ?? null,
+              ...getShortTextDtoFields(question.type, question),
               participantCount: session._count.participants,
               totalVotes,
               currentRound: session.currentRound,
@@ -3543,6 +3805,12 @@ export const sessionRouter = router({
               question.id,
               session.currentRound,
               question.type as QuestionType,
+              question.type === 'SHORT_TEXT'
+                ? {
+                    answers: answersOrdered,
+                    ...resolveShortTextQuestionConfig(question),
+                  }
+                : undefined,
             );
             return QuestionRevealedDTOSchema.parse({
               id: question.id,
@@ -3568,6 +3836,11 @@ export const sessionRouter = router({
                 voteSummary.freeTextResponses.length > 0
                   ? voteSummary.freeTextResponses
                   : undefined,
+              ...getShortTextDtoFields(question.type, question),
+              correctVoterCount:
+                question.type === 'SHORT_TEXT' ? voteSummary.correctVoteCount : undefined,
+              incorrectVoterCount:
+                question.type === 'SHORT_TEXT' ? voteSummary.incorrectVoteCount : undefined,
               totalVotes: voteSummary.totalVotes,
             });
           },
@@ -4661,6 +4934,9 @@ export const sessionRouter = router({
 
           let optionDistribution: OptionDistributionEntry[] | undefined;
           let freetextAggregates: FreetextAggregateEntry[] | undefined;
+          let shortTextIncorrectAggregates: FreetextAggregateEntry[] | undefined;
+          let shortTextCorrectCount: number | undefined;
+          let shortTextIncorrectCount: number | undefined;
           let ratingDistribution: Record<string, number> | undefined;
           let ratingAverage: number | undefined;
           let ratingStandardDeviation: number | undefined;
@@ -4716,6 +4992,60 @@ export const sessionRouter = router({
               }));
               break;
             }
+            case 'SHORT_TEXT': {
+              const rawAnswers = q.answers as Array<{
+                id: string;
+                text: string;
+                isCorrect: boolean;
+              }>;
+              const orderedSolutions = orderAnswersByDisplayMap(
+                rawAnswers,
+                q.id,
+                session.answerDisplayOrder,
+              );
+              const optionCounts = new Map<string, number>();
+              for (const answer of orderedSolutions) {
+                optionCounts.set(answer.id, 0);
+              }
+
+              const incorrectCounts = new Map<string, number>();
+              shortTextCorrectCount = 0;
+              shortTextIncorrectCount = 0;
+              for (const v of votes as VoteForExport[]) {
+                const displayValue = getShortTextDisplayValue(v.freeText ?? '', q);
+                const matchedAnswerId = getShortTextMatchedAnswerId(v.freeText ?? '', {
+                  ...q,
+                  answers: orderedSolutions,
+                });
+
+                if (matchedAnswerId) {
+                  optionCounts.set(matchedAnswerId, (optionCounts.get(matchedAnswerId) ?? 0) + 1);
+                  shortTextCorrectCount += 1;
+                } else {
+                  shortTextIncorrectCount += 1;
+                  if (displayValue) {
+                    incorrectCounts.set(displayValue, (incorrectCounts.get(displayValue) ?? 0) + 1);
+                  }
+                }
+              }
+
+              optionDistribution = orderedSolutions.map((answer) => ({
+                text: answer.text,
+                count: optionCounts.get(answer.id) ?? 0,
+                percentage:
+                  participantCount > 0
+                    ? Math.round(((optionCounts.get(answer.id) ?? 0) / participantCount) * 1000) /
+                      10
+                    : 0,
+                isCorrect: answer.isCorrect,
+              }));
+              shortTextIncorrectAggregates = Array.from(
+                incorrectCounts.entries(),
+                ([text, count]) => ({ text, count }),
+              );
+              freetextAggregates = undefined;
+              break;
+            }
             case 'RATING': {
               const dist: Record<string, number> = {};
               let sum = 0;
@@ -4760,6 +5090,14 @@ export const sessionRouter = router({
             participantCount,
             optionDistribution,
             freetextAggregates,
+            shortTextSolutions:
+              q.type === 'SHORT_TEXT'
+                ? q.answers.filter((answer) => answer.isCorrect).map((answer) => answer.text)
+                : undefined,
+            shortTextIncorrectAggregates:
+              q.type === 'SHORT_TEXT' ? shortTextIncorrectAggregates : undefined,
+            correctCount: q.type === 'SHORT_TEXT' ? shortTextCorrectCount : undefined,
+            incorrectCount: q.type === 'SHORT_TEXT' ? shortTextIncorrectCount : undefined,
             ratingDistribution,
             ratingAverage,
             ratingStandardDeviation,

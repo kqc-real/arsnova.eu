@@ -280,6 +280,83 @@ describe('admin router (Epic 9)', () => {
     );
   });
 
+  it('exportiert SHORT_TEXT-Konfiguration im Quiz-JSON', async () => {
+    const caller = adminRouter.createCaller({ req: {} as never });
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: SESSION_CODE,
+      status: 'FINISHED',
+      type: 'QUIZ',
+      endedAt: new Date('2026-03-14T09:00:00.000Z'),
+      legalHoldUntil: null,
+      legalHoldReason: null,
+      quiz: {
+        name: 'Kurzantwort Export',
+        description: null,
+        motifImageUrl: null,
+        showLeaderboard: true,
+        allowCustomNicknames: true,
+        defaultTimer: 30,
+        enableSoundEffects: true,
+        enableRewardEffects: true,
+        enableMotivationMessages: true,
+        enableEmojiReactions: true,
+        showQuestionTypeIndicators: true,
+        anonymousMode: false,
+        teamMode: false,
+        teamCount: null,
+        teamAssignment: 'AUTO',
+        teamNames: [],
+        backgroundMusic: null,
+        nicknameTheme: 'NOBEL_LAUREATES',
+        bonusTokenCount: null,
+        readingPhaseEnabled: true,
+        preset: 'PLAYFUL',
+        questions: [
+          {
+            text: 'Wer schrieb den ersten Algorithmus?',
+            type: 'SHORT_TEXT',
+            timer: null,
+            difficulty: 'MEDIUM',
+            order: 0,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            shortTextMaxLength: 40,
+            shortTextCaseSensitive: false,
+            answers: [
+              { text: 'Ada Lovelace', isCorrect: true },
+              { text: 'Ada', isCorrect: true },
+            ],
+          },
+        ],
+      },
+    });
+    prismaMock.adminAuditLog.create.mockResolvedValue({});
+
+    const result = await caller.exportSessionAsQuizImport({
+      sessionId: SESSION_ID,
+    });
+
+    const payloadRaw = Buffer.from(result.contentBase64, 'base64').toString('utf8');
+    const payload = JSON.parse(payloadRaw) as {
+      quiz: {
+        questions: Array<{
+          type: string;
+          shortTextMaxLength?: number;
+          shortTextCaseSensitive?: boolean;
+        }>;
+      };
+    };
+
+    expect(payload.quiz.questions[0]).toMatchObject({
+      type: 'SHORT_TEXT',
+      shortTextMaxLength: 40,
+      shortTextCaseSensitive: false,
+    });
+  });
+
   it('listet Sessions nach Statuspriorität und letzter Aktivität', async () => {
     const caller = adminRouter.createCaller({ req: {} as never });
     prismaMock.session.findMany.mockResolvedValue([

@@ -9,6 +9,8 @@ export function questionTypeLabel(type: QuestionType): string {
       return $localize`:@@quizPreview.typeMultipleChoice:Multiple Choice`;
     case 'FREETEXT':
       return $localize`:@@quizPreview.typeFreeText:Freitext`;
+    case 'SHORT_TEXT':
+      return $localize`:@@quizPreview.typeShortText:Kurzantwort`;
     case 'SURVEY':
       return $localize`:@@quizPreview.typeSurvey:Umfrage`;
     case 'RATING':

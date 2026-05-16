@@ -1,6 +1,6 @@
 {
-  "exportVersion": 21,
-  "exportedAt": "2026-04-24T14:30:00.000Z",
+  "exportVersion": 22,
+  "exportedAt": "2026-05-16T09:15:00.000Z",
   "quiz": {
     "name": "Showcase pédagogique : démo en équipe",
     "description": "![Showcase pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase pédagogique\n\nCette démo est pensée pour un **usage réel en classe**. Elle n’essaie pas d’être un quiz disciplinaire parfait du début à la fin. Son rôle est ailleurs : montrer aux enseignant·es, formateur·rices et animateur·rices comment arsnova.eu peut rendre une séance en direct plus variée, plus visuelle et plus ludique.\n\nUtilise-la comme une courte **démo en équipe, façon Kahoot, pour les cours en direct** afin de montrer comment tu peux :\n- démarrer avec un rapide tour d’humeur ou un check-in social\n- utiliser des images plutôt que des consignes purement textuelles\n- intégrer des formules et de la notation scientifique en STEM\n- recueillir de courtes réponses en texte libre qui réapparaîtront ensuite sous forme de nuage de mots\n- utiliser à bon escient les choix multiples et les échelles d’évaluation\n- ajouter de l’énergie avec des chronos, des équipes, un classement et des codes bonus\n- afficher des extraits de code en informatique ou dans des cours techniques\n\nLes questions sont volontairement variées. L’idée est de te donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.\n\n**Conseil pour la démo :** Rejoins la session sur un deuxième appareil, idéalement en scannant le QR code avec ton téléphone. Tu pourras ainsi rejouer de façon réaliste l’aller-retour entre la vue hôte et l’expérience participante.\n\n**Autre conseil :** Ouvre ensuite le quiz en mode édition pour voir comment les questions sont construites avec Markdown et KaTeX.\n\n**Et encore une chose :** Si tu souhaites d’autres formats de questions ou fonctionnalités, n’hésite pas à les demander. Les coordonnées figurent dans les mentions légales.",
@@ -151,11 +151,39 @@
         ]
       },
       {
+        "text": "### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?\n\n> **Usage pédagogique :** Utilise cela comme question de rappel d’un terme spécialisé pour montrer la tolérance aux petites fautes de frappe et les points partiels en réponse courte.\n\nOn cherche le terme didactique établi pour cette séquence.",
+        "type": "SHORT_TEXT",
+        "timer": null,
+        "difficulty": "HARD",
+        "order": 6,
+        "answers": [
+          {
+            "text": "Peer Instruction",
+            "isCorrect": true
+          },
+          {
+            "text": "instruction par les pairs",
+            "isCorrect": true
+          },
+          {
+            "text": "méthode Mazur",
+            "isCorrect": true
+          }
+        ],
+        "shortTextMaxLength": 32,
+        "shortTextCaseSensitive": false,
+        "shortTextEvaluationMode": "auto",
+        "shortTextToleranceLevel": "medium",
+        "shortTextAllowPartialCredit": true,
+        "shortTextTrimWhitespace": true,
+        "shortTextNormalizeWhitespace": true
+      },
+      {
         "text": "### Quelle est la probabilité que tu essaies bientôt un quiz en direct comme celui-ci dans l’un de tes cours ?\n\n> **Usage pédagogique :** Utilise cela comme prise de température, ticket de sortie ou auto-évaluation rapide.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",
-        "order": 6,
+        "order": 7,
         "answers": [],
         "ratingMin": 1,
         "ratingMax": 5,

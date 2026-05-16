@@ -8,6 +8,7 @@ export const QuestionTypeEnum = z.enum([
   'MULTIPLE_CHOICE',
   'SINGLE_CHOICE',
   'FREETEXT',
+  'SHORT_TEXT',
   'SURVEY',
   'RATING',
 ]);
@@ -86,6 +87,369 @@ export const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {
 
 /** Maximale Basispunkte pro Frage (vor Multiplikator) */
 export const MAX_BASE_POINTS = 1000;
+
+/** Standard- und Obergrenzen für bewertbare Kurzantworten (Story 1.2e). */
+export const SHORT_TEXT_DEFAULT_MAX_LENGTH = 120;
+export const SHORT_TEXT_MAX_LENGTH_LIMIT = 500;
+
+export const ShortAnswerEvaluationModeEnum = z.enum(['exact', 'hamming', 'levenshtein', 'auto']);
+export type ShortAnswerEvaluationMode = z.infer<typeof ShortAnswerEvaluationModeEnum>;
+
+export const ToleranceLevelEnum = z.enum(['none', 'low', 'medium', 'high']);
+export type ToleranceLevel = z.infer<typeof ToleranceLevelEnum>;
+
+export const SHORT_TEXT_DEFAULT_EVALUATION_MODE: ShortAnswerEvaluationMode = 'auto';
+export const SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL: ToleranceLevel = 'low';
+export const SHORT_TEXT_TOLERANCE_THRESHOLDS: Record<ToleranceLevel, number> = {
+  none: 0,
+  low: 0.1,
+  medium: 0.2,
+  high: 0.3,
+};
+
+type ShortTextNormalizationOptions = {
+  caseSensitive?: boolean;
+  maxLength?: number | null;
+  trimWhitespace?: boolean;
+  normalizeWhitespace?: boolean;
+};
+
+export type ShortTextEvaluationOptions = ShortTextNormalizationOptions & {
+  evaluationMode?: ShortAnswerEvaluationMode;
+  toleranceLevel?: ToleranceLevel;
+  allowPartialCredit?: boolean;
+};
+
+export const ShortAnswerEvaluationSettingsSchema = z.object({
+  evaluationMode: ShortAnswerEvaluationModeEnum.default(SHORT_TEXT_DEFAULT_EVALUATION_MODE),
+  toleranceLevel: ToleranceLevelEnum.default(SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL),
+  allowPartialCredit: z.boolean().default(true),
+  caseSensitive: z.boolean().default(false),
+  trimWhitespace: z.boolean().default(true),
+  normalizeWhitespace: z.boolean().default(true),
+});
+export type ShortAnswerEvaluationSettings = z.infer<typeof ShortAnswerEvaluationSettingsSchema>;
+
+export const DEFAULT_SHORT_ANSWER_EVALUATION_SETTINGS: ShortAnswerEvaluationSettings = {
+  evaluationMode: SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+  toleranceLevel: SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+  allowPartialCredit: true,
+  caseSensitive: false,
+  trimWhitespace: true,
+  normalizeWhitespace: true,
+};
+
+type ShortAnswerEvaluationMethod = 'exact' | 'hamming' | 'levenshtein' | 'none';
+type ShortAnswerFeedbackCategory = 'exact_match' | 'minor_typo' | 'partial_match' | 'no_match';
+
+export interface EvaluateShortAnswerInput {
+  modelAnswers: string[];
+  studentAnswer: string;
+  maxPoints: number;
+  settings?: ShortTextEvaluationOptions | null;
+  maxLength?: number | null;
+}
+
+export interface EvaluateShortAnswerResult {
+  points: number;
+  maxPoints: number;
+  matchedModelAnswer: string | null;
+  distance: number | null;
+  normalizedDistance: number | null;
+  similarity: number | null;
+  evaluationMethod: ShortAnswerEvaluationMethod;
+  feedbackCategory: ShortAnswerFeedbackCategory;
+}
+
+const SHORT_TEXT_DISTANCE_BANDS = [
+  { maxDistance: 0.1, minRatio: 0.9, maxRatio: 1.0 },
+  { maxDistance: 0.2, minRatio: 0.7, maxRatio: 0.8 },
+  { maxDistance: 0.3, minRatio: 0.4, maxRatio: 0.6 },
+] as const;
+
+export function resolveShortAnswerEvaluationSettings(
+  options?: ShortTextEvaluationOptions | null,
+): ShortAnswerEvaluationSettings {
+  return {
+    evaluationMode: options?.evaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+    toleranceLevel: options?.toleranceLevel ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+    allowPartialCredit: options?.allowPartialCredit ?? true,
+    caseSensitive: options?.caseSensitive ?? false,
+    trimWhitespace: options?.trimWhitespace ?? true,
+    normalizeWhitespace: options?.normalizeWhitespace ?? true,
+  };
+}
+
+export function resolveShortTextMaxLength(maxLength: number | null | undefined): number {
+  if (typeof maxLength !== 'number' || !Number.isFinite(maxLength) || maxLength < 1) {
+    return SHORT_TEXT_DEFAULT_MAX_LENGTH;
+  }
+
+  return Math.min(Math.trunc(maxLength), SHORT_TEXT_MAX_LENGTH_LIMIT);
+}
+
+export function normalizeShortTextValue(
+  value: string,
+  options?: ShortTextNormalizationOptions,
+): string {
+  const trimWhitespace = options?.trimWhitespace ?? true;
+  const normalizeWhitespace = options?.normalizeWhitespace ?? true;
+
+  let normalizedValue = trimWhitespace ? value.trim() : value;
+  if (normalizeWhitespace) {
+    normalizedValue = normalizedValue.replace(/\s+/g, ' ');
+  }
+
+  if (!normalizedValue.trim()) {
+    return '';
+  }
+
+  return options?.caseSensitive ? normalizedValue : normalizedValue.toLowerCase();
+}
+
+export function calculateHammingDistance(
+  modelAnswer: string,
+  studentAnswer: string,
+): number | null {
+  if (modelAnswer.length !== studentAnswer.length) {
+    return null;
+  }
+
+  let distance = 0;
+  for (let index = 0; index < modelAnswer.length; index += 1) {
+    if (modelAnswer[index] !== studentAnswer[index]) {
+      distance += 1;
+    }
+  }
+
+  return distance;
+}
+
+export function calculateLevenshteinDistance(modelAnswer: string, studentAnswer: string): number {
+  if (modelAnswer === studentAnswer) {
+    return 0;
+  }
+  if (!modelAnswer.length) {
+    return studentAnswer.length;
+  }
+  if (!studentAnswer.length) {
+    return modelAnswer.length;
+  }
+
+  const previousRow = Array.from({ length: studentAnswer.length + 1 }, (_, index) => index);
+
+  for (let modelIndex = 0; modelIndex < modelAnswer.length; modelIndex += 1) {
+    let previousDiagonal = previousRow[0];
+    previousRow[0] = modelIndex + 1;
+
+    for (let studentIndex = 0; studentIndex < studentAnswer.length; studentIndex += 1) {
+      const originalValue = previousRow[studentIndex + 1];
+      const substitutionCost = modelAnswer[modelIndex] === studentAnswer[studentIndex] ? 0 : 1;
+
+      previousRow[studentIndex + 1] = Math.min(
+        previousRow[studentIndex + 1] + 1,
+        previousRow[studentIndex] + 1,
+        previousDiagonal + substitutionCost,
+      );
+
+      previousDiagonal = originalValue;
+    }
+  }
+
+  return previousRow[studentAnswer.length];
+}
+
+function createZeroShortAnswerResult(maxPoints: number): EvaluateShortAnswerResult {
+  return {
+    points: 0,
+    maxPoints,
+    matchedModelAnswer: null,
+    distance: null,
+    normalizedDistance: null,
+    similarity: null,
+    evaluationMethod: 'none',
+    feedbackCategory: 'no_match',
+  };
+}
+
+function resolveShortAnswerEvaluationMethod(
+  modelAnswer: string,
+  studentAnswer: string,
+  evaluationMode: ShortAnswerEvaluationMode,
+): ShortAnswerEvaluationMethod {
+  switch (evaluationMode) {
+    case 'exact':
+      return 'exact';
+    case 'hamming':
+      return modelAnswer.length === studentAnswer.length ? 'hamming' : 'none';
+    case 'levenshtein':
+      return 'levenshtein';
+    case 'auto':
+      return modelAnswer.length === studentAnswer.length ? 'hamming' : 'levenshtein';
+  }
+}
+
+function calculateShortAnswerPoints(
+  maxPoints: number,
+  normalizedDistance: number,
+  threshold: number,
+  allowPartialCredit: boolean,
+): number {
+  if (maxPoints <= 0) {
+    return 0;
+  }
+
+  if (normalizedDistance === 0) {
+    return Math.round(maxPoints);
+  }
+
+  if (normalizedDistance > threshold) {
+    return 0;
+  }
+
+  if (!allowPartialCredit) {
+    return Math.round(maxPoints);
+  }
+
+  const band = SHORT_TEXT_DISTANCE_BANDS.find(
+    (candidate) => normalizedDistance <= candidate.maxDistance,
+  );
+  if (!band) {
+    return 0;
+  }
+
+  const lowerBand = SHORT_TEXT_DISTANCE_BANDS[SHORT_TEXT_DISTANCE_BANDS.indexOf(band) - 1] ?? null;
+  const lowerDistance = lowerBand?.maxDistance ?? 0;
+  const progress =
+    band.maxDistance === lowerDistance
+      ? 1
+      : (normalizedDistance - lowerDistance) / (band.maxDistance - lowerDistance);
+  const ratio = band.maxRatio - (band.maxRatio - band.minRatio) * progress;
+
+  return Math.max(0, Math.min(Math.round(maxPoints * ratio), Math.round(maxPoints)));
+}
+
+export function evaluateShortAnswer(input: EvaluateShortAnswerInput): EvaluateShortAnswerResult {
+  const maxPoints = Math.max(0, input.maxPoints);
+  const settings = resolveShortAnswerEvaluationSettings(input.settings);
+  const normalizationOptions: ShortTextNormalizationOptions = {
+    caseSensitive: settings.caseSensitive,
+    maxLength: input.maxLength,
+    trimWhitespace: settings.trimWhitespace,
+    normalizeWhitespace: settings.normalizeWhitespace,
+  };
+  const normalizedStudentAnswer = normalizeShortTextValue(
+    input.studentAnswer,
+    normalizationOptions,
+  );
+
+  if (!normalizedStudentAnswer) {
+    return createZeroShortAnswerResult(maxPoints);
+  }
+
+  const maxLength =
+    typeof input.maxLength === 'number' ? resolveShortTextMaxLength(input.maxLength) : null;
+  if (maxLength !== null && normalizedStudentAnswer.length > maxLength) {
+    return createZeroShortAnswerResult(maxPoints);
+  }
+
+  let bestResult = createZeroShortAnswerResult(maxPoints);
+
+  for (const modelAnswer of input.modelAnswers) {
+    const normalizedModelAnswer = normalizeShortTextValue(modelAnswer, normalizationOptions);
+    if (!normalizedModelAnswer) {
+      continue;
+    }
+
+    const evaluationMethod = resolveShortAnswerEvaluationMethod(
+      normalizedModelAnswer,
+      normalizedStudentAnswer,
+      settings.evaluationMode,
+    );
+
+    let distance: number | null = null;
+    let normalizedDistance: number | null = null;
+
+    switch (evaluationMethod) {
+      case 'exact':
+        distance = normalizedModelAnswer === normalizedStudentAnswer ? 0 : 1;
+        normalizedDistance = distance;
+        break;
+      case 'hamming':
+        distance = calculateHammingDistance(normalizedModelAnswer, normalizedStudentAnswer);
+        normalizedDistance =
+          distance === null ? null : distance / Math.max(normalizedModelAnswer.length, 1);
+        break;
+      case 'levenshtein':
+        distance = calculateLevenshteinDistance(normalizedModelAnswer, normalizedStudentAnswer);
+        normalizedDistance =
+          distance / Math.max(normalizedModelAnswer.length, normalizedStudentAnswer.length, 1);
+        break;
+      case 'none':
+        break;
+    }
+
+    if (normalizedDistance === null) {
+      continue;
+    }
+
+    const threshold =
+      evaluationMethod === 'exact' ? 0 : SHORT_TEXT_TOLERANCE_THRESHOLDS[settings.toleranceLevel];
+    const similarity = Math.max(0, 1 - normalizedDistance);
+    const points = calculateShortAnswerPoints(
+      maxPoints,
+      normalizedDistance,
+      threshold,
+      settings.allowPartialCredit,
+    );
+    const feedbackCategory: ShortAnswerFeedbackCategory =
+      points <= 0
+        ? 'no_match'
+        : normalizedDistance === 0
+          ? 'exact_match'
+          : normalizedDistance <= 0.1
+            ? 'minor_typo'
+            : 'partial_match';
+
+    const result: EvaluateShortAnswerResult = {
+      points,
+      maxPoints,
+      matchedModelAnswer: modelAnswer,
+      distance,
+      normalizedDistance,
+      similarity,
+      evaluationMethod,
+      feedbackCategory,
+    };
+
+    if (
+      result.points > bestResult.points ||
+      (result.points === bestResult.points &&
+        (result.normalizedDistance ?? Number.POSITIVE_INFINITY) <
+          (bestResult.normalizedDistance ?? Number.POSITIVE_INFINITY))
+    ) {
+      bestResult = result;
+    }
+  }
+
+  return bestResult;
+}
+
+export function isShortTextCorrect(
+  value: string,
+  solutions: readonly string[],
+  options?: ShortTextEvaluationOptions,
+): boolean {
+  return (
+    evaluateShortAnswer({
+      modelAnswers: [...solutions],
+      studentAnswer: value,
+      maxPoints: 1,
+      maxLength: options?.maxLength,
+      settings: options,
+    }).points > 0
+  );
+}
 
 /** Streak-Multiplikatoren für aufeinanderfolgende richtige Antworten (Story 5.5) */
 export const STREAK_MULTIPLIER: Record<number, number> = {
@@ -234,19 +598,101 @@ export const AnswerOptionInputSchema = z.object({
 export type AnswerOptionInput = z.infer<typeof AnswerOptionInputSchema>;
 
 /** Schema für das Hinzufügen/Bearbeiten einer Frage (Story 1.2a, 1.2b, 1.3) */
-export const AddQuestionInputSchema = z.object({
-  text: z.string().min(1, { error: 'Fragenstamm darf nicht leer sein' }).max(2000),
-  type: QuestionTypeEnum,
-  timer: z.number().int().min(5).max(300).nullable().optional(),
-  difficulty: DifficultyEnum.optional().default('MEDIUM'),
-  order: z.number().int().min(0),
-  answers: z.array(AnswerOptionInputSchema).max(10),
-  skipReadingPhase: z.boolean().optional(),
-  ratingMin: z.number().int().min(0).max(10).optional(), // Nur bei RATING
-  ratingMax: z.number().int().min(1).max(10).optional(), // Nur bei RATING
-  ratingLabelMin: z.string().max(50).optional(), // Nur bei RATING
-  ratingLabelMax: z.string().max(50).optional(), // Nur bei RATING
-});
+export const AddQuestionInputSchema = z
+  .object({
+    text: z.string().min(1, { error: 'Fragenstamm darf nicht leer sein' }).max(2000),
+    type: QuestionTypeEnum,
+    timer: z.number().int().min(5).max(300).nullable().optional(),
+    difficulty: DifficultyEnum.optional().default('MEDIUM'),
+    order: z.number().int().min(0),
+    // Bei SHORT_TEXT werden hier die gültigen Musterlösungen/Varianten gespeichert.
+    answers: z.array(AnswerOptionInputSchema).max(10),
+    skipReadingPhase: z.boolean().optional(),
+    ratingMin: z.number().int().min(0).max(10).optional(), // Nur bei RATING
+    ratingMax: z.number().int().min(1).max(10).optional(), // Nur bei RATING
+    ratingLabelMin: z.string().max(50).optional(), // Nur bei RATING
+    ratingLabelMax: z.string().max(50).optional(), // Nur bei RATING
+    shortTextMaxLength: z.number().int().min(1).max(SHORT_TEXT_MAX_LENGTH_LIMIT).optional(),
+    shortTextCaseSensitive: z.boolean().optional(),
+    shortTextEvaluationMode: ShortAnswerEvaluationModeEnum.optional(),
+    shortTextToleranceLevel: ToleranceLevelEnum.optional(),
+    shortTextAllowPartialCredit: z.boolean().optional(),
+    shortTextTrimWhitespace: z.boolean().optional(),
+    shortTextNormalizeWhitespace: z.boolean().optional(),
+  })
+  .superRefine((value, ctx) => {
+    const hasShortTextConfig =
+      value.shortTextMaxLength !== undefined ||
+      value.shortTextCaseSensitive !== undefined ||
+      value.shortTextEvaluationMode !== undefined ||
+      value.shortTextToleranceLevel !== undefined ||
+      value.shortTextAllowPartialCredit !== undefined ||
+      value.shortTextTrimWhitespace !== undefined ||
+      value.shortTextNormalizeWhitespace !== undefined;
+
+    if (value.type !== 'SHORT_TEXT') {
+      if (hasShortTextConfig) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['shortTextMaxLength'],
+          message: 'Kurzantwort-Konfiguration ist nur für SHORT_TEXT erlaubt.',
+        });
+      }
+      return;
+    }
+
+    if (value.answers.length < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['answers'],
+        message: 'Kurzantwort-Fragen benötigen mindestens eine Musterlösung.',
+      });
+    }
+
+    const maxLength = resolveShortTextMaxLength(value.shortTextMaxLength);
+    const seenSolutions = new Set<string>();
+    for (const [index, answer] of value.answers.entries()) {
+      if (!answer.isCorrect) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['answers', index, 'isCorrect'],
+          message: 'Kurzantwort-Musterlösungen müssen als gültige Lösung markiert sein.',
+        });
+      }
+
+      const normalizedAnswer = normalizeShortTextValue(answer.text, {
+        caseSensitive: value.shortTextCaseSensitive,
+        trimWhitespace: value.shortTextTrimWhitespace,
+        normalizeWhitespace: value.shortTextNormalizeWhitespace,
+      });
+
+      if (!normalizedAnswer) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['answers', index, 'text'],
+          message: 'Kurzantwort-Musterlösungen dürfen nicht leer sein.',
+        });
+      }
+
+      if (normalizedAnswer.length > maxLength) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['answers', index, 'text'],
+          message:
+            'Kurzantwort-Musterlösungen dürfen die maximale Antwortlänge nicht überschreiten.',
+        });
+      }
+
+      if (seenSolutions.has(normalizedAnswer)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['answers', index, 'text'],
+          message: 'Kurzantwort-Musterlösungen müssen nach Normalisierung eindeutig sein.',
+        });
+      }
+      seenSolutions.add(normalizedAnswer);
+    }
+  });
 export type AddQuestionInput = z.infer<typeof AddQuestionInputSchema>;
 
 /** Schema für den Quiz-Upload beim Live-Schalten (Story 2.1a) */
@@ -332,6 +778,13 @@ type QuizHistoryAccessMaterial = {
     ratingMax: number | null;
     ratingLabelMin: string | null;
     ratingLabelMax: string | null;
+    shortTextMaxLength: number | null;
+    shortTextCaseSensitive: boolean;
+    shortTextEvaluationMode: ShortAnswerEvaluationMode;
+    shortTextToleranceLevel: ToleranceLevel;
+    shortTextAllowPartialCredit: boolean;
+    shortTextTrimWhitespace: boolean;
+    shortTextNormalizeWhitespace: boolean;
     answers: Array<{
       text: string;
       isCorrect: boolean;
@@ -383,6 +836,26 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
         ratingMax: question.ratingMax ?? null,
         ratingLabelMin: question.ratingLabelMin ?? null,
         ratingLabelMax: question.ratingLabelMax ?? null,
+        shortTextMaxLength:
+          question.type === 'SHORT_TEXT'
+            ? resolveShortTextMaxLength(question.shortTextMaxLength)
+            : null,
+        shortTextCaseSensitive:
+          question.type === 'SHORT_TEXT' ? (question.shortTextCaseSensitive ?? false) : false,
+        shortTextEvaluationMode:
+          question.type === 'SHORT_TEXT'
+            ? (question.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE)
+            : SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+        shortTextToleranceLevel:
+          question.type === 'SHORT_TEXT'
+            ? (question.shortTextToleranceLevel ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL)
+            : SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+        shortTextAllowPartialCredit:
+          question.type === 'SHORT_TEXT' ? (question.shortTextAllowPartialCredit ?? true) : true,
+        shortTextTrimWhitespace:
+          question.type === 'SHORT_TEXT' ? (question.shortTextTrimWhitespace ?? true) : true,
+        shortTextNormalizeWhitespace:
+          question.type === 'SHORT_TEXT' ? (question.shortTextNormalizeWhitespace ?? true) : true,
         answers: [...question.answers]
           .map((answer) => ({ text: answer.text, isCorrect: answer.isCorrect }))
           .sort(
@@ -630,10 +1103,24 @@ export const HostCurrentQuestionDTOSchema = z.object({
   ratingMax: z.number().nullable().optional(),
   ratingLabelMin: z.string().nullable().optional(),
   ratingLabelMax: z.string().nullable().optional(),
+  shortTextMaxLength: z
+    .number()
+    .int()
+    .min(1)
+    .max(SHORT_TEXT_MAX_LENGTH_LIMIT)
+    .nullable()
+    .optional(),
+  shortTextCaseSensitive: z.boolean().optional(),
+  shortTextEvaluationMode: ShortAnswerEvaluationModeEnum.optional(),
+  shortTextToleranceLevel: ToleranceLevelEnum.optional(),
+  shortTextAllowPartialCredit: z.boolean().optional(),
+  shortTextTrimWhitespace: z.boolean().optional(),
+  shortTextNormalizeWhitespace: z.boolean().optional(),
   ratingAvg: z.number().nullable().optional(),
   ratingCount: z.number().int().optional(),
   ratingDistribution: z.record(z.string(), z.number()).optional(),
   freeTextResponses: z.array(z.string()).optional(),
+  incorrectFreeTextResponses: z.array(z.string()).optional(),
   voteDistribution: z
     .array(
       z.object({
@@ -647,6 +1134,7 @@ export const HostCurrentQuestionDTOSchema = z.object({
     .optional(),
   totalVotes: z.number().int().optional(),
   correctVoterCount: z.number().int().optional(),
+  incorrectVoterCount: z.number().int().optional(),
   peerInstructionSuggestion: PeerInstructionSuggestionDTOSchema.optional(),
   currentRound: z.number().int().min(1).max(2).optional(),
   roundComparison: RoundComparisonDTOSchema.optional(),
@@ -672,7 +1160,7 @@ export const SubmitVoteInputSchema = z.object({
   participantId: z.uuid(), // Vom Join-Response (Story 0.5: Rate-Limit pro Participant)
   questionId: z.uuid(),
   answerIds: z.array(z.uuid()).optional(), // MC: mehrere, SC: eine, FREETEXT/RATING: keine
-  freeText: z.string().max(500).optional(),
+  freeText: z.string().max(SHORT_TEXT_MAX_LENGTH_LIMIT).optional(),
   ratingValue: z.number().int().min(0).max(10).optional(), // Nur bei RATING
   responseTimeMs: z.number().int().min(0).optional(), // Antwortzeit in ms
   round: z.number().int().min(1).max(2).optional().default(1), // Story 2.7: Peer Instruction Runde
@@ -727,6 +1215,22 @@ export const QuestionRevealedDTOSchema = z.object({
   totalQuestions: z.number().int().min(1).optional(),
   answers: z.array(AnswerOptionRevealedDTOSchema),
   freeTextResponses: z.array(z.string()).optional(), // Nur bei FREETEXT-Fragen
+  incorrectFreeTextResponses: z.array(z.string()).optional(),
+  shortTextMaxLength: z
+    .number()
+    .int()
+    .min(1)
+    .max(SHORT_TEXT_MAX_LENGTH_LIMIT)
+    .nullable()
+    .optional(),
+  shortTextCaseSensitive: z.boolean().optional(),
+  shortTextEvaluationMode: ShortAnswerEvaluationModeEnum.optional(),
+  shortTextToleranceLevel: ToleranceLevelEnum.optional(),
+  shortTextAllowPartialCredit: z.boolean().optional(),
+  shortTextTrimWhitespace: z.boolean().optional(),
+  shortTextNormalizeWhitespace: z.boolean().optional(),
+  correctVoterCount: z.number().int().optional(),
+  incorrectVoterCount: z.number().int().optional(),
   totalVotes: z.number(),
 });
 export type QuestionRevealedDTO = z.infer<typeof QuestionRevealedDTOSchema>;
@@ -748,6 +1252,19 @@ export const QuestionStudentDTOSchema = z.object({
   ratingMax: z.number().nullable().optional(),
   ratingLabelMin: z.string().nullable().optional(),
   ratingLabelMax: z.string().nullable().optional(),
+  shortTextMaxLength: z
+    .number()
+    .int()
+    .min(1)
+    .max(SHORT_TEXT_MAX_LENGTH_LIMIT)
+    .nullable()
+    .optional(),
+  shortTextCaseSensitive: z.boolean().optional(),
+  shortTextEvaluationMode: ShortAnswerEvaluationModeEnum.optional(),
+  shortTextToleranceLevel: ToleranceLevelEnum.optional(),
+  shortTextAllowPartialCredit: z.boolean().optional(),
+  shortTextTrimWhitespace: z.boolean().optional(),
+  shortTextNormalizeWhitespace: z.boolean().optional(),
   participantCount: z.number().int().min(0).optional(),
   totalVotes: z.number().int().min(0).optional(),
   currentRound: z.number().int().min(1).max(2).optional(),
@@ -772,6 +1289,19 @@ export const QuestionPreviewDTOSchema = z.object({
   ratingMax: z.number().nullable().optional(), // Nur bei RATING
   ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING
   ratingLabelMax: z.string().nullable().optional(), // Nur bei RATING
+  shortTextMaxLength: z
+    .number()
+    .int()
+    .min(1)
+    .max(SHORT_TEXT_MAX_LENGTH_LIMIT)
+    .nullable()
+    .optional(),
+  shortTextCaseSensitive: z.boolean().optional(),
+  shortTextEvaluationMode: ShortAnswerEvaluationModeEnum.optional(),
+  shortTextToleranceLevel: ToleranceLevelEnum.optional(),
+  shortTextAllowPartialCredit: z.boolean().optional(),
+  shortTextTrimWhitespace: z.boolean().optional(),
+  shortTextNormalizeWhitespace: z.boolean().optional(),
   participantReady: z.boolean().optional(),
 });
 export type QuestionPreviewDTO = z.infer<typeof QuestionPreviewDTOSchema>;
@@ -1153,6 +1683,19 @@ const ExportedQuestionSchema = z.object({
   ratingMax: z.number().nullable().optional(), // Nur bei RATING
   ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING
   ratingLabelMax: z.string().nullable().optional(), // Nur bei RATING
+  shortTextMaxLength: z
+    .number()
+    .int()
+    .min(1)
+    .max(SHORT_TEXT_MAX_LENGTH_LIMIT)
+    .nullable()
+    .optional(),
+  shortTextCaseSensitive: z.boolean().optional(),
+  shortTextEvaluationMode: ShortAnswerEvaluationModeEnum.optional(),
+  shortTextToleranceLevel: ToleranceLevelEnum.optional(),
+  shortTextAllowPartialCredit: z.boolean().optional(),
+  shortTextTrimWhitespace: z.boolean().optional(),
+  shortTextNormalizeWhitespace: z.boolean().optional(),
   /** false = in lokaler Bibliothek behalten, aber nicht in Live/Vorschau */
   enabled: z.boolean().optional().default(true),
 });
@@ -1382,6 +1925,10 @@ export const QuestionExportEntrySchema = z.object({
   participantCount: z.number(), // Anzahl abgegebener Votes für diese Frage
   optionDistribution: z.array(OptionDistributionEntrySchema).optional(), // MC/SC
   freetextAggregates: z.array(FreetextAggregateEntrySchema).optional(), // FREETEXT
+  shortTextSolutions: z.array(z.string()).optional(), // SHORT_TEXT
+  shortTextIncorrectAggregates: z.array(FreetextAggregateEntrySchema).optional(), // SHORT_TEXT
+  correctCount: z.number().optional(), // SHORT_TEXT
+  incorrectCount: z.number().optional(), // SHORT_TEXT
   ratingDistribution: z.record(z.string(), z.number()).optional(), // RATING: "1" -> 5, "2" -> 12
   ratingAverage: z.number().optional(),
   ratingStandardDeviation: z.number().optional(),

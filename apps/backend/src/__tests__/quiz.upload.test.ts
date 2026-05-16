@@ -67,6 +67,50 @@ describe('quiz.upload (Story 2.1a)', () => {
     expect(createCall.data.timerScaleByDifficulty).toBe(true);
   });
 
+  it('speichert SHORT_TEXT-Konfiguration und Musterlösungen', async () => {
+    const input = {
+      name: 'Kurzantwort-Quiz',
+      showLeaderboard: true,
+      allowCustomNicknames: true,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'NOBEL_LAUREATES' as const,
+      questions: [
+        {
+          text: 'Wer schrieb den ersten Algorithmus?',
+          type: 'SHORT_TEXT' as const,
+          difficulty: 'MEDIUM' as const,
+          order: 0,
+          shortTextMaxLength: 40,
+          shortTextCaseSensitive: false,
+          answers: [
+            { text: 'Ada Lovelace', isCorrect: true },
+            { text: 'Ada', isCorrect: true },
+          ],
+        },
+      ],
+    };
+
+    await caller.upload(input);
+
+    expect(prismaMock.quiz.create.mock.calls[0]![0].data.questions.create[0]).toMatchObject({
+      type: 'SHORT_TEXT',
+      shortTextMaxLength: 40,
+      shortTextCaseSensitive: false,
+      answers: {
+        create: [
+          { text: 'Ada Lovelace', isCorrect: true },
+          { text: 'Ada', isCorrect: true },
+        ],
+      },
+    });
+  });
+
   it('speichert nicknameTheme KINDERGARTEN', async () => {
     const input = {
       name: 'Kita',

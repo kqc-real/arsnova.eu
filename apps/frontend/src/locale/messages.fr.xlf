@@ -5513,6 +5513,212 @@
           <context context-type="linenumber">766,768</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizEdit.shortTextConfigLegend" datatype="html">
+        <source>Tippfehler und Schreibvarianten</source>
+        <target>Fautes de frappe et variantes d&apos;orthographe</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">659</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextConfigHint" datatype="html">
+        <source>Lege fest, wie tolerant Kurzantworten bewertet werden und wann kleine Abweichungen noch zählen.</source>
+        <target>Définissez le niveau de tolérance des réponses courtes et quand de petits écarts comptent encore.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">662</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextMaxLengthFieldLabel" datatype="html">
+        <source>Maximale Antwortlänge</source>
+        <target>Longueur maximale de la réponse</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">668</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextMaxLengthHint" datatype="html">
+        <source>1 bis 500 Zeichen</source>
+        <target>1 à 500 caractères</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">678</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextCaseSensitiveToggle" datatype="html">
+        <source>Groß- und Kleinschreibung beachten</source>
+        <target>Tenir compte des majuscules/minuscules</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">682</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextSolutionsHint" datatype="html">
+        <source>Hinterlege mindestens eine und höchstens zehn Musterlösungen. Alle Varianten gelten als richtige Kurzantwort.</source>
+        <target>Ajoutez entre une et dix réponses modèles. Toutes les variantes sont considérées comme des réponses courtes correctes.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">692</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextValidSolutionHint" datatype="html">
+        <source>Gültig</source>
+        <target>Valide</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">721</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.answerLabel" datatype="html">
+        <source>Antwort <x id="answerNumber" equiv-text="index + 1"/></source>
+        <target>Réponse <x id="answerNumber" equiv-text="index + 1"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
+          <context context-type="linenumber">604</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextConfigTypeError" datatype="html">
+        <source>Kurzantwort-Einstellungen sind nur für Kurzantwort-Fragen erlaubt.</source>
+        <target>Les paramètres de réponse courte sont réservés aux questions à réponse courte.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">359</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextSolutionsRequired" datatype="html">
+        <source>Kurzantwort-Fragen brauchen mindestens eine Musterlösung.</source>
+        <target>Les questions à réponse courte nécessitent au moins une réponse modèle.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">377</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextSolutionsAlwaysValid" datatype="html">
+        <source>Musterlösungen sind immer gültige Lösungen.</source>
+        <target>Les réponses modèles doivent toujours être marquées comme valides.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">390</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextDuplicateSolutions" datatype="html">
+        <source>Doppelte Musterlösungen sind nicht erlaubt.</source>
+        <target>Les réponses modèles en doublon ne sont pas autorisées.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">401</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextQuestionHint" datatype="html">
+        <source>Kurzantwort mit automatischem Abgleich gegen Musterlösungen</source>
+        <target>Réponse courte avec comparaison automatique aux réponses modèles</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">1015</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
+          <context context-type="linenumber">103</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextSolutionLabel" datatype="html">
+        <source>Musterlösung <x id="solutionNumber" equiv-text="index + 1"/></source>
+        <target>Réponse modèle <x id="solutionNumber" equiv-text="index + 1"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
+          <context context-type="linenumber">601</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextSolutionsPreviewLabel" datatype="html">
+        <source>Musterlösungen</source>
+        <target>Réponses modèles</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
+          <context context-type="linenumber">609</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextMaxLengthSummary" datatype="html">
+        <source>Max. <x id="maxLength" equiv-text="resolveShortTextMaxLength(question.shortTextMaxLength)"/> Zeichen</source>
+        <target>Max. <x id="maxLength" equiv-text="resolveShortTextMaxLength(question.shortTextMaxLength)"/> caractères</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
+          <context context-type="linenumber">623</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
+          <context context-type="linenumber">621</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextCaseSensitiveSummary" datatype="html">
+        <source>Groß-/Kleinschreibung zählt</source>
+        <target>Respect de la casse</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
+          <context context-type="linenumber">626</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
+          <context context-type="linenumber">624</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.shortTextModeExactLabel" datatype="html"><source>Nur exakt gleich</source><target>Correspondance exacte uniquement</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextModeExactHint" datatype="html"><source>Akzeptiert nur identische Schreibweisen.</source><target>N&apos;accepte qu&apos;une écriture identique.</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextModeAutoLabel" datatype="html"><source>Kleine Tippfehler erlauben</source><target>Autoriser les petites fautes</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextModeAutoHint" datatype="html"><source>Wählt automatisch die passende Fehlertoleranz für Ersetzungen oder fehlende Zeichen.</source><target>Choisit automatiquement la tolérance adaptée pour les substitutions ou les caractères manquants.</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextModeHammingLabel" datatype="html"><source>Gleiche Länge, kleine Buchstabendreher</source><target>Même longueur, petites inversions de lettres</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextModeHammingHint" datatype="html"><source>Gut für einzelne falsche Zeichen bei gleicher Wortlänge.</source><target>Adapté à un seul caractère faux si la longueur reste identique.</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextModeLevenshteinLabel" datatype="html"><source>Auch fehlende oder zusätzliche Zeichen erlauben</source><target>Autoriser aussi les caractères manquants ou supplémentaires</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextModeLevenshteinHint" datatype="html"><source>Geeignet für Auslassungen oder zusätzliche Buchstaben.</source><target>Convient aux omissions ou aux lettres supplémentaires.</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextToleranceNone" datatype="html"><source>Keine Toleranz</source><target>Aucune tolérance</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextToleranceLow" datatype="html"><source>Wenig</source><target>Faible</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextToleranceMedium" datatype="html"><source>Mittel</source><target>Moyenne</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextToleranceHigh" datatype="html"><source>Großzügig</source><target>Large</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextToleranceSummary" datatype="html"><source><x id="tolerance" equiv-text="this.shortTextToleranceLabel(question.shortTextToleranceLevel)"/> Toleranz</source><target>Tolérance <x id="tolerance" equiv-text="this.shortTextToleranceLabel(question.shortTextToleranceLevel)"/></target></trans-unit>
+      <trans-unit id="quizEdit.shortTextFullCreditOnlySummary" datatype="html"><source>Nur volle Punkte</source><target>Points entiers uniquement</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextWhitespaceStrictSummary" datatype="html"><source>Leerzeichen werden streng geprüft</source><target>Les espaces sont vérifiés strictement</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextDidacticWarning" datatype="html"><source>Verwende tolerante Bewertung nur bei eindeutigen Fachbegriffen. Für offene Formulierungen sind mehrere Musterlösungen meist fairer als hohe Toleranz.</source><target>Réservez l&apos;évaluation tolérante aux termes techniques clairement définis. Pour des formulations ouvertes, plusieurs réponses modèles sont souvent plus justes qu&apos;une forte tolérance.</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewExactLabel" datatype="html"><source>Exakte Eingabe</source><target>Saisie exacte</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewTypoLabel" datatype="html"><source>Kleiner Tippfehler</source><target>Petite faute de frappe</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewLengthLabel" datatype="html"><source>Fehlendes oder zusätzliches Zeichen</source><target>Caractère manquant ou supplémentaire</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewWrongLabel" datatype="html"><source>Anderer Begriff</source><target>Terme différent</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewOutcomeFull" datatype="html"><source>Volle Punkte</source><target>Tous les points</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewOutcomeAccepted" datatype="html"><source>Akzeptiert</source><target>Accepté</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewOutcomePartial" datatype="html"><source>Teilpunkte (<x id="points" equiv-text="result.points"/> %)</source><target>Points partiels (<x id="points" equiv-text="result.points"/> %)</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewOutcomeRejected" datatype="html"><source>Nicht akzeptiert</source><target>Non accepté</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextEvaluationModeFieldLabel" datatype="html"><source>Bewertung</source><target>Évaluation</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextToleranceFieldLabel" datatype="html"><source>Toleranz</source><target>Tolérance</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextToleranceHint" datatype="html"><source>Wirkt nur bei toleranter Bewertung.</source><target>N&apos;agit qu&apos;avec une évaluation tolérante.</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextAllowPartialCreditToggle" datatype="html"><source>Teilpunkte vergeben</source><target>Attribuer des points partiels</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextPreviewLegend" datatype="html"><source>So wirkt die Bewertung</source><target>Effet de l&apos;évaluation</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextDidacticWarningLabel" datatype="html"><source>Didaktischer Hinweis:</source><target>Note didactique :</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextTechnicalDetailsToggle" datatype="html"><source>Technische Details anzeigen</source><target>Afficher les détails techniques</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextTechnicalDetailsIntro" datatype="html"><source>Auto wählt passend zwischen Hamming und Levenshtein. Hamming eignet sich für einzelne falsche Zeichen bei gleicher Länge, Levenshtein zusätzlich für fehlende oder extra Zeichen.</source><target>Le mode auto choisit entre Hamming et Levenshtein. Hamming convient si la longueur est identique ; Levenshtein couvre aussi les caractères manquants ou supplémentaires.</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextTrimWhitespaceToggle" datatype="html"><source>Leerzeichen am Anfang und Ende ignorieren</source><target>Ignorer les espaces au début et à la fin</target></trans-unit>
+      <trans-unit id="quizEdit.shortTextNormalizeWhitespaceToggle" datatype="html"><source>Mehrfache Leerzeichen zusammenfassen</source><target>Fusionner les espaces répétés</target></trans-unit>
+      <trans-unit id="quizEdit.addShortTextSolution" datatype="html">
+        <source>Weitere Musterlösung</source>
+        <target>Ajouter une réponse modèle</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
+          <context context-type="linenumber">615</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizPreview.editorWarningShortTextSolutions" datatype="html">
+        <source>Füge mindestens eine Musterlösung hinzu.</source>
+        <target>Ajoutez au moins une réponse modèle.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
+          <context context-type="linenumber">237</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizPreview.warningShortTextSolutionsMissing" datatype="html">
+        <source>Frage <x id="questionNumber" equiv-text="index + 1"/>: mindestens eine Musterlösung fehlt</source>
+        <target>Question <x id="questionNumber" equiv-text="index + 1"/> : au moins une réponse modèle manque</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.ts</context>
+          <context context-type="linenumber">238</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="3700479510053399162" datatype="html">
         <source>Fragenliste</source>
         <target>Liste des questions</target>
@@ -11033,6 +11239,22 @@
           <context context-type="linenumber">344</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.shortTextPhPlayful" datatype="html">
+        <source>Kurze Antwort …</source>
+        <target>Réponse courte...</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">349</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.shortTextPhSerious" datatype="html">
+        <source>Kurze Antwort…</source>
+        <target>Réponse courte...</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">351</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionVote.freetextOwnPlayful" datatype="html">
         <source>Du sagst:</source>
         <target>Tu dis :</target>
@@ -11065,6 +11287,34 @@
           <context context-type="linenumber">358</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.shortTextSolutionsPlayful" datatype="html">
+        <source>Gültige Lösungen:</source>
+        <target>Solutions valides :</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">370</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.shortTextSolutionsSerious" datatype="html">
+        <source>Akzeptierte Lösungen:</source>
+        <target>Réponses acceptées :</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
+          <context context-type="linenumber">372</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.shortTextTooLong" datatype="html">
+        <source>Maximal <x id="maxLength" equiv-text="maxLength"/> Zeichen erlaubt.</source>
+        <target>Maximum de <x id="maxLength" equiv-text="maxLength"/> caractères autorisés.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">1044</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.shortTextResultFull" datatype="html"><source>Voll gewertet</source><target>Entièrement validé</target></trans-unit>
+      <trans-unit id="sessionVote.shortTextResultAccepted" datatype="html"><source>Akzeptiert</source><target>Accepté</target></trans-unit>
+      <trans-unit id="sessionVote.shortTextResultPartial" datatype="html"><source>Teilweise gewertet (<x id="points" equiv-text="result.points"/> %)</source><target>Partiellement validé (<x id="points" equiv-text="result.points"/> %)</target></trans-unit>
+      <trans-unit id="sessionVote.shortTextResultRejected" datatype="html"><source>Nicht akzeptiert</source><target>Non accepté</target></trans-unit>
       <trans-unit id="sessionVote.ratingResultPrefixPlayful" datatype="html">
         <source>Deine Wahl:</source>
         <target>Ton choix :</target>
@@ -13095,6 +13345,18 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/question-type-label.ts</context>
           <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizPreview.typeShortText" datatype="html">
+        <source>Kurzantwort</source>
+        <target>Réponse courte</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-type-label.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
+          <context context-type="linenumber">210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizPreview.typeSurvey" datatype="html">

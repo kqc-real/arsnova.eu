@@ -331,6 +331,78 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
     expect(result).toBeNull();
   });
 
+  it('aggregiert SHORT_TEXT-Ergebnisse mit richtigen und falschen Antworten', async () => {
+    const solutionId = 'aaaaaaaa-1111-4111-8111-111111111111';
+    const aliasId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: CODE,
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 1,
+      answerDisplayOrder: null,
+      quiz: {
+        defaultTimer: null,
+        timerScaleByDifficulty: true,
+        showQuestionTypeIndicators: true,
+        preset: 'SERIOUS',
+        questions: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            order: 0,
+            text: 'Wer schrieb den ersten Algorithmus?',
+            type: 'SHORT_TEXT',
+            difficulty: 'MEDIUM',
+            timer: null,
+            ratingMin: null,
+            ratingMax: null,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
+            shortTextMaxLength: 40,
+            shortTextCaseSensitive: false,
+            answers: [
+              { id: solutionId, text: 'Ada Lovelace', isCorrect: true },
+              { id: aliasId, text: 'Ada', isCorrect: true },
+            ],
+          },
+        ],
+      },
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { freeText: ' ada   lovelace ' },
+      { freeText: 'Grace Hopper' },
+      { freeText: 'Ada' },
+    ]);
+
+    const result = await caller.getCurrentQuestionForHost({ code: CODE });
+
+    expect(result).toMatchObject({
+      type: 'SHORT_TEXT',
+      totalVotes: 3,
+      correctVoterCount: 2,
+      incorrectVoterCount: 1,
+      shortTextMaxLength: 40,
+      shortTextCaseSensitive: false,
+      incorrectFreeTextResponses: ['Grace Hopper'],
+    });
+    expect(result?.voteDistribution).toEqual([
+      {
+        id: solutionId,
+        text: 'Ada Lovelace',
+        isCorrect: true,
+        voteCount: 1,
+        votePercentage: 33,
+      },
+      {
+        id: aliasId,
+        text: 'Ada',
+        isCorrect: true,
+        voteCount: 1,
+        votePercentage: 33,
+      },
+    ]);
+  });
+
   it('lehnt die Host-Abfrage ohne gültigen Token ab', async () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
 

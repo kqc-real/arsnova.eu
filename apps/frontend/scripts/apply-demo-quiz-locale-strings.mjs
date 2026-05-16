@@ -10,8 +10,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const demoDir = path.join(__dirname, '../src/assets/demo');
 const md = String.raw;
 
-const EXPORT_VERSION = 21;
-const EXPORTED_AT = '2026-04-24T14:30:00.000Z';
+const EXPORT_VERSION = 22;
+const EXPORTED_AT = '2026-05-16T09:15:00.000Z';
 
 const EMOTION_IMAGE_URL =
   'https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg';
@@ -127,15 +127,30 @@ function buildPayload(locale) {
         },
         {
           text: locale.questions[6].text,
+          type: 'SHORT_TEXT',
+          timer: null,
+          difficulty: 'HARD',
+          order: 6,
+          answers: locale.questions[6].answers,
+          shortTextMaxLength: 32,
+          shortTextCaseSensitive: false,
+          shortTextEvaluationMode: 'auto',
+          shortTextToleranceLevel: 'medium',
+          shortTextAllowPartialCredit: true,
+          shortTextTrimWhitespace: true,
+          shortTextNormalizeWhitespace: true,
+        },
+        {
+          text: locale.questions[7].text,
           type: 'RATING',
           timer: null,
           difficulty: 'EASY',
-          order: 6,
+          order: 7,
           answers: [],
           ratingMin: 1,
           ratingMax: 5,
-          ratingLabelMin: locale.questions[6].ratingLabelMin,
-          ratingLabelMax: locale.questions[6].ratingLabelMax,
+          ratingLabelMin: locale.questions[7].ratingLabelMin,
+          ratingLabelMax: locale.questions[7].ratingLabelMax,
         },
       ],
     },
@@ -251,6 +266,18 @@ ${CODE_FENCE}`,
           { text: 'Python', isCorrect: false },
           { text: 'Processing', isCorrect: true },
           { text: 'Scala', isCorrect: false },
+        ],
+      },
+      {
+        text: md`### Wie heißt die Methode, bei der Lernende erst individuell abstimmen, dann kurz diskutieren und anschließend erneut abstimmen?
+
+> **Unterrichtsidee:** Nutze das als anspruchsvolle Fachbegriffsfrage, um tolerante Kurzantworten mit kleinen Tippfehlern und Teilpunkten zu demonstrieren.
+
+Gesucht ist der etablierte didaktische Begriff für diesen Ablauf.`,
+        answers: [
+          { text: 'Peer Instruction', isCorrect: true },
+          { text: 'Peer-Instruction', isCorrect: true },
+          { text: 'Mazur-Methode', isCorrect: true },
         ],
       },
       {
@@ -373,6 +400,18 @@ ${CODE_FENCE}`,
         ],
       },
       {
+        text: md`### What is the teaching method called in which learners vote individually, discuss briefly, and then vote again?
+
+> **Teaching move:** Use this as a challenging term-recall prompt to demonstrate typo-tolerant short answers with partial credit.
+
+We are looking for the established instructional term for this sequence.`,
+        answers: [
+          { text: 'Peer Instruction', isCorrect: true },
+          { text: 'Peer-Instruction', isCorrect: true },
+          { text: 'Mazur method', isCorrect: true },
+        ],
+      },
+      {
         text: md`### How likely are you to try a live quiz like this in one of your own classes?
 
 > **Teaching move:** Use this as a quick pulse check, exit ticket, or confidence rating.`,
@@ -489,6 +528,18 @@ ${CODE_FENCE}`,
           { text: 'Python', isCorrect: false },
           { text: 'Processing', isCorrect: true },
           { text: 'Scala', isCorrect: false },
+        ],
+      },
+      {
+        text: md`### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?
+
+> **Usage pédagogique :** Utilise cela comme question de rappel d’un terme spécialisé pour montrer la tolérance aux petites fautes de frappe et les points partiels en réponse courte.
+
+On cherche le terme didactique établi pour cette séquence.`,
+        answers: [
+          { text: 'Peer Instruction', isCorrect: true },
+          { text: 'instruction par les pairs', isCorrect: true },
+          { text: 'méthode Mazur', isCorrect: true },
         ],
       },
       {
@@ -611,6 +662,18 @@ ${CODE_FENCE}`,
         ],
       },
       {
+        text: md`### ¿Cómo se llama el método didáctico en el que el alumnado vota primero de forma individual, luego debate brevemente y después vuelve a votar?
+
+> **Uso didáctico:** Úsalo como una pregunta exigente de recuerdo de conceptos para mostrar respuestas cortas tolerantes a pequeños errores y con puntos parciales.
+
+Buscamos el término pedagógico establecido para esta secuencia.`,
+        answers: [
+          { text: 'Peer Instruction', isCorrect: true },
+          { text: 'instrucción entre pares', isCorrect: true },
+          { text: 'método Mazur', isCorrect: true },
+        ],
+      },
+      {
         text: md`### ¿Qué probabilidad hay de que pruebes pronto un quiz en vivo como este en una de tus clases?
 
 > **Uso didáctico:** Úsalo como pulso rápido, exit ticket o valoración breve de confianza.`,
@@ -727,6 +790,18 @@ ${CODE_FENCE}`,
           { text: 'Python', isCorrect: false },
           { text: 'Processing', isCorrect: true },
           { text: 'Scala', isCorrect: false },
+        ],
+      },
+      {
+        text: md`### Come si chiama il metodo didattico in cui chi apprende vota prima individualmente, poi discute brevemente e infine vota di nuovo?
+
+> **Uso didattico:** Usalo come domanda impegnativa di richiamo terminologico per mostrare risposte brevi tolleranti ai piccoli errori e con punti parziali.
+
+Cerchiamo il termine didattico consolidato per questa sequenza.`,
+        answers: [
+          { text: 'Peer Instruction', isCorrect: true },
+          { text: 'istruzione tra pari', isCorrect: true },
+          { text: 'metodo Mazur', isCorrect: true },
         ],
       },
       {
