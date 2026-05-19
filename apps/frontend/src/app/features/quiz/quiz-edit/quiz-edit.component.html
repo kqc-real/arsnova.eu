@@ -615,6 +615,88 @@
           </mat-form-field>
         }
 
+        @if (hasNumericConfig()) {
+          <div class="quiz-edit-form__section-label" i18n>Eingabetyp</div>
+          <div class="quiz-edit-form__grid">
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Zahlentyp</mat-label>
+              <mat-select formControlName="numericInputType">
+                <mat-option value="INTEGER" i18n>Ganzzahl</mat-option>
+                <mat-option value="DECIMAL" i18n>Dezimalzahl</mat-option>
+              </mat-select>
+            </mat-form-field>
+            @if (numericIsDecimalInput()) {
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Max. Nachkommastellen</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="numericDecimalPlaces"
+                  min="0"
+                  max="10"
+                />
+              </mat-form-field>
+            }
+          </div>
+
+          <div class="quiz-edit-form__section-label" i18n>Toleranzmodus</div>
+          <mat-form-field appearance="outline">
+            <mat-label i18n>Modus</mat-label>
+            <mat-select formControlName="numericToleranceMode">
+              <mat-option value="ABSOLUTE_INTERVAL" i18n>Absolutes Intervall [L, R]</mat-option>
+              <mat-option value="RELATIVE_PERCENT" i18n>Relatives Toleranzband (V ± p%)</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          @if (numericIsAbsoluteMode()) {
+            <div class="quiz-edit-form__grid">
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Linke Grenze L</mat-label>
+                <input matInput type="number" formControlName="numericIntervalLeft" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Rechte Grenze R</mat-label>
+                <input matInput type="number" formControlName="numericIntervalRight" />
+              </mat-form-field>
+            </div>
+          }
+          @if (numericIsRelativeMode()) {
+            <div class="quiz-edit-form__grid">
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Referenzwert V</mat-label>
+                <input matInput type="number" formControlName="numericReferenceValue" />
+                <mat-hint i18n>Muss ≠ 0 sein</mat-hint>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label i18n>Toleranz p (%)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="numericTolerancePercent"
+                  min="0"
+                  max="100"
+                />
+              </mat-form-field>
+            </div>
+          }
+
+          <div class="quiz-edit-form__section-label" i18n>Plausibilitätsgrenzen (optional)</div>
+          <div class="quiz-edit-form__grid">
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Min-Eingabe</mat-label>
+              <input matInput type="number" formControlName="numericMin" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Max-Eingabe</mat-label>
+              <input matInput type="number" formControlName="numericMax" />
+            </mat-form-field>
+          </div>
+
+          <mat-slide-toggle formControlName="numericTwoRounds" i18n>
+            Zwei Abstimmungsrunden (Peer Instruction)
+          </mat-slide-toggle>
+        }
+
         @if (hasRatingConfig()) {
           <div class="quiz-edit-form__grid">
             <mat-form-field appearance="outline">

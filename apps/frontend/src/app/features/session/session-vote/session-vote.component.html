@@ -1113,6 +1113,64 @@
                 <strong>{{ ratingValue() ?? '–' }}</strong>
               </p>
             </div>
+          } @else if (isNumericEstimate() && isActive()) {
+            <div class="vote-numeric">
+              <label
+                class="vote-numeric__label"
+                for="vote-numeric-input"
+                i18n="@@sessionVote.numericLabel"
+              >
+                Deine Schätzung
+              </label>
+              <input
+                id="vote-numeric-input"
+                class="vote-numeric__input"
+                [class.vote-numeric__input--invalid]="numericOutOfRange()"
+                type="number"
+                [step]="numericInputStep()"
+                [attr.min]="numericInputMin()"
+                [attr.max]="numericInputMax()"
+                [value]="numericInputValue()"
+                (input)="numericInputValue.set($any($event.target).value)"
+                [disabled]="voteSent() || timerExpired()"
+                inputmode="decimal"
+                autocomplete="off"
+                i18n-placeholder="@@sessionVote.numericPlaceholder"
+                placeholder="Zahl eingeben…"
+              />
+              @if (numericOutOfRange()) {
+                @let minVal = numericInputMin();
+                @let maxVal = numericInputMax();
+                <p class="vote-numeric__range-hint" role="alert">
+                  @if (minVal !== null && maxVal !== null) {
+                    <span i18n="@@sessionVote.numericRangeHintBoth"
+                      >Bitte einen Wert zwischen {{ minVal }} und {{ maxVal }} eingeben.</span
+                    >
+                  } @else if (minVal !== null) {
+                    <span i18n="@@sessionVote.numericRangeHintMin"
+                      >Bitte einen Wert von mindestens {{ minVal }} eingeben.</span
+                    >
+                  } @else if (maxVal !== null) {
+                    <span i18n="@@sessionVote.numericRangeHintMax"
+                      >Bitte einen Wert von höchstens {{ maxVal }} eingeben.</span
+                    >
+                  }
+                </p>
+              }
+            </div>
+          } @else if (isNumericEstimate() && isResults()) {
+            <div class="vote-numeric vote-numeric--result">
+              <p class="vote-numeric__result-label">
+                <span i18n="@@sessionVote.numericResultPrefix">Deine Antwort:</span>
+                <strong>
+                  @if (numericParsedValue() !== null) {
+                    {{ numericParsedValue() | number: '1.0-' + numericDecimalPlaces() }}
+                  } @else {
+                    –
+                  }
+                </strong>
+              </p>
+            </div>
           }
 
           @if (voteSent()) {

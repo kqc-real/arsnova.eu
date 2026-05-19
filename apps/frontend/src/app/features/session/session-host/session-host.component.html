@@ -1159,6 +1159,163 @@
                               </p>
                             </div>
                           }
+                        } @else if (q.type === 'NUMERIC_ESTIMATE') {
+                          <!-- Story 1.2d: Numerische Schätzfrage – Histogramm + Statistik -->
+                          <div class="session-host__numeric">
+                            @if (effectiveStatus() === 'ACTIVE') {
+                              <p
+                                class="session-host__numeric-waiting"
+                                i18n="@@sessionHost.numericWaiting"
+                              >
+                                Warte auf Schätzungen…
+                              </p>
+                              @if ((q.totalVotes ?? 0) > 0) {
+                                <p
+                                  class="session-host__numeric-vote-count"
+                                  i18n="@@sessionHost.numericVoteCount"
+                                >
+                                  {{ q.totalVotes }} Antworten eingegangen
+                                </p>
+                              }
+                            } @else if (effectiveStatus() === 'RESULTS') {
+                              @if (q.numericRoundComparison) {
+                                <!-- Zwei-Runden-Vergleich -->
+                                @let rc = q.numericRoundComparison;
+                                <div class="session-host__numeric-round-comparison">
+                                  <div class="session-host__numeric-round-header">
+                                    <span
+                                      class="session-host__numeric-round-label session-host__numeric-round-label--r1"
+                                      i18n="@@sessionHost.numericRoundLabel1"
+                                      >Runde 1</span
+                                    >
+                                    <span
+                                      class="session-host__numeric-round-label session-host__numeric-round-label--r2"
+                                      i18n="@@sessionHost.numericRoundLabel2"
+                                      >Runde 2</span
+                                    >
+                                  </div>
+                                  <div class="session-host__numeric-histograms">
+                                    <div class="session-host__numeric-histogram">
+                                      @for (bin of rc.round1Histogram; track bin.from) {
+                                        <div
+                                          class="session-host__numeric-bin"
+                                          [class.session-host__numeric-bin--in-band]="bin.inBand"
+                                          [title]="bin.from + ' – ' + bin.to + ': ' + bin.count"
+                                        >
+                                          <div
+                                            class="session-host__numeric-bin-bar"
+                                            [style.height.%]="
+                                              numericHistogramBarHeight(bin, rc.round1Histogram)
+                                            "
+                                          ></div>
+                                          <span class="session-host__numeric-bin-count">{{
+                                            bin.count
+                                          }}</span>
+                                        </div>
+                                      }
+                                    </div>
+                                    <div
+                                      class="session-host__numeric-histogram session-host__numeric-histogram--r2"
+                                    >
+                                      @for (bin of rc.round2Histogram; track bin.from) {
+                                        <div
+                                          class="session-host__numeric-bin"
+                                          [class.session-host__numeric-bin--in-band]="bin.inBand"
+                                          [title]="bin.from + ' – ' + bin.to + ': ' + bin.count"
+                                        >
+                                          <div
+                                            class="session-host__numeric-bin-bar"
+                                            [style.height.%]="
+                                              numericHistogramBarHeight(bin, rc.round2Histogram)
+                                            "
+                                          ></div>
+                                          <span class="session-host__numeric-bin-count">{{
+                                            bin.count
+                                          }}</span>
+                                        </div>
+                                      }
+                                    </div>
+                                  </div>
+                                  <div class="session-host__numeric-stats-row">
+                                    <div class="session-host__numeric-stats">
+                                      {{
+                                        numericStatsLabel(
+                                          rc.round1Stats,
+                                          q.numericReferenceValue ?? null
+                                        )
+                                      }}
+                                    </div>
+                                    <div
+                                      class="session-host__numeric-stats session-host__numeric-stats--r2"
+                                    >
+                                      {{
+                                        numericStatsLabel(
+                                          rc.round2Stats,
+                                          q.numericReferenceValue ?? null
+                                        )
+                                      }}
+                                    </div>
+                                  </div>
+                                  @if (rc.pairedAnalysis) {
+                                    <p
+                                      class="session-host__numeric-paired"
+                                      i18n="@@sessionHost.numericPairedImproved"
+                                    >
+                                      Paarweise Δ: {{ rc.pairedAnalysis.closerCount }} näher,
+                                      {{ rc.pairedAnalysis.fartherCount }} weiter weg,
+                                      {{ rc.pairedAnalysis.unchangedCount }} gleich ({{
+                                        rc.pairedAnalysis.pairedCount
+                                      }}
+                                      Paare)
+                                    </p>
+                                  }
+                                </div>
+                              } @else if (q.numericHistogram && q.numericStats) {
+                                <!-- Einfaches Histogramm (eine Runde) -->
+                                @let stats = q.numericStats;
+                                <div class="session-host__numeric-histogram">
+                                  @for (bin of q.numericHistogram; track bin.from) {
+                                    <div
+                                      class="session-host__numeric-bin"
+                                      [class.session-host__numeric-bin--in-band]="bin.inBand"
+                                      [title]="bin.from + ' – ' + bin.to + ': ' + bin.count"
+                                    >
+                                      <div
+                                        class="session-host__numeric-bin-bar"
+                                        [style.height.%]="
+                                          numericHistogramBarHeight(bin, q.numericHistogram!)
+                                        "
+                                      ></div>
+                                      <span class="session-host__numeric-bin-count">{{
+                                        bin.count
+                                      }}</span>
+                                    </div>
+                                  }
+                                </div>
+                                @if (
+                                  q.numericReferenceValue !== null &&
+                                  q.numericReferenceValue !== undefined
+                                ) {
+                                  <p class="session-host__numeric-ref">
+                                    <mat-icon aria-hidden="true">adjust</mat-icon>
+                                    <span i18n="@@sessionHost.numericRefValue"
+                                      >Referenzwert: {{ q.numericReferenceValue }}</span
+                                    >
+                                  </p>
+                                }
+                                <div class="session-host__numeric-stats">
+                                  {{ numericStatsLabel(stats, q.numericReferenceValue ?? null) }}
+                                </div>
+                              } @else {
+                                <p
+                                  class="session-host__numeric-waiting"
+                                  i18n="@@sessionHost.numericNoData"
+                                >
+                                  Keine Schätzungen eingegangen.
+                                </p>
+                              }
+                            }
+                          </div>
                         } @else if (q.roundComparison && effectiveStatus() === 'RESULTS') {
                           <!-- Peer Instruction: Vorher/Nachher-Vergleich (Story 2.7) -->
                           <div

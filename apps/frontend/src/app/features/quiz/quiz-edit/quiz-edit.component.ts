@@ -110,7 +110,6 @@ type QuestionFormGroup = FormGroup<{
   text: FormControl<string>;
   type: FormControl<SupportedQuestionType>;
   difficulty: FormControl<Difficulty>;
-  /** `null` = Quiz-`defaultTimer` */
   questionTimer: FormControl<number | null>;
   questionSkipReadingPhase: FormControl<boolean>;
   answers: FormArray<AnswerFormGroup>;
@@ -127,12 +126,22 @@ type QuestionFormGroup = FormGroup<{
   shortTextTrimWhitespace: FormControl<boolean>;
   shortTextNormalizeWhitespace: FormControl<boolean>;
   numericInputKind: FormControl<NumericInputKind>;
-  numericToleranceMode: FormControl<NumericToleranceMode>;
+  numericToleranceMode: FormControl<string>;
   numericAbsoluteTolerance: FormControl<number | null>;
   numericRelativeTolerancePercent: FormControl<number | null>;
   numericUnitFamily: FormControl<NumericUnitFamily>;
   numericRequireUnit: FormControl<boolean>;
   numericAcceptEquivalentUnits: FormControl<boolean>;
+  // Story 1.2d: Numerische Schätzfrage
+  numericReferenceValue: FormControl<number | null>;
+  numericTolerancePercent: FormControl<number | null>;
+  numericIntervalLeft: FormControl<number | null>;
+  numericIntervalRight: FormControl<number | null>;
+  numericInputType: FormControl<'INTEGER' | 'DECIMAL'>;
+  numericDecimalPlaces: FormControl<number | null>;
+  numericMin: FormControl<number | null>;
+  numericMax: FormControl<number | null>;
+  numericTwoRounds: FormControl<boolean>;
 }>;
 
 type ShortTextPreviewExample = {
@@ -314,6 +323,7 @@ export class QuizEditComponent implements OnDestroy {
   @ViewChild('questionFormElement') private questionFormElement?: ElementRef<HTMLFormElement>;
 
   readonly questionTypeOptions: Array<{ value: SupportedQuestionType; label: string }> = [
+    { value: 'NUMERIC_ESTIMATE', label: $localize`Numerische Schätzfrage` },
     { value: 'SINGLE_CHOICE', label: $localize`Single Choice` },
     { value: 'MULTIPLE_CHOICE', label: $localize`Multiple Choice` },
     { value: 'FREETEXT', label: $localize`Freitext` },
@@ -482,9 +492,7 @@ export class QuizEditComponent implements OnDestroy {
     shortTextTrimWhitespace: this.formBuilder.control(true),
     shortTextNormalizeWhitespace: this.formBuilder.control(true),
     numericInputKind: this.formBuilder.control<NumericInputKind>(NUMERIC_DEFAULT_INPUT_KIND),
-    numericToleranceMode: this.formBuilder.control<NumericToleranceMode>(
-      NUMERIC_DEFAULT_TOLERANCE_MODE,
-    ),
+    numericToleranceMode: this.formBuilder.control<string>(NUMERIC_DEFAULT_TOLERANCE_MODE),
     numericAbsoluteTolerance: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(0)],
     }),
@@ -494,6 +502,16 @@ export class QuizEditComponent implements OnDestroy {
     numericUnitFamily: this.formBuilder.control<NumericUnitFamily>(NUMERIC_DEFAULT_UNIT_FAMILY),
     numericRequireUnit: this.formBuilder.control(false),
     numericAcceptEquivalentUnits: this.formBuilder.control(true),
+    // Story 1.2d: Numerische Schätzfrage
+    numericReferenceValue: this.formBuilder.control<number | null>(null),
+    numericTolerancePercent: this.formBuilder.control<number | null>(10),
+    numericIntervalLeft: this.formBuilder.control<number | null>(null),
+    numericIntervalRight: this.formBuilder.control<number | null>(null),
+    numericInputType: this.formBuilder.control<'INTEGER' | 'DECIMAL'>('DECIMAL'),
+    numericDecimalPlaces: this.formBuilder.control<number | null>(2),
+    numericMin: this.formBuilder.control<number | null>(null),
+    numericMax: this.formBuilder.control<number | null>(null),
+    numericTwoRounds: this.formBuilder.control<boolean>(false),
   });
 
   readonly settingsForm: QuizSettingsFormGroup = this.formBuilder.group({
@@ -736,7 +754,12 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   hasAnswerOptions(): boolean {
-    return this.typeControl.value !== 'FREETEXT' && this.typeControl.value !== 'RATING';
+    const t = this.typeControl.value;
+    return t !== 'FREETEXT' && t !== 'RATING' && t !== 'NUMERIC_ESTIMATE';
+  }
+
+  isNumericEstimateType(): boolean {
+    return this.typeControl.value === 'NUMERIC_ESTIMATE';
   }
 
   isSingleChoiceType(): boolean {
@@ -795,6 +818,22 @@ export class QuizEditComponent implements OnDestroy {
 
   questionTypeShowsDifficulty(type: SupportedQuestionType): boolean {
     return type !== 'SURVEY' && type !== 'RATING';
+  }
+
+  hasNumericConfig(): boolean {
+    return this.isNumericEstimateType();
+  }
+
+  numericIsRelativeMode(): boolean {
+    return this.form.controls.numericToleranceMode.value === 'RELATIVE_PERCENT';
+  }
+
+  numericIsAbsoluteMode(): boolean {
+    return this.form.controls.numericToleranceMode.value === 'ABSOLUTE_INTERVAL';
+  }
+
+  numericIsDecimalInput(): boolean {
+    return this.form.controls.numericInputType.value === 'DECIMAL';
   }
 
   renderMarkdown(value: string | null | undefined): SafeHtml {
@@ -910,7 +949,7 @@ export class QuizEditComponent implements OnDestroy {
     );
   }
 
-  numericToleranceModeLabel(mode: NumericToleranceMode | null | undefined): string {
+  numericToleranceModeLabel(mode: string | null | undefined): string {
     return (
       this.numericToleranceModeOptions.find((option) => option.value === mode)?.label ??
       this.numericToleranceModeOptions.find(
@@ -953,7 +992,8 @@ export class QuizEditComponent implements OnDestroy {
     if (evaluationKind !== 'text') {
       const numericSettings = resolveNumericQuestionEvaluationSettings({
         numericInputKind: question.numericInputKind ?? null,
-        numericToleranceMode: question.numericToleranceMode ?? null,
+        numericToleranceMode:
+          (question.numericToleranceMode as NumericToleranceMode | null) ?? null,
         numericAbsoluteTolerance: question.numericAbsoluteTolerance ?? null,
         numericRelativeTolerancePercent: question.numericRelativeTolerancePercent ?? null,
         numericUnitFamily: question.numericUnitFamily ?? null,
@@ -1219,7 +1259,8 @@ export class QuizEditComponent implements OnDestroy {
     );
     const numericSettings = resolveNumericQuestionEvaluationSettings({
       numericInputKind: this.form.controls.numericInputKind.value,
-      numericToleranceMode: this.form.controls.numericToleranceMode.value,
+      numericToleranceMode: this.form.controls.numericToleranceMode
+        .value as NumericToleranceMode | null,
       numericAbsoluteTolerance: this.form.controls.numericAbsoluteTolerance.value,
       numericRelativeTolerancePercent: this.form.controls.numericRelativeTolerancePercent.value,
       numericUnitFamily: this.form.controls.numericUnitFamily.value,
@@ -1369,7 +1410,7 @@ export class QuizEditComponent implements OnDestroy {
     shortTextTrimWhitespace?: boolean | null;
     shortTextNormalizeWhitespace?: boolean | null;
     numericInputKind?: NumericInputKind | null;
-    numericToleranceMode?: NumericToleranceMode | null;
+    numericToleranceMode?: string | null;
     numericAbsoluteTolerance?: number | null;
     numericRelativeTolerancePercent?: number | null;
     numericUnitFamily?: NumericUnitFamily | null;
@@ -1385,7 +1426,7 @@ export class QuizEditComponent implements OnDestroy {
     shortTextTrimWhitespace: boolean | null;
     shortTextNormalizeWhitespace: boolean | null;
     numericInputKind: NumericInputKind | null;
-    numericToleranceMode: NumericToleranceMode | null;
+    numericToleranceMode: string | null;
     numericAbsoluteTolerance: number | null;
     numericRelativeTolerancePercent: number | null;
     numericUnitFamily: NumericUnitFamily | null;
@@ -1414,7 +1455,7 @@ export class QuizEditComponent implements OnDestroy {
 
     const numericSettings = resolveNumericQuestionEvaluationSettings({
       numericInputKind: question.numericInputKind ?? null,
-      numericToleranceMode: question.numericToleranceMode ?? null,
+      numericToleranceMode: (question.numericToleranceMode as NumericToleranceMode | null) ?? null,
       numericAbsoluteTolerance: question.numericAbsoluteTolerance ?? null,
       numericRelativeTolerancePercent: question.numericRelativeTolerancePercent ?? null,
       numericUnitFamily: question.numericUnitFamily ?? null,
@@ -2203,6 +2244,19 @@ export class QuizEditComponent implements OnDestroy {
           }
         : {}),
       ...shortTextInput,
+      ...(this.isNumericEstimateType()
+        ? {
+            numericReferenceValue: this.form.controls.numericReferenceValue.value,
+            numericTolerancePercent: this.form.controls.numericTolerancePercent.value,
+            numericIntervalLeft: this.form.controls.numericIntervalLeft.value,
+            numericIntervalRight: this.form.controls.numericIntervalRight.value,
+            numericInputType: this.form.controls.numericInputType.value,
+            numericDecimalPlaces: this.form.controls.numericDecimalPlaces.value,
+            numericMin: this.form.controls.numericMin.value,
+            numericMax: this.form.controls.numericMax.value,
+            numericTwoRounds: this.form.controls.numericTwoRounds.value,
+          }
+        : {}),
     };
   }
 
@@ -2229,12 +2283,21 @@ export class QuizEditComponent implements OnDestroy {
           shortTextTrimWhitespace?: boolean | null;
           shortTextNormalizeWhitespace?: boolean | null;
           numericInputKind?: NumericInputKind | null;
-          numericToleranceMode?: NumericToleranceMode | null;
+          numericToleranceMode?: string | null;
           numericAbsoluteTolerance?: number | null;
           numericRelativeTolerancePercent?: number | null;
           numericUnitFamily?: NumericUnitFamily | null;
           numericRequireUnit?: boolean | null;
           numericAcceptEquivalentUnits?: boolean | null;
+          numericReferenceValue?: number | null;
+          numericTolerancePercent?: number | null;
+          numericIntervalLeft?: number | null;
+          numericIntervalRight?: number | null;
+          numericInputType?: 'INTEGER' | 'DECIMAL' | null;
+          numericDecimalPlaces?: number | null;
+          numericMin?: number | null;
+          numericMax?: number | null;
+          numericTwoRounds?: boolean | null;
         },
   ): AddQuizQuestionInput {
     const shortTextSettings = this.resolveShortTextQuestionSettings(question);
@@ -2259,6 +2322,20 @@ export class QuizEditComponent implements OnDestroy {
       ...(question.type === 'SHORT_TEXT'
         ? {
             ...shortTextSettings,
+          }
+        : {}),
+      ...(question.type === 'NUMERIC_ESTIMATE'
+        ? {
+            numericToleranceMode: question.numericToleranceMode ?? 'ABSOLUTE_INTERVAL',
+            numericReferenceValue: question.numericReferenceValue ?? null,
+            numericTolerancePercent: question.numericTolerancePercent ?? 10,
+            numericIntervalLeft: question.numericIntervalLeft ?? null,
+            numericIntervalRight: question.numericIntervalRight ?? null,
+            numericInputType: question.numericInputType ?? 'DECIMAL',
+            numericDecimalPlaces: question.numericDecimalPlaces ?? 2,
+            numericMin: question.numericMin ?? null,
+            numericMax: question.numericMax ?? null,
+            numericTwoRounds: question.numericTwoRounds ?? false,
           }
         : {}),
     };
@@ -2317,6 +2394,18 @@ export class QuizEditComponent implements OnDestroy {
     );
     this.form.controls.questionTimer.setValue(question.timer ?? null);
     this.form.controls.questionSkipReadingPhase.setValue(question.skipReadingPhase ?? false);
+    this.form.controls.numericToleranceMode.setValue(
+      question.numericToleranceMode ?? 'ABSOLUTE_INTERVAL',
+    );
+    this.form.controls.numericReferenceValue.setValue(question.numericReferenceValue ?? null);
+    this.form.controls.numericTolerancePercent.setValue(question.numericTolerancePercent ?? 10);
+    this.form.controls.numericIntervalLeft.setValue(question.numericIntervalLeft ?? null);
+    this.form.controls.numericIntervalRight.setValue(question.numericIntervalRight ?? null);
+    this.form.controls.numericInputType.setValue(question.numericInputType ?? 'DECIMAL');
+    this.form.controls.numericDecimalPlaces.setValue(question.numericDecimalPlaces ?? 2);
+    this.form.controls.numericMin.setValue(question.numericMin ?? null);
+    this.form.controls.numericMax.setValue(question.numericMax ?? null);
+    this.form.controls.numericTwoRounds.setValue(question.numericTwoRounds ?? false);
   }
 
   private mergeQuestionWithDraft(
@@ -2341,6 +2430,21 @@ export class QuizEditComponent implements OnDestroy {
       ratingLabelMin: draft.type === 'RATING' ? (draft.ratingLabelMin ?? '') : null,
       ratingLabelMax: draft.type === 'RATING' ? (draft.ratingLabelMax ?? '') : null,
       ...shortTextSettings,
+      numericReferenceValue:
+        draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericReferenceValue ?? null) : null,
+      numericTolerancePercent:
+        draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericTolerancePercent ?? null) : null,
+      numericIntervalLeft:
+        draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericIntervalLeft ?? null) : null,
+      numericIntervalRight:
+        draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericIntervalRight ?? null) : null,
+      numericInputType: draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericInputType ?? null) : null,
+      numericDecimalPlaces:
+        draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericDecimalPlaces ?? null) : null,
+      numericMin: draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericMin ?? null) : null,
+      numericMax: draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericMax ?? null) : null,
+      numericTwoRounds:
+        draft.type === 'NUMERIC_ESTIMATE' ? (draft.numericTwoRounds ?? false) : false,
     };
   }
 
@@ -2370,6 +2474,16 @@ export class QuizEditComponent implements OnDestroy {
     this.form.controls.numericUnitFamily.reset(NUMERIC_DEFAULT_UNIT_FAMILY);
     this.form.controls.numericRequireUnit.reset(false);
     this.form.controls.numericAcceptEquivalentUnits.reset(true);
+    // Story 1.2d: Numerische Schätzfrage
+    this.form.controls.numericReferenceValue.reset(null);
+    this.form.controls.numericTolerancePercent.reset(10);
+    this.form.controls.numericIntervalLeft.reset(null);
+    this.form.controls.numericIntervalRight.reset(null);
+    this.form.controls.numericInputType.reset('DECIMAL');
+    this.form.controls.numericDecimalPlaces.reset(2);
+    this.form.controls.numericMin.reset(null);
+    this.form.controls.numericMax.reset(null);
+    this.form.controls.numericTwoRounds.reset(false);
 
     this.submitError.set(null);
     this.form.markAsPristine();
@@ -2387,7 +2501,34 @@ export class QuizEditComponent implements OnDestroy {
       return false;
     }
 
-    if (question.type === 'FREETEXT' || question.type === 'RATING') {
+    if (
+      question.type === 'FREETEXT' ||
+      question.type === 'RATING' ||
+      question.type === 'NUMERIC_ESTIMATE'
+    ) {
+      if (question.type === 'NUMERIC_ESTIMATE') {
+        const mode = question.numericToleranceMode;
+        if (!mode) return false;
+        if (mode === 'RELATIVE_PERCENT') {
+          if (
+            question.numericReferenceValue === null ||
+            question.numericReferenceValue === undefined
+          )
+            return false;
+          if (question.numericReferenceValue === 0) return false;
+          if (
+            question.numericTolerancePercent === null ||
+            question.numericTolerancePercent === undefined
+          )
+            return false;
+        } else {
+          if (question.numericIntervalLeft === null || question.numericIntervalLeft === undefined)
+            return false;
+          if (question.numericIntervalRight === null || question.numericIntervalRight === undefined)
+            return false;
+          if (question.numericIntervalLeft >= question.numericIntervalRight) return false;
+        }
+      }
       return question.answers.length === 0;
     }
 
