@@ -47,6 +47,7 @@ import {
   resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
   type NicknameTheme,
+  type NumericToleranceMode,
   type ParticipantDTO,
   type PersonalScorecardDTO,
   type QaQuestionDTO,
@@ -1257,7 +1258,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (usesNumericShortTextEvaluation(question.shortTextEvaluationKind)) {
       const numericSettings = resolveNumericQuestionEvaluationSettings({
         numericInputKind: question.numericInputKind ?? null,
-        numericToleranceMode: question.numericToleranceMode ?? null,
+        numericToleranceMode: (question.numericToleranceMode as NumericToleranceMode) ?? null,
         numericAbsoluteTolerance: question.numericAbsoluteTolerance ?? null,
         numericRelativeTolerancePercent: question.numericRelativeTolerancePercent ?? null,
         numericUnitFamily: question.numericUnitFamily ?? null,

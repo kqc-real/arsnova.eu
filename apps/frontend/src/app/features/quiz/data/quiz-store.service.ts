@@ -101,7 +101,7 @@ export interface QuizQuestion {
   shortTextTrimWhitespace?: boolean | null;
   shortTextNormalizeWhitespace?: boolean | null;
   numericInputKind?: NumericInputKind | null;
-  numericToleranceMode?: NumericToleranceMode | null;
+  numericToleranceMode?: string | null;
   numericAbsoluteTolerance?: number | null;
   numericRelativeTolerancePercent?: number | null;
   numericUnitFamily?: NumericUnitFamily | null;
@@ -259,7 +259,7 @@ export interface AddQuizQuestionInput {
   shortTextTrimWhitespace?: boolean | null;
   shortTextNormalizeWhitespace?: boolean | null;
   numericInputKind?: NumericInputKind | null;
-  numericToleranceMode?: NumericToleranceMode | null;
+  numericToleranceMode?: string | null;
   numericAbsoluteTolerance?: number | null;
   numericRelativeTolerancePercent?: number | null;
   numericUnitFamily?: NumericUnitFamily | null;
@@ -335,7 +335,7 @@ type ShortTextQuestionSettingsInput = {
   shortTextTrimWhitespace?: boolean | null;
   shortTextNormalizeWhitespace?: boolean | null;
   numericInputKind?: NumericInputKind | null;
-  numericToleranceMode?: NumericToleranceMode | null;
+  numericToleranceMode?: string | null;
   numericAbsoluteTolerance?: number | null;
   numericRelativeTolerancePercent?: number | null;
   numericUnitFamily?: NumericUnitFamily | null;
@@ -394,7 +394,7 @@ function resolveQuestionShortTextSettings(
   });
   const numericSettings = resolveNumericQuestionEvaluationSettings({
     numericInputKind: question.numericInputKind ?? null,
-    numericToleranceMode: question.numericToleranceMode ?? null,
+    numericToleranceMode: (question.numericToleranceMode as NumericToleranceMode | null) ?? null,
     numericAbsoluteTolerance: question.numericAbsoluteTolerance ?? null,
     numericRelativeTolerancePercent: question.numericRelativeTolerancePercent ?? null,
     numericUnitFamily: question.numericUnitFamily ?? null,
@@ -1202,7 +1202,12 @@ export class QuizStoreService implements OnDestroy {
         shortTextTrimWhitespace: q.shortTextTrimWhitespace ?? undefined,
         shortTextNormalizeWhitespace: q.shortTextNormalizeWhitespace ?? undefined,
         numericInputKind: q.numericInputKind ?? undefined,
-        numericToleranceMode: q.numericToleranceMode ?? undefined,
+        numericToleranceMode:
+          (q.numericToleranceMode as
+            | NumericToleranceMode
+            | 'ABSOLUTE_INTERVAL'
+            | 'RELATIVE_PERCENT'
+            | null) ?? undefined,
         numericAbsoluteTolerance: q.numericAbsoluteTolerance ?? undefined,
         numericRelativeTolerancePercent: q.numericRelativeTolerancePercent ?? undefined,
         numericUnitFamily: q.numericUnitFamily ?? undefined,
@@ -2425,7 +2430,6 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     numericRequireUnit: input.numericRequireUnit ?? undefined,
     numericAcceptEquivalentUnits: input.numericAcceptEquivalentUnits ?? undefined,
     timer: input.timer === undefined ? undefined : input.timer,
-    numericToleranceMode: input.numericToleranceMode ?? undefined,
     numericReferenceValue: input.numericReferenceValue ?? undefined,
     numericTolerancePercent: input.numericTolerancePercent ?? undefined,
     numericIntervalLeft: input.numericIntervalLeft ?? undefined,
@@ -2546,7 +2550,6 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     numericAcceptEquivalentUnits:
       readBoolean(candidate['numericAcceptEquivalentUnits']) ?? undefined,
     timer: readNumberOrNull(candidate['timer']) ?? undefined,
-    numericToleranceMode: readStringOrNull(candidate['numericToleranceMode']) ?? undefined,
     numericReferenceValue: readNumberOrNull(candidate['numericReferenceValue']) ?? undefined,
     numericTolerancePercent: readNumberOrNull(candidate['numericTolerancePercent']) ?? undefined,
     numericIntervalLeft: readNumberOrNull(candidate['numericIntervalLeft']) ?? undefined,

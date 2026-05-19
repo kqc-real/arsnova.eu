@@ -21,6 +21,7 @@ import {
   type Difficulty,
   type NumericInputKind,
   type NumericToleranceMode,
+  type NumericEstimateToleranceMode,
   type NumericUnitFamily,
   type NumericInputType,
   type ShortAnswerEvaluationMode,
@@ -369,7 +370,7 @@ export const voteRouter = router({
 
       let numericIsCorrectOverride: boolean | undefined;
       if (questionType === 'NUMERIC_ESTIMATE' && input.numericValue !== undefined) {
-        const toleranceMode = question.numericToleranceMode as NumericToleranceMode | null;
+        const toleranceMode = question.numericToleranceMode as NumericEstimateToleranceMode | null;
         if (toleranceMode) {
           const band = resolveNumericTolerance(toleranceMode, {
             referenceValue: question.numericReferenceValue,

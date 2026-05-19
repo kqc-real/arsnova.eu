@@ -99,7 +99,7 @@ import {
   usesShortTextUnitEvaluation,
   resolveNumericTolerance,
   isNumericValueInBand,
-  type NumericToleranceMode,
+  type NumericEstimateToleranceMode,
   type NumericStatsDTO,
   type NumericHistogramBin,
   type NumericRoundComparisonDTO,
@@ -1401,8 +1401,10 @@ function buildQuizHistoryAccessPayload(
       ratingLabelMin: question.ratingLabelMin ?? undefined,
       ratingLabelMax: question.ratingLabelMax ?? undefined,
       numericToleranceMode:
-        (question.numericToleranceMode as 'ABSOLUTE_INTERVAL' | 'RELATIVE_PERCENT' | null) ??
-        undefined,
+        question.type === 'SHORT_TEXT'
+          ? ((question.numericToleranceMode as 'exact' | 'absolute' | 'relative' | null) ??
+            undefined)
+          : undefined,
       numericReferenceValue: question.numericReferenceValue ?? undefined,
       numericTolerancePercent: question.numericTolerancePercent ?? undefined,
       numericIntervalLeft: question.numericIntervalLeft ?? undefined,
@@ -2442,7 +2444,7 @@ async function buildHostCurrentQuestionDto(
     currentRound: session.currentRound,
     // Story 1.2d: Numerische Konfiguration für Host (immer sichtbar)
     numericToleranceMode:
-      (question.numericToleranceMode as NumericToleranceMode | null) ?? undefined,
+      (question.numericToleranceMode as NumericEstimateToleranceMode | null) ?? undefined,
     numericReferenceValue: question.numericReferenceValue ?? null,
     numericTolerancePercent: question.numericTolerancePercent ?? null,
     numericIntervalLeft: question.numericIntervalLeft ?? null,
@@ -2472,7 +2474,7 @@ async function buildHostCurrentQuestionDto(
         .filter((v): v is number => v !== null && v !== undefined);
       const totalVotes = numVotes.length;
 
-      const toleranceMode = question.numericToleranceMode as NumericToleranceMode | null;
+      const toleranceMode = question.numericToleranceMode as NumericEstimateToleranceMode | null;
       const band = toleranceMode
         ? resolveNumericTolerance(toleranceMode, {
             referenceValue: question.numericReferenceValue,
@@ -4284,7 +4286,7 @@ export const sessionRouter = router({
             const numericBand =
               toleranceModeStr &&
               (toleranceModeStr === 'ABSOLUTE_INTERVAL' || toleranceModeStr === 'RELATIVE_PERCENT')
-                ? resolveNumericTolerance(toleranceModeStr as NumericToleranceMode, {
+                ? resolveNumericTolerance(toleranceModeStr as NumericEstimateToleranceMode, {
                     referenceValue: question.numericReferenceValue,
                     tolerancePercent: question.numericTolerancePercent,
                     intervalLeft: question.numericIntervalLeft,

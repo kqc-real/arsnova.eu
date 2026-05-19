@@ -16,8 +16,8 @@ export const QuestionTypeEnum = z.enum([
 export type QuestionType = z.infer<typeof QuestionTypeEnum>;
 
 /** Toleranzmodus für numerische Schätzfragen (Story 1.2d). */
-export const NumericToleranceModeEnum = z.enum(['ABSOLUTE_INTERVAL', 'RELATIVE_PERCENT']);
-export type NumericToleranceMode = z.infer<typeof NumericToleranceModeEnum>;
+export const NumericEstimateToleranceModeEnum = z.enum(['ABSOLUTE_INTERVAL', 'RELATIVE_PERCENT']);
+export type NumericEstimateToleranceMode = z.infer<typeof NumericEstimateToleranceModeEnum>;
 
 /** Eingabetyp für numerische Schätzfragen (Story 1.2d). */
 export const NumericInputTypeEnum = z.enum(['INTEGER', 'DECIMAL']);
@@ -1261,7 +1261,9 @@ export const AddQuestionInputSchema = z
     shortTextTrimWhitespace: z.boolean().optional(),
     shortTextNormalizeWhitespace: z.boolean().optional(),
     numericInputKind: NumericInputKindEnum.optional(),
-    numericToleranceMode: NumericToleranceModeEnum.optional(),
+    numericToleranceMode: z
+      .union([NumericToleranceModeEnum, NumericEstimateToleranceModeEnum])
+      .optional(),
     numericAbsoluteTolerance: z.number().min(0).optional(),
     numericRelativeTolerancePercent: z.number().min(0).optional(),
     numericUnitFamily: NumericUnitFamilyEnum.optional(),
@@ -1320,7 +1322,7 @@ export const AddQuestionInputSchema = z
     if (usesNumericShortTextEvaluation(evaluationKind)) {
       const numericSettings = resolveNumericQuestionEvaluationSettings({
         numericInputKind: value.numericInputKind,
-        numericToleranceMode: value.numericToleranceMode,
+        numericToleranceMode: value.numericToleranceMode as NumericToleranceMode | undefined,
         numericAbsoluteTolerance: value.numericAbsoluteTolerance,
         numericRelativeTolerancePercent: value.numericRelativeTolerancePercent,
         numericUnitFamily: value.numericUnitFamily,
@@ -1641,7 +1643,8 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
             : NUMERIC_DEFAULT_INPUT_KIND,
         numericToleranceMode:
           question.type === 'SHORT_TEXT'
-            ? (question.numericToleranceMode ?? NUMERIC_DEFAULT_TOLERANCE_MODE)
+            ? ((question.numericToleranceMode as NumericToleranceMode | undefined) ??
+              NUMERIC_DEFAULT_TOLERANCE_MODE)
             : NUMERIC_DEFAULT_TOLERANCE_MODE,
         numericAbsoluteTolerance:
           question.type === 'SHORT_TEXT' ? (question.numericAbsoluteTolerance ?? null) : null,
@@ -1969,7 +1972,7 @@ export const HostCurrentQuestionDTOSchema = z.object({
   shortTextTrimWhitespace: z.boolean().optional(),
   shortTextNormalizeWhitespace: z.boolean().optional(),
   numericInputKind: NumericInputKindEnum.optional(),
-  numericToleranceMode: NumericToleranceModeEnum.optional(),
+  numericToleranceMode: z.string().optional(),
   numericAbsoluteTolerance: z.number().nullable().optional(),
   numericRelativeTolerancePercent: z.number().nullable().optional(),
   numericUnitFamily: NumericUnitFamilyEnum.optional(),
@@ -1998,7 +2001,6 @@ export const HostCurrentQuestionDTOSchema = z.object({
   currentRound: z.number().int().min(1).max(2).optional(),
   roundComparison: RoundComparisonDTOSchema.optional(),
   // Story 1.2d: Numerische Schätzfrage – Konfiguration (für Host sichtbar)
-  numericToleranceMode: NumericToleranceModeEnum.optional(),
   numericReferenceValue: z.number().nullable().optional(),
   numericTolerancePercent: z.number().nullable().optional(),
   numericIntervalLeft: z.number().nullable().optional(),
@@ -2115,7 +2117,7 @@ export const QuestionRevealedDTOSchema = z.object({
   incorrectVoterCount: z.number().int().optional(),
   totalVotes: z.number(),
   // Story 1.2d: Numerische Schätzfrage – aufgelöste Konfiguration + Statistik
-  numericToleranceMode: NumericToleranceModeEnum.optional(),
+  numericToleranceMode: z.string().optional(),
   numericReferenceValue: z.number().nullable().optional(),
   numericTolerancePercent: z.number().nullable().optional(),
   numericIntervalLeft: z.number().nullable().optional(),
@@ -3673,7 +3675,7 @@ export const AdminMotdListOutputSchema = z.array(AdminMotdListItemDTOSchema);
  * Gibt null zurück, wenn die Konfiguration ungültig ist (V=0 im RELATIVE-Modus, L >= R).
  */
 export function resolveNumericTolerance(
-  mode: NumericToleranceMode,
+  mode: NumericEstimateToleranceMode,
   opts: {
     referenceValue?: number | null;
     tolerancePercent?: number | null;

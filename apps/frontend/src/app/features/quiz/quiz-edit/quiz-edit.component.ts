@@ -126,7 +126,7 @@ type QuestionFormGroup = FormGroup<{
   shortTextTrimWhitespace: FormControl<boolean>;
   shortTextNormalizeWhitespace: FormControl<boolean>;
   numericInputKind: FormControl<NumericInputKind>;
-  numericToleranceMode: FormControl<NumericToleranceMode>;
+  numericToleranceMode: FormControl<string>;
   numericAbsoluteTolerance: FormControl<number | null>;
   numericRelativeTolerancePercent: FormControl<number | null>;
   numericUnitFamily: FormControl<NumericUnitFamily>;
@@ -492,9 +492,7 @@ export class QuizEditComponent implements OnDestroy {
     shortTextTrimWhitespace: this.formBuilder.control(true),
     shortTextNormalizeWhitespace: this.formBuilder.control(true),
     numericInputKind: this.formBuilder.control<NumericInputKind>(NUMERIC_DEFAULT_INPUT_KIND),
-    numericToleranceMode: this.formBuilder.control<NumericToleranceMode>(
-      NUMERIC_DEFAULT_TOLERANCE_MODE,
-    ),
+    numericToleranceMode: this.formBuilder.control<string>(NUMERIC_DEFAULT_TOLERANCE_MODE),
     numericAbsoluteTolerance: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(0)],
     }),
@@ -951,7 +949,7 @@ export class QuizEditComponent implements OnDestroy {
     );
   }
 
-  numericToleranceModeLabel(mode: NumericToleranceMode | null | undefined): string {
+  numericToleranceModeLabel(mode: string | null | undefined): string {
     return (
       this.numericToleranceModeOptions.find((option) => option.value === mode)?.label ??
       this.numericToleranceModeOptions.find(
@@ -994,7 +992,8 @@ export class QuizEditComponent implements OnDestroy {
     if (evaluationKind !== 'text') {
       const numericSettings = resolveNumericQuestionEvaluationSettings({
         numericInputKind: question.numericInputKind ?? null,
-        numericToleranceMode: question.numericToleranceMode ?? null,
+        numericToleranceMode:
+          (question.numericToleranceMode as NumericToleranceMode | null) ?? null,
         numericAbsoluteTolerance: question.numericAbsoluteTolerance ?? null,
         numericRelativeTolerancePercent: question.numericRelativeTolerancePercent ?? null,
         numericUnitFamily: question.numericUnitFamily ?? null,
@@ -1260,7 +1259,8 @@ export class QuizEditComponent implements OnDestroy {
     );
     const numericSettings = resolveNumericQuestionEvaluationSettings({
       numericInputKind: this.form.controls.numericInputKind.value,
-      numericToleranceMode: this.form.controls.numericToleranceMode.value,
+      numericToleranceMode: this.form.controls.numericToleranceMode
+        .value as NumericToleranceMode | null,
       numericAbsoluteTolerance: this.form.controls.numericAbsoluteTolerance.value,
       numericRelativeTolerancePercent: this.form.controls.numericRelativeTolerancePercent.value,
       numericUnitFamily: this.form.controls.numericUnitFamily.value,
@@ -1410,7 +1410,7 @@ export class QuizEditComponent implements OnDestroy {
     shortTextTrimWhitespace?: boolean | null;
     shortTextNormalizeWhitespace?: boolean | null;
     numericInputKind?: NumericInputKind | null;
-    numericToleranceMode?: NumericToleranceMode | null;
+    numericToleranceMode?: string | null;
     numericAbsoluteTolerance?: number | null;
     numericRelativeTolerancePercent?: number | null;
     numericUnitFamily?: NumericUnitFamily | null;
@@ -1426,7 +1426,7 @@ export class QuizEditComponent implements OnDestroy {
     shortTextTrimWhitespace: boolean | null;
     shortTextNormalizeWhitespace: boolean | null;
     numericInputKind: NumericInputKind | null;
-    numericToleranceMode: NumericToleranceMode | null;
+    numericToleranceMode: string | null;
     numericAbsoluteTolerance: number | null;
     numericRelativeTolerancePercent: number | null;
     numericUnitFamily: NumericUnitFamily | null;
@@ -1455,7 +1455,7 @@ export class QuizEditComponent implements OnDestroy {
 
     const numericSettings = resolveNumericQuestionEvaluationSettings({
       numericInputKind: question.numericInputKind ?? null,
-      numericToleranceMode: question.numericToleranceMode ?? null,
+      numericToleranceMode: (question.numericToleranceMode as NumericToleranceMode | null) ?? null,
       numericAbsoluteTolerance: question.numericAbsoluteTolerance ?? null,
       numericRelativeTolerancePercent: question.numericRelativeTolerancePercent ?? null,
       numericUnitFamily: question.numericUnitFamily ?? null,
@@ -2283,7 +2283,7 @@ export class QuizEditComponent implements OnDestroy {
           shortTextTrimWhitespace?: boolean | null;
           shortTextNormalizeWhitespace?: boolean | null;
           numericInputKind?: NumericInputKind | null;
-          numericToleranceMode?: NumericToleranceMode | null;
+          numericToleranceMode?: string | null;
           numericAbsoluteTolerance?: number | null;
           numericRelativeTolerancePercent?: number | null;
           numericUnitFamily?: NumericUnitFamily | null;
