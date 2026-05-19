@@ -3327,6 +3327,44 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return type !== 'SURVEY' && type !== 'RATING';
   }
 
+  numericHistogramBarHeight(bin: { count: number }, all: Array<{ count: number }>): number {
+    const maxCount = Math.max(1, ...all.map((b) => b.count));
+    return Math.round((bin.count / maxCount) * 100);
+  }
+
+  numericStatsLabel(
+    stats: {
+      n: number;
+      mean: number | null;
+      median: number | null;
+      stdDev: number | null;
+      inBandPercent: number | null;
+      meanAbsoluteError: number | null;
+    },
+    referenceValue: number | null,
+  ): string {
+    const parts: string[] = [];
+    parts.push(`n=${stats.n}`);
+    if (stats.mean !== null) {
+      parts.push(`Ø ${formatNumber(stats.mean, this.localeId, '1.0-2')}`);
+    }
+    if (stats.median !== null) {
+      parts.push(
+        $localize`:@@sessionHost.numericMedian:Median ${formatNumber(stats.median, this.localeId, '1.0-2')}:median:`,
+      );
+    }
+    if (stats.stdDev !== null) {
+      parts.push(`σ ${formatNumber(stats.stdDev, this.localeId, '1.0-2')}`);
+    }
+    if (referenceValue !== null && stats.inBandPercent !== null) {
+      parts.push(`${formatNumber(stats.inBandPercent, this.localeId, '1.0-1')} % i. Band`);
+    }
+    if (referenceValue !== null && stats.meanAbsoluteError !== null) {
+      parts.push(`MAE ${formatNumber(stats.meanAbsoluteError, this.localeId, '1.0-2')}`);
+    }
+    return parts.join(' · ');
+  }
+
   hostDifficultyLabel(value: HostCurrentQuestionDTO['difficulty']): string {
     switch (value) {
       case 'EASY':

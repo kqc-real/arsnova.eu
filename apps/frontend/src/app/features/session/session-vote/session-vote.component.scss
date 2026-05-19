@@ -2980,6 +2980,72 @@
   }
 }
 
+// Story 1.2d: Numerische Schätzfrage
+.vote-numeric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  &__label {
+    font: var(--mat-sys-label-large);
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &__input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
+    border-radius: var(--mat-sys-corner-large, 12px);
+    font: var(--mat-sys-title-large);
+    color: var(--mat-sys-on-surface);
+    background: var(--mat-sys-surface);
+    box-sizing: border-box;
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--mat-sys-primary);
+    }
+
+    &--invalid {
+      border-color: var(--mat-sys-error);
+    }
+
+    &:disabled {
+      opacity: 0.75;
+    }
+  }
+
+  &__range-hint {
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-error);
+    margin: 0;
+  }
+
+  &__result-label {
+    text-align: center;
+    font: var(--mat-sys-title-large);
+    color: var(--mat-sys-on-surface);
+    margin: 1.25rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--mat-sys-surface-container);
+    border-radius: var(--mat-sys-corner-large, 12px);
+    border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+}
+
 // Story 2.7: Diskussionsphase (Client)
 .vote-discussion {
   display: flex;

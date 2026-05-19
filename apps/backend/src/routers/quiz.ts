@@ -228,7 +228,7 @@ export const quizRouter = router({
               numericToleranceMode:
                 q.type === 'SHORT_TEXT'
                   ? (q.numericToleranceMode ?? NUMERIC_DEFAULT_TOLERANCE_MODE)
-                  : null,
+                  : (q.numericToleranceMode ?? null),
               numericAbsoluteTolerance:
                 q.type === 'SHORT_TEXT' ? (q.numericAbsoluteTolerance ?? null) : null,
               numericRelativeTolerancePercent:
@@ -240,6 +240,15 @@ export const quizRouter = router({
               numericRequireUnit: q.type === 'SHORT_TEXT' ? (q.numericRequireUnit ?? false) : false,
               numericAcceptEquivalentUnits:
                 q.type === 'SHORT_TEXT' ? (q.numericAcceptEquivalentUnits ?? true) : true,
+              numericReferenceValue: q.numericReferenceValue ?? null,
+              numericTolerancePercent: q.numericTolerancePercent ?? null,
+              numericIntervalLeft: q.numericIntervalLeft ?? null,
+              numericIntervalRight: q.numericIntervalRight ?? null,
+              numericInputType: q.numericInputType ?? null,
+              numericDecimalPlaces: q.numericDecimalPlaces ?? null,
+              numericMin: q.numericMin ?? null,
+              numericMax: q.numericMax ?? null,
+              numericTwoRounds: q.numericTwoRounds ?? false,
               answers: {
                 create: q.answers.map((a) => ({
                   text: a.text,
