@@ -170,7 +170,7 @@ describe('HomeComponent', () => {
   });
 
   describe('Session-Code-Segmente (Template)', () => {
-    it('zeigt grünen Haken nur bei gültigem 6-stelligem Code', () => {
+    it('zeigt keinen Erfolgs-Haken bereits für einen rein formal vollständigen Code', () => {
       const fixture = createHomeFixture();
       const el = fixture.nativeElement as HTMLElement;
       fixture.detectChanges();
@@ -181,7 +181,7 @@ describe('HomeComponent', () => {
 
       fixture.componentInstance.sessionCode.set('ABC123');
       fixture.detectChanges();
-      expect(el.querySelector('.home-code-segment__check')).not.toBeNull();
+      expect(el.querySelector('.home-code-segment__check')).toBeNull();
     });
   });
 
@@ -282,7 +282,7 @@ describe('HomeComponent', () => {
       await comp.joinSession();
 
       expect(comp.joinError()).toBe('Session nicht gefunden.');
-      expect(comp.sessionCode()).toBe('');
+      expect(comp.sessionCode()).toBe('NOTFND');
     });
   });
 

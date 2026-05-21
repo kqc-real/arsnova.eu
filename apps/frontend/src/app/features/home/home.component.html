@@ -162,7 +162,6 @@
           <div
             class="home-code-segments"
             [class.home-code-segments--focused]="codeInputFocused()"
-            [class.home-code-segments--valid]="isValidSessionCode()"
             [class.home-code-segments--shake]="codeShaking()"
             [class.home-code-segments--joining]="isJoining()"
             (click)="focusCodeInput()"
@@ -176,9 +175,6 @@
                 [class.home-code-segment--filled]="sessionCode().length > slot"
               >
                 {{ sessionCode()[slot] }}
-                @if (slot === 5 && isValidSessionCode()) {
-                  <mat-icon class="home-code-segment__check" aria-hidden="true">check</mat-icon>
-                }
               </span>
             }
             <input
