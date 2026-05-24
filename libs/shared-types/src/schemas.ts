@@ -1782,6 +1782,10 @@ export const SessionStatusUpdateSchema = z.object({
   currentQuestion: z.number().int().min(0).nullable(),
   /** Server-Zeitstempel bei Wechsel zu ACTIVE (ISO-8601). Für Countdown-Synchronisation (Story 3.5). */
   activeAt: z.string().optional(),
+  /** Effektiver Timer der aktiven Frage nach Default- und Difficulty-Regeln. */
+  timer: z.number().nullable().optional(),
+  /** Server-Zeitstempel des Status-Snapshots (ISO-8601) zur Uhrensynchronisation. */
+  serverTime: z.string().optional(),
   preset: QuizPresetEnum.optional(),
   /** Aktuelle Runde bei Peer Instruction (Story 2.7), 1 oder 2. */
   currentRound: z.number().int().min(1).max(2).optional(),

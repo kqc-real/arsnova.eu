@@ -3473,6 +3473,8 @@ export const sessionRouter = router({
             select: {
               name: true,
               readingPhaseEnabled: true,
+              defaultTimer: true,
+              timerScaleByDifficulty: true,
               bonusTokenCount: true,
               questions: {
                 orderBy: { order: 'asc' },
@@ -3480,6 +3482,8 @@ export const sessionRouter = router({
                   id: true,
                   type: true,
                   skipReadingPhase: true,
+                  timer: true,
+                  difficulty: true,
                   answers: { select: { id: true } },
                 },
               },
@@ -3541,6 +3545,15 @@ export const sessionRouter = router({
         !skipReadingPhaseForType &&
         nextQuestion?.skipReadingPhase !== true;
       const newStatus = readingPhase ? ('QUESTION_OPEN' as const) : ('ACTIVE' as const);
+      const effectiveTimer =
+        newStatus === 'ACTIVE'
+          ? resolveEffectiveQuestionTimer(
+              nextQuestion?.timer,
+              session.quiz.defaultTimer,
+              nextQuestion?.difficulty ?? 'MEDIUM',
+              session.quiz.timerScaleByDifficulty ?? true,
+            )
+          : null;
 
       let answerDisplayOrderPayload: ReturnType<typeof buildAnswerDisplayOrderForQuiz> | undefined;
       if (nextIdx === 0 && (session.answerDisplayOrder ?? null) === null) {
@@ -3550,13 +3563,14 @@ export const sessionRouter = router({
         }
       }
 
+      const now = new Date();
       await prisma.session.update({
         where: { id: session.id },
         data: {
           status: newStatus,
           currentQuestion: nextIdx,
           currentRound: 1,
-          statusChangedAt: new Date(),
+          statusChangedAt: now,
           ...(answerDisplayOrderPayload && { answerDisplayOrder: answerDisplayOrderPayload }),
         },
       });
@@ -3570,7 +3584,10 @@ export const sessionRouter = router({
         status: newStatus,
         currentQuestion: nextIdx,
         currentRound: 1,
-        ...(newStatus === 'ACTIVE' && { activeAt: new Date().toISOString() }),
+        ...(newStatus === 'ACTIVE' && {
+          activeAt: now.toISOString(),
+          timer: effectiveTimer,
+        }),
       };
     }),
 
@@ -3589,9 +3606,11 @@ export const sessionRouter = router({
           currentRound: true,
           quiz: {
             select: {
+              defaultTimer: true,
+              timerScaleByDifficulty: true,
               questions: {
                 orderBy: { order: 'asc' },
-                select: { id: true },
+                select: { id: true, timer: true, difficulty: true },
               },
             },
           },
@@ -3615,6 +3634,19 @@ export const sessionRouter = router({
         session.currentQuestion === null || session.currentQuestion === undefined
           ? null
           : (session.quiz?.questions[session.currentQuestion]?.id ?? null);
+      const currentQuestion =
+        session.currentQuestion === null || session.currentQuestion === undefined
+          ? null
+          : (session.quiz?.questions[session.currentQuestion] ?? null);
+      const effectiveTimer =
+        session.currentRound === 2 || !currentQuestion
+          ? null
+          : resolveEffectiveQuestionTimer(
+              currentQuestion.timer,
+              session.quiz?.defaultTimer,
+              currentQuestion.difficulty ?? 'MEDIUM',
+              session.quiz?.timerScaleByDifficulty ?? true,
+            );
       if (questionId) {
         await clearReadingReady(session.id, questionId);
       }
@@ -3626,6 +3658,7 @@ export const sessionRouter = router({
         currentQuestion: session.currentQuestion,
         currentRound: session.currentRound,
         activeAt: now.toISOString(),
+        timer: effectiveTimer,
       };
     }),
 

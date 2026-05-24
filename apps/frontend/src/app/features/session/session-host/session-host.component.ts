@@ -487,12 +487,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!question) return null;
     const statusUpdate = this.statusUpdate();
     if (!statusUpdate) return question;
-    return statusUpdate.currentQuestion === question.order ? question : null;
+    const currentQuestion = statusUpdate.currentQuestion;
+    if (typeof currentQuestion !== 'number') {
+      return currentQuestion === null ? null : question;
+    }
+    return currentQuestion === question.order ? question : null;
   });
   readonly hasCurrentQuizQuestionForHost = computed(() => {
     if (this.displayedCurrentQuestionForHost() !== null) return true;
-    const statusUpdate = this.statusUpdate();
-    return statusUpdate ? statusUpdate.currentQuestion !== null : false;
+    return typeof this.statusUpdate()?.currentQuestion === 'number';
   });
   readonly isHostQuestionDetailsPending = computed(
     () => this.hasCurrentQuizQuestionForHost() && this.displayedCurrentQuestionForHost() === null,
@@ -1616,11 +1619,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           if (data.serverTime) {
             recordServerTimeIso(data.serverTime);
           }
-          this.statusUpdate.set({
+          const update = {
             status: data.status as SessionStatusUpdate['status'],
             currentQuestion: data.currentQuestion,
-            activeAt: data.activeAt,
-          });
+            activeAt: data.activeAt ?? undefined,
+            timer: data.timer,
+            currentRound: data.currentRound,
+            preset:
+              data.preset === 'PLAYFUL' || data.preset === 'SERIOUS' ? data.preset : undefined,
+            channels: data.channels,
+            preferredChannel: data.preferredChannel,
+          } satisfies SessionStatusUpdate;
+          this.statusUpdate.set(update);
+          this.syncCountdownFromStatusUpdate(update);
         },
         onError: () => {
           this.statusSub?.unsubscribe();
@@ -2235,6 +2246,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     tick();
     this.countdownTimer = setInterval(tick, 1000);
+  }
+
+  private syncCountdownFromStatusUpdate(update: SessionStatusUpdate): void {
+    if (update.status !== 'ACTIVE' || (update.currentRound ?? 1) === 2) {
+      this.stopCountdown();
+      this.countdownSeconds.set(null);
+      return;
+    }
+
+    const timerSeconds =
+      typeof update.timer === 'number'
+        ? update.timer
+        : update.timer === null
+          ? null
+          : this.displayedCurrentQuestionForHost()?.timer;
+
+    if (timerSeconds === undefined) {
+      return;
+    }
+    this.startCountdown(timerSeconds, update.activeAt);
   }
 
   private stopCountdown(): void {
@@ -3014,7 +3045,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return false;
     }
     const statusUpdate = this.statusUpdate();
-    return statusUpdate ? statusUpdate.currentQuestion === current.order : true;
+    if (!statusUpdate) return true;
+    const currentQuestion = statusUpdate.currentQuestion;
+    return typeof currentQuestion === 'number'
+      ? currentQuestion === current.order
+      : currentQuestion !== null;
   }
 
   private isCurrentStatusUpdate(update: SessionStatusUpdate): boolean {
@@ -4189,12 +4224,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.countdownSeconds.set(null);
       const result = await trpc.session.nextQuestion.mutate({ code: this.code.toUpperCase() });
       this.statusUpdate.set(result);
+      this.syncCountdownFromStatusUpdate(result);
       this.dismissHostSteeringCallout();
       this.controlPending.set(false);
       await this.refreshCurrentQuestionForHost();
       if (!this.isCurrentStatusUpdate(result)) return;
       if (result.status === 'ACTIVE') {
-        this.startCountdown(this.displayedCurrentQuestionForHost()?.timer, result.activeAt);
+        const refreshedTimer = this.displayedCurrentQuestionForHost()?.timer;
+        if (refreshedTimer !== undefined || result.timer !== undefined) {
+          this.startCountdown(refreshedTimer ?? result.timer, result.activeAt);
+        }
       }
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.nextQuestion());
@@ -4453,13 +4492,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.controlPending.set(true);
     try {
       this.clearEmojiNewBadge();
+      const initialTimer = this.currentQuestionForHost()?.timer;
       const result = await trpc.session.revealAnswers.mutate({ code: this.code.toUpperCase() });
       this.statusUpdate.set(result);
-      this.startCountdown(this.displayedCurrentQuestionForHost()?.timer, result.activeAt);
+      const timerForCountdown =
+        result.timer === undefined
+          ? (initialTimer ?? this.displayedCurrentQuestionForHost()?.timer)
+          : result.timer;
+      this.startCountdown(timerForCountdown, result.activeAt);
       this.dismissHostSteeringCallout();
       this.controlPending.set(false);
       await this.refreshCurrentQuestionForHost();
       if (!this.isCurrentStatusUpdate(result)) return;
+      if (result.timer === undefined && initialTimer === undefined) {
+        this.startCountdown(this.displayedCurrentQuestionForHost()?.timer, result.activeAt);
+      }
       this.scrollHostTargetIntoView(this.hostAnswersListRef);
     } catch {
       this.openHostSteeringCalloutForSteeringFailure(() => void this.revealAnswers());

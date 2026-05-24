@@ -4335,6 +4335,68 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('behandelt fehlenden Fragenindex im Statusupdate nicht als neue Frage', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const question = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      currentRound: 1,
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    };
+
+    component.session.set({ ...defaultSession, status: 'ACTIVE' });
+    component.currentQuestionForHost.set(question);
+    component.statusUpdate.set({
+      status: 'ACTIVE',
+      currentQuestion: undefined,
+      currentRound: 1,
+    } as unknown as Parameters<typeof component.statusUpdate.set>[0]);
+    component.countdownSeconds.set(12);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(component.displayedCurrentQuestionForHost()?.questionId).toBe(question.questionId);
+    expect(component.hasCurrentQuizQuestionForHost()).toBe(true);
+    expect(host.textContent).toContain('Welche Antwort ist richtig?');
+    expect(host.textContent).not.toContain('Frage wird aktualisiert');
+    expect(host.querySelector('.session-host__countdown')?.textContent?.trim()).toBe('12');
+    fixture.destroy();
+  });
+
+  it('aktiviert Ergebnisaktion nicht allein wegen fehlendem Fragenindex im Statusupdate', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    component.session.set({ ...defaultSession, status: 'ACTIVE' });
+    component.currentQuestionForHost.set(null);
+    component.statusUpdate.set({
+      status: 'ACTIVE',
+      currentQuestion: undefined,
+      currentRound: 1,
+    } as unknown as Parameters<typeof component.statusUpdate.set>[0]);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(component.hasCurrentQuizQuestionForHost()).toBe(false);
+    expect(host.textContent).not.toContain('Ergebnis zeigen');
+    fixture.destroy();
+  });
+
   it('gibt Ergebnis-Aktion frei, waehrend Host-Fragendetails noch nachladen', async () => {
     const initialQuestion = {
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
@@ -4378,12 +4440,120 @@ describe('SessionHostComponent', () => {
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
     ).find((button) => (button.textContent ?? '').includes('Ergebnis zeigen'));
     expect(component.controlPending()).toBe(false);
+    expect(component.countdownSeconds()).toBeGreaterThan(0);
     expect(resultButton).toBeTruthy();
     expect(resultButton?.disabled).toBe(false);
 
     resolveRefresh?.(initialQuestion);
     await pendingReveal;
     await fixture.whenStable();
+    fixture.destroy();
+  });
+
+  it('startet den Countdown nach, wenn der Timer erst mit Host-Details eintrifft', async () => {
+    const loadedQuestion = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      currentRound: 1,
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    };
+
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.statusUpdate.set({ status: 'QUESTION_OPEN', currentQuestion: 0, currentRound: 1 });
+    component.currentQuestionForHost.set(null);
+    getCurrentQuestionForHostQueryMock.mockResolvedValueOnce(loadedQuestion);
+
+    await component.revealAnswers();
+    await fixture.whenStable();
+
+    expect(component.countdownSeconds()).toBeGreaterThan(0);
+    fixture.destroy();
+  });
+
+  it('startet den Countdown aus dem Realtime-Status-Timer auch ohne Host-Details', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => onStatusChangedSubscribeMock.mock.calls.length > 0, {
+      timeout: 5000,
+      interval: 25,
+    });
+    const component = fixture.componentInstance;
+    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
+      | ((data: {
+          status: string;
+          currentQuestion: number | null;
+          currentRound?: number;
+          activeAt?: string | null;
+          timer?: number | null;
+          serverTime?: string;
+        }) => void)
+      | undefined;
+
+    statusHandler?.({
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+      activeAt: '2026-03-24T12:00:00.000Z',
+      timer: 30,
+      serverTime: '2026-03-24T12:00:01.000Z',
+    });
+
+    expect(component.statusUpdate()?.timer).toBe(30);
+    expect(component.displayedCurrentQuestionForHost()).toBeNull();
+    expect(component.countdownSeconds()).toBeGreaterThan(0);
+    expect(component.countdownSeconds()).toBeLessThanOrEqual(30);
+    fixture.destroy();
+  });
+
+  it('startet den Countdown bei direkter ACTIVE-Frage vor dem Nachladen der Host-Details', async () => {
+    let resolveRefresh: ((value: null) => void) | null = null;
+
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
+    nextQuestionMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+      activeAt: '2026-03-24T12:00:00.000Z',
+      timer: 30,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    getCurrentQuestionForHostQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+
+    const pendingNextQuestion = component.nextQuestion();
+    await Promise.resolve();
+
+    expect(component.controlPending()).toBe(false);
+    expect(component.countdownSeconds()).toBeGreaterThan(0);
+
+    resolveRefresh?.(null);
+    await pendingNextQuestion;
+    expect(component.countdownSeconds()).toBeGreaterThan(0);
     fixture.destroy();
   });
 
