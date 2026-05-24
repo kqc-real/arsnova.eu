@@ -37,6 +37,7 @@ export const voteRouter = router({
     .input(SubmitVoteInputSchema)
     .output(SubmitVoteOutputSchema)
     .mutation(async ({ input }) => {
+      const requestReceivedAtMs = Date.now();
       const limit = await checkVoteRate(input.participantId);
       if (!limit.allowed) {
         throw new TRPCError({
@@ -84,10 +85,15 @@ export const voteRouter = router({
         quiz?.timerScaleByDifficulty ?? true,
       );
 
-      if (timerSeconds && timerSeconds > 0 && participant.session.statusChangedAt) {
-        const deadline =
-          new Date(participant.session.statusChangedAt).getTime() + timerSeconds * 1000;
-        if (Date.now() > deadline + 2000) {
+      const statusChangedAtMs = participant.session.statusChangedAt
+        ? new Date(participant.session.statusChangedAt).getTime()
+        : null;
+      const hasServerQuestionStart =
+        statusChangedAtMs !== null && Number.isFinite(statusChangedAtMs);
+
+      if (timerSeconds && timerSeconds > 0 && hasServerQuestionStart) {
+        const deadline = statusChangedAtMs + timerSeconds * 1000;
+        if (requestReceivedAtMs > deadline + 2000) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Die Zeit für diese Frage ist abgelaufen.',
@@ -96,6 +102,10 @@ export const voteRouter = router({
       }
 
       const questionType = question.type as QuestionType;
+      const responseTimeMs =
+        timerSeconds && timerSeconds > 0 && hasServerQuestionStart
+          ? Math.max(0, requestReceivedAtMs - statusChangedAtMs)
+          : (input.responseTimeMs ?? null);
       const answerIds = [...new Set(input.answerIds ?? [])];
       const allowedAnswerIds = new Set(question.answers.map((answer) => answer.id));
       const hasInvalidAnswerId = answerIds.some((answerId) => !allowedAnswerIds.has(answerId));
@@ -334,7 +344,7 @@ export const voteRouter = router({
         numericAcceptEquivalentUnits: usesShortTextUnitEvaluation(shortTextEvaluationKind)
           ? numericSettings.acceptEquivalentUnits
           : true,
-        responseTimeMs: input.responseTimeMs ?? null,
+        responseTimeMs,
         timerDurationMs: timerSeconds ? timerSeconds * 1000 : null,
       });
 
@@ -393,7 +403,7 @@ export const voteRouter = router({
           questionId: input.questionId,
           freeText,
           ratingValue: input.ratingValue ?? null,
-          responseTimeMs: input.responseTimeMs ?? null,
+          responseTimeMs,
           score,
           streakCount,
           streakBonus: streakMultiplier,
