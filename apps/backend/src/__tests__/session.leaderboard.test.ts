@@ -33,7 +33,11 @@ describe('session.getLeaderboard', () => {
       },
       participants: [
         { id: 'p1', nickname: 'Ada' },
-        { id: 'p2', nickname: 'Bob' },
+        {
+          id: 'p2',
+          nickname: 'Bob',
+          team: { name: ':apple: Team Apfel', color: '#1E88E5' },
+        },
       ],
     });
     prismaMock.vote.findMany.mockResolvedValue([
@@ -87,7 +91,11 @@ describe('session.getLeaderboard', () => {
       },
       participants: [
         { id: 'p1', nickname: 'Ada' },
-        { id: 'p2', nickname: 'Bob' },
+        {
+          id: 'p2',
+          nickname: 'Bob',
+          team: { name: ':apple: Team Apfel', color: '#1E88E5' },
+        },
       ],
     });
     prismaMock.vote.findMany.mockResolvedValue([
@@ -146,6 +154,8 @@ describe('session.getLeaderboard', () => {
         nickname: 'Bob',
         totalScore: 2000,
         totalResponseTimeMs: 6000,
+        teamName: ':apple: Team Apfel',
+        teamColor: '#1E88E5',
       }),
     ]);
   });

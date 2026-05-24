@@ -4390,7 +4390,13 @@ export const sessionRouter = router({
               questions: { select: { type: true } },
             },
           },
-          participants: { select: { id: true, nickname: true } },
+          participants: {
+            select: {
+              id: true,
+              nickname: true,
+              team: { select: { name: true, color: true } },
+            },
+          },
         },
       });
       if (!session) {
@@ -4450,17 +4456,35 @@ export const sessionRouter = router({
         }
       }
 
-      const nicknameById = new Map(session.participants.map((p) => [p.id, p.nickname]));
+      const participantMetaById = new Map(
+        session.participants.map((p) => [
+          p.id,
+          {
+            nickname: p.nickname,
+            teamName: p.team?.name ?? null,
+            teamColor: p.team?.color ?? null,
+          },
+        ]),
+      );
 
       const entries: LeaderboardEntryDTO[] = [...stats.entries()]
-        .map(([pid, s]) => ({
-          rank: 0,
-          nickname: nicknameById.get(pid) ?? '?',
-          totalScore: Number(s.totalScore) || 0,
-          correctCount: s.correctCount,
-          totalQuestions: totalScoredQuestions,
-          totalResponseTimeMs: s.totalResponseTimeMs,
-        }))
+        .map(([pid, s]) => {
+          const meta = participantMetaById.get(pid);
+          return {
+            rank: 0,
+            nickname: meta?.nickname ?? '?',
+            totalScore: Number(s.totalScore) || 0,
+            correctCount: s.correctCount,
+            totalQuestions: totalScoredQuestions,
+            totalResponseTimeMs: s.totalResponseTimeMs,
+            ...(meta?.teamName
+              ? {
+                  teamName: meta.teamName,
+                  teamColor: meta.teamColor,
+                }
+              : {}),
+          };
+        })
         .filter((e) => e.totalScore > 0)
         .sort(
           (a, b) => b.totalScore - a.totalScore || a.totalResponseTimeMs - b.totalResponseTimeMs,

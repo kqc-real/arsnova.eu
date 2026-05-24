@@ -648,23 +648,51 @@
                           <span i18n="@@sessionHost.leaderboardWinnerLabel">Gewonnen hat</span>
                         </p>
                         <p class="session-host__leaderboard-winner-name">
-                          @if (lobbyKindergartenEmoji(leader.nickname); as em) {
-                            <span
-                              class="session-host__kindergarten-entry session-host__kindergarten-entry--winner"
-                            >
+                          <span class="session-host__leaderboard-winner-name-line">
+                            @if (lobbyKindergartenEmoji(leader.nickname); as em) {
                               <span
-                                class="session-host__kindergarten-emoji session-host__kindergarten-emoji--winner"
-                                [attr.title]="leader.nickname"
-                                aria-hidden="true"
-                                >{{ em }}</span
+                                class="session-host__kindergarten-entry session-host__kindergarten-entry--winner"
                               >
-                              <span class="session-host__kindergarten-label">{{
-                                leader.nickname
-                              }}</span>
-                            </span>
-                          } @else {
-                            {{ leader.nickname }}
-                          }
+                                <span
+                                  class="session-host__kindergarten-emoji session-host__kindergarten-emoji--winner"
+                                  [attr.title]="leader.nickname"
+                                  aria-hidden="true"
+                                  >{{ em }}</span
+                                >
+                                <span class="session-host__kindergarten-label">{{
+                                  leader.nickname
+                                }}</span>
+                              </span>
+                            } @else {
+                              <span>{{ leader.nickname }}</span>
+                            }
+                            @if (session()?.teamMode && leader.teamName; as teamName) {
+                              <span
+                                class="session-host__leaderboard-team-badge session-host__leaderboard-team-badge--winner"
+                                [attr.title]="teamNameLabelWithoutEmojiMarker(teamName)"
+                                [attr.aria-label]="teamNameLabelWithoutEmojiMarker(teamName)"
+                              >
+                                @if (teamNameEmojiMarker(teamName); as teamEmoji) {
+                                  <span
+                                    class="session-host__leaderboard-team-emoji"
+                                    aria-hidden="true"
+                                    >{{ teamEmoji }}</span
+                                  >
+                                } @else {
+                                  <span
+                                    class="session-host__leaderboard-team-dot"
+                                    [style.background]="
+                                      leader.teamColor || 'var(--mat-sys-primary)'
+                                    "
+                                    aria-hidden="true"
+                                  ></span>
+                                }
+                                <span class="session-host__leaderboard-team-label">{{
+                                  teamNameLabelWithoutEmojiMarker(teamName)
+                                }}</span>
+                              </span>
+                            }
+                          </span>
                         </p>
                         <p
                           class="session-host__leaderboard-winner-meta"
@@ -711,23 +739,53 @@
                                 }
                               </td>
                               <td class="session-host__lb-col--name">
-                                @if (lobbyKindergartenEmoji(entry.nickname); as em) {
-                                  <span
-                                    class="session-host__kindergarten-entry session-host__kindergarten-entry--table"
-                                  >
-                                    <span
-                                      class="session-host__kindergarten-emoji session-host__kindergarten-emoji--table"
-                                      [attr.title]="entry.nickname"
-                                      aria-hidden="true"
-                                      >{{ em }}</span
-                                    >
-                                    <span class="session-host__kindergarten-label">{{
-                                      entry.nickname
-                                    }}</span>
+                                <span class="session-host__lb-name-line">
+                                  <span class="session-host__lb-name-main">
+                                    @if (lobbyKindergartenEmoji(entry.nickname); as em) {
+                                      <span
+                                        class="session-host__kindergarten-entry session-host__kindergarten-entry--table"
+                                      >
+                                        <span
+                                          class="session-host__kindergarten-emoji session-host__kindergarten-emoji--table"
+                                          [attr.title]="entry.nickname"
+                                          aria-hidden="true"
+                                          >{{ em }}</span
+                                        >
+                                        <span class="session-host__kindergarten-label">{{
+                                          entry.nickname
+                                        }}</span>
+                                      </span>
+                                    } @else {
+                                      {{ entry.nickname }}
+                                    }
                                   </span>
-                                } @else {
-                                  {{ entry.nickname }}
-                                }
+                                  @if (session()?.teamMode && entry.teamName; as teamName) {
+                                    <span
+                                      class="session-host__leaderboard-team-badge"
+                                      [attr.title]="teamNameLabelWithoutEmojiMarker(teamName)"
+                                      [attr.aria-label]="teamNameLabelWithoutEmojiMarker(teamName)"
+                                    >
+                                      @if (teamNameEmojiMarker(teamName); as teamEmoji) {
+                                        <span
+                                          class="session-host__leaderboard-team-emoji"
+                                          aria-hidden="true"
+                                          >{{ teamEmoji }}</span
+                                        >
+                                      } @else {
+                                        <span
+                                          class="session-host__leaderboard-team-dot"
+                                          [style.background]="
+                                            entry.teamColor || 'var(--mat-sys-primary)'
+                                          "
+                                          aria-hidden="true"
+                                        ></span>
+                                      }
+                                      <span class="session-host__leaderboard-team-label">{{
+                                        teamNameLabelWithoutEmojiMarker(teamName)
+                                      }}</span>
+                                    </span>
+                                  }
+                                </span>
                               </td>
                               <td class="session-host__lb-col--score">
                                 {{ entry.totalScore | number }}
@@ -742,7 +800,6 @@
                     </div>
                   </section>
                 }
-
                 @if (session()?.teamMode && teamLeaderboard().length > 0) {
                   <section
                     class="session-host__leaderboard-card"
@@ -1640,23 +1697,51 @@
                           }
                         </span>
                         <span class="session-host__interim-name">
-                          @if (lobbyKindergartenEmoji(entry.nickname); as em) {
-                            <span
-                              class="session-host__kindergarten-entry session-host__kindergarten-entry--interim"
-                            >
-                              <span
-                                class="session-host__kindergarten-emoji session-host__kindergarten-emoji--interim"
-                                [attr.title]="entry.nickname"
-                                aria-hidden="true"
-                                >{{ em }}</span
-                              >
-                              <span class="session-host__kindergarten-label">{{
-                                entry.nickname
-                              }}</span>
+                          <span class="session-host__interim-name-line">
+                            <span class="session-host__interim-name-main">
+                              @if (lobbyKindergartenEmoji(entry.nickname); as em) {
+                                <span
+                                  class="session-host__kindergarten-entry session-host__kindergarten-entry--interim"
+                                >
+                                  <span
+                                    class="session-host__kindergarten-emoji session-host__kindergarten-emoji--interim"
+                                    [attr.title]="entry.nickname"
+                                    aria-hidden="true"
+                                    >{{ em }}</span
+                                  >
+                                  <span class="session-host__kindergarten-label">{{
+                                    entry.nickname
+                                  }}</span>
+                                </span>
+                              } @else {
+                                {{ entry.nickname }}
+                              }
                             </span>
-                          } @else {
-                            {{ entry.nickname }}
-                          }
+                            @if (session()?.teamMode && entry.teamName; as teamName) {
+                              <span
+                                class="session-host__leaderboard-team-badge session-host__leaderboard-team-badge--interim"
+                                [attr.title]="teamNameLabelWithoutEmojiMarker(teamName)"
+                                [attr.aria-label]="teamNameLabelWithoutEmojiMarker(teamName)"
+                              >
+                                @if (teamNameEmojiMarker(teamName); as teamEmoji) {
+                                  <span
+                                    class="session-host__leaderboard-team-emoji"
+                                    aria-hidden="true"
+                                    >{{ teamEmoji }}</span
+                                  >
+                                } @else {
+                                  <span
+                                    class="session-host__leaderboard-team-dot"
+                                    [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                                    aria-hidden="true"
+                                  ></span>
+                                }
+                                <span class="session-host__leaderboard-team-label">{{
+                                  teamNameLabelWithoutEmojiMarker(teamName)
+                                }}</span>
+                              </span>
+                            }
+                          </span>
                         </span>
                         <span class="session-host__interim-score" i18n
                           >{{ entry.totalScore | number }} Pkt.</span

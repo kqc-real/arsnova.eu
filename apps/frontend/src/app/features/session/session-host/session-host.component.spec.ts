@@ -5102,6 +5102,8 @@ describe('SessionHostComponent', () => {
         correctCount: 3,
         totalQuestions: 4,
         totalResponseTimeMs: 5000,
+        teamName: ':apple: Team A',
+        teamColor: '#1E88E5',
       },
     ]);
     getTeamLeaderboardQueryMock.mockResolvedValue([
@@ -5134,6 +5136,9 @@ describe('SessionHostComponent', () => {
     expect(text).toContain('Team-Leaderboard');
     expect(text).toContain('Team A');
     expect(text).toContain('Gleichstand: Antwortzeit zählt.');
+    expect(
+      fixture.nativeElement.querySelector('td.session-host__lb-col--name')?.textContent ?? '',
+    ).toContain('Team A');
     expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
     fixture.destroy();
   });
@@ -5215,6 +5220,7 @@ describe('SessionHostComponent', () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'RESULTS',
+      teamMode: true,
       nicknameTheme: 'KINDERGARTEN',
     });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -5260,6 +5266,8 @@ describe('SessionHostComponent', () => {
         correctCount: 3,
         totalQuestions: 3,
         totalResponseTimeMs: 3000,
+        teamName: ':apple: Team Apfel',
+        teamColor: '#1E88E5',
       },
       {
         rank: 2,
@@ -5268,6 +5276,8 @@ describe('SessionHostComponent', () => {
         correctCount: 2,
         totalQuestions: 3,
         totalResponseTimeMs: 3200,
+        teamName: ':pear: Team Birne',
+        teamColor: '#43A047',
       },
     ]);
 
@@ -5293,6 +5303,7 @@ describe('SessionHostComponent', () => {
       'Lagunenblaue Qualle',
     ]);
     expect(interimLabels).toEqual(['Lila Delfin', 'Lagunenblaue Qualle']);
+    expect(fixture.nativeElement.textContent ?? '').toContain('Team Apfel');
     expect(fixture.nativeElement.textContent ?? '').toContain('Gleichstand: Antwortzeit zählt.');
     fixture.destroy();
   });

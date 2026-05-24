@@ -2784,6 +2784,71 @@
   vertical-align: middle;
 }
 
+.session-host__leaderboard-winner-name-line,
+.session-host__lb-name-line,
+.session-host__interim-name-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.session-host__leaderboard-winner-name-line {
+  justify-content: center;
+}
+
+.session-host__lb-name-main,
+.session-host__interim-name-main {
+  min-width: 0;
+}
+
+.session-host__leaderboard-team-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: min(11rem, 100%);
+  min-width: 0;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 26%, var(--mat-sys-outline-variant));
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 34%, transparent);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.session-host__leaderboard-team-badge--winner {
+  max-width: min(14rem, 100%);
+}
+
+.session-host__leaderboard-team-badge--interim {
+  max-width: min(9rem, 100%);
+}
+
+.session-host__leaderboard-team-emoji {
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.session-host__leaderboard-team-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.session-host__leaderboard-team-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .session-host__leaderboard-winner-meta {
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
@@ -2995,6 +3060,15 @@
     font-size: clamp(1.2rem, 6vw, 1.55rem);
   }
 
+  .session-host__leaderboard-team-badge {
+    max-width: min(7.5rem, 100%);
+    padding-inline: 0.35rem;
+  }
+
+  .session-host__leaderboard-team-badge--winner {
+    max-width: min(10rem, 100%);
+  }
+
   .session-host__leaderboard-table {
     min-width: 16.5rem;
     font: var(--mat-sys-body-medium);
@@ -3046,6 +3120,32 @@
     gap: 0.45rem;
     padding: 0.55rem 0.25rem;
     font: var(--mat-sys-body-medium);
+  }
+
+  .session-host__interim-leaderboard--teams {
+    .session-host__interim-item {
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .session-host__interim-name {
+      flex: 1 1 calc(100% - 2.5rem);
+    }
+
+    .session-host__interim-score {
+      flex: 0 0 calc(100% - 2.5rem);
+      margin-left: 2.5rem;
+      color: var(--mat-sys-on-surface-variant);
+      font: var(--mat-sys-label-medium);
+    }
+
+    .session-host__interim-team-emoji {
+      font-size: 1.85rem;
+    }
+  }
+
+  .session-host__leaderboard-team-badge--interim {
+    max-width: min(7rem, 100%);
   }
 }
 

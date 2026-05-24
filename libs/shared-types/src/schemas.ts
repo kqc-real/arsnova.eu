@@ -2353,6 +2353,8 @@ export const LeaderboardEntryDTOSchema = z.object({
   correctCount: z.number(), // Anzahl richtiger Antworten
   totalQuestions: z.number(), // Gesamtanzahl Fragen
   totalResponseTimeMs: z.number(), // Gesamtantwortzeit positiv bewerteter Antworten in ms (Tiebreaker)
+  teamName: z.string().nullable().optional(), // Teamzuordnung im Teammodus
+  teamColor: z.string().nullable().optional(), // Teamfarbe für kompakte Badges
 });
 export type LeaderboardEntryDTO = z.infer<typeof LeaderboardEntryDTOSchema>;
 
