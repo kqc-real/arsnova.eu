@@ -14225,6 +14225,66 @@
           <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizPreview.typeNumericEstimate" datatype="html">
+        <source>Numerische Schätzfrage</source>
+        <target>Stima numerica</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.numericLabel" datatype="html">
+        <source>Deine Schätzung</source>
+        <target>La tua stima</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.numericPlaceholder" datatype="html">
+        <source>Zahl eingeben…</source>
+        <target>Inserisci un numero…</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.numericRangeHintBoth" datatype="html">
+        <source>Bitte einen Wert zwischen <x id="INTERPOLATION"/> und <x id="INTERPOLATION_1"/> eingeben.</source>
+        <target>Inserisci un valore compreso tra <x id="INTERPOLATION"/> e <x id="INTERPOLATION_1"/>.</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.numericRangeHintMin" datatype="html">
+        <source>Bitte einen Wert von mindestens <x id="INTERPOLATION"/> eingeben.</source>
+        <target>Inserisci un valore di almeno <x id="INTERPOLATION"/>.</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.numericRangeHintMax" datatype="html">
+        <source>Bitte einen Wert von höchstens <x id="INTERPOLATION"/> eingeben.</source>
+        <target>Inserisci un valore di al massimo <x id="INTERPOLATION"/>.</target>
+      </trans-unit>
+      <trans-unit id="sessionVote.numericResultPrefix" datatype="html">
+        <source>Deine Antwort:</source>
+        <target>La tua risposta:</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.numericWaiting" datatype="html">
+        <source>Warte auf Schätzungen…</source>
+        <target>In attesa delle stime…</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.numericVoteCount" datatype="html">
+        <source><x id="INTERPOLATION"/> Antworten eingegangen</source>
+        <target><x id="INTERPOLATION"/> risposte ricevute</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.numericRoundLabel1" datatype="html">
+        <source>Runde 1</source>
+        <target>Round 1</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.numericRoundLabel2" datatype="html">
+        <source>Runde 2</source>
+        <target>Round 2</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.numericPairedImproved" datatype="html">
+        <source>Paarweise Δ: <x id="INTERPOLATION"/> näher, <x id="INTERPOLATION_1"/> weiter weg, <x id="INTERPOLATION_2"/> gleich (<x id="INTERPOLATION_3"/> Paare)</source>
+        <target>Δ a coppie: <x id="INTERPOLATION"/> più vicino, <x id="INTERPOLATION_1"/> più lontano, <x id="INTERPOLATION_2"/> invariato (<x id="INTERPOLATION_3"/> coppie)</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.numericRefValue" datatype="html">
+        <source>Referenzwert: <x id="INTERPOLATION"/></source>
+        <target>Valore di riferimento: <x id="INTERPOLATION"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.numericNoData" datatype="html">
+        <source>Keine Schätzungen eingegangen.</source>
+        <target>Nessuna stima ricevuta.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.numericMedian" datatype="html">
+        <source>Median <x id="median" equiv-text="formatNumber(stats.median, this.localeId, '1.0-2')"/></source>
+        <target>Mediana <x id="median" equiv-text="formatNumber(stats.median, this.localeId, '1.0-2')"/></target>
+      </trans-unit>
       <trans-unit id="app.footer.statusHelpTitle" datatype="html">
         <source>Betriebsstatus &amp; Systemlast</source>
         <target>Stato del servizio e carico del sistema</target>

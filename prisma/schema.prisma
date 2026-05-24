@@ -64,12 +64,22 @@ model Question {
   shortTextTrimWhitespace Boolean @default(true) // Story 1.2e+: Leerzeichen am Rand entfernen
   shortTextNormalizeWhitespace Boolean @default(true) // Story 1.2e+: Mehrfach-Leerzeichen vereinheitlichen
   numericInputKind String? // Story 1.2eb: integer, decimal
-  numericToleranceMode String? // Story 1.2eb: exact, absolute, relative
+  numericToleranceMode String? // Story 1.2eb / 1.2d: exact, absolute, relative / ABSOLUTE_INTERVAL, RELATIVE_PERCENT
   numericAbsoluteTolerance Float?
   numericRelativeTolerancePercent Float?
   numericUnitFamily String? // Story 1.2eb: none, length, mass, time, volume
   numericRequireUnit Boolean @default(false)
   numericAcceptEquivalentUnits Boolean @default(true)
+  // Story 1.2d: Numerische Schätzfrage
+  numericReferenceValue Float?   // Referenzwert V (RELATIVE-Modus)
+  numericTolerancePercent Float? // Prozentwert p (RELATIVE-Modus, 0–100)
+  numericIntervalLeft   Float?   // Linke Grenze L (ABSOLUTE-Modus)
+  numericIntervalRight  Float?   // Rechte Grenze R (ABSOLUTE-Modus, L < R)
+  numericInputType      String?  // 'INTEGER' | 'DECIMAL'
+  numericDecimalPlaces  Int?     // Max. Nachkommastellen (nur bei DECIMAL)
+  numericMin            Float?   // Optionale Plausibilitätsgrenze (Eingabe)
+  numericMax            Float?   // Optionale Plausibilitätsgrenze (Eingabe)
+  numericTwoRounds      Boolean  @default(false) // Zwei-Runden-Option
   quizId     String
   quiz       Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers    AnswerOption[]
@@ -195,6 +205,7 @@ model Vote {
   selectedAnswers VoteAnswer[] // MC: mehrere, SC: genau eine, FREETEXT/SHORT_TEXT/RATING: keine
   freeText       String?      // Text-Antwort (bei QuestionType.FREETEXT oder SHORT_TEXT)
   ratingValue    Int?         // Story 1.2c: Gewählter Skalenwert (nur bei QuestionType.RATING)
+  numericValue   Float?       // Story 1.2d: Numerische Schätzung (nur bei NUMERIC_ESTIMATE)
   responseTimeMs Int?         // Antwortzeit in Millisekunden (für Zeitbonus)
   score          Int          @default(0) // Berechnete Punkte (Schwierigkeit × Zeitbonus)
   streakCount    Int          @default(0) // Story 5.5: Aktuelle Antwort-Serie (0 = kein Streak)
@@ -226,7 +237,8 @@ enum QuestionType {
   FREETEXT
   SHORT_TEXT
   SURVEY
-  RATING       // Story 1.2c: Bewertungsskala (1–5 oder 1–10)
+  RATING           // Story 1.2c: Bewertungsskala (1–5 oder 1–10)
+  NUMERIC_ESTIMATE // Story 1.2d: Numerische Schätzfrage mit Toleranzintervall
 }
 
 enum Difficulty {

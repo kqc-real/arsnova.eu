@@ -47,6 +47,7 @@ import {
   resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
   type NicknameTheme,
+  type NumericToleranceMode,
   type ParticipantDTO,
   type PersonalScorecardDTO,
   type QaQuestionDTO,
@@ -121,6 +122,7 @@ type StoredVoteResponse = {
   answerIds?: string[];
   freeText?: string;
   ratingValue?: number;
+  numericValue?: number;
   sent: true;
   updatedAt: string;
 };
@@ -354,6 +356,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly readingReadySubmitting = signal(false);
   readonly freeTextValue = signal('');
   readonly ratingValue = signal<number | null>(null);
+  readonly numericInputValue = signal<string>('');
+  readonly numericParsedValue = computed<number | null>(() => {
+    const raw = this.numericInputValue().trim().replace(',', '.');
+    if (!raw) return null;
+    const n = Number(raw);
+    return isFinite(n) ? n : null;
+  });
   readonly debounced = signal(false);
   readonly countdownSeconds = signal<number | null>(null);
   readonly motivationMessage = signal<string | null>(null);
@@ -1116,6 +1125,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     return 'partial';
   });
+  readonly isNumericEstimate = computed(() => {
+    const q = this.currentQuestion();
+    return q && 'type' in q && q.type === 'NUMERIC_ESTIMATE';
+  });
 
   questionUsesCorrectness(type: string | null | undefined): boolean {
     return type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE' || type === 'SHORT_TEXT';
@@ -1245,7 +1258,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (usesNumericShortTextEvaluation(question.shortTextEvaluationKind)) {
       const numericSettings = resolveNumericQuestionEvaluationSettings({
         numericInputKind: question.numericInputKind ?? null,
-        numericToleranceMode: question.numericToleranceMode ?? null,
+        numericToleranceMode: (question.numericToleranceMode as NumericToleranceMode) ?? null,
         numericAbsoluteTolerance: question.numericAbsoluteTolerance ?? null,
         numericRelativeTolerancePercent: question.numericRelativeTolerancePercent ?? null,
         numericUnitFamily: question.numericUnitFamily ?? null,
@@ -1318,7 +1331,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return (
       this.selectedAnswerIds().size > 0 ||
       this.freeTextValue().trim().length > 0 ||
-      this.ratingValue() !== null
+      this.ratingValue() !== null ||
+      this.numericInputValue().trim().length > 0
     );
   }
 
@@ -1338,6 +1352,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.selectedAnswerIds.set(new Set(parsed.answerIds ?? []));
       this.freeTextValue.set(parsed.freeText ?? '');
       this.ratingValue.set(typeof parsed.ratingValue === 'number' ? parsed.ratingValue : null);
+      if (typeof parsed.numericValue === 'number') {
+        this.numericInputValue.set(String(parsed.numericValue));
+      }
       this.voteSent.set(parsed.sent === true);
     } catch {
       /* noop */
@@ -1349,6 +1366,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     answerIds: string[],
     freeText: string | undefined,
     ratingValue: number | undefined,
+    numericValue?: number,
   ): void {
     const key = this.voteResponseStorageKey(question.id, this.questionRoundForStorage(question));
     if (!key || typeof localStorage === 'undefined') {
@@ -1359,6 +1377,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       answerIds: answerIds.length > 0 ? answerIds : undefined,
       freeText: freeText || undefined,
       ratingValue,
+      numericValue,
       sent: true,
       updatedAt: new Date().toISOString(),
     };
@@ -1373,7 +1392,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly showVoteSubmitAction = computed(() => {
     if (this.showSessionEndGate() || this.isFinished()) return false;
     if (this.activeChannel() !== 'quiz' || !this.isActive() || this.voteSent()) return false;
-    return this.hasAnswers() || this.isFreetext() || this.isShortText() || this.isRating();
+    return (
+      this.hasAnswers() ||
+      this.isFreetext() ||
+      this.isShortText() ||
+      this.isRating() ||
+      this.isNumericEstimate()
+    );
   });
   readonly voteSubmitDisabled = computed(() => {
     if (!this.showVoteSubmitAction()) return true;
@@ -1389,6 +1414,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     if (this.isRating()) {
       return this.ratingValue() === null;
+    }
+    if (this.isNumericEstimate()) {
+      return this.numericParsedValue() === null;
     }
     return true;
   });
@@ -1487,6 +1515,63 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (this.voteSent() || !this.isActive() || this.timerExpired()) return;
     this.ratingValue.set(value);
     this.cdr.detectChanges();
+  }
+
+  numericInputStep(): string {
+    const q = this.currentQuestion();
+    const places =
+      q && 'numericDecimalPlaces' in q
+        ? ((q as { numericDecimalPlaces?: number | null }).numericDecimalPlaces ?? null)
+        : null;
+    const inputType =
+      q && 'numericInputType' in q
+        ? ((q as { numericInputType?: string | null }).numericInputType ?? null)
+        : null;
+    if (inputType === 'INTEGER') return '1';
+    const d = places ?? 2;
+    return d === 0 ? '1' : `0.${'0'.repeat(d - 1)}1`;
+  }
+
+  numericInputMin(): number | null {
+    const q = this.currentQuestion();
+    return q && 'numericMin' in q
+      ? ((q as { numericMin?: number | null }).numericMin ?? null)
+      : null;
+  }
+
+  numericInputMax(): number | null {
+    const q = this.currentQuestion();
+    return q && 'numericMax' in q
+      ? ((q as { numericMax?: number | null }).numericMax ?? null)
+      : null;
+  }
+
+  numericIsInteger(): boolean {
+    const q = this.currentQuestion();
+    return (
+      q !== null &&
+      'numericInputType' in q &&
+      (q as { numericInputType?: string | null }).numericInputType === 'INTEGER'
+    );
+  }
+
+  numericDecimalPlaces(): number {
+    const q = this.currentQuestion();
+    const places =
+      q && 'numericDecimalPlaces' in q
+        ? ((q as { numericDecimalPlaces?: number | null }).numericDecimalPlaces ?? null)
+        : null;
+    return places ?? 2;
+  }
+
+  numericOutOfRange(): boolean {
+    const v = this.numericParsedValue();
+    if (v === null) return false;
+    const min = this.numericInputMin();
+    const max = this.numericInputMax();
+    if (min !== null && v < min) return true;
+    if (max !== null && v > max) return true;
+    return false;
   }
 
   getColor(index: number): string {
@@ -2116,6 +2201,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.voteError.set(null);
     this.freeTextValue.set('');
     this.ratingValue.set(null);
+    this.numericInputValue.set('');
     this.motivationMessage.set(null);
     this.timeoutMessage.set(null);
     this.showRewardEffect.set(false);
@@ -2766,6 +2852,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.readingReadySubmitting.set(false);
         this.freeTextValue.set('');
         this.ratingValue.set(null);
+        this.numericInputValue.set('');
         this.motivationMessage.set(null);
         this.timeoutMessage.set(null);
         this.showRewardEffect.set(false);
@@ -3071,6 +3158,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             : this.freeTextValue().trim()
           : undefined;
     const rating = q.type === 'RATING' ? (this.ratingValue() ?? undefined) : undefined;
+    const numericValue =
+      q.type === 'NUMERIC_ESTIMATE' ? (this.numericParsedValue() ?? undefined) : undefined;
 
     if (q.type === 'SHORT_TEXT') {
       const validationError = this.shortTextValidationError();
@@ -3097,9 +3186,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         answerIds: answerIds.length > 0 ? answerIds : undefined,
         freeText: freeText || undefined,
         ratingValue: rating,
+        numericValue,
         round: this.currentRound(),
       });
-      this.storeVoteResponse(q, answerIds, freeText, rating);
+      this.storeVoteResponse(q, answerIds, freeText, rating, numericValue);
       try {
         navigator.vibrate?.(10);
       } catch {

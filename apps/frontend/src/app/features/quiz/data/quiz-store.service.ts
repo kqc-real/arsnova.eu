@@ -69,7 +69,8 @@ export type SupportedQuestionType =
   | 'FREETEXT'
   | 'SHORT_TEXT'
   | 'SURVEY'
-  | 'RATING';
+  | 'RATING'
+  | 'NUMERIC_ESTIMATE';
 
 export interface QuizAnswer {
   id: string;
@@ -83,11 +84,7 @@ export interface QuizQuestion {
   type: SupportedQuestionType;
   difficulty: Difficulty;
   order: number;
-  /** false: nicht in Vorschau/Live-Upload; bleibt in der Liste zum späteren Aktivieren */
   enabled: boolean;
-  /**
-   * Zeitlimit nur für diese Frage (Sekunden). `null` = Quiz-`defaultTimer` verwenden.
-   */
   timer: number | null;
   answers: QuizAnswer[];
   skipReadingPhase?: boolean;
@@ -104,12 +101,22 @@ export interface QuizQuestion {
   shortTextTrimWhitespace?: boolean | null;
   shortTextNormalizeWhitespace?: boolean | null;
   numericInputKind?: NumericInputKind | null;
-  numericToleranceMode?: NumericToleranceMode | null;
+  numericToleranceMode?: string | null;
   numericAbsoluteTolerance?: number | null;
   numericRelativeTolerancePercent?: number | null;
   numericUnitFamily?: NumericUnitFamily | null;
   numericRequireUnit?: boolean | null;
   numericAcceptEquivalentUnits?: boolean | null;
+  // Story 1.2d: Numerische Schätzfrage
+  numericReferenceValue?: number | null;
+  numericTolerancePercent?: number | null;
+  numericIntervalLeft?: number | null;
+  numericIntervalRight?: number | null;
+  numericInputType?: 'INTEGER' | 'DECIMAL' | null;
+  numericDecimalPlaces?: number | null;
+  numericMin?: number | null;
+  numericMax?: number | null;
+  numericTwoRounds?: boolean;
 }
 
 export interface QuizSettings {
@@ -236,7 +243,6 @@ export interface AddQuizQuestionInput {
   text: string;
   type: SupportedQuestionType;
   difficulty: Difficulty;
-  /** `null` oder auslassen = Quiz-`defaultTimer` */
   timer?: number | null;
   answers: Array<{ text: string; isCorrect: boolean }>;
   skipReadingPhase?: boolean;
@@ -253,12 +259,22 @@ export interface AddQuizQuestionInput {
   shortTextTrimWhitespace?: boolean | null;
   shortTextNormalizeWhitespace?: boolean | null;
   numericInputKind?: NumericInputKind | null;
-  numericToleranceMode?: NumericToleranceMode | null;
+  numericToleranceMode?: string | null;
   numericAbsoluteTolerance?: number | null;
   numericRelativeTolerancePercent?: number | null;
   numericUnitFamily?: NumericUnitFamily | null;
   numericRequireUnit?: boolean | null;
   numericAcceptEquivalentUnits?: boolean | null;
+  // Story 1.2d: Numerische Schätzfrage
+  numericReferenceValue?: number | null;
+  numericTolerancePercent?: number | null;
+  numericIntervalLeft?: number | null;
+  numericIntervalRight?: number | null;
+  numericInputType?: 'INTEGER' | 'DECIMAL' | null;
+  numericDecimalPlaces?: number | null;
+  numericMin?: number | null;
+  numericMax?: number | null;
+  numericTwoRounds?: boolean;
 }
 
 export interface CreateQuizDocumentInput {
@@ -296,6 +312,16 @@ type ValidatedQuestionInput = {
   numericUnitFamily: NumericUnitFamily | null;
   numericRequireUnit: boolean | null;
   numericAcceptEquivalentUnits: boolean | null;
+  // Story 1.2d: Numerische Schätzfrage
+  numericReferenceValue: number | null;
+  numericTolerancePercent: number | null;
+  numericIntervalLeft: number | null;
+  numericIntervalRight: number | null;
+  numericInputType: 'INTEGER' | 'DECIMAL' | null;
+  numericDecimalPlaces: number | null;
+  numericMin: number | null;
+  numericMax: number | null;
+  numericTwoRounds: boolean;
 };
 
 type ShortTextQuestionSettingsInput = {
@@ -309,7 +335,7 @@ type ShortTextQuestionSettingsInput = {
   shortTextTrimWhitespace?: boolean | null;
   shortTextNormalizeWhitespace?: boolean | null;
   numericInputKind?: NumericInputKind | null;
-  numericToleranceMode?: NumericToleranceMode | null;
+  numericToleranceMode?: string | null;
   numericAbsoluteTolerance?: number | null;
   numericRelativeTolerancePercent?: number | null;
   numericUnitFamily?: NumericUnitFamily | null;
@@ -368,7 +394,7 @@ function resolveQuestionShortTextSettings(
   });
   const numericSettings = resolveNumericQuestionEvaluationSettings({
     numericInputKind: question.numericInputKind ?? null,
-    numericToleranceMode: question.numericToleranceMode ?? null,
+    numericToleranceMode: (question.numericToleranceMode as NumericToleranceMode | null) ?? null,
     numericAbsoluteTolerance: question.numericAbsoluteTolerance ?? null,
     numericRelativeTolerancePercent: question.numericRelativeTolerancePercent ?? null,
     numericUnitFamily: question.numericUnitFamily ?? null,
@@ -516,6 +542,10 @@ function getLocalQuestionValidationIssues(
       path: ['ratingMin'],
       message: $localize`Rating-Grenzen sind nur für Rating-Fragen erlaubt.`,
     });
+  }
+
+  if (value.type === 'NUMERIC_ESTIMATE') {
+    return issues; // Validierung der numerischen Felder erfolgt im Editor
   }
 
   if (value.type !== 'SHORT_TEXT' && hasShortTextConfig) {
@@ -1173,12 +1203,26 @@ export class QuizStoreService implements OnDestroy {
         shortTextTrimWhitespace: q.shortTextTrimWhitespace ?? undefined,
         shortTextNormalizeWhitespace: q.shortTextNormalizeWhitespace ?? undefined,
         numericInputKind: q.numericInputKind ?? undefined,
-        numericToleranceMode: q.numericToleranceMode ?? undefined,
+        numericToleranceMode:
+          (q.numericToleranceMode as
+            | NumericToleranceMode
+            | 'ABSOLUTE_INTERVAL'
+            | 'RELATIVE_PERCENT'
+            | null) ?? undefined,
         numericAbsoluteTolerance: q.numericAbsoluteTolerance ?? undefined,
         numericRelativeTolerancePercent: q.numericRelativeTolerancePercent ?? undefined,
         numericUnitFamily: q.numericUnitFamily ?? undefined,
         numericRequireUnit: q.numericRequireUnit ?? undefined,
         numericAcceptEquivalentUnits: q.numericAcceptEquivalentUnits ?? undefined,
+        numericReferenceValue: q.numericReferenceValue ?? undefined,
+        numericTolerancePercent: q.numericTolerancePercent ?? undefined,
+        numericIntervalLeft: q.numericIntervalLeft ?? undefined,
+        numericIntervalRight: q.numericIntervalRight ?? undefined,
+        numericInputType: q.numericInputType ?? undefined,
+        numericDecimalPlaces: q.numericDecimalPlaces ?? undefined,
+        numericMin: q.numericMin ?? undefined,
+        numericMax: q.numericMax ?? undefined,
+        numericTwoRounds: q.numericTwoRounds ?? undefined,
       })),
     };
 
@@ -1326,6 +1370,15 @@ export class QuizStoreService implements OnDestroy {
       ratingLabelMin: parsed.ratingLabelMin,
       ratingLabelMax: parsed.ratingLabelMax,
       ...resolveQuestionShortTextSettings(parsed),
+      numericReferenceValue: parsed.numericReferenceValue,
+      numericTolerancePercent: parsed.numericTolerancePercent,
+      numericIntervalLeft: parsed.numericIntervalLeft,
+      numericIntervalRight: parsed.numericIntervalRight,
+      numericInputType: parsed.numericInputType,
+      numericDecimalPlaces: parsed.numericDecimalPlaces,
+      numericMin: parsed.numericMin,
+      numericMax: parsed.numericMax,
+      numericTwoRounds: parsed.numericTwoRounds,
     };
 
     const updatedAt = new Date().toISOString();
@@ -1377,6 +1430,15 @@ export class QuizStoreService implements OnDestroy {
       ratingLabelMin: parsed.ratingLabelMin,
       ratingLabelMax: parsed.ratingLabelMax,
       ...resolveQuestionShortTextSettings(parsed),
+      numericReferenceValue: parsed.numericReferenceValue,
+      numericTolerancePercent: parsed.numericTolerancePercent,
+      numericIntervalLeft: parsed.numericIntervalLeft,
+      numericIntervalRight: parsed.numericIntervalRight,
+      numericInputType: parsed.numericInputType,
+      numericDecimalPlaces: parsed.numericDecimalPlaces,
+      numericMin: parsed.numericMin,
+      numericMax: parsed.numericMax,
+      numericTwoRounds: parsed.numericTwoRounds,
     };
 
     const updatedAt = new Date().toISOString();
@@ -2369,6 +2431,15 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     numericRequireUnit: input.numericRequireUnit ?? undefined,
     numericAcceptEquivalentUnits: input.numericAcceptEquivalentUnits ?? undefined,
     timer: input.timer === undefined ? undefined : input.timer,
+    numericReferenceValue: input.numericReferenceValue ?? undefined,
+    numericTolerancePercent: input.numericTolerancePercent ?? undefined,
+    numericIntervalLeft: input.numericIntervalLeft ?? undefined,
+    numericIntervalRight: input.numericIntervalRight ?? undefined,
+    numericInputType: input.numericInputType ?? undefined,
+    numericDecimalPlaces: input.numericDecimalPlaces ?? undefined,
+    numericMin: input.numericMin ?? undefined,
+    numericMax: input.numericMax ?? undefined,
+    numericTwoRounds: input.numericTwoRounds ?? undefined,
   });
 
   if (!parsed.success) {
@@ -2381,8 +2452,9 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     throw new Error(localIssue.message);
   }
 
+  const isNumeric = parsed.data.type === 'NUMERIC_ESTIMATE';
   const answers =
-    parsed.data.type === 'FREETEXT' || parsed.data.type === 'RATING'
+    parsed.data.type === 'FREETEXT' || parsed.data.type === 'RATING' || isNumeric
       ? []
       : parsed.data.answers.map((answer) => ({
           text: answer.text,
@@ -2413,6 +2485,17 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     ratingLabelMin,
     ratingLabelMax,
     ...shortTextSettings,
+    numericReferenceValue: isNumeric ? (input.numericReferenceValue ?? null) : null,
+    numericTolerancePercent: isNumeric ? (input.numericTolerancePercent ?? null) : null,
+    numericIntervalLeft: isNumeric ? (input.numericIntervalLeft ?? null) : null,
+    numericIntervalRight: isNumeric ? (input.numericIntervalRight ?? null) : null,
+    numericInputType: isNumeric
+      ? ((input.numericInputType as 'INTEGER' | 'DECIMAL' | null | undefined) ?? 'DECIMAL')
+      : null,
+    numericDecimalPlaces: isNumeric ? (input.numericDecimalPlaces ?? null) : null,
+    numericMin: isNumeric ? (input.numericMin ?? null) : null,
+    numericMax: isNumeric ? (input.numericMax ?? null) : null,
+    numericTwoRounds: isNumeric ? (input.numericTwoRounds ?? false) : false,
   };
 }
 
@@ -2468,6 +2551,15 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     numericAcceptEquivalentUnits:
       readBoolean(candidate['numericAcceptEquivalentUnits']) ?? undefined,
     timer: readNumberOrNull(candidate['timer']) ?? undefined,
+    numericReferenceValue: readNumberOrNull(candidate['numericReferenceValue']) ?? undefined,
+    numericTolerancePercent: readNumberOrNull(candidate['numericTolerancePercent']) ?? undefined,
+    numericIntervalLeft: readNumberOrNull(candidate['numericIntervalLeft']) ?? undefined,
+    numericIntervalRight: readNumberOrNull(candidate['numericIntervalRight']) ?? undefined,
+    numericInputType: readStringOrNull(candidate['numericInputType']) ?? undefined,
+    numericDecimalPlaces: readNumberOrNull(candidate['numericDecimalPlaces']) ?? undefined,
+    numericMin: readNumberOrNull(candidate['numericMin']) ?? undefined,
+    numericMax: readNumberOrNull(candidate['numericMax']) ?? undefined,
+    numericTwoRounds: readBoolean(candidate['numericTwoRounds']) ?? undefined,
   });
   if (!parsed.success) return null;
 
@@ -2485,6 +2577,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
   const enabled = enabledRaw !== false;
   const shortTextSettings = resolveQuestionShortTextSettings(parsed.data);
 
+  const isNumericStored = parsed.data.type === 'NUMERIC_ESTIMATE';
   return {
     id,
     text: parsed.data.text,
@@ -2506,6 +2599,29 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
         ? (normalizeNullableLabel(parsed.data.ratingLabelMax) ?? null)
         : null,
     ...shortTextSettings,
+    numericReferenceValue: isNumericStored
+      ? readNumberOrNull(candidate['numericReferenceValue'])
+      : null,
+    numericTolerancePercent: isNumericStored
+      ? readNumberOrNull(candidate['numericTolerancePercent'])
+      : null,
+    numericIntervalLeft: isNumericStored
+      ? readNumberOrNull(candidate['numericIntervalLeft'])
+      : null,
+    numericIntervalRight: isNumericStored
+      ? readNumberOrNull(candidate['numericIntervalRight'])
+      : null,
+    numericInputType: isNumericStored
+      ? ((readStringOrNull(candidate['numericInputType']) ?? 'DECIMAL') as 'INTEGER' | 'DECIMAL')
+      : null,
+    numericDecimalPlaces: isNumericStored
+      ? readNumberOrNull(candidate['numericDecimalPlaces'])
+      : null,
+    numericMin: isNumericStored ? readNumberOrNull(candidate['numericMin']) : null,
+    numericMax: isNumericStored ? readNumberOrNull(candidate['numericMax']) : null,
+    numericTwoRounds: isNumericStored
+      ? (readBoolean(candidate['numericTwoRounds']) ?? false)
+      : false,
   };
 }
 

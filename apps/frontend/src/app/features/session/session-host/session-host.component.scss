@@ -1936,6 +1936,7 @@
 .session-lobby__teams-grid {
   display: grid;
   gap: 1.25rem;
+  overflow-x: clip;
 }
 
 .session-lobby__team-card {
@@ -1950,9 +1951,6 @@
     var(--mat-sys-surface-container-high)
   );
   box-shadow: 0 1px 3px var(--session-foyer-shadow-soft);
-  transition:
-    box-shadow 180ms ease,
-    background-color 180ms ease;
 }
 
 .session-lobby__team-card::after {
@@ -2009,6 +2007,15 @@
     animation: lobby-team-card-arrival-flash-b 1200ms ease-out both;
   }
 }
+
+
+.session-lobby__team-card--playful {
+  @media (prefers-reduced-motion: no-preference) {
+    will-change: transform;
+    animation: lobby-team-card-float 2.4s ease-in-out infinite;
+  }
+}
+
 
 .session-lobby__team-card-head {
   display: grid;
@@ -4507,6 +4514,123 @@ button.session-host__btn-discussion {
 
 // Story 2.7: Vorher/Nachher-Vergleich (Peer Instruction)
 // Farbschema: R1 = warm (orange), R2 = kühl (primary/blau) – auf Beamer kontrastreich
+// Story 1.2d: Numerische Schätzfrage – Histogramm + Statistik
+.session-host__numeric {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-host__numeric-waiting,
+.session-host__numeric-vote-count {
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface-variant);
+  margin: 0;
+}
+
+.session-host__numeric-histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 8rem;
+  padding-bottom: 1.5rem;
+  position: relative;
+}
+
+.session-host__numeric-bin {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  height: 100%;
+}
+
+.session-host__numeric-bin-bar {
+  width: 100%;
+  background: var(--mat-sys-primary-container);
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 300ms ease;
+
+  .session-host__numeric-bin--in-band & {
+    background: var(--mat-sys-primary);
+  }
+}
+
+.session-host__numeric-bin-count {
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.625rem;
+}
+
+.session-host__numeric-stats {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.session-host__numeric-stats-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.session-host__numeric-stats--r2 {
+  color: var(--mat-sys-primary);
+}
+
+.session-host__numeric-ref {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface);
+  margin: 0;
+
+  mat-icon {
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+  }
+}
+
+.session-host__numeric-round-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.session-host__numeric-round-header {
+  display: flex;
+  gap: 1rem;
+}
+
+.session-host__numeric-round-label {
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+
+  &--r2 {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.session-host__numeric-histograms {
+  display: flex;
+  gap: 1.5rem;
+
+  .session-host__numeric-histogram {
+    flex: 1;
+  }
+}
+
+.session-host__numeric-paired {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  margin: 0;
+}
+
 $round1-color: #ef6c00;
 $round2-color: var(--mat-sys-primary, #1565c0);
 
