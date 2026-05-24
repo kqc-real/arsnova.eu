@@ -11,8 +11,22 @@ const { Client } = require('pg');
 const DEFAULT_DATABASE_URL =
   'postgresql://arsnova_user:secretpassword@localhost:5432/arsnova_v3_dev?schema=public';
 
-function shouldSeedMotdMakingOfRuntime(nodeEnv) {
+function shouldSeedMotdRuntime(nodeEnv) {
   return nodeEnv !== 'production';
+}
+
+function shouldSeedMotdMakingOfRuntime(nodeEnv) {
+  return shouldSeedMotdRuntime(nodeEnv);
+}
+
+function getMotdWelcomeSeedFiles() {
+  return [
+    'prisma/migrations/20260327170000_motd_welcome_message/migration.sql',
+    'prisma/migrations/20260327200000_motd_welcome_date_adjust/migration.sql',
+    'prisma/migrations/20260328103000_motd_welcome_copy_optimize/migration.sql',
+    'prisma/migrations/20260329120000_motd_welcome_copy_v4/migration.sql',
+    'prisma/migrations/20260524120000_motd_welcome_copy_v5/migration.sql',
+  ];
 }
 
 function getMotdMakingOfSeedFiles() {
@@ -203,7 +217,7 @@ const statements = [
  * und spätere Runtime-Ausführung würde redaktionelle Änderungen an festen MOTD-IDs überschreiben.
  */
 function seedMotdMakingOfSql() {
-  if (!shouldSeedMotdMakingOfRuntime(process.env.NODE_ENV)) {
+  if (!shouldSeedMotdRuntime(process.env.NODE_ENV)) {
     console.log('>>> MOTD Making-of: übersprungen (Produktion nutzt prisma migrate deploy).');
     return;
   }
@@ -246,6 +260,55 @@ function seedMotdMakingOfSql() {
   }
 }
 
+/**
+ * Willkommens-MOTD (Epic 10): In Dev-Setups mit `db push` fehlen Datenmigrationen.
+ * Deshalb wird die feste Onboarding-MOTD vor der Making-of-Kette idempotent angelegt.
+ * In Produktion NICHT erneut ausführen: `prisma migrate deploy` ist dort die Quelle.
+ */
+function seedMotdWelcomeSql() {
+  if (!shouldSeedMotdRuntime(process.env.NODE_ENV)) {
+    console.log('>>> MOTD Welcome: übersprungen (Produktion nutzt prisma migrate deploy).');
+    return;
+  }
+
+  const root = path.join(__dirname, '..');
+  const files = getMotdWelcomeSeedFiles();
+  let applied = 0;
+  for (const rel of files) {
+    const abs = path.join(root, rel);
+    if (!fs.existsSync(abs)) {
+      console.warn(`>>> MOTD Welcome: Datei fehlt (${rel}).`);
+      continue;
+    }
+    try {
+      execSync(`npx prisma db execute --file "${abs}"`, {
+        cwd: root,
+        stdio: 'pipe',
+        encoding: 'utf8',
+        env: process.env,
+      });
+      applied++;
+    } catch (e) {
+      const out =
+        (e.stderr && e.stderr.toString()) ||
+        (e.stdout && e.stdout.toString()) ||
+        e.message ||
+        String(e);
+      if (/relation .+ does not exist/i.test(out)) {
+        console.warn(
+          '>>> MOTD Welcome: übersprungen (MOTD-Tabellen fehlen — `npx prisma migrate deploy` oder `db push`).',
+        );
+        return;
+      }
+      console.warn('>>> MOTD Welcome optional:', out.trim().slice(0, 500));
+      return;
+    }
+  }
+  if (applied === files.length) {
+    console.log('>>> MOTD Welcome: SQL angewendet (dauerhafte Onboarding-Meldung).');
+  }
+}
+
 async function main() {
   const client = createClient();
   await client.connect();
@@ -272,6 +335,7 @@ async function main() {
   console.log(`>>> ensure-schema: ${ok} OK, ${skipped} übersprungen, ${failed} Fehler`);
 
   if (failed === 0) {
+    seedMotdWelcomeSql();
     seedMotdMakingOfSql();
   }
 
@@ -282,8 +346,11 @@ async function main() {
 
 module.exports = {
   DEFAULT_DATABASE_URL,
+  shouldSeedMotdRuntime,
   shouldSeedMotdMakingOfRuntime,
+  getMotdWelcomeSeedFiles,
   getMotdMakingOfSeedFiles,
+  seedMotdWelcomeSql,
   seedMotdMakingOfSql,
 };
 
