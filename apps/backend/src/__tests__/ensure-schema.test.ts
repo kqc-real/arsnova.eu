@@ -41,6 +41,7 @@ describe('ensure-schema MOTD runtime seeding', () => {
       'prisma/migrations/20260329120000_motd_welcome_copy_v4/migration.sql',
       'prisma/migrations/20260524120000_motd_welcome_copy_v5/migration.sql',
       'prisma/migrations/20260524123000_motd_welcome_copy_v6/migration.sql',
+      'prisma/migrations/20260525100000_motd_welcome_copy_v7/migration.sql',
     ]);
   });
 });

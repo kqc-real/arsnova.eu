@@ -5,7 +5,7 @@
  *
  * Priorität -100 (unter Admin-Standard 0), damit echte / Feature-MOTDs mit getCurrent zuerst kommen.
  *
- * Text-Updates für bestehende DBs: prisma/migrations/20260524123000_motd_welcome_copy_v6/migration.sql
+ * Text-Updates für bestehende DBs: prisma/migrations/20260525100000_motd_welcome_copy_v7/migration.sql
  * Making-of-MOTD (6 Monate, nach Willkommen): 20260329140000_motd_making_of_ai (id …bbbbbbbb…).
  *
  * Nutzung: DATABASE_URL gesetzt oder Default localhost (wie ensure-schema.js).
@@ -22,35 +22,35 @@ const DEV_MOTD_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 /** Start sichtbar ab Go-Live-Datum; endsAt mittags UTC, damit MEZ nicht 01.01.2100 anzeigt */
 const STARTS = new Date('2026-03-24T00:00:00.000Z');
 const ENDS = new Date('2099-12-31T12:00:00.000Z');
-const CONTENT_VERSION = 6;
+const CONTENT_VERSION = 7;
 
-const markdownDe = `# Mit einem Klick live.
+const markdownDe = `# Ein Klick. Du bist live.
 
-Starte sofort ein Blitzlicht – oder leg mit Quiz, Abstimmung, Q&A, Peer Instruction, Team-Modus und Bonus-Code nach. Wie Mentimeter – aber Open Source, kostenlos und ohne Tracking. Wie Kahoot – aber für Lernen, Training und Workshops gemacht. Wie Slido – aber nicht nur Q&A, sondern komplette Live-Interaktion ohne Account.
+Live-Feedback für den schnellen Einstieg – oder nutze Quiz, Abstimmung, Q&A, Peer Instruction, Team-Modus und Bonus-Code. Mentimeter-Feeling ohne Vendor-Lock-in. Kahoot-Energie mit didaktischem Anspruch. Slido-Q&A plus echte Live-Interaktion. Ohne Account, ohne Tracking, Open Source und kostenlos.
 
 **Jetzt ausprobieren**`;
 
-const markdownEn = `# Go live in one click.
+const markdownEn = `# One click. You’re live.
 
-Start an instant pulse with one click — or go further with quizzes, polls, Q&A, Peer Instruction, team mode, and bonus codes. Like Mentimeter — but open source, free to use, and no tracking. Like Kahoot — but built for learning, training, and workshops. Like Slido — but not just Q&A: full live interaction, no account required.
+Start instant pulse feedback — or run quizzes, polls, Q&A, Peer Instruction, team mode, and bonus codes. Mentimeter-style interaction without vendor lock-in. Kahoot energy with real teaching value. Slido-style Q&A plus full live engagement. No account, no tracking, open source, and free to use.
 
 **Try it now**`;
 
-const markdownFr = `# En direct en un clic.
+const markdownFr = `# Un clic. Tu es en direct.
 
-Lance un feedback instantané en un clic — ou va plus loin avec quiz, votes, Q&R, Peer Instruction, mode équipes et codes bonus. Comme Mentimeter — mais open source, gratuit et sans pistage. Comme Kahoot — mais pensé pour apprendre, former et animer des ateliers. Comme Slido — mais pas seulement pour les Q&R : une vraie interaction live, sans compte.
+Lance un feedback instantané — ou utilise quiz, votes, Q&R, Peer Instruction, mode équipes et codes bonus. L’interaction façon Mentimeter sans verrouillage propriétaire. L’énergie de Kahoot avec une vraie valeur pédagogique. Les Q&R façon Slido, plus une interaction live complète. Sans compte, sans pistage, open source et gratuit.
 
 **Essaie maintenant**`;
 
-const markdownEs = `# En vivo con un clic.
+const markdownEs = `# Un clic. Estás en vivo.
 
-Lanza feedback instantáneo con un clic — o ve más allá con quizzes, votaciones, preguntas y respuestas, Peer Instruction, modo equipos y códigos bonus. Como Mentimeter — pero open source, gratis y sin rastreo. Como Kahoot — pero pensado para aprender, formar y dinamizar talleres. Como Slido — pero no solo para preguntas y respuestas: interacción en vivo completa, sin cuenta.
+Lanza feedback instantáneo — o usa quizzes, votaciones, preguntas y respuestas, Peer Instruction, modo equipos y códigos bonus. Interacción al estilo Mentimeter sin dependencia de proveedor. Energía tipo Kahoot con verdadero valor didáctico. Preguntas y respuestas al estilo Slido, más interacción en vivo completa. Sin cuenta, sin rastreo, open source y gratis.
 
 **Pruébalo ahora**`;
 
-const markdownIt = `# Vai live con un clic.
+const markdownIt = `# Un clic. Sei live.
 
-Avvia un feedback istantaneo con un clic — oppure vai oltre con quiz, sondaggi, Q&A, Peer Instruction, modalità team e codici bonus. Come Mentimeter — ma open source, gratuito e senza tracking. Come Kahoot — ma pensato per apprendimento, formazione e workshop. Come Slido — ma non solo Q&A: interazione live completa, senza account.
+Avvia subito un feedback istantaneo — oppure usa quiz, sondaggi, Q&A, Peer Instruction, modalità team e codici bonus. Interazione in stile Mentimeter senza vendor lock-in. Energia da Kahoot con vero valore didattico. Q&A in stile Slido, più interazione live completa. Senza account, senza tracking, open source e gratuito.
 
 **Provalo ora**`;
 
