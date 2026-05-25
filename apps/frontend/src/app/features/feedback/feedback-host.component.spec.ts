@@ -96,11 +96,11 @@ describe('FeedbackHostComponent', () => {
       distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
     });
 
-    await comp.startRound('ABC');
+    await comp.startRound('STARS');
 
     expect(trpc.quickFeedback.changeType.mutate).toHaveBeenCalledWith({
       sessionCode: 'ABC123',
-      type: 'ABC',
+      type: 'STARS',
       theme: comp['themePreset'].theme(),
       preset: comp['themePreset'].preset(),
     });
@@ -157,7 +157,7 @@ describe('FeedbackHostComponent', () => {
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
     });
 
-    await comp.startRound('ABC');
+    await comp.startRound('STARS');
 
     expect(trpc.quickFeedback.changeType.mutate).not.toHaveBeenCalled();
     expect(trpc.quickFeedback.create.mutate).not.toHaveBeenCalled();
@@ -422,5 +422,32 @@ describe('FeedbackHostComponent', () => {
 
     expect(bottomActions).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('Session beenden');
+  });
+
+  it('zeigt im Sterne-Vergleich die Durchschnittswerte beider Runden', () => {
+    const fixture = TestBed.createComponent(FeedbackHostComponent);
+    const comp = fixture.componentInstance;
+    comp.result.set({
+      type: 'STARS',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      currentRound: 2,
+      totalVotes: 3,
+      distribution: { '1': 0, '2': 0, '3': 0, '4': 1, '5': 2 },
+      round1Total: 2,
+      round1Distribution: { '1': 1, '2': 0, '3': 1, '4': 0, '5': 0 },
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+
+    expect(text).toContain('Durchschnitt Runde 1');
+    expect(text).toContain('2,0 / 5');
+    expect(text).toContain('Durchschnitt Runde 2');
+    expect(text).toContain('4,7 / 5');
+    expect(text).toContain('star_half');
+    expect(text).toContain('1 (50');
+    expect(text).toContain('2 (67');
   });
 });

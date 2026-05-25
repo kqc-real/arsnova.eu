@@ -2037,8 +2037,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!this.isSessionActive()) {
       return;
     }
-    const shouldShowFinishedView = await this.shouldStayOnFinishedAfterSessionEnd();
-    const confirmed = await this.confirmSessionEnd(undefined, shouldShowFinishedView);
+    const hasExportableResults = await this.hasExportableResultsAfterSessionEnd();
+    const shouldShowFinishedView = this.activeChannel() !== 'quickFeedback' && hasExportableResults;
+    const confirmed = await this.confirmSessionEnd(undefined, hasExportableResults);
     if (!confirmed || !this.code) {
       return;
     }
@@ -2056,7 +2057,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async shouldStayOnFinishedAfterSessionEnd(): Promise<boolean> {
+  private async hasExportableResultsAfterSessionEnd(): Promise<boolean> {
     if (!this.code) {
       return false;
     }

@@ -15,10 +15,8 @@ import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import {
   feedbackDisplayIcon,
   feedbackDisplayLabel,
+  feedbackResultOrder,
   feedbackTitle,
-  MOOD_OPTIONS,
-  YESNO_OPTIONS,
-  ABCD_OPTIONS,
 } from '../../feedback/feedback.config';
 import type {
   QaQuestionDTO,
@@ -188,12 +186,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return [];
     }
 
-    const orderMap: Record<string, string[]> = {
-      MOOD: MOOD_OPTIONS.map((o) => o.value),
-      YESNO: YESNO_OPTIONS.map((o) => o.value),
-      ABCD: ABCD_OPTIONS.map((o) => o.value),
-    };
-    const order = orderMap[data.type] ?? Object.keys(data.distribution);
+    const order = feedbackResultOrder(data.type);
     return order.map((key) => ({ key, value: data.distribution[key] ?? 0 }));
   });
 

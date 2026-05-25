@@ -30,7 +30,11 @@
             (click)="startRound(chip.type)"
             [attr.aria-label]="chip.label"
           >
-            <span class="feedback-host__template-icons" aria-hidden="true">
+            <span
+              class="feedback-host__template-icons"
+              [class.feedback-host__template-icons--rating]="chip.type === 'STARS'"
+              aria-hidden="true"
+            >
               @for (icon of chip.icons; track icon) {
                 @if (icon.kind === 'mat') {
                   <mat-icon
@@ -38,6 +42,7 @@
                     [class.feedback-host__template-icon--positive]="icon.tone === 'positive'"
                     [class.feedback-host__template-icon--negative]="icon.tone === 'negative'"
                     [class.feedback-host__template-icon--neutral]="icon.tone === 'neutral'"
+                    [class.feedback-host__template-icon--rating]="icon.tone === 'rating'"
                   >
                     {{ icon.value }}
                   </mat-icon>
@@ -130,7 +135,11 @@
           (click)="startRound(chip.type)"
           [attr.aria-label]="chip.label"
         >
-          <span class="feedback-host__template-icons" aria-hidden="true">
+          <span
+            class="feedback-host__template-icons"
+            [class.feedback-host__template-icons--rating]="chip.type === 'STARS'"
+            aria-hidden="true"
+          >
             @for (icon of chip.icons; track icon) {
               @if (icon.kind === 'mat') {
                 <mat-icon
@@ -138,6 +147,7 @@
                   [class.feedback-host__template-icon--positive]="icon.tone === 'positive'"
                   [class.feedback-host__template-icon--negative]="icon.tone === 'negative'"
                   [class.feedback-host__template-icon--neutral]="icon.tone === 'neutral'"
+                  [class.feedback-host__template-icon--rating]="icon.tone === 'rating'"
                 >
                   {{ icon.value }}
                 </mat-icon>
@@ -284,22 +294,99 @@
             <p class="feedback-host__discussion-hint" i18n="@@feedback.compareRoundSummary">
               Runde 1: {{ data.round1Total ?? 0 }} Stimmen erfasst.
             </p>
+            @if (round1StarAverage(); as average) {
+              <div class="feedback-host__average-strip" role="status" aria-live="polite">
+                <span class="feedback-host__average-label" i18n="@@feedback.starAverageRound1"
+                  >Durchschnitt Runde 1</span
+                >
+                <span class="feedback-host__average-value">{{ average.scoreLabel }}</span>
+                <span class="feedback-host__average-stars" aria-hidden="true">
+                  @for (icon of average.icons; track $index) {
+                    <mat-icon
+                      class="feedback-host__average-star-icon"
+                      [class.feedback-host__average-star-icon--empty]="icon === 'star_border'"
+                      >{{ icon }}</mat-icon
+                    >
+                  }
+                </span>
+              </div>
+            }
           </div>
         } @else if (hasComparison()) {
           <!-- Vorher/Nachher-Vergleich (Story 2.7) -->
           <div class="feedback-host__comparison">
             <div class="feedback-host__comparison-header">
-              <span class="feedback-host__comparison-label feedback-host__comparison-label--r1" i18n
-                >Runde 1 ({{ data.round1Total }} Stimmen)</span
-              >
-              <span class="feedback-host__comparison-label feedback-host__comparison-label--r2" i18n
-                >Runde 2 ({{ data.totalVotes }} Stimmen)</span
-              >
+              <span class="feedback-host__comparison-label feedback-host__comparison-label--r1">{{
+                comparisonRound1Label(data.round1Total ?? 0)
+              }}</span>
+              <span class="feedback-host__comparison-label feedback-host__comparison-label--r2">{{
+                comparisonRound2Label(data.totalVotes)
+              }}</span>
             </div>
+            @if (data.type === 'STARS') {
+              <div
+                class="feedback-host__average-comparison"
+                i18n-aria-label="@@feedback.starAverageComparisonAria"
+                aria-label="Durchschnitt der Sternbewertungen"
+              >
+                @if (round1StarAverage(); as average) {
+                  <div class="feedback-host__average-card feedback-host__average-card--r1">
+                    <span
+                      class="feedback-host__average-card-label"
+                      i18n="@@feedback.starAverageRound1"
+                      >Durchschnitt Runde 1</span
+                    >
+                    <span class="feedback-host__average-card-value">{{ average.scoreLabel }}</span>
+                    <span class="feedback-host__average-stars" aria-hidden="true">
+                      @for (icon of average.icons; track $index) {
+                        <mat-icon
+                          class="feedback-host__average-star-icon"
+                          [class.feedback-host__average-star-icon--empty]="icon === 'star_border'"
+                          >{{ icon }}</mat-icon
+                        >
+                      }
+                    </span>
+                    <span class="feedback-host__average-card-votes">{{
+                      feedbackVoteCountLabel(average.totalVotes)
+                    }}</span>
+                  </div>
+                }
+                @if (round2StarAverage(); as average) {
+                  <div class="feedback-host__average-card feedback-host__average-card--r2">
+                    <span
+                      class="feedback-host__average-card-label"
+                      i18n="@@feedback.starAverageRound2"
+                      >Durchschnitt Runde 2</span
+                    >
+                    <span class="feedback-host__average-card-value">{{ average.scoreLabel }}</span>
+                    <span class="feedback-host__average-stars" aria-hidden="true">
+                      @for (icon of average.icons; track $index) {
+                        <mat-icon
+                          class="feedback-host__average-star-icon"
+                          [class.feedback-host__average-star-icon--empty]="icon === 'star_border'"
+                          >{{ icon }}</mat-icon
+                        >
+                      }
+                    </span>
+                    <span class="feedback-host__average-card-votes">{{
+                      feedbackVoteCountLabel(average.totalVotes)
+                    }}</span>
+                  </div>
+                }
+              </div>
+            }
             <div class="feedback-host__comparison-bars" role="list">
               @for (entry of orderedEntries(); track entry.key) {
-                <div class="feedback-host__comparison-row" role="listitem">
-                  <span class="feedback-host__bar-label" aria-hidden="true">
+                <div
+                  class="feedback-host__comparison-row"
+                  [class.feedback-host__comparison-row--stars]="data.type === 'STARS'"
+                  role="listitem"
+                >
+                  <span
+                    class="feedback-host__bar-label"
+                    [class.feedback-host__bar-label--stars]="data.type === 'STARS'"
+                    aria-hidden="true"
+                  >
                     @if (displayIcon(entry.key, data.type); as icon) {
                       @if (icon.kind === 'mat') {
                         <mat-icon
@@ -314,9 +401,8 @@
                       } @else {
                         <span
                           class="feedback-host__bar-glyph"
-                          [class.feedback-host__bar-glyph--letter]="
-                            data.type === 'ABC' || data.type === 'ABCD'
-                          "
+                          [class.feedback-host__bar-glyph--letter]="data.type === 'ABCD'"
+                          [class.feedback-host__bar-glyph--stars]="data.type === 'STARS'"
                           aria-hidden="true"
                         >
                           {{ icon.value }}
@@ -325,9 +411,8 @@
                     } @else {
                       <span
                         class="feedback-host__bar-glyph"
-                        [class.feedback-host__bar-glyph--letter]="
-                          data.type === 'ABC' || data.type === 'ABCD'
-                        "
+                        [class.feedback-host__bar-glyph--letter]="data.type === 'ABCD'"
+                        [class.feedback-host__bar-glyph--stars]="data.type === 'STARS'"
                         aria-hidden="true"
                       >
                         {{ displayLabel(entry.key, data.type) }}
@@ -348,7 +433,9 @@
                         ></div>
                       </div>
                       <span class="feedback-host__comparison-pct feedback-host__comparison-pct--r1"
-                        >{{ round1Percentage(entry.key) }}&nbsp;%</span
+                        >{{ round1Count(entry.key) }} ({{
+                          round1Percentage(entry.key)
+                        }}&nbsp;%)</span
                       >
                     </div>
                     <div class="feedback-host__comparison-track">
@@ -364,7 +451,9 @@
                         ></div>
                       </div>
                       <span class="feedback-host__comparison-pct feedback-host__comparison-pct--r2"
-                        >{{ round2Percentage(entry.key) }}&nbsp;%</span
+                        >{{ round2Count(entry.key) }} ({{
+                          round2Percentage(entry.key)
+                        }}&nbsp;%)</span
                       >
                     </div>
                   </div>
@@ -400,7 +489,10 @@
                               <span
                                 class="feedback-host__migration-glyph"
                                 [class.feedback-host__migration-glyph--letter]="
-                                  data.type === 'ABC' || data.type === 'ABCD'
+                                  data.type === 'ABCD'
+                                "
+                                [class.feedback-host__migration-glyph--stars]="
+                                  data.type === 'STARS'
                                 "
                                 aria-hidden="true"
                               >
@@ -428,7 +520,10 @@
                               <span
                                 class="feedback-host__migration-glyph"
                                 [class.feedback-host__migration-glyph--letter]="
-                                  data.type === 'ABC' || data.type === 'ABCD'
+                                  data.type === 'ABCD'
+                                "
+                                [class.feedback-host__migration-glyph--stars]="
+                                  data.type === 'STARS'
                                 "
                                 aria-hidden="true"
                               >
@@ -447,6 +542,23 @@
             }
           </div>
         } @else {
+          @if (currentStarAverage(); as average) {
+            <div class="feedback-host__average-strip" role="status" aria-live="polite">
+              <span class="feedback-host__average-label" i18n="@@feedback.starAverageCurrent"
+                >Durchschnitt</span
+              >
+              <span class="feedback-host__average-value">{{ average.scoreLabel }}</span>
+              <span class="feedback-host__average-stars" aria-hidden="true">
+                @for (icon of average.icons; track $index) {
+                  <mat-icon
+                    class="feedback-host__average-star-icon"
+                    [class.feedback-host__average-star-icon--empty]="icon === 'star_border'"
+                    >{{ icon }}</mat-icon
+                  >
+                }
+              </span>
+            </div>
+          }
           <p class="feedback-host__votes" aria-live="polite" aria-atomic="true">
             @if (isRound2()) {
               <span class="feedback-host__round-tag" i18n>2. Runde</span>
@@ -465,6 +577,7 @@
             @for (entry of orderedEntries(); track entry.key) {
               <div
                 class="feedback-host__bar-row"
+                [class.feedback-host__bar-row--stars]="data.type === 'STARS'"
                 role="listitem"
                 [attr.aria-label]="
                   displayLabel(entry.key, data.type) +
@@ -475,7 +588,11 @@
                   ' %)'
                 "
               >
-                <span class="feedback-host__bar-label" aria-hidden="true">
+                <span
+                  class="feedback-host__bar-label"
+                  [class.feedback-host__bar-label--stars]="data.type === 'STARS'"
+                  aria-hidden="true"
+                >
                   @if (displayIcon(entry.key, data.type); as icon) {
                     @if (icon.kind === 'mat') {
                       <mat-icon
@@ -490,9 +607,8 @@
                     } @else {
                       <span
                         class="feedback-host__bar-glyph"
-                        [class.feedback-host__bar-glyph--letter]="
-                          data.type === 'ABC' || data.type === 'ABCD'
-                        "
+                        [class.feedback-host__bar-glyph--letter]="data.type === 'ABCD'"
+                        [class.feedback-host__bar-glyph--stars]="data.type === 'STARS'"
                         aria-hidden="true"
                       >
                         {{ icon.value }}
@@ -501,9 +617,8 @@
                   } @else {
                     <span
                       class="feedback-host__bar-glyph"
-                      [class.feedback-host__bar-glyph--letter]="
-                        data.type === 'ABC' || data.type === 'ABCD'
-                      "
+                      [class.feedback-host__bar-glyph--letter]="data.type === 'ABCD'"
+                      [class.feedback-host__bar-glyph--stars]="data.type === 'STARS'"
                       aria-hidden="true"
                     >
                       {{ displayLabel(entry.key, data.type) }}

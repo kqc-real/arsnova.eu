@@ -3170,7 +3170,7 @@ export const QuickFeedbackTypeEnum = z.enum([
   'YESNO',
   'YESNO_BINARY',
   'TRUEFALSE_UNKNOWN',
-  'ABC',
+  'STARS',
   'ABCD',
 ]);
 export type QuickFeedbackType = z.infer<typeof QuickFeedbackTypeEnum>;
@@ -3190,8 +3190,8 @@ export type YesNoBinaryValue = z.infer<typeof YesNoBinaryValueEnum>;
 export const TrueFalseUnknownValueEnum = z.enum(['TRUE', 'FALSE', 'UNKNOWN']);
 export type TrueFalseUnknownValue = z.infer<typeof TrueFalseUnknownValueEnum>;
 
-export const AbcValueEnum = z.enum(['A', 'B', 'C']);
-export type AbcValue = z.infer<typeof AbcValueEnum>;
+export const StarsValueEnum = z.enum(['1', '2', '3', '4', '5']);
+export type StarsValue = z.infer<typeof StarsValueEnum>;
 
 export const QuickFeedbackThemeEnum = z.enum(['system', 'dark', 'light']);
 export const QuickFeedbackPresetEnum = z.enum(['serious', 'spielerisch']);

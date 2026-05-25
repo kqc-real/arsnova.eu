@@ -33,12 +33,20 @@ import { MarkdownImageLightboxDirective } from '../../shared/markdown-image-ligh
 import {
   feedbackDisplayIcon,
   feedbackDisplayLabel,
-  feedbackOptions,
+  feedbackResultOrder,
   feedbackTitle,
   QUICK_FEEDBACK_PRESET_CHIPS,
 } from './feedback.config';
 import type { QuickFeedbackResult, QuickFeedbackType } from '@arsnova/shared-types';
 import type { Unsubscribable } from '@trpc/server/observable';
+
+type StarAverageIcon = 'star' | 'star_half' | 'star_border';
+
+interface StarAverageSummary {
+  scoreLabel: string;
+  icons: readonly StarAverageIcon[];
+  totalVotes: number;
+}
 
 @Component({
   selector: 'app-feedback-host',
@@ -421,16 +429,32 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly round1Entries = computed(() => {
     const data = this.result();
     if (!data?.round1Distribution) return [];
-    const orderMap: Record<string, string[]> = {
-      MOOD: feedbackOptions('MOOD').map((o) => o.value),
-      YESNO: feedbackOptions('YESNO').map((o) => o.value),
-      YESNO_BINARY: feedbackOptions('YESNO_BINARY').map((o) => o.value),
-      TRUEFALSE_UNKNOWN: feedbackOptions('TRUEFALSE_UNKNOWN').map((o) => o.value),
-      ABC: feedbackOptions('ABC').map((o) => o.value),
-      ABCD: feedbackOptions('ABCD').map((o) => o.value),
-    };
-    const order = orderMap[data.type] ?? Object.keys(data.round1Distribution);
+    const order = feedbackResultOrder(data.type);
     return order.map((key) => ({ key, value: data.round1Distribution![key] ?? 0 }));
+  });
+
+  readonly currentStarAverage = computed(() => {
+    const data = this.result();
+    if (!data || data.type !== 'STARS') {
+      return null;
+    }
+    return this.starAverage(data.distribution, data.totalVotes);
+  });
+
+  readonly round1StarAverage = computed(() => {
+    const data = this.result();
+    if (!data?.round1Distribution || data.type !== 'STARS') {
+      return null;
+    }
+    return this.starAverage(data.round1Distribution, data.round1Total ?? 0);
+  });
+
+  readonly round2StarAverage = computed(() => {
+    const data = this.result();
+    if (!data || data.type !== 'STARS') {
+      return null;
+    }
+    return this.starAverage(data.distribution, data.totalVotes);
   });
 
   round1Percentage(key: string): string {
@@ -440,11 +464,36 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     return data.round1Total > 0 ? String(Math.round((count / data.round1Total) * 100)) : '0';
   }
 
+  round1Count(key: string): number {
+    return this.result()?.round1Distribution?.[key] ?? 0;
+  }
+
   round2Percentage(key: string): string {
     const data = this.result();
     if (!data || data.totalVotes === 0) return '0';
     const count = data.distribution[key] ?? 0;
     return data.totalVotes > 0 ? String(Math.round((count / data.totalVotes) * 100)) : '0';
+  }
+
+  round2Count(key: string): number {
+    return this.result()?.distribution[key] ?? 0;
+  }
+
+  comparisonRound1Label(totalVotes: number): string {
+    const votes = this.feedbackVoteCountLabel(totalVotes);
+    return $localize`:@@feedback.compareRound1WithVotes:Runde 1 (${votes}:votes:)`;
+  }
+
+  comparisonRound2Label(totalVotes: number): string {
+    const votes = this.feedbackVoteCountLabel(totalVotes);
+    return $localize`:@@feedback.compareRound2WithVotes:Runde 2 (${votes}:votes:)`;
+  }
+
+  feedbackVoteCountLabel(totalVotes: number): string {
+    if (totalVotes === 1) {
+      return $localize`:@@feedback.voteCountOne:1 Stimme`;
+    }
+    return $localize`:@@feedback.voteCountMany:${totalVotes}:count: Stimmen`;
   }
 
   async startDiscussion(): Promise<void> {
@@ -615,15 +664,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly orderedEntries = computed(() => {
     const data = this.result();
     if (!data) return [];
-    const orderMap: Record<string, string[]> = {
-      MOOD: feedbackOptions('MOOD').map((o) => o.value),
-      YESNO: feedbackOptions('YESNO').map((o) => o.value),
-      YESNO_BINARY: feedbackOptions('YESNO_BINARY').map((o) => o.value),
-      TRUEFALSE_UNKNOWN: feedbackOptions('TRUEFALSE_UNKNOWN').map((o) => o.value),
-      ABC: feedbackOptions('ABC').map((o) => o.value),
-      ABCD: feedbackOptions('ABCD').map((o) => o.value),
-    };
-    const order = orderMap[data.type] ?? Object.keys(data.distribution);
+    const order = feedbackResultOrder(data.type);
     return order.map((key) => ({ key, value: data.distribution[key] ?? 0 }));
   });
 
@@ -684,5 +725,47 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
   feedbackTitle(type: string): string {
     return feedbackTitle(type);
+  }
+
+  private starAverage(
+    distribution: Record<string, number> | undefined,
+    totalVotes: number,
+  ): StarAverageSummary {
+    if (!distribution || totalVotes <= 0) {
+      return {
+        scoreLabel: '- / 5',
+        icons: this.renderAverageStarIcons(0),
+        totalVotes: Math.max(0, totalVotes),
+      };
+    }
+
+    let weightedSum = 0;
+    for (const [key, count] of Object.entries(distribution)) {
+      const stars = Number.parseInt(key, 10);
+      if (Number.isInteger(stars) && stars >= 1 && stars <= 5) {
+        weightedSum += stars * count;
+      }
+    }
+
+    const numeric = weightedSum / totalVotes;
+    return {
+      scoreLabel: `${numeric.toFixed(1).replace('.', ',')} / 5`,
+      icons: this.renderAverageStarIcons(numeric),
+      totalVotes,
+    };
+  }
+
+  private renderAverageStarIcons(numeric: number): readonly StarAverageIcon[] {
+    const roundedHalfSteps = Math.min(10, Math.max(0, Math.round(numeric * 2)));
+    return Array.from({ length: 5 }, (_, index): StarAverageIcon => {
+      const fullStep = (index + 1) * 2;
+      if (roundedHalfSteps >= fullStep) {
+        return 'star';
+      }
+      if (roundedHalfSteps === fullStep - 1) {
+        return 'star_half';
+      }
+      return 'star_border';
+    });
   }
 }

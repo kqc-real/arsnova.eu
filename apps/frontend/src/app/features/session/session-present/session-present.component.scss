@@ -267,6 +267,16 @@
   font-weight: 700;
 }
 
+.session-present__feedback-row-stars {
+  display: inline-flex;
+  min-width: 6.25rem;
+  justify-content: flex-start;
+  color: var(--app-rating-star);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
 .session-present__feedback-row-icon {
   font-size: 1.55rem;
   width: 1.55rem;

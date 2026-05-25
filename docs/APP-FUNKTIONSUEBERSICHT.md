@@ -90,7 +90,7 @@ Die Startseite bietet vordefinierte Blitzlicht-Typen als Sofortstart:
 - Ja / Nein / Vielleicht
 - Ja / Nein
 - Wahr / Falsch / Weiß nicht
-- ABC
+- Sterne
 - ABCD
 
 Ein Klick erzeugt eine neue Runde, Host-Token und Beitrittslink. Danach wechselt die App direkt in die Host-Ansicht des Blitzlichts.
@@ -497,7 +497,7 @@ Im aktuellen Stand sind umgesetzt:
 - Ja / Nein / Vielleicht
 - Ja / Nein
 - Wahr / Falsch / Weiß nicht
-- ABC
+- Sterne
 - ABCD
 
 ### 6.2 Nutzungsformen

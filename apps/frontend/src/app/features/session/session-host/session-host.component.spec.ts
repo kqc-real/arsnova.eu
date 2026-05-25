@@ -4816,6 +4816,91 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('navigiert beim Beenden aus dem Blitzlicht-Kanal direkt zur Startseite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 3,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    getExportDataQueryMock.mockResolvedValue({
+      sessionId: defaultSession.id,
+      sessionCode: 'ABC123',
+      quizName: 'Demo Quiz',
+      finishedAt: '2026-03-24T12:30:00.000Z',
+      participantCount: 3,
+      teamMode: false,
+      questions: [{ participantCount: 3, optionDistribution: [], freetextAggregates: [] }],
+      teamLeaderboard: [],
+      bonusTokens: [],
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({
+      type: 'STARS',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 1,
+      distribution: { '1': 0, '2': 0, '3': 1, '4': 0, '5': 0 },
+    });
+
+    const fixture = setup();
+    const router = TestBed.inject(Router);
+    const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+
+    await fixture.componentInstance.onSessionEndAnchorClick();
+
+    expect(endMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { replaceUrl: true });
+    fixture.destroy();
+  });
+
+  it('zeigt in der Live-Bar des Blitzlicht-Kanals die Session-Teilnehmenden statt der Stimmen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      participantCount: 12,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    getParticipantsQueryMock.mockResolvedValue({ participantCount: 12, participants: [] });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({
+      type: 'STARS',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      totalVotes: 100,
+      distribution: { '1': 20, '2': 20, '3': 20, '4': 20, '5': 20 },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+
+    const liveParticipants = fixture.nativeElement.querySelector(
+      '.session-host__live-participants',
+    ) as HTMLElement | null;
+
+    expect(liveParticipants?.textContent).toContain('12');
+    expect(liveParticipants?.textContent).toContain('Teilnehmende');
+    expect(liveParticipants?.textContent).not.toContain('Stimmen');
+    fixture.destroy();
+  });
+
   it('ruft onParticipantJoined, onStatusChanged und onCurrentQuestionForHostChanged subscribe auf', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
     const fixture = setup();

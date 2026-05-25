@@ -31,6 +31,7 @@ vi.mock('../../core/trpc.client', () => ({
 describe('FeedbackVoteComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     getInfoQueryMock.mockRejectedValue(new Error('not found'));
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'YESNO',
@@ -97,6 +98,10 @@ describe('FeedbackVoteComponent', () => {
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
     fixture.componentRef.setInput('sessionCode', 'ABC123');
     fixture.componentRef.setInput('participantId', 'participant-1');
+    fixture.componentRef.setInput('participantName', 'Ada');
+    fixture.componentRef.setInput('participantAvatar', '🦊');
+    fixture.componentRef.setInput('participantTeamName', 'Team Blau');
+    fixture.componentRef.setInput('sessionTitle', 'Demo-Session');
     fixture.componentRef.setInput('embeddedInSession', true);
     fixture.componentRef.setInput('showSessionCode', false);
 
@@ -107,6 +112,12 @@ describe('FeedbackVoteComponent', () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(quickFeedbackResultsQueryMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    expect(text).toContain('Demo-Session');
+    expect(text).toContain('ABC123');
+    expect(text).toContain('🦊');
+    expect(text).toContain('Team Blau');
+    const context = fixture.nativeElement.querySelector('.feedback-vote__context');
+    expect(context?.getAttribute('aria-label')).toContain('Ada');
     expect(text).toContain('Ja · Nein · Vielleicht');
     fixture.destroy();
   });
@@ -117,26 +128,26 @@ describe('FeedbackVoteComponent', () => {
         _input,
         opts: {
           onData: (result: {
-            type: 'ABC';
+            type: 'STARS';
             theme: 'system';
             preset: 'serious';
             locked: false;
             discussion: false;
             totalVotes: 0;
-            distribution: { A: 0; B: 0; C: 0 };
+            distribution: { 1: 0; 2: 0; 3: 0; 4: 0; 5: 0 };
             currentRound: 1;
           }) => void;
         },
       ) => {
         setTimeout(() => {
           opts.onData({
-            type: 'ABC',
+            type: 'STARS',
             theme: 'system',
             preset: 'serious',
             locked: false,
             discussion: false,
             totalVotes: 0,
-            distribution: { A: 0, B: 0, C: 0 },
+            distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
             currentRound: 1,
           });
         }, 0);
@@ -156,7 +167,84 @@ describe('FeedbackVoteComponent', () => {
       { sessionCode: 'ABC123' },
       expect.objectContaining({ onData: expect.any(Function), onError: expect.any(Function) }),
     );
-    expect(text).toContain('ABC-Voting');
+    expect(text).toContain('Sterne');
+    const starButtons = fixture.nativeElement.querySelectorAll('.feedback-vote__star-btn');
+    expect(starButtons).toHaveLength(5);
+    fixture.destroy();
+  });
+
+  it('sperrt die Stern-Buttons während die Stimme übertragen wird', async () => {
+    quickFeedbackResultsQueryMock.mockResolvedValueOnce({
+      type: 'STARS',
+      theme: 'system',
+      preset: 'serious',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+      currentRound: 1,
+    });
+    let resolveVote: (() => void) | null = null;
+    quickFeedbackVoteMutateMock.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveVote = resolve;
+        }),
+    );
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const starButtons = Array.from(
+      fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.feedback-vote__star-btn'),
+    );
+    expect(starButtons).toHaveLength(5);
+
+    starButtons[2].click();
+    fixture.detectChanges();
+
+    expect(quickFeedbackVoteMutateMock).toHaveBeenCalledTimes(1);
+    expect(starButtons.every((button) => button.disabled)).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('.feedback-vote__panel')?.getAttribute('aria-busy'),
+    ).toBe('true');
+
+    starButtons[3].click();
+    expect(quickFeedbackVoteMutateMock).toHaveBeenCalledTimes(1);
+
+    resolveVote?.();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent ?? '').toContain('Danke für dein Feedback!');
+    fixture.destroy();
+  });
+
+  it('kennzeichnet Danke- und Pausenstatus als Live-Regionen', async () => {
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    fixture.componentInstance.voted.set(true);
+    fixture.detectChanges();
+    let statusCard = fixture.nativeElement.querySelector('.feedback-vote__card');
+    expect(statusCard?.getAttribute('role')).toBe('status');
+    expect(statusCard?.getAttribute('aria-live')).toBe('polite');
+    expect(statusCard?.getAttribute('aria-atomic')).toBe('true');
+
+    fixture.componentInstance.voted.set(false);
+    fixture.componentInstance.locked.set(true);
+    fixture.detectChanges();
+    statusCard = fixture.nativeElement.querySelector('.feedback-vote__card');
+    expect(statusCard?.getAttribute('role')).toBe('status');
+    expect(statusCard?.getAttribute('aria-live')).toBe('polite');
+    expect(statusCard?.getAttribute('aria-atomic')).toBe('true');
     fixture.destroy();
   });
 

@@ -1714,6 +1714,10 @@
         <app-feedback-vote
           [sessionCode]="code"
           [participantId]="participantId()"
+          [participantName]="playerNickname()"
+          [participantAvatar]="playerKindergartenBadgeLabel()"
+          [participantTeamName]="playerTeamName()"
+          [sessionTitle]="liveHeading()"
           [embeddedInSession]="true"
           [showSessionCode]="false"
         />

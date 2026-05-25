@@ -519,6 +519,11 @@
   margin-bottom: 0.18rem;
 }
 
+.home-feedback-chip__icons--rating {
+  gap: 0;
+  flex-wrap: nowrap;
+}
+
 .home-feedback-chip__icon {
   display: inline-flex;
   align-items: center;
@@ -557,6 +562,14 @@
 
 .home-feedback-chip mat-icon.home-feedback-chip__icon--neutral {
   color: var(--mat-sys-on-surface-variant) !important;
+}
+
+.home-feedback-chip mat-icon.home-feedback-chip__icon--rating {
+  color: var(--app-rating-star) !important;
+  width: 1rem;
+  min-width: 1rem;
+  height: 1rem;
+  font-size: 1.08rem;
 }
 
 .home-card .mat-mdc-card-header {

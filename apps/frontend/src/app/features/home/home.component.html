@@ -275,7 +275,11 @@
               [attr.aria-busy]="quickFeedbackStarting() === chip.type"
               [attr.aria-label]="chip.label"
             >
-              <span class="home-feedback-chip__icons" aria-hidden="true">
+              <span
+                class="home-feedback-chip__icons"
+                [class.home-feedback-chip__icons--rating]="chip.type === 'STARS'"
+                aria-hidden="true"
+              >
                 @for (icon of chip.icons; track icon) {
                   @if (icon.kind === 'mat') {
                     <mat-icon
@@ -283,6 +287,7 @@
                       [class.home-feedback-chip__icon--positive]="icon.tone === 'positive'"
                       [class.home-feedback-chip__icon--negative]="icon.tone === 'negative'"
                       [class.home-feedback-chip__icon--neutral]="icon.tone === 'neutral'"
+                      [class.home-feedback-chip__icon--rating]="icon.tone === 'rating'"
                     >
                       {{ icon.value }}
                     </mat-icon>

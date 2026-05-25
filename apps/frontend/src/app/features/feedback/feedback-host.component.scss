@@ -110,6 +110,10 @@
   font-size: 1.75rem;
 }
 
+.feedback-host--embedded .feedback-host__bar-label--stars {
+  width: 7.25rem;
+}
+
 .feedback-host--embedded .feedback-host__bar-track {
   height: 2rem;
 }
@@ -852,6 +856,14 @@
   margin-bottom: 1.35rem;
 }
 
+.feedback-host__actions + .feedback-host__template-switch {
+  margin-top: clamp(1.6rem, 4vh, 2.75rem);
+}
+
+.feedback-host--embedded .feedback-host__actions + .feedback-host__template-switch {
+  margin-top: clamp(2rem, 5vh, 3.25rem);
+}
+
 .feedback-host:not(.feedback-host--embedded) .feedback-host__template-switch {
   margin-bottom: 0;
   padding: 0.2rem 0 0;
@@ -976,6 +988,11 @@
   margin-bottom: 0.18rem;
 }
 
+.feedback-host__template-icons--rating {
+  gap: 0;
+  flex-wrap: nowrap;
+}
+
 .feedback-host__template-icon {
   display: inline-flex;
   align-items: center;
@@ -1005,6 +1022,14 @@
 
 .feedback-host__template-action mat-icon.feedback-host__template-icon--neutral {
   color: var(--mat-sys-on-surface-variant) !important;
+}
+
+.feedback-host__template-action mat-icon.feedback-host__template-icon--rating {
+  color: var(--app-rating-star) !important;
+  width: 1rem;
+  min-width: 1rem;
+  height: 1rem;
+  font-size: 1.08rem;
 }
 
 @media (max-width: 600px), (max-height: 700px) {
@@ -1037,6 +1062,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
     margin-bottom: 1rem;
+  }
+  .feedback-host__actions + .feedback-host__template-switch,
+  .feedback-host--embedded .feedback-host__actions + .feedback-host__template-switch {
+    margin-top: 1.35rem;
   }
   .feedback-host__template-action {
     min-height: 4rem;
@@ -1144,6 +1173,11 @@
   flex-shrink: 0;
 }
 
+.feedback-host__bar-label--stars {
+  width: 6.5rem;
+  justify-content: flex-start;
+}
+
 .feedback-host__bar-icon {
   font-size: 2rem;
   width: 2rem;
@@ -1174,6 +1208,17 @@
   color: var(--mat-sys-on-primary-container);
   padding: 0;
   line-height: 1;
+  transform: none;
+}
+
+.feedback-host__bar-glyph--stars {
+  width: auto;
+  height: auto;
+  min-width: 6.25rem;
+  justify-content: flex-start;
+  color: var(--app-rating-star);
+  font-size: 1.25rem;
+  letter-spacing: 0;
   transform: none;
 }
 
@@ -1271,6 +1316,9 @@
     gap: 0.45rem 0.5rem;
     align-items: center;
   }
+  .feedback-host__bar-row--stars {
+    grid-template-columns: 5.25rem minmax(0, 1fr) auto;
+  }
   .feedback-host:not(.feedback-host--embedded) .feedback-host__bar-row,
   .feedback-host--embedded .feedback-host__bar-row {
     padding: 0.6rem 0.65rem;
@@ -1297,6 +1345,16 @@
     flex-basis: 2rem;
     font-size: 1.2rem;
     padding: 0;
+  }
+  .feedback-host__bar-label--stars {
+    width: 5.25rem;
+  }
+  .feedback-host--embedded .feedback-host__bar-label--stars {
+    width: 5.25rem;
+  }
+  .feedback-host__bar-glyph--stars {
+    min-width: 5rem;
+    font-size: 1rem;
   }
   .feedback-host__bar-track {
     height: 1.6rem;
@@ -1395,6 +1453,102 @@
 // Farbschema: R1 = warm (orange), R2 = kühl (primary/blau) – einheitlich mit Quiz-Host
 $round1-color: #ef6c00;
 $round2-color: var(--mat-sys-primary, #1565c0);
+
+.feedback-host__average-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem 0.55rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 0.95rem;
+  padding: 0.65rem 0.95rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--app-rating-star) 13%, var(--mat-sys-surface));
+  border: 1px solid color-mix(in srgb, var(--app-rating-star) 28%, var(--mat-sys-outline-variant));
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.feedback-host__average-label,
+.feedback-host__average-card-label {
+  font: var(--mat-sys-label-large);
+  font-weight: 700;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.2;
+}
+
+.feedback-host__average-value,
+.feedback-host__average-card-value {
+  font: var(--mat-sys-title-large);
+  font-weight: 800;
+  color: var(--mat-sys-on-surface);
+  line-height: 1;
+}
+
+.feedback-host__average-stars {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  color: var(--app-rating-star);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.feedback-host__average-star-icon {
+  width: 1.1rem;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: inherit;
+}
+
+.feedback-host__average-star-icon--empty {
+  opacity: 0.58;
+}
+
+.feedback-host__average-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.feedback-host__average-card {
+  --feedback-host-average-accent: var(--app-rating-star);
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.85rem 0.9rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--feedback-host-average-accent) 10%, var(--mat-sys-surface));
+  border: 1px solid
+    color-mix(in srgb, var(--feedback-host-average-accent) 26%, var(--mat-sys-outline-variant));
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.feedback-host__average-card--r1 {
+  --feedback-host-average-accent: #{$round1-color};
+}
+
+.feedback-host__average-card--r2 {
+  --feedback-host-average-accent: #{$round2-color};
+}
+
+.feedback-host__average-card-label {
+  color: var(--feedback-host-average-accent);
+}
+
+.feedback-host__average-card-votes {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.2;
+}
 
 .feedback-host__comparison {
   display: flex;
@@ -1505,7 +1659,7 @@ $round2-color: var(--mat-sys-primary, #1565c0);
 .feedback-host__comparison-pct {
   font: var(--mat-sys-label-medium);
   font-weight: 600;
-  width: 3.5rem;
+  width: 5.4rem;
   text-align: right;
   white-space: nowrap;
 
@@ -1671,6 +1825,13 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   transform: translateY(-0.04em);
 }
 
+.feedback-host__migration-glyph--stars {
+  color: var(--app-rating-star);
+  font-size: 0.9rem;
+  min-width: 4.5rem;
+  transform: none;
+}
+
 .feedback-host__migration-arrow {
   font-size: 1rem;
   width: 1rem;
@@ -1711,7 +1872,29 @@ $round2-color: var(--mat-sys-primary, #1565c0);
   }
   .feedback-host__comparison-pct {
     width: auto;
-    min-width: 2.75rem;
+    min-width: 4.6rem;
+    font-size: 0.75rem;
+  }
+
+  .feedback-host__average-strip {
+    margin-bottom: 0.75rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .feedback-host__average-comparison {
+    gap: 0.5rem;
+  }
+
+  .feedback-host__average-card {
+    padding: 0.7rem 0.55rem;
+  }
+
+  .feedback-host__average-card-value {
+    font: var(--mat-sys-title-medium);
+    font-weight: 800;
+  }
+
+  .feedback-host__average-card-label {
     font-size: 0.75rem;
   }
 

@@ -2,7 +2,53 @@
   class="feedback-vote app-live-channel-shell"
   [class.feedback-vote--embedded]="embeddedInSession()"
 >
-  @if (showSessionCode()) {
+  @if (showSessionContext()) {
+    <section class="feedback-vote__context" [attr.aria-label]="sessionContextAriaLabel()">
+      <div class="feedback-vote__context-main">
+        <p class="feedback-vote__context-kicker">
+          <mat-icon aria-hidden="true">bolt</mat-icon>
+          <span i18n="@@sessionTabs.quickFeedback">Blitzlicht</span>
+        </p>
+        @if (sessionTitleLabel(); as title) {
+          <p class="feedback-vote__context-title" [attr.title]="title">{{ title }}</p>
+        }
+      </div>
+      <dl class="feedback-vote__context-meta">
+        <div class="feedback-vote__context-item">
+          <dt>
+            <mat-icon aria-hidden="true">tag</mat-icon>
+            <span i18n="@@feedback.voteContextSession">Session</span>
+          </dt>
+          <dd [attr.aria-label]="sessionCodeDisplayAria(code())">{{ code() }}</dd>
+        </div>
+        @if (participantAvatarLabel(); as avatar) {
+          <div
+            class="feedback-vote__context-kita-avatar"
+            [attr.aria-label]="participantIdentityCaption() + ' ' + participantIdentityLabel()"
+          >
+            <span aria-hidden="true">{{ avatar }}</span>
+          </div>
+        } @else {
+          <div class="feedback-vote__context-item">
+            <dt>
+              <mat-icon aria-hidden="true">person</mat-icon>
+              <span>{{ participantIdentityCaption() }}</span>
+            </dt>
+            <dd>{{ participantIdentityLabel() }}</dd>
+          </div>
+        }
+        @if (participantTeamLabel(); as team) {
+          <div class="feedback-vote__context-item">
+            <dt>
+              <mat-icon aria-hidden="true">groups</mat-icon>
+              <span i18n="@@feedback.voteContextTeam">Team</span>
+            </dt>
+            <dd>{{ team }}</dd>
+          </div>
+        }
+      </dl>
+    </section>
+  } @else if (showSessionCode()) {
     <p class="feedback-vote__session-code" [attr.aria-label]="sessionCodeDisplayAria(code())">
       {{ code() }}
     </p>
@@ -41,7 +87,13 @@
       </p>
     </section>
   } @else if (voted()) {
-    <mat-card appearance="outlined" class="feedback-vote__card">
+    <mat-card
+      appearance="outlined"
+      class="feedback-vote__card"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <mat-card-content class="feedback-vote__done">
         <mat-icon class="feedback-vote__status-icon feedback-vote__status-icon--success"
           >check_circle</mat-icon
@@ -68,14 +120,20 @@
       <p class="feedback-vote__discussion-next" i18n>Zweite Abstimmung folgt gleich…</p>
     </div>
   } @else if (locked()) {
-    <mat-card appearance="outlined" class="feedback-vote__card">
+    <mat-card
+      appearance="outlined"
+      class="feedback-vote__card"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <mat-card-content class="feedback-vote__done">
         <mat-icon class="feedback-vote__status-icon">lock</mat-icon>
         <p class="feedback-vote__done-text" i18n>Abstimmung ist pausiert.</p>
       </mat-card-content>
     </mat-card>
   } @else {
-    <section class="feedback-vote__panel">
+    <section class="feedback-vote__panel" [attr.aria-busy]="submitting() ? 'true' : null">
       <h1 class="feedback-vote__heading">
         {{ headingText() }}
         @if (currentRound() === 2) {
@@ -92,7 +150,33 @@
           Wie ist deine Einschätzung jetzt?
         </p>
       }
-      @if (usesLetterButtons()) {
+      @if (usesStarRating()) {
+        <div
+          class="feedback-vote__stars"
+          role="group"
+          i18n-aria-label="@@feedback.voteChooseStarsAria"
+          aria-label="Sternebewertung wählen"
+        >
+          @for (star of starValues; track star) {
+            <button
+              class="feedback-vote__star-btn"
+              type="button"
+              (mouseenter)="hoveredStar.set(star)"
+              (mouseleave)="hoveredStar.set(0)"
+              (focus)="hoveredStar.set(star)"
+              (blur)="hoveredStar.set(0)"
+              (click)="vote(star.toString())"
+              [class.feedback-vote__star-btn--active]="star <= hoveredStar()"
+              [disabled]="submitting()"
+              [attr.aria-label]="starRatingAriaLabel(star)"
+            >
+              <mat-icon aria-hidden="true">{{
+                star <= hoveredStar() ? 'star' : 'star_border'
+              }}</mat-icon>
+            </button>
+          }
+        </div>
+      } @else if (usesLetterButtons()) {
         <div
           class="feedback-vote__options feedback-vote__options--abcd"
           [class.feedback-vote__options--two]="currentOptions().length === 2"
@@ -107,6 +191,7 @@
               class="feedback-vote__abcd-btn"
               type="button"
               (click)="vote(option.value)"
+              [disabled]="submitting()"
               [attr.aria-label]="option.label"
             >
               {{ option.value }}
@@ -127,6 +212,7 @@
               class="feedback-vote__mood-btn"
               type="button"
               (click)="vote(option.value)"
+              [disabled]="submitting()"
               [attr.aria-label]="option.label"
             >
               @if (option.icon) {

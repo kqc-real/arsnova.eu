@@ -48,7 +48,8 @@ Sie konkretisiert ADR `docs/architecture/decisions/0010-blitzlicht-as-core-live-
 - Chips sind kompakt und eher flach, nicht kachelartig hoch.
 - Label steht unter der Icon-Reihe.
 - Label und Icon-Reihe sind horizontal mittig.
-- `ABC` und `ABCD` erscheinen ohne zusaetzliches Textlabel.
+- `ABCD` erscheint ohne zusaetzliches Textlabel.
+- `Sterne` nutzt im Format-Chip fuenf einzelne Stern-Icons.
 - Der Abstand zwischen Icon und Label ist klein, aber konsistent.
 - Der Abstand zwischen allen Icons und ihren Labels muss ueber alle Chips gleich wirken.
 - Positive/negative Bedeutungen nutzen Theme-Tokens:

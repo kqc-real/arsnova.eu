@@ -1,5 +1,5 @@
 /**
- * Quick-Feedback Router – One-Shot-Feedback (Mood / ABCD / YesNo).
+ * Quick-Feedback Router – One-Shot-Feedback (Mood / Sterne / ABCD / YesNo).
  * Lightweight, Redis-only (kein Prisma), auto-expire nach 30 Minuten.
  */
 import { TRPCError } from '@trpc/server';
@@ -16,7 +16,7 @@ import {
   YesNoValueEnum,
   YesNoBinaryValueEnum,
   TrueFalseUnknownValueEnum,
-  AbcValueEnum,
+  StarsValueEnum,
   type QuickFeedbackType,
   type QuickFeedbackResult,
 } from '@arsnova/shared-types';
@@ -73,8 +73,8 @@ function validValues(type: QuickFeedbackType): readonly string[] {
       return YesNoBinaryValueEnum.options;
     case 'TRUEFALSE_UNKNOWN':
       return TrueFalseUnknownValueEnum.options;
-    case 'ABC':
-      return AbcValueEnum.options;
+    case 'STARS':
+      return StarsValueEnum.options;
     case 'ABCD':
       return AbcdValueEnum.options;
   }

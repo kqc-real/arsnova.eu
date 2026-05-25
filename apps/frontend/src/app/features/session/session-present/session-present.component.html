@@ -205,7 +205,10 @@
                         {{ icon.value }}
                       </mat-icon>
                     } @else {
-                      {{ icon.value }}
+                      <span
+                        [class.session-present__feedback-row-stars]="quickFeedback.type === 'STARS'"
+                        >{{ icon.value }}</span
+                      >
                     }
                   } @else {
                     {{ quickFeedbackDisplayLabel(entry.key, quickFeedback.type) }}

@@ -50,6 +50,7 @@ function hasAlreadyVoted(code: string): boolean {
   },
 })
 export class FeedbackVoteComponent implements OnInit, OnDestroy {
+  readonly starValues = [1, 2, 3, 4, 5] as const;
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -59,6 +60,10 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   private readonly standaloneVoterId = getOrCreateVoterId();
   readonly sessionCode = input('');
   readonly participantId = input('');
+  readonly participantName = input<string | null>(null);
+  readonly participantAvatar = input<string | null>(null);
+  readonly participantTeamName = input<string | null>(null);
+  readonly sessionTitle = input<string | null>(null);
   readonly embeddedInSession = input(false);
   readonly showSessionCode = input(true);
 
@@ -73,6 +78,8 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly locked = signal(false);
   readonly discussion = signal(false);
   readonly currentRound = signal(1);
+  readonly hoveredStar = signal(0);
+  readonly submitting = signal(false);
 
   readonly headingText = computed(() => {
     const type = this.feedbackType();
@@ -85,11 +92,50 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   });
   readonly usesLetterButtons = computed(() => {
     const type = this.feedbackType();
-    return type === 'ABC' || type === 'ABCD';
+    return type === 'ABCD';
+  });
+  readonly usesStarRating = computed(() => this.feedbackType() === 'STARS');
+  readonly sessionTitleLabel = computed(() => this.sessionTitle()?.trim() || null);
+  readonly participantIdentityLabel = computed(
+    () =>
+      this.participantName()?.trim() ||
+      $localize`:@@feedback.voteParticipantFallback:Teilnehmende Person`,
+  );
+  readonly participantIdentityCaption = computed(() =>
+    this.participantName()?.trim()
+      ? $localize`:@@feedback.voteContextParticipant:Du bist als`
+      : $localize`:@@feedback.voteContextView:Ansicht`,
+  );
+  readonly participantAvatarLabel = computed(() => this.participantAvatar()?.trim() || null);
+  readonly participantTeamLabel = computed(() => this.participantTeamName()?.trim() || null);
+  readonly showSessionContext = computed(
+    () => !!this.code() && (this.showSessionCode() || this.embeddedInSession()),
+  );
+  readonly sessionContextAriaLabel = computed(() => {
+    const parts = [
+      $localize`:@@sessionTabs.quickFeedback:Blitzlicht`,
+      this.sessionCodeDisplayAria(this.code()),
+      this.participantName()?.trim()
+        ? $localize`:@@feedback.voteParticipantContextAria:Du bist als ${this.participantIdentityLabel()}:name: dabei`
+        : $localize`:@@feedback.voteParticipantRoleContextAria:Teilnehmeransicht`,
+    ];
+    const title = this.sessionTitleLabel();
+    const team = this.participantTeamLabel();
+    if (title) {
+      parts.push(title);
+    }
+    if (team) {
+      parts.push($localize`:@@feedback.voteParticipantTeamContextAria:Team ${team}:team:`);
+    }
+    return parts.join(', ');
   });
 
   sessionCodeDisplayAria(code: string): string {
     return i18nSessionCodeAria(code);
+  }
+
+  starRatingAriaLabel(value: number): string {
+    return $localize`:@@feedback.starRatingAria:${value}:value: von 5 Sternen`;
   }
 
   ngOnInit(): void {
@@ -138,6 +184,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     this.locked.set(false);
     this.discussion.set(false);
     this.currentRound.set(1);
+    this.hoveredStar.set(0);
   }
 
   private async pollStyle(): Promise<void> {
@@ -198,6 +245,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     this.feedbackType.set(result.type);
     this.locked.set(result.locked);
     this.discussion.set(!!result.discussion);
+    this.hoveredStar.set(0);
     this.error.set(null);
     this.applyStyle(result.theme, result.preset);
 
@@ -233,10 +281,11 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
 
   async vote(value: string): Promise<void> {
     const code = this.code();
-    if (!code) {
+    if (!code || this.submitting()) {
       return;
     }
 
+    this.submitting.set(true);
     try {
       await trpc.quickFeedback.vote.mutate({
         sessionCode: code,
@@ -261,6 +310,8 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       } else {
         this.error.set('Abstimmung fehlgeschlagen.');
       }
+    } finally {
+      this.submitting.set(false);
     }
   }
 }
