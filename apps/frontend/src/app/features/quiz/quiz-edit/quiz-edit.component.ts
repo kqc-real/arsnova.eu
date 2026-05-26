@@ -39,6 +39,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatOption } from '@angular/material/core';
 import { MatSelect } from '@angular/material/select';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 import {
   DEFAULT_BONUS_TOKEN_COUNT,
   DEFAULT_TEAM_COUNT,
@@ -278,6 +279,7 @@ type QuizMetadataFormGroup = FormGroup<{
     MatLabel,
     MatOption,
     MatSelect,
+    MatSlideToggle,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
