@@ -423,6 +423,21 @@ describe('QuizEditComponent', () => {
     );
   });
 
+  it('rendert das NUMERIC_ESTIMATE-Editor-Formular fehlerfrei (Regression: MatSlideToggle-Import)', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.form.controls.type.setValue('NUMERIC_ESTIMATE');
+    component.onTypeChanged();
+
+    // Ohne MatSlideToggle in imports[] wirft Angular beim Bind von
+    // formControlName="numericTwoRounds" NG01203 und blockiert das Formular.
+    expect(() => fixture.detectChanges()).not.toThrow();
+
+    const slideToggle = fixture.nativeElement.querySelector('mat-slide-toggle');
+    expect(slideToggle).not.toBeNull();
+  });
+
   it('speichert eine FREETEXT-Frage ohne Antwortoptionen', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
