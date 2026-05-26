@@ -1213,15 +1213,21 @@ export class QuizStoreService implements OnDestroy {
         numericUnitFamily: q.numericUnitFamily ?? undefined,
         numericRequireUnit: q.numericRequireUnit ?? undefined,
         numericAcceptEquivalentUnits: q.numericAcceptEquivalentUnits ?? undefined,
-        numericReferenceValue: q.numericReferenceValue ?? undefined,
-        numericTolerancePercent: q.numericTolerancePercent ?? undefined,
-        numericIntervalLeft: q.numericIntervalLeft ?? undefined,
-        numericIntervalRight: q.numericIntervalRight ?? undefined,
-        numericInputType: q.numericInputType ?? undefined,
-        numericDecimalPlaces: q.numericDecimalPlaces ?? undefined,
-        numericMin: q.numericMin ?? undefined,
-        numericMax: q.numericMax ?? undefined,
-        numericTwoRounds: q.numericTwoRounds ?? undefined,
+        numericReferenceValue:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericReferenceValue ?? undefined) : undefined,
+        numericTolerancePercent:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericTolerancePercent ?? undefined) : undefined,
+        numericIntervalLeft:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericIntervalLeft ?? undefined) : undefined,
+        numericIntervalRight:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericIntervalRight ?? undefined) : undefined,
+        numericInputType:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericInputType ?? undefined) : undefined,
+        numericDecimalPlaces:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericDecimalPlaces ?? undefined) : undefined,
+        numericMin: q.type === 'NUMERIC_ESTIMATE' ? (q.numericMin ?? undefined) : undefined,
+        numericMax: q.type === 'NUMERIC_ESTIMATE' ? (q.numericMax ?? undefined) : undefined,
+        numericTwoRounds: q.type === 'NUMERIC_ESTIMATE' ? q.numericTwoRounds : undefined,
       })),
     };
 

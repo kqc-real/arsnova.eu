@@ -3,7 +3,34 @@ import {
   resolveNumericTolerance,
   parseNumericInput,
   isNumericValueInBand,
+  AddQuestionInputSchema,
 } from '@arsnova/shared-types';
+
+type AddQuestionInput = Record<string, unknown>;
+
+const baseAbsolute: AddQuestionInput = {
+  text: 'Wie viele Einwohner hat Berlin?',
+  type: 'NUMERIC_ESTIMATE',
+  order: 0,
+  answers: [],
+  numericToleranceMode: 'ABSOLUTE_INTERVAL',
+  numericIntervalLeft: 3500000,
+  numericIntervalRight: 4000000,
+};
+
+const baseRelative: AddQuestionInput = {
+  text: 'Wie viele Einwohner hat Berlin?',
+  type: 'NUMERIC_ESTIMATE',
+  order: 0,
+  answers: [],
+  numericToleranceMode: 'RELATIVE_PERCENT',
+  numericReferenceValue: 3800000,
+  numericTolerancePercent: 5,
+};
+
+const parse = (input: AddQuestionInput) => AddQuestionInputSchema.safeParse(input);
+const messages = (result: ReturnType<typeof parse>): string[] =>
+  result.success ? [] : result.error.issues.map((i) => i.message);
 
 describe('resolveNumericTolerance', () => {
   describe('ABSOLUTE_INTERVAL', () => {
@@ -191,5 +218,153 @@ describe('isNumericValueInBand', () => {
     expect(isNumericValueInBand(100, exactBand)).toBe(true);
     expect(isNumericValueInBand(100.001, exactBand)).toBe(false);
     expect(isNumericValueInBand(99.999, exactBand)).toBe(false);
+  });
+});
+
+describe('AddQuestionInputSchema – NUMERIC_ESTIMATE', () => {
+  describe('akzeptiert gültige Konfigurationen', () => {
+    it('akzeptiert ABSOLUTE_INTERVAL mit L < R', () => {
+      expect(parse(baseAbsolute).success).toBe(true);
+    });
+
+    it('akzeptiert RELATIVE_PERCENT mit V ≠ 0 und p gesetzt', () => {
+      expect(parse(baseRelative).success).toBe(true);
+    });
+
+    it('akzeptiert RELATIVE_PERCENT mit negativem Referenzwert', () => {
+      expect(parse({ ...baseRelative, numericReferenceValue: -50 }).success).toBe(true);
+    });
+
+    it('akzeptiert optionale Min/Max wenn Min < Max', () => {
+      expect(parse({ ...baseAbsolute, numericMin: 0, numericMax: 10000000 }).success).toBe(true);
+    });
+
+    it('akzeptiert numericTwoRounds und numericInputType ohne Querkonflikt', () => {
+      expect(
+        parse({
+          ...baseAbsolute,
+          numericTwoRounds: true,
+          numericInputType: 'INTEGER',
+          numericDecimalPlaces: 0,
+        }).success,
+      ).toBe(true);
+    });
+  });
+
+  describe('lehnt ungültige Toleranzkonfiguration ab', () => {
+    it('lehnt fehlenden Toleranzmodus ab', () => {
+      const { numericToleranceMode, ...rest } = baseAbsolute;
+      void numericToleranceMode;
+      const result = parse(rest);
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain(
+        'Toleranzmodus ist erforderlich (ABSOLUTE_INTERVAL oder RELATIVE_PERCENT).',
+      );
+    });
+
+    it('lehnt ABSOLUTE_INTERVAL ohne L ab', () => {
+      const { numericIntervalLeft, ...rest } = baseAbsolute;
+      void numericIntervalLeft;
+      const result = parse(rest);
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain('Linke Grenze L ist erforderlich.');
+    });
+
+    it('lehnt ABSOLUTE_INTERVAL ohne R ab', () => {
+      const { numericIntervalRight, ...rest } = baseAbsolute;
+      void numericIntervalRight;
+      const result = parse(rest);
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain('Rechte Grenze R ist erforderlich.');
+    });
+
+    it('lehnt L >= R ab', () => {
+      const result = parse({ ...baseAbsolute, numericIntervalLeft: 100, numericIntervalRight: 50 });
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain('Rechte Grenze R muss größer als linke Grenze L sein.');
+    });
+
+    it('lehnt L === R ab', () => {
+      const result = parse({
+        ...baseAbsolute,
+        numericIntervalLeft: 100,
+        numericIntervalRight: 100,
+      });
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain('Rechte Grenze R muss größer als linke Grenze L sein.');
+    });
+
+    it('lehnt RELATIVE_PERCENT ohne Referenzwert ab', () => {
+      const { numericReferenceValue, ...rest } = baseRelative;
+      void numericReferenceValue;
+      const result = parse(rest);
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain('Referenzwert V ist erforderlich.');
+    });
+
+    it('lehnt RELATIVE_PERCENT mit V = 0 ab', () => {
+      const result = parse({ ...baseRelative, numericReferenceValue: 0 });
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain(
+        'Referenzwert V darf nicht 0 sein (relative Toleranz nicht definiert).',
+      );
+    });
+
+    it('lehnt RELATIVE_PERCENT ohne Toleranz-Prozent ab', () => {
+      const { numericTolerancePercent, ...rest } = baseRelative;
+      void numericTolerancePercent;
+      const result = parse(rest);
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain('Toleranz in Prozent ist erforderlich.');
+    });
+
+    it('lehnt Min >= Max ab', () => {
+      const result = parse({ ...baseAbsolute, numericMin: 100, numericMax: 50 });
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain('Max-Eingabe muss größer als Min-Eingabe sein.');
+    });
+  });
+
+  describe('Cross-Typ-Isolation', () => {
+    it('lehnt NUMERIC_ESTIMATE-Felder bei SINGLE_CHOICE ab', () => {
+      const result = parse({
+        text: 'Frage?',
+        type: 'SINGLE_CHOICE',
+        order: 0,
+        answers: [
+          { text: 'A', isCorrect: true },
+          { text: 'B', isCorrect: false },
+        ],
+        numericToleranceMode: 'ABSOLUTE_INTERVAL',
+      });
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain(
+        'Schätzfragen-Konfiguration ist nur für NUMERIC_ESTIMATE erlaubt.',
+      );
+    });
+
+    it('lehnt SHORT_TEXT-numeric-Modus (lowercase) bei NUMERIC_ESTIMATE ab', () => {
+      const result = parse({ ...baseAbsolute, numericToleranceMode: 'absolute' });
+      expect(result.success).toBe(false);
+      expect(messages(result)).toContain(
+        'Toleranzmodus ist erforderlich (ABSOLUTE_INTERVAL oder RELATIVE_PERCENT).',
+      );
+    });
+
+    it('akzeptiert lowercase Toleranzmodus weiterhin bei SHORT_TEXT', () => {
+      const result = parse({
+        text: 'Wie schwer ist ein Apfel?',
+        type: 'SHORT_TEXT',
+        order: 0,
+        answers: [{ text: '150 g', isCorrect: true }],
+        shortTextEvaluationKind: 'numeric_unit',
+        numericInputKind: 'decimal',
+        numericToleranceMode: 'absolute',
+        numericAbsoluteTolerance: 10,
+        numericUnitFamily: 'mass',
+        numericRequireUnit: true,
+      });
+      expect(result.success).toBe(true);
+    });
   });
 });

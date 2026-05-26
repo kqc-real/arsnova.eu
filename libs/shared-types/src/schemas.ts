@@ -1290,23 +1290,118 @@ export const AddQuestionInputSchema = z
       value.shortTextAllowPartialCredit !== undefined ||
       value.shortTextTrimWhitespace !== undefined ||
       value.shortTextNormalizeWhitespace !== undefined;
-    const hasNumericConfig =
+    const isShortTextToleranceMode = (mode: unknown): boolean =>
+      mode === 'exact' || mode === 'absolute' || mode === 'relative';
+    const isNumericEstimateToleranceMode = (mode: unknown): boolean =>
+      mode === 'ABSOLUTE_INTERVAL' || mode === 'RELATIVE_PERCENT';
+    const hasShortTextNumericConfig =
       value.numericInputKind !== undefined ||
-      value.numericToleranceMode !== undefined ||
+      isShortTextToleranceMode(value.numericToleranceMode) ||
       value.numericAbsoluteTolerance !== undefined ||
       value.numericRelativeTolerancePercent !== undefined ||
       value.numericUnitFamily !== undefined ||
       value.numericRequireUnit !== undefined ||
       value.numericAcceptEquivalentUnits !== undefined;
+    const hasNumericEstimateConfig =
+      isNumericEstimateToleranceMode(value.numericToleranceMode) ||
+      value.numericReferenceValue !== undefined ||
+      value.numericTolerancePercent !== undefined ||
+      value.numericIntervalLeft !== undefined ||
+      value.numericIntervalRight !== undefined ||
+      value.numericInputType !== undefined ||
+      value.numericDecimalPlaces !== undefined ||
+      value.numericMin !== undefined ||
+      value.numericMax !== undefined ||
+      value.numericTwoRounds !== undefined;
 
-    if (value.type !== 'SHORT_TEXT') {
-      if (hasShortTextConfig || hasNumericConfig) {
+    if (value.type !== 'SHORT_TEXT' && (hasShortTextConfig || hasShortTextNumericConfig)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['shortTextMaxLength'],
+        message: 'Kurzantwort-Konfiguration ist nur für SHORT_TEXT erlaubt.',
+      });
+    }
+
+    if (value.type !== 'NUMERIC_ESTIMATE' && hasNumericEstimateConfig) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['numericToleranceMode'],
+        message: 'Schätzfragen-Konfiguration ist nur für NUMERIC_ESTIMATE erlaubt.',
+      });
+    }
+
+    if (value.type === 'NUMERIC_ESTIMATE') {
+      const mode = value.numericToleranceMode;
+      if (!isNumericEstimateToleranceMode(mode)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ['shortTextMaxLength'],
-          message: 'Kurzantwort-Konfiguration ist nur für SHORT_TEXT erlaubt.',
+          path: ['numericToleranceMode'],
+          message: 'Toleranzmodus ist erforderlich (ABSOLUTE_INTERVAL oder RELATIVE_PERCENT).',
+        });
+      } else if (mode === 'ABSOLUTE_INTERVAL') {
+        const l = value.numericIntervalLeft;
+        const r = value.numericIntervalRight;
+        if (l === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['numericIntervalLeft'],
+            message: 'Linke Grenze L ist erforderlich.',
+          });
+        }
+        if (r === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['numericIntervalRight'],
+            message: 'Rechte Grenze R ist erforderlich.',
+          });
+        }
+        if (l !== undefined && r !== undefined && l >= r) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['numericIntervalRight'],
+            message: 'Rechte Grenze R muss größer als linke Grenze L sein.',
+          });
+        }
+      } else if (mode === 'RELATIVE_PERCENT') {
+        const v = value.numericReferenceValue;
+        const p = value.numericTolerancePercent;
+        if (v === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['numericReferenceValue'],
+            message: 'Referenzwert V ist erforderlich.',
+          });
+        } else if (v === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['numericReferenceValue'],
+            message: 'Referenzwert V darf nicht 0 sein (relative Toleranz nicht definiert).',
+          });
+        }
+        if (p === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['numericTolerancePercent'],
+            message: 'Toleranz in Prozent ist erforderlich.',
+          });
+        }
+      }
+
+      if (
+        value.numericMin !== undefined &&
+        value.numericMax !== undefined &&
+        value.numericMin >= value.numericMax
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['numericMax'],
+          message: 'Max-Eingabe muss größer als Min-Eingabe sein.',
         });
       }
+      return;
+    }
+
+    if (value.type !== 'SHORT_TEXT') {
       return;
     }
 
