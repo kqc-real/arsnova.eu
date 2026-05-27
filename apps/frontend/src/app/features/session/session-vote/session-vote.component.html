@@ -1125,7 +1125,9 @@
               <input
                 id="vote-numeric-input"
                 class="vote-numeric__input"
-                [class.vote-numeric__input--invalid]="numericOutOfRange()"
+                [class.vote-numeric__input--invalid]="
+                  numericOutOfRange() || numericFormatError() !== null
+                "
                 type="number"
                 [step]="numericInputStep()"
                 [attr.min]="numericInputMin()"
@@ -1133,12 +1135,28 @@
                 [value]="numericInputValue()"
                 (input)="numericInputValue.set($any($event.target).value)"
                 [disabled]="voteSent() || timerExpired()"
-                inputmode="decimal"
+                [inputmode]="numericIsInteger() ? 'numeric' : 'decimal'"
                 autocomplete="off"
                 i18n-placeholder="@@sessionVote.numericPlaceholder"
                 placeholder="Zahl eingeben…"
               />
-              @if (numericOutOfRange()) {
+              @if (numericFormatError(); as formatError) {
+                <p class="vote-numeric__range-hint" role="alert">
+                  @if (formatError === 'integer') {
+                    <span i18n="@@sessionVote.numericFormatIntegerHint"
+                      >Bitte eine ganze Zahl eingeben.</span
+                    >
+                  } @else if (formatError === 'decimal-places') {
+                    <span i18n="@@sessionVote.numericFormatDecimalPlacesHint"
+                      >Maximal {{ numericDecimalPlaces() }} Nachkommastellen erlaubt.</span
+                    >
+                  } @else {
+                    <span i18n="@@sessionVote.numericFormatInvalidHint"
+                      >Bitte eine gültige Zahl eingeben.</span
+                    >
+                  }
+                </p>
+              } @else if (numericOutOfRange()) {
                 @let minVal = numericInputMin();
                 @let maxVal = numericInputMax();
                 <p class="vote-numeric__range-hint" role="alert">

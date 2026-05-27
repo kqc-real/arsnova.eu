@@ -43,6 +43,7 @@ import {
   evaluateNumericAnswer,
   evaluateShortAnswer,
   normalizeShortTextValue,
+  parseNumericInput,
   resolveNumericQuestionEvaluationSettings,
   resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
@@ -358,10 +359,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly ratingValue = signal<number | null>(null);
   readonly numericInputValue = signal<string>('');
   readonly numericParsedValue = computed<number | null>(() => {
-    const raw = this.numericInputValue().trim().replace(',', '.');
+    const raw = this.numericInputValue();
+    if (!raw.trim()) return null;
+    return parseNumericInput(raw, {
+      inputType: this.numericIsInteger() ? 'INTEGER' : 'DECIMAL',
+      maxDecimalPlaces: this.numericIsInteger() ? null : this.numericDecimalPlaces(),
+    });
+  });
+  readonly numericFormatError = computed<'integer' | 'decimal-places' | 'invalid' | null>(() => {
+    const raw = this.numericInputValue().trim();
     if (!raw) return null;
-    const n = Number(raw);
-    return isFinite(n) ? n : null;
+    if (this.numericParsedValue() !== null) return null;
+    const normalized = raw.replace(',', '.');
+    if (!/^-?\d+(\.\d+)?$/.test(normalized)) return 'invalid';
+    if (this.numericIsInteger()) return 'integer';
+    return 'decimal-places';
   });
   readonly debounced = signal(false);
   readonly countdownSeconds = signal<number | null>(null);
