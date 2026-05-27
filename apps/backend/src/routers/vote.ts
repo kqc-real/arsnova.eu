@@ -65,6 +65,13 @@ export const voteRouter = router({
       if (participant.session.status !== 'ACTIVE') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Die Frage ist nicht mehr aktiv.' });
       }
+      const round = input.round ?? 1;
+      if (round !== participant.session.currentRound) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Diese Abstimmungsrunde ist nicht aktiv.',
+        });
+      }
       void touchParticipantPresence(input.sessionId, input.participantId);
       void recordVoteActivity();
       const question = await prisma.question.findFirst({
@@ -75,6 +82,12 @@ export const voteRouter = router({
       });
       if (!question) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
+      }
+      if (round === 2 && question.numericTwoRounds !== true) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Diese Frage hat keine zweite Abstimmungsrunde.',
+        });
       }
 
       const quiz = await prisma.quiz.findUnique({
@@ -339,8 +352,6 @@ export const voteRouter = router({
           message: 'numericValue ist nur für numerische Schätzfragen erlaubt.',
         });
       }
-
-      const round = input.round ?? 1;
 
       const correctAnswerIds = question.answers
         .filter((answer) => answer.isCorrect)

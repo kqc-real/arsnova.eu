@@ -43,7 +43,7 @@ describe('vote.submit', () => {
     prismaMock.participant.findFirst.mockResolvedValue({
       id: 'participant-1',
       sessionId: 'session-1',
-      session: { status: 'ACTIVE', quizId: 'quiz-1' },
+      session: { status: 'ACTIVE', quizId: 'quiz-1', currentRound: 1 },
     });
     prismaMock.quiz.findUnique.mockResolvedValue({ defaultTimer: null });
     prismaMock.vote.findUnique.mockResolvedValue(null);
@@ -381,5 +381,64 @@ describe('vote.submit', () => {
         freeText: 'Ada Lovelace',
       }),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  });
+
+  it('lehnt Vote für inaktive Runde ab (m6)', async () => {
+    prismaMock.participant.findFirst.mockResolvedValue({
+      id: 'participant-1',
+      sessionId: 'session-1',
+      session: { status: 'ACTIVE', quizId: 'quiz-1', currentRound: 1 },
+    });
+
+    await expect(
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        answerIds: [ANSWER_ID_1],
+        round: 2,
+      }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Diese Abstimmungsrunde ist nicht aktiv.',
+    });
+    expect(prismaMock.question.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('lehnt round=2 ab, wenn die Frage keine zweite Runde hat (m7)', async () => {
+    prismaMock.participant.findFirst.mockResolvedValue({
+      id: 'participant-1',
+      sessionId: 'session-1',
+      session: { status: 'ACTIVE', quizId: 'quiz-1', currentRound: 2 },
+    });
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'NUMERIC_ESTIMATE',
+      difficulty: 'MEDIUM',
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      numericToleranceMode: 'ABSOLUTE_INTERVAL',
+      numericIntervalLeft: 10,
+      numericIntervalRight: 20,
+      numericTwoRounds: false,
+      answers: [],
+    });
+
+    await expect(
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        numericValue: 15,
+        round: 2,
+      }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Diese Frage hat keine zweite Abstimmungsrunde.',
+    });
+    expect(prismaMock.vote.create).not.toHaveBeenCalled();
   });
 });
