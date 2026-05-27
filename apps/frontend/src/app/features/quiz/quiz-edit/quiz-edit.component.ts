@@ -8,6 +8,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import {
   AbstractControl,
@@ -505,10 +506,14 @@ export class QuizEditComponent implements OnDestroy {
     numericRequireUnit: this.formBuilder.control(false),
     numericAcceptEquivalentUnits: this.formBuilder.control(true),
     // Story 1.2d: Numerische Schätzfrage
-    numericReferenceValue: this.formBuilder.control<number | null>(null),
+    numericReferenceValue: this.formBuilder.control<number | null>(null, {
+      validators: [numericReferenceNonZeroValidator],
+    }),
     numericTolerancePercent: this.formBuilder.control<number | null>(10),
     numericIntervalLeft: this.formBuilder.control<number | null>(null),
-    numericIntervalRight: this.formBuilder.control<number | null>(null),
+    numericIntervalRight: this.formBuilder.control<number | null>(null, {
+      validators: [numericIntervalRightValidator],
+    }),
     numericInputType: this.formBuilder.control<'INTEGER' | 'DECIMAL'>('DECIMAL'),
     numericDecimalPlaces: this.formBuilder.control<number | null>(2),
     numericMin: this.formBuilder.control<number | null>(null),
@@ -582,6 +587,9 @@ export class QuizEditComponent implements OnDestroy {
     this.localeGuard.register(
       () => this.metadataForm.dirty || this.settingsForm.dirty || this.hasUnsavedQuestionChanges(),
     );
+    this.form.controls.numericIntervalLeft.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.form.controls.numericIntervalRight.updateValueAndValidity({ emitEvent: false });
+    });
   }
 
   ngOnDestroy(): void {
@@ -2733,6 +2741,19 @@ function motifImageUrlOptionalHttpsValidator(control: AbstractControl): Validati
     return { motifUrl: true };
   }
   return { motifUrl: true };
+}
+
+function numericReferenceNonZeroValidator(control: AbstractControl): ValidationErrors | null {
+  if (control.value === 0) return { zeroNotAllowed: true };
+  return null;
+}
+
+function numericIntervalRightValidator(control: AbstractControl): ValidationErrors | null {
+  const right = control.value;
+  if (right === null || right === undefined) return null;
+  const left = control.parent?.get('numericIntervalLeft')?.value;
+  if (left === null || left === undefined) return null;
+  return left >= right ? { leftGreaterEqualRight: true } : null;
 }
 
 function parseTeamNamesText(value: string): string[] {
