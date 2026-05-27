@@ -15,7 +15,13 @@ export const QuestionTypeEnum = z.enum([
 ]);
 export type QuestionType = z.infer<typeof QuestionTypeEnum>;
 
-/** Toleranzmodus für numerische Schätzfragen (Story 1.2d). */
+/**
+ * Toleranzmodus für NUMERIC_ESTIMATE-Fragen (Story 1.2d).
+ * Bewusst getrennt von {@link NumericToleranceModeEnum}, weil die SHORT_TEXT-numeric-
+ * Bewertung andere Semantik hat (exact/absolute/relative vs. Intervall/Prozent-Band).
+ * Das gemeinsame Feld `numericToleranceMode` in AddQuestionInputSchema akzeptiert
+ * deshalb eine union beider Enums, gating-pro-Fragetyp passiert im superRefine.
+ */
 export const NumericEstimateToleranceModeEnum = z.enum(['ABSOLUTE_INTERVAL', 'RELATIVE_PERCENT']);
 export type NumericEstimateToleranceMode = z.infer<typeof NumericEstimateToleranceModeEnum>;
 
@@ -113,6 +119,10 @@ export type ShortTextEvaluationKind = z.infer<typeof ShortTextEvaluationKindEnum
 export const NumericInputKindEnum = z.enum(['integer', 'decimal']);
 export type NumericInputKind = z.infer<typeof NumericInputKindEnum>;
 
+/**
+ * Toleranzmodus für SHORT_TEXT mit numerischer Bewertung (Story 1.2c).
+ * Nicht zu verwechseln mit {@link NumericEstimateToleranceModeEnum} für NUMERIC_ESTIMATE.
+ */
 export const NumericToleranceModeEnum = z.enum(['exact', 'absolute', 'relative']);
 export type NumericToleranceMode = z.infer<typeof NumericToleranceModeEnum>;
 
