@@ -12,121 +12,127 @@
 
 ## 📊 Story-Übersicht & Bearbeitungsstand
 
-| Epic | Story | Titel                                                                          | Prio | Status       |
-| ---- | ----- | ------------------------------------------------------------------------------ | ---- | ------------ |
-| 0    | 0.1   | Redis-Setup                                                                    | 🔴   | ✅ Fertig    |
-| 0    | 0.2   | tRPC WebSocket-Adapter                                                         | 🔴   | ✅ Fertig    |
-| 0    | 0.3   | Yjs WebSocket-Provider                                                         | 🟡   | ✅ Fertig    |
-| 0    | 0.4   | Server-Status-Indikator                                                        | 🟡   | ✅ Fertig    |
-| 0    | 0.4a  | Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog                       | 🟡   | ✅ Fertig    |
-| 0    | 0.5   | Rate-Limiting & Brute-Force-Schutz                                             | 🔴   | ✅ Fertig    |
-| 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                                                | 🔴   | ✅ Fertig    |
-| 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                                    | 🟡   | 🔨 In Arbeit |
-| 0    | 0.8   | Komplexitätsabbau (McCabe) & Refactor-Hotspots                                 | 🟡   | ⬜ Offen     |
-| 1    | 1.1   | Quiz erstellen                                                                 | 🔴   | ✅ Fertig    |
-| 1    | 1.2a  | Fragentypen: MC & SC                                                           | 🔴   | ✅ Fertig    |
-| 1    | 1.2b  | Fragentypen: Freitext & Umfrage                                                | 🟡   | ✅ Fertig    |
-| 1    | 1.2c  | Fragentyp: Rating-Skala                                                        | 🟡   | ✅ Fertig    |
-| 1    | 1.2d  | Numerische Schätzfrage (eigener Typ, 2 Runden, Statistik)                      | 🟡   | ⬜ Offen     |
-| 1    | 1.2e  | Fragentyp: Kurzantwort / Short Answer mit Musterlösung                         | 🟡   | ✅ Fertig    |
-| 1    | 1.2ea | Kurzantwort: Textbewertung 2.0                                                 | 🟡   | ✅ Fertig    |
-| 1    | 1.2eb | Kurzantwort: Gemeinsame Numerik-Basis (Zahl, Toleranz, Einheit)                | 🟡   | ✅ Fertig    |
-| 1    | 1.2ec | Kurzantwort: Gemeinsame Schlüsselwort-Basis (Gruppen, Teilpunkte, Erklärtexte) | 🟡   | ⬜ Offen     |
-| 1    | 1.2ed | Kurzantwort: Gemeinsame Token-Basis (Mehrwortlogik, UX-Abschluss)              | 🟡   | ⬜ Offen     |
-| 1    | 1.2f  | Fragentyp: Hotspot auf Bild                                                    | 🟡   | ⬜ Offen     |
-| 1    | 1.2g  | Fragentyp: Zuordnung / Matching                                                | 🟡   | ⬜ Offen     |
-| 1    | 1.2h  | Fragentyp: Reihenfolge / Sortieren                                             | 🟡   | ⬜ Offen     |
-| 1    | 1.2i  | Confidence Slider / Sicherheitsgrad mit Host-Auswertung                        | 🟡   | ⬜ Offen     |
-| 1    | 1.3   | Antworten & Lösungen                                                           | 🔴   | ✅ Fertig    |
-| 1    | 1.4   | Sitzungs-Konfiguration                                                         | 🟡   | ✅ Fertig    |
-| 1    | 1.5   | Local-First Speicherung                                                        | 🔴   | ✅ Fertig    |
-| 1    | 1.6   | Yjs Multi-Device-Sync                                                          | 🟢   | ✅ Fertig    |
-| 1    | 1.6a  | Quiz auf anderem Gerät öffnen (Sync-Key/Link)                                  | 🟡   | ✅ Fertig    |
-| 1    | 1.6b  | Preset & Optionen beim Sync mitführen                                          | 🟢   | ✅ Fertig    |
-| 1    | 1.6c  | Sync-Sicherheit härten                                                         | 🔴   | ⬜ Offen     |
-| 1    | 1.6d  | Sync-Performance & Skalierung optimieren                                       | 🟡   | ⬜ Offen     |
-| 1    | 1.7   | Markdown & KaTeX                                                               | 🔴   | ✅ Fertig    |
-| 1    | 1.7a  | Markdown-Bilder: nur URL + Lightbox                                            | 🟡   | ✅ Fertig    |
-| 1    | 1.7b  | Markdown/KaTeX-Editor mit MD3-Toolbar                                          | 🟡   | ✅ Fertig    |
-| 1    | 1.8   | Quiz exportieren                                                               | 🟡   | ✅ Fertig    |
-| 1    | 1.9   | Quiz importieren                                                               | 🟡   | ✅ Fertig    |
-| 1    | 1.9a  | KI-gestützter Quiz-Import (Zod-Validierung)                                    | 🟡   | ✅ Fertig    |
-| 1    | 1.9b  | KI-Systemprompt (kontextbasiert, schema-getreu)                                | 🟡   | ✅ Fertig    |
-| 1    | 1.10  | Quiz bearbeiten & löschen                                                      | 🔴   | ✅ Fertig    |
-| 1    | 1.11  | Quiz-Presets                                                                   | 🟡   | ✅ Fertig    |
-| 1    | 1.12  | SC-Schnellformate                                                              | 🟡   | ✅ Fertig    |
-| 1    | 1.13  | Quiz-Preview & Schnellkorrektur                                                | 🟡   | ✅ Fertig    |
-| 1    | 1.14  | Word Cloud (interaktiv + Export)                                               | 🟡   | ✅ Fertig    |
-| 1    | 1.14a | Word Cloud 2.0 (echtes Layout + Premium-UX)                                    | 🟡   | ⬜ Offen     |
-| 1    | 1.15  | Preset-Konfiguration exportieren & importieren                                 | 🟢   | ✅ Fertig    |
-| 2    | 2.1a  | Session-ID & Quiz-Upload                                                       | 🔴   | ✅ Fertig    |
-| 2    | 2.1b  | QR-Code                                                                        | 🟢   | ✅ Fertig    |
-| 2    | 2.1c  | Host-/Presenter-Zugang mit Session-Token härten                                | 🔴   | ✅ Fertig    |
-| 2    | 2.2   | Lobby-Ansicht                                                                  | 🔴   | ✅ Fertig    |
-| 2    | 2.3   | Präsentations-Steuerung                                                        | 🔴   | ✅ Fertig    |
-| 2    | 2.4   | Security / Data-Stripping                                                      | 🔴   | ✅ Fertig    |
-| 2    | 2.5   | Beamer-Ansicht / Presenter-Mode                                                | 🔴   | ✅ Fertig    |
-| 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)                                           | 🟡   | ✅ Fertig    |
-| 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher)                           | 🟡   | ✅ Fertig    |
-| 2    | 2.8   | Produktives Smartphone-Hosting für Live-Sessions                               | 🔴   | ✅ Fertig    |
-| 2    | 2.9   | Asynchrone Quiz-Modi und Feedback-Strategien                                   | 🔴   | ⬜ Offen     |
-| 3    | 3.1   | Beitreten                                                                      | 🔴   | ✅ Fertig    |
-| 3    | 3.2   | Nicknames                                                                      | 🟡   | ✅ Fertig    |
-| 3    | 3.3a  | Frage empfangen                                                                | 🔴   | ✅ Fertig    |
-| 3    | 3.3b  | Abstimmung abgeben                                                             | 🔴   | ✅ Fertig    |
-| 3    | 3.4   | Echtzeit-Feedback                                                              | 🟡   | ✅ Fertig    |
-| 3    | 3.5   | Countdown-Anzeige                                                              | 🔴   | ✅ Fertig    |
-| 3    | 3.5a  | Countdown Finger-Anzeige (letzte 6 Sekunden)                                   | 🟡   | ✅ Fertig    |
-| 3    | 3.6   | Anonymer Modus                                                                 | 🟡   | ✅ Fertig    |
-| 4    | 4.1   | Leaderboard mit Punktesystem                                                   | 🟡   | ✅ Fertig    |
-| 4    | 4.2   | Server aufräumen                                                               | 🔴   | ✅ Fertig    |
-| 4    | 4.3   | WebSocket Reconnection                                                         | 🟡   | ✅ Fertig    |
-| 4    | 4.4   | Ergebnis-Visualisierung                                                        | 🔴   | ✅ Fertig    |
-| 4    | 4.5   | Freitext-Auswertung                                                            | 🟡   | ✅ Fertig    |
-| 4    | 4.6   | Bonus-Code für Top-Platzierungen                                               | 🟡   | ✅ Fertig    |
-| 4    | 4.7   | Ergebnis-Export für Lehrende (anonym)                                          | 🟡   | ✅ Fertig    |
-| 4    | 4.8   | Session-Bewertung durch Teilnehmende                                           | 🟡   | ✅ Fertig    |
-| 5    | 5.1   | Sound-Effekte                                                                  | 🟡   | ✅ Fertig    |
-| 5    | 5.3   | Hintergrundmusik                                                               | 🟢   | ✅ Fertig    |
-| 5    | 5.4   | Belohnungseffekte                                                              | 🟡   | ✅ Fertig    |
-| 5    | 5.4a  | Foyer-Einflug im Preset Spielerisch                                            | 🟡   | ⬜ Offen     |
-| 5    | 5.5   | Answer Streak                                                                  | 🟡   | ✅ Fertig    |
-| 5    | 5.6   | Persönliche Scorecard                                                          | 🔴   | ✅ Fertig    |
-| 5    | 5.7   | Motivationsmeldungen                                                           | 🟡   | ✅ Fertig    |
-| 5    | 5.8   | Emoji-Reaktionen                                                               | 🟢   | ✅ Fertig    |
-| 6    | 6.1   | Dark/Light/System-Theme                                                        | 🟡   | ✅ Fertig    |
-| 6    | 6.2   | Internationalisierung                                                          | 🟡   | ✅ Fertig    |
-| 6    | 6.3   | Impressum & Datenschutz                                                        | 🔴   | ✅ Fertig    |
-| 6    | 6.4   | Mobile-First & Responsive                                                      | 🔴   | ✅ Fertig    |
-| 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)                                         | 🔴   | ⬜ Offen     |
-| 6    | 6.6   | UX-Testreihen Thinking Aloud & Umsetzung                                       | 🟡   | ⬜ Offen     |
-| 6    | 6.7   | Startseite: Hero-Chips; Session-Ende Toolbar + Kanal-Button                    | 🔴   | ✅ Fertig    |
-| 7    | 7.1   | Team-Modus                                                                     | 🟢   | ✅ Fertig    |
-| 8    | 8.1   | Q&A-Session starten                                                            | 🟢   | ✅ Fertig    |
-| 8    | 8.2   | Fragen einreichen                                                              | 🟢   | ✅ Fertig    |
-| 8    | 8.3   | Voting & Sortierung                                                            | 🟢   | ✅ Fertig    |
-| 8    | 8.4   | Moderation durch Lehrende                                                      | 🟢   | ✅ Fertig    |
-| 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen                                    | 🟡   | ⬜ Offen     |
-| 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                                        | 🟡   | ✅ Fertig    |
-| 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)                                  | 🟡   | ✅ Fertig    |
-| 8    | 8.8   | Tempo-Blitzlicht als Host-Option                                               | 🟡   | ⬜ Offen     |
-| 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                                     | 🟡   | ✅ Fertig    |
-| 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                                        | 🟡   | ✅ Fertig    |
-| 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft                                  | 🟡   | ✅ Fertig    |
-| 10   | 10.1  | MOTD: Datenmodell, Migration, Zod/DTOs                                         | 🟡   | ✅ Fertig    |
-| 10   | 10.2  | MOTD: Öffentliche Read-API + Rate-Limiting                                     | 🟡   | ✅ Fertig    |
-| 10   | 10.3  | MOTD: Admin tRPC (CRUD, Templates, Zeitsteuerung)                              | 🟡   | ✅ Fertig    |
-| 10   | 10.4  | MOTD: Admin-UI (CMS-light, Markdown, Vorschau)                                 | 🟡   | ✅ Fertig    |
-| 10   | 10.5  | MOTD: Startseiten-Overlay + localStorage                                       | 🟡   | ✅ Fertig    |
-| 10   | 10.6  | MOTD: Interaktionen (Ack, Dismiss, Feedback, API)                              | 🟡   | ✅ Fertig    |
-| 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte                             | 🟡   | ✅ Fertig    |
-| 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)                                   | 🟡   | ✅ Fertig    |
+| Epic | Story | Titel                                                                              | Prio | Status       |
+| ---- | ----- | ---------------------------------------------------------------------------------- | ---- | ------------ |
+| 0    | 0.1   | Redis-Setup                                                                        | 🔴   | ✅ Fertig    |
+| 0    | 0.2   | tRPC WebSocket-Adapter                                                             | 🔴   | ✅ Fertig    |
+| 0    | 0.3   | Yjs WebSocket-Provider                                                             | 🟡   | ✅ Fertig    |
+| 0    | 0.4   | Server-Status-Indikator                                                            | 🟡   | ✅ Fertig    |
+| 0    | 0.4a  | Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog                           | 🟡   | ✅ Fertig    |
+| 0    | 0.5   | Rate-Limiting & Brute-Force-Schutz                                                 | 🔴   | ✅ Fertig    |
+| 0    | 0.6   | CI/CD-Pipeline (GitHub Actions)                                                    | 🔴   | ✅ Fertig    |
+| 0    | 0.7   | Last- & Performance-Tests mit E2E-Szenarien                                        | 🟡   | 🔨 In Arbeit |
+| 0    | 0.8   | Komplexitätsabbau (McCabe) & Refactor-Hotspots                                     | 🟡   | ⬜ Offen     |
+| 1    | 1.1   | Quiz erstellen                                                                     | 🔴   | ✅ Fertig    |
+| 1    | 1.2a  | Fragentypen: MC & SC                                                               | 🔴   | ✅ Fertig    |
+| 1    | 1.2b  | Fragentypen: Freitext & Umfrage                                                    | 🟡   | ✅ Fertig    |
+| 1    | 1.2c  | Fragentyp: Rating-Skala                                                            | 🟡   | ✅ Fertig    |
+| 1    | 1.2d  | Numerische Schätzfrage (eigener Typ, 2 Runden, Statistik)                          | 🟡   | ⬜ Offen     |
+| 1    | 1.2e  | Fragentyp: Kurzantwort / Short Answer mit Musterlösung                             | 🟡   | ✅ Fertig    |
+| 1    | 1.2ea | Kurzantwort: Textbewertung 2.0                                                     | 🟡   | ✅ Fertig    |
+| 1    | 1.2eb | Kurzantwort: Gemeinsame Numerik-Basis (Zahl, Toleranz, Einheit)                    | 🟡   | ✅ Fertig    |
+| 1    | 1.2ec | Kurzantwort: Gemeinsame Schlüsselwort-Basis (Gruppen, Teilpunkte, Erklärtexte)     | 🟡   | ⬜ Offen     |
+| 1    | 1.2ed | Kurzantwort: Gemeinsame Token-Basis (Mehrwortlogik, UX-Abschluss)                  | 🟡   | ⬜ Offen     |
+| 1    | 1.2f  | Fragentyp: Hotspot auf Bild                                                        | 🟡   | ⬜ Offen     |
+| 1    | 1.2g  | Fragentyp: Zuordnung / Matching                                                    | 🟡   | ⬜ Offen     |
+| 1    | 1.2h  | Fragentyp: Reihenfolge / Sortieren                                                 | 🟡   | ⬜ Offen     |
+| 1    | 1.2i  | Confidence Slider / Sicherheitsgrad mit Host-Auswertung                            | 🟡   | ⬜ Offen     |
+| 1    | 1.3   | Antworten & Lösungen                                                               | 🔴   | ✅ Fertig    |
+| 1    | 1.4   | Sitzungs-Konfiguration                                                             | 🟡   | ✅ Fertig    |
+| 1    | 1.5   | Local-First Speicherung                                                            | 🔴   | ✅ Fertig    |
+| 1    | 1.6   | Yjs Multi-Device-Sync                                                              | 🟢   | ✅ Fertig    |
+| 1    | 1.6a  | Quiz auf anderem Gerät öffnen (Sync-Key/Link)                                      | 🟡   | ✅ Fertig    |
+| 1    | 1.6b  | Preset & Optionen beim Sync mitführen                                              | 🟢   | ✅ Fertig    |
+| 1    | 1.6c  | Sync-Sicherheit härten                                                             | 🔴   | ⬜ Offen     |
+| 1    | 1.6d  | Sync-Performance & Skalierung optimieren                                           | 🟡   | ⬜ Offen     |
+| 1    | 1.7   | Markdown & KaTeX                                                                   | 🔴   | ✅ Fertig    |
+| 1    | 1.7a  | Markdown-Bilder: nur URL + Lightbox                                                | 🟡   | ✅ Fertig    |
+| 1    | 1.7b  | Markdown/KaTeX-Editor mit MD3-Toolbar                                              | 🟡   | ✅ Fertig    |
+| 1    | 1.8   | Quiz exportieren                                                                   | 🟡   | ✅ Fertig    |
+| 1    | 1.9   | Quiz importieren                                                                   | 🟡   | ✅ Fertig    |
+| 1    | 1.9a  | KI-gestützter Quiz-Import (Zod-Validierung)                                        | 🟡   | ✅ Fertig    |
+| 1    | 1.9b  | KI-Systemprompt (kontextbasiert, schema-getreu)                                    | 🟡   | ✅ Fertig    |
+| 1    | 1.10  | Quiz bearbeiten & löschen                                                          | 🔴   | ✅ Fertig    |
+| 1    | 1.11  | Quiz-Presets                                                                       | 🟡   | ✅ Fertig    |
+| 1    | 1.12  | SC-Schnellformate                                                                  | 🟡   | ✅ Fertig    |
+| 1    | 1.13  | Quiz-Preview & Schnellkorrektur                                                    | 🟡   | ✅ Fertig    |
+| 1    | 1.14  | Word Cloud (interaktiv + Export)                                                   | 🟡   | ✅ Fertig    |
+| 1    | 1.14a | Word Cloud 2.0 (echtes Layout + Premium-UX)                                        | 🟡   | ⬜ Offen     |
+| 1    | 1.15  | Preset-Konfiguration exportieren & importieren                                     | 🟢   | ✅ Fertig    |
+| 2    | 2.1a  | Session-ID & Quiz-Upload                                                           | 🔴   | ✅ Fertig    |
+| 2    | 2.1b  | QR-Code                                                                            | 🟢   | ✅ Fertig    |
+| 2    | 2.1c  | Host-/Presenter-Zugang mit Session-Token härten                                    | 🔴   | ✅ Fertig    |
+| 2    | 2.2   | Lobby-Ansicht                                                                      | 🔴   | ✅ Fertig    |
+| 2    | 2.3   | Präsentations-Steuerung                                                            | 🔴   | ✅ Fertig    |
+| 2    | 2.4   | Security / Data-Stripping                                                          | 🔴   | ✅ Fertig    |
+| 2    | 2.5   | Beamer-Ansicht / Presenter-Mode                                                    | 🔴   | ✅ Fertig    |
+| 2    | 2.6   | Zwei-Phasen-Frageanzeige (Lesephase)                                               | 🟡   | ✅ Fertig    |
+| 2    | 2.7   | Peer Instruction (zweite Abstimmung, Vorher/Nachher)                               | 🟡   | ✅ Fertig    |
+| 2    | 2.8   | Produktives Smartphone-Hosting für Live-Sessions                                   | 🔴   | ✅ Fertig    |
+| 2    | 2.9   | Asynchrone Quiz-Modi und Feedback-Strategien                                       | 🔴   | ⬜ Offen     |
+| 3    | 3.1   | Beitreten                                                                          | 🔴   | ✅ Fertig    |
+| 3    | 3.2   | Nicknames                                                                          | 🟡   | ✅ Fertig    |
+| 3    | 3.3a  | Frage empfangen                                                                    | 🔴   | ✅ Fertig    |
+| 3    | 3.3b  | Abstimmung abgeben                                                                 | 🔴   | ✅ Fertig    |
+| 3    | 3.4   | Echtzeit-Feedback                                                                  | 🟡   | ✅ Fertig    |
+| 3    | 3.5   | Countdown-Anzeige                                                                  | 🔴   | ✅ Fertig    |
+| 3    | 3.5a  | Countdown Finger-Anzeige (letzte 6 Sekunden)                                       | 🟡   | ✅ Fertig    |
+| 3    | 3.6   | Anonymer Modus                                                                     | 🟡   | ✅ Fertig    |
+| 4    | 4.1   | Leaderboard mit Punktesystem                                                       | 🟡   | ✅ Fertig    |
+| 4    | 4.2   | Server aufräumen                                                                   | 🔴   | ✅ Fertig    |
+| 4    | 4.3   | WebSocket Reconnection                                                             | 🟡   | ✅ Fertig    |
+| 4    | 4.4   | Ergebnis-Visualisierung                                                            | 🔴   | ✅ Fertig    |
+| 4    | 4.5   | Freitext-Auswertung                                                                | 🟡   | ✅ Fertig    |
+| 4    | 4.6   | Bonus-Code für Top-Platzierungen                                                   | 🟡   | ✅ Fertig    |
+| 4    | 4.7   | Ergebnis-Export für Lehrende (anonym)                                              | 🟡   | ✅ Fertig    |
+| 4    | 4.8   | Session-Bewertung durch Teilnehmende                                               | 🟡   | ✅ Fertig    |
+| 5    | 5.1   | Sound-Effekte                                                                      | 🟡   | ✅ Fertig    |
+| 5    | 5.3   | Hintergrundmusik                                                                   | 🟢   | ✅ Fertig    |
+| 5    | 5.4   | Belohnungseffekte                                                                  | 🟡   | ✅ Fertig    |
+| 5    | 5.4a  | Foyer-Einflug im Preset Spielerisch                                                | 🟡   | ⬜ Offen     |
+| 5    | 5.5   | Answer Streak                                                                      | 🟡   | ✅ Fertig    |
+| 5    | 5.6   | Persönliche Scorecard                                                              | 🔴   | ✅ Fertig    |
+| 5    | 5.7   | Motivationsmeldungen                                                               | 🟡   | ✅ Fertig    |
+| 5    | 5.8   | Emoji-Reaktionen                                                                   | 🟢   | ✅ Fertig    |
+| 6    | 6.1   | Dark/Light/System-Theme                                                            | 🟡   | ✅ Fertig    |
+| 6    | 6.2   | Internationalisierung                                                              | 🟡   | ✅ Fertig    |
+| 6    | 6.3   | Impressum & Datenschutz                                                            | 🔴   | ✅ Fertig    |
+| 6    | 6.4   | Mobile-First & Responsive                                                          | 🔴   | ✅ Fertig    |
+| 6    | 6.5   | Barrierefreiheit (Prüfung Projektende)                                             | 🔴   | ⬜ Offen     |
+| 6    | 6.6   | UX-Testreihen Thinking Aloud & Umsetzung                                           | 🟡   | ⬜ Offen     |
+| 6    | 6.7   | Startseite: Hero-Chips; Session-Ende Toolbar + Kanal-Button                        | 🔴   | ✅ Fertig    |
+| 7    | 7.1   | Team-Modus                                                                         | 🟢   | ✅ Fertig    |
+| 8    | 8.1   | Q&A-Session starten                                                                | 🟢   | ✅ Fertig    |
+| 8    | 8.2   | Fragen einreichen                                                                  | 🟢   | ✅ Fertig    |
+| 8    | 8.3   | Voting & Sortierung                                                                | 🟢   | ✅ Fertig    |
+| 8    | 8.4   | Moderation durch Lehrende                                                          | 🟢   | ✅ Fertig    |
+| 8    | 8.5   | Delegierbare Q&A-Moderation für Tutor:innen                                        | 🟡   | ⬜ Offen     |
+| 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                                            | 🟡   | ✅ Fertig    |
+| 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)                                      | 🟡   | ✅ Fertig    |
+| 8    | 8.8   | Tempo-Blitzlicht als Host-Option                                                   | 🟡   | ⬜ Offen     |
+| 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                                         | 🟡   | ✅ Fertig    |
+| 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                                            | 🟡   | ✅ Fertig    |
+| 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft                                      | 🟡   | ✅ Fertig    |
+| 10   | 10.1  | MOTD: Datenmodell, Migration, Zod/DTOs                                             | 🟡   | ✅ Fertig    |
+| 10   | 10.2  | MOTD: Öffentliche Read-API + Rate-Limiting                                         | 🟡   | ✅ Fertig    |
+| 10   | 10.3  | MOTD: Admin tRPC (CRUD, Templates, Zeitsteuerung)                                  | 🟡   | ✅ Fertig    |
+| 10   | 10.4  | MOTD: Admin-UI (CMS-light, Markdown, Vorschau)                                     | 🟡   | ✅ Fertig    |
+| 10   | 10.5  | MOTD: Startseiten-Overlay + localStorage                                           | 🟡   | ✅ Fertig    |
+| 10   | 10.6  | MOTD: Interaktionen (Ack, Dismiss, Feedback, API)                                  | 🟡   | ✅ Fertig    |
+| 10   | 10.7  | MOTD: Header-Icon, Archiv, Lazy Load, i18n-Inhalte                                 | 🟡   | ✅ Fertig    |
+| 10   | 10.8  | MOTD: Härtung (Sanitize, A11y, Audit, Tests)                                       | 🟡   | ✅ Fertig    |
+| 11   | 11.1  | Verlagszugänge: personalisierte Redaktionsaccounts                                 | 🔴   | ⬜ Offen     |
+| 11   | 11.2  | Redaktionsbackend: Quizverwaltung (erstellen, speichern, importieren, exportieren) | 🔴   | ⬜ Offen     |
+| 11   | 11.3  | Redaktionsbackend: Veröffentlichung & Quizlink                                     | 🔴   | ⬜ Offen     |
+| 11   | 11.4  | Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport           | 🔴   | ⬜ Offen     |
 
 > **Repo-Abgleich (Codebase 2026-05-16):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. **kein** Fragentyp numerische Schätzung; `SHORT_TEXT` ist inzwischen als **eigener bewertbarer Typ** in `QuestionTypeEnum` (`libs/shared-types`) vorhanden, offen bleiben dort aber der **weiterführende deterministische Ausbau** für Schlüsselwort-Gruppen, token-basierte Mehrwortbewertung und der restliche UX-Abschluss; noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard; Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad; noch **kein** vordefiniertes Tempo-Blitzlicht-Template mit Toggle-Off, Tendenzlogik und Host-Umschalter für Detaildarstellung/Tendenz im bestehenden `quickFeedback`-Kanal. **Teilweise umgesetzt** ist inzwischen **0.7**: ausführbare protokollnahe Lasttest-Skripte liegen unter `scripts/load/` (u. a. `k6-trpc-health-50vu.js`, `k6-trpc-session-50vu.js`), zusätzlich existieren Frontend-Smoke-Flows wie `smoke:unified-session`; offen bleiben aber das vollständige Artillery-/Realtime-E2E-Setup, CI-Anbindung, maschinenlesbare Ergebnisaggregation und die breite Szenarioabdeckung gemäß Story 0.7. **Umgesetzt** sind jetzt u. a. **0.4a** (Session-Tagesrekord-Verlauf im Server-Status-Hilfedialog mit `DailyStatistic`, `dailyHighscores` und Chart im Hilfe-Dialog), **1.2e** (`SHORT_TEXT` mit deterministischer Textbewertung, Teilpunkten und Editor-/Host-Flows), **1.2ea** (Textbewertung 2.0 mit transpositionssensitiver Distanz, stabiler Bewertungs-Pipeline, Vorschau und lernfreundlichem Ergebnisfeedback), **1.2eb** (gemeinsame numerische Bewertungsbasis mit Zahl, Toleranz und Einheit), **1.14** (interaktive Freitext-Wortwolke mit `d3-cloud`-Layout und Export), **2.1c** (Host-/Presenter-Härtung via Host-Token und `hostProcedure`), **8.6/8.7** (Q&A-Sortiermodi `Top` / `Beste Fragen` / `Umstritten` inklusive Wilson-/Kontroversitätsberechnung im Router) sowie die besitzgebundene Quiz-Historie per `accessProof` ohne eigene Story-ID. Die **✅-Einträge** wurden stichprobenartig nicht widerlegt. _Ohne eigene Story-ID:_ Rekord **max. Teilnehmende pro Session** in `health.stats` / Hilfe-Seite (`PlatformStatistic`, u. a. Migration `platform_statistic_max_participants`).
 >
+> **Ergänzung Angebotsoption Westermann (2026-05-28):** **Epic 11** beschreibt einen **noch nicht beauftragten** Erweiterungspfad für **personalisierte Verlagszugänge und ein Redaktionsbackend**; hierzu existiert im Monorepo aktuell bewusst **kein** Produktcode.
+>
 > **Legende Status:** ⬜ Offen · 🔨 In Arbeit · ✅ Fertig (DoD erfüllt) · ❌ Blockiert
 >
-> **Statistik:** 🔴 Must: 30 · 🟡 Should: 62 · 🟢 Could: 11 = **103 Stories gesamt** (**85** ✅ Fertig · **1** 🔨 In Arbeit · **17** ⬜ Offen)
+> **Statistik:** 🔴 Must: 34 · 🟡 Should: 62 · 🟢 Could: 11 = **107 Stories gesamt** (**85** ✅ Fertig · **1** 🔨 In Arbeit · **21** ⬜ Offen)
 
 ---
 
@@ -1647,3 +1653,45 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Unit-Tests für Auswahl-Logik, DTOs, Rate-Limits; Frontend-Specs für Overlay und Archiv; DoD aus `Backlog.md` eingehalten.
     - `docs/ROUTES_AND_STORIES.md` und bei Bedarf die Architektur-Dokumentation werden um MOTD-Routen und Router ergänzt.
   - **Abhängigkeiten:** 10.4–10.7 (inhaltlich Querschnitt nach abgeschlossenen Kern-Stories).
+
+---
+
+## Epic 11: Verlagszugänge & Redaktionsbackend (Westermann) — Angebotsoption / noch nicht beauftragt
+
+> **Rolle:** Westermann-Redakteur:in.  
+> **Status:** ⬜ Offen; derzeit **Angebots-/Planungsstand**, noch **nicht beauftragt**.  
+> **Abgrenzung:** Dieses Epic beschreibt einen **separaten Redaktionsbereich** für die Westermann-gebrandete Quizoberfläche und ist **nicht** mit Epic 9 (technischer Plattform-Admin für Session-Inspektion, Löschung, Behördenexport) gleichzusetzen.  
+> **Nicht Ziel dieses Epics:** signierte Quizdateien, serverseitige Allowlist-Prüfung einzelner Lehrkraft-Importe, gesonderte Freischaltcodes pro Quiz oder ein erweitertes Lizenzmodell über die Verlagsaccounts hinaus.
+> **Implementierungsplan:** [`docs/implementation/EPIC-11-IMPLEMENTATION-PLAN.md`](docs/implementation/EPIC-11-IMPLEMENTATION-PLAN.md)
+
+- **Story 11.1 (Verlagszugänge: personalisierte Redaktionsaccounts):** 🔴 Als Westermann-Redakteur:in möchte ich mich mit einem **persönlichen Verlagsaccount** in einen geschützten Redaktionsbereich einloggen können, damit nur autorisierte Westermann-Mitarbeitende Quizze der Westermann-Version erstellen und verwalten können.
+  - **Akzeptanzkriterien:**
+    - Es stehen initial **7 getrennte Verlagsaccounts** zur Verfügung.
+    - Die Anmeldung erfolgt **serverseitig** über einen geschützten Login; ein gemeinsamer Sammelzugang ist nicht das Zielbild.
+    - Nur angemeldete Verlagsaccounts erhalten Zugriff auf den Redaktionsbereich.
+    - Lehrkräfte und Teilnehmende haben keinen Zugriff auf den Redaktionsbereich.
+    - Aktionen im Redaktionsbereich sind mindestens fachlich einem konkreten Verlagsaccount zuordenbar.
+
+- **Story 11.2 (Redaktionsbackend: Quizverwaltung):** 🔴 Als Westermann-Redakteur:in möchte ich Quizze im Redaktionsbereich **erstellen, bearbeiten, speichern, importieren und exportieren** können, damit ich Verlagsinhalte eigenständig pflegen und wiederverwenden kann.
+  - **Akzeptanzkriterien:**
+    - Quizze können neu angelegt, bearbeitet und gespeichert werden.
+    - Quizze können importiert und exportiert werden.
+    - Unterstützte Austauschformate werden vor Umsetzung festgelegt; die Angebotsanfrage nennt beispielhaft **Excel und/oder JSON**.
+    - Der Editor unterstützt **Basis-Textformatierung**.
+    - Der Editor unterstützt das **Einfügen von Bildern**.
+    - **Audio- und Video-Inhalte** sind als optionale Erweiterung fachlich vorgesehen, aber nicht automatisch Pflichtumfang der ersten Ausbaustufe.
+
+- **Story 11.3 (Redaktionsbackend: Veröffentlichung & Quizlink):** 🔴 Als Westermann-Redakteur:in möchte ich nach dem Speichern eines Quiz **direkt einen Quizlink** erhalten, damit das Quiz in den jeweiligen Verlagsprodukten verwendet werden kann.
+  - **Akzeptanzkriterien:**
+    - Nach dem Speichern wird ein direkter Quizlink bereitgestellt.
+    - Der Link ist zur Verwendung in den jeweiligen Verlagsprodukten vorgesehen.
+    - Die Quiz-Erstellung und Link-Bereitstellung bleiben auf Verlagsaccounts beschränkt.
+    - Die fachliche Verknüpfung zwischen gespeichertem Quiz und ausgegebenem Link ist nachvollziehbar.
+
+- **Story 11.4 (Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport):** 🔴 Als Westermann-Redakteur:in möchte ich je Quiz einen **Zugriffsschutz für Lehrkräfte** konfigurieren und meine Quizdaten **accountbezogen gesammelt exportieren** können, damit ich Nutzung und Datenbestand meines Redaktionsaccounts steuern kann.
+  - **Akzeptanzkriterien:**
+    - Pro Quiz kann festgelegt werden, ob zum Start einer Quiz-Instanz ein **Passwort oder Token** erforderlich ist.
+    - Die konkrete Produktausprägung des Startschutzes wird vor Umsetzung festgelegt und deckt die in der Angebotsanfrage beschriebenen Varianten fachlich ab (z. B. global gleiches Passwort oder quizindividuell festgelegtes Passwort/Token).
+    - Der gewählte Zugriffsschutz wird zusammen mit dem Quiz gespeichert.
+    - Ein **Gesamt-Export aller Quizdaten je Redaktionsaccount** ist möglich.
+    - Der Gesamt-Export ist mindestens **manuell** möglich; eine **Schnittstelle** ist als optionale Ausprägung gesondert festzulegen.
