@@ -4,7 +4,9 @@
 
 **Status:** Accepted  
 **Datum:** 2026-03-16  
-**Entscheider:** Projektteam  
+**Entscheider:** Projektteam
+
+**Letzter Repo-Abgleich:** 2026-05-31
 
 ## Kontext
 
@@ -156,6 +158,10 @@ Im Zweifel gilt fuer die Moderatorrolle:
 - Die reduzierte Moderator-UI zeigt nur den fuer die Rolle noetigen Kanal und Status.
 - Jeder neue Moderationsbefehl muss explizit gegen die Frage geprueft werden: `Darf das ein Moderator oder nur ein Host?`
 - Performance-Optimierungen fuer den Moderatorpfad sind willkommen, solange sie **keine** Rollentrennung oder Widerrufbarkeit abbauen.
+
+## Umsetzungsstand (2026-05-31)
+
+Diese ADR beschreibt weiterhin das Zielbild. Im aktuellen Repo gibt es noch keine eigene Angular-Route `/session/:code/moderate`, kein Moderator-Token und keine dedizierte Moderator-UI. Q&A-Moderation existiert produktiv, ist aber weiterhin hostgebunden: `qa.moderate` und verwandte Moderationspfade laufen serverseitig ueber `hostProcedure`, die Host-Ansicht uebergibt `moderatorView: true` fuer die Moderationssicht.
 
 ---
 

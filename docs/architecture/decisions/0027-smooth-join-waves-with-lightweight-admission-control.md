@@ -6,6 +6,8 @@
 **Datum:** 2026-05-09  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 arsnova.eu muss bei Live-Veranstaltungen nicht nur dauerhafte Parallelitaet aushalten, sondern auch kurzfristige Lastspitzen, wenn viele Teilnehmende nahezu gleichzeitig einer Session beitreten.
@@ -189,6 +191,12 @@ Stand 2026-05-09:
   - `p95 http_req_duration = 204.3 ms` im Hauptlauf
   - `p95 http_req_duration = 147.52 ms` im Post-Fix-Rerun
 - Die ADR ist damit nicht mehr nur richtungsgebend, sondern bereits konkret implementiert und erfolgreich gegen reale Parallelitaet getestet.
+
+Stand 2026-05-31:
+
+- Der Implementierungsstand bleibt gueltig; `joinAdmission.ts` ist der fachliche Ort fuer die leichtgewichtige Glattung.
+- Rejoins mit gueltigem Rejoin-Token bleiben ausgenommen, damit Recovery nicht kuenstlich gebremst wird.
+- Der Join-Pfad aktualisiert Plattform- und Tagesrekorde weiterhin fire-and-forget, ohne die eigentliche Aufnahme zu blockieren.
 
 ---
 

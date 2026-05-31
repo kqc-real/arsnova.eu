@@ -1,6 +1,7 @@
 # arsnova.eu – ausführliche Funktionsübersicht der App
 
-> Stand dieser Übersicht: 2026-05-11  
+> Stand dieser Übersicht: 2026-05-31
+>
 > Grundlage: Auswertung des aktuellen Repos, insbesondere `apps/frontend`, `apps/backend`, `libs/shared-types`, `prisma/schema.prisma`, `README.md`, `docs/ROUTES_AND_STORIES.md` und der Feature-Dokumente unter `docs/features/`.
 
 ## Ziel dieser Datei
@@ -21,7 +22,7 @@ Der Kern der Anwendung ist:
 
 - **ohne Pflichtkonto** nutzbar
 - **local-first** beim Erstellen von Quiz-Inhalten
-- **live-fähig** über Session-Codes, WebSockets und Redis
+- **live-fähig** über Session-Codes, tRPC-WebSockets, Redis-Kurzzeitdaten und Yjs-Sync
 - **mehrsprachig** in fünf Sprachen
 - **PWA-fähig** für mobile Nutzung
 - auf **Datensparsamkeit und DSGVO-orientierten Betrieb** ausgelegt
@@ -158,10 +159,12 @@ Aktuell sind im Editor und in der Laufzeit umgesetzt:
 - **Single Choice**
 - **Multiple Choice**
 - **Freitext**
+- **Kurzantwort (`SHORT_TEXT`)**
 - **Umfrage**
 - **Bewertungsskala**
 
 Die Bewertungsskala unterstützt Min-/Max-Werte und benutzerdefinierte Labels für die Endpunkte.
+Kurzantwort unterstützt Musterlösungen, maximale Eingabelänge, Normalisierung, Distanz-/Toleranzlogik sowie numerische Antworten mit optionalen Einheiten.
 
 ### 3.5 Fragenmodell und Editierfunktionen
 
@@ -541,7 +544,7 @@ Das Blitzlicht zeigt live:
 - Sperrstatus
 - bei Doppelrunden eine **Meinungsverschiebung** zwischen Runde 1 und Runde 2
 
-Technisch liegt dieser Kanal in Redis und läuft ohne eigenes Prisma-Datenmodell.
+Technisch liegt dieser Kanal in Redis-Kurzzeitzuständen und läuft ohne eigenes Prisma-Datenmodell.
 
 ## 7. Teams, Punkte, Gamification und Abschluss
 
@@ -568,6 +571,7 @@ Die Punkteberechnung berücksichtigt:
 - Antwortzeit
 - Frageart
 - Antwortkorrektheit
+- die **effektive Stimme** pro Frage/Runde; bei Peer Instruction ersetzt Runde 2 für Scoring und Auswertung die erste Runde
 
 Zusätzlich existieren:
 
@@ -589,6 +593,7 @@ Der Ablauf ist jeweils:
 - Diskussionsphase
 - zweite Abstimmungsrunde
 - Vergleich der Ergebnisse
+- effektive Rundenwertung für Score, Leaderboard, Bonuscodes und Exporte
 
 ### 7.4 Belohnungs- und Motivationssystem
 
@@ -690,6 +695,8 @@ Der Export enthält unter anderem:
 Admins können außerdem:
 
 - den Rekord für maximale Teilnehmerzahl zurücksetzen
+- plattformweite Rekordwerte über Server-Status / Detaildialog nachvollziehen
+- MOTD-Interaktionsstatistiken gezielt zurücksetzen
 
 ## 9. MOTD, News-Archiv und Plattformkommunikation
 
@@ -797,7 +804,10 @@ Die App zeigt im Footer:
 
 Zusätzlich existieren:
 
-- Health-Check-Routen
+- `health.footerBundle` für Footer-Dot und schlanke Statusdaten
+- `health.stats` für den Detaildialog
+- getrennte DTO-Werte `serviceStatus` und `loadStatus`
+- Plattformstatistiken aus `PlatformStatistic` und `DailyStatistic`, inklusive Allzeit- und 30-Tage-Rekorden
 - Verbindungsbanner
 - WebSocket-Verbindungsstatus mit Reconnect-Logik
 
@@ -841,7 +851,11 @@ Im Datenmodell existieren unter anderem:
 - QaQuestion
 - QaUpvote
 - Motd
+- MotdLocale
+- MotdInteractionCounter
 - MotdTemplate
+- PlatformStatistic
+- DailyStatistic
 - AdminAuditLog
 - MotdAuditLog
 
@@ -872,7 +886,7 @@ Die technische Architektur ist selbst Teil des Funktionsumfangs, weil viele Feat
 
 ### 12.1 Frontend
 
-- Angular 21
+- Angular 21.2.x
 - Standalone Components
 - Angular Material 3
 - Signals
@@ -882,9 +896,9 @@ Die technische Architektur ist selbst Teil des Funktionsumfangs, weil viele Feat
 ### 12.2 Backend
 
 - Express
-- tRPC für HTTP und WebSocket
-- PostgreSQL via Prisma
-- Redis für Realtime- und Kurzzeitzustände
+- tRPC v11 für HTTP und WebSocket
+- PostgreSQL via Prisma 7.4.x
+- Redis für Rate-Limits, Host-/Admin-Token-TTLs und kurzlebige Live-Hilfsdaten
 - Yjs-WebSocket-Server für Sammlungssync
 
 ### 12.3 Realtime und Synchronisation
@@ -916,8 +930,9 @@ Dazu gehören laut Root-Dokumentation insbesondere:
 
 - vollständige Last- und Performance-Teststrecken
 - abschließende Barrierefreiheitsprüfung
-- weitere Fragetypen und Confidence-Erweiterungen
-- zusätzliche Q&A-Erweiterungen
+- Confidence-Erweiterungen und weitere Auswertungsvarianten
+- delegierte Q&A-Moderation und weitere Q&A-Erweiterungen
+- Tempo-Livekanal als eigenständige Weiterentwicklung über das aktuelle Blitzlicht-Template hinaus
 - weitere Word-Cloud-Ausbaustufen
 - Härtung einzelner Sync-/Komplexitätsbereiche
 

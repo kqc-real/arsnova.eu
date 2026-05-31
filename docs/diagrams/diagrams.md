@@ -3,7 +3,7 @@
 # Diagramme: arsnova.eu
 
 Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.
-**Stand:** 2026-05-30 · **Epics 0–5 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, 10 (MOTD) umgesetzt;** Epic 6 größtenteils umgesetzt (**6.5 Barrierefreiheit** und **6.6 Thinking Aloud** noch offen). Plattformstatistik Rekordteilnehmer und Tagesrekorde in `health.stats` (`PlatformStatistic`, `DailyStatistic`). Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Stand:** 2026-05-31 · **Epics 0–5 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, 10 (MOTD) umgesetzt;** Epic 6 größtenteils umgesetzt (**6.5 Barrierefreiheit** und **6.6 Thinking Aloud** noch offen). Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 > **VS Code:** Mermaid wird in der Standard-Markdown-Vorschau nicht gerendert. Bitte die Erweiterung **„Markdown Preview Mermaid Support“** (`bierner.markdown-mermaid`) installieren. Siehe [README.md](./README.md) in diesem Ordner.
 
@@ -11,7 +11,7 @@ Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert
 
 ## 1. Backend-Architektur (Komponenten)
 
-Express · tRPC · Prisma 7 · Redis · WebSocket · Yjs (Epic 0 umgesetzt; health, stats, ping, Rate-Limit, y-websocket)
+Express · tRPC v11 · Prisma 7.4.x · Redis · WebSocket · Yjs (Epic 0 umgesetzt; health.footerBundle, health.stats, ping, Rate-Limit, y-websocket)
 
 ### 1.1 Entry, Router und Module
 
@@ -110,7 +110,7 @@ graph LR
     WCANALYSIS[wordCloudAnalysis]
 
     PG[(PostgreSQL - Prisma 7)]
-    REDIS[(Redis PubSub + Rate-Limit)]
+    REDIS[(Redis - Rate-Limit + Live-Hilfsdaten)]
     WSS[WebSocket Server :3001]
     YWS[y-websocket Relay :3002]
 
@@ -141,7 +141,7 @@ graph LR
 
 ## 2. Frontend-Architektur (Komponenten)
 
-Angular 21 · Standalone Components · Signals · Angular Material 3 + SCSS-Patterns
+Angular 21.2.x · Standalone Components · Signals · Angular Material 3 + SCSS-Patterns
 
 ### 2.1 App-Shell und globale Bausteine
 
@@ -536,9 +536,8 @@ sequenceDiagram
     participant YJS as Yjs IndexedDB
     participant BE as Backend tRPC
     participant PG as PostgreSQL
-    participant R as Redis
 
-    Note over D,R: Phase 1 - Quiz erstellen (Local-First)
+    Note over D,BE: Phase 1 - Quiz erstellen (Local-First)
     D->>FE: Quiz anlegen, Fragen hinzufügen
     FE->>YJS: Yjs-Doc speichern
     YJS->>YJS: IndexedDB persistieren
@@ -551,7 +550,7 @@ sequenceDiagram
         YJS->>FE: Quiz synchronisiert
     end
 
-    Note over D,R: Phase 2 - Quiz live schalten
+    Note over D,BE: Phase 2 - Quiz live schalten
     D->>FE: Live schalten
     FE->>YJS: Quiz-Daten lesen
     FE->>BE: quiz.upload (QuizUploadInputSchema)
@@ -562,11 +561,11 @@ sequenceDiagram
     BE-->>FE: sessionId, code A3F7K2
     FE->>BE: Subscribe session.onParticipantJoined, onStatusChanged, onQuestionRevealed, onAnswersRevealed
 
-    Note over D,R: Phase 3 - Lobby und Kanalwahl
+    Note over D,BE: Phase 3 - Lobby und Kanalwahl
     BE->>FE: Event onParticipantJoined (ParticipantDTO)
     FE->>D: Lobby: Teilnehmer anzeigen
     opt Unified Live Session
-        FE->>D: Kanaele Quiz, Q&A und Blitzlicht sichtbar
+        FE->>D: Kanäle Quiz, Q&A und Blitzlicht sichtbar
     end
 ```
 
@@ -578,25 +577,24 @@ sequenceDiagram
     participant FE as Browser Angular
     participant BE as Backend tRPC
     participant PG as PostgreSQL
-    participant R as Redis
 
-    Note over D,R: Phase 4a - Lesephase
+    Note over D,BE: Phase 4a - Lesephase
     D->>FE: Nächste Frage
     FE->>BE: session.nextQuestion
     BE->>PG: currentQuestion++, Status = QUESTION_OPEN (oder ACTIVE wenn readingPhaseEnabled=false)
     BE->>BE: QuestionPreviewDTO (nur Fragenstamm, keine Antworten)
-    BE->>R: PUBLISH questionRevealed
-    BE->>FE: Broadcast an alle Clients
+    BE->>BE: Subscription-Event questionRevealed vorbereiten
+    BE-->>FE: tRPC Broadcast an alle Clients
 
-    Note over D,R: Phase 4b - ACTIVE
+    Note over D,BE: Phase 4b - ACTIVE
     D->>FE: Antworten freigeben
     FE->>BE: session.revealAnswers
     BE->>PG: Status = ACTIVE
     BE->>BE: QuestionStudentDTO (isCorrect entfernt)
-    BE->>R: PUBLISH answersRevealed
-    BE->>FE: Broadcast an alle Clients
+    BE->>BE: Subscription-Event answersRevealed vorbereiten
+    BE-->>FE: tRPC Broadcast an alle Clients
 
-    Note over D,R: Phase 5 - RESULTS
+    Note over D,BE: Phase 5 - RESULTS
     D->>FE: Ergebnis zeigen
     FE->>BE: session.revealResults
     BE->>PG: Status = RESULTS, Scores berechnen
@@ -647,9 +645,8 @@ sequenceDiagram
     participant FE as Browser Angular
     participant BE as Backend tRPC
     participant PG as PostgreSQL
-    participant R as Redis
 
-    Note over S,R: Phase 1: Session beitreten
+    Note over S,BE: Phase 1: Session beitreten
     S->>FE: Session-Code A3F7K2 eingeben
     FE->>BE: session.getInfo (code)
     BE->>PG: Session finden
@@ -657,34 +654,34 @@ sequenceDiagram
     S->>FE: Nickname wählen (z. B. Marie Curie)
     FE->>BE: session.join (JoinSessionInputSchema)
     BE->>PG: Participant INSERT
-    BE->>R: PUBLISH participantJoined
+    BE->>BE: Subscription-Event participantJoined vorbereiten
     BE-->>FE: participantId, token
     FE->>BE: Subscribe onQuestionRevealed, onResultsRevealed, onAnswersRevealed, onPersonalResult, onStatusChanged
     opt Unified Live Session
-        FE->>S: Tabs fuer Quiz, Q&A und Blitzlicht sichtbar
+        FE->>S: Tabs für Quiz, Q&A und Blitzlicht sichtbar
     end
 
-    Note over S,R: Phase 2a: Lesephase (QUESTION_OPEN, Story 2.6)
+    Note over S,BE: Phase 2a: Lesephase (QUESTION_OPEN, Story 2.6)
     BE->>FE: Event onQuestionRevealed (QuestionPreviewDTO, nur Fragenstamm)
     FE->>S: Frage anzeigen, Hinweis „Antworten folgen gleich"
 
-    Note over S,R: Phase 2b: Antwortphase (ACTIVE)
+    Note over S,BE: Phase 2b: Antwortphase (ACTIVE)
     BE->>FE: Event onAnswersRevealed (QuestionStudentDTO, kein isCorrect)
     FE->>S: Antwort-Buttons + Countdown
 
-    Note over S,R: Phase 3: Abstimmung
+    Note over S,BE: Phase 3: Abstimmung
     S->>FE: Antwort wählen (SC, MC, Freitext, Rating)
     FE->>BE: vote.submit (SubmitVoteInputSchema)
     BE->>PG: Vote INSERT, VoteAnswer INSERT
     BE->>BE: quizScoring (Punkte/Streak)
-    BE->>R: PUBLISH voteReceived
+    BE->>BE: Subscription-Event voteReceived vorbereiten
     BE-->>FE: success
 
-    Note over S,R: Phase 4: Ergebnis empfangen
+    Note over S,BE: Phase 4: Ergebnis empfangen
     BE->>FE: Event onResultsRevealed (QuestionRevealedDTO, mit isCorrect)
     FE->>S: Richtig oder Falsch anzeigen
 
-    Note over S,R: Phase 5 - Persönliche Scorecard
+    Note over S,BE: Phase 5 - Persönliche Scorecard
     BE->>FE: Event onPersonalResult (PersonalScorecardDTO)
     FE->>S: Scorecard Overlay (Punkte, Streak, Rang)
 ```

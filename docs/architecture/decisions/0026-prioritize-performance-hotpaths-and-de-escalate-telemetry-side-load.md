@@ -6,6 +6,8 @@
 **Datum:** 2026-05-09  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 arsnova.eu ist eine Live-Plattform, deren kritische Last nicht primaer aus klassischen CRUD-Zugriffen entsteht, sondern aus gleichzeitigen Interaktionen vieler Teilnehmender in kurzer Zeit.
@@ -241,6 +243,12 @@ Stand 2026-05-11:
   - fachlich notwendiger Kanalzustand wird trotzdem mitgefuehrt
   - eventgetriebene Ergebnis-Updates werden bevorzugt
   - mikrooptimierende Guards werden nur behalten, wenn sie den Kanalwechsel nicht destabilisieren
+
+Stand 2026-05-31:
+
+- `health.footerBundle` bleibt der schlanke Footer-Pfad; `health.stats` und der Tagesrekord-Chart sind Dialog-/Detaildaten.
+- Die konkrete Lasttest-Basis liegt aktuell vor allem in `scripts/load/k6-session-hotpaths-500vu.js` und den begleitenden Node-Smoke-/WS-Skripten; ein vollstaendiges Artillery-Setup ist weiterhin offen.
+- Tempo nach ADR-0029 darf nicht als neuer Session-Channel-Fan-out umgesetzt werden, sondern muss im vorhandenen Blitzlicht-Hotpath mit delta-/cachefreundlicher Semantik bleiben.
 
 ---
 

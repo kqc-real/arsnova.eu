@@ -2,14 +2,16 @@
 
 # 🏛️ Architektur-Handbuch: arsnova.eu
 
-**Zuletzt aktualisiert:** 2026-04-01  
+**Zuletzt aktualisiert:** 2026-05-31
 **Rolle:** Living Documentation (Documentation as Code)
 
-**Produktstatus (Stand 2026-04):**
+**Produktstatus (Stand 2026-05-31):**
 
-- Produktionsreif umgesetzt: Epics **0–5**, **7.1** (Team-Modus), **8**, **9** (Admin: Inspektion, Löschung, Behördenexport, Audit) und **10** (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`).
+- Produktionsreif umgesetzt: Epics **0–5**, **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi; offen: delegierte Moderation und Tempo-Blitzlicht), **9** (Admin: Inspektion, Löschung, Behördenexport, Audit) und **10** (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`).
 - Plattform: Epic **6** im Kern umgesetzt (Theme, i18n, Legal, Responsive); offen: **6.5** (Abschlussprüfung Barrierefreiheit / WCAG) und **6.6** (UX-Testreihen _Thinking Aloud_ inkl. Umsetzung der Befunde — siehe `Backlog.md`, Story 6.6, und `docs/EPIC6-AC-PRUEFUNG.md`).
-- **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`, u. a. in `health.stats` und Hilfe-Dialog).
+- **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`) plus 30-Tage-Verlauf der Session-Tagesrekorde (`DailyStatistic`, `dailyHighscores`) in `health.stats` und im Server-Status-Hilfedialog.
+- **Quiz-Bewertung:** `SINGLE_CHOICE`, `MULTIPLE_CHOICE` und `SHORT_TEXT` sind bewertbare Fragetypen; Leaderboards, Teamwertung, Bonus-Codes und Scorecards nutzen die gemeinsame Effective-Vote-Regel aus ADR-0028.
+- **Offene Zielbilder:** Delegierte Moderation bleibt ohne eigene `/moderate`-Route und ohne Moderator-Token noch Zielbild; Tempo ist als vordefiniertes Blitzlicht-Template beschlossen, aber im aktuellen `quickFeedback`-Code noch nicht implementiert.
 
 ## 1. Einleitung & Philosophie
 
@@ -23,10 +25,11 @@ Das Hauptziel dieses Systems ist es, ein hochperformantes Audience-Response-Syst
 
 Wir setzen auf einen modernen, stark typisierten TypeScript-Stack (Full-Stack), der auf Typsicherheit, Entwicklererfahrung (DX) und Echtzeit-Performance optimiert ist.
 
-- **Frontend:** Angular (v21) mit **Signals** (Zustandsverwaltung), **Standalone Components** und **Angular Material 3** (tokenbasiert, ohne Tailwind).
-- **Backend:** Node.js API mit **tRPC** (für typsichere Aufrufe und WebSocket-Subscriptions).
-- **Datenbank (Persistenz):** **PostgreSQL** angebunden über **Prisma ORM**.
-- **Echtzeit-Broker (Flüchtig):** **Redis** (Rate-Limiting, Blitzlicht-/Session-Code-Zustand, Sliding-Windows). Live-Updates in Sessions laufen über **tRPC-WebSocket-Subscriptions** (Implementierung im Backend über intervalbasiertes **Polling** gegen PostgreSQL in den Subscription-Generatoren — kein zentraler Redis-Pub/Sub-Pfad für jedes Frage-Event).
+- **Frontend:** Angular **21.2.x** mit **Signals** (Zustandsverwaltung), **Standalone Components** und **Angular Material 3** (tokenbasiert, im Angular-Frontend ohne Tailwind).
+- **Backend:** Node.js API mit **tRPC v11** (für typsichere Aufrufe und WebSocket-Subscriptions).
+- **Schemas:** **Zod v4** in `@arsnova/shared-types` und Backend-Routern; DTOs werden ueber `.input()` / `.output()` an tRPC-Prozeduren gebunden.
+- **Datenbank (Persistenz):** **PostgreSQL** angebunden über **Prisma ORM 7.4.x**.
+- **Echtzeit-Broker (Flüchtig):** **Redis** (Rate-Limiting, Blitzlicht-/Session-Code-Zustand, Sliding-Windows). Live-Updates in Sessions laufen über **tRPC-WebSocket-Subscriptions**; Status- und Teilnehmerpfade sind inzwischen bevorzugt signalgetrieben mit seltenem Resync, einzelne Live-Pfade nutzen weiterhin gezieltes Polling/Fallbacks. Es gibt keinen zentralen Redis-Pub/Sub-Pfad für jedes Frage-Event.
 - **Offline & Sync Engine:** **Yjs** (CRDTs für die Local-First Speicherung im Browser).
 
 ---
@@ -71,12 +74,19 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 - [ADR-0009: Unified Live-Session Channels (Quiz, Q&A, Blitzlicht)](./decisions/0009-unified-live-session-channels.md)
 - [ADR-0010: Blitzlicht als Kernmodus mit konsistenter UX in Startseite und Live-Session](./decisions/0010-blitzlicht-as-core-live-mode.md)
 - [ADR-0011: Delegierbare Moderatorrolle für Live-Sessions](./decisions/0011-delegated-moderator-role-for-live-sessions.md)
+- [ADR-0012: d3-cloud als Layout-Engine fuer Freitext-Word-Clouds](./decisions/0012-use-d3-cloud-for-freetext-word-clouds.md)
+- [ADR-0013: k6 und Artillery als Standard-Stack fuer Last- und Performance-Tests](./decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md)
 - [ADR-0015: Markdown-Bilder nur per URL und Lightbox-Ansicht](./decisions/0015-markdown-images-url-only-and-lightbox.md)
 - [ADR-0016: Markdown/KaTeX-Editor — Split-View und eigene MD3-Toolbar](./decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)
 - [ADR-0017: Markdown-Editor — UI-Umfang vs. KI-Import-Paste-Feld](./decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md)
 - [ADR-0018: Message of the Day / Plattform-Kommunikation (MOTD)](./decisions/0018-message-of-the-day-platform-communication.md)
 - [ADR-0021: Trennung von Betriebsstatus (SLO) und Systemlast mit Live-Telemetrie](./decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md)
 - [ADR-0024: Session-Tagesrekord-Verlauf fuer Session-Teilnehmende im Server-Status-Hilfedialog](./decisions/0024-daily-session-records-in-server-status-help-dialog.md)
+- [ADR-0025: Zukuenftige Erweiterungen standardmaessig als performance-kritisch behandeln](./decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md)
+- [ADR-0026: Performance-Hotpaths priorisieren und Telemetrie-Nebenlast entkoppeln](./decisions/0026-prioritize-performance-hotpaths-and-de-escalate-telemetry-side-load.md)
+- [ADR-0027: Join-Wellen mit leichtgewichtiger Admission Control glätten](./decisions/0027-smooth-join-waves-with-lightweight-admission-control.md)
+- [ADR-0028: Quiz-Bewertung und Effective-Vote-Regel vereinheitlichen](./decisions/0028-quiz-scoring-and-effective-vote-rule.md)
+- [ADR-0029: Tempo als vordefiniertes Blitzlicht-Template statt eigenem Session-Kanal](./decisions/0029-tempo-as-predefined-blitzlicht-template.md)
 
 **Vertiefende Architektur-Dokumente:**
 
@@ -89,7 +99,7 @@ Wir dokumentieren jede signifikante Änderung an der Architektur, neue Bibliothe
 
 ## 5. Datenmodell (Single Source of Truth)
 
-Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopien, Teilnehmende, Votes, Bonus-Token, Q&A, Session-Kanäle wie Blitzlicht sowie **MOTD** (Meldungen, Vorlagen, Locale-Texte, Interaktionszähler, Audit) und **`PlatformStatistic`** (u. a. Rekordteilnehmende je Session) wird zentral über Prisma verwaltet. Das aktuelle Schema findet sich in `prisma/schema.prisma`.
+Unser relationales Datenmodell für flüchtige Live-Sessions, Quiz-Session-Kopien, Teilnehmende, Votes, Bonus-Token, Q&A, Session-Kanäle wie Blitzlicht, Session-Feedback sowie **MOTD** (Meldungen, Vorlagen, Locale-Texte, Interaktionszähler, Audit) und Plattformstatistiken (**`PlatformStatistic`**, **`DailyStatistic`**) wird zentral über Prisma verwaltet. Das aktuelle Schema findet sich in `prisma/schema.prisma`.
 
 **Hinweis zur Anonymität:** Die App ist bewusst **accountfrei**. Es gibt kein User-/Account-Modell. Lehrende und Teilnehmende nutzen die App ohne Registrierung. Die Zuordnung Quiz ↔ Lehrperson erfolgt ausschließlich über Local-First (Yjs/IndexedDB) im Browser; der Server speichert keine Nutzerkonten.
 

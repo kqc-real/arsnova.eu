@@ -6,6 +6,8 @@
 **Datum:** 2025-03-05  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Dozenten sollen Quizfragen mit Hilfe von KI (z. B. aus Präsentationen oder Skripten) erzeugen können, ohne Lehrmaterialien an arsnova.eu oder einen plattformeigenen KI-Dienst zu senden (Zero-Knowledge, DSGVO). Gleichzeitig muss die App vor fehlerhaften oder halluzinierten LLM-Ausgaben geschützt werden. Die Architektur muss festlegen: Woher kommt der System-Prompt? Welches Ausgabeformat gilt? Wie wird validiert?
@@ -34,6 +36,10 @@ Wir setzen eine **Promptarchitektur** um, die folgende Prinzipien erfüllt:
 
 7. **Ausgabeformat der KI (Vertrag)**  
    Das Modell soll nach expliziter Bestätigung durch den Nutzer **ausschließlich** **einen** vollständigen Markdown-Codeblock mit Tag `json` ausgeben, ohne Text davor oder danach, ohne mehrere Blöcke – inhaltlich exakt **QuizExportSchema** (keine Felder `id` oder `preset`). Abweichungen von diesem Vertrag widersprechen dem System-Prompt; der Importpfad in der App ist darauf ausgelegt.
+
+## Repo-Abgleich 2026-05-31
+
+`buildKiQuizSystemPrompt` bleibt die kanonische Quelle des Prompts. Der KI-Import nutzt weiterhin den Quiz-Importpfad und die Zod-v4-Schemas aus `@arsnova/shared-types`; es gibt keinen arsnova.eu-eigenen LLM-Dienst und keinen Upload von Lehrmaterial an arsnova.eu. Der Prompt spiegelt Preset-Optionen aus dem Home-/LocalStorage-Kontext, nicht aus einem einzelnen Listen-Quiz.
 
 ## Konsequenzen
 

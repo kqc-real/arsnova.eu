@@ -6,6 +6,8 @@
 **Datum:** 2026-03-12  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Die App soll mehrsprachig nutzbar sein (Backlog Epic 6, Story 6.2). Dafür sind folgende Punkte zu klären:
@@ -122,4 +124,4 @@ Für alle Zielsprachen gelten verbindliche Vorgaben; Übersetzer:innen und Entwi
 
 ## Implementierungsstand (Projekt arsnova.eu)
 
-Stand 2026-04-01: `sourceLocale` ist **de**; zusätzliche Locales **en, fr, it, es** sind in `angular.json` eingebunden. `build:localize` erzeugt alle fünf Locale-Ausgaben und läuft im Repo mit zusätzlichen Post-Build-Schritten (`noscript`, `sitemap`, `manifest`, `ngsw`). Der Sprachwechsel nutzt Redirect auf die Locale-URL; auf **Quiz bearbeiten** und **Quiz neu** schützt ein Confirm-Dialog vor Verlust ungespeicherter Änderungen. Der Root-Dev-Start (`npm run dev`) liefert aktuell **Deutsch**, `dev:en` die englische Einsprachen-Variante. Details: [I18N-PLAN.md](../../implementation/I18N-PLAN.md), [I18N-ANGULAR.md](../../I18N-ANGULAR.md).
+Stand 2026-05-31: `sourceLocale` ist **de**; zusätzliche Locales **en, fr, it, es** sind in `angular.json` eingebunden. `build:localize` erzeugt alle fünf Locale-Ausgaben und läuft im Repo mit zusätzlichen Post-Build-Schritten (`noscript`, `sitemap`, `manifest`, `ngsw`, MOTD-Asset-Check). Der Sprachwechsel nutzt Redirect auf die Locale-URL; auf **Quiz bearbeiten** und **Quiz neu** schützt ein Confirm-Dialog vor Verlust ungespeicherter Änderungen. Der Root-Dev-Start (`npm run dev` / `npm run dev:de`) liefert aktuell **Deutsch**, `dev:en` die englische Einsprachen-Variante. Details: [I18N-PLAN.md](../../implementation/I18N-PLAN.md), [I18N-ANGULAR.md](../../I18N-ANGULAR.md).

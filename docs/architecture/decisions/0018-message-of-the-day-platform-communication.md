@@ -6,6 +6,8 @@
 **Datum:** 2026-03-27  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Der Betreiber soll **zur Laufzeit** (ohne Redeploy) **alle Nutzer:innen** der App über die **Startseite** informieren können: Wartungsfenster, neue Features, Spendenaufrufe u. a. Zusätzlich sind **Archiv** (vergangene, vom Admin freigegebene Nachrichten), **Zeitsteuerung** (Start/Ende), **mehrsprachige Inhalte**, **minimalistisches Admin-CMS** (Vorlagen + Historie) und **Nutzerinteraktionen** (Schließen, Wischen, explizite Kenntnisnahme, optionales Feedback) gefordert.
@@ -60,6 +62,10 @@ Konkrete Prozedurnamen und DTOs: siehe [`docs/features/motd.md`](../../features/
 
 - Öffentliche MOTD-Endpunkte: **Rate-Limiting** (Missbrauch, Scraping).
 - **Leichtes Audit** für Admin-Aktionen (z. B. veröffentlicht, Archiv-Flag geändert): Metadaten ohne Volltext-Pflicht im Log, konsistent mit Epic-9-Denken; Details in Feature-Doku.
+
+## Repo-Abgleich 2026-05-31
+
+MOTD ist im Repo als eigene Router-Familie umgesetzt: oeffentliche Lesepfade und `recordInteraction` in `motd.ts`, Admin-CMS-Pfade in `adminMotd.ts`. Das Frontend enthaelt Admin-Panel, Template-Dialog, Header-/Archivzustand und Archive-Dialog; `build:localize` prueft MOTD-Assets nach dem Build.
 
 ## Konsequenzen
 

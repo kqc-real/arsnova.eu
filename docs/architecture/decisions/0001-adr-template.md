@@ -6,6 +6,8 @@
 **Datum:** 2026-02-18
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Wir benötigen ein einheitliches Format für Architecture Decision Records (ADRs), damit alle Architekturentscheidungen nachvollziehbar und konsistent dokumentiert werden.
@@ -20,21 +22,28 @@ Jede ADR folgt diesem Template:
 **Status:** Proposed | Accepted | Deprecated | Superseded by ADR-XXXX
 **Datum:** YYYY-MM-DD
 **Entscheider:** [Wer hat entschieden?]
+**Letzter Repo-Abgleich:** YYYY-MM-DD
 
 ## Kontext
+
 [Warum stehen wir vor dieser Entscheidung? Was ist das Problem?]
 
 ## Entscheidung
+
 [Was wurde entschieden?]
 
 ## Konsequenzen
+
 ### Positiv
+
 - ...
 
 ### Negativ / Risiken
+
 - ...
 
 ## Alternativen (geprüft)
+
 - [Alternative A]: [Warum verworfen?]
 - [Alternative B]: [Warum verworfen?]
 ```
@@ -43,6 +52,8 @@ Jede ADR folgt diesem Template:
 
 - Dateiname: `NNNN-kebab-case-titel.md` (4-stellige Nummer, aufsteigend)
 - Ordner: `docs/architecture/decisions/`
+- Statuswechsel wie `Superseded by ADR-XXXX` bleiben in der alten ADR sichtbar; die abloesende ADR wird verlinkt.
+- Bei spaeterem Code-Drift wird ein kurzer Repo-Abgleich oder Implementierungsstand ergaenzt, statt historische Entscheidungsgruende umzuschreiben.
 
 ## Konsequenzen
 

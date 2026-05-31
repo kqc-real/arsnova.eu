@@ -1,97 +1,47 @@
-# Migration Zod v3 → v4
+# Migration Zod v3 -> v4
 
-**Ziel:** Zod auf v4 heben für bessere Performance (u. a. ~7× schnelleres Objekt-Parsing bei wiederverwendeten Schemas), kleineres Bundle und weniger TypeScript-Instanziierungen. tRPC v11 ist mit Zod 4 kompatibel.
+**Stand:** 2026-05-31
+**Status:** umgesetzt, mit dokumentierten Rest-Aufraeumarbeiten
 
-**Betroffene Pakete:** `libs/shared-types` (einzige Stelle mit Zod-Import), `apps/backend`, `apps/frontend` (nutzen shared-types).
+## 1. Aktueller Repo-Stand
 
----
+Zod v4 ist im Monorepo bereits aktiv:
 
-## 1. Version umstellen
+- `libs/shared-types/package.json`: `zod` `^4.0.0`
+- `apps/backend/package.json`: `zod` `^4.0.0`
+- `apps/frontend`: nutzt Zod nicht direkt, sondern konsumiert die DTOs aus `@arsnova/shared-types`
 
-- **Root / shared-types / backend / frontend:** `zod` von `^3.23.0` auf `^4.0.0`.
-- Nach dem Wechsel: `npm install` im Repo-Root.
+Die tRPC-Router binden die Zod-Schemas inzwischen breit ueber `.input(...)` und `.output(...)` ein. Der Health-Router validiert sowohl `health.check` als auch `health.stats` und `health.footerBundle` ueber Shared-Type-Schemas.
 
----
+## 2. Was erledigt ist
 
-## 2. API-Anpassungen (Breaking Changes)
+- Paketversionen sind auf Zod v4 angehoben.
+- `@arsnova/shared-types` ist die kanonische Schema-Quelle fuer Frontend und Backend.
+- Backend-Router verwenden die geteilten Schemas fuer Eingaben und Ausgaben.
+- Die Migration benoetigte keine Datenbankmigration und keine API-Neumodellierung.
 
-### 2.1 Fehlermeldungen: `message` → `error`
+## 3. Bekannte Restpunkte
 
-In v4 ist der `message`-Parameter deprecated; verwendet wird der einheitliche `error`-Parameter.
+Der Code ist lauffaehig auf Zod v4, enthaelt aber noch einige v4-kompatible Legacy-Formen:
 
-| v3 | v4 |
-|----|-----|
-| `.min(1, 'Quiz-Name darf nicht leer sein')` | `.min(1, { error: 'Quiz-Name darf nicht leer sein' })` |
-| `.length(6, 'Session-Code muss 6 Zeichen lang sein')` | `.length(6, { error: 'Session-Code muss 6 Zeichen lang sein' })` |
-| `.min(1, 'Mindestens eine Frage erforderlich')` | `.min(1, { error: 'Mindestens eine Frage erforderlich' })` |
+- `z.string().uuid()` und `z.string().datetime()` kommen in `libs/shared-types/src/schemas.ts` und vereinzelt in Backend-Router-Inline-Schemas noch vor.
+- Diese Methoden funktionieren in Zod v4 weiter, sind aber gegen die bevorzugten Top-Level-APIs (`z.uuid()`, `z.iso.datetime()` bzw. passender ISO-Helper) zu pruefen.
+- `ctx.addIssue({ message: ... })` ist **kein** Migrationsproblem; `message` ist dort weiterhin das Issue-Feld und nicht die alte String-Parameterform von `.min(...)`, `.max(...)` oder `.length(...)`.
 
-**Betroffen in `libs/shared-types/src/schemas.ts`:**
-- Alle Aufrufe von `.min(..., '...')`, `.max(..., '...')`, `.length(..., '...')` mit String-Argument auf Objektform `{ error: '...' }` umstellen.
+## 4. Empfohlene Restbereinigung
 
-*(Hinweis: Die alte `message`-Form wird in v4 noch unterstützt, ist aber deprecated – für saubere Migration die neue Form verwenden.)*
-
-### 2.2 String-Formate: Top-Level statt Methoden
-
-`z.string().uuid()` und ähnliche Formate sind in v4 deprecated; empfohlen sind die Top-Level-APIs (besser tree-shakable).
-
-| v3 | v4 (empfohlen) |
-|----|----------------|
-| `z.string().uuid()` | `z.uuid()` |
-| `z.string().email()` | `z.email()` |
-
-**V4-UUID-Strictness:** `z.uuid()` prüft in v4 streng nach RFC 9562/4122 (Variant-Bits). Falls ihr „UUID-ähnliche“ Werte ohne strenge RFC-Prüfung braucht: `z.guid()`. Prisma-UUIDs sind in der Regel RFC-konform → `z.uuid()` beibehalten.
-
-**Betroffen in `schemas.ts`:** Alle `z.string().uuid()` durch `z.uuid()` ersetzen (oder vorerst belassen – deprecated, aber funktionsfähig).
-
-### 2.3 Optional + Default
-
-- In v4 muss der Wert bei `.default()` dem **Output**-Typ entsprechen (nicht mehr dem Input). Bei unseren Schemas (keine `.transform()` vor `.default()`) ändert sich das Verhalten praktisch nicht.
-- Optionale Felder mit Default: In v4 werden Defaults auch innerhalb optionaler Felder angewendet; das Verhalten ist oft intuitiver als in v3. Bestehende Typen/Contracts prüfen (z. B. ob irgendwo „fehlender Key“ erwartet wird).
-
-### 2.4 `.extend()`
-
-`.extend()` bleibt die empfohlene API (`.merge()` ist deprecated). Unser `JoinSessionOutputSchema = SessionInfoDTOSchema.extend({ ... })` kann unverändert bleiben.
-
-### 2.5 `z.infer`
-
-`z.infer<>` gibt es in v4 unverändert; optional kann `z.output<>` verwendet werden (bei unseren Schemas ohne Transform äquivalent). Keine Änderung nötig.
-
-### 2.6 `z.record`
-
-Wir nutzen bereits `z.record(z.string(), z.number())` (Key-Schema, Value-Schema). Entspricht der v4-API – keine Anpassung nötig.
-
----
-
-## 3. Optionale Hilfsmittel
-
-- **Codemod (Community):** [zod-v3-to-v4](https://github.com/nicoespeon/zod-v3-to-v4) – viele mechanische Ersetzungen (z. B. `message` → `error`, Top-Level-Formate). Danach manuell prüfen und Tests ausführen.
-- **Codemod.com:** `npx codemod jssg run zod-3-4` (falls im Projekt genutzt).
-
----
-
-## 4. Ablauf (empfohlen)
-
-1. Branch anlegen (z. B. `chore/zod-v4`).
-2. In `libs/shared-types/package.json` und ggf. Root/Backend/Frontend: `"zod": "^4.0.0"`.
-3. `npm install`.
-4. In `libs/shared-types/src/schemas.ts`:
-   - Alle benutzerdefinierten Fehlermeldungen auf `{ error: '...' }` umstellen.
-   - Optional: `z.string().uuid()` durch `z.uuid()` ersetzen.
-5. `npm run build` (shared-types → backend → frontend).
-6. `npm run test`.
-7. Manuell: Einige tRPC-Endpunkte (Session erstellen, Join, Vote) durchspielen; Fehlerausgaben bei ungültigen Inputs prüfen.
-8. Merge nach Review.
-
----
+1. In `libs/shared-types/src/schemas.ts` und Inline-Schemas der Router `z.string().uuid()` systematisch durch den passenden Zod-v4-Top-Level-Helper ersetzen.
+2. Datumsfelder gezielt pruefen, bevor `z.string().datetime()` ersetzt wird; entscheidend ist, ob der bestehende Vertrag ISO-Datetime mit Offset, UTC oder nullable Felder erwartet.
+3. Danach `npm run build -w @arsnova/shared-types`, `npm run typecheck -w @arsnova/backend` und `npm run typecheck -w @arsnova/frontend` ausfuehren.
+4. Bei Schemas, die Import-/Export-Vertraege betreffen, zusaetzlich die betroffenen Backend- und Frontend-Tests laufen lassen.
 
 ## 5. Rollback
 
-Bei Problemen: `zod` wieder auf `^3.23.0` setzen, `npm install`, Commit revert. Keine Datenbank- oder API-Änderungen – nur Laufzeit- und Build-Bibliothek.
+Ein Rollback auf Zod v3 ist nicht mehr der erwartete Pfad. Falls ein einzelner Helper-Wechsel Probleme erzeugt, wird nur diese Code-Aenderung zurueckgenommen; Paketversionen bleiben auf Zod v4.
 
----
+## 6. Referenzen im Repo
 
-## 6. Referenzen
-
-- [Zod v4 Migration Guide (Changelog)](https://v4.zod.dev/v4/changelog)
-- [Zod v4 – What’s New](https://v4.zod.dev/v4)
-- Codemod: [nicoespeon/zod-v3-to-v4](https://github.com/nicoespeon/zod-v3-to-v4)
+- `libs/shared-types/src/schemas.ts`
+- `apps/backend/src/routers/*.ts`
+- `apps/backend/src/routers/health.ts`
+- `package-lock.json`

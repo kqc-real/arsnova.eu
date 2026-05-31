@@ -4,7 +4,9 @@
 
 **Status:** Accepted  
 **Datum:** 2026-03-17  
-**Entscheider:** Projektteam  
+**Entscheider:** Projektteam
+
+**Letzter Repo-Abgleich:** 2026-05-31
 
 ## Kontext
 
@@ -176,7 +178,7 @@ Sie soll produktnah geprueft werden:
 
 ---
 
-## Umsetzungsstand (2026-03-13)
+## Umsetzungsstand (2026-05-31)
 
 Die Architektur wurde umgesetzt. Zentrale Aenderungen:
 
@@ -186,6 +188,8 @@ Die Architektur wurde umgesetzt. Zentrale Aenderungen:
 - **Q&A-Host:** Im Vier-Zonen-Modell stabilisiert, Safe-Bottom auf Mobile.
 - **Blitzlicht:** Ergebnisbalken und Format-Buttons zwischen embedded (Kanal) und standalone (Startseite) angeglichen; 2-Button-Layout (Ja/Nein) zentriert.
 - **Fullscreen-Button:** Auf Smartphone (inkl. Landscape) ausgeblendet.
+- **Foyer-/Team-Ankunft:** Spielerische Foyer-Effekte sind an Preset und Reward-Effects gebunden und koennen bei grossen Join-Wellen unterdrueckt werden, damit die mobile Host-Ansicht ruhig bleibt.
+- **Status- und Live-Pfade:** Host- und Presenter-Ansichten pollen sichtbarkeits- und kontextabhaengig; Realtime-Pfade bleiben primaer.
 
 Story 2.8 gilt als erfuellt.
 

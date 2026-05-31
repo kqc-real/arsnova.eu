@@ -6,6 +6,8 @@
 **Datum:** 2026-03-13  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 arsnova.eu soll dem Produktversprechen "live in einer app" entsprechen. In einer realen Lehrveranstaltung wechseln Dozierende jedoch zwischen mehreren Live-Formaten:
@@ -170,3 +172,9 @@ Stand 2026-05-11:
 - Host-Wechsel zwischen `Quiz`, `Q&A` und `Blitzlicht` werden dadurch live an Teilnehmende gespiegelt, ohne dass fuer dieselbe Veranstaltung getrennte Session- oder Kanalcodes entstehen.
 - `preferredChannel` ist im Vote-Client bewusst **kein** dauerhafter Zwangskanal: Teilnehmende folgen Host-Wechseln einmalig, koennen danach aber wieder selbst in den sichtbaren Quiz-Kanal zurueckwechseln, solange keine fachliche Quiz-Sperrphase greift.
 - Fuer Blitzlicht-Ergebnisse nutzt der Vote-Client einen eigenen Live-Result-Pfad, damit laufende Balkendiagramme nicht mehr davon abhaengen, dass ein anderer Session-Refresh zufaellig neue Daten mitliefert.
+
+Stand 2026-05-31:
+
+- Die kanonischen Session-Kanaele sind weiterhin `quiz`, `qa` und `quickFeedback`.
+- `SessionLiveChannelSchema` enthaelt keinen vierten `tempo`-Kanal; Tempo ist nach ADR-0029 als kuenftiges Blitzlicht-Template, nicht als Erweiterung dieser Kanalarchitektur, einzuordnen.
+- Q&A-Sortierung und Q&A-Wortwolke sind in Host- und Presenter-Kontexten an den bestehenden `qa`-Kanal angebunden.

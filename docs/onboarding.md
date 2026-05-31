@@ -2,6 +2,8 @@
 
 # 🎓 Onboarding: arsnova.eu
 
+**Stand:** 2026-05-31
+
 Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als Studierende oder Studierender dabei, das Projekt zu verstehen, die Entwicklungsumgebung aufzusetzen und produktiv mitzuarbeiten.
 
 **Noch keine Erfahrung mit Git, VS Code, Docker, npm oder dem Stack (tRPC, Prisma, Angular)?** Lies zuerst die kompakte Landkarte für Studierende: **[`docs/praktikum/EINSTIEG-TOOLS-UND-STACK.md`](praktikum/EINSTIEG-TOOLS-UND-STACK.md)** — danach kehrst du hierher zurück und arbeitest den Quickstart ab.
@@ -12,14 +14,14 @@ Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als 
 
 ### Voraussetzungen
 
-| Tool                    | Version                                                               | Prüfbefehl               |
-| ----------------------- | --------------------------------------------------------------------- | ------------------------ |
-| Node.js                 | **LTS** **20.x** oder **22.x** (`.nvmrc` = 20; `nvm use` / `fnm use`) | `node -v`                |
-| npm                     | ≥ 10 (nach `npm ci` zur Lockfile-Passung)                             | `npm -v`                 |
-| Docker & Docker Compose | aktuell                                                               | `docker compose version` |
-| Git                     | aktuell                                                               | `git -v`                 |
+| Tool                    | Version                                                                          | Prüfbefehl               |
+| ----------------------- | -------------------------------------------------------------------------------- | ------------------------ |
+| Node.js                 | **LTS 20.x** oder **22.x** empfohlen (`.nvmrc` = 20.19.0; `nvm use` / `fnm use`) | `node -v`                |
+| npm                     | ≥ 10 (nach `npm ci` zur Lockfile-Passung)                                        | `npm -v`                 |
+| Docker & Docker Compose | aktuell                                                                          | `docker compose version` |
+| Git                     | aktuell                                                                          | `git -v`                 |
 
-**Node-Version:** Odd-/Current-Majors (z. B. **21**, **23**) sind für lokale Builds **nicht** unterstützt — bitte auf **20** oder **22** LTS wechseln. Vollständige Regel: Root-[`package.json`](../package.json) (`engines`) und [README](../README.md) „Voraussetzungen“. Die **CI** baut mit **Node 20 und 22** (GitHub Actions).
+**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **20.19.0** oder eine passende **22.x LTS**. Odd-/Current-Majors (z. B. **21**, **23**) sind für lokale Builds **nicht** unterstützt. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); dort ist auch **24.x** erlaubt, die **CI** baut aber weiterhin mit **Node 20 und 22** (GitHub Actions).
 
 ### Windows? Bitte direkt WSL2 nutzen
 
@@ -75,7 +77,7 @@ npm run dev
 
 Dann im Browser: **`http://localhost:4200`**
 
-Das ist absichtlich der einfachste Pfad: **Deutsch**, beide Server laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und `shared-types` ist gebaut. **Englisch** brauchst du erst spaeter; dafuer gibt es **`npm run dev:en`**.
+Das ist absichtlich der einfachste Pfad: **Deutsch**, beide Server laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und `shared-types` ist gebaut. **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**.
 
 **Wichtig für Windows:** Diese Befehle laufen dann in **WSL/Ubuntu**, nicht in PowerShell oder Git Bash.
 
@@ -137,16 +139,16 @@ npm run dev:frontend:de   # → http://localhost:4200 (Angular, DE-Quelltexte)
 
 ### Typische Stolperstellen beim ersten Start
 
-| Symptom                                 | Wahrscheinliche Ursache                                        | Direkt ausprobieren                                                    |
-| --------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `docker compose` geht nicht             | Docker Desktop ist nicht installiert oder nicht gestartet      | Docker starten, dann `docker compose version` prüfen                   |
-| `npm run dev` bricht sofort ab          | Node-Version ist nicht passend                                 | `node -v` prüfen; dann `nvm use` oder Node 20/22 installieren          |
-| Browser zeigt nicht `/en/`, sondern `/` | Das ist korrekt: Standard-`dev` ist **Deutsch**                | Einfach `http://localhost:4200` nutzen; fuer Englisch `npm run dev:en` |
-| Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt | `npm run setup:dev` erneut ausfuehren                                  |
-| Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server laeuft noch                                 | `npm run free-dev-ports` und dann erneut `npm run dev`                 |
-| `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                             | `.env` ergaenzen und Backend neu starten                               |
+| Symptom                                 | Wahrscheinliche Ursache                                        | Direkt ausprobieren                                                   |
+| --------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `docker compose` geht nicht             | Docker Desktop ist nicht installiert oder nicht gestartet      | Docker starten, dann `docker compose version` prüfen                  |
+| `npm run dev` bricht sofort ab          | Node-Version ist nicht passend                                 | `node -v` prüfen; dann `nvm use` oder Node 20/22 installieren         |
+| Browser zeigt nicht `/en/`, sondern `/` | Das ist korrekt: Standard-`dev` ist **Deutsch**                | Einfach `http://localhost:4200` nutzen; für Englisch `npm run dev:en` |
+| Fehler zu Prisma oder fehlenden Typen   | `setup:dev`, `prisma:generate` oder `shared-types`-Build fehlt | `npm run setup:dev` erneut ausführen                                  |
+| Port 3000 oder 4200 ist schon belegt    | Voriger Dev-Server läuft noch                                  | `npm run free-dev-ports` und dann erneut `npm run dev`                |
+| `/admin` funktioniert lokal nicht       | `ADMIN_SECRET` wurde nicht gesetzt                             | `.env` ergänzen und Backend neu starten                               |
 
-**Spezialfall Windows:** Wenn das Setup unter Windows „zufaellig kaputt“ wirkt, wechsle auf **WSL2/Ubuntu**, klone das Repo dort unter `~/...` neu und starte den Ablauf noch einmal komplett in WSL.
+**Spezialfall Windows:** Wenn das Setup unter Windows „zufällig kaputt“ wirkt, wechsle auf **WSL2/Ubuntu**, klone das Repo dort unter `~/...` neu und starte den Ablauf noch einmal komplett in WSL.
 
 ### Production-ähnlich lokal (Build + ein Server)
 
@@ -230,22 +232,23 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ## 4. Aktueller Stand vs. Ziel-Architektur
 
-> **Epics 0–5, 7.1, 9 und 10 (MOTD) sind umgesetzt; Epic 8 ist im Kern mit 8.1–8.4 umgesetzt.** Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind die Living Docs in `docs/diagrams/` und die ADRs maßgeblich. Offene Stories: [`Backlog.md`](../Backlog.md).
+> **Epics 0–5, 7.1, 9 und 10 (MOTD) sind umgesetzt; Epic 8 ist im Kern mit 8.1–8.4 sowie den Sortiermodi 8.6/8.7 umgesetzt.** Epic 6 ist im Kern umgesetzt, offen bleiben Abschlussprüfung Barrierefreiheit und UX-Testreihen. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. Offene Stories: [`Backlog.md`](../Backlog.md).
 
-### Was bereits funktioniert (✅ Implementiert – Stand: 2026-05-05)
+### Was bereits funktioniert (✅ Implementiert – Stand: 2026-05-31)
 
 | Komponente                                                              | Beschreibung                                                                                                                            |
 | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | Express + tRPC-Server                                                   | Backend auf Port 3000 mit `health.check`, `health.footerBundle`, `health.stats`, `health.ping` (Subscription)                           |
-| Angular 21 Frontend                                                     | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                         |
+| Angular 21.2.x Frontend                                                 | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                         |
 | tRPC-Client                                                             | `httpBatchLink` (Queries/Mutations) + `wsLink` (Subscriptions)                                                                          |
 | Redis-Anbindung                                                         | `ioredis`-Client, Health-Check, Rate-Limiting (Sliding-Window), Session-Code-Lockout                                                    |
 | tRPC WebSocket                                                          | Separater WebSocket-Server (Port 3001) für Subscriptions                                                                                |
 | Yjs y-websocket Relay                                                   | Backend startet y-websocket-Server (Port 3002) für Multi-Device-Sync                                                                    |
 | Server-Status (Epic 0.4)                                                | `health.footerBundle` im Footer, `health.stats` im Detaildialog, `PlatformStatistic`/`DailyStatistic`, Service-/Laststatus              |
 | Session-, Vote-, Q&A-, Blitzlicht-, Word-Cloud-, Admin- und MOTD-Router | `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd` (Epic 10) mit Rate-Limiting; Live-Subscriptions für Session-Pfad |
-| Prisma-Schema                                                           | Vollständiges Datenbankmodell (Quiz, Question, Session, Vote, etc.)                                                                     |
-| Zod-Schemas (`shared-types`)                                            | Alle Input-/Output-Schemas und DTOs definiert                                                                                           |
+| Quiz-Scoring und Kurzantwort                                            | `SINGLE_CHOICE`, `MULTIPLE_CHOICE` und `SHORT_TEXT` sind bewertbar; Auswertungen nutzen die Effective-Vote-Regel                        |
+| Prisma-Schema                                                           | Vollständiges Datenbankmodell inkl. Q&A, MOTD, Admin-Audit, `PlatformStatistic` und `DailyStatistic`                                    |
+| Zod v4-Schemas (`shared-types`)                                         | Alle Input-/Output-Schemas, DTOs, Enums und Exportverträge definiert                                                                    |
 | Docker Compose                                                          | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up`                                                              |
 | CI/CD-Pipeline                                                          | GitHub Actions: Prisma validate/generate, TypeScript, ESLint, Tests, Docker-Build (Node 20/22)                                          |
 | Session- und Besitzhärtung                                              | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie                     |
@@ -257,7 +260,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 | ---------------------------- | --------------------------------------------------------------------------------------------------- | ------------------ |
 | Barrierefreiheit & UX        | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)                                          | Epic 6             |
 | Neue Fragentypen             | **1.2d**, **1.2ec–1.2ed**, **1.2f–1.2i**: verbleibende Kurzantwort-/Fragentyp-Erweiterungen         | Epic 1             |
-| Q&A und Tempo                | Delegation und Tempo-Livekanal (**8.5**, **8.8**)                                                   | Epic 8             |
+| Q&A und Tempo                | Delegierte Q&A-Moderation (**8.5**) und Tempo-Blitzlicht als `quickFeedback`-Template (**8.8**)     | Epic 8, ADR-0029   |
 | Last & Performance           | **0.7** in Arbeit: vorhandene `k6`-/Smoke-Bausteine zu vollständiger E2E-/Realtime-Strecke ausbauen | Epic 0, ADR-0013   |
 | Sync & Word Cloud / Refactor | **1.6c**, **1.6d**, **1.14a** sowie **0.8** (Komplexitätsabbau / McCabe-Hotspots)                   | Backlog            |
 
@@ -265,7 +268,7 @@ Vollständige Story-Liste und Status: [`Backlog.md`](../Backlog.md).
 
 ---
 
-## 5. Komponentenbeschreibung (Stand: 2026-05-30)
+## 5. Komponentenbeschreibung (Stand: 2026-05-31)
 
 Das folgende Diagramm zeigt eine vereinfachte **Backend-Architektur**. Neben Quiz und Session sind `Q&A`, `Blitzlicht`, `wordCloud`, `Admin` und **`motd` (Epic 10)** integriert.
 
@@ -291,7 +294,7 @@ graph TB
 
     subgraph Services["Services"]
         ratelimit[RateLimitService ✅]
-        scoring[Scoring / Session Logic ✅]
+        scoring[Scoring / Effective Vote ✅]
         wcanalysis[WordCloudAnalysis ✅]
         streak[Streak / Bonus Logic ✅]
         codegen[SessionCodeService ✅]
@@ -340,9 +343,9 @@ graph TB
     express --> yws
 ```
 
-> ✅ = im Projektstand 2026-05-30 umgesetzt
+> ✅ = im Projektstand 2026-05-31 umgesetzt
 
-### A. Frontend (Angular 21)
+### A. Frontend (Angular 21.2.x)
 
 Das Frontend nutzt modernste Angular-Features:
 
@@ -352,19 +355,20 @@ Das Frontend nutzt modernste Angular-Features:
 - **Server-Status-Widget:** Footer-Dot über `health.footerBundle`; Detaildialog lädt `health.stats` inkl. Tagesrekord-Chart.
 - **Yjs & IndexedDB:** Quiz-Daten Local-First im Browser; Yjs für Multi-Device-Sync.
 - **Unified Live Session:** Session-Shell mit Kanälen für Quiz, Q&A und Blitzlicht; zusätzlich Standalone-Blitzlicht über die Startseite.
+- **MOTD:** Startseiten-Overlay, Archivzugang und Admin-Pflege sind in die Angular-App integriert.
 
 ### B. Backend (Node.js + tRPC)
 
-- **tRPC Router:** health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd. Typen über `@arsnova/shared-types`.
+- **tRPC Router:** health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd. Typen und Zod-v4-Verträge über `@arsnova/shared-types`.
 - **Rate-Limiting:** Redis Sliding-Window für Session-Code, Vote-Submit, Session-Erstellung und weitere Live-Aktionen; tRPC-Error `TOO_MANY_REQUESTS` mit Retry-After.
-- **Service Layer:** SessionCode-, Scoring-, Bonus-, Cleanup- und Admin-Logik sind integriert.
+- **Service Layer:** SessionCode-, Scoring-/Effective-Vote-, Bonus-, Cleanup-, Plattformstatistik- und Admin-Logik sind integriert.
 - **DTO Layer:** Data-Stripping für `isCorrect` ist entlang des Session-Status umgesetzt.
-- **Prisma ORM:** Schema in `prisma/schema.prisma`; Migrations/Client per `prisma generate` und `prisma db push`.
+- **Prisma ORM 7.4.x:** Schema in `prisma/schema.prisma`; Migrations/Client per `prisma generate` und `prisma db push`.
 
 ### C. Infrastruktur
 
-- **PostgreSQL:** Live-Session-Daten (Sessions, Participants, Votes). Docker Compose.
-- **Redis (✅):** Health-Check, Rate-Limiting (`ioredis`), QuickFeedback-Zustand, Presence-/Load-Signale und sessionnahe Live-Hilfsdaten.
+- **PostgreSQL:** Live-Session-Daten, Session-Quizkopien, Votes, Q&A, MOTD, Admin-Audit und Plattformstatistiken. Docker Compose.
+- **Redis (✅):** Health-Check, Rate-Limiting (`ioredis`), QuickFeedback-Zustand, Presence-/Load-Signale und sessionnahe Live-Hilfsdaten; kein globaler Pub/Sub-Pfad für jedes Frage-Event.
 - **WebSocket (Port 3001):** tRPC-Subscriptions (z. B. `health.ping`).
 - **y-websocket (Port 3002):** Yjs-Relay für den Multi-Device-Sync der Lehrperson.
 
@@ -376,15 +380,16 @@ Das Frontend nutzt modernste Angular-Features:
 
 1. **Quiz-Upload:** Die Lehrperson wählt ein Quiz aus ihrer lokalen IndexedDB. Das Frontend sendet eine Kopie via `quiz.upload` (Zod-validiert) an das Backend.
 2. **Session-Initialisierung:** Das Backend speichert die Quiz-Kopie in PostgreSQL, generiert einen 6-stelligen Code, erzeugt ein Host-Token und registriert die Session-/Token-Zustände in PostgreSQL bzw. Redis.
-3. **Lobby-Phase:** Teilnehmende treten mit dem Code bei. Das Backend erstellt einen `Participant`-Eintrag und informiert die Lehrperson in Echtzeit via Redis Pub/Sub → tRPC Subscription.
+3. **Lobby-Phase:** Teilnehmende treten mit dem Code bei. Das Backend erstellt einen `Participant`-Eintrag; die Host-Ansicht aktualisiert sich über tRPC-Subscriptions mit Resync/Fallbacks. Redis stützt dabei Presence-, Rate-Limit- und einzelne Live-Hilfszustände.
 4. **Frage-Aktivierung (Security):**
    - Die Lehrperson klickt „Nächste Frage“.
    - Das Backend setzt den Status auf `ACTIVE`.
    - Das **DTO-Stripping** entfernt `isCorrect` aus den Antwortoptionen.
    - Die gefilterten Daten (`QuestionStudentDTO`) werden via tRPC Subscription an die Geräte aller Teilnehmenden gepusht.
-5. **Abstimmung:** Teilnehmende senden ihre Votes. Der ScoringService berechnet Punkte basierend auf Korrektheit, Antwortzeit und Schwierigkeitsgrad.
+5. **Abstimmung:** Teilnehmende senden ihre Votes. Der ScoringService berechnet Punkte basierend auf Korrektheit, Antwortzeit und Schwierigkeitsgrad; `SHORT_TEXT` wird als bewertbarer Fragetyp mit Text-/Zahlen-/Einheitenlogik behandelt.
 6. **Auflösung:** Die Lehrperson beendet die Frage (Status → `RESULTS`). _Erst jetzt_ sendet das Backend das vollständige Objekt (`QuestionRevealedDTO` inkl. `isCorrect`) an die Teilnehmenden.
-7. **Parallele Live-Kanäle:** Innerhalb derselben Session können zusätzlich `Q&A` und `Blitzlicht` aktiv sein. Blitzlicht ist sowohl im Session-Kanal als auch direkt über die Startseite verfügbar; Standalone-Blitzlicht nutzt dabei ein eigenes Feedback-Host-Token.
+7. **Auswertung:** Scorecards, Leaderboards, Teamwertung und Bonus-Codes nutzen die Effective-Vote-Regel: Bei Peer Instruction ersetzt Runde 2 die Runde 1; ohne Runde 2 zählt Runde 1.
+8. **Parallele Live-Kanäle:** Innerhalb derselben Session können zusätzlich `Q&A` und `Blitzlicht` aktiv sein. Blitzlicht ist sowohl im Session-Kanal als auch direkt über die Startseite verfügbar; Standalone-Blitzlicht nutzt dabei ein eigenes Feedback-Host-Token. **Tempo** ist Zielbild als vordefiniertes Blitzlicht-Template, nicht als vierter Session-Kanal.
 
 ---
 
@@ -392,39 +397,43 @@ Das Frontend nutzt modernste Angular-Features:
 
 > Diese Regeln sind ausführlich in [`AGENT.md`](../AGENT.md) beschrieben. Hier die Kurzfassung:
 
-| Regel                                  | Beschreibung                                                                                |
-| -------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Kein `any`**                         | TypeScript-Typen immer aus `@arsnova/shared-types` importieren                              |
-| **Signals statt RxJS**                 | Für UI-State ausschließlich Angular Signals verwenden. RxJS nur für WebSocket-Streams       |
-| **Security First**                     | Neues Feld an einer Frage? → Prüfen, ob es im `QuestionStudentDTO` entfernt werden muss     |
-| **Standalone Components**              | Keine `NgModules`. Neue `@if`/`@for` Control-Flow-Syntax, kein `*ngIf`/`*ngFor`             |
-| **Angular Material 3 + SCSS-Patterns** | Styling über Material-Komponenten, Design-Tokens und zentrale SCSS-Patterns (ohne Tailwind) |
-| **ADRs schreiben**                     | Architekturentscheidungen als ADR in `docs/architecture/decisions/` dokumentieren           |
+| Regel                                  | Beschreibung                                                                                                               |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Kein `any`**                         | TypeScript-Typen immer aus `@arsnova/shared-types` importieren                                                             |
+| **Zod-Verträge pflegen**               | Neue API-Felder in `libs/shared-types/src/schemas.ts` und den tRPC-`.input()`/`.output()`-Verträgen nachziehen             |
+| **Signals statt RxJS**                 | Für UI-State ausschließlich Angular Signals verwenden. RxJS nur für WebSocket-Streams                                      |
+| **Security First**                     | Neues Feld an einer Frage? → Prüfen, ob es im `QuestionStudentDTO` entfernt werden muss                                    |
+| **Scoring konsistent halten**          | Bewertbare Fragetypen und Scoreboards müssen der Effective-Vote-Regel aus ADR-0028 folgen                                  |
+| **Standalone Components**              | Keine `NgModules`. Neue `@if`/`@for` Control-Flow-Syntax, kein `*ngIf`/`*ngFor`                                            |
+| **Angular Material 3 + SCSS-Patterns** | Styling über Material-Komponenten, Design-Tokens und zentrale SCSS-Patterns (ohne Tailwind)                                |
+| **ADRs schreiben**                     | Architekturentscheidungen als ADR in `docs/architecture/decisions/` dokumentieren; Zielbilder sauber vom Ist-Stand trennen |
 
 ---
 
 ## 8. Pflichtlektüre
 
-| Dokument                                                                  | Inhalt                                                                        |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [`AGENT.md`](../AGENT.md)                                                 | KI-Coding-Regeln und Architektur-Leitplanken                                  |
-| [`Backlog.md`](../Backlog.md)                                             | Alle User Stories mit Priorität und Akzeptanzkriterien                        |
-| [`docs/architecture/handbook.md`](architecture/handbook.md)               | Ausführliches Architektur-Handbuch                                            |
-| [`docs/README.md`](README.md)                                             | Doku-Landkarte nach Rolle und Thema                                           |
-| [`docs/ENVIRONMENT.md`](ENVIRONMENT.md)                                   | Umgebungsvariablen (Backend, Rate-Limits, Admin)                              |
-| [`docs/SECURITY-OVERVIEW.md`](SECURITY-OVERVIEW.md)                       | Sicherheit, DSGVO, Rollen — Kurzüberblick                                     |
-| [`docs/TESTING.md`](TESTING.md)                                           | Tests lokal, CI-Jobs (`npm test`, Lint, Build)                                |
-| [`docs/GLOSSAR.md`](GLOSSAR.md)                                           | App-Begriffe (Workflows, UI, Rollen) — einheitlich mit ADRs/Features verlinkt |
-| [`docs/architecture/decisions/`](architecture/decisions/)                 | Architecture Decision Records (ADRs)                                          |
-| [`docs/diagrams/diagrams.md`](diagrams/diagrams.md)                       | Mermaid-Diagramme (Backend, Frontend, DB, Sequenz)                            |
-| [`prisma/schema.prisma`](../prisma/schema.prisma)                         | Datenbankmodell – Single Source of Truth                                      |
-| [`libs/shared-types/src/schemas.ts`](../libs/shared-types/src/schemas.ts) | Alle Zod-Schemas und DTOs                                                     |
+| Dokument                                                                                                | Inhalt                                                                        |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [`AGENT.md`](../AGENT.md)                                                                               | KI-Coding-Regeln und Architektur-Leitplanken                                  |
+| [`Backlog.md`](../Backlog.md)                                                                           | Alle User Stories mit Priorität und Akzeptanzkriterien                        |
+| [`docs/architecture/handbook.md`](architecture/handbook.md)                                             | Ausführliches Architektur-Handbuch                                            |
+| [`docs/architecture/architecture-consistency-check.md`](architecture/architecture-consistency-check.md) | Aktueller Architektur-/Code-Abgleich und dokumentierte Driftpunkte            |
+| [`docs/README.md`](README.md)                                                                           | Doku-Landkarte nach Rolle und Thema                                           |
+| [`docs/ENVIRONMENT.md`](ENVIRONMENT.md)                                                                 | Umgebungsvariablen (Backend, Rate-Limits, Admin)                              |
+| [`docs/SECURITY-OVERVIEW.md`](SECURITY-OVERVIEW.md)                                                     | Sicherheit, DSGVO, Rollen — Kurzüberblick                                     |
+| [`docs/TESTING.md`](TESTING.md)                                                                         | Tests lokal, CI-Jobs (`npm test`, Lint, Build)                                |
+| [`docs/GLOSSAR.md`](GLOSSAR.md)                                                                         | App-Begriffe (Workflows, UI, Rollen) — einheitlich mit ADRs/Features verlinkt |
+| [`docs/architecture/decisions/`](architecture/decisions/)                                               | Architecture Decision Records (ADRs)                                          |
+| [`docs/diagrams/diagrams.md`](diagrams/diagrams.md)                                                     | Mermaid-Diagramme (Backend, Frontend, DB, Sequenz)                            |
+| [`prisma/schema.prisma`](../prisma/schema.prisma)                                                       | Datenbankmodell – Single Source of Truth                                      |
+| [`libs/shared-types/src/schemas.ts`](../libs/shared-types/src/schemas.ts)                               | Alle Zod-Schemas und DTOs                                                     |
 
 ### Zurücksetzen auf einen bekannten Stand
 
 Falls die Umgebung kaputt geht oder du einen sauberen Ausgangspunkt brauchst:
 
 ```bash
+# Nur ausführen, wenn lokale Änderungen wirklich verworfen werden dürfen.
 git fetch origin --prune
 git switch main
 git reset --hard origin/main
@@ -432,8 +441,7 @@ npm run clean:generated
 npm ci
 ```
 
-Wenn du bewusst auf einen historischen Zwischenstand zurueckspringen willst, pruefe erst die im Repo
-wirklich vorhandenen Tags mit `git tag --list` und waehle dann einen passenden Referenzpunkt.
+Wenn du bewusst auf einen historischen Zwischenstand zurückspringen willst, prüfe erst die im Repo wirklich vorhandenen Tags mit `git tag --list` und wähle dann einen passenden Referenzpunkt.
 
 ---
 
@@ -441,24 +449,28 @@ wirklich vorhandenen Tags mit `git tag --list` und waehle dann einen passenden R
 
 ### 9.1 Produkt & UI — [GLOSSAR.md](GLOSSAR.md)
 
-**Session**, **Host**, **Kanal**, **Blitzlicht**, **Preset**, **Bonus-Code** usw.: Die zentralen **nutzer- und produktnahen Begriffe** (inkl. Abgrenzung z. B. Blitzlicht vs. `quickFeedback`) stehen im **[Projekt-Glossar](GLOSSAR.md)**. Bei neuen Features mit eigenem Vokabular dort Einträge pflegen (siehe Pflegehinweis in der Datei).
+**Session**, **Host**, **Kanal**, **Blitzlicht**, **Kurzantwort**, **Effective Vote**, **Service-/Load-Status**, **Moderator** und **Tempo**: Die zentralen **nutzer- und produktnahen Begriffe** (inkl. Abgrenzung z. B. Blitzlicht vs. `quickFeedback` oder Tempo vs. eigener Session-Kanal) stehen im **[Projekt-Glossar](GLOSSAR.md)**. Bei neuen Features mit eigenem Vokabular dort Einträge pflegen (siehe Pflegehinweis in der Datei).
 
 ### 9.2 Technik (Onboarding-Kurzreferenz)
 
-| Begriff            | Erklärung                                                                                                                                                                            |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Monorepo**       | Ein einzelnes Git-Repository, das mehrere Pakete enthält (hier: Backend, Frontend, shared-types). Verwaltet über npm Workspaces.                                                     |
-| **tRPC**           | TypeScript Remote Procedure Call – Framework für typsichere API-Kommunikation ohne REST-Boilerplate. Frontend und Backend teilen sich die Typen direkt.                              |
-| **Zod**            | TypeScript-Validierungsbibliothek. Definiert Schemas, die sowohl zur Laufzeit (Eingabevalidierung) als auch zur Compile-Zeit (Typen) genutzt werden.                                 |
-| **Prisma**         | ORM (Object-Relational Mapping) für Node.js. Übersetzt TypeScript-Objekte in SQL-Queries. Das Schema in `schema.prisma` definiert die Datenbankstruktur.                             |
-| **DTO**            | Data Transfer Object – ein gefiltertes Datenobjekt, das nur die Felder enthält, die der Empfänger sehen darf. Zentral für die Sicherheit (kein `isCorrect` für Teilnehmende).        |
-| **CRDT**           | Conflict-free Replicated Data Type – Datenstruktur, die parallele Änderungen auf mehreren Geräten automatisch und ohne Konflikte zusammenführt. Verwendet über die Bibliothek Yjs.   |
-| **Yjs**            | JavaScript-Bibliothek für CRDTs. Speichert Daten in IndexedDB (Browser-Datenbank) und synchronisiert Änderungen als kleine „Deltas" über WebSockets.                                 |
-| **Pub/Sub**        | Publish/Subscribe – Messaging-Muster, bei dem ein Sender (Publisher) Nachrichten veröffentlicht und alle registrierten Empfänger (Subscribers) diese erhalten. Umgesetzt über Redis. |
-| **ADR**            | Architecture Decision Record – kurzes Dokument, das eine technische Entscheidung, ihre Begründung und Alternativen festhält. Liegt unter `docs/architecture/decisions/`.             |
-| **Subscription**   | tRPC-Mechanismus für Echtzeit-Kommunikation über WebSockets. Der Client registriert sich für Events, die der Server aktiv pusht (z. B. „neuer Teilnehmer beigetreten").              |
-| **IndexedDB**      | Browsereigene NoSQL-Datenbank für große Datenmengen. Wird hier von Yjs genutzt, um Quizzes lokal zu persistieren – auch nach Browser-Neustart.                                       |
-| **Data-Stripping** | Sicherheitsmechanismus: Das Backend entfernt sensible Felder (z. B. `isCorrect`) aus Objekten, _bevor_ sie an Teilnehmende gesendet werden – verhindert Schummeln via DevTools.      |
+| Begriff                  | Erklärung                                                                                                                                                                                                 |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Monorepo**             | Ein einzelnes Git-Repository, das mehrere Pakete enthält (hier: Backend, Frontend, shared-types). Verwaltet über npm Workspaces.                                                                          |
+| **tRPC v11**             | TypeScript Remote Procedure Call – Framework für typsichere API-Kommunikation ohne REST-Boilerplate. Frontend und Backend teilen sich die Typen direkt.                                                   |
+| **Zod v4**               | TypeScript-Validierungsbibliothek. Definiert Schemas, die sowohl zur Laufzeit (Eingabevalidierung) als auch zur Compile-Zeit (Typen) genutzt werden.                                                      |
+| **Prisma 7.4.x**         | ORM (Object-Relational Mapping) für Node.js. Übersetzt TypeScript-Objekte in SQL-Queries. Das Schema in `schema.prisma` definiert die Datenbankstruktur.                                                  |
+| **DTO**                  | Data Transfer Object – ein gefiltertes Datenobjekt, das nur die Felder enthält, die der Empfänger sehen darf. Zentral für die Sicherheit (kein `isCorrect` für Teilnehmende).                             |
+| **CRDT**                 | Conflict-free Replicated Data Type – Datenstruktur, die parallele Änderungen auf mehreren Geräten automatisch und ohne Konflikte zusammenführt. Verwendet über die Bibliothek Yjs.                        |
+| **Yjs**                  | JavaScript-Bibliothek für CRDTs. Speichert Daten in IndexedDB (Browser-Datenbank) und synchronisiert Änderungen als kleine Deltas über WebSockets.                                                        |
+| **Pub/Sub**              | Publish/Subscribe – Messaging-Muster, bei dem ein Sender Nachrichten veröffentlicht und registrierte Empfänger sie erhalten. Im Repo gezielt genutzt, aber nicht als globaler Pfad für jedes Frage-Event. |
+| **ADR**                  | Architecture Decision Record – kurzes Dokument, das eine technische Entscheidung, ihre Begründung und Alternativen festhält. Liegt unter `docs/architecture/decisions/`.                                  |
+| **Subscription**         | tRPC-Mechanismus für Echtzeit-Kommunikation über WebSockets. Der Client registriert sich für Events, die der Server aktiv pusht (z. B. „neuer Teilnehmer beigetreten").                                   |
+| **IndexedDB**            | Browsereigene NoSQL-Datenbank für große Datenmengen. Wird hier von Yjs genutzt, um Quizzes lokal zu persistieren – auch nach Browser-Neustart.                                                            |
+| **Data-Stripping**       | Sicherheitsmechanismus: Das Backend entfernt sensible Felder (z. B. `isCorrect`) aus Objekten, _bevor_ sie an Teilnehmende gesendet werden – verhindert Schummeln via DevTools.                           |
+| **Effective Vote**       | Auswertungsregel für Quiz-Wertungen: Bei Peer Instruction ersetzt Runde 2 die Runde 1; ohne Runde 2 zählt Runde 1. Gilt für Leaderboards, Scorecards, Teamwertung und Bonus-Codes.                        |
+| **SHORT_TEXT**           | Bewertbarer Kurzantwort-Fragetyp für kurze Text-, Zahlen- und Einheitenantworten. Technisch eigener `QuestionType`, nicht Freitext mit Punkten.                                                           |
+| **MOTD**                 | Message of the Day – Plattform-Kommunikation mit öffentlicher Read-API, Admin-Pflege, Archiv und aggregierten Interaktionszählern.                                                                        |
+| **Service-/Load-Status** | `serviceStatus` beschreibt den Betriebszustand, `loadStatus` die aktuelle Systemlast. Beide kommen über `health.footerBundle`/`health.stats` in den Footer und Detaildialog.                              |
 
 ---
 

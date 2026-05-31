@@ -6,6 +6,8 @@
 **Datum:** 2026-04-03  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 `ADR-0006` hat das Zielbild für Host- und Admin-Autorisierung beschrieben: Rechte dürfen in einer accountfreien App **nicht** über URLs oder bloße Kenntnis eines Session-Codes entstehen. Im tatsächlichen Repo-Stand waren dafür mehrere konkrete Härtungsschritte nötig:
@@ -104,6 +106,10 @@ Für alle Live-Zugriffe gilt künftig konsistent:
 - Neue standalone-Blitzlicht-Host-Aktionen dürfen nicht implizit an Session-Host-Rechte gebunden werden.
 - Neue quizbezogene Sammlungs-/Historie-Endpunkte müssen prüfen, ob `quizId` allein ausreicht; im Zweifel denselben **`accessProof`** nutzen.
 - Öffentliche Endpunkte müssen auf **zweckgebundene Minimaldaten** geprüft werden, besonders bei Teilnehmerlisten und Session-Historie.
+
+## Repo-Abgleich 2026-05-31
+
+Die Härtung ist weiterhin im Code sichtbar: `hostProcedure` schuetzt Host- und Presenter-nahe Sessionpfade, `x-host-token` und `x-feedback-host-token` werden im tRPC-Client gesetzt, Quiz-Historienzugriffe laufen ueber `accessProof` bzw. gebundene `historyScopeId`, und `getActiveQuizIds`, Bonus-Codes sowie letztes Session-Feedback pruefen den Besitznachweis.
 
 ---
 

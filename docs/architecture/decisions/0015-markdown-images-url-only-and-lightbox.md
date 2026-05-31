@@ -6,6 +6,8 @@
 **Datum:** 2026-03-20  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 In Fragen und Antwortoptionen wird Markdown inkl. Bilder genutzt (Backlog Story 1.7). Aus **Datenschutz** und **Betriebsminimalismus** soll arsnova.eu **keine von Nutzer:innen hochgeladenen Bilddateien** verarbeiten oder persistieren.
@@ -53,6 +55,10 @@ Gleichzeitig soll die Darstellung auf **Smartphones** der gängigen Chat-/Messen
 - **Broken Links** und **Drittanbieter-Ausfälle**: Bilder können verschwinden oder langsam laden — ohne eigenes Hosting keine Garantie.
 - **Tracking / Drittanbieter**: externe Server können **Logs** schreiben; ggf. in **Hilfe/Datenschutz** hinweisen (Inhaltspflege durch Dozent:innen).
 - **Hotlinking-Richtlinien** fremder Sites können Bilder blockieren.
+
+## Repo-Abgleich 2026-05-31
+
+Die URL-Policy ist in `renderMarkdownWithKatex` und den Shared-Type-Schemas abgebildet. Quiz-/Session-Inhalte verwenden HTTPS-Bilder; System-/Admin-Kontexte duerfen zusaetzlich App-Assets zulassen. Die Lightbox ist als `MarkdownImageLightboxDirective` plus Dialog implementiert und in Quiz-, Session-, Feedback-, MOTD- und News-/Legal-Kontexten eingebunden.
 
 ## Alternativen (geprüft)
 

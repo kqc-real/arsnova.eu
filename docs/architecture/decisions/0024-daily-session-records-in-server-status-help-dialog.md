@@ -2,9 +2,11 @@
 
 # ADR-0024: Session-Tagesrekord-Verlauf fuer Session-Teilnehmende im Server-Status-Hilfedialog
 
-**Status:** Proposed  
-**Datum:** 2026-05-04  
+**Status:** Accepted
+**Datum:** 2026-05-04
 **Entscheider:** Projektteam
+
+**Letzter Repo-Abgleich:** 2026-05-31
 
 ## Kontext
 
@@ -110,6 +112,15 @@ Die Aktualisierung des Verlaufs erfolgt ueber das bestehende Polling von `health
 - Die Implementierung darf das bestehende Footer-Layout nicht ausweiten.
 - Die API muss 30 Tage konsistent und chronologisch liefern.
 - Neue Labels, Ueberschriften und ARIA-Texte folgen dem vorhandenen i18n-Prozess.
+
+## Implementierungsstand (2026-05-31)
+
+- Prisma enthaelt `DailyStatistic` mit eindeutigem UTC-`date` und `maxParticipantsSingleSession`.
+- Migration `20260504144000_add_daily_statistic` legt die Tabelle und den Unique-Index an.
+- `platformStatistic.ts` aktualisiert Allzeit- und Tagesrekord atomar per `GREATEST`; Fehler werden geloggt und blockieren den Join-Flow nicht.
+- `health.stats` liefert `dailyHighscores` mit genau 30 chronologischen Eintraegen und serverseitiger Null-Auffuellung.
+- `ServerStatusHelpDialogComponent` rendert den Verlauf im Dialog; `server-status-help-dialog-chart.ts` laedt `chart.js` lazy.
+- Backend- und Frontend-Tests decken leere Historie, gefuellte Tage und Chart-Rendering ab.
 
 ---
 

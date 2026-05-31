@@ -6,6 +6,8 @@
 **Datum:** 2026-04-15  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Die bisherige Footer-Ampel wurde als ein einziger Status (`serverStatus`) aus Lastindikatoren berechnet. In der Produktnutzung fuehrte das zu zwei Problemen:
@@ -117,6 +119,12 @@ Stand 2026-04-15:
   - `serviceStatus` fuer Footer-Ampel
   - `loadStatus` und Lastmetriken im Statusdialog
 - Tests in Backend/Frontend auf neues Modell angepasst.
+
+Stand 2026-05-31:
+
+- `health.footerBundle` liefert den schlanken Footer-Pfad; volle `health.stats` bleiben fuer den Hilfe-Dialog reserviert.
+- `ServerStatsDTO` enthaelt zusaetzlich `dailyHighscores` aus ADR-0024, ohne die semantische Trennung von `serviceStatus` und `loadStatus` aufzubrechen.
+- Die SLO-Telemetrie bleibt in `sloTelemetry.ts` und der tRPC-Middleware konzentriert.
 
 ---
 

@@ -6,6 +6,8 @@
 **Datum:** 2026-04-30  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 arsnova.eu nutzt im Frontend einen Angular-Service-Worker (`SwUpdate`) und zeigt bei `VERSION_READY` derzeit einen sichtbaren Update-Hinweis mit expliziter Aktion `Jetzt laden`.
@@ -158,6 +160,11 @@ Stand 2026-04-30:
 - Die Aktualisierung erfolgt erst nach expliziter Nutzeraktion über `reloadWithUpdate()`.
 - Ein interner Seitenwechsel innerhalb der Angular-App führt derzeit nicht automatisch zur Aktivierung des Updates.
 - Für lokale Tests kann der Banner im Dev-Modus per `window.__triggerUpdateBanner()` eingeblendet werden.
+
+Stand 2026-05-31:
+
+- Das Muster bleibt unveraendert: kein Standard-Modal, kein stilles Live-Reload, explizite Nutzeraktion.
+- Die PWA-Manifest-Cache-Busting-Details fuer Android-WebAPK sind separat in [`../pwa-webapk-android.md`](../pwa-webapk-android.md) dokumentiert.
 
 ---
 

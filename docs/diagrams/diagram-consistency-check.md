@@ -1,7 +1,8 @@
 # Konsistenzprüfung: Diagramme · Handbuch · Backlog · Code
 
-**Datum:** 2026-05-30  
-**Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0015/0016, ROUTES_AND_STORIES.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md).
+**Datum:** 2026-05-31
+
+**Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0015/0016, ADR-0021, ADR-0028/0029, ROUTES_AND_STORIES.md, GLOSSAR.md, onboarding.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md).
 
 **Epic 0:** Alle Stories 0.1–0.6 umgesetzt (Redis, tRPC WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD). health.check, health.footerBundle, health.stats, health.ping, Rate-Limit-Service und Frontend ServerStatusWidget sind implementiert.
 
@@ -193,17 +194,17 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 
 ---
 
-## 6. Konsistenz Diagramme ↔ Code (Implementierungsstand 2026-05-30)
+## 6. Konsistenz Diagramme ↔ Code (Implementierungsstand 2026-05-31)
 
-| Aspekt              | Im Diagramm                                                                      | Im Code                                                  | Status |
-| ------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------- | ------ |
-| Backend appRouter   | health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd           | `apps/backend/src/routers/index.ts` – gleiche Sub-Router | ✓      |
-| Persistenz / Prisma | PostgreSQL, Session-Modelle, Feedback, Q&A, BonusToken, Statistiken, MOTD, Audit | `prisma/schema.prisma`                                   | ✓      |
-| Redis / Rate-Limit  | Pub/Sub, Sliding Window                                                          | `rateLimit`-Lib, Session-Publish                         | ✓      |
-| WebSocket tRPC      | Port 3001, Subscriptions                                                         | Backend ws-Server + Frontend `wsLink`                    | ✓      |
-| Yjs Relay           | y-websocket :3002                                                                | Backend Relay + Frontend CRDT-Pfad                       | ✓      |
-| Frontend            | Routen Home, Quiz, Session, Join, Feedback, Admin, Help, News-Archiv, Legal      | `app.routes.ts` + Feature-Module                         | ✓      |
-| Shared-Types        | Zod-Schemas / DTOs in Diagramm-Validation-Box                                    | `libs/shared-types`, von tRPC genutzt                    | ✓      |
+| Aspekt              | Im Diagramm                                                                      | Im Code                                                                      | Status |
+| ------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
+| Backend appRouter   | health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd           | `apps/backend/src/routers/index.ts` – gleiche Sub-Router                     | ✓      |
+| Persistenz / Prisma | PostgreSQL, Session-Modelle, Feedback, Q&A, BonusToken, Statistiken, MOTD, Audit | `prisma/schema.prisma`                                                       | ✓      |
+| Redis / Rate-Limit  | Sliding Window, Token-TTLs, Presence-/Live-Hilfsdaten, Blitzlicht-Zustand        | `rateLimit`, `hostAuth`, `adminAuth`, Presence/Load-Signale, `quickFeedback` | ✓      |
+| WebSocket tRPC      | Port 3001, Subscriptions                                                         | Backend ws-Server + Frontend `wsLink`                                        | ✓      |
+| Yjs Relay           | y-websocket :3002                                                                | Backend Relay + Frontend CRDT-Pfad                                           | ✓      |
+| Frontend            | Routen Home, Quiz, Session, Join, Feedback, Admin, Help, News-Archiv, Legal      | `app.routes.ts` + Feature-Module                                             | ✓      |
+| Shared-Types        | Zod-Schemas / DTOs in Diagramm-Validation-Box                                    | `libs/shared-types`, von tRPC genutzt                                        | ✓      |
 
 **Bewertung:** Die zentralen Architekturdiagramme entsprechen dem aktuell umgesetzten Produktstand. Bewusste Vereinfachungen: keine vollständige Auflistung aller Procedures, Utility-Dateien (z. B. Vollbild-Helfer) und feingranulare UI-Komponenten.
 
@@ -231,9 +232,9 @@ Story 0.4: Das **ServerStatusWidget** ist in diagrams.md (App-Shell / Shared) ab
 
 ## 8. Zusammenfassung
 
-### 8.1 Repo-weiter Mermaid-Audit 2026-05-30
+### 8.1 Repo-weiter Mermaid-Audit und Doku-Abgleich
 
-Zusätzlich zu `docs/diagrams/*` wurden alle weiteren Markdown-Dateien mit Mermaid-Blöcken geprüft:
+Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte Render-Prüfung. Am 2026-05-31 wurden die zentralen Diagrammtexte, Standangaben und Redis-/Realtime-Begriffe mit Architektur-Handbuch, Glossar, Onboarding und Funktionsübersicht abgeglichen. Zusätzlich zu `docs/diagrams/*` wurden alle weiteren Markdown-Dateien mit Mermaid-Blöcken geprüft:
 
 | Datei                                              | Ergebnis                                                                                                                           |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -247,7 +248,7 @@ Zusätzlich zu `docs/diagrams/*` wurden alle weiteren Markdown-Dateien mit Merma
 | `docs/praktikum/HANDOUT-TAGESREKORD-KI-AGENT.md`   | Tagesrekord-Sequenzen auf `footerBundle`/`stats`-Trennung und dynamisches Chart-Lazy-Loading aktualisiert                          |
 | `docs/architecture/quiz-library-sync.md`           | Geprüft; keine fachliche Änderung nötig                                                                                            |
 
-Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 20 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`) sind in Diagramm-/Onboarding-Doku abgebildet; alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien rendern mit `mmdc 11.15.0` erfolgreich.
+Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 20 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft; am 2026-05-31 erfolgte nur der fachliche Text- und Begriffsabgleich.
 
 | Aspekt                                     | Bewertung                                                                                                              |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |

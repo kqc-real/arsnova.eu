@@ -2,9 +2,11 @@
 
 # Quiz-Sammlung – Synchronisierung
 
-**Zielgruppe:** Entwicklerinnen, Entwickler und technisch interessierte Personen  
-**Stand:** 2026-04-30  
+**Zielgruppe:** Entwicklerinnen, Entwickler und technisch interessierte Personen
+**Stand:** 2026-05-31
 **Status:** Living Document
+
+**Repo-Abgleich 2026-05-31:** Die Sync-Architektur ist weiterhin frontendzentriert. `QuizStoreService` ist die zentrale Implementierung, `getYjsWsUrl()` liefert lokale Direkt- und Proxy-Pfade, der Yjs-Stack ist im Frontend auf `yjs@13.6.30` gepinnt und `apps/frontend/scripts/check-quiz-sync-flow.mjs` bleibt der lokale Smoke-Test.
 
 ## 1. Zweck
 
@@ -101,6 +103,7 @@ Die Sammlung wird bewusst auf mehreren Ebenen gehalten:
 Die URL wird im Frontend bestimmt:
 
 - lokal: `ws://127.0.0.1:3002`
+- lokaler Build/Proxy auf Port `4200`: `ws://<host>:4200/yjs-ws`
 - produktionsnah: `wss://<host>/yjs-ws`
 
 Damit kann dieselbe Frontend-Logik lokal und hinter Reverse Proxy betrieben werden.
@@ -117,7 +120,8 @@ Hintergrund: `y-websocket@3.0.0` und `y-indexeddb@9.0.12` erwarten weiterhin `yj
 Ein Upgrade des Frontends auf `yjs@14` fuehrte lokal reproduzierbar dazu, dass die Yjs-
 Initialisierung im Browser schon vor dem WebSocket-Aufbau scheitert und die UI dauerhaft
 `Offline (nur lokal)` anzeigt. Der Backend-Relay `@y/websocket-server` behaelt deshalb
-seine eigene `yjs@14`-Kopie, waehrend das Frontend auf `13.6.30` gepinnt bleibt.
+seine eigene `@y/y`-/`yjs`-14er-Kopie, waehrend Root und Frontend per Dependency und
+`overrides` auf `13.6.30` gepinnt bleiben.
 
 ## 5. Einstiegswege in die Synchronisierung
 
@@ -191,6 +195,9 @@ Der Smoke-Test prueft aktuell:
 Wenn der Test auf einem UI-Selector scheitert, ist zuerst das Script an die aktuelle UI
 anzupassen. Die Sync-Regression vom 30.04.2026 war dagegen ein echter Initialisierungsfehler
 im Yjs-Stack und liess sich im Browser an `Offline (nur lokal)` ohne Yjs-WebSocket erkennen.
+
+Stand 2026-05-31 bleibt die Sicherheitsgrenze unveraendert: Der Yjs-Relay autorisiert keine
+Raeume fachlich. Der Sync-Link bzw. die Room-ID ist weiterhin das Bearer-Secret.
 
 ## 7. Datenfluss bei lokalen Änderungen
 
@@ -367,16 +374,16 @@ Zusätzlich ist der UI-Stand per 2026-04-03 fachlich nachgeschärft:
 
 Trotz dieser Validierung gibt es klare Grenzen:
 
-1. **Besitz des Links ist Besitz des Zugriffs.**  
+1. **Besitz des Links ist Besitz des Zugriffs.**
    Wer den Link kennt, kann die Sammlung auf einem anderen Gerät öffnen.
 
-2. **Die technische Room-ID im Sync-Link ist selbst der Zugriffsschlüssel.**  
+2. **Die technische Room-ID im Sync-Link ist selbst der Zugriffsschlüssel.**
    Ohne zusätzliche Serverprüfung ist sie ein Bearer-Secret und kein separat gehärteter Sicherheitsmechanismus.
 
-3. **Geräte- und Herkunftsinformationen sind Vertrauenssignale, keine Beweise.**  
+3. **Geräte- und Herkunftsinformationen sind Vertrauenssignale, keine Beweise.**
    `deviceLabel`, `browserLabel` und Awareness-Daten stammen aus Clientangaben und sind nicht als manipulationssichere Nachweise zu verstehen.
 
-4. **Es gibt derzeit keine serverseitige Raumautorisierung.**  
+4. **Es gibt derzeit keine serverseitige Raumautorisierung.**
    Weder Signaturen noch Ablaufdaten oder Rotation schützen einen geleakten Link.
 
 ### 12.4 Sicherheitsziel des Features
@@ -405,21 +412,21 @@ Stand 2026-04-03:
 
 Damit ist Stufe A inhaltlich weitgehend vorbereitet, aber die Story 1.6c insgesamt noch nicht erledigt, weil die serverseitigen Schutz- und Missbrauchsmaßnahmen weiter offen sind.
 
-- **Sync-Link als primären Zugangspfad kommunizieren**  
+- **Sync-Link als primären Zugangspfad kommunizieren**
   Die UI sollte klar sagen, dass der Link selbst der Zugriffsschlüssel ist.
 
-- **Security-Wording ergänzen**  
+- **Security-Wording ergänzen**
   Zum Beispiel: „Wer den Sync-Link hat, kann diese Sammlung auf einem anderen Gerät öffnen.“
 
 #### Stufe B: mittelfristig
 
-- **Rate-Limits für Sync-Raum-Zugriffe**  
+- **Rate-Limits für Sync-Raum-Zugriffe**
   Schutz gegen massenhafte Join-Versuche oder Raumtests.
 
-- **Signiertes Share-Token statt nackter Raum-ID**  
+- **Signiertes Share-Token statt nackter Raum-ID**
   Zugriff über `roomId + token` oder vergleichbares Share-Modell.
 
-- **Link-Rotation**  
+- **Link-Rotation**
   Möglichkeit, alte Freigaben ungültig zu machen.
 
 #### Stufe C: langfristig
@@ -448,19 +455,19 @@ Für dieses Feature gilt ausdrücklich:
 
 Typische Zielkonflikte:
 
-1. **Serverseitige Autorisierung vs. direkte Sync-Geschwindigkeit**  
+1. **Serverseitige Autorisierung vs. direkte Sync-Geschwindigkeit**
    Signierte Share-Tokens, Rotation, TTLs und serverseitige Prüfpfade erhöhen den Schutz, kosten aber zusätzliche Roundtrips, Cache-Lookups oder Validierungsarbeit.
 
-2. **Widerrufbarkeit vs. Local-First-Unabhängigkeit**  
+2. **Widerrufbarkeit vs. Local-First-Unabhängigkeit**
    Je stärker ein Zugriff jederzeit widerrufbar sein soll, desto stärker muss der Server in den Zugriffspfad eingebunden werden. Das steht im Spannungsfeld zum Ziel, Sammlungen lokal, offlinefähig und mit minimaler Serverkenntnis nutzbar zu halten.
 
-3. **Vertrauenssignale vs. Schreiblast**  
+3. **Vertrauenssignale vs. Schreiblast**
    Herkunftsinformationen, Zeitstempel und Gerätehinweise erhöhen Transparenz und damit Sicherheitsempfinden, erzeugen aber zusätzliche lokale Persistenz und Vergleichslogik.
 
-4. **Kurze Token-Lebensdauer vs. Bedienfluss**  
+4. **Kurze Token-Lebensdauer vs. Bedienfluss**
    Kurze TTLs und häufige Rotation reduzieren das Schadensfenster bei geleakten Links, erhöhen aber Reibung, Reconnect-Komplexität und potenziell sichtbare Unterbrechungen.
 
-5. **Mehr Auditierbarkeit vs. Zero-Knowledge-Prinzip**  
+5. **Mehr Auditierbarkeit vs. Zero-Knowledge-Prinzip**
    Mehr Sicherheitsnachweise verlangen meist mehr serverseitige Spuren, was der gewollt schlanken, datensparsamen und local-first-orientierten Architektur entgegenläuft.
 
 Die Konsequenz ist: Optimierung darf hier nie eindimensional erfolgen. Wer Sicherheit erhöht, muss die Performance-Folgen mitdenken. Wer Performance optimiert, muss ausdrücklich benennen, welche Sicherheits- oder Kontrolltiefe dadurch begrenzt wird.
@@ -521,19 +528,19 @@ Mögliche Ursachen:
 
 Wer das Feature erweitert, sollte folgende Regeln einhalten:
 
-1. **Origin nicht überschreiben.**  
+1. **Origin nicht überschreiben.**
    Ursprung bleibt stabil, auch wenn später weitere Geräte dieselbe Sammlung öffnen.
 
-2. **Remote- und Origin-Semantik nicht vermischen.**  
+2. **Remote- und Origin-Semantik nicht vermischen.**
    `lastRemoteChangedBy...` ist nicht dasselbe wie `originDevice...`.
 
-3. **Lokale Änderungen immer mit Geräte-Metadaten anreichern.**  
+3. **Lokale Änderungen immer mit Geräte-Metadaten anreichern.**
    Sonst verliert die UI ihre Vertrauenssignale.
 
-4. **UI-Texte und Übersetzungen immer gemeinsam pflegen.**  
+4. **UI-Texte und Übersetzungen immer gemeinsam pflegen.**
    Das Feature lebt stark von verständlicher Sprache.
 
-5. **Bei neuen Sync-Signalen zwischen dauerhaft und flüchtig unterscheiden.**  
+5. **Bei neuen Sync-Signalen zwischen dauerhaft und flüchtig unterscheiden.**
    `Awareness` ist live, aber nicht historisch belastbar.
 
 ## 16. Performance und Skalierung
@@ -561,20 +568,20 @@ Diese Maßnahmen ändern die Architektur nicht grundlegend, senken aber unnötig
 
 Wenn die Sammlungen größer werden oder mehrere Geräte intensiver parallel arbeiten, sind dies die nächsten Hebel:
 
-1. **Legacy-Mirror schrittweise zurückbauen**  
+1. **Legacy-Mirror schrittweise zurückbauen**
    Der zusätzliche `QUIZ_STORAGE_LEGACY_KEY` verdoppelt einen Teil der lokalen Schreibarbeit.
 
-2. **Room-Mirror weiter reduzieren**  
+2. **Room-Mirror weiter reduzieren**
    Langfristig sollte `localStorage` nur noch kleine Metadaten halten, nicht die eigentliche Sammlung.
 
-3. **Messpunkte einbauen**  
+3. **Messpunkte einbauen**
    Sinnvoll sind Logging oder Telemetrie für:
    - Größe des serialisierten Sammlungs-Snapshots
    - Dauer von Mirror-Writes
    - Dauer von Yjs-Writes
    - Anzahl der Schreibvorgänge pro Nutzeraktion
 
-4. **Yjs granular statt als JSON-Blob nutzen**  
+4. **Yjs granular statt als JSON-Blob nutzen**
    Der größte Architekturhebel ist ein Umbau auf `Y.Map`/`Y.Array` pro Quiz, Frage und Antwort.
    Dann würden nicht mehr komplette Sammlungen neu serialisiert, sondern nur echte Teiländerungen.
 
@@ -591,19 +598,19 @@ Für die Weiterentwicklung ist diese Reihenfolge sinnvoll:
 
 Die wichtigsten Wechselwirkungen zwischen Performance und Sicherheit:
 
-1. **Weniger lokale Mirror = besser für Performance, schlechter für Diagnose und Recovery**  
+1. **Weniger lokale Mirror = besser für Performance, schlechter für Diagnose und Recovery**
    Wenn lokale Spiegel reduziert werden, sinkt Main-Thread-Last. Gleichzeitig werden Fehlersuche, Vertrauenssignale und Wiederanlaufpfade dünner.
 
-2. **Granulare Yjs-Strukturen = besser für Performance, aber aufwendiger in Validierung und Schutzmodell**  
+2. **Granulare Yjs-Strukturen = besser für Performance, aber aufwendiger in Validierung und Schutzmodell**
    Feingranulare CRDTs reduzieren Vollserialisierung, vergrößern aber die Zahl der veränderbaren Teilobjekte. Das erhöht die Anforderungen an Konsistenzregeln, Validierung und Sicherheitsreview.
 
-3. **Mehr Security-Gates = mehr Latenz auf Hotpaths**  
+3. **Mehr Security-Gates = mehr Latenz auf Hotpaths**
    Rate-Limits, Token-Prüfungen, Share-Auflösung und Rotation schützen den Zugriff, fügen aber zusätzliche Prüfungen in genau die Pfade ein, die für ein „fühlt sich sofort an“ besonders kritisch sind.
 
-4. **Mehr Metadaten = mehr Transparenz, aber auch mehr Schreibaufwand**  
+4. **Mehr Metadaten = mehr Transparenz, aber auch mehr Schreibaufwand**
    Alles, was Herkunft und letzte Änderungen sichtbarer macht, verbessert Vertrauen. Gleichzeitig erhöht es die Zahl der lokalen Persistenzvorgänge.
 
-5. **Mehr Serverwissen = bessere Kontrolle, aber schwächeres Zero-Knowledge-Profil**  
+5. **Mehr Serverwissen = bessere Kontrolle, aber schwächeres Zero-Knowledge-Profil**
    Stärkere Zugriffskontrolle oder Auditierung brauchen meist mehr serverseitigen Zustand. Das verbessert Sicherheit, verschiebt aber die Architektur weg vom reinen Relay-Modell.
 
 Deshalb gilt als Leitregel:

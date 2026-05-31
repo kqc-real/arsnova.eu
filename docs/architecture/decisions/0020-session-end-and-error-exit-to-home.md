@@ -6,6 +6,8 @@
 **Datum:** 2026-04-06  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Mit `ADR-0009` wurde die einheitliche Live-Session-Struktur fuer Quiz, Q&A und Blitzlicht festgelegt. In der praktischen Nutzung zeigte sich jedoch eine Inkonsistenz bei Session-Pfaden, deren fachlicher Kontext nicht mehr gueltig ist:
@@ -110,6 +112,12 @@ Stand 2026-04-06:
 - Presenter zeigt bei fehlender oder ungueltiger Session-Metadatenlage eine lokale CTA `Zur Startseite`; Live-Freitext-Refreshes ueberschreiben den Fehlerzustand dann nicht mehr.
 - Standalone-Blitzlicht-Vote zeigt im Fehlerzustand eine lokale CTA `Zur Startseite`.
 - Vote behaelt das bestehende Abschluss-Gate fuer Bonus-Code bzw. Session-Feedback und fuehrt von dort ueber eine explizite CTA zur Startseite.
+
+Stand 2026-05-31:
+
+- Die Exit-Regel bleibt gueltig fuer Host, Presenter, Join, Vote und Standalone-Blitzlicht.
+- Host-Route-Guards leiten bei fehlendem oder ungueltigem Host-Token in den Join- bzw. Vote-Pfad, statt Host-Rechte aus der URL abzuleiten.
+- Session-Ende bleibt mit Bonus-Code-/Feedback-Gates vereinbar; solche Gates sind die dokumentierte Ausnahme vom Sofort-Redirect.
 
 ---
 

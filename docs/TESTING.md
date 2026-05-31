@@ -4,7 +4,7 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-04-01 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **20** und **22**; Jobs: `build`, `typecheck`, `lint`, `audit` informational, `test`, `docker`, optional `deploy`)
+**Stand:** 2026-05-31 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **20** und **22**; Jobs: `build`, `typecheck`, `lint`, `audit` informational, `test`, `docker`, optional `deploy`)
 
 ---
 
@@ -49,13 +49,16 @@ Matrix: **zwei** LTS-Versionen (**20** und **22**), `fail-fast: false`.
 
 ## Optionale / manuelle Checks (nicht immer CI)
 
-| Befehl (Frontend-Workspace) | Zweck                       |
-| --------------------------- | --------------------------- |
-| `check:viewport`            | Viewport 320px-Smoke        |
-| `smoke:host-present-auth`   | Host/Present-Auth-Smoke     |
-| `smoke:quiz-sync`           | Quiz-Sync-Flow-Skript       |
-| `smoke:unified-session`     | Unified-Session-Flow-Skript |
-| `lighthouse:a11y`           | Lighthouse A11y (lokal)     |
+| Befehl (Frontend-Workspace) | Zweck                               |
+| --------------------------- | ----------------------------------- |
+| `check:viewport`            | Viewport 320px-Smoke                |
+| `smoke:host-present-auth`   | Host/Present-Auth-Smoke             |
+| `smoke:host-music`          | Host-Musik-/Sound-Smoke             |
+| `smoke:short-text`          | Kurzantwort-Flow-Smoke              |
+| `smoke:quiz-sync`           | Quiz-Sync-Flow-Skript               |
+| `smoke:unified-session`     | Unified-Session-Flow-Skript         |
+| `lighthouse:a11y`           | Lighthouse A11y (lokal)             |
+| `benchmark:word-cloud`      | Wortwolken-Benchmark / Regressionen |
 
 Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
 
@@ -63,7 +66,7 @@ Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
 
 Der Quiz-Sync-Smoke-Test ist **kein** reiner `ng serve`-Test. Er erwartet bewusst den
 lokalisierten Build mit HTTP-, tRPC-WS- und Yjs-WS-Proxy auf **Port 4200**, weil er gegen
-`/{locale}/...` laeuft und einen echten Yjs-Relay benoetigt.
+`/{locale}/...` läuft und einen echten Yjs-Relay benötigt.
 
 Vorgehen:
 
@@ -78,15 +81,27 @@ Optional kann die Locale gesetzt werden, Standard ist **`en`**:
 BASE_URL=http://localhost:4200 LOCALE=de npm run smoke:quiz-sync -w @arsnova/frontend
 ```
 
-Der Smoke-Test nutzt die aktuellen UI-Selektoren fuer **Quiz anlegen**, **Sync-Link importieren**
-und **Quiz speichern**. Wenn er wieder auf Selektoren faellt, ist das zunaechst ein Testscript-
+Der Smoke-Test nutzt die aktuellen UI-Selektoren für **Quiz anlegen**, **Sync-Link importieren**
+und **Quiz speichern**. Wenn er wieder auf Selektoren fällt, ist das zunächst ein Testscript-
 Problem und nicht automatisch ein Sync-Defekt.
 
-Wichtig fuer Wiederholungsläufe: `serve:localize:api` serviert den bereits gebauten Stand aus
-`dist/browser`. Nach Frontend- oder Script-Aenderungen daher vor dem naechsten Smoke-Test erneut
-`npm run build:localize -w @arsnova/frontend` ausfuehren.
+Wichtig für Wiederholungsläufe: `serve:localize:api` serviert den bereits gebauten Stand aus
+`dist/browser`. Nach Frontend- oder Script-Änderungen daher vor dem nächsten Smoke-Test erneut
+`npm run build:localize -w @arsnova/frontend` ausführen.
 
-`npm run build:localize -w @arsnova/frontend` ist im Repo kein nackter Angular-Build: Nach `ng build --configuration production --localize` folgen noch Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, die lokalisierten `ngsw.json` und die Root-`index.html`.
+`npm run build:localize -w @arsnova/frontend` ist im Repo kein nackter Angular-Build: Nach `ng build --configuration production --localize` folgen noch Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, MOTD-Assets, die lokalisierten `ngsw.json` und die Root-`index.html`.
+
+### Weitere lokale Flow-Smokes
+
+Diese Skripte erwarten ebenfalls eine laufende lokale App mit Backend und Frontend:
+
+```bash
+BASE_URL=http://localhost:4200 npm run smoke:short-text -w @arsnova/frontend
+BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
+BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
+```
+
+Für Performance-/Lastarbeit liegen ergänzend Arbeitsbausteine in `scripts/load/` und `docs/implementation/LASTTEST-ARSNOVA-ARCHITEKTUR-ARBEITSAUFTRAG.md`. Sie sind bewusst nicht Teil der Standard-CI-Gates.
 
 ---
 
@@ -95,10 +110,10 @@ Wichtig fuer Wiederholungsläufe: `serve:localize:api` serviert den bereits geba
 - **Backend:** `apps/backend/src/__tests__/*.test.ts`, Vitest (u. a. Session, Vote, Rate-Limit, **MOTD/Admin-MOTD** — Epic 10).
 - **Frontend:** `*.spec.ts` neben Komponenten/Services (Angular/Vitest), siehe [AGENT.md](../AGENT.md).
 
-Gezielte Regressionen fuer die aktuelle Host-Haertung:
+Gezielte Regressionen für die aktuelle Host-Härtung:
 
 - **Q&A / moderatorView:** `npm run test -w @arsnova/backend -- src/__tests__/qa.test.ts`
-- Die Datei deckt explizit ab, dass `qa.list` und `qa.onQuestionsUpdated` mit `moderatorView: true` ohne Host-Token serverseitig abgelehnt und mit gueltigem Host-Token zugelassen werden.
+- Die Datei deckt explizit ab, dass `qa.list` und `qa.onQuestionsUpdated` mit `moderatorView: true` ohne Host-Token serverseitig abgelehnt und mit gültigem Host-Token zugelassen werden.
 
 ---
 

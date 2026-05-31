@@ -6,6 +6,8 @@
 **Datum:** 2026-05-08  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 arsnova.eu ist keine klassische CRUD-Anwendung, sondern eine Live-Plattform mit mehreren potenziell lastkritischen Eigenschaften:
@@ -236,6 +238,10 @@ Fuer stark risikobehaftete Features ist eine Freigabe mit Randbedingungen ausdru
 - Wenn ein Feature den bestehenden Single-Host-Betrieb oder die Zielarchitektur plausibel gefaehrdet, ist Architektur- oder Infrastrukturentkopplung vor breiter Freigabe zu pruefen.
 - Selbstgehostete LLM-Komponenten duerfen nicht stillschweigend auf denselben Ressourcen mitlaufen wie kritische Live-Pfade, ohne dass Isolation und Fallback dokumentiert sind.
 - "Konstruktive Kritik" bedeutet im Projektkontext: Risiko benennen, Hypothese formulieren, Mess- oder Designantwort festlegen, Ergebnis dokumentieren.
+
+## Repo-Abgleich 2026-05-31
+
+Die Regel ist weiterhin aktiv und sichtbar in Folgeentscheidungen: ADR-0026 priorisiert konkrete Hotpaths, ADR-0027 fuehrt Join-Glattung ein, ADR-0028 haelt Scoring-Aggregation linear, und ADR-0029 behandelt Tempo trotz Blitzlicht-Wiederverwendung als performance-kritisches Feature. Story 8.8 ist im Code noch offen und muss vor Umsetzung den hier geforderten Performance-Steckbrief praktisch einloesen.
 
 ---
 

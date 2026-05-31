@@ -2,11 +2,13 @@
 
 # 🏗️ Architektur-Übersicht: arsnova.eu
 
-**Erstellt:** 2026-02-20  
-**Zuletzt aktualisiert:** 2026-05-30  
+**Erstellt:** 2026-02-20
+
+**Zuletzt aktualisiert:** 2026-05-31
+
 **Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur
 
-**Status:** Epics 0–5 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, **10 (MOTD)** umgesetzt · Epic 6 größtenteils umgesetzt (6.5, 6.6 offen) · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.stats` · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Status:** Epics 0–5 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, **10 (MOTD)** umgesetzt · Epic 6 größtenteils umgesetzt (6.5, 6.6 offen) · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung und Effective-Vote-Regel umgesetzt · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 ## System-Architektur-Diagramm
 
@@ -14,7 +16,7 @@
 %%{init: {'flowchart': {'curve': 'basis', 'nodeSpacing': 58, 'rankSpacing': 84, 'padding': 18}}}%%
 graph LR
     subgraph "Monorepo (npm Workspaces)"
-        subgraph "Frontend - Angular 21"
+        subgraph "Frontend - Angular 21.2.x"
             FE[Angular App<br/>Port 4200]
             FE_COMP[Standalone Components<br/>Signals · Angular Material 3]
             FE_ROUTES["Routing<br/>/quiz<br/>/session/:code/(host|present|vote)<br/>/join/:code · /feedback/:code · /feedback/:code/vote<br/>/admin · /help · /news-archive · /legal/*<br/>optional locale prefix:<br/>/de /en /fr /es /it"]
@@ -36,7 +38,7 @@ graph LR
 
     subgraph "Datenbanken & Storage (Epic 0.1 ✅)"
         PG[(PostgreSQL<br/>Prisma ORM<br/>Sessions · Votes · Feedback<br/>MOTD · Platform/DailyStatistic)]
-        REDIS[(Redis<br/>Pub/Sub · Rate-Limit<br/>Docker Compose)]
+        REDIS[(Redis<br/>Rate-Limit · Token-TTLs<br/>Live-Hilfsdaten)]
         IDB[(IndexedDB<br/>Yjs CRDT<br/>Local-First Quizzes)]
     end
 
@@ -73,7 +75,7 @@ graph LR
     %% Echtzeit-Verbindungen
     WS --> BE
     YWS --> BE
-    REDIS --> WS
+    REDIS -.-> WS
 
     %% Client-Verbindungen
     DOZENT --> FE
@@ -130,38 +132,39 @@ sequenceDiagram
     S->>FE: Code eingeben
     FE->>BE: session.join()
     BE->>PG: Participant erstellen
-    BE->>R: Pub/Sub: onParticipantJoined
-    R-->>D: Echtzeit-Update
+    BE->>R: Presence-/Live-Hilfsdaten aktualisieren
+    BE-->>FE: tRPC Subscription: onParticipantJoined
+    FE-->>D: Echtzeit-Update
 
     Note over D,S: Frage wird gestartet (Story 2.6: Zwei-Phasen optional)
     D->>FE: Nächste Frage
     FE->>BE: session.nextQuestion()
     BE->>PG: Status = QUESTION_OPEN (oder ACTIVE wenn readingPhaseEnabled=false)
-    BE->>R: Pub/Sub: onQuestionRevealed (QuestionPreviewDTO – nur Fragenstamm)
-    R-->>S: Lesephase: Frage anzeigen, keine Antworten
+    BE-->>S: tRPC Subscription: onQuestionRevealed (QuestionPreviewDTO – nur Fragenstamm)
+    S-->>S: Lesephase: Frage anzeigen, keine Antworten
 
     opt Lesephase aktiv
         D->>FE: Antworten freigeben
         FE->>BE: session.revealAnswers()
         BE->>PG: Status = ACTIVE
-        BE->>R: Pub/Sub: onAnswersRevealed (QuestionStudentDTO OHNE isCorrect)
-        R-->>S: Antwort-Buttons + Countdown
+        BE-->>S: tRPC Subscription: onAnswersRevealed (QuestionStudentDTO OHNE isCorrect)
+        S-->>S: Antwort-Buttons + Countdown
     end
 
     Note over S,BE: Student votet
     S->>FE: Antwort auswählen
     FE->>BE: vote.submit()
     BE->>PG: Vote speichern
-    BE->>R: Pub/Sub: onVoteCountUpdate
-    R-->>D: Live-Update
+    BE-->>FE: tRPC Subscription: onVoteCountUpdate
+    FE-->>D: Live-Update
 
     Note over D,S: Ergebnisse werden aufgelöst
     D->>FE: Ergebnisse zeigen
     FE->>BE: session.revealResults()
     BE->>PG: Status = RESULTS
     BE->>BE: Scoring berechnen
-    BE->>R: Pub/Sub: onResultsRevealed (MIT isCorrect!)
-    R-->>S: Ergebnisse + Punkte
+    BE-->>S: tRPC Subscription: onResultsRevealed (MIT isCorrect!)
+    S-->>S: Ergebnisse + Punkte
 
     Note over D,S: Zwischen Fragen: PAUSED, dann erneut nextQuestion, Session-Ende mit session.end → FINISHED
 ```
@@ -327,7 +330,7 @@ graph LR
 mindmap
   root((arsnova.eu))
     Frontend
-      Angular 21
+      Angular 21.2.x
         Standalone Components
         Signals
         Control Flow @if @for
@@ -354,8 +357,9 @@ mindmap
         Schema
         Migrations
       Redis
-        Pub/Sub
         Rate Limiting
+        Token TTLs
+        Live Hilfsdaten
     Shared
       shared-types Library
         Zod Schemas
@@ -438,7 +442,7 @@ erDiagram
     }
 ```
 
-### Erweiterungen (Team, Bonus, Feedback, Q&A, Session-Kanaele, Admin)
+### Erweiterungen (Team, Bonus, Feedback, Q&A, Session-Kanäle, Admin)
 
 ```mermaid
 %%{init: {'flowchart': {'nodeSpacing': 46, 'rankSpacing': 70, 'padding': 14}}}%%

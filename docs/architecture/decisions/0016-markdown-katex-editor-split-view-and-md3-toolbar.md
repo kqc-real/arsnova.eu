@@ -6,6 +6,8 @@
 **Datum:** 2026-03-20  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Story 1.7 liefert Markdown- und KaTeX-Darstellung in Vorschau und Live-Session. Die **Bearbeitung** soll für Dozent:innen **konsistent**, **mobile-tauglich** und **DSGVO-konform** bleiben. Es besteht Bedarf nach:
@@ -44,6 +46,10 @@ Ein vollständig selbst gebautes **WYSIWYG** (ohne Document-Engine) ist langfris
 
 - Alle Toolbar-Labels, Dialoge und ARIA-Hinweise nach **ADR-0008** in **de/en/fr/es/it**.
 - Fokus-Management bei Dialogen; keine ausschließlich **hover-only**-Bedienung.
+
+## Repo-Abgleich 2026-05-31
+
+`MarkdownKatexEditorComponent` ist produktiv vorhanden und wird in `quiz-new`, `quiz-edit` und `quiz-preview` verwendet. Die Vorschau laeuft ueber `renderMarkdownWithKatex`, Bild-Einfuegung verlangt HTTPS-URLs, und die Lightbox-Directive ist in Editor- und gerenderten Kontexten eingebunden. Der KI-Paste-Pfad bleibt davon getrennt, wie ADR-0017 festlegt.
 
 ## Konsequenzen
 

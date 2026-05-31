@@ -6,7 +6,11 @@
 **Datum:** 2026-04-26  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 > **Hinweis (2026-05-27):** Diese Entscheidung wurde vor Implementierung verworfen. Das Produktziel wird nicht mehr als vierter Session-Kanal umgesetzt, sondern als vordefiniertes Blitzlicht-Template gemaess [ADR-0029](./0029-tempo-as-predefined-blitzlicht-template.md).
+>
+> **Repo-Abgleich (2026-05-31):** Der Code bestaetigt die Superseding-Entscheidung: `SessionLiveChannelSchema` enthaelt weiterhin nur `quiz`, `qa`, `quickFeedback`; es gibt keine Prisma-Felder `tempoEnabled` oder `tempoOpen` und keinen `tempoRouter`.
 
 ## Kontext
 

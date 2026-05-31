@@ -6,6 +6,8 @@
 **Datum:** 2026-03-17  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 > Hinweis: Der Kontext dieser ADR beschreibt bewusst die Ausgangslage zum Entscheidungszeitpunkt im Maerz 2026. Der aktuelle Produktstand ist weiter unten unter **Umsetzungsstand (Mai 2026)** dokumentiert.
 
 ## Kontext
@@ -123,6 +125,7 @@ Die Entscheidung ist inzwischen umgesetzt. Der aktuelle Produktstand ist:
 - Stopwoerter werden produktseitig standardmaessig ausgeblendet; der fruehere Umschalter wurde aus der UI entfernt, weil er die Live-Darstellung in Host und Presenter meist nur verschlechtert hat.
 - Der CSV-Export liefert fuer den aktuellen Termpfad Label, Score, Document-Frequency, Typ, Varianten und Quellen; alte Rohaggregationen bleiben kompatibel.
 - Der PNG-Export bleibt bewusst ein geordneter Zeilenexport nach Wortgroesse. Er bildet nicht den exakten d3-Livezustand ab, weil diese Variante fuer Doku, Versand und Moderationsunterlagen stabiler und lesbarer ist als ein fragiler WYSIWYG-Snapshot.
+- Repo-Abgleich 2026-05-31: `d3-cloud` ist als Frontend-Dev-Dependency vorhanden, `WordCloudComponent` nutzt die gemeinsame Layout-Engine fuer Freitext- und Q&A-Wortwolken, und `WordCloudTermService` kapselt die fachliche Term-Extraktion getrennt vom Layout.
 
 ## Konsequenzen
 

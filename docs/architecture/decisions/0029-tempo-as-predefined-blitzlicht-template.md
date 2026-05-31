@@ -6,6 +6,8 @@
 **Datum:** 2026-05-27
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 `ADR-0022` hatte Tempo zunaechst als eigenstaendigen vierten Session-Kanal vorgesehen. Diese Richtung wurde vor Implementierung wieder verworfen.
@@ -194,6 +196,18 @@ Die bevorzugte technische Richtung ist:
 - **Eigener vierter Session-Kanal:** verworfen; zu hoher Architektur- und UI-Aufwand fuer das eigentliche Produktziel.
 - **Tempo als normales ABCD-/Mood-Blitzlicht ohne eigene Semantik:** verworfen; Labels, Toggle-off und Tendenz waeren fachlich unscharf.
 - **Permanentes Parallel-Widget fuer Teilnehmende:** verworfen; wuerde wieder auf einen separaten Kanal hinauslaufen und die bestehende IA aufbrechen.
+
+## Implementierungsstand (2026-05-31)
+
+Diese ADR ist die aktuelle Zielentscheidung fuer Story 8.8, aber noch nicht im Code umgesetzt.
+
+Aktueller Ist-Stand:
+
+- `QuickFeedbackTypeEnum` enthaelt `MOOD`, `YESNO`, `YESNO_BINARY`, `TRUEFALSE_UNKNOWN`, `STARS`, `ABCD`; `TEMPO` fehlt noch.
+- `SessionLiveChannelSchema` bleibt bei `quiz`, `qa`, `quickFeedback`; es gibt keinen vierten `tempo`-Kanal.
+- `quickFeedback.vote` arbeitet fuer die bestehenden Typen weiterhin mit klassischer Einmal-Vote-Semantik.
+- Die Startseite und Blitzlicht-Host-Auswahl enthalten noch keine Tempo-Spotlight-Kachel.
+- Der Implementierungsplan fuer das Zielbild liegt in `docs/implementation/STORY-8.8-IMPLEMENTATION-PLAN.md`.
 
 ## Referenzen
 

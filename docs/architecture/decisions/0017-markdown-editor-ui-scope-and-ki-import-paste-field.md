@@ -6,6 +6,8 @@
 **Datum:** 2026-03-23  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Mit **ADR-0016** ist die technische Richtung für den **Markdown-/KaTeX-Editor** (Split-View, MD3-Toolbar, gemeinsame Render-Pipeline) festgelegt. Offen war die **fachliche Abgrenzung**: Welche Eingabefelder sollen diesen Editor überhaupt nutzen, und wie verhält sich das zum **KI-Quiz-Import**, bei dem Nutzer:innen **JSON aus dem Chat einfügen**?
@@ -47,6 +49,10 @@ Eine **gemeinsame** Komponente darf es nur geben, wenn sie **Modi** strikt trenn
 ### 4. Romanische Sprachen: kompakte UI-Texte
 
 Für **Toolbar-, Button- und Chip-Labels** in **fr/es/it** sind Formulierungen zu bevorzugen, die **semantisch** mit **de/en** übereinstimmen, aber **kürzer** und für **kleine Touch-Flächen** tauglich sind (**ADR-0008**, **ADR-0014**). Ausführliche Beschreibungen bleiben in **Hilfetexten** oder der **Hilfe-Seite**.
+
+## Repo-Abgleich 2026-05-31
+
+Der Markdown-/KaTeX-Editor wird in Quiz-Authoring-Flows genutzt; der KI-Import bleibt ein validierter Paste-/Importpfad ohne Monaco-, CodeMirror- oder sonstigen JSON-IDE-Zwang. Fehler- und Normalisierungshinweise fuer Importformate liegen im Quiz-Import-Code, nicht in einer gemeinsamen Rich-Text-Komponente.
 
 ## Konsequenzen
 

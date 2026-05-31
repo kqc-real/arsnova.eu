@@ -6,6 +6,8 @@
 **Datum:** 2026-05-24
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 arsnova.eu zeigt Quiz-Punkte an mehreren Stellen an:
@@ -309,6 +311,11 @@ Stand 2026-05-24:
 - Die Effective-Vote-Regel ist in `apps/backend/src/routers/session.ts` implementiert.
 - Einzel-Leaderboard, Team-Leaderboard, Bonuscodes, persoenliche Scorecard und persoenliches Endergebnis nutzen die gemeinsame Regel.
 - Regressionstests sichern Runde-2-Ersatz und ignorierte Runde-2-Antwortzeiten fuer Einzelwertung, Teamwertung und persoenliche Scorecard ab.
+
+Stand 2026-05-31:
+
+- `SHORT_TEXT` bleibt der dritte bewertbare Fragetyp; ein eigener numerischer Schaetzfrage-Typ ist noch nicht Teil von `QuestionTypeEnum`.
+- Neue bewertbare Fragetypen muessen weiterhin `quizScoring.ts`, Effective-Vote-Auswahl, Leaderboards, Scorecards, Bonuscodes und Exporte gemeinsam erweitern.
 
 ---
 

@@ -6,6 +6,8 @@
 **Datum:** 2026-03-04  
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Die App ist für Lehrende und Teilnehmende **accountfrei**; Sessions und Quiz-Daten werden über Codes und Tokens gesteuert. Es braucht klare Regeln:
@@ -14,14 +16,14 @@ Die App ist für Lehrende und Teilnehmende **accountfrei**; Sessions und Quiz-Da
 2. **Admin-Rolle:** Für rechtliche und operative Kontrolle (Inspektion, Löschen, Auszug für Behörden) wird eine **Admin-Rolle** benötigt – ohne Einführung von Nutzerkonten für normale Nutzende.
 3. **Einheitliche Routen:** Alle Routen sollen englisch, kurz und prägnant sein; an der URL soll erkennbar sein, wo man ist und welche Rolle man hat.
 
-## Implementierungsstatus im Repo (Stand 2026-04-03)
+## Implementierungsstatus im Repo (Stand 2026-05-31)
 
 - **Routenstruktur:** `host`, `present`, `vote`, `join`, `admin`, `help`, `news-archive`, `legal/*` sind im Angular-Router vorhanden.
 - **Admin-Modell:** Das Admin-Secret mit opakem Session-Token in Redis und zentraler `adminProcedure` ist umgesetzt.
 - **Host-Modell:** Das Host-Token-Zielbild ist im Repo jetzt weitgehend umgesetzt: `session.create` liefert ein Host-Token, Host-only-Endpunkte laufen über `hostProcedure`, und Host-/Present-Routen sind clientseitig tokengebunden.
 - **`/session/:code` ohne Segment:** Der Router entscheidet kontextabhängig zwischen Host-Ansicht (mit Token) und Join-Pfad (ohne Token).
 - **Standalone-Blitzlicht:** `/feedback/:code` verwendet einen separaten Feedback-Host-Token statt des Session-Host-Tokens.
-- **Moderator-Route:** Als Zielbild beschrieben, aber im aktuellen Frontend-Router noch nicht als eigene Route vorhanden.
+- **Moderator-Route:** Als Zielbild beschrieben, aber im aktuellen Frontend-Router weiterhin nicht als eigene Route vorhanden. Q&A-Moderation laeuft im Ist-Stand ueber die Host-Ansicht und `qa.moderate` als `hostProcedure`, nicht ueber ein eigenes Moderator-Token.
 
 Die konkrete Härtung des Ist-Stands ist in [ADR-0019](./0019-host-hardening-and-owner-bound-session-access.md) beschrieben.
 

@@ -10,6 +10,10 @@ Accepted
 
 2026-02-25
 
+## Letzter Repo-Abgleich
+
+2026-05-31
+
 ## Kontext
 
 Unsere Angular-Anwendung soll Material-3-konform umgesetzt werden, mit konsistentem Erscheinungsbild und klarer Governance fuer Styling-Entscheidungen.
@@ -28,7 +32,7 @@ Das erhoeht das Risiko von:
 
 ## Entscheidung
 
-Im gesamten Repository verwenden wir **kein Tailwind CSS**.
+Im Angular-Frontend (`apps/frontend`) verwenden wir **kein Tailwind CSS**.
 
 Verbindlich sind:
 
@@ -74,7 +78,7 @@ Verbindlich sind:
 ## Durchsetzung und Governance
 
 - Jede UI-PR muss folgende Checks bestehen:
-  - kein Tailwind im Repository, inklusive neuer Klassen, Configs oder Utilities
+  - kein Tailwind in `apps/frontend`, inklusive neuer Klassen, Configs oder Utilities
   - keine fragilen Material-DOM-Overrides
   - neue Farben, Typo oder Shape nur ueber Tokenquellen
   - Light/Dark-Verhalten getestet
@@ -92,7 +96,7 @@ Verbindlich sind:
 
 Eine UI-Aenderung gilt erst als erledigt, wenn alle folgenden Punkte erfuellt sind:
 
-- Keine Tailwind-Nutzung im Repository.
+- Keine Tailwind-Nutzung im Angular-Frontend `apps/frontend`.
 - Neue oder geaenderte UI verwendet Angular-Material-Komponenten als Standard oder dokumentierte Ausnahme.
 - Farben, Typografie, Shape und Elevation werden ueber Tokens umgesetzt.
 - Keine fragilen CSS-Overrides gegen interne Angular-Material-DOM-Strukturen.
@@ -129,11 +133,15 @@ Jede Ausnahme muss dokumentiert sein (Scope, Dauer, Rueckbauplan).
 
 ### Dokumentierte Ausnahmen
 
-| Scope | Dauer | Begruendung | Rueckbauplan |
-| --- | --- | --- | --- |
-| `apps/landing` (Astro) nutzt Tailwind | Offen | Separate Codebase, Marketing-Landing, kein Angular. Kein Konflikt mit `apps/frontend` Material-Theme. | Bei Bedarf auf eigenes Designsystem oder statische Styles umstellen. |
-| `index.html` meta `theme-color` mit Hex-Werten | Dauerhaft | HTML-meta-Attribute unterstuetzen keine CSS-Variablen. Browser-Limitation. | Kein Rueckbau moeglich; Werte (`#f5f5f5` / `#1c1b1f`) orientieren sich an M3-Surface-Farben. |
+| Scope                                                                              | Dauer            | Begruendung                                                                                                                             | Rueckbauplan                                                                                                             |
+| ---------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `apps/landing` (Astro) nutzt Tailwind                                              | Offen            | Separate Codebase, Marketing-Landing, kein Angular. Kein Konflikt mit `apps/frontend` Material-Theme.                                   | Bei Bedarf auf eigenes Designsystem oder statische Styles umstellen.                                                     |
+| `index.html` meta `theme-color` mit Hex-Werten                                     | Dauerhaft        | HTML-meta-Attribute unterstuetzen keine CSS-Variablen. Browser-Limitation.                                                              | Kein Rueckbau moeglich; Werte (`#f5f5f5` / `#1c1b1f`) orientieren sich an M3-Surface-Farben.                             |
 | Home: `.mat-button-toggle`-Selektoren fuer transparente Theme- oder Preset-Toggles | Bis Override-API | Offizielle `mat.button-toggle-overrides()` decken transparenten Look (Playful/Dark) nicht zuverlaessig ab. Farben bleiben tokenbasiert. | Sobald Material-Override-API transparente Toggle-Gruppen unterstuetzt, auf Overrides umstellen und Selektoren entfernen. |
+
+## Repo-Abgleich 2026-05-31
+
+Tailwind ist weiterhin nur in der separaten Astro-Landing-App (`apps/landing`) eingebunden. In `apps/frontend` bleibt Angular Material 3 mit SCSS- und Token-Schicht massgeblich; die dokumentierte Ausnahme fuer `apps/landing` ist deshalb keine Ausnahme von der Angular-Frontend-Regel, sondern eine Scope-Abgrenzung.
 
 ## Verwandte Dokumente
 

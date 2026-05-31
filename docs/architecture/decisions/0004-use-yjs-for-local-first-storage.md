@@ -6,6 +6,8 @@
 **Datum:** 2026-02-18
 **Entscheider:** Projektteam
 
+**Letzter Repo-Abgleich:** 2026-05-31
+
 ## Kontext
 
 Das Kernprinzip von arsnova.eu ist die **"Zero-Knowledge"-Infrastruktur**: Die **Quiz-Sammlung** der Dozenten (geistiges Eigentum; UI: **Deine Quiz-Sammlung**) wird nicht als dauerhafte Kopie auf einem zentralen Server gespeichert. Dozenten sollen ohne Account arbeiten können; die Sammlung lebt primär lokal im Browser. Beim **Start einer Live-Session** wird eine **Kopie** des gewählten Quiz an den Server übermittelt (Story 2.1a), damit Abstimmungen und Präsentation laufen können – diese Kopie dient nur der laufenden Session.
@@ -16,8 +18,12 @@ Wir verwenden **Yjs** als CRDT-Framework (Conflict-free Replicated Data Types) k
 
 - Die **Quiz-Sammlung** wird als **Yjs-Dokumente** modelliert und lebt in der lokalen IndexedDB; der Server speichert **keine dauerhafte** Quiz-Sammlung.
 - Die lokale Persistenz erfolgt über `y-indexeddb`.
-- Synchronisation zwischen Geräten desselben Dozenten (z.B. Laptop & iPad) läuft über einen WebSocket-Relay-Server, der nur verschlüsselte Deltas weiterleitet.
+- Synchronisation zwischen Geräten derselben Lehrperson (z. B. Laptop & iPad) läuft über einen WebSocket-Relay-Server, der Yjs-Deltas weiterleitet. Vertraulichkeit entsteht im Produktbetrieb ueber TLS (`wss`) und die schwer erratbare Room-ID; es gibt aktuell keine zusaetzliche Ende-zu-Ende-Verschluesselung der Yjs-Updates auf Anwendungsebene.
 - Beim Start einer Live-Session wird eine Kopie des Quiz an den Server gesendet (Quiz-Upload); der Server hält diese Kopie nur für die Dauer der Session (PostgreSQL/Prisma). Zero-Knowledge bezieht sich damit auf die **dauerhafte** Speicherung der Dozenten-Sammlung, nicht auf die temporäre Session-Kopie.
+
+## Repo-Abgleich 2026-05-31
+
+Der aktuelle Frontend-Sync bleibt auf `yjs@13.6.30`, `y-websocket@3.0.0` und `y-indexeddb@9.0.12` festgelegt. Der Backend-Relay startet weiterhin einen separaten Yjs-WebSocket-Prozess; dessen 14er-Yjs-Abhaengigkeit ist ueber Package-Overrides isoliert. Details und Smoke-Test-Ablauf stehen in [`../quiz-library-sync.md`](../quiz-library-sync.md).
 
 ## Konsequenzen
 
