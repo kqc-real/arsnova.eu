@@ -54,14 +54,15 @@
 3. Living Documentation in `arsnova.eu`
 4. ADR-Struktur: Kontext, Entscheidung, Konsequenzen
 5. Backlog und DoD als verbindende Artefakte
-6. `docs/cursor-context.md` als kondensiertes Systemwissen
+6. `docs/serena.md` und `mem:core` als Einstieg in kondensiertes Systemwissen
 7. Chancen und Pflegeaufwand
 8. Fazit: Dokumentation als Teil der Architektur
 
 ### Demo-Dateien
 
 - `docs/architecture/handbook.md`
-- `docs/cursor-context.md`
+- `docs/serena.md`
+- `.serena/memories/core.md`
 - `docs/architecture/decisions/0003-use-trpc-for-api.md`
 - `docs/architecture/decisions/0004-use-yjs-for-local-first-storage.md`
 
@@ -319,7 +320,7 @@
 
 1. Titel: KI als Architekturasistent, nicht als Ersatzarchitekt
 2. Vibe Coding im Projektkontext
-3. `AGENT.md`, `.cursorrules` und `cursor-context`
+3. `AGENT.md`, `.cursorrules` und Serena-Memories
 4. Baby-Steps, Shared Types zuerst, Testpflicht
 5. Code Defense gegen fehlerhafte KI-Ausgaben
 6. ADR `0007`: Promptarchitektur als Softwarearchitektur
@@ -330,7 +331,8 @@
 
 - `AGENT.md`
 - `.cursorrules`
-- `docs/cursor-context.md`
+- `docs/serena.md`
+- `.serena/memories/core.md`
 - `docs/vibe-coding/vibe-coding-szenario.md`
 - `docs/architecture/decisions/0007-prompt-architecture-ki-quiz.md`
 

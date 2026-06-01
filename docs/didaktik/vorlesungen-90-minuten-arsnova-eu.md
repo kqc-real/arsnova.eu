@@ -85,7 +85,7 @@ Wie bleibt Architekturwissen lebendig, wenn Teams und Anforderungen sich veraend
 #### 25-45 Min: Repo-Walkthrough
 
 - `docs/architecture/handbook.md`
-- `docs/cursor-context.md`
+- `docs/serena.md` und `.serena/memories/core.md`
 - `docs/architecture/decisions/0003-use-trpc-for-api.md`
 - `docs/architecture/decisions/0004-use-yjs-for-local-first-storage.md`
 
@@ -399,7 +399,7 @@ Wie nutzt man KI produktiv, ohne die Verantwortung an sie abzugeben?
 
 #### 10-25 Min: Kontext
 
-- `AGENT.md`, `.cursorrules` und `docs/cursor-context.md` als Governance-Artefakte
+- `AGENT.md`, `.cursorrules` und Serena-Memories als Governance-Artefakte
 - Rolle von Promptarchitektur ueber ADR `0007`
 
 #### 25-45 Min: Repo-Walkthrough

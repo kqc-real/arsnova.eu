@@ -63,7 +63,7 @@ In **Fallstudie Software Engineering** (und für SQM als Beobachtungs-/Review-Ko
 
 ## 3. Agentische KI in der Synergie
 
-Die KI unterstützt **beide** Kurse mit dem **gleichen Projektkontext** (AGENT.md, cursor-context, Backlog), aber mit unterschiedlichen Aufgaben:
+Die KI unterstützt **beide** Kurse mit dem **gleichen Projektkontext** (AGENT.md, Serena-Memories ab `mem:core`, Backlog), aber mit unterschiedlichen Aufgaben:
 
 | Kurs                     | Typische KI-Nutzung                                                                                                                                                                                |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

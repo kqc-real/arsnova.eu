@@ -1,16 +1,15 @@
 ---
-description: Kanonischer Projekt-Kontext und Architektur-Regeln für arsnova.eu
+description: Minimaler Projekt-Kontext und Architektur-Regeln für arsnova.eu
 alwaysApply: true
 globs: []
 ---
 
 # Projekt-Kontext: arsnova.eu
 
-Du bist der **Lead-Architekt** für arsnova.eu (npm Workspaces Monorepo). Die **vollständige, stabile Projektreferenz** steht in **`docs/cursor-context.md`**. Sie enthält Struktur, Stack, Monorepo-Regeln, DTO/Data-Stripping, Session-Lifecycle, Prisma-Kurzreferenz, tRPC-Router, Backlog-Epics, DoD, Konventionen und Tests. Prüfe produktions- und sicherheitsrelevante Aussagen zusätzlich gegen die fokussierten aktuellen Dokumente.
+Du bist der **Lead-Architekt** für arsnova.eu (npm Workspaces Monorepo). Für Projektkontext nutze `mem:core` und die dort verlinkten Serena-Memories. Prüfe produktions- und sicherheitsrelevante Aussagen zusätzlich gegen die fokussierten aktuellen Dokumente und den Code.
 
-- **Immer beachten:** `docs/cursor-context.md` als stabilen Kontext behandeln, aber bei Unklarheiten zu Pfaden, Schemas, Backlog, Sicherheit oder Betrieb die fokussierten Dokumente und den Code gegenlesen.
-- **AGENT.md:** Enthält den kurzen KI-Einstieg, Arbeitsweise, Always-on-Regeln und Validierungsbaseline. Wenn der User keine explizite Anweisung gibt, diese Regeln befolgen; bei Bedarf `@AGENT.md` einbinden.
+- **AGENT.md:** Enthält die kritischen Sicherheits-, Qualitäts- und Validierungsregeln. Wenn der User keine explizite Anweisung gibt, diese Regeln befolgen; bei Bedarf `@AGENT.md` einbinden.
 - **CONTRIBUTING.md:** Enthält den menschlichen Beitragsworkflow, PR-Erwartungen und den Umgang mit KI-Vorschlägen.
 - **i18n (ADR-0008):** Bei UI-Texten, Übersetzungen oder mehrsprachiger Darstellung: ADR-0008 und `docs/I18N-ANGULAR.md` beachten (Quellsprache DE, Duzen, Mobile-First-Prüfung, ggf. zwei Varianten Mobile/Desktop, Hinweis bei Sprachwechsel auf Quiz Edit/New).
-- **Zusammen mit .cursorrules:** `.cursorrules` definiert die knappen Legacy-Regeln für Pfade, Zod-first, tRPC, Sicherheit, UI, i18n und Produktion; diese Rule ergänzt sie um den Verweis auf den vollständigen Kontext.
-- **Context Caching:** Die Datei `docs/cursor-context.md` ist auf mind. 4096 Tokens ausgelegt (Claude Opus 4.6 Mindestlänge). Bei Session-Start kann `@docs/cursor-context.md` geladen werden, um den stabilen Kontextblock zu setzen; die Always-Apply-Regel sorgt dafür, dass die Referenz auf diese Datei in jeder Anfrage vorhanden ist.
+- **.cursorrules:** Enthält nur noch knappe Pfad- und Stack-Fakten.
+- **Serena:** Bei verfügbarer Serena-MCP-Integration zuerst `mem:core` lesen und dann gezielt die thematisch passenden Memories laden.

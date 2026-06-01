@@ -30,7 +30,7 @@ Für den Einstieg ist Node 20 aus `.nvmrc` oder eine passende Node-22-LTS-Versio
 
 - [AGENT.md](AGENT.md) ist der kurze Einstieg für KI-Coding-Agents und sollte in KI-Sessions zuerst geladen werden.
 - [Backlog.md](Backlog.md) bleibt die Quelle für Story-Scope, Akzeptanzkriterien und Definition of Done.
-- Für Cursor-Kontext zusätzlich [docs/cursor-context.md](docs/cursor-context.md), [`.cursorrules`](.cursorrules) und [`.cursor/rules/core.mdc`](.cursor/rules/core.mdc) beachten.
+- Für KI-Kontext zusätzlich [docs/serena.md](docs/serena.md), [`.cursorrules`](.cursorrules), [`.cursor/rules/core.mdc`](.cursor/rules/core.mdc) und bei verfügbarer Serena-Integration `mem:core` beachten.
 - KI-Vorschläge immer gegen Diff, Tests, Datenschutz und Architektur prüfen. Keine Secrets, lokalen `.env`-Werte oder produktiven Zugangsdaten in Prompts, Commits oder PRs übernehmen.
 - Bestehende Änderungen anderer Personen nicht überschreiben. Vor größeren Edits `git status` prüfen und Diffs klein halten.
 

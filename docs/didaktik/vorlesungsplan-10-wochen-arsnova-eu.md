@@ -44,7 +44,7 @@ Genau diese Spannungen machen das Repo zu einer guten Grundlage fuer Software En
 | Woche | Thema                                                  | Leitfrage                                                                  | Zentrale Repo-Anker                                                                                             |
 | ----- | ------------------------------------------------------ | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | 1     | Onboarding in ein professionelles Monorepo             | Wie erschliesst man ein grosses Projekt systematisch?                      | `README.md`, `docs/onboarding.md`, `CONTRIBUTING.md`, `Backlog.md`                                              |
-| 2     | Documentation as Code und Architekturkommunikation     | Wie halten Teams Architekturwissen lebendig?                               | `docs/architecture/handbook.md`, `docs/architecture/decisions/`, `docs/cursor-context.md`                       |
+| 2     | Documentation as Code und Architekturkommunikation     | Wie halten Teams Architekturwissen lebendig?                               | `docs/architecture/handbook.md`, `docs/architecture/decisions/`, `docs/serena.md`, `.serena/memories/core.md`   |
 | 3     | Monorepo, Shared Types und Schema-first Entwicklung    | Warum beginnt Entwicklung hier mit Vertraegen statt mit UI oder DB-Code?   | `libs/shared-types/src/schemas.ts`, `prisma/schema.prisma`, `apps/backend/src/routers/index.ts`                 |
 | 4     | tRPC und End-to-End-Typsicherheit                      | Wie entsteht eine typsichere Full-Stack-API ohne REST-Boilerplate?         | ADR `0003`, `apps/backend/src/routers/`, `apps/frontend/src/app/core/trpc.client.ts`                            |
 | 5     | Zero-Knowledge, Datenschutz und Data-Stripping         | Wie wird Datenschutz als Architekturprinzip umgesetzt?                     | `docs/architecture/handbook.md`, `apps/backend/src/__tests__/dto-security.test.ts`, `prisma/schema.prisma`      |
@@ -92,7 +92,7 @@ Die Studierenden verstehen den Mehrwert von Architekturhandbuch, ADRs, Backlog u
 
 - `docs/architecture/handbook.md` als Living Documentation
 - ADRs als begruendete Entscheidungen
-- `docs/cursor-context.md` als kondensierte Projektreferenz
+- `docs/serena.md` und `mem:core` als Einstieg in die kondensierte Projektreferenz
 - Backlog und DoD als Bruecke zwischen Produkt und Technik
 
 ### Lehrwert
@@ -283,7 +283,7 @@ Die Studierenden verstehen den Unterschied zwischen “KI generiert Code” und 
 ### Schwerpunkt
 
 - `AGENT.md` und `.cursorrules`
-- `docs/cursor-context.md` als stabiler Kontext
+- `docs/serena.md` und `mem:core` als stabiler Kontext
 - Vibe-Coding-Szenario
 - ADR `0007` als Beispiel fuer Promptarchitektur
 

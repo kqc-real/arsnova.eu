@@ -1,6 +1,6 @@
 # Core
 
-- Root memory for arsnova.eu agent context. Prefer this graph over `docs/cursor-context.md` for long-lived AI context.
+- Root memory for arsnova.eu agent context. Use this graph for long-lived AI context.
 - Project: account-light, DSGVO-oriented audience-response system for quiz, Q&A, quick feedback, team/bonus modes, present view, admin, MOTD/news, PWA/i18n.
 - Repo root: `/Users/kqc/arsnova.eu`; npm workspaces monorepo with `apps/*` and `libs/*`.
 - Start with module memories:

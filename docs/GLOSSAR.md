@@ -84,7 +84,7 @@ Diese Kürzel tauchen in Doku, Tickets, Reviews, Commits und im technischen Gesp
 
 ## Domänenmodell (PostgreSQL / Prisma)
 
-**Single Source of Truth:** [`prisma/schema.prisma`](../prisma/schema.prisma). Kurzreferenz: [cursor-context.md](cursor-context.md) § 7, [Handbuch § 5](architecture/handbook.md). Diagramm-Überblick: [diagrams.md](diagrams/diagrams.md) (erDiagram).
+**Single Source of Truth:** [`prisma/schema.prisma`](../prisma/schema.prisma). Kurzreferenz: [Handbuch § 5](architecture/handbook.md). Diagramm-Überblick: [diagrams.md](diagrams/diagrams.md) (erDiagram).
 
 | Alltag / UI                                | Prisma-Modell            | Kurz                                                                                                                                    |
 | ------------------------------------------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
