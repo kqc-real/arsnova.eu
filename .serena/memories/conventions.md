@@ -1,0 +1,23 @@
+# Conventions
+
+- API/contract flow: shared Zod schema first in `libs/shared-types`, then backend procedure/model code, then frontend callers and tests.
+- No ad-hoc REST endpoints or parallel handwritten DTOs for tRPC payloads.
+- Authorization is server-side: host/admin/moderator/feedback-host behavior must use the proper token/procedure checks, not route shape, session code, `moderatorView`, or client state alone.
+- Preserve participant DTO stripping; live participant views must not receive solution-only data (`isCorrect`, answers that reveal grading, owner-bound history without proof, etc.).
+- Preserve the effective-vote rule for Peer Instruction scoring, leaderboards, bonus codes, and exports.
+- Frontend:
+  - Angular standalone components and Signals for UI state.
+  - RxJS is for async streams/operators, not default local component stores; do not introduce `BehaviorSubject` for ordinary UI state.
+  - Use Angular Material 3 and project tokens; no Tailwind in `apps/frontend`.
+  - Keep specs colocated as `<name>.spec.ts`; update nearest specs for changed behavior.
+  - UI/copy changes sync all locales (`de`, `en`, `fr`, `es`, `it`), including ARIA, placeholders, validation, and legal text when relevant.
+  - Treat 320px/mobile and localized string length as first-class UI constraints.
+- Backend:
+  - New/changed procedures normally need one success test and one rejection/error test.
+  - Prisma model changes must be followed through to backend code, shared schemas, tests, and docs when behavior/setup changes.
+- Docs:
+  - Link canonical docs instead of duplicating long explanations.
+  - Keep each document's existing language; the repo intentionally mixes German and English.
+- Formatting/linting:
+  - Prettier: single quotes, semicolons, trailing commas, print width 100, LF, 2 spaces.
+  - ESLint: no explicit `any`, no unused vars except `_` patterns, `no-console` except warn/error, `prefer-const`, `no-var`, strict `eqeqeq`.

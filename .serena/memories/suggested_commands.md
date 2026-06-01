@@ -1,0 +1,32 @@
+# Suggested Commands
+
+- First setup:
+  - `cp .env.example .env`
+  - `npm ci`
+  - `npm run setup:dev` (starts Postgres/Redis, applies Prisma db push, generates client, builds shared-types)
+- Dev servers:
+  - `npm run dev` or `npm run dev:de`: backend + German frontend.
+  - `npm run dev:en`: backend + English frontend.
+  - `npm run dev:backend`: backend only; `npm run dev:frontend` / `npm run dev:frontend:de` / `npm run dev:frontend:en`: frontend only.
+  - `npm run dev:landing`: Astro landing app.
+  - `npm run free-dev-ports` or `npm run free-port-3000` instead of manual port cleanup.
+- Docker/Prisma:
+  - `npm run docker:up:dev`: Postgres + Redis only.
+  - `npm run docker:up` / `npm run docker:down`: full compose up/down.
+  - `npm run prisma:push`, `npm run prisma:generate`, `npm run prisma:studio`.
+- Build/typecheck/test/lint:
+  - `npm run build`: shared-types -> backend -> frontend.
+  - `npm run build:prod`: shared-types -> backend -> localized frontend production build.
+  - `npm run typecheck`, `npm test`, `npm run lint`, `npm run format:check`.
+  - Workspace checks: `npm run test -w @arsnova/backend`, `npm run test -w @arsnova/frontend`, `npm run typecheck -w @arsnova/backend`, `npm run typecheck -w @arsnova/frontend`, `npm run build -w @arsnova/shared-types`.
+  - Focused Vitest: append the spec/test path after `--`, e.g. `npm run test -w @arsnova/backend -- src/__tests__/qa.test.ts`.
+- Frontend/localized/smoke:
+  - `npm run build:localize -w @arsnova/frontend` for UI/i18n changes.
+  - `BASE_URL=http://localhost:4200 npm run check:viewport -w @arsnova/frontend` for 320px viewport smoke.
+  - Other frontend smokes: `smoke:host-present-auth`, `smoke:host-music`, `smoke:short-text`, `smoke:quiz-sync`, `smoke:unified-session`, `lighthouse:a11y`, `benchmark:word-cloud`.
+- Production-like local serving:
+  - `npm run build:prod`
+  - `npm run start:prod`
+  - `npm run verify:production-serving` (optional URL argument for non-default target).
+- Serena memory maintenance:
+  - `serena memories check` from the repo root after memory graph changes.
