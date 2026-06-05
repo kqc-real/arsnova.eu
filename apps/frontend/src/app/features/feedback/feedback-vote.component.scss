@@ -530,20 +530,23 @@
   );
   box-shadow: 0 0.65rem 1.35rem color-mix(in srgb, black 6%, transparent);
   cursor: pointer;
+  outline: none;
   box-sizing: border-box;
 
-  &:hover {
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .feedback-vote__mood-btn:hover {
     border-color: var(--mat-sys-primary);
     background: linear-gradient(
       180deg,
       color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface)),
       color-mix(in srgb, var(--mat-sys-surface-container) 88%, var(--mat-sys-surface))
     );
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--mat-sys-primary);
-    outline-offset: 2px;
   }
 }
 
