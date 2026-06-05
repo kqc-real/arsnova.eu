@@ -29,7 +29,7 @@ Als Lehrperson moechte ich im bestehenden Blitzlicht ein vordefiniertes Tempo-Bl
 - [ ] Es entsteht **kein** vierter Session-Kanal, kein `tempoRouter`, kein `tempoEnabled`/`tempoOpen` im Prisma-Sessionmodell und kein persistentes Parallel-Widget.
 - [ ] Hosts koennen Tempo im Session-Blitzlicht und im Standalone-Blitzlicht starten; pro Kontext ist weiterhin genau ein Blitzlicht aktiv.
 - [ ] Startet der Host ein anderes Blitzlicht, ersetzt es das laufende Tempo-Blitzlicht.
-- [ ] Teilnehmende sehen genau vier Optionen: `🚀 Schneller`, `🙂 Ich folge`, `🐢 Langsamer`, `😵 Verloren`.
+- [ ] Teilnehmende sehen genau vier Optionen: `🚀 Schneller`, `🙂 Ich folge`, `🐢 Langsamer`, `😕 Verloren`.
 - [ ] Eine Auswahl kann mit einem Tap gesetzt, durch einen anderen Tap gewechselt und durch Re-Tap oder Backdrop zurueckgesetzt werden.
 - [ ] Pro teilnehmender Person zaehlt immer nur der aktuelle Tempo-Zustand.
 - [ ] Klassische Blitzlicht-Typen bleiben bei ihrer Einmal-Vote-Semantik.

@@ -3238,8 +3238,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.quickFeedbackTempo" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Tempo-Feedback<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (🚀🙂🐢😵): Mit vier Icons meldet deine Gruppe laufend zurück, ob sie folgen kann. Teilnehmende können ihre Rückmeldung ändern; du siehst nur die aggregierte Tendenz.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Feedback de ritmo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (🚀🙂🐢😵): con cuatro iconos, tu grupo indica en todo momento si puede seguir. Las personas participantes pueden cambiar su respuesta; tú solo ves la tendencia agregada.</target>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Tempo-Feedback<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (🚀🙂🐢😕): Mit vier Icons meldet deine Gruppe laufend zurück, ob sie folgen kann. Teilnehmende können ihre Rückmeldung ändern; du siehst nur die aggregierte Tendenz.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Feedback de ritmo<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> (🚀🙂🐢😕): con cuatro iconos, tu grupo indica en todo momento si puede seguir. Las personas participantes pueden cambiar su respuesta; tú solo ves la tendencia agregada.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">154,157</context>

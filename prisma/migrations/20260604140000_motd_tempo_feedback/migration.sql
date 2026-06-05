@@ -41,7 +41,7 @@ VALUES (
   'de',
   $mdde$# Tempo-Feedback ist da
 
-**🚀 schneller · 🙂 passt · 🐢 langsamer · 😵 verloren**
+**🚀 schneller · 🙂 passt · 🐢 langsamer · 😕 verloren**
 
 Mit vier Icons zeigt deine Gruppe live, ob sie folgen kann. Starte es im Blitzlicht und passe dein Vortragstempo sofort an.
 
@@ -56,7 +56,7 @@ VALUES (
   'en',
   $mden$# Pace feedback is here
 
-**🚀 faster · 🙂 just right · 🐢 slower · 😵 lost**
+**🚀 faster · 🙂 just right · 🐢 slower · 😕 lost**
 
 Four icons let your group show live whether they can keep up. Start it in quick feedback and adjust your pace instantly.
 
@@ -71,7 +71,7 @@ VALUES (
   'fr',
   $mdfr$# Le retour sur le rythme est là
 
-**🚀 plus vite · 🙂 ça va · 🐢 plus lentement · 😵 perdu**
+**🚀 plus vite · 🙂 ça va · 🐢 plus lentement · 😕 perdu**
 
 Avec quatre icônes, ton groupe montre en direct s'il suit encore. Lance-le dans le feedback éclair et ajuste ton rythme tout de suite.
 
@@ -86,7 +86,7 @@ VALUES (
   'es',
   $mdes$# Ya está aquí el feedback de ritmo
 
-**🚀 más rápido · 🙂 va bien · 🐢 más despacio · 😵 perdido**
+**🚀 más rápido · 🙂 va bien · 🐢 más despacio · 😕 perdido**
 
 Con cuatro iconos, tu grupo muestra en directo si puede seguirte. Actívalo en el feedback rápido y ajusta el ritmo al momento.
 
@@ -101,7 +101,7 @@ VALUES (
   'it',
   $mdit$# Arriva il feedback sul ritmo
 
-**🚀 più veloce · 🙂 va bene · 🐢 più piano · 😵 perso**
+**🚀 più veloce · 🙂 va bene · 🐢 più piano · 😕 perso**
 
 Con quattro icone, il tuo gruppo mostra in diretta se riesce a seguirti. Avvialo nel feedback rapido e regola subito il ritmo.
 

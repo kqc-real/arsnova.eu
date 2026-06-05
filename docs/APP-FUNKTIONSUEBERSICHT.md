@@ -93,7 +93,7 @@ Die Startseite bietet vordefinierte Blitzlicht-Typen als Sofortstart:
 - Wahr / Falsch / Weiß nicht
 - Sterne
 - ABCD
-- Tempo-Feedback mit `🚀 Schneller`, `🙂 Ich folge`, `🐢 Langsamer`, `😵 Verloren`
+- Tempo-Feedback mit `🚀 Schneller`, `🙂 Ich folge`, `🐢 Langsamer`, `😕 Verloren`
 
 Ein Klick erzeugt eine neue Runde, Host-Token und Beitrittslink. Danach wechselt die App direkt in die Host-Ansicht des Blitzlichts.
 

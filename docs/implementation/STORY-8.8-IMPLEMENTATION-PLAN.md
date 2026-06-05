@@ -22,7 +22,7 @@ Das Host-UI fuer Blitzlicht bietet sowohl in der Session als auch im Standalone-
 - `🚀 Schneller`
 - `🙂 Ich folge`
 - `🐢 Langsamer`
-- `😵 Verloren`
+- `😕 Verloren`
 
 Fachliche Kerneigenschaften:
 

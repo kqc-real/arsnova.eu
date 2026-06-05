@@ -1488,7 +1488,7 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - Das Feature wird als **vordefiniertes Blitzlicht-Template** im bestehenden `quickFeedback`-Kanal umgesetzt und **nicht** als eigener Session-Kanal, Quizfrage oder Gamification-Element modelliert.
     - Hosts können das Tempo-Blitzlicht sowohl aus der bestehenden Session-Blitzlicht-Host-UI als auch im **Standalone-Blitzlicht** starten; dabei wird pro Host-Kontext genau **ein** aktives Blitzlicht angezeigt und ausgewertet.
     - Startet der Host ein anderes Blitzlicht, ersetzt es das laufende Tempo-Blitzlicht; Tempo kann später erneut gestartet werden.
-    - Teilnehmende sehen genau vier Reaktionen mit stabiler Semantik und zugänglichen Namen: `🚀 Schneller`, `🙂 Ich folge`, `🐢 Langsamer`, `😵 Verloren`.
+    - Teilnehmende sehen genau vier Reaktionen mit stabiler Semantik und zugänglichen Namen: `🚀 Schneller`, `🙂 Ich folge`, `🐢 Langsamer`, `😕 Verloren`.
     - Teilnehmende können ihre Auswahl mit **einem Tap** setzen, auf einen anderen Zustand wechseln und den aktuell gewählten Zustand durch erneuten Tap wieder entfernen.
     - Pro teilnehmender Person zählt immer nur der **aktuelle** Zustand; Hosts sehen niemals individuelle Rückmeldungen, sondern nur aggregierte Werte.
     - Das Tempo-Blitzlicht darf beliebig lange offen bleiben, bis der Host es beendet oder durch ein anderes Blitzlicht ersetzt.

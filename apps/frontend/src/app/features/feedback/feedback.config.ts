@@ -94,7 +94,7 @@ export const TEMPO_OPTIONS: readonly FeedbackOption[] = [
   { value: 'SPEED_UP', label: $localize`:@@feedback.tempoSpeedUp:Schneller`, icon: '🚀' },
   { value: 'FOLLOWING', label: $localize`:@@feedback.tempoFollowing:Ich folge`, icon: '🙂' },
   { value: 'SLOW_DOWN', label: $localize`:@@feedback.tempoSlowDown:Langsamer`, icon: '🐢' },
-  { value: 'LOST', label: $localize`:@@feedback.tempoLost:Verloren`, icon: '😵' },
+  { value: 'LOST', label: $localize`:@@feedback.tempoLost:Verloren`, icon: '😕' },
 ];
 
 export const FEEDBACK_OPTIONS: Record<QuickFeedbackType, readonly FeedbackOption[]> = {
@@ -114,7 +114,7 @@ export const QUICK_FEEDBACK_TEMPO_SPOTLIGHT: FeedbackSpotlightTemplate = {
   description: $localize`:@@feedback.tempoSpotlightDescription:Mit vier Icons zeigt deine Gruppe, ob sie folgen kann.`,
   actionLabel: $localize`:@@feedback.tempoSpotlightAction:Tempo-Feedback`,
   label: $localize`:@@feedback.titleTempo:Tempo`,
-  icons: [{ value: '🚀' }, { value: '🙂' }, { value: '🐢' }, { value: '😵' }],
+  icons: [{ value: '🚀' }, { value: '🙂' }, { value: '🐢' }, { value: '😕' }],
 };
 
 export const QUICK_FEEDBACK_PRESET_CHIPS: readonly FeedbackPresetChip[] = [

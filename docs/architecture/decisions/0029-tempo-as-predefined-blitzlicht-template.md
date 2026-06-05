@@ -77,7 +77,7 @@ Die vier vordefinierten Tempo-Reaktionen sind:
 - `🚀 Schneller`
 - `🙂 Ich folge`
 - `🐢 Langsamer`
-- `😵 Verloren`
+- `😕 Verloren`
 
 Fuer dieses Template gilt abweichend vom klassischen Einmal-Vote:
 
