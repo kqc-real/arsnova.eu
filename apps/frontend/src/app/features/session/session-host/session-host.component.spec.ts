@@ -1568,6 +1568,51 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('behaelt den Tempo-Indikator bei transienten Ergebnisfehlern stabil', async () => {
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const refreshQuickFeedbackResult = component as unknown as {
+      refreshQuickFeedbackResult(): Promise<void>;
+    };
+    const tempoResult = {
+      type: 'TEMPO' as const,
+      theme: 'system' as const,
+      preset: 'serious' as const,
+      locked: false,
+      totalVotes: 12,
+      distribution: { LOST: 12 },
+      tempoTrend: {
+        status: 'LOST' as const,
+        active: true,
+        activeParticipants: 20,
+        tempoVotes: 12,
+        requiredVotes: 8,
+        windowSeconds: 60,
+        bucketSeconds: 15,
+      },
+    };
+
+    component.session.set({
+      ...defaultSession,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    component.quickFeedbackResult.set(tempoResult);
+    quickFeedbackHostResultsQueryMock.mockRejectedValueOnce(
+      new Error('temporary quick feedback outage'),
+    );
+
+    await refreshQuickFeedbackResult.refreshQuickFeedbackResult();
+
+    expect(quickFeedbackHostResultsQueryMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    expect(component.quickFeedbackResult()).toBe(tempoResult);
+    expect(component.channelTempoIndicator('quickFeedback')?.tone).toBe('alert');
+    fixture.destroy();
+  });
+
   it('zeigt fuer Freitext-Fragen die Word-Cloud-Aktion mit Live-Hinweis', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(

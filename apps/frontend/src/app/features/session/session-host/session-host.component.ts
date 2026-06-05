@@ -4484,7 +4484,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
       this.quickFeedbackResult.set(result);
     } catch {
-      this.quickFeedbackResult.set(null);
+      // Keep the last snapshot visible during transient polling failures.
     }
   }
 
