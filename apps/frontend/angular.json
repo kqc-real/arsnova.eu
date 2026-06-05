@@ -69,14 +69,62 @@
               "optimization": false,
               "buildOptimizer": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "assets": [
+                "src/assets",
+                "src/manifest.webmanifest",
+                {
+                  "glob": "robots.txt",
+                  "input": "src",
+                  "output": "/"
+                },
+                {
+                  "glob": "sitemap.xml",
+                  "input": "src",
+                  "output": "/"
+                },
+                {
+                  "glob": "ngsw-worker.js",
+                  "input": "src/dev-service-worker-cleanup",
+                  "output": "/"
+                },
+                {
+                  "glob": "ngsw-worker.js",
+                  "input": "src/dev-service-worker-cleanup",
+                  "output": "/de"
+                }
+              ]
             },
             "development-en": {
               "optimization": false,
               "buildOptimizer": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "localize": ["en"]
+              "localize": ["en"],
+              "assets": [
+                "src/assets",
+                "src/manifest.webmanifest",
+                {
+                  "glob": "robots.txt",
+                  "input": "src",
+                  "output": "/"
+                },
+                {
+                  "glob": "sitemap.xml",
+                  "input": "src",
+                  "output": "/"
+                },
+                {
+                  "glob": "ngsw-worker.js",
+                  "input": "src/dev-service-worker-cleanup",
+                  "output": "/"
+                },
+                {
+                  "glob": "ngsw-worker.js",
+                  "input": "src/dev-service-worker-cleanup",
+                  "output": "/de"
+                }
+              ]
             }
           },
           "defaultConfiguration": "development"
