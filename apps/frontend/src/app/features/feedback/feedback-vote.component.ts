@@ -215,25 +215,32 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     }
 
     this.voted.set(hasAlreadyVoted(code));
-    const hasStandaloneRound = await this.pollStyle();
-
-    if (!this.embeddedInSession() && !hasStandaloneRound) {
-      try {
-        const session = await trpc.session.getInfo.query({ code });
-        if (session.type === 'QUIZ' && session.status !== 'FINISHED') {
-          await this.router.navigateByUrl(this.localizedPath(`/session/${code}/vote`), {
-            replaceUrl: true,
-          });
-          return;
-        }
-      } catch {
-        // Fallback: standalone Blitzlicht-Route normal weiter behandeln.
-      }
+    if (!this.embeddedInSession() && (await this.redirectStandaloneQuizSession(code))) {
+      return;
     }
 
+    await this.pollStyle();
     this.subscribeToResults();
     this.loading.set(false);
     this.pollTimer = setInterval(() => void this.pollStyle(), 3000);
+  }
+
+  private async redirectStandaloneQuizSession(code: string): Promise<boolean> {
+    try {
+      const session = await trpc.session.getInfo.query({ code });
+      if (session.type === 'QUIZ' && session.status !== 'FINISHED') {
+        await this.router.navigateByUrl(
+          this.localizedPath(`/session/${code}/vote?tab=quickFeedback`),
+          {
+            replaceUrl: true,
+          },
+        );
+        return true;
+      }
+    } catch {
+      // Standalone-Blitzlicht oder abgelaufener Code: normale Feedback-Route weiter behandeln.
+    }
+    return false;
   }
 
   private clearEmbeddedState(): void {

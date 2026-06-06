@@ -61,8 +61,7 @@ describe('FeedbackVoteComponent', () => {
     });
   });
 
-  it('leitet verwaiste standalone Feedback-Routen für laufende Quiz-Sessions in den Session-Vote-Flow um', async () => {
-    quickFeedbackResultsQueryMock.mockRejectedValueOnce(new Error('not found'));
+  it('leitet standalone Feedback-Routen für laufende Quiz-Sessions in den Session-Vote-Flow um', async () => {
     getInfoQueryMock.mockResolvedValueOnce({
       id: 'session-1',
       code: 'ABC123',
@@ -88,15 +87,15 @@ describe('FeedbackVoteComponent', () => {
     await fixture.whenStable();
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(quickFeedbackResultsQueryMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
     expect(getInfoQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(navigateByUrlSpy).toHaveBeenCalledWith('/session/ABC123/vote', {
+    expect(quickFeedbackResultsQueryMock).not.toHaveBeenCalled();
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/session/ABC123/vote?tab=quickFeedback', {
       replaceUrl: true,
     });
     fixture.destroy();
   });
 
-  it('priorisiert eine vorhandene standalone Redis-Runde gegenüber einer gleichnamigen Quiz-Session', async () => {
+  it('zeigt eine vorhandene standalone Redis-Runde, wenn keine gleichnamige Session existiert', async () => {
     const fixture = TestBed.createComponent(FeedbackVoteComponent);
     const router = TestBed.inject(Router);
     const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -107,8 +106,8 @@ describe('FeedbackVoteComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     fixture.detectChanges();
 
+    expect(getInfoQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(quickFeedbackResultsQueryMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
-    expect(getInfoQueryMock).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent ?? '').toContain('Ja · Nein · Vielleicht');
     fixture.destroy();

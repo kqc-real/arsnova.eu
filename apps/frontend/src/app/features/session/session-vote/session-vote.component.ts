@@ -125,6 +125,10 @@ type StoredVoteResponse = {
   updatedAt: string;
 };
 
+function parseSessionChannelTab(value: string | null): SessionChannelTab | null {
+  return value === 'quiz' || value === 'qa' || value === 'quickFeedback' ? value : null;
+}
+
 const MESSAGES_CORRECT_PLAYFUL = [
   $localize`Perfekt! 🎯`,
   $localize`Richtig! 💪`,
@@ -323,6 +327,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly questionIdsWithRound2QuestionScroll = new Set<string>();
   private lastAutoScrollToken: string | null = null;
   private lastResultContentScrollToken: string | null = null;
+  private readonly routeRequestedChannel = parseSessionChannelTab(
+    this.route.snapshot.queryParamMap.get('tab'),
+  );
+  private routeRequestedChannelConsumed = false;
 
   @ViewChild('qaTextarea') qaTextareaRef?: ElementRef<HTMLTextAreaElement>;
 
@@ -1943,7 +1951,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.sessionId.set(session.id);
       this.status.set(session.status as SessionStatus);
       this.sessionSettings.set(session);
-      this.applyPreferredChannelIfChanged(session.preferredChannel);
+      if (!this.applyRouteRequestedChannel()) {
+        this.applyPreferredChannelIfChanged(session.preferredChannel);
+      }
       if (session.status === 'FINISHED') {
         this.handleSessionFinished();
         this.applyPendingLobbyArrivalIfNeeded();
@@ -1968,6 +1978,21 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       // Parent-Shell validiert bereits; Retry läuft über Polling.
       return false;
     }
+  }
+
+  private applyRouteRequestedChannel(): boolean {
+    if (this.routeRequestedChannelConsumed || !this.routeRequestedChannel) {
+      return false;
+    }
+    this.routeRequestedChannelConsumed = true;
+
+    if (!this.visibleChannels().includes(this.routeRequestedChannel)) {
+      return false;
+    }
+
+    this.rememberParticipantLiveChannelOverride(this.routeRequestedChannel);
+    this.activeChannel.set(this.routeRequestedChannel);
+    return true;
   }
 
   private ensureQaSubscription(): void {

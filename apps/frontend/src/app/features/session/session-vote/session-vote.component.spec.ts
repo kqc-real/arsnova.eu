@@ -234,6 +234,9 @@ describe('SessionVoteComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
+            snapshot: {
+              queryParamMap: convertToParamMap({}),
+            },
             parent: {
               snapshot: {
                 paramMap: convertToParamMap({ code: 'ABC123' }),

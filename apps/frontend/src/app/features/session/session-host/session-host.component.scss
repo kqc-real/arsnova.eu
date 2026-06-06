@@ -104,7 +104,7 @@
     var(--session-host-shell-max-width),
     calc(100vw - (2 * var(--session-host-shell-inline)))
   );
-  --session-host-channel-tabs-offset: 50px;
+  --session-host-channel-tabs-offset: 1.5rem;
   --session-host-channel-tabs-offset-immersive: 0.5rem;
   --session-host-zone-gap: 0.875rem;
   --session-host-toolbar-clearance: calc(env(safe-area-inset-top, 0px) + 4.25rem);
@@ -120,6 +120,7 @@
 @media (min-width: 600px) {
   .session-host {
     --session-host-shell-inline: 1.5rem;
+    --session-host-channel-tabs-offset: 2rem;
     --session-host-channel-tabs-offset-immersive: 0.75rem;
   }
 }
@@ -127,6 +128,7 @@
 @media (min-width: 840px) {
   .session-host {
     --session-host-shell-inline: 2rem;
+    --session-host-channel-tabs-offset: 2rem;
     --session-host-channel-tabs-offset-immersive: 1rem;
   }
 }
