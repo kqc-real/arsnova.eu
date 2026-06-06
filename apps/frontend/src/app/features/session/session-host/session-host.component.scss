@@ -325,13 +325,13 @@
   }
 
   .session-channel-tabs {
-    width: auto;
-    max-width: none;
+    width: fit-content;
+    max-width: 100%;
     display: flex;
     overflow-x: auto;
     overflow-y: hidden;
     border-radius: var(--mat-sys-corner-extra-large);
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
   }
 
@@ -456,47 +456,23 @@
 
 .session-channel-tabs__tempo-indicator {
   display: inline-flex;
-  min-width: 1.48rem;
-  height: 1.48rem;
+  min-width: 1.35rem;
+  height: 1.35rem;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  margin-left: 0.38rem;
-  padding-inline: 0.16rem;
+  margin-left: 0.34rem;
   box-sizing: border-box;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
-  border-radius: var(--mat-sys-corner-full);
-  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 86%, transparent);
-  box-shadow: 0 1px 3px color-mix(in srgb, #000 18%, transparent);
-  font-size: 1rem;
+  font-size: 1.28rem;
   line-height: 1;
-  transform: translateY(-0.01em);
-}
-
-.session-channel-tabs__tempo-indicator--neutral {
-  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 86%, transparent);
-}
-
-.session-channel-tabs__tempo-indicator--good {
-  background: color-mix(
-    in srgb,
-    var(--arsnova-bar-correct, #2e7d32) 18%,
-    var(--mat-sys-surface-container-high)
-  );
-}
-
-.session-channel-tabs__tempo-indicator--caution {
-  background: color-mix(in srgb, #f9a825 20%, var(--mat-sys-surface-container-high));
-}
-
-.session-channel-tabs__tempo-indicator--alert {
-  background: color-mix(in srgb, var(--mat-sys-error) 18%, var(--mat-sys-surface-container-high));
+  text-shadow: 0 1px 2px color-mix(in srgb, #000 24%, transparent);
+  transform: translateY(-0.03em);
 }
 
 .session-channel-tabs__tempo-indicator--compound {
-  min-width: 2.12rem;
+  min-width: 2.28rem;
   gap: 0.02rem;
-  font-size: 0.86rem;
+  font-size: 1.08rem;
 }
 
 .session-channel-tabs__toggle--inactive {
