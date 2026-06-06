@@ -3209,29 +3209,15 @@ export const TempoTrendSchema = z.object({
 });
 export type TempoTrend = z.infer<typeof TempoTrendSchema>;
 
-export const QuickFeedbackThemeEnum = z.enum(['system', 'dark', 'light']);
-export const QuickFeedbackPresetEnum = z.enum(['serious', 'spielerisch']);
-
 export const CreateQuickFeedbackInputSchema = z.object({
   type: QuickFeedbackTypeEnum,
-  theme: QuickFeedbackThemeEnum,
-  preset: QuickFeedbackPresetEnum,
   sessionCode: z.string().trim().length(6).optional(),
 });
 export type CreateQuickFeedbackInput = z.infer<typeof CreateQuickFeedbackInputSchema>;
 
-export const UpdateQuickFeedbackStyleInputSchema = z.object({
-  sessionCode: z.string(),
-  theme: QuickFeedbackThemeEnum,
-  preset: QuickFeedbackPresetEnum,
-});
-export type UpdateQuickFeedbackStyleInput = z.infer<typeof UpdateQuickFeedbackStyleInputSchema>;
-
 export const UpdateQuickFeedbackTypeInputSchema = z.object({
   sessionCode: z.string().trim().length(6),
   type: QuickFeedbackTypeEnum,
-  theme: QuickFeedbackThemeEnum,
-  preset: QuickFeedbackPresetEnum,
 });
 export type UpdateQuickFeedbackTypeInput = z.infer<typeof UpdateQuickFeedbackTypeInputSchema>;
 
@@ -3255,8 +3241,6 @@ export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOu
 
 export const QuickFeedbackResultSchema = z.object({
   type: QuickFeedbackTypeEnum,
-  theme: QuickFeedbackThemeEnum,
-  preset: QuickFeedbackPresetEnum,
   locked: z.boolean(),
   totalVotes: z.number(),
   distribution: z.record(z.string(), z.number()),

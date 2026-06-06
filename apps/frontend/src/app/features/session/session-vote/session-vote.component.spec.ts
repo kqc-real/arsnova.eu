@@ -2129,8 +2129,6 @@ describe('SessionVoteComponent', () => {
     });
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 3,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
@@ -2343,8 +2341,6 @@ describe('SessionVoteComponent', () => {
     currentQuestionQueryMock.mockResolvedValue(null);
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 12,
       distribution: { POSITIVE: 5, NEUTRAL: 4, NEGATIVE: 3 },
@@ -2512,8 +2508,6 @@ describe('SessionVoteComponent', () => {
     currentQuestionQueryMock.mockResolvedValue(null);
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 3,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
@@ -2553,8 +2547,6 @@ describe('SessionVoteComponent', () => {
     } as never);
     component.quickFeedbackResult.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 3,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
@@ -2574,8 +2566,6 @@ describe('SessionVoteComponent', () => {
 
     component.quickFeedbackResult.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 4,
       distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 1 },
@@ -2616,8 +2606,6 @@ describe('SessionVoteComponent', () => {
       }
     ).applyQuickFeedbackResult({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: true,
       totalVotes: 3,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
@@ -2643,8 +2631,6 @@ describe('SessionVoteComponent', () => {
       }
     ).applyQuickFeedbackResult({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 0,
       distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -2696,8 +2682,6 @@ describe('SessionVoteComponent', () => {
     });
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 3,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
@@ -2936,8 +2920,6 @@ describe('SessionVoteComponent', () => {
 
     quickFeedbackListener?.({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 3,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },

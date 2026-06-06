@@ -518,7 +518,6 @@ Der Host kann im Blitzlicht:
 
 - eine Runde starten
 - Typ wechseln
-- den Blitzlicht-Style-Snapshot aktualisieren (`theme` / `preset`); normale Session-Vote-Clients übernehmen daraus kein globales Theme oder Preset
 - Abstimmung sperren und entsperren
 - Runde zurücksetzen
 - Diskussionsphase starten
@@ -534,7 +533,7 @@ Teilnehmende können:
 - je Runde genau einmal abstimmen
 - je nach Typ passende Eingaben wählen
 - auf zweite Runden reagieren
-- in der Standalone-Blitzlicht-Route den Blitzlicht-Style-Snapshot übernehmen; in normalen Session-Vote-Clients bleiben Theme und Preset lokal
+- Theme und Preset lokal im eigenen Browser behalten; weder Standalone- noch Session-Blitzlicht übernimmt Host-Style
 - beim Tempo-Feedback ihre aktuelle Auswahl wechseln oder per Re-Tap entfernen
 
 ### 6.5 Ergebnismodus

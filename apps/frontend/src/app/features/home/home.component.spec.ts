@@ -348,8 +348,6 @@ describe('HomeComponent', () => {
 
       expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledWith({
         type: 'TRUEFALSE_UNKNOWN',
-        theme: comp.themePreset.theme(),
-        preset: comp.themePreset.preset(),
       });
       expect(setFeedbackHostTokenMock).toHaveBeenCalledWith('ABC123', 'feedback-owner-token');
       expect(navSpy).toHaveBeenCalledWith(['feedback', 'ABC123']);
@@ -378,8 +376,6 @@ describe('HomeComponent', () => {
 
       expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledWith({
         type: 'TEMPO',
-        theme: comp.themePreset.theme(),
-        preset: comp.themePreset.preset(),
       });
       expect(setFeedbackHostTokenMock).toHaveBeenCalledWith('TMP123', 'tempo-owner-token');
       expect(navSpy).toHaveBeenCalledWith(['feedback', 'TMP123']);

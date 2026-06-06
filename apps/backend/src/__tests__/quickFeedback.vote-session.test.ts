@@ -171,8 +171,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -201,8 +199,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -232,8 +228,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -257,8 +251,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'TEMPO',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
@@ -311,8 +303,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'TEMPO',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 1,
         distribution: { SPEED_UP: 1, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
@@ -346,8 +336,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'TEMPO',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 1,
         distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 1, LOST: 0 },
@@ -381,8 +369,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 1,
         distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
@@ -406,8 +392,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'TEMPO',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 8,
         distribution: { SPEED_UP: 0, FOLLOWING: 8, SLOW_DOWN: 0, LOST: 0 },
@@ -437,8 +421,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'TEMPO',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 1,
         distribution: { SPEED_UP: 1, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
@@ -461,8 +443,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'TEMPO',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 200,
         distribution: { SPEED_UP: 40, FOLLOWING: 80, SLOW_DOWN: 55, LOST: 25 },
@@ -484,8 +464,6 @@ describe('quickFeedback.vote und Session-Status', () => {
   it('erlaubt Standalone-Blitzlicht ohne Host-Token', async () => {
     const result = await caller.create({
       type: 'MOOD',
-      theme: 'light',
-      preset: 'serious',
     });
 
     expect(result.sessionCode).toHaveLength(6);
@@ -500,8 +478,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     await expect(
       hostCaller.create({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         sessionCode: 'ABC123',
       }),
     ).rejects.toMatchObject({
@@ -514,8 +490,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -533,8 +507,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -566,8 +538,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -586,8 +556,6 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.get.mockResolvedValue(
       JSON.stringify({
         type: 'MOOD',
-        theme: 'light',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },

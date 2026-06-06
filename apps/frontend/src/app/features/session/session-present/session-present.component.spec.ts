@@ -324,8 +324,6 @@ describe('SessionPresentComponent', () => {
     });
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'YESNO',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 9,
       distribution: { YES: 5, NO: 2, MAYBE: 2 },

@@ -28,7 +28,6 @@ In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisi
 | ------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `create`           | Mutation     | Neue Runde; optional `sessionCode` für eingebettetes Blitzlicht                                                                                              |
 | `changeType`       | Mutation     | Formatwechsel im laufenden Code-Kontext; setzt Verteilung/Zähler zurück                                                                                      |
-| `updateStyle`      | Mutation     | Blitzlicht-Style-Snapshot (`theme` / `preset`) anpassen; kein Session-Preset und kein globaler Theme-/Preset-Push in normale Session-Vote-Clients            |
 | `reset`            | Mutation     | Stimmen und Runden-Metadaten zurücksetzen, Format bleibt                                                                                                     |
 | `end`              | Mutation     | Redis-Keys zur Session-Code entfernen (Runde beenden)                                                                                                        |
 | `toggleLock`       | Mutation     | Abstimmung sperren / entsperren (`locked`)                                                                                                                   |
@@ -44,7 +43,7 @@ In der **UI** heißt der Modus **Blitzlicht** ([ADR-0010](../architecture/decisi
 Eingaben/Ausgaben: Zod-Schemas in `@arsnova/shared-types` (z. B. `QuickFeedbackVoteInputSchema`, `QuickFeedbackResultSchema`).
 Aktuelle Formate: `MOOD`, `YESNO`, `YESNO_BINARY`, `TRUEFALSE_UNKNOWN`, `STARS`, `ABCD`, `TEMPO`.
 
-**Abgrenzung zu Session-Presets:** `quickFeedback.updateStyle` gehört nur zum Redis-Snapshot des Blitzlichts. Normale `/session/:code/vote`-Clients übernehmen daraus kein globales UI-Theme oder UI-Preset; diese Werte bleiben lokal im jeweiligen Browser (`ThemePresetService`). Die Standalone-Route `/feedback/:code/vote` kann den Blitzlicht-Style-Snapshot weiterhin anwenden, weil sie fachlich eine einzelne Feedback-Runde darstellt.
+**Abgrenzung zu UI-Presets:** Blitzlicht-Ergebnisse enthalten kein globales UI-Theme und kein UI-Preset. Host-, Vote- und Present-Clients behalten ihre lokalen Browserwerte aus `ThemePresetService`; das gilt sowohl für `/session/:code/vote` als auch für `/feedback/:code/vote`.
 
 `TEMPO` nutzt eigene Werte (`SPEED_UP`, `FOLLOWING`, `SLOW_DOWN`, `LOST`) und erweitert `QuickFeedbackResult` um `tempoTrend`. Diese Tendenz enthaelt u. a. `activeParticipants`, `tempoVotes`, `requiredVotes`, `windowSeconds` und `bucketSeconds`; die UI benennt die Host-Kennzahlen als `Online` und `Rueckmeldungen`.
 
@@ -71,7 +70,7 @@ Tempo ist nach [ADR-0029](../architecture/decisions/0029-tempo-as-predefined-bli
 flowchart LR
   subgraph Host
     H1[create / changeType]
-    H2[optional updateStyle · toggleLock]
+    H2[toggleLock]
     H3[startDiscussion]
     H4[startSecondRound]
     H5[reset / end]

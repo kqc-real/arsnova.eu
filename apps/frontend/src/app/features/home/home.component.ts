@@ -618,8 +618,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       const result = await trpc.quickFeedback.create.mutate({
         type,
-        theme: this.themePreset.theme(),
-        preset: this.themePreset.preset(),
       });
       if (result.hostToken) {
         setFeedbackHostToken(result.sessionCode, result.hostToken);

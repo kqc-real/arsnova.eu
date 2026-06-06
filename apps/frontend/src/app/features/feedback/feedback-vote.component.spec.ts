@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedbackVoteComponent } from './feedback-vote.component';
+import { ThemePresetService } from '../../core/theme-preset.service';
 
 const {
   getInfoQueryMock,
@@ -32,11 +33,10 @@ describe('FeedbackVoteComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    document.documentElement.classList.remove('dark', 'light', 'preset-playful');
     getInfoQueryMock.mockRejectedValue(new Error('not found'));
     quickFeedbackResultsQueryMock.mockResolvedValue({
       type: 'YESNO',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       discussion: false,
       totalVotes: 0,
@@ -151,8 +151,6 @@ describe('FeedbackVoteComponent', () => {
         opts: {
           onData: (result: {
             type: 'STARS';
-            theme: 'system';
-            preset: 'serious';
             locked: false;
             discussion: false;
             totalVotes: 0;
@@ -164,8 +162,6 @@ describe('FeedbackVoteComponent', () => {
         setTimeout(() => {
           opts.onData({
             type: 'STARS',
-            theme: 'system',
-            preset: 'serious',
             locked: false,
             discussion: false,
             totalVotes: 0,
@@ -198,8 +194,6 @@ describe('FeedbackVoteComponent', () => {
   it('sperrt die Stern-Buttons während die Stimme übertragen wird', async () => {
     quickFeedbackResultsQueryMock.mockResolvedValueOnce({
       type: 'STARS',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       discussion: false,
       totalVotes: 0,
@@ -273,8 +267,6 @@ describe('FeedbackVoteComponent', () => {
   it('zeigt Wahr/Falsch/Weiß nicht als Abstimmungsoptionen an', async () => {
     quickFeedbackResultsQueryMock.mockResolvedValueOnce({
       type: 'TRUEFALSE_UNKNOWN',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       discussion: false,
       totalVotes: 0,
@@ -304,8 +296,6 @@ describe('FeedbackVoteComponent', () => {
   it('laesst Tempo-Auswahlen wechseln und per Re-Tap entfernen', async () => {
     quickFeedbackResultsQueryMock.mockResolvedValueOnce({
       type: 'TEMPO',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       discussion: false,
       totalVotes: 0,
@@ -358,8 +348,6 @@ describe('FeedbackVoteComponent', () => {
   it('setzt Tempo-Auswahlen per Viewport-Backdrop zurueck', async () => {
     quickFeedbackResultsQueryMock.mockResolvedValueOnce({
       type: 'TEMPO',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       discussion: false,
       totalVotes: 0,
@@ -399,6 +387,34 @@ describe('FeedbackVoteComponent', () => {
     });
     expect(following!.getAttribute('aria-pressed')).toBe('false');
     expect(following!.classList.contains('feedback-vote__mood-btn--tempo-active')).toBe(false);
+    fixture.destroy();
+  });
+
+  it('laesst lokales Vote-Theme und Preset auch bei alten Host-Style-Feldern unveraendert', async () => {
+    quickFeedbackResultsQueryMock.mockResolvedValueOnce({
+      type: 'YESNO',
+      theme: 'light',
+      preset: 'serious',
+      locked: false,
+      discussion: false,
+      totalVotes: 0,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    } as never);
+    const themePreset = TestBed.inject(ThemePresetService);
+    themePreset.setTheme('dark');
+    themePreset.setPreset('spielerisch');
+
+    const fixture = TestBed.createComponent(FeedbackVoteComponent);
+    fixture.componentRef.setInput('sessionCode', 'ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(themePreset.theme()).toBe('dark');
+    expect(themePreset.preset()).toBe('spielerisch');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.classList.contains('preset-playful')).toBe(true);
     fixture.destroy();
   });
 

@@ -907,7 +907,7 @@ flowchart LR
         B2[onResults Sub · results Query]
         B3[startDiscussion]
         B4[startSecondRound]
-        B5[reset · end · optional toggleLock · updateStyle]
+        B5[reset · end · optional toggleLock]
     end
 
     subgraph Vote["Teilnehmer-Flow"]

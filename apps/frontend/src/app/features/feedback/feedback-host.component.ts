@@ -21,7 +21,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { clearFeedbackHostToken, setFeedbackHostToken } from '../../core/feedback-host-token';
 import { clearHostToken } from '../../core/host-session-token';
 import { trpc } from '../../core/trpc.client';
-import { ThemePresetService } from '../../core/theme-preset.service';
 import {
   localizeCommands,
   localizePath,
@@ -78,7 +77,6 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
   private readonly snackBar = inject(MatSnackBar);
-  private readonly themePreset = inject(ThemePresetService);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
   private subscription: Unsubscribable | null = null;
@@ -117,21 +115,6 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
-    effect(() => {
-      const theme = this.themePreset.theme();
-      const preset = this.themePreset.preset();
-      const code = this.code();
-      if (code) {
-        trpc.quickFeedback.updateStyle
-          .mutate({
-            sessionCode: code,
-            theme,
-            preset,
-          })
-          .catch(() => {});
-      }
-    });
-
     /** Wie Session-Host Lobby: Beitritts-Menü mit QR nach Laden einmal automatisch öffnen. */
     effect(() => {
       if (this.embeddedInSession()) {
@@ -605,9 +588,6 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   async startRound(type: QuickFeedbackType): Promise<void> {
     const code = this.code();
     try {
-      const theme = this.themePreset.theme();
-      const preset = this.themePreset.preset();
-
       if (this.shouldBlockTypeChange(type)) {
         const ref = this.snackBar.open(
           $localize`:@@feedback.compareRoundFormatHint:Formatwechsel gesperrt. Sobald Stimmen vorliegen oder die Vergleichsrunde läuft, bleibt das aktuelle Blitzlicht-Format aktiv. Für einen Wechsel setze das Blitzlicht zuerst zurück. Dabei werden alle bisherigen Stimmen gelöscht.`,
@@ -627,8 +607,6 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
         await trpc.quickFeedback.changeType.mutate({
           sessionCode: code,
           type,
-          theme,
-          preset,
         });
         await this.loadInitialResult();
         this.subscribeToResults();
@@ -637,8 +615,6 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
 
       const res = await trpc.quickFeedback.create.mutate({
         type,
-        theme,
-        preset,
         sessionCode: code || undefined,
       });
       if (code) {

@@ -16,7 +16,6 @@ import type { Unsubscribable } from '@trpc/server/observable';
 import { trpc } from '../../core/trpc.client';
 import { localizePath } from '../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-code-aria';
-import { ThemePresetService } from '../../core/theme-preset.service';
 import { feedbackOptions, feedbackTitle, isTempoFeedbackType } from './feedback.config';
 import type { QuickFeedbackResult, QuickFeedbackType } from '@arsnova/shared-types';
 
@@ -87,8 +86,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly themePreset = inject(ThemePresetService);
-  private styleTimer: ReturnType<typeof setInterval> | null = null;
+  private pollTimer: ReturnType<typeof setInterval> | null = null;
   private subscription: Unsubscribable | null = null;
   private readonly standaloneVoterId = getOrCreateVoterId();
   readonly sessionCode = input('');
@@ -201,9 +199,9 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.styleTimer) {
-      clearInterval(this.styleTimer);
-      this.styleTimer = null;
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
     }
     this.subscription?.unsubscribe();
     this.subscription = null;
@@ -234,7 +232,7 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     await this.pollStyle();
     this.subscribeToResults();
     this.loading.set(false);
-    this.styleTimer = setInterval(() => void this.pollStyle(), 3000);
+    this.pollTimer = setInterval(() => void this.pollStyle(), 3000);
   }
 
   private clearEmbeddedState(): void {
@@ -307,7 +305,6 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
     this.discussion.set(!!result.discussion);
     this.hoveredStar.set(0);
     this.error.set(null);
-    this.applyStyle(result.theme, result.preset);
 
     if (result.type === 'TEMPO') {
       this.voted.set(false);
@@ -338,15 +335,6 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
       } catch {
         /* private browsing */
       }
-    }
-  }
-
-  private applyStyle(theme: string, preset: string): void {
-    if (theme === 'dark' || theme === 'light' || theme === 'system') {
-      this.themePreset.setTheme(theme);
-    }
-    if (preset === 'serious' || preset === 'spielerisch') {
-      this.themePreset.setPreset(preset, { silent: true });
     }
   }
 

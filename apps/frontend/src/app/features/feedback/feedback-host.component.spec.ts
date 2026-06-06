@@ -28,7 +28,6 @@ vi.mock('../../core/trpc.client', () => ({
       end: { mutate: vi.fn().mockResolvedValue({ status: 'FINISHED' }) },
     },
     quickFeedback: {
-      updateStyle: { mutate: vi.fn().mockResolvedValue({ ok: true }) },
       results: { query: vi.fn().mockRejectedValue(new Error('not found')) },
       onResults: { subscribe: vi.fn() },
       hostResults: { query: vi.fn().mockRejectedValue(new Error('not found')) },
@@ -89,8 +88,6 @@ describe('FeedbackHostComponent', () => {
     const comp = createComponent();
     comp.result.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 0,
       distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -101,8 +98,6 @@ describe('FeedbackHostComponent', () => {
     expect(trpc.quickFeedback.changeType.mutate).toHaveBeenCalledWith({
       sessionCode: 'ABC123',
       type: 'STARS',
-      theme: comp['themePreset'].theme(),
-      preset: comp['themePreset'].preset(),
     });
     expect(trpc.quickFeedback.create.mutate).not.toHaveBeenCalled();
     expect(snackBarSpy).not.toHaveBeenCalled();
@@ -150,8 +145,6 @@ describe('FeedbackHostComponent', () => {
     const comp = createComponent();
     comp.result.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 3,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 1 },
@@ -178,8 +171,6 @@ describe('FeedbackHostComponent', () => {
     const comp = createComponent();
     comp.result.set({
       type: 'TEMPO',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 3,
       distribution: { SPEED_UP: 0, FOLLOWING: 2, SLOW_DOWN: 1, LOST: 0 },
@@ -199,8 +190,6 @@ describe('FeedbackHostComponent', () => {
     expect(trpc.quickFeedback.changeType.mutate).toHaveBeenCalledWith({
       sessionCode: 'ABC123',
       type: 'MOOD',
-      theme: comp['themePreset'].theme(),
-      preset: comp['themePreset'].preset(),
     });
     expect(snackBarSpy).not.toHaveBeenCalled();
   });
@@ -232,8 +221,6 @@ describe('FeedbackHostComponent', () => {
     expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledWith({
       sessionCode: 'ABC123',
       type: 'TRUEFALSE_UNKNOWN',
-      theme: comp['themePreset'].theme(),
-      preset: comp['themePreset'].preset(),
     });
     expect(navigateSpy).not.toHaveBeenCalled();
     expect(navigateByUrlSpy).not.toHaveBeenCalled();
@@ -248,8 +235,6 @@ describe('FeedbackHostComponent', () => {
       .mockRejectedValueOnce(new Error('not found'))
       .mockResolvedValueOnce({
         type: 'TRUEFALSE_UNKNOWN',
-        theme: 'system',
-        preset: 'serious',
         locked: false,
         totalVotes: 0,
         distribution: { TRUE: 0, FALSE: 0, UNKNOWN: 0 },
@@ -267,8 +252,6 @@ describe('FeedbackHostComponent', () => {
     expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledWith({
       sessionCode: 'ABC123',
       type: 'TRUEFALSE_UNKNOWN',
-      theme: fixture.componentInstance['themePreset'].theme(),
-      preset: fixture.componentInstance['themePreset'].preset(),
     });
     expect(onResultsSubscribeMock).toHaveBeenCalledWith(
       { sessionCode: 'ABC123' },
@@ -282,8 +265,6 @@ describe('FeedbackHostComponent', () => {
     const { trpc } = await import('../../core/trpc.client');
     vi.mocked(trpc.quickFeedback.hostResults.query).mockResolvedValue({
       type: 'TRUEFALSE_UNKNOWN',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 0,
       distribution: { TRUE: 0, FALSE: 0, UNKNOWN: 0 },
@@ -313,8 +294,6 @@ describe('FeedbackHostComponent', () => {
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     fixture.componentInstance.result.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 0,
       distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -324,8 +303,6 @@ describe('FeedbackHostComponent', () => {
     fixture.detectChanges();
     fixture.componentInstance.result.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 1,
       distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
@@ -404,8 +381,6 @@ describe('FeedbackHostComponent', () => {
     const comp = fixture.componentInstance;
     comp.result.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 4,
       distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 1 },
@@ -432,8 +407,6 @@ describe('FeedbackHostComponent', () => {
     const comp = fixture.componentInstance;
     comp.result.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       discussion: true,
       totalVotes: 4,
@@ -456,8 +429,6 @@ describe('FeedbackHostComponent', () => {
     const comp = fixture.componentInstance;
     comp.result.set({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 4,
       distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 1 },
@@ -477,8 +448,6 @@ describe('FeedbackHostComponent', () => {
     const comp = fixture.componentInstance;
     comp.result.set({
       type: 'TEMPO',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 9,
       distribution: { SPEED_UP: 0, FOLLOWING: 7, SLOW_DOWN: 2, LOST: 0 },
@@ -526,8 +495,6 @@ describe('FeedbackHostComponent', () => {
     const comp = fixture.componentInstance;
     comp.result.set({
       type: 'STARS',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       currentRound: 2,
       totalVotes: 3,

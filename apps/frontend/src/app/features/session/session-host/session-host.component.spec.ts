@@ -43,7 +43,6 @@ const {
   endMutateMock,
   quickFeedbackHostResultsQueryMock,
   quickFeedbackToggleLockMutateMock,
-  quickFeedbackUpdateStyleMutateMock,
   updateQaTitleMutateMock,
   quizUploadMutateMock,
   onParticipantJoinedSubscribeMock,
@@ -82,7 +81,6 @@ const {
   endMutateMock: vi.fn(),
   quickFeedbackHostResultsQueryMock: vi.fn(),
   quickFeedbackToggleLockMutateMock: vi.fn(),
-  quickFeedbackUpdateStyleMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
   quizUploadMutateMock: vi.fn(),
   onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
@@ -138,7 +136,6 @@ vi.mock('../../../core/trpc.client', () => ({
       results: { query: vi.fn().mockResolvedValue({ totalVotes: 0, options: [] }) },
       hostResults: { query: quickFeedbackHostResultsQueryMock },
       toggleLock: { mutate: quickFeedbackToggleLockMutateMock },
-      updateStyle: { mutate: quickFeedbackUpdateStyleMutateMock },
     },
     wordCloud: {
       analyze: { mutate: wordCloudAnalyzeQueryMock },
@@ -440,7 +437,6 @@ describe('SessionHostComponent', () => {
       currentQuestion: null,
       activeAt: null,
     });
-    quickFeedbackUpdateStyleMutateMock.mockResolvedValue({});
     updateQaTitleMutateMock.mockResolvedValue({
       title: 'Titel',
       qaTitle: 'Titel',
@@ -1465,8 +1461,6 @@ describe('SessionHostComponent', () => {
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({
       type: 'TEMPO',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 12,
       distribution: { LOST: 12 },
@@ -1486,8 +1480,6 @@ describe('SessionHostComponent', () => {
     await fixture.whenStable();
     fixture.componentInstance.quickFeedbackResult.set({
       type: 'TEMPO',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 12,
       distribution: { LOST: 12 },
@@ -1520,8 +1512,6 @@ describe('SessionHostComponent', () => {
     const component = fixture.componentInstance;
     const baseResult = {
       type: 'TEMPO' as const,
-      theme: 'system' as const,
-      preset: 'serious' as const,
       locked: false,
       totalVotes: 10,
       distribution: {},
@@ -1567,8 +1557,6 @@ describe('SessionHostComponent', () => {
     };
     const tempoResult = {
       type: 'TEMPO' as const,
-      theme: 'system' as const,
-      preset: 'serious' as const,
       locked: false,
       totalVotes: 12,
       distribution: { LOST: 12 },
@@ -3383,8 +3371,6 @@ describe('SessionHostComponent', () => {
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'spielerisch',
       locked: false,
       totalVotes: 0,
       distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
@@ -4926,8 +4912,6 @@ describe('SessionHostComponent', () => {
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({
       type: 'MOOD',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 2,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 0 },
@@ -4982,8 +4966,6 @@ describe('SessionHostComponent', () => {
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({
       type: 'STARS',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 1,
       distribution: { '1': 0, '2': 0, '3': 1, '4': 0, '5': 0 },
@@ -5019,8 +5001,6 @@ describe('SessionHostComponent', () => {
     getParticipantsQueryMock.mockResolvedValue({ participantCount: 12, participants: [] });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({
       type: 'STARS',
-      theme: 'system',
-      preset: 'serious',
       locked: false,
       totalVotes: 100,
       distribution: { '1': 20, '2': 20, '3': 20, '4': 20, '5': 20 },

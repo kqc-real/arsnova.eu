@@ -6,7 +6,6 @@ import { TRPCError } from '@trpc/server';
 import {
   CreateQuickFeedbackInputSchema,
   CreateQuickFeedbackOutputSchema,
-  UpdateQuickFeedbackStyleInputSchema,
   UpdateQuickFeedbackTypeInputSchema,
   QuickFeedbackVoteInputSchema,
   QuickFeedbackIsActiveOutputSchema,
@@ -297,8 +296,6 @@ export const quickFeedbackRouter = router({
 
       const initial: StoredQuickFeedbackResult = {
         type: input.type,
-        theme: input.theme,
-        preset: input.preset,
         locked: false,
         totalVotes: 0,
         distribution: emptyDistribution(input.type),
@@ -317,20 +314,6 @@ export const quickFeedbackRouter = router({
       return { feedbackId: key, sessionCode: code, hostToken };
     }),
 
-  updateStyle: publicProcedure
-    .input(UpdateQuickFeedbackStyleInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const redis = getRedis();
-      const code = input.sessionCode.toUpperCase();
-      const key = feedbackKey(code);
-      const result = await loadQuickFeedbackForHost(ctx, code);
-      result.theme = input.theme;
-      result.preset = input.preset;
-
-      await redis.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-      return { ok: true };
-    }),
-
   changeType: publicProcedure
     .input(UpdateQuickFeedbackTypeInputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -339,8 +322,6 @@ export const quickFeedbackRouter = router({
       const key = feedbackKey(code);
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.type = input.type;
-      result.theme = input.theme;
-      result.preset = input.preset;
       result.locked = false;
       result.totalVotes = 0;
       result.distribution = emptyDistribution(input.type);
