@@ -502,6 +502,30 @@ describe('QuizEditComponent', () => {
     expect(text).toContain('Optional für Referenzlinie, Fehlermaß und Rundenvergleich');
   });
 
+  it('setzt NUMERIC_ESTIMATE-Jahreszahl-Preset und zeigt die Band-Vorschau', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.form.controls.type.setValue('NUMERIC_ESTIMATE');
+    component.onTypeChanged();
+    component.applyNumericEstimatePreset('year');
+
+    expect(component.form.controls.numericInputType.value).toBe('INTEGER');
+    expect(component.form.controls.numericReferenceValue.value).toBe(1789);
+    expect(component.form.controls.numericIntervalLeft.value).toBe(1700);
+    expect(component.form.controls.numericIntervalRight.value).toBe(1900);
+    expect(component.form.controls.numericMin.value).toBe(1500);
+    expect(component.form.controls.numericMax.value).toBe(2000);
+    expect(component.form.controls.numericTwoRounds.value).toBe(true);
+
+    const preview = component.numericEstimateConfigPreview();
+    expect(preview?.plausibilityLabel).toContain('1500 bis 2000');
+    expect(preview?.toleranceLabel).toContain('1700 bis 1900');
+    expect(preview?.referenceLabel).toContain('1789');
+    expect(preview?.toleranceStyle?.left).toBeGreaterThan(0);
+    expect(preview?.toleranceStyle?.width).toBeGreaterThan(0);
+  });
+
   it('speichert eine FREETEXT-Frage ohne Antwortoptionen', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

@@ -4643,6 +4643,27 @@ describe('SessionHostComponent', () => {
     expect(component.numericRoundDeltaValue(roundComparison, question)).toBe('-1');
     expect(component.numericRoundDeltaLabel(roundComparison, question)).toContain('Mittelwert -5');
     expect(component.numericRoundDeltaLabel(roundComparison, question)).toContain('Median -1');
+    expect(component.numericStatsInterpretation(stats, question)).toContain(
+      '13 von 20 Schätzungen liegen im Toleranzband',
+    );
+    expect(component.numericStatsInterpretation(stats, question)).toContain(
+      'Der mittlere Abstand zur Referenz beträgt 1',
+    );
+    const improvedRoundComparison = {
+      ...roundComparison,
+      pairedAnalysis: {
+        pairedCount: 20,
+        closerCount: 14,
+        fartherCount: 4,
+        unchangedCount: 2,
+      },
+    };
+    expect(component.numericRoundInterpretation(improvedRoundComparison, question)).toContain(
+      'Runde 2 liegt näher am Referenzwert',
+    );
+    expect(component.numericRoundInterpretation(improvedRoundComparison, question)).toContain(
+      '14 von 20',
+    );
     fixture.destroy();
   });
 

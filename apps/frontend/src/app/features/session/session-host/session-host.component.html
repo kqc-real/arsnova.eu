@@ -1348,6 +1348,12 @@
                                       </div>
                                     }
                                   </div>
+                                  @if (numericRoundInterpretation(rc, q); as interpretation) {
+                                    <p class="session-host__numeric-interpretation">
+                                      <mat-icon aria-hidden="true">psychology_alt</mat-icon>
+                                      <span>{{ interpretation }}</span>
+                                    </p>
+                                  }
                                   <div class="session-host__numeric-round-header">
                                     <span
                                       class="session-host__numeric-round-label session-host__numeric-round-label--r1"
@@ -1751,6 +1757,12 @@
                                     </div>
                                   }
                                 </div>
+                                @if (numericStatsInterpretation(stats, q); as interpretation) {
+                                  <p class="session-host__numeric-interpretation">
+                                    <mat-icon aria-hidden="true">psychology_alt</mat-icon>
+                                    <span>{{ interpretation }}</span>
+                                  </p>
+                                }
                                 <div class="session-host__numeric-histogram">
                                   @if (numericHistogramBandStyle(q, q.numericHistogram); as band) {
                                     <div

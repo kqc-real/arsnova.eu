@@ -3952,6 +3952,122 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return parts.join(' · ');
   }
 
+  numericRoundInterpretation(
+    roundComparison: NumericRoundComparisonDTO,
+    question: HostCurrentQuestionDTO | null,
+  ): string | null {
+    const paired = roundComparison.pairedAnalysis;
+    const parts: string[] = [];
+
+    if (paired && paired.pairedCount > 0) {
+      if (paired.closerCount > paired.fartherCount) {
+        parts.push(
+          $localize`:@@sessionHost.numericInterpretationRoundCloser:Runde 2 liegt näher am Referenzwert: ${formatNumber(
+            paired.closerCount,
+            this.localeId,
+            '1.0-0',
+          )}:closer: von ${formatNumber(
+            paired.pairedCount,
+            this.localeId,
+            '1.0-0',
+          )}:paired: vergleichbaren Schätzungen haben sich verbessert.`,
+        );
+      } else if (paired.fartherCount > paired.closerCount) {
+        parts.push(
+          $localize`:@@sessionHost.numericInterpretationRoundFarther:Runde 2 liegt nicht näher am Referenzwert: ${formatNumber(
+            paired.fartherCount,
+            this.localeId,
+            '1.0-0',
+          )}:farther: von ${formatNumber(
+            paired.pairedCount,
+            this.localeId,
+            '1.0-0',
+          )}:paired: vergleichbaren Schätzungen sind weiter entfernt.`,
+        );
+      } else {
+        parts.push(
+          $localize`:@@sessionHost.numericInterpretationRoundMixed:Runde 2 ist gemischt: näher und weiter entfernte Schätzungen halten sich im Paarvergleich die Waage.`,
+        );
+      }
+    } else if (
+      roundComparison.round1Stats.meanAbsoluteError !== null &&
+      roundComparison.round2Stats.meanAbsoluteError !== null
+    ) {
+      const errorDelta =
+        roundComparison.round2Stats.meanAbsoluteError -
+        roundComparison.round1Stats.meanAbsoluteError;
+      if (errorDelta < 0) {
+        parts.push(
+          $localize`:@@sessionHost.numericInterpretationErrorImproved:Der mittlere Abstand zur Referenz ist in Runde 2 um ${this.formatNumericHostStatValue(
+            Math.abs(errorDelta),
+            question,
+          )}:delta: kleiner.`,
+        );
+      } else if (errorDelta > 0) {
+        parts.push(
+          $localize`:@@sessionHost.numericInterpretationErrorWorse:Der mittlere Abstand zur Referenz ist in Runde 2 um ${this.formatNumericHostStatValue(
+            errorDelta,
+            question,
+          )}:delta: größer.`,
+        );
+      }
+    }
+
+    if (
+      roundComparison.inBandPercentDelta !== null &&
+      roundComparison.inBandPercentDelta !== undefined &&
+      Math.abs(roundComparison.inBandPercentDelta) >= 0.05
+    ) {
+      const sign = roundComparison.inBandPercentDelta > 0 ? '+' : '';
+      parts.push(
+        $localize`:@@sessionHost.numericInterpretationInBandDelta:Akzeptierte Schätzungen: ${sign}${formatNumber(
+          roundComparison.inBandPercentDelta,
+          this.localeId,
+          '1.0-1',
+        )}:delta: Prozentpunkte.`,
+      );
+    }
+
+    return parts.length > 0 ? parts.join(' ') : null;
+  }
+
+  numericStatsInterpretation(
+    stats: NumericStatsDTO,
+    question: HostCurrentQuestionDTO | null,
+  ): string | null {
+    if (stats.n <= 0) return null;
+    const parts: string[] = [];
+    if (stats.inBandPercent !== null) {
+      parts.push(
+        $localize`:@@sessionHost.numericInterpretationSingleInBand:${formatNumber(
+          stats.inBandCount,
+          this.localeId,
+          '1.0-0',
+        )}:inBand: von ${formatNumber(
+          stats.n,
+          this.localeId,
+          '1.0-0',
+        )}:total: Schätzungen liegen im Toleranzband.`,
+      );
+    }
+    if (stats.meanAbsoluteError !== null) {
+      parts.push(
+        $localize`:@@sessionHost.numericInterpretationSingleError:Der mittlere Abstand zur Referenz beträgt ${this.formatNumericHostStatValue(
+          stats.meanAbsoluteError,
+          question,
+        )}:error:.`,
+      );
+    } else if (stats.median !== null) {
+      parts.push(
+        $localize`:@@sessionHost.numericInterpretationSingleMedian:Der Median liegt bei ${this.formatNumericHostStatValue(
+          stats.median,
+          question,
+        )}:median:.`,
+      );
+    }
+    return parts.length > 0 ? parts.join(' ') : null;
+  }
+
   private numericExportDetails(
     stats: NumericStatsDTO,
     roundComparison: NumericRoundComparisonDTO | undefined,

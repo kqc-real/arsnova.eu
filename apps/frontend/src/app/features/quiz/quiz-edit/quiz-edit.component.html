@@ -616,6 +616,31 @@
         }
 
         @if (hasNumericConfig()) {
+          <div class="quiz-edit-form__section-label" i18n="@@quizEdit.numericEstimatePresetSection">
+            Schnelleinstieg
+          </div>
+          <div
+            class="quiz-edit-form__numeric-presets"
+            role="group"
+            i18n-aria-label="@@quizEdit.numericEstimatePresetGroupAria"
+            aria-label="Schätzfragen-Vorlage wählen"
+          >
+            @for (preset of numericEstimatePresetOptions; track preset.value) {
+              <button
+                matButton="tonal"
+                type="button"
+                class="quiz-edit-form__numeric-preset"
+                (click)="applyNumericEstimatePreset(preset.value)"
+              >
+                <mat-icon aria-hidden="true">{{ preset.icon }}</mat-icon>
+                <span class="quiz-edit-form__numeric-preset-copy">
+                  <span class="quiz-edit-form__numeric-preset-label">{{ preset.label }}</span>
+                  <span class="quiz-edit-form__numeric-preset-hint">{{ preset.hint }}</span>
+                </span>
+              </button>
+            }
+          </div>
+
           <div class="quiz-edit-form__section-label" i18n>Eingabetyp</div>
           <div class="quiz-edit-form__grid">
             <mat-form-field appearance="outline">
@@ -731,6 +756,68 @@
               <input matInput type="number" formControlName="numericMax" />
             </mat-form-field>
           </div>
+
+          @if (numericEstimateConfigPreview(); as preview) {
+            <section
+              class="quiz-edit-form__numeric-preview"
+              i18n-aria-label="@@quizEdit.numericPreviewAria"
+              aria-label="Vorschau der Schätzfrage"
+            >
+              <div class="quiz-edit-form__numeric-preview-head">
+                <mat-icon aria-hidden="true">insights</mat-icon>
+                <div>
+                  <h3 i18n="@@quizEdit.numericPreviewTitle">Band-Vorschau</h3>
+                  <p>{{ preview.note }}</p>
+                </div>
+              </div>
+              <div class="quiz-edit-form__numeric-preview-scale" aria-hidden="true">
+                @if (preview.toleranceStyle) {
+                  <span
+                    class="quiz-edit-form__numeric-preview-band"
+                    [style.left.%]="preview.toleranceStyle.left"
+                    [style.width.%]="preview.toleranceStyle.width"
+                  ></span>
+                }
+                @if (preview.referenceStyle) {
+                  <span
+                    class="quiz-edit-form__numeric-preview-reference"
+                    [style.left.%]="preview.referenceStyle.left"
+                  ></span>
+                }
+                <span class="quiz-edit-form__numeric-preview-axis"></span>
+                <span
+                  class="quiz-edit-form__numeric-preview-axis-label quiz-edit-form__numeric-preview-axis-label--min"
+                >
+                  {{ preview.rangeMinLabel }}
+                </span>
+                <span
+                  class="quiz-edit-form__numeric-preview-axis-label quiz-edit-form__numeric-preview-axis-label--max"
+                >
+                  {{ preview.rangeMaxLabel }}
+                </span>
+              </div>
+              <div class="quiz-edit-form__numeric-preview-legend">
+                @if (preview.plausibilityLabel) {
+                  <span>
+                    <mat-icon aria-hidden="true">rule</mat-icon>
+                    {{ preview.plausibilityLabel }}
+                  </span>
+                }
+                @if (preview.toleranceLabel) {
+                  <span>
+                    <mat-icon aria-hidden="true">linear_scale</mat-icon>
+                    {{ preview.toleranceLabel }}
+                  </span>
+                }
+                @if (preview.referenceLabel) {
+                  <span>
+                    <mat-icon aria-hidden="true">adjust</mat-icon>
+                    {{ preview.referenceLabel }}
+                  </span>
+                }
+              </div>
+            </section>
+          }
 
           <mat-slide-toggle
             formControlName="numericTwoRounds"

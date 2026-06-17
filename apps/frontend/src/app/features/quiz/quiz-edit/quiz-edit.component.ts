@@ -1,7 +1,8 @@
-import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import { DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   ElementRef,
+  LOCALE_ID,
   OnDestroy,
   ViewChild,
   computed,
@@ -61,6 +62,7 @@ import {
   isNumericToleranceMode,
   normalizeShortTextValue,
   resolveNumericEstimateToleranceMode,
+  resolveNumericTolerance,
   resolveNumericQuestionEvaluationSettings,
   resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
@@ -153,6 +155,19 @@ type ShortTextPreviewExample = {
   studentAnswer: string;
   outcome: string;
   tone: 'full' | 'partial' | 'rejected';
+};
+
+type NumericEstimatePresetValue = 'year' | 'measurement' | 'percent' | 'magnitude';
+
+type NumericEstimateConfigPreview = {
+  rangeMinLabel: string;
+  rangeMaxLabel: string;
+  toleranceLabel: string | null;
+  plausibilityLabel: string | null;
+  referenceLabel: string | null;
+  toleranceStyle: { left: number; width: number } | null;
+  referenceStyle: { left: number } | null;
+  note: string;
 };
 
 type ParsedNumericPreviewAnswer = {
@@ -303,6 +318,7 @@ export class QuizEditComponent implements OnDestroy {
   private readonly quizStore = inject(QuizStoreService);
   private readonly localeGuard = inject(LocaleSwitchGuardService);
   private readonly dialog = inject(MatDialog);
+  private readonly localeId = inject(LOCALE_ID);
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   /** Synchron zu MotifImageUrlSchema / maxlength im Metadaten-Formular. */
@@ -351,6 +367,38 @@ export class QuizEditComponent implements OnDestroy {
     value: value as ScFormat,
     label: preset.label,
   }));
+
+  readonly numericEstimatePresetOptions: Array<{
+    value: NumericEstimatePresetValue;
+    label: string;
+    hint: string;
+    icon: string;
+  }> = [
+    {
+      value: 'year',
+      label: $localize`:@@quizEdit.numericPresetYearLabel:Jahreszahl`,
+      hint: $localize`:@@quizEdit.numericPresetYearHint:Ganzzahl, 1500–2000 plausibel, 1700–1900 akzeptiert, zwei Runden.`,
+      icon: 'event',
+    },
+    {
+      value: 'measurement',
+      label: $localize`:@@quizEdit.numericPresetMeasurementLabel:Messwert`,
+      hint: $localize`:@@quizEdit.numericPresetMeasurementHint:Dezimalwert mit einer Nachkommastelle und engem absoluten Toleranzband.`,
+      icon: 'straighten',
+    },
+    {
+      value: 'percent',
+      label: $localize`:@@quizEdit.numericPresetPercentLabel:Prozentwert`,
+      hint: $localize`:@@quizEdit.numericPresetPercentHint:Ganzzahl von 0 bis 100 mit zehn Prozentpunkten Toleranz.`,
+      icon: 'percent',
+    },
+    {
+      value: 'magnitude',
+      label: $localize`:@@quizEdit.numericPresetMagnitudeLabel:Größenordnung`,
+      hint: $localize`:@@quizEdit.numericPresetMagnitudeHint:Große Ganzzahl mit relativem Toleranzband für Schätzungen in Größenordnungen.`,
+      icon: 'finance',
+    },
+  ];
 
   readonly difficultyOptions: Array<{ value: Difficulty; label: string }> = [
     { value: 'EASY', label: $localize`:@@quiz.difficulty.easy:Leicht` },
@@ -844,6 +892,203 @@ export class QuizEditComponent implements OnDestroy {
 
   numericIsDecimalInput(): boolean {
     return this.form.controls.numericInputType.value === 'DECIMAL';
+  }
+
+  applyNumericEstimatePreset(value: NumericEstimatePresetValue): void {
+    const controls = this.form.controls;
+    switch (value) {
+      case 'year':
+        controls.numericInputType.setValue('INTEGER');
+        controls.numericDecimalPlaces.setValue(null);
+        controls.numericToleranceMode.setValue('ABSOLUTE_INTERVAL');
+        controls.numericReferenceValue.setValue(1789);
+        controls.numericTolerancePercent.setValue(null);
+        controls.numericIntervalLeft.setValue(1700);
+        controls.numericIntervalRight.setValue(1900);
+        controls.numericMin.setValue(1500);
+        controls.numericMax.setValue(2000);
+        controls.numericTwoRounds.setValue(true);
+        break;
+      case 'measurement':
+        controls.numericInputType.setValue('DECIMAL');
+        controls.numericDecimalPlaces.setValue(1);
+        controls.numericToleranceMode.setValue('ABSOLUTE_INTERVAL');
+        controls.numericReferenceValue.setValue(100);
+        controls.numericTolerancePercent.setValue(null);
+        controls.numericIntervalLeft.setValue(95);
+        controls.numericIntervalRight.setValue(105);
+        controls.numericMin.setValue(0);
+        controls.numericMax.setValue(200);
+        controls.numericTwoRounds.setValue(true);
+        break;
+      case 'percent':
+        controls.numericInputType.setValue('INTEGER');
+        controls.numericDecimalPlaces.setValue(null);
+        controls.numericToleranceMode.setValue('ABSOLUTE_INTERVAL');
+        controls.numericReferenceValue.setValue(50);
+        controls.numericTolerancePercent.setValue(null);
+        controls.numericIntervalLeft.setValue(45);
+        controls.numericIntervalRight.setValue(55);
+        controls.numericMin.setValue(0);
+        controls.numericMax.setValue(100);
+        controls.numericTwoRounds.setValue(false);
+        break;
+      case 'magnitude':
+        controls.numericInputType.setValue('INTEGER');
+        controls.numericDecimalPlaces.setValue(null);
+        controls.numericToleranceMode.setValue('RELATIVE_PERCENT');
+        controls.numericReferenceValue.setValue(1_000_000);
+        controls.numericTolerancePercent.setValue(20);
+        controls.numericIntervalLeft.setValue(null);
+        controls.numericIntervalRight.setValue(null);
+        controls.numericMin.setValue(0);
+        controls.numericMax.setValue(10_000_000);
+        controls.numericTwoRounds.setValue(true);
+        break;
+    }
+    this.form.markAsDirty();
+    this.scheduleLivePreview();
+  }
+
+  numericEstimateConfigPreview(): NumericEstimateConfigPreview | null {
+    if (!this.isNumericEstimateType()) return null;
+
+    const band = resolveNumericTolerance(
+      resolveNumericEstimateToleranceMode(this.form.controls.numericToleranceMode.value),
+      {
+        referenceValue: this.form.controls.numericReferenceValue.value,
+        tolerancePercent: this.form.controls.numericTolerancePercent.value,
+        intervalLeft: this.form.controls.numericIntervalLeft.value,
+        intervalRight: this.form.controls.numericIntervalRight.value,
+      },
+    );
+    const min = this.form.controls.numericMin.value;
+    const max = this.form.controls.numericMax.value;
+    const reference = this.form.controls.numericReferenceValue.value;
+    const values = [min, max, band?.left, band?.right, reference].filter(
+      (value): value is number => typeof value === 'number' && Number.isFinite(value),
+    );
+
+    if (values.length === 0) {
+      return null;
+    }
+
+    let rangeMin = Math.min(...values);
+    let rangeMax = Math.max(...values);
+    if (rangeMin === rangeMax) {
+      rangeMin -= 1;
+      rangeMax += 1;
+    }
+
+    const valuePosition = (value: number): number =>
+      Math.min(100, Math.max(0, ((value - rangeMin) / (rangeMax - rangeMin)) * 100));
+    const toleranceStyle =
+      band && band.right >= rangeMin && band.left <= rangeMax
+        ? {
+            left: valuePosition(Math.max(band.left, rangeMin)),
+            width: Math.max(
+              1,
+              valuePosition(Math.min(band.right, rangeMax)) -
+                valuePosition(Math.max(band.left, rangeMin)),
+            ),
+          }
+        : null;
+    const referenceStyle =
+      typeof reference === 'number' && reference >= rangeMin && reference <= rangeMax
+        ? { left: valuePosition(reference) }
+        : null;
+
+    return {
+      rangeMinLabel: this.formatNumericEstimateEditorValue(rangeMin),
+      rangeMaxLabel: this.formatNumericEstimateEditorValue(rangeMax),
+      toleranceLabel: band
+        ? $localize`:@@quizEdit.numericPreviewToleranceLabel:Toleranzband ${this.formatNumericEstimateEditorValue(
+            band.left,
+          )}:left: bis ${this.formatNumericEstimateEditorValue(band.right)}:right:`
+        : null,
+      plausibilityLabel: this.numericEstimatePlausibilityLabel(min, max),
+      referenceLabel:
+        typeof reference === 'number'
+          ? $localize`:@@quizEdit.numericPreviewReferenceLabel:Referenz ${this.formatNumericEstimateEditorValue(
+              reference,
+            )}:reference:`
+          : null,
+      toleranceStyle,
+      referenceStyle,
+      note: this.numericEstimatePreviewNote(band, min, max),
+    };
+  }
+
+  private numericEstimatePreviewNote(
+    band: { left: number; right: number } | null,
+    min: number | null,
+    max: number | null,
+  ): string {
+    if (!band) {
+      return $localize`:@@quizEdit.numericPreviewIncomplete:Toleranzband wird angezeigt, sobald Grenzen oder Referenz und Prozentwert vollständig sind.`;
+    }
+    if (
+      typeof min === 'number' &&
+      typeof max === 'number' &&
+      Number.isFinite(min) &&
+      Number.isFinite(max) &&
+      (band.left < min || band.right > max)
+    ) {
+      return $localize`:@@quizEdit.numericPreviewToleranceOutside:Plausibilitätsgrenzen und Toleranzband passen noch nicht zusammen. Werte im Band sollten auch eingebbar sein.`;
+    }
+    return $localize`:@@quizEdit.numericPreviewReady:Plausibilität begrenzt erlaubte Eingaben; das Toleranzband entscheidet über Punkte.`;
+  }
+
+  private numericEstimatePlausibilityLabel(min: number | null, max: number | null): string | null {
+    const hasMin = typeof min === 'number' && Number.isFinite(min);
+    const hasMax = typeof max === 'number' && Number.isFinite(max);
+    if (hasMin && hasMax) {
+      return $localize`:@@quizEdit.numericPreviewPlausibilityRange:Plausibilität ${this.formatNumericEstimateEditorValue(
+        min,
+      )}:min: bis ${this.formatNumericEstimateEditorValue(max)}:max:`;
+    }
+    if (hasMin) {
+      return $localize`:@@quizEdit.numericPreviewPlausibilityMin:Plausibilität ab ${this.formatNumericEstimateEditorValue(
+        min,
+      )}:min:`;
+    }
+    if (hasMax) {
+      return $localize`:@@quizEdit.numericPreviewPlausibilityMax:Plausibilität bis ${this.formatNumericEstimateEditorValue(
+        max,
+      )}:max:`;
+    }
+    return null;
+  }
+
+  private formatNumericEstimateEditorValue(value: number): string {
+    if (this.numericEstimateEditorUsesYearFormat()) {
+      return new Intl.NumberFormat(this.localeId, {
+        maximumFractionDigits: 0,
+        useGrouping: false,
+      }).format(value);
+    }
+    const digits =
+      this.form.controls.numericInputType.value === 'INTEGER'
+        ? '1.0-0'
+        : `1.0-${Math.max(0, Math.min(4, this.form.controls.numericDecimalPlaces.value ?? 2))}`;
+    return formatNumber(value, this.localeId, digits);
+  }
+
+  private numericEstimateEditorUsesYearFormat(): boolean {
+    if (this.form.controls.numericInputType.value !== 'INTEGER') return false;
+    const text = this.textControl.value;
+    if (/\b(jahr|jahreszahl|year|année|annee|año|ano|anno|wann)\b/i.test(text)) {
+      return true;
+    }
+    const min = this.form.controls.numericMin.value;
+    const max = this.form.controls.numericMax.value;
+    return (
+      typeof min === 'number' &&
+      typeof max === 'number' &&
+      min >= 1000 &&
+      max <= 2200 &&
+      max - min <= 1000
+    );
   }
 
   renderMarkdown(value: string | null | undefined): SafeHtml {
