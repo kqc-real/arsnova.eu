@@ -3379,7 +3379,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const payload = await trpc.session.getTeams.query({ code: this.code.toUpperCase() });
       this.lobbyTeams.set(payload.teams);
     } catch {
-      this.lobbyTeams.set([]);
+      // Subscription/polling can transiently fail; keep the last stable team list to avoid lobby flicker.
     }
   }
 

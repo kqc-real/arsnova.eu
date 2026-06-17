@@ -6415,6 +6415,47 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
+  it('behaelt Teamkarten bei, wenn ein spaeterer Team-Refresh fehlschlaegt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      preset: 'PLAYFUL',
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 0 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 0 },
+      ],
+    });
+    getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const cardsBefore = fixture.nativeElement.querySelectorAll('.session-lobby__team-card');
+    expect(cardsBefore.length).toBe(2);
+    getTeamsQueryMock.mockRejectedValueOnce(new Error('network'));
+
+    await (
+      fixture.componentInstance as unknown as {
+        refreshLobbyTeams(): Promise<void>;
+      }
+    ).refreshLobbyTeams();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelectorAll('.session-lobby__team-card').length).toBe(2);
+    expect(host.textContent ?? '').toContain('Rot');
+    expect(host.textContent ?? '').toContain('Blau');
+    fixture.destroy();
+  });
+
   it('rendert Team-Einfluege lokal in der passenden Teamkarte und nutzt die Kartenrichtung', async () => {
     let participantJoinedHandler: ((data: unknown) => void) | null = null;
     getInfoQueryMock.mockResolvedValue({
