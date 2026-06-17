@@ -713,6 +713,70 @@ export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
  */
 const DEMO_QUIZ_SEED_FINGERPRINT_KEY = 'arsnova-demo-quiz-seed-fp-v1';
 
+function demoQuizMatchesNumericEstimatePayload(document: QuizDocument, payload: unknown): boolean {
+  const payloadQuestions =
+    payload && typeof payload === 'object'
+      ? (payload as { quiz?: { questions?: unknown[] } }).quiz?.questions
+      : undefined;
+  const expected = payloadQuestions?.find(
+    (question): question is Record<string, unknown> =>
+      !!question &&
+      typeof question === 'object' &&
+      (question as { type?: unknown }).type === 'NUMERIC_ESTIMATE',
+  );
+
+  if (!expected) {
+    return !document.questions.some((question) => question.type === 'NUMERIC_ESTIMATE');
+  }
+
+  const actual = document.questions.find((question) => question.type === 'NUMERIC_ESTIMATE');
+  if (!actual) return false;
+
+  const expectedMode = resolveNumericEstimateToleranceMode(
+    readStringOrNull(expected['numericToleranceMode']),
+  );
+  if (actual.numericToleranceMode !== expectedMode) return false;
+
+  const expectedReference = readNumberOrNull(expected['numericReferenceValue']);
+  if (expectedReference === null || expectedReference === undefined) return false;
+  if (actual.numericReferenceValue !== expectedReference) return false;
+
+  if (expectedMode === 'ABSOLUTE_INTERVAL') {
+    const expectedLeft = readNumberOrNull(expected['numericIntervalLeft']);
+    const expectedRight = readNumberOrNull(expected['numericIntervalRight']);
+    if (expectedLeft === null || expectedLeft === undefined) return false;
+    if (expectedRight === null || expectedRight === undefined) return false;
+    if (actual.numericIntervalLeft !== expectedLeft) return false;
+    if (actual.numericIntervalRight !== expectedRight) return false;
+  } else {
+    const expectedPercent = readNumberOrNull(expected['numericTolerancePercent']);
+    if (expectedPercent === null || expectedPercent === undefined) return false;
+    if (actual.numericTolerancePercent !== expectedPercent) return false;
+  }
+
+  const expectedInputType = readStringOrNull(expected['numericInputType']);
+  if (expectedInputType !== null && expectedInputType !== undefined) {
+    if (actual.numericInputType !== expectedInputType) return false;
+  }
+
+  const expectedMin = readNumberOrNull(expected['numericMin']);
+  if (expectedMin !== null && expectedMin !== undefined && actual.numericMin !== expectedMin) {
+    return false;
+  }
+
+  const expectedMax = readNumberOrNull(expected['numericMax']);
+  if (expectedMax !== null && expectedMax !== undefined && actual.numericMax !== expectedMax) {
+    return false;
+  }
+
+  const expectedTwoRounds = readBoolean(expected['numericTwoRounds']);
+  if (expectedTwoRounds !== undefined && actual.numericTwoRounds !== expectedTwoRounds) {
+    return false;
+  }
+
+  return true;
+}
+
 @Injectable({ providedIn: 'root' })
 export class QuizStoreService implements OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
@@ -1338,32 +1402,56 @@ export class QuizStoreService implements OnDestroy {
       }),
       questions: quizData.questions
         .sort((a, b) => a.order - b.order)
-        .map((question, index) => ({
-          id: generateUuid(),
-          text: question.text,
-          type: question.type,
-          difficulty: question.difficulty,
-          order: index,
-          enabled: question.enabled !== false,
-          timer: question.timer === undefined || question.timer === null ? null : question.timer,
-          answers: question.answers.map((answer) => ({
+        .map((question, index) => {
+          const shortTextSettings = resolveQuestionShortTextSettings(question);
+          const isNumericEstimate = question.type === 'NUMERIC_ESTIMATE';
+          return {
             id: generateUuid(),
-            text: answer.text,
-            isCorrect: answer.isCorrect,
-          })),
-          skipReadingPhase: question.skipReadingPhase ?? false,
-          ratingMin: question.type === 'RATING' ? (question.ratingMin ?? 1) : null,
-          ratingMax: question.type === 'RATING' ? (question.ratingMax ?? 5) : null,
-          ratingLabelMin:
-            question.type === 'RATING'
-              ? (normalizeNullableLabel(question.ratingLabelMin) ?? null)
+            text: question.text,
+            type: question.type,
+            difficulty: question.difficulty,
+            order: index,
+            enabled: question.enabled !== false,
+            timer: question.timer === undefined || question.timer === null ? null : question.timer,
+            answers: question.answers.map((answer) => ({
+              id: generateUuid(),
+              text: answer.text,
+              isCorrect: answer.isCorrect,
+            })),
+            skipReadingPhase: question.skipReadingPhase ?? false,
+            ratingMin: question.type === 'RATING' ? (question.ratingMin ?? 1) : null,
+            ratingMax: question.type === 'RATING' ? (question.ratingMax ?? 5) : null,
+            ratingLabelMin:
+              question.type === 'RATING'
+                ? (normalizeNullableLabel(question.ratingLabelMin) ?? null)
+                : null,
+            ratingLabelMax:
+              question.type === 'RATING'
+                ? (normalizeNullableLabel(question.ratingLabelMax) ?? null)
+                : null,
+            ...shortTextSettings,
+            numericToleranceMode: isNumericEstimate
+              ? resolveNumericEstimateToleranceMode(question.numericToleranceMode)
+              : shortTextSettings.numericToleranceMode,
+            numericReferenceValue: isNumericEstimate
+              ? (question.numericReferenceValue ?? null)
               : null,
-          ratingLabelMax:
-            question.type === 'RATING'
-              ? (normalizeNullableLabel(question.ratingLabelMax) ?? null)
+            numericTolerancePercent: isNumericEstimate
+              ? (question.numericTolerancePercent ?? null)
               : null,
-          ...resolveQuestionShortTextSettings(question),
-        })),
+            numericIntervalLeft: isNumericEstimate ? (question.numericIntervalLeft ?? null) : null,
+            numericIntervalRight: isNumericEstimate
+              ? (question.numericIntervalRight ?? null)
+              : null,
+            numericInputType: isNumericEstimate ? (question.numericInputType ?? 'DECIMAL') : null,
+            numericDecimalPlaces: isNumericEstimate
+              ? (question.numericDecimalPlaces ?? null)
+              : null,
+            numericMin: isNumericEstimate ? (question.numericMin ?? null) : null,
+            numericMax: isNumericEstimate ? (question.numericMax ?? null) : null,
+            numericTwoRounds: isNumericEstimate ? (question.numericTwoRounds ?? false) : false,
+          };
+        }),
     };
 
     this.quizDocuments.update((current) => [imported, ...current]);
@@ -1611,6 +1699,10 @@ export class QuizStoreService implements OnDestroy {
 
     const titleLocale = detectCanonicalDemoLocaleForTitle(existing.name);
     if (titleLocale !== null && titleLocale !== locale) {
+      return reseedDemoFromPayload();
+    }
+
+    if (!demoQuizMatchesNumericEstimatePayload(existing, payload)) {
       return reseedDemoFromPayload();
     }
 
