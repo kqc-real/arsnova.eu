@@ -42,6 +42,10 @@ import { touchParticipantPresence } from '../lib/presence';
 import { recordVoteActivity } from '../lib/loadSignal';
 import { invalidateCurrentQuestionCachesForCode, recordVoteCachesForCode } from './session';
 
+function normalizeNumericInputType(value: string | null | undefined): NumericInputType {
+  return value === 'INTEGER' ? 'INTEGER' : 'DECIMAL';
+}
+
 export const voteRouter = router({
   submit: publicProcedure
     .input(SubmitVoteInputSchema)
@@ -338,7 +342,7 @@ export const voteRouter = router({
               message: `Der Wert darf höchstens ${numMax} betragen.`,
             });
           }
-          const numInputType = (question.numericInputType as NumericInputType | null) ?? 'DECIMAL';
+          const numInputType = normalizeNumericInputType(question.numericInputType);
           if (numInputType === 'INTEGER' && !Number.isInteger(input.numericValue)) {
             throw new TRPCError({
               code: 'BAD_REQUEST',

@@ -534,6 +534,37 @@ describe('vote.submit', () => {
     expect(prismaMock.vote.create).not.toHaveBeenCalled();
   });
 
+  it('validiert NUMERIC_ESTIMATE-Dezimalstellen auch bei unerwartetem numericInputType', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      order: 0,
+      quizId: 'quiz-1',
+      type: 'NUMERIC_ESTIMATE',
+      difficulty: 'MEDIUM',
+      timer: null,
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      numericInputType: 'FLOAT',
+      numericDecimalPlaces: 2,
+      numericMin: null,
+      numericMax: null,
+      numericTwoRounds: false,
+      answers: [],
+    });
+
+    await expect(
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        numericValue: 1.234,
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(prismaMock.vote.create).not.toHaveBeenCalled();
+  });
+
   it('setzt Streak nach falscher Antwort zurück (nächste richtige = Serie 1, ×1.0)', async () => {
     prismaMock.question.findFirst.mockResolvedValue({
       id: 'question-2',

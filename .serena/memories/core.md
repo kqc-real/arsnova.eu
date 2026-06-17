@@ -15,6 +15,10 @@
   - Auth and ownership boundaries: `mem:security/auth`.
   - Participant DTO stripping and solution-data rules: `mem:security/dto-stripping`.
   - Session phases and live DTO lifecycle: `mem:session/lifecycle`.
+- Feature/story-specific memories:
+  - Numeric estimate story requirements and two-round/privacy rules: `mem:session/numeric-estimate-story-1-2d`.
+  - Numeric estimate PR #25 implementation/review state: `mem:session/numeric-estimate-pr25-state`.
+  - Numeric estimate UX/statistics/performance guidelines: `mem:quality/numeric-estimate-ux-performance-guidelines`.
 - Implementation-detail memories:
   - tRPC router/procedure map: `mem:backend/api-router`.
   - Angular route/component map: `mem:frontend/routing-components`.
@@ -38,6 +42,9 @@
 - `mem:security/auth`
 - `mem:security/dto-stripping`
 - `mem:session/lifecycle`
+- `mem:session/numeric-estimate-story-1-2d`
+- `mem:session/numeric-estimate-pr25-state`
+- `mem:quality/numeric-estimate-ux-performance-guidelines`
 - `mem:backend/api-router`
 - `mem:frontend/routing-components`
 - `mem:frontend/i18n-ui`

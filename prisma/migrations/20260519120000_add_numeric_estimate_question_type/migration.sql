@@ -3,7 +3,7 @@
 -- and numericValue to Vote.
 
 -- 1. Extend QuestionType enum
-ALTER TYPE "QuestionType" ADD VALUE 'NUMERIC_ESTIMATE';
+ALTER TYPE "QuestionType" ADD VALUE IF NOT EXISTS 'NUMERIC_ESTIMATE';
 
 -- 2. Add numeric config columns to Question table
 ALTER TABLE "Question"

@@ -1853,7 +1853,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionVote.numericIntegerRequired:Bitte gib eine ganze Zahl im unterstützten Format ein.`;
       }
       const maxDecimalPlaces = this.numericQuestionMaxDecimalPlaces();
-      if (maxDecimalPlaces !== null && this.numericRawDecimalPlaces(raw) > maxDecimalPlaces) {
+      const rawDecimalPlaces = this.numericRawDecimalPlaces(raw);
+      if (
+        maxDecimalPlaces !== null &&
+        rawDecimalPlaces !== null &&
+        rawDecimalPlaces > maxDecimalPlaces
+      ) {
         return $localize`:@@sessionVote.numericDecimalPlacesExceeded:Maximal ${maxDecimalPlaces}:maxDecimalPlaces: Nachkommastellen erlaubt.`;
       }
       return $localize`:@@sessionVote.numericInvalid:Bitte gib eine gültige Zahl im unterstützten Format ein.`;
@@ -1870,10 +1875,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  private numericRawDecimalPlaces(raw: string): number {
-    const normalized = raw.trim().replace(',', '.');
-    const decimalPart = normalized.includes('.') ? (normalized.split('.')[1] ?? '') : '';
-    return decimalPart.length;
+  private numericRawDecimalPlaces(raw: string): number | null {
+    const normalized = raw.trim().replace(/\s+/g, '').replace(',', '.');
+    const match = /^-?\d+(?:\.(\d+))?$/.exec(normalized);
+    if (!match) return null;
+    return match[1]?.length ?? 0;
   }
 
   getColor(index: number): string {

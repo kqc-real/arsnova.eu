@@ -1927,9 +1927,18 @@ describe('SessionVoteComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
 
     const component = fixture.componentInstance;
-    const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+    let input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
       '#vote-numeric-input',
     );
+    for (let attempt = 0; attempt < 10 && !input; attempt += 1) {
+      await fixture.whenStable();
+      await new Promise((r) => setTimeout(r, 50));
+      fixture.detectChanges();
+      input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+        '#vote-numeric-input',
+      );
+    }
+    expect(input).toBeTruthy();
     expect(input?.type).toBe('text');
     expect(input?.getAttribute('inputmode')).toBe('decimal');
     input!.value = '3,14';
@@ -1937,6 +1946,13 @@ describe('SessionVoteComponent', () => {
     fixture.detectChanges();
     expect(component.numericInputValue()).toBe('3,14');
     expect(component.numericParsedValue()).toBe(3.14);
+
+    component.numericInputValue.set('1.000,5');
+    fixture.detectChanges();
+
+    expect(component.numericParsedValue()).toBeNull();
+    expect(component.numericValidationError()).toContain('gültige Zahl');
+    expect(component.numericValidationError()).not.toContain('Nachkommastellen');
 
     component.numericInputValue.set('3,141');
     fixture.detectChanges();
