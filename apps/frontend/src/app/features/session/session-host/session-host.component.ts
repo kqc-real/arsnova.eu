@@ -403,6 +403,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Live-Status für Steuerung (Story 2.3). */
   readonly statusUpdate = signal<SessionStatusUpdate | null>(null);
   readonly controlPending = signal(false);
+  readonly quizStartQuestionPending = signal(false);
   /** Auffälliger Hinweis bei fehlgeschlagenen Host-Steuer-Mutationen (Netz/Server). */
   readonly hostSteeringCallout = signal<HostSteeringCalloutState | null>(null);
   readonly activeChannel = signal<SessionChannelTab>('quiz');
@@ -525,6 +526,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   readonly isHostQuestionDetailsPending = computed(
     () => this.hasCurrentQuizQuestionForHost() && this.displayedCurrentQuestionForHost() === null,
+  );
+  readonly showLobbyStage = computed(
+    () => this.effectiveStatus() === 'LOBBY' || this.quizStartQuestionPending(),
   );
   /** Emoji-Reaktionen der Teilnehmenden in der Ergebnis-Phase (Story 5.8). */
   readonly emojiReactions = signal<{ reactions: Record<string, number>; total: number } | null>(
@@ -1666,6 +1670,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             channels: data.channels,
             preferredChannel: data.preferredChannel,
           } satisfies SessionStatusUpdate;
+          if (update.status === 'LOBBY' || update.status === 'FINISHED') {
+            this.quizStartQuestionPending.set(false);
+          }
           this.statusUpdate.set(update);
           this.syncCountdownFromStatusUpdate(update);
         },
@@ -3054,6 +3061,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const current = this.currentQuestionForHost();
     if (next === null && this.shouldRetainCurrentHostQuestion(current)) {
       return;
+    }
+    if (next !== null && this.quizStartQuestionPending()) {
+      const currentQuestion = this.statusUpdate()?.currentQuestion;
+      if (typeof currentQuestion !== 'number' || currentQuestion === next.order) {
+        this.quizStartQuestionPending.set(false);
+      }
     }
     if (this.isSameHostCurrentQuestion(current, next)) {
       return;
@@ -4945,16 +4958,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.controlPending() || !this.code) return;
     this.controlPending.set(true);
     this.hostDisplayMode.setPreferImmersiveHost(true);
+    const startingQuizFromLobby =
+      this.effectiveStatus() === 'LOBBY' && this.channels().quiz && !this.isQaSession();
+    if (startingQuizFromLobby) {
+      this.quizStartQuestionPending.set(true);
+    }
     try {
       this.clearEmojiNewBadge();
       this.stopCountdown();
       this.countdownSeconds.set(null);
       const result = await trpc.session.nextQuestion.mutate({ code: this.code.toUpperCase() });
+      if (startingQuizFromLobby && typeof result.currentQuestion !== 'number') {
+        this.quizStartQuestionPending.set(false);
+      }
       this.statusUpdate.set(result);
       this.syncCountdownFromStatusUpdate(result);
       this.dismissHostSteeringCallout();
       this.controlPending.set(false);
       await this.refreshCurrentQuestionForHost();
+      this.quizStartQuestionPending.set(false);
       if (!this.isCurrentStatusUpdate(result)) return;
       if (result.status === 'ACTIVE') {
         const refreshedTimer = this.displayedCurrentQuestionForHost()?.timer;
@@ -4963,6 +4985,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
       }
     } catch {
+      this.quizStartQuestionPending.set(false);
       this.openHostSteeringCalloutForSteeringFailure(() => void this.nextQuestion());
     } finally {
       this.controlPending.set(false);

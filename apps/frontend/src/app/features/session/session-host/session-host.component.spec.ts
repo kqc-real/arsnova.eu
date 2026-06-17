@@ -4781,7 +4781,7 @@ describe('SessionHostComponent', () => {
     fixture.destroy();
   });
 
-  it('gibt Antwortoptionen-Aktion frei, waehrend die neue Host-Frage noch nachlaedt', async () => {
+  it('gibt Antwortoptionen-Aktion erst frei, wenn die aus der Lobby gestartete Host-Frage geladen ist', async () => {
     const loadedQuestion = {
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
@@ -4822,16 +4822,113 @@ describe('SessionHostComponent', () => {
     await Promise.resolve();
     fixture.detectChanges();
 
-    const revealButton = Array.from(
+    const revealButtonWhilePending = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
     ).find((button) => (button.textContent ?? '').includes('Antwortoptionen freigeben'));
     expect(component.controlPending()).toBe(false);
-    expect(revealButton).toBeTruthy();
-    expect(revealButton?.disabled).toBe(false);
+    expect(component.quizStartQuestionPending()).toBe(true);
+    expect(revealButtonWhilePending).toBeUndefined();
 
     resolveRefresh?.(loadedQuestion);
     await pendingNextQuestion;
     await fixture.whenStable();
+    fixture.detectChanges();
+
+    const revealButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((button) => (button.textContent ?? '').includes('Antwortoptionen freigeben'));
+    expect(component.quizStartQuestionPending()).toBe(false);
+    expect(revealButton).toBeTruthy();
+    expect(revealButton?.disabled).toBe(false);
+    fixture.destroy();
+  });
+
+  it('haelt die Lobby-Teamkarten stabil, waehrend eine spaetere Startfrage nachlaedt', async () => {
+    const loadedQuestion = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 1,
+      totalQuestions: 3,
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      currentRound: 1,
+      timer: 30,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
+      ],
+      totalVotes: 0,
+      correctVoterCount: 0,
+    };
+    let resolveRefresh: ((value: typeof loadedQuestion) => void) | null = null;
+
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'LOBBY',
+      teamMode: true,
+      anonymousMode: false,
+      preset: 'PLAYFUL',
+    });
+    getTeamsQueryMock.mockResolvedValue({
+      teamCount: 2,
+      teams: [
+        { id: 'team-a', name: 'Rot', color: '#1E88E5', memberCount: 1 },
+        { id: 'team-b', name: 'Blau', color: '#43A047', memberCount: 1 },
+      ],
+    });
+    getParticipantsQueryMock.mockResolvedValue({
+      participantCount: 2,
+      participants: [
+        { id: 'p1', nickname: 'Ada', teamId: 'team-a', teamName: 'Rot' },
+        { id: 'p2', nickname: 'Linus', teamId: 'team-b', teamName: 'Blau' },
+      ],
+    });
+    nextQuestionMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+      activeAt: '2026-03-24T12:00:00.000Z',
+      timer: 30,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.session-lobby__team-card').length,
+    ).toBe(2);
+
+    getCurrentQuestionForHostQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+
+    const pendingNextQuestion = component.nextQuestion();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    const hostWhilePending = fixture.nativeElement as HTMLElement;
+    expect(component.effectiveStatus()).toBe('ACTIVE');
+    expect(component.quizStartQuestionPending()).toBe(true);
+    expect(component.showLobbyStage()).toBe(true);
+    expect(hostWhilePending.querySelectorAll('.session-lobby__team-card').length).toBe(2);
+    expect(hostWhilePending.textContent ?? '').not.toContain('Frage wird aktualisiert');
+
+    resolveRefresh?.(loadedQuestion);
+    await pendingNextQuestion;
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const hostAfterLoad = fixture.nativeElement as HTMLElement;
+    expect(component.quizStartQuestionPending()).toBe(false);
+    expect(component.showLobbyStage()).toBe(false);
+    expect(hostAfterLoad.querySelectorAll('.session-lobby__team-card').length).toBe(0);
+    expect(hostAfterLoad.textContent ?? '').toContain('Welche Antwort ist richtig?');
     fixture.destroy();
   });
 

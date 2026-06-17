@@ -453,7 +453,7 @@
 
     <div class="session-host__channel-stage">
       @if (showPrimaryLiveView()) {
-        @if (effectiveStatus() === 'LOBBY') {
+        @if (showLobbyStage()) {
           <!-- Lobby: Start-CTA, Teams/Teilnehmende; Beitritt per Live-Leiste / automatisch geöffnetes Menü. -->
           <div class="session-lobby">
             @if (sessionHeading(); as heading) {
@@ -479,7 +479,7 @@
                     mat-flat-button
                     color="primary"
                     type="button"
-                    [disabled]="controlPending()"
+                    [disabled]="controlPending() || quizStartQuestionPending()"
                     (click)="onLobbyStartSessionClick()"
                   >
                     @if (isQaSession()) {
@@ -637,7 +637,7 @@
                   mat-flat-button
                   color="primary"
                   type="button"
-                  [disabled]="controlPending()"
+                  [disabled]="controlPending() || quizStartQuestionPending()"
                   (click)="onLobbyStartSessionClick()"
                 >
                   @if (isQaSession()) {
@@ -3015,7 +3015,10 @@
           showQuickFeedbackAnchorAction() ||
           ((effectiveStatus() === 'PAUSED' || effectiveStatus() === 'RESULTS') &&
             !isLastQuestion()) ||
-          (effectiveStatus() === 'ACTIVE' && !isQaSession() && hasCurrentQuizQuestionForHost())
+          (effectiveStatus() === 'ACTIVE' &&
+            !quizStartQuestionPending() &&
+            !isQaSession() &&
+            hasCurrentQuizQuestionForHost())
         "
       >
         @if (showQuickFeedbackAnchorAction()) {
@@ -3031,7 +3034,7 @@
             <span>{{ quickFeedbackAnchorActionLabel() }}</span>
           </button>
         }
-        @if (effectiveStatus() === 'QUESTION_OPEN') {
+        @if (effectiveStatus() === 'QUESTION_OPEN' && !quizStartQuestionPending()) {
           <button
             mat-flat-button
             color="primary"
@@ -3043,7 +3046,12 @@
             <span i18n="@@sessionHost.revealAnswerOptions">Antwortoptionen freigeben</span>
           </button>
         }
-        @if (effectiveStatus() === 'ACTIVE' && !isQaSession() && hasCurrentQuizQuestionForHost()) {
+        @if (
+          effectiveStatus() === 'ACTIVE' &&
+          !quizStartQuestionPending() &&
+          !isQaSession() &&
+          hasCurrentQuizQuestionForHost()
+        ) {
           @if (shouldShowPeerInstructionSuggestion(displayedCurrentQuestionForHost())) {
             <button
               mat-flat-button
