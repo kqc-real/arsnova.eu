@@ -59,9 +59,10 @@ const ogImage = toAbsoluteUrl('og.png');
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
       featureList: [
         'Live-Quiz und Abstimmungen',
+        'Numerische Schätzfragen mit zwei Runden und Statistik',
         'Q&A mit Moderation',
         'Lobby, Presenter, QR/Code',
-        'Fragetypen MC/SC/Freitext/Umfrage/Rating',
+        'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Rating/Schätzfrage',
         'Markdown und KaTeX',
         'Lesephase und Peer Instruction',
         'Word Cloud mit Export',
@@ -87,8 +88,9 @@ const ogImage = toAbsoluteUrl('og.png');
             arsnova.eu
           </a>
           <!-- Desktop: Links in einer Zeile -->
-          <div class="hidden items-center gap-6 md:flex">
+          <div class="hidden items-center gap-6 lg:flex">
             <a href={`${base}#ablauf`} class="text-sm font-medium text-slate-400 hover:text-white">Ablauf</a>
+            <a href={`${base}#schaetzfrage`} class="text-sm font-medium text-slate-400 hover:text-white">Schätzfrage</a>
             <a href={`${base}#features`} class="text-sm font-medium text-slate-400 hover:text-white">Vorteile</a>
             <a href={`${base}#vertrauen`} class="text-sm font-medium text-slate-400 hover:text-white">Vertrauen</a>
             <a href={`${base}#faq`} class="text-sm font-medium text-slate-400 hover:text-white">FAQ</a>
@@ -98,7 +100,7 @@ const ogImage = toAbsoluteUrl('og.png');
           <!-- Mobile: Hamburger-Button -->
           <button
             type="button"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white md:hidden"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden"
             aria-expanded="false"
             aria-controls="nav-menu"
             aria-label="Menü öffnen"
@@ -114,8 +116,9 @@ const ogImage = toAbsoluteUrl('og.png');
           </button>
         </div>
         <!-- Mobile: ausklappbares Menü -->
-        <div id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 md:hidden" role="menu">
+        <div id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 lg:hidden" role="menu">
           <a href={`${base}#ablauf`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Ablauf</a>
+          <a href={`${base}#schaetzfrage`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Schätzfrage</a>
           <a href={`${base}#features`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Vorteile</a>
           <a href={`${base}#vertrauen`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Vertrauen</a>
           <a href={`${base}#faq`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">FAQ</a>

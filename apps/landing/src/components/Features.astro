@@ -6,19 +6,19 @@ const features = [
     icon: 'single',
   },
   {
+    title: 'Didaktische Schätzfragen',
+    description: 'Jahreszahlen, Größenordnungen und Messwerte lassen sich mit Referenzwert, Toleranzband, Statistik und optionaler zweiter Runde schätzen.',
+    icon: 'estimate',
+  },
+  {
     title: 'Mehr als ein Standard-Quiz',
-    description: 'Lesephase, Peer Instruction, Word Cloud, Q&A und Presenter-Flow unterstützen Lernen, Training und Live-Moderation.',
+    description: 'MC/SC, Kurzantwort, Rating, Lesephase, Peer Instruction, Word Cloud, Q&A und Presenter-Flow unterstützen Lernen, Training und Live-Moderation.',
     icon: 'toggle',
   },
   {
     title: 'Für unterschiedliche Settings',
     description: 'Presets, Team-Modus, anonymer Modus, Nicknames und Stilwahl helfen von Klasse und Seminar bis Workshop, Event und Meeting.',
     icon: 'bolt',
-  },
-  {
-    title: 'Flexibel bei Inhalten',
-    description: 'MC, SC, Freitext, Umfrage, Rating sowie Markdown und KaTeX. Dazu kommen Import, Export und KI-gestützte Vorbereitung mit externem LLM.',
-    icon: 'book',
   },
   {
     title: 'Datenschutz und Kontrolle',
@@ -52,6 +52,7 @@ const features = [
             {f.icon === 'single' && '🔗'}
             {f.icon === 'book' && '📚'}
             {f.icon === 'tools' && '🧭'}
+            {f.icon === 'estimate' && '≈'}
           </div>
           <h3 class="mt-4 font-display text-lg font-semibold text-white">{f.title}</h3>
           <p class="mt-3 leading-7 text-slate-400">{f.description}</p>
