@@ -4696,8 +4696,11 @@ button.session-host__btn-discussion {
 }
 
 .session-host__numeric-histogram {
-  height: 7.5rem;
-  padding-block: 0.75rem 1.55rem;
+  --numeric-histogram-axis-bottom: 1.55rem;
+  --numeric-histogram-label-lane: 2.35rem;
+
+  height: 8.25rem;
+  padding-block: var(--numeric-histogram-label-lane) var(--numeric-histogram-axis-bottom);
   position: relative;
   isolation: isolate;
 
@@ -4705,7 +4708,7 @@ button.session-host__btn-discussion {
     content: '';
     position: absolute;
     inset-inline: 0;
-    bottom: 1.55rem;
+    bottom: var(--numeric-histogram-axis-bottom);
     z-index: 0;
     height: 2px;
     border-radius: 999px;
@@ -4715,7 +4718,7 @@ button.session-host__btn-discussion {
 
 .session-host__numeric-band {
   position: absolute;
-  inset-block: 2.35rem 1.55rem;
+  inset-block: 3.1rem var(--numeric-histogram-axis-bottom);
   z-index: 1;
   border: 2px solid color-mix(in srgb, var(--mat-sys-tertiary) 76%, transparent);
   border-radius: 999px;
@@ -4728,9 +4731,10 @@ button.session-host__btn-discussion {
 
 .session-host__numeric-reference-line {
   position: absolute;
-  inset-block: 0.75rem 1.55rem;
-  z-index: 4;
+  inset-block: var(--numeric-histogram-label-lane) var(--numeric-histogram-axis-bottom);
+  z-index: 2;
   width: 2px;
+  transform: translateX(-50%);
   background: var(--mat-sys-error);
   box-shadow: 0 0 0 1px var(--mat-sys-surface);
   pointer-events: none;
@@ -4738,9 +4742,9 @@ button.session-host__btn-discussion {
 
 .session-host__numeric-reference-label {
   position: absolute;
-  left: 50%;
-  top: -0.35rem;
-  transform: translate(-50%, -100%);
+  top: 0.35rem;
+  z-index: 5;
+  transform: translateX(-50%);
   padding: 0.15rem 0.45rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-error) 48%, transparent);
   border-radius: 999px;
@@ -4754,9 +4758,9 @@ button.session-host__btn-discussion {
 
 .session-host__numeric-bin {
   position: absolute;
-  bottom: 1.55rem;
+  bottom: var(--numeric-histogram-axis-bottom);
   width: 2.2rem;
-  height: calc(100% - 2.3rem);
+  height: calc(100% - var(--numeric-histogram-label-lane) - var(--numeric-histogram-axis-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;

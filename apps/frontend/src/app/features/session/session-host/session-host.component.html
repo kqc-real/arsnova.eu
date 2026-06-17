@@ -1380,13 +1380,16 @@
                                         <div
                                           class="session-host__numeric-reference-line"
                                           [style.left.%]="ref.left"
-                                        >
-                                          @if (numericReferenceLabel(q); as refLabel) {
-                                            <span class="session-host__numeric-reference-label">{{
-                                              refLabel
-                                            }}</span>
-                                          }
-                                        </div>
+                                          aria-hidden="true"
+                                        ></div>
+                                        @if (numericReferenceLabel(q); as refLabel) {
+                                          <span
+                                            class="session-host__numeric-reference-label"
+                                            [style.left.%]="ref.left"
+                                          >
+                                            {{ refLabel }}
+                                          </span>
+                                        }
                                       }
                                       @for (bin of rc.round1Histogram; track bin.from) {
                                         <div
@@ -1458,13 +1461,16 @@
                                         <div
                                           class="session-host__numeric-reference-line"
                                           [style.left.%]="ref.left"
-                                        >
-                                          @if (numericReferenceLabel(q); as refLabel) {
-                                            <span class="session-host__numeric-reference-label">{{
-                                              refLabel
-                                            }}</span>
-                                          }
-                                        </div>
+                                          aria-hidden="true"
+                                        ></div>
+                                        @if (numericReferenceLabel(q); as refLabel) {
+                                          <span
+                                            class="session-host__numeric-reference-label"
+                                            [style.left.%]="ref.left"
+                                          >
+                                            {{ refLabel }}
+                                          </span>
+                                        }
                                       }
                                       @for (bin of rc.round2Histogram; track bin.from) {
                                         <div
@@ -1724,13 +1730,16 @@
                                     <div
                                       class="session-host__numeric-reference-line"
                                       [style.left.%]="ref.left"
-                                    >
-                                      @if (numericReferenceLabel(q); as refLabel) {
-                                        <span class="session-host__numeric-reference-label">{{
-                                          refLabel
-                                        }}</span>
-                                      }
-                                    </div>
+                                      aria-hidden="true"
+                                    ></div>
+                                    @if (numericReferenceLabel(q); as refLabel) {
+                                      <span
+                                        class="session-host__numeric-reference-label"
+                                        [style.left.%]="ref.left"
+                                      >
+                                        {{ refLabel }}
+                                      </span>
+                                    }
                                   }
                                   @for (bin of q.numericHistogram; track bin.from) {
                                     <div
