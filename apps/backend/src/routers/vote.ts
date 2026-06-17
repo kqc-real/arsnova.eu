@@ -8,6 +8,7 @@ import {
   SubmitVoteOutputSchema,
   evaluateNumericAnswer,
   evaluateShortAnswer,
+  hasAtMostNumericDecimalPlaces,
   normalizeShortTextValue,
   resolveEffectiveQuestionTimer,
   resolveNumericQuestionEvaluationSettings,
@@ -350,9 +351,7 @@ export const voteRouter = router({
             question.numericDecimalPlaces !== undefined
           ) {
             const decimals = question.numericDecimalPlaces;
-            const str = String(input.numericValue);
-            const dotIdx = str.indexOf('.');
-            if (dotIdx !== -1 && str.length - dotIdx - 1 > decimals) {
+            if (!hasAtMostNumericDecimalPlaces(input.numericValue, decimals)) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: `Maximal ${decimals} Nachkommastellen erlaubt.`,

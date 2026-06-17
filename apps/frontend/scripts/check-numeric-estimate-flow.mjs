@@ -11,6 +11,7 @@
  *   BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:numeric-estimate -w @arsnova/frontend
  */
 import { mkdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { dirname } from 'node:path';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { chromium, webkit } from 'playwright';
@@ -25,7 +26,7 @@ const TRPC_URL = normalizeLoopbackUrl(process.env.TRPC_URL || 'http://localhost:
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const QUESTION_TEXT = 'In welchem Jahr begann die Französische Revolution?';
 const TEAM_NAMES = ['Jakobiner', 'Girondisten'];
-const ARTIFACT_DIR = process.env.SMOKE_ARTIFACT_DIR || '/private/tmp';
+const ARTIFACT_DIR = process.env.SMOKE_ARTIFACT_DIR || tmpdir();
 const OUT_HOST_RESULTS = `${ARTIFACT_DIR}/numeric-estimate-dark-teams-host.png`;
 const OUT_CLIENT_PREFIX = `${ARTIFACT_DIR}/numeric-estimate-dark-teams-client`;
 

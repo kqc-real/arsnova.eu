@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   resolveNumericTolerance,
+  hasAtMostNumericDecimalPlaces,
   parseNumericInput,
   isNumericValueInBand,
 } from '@arsnova/shared-types';
@@ -125,8 +126,10 @@ describe('parseNumericInput', () => {
     expect(parseNumericInput('3,14', { inputType: 'DECIMAL' })).toBe(3.14);
   });
 
-  it('trimmt Leerzeichen', () => {
+  it('entfernt Leerzeichen', () => {
     expect(parseNumericInput(' 42 ', { inputType: 'INTEGER' })).toBe(42);
+    expect(parseNumericInput('1 000', { inputType: 'INTEGER' })).toBe(1000);
+    expect(parseNumericInput('1 000,5', { inputType: 'DECIMAL' })).toBe(1000.5);
   });
 
   it('gibt null zurück für leeren String', () => {
@@ -154,6 +157,23 @@ describe('parseNumericInput', () => {
     expect(parseNumericInput('3.14159', { inputType: 'DECIMAL', maxDecimalPlaces: null })).toBe(
       3.14159,
     );
+  });
+});
+
+describe('hasAtMostNumericDecimalPlaces', () => {
+  it('akzeptiert Werte innerhalb der erlaubten Dezimalstellen', () => {
+    expect(hasAtMostNumericDecimalPlaces(3.14, 2)).toBe(true);
+    expect(hasAtMostNumericDecimalPlaces(3, 0)).toBe(true);
+    expect(hasAtMostNumericDecimalPlaces(0.1 + 0.2, 2)).toBe(true);
+  });
+
+  it('lehnt Werte mit zu vielen Dezimalstellen ab', () => {
+    expect(hasAtMostNumericDecimalPlaces(3.141, 2)).toBe(false);
+    expect(hasAtMostNumericDecimalPlaces(5.1, 0)).toBe(false);
+  });
+
+  it('lehnt Exponentialnotation mit zu hoher Praezision ab', () => {
+    expect(hasAtMostNumericDecimalPlaces(1e-7, 2)).toBe(false);
   });
 });
 

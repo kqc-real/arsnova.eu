@@ -70,7 +70,11 @@ import {
   ConfirmLeaveDialogComponent,
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
-import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
+import {
+  createQuizHistoryAccessProof,
+  resolveNumericEstimateToleranceMode,
+  resolveNumericTolerance,
+} from '@arsnova/shared-types';
 import type {
   AnalyzeWordCloudInput,
   AnalyzeWordCloudOutput,
@@ -3589,32 +3593,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     question: HostCurrentQuestionDTO,
   ): { left: number; right: number } | null {
     if (question.type !== 'NUMERIC_ESTIMATE') return null;
-    if (question.numericToleranceMode === 'RELATIVE_PERCENT') {
-      const referenceValue = question.numericReferenceValue;
-      const percent = question.numericTolerancePercent;
-      if (
-        referenceValue === null ||
-        referenceValue === undefined ||
-        referenceValue === 0 ||
-        percent === null ||
-        percent === undefined
-      ) {
-        return null;
-      }
-      const delta = Math.abs(referenceValue) * (percent / 100);
-      return {
-        left: Math.min(referenceValue - delta, referenceValue + delta),
-        right: Math.max(referenceValue - delta, referenceValue + delta),
-      };
-    }
-    if (question.numericToleranceMode === 'ABSOLUTE_INTERVAL') {
-      const left = question.numericIntervalLeft;
-      const right = question.numericIntervalRight;
-      if (left === null || left === undefined || right === null || right === undefined) return null;
-      if (left >= right) return null;
-      return { left, right };
-    }
-    return null;
+    return resolveNumericTolerance(
+      resolveNumericEstimateToleranceMode(question.numericToleranceMode),
+      {
+        referenceValue: question.numericReferenceValue ?? null,
+        tolerancePercent: question.numericTolerancePercent ?? null,
+        intervalLeft: question.numericIntervalLeft ?? null,
+        intervalRight: question.numericIntervalRight ?? null,
+      },
+    );
   }
 
   private numericHistogramRange(histogram: Array<{ from: number; to: number }>): {

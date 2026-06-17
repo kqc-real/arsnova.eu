@@ -3904,6 +3904,24 @@ export function resolveNumericTolerance(
 }
 
 /**
+ * Prüft, ob ein numerischer Wert höchstens die erlaubte Anzahl Nachkommastellen hat.
+ * Bewertet den Zahlenwert selbst, damit Exponentialnotation wie 1e-7 nicht die
+ * serverseitige Dezimalstellenbegrenzung umgehen kann.
+ */
+export function hasAtMostNumericDecimalPlaces(value: number, maxDecimalPlaces: number): boolean {
+  if (!Number.isFinite(value)) return false;
+  if (!Number.isInteger(maxDecimalPlaces) || maxDecimalPlaces < 0) return false;
+  if (Number.isInteger(value)) return true;
+
+  const factor = 10 ** maxDecimalPlaces;
+  const scaled = value * factor;
+  if (!Number.isFinite(scaled)) return false;
+  const nearestInteger = Math.round(scaled);
+  const tolerance = Number.EPSILON * Math.max(1, Math.abs(scaled));
+  return Math.abs(scaled - nearestInteger) <= tolerance;
+}
+
+/**
  * Normalisiert eine numerische Eingabe (Komma → Punkt, Leerzeichen entfernen).
  * Gibt null zurück wenn nicht parsebar oder zu viele Dezimalstellen.
  */
@@ -3911,7 +3929,7 @@ export function parseNumericInput(
   raw: string,
   opts: { inputType: NumericInputType; maxDecimalPlaces?: number | null },
 ): number | null {
-  const normalized = raw.trim().replace(',', '.');
+  const normalized = raw.trim().replace(/\s+/g, '').replace(',', '.');
   if (!/^-?\d+(\.\d+)?$/.test(normalized)) return null;
   const n = Number(normalized);
   if (!isFinite(n)) return null;

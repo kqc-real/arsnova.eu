@@ -45,7 +45,9 @@ import {
   isNumericToleranceMode,
   normalizeShortTextValue,
   parseNumericInput,
+  resolveNumericEstimateToleranceMode,
   resolveNumericQuestionEvaluationSettings,
+  resolveNumericTolerance,
   resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
   type NumericInputType,
@@ -1192,40 +1194,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     question: CurrentQuestion | null,
   ): { left: number; right: number } | null {
     if (!question || !('type' in question) || question.type !== 'NUMERIC_ESTIMATE') return null;
-    const toleranceMode =
-      'numericToleranceMode' in question
-        ? ((question as { numericToleranceMode?: string | null }).numericToleranceMode ?? null)
-        : null;
-    if (toleranceMode === 'RELATIVE_PERCENT') {
-      const referenceValue =
-        'numericReferenceValue' in question
-          ? ((question as { numericReferenceValue?: number | null }).numericReferenceValue ?? null)
-          : null;
-      const percent =
-        'numericTolerancePercent' in question
-          ? ((question as { numericTolerancePercent?: number | null }).numericTolerancePercent ??
-            null)
-          : null;
-      if (referenceValue === null || referenceValue === 0 || percent === null) return null;
-      const delta = Math.abs(referenceValue) * (percent / 100);
-      return {
-        left: Math.min(referenceValue - delta, referenceValue + delta),
-        right: Math.max(referenceValue - delta, referenceValue + delta),
-      };
-    }
-    if (toleranceMode === 'ABSOLUTE_INTERVAL') {
-      const left =
-        'numericIntervalLeft' in question
-          ? ((question as { numericIntervalLeft?: number | null }).numericIntervalLeft ?? null)
-          : null;
-      const right =
-        'numericIntervalRight' in question
-          ? ((question as { numericIntervalRight?: number | null }).numericIntervalRight ?? null)
-          : null;
-      if (left === null || right === null || left >= right) return null;
-      return { left, right };
-    }
-    return null;
+    const numericQuestion = question as {
+      numericToleranceMode?: string | null;
+      numericReferenceValue?: number | null;
+      numericTolerancePercent?: number | null;
+      numericIntervalLeft?: number | null;
+      numericIntervalRight?: number | null;
+    };
+    return resolveNumericTolerance(
+      resolveNumericEstimateToleranceMode(numericQuestion.numericToleranceMode),
+      {
+        referenceValue: numericQuestion.numericReferenceValue ?? null,
+        tolerancePercent: numericQuestion.numericTolerancePercent ?? null,
+        intervalLeft: numericQuestion.numericIntervalLeft ?? null,
+        intervalRight: numericQuestion.numericIntervalRight ?? null,
+      },
+    );
   }
 
   private isNumericEstimateResponseCorrectForQuestion(question: CurrentQuestion): boolean {
