@@ -328,7 +328,10 @@ export class QuizEditComponent implements OnDestroy {
   @ViewChild('questionFormElement') private questionFormElement?: ElementRef<HTMLFormElement>;
 
   readonly questionTypeOptions: Array<{ value: SupportedQuestionType; label: string }> = [
-    { value: 'NUMERIC_ESTIMATE', label: $localize`Numerische Schätzfrage` },
+    {
+      value: 'NUMERIC_ESTIMATE',
+      label: $localize`:@@quizPreview.typeNumericEstimate:Numerische Schätzfrage`,
+    },
     { value: 'SINGLE_CHOICE', label: $localize`Single Choice` },
     { value: 'MULTIPLE_CHOICE', label: $localize`Multiple Choice` },
     { value: 'FREETEXT', label: $localize`Freitext` },
