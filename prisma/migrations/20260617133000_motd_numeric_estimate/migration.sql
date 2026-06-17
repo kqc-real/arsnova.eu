@@ -20,7 +20,7 @@ INSERT INTO "Motd" (
   '2026-06-17 00:00:00'::timestamp(3),
   '2026-11-30 23:59:59.999'::timestamp(3),
   true,
-  3,
+  4,
   NULL,
   NOW(),
   NOW()
@@ -44,24 +44,24 @@ VALUES (
 
 ![Host-Ansicht einer numerischen Schätzfrage zur Französischen Revolution](/assets/images/numeric-estimate-1789-host.png)
 
-Mit der **numerischen Schätzfrage** kannst du in arsnova.eu echte Zahlen einschätzen lassen, entweder in einer einfachen Runde oder in zwei Runden mit kurzer Diskussion dazwischen.
+Mit der **numerischen Schätzfrage** kannst du in arsnova.eu konkrete Zahlenwerte schätzen lassen, entweder in einer einfachen Runde oder in zwei Runden mit kurzer Diskussion dazwischen.
 
 **Wofür sie gedacht ist**
 
 - Vorwissen sichtbar machen, ohne sofort eine richtige Antwort zu verraten.
 - Schätzungen nach einer Diskussion noch einmal einsammeln.
-- Referenzwert, akzeptierten Bereich und Veränderung zwischen Runde 1 und Runde 2 ruhig auswerten.
+- Referenzwert, akzeptierten Bereich und Veränderung zwischen Runde 1 und Runde 2 übersichtlich auswerten.
 
 **Details**
 
 - Ganzzahlen oder Dezimalwerte.
 - Absolutes Intervall oder relatives Toleranzband.
 - Vor der Ergebnisfreigabe sehen Teilnehmende keine Verteilung und keine Lösungsnähe.
-- Statistikwerte bleiben in der Host-Ansicht bewusst in einem ausklappbaren Detailbereich.
+- Statistische Kennzahlen bleiben in der Host-Ansicht bewusst in einem ausklappbaren Detailbereich.
 
 Bitte probiere die Schätzfrage in einer echten Veranstaltung aus. Ist der Ablauf verständlich? Sind Grafik und Statistik hilfreich? Fehlt etwas für deine Lehrsituation?
 
-Dein Feedback hilft bei der finalen Feinabstimmung.$mdde$
+Dein Feedback hilft bei der weiteren Feinabstimmung.$mdde$
 )
 ON CONFLICT ("motdId", "locale") DO UPDATE SET "markdown" = EXCLUDED."markdown";
 
