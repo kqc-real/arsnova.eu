@@ -713,12 +713,29 @@ export const DEMO_QUIZ_ID = 'de500000-0000-4000-a000-000000000001';
  */
 const DEMO_QUIZ_SEED_FINGERPRINT_KEY = 'arsnova-demo-quiz-seed-fp-v1';
 
-function demoQuizMatchesNumericEstimatePayload(document: QuizDocument, payload: unknown): boolean {
+function demoQuizMatchesSeedPayload(document: QuizDocument, payload: unknown): boolean {
   const payloadQuestions =
     payload && typeof payload === 'object'
       ? (payload as { quiz?: { questions?: unknown[] } }).quiz?.questions
       : undefined;
-  const expected = payloadQuestions?.find(
+  if (!Array.isArray(payloadQuestions)) return false;
+
+  if (document.questions.length !== payloadQuestions.length) return false;
+  for (let index = 0; index < payloadQuestions.length; index += 1) {
+    const expectedQuestion = payloadQuestions[index];
+    const actualQuestion = document.questions[index];
+    if (
+      !expectedQuestion ||
+      typeof expectedQuestion !== 'object' ||
+      !actualQuestion ||
+      actualQuestion.type !== (expectedQuestion as { type?: unknown }).type ||
+      actualQuestion.order !== index
+    ) {
+      return false;
+    }
+  }
+
+  const expected = payloadQuestions.find(
     (question): question is Record<string, unknown> =>
       !!question &&
       typeof question === 'object' &&
@@ -1704,7 +1721,7 @@ export class QuizStoreService implements OnDestroy {
       return reseedDemoFromPayload();
     }
 
-    if (!demoQuizMatchesNumericEstimatePayload(existing, payload)) {
+    if (!demoQuizMatchesSeedPayload(existing, payload)) {
       return reseedDemoFromPayload();
     }
 

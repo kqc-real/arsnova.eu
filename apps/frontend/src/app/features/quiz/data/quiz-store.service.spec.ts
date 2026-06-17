@@ -1189,6 +1189,68 @@ describe('QuizStoreService', () => {
     );
   });
 
+  it('Demo-Quiz: gespeicherter Fingerprint mit nur einer korrekten Startfrage → Neu-Import', () => {
+    const roomId = '00000000-0000-4000-8000-000000000067';
+    localStorage.setItem('quiz-sync-room-id', roomId);
+    localStorage.setItem(
+      `${QUIZ_STORAGE_KEY}:${roomId}`,
+      JSON.stringify([
+        {
+          id: DEMO_QUIZ_ID,
+          name: getDemoQuizExpectedTitle('de'),
+          description: null,
+          motifImageUrl: null,
+          createdAt: '2026-03-08T12:00:00.000Z',
+          updatedAt: '2999-01-01T00:00:00.000Z',
+          settings: defaultSettings,
+          questions: [
+            {
+              id: '9eff562e-51f8-4f72-98a3-2f421ef2b411',
+              text: 'In welchem Jahr begann die Französische Revolution?',
+              type: 'NUMERIC_ESTIMATE',
+              difficulty: 'MEDIUM',
+              order: 0,
+              enabled: true,
+              timer: null,
+              answers: [],
+              numericToleranceMode: 'ABSOLUTE_INTERVAL',
+              numericReferenceValue: 1789,
+              numericIntervalLeft: 1700,
+              numericIntervalRight: 1900,
+              numericInputType: 'INTEGER',
+              numericMin: 1500,
+              numericMax: 2000,
+              numericTwoRounds: true,
+            },
+          ],
+        },
+      ]),
+    );
+    localStorage.setItem('arsnova-demo-quiz-seed-fp-v1', getDemoQuizSeedFingerprint('de'));
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), { provide: LOCALE_ID, useValue: 'de' }],
+    });
+
+    const service = TestBed.inject(QuizStoreService);
+    const demo = service.getQuizById(DEMO_QUIZ_ID);
+
+    expect(demo?.questions).toHaveLength(10);
+    expect(demo?.questions.map((question) => question.type)).toEqual([
+      'SURVEY',
+      'FREETEXT',
+      'SINGLE_CHOICE',
+      'MULTIPLE_CHOICE',
+      'SINGLE_CHOICE',
+      'SINGLE_CHOICE',
+      'SHORT_TEXT',
+      'NUMERIC_ESTIMATE',
+      'SHORT_TEXT',
+      'RATING',
+    ]);
+  });
+
   it('getUploadPayload: Kita in localStorage schlägt Oberstufe-Standard im RAM (älteres LS mit Themenliste)', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({
