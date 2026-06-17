@@ -487,6 +487,21 @@ describe('QuizEditComponent', () => {
     );
   });
 
+  it('zeigt im absoluten NUMERIC_ESTIMATE-Modus den Referenzwert fuer die Auswertung', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    component.questionFormPanelOpen.set(true);
+    component.form.controls.type.setValue('NUMERIC_ESTIMATE');
+    component.onTypeChanged();
+    component.form.controls.numericToleranceMode.setValue('ABSOLUTE_INTERVAL');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Referenzwert für Auswertung');
+    expect(text).toContain('Optional für Referenzlinie, Fehlermaß und Rundenvergleich');
+  });
+
   it('speichert eine FREETEXT-Frage ohne Antwortoptionen', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

@@ -103,7 +103,6 @@ import {
   type NumericStatsDTO,
   type NumericHistogramBin,
   type NumericRoundComparisonDTO,
-  type NumericPairedAnalysisDTO,
 } from '@arsnova/shared-types';
 import {
   isExactCorrectSelection,
@@ -2026,11 +2025,7 @@ function buildPeerInstructionSuggestion(
     return undefined;
   }
 
-  if (
-    questionType !== 'SINGLE_CHOICE' &&
-    questionType !== 'MULTIPLE_CHOICE' &&
-    questionType !== 'NUMERIC_ESTIMATE'
-  ) {
+  if (questionType !== 'SINGLE_CHOICE' && questionType !== 'MULTIPLE_CHOICE') {
     return undefined;
   }
 
@@ -2478,110 +2473,6 @@ function resolveNiceNumericRange(
   };
 }
 
-async function buildNumericRoundComparison(
-  sessionId: string,
-  questionId: string,
-  band: { left: number; right: number } | null,
-  referenceValue: number | null,
-): Promise<NumericRoundComparisonDTO> {
-  const [r1Votes, r2Votes] = await Promise.all([
-    prisma.vote.findMany({
-      where: { sessionId, questionId, round: 1 },
-      select: { participantId: true, numericValue: true },
-    }),
-    prisma.vote.findMany({
-      where: { sessionId, questionId, round: 2 },
-      select: { participantId: true, numericValue: true },
-    }),
-  ]);
-
-  const r1Values = r1Votes
-    .map((v) => v.numericValue)
-    .filter((v): v is number => v !== null && v !== undefined);
-  const r2Values = r2Votes
-    .map((v) => v.numericValue)
-    .filter((v): v is number => v !== null && v !== undefined);
-
-  const round1Stats = buildNumericStats(r1Values, band, referenceValue);
-  const round2Stats = buildNumericStats(r2Values, band, referenceValue);
-  const round1Histogram = buildNumericHistogram(r1Values, band);
-  const round2Histogram = buildNumericHistogram(r2Values, band);
-  const meanDelta =
-    round1Stats.mean !== null && round2Stats.mean !== null
-      ? round4(round2Stats.mean - round1Stats.mean)
-      : null;
-  const medianDelta =
-    round1Stats.median !== null && round2Stats.median !== null
-      ? round4(round2Stats.median - round1Stats.median)
-      : null;
-  const inBandPercentDelta =
-    round1Stats.inBandPercent !== null && round2Stats.inBandPercent !== null
-      ? round4(round2Stats.inBandPercent - round1Stats.inBandPercent)
-      : null;
-
-  let pairedAnalysis: NumericPairedAnalysisDTO | undefined;
-  let deltaHistogram: NumericHistogramBin[] | undefined;
-  if (r1Votes.length > 0 && r2Votes.length > 0) {
-    const r1Map = new Map(
-      r1Votes
-        .filter((v) => v.numericValue !== null)
-        .map((v) => [v.participantId, v.numericValue as number]),
-    );
-    const r2Map = new Map(
-      r2Votes
-        .filter((v) => v.numericValue !== null)
-        .map((v) => [v.participantId, v.numericValue as number]),
-    );
-
-    let closerCount = 0;
-    let fartherCount = 0;
-    let unchangedCount = 0;
-    let pairedCount = 0;
-    const deltaValues: number[] = [];
-
-    if (referenceValue !== null) {
-      for (const [pid, v1] of r1Map) {
-        const v2 = r2Map.get(pid);
-        if (v2 === undefined) continue;
-        pairedCount++;
-        deltaValues.push(v2 - v1);
-        const d1 = Math.abs(v1 - referenceValue);
-        const d2 = Math.abs(v2 - referenceValue);
-        if (Math.abs(d1 - d2) < 1e-9) {
-          unchangedCount++;
-        } else if (d2 < d1) {
-          closerCount++;
-        } else {
-          fartherCount++;
-        }
-      }
-      pairedAnalysis = { pairedCount, closerCount, fartherCount, unchangedCount };
-    } else {
-      // Without reference value, only raw value deltas are meaningful.
-      for (const [pid, v1] of r1Map) {
-        const v2 = r2Map.get(pid);
-        if (v2 === undefined) continue;
-        pairedCount++;
-        deltaValues.push(v2 - v1);
-      }
-    }
-
-    deltaHistogram = deltaValues.length > 0 ? buildNumericHistogram(deltaValues, null) : undefined;
-  }
-
-  return {
-    round1Stats,
-    round2Stats,
-    round1Histogram,
-    round2Histogram,
-    meanDelta,
-    medianDelta,
-    inBandPercentDelta,
-    deltaHistogram,
-    pairedAnalysis,
-  };
-}
-
 function buildNumericRoundComparisonFromVotes(
   votes: Array<{ participantId: string; round: number; numericValue?: number | null }>,
   band: { left: number; right: number } | null,
@@ -2650,7 +2541,9 @@ function buildNumericRoundComparisonFromVotes(
         : null,
     deltaHistogram: deltaValues.length > 0 ? buildNumericHistogram(deltaValues, null) : undefined,
     pairedAnalysis:
-      pairedCount > 0 ? { pairedCount, closerCount, fartherCount, unchangedCount } : undefined,
+      referenceValue !== null && pairedCount > 0
+        ? { pairedCount, closerCount, fartherCount, unchangedCount }
+        : undefined,
   };
 }
 
@@ -2744,53 +2637,42 @@ async function buildHostCurrentQuestionDto(
 
       // Kein Herdeneffekt während ACTIVE: nur totalVotes
       if (session.status === 'ACTIVE') {
-        let totalVotes: number;
-        let correctVoterCount: number | undefined;
-        if (question.numericTwoRounds && band !== null) {
-          [totalVotes, correctVoterCount] = await Promise.all([
-            prisma.vote.count({ where: voteWhere }),
-            prisma.vote.count({
-              where: {
-                ...voteWhere,
-                numericValue: { gte: band.left, lte: band.right },
-              },
-            }),
-          ]);
-        } else {
-          totalVotes = await prisma.vote.count({ where: voteWhere });
-        }
-        const peerInstructionSuggestion = question.numericTwoRounds
-          ? buildPeerInstructionSuggestion(
-              question.type as QuestionType,
-              currentRound,
-              correctVoterCount,
-              totalVotes,
-            )
-          : undefined;
-        return { ...base, totalVotes, peerInstructionSuggestion };
+        const totalVotes = await prisma.vote.count({ where: voteWhere });
+        return { ...base, totalVotes };
       }
 
       // RESULTS: Histogramm + Statistik
-      const numVotes = await prisma.vote.findMany({
-        where: voteWhere,
-        select: { numericValue: true },
-      });
-      const numValues = numVotes
-        .map((v) => v.numericValue)
-        .filter((v): v is number => v !== null && v !== undefined);
-      const totalVotes = numVotes.length;
-      const numericStats = buildNumericStats(numValues, band, referenceValue);
-      const numericHistogram = buildNumericHistogram(numValues, band);
-
+      let totalVotes: number;
+      let numValues: number[];
       let numericRoundComparison: NumericRoundComparisonDTO | undefined;
-      if (session.status === 'RESULTS' && currentRound === 2) {
-        numericRoundComparison = await buildNumericRoundComparison(
-          session.id,
-          question.id,
+
+      if (currentRound === 2) {
+        const roundVotes = await prisma.vote.findMany({
+          where: { sessionId: session.id, questionId: question.id, round: { in: [1, 2] } },
+          select: { participantId: true, round: true, numericValue: true },
+        });
+        const currentRoundVotes = roundVotes.filter((vote) => vote.round === currentRound);
+        totalVotes = currentRoundVotes.length;
+        numValues = currentRoundVotes
+          .map((v) => v.numericValue)
+          .filter((v): v is number => v !== null && v !== undefined);
+        numericRoundComparison = buildNumericRoundComparisonFromVotes(
+          roundVotes,
           band,
           referenceValue,
         );
+      } else {
+        const numVotes = await prisma.vote.findMany({
+          where: voteWhere,
+          select: { numericValue: true },
+        });
+        totalVotes = numVotes.length;
+        numValues = numVotes
+          .map((v) => v.numericValue)
+          .filter((v): v is number => v !== null && v !== undefined);
       }
+      const numericStats = buildNumericStats(numValues, band, referenceValue);
+      const numericHistogram = buildNumericHistogram(numValues, band);
 
       return {
         ...base,

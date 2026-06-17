@@ -6071,6 +6071,22 @@
           <context context-type="linenumber">677</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizEdit.numericEstimateAbsoluteReferenceValueLabel" datatype="html">
+        <source>Referenzwert für Auswertung</source>
+        <target>Reference value for analysis</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">687</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizEdit.numericEstimateAbsoluteReferenceValueHint" datatype="html">
+        <source>Optional für Referenzlinie, Fehlermaß und Rundenvergleich</source>
+        <target>Optional for reference line, error metric and round comparison</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">691</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="quizEdit.numericEstimateReferenceValueLabel" datatype="html">
         <source>Referenzwert V</source>
         <target>Reference value V</target>

@@ -682,6 +682,15 @@
                 <input matInput type="number" formControlName="numericIntervalRight" />
               </mat-form-field>
             </div>
+            <mat-form-field appearance="outline">
+              <mat-label i18n="@@quizEdit.numericEstimateAbsoluteReferenceValueLabel"
+                >Referenzwert für Auswertung</mat-label
+              >
+              <input matInput type="number" formControlName="numericReferenceValue" />
+              <mat-hint i18n="@@quizEdit.numericEstimateAbsoluteReferenceValueHint"
+                >Optional für Referenzlinie, Fehlermaß und Rundenvergleich</mat-hint
+              >
+            </mat-form-field>
           }
           @if (numericIsRelativeMode()) {
             <div class="quiz-edit-form__grid">
