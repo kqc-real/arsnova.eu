@@ -1200,8 +1200,10 @@ export class QuizStoreService implements OnDestroy {
     if (!lsDoc) return memDoc;
     const memT = Date.parse(memDoc.updatedAt);
     const lsT = Date.parse(lsDoc.updatedAt);
+    // Live-Start darf die sichtbare Quizstruktur nicht durch einen stale/gekürzten Speicherstand verkleinern.
+    const storageWouldShrinkVisibleQuiz = lsDoc.questions.length < memDoc.questions.length;
     const base =
-      lsT > memT
+      lsT > memT && !storageWouldShrinkVisibleQuiz
         ? { ...lsDoc, settings: { ...lsDoc.settings } }
         : { ...memDoc, settings: { ...memDoc.settings } };
     const namePick = pickNameParticipationSettings(memDoc, lsDoc);

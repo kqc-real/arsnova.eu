@@ -1226,4 +1226,49 @@ describe('QuizStoreService', () => {
     const payload = service.getUploadPayload(created.id);
     expect(payload.nicknameTheme).toBe('KINDERGARTEN');
   });
+
+  it('getUploadPayload: ein neuerer Speicherstand darf die sichtbare Fragenliste nicht verkürzen', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({
+      name: 'Start ab Frage',
+    });
+    for (const text of ['Erste Frage?', 'Zweite Frage?', 'Startfrage?']) {
+      service.addQuestion(created.id, {
+        text,
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        answers: [
+          { text: 'A', isCorrect: true },
+          { text: 'B', isCorrect: false },
+        ],
+      });
+    }
+
+    const roomId = localStorage.getItem('quiz-sync-room-id');
+    expect(roomId).toBeTruthy();
+    const storageKey = `${QUIZ_STORAGE_KEY}:${roomId}`;
+    const arr = JSON.parse(localStorage.getItem(storageKey) ?? '[]') as Record<string, unknown>[];
+    const idx = arr.findIndex(
+      (entry) => entry && typeof entry === 'object' && (entry as { id?: string }).id === created.id,
+    );
+    expect(idx).toBeGreaterThanOrEqual(0);
+    const entry = arr[idx] as Record<string, unknown>;
+    const questions = entry['questions'] as Record<string, unknown>[];
+    const settings = entry['settings'] as Record<string, unknown>;
+    arr[idx] = {
+      ...entry,
+      settings: { ...settings, nicknameTheme: 'KINDERGARTEN' },
+      questions: questions.slice(2).map((question, order) => ({ ...question, order })),
+      updatedAt: '2999-01-01T00:00:00.000Z',
+    };
+    localStorage.setItem(storageKey, JSON.stringify(arr));
+
+    const payload = service.getUploadPayload(created.id);
+    expect(payload.questions.map((question) => question.text)).toEqual([
+      'Erste Frage?',
+      'Zweite Frage?',
+      'Startfrage?',
+    ]);
+    expect(payload.nicknameTheme).toBe('KINDERGARTEN');
+  });
 });
