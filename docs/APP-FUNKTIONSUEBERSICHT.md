@@ -163,9 +163,11 @@ Aktuell sind im Editor und in der Laufzeit umgesetzt:
 - **Kurzantwort (`SHORT_TEXT`)**
 - **Umfrage**
 - **Bewertungsskala**
+- **Numerische Schätzfrage (`NUMERIC_ESTIMATE`)**
 
 Die Bewertungsskala unterstützt Min-/Max-Werte und benutzerdefinierte Labels für die Endpunkte.
 Kurzantwort unterstützt Musterlösungen, maximale Eingabelänge, Normalisierung, Distanz-/Toleranzlogik sowie numerische Antworten mit optionalen Einheiten.
+Numerische Schätzfragen unterstützen Ganzzahl- oder Dezimaleingaben, maximale Nachkommastellen, Plausibilitätsgrenzen, absolutes oder relatives Toleranzband, Referenzwert, optionale zwei Runden, Histogramm, Statistik und Nähe-Scoring. Das Plausibilitätsband begrenzt erlaubte Eingaben; das Toleranzband entscheidet über akzeptierte Schätzungen und Punkte.
 
 ### 3.5 Fragenmodell und Editierfunktionen
 
@@ -223,6 +225,7 @@ Die Sammlung unterstützt:
 
 - JSON-Export eines Quiz
 - JSON-Import eines Quiz
+- arsnova.click-Import inkl. Mapping von `RangedQuestion` auf `NUMERIC_ESTIMATE`
 - Importnormalisierung mit **Warnungen**, falls eingehende Daten angepasst werden mussten
 - Export im definierten Quiz-Importformat
 
@@ -574,6 +577,7 @@ Die Punkteberechnung berücksichtigt:
 - Antwortzeit
 - Frageart
 - Antwortkorrektheit
+- Nähe zum Referenzwert bei numerischen Schätzfragen innerhalb des Toleranzbands
 - die **effektive Stimme** pro Frage/Runde; bei Peer Instruction ersetzt Runde 2 für Scoring und Auswertung die erste Runde
 
 Zusätzlich existieren:

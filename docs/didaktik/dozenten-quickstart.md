@@ -41,7 +41,7 @@ Für **eine einzelne Person** im Rahmen von ca. **40 Stunden** ist die vollstän
 Pragmatische Default-Regel:
 
 - **Einstieg / sichtbarer Produktausbau:** `1.14a`, `8.5`
-- **Vertiefung nach Betreuungsauswahl:** `1.2ec`, `1.2ed`, `1.2d`, `1.2f–1.2i`, `2.9`, `6.6`
+- **Vertiefung nach Betreuungsauswahl:** `1.2ec`, `1.2ed`, `1.2f–1.2i`, `2.9`, `6.6`; die abgeschlossene Schätzfrage `1.2d` eignet sich als Referenzbeispiel für End-to-End-Fragentypen, siehe [`docs/features/numeric-estimate.md`](../features/numeric-estimate.md).
 - **Nur mit enger Betreuung / Pair-Review:** `0.7`, `0.8`, `1.6c`, `1.6d`, `6.5`
 
 Wenn die Kohorte klein ist, kann eine Person mehr übernehmen. Wenn die Kohorte groß oder heterogen ist, sollte die **Kohorte gemeinsam** den Katalog abdecken, nicht zwingend jede Person einzeln.

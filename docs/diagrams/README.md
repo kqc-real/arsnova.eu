@@ -35,11 +35,11 @@ Falls die Integration in die Markdown-Vorschau nicht funktioniert:
 
 ## Dateien
 
-| Datei                          | Inhalt                                                                                                                                                                                                 |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `diagrams.md`                  | Backend-, Frontend-, DB-Schema inkl. SessionFeedback, Platform/DailyStatistic, MOTD, Kurzantwort und Effective Vote, Kommunikation Dozent/Student/**Admin**, Aktivität inkl. Admin (Stand: 2026-05-31) |
-| `architecture-overview.md`     | System-Architektur, Datenfluss inkl. Admin/MOTD, Prisma/PostgreSQL-Kompaktsicht, Komponenten-Hierarchie, Sicherheit inkl. Rollen-Autorisierung (Stand: 2026-05-31)                                     |
-| `diagram-consistency-check.md` | Konsistenzprüfung Diagramme vs. Handbuch/Backlog/ADR-0006/Prisma; hält bewusste Vereinfachungen der Mermaid-ER-Diagramme fest (Stand: 2026-05-31).                                                     |
+| Datei                          | Inhalt                                                                                                                                                                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `diagrams.md`                  | Backend-, Frontend-, DB-Schema inkl. SessionFeedback, Platform/DailyStatistic, MOTD, Kurzantwort, numerischer Schätzfrage und Effective Vote, Kommunikation Dozent/Student/**Admin**, Aktivität inkl. Admin (Stand: 2026-06-17) |
+| `architecture-overview.md`     | System-Architektur, Datenfluss inkl. Admin/MOTD, Prisma/PostgreSQL-Kompaktsicht mit `NUMERIC_ESTIMATE`, Komponenten-Hierarchie, Sicherheit inkl. Rollen-Autorisierung (Stand: 2026-06-17)                                       |
+| `diagram-consistency-check.md` | Konsistenzprüfung Diagramme vs. Handbuch/Backlog/ADR-0006/Prisma; hält bewusste Vereinfachungen der Mermaid-ER-Diagramme fest (Stand: 2026-06-17).                                                                              |
 
 ## Online-Rendering
 

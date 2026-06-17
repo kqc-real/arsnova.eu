@@ -3,7 +3,7 @@
 # Diagramme: arsnova.eu
 
 Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert.
-**Stand:** 2026-06-06 · **Epics 0–5 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, 10 (MOTD) umgesetzt;** Epic 6 größtenteils umgesetzt (**6.5 Barrierefreiheit** und **6.6 Thinking Aloud** noch offen). Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Stand:** 2026-06-17 · **Epics 0–5 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, 10 (MOTD) umgesetzt;** Epic 6 größtenteils umgesetzt (**6.5 Barrierefreiheit** und **6.6 Thinking Aloud** noch offen). Plattformstatistik Rekordteilnehmer und Tagesrekorde laufen über `health.footerBundle` / `health.stats` (`PlatformStatistic`, `DailyStatistic`). Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfragen (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und die Effective-Vote-Regel für Peer Instruction sind umgesetzt. Markdown-Erweiterungen **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)). `Blitzlicht` ist als Startseiten-Shortcut und Session-Kanal konsolidiert. `FINISHED` beendet die Session fuer Vote-Clients kanaluebergreifend und raeumt Live-Kanal-Subscriptions ab. Rollen/Routen/Autorisierung siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 > **VS Code:** Mermaid wird in der Standard-Markdown-Vorschau nicht gerendert. Bitte die Erweiterung **„Markdown Preview Mermaid Support“** (`bierner.markdown-mermaid`) installieren. Siehe [README.md](./README.md) in diesem Ordner.
 
@@ -51,6 +51,7 @@ graph LR
         sessiondto[SessionInfoDTO]
         lbdto[LeaderboardEntryDTO]
         scoredto[PersonalScorecardDTO]
+        numericdto[NumericEstimate DTOs - Histogramm, Stats, Rundenvergleich]
     end
 
     subgraph Validation["Validation - shared-types"]
@@ -86,6 +87,7 @@ graph LR
     session --> sessiondto
     session --> lbdto
     session --> scoredto
+    session --> numericdto
     vote --> submitvote
     quiz --> quizupload
     session --> createsession
@@ -328,6 +330,15 @@ erDiagram
         float numericRelativeTolerancePercent
         string numericUnitFamily
         boolean numericRequireUnit
+        float numericReferenceValue
+        float numericTolerancePercent
+        float numericIntervalLeft
+        float numericIntervalRight
+        string numericInputType
+        int numericDecimalPlaces
+        float numericMin
+        float numericMax
+        boolean numericTwoRounds
     }
     AnswerOption {
         string id PK
@@ -356,6 +367,7 @@ erDiagram
     Vote {
         string id PK
         string freeText
+        float numericValue
         int ratingValue
         int responseTimeMs
         int score
@@ -520,7 +532,7 @@ erDiagram
     }
 ```
 
-**Hinweis (Data-Stripping):** `AnswerOption.isCorrect` wird im Status ACTIVE niemals an Studenten gesendet; erst nach RESULTS-Auflösung (`QuestionRevealedDTO`).
+**Hinweis (Data-Stripping):** `AnswerOption.isCorrect` wird im Status ACTIVE niemals an Studenten gesendet; erst nach RESULTS-Auflösung (`QuestionRevealedDTO`). Bei `NUMERIC_ESTIMATE` werden während `ACTIVE` nur neutrale Fortschrittsdaten gezählt; Histogramm, Rohwerte, Statistik, Toleranztreffer und Lösungsnähe werden erst nach Ergebnisfreigabe ausgeliefert.
 **Session-Status:** `LOBBY → QUESTION_OPEN` (Lesephase, nur Fragenstamm) → `ACTIVE` → `RESULTS` → `PAUSED` oder `DISCUSSION` → … → `FINISHED`. Optional überspringbar: bei `readingPhaseEnabled=false` geht „Nächste Frage" direkt zu `ACTIVE`.
 
 ---
@@ -594,11 +606,25 @@ sequenceDiagram
     BE->>BE: Subscription-Event answersRevealed vorbereiten
     BE-->>FE: tRPC Broadcast an alle Clients
 
+    opt NUMERIC_ESTIMATE mit zweiter Runde
+        D->>FE: Diskussion starten
+        FE->>BE: session.startDiscussion
+        BE->>PG: Status = DISCUSSION
+        D->>FE: Runde 2 starten
+        FE->>BE: session.startRound2
+        BE->>PG: Status = ACTIVE, currentRound = 2
+        BE-->>FE: Fortschritt Runde 2 ohne Verteilung
+    end
+
     Note over D,BE: Phase 5 - RESULTS
     D->>FE: Ergebnis zeigen
     FE->>BE: session.revealResults
     BE->>PG: Status = RESULTS, Scores berechnen
     BE->>BE: QuestionRevealedDTO (mit isCorrect)
+    opt NUMERIC_ESTIMATE
+        BE->>PG: Votes Runde 1/2 laden
+        BE->>BE: Histogramm, Statistik und Paarvergleich aggregieren
+    end
     BE->>FE: onResultsRevealed
     FE->>D: Ergebnis-Diagramm auf Beamer
     BE->>PG: Status = PAUSED (zwischen Fragen)
@@ -679,9 +705,9 @@ sequenceDiagram
     FE->>S: Antwort-Buttons + Countdown
 
     Note over S,BE: Phase 3: Abstimmung
-    S->>FE: Antwort wählen (SC, MC, Freitext, Rating)
+    S->>FE: Antwort wählen oder Zahl schätzen
     FE->>BE: vote.submit (SubmitVoteInputSchema)
-    BE->>PG: Vote INSERT, VoteAnswer INSERT
+    BE->>PG: Vote INSERT, VoteAnswer INSERT oder numericValue
     BE->>BE: quizScoring (Punkte/Streak)
     BE->>BE: Subscription-Event voteReceived vorbereiten
     BE-->>FE: success
@@ -689,6 +715,9 @@ sequenceDiagram
     Note over S,BE: Phase 4: Ergebnis empfangen
     BE->>FE: Event onResultsRevealed (QuestionRevealedDTO, mit isCorrect)
     FE->>S: Richtig oder Falsch anzeigen
+    opt NUMERIC_ESTIMATE
+        FE->>S: Eigener Wert, Referenz, Abstand, Toleranzstatus und Punkte anzeigen
+    end
 
     Note over S,BE: Phase 5 - Persönliche Scorecard
     BE->>FE: Event onPersonalResult (PersonalScorecardDTO)
@@ -818,7 +847,9 @@ flowchart LR
         S3a["Status QUESTION_OPEN, QuestionPreviewDTO - Lesephase"]
         S3b["Status ACTIVE, QuestionStudentDTO ohne isCorrect"]
         S4["Vote speichern, Scoring, voteCountUpdate"]
+        S4n["NUMERIC_ESTIMATE ACTIVE: nur Fortschritt, keine Verteilung"]
         S5["Status RESULTS, QuestionRevealedDTO mit isCorrect"]
+        S5n["NUMERIC_ESTIMATE RESULTS: Histogramm, Statistik, Paarvergleich"]
         S5b["Status PAUSED - zwischen Fragen"]
         S6["Status FINISHED, ggf. BonusToken generieren"]
     end
@@ -829,6 +860,7 @@ flowchart LR
         ST3a[Fragenstamm anzeigen - Lesephase]
         ST3b[Antwort-Buttons + Countdown anzeigen]
         ST4[Abstimmung vote.submit]
+        ST4n[Zahl schätzen - numericValue]
         ST5[Ergebnis + Scorecard anzeigen]
         ST6["Finales Ranking, ggf. Bonus-Token kopieren"]
     end
@@ -845,10 +877,14 @@ flowchart LR
     ST3a --> D5b
     D5b --> S3b
     S3b --> ST3b --> ST4
+    ST3b --> ST4n
     ST4 --> S4
+    ST4n --> S4n --> S4
     S4 --> D7
     D7 --> D6
     D6 --> S5
+    S5 --> S5n
+    S5n --> ST5
     S5 --> ST5
     ST5 --> S5b
     S5b --> D5

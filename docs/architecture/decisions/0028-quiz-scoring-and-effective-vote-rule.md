@@ -317,6 +317,15 @@ Stand 2026-05-31:
 - `SHORT_TEXT` bleibt der dritte bewertbare Fragetyp; ein eigener numerischer Schaetzfrage-Typ ist noch nicht Teil von `QuestionTypeEnum`.
 - Neue bewertbare Fragetypen muessen weiterhin `quizScoring.ts`, Effective-Vote-Auswahl, Leaderboards, Scorecards, Bonuscodes und Exporte gemeinsam erweitern.
 
+Stand 2026-06-17:
+
+- `SHORT_TEXT` und `NUMERIC_ESTIMATE` sind zusätzlich zu `SINGLE_CHOICE` und `MULTIPLE_CHOICE` bewertbare Fragetypen.
+- Der eigene numerische Schaetzfrage-Typ ist als `NUMERIC_ESTIMATE` Teil von `QuestionTypeEnum`, Prisma, Shared Types, Vote-API, Session-Aggregation, Leaderboards, Scorecards, Bonuscodes und Exporten.
+- `NUMERIC_ESTIMATE` nutzt das Toleranzband für die Korrektheitsentscheidung und differenziert Punkte innerhalb des Bands nach Nähe zum Referenzwert: exakter Treffer erhält volle Basispunkte, nicht-exakte Treffer werden über `1 - normalisierteDistanz²` gewichtet, am Bandrand bleibt ein Mindestanteil von 10 %, außerhalb des Bands gibt es 0 Punkte.
+- Runde 2 ersetzt Runde 1 auch für `NUMERIC_ESTIMATE`; Runde-2-Antwortzeiten bleiben für Tiebreaker ohne Wirkung.
+- Die fachliche Detaildoku steht in [numeric-estimate.md](../../features/numeric-estimate.md).
+- Neue bewertbare Fragetypen muessen weiterhin `quizScoring.ts`, Effective-Vote-Auswahl, Leaderboards, Scorecards, Bonuscodes und Exporte gemeinsam erweitern.
+
 ---
 
 **Referenzen:** [quizScoring.ts](../../../apps/backend/src/lib/quizScoring.ts), [vote.ts](../../../apps/backend/src/routers/vote.ts), [session.ts](../../../apps/backend/src/routers/session.ts), [schemas.ts](../../../libs/shared-types/src/schemas.ts), [session.leaderboard.test.ts](../../../apps/backend/src/__tests__/session.leaderboard.test.ts), [session.teams.test.ts](../../../apps/backend/src/__tests__/session.teams.test.ts), [session.scorecard.test.ts](../../../apps/backend/src/__tests__/session.scorecard.test.ts), [vote.test.ts](../../../apps/backend/src/__tests__/vote.test.ts), [quizScoring.test.ts](../../../apps/backend/src/__tests__/quizScoring.test.ts).

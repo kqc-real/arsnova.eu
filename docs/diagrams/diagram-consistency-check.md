@@ -1,8 +1,8 @@
 # Konsistenzprüfung: Diagramme · Handbuch · Backlog · Code
 
-**Datum:** 2026-05-31
+**Datum:** 2026-06-17
 
-**Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0015/0016, ADR-0021, ADR-0028/0029, ROUTES_AND_STORIES.md, GLOSSAR.md, onboarding.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md).
+**Geprüft:** diagrams.md, architecture-overview.md, handbook.md, Backlog.md, ADR-0006, ADR-0015/0016, ADR-0021, ADR-0028/0029, ROUTES_AND_STORIES.md, GLOSSAR.md, onboarding.md, prisma/schema.prisma, libs/shared-types, apps/backend, apps/frontend, [server-status-widget.md](../features/server-status-widget.md), [numeric-estimate.md](../features/numeric-estimate.md).
 
 **Epic 0:** Alle Stories 0.1–0.6 umgesetzt (Redis, tRPC WebSocket, Yjs, Server-Status, Rate-Limiting, CI/CD). health.check, health.footerBundle, health.stats, health.ping, Rate-Limit-Service und Frontend ServerStatusWidget sind implementiert.
 
@@ -13,7 +13,7 @@
 ### 1.1 Backend-Komponenten
 
 - **Router:** health, quiz, session, vote, qa, quickFeedback, wordCloud, **admin** (Epic 9), **motd** (Epic 10) – untereinander konsistent; adminRouter mit PG/Cleanup; motdRouter mit PG/Rate-Limit; wordCloudRouter mit deterministischer Analyse ohne eigene Persistenz; Verbindungen zu Services, DTO, Validation und PG/Redis/WebSocket/y-websocket stimmig.
-- **DTO-Layer:** QuestionStudentDTO (kein isCorrect), QuestionRevealedDTO (mit isCorrect), SessionInfoDTO, LeaderboardEntryDTO, PersonalScorecardDTO – stimmt mit shared-types Zod-Schemas überein.
+- **DTO-Layer:** QuestionStudentDTO (kein isCorrect), QuestionRevealedDTO (mit isCorrect), SessionInfoDTO, LeaderboardEntryDTO, PersonalScorecardDTO und NumericEstimate-DTOs für Histogramm/Stats/Rundenvergleich – stimmt mit shared-types Zod-Schemas überein.
 - **Validation:** SubmitVoteInputSchema, CreateSessionInputSchema, QuizUploadInputSchema im Diagramm – alle drei existieren identisch in `libs/shared-types/src/schemas.ts`. ✓
 - **Header:** Epic 0 umgesetzt; healthRouter (check, stats, ping), sessionRouter (mit Rate-Limit), voteRouter (mit Rate-Limit), Yjs- und WebSocket-Server implementiert. ✓
 
@@ -26,13 +26,13 @@
 
 - **Entitäten:** Quiz, Question, AnswerOption, Session, Participant, PlatformStatistic, DailyStatistic, Team, Vote, VoteAnswer, BonusToken, SessionFeedback, QaQuestion, QaUpvote, AdminAuditLog, MotdTemplate, Motd, MotdLocale, MotdInteractionCounter, MotdAuditLog – stimmen mit Prisma-Schema überein. ✓
 - **Relationen & Kardinalitäten:** Alle zentralen 1:n-, n:m- und Snapshot-Beziehungen korrekt; optionale Beziehungen (`Session.quizId`, `Participant.teamId`, `Motd.templateId`) sind im ER-Diagramm als optional bzw. kompakt dargestellt.
-- **Felder im erDiagram:** Bewusst fachlich gekürzte Auswahl. Neuere schema-relevante Felder sind sichtbar: SHORT_TEXT/Numeric-Konfigurationen, Session-Kanäle, Onboarding-/Legal-Hold-Hinweise, SessionFeedback, Platform/DailyStatistic und MOTD.
+- **Felder im erDiagram:** Bewusst fachlich gekürzte Auswahl. Neuere schema-relevante Felder sind sichtbar: SHORT_TEXT-/Numeric-Konfigurationen, `NUMERIC_ESTIMATE`-Felder (`numericReferenceValue`, Toleranzintervall, Eingabetyp, `numericTwoRounds`, `Vote.numericValue`), Session-Kanäle, Onboarding-/Legal-Hold-Hinweise, SessionFeedback, Platform/DailyStatistic und MOTD.
 
 ### 1.4 Sequenzdiagramme (Dozent & Student)
 
-- **Dozent:** Optional Phase „Quiz auf anderem Gerät öffnen“ (Story 1.6a: Sync-Link/Room-ID) nach Quiz erstellen; danach quiz.upload → session.create → Subscriptions → nextQuestion → revealResults → session.end → Redis-Cleanup → getBonusTokens; optional Ergebnis-Export (4.7) – Reihenfolge konsistent mit Backlog (1.6a, 2.1a, 2.3, 2.4, 4.2, 4.6, 4.7). ✓
-- **Student:** session.getInfo → session.join → onQuestionRevealed → vote.submit → onResultsRevealed → onPersonalResult → onStatusChanged FINISHED → bonusToken – konsistent mit Backlog (3.1, 3.3a/b, 4.6, 5.6). ✓
-- **DTOs:** QuestionStudentDTO (kein isCorrect) im ACTIVE-Status, QuestionRevealedDTO (mit isCorrect) im RESULTS-Status – korrekt dargestellt. ✓
+- **Dozent:** Optional Phase „Quiz auf anderem Gerät öffnen“ (Story 1.6a: Sync-Link/Room-ID) nach Quiz erstellen; danach quiz.upload → session.create → Subscriptions → nextQuestion → ggf. NUMERIC_ESTIMATE-Diskussion/Runde 2 → revealResults → session.end → Redis-Cleanup → getBonusTokens; optional Ergebnis-Export (4.7) – Reihenfolge konsistent mit Backlog (1.2d, 1.6a, 2.1a, 2.3, 2.4, 4.2, 4.6, 4.7). ✓
+- **Student:** session.getInfo → session.join → onQuestionRevealed → vote.submit (`answerIds`, `freeText`, `ratingValue` oder `numericValue`) → onResultsRevealed → onPersonalResult → onStatusChanged FINISHED → bonusToken – konsistent mit Backlog (1.2d, 3.1, 3.3a/b, 4.6, 5.6). ✓
+- **DTOs:** QuestionStudentDTO (kein isCorrect; bei NUMERIC_ESTIMATE keine Verteilung/Lösungsnähe) im ACTIVE-Status, QuestionRevealedDTO (mit isCorrect bzw. Schätzfragen-Stats nach Freigabe) im RESULTS-Status – korrekt dargestellt. ✓
 
 ### 1.5 Aktivitätsdiagramm
 
@@ -43,25 +43,25 @@
 
 ## 2. Konsistenz zwischen diagrams.md und architecture-overview.md
 
-| Thema                | diagrams.md                                                                                                                   | architecture-overview.md                                                       | Bewertung                     |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------- |
-| tRPC-Router          | health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd                                                        | health · quiz · session · vote · qa · quickFeedback · wordCloud · admin · motd | ✓ gleich                      |
-| DTOs                 | QuestionStudentDTO, QuestionRevealedDTO, SessionInfoDTO, LeaderboardEntryDTO, PersonalScorecardDTO                            | QuestionPreviewDTO, QuestionStudentDTO, QuestionRevealedDTO                    | ⚠️ Übersicht bleibt kompakter |
-| Data-Stripping       | ACTIVE ohne isCorrect, RESULTS mit isCorrect                                                                                  | Sicherheits-Diagramm + Datenfluss                                              | ✓ gleich                      |
-| Session-Ablauf       | quiz.upload → session.create → …                                                                                              | Datenfluss zeigt quiz.upload + session.create                                  | ✓ konsistent                  |
-| Frontend-Routen      | /, /quiz, /quiz/sync/:docId, /session/:code/(host/present/vote), /join/:code, /feedback, /admin, /help, /news-archive, /legal | FE_ROUTES mit denselben Hauptpfaden                                            | ✓ gleich                      |
-| DB-Modelle           | erDiagram inkl. SessionFeedback, Platform/DailyStatistic, MOTD und Audit-Snapshots                                            | `prisma/schema.prisma` inkl. gleicher Modelle                                  | ✓                             |
-| Frontend-Komponenten | Detailliertere Feature-Hierarchie                                                                                             | Kompaktere Architekturübersicht                                                | ⚠️ Vereinfacht (siehe 2.1)    |
+| Thema                | diagrams.md                                                                                                                   | architecture-overview.md                                                                   | Bewertung                     |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------- |
+| tRPC-Router          | health, quiz, session, vote, qa, quickFeedback, wordCloud, admin, motd                                                        | health · quiz · session · vote · qa · quickFeedback · wordCloud · admin · motd             | ✓ gleich                      |
+| DTOs                 | QuestionStudentDTO, QuestionRevealedDTO, SessionInfoDTO, LeaderboardEntryDTO, PersonalScorecardDTO, NumericEstimate-Stats     | QuestionPreviewDTO, QuestionStudentDTO, QuestionRevealedDTO, NumericEstimate-Stats-Hinweis | ⚠️ Übersicht bleibt kompakter |
+| Data-Stripping       | ACTIVE ohne isCorrect/Schätzlagen, RESULTS mit isCorrect bzw. NumericEstimate-Stats                                           | Sicherheits-Diagramm + Datenfluss                                                          | ✓ gleich                      |
+| Session-Ablauf       | quiz.upload → session.create → …                                                                                              | Datenfluss zeigt quiz.upload + session.create                                              | ✓ konsistent                  |
+| Frontend-Routen      | /, /quiz, /quiz/sync/:docId, /session/:code/(host/present/vote), /join/:code, /feedback, /admin, /help, /news-archive, /legal | FE_ROUTES mit denselben Hauptpfaden                                                        | ✓ gleich                      |
+| DB-Modelle           | erDiagram inkl. SessionFeedback, Platform/DailyStatistic, MOTD und Audit-Snapshots                                            | `prisma/schema.prisma` inkl. gleicher Modelle                                              | ✓                             |
+| Frontend-Komponenten | Detailliertere Feature-Hierarchie                                                                                             | Kompaktere Architekturübersicht                                                            | ⚠️ Vereinfacht (siehe 2.1)    |
 
 ### 2.1 Fehlende Komponenten in architecture-overview.md
 
 Die Komponenten-Hierarchie in architecture-overview.md ist eine **bewusst vereinfachte** Darstellung. Folgende Komponenten aus diagrams.md fehlen dort:
 
-**Session-Steuerung:** QaModeratorComponent, BonusTokenListComponent  
-**Beamer:** WordcloudComponent, RatingHistogramComponent, EmojiOverlayComponent, QrCodeComponent  
-**Student:** McToggleButtonsComponent, RatingScaleComponent, FreetextInputComponent, MotivationMessageComponent, EmojiBarComponent, QaStudentComponent, BonusTokenDisplay  
-**Shared:** LanguageSwitcherComponent, ConfirmDialogComponent, MarkdownKatexComponent (fehlt in Hierarchie-Darstellung)  
-**Quiz:** ImportExportComponent, QuizConfigComponent
+- **Session-Steuerung:** QaModeratorComponent, BonusTokenListComponent
+- **Beamer:** WordcloudComponent, RatingHistogramComponent, EmojiOverlayComponent, QrCodeComponent
+- **Student:** McToggleButtonsComponent, RatingScaleComponent, FreetextInputComponent, NumericEstimateInput/-Result, MotivationMessageComponent, EmojiBarComponent, QaStudentComponent, BonusTokenDisplay
+- **Shared:** LanguageSwitcherComponent, ConfirmDialogComponent, MarkdownKatexComponent (fehlt in Hierarchie-Darstellung)
+- **Quiz:** ImportExportComponent, QuizConfigComponent
 
 **Empfehlung:**  
 Da beide Dateien als Living Documentation dienen, sollte architecture-overview.md entweder (a) einen expliziten Vermerk „Vereinfachte Darstellung – Details in diagrams.md" tragen oder (b) die fehlenden Komponenten ergänzt werden, um Verwirrung zu vermeiden.
@@ -101,6 +101,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 - Quiz-Presets (1.11) und SC-Schnellformate (1.12) – clientseitig in shared-types definiert, Komponenten implizit in QuizConfigComponent ✓
 - Markdown/KaTeX (1.7) – MarkdownKatexComponent in Shared ✓
 - Stories **1.7a** und **1.7b** (Markdown-Bilder URL+Lightbox, KaTeX-Editor MD3-Toolbar) – umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md)); keine eigene Mermaid-Erweiterung nötig
+- Story **1.2d NUMERIC_ESTIMATE** – umgesetzt und in Diagrammen sichtbar: Question-/Vote-Felder, Data-Stripping während ACTIVE, Runde-2-Pfad, Histogramm/Statistik/Paarvergleich nach RESULTS; Details in [numeric-estimate.md](../features/numeric-estimate.md) ✓
 - Word Cloud interaktiv + Export (1.14) – WordcloudComponent bereits in Beamer/Ergebnis-Ansicht; Export (CSV/PNG) in Story 1.14 spezifiziert ✓
 
 ### Epic 2: Session-Start & Steuerung
@@ -115,7 +116,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 
 - session.getInfo + session.join in Student-Sequenz ✓
 - Nicknames (3.2) – NicknameSelectComponent ✓
-- Frage/Vote (3.3a/b) – VotingViewComponent, AnswerButtons, McToggle, Freetext, RatingScale ✓
+- Frage/Vote (3.3a/b) – VotingViewComponent, AnswerButtons, McToggle, Freetext, RatingScale, NumericEstimateInput ✓
 - Countdown (3.5) – CountdownComponent in Beamer und Student ✓
 - Anonymer Modus (3.6) – anonymousMode in Prisma-Schema, keine explizite Diagramm-Darstellung ⚠️
 
@@ -123,7 +124,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 
 - Leaderboard (4.1) – LeaderboardComponent + LeaderboardEntryDTO ✓
 - Cleanup (4.2) – Redis-Cleanup in Dozent-Sequenz ✓
-- Ergebnis-Visualisierung (4.4) – ResultChartComponent, WordcloudComponent, RatingHistogramComponent ✓
+- Ergebnis-Visualisierung (4.4) – ResultChartComponent, WordcloudComponent, RatingHistogramComponent, NumericEstimateHistogram/Stats ✓
 - Bonus-Token (4.6) – BonusTokenListComponent, BonusTokenDisplay, Token-Generierung in Sequenzdiagramm ✓
 - Ergebnis-Export für Dozenten (4.7) – optional in Dozent-Sequenz (diagrams.md §4.3) als `session.getExportData` / SessionExportDTO abgebildet ✓
 
@@ -170,27 +171,29 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 
 ## 5. Konsistenz Zod-Schemas ↔ Prisma-Schema
 
-| Zod-Schema (shared-types)                                                    | Prisma-Modell/Enum                                     | Status                                                                    |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------- |
-| QuestionTypeEnum                                                             | QuestionType                                           | ✓ Werte identisch                                                         |
-| SessionStatusEnum                                                            | SessionStatus                                          | ✓ Werte identisch                                                         |
-| DifficultyEnum                                                               | Difficulty                                             | ✓ Werte identisch                                                         |
-| NicknameThemeEnum                                                            | NicknameTheme                                          | ✓ Werte identisch                                                         |
-| TeamAssignmentEnum                                                           | TeamAssignment                                         | ✓ Werte identisch                                                         |
-| QaQuestionStatusEnum                                                         | QaQuestionStatus                                       | ✓ Werte identisch                                                         |
-| SessionTypeEnum                                                              | SessionType                                            | ✓ Werte identisch                                                         |
-| MotdStatusEnum                                                               | MotdStatus                                             | ✓ Werte identisch                                                         |
-| MotdAuditActionEnum                                                          | MotdAuditAction                                        | ✓ Werte identisch                                                         |
-| ShortTextEvaluationKindEnum / ShortAnswerEvaluationModeEnum / Numeric\*Enums | Question-Stringfelder                                  | ✓ Werte werden in Zod validiert und als String-Konfiguration persistiert  |
-| QuizUploadInputSchema                                                        | Quiz + Question + AnswerOption                         | ✓ Felder stimmen überein                                                  |
-| CreateSessionInputSchema                                                     | Session                                                | ✓ type, quizId, title, moderationMode                                     |
-| JoinSessionInputSchema                                                       | Participant + Session                                  | ✓ code (6 Zeichen), nickname                                              |
-| SubmitVoteInputSchema                                                        | Vote + VoteAnswer                                      | ✓ sessionId, questionId, answerIds, freeText, ratingValue, responseTimeMs |
-| SubmitSessionFeedbackInputSchema                                             | SessionFeedback                                        | ✓ sessionId, participantId, Ratings                                       |
-| ServerStatsDTOSchema                                                         | PlatformStatistic + DailyStatistic                     | ✓ Allzeit- und Tagesrekord-Metriken                                       |
-| Motd\*Schemas                                                                | Motd, MotdLocale, MotdInteractionCounter, MotdTemplate | ✓ Public/Admin-Daten über DTOs statt Prisma-Rows                          |
+| Zod-Schema (shared-types)                                                    | Prisma-Modell/Enum                                     | Status                                                                                  |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| QuestionTypeEnum                                                             | QuestionType                                           | ✓ Werte identisch                                                                       |
+| SessionStatusEnum                                                            | SessionStatus                                          | ✓ Werte identisch                                                                       |
+| DifficultyEnum                                                               | Difficulty                                             | ✓ Werte identisch                                                                       |
+| NicknameThemeEnum                                                            | NicknameTheme                                          | ✓ Werte identisch                                                                       |
+| TeamAssignmentEnum                                                           | TeamAssignment                                         | ✓ Werte identisch                                                                       |
+| QaQuestionStatusEnum                                                         | QaQuestionStatus                                       | ✓ Werte identisch                                                                       |
+| SessionTypeEnum                                                              | SessionType                                            | ✓ Werte identisch                                                                       |
+| MotdStatusEnum                                                               | MotdStatus                                             | ✓ Werte identisch                                                                       |
+| MotdAuditActionEnum                                                          | MotdAuditAction                                        | ✓ Werte identisch                                                                       |
+| ShortTextEvaluationKindEnum / ShortAnswerEvaluationModeEnum / Numeric\*Enums | Question-Stringfelder                                  | ✓ Werte werden in Zod validiert und als String-Konfiguration persistiert                |
+| NumericEstimateToleranceModeEnum / NumericInputTypeEnum                      | Question-Stringfelder                                  | ✓ `NUMERIC_ESTIMATE`-Konfiguration wird über Zod validiert                              |
+| QuizUploadInputSchema                                                        | Quiz + Question + AnswerOption                         | ✓ Felder stimmen überein                                                                |
+| CreateSessionInputSchema                                                     | Session                                                | ✓ type, quizId, title, moderationMode                                                   |
+| JoinSessionInputSchema                                                       | Participant + Session                                  | ✓ code (6 Zeichen), nickname                                                            |
+| SubmitVoteInputSchema                                                        | Vote + VoteAnswer                                      | ✓ sessionId, questionId, answerIds, freeText, ratingValue, numericValue, responseTimeMs |
+| NumericEstimateStats-/Histogram-/RoundComparison-Schemas                     | Vote + Question                                        | ✓ Aggregierte Ergebnisdaten erst in RESULTS                                             |
+| SubmitSessionFeedbackInputSchema                                             | SessionFeedback                                        | ✓ sessionId, participantId, Ratings                                                     |
+| ServerStatsDTOSchema                                                         | PlatformStatistic + DailyStatistic                     | ✓ Allzeit- und Tagesrekord-Metriken                                                     |
+| Motd\*Schemas                                                                | Motd, MotdLocale, MotdInteractionCounter, MotdTemplate | ✓ Public/Admin-Daten über DTOs statt Prisma-Rows                                        |
 
-**Bewertung:** Prisma-Enums und Zod-Enums sind synchron, wo es echte DB-Enums gibt. SHORT_TEXT/Numeric-Einstellungen sind bewusst als Prisma-Stringfelder modelliert und werden über Zod-Enums abgesichert. Input-/DTO-Schemas spiegeln die relevanten Modelle korrekt wider. ✓
+**Bewertung:** Prisma-Enums und Zod-Enums sind synchron, wo es echte DB-Enums gibt. SHORT_TEXT-/Numeric- und NUMERIC_ESTIMATE-Einstellungen sind bewusst als Prisma-Stringfelder modelliert und werden über Zod-Enums abgesichert. Input-/DTO-Schemas spiegeln die relevanten Modelle korrekt wider. ✓
 
 ---
 
@@ -234,7 +237,7 @@ Story 0.4: Das **ServerStatusWidget** ist in diagrams.md (App-Shell / Shared) ab
 
 ### 8.1 Repo-weiter Mermaid-Audit und Doku-Abgleich
 
-Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte Render-Prüfung. Am 2026-05-31 wurden die zentralen Diagrammtexte, Standangaben und Redis-/Realtime-Begriffe mit Architektur-Handbuch, Glossar, Onboarding und Funktionsübersicht abgeglichen. Zusätzlich zu `docs/diagrams/*` wurden alle weiteren Markdown-Dateien mit Mermaid-Blöcken geprüft:
+Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte vollständige Render-Prüfung. Am 2026-05-31 wurden die zentralen Diagrammtexte, Standangaben und Redis-/Realtime-Begriffe mit Architektur-Handbuch, Glossar, Onboarding und Funktionsübersicht abgeglichen. Am 2026-06-17 erfolgte ein fachlicher Abgleich für Story 1.2d `NUMERIC_ESTIMATE`: Backlog-Status, Feature-Doku, Datenmodellfelder, Data-Stripping, Scoring, Zwei-Runden-Flow und Ergebnisaggregation wurden in den zentralen Diagrammen nachgeführt. Zusätzlich zu `docs/diagrams/*` wurden alle weiteren Markdown-Dateien mit Mermaid-Blöcken geprüft:
 
 | Datei                                              | Ergebnis                                                                                                                           |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -243,20 +246,21 @@ Der repo-weite Mermaid-Render-Audit vom 2026-05-30 bleibt die letzte Render-Prü
 | `docs/features/bonus-codes.md`                     | Aktualisiert auf effektive Rundenwertung, letzte-Frage-Guard und Token-/Feedback-Retention vor Session-Purge                       |
 | `docs/features/blitzlicht-quickfeedback-api.md`    | Fehlende `quickFeedback`-Procedures `isActive`, `hostResults`, `onHostResults` ergänzt                                             |
 | `docs/features/preset-modes.md`                    | Foyer-Einflug an lokales UI-Preset `spielerisch` und Reward-Effekte gebunden; keine Host-Übersteuerung von Client-Presets          |
+| `docs/features/numeric-estimate.md`                | Neu: didaktisches Konzept, Plausibilitäts-/Toleranzband, Zwei-Runden-Flow, Data-Stripping, Nähe-Scoring, Statistik und Import      |
 | `docs/onboarding.md`                               | Backend-Diagramm um `wordCloudRouter`, `wordCloudAnalysis` und aktuellen Server-Status-Pfad ergänzt                                |
 | `docs/didaktik/dritter-kurs-data-analytics-nlp.md` | Zielbild an bestehenden `wordCloudRouter` und deterministische `wordCloudAnalysis`-Baseline angepasst                              |
 | `docs/praktikum/HANDOUT-TAGESREKORD-KI-AGENT.md`   | Tagesrekord-Sequenzen auf `footerBundle`/`stats`-Trennung und dynamisches Chart-Lazy-Loading aktualisiert                          |
 | `docs/architecture/quiz-library-sync.md`           | Geprüft; keine fachliche Änderung nötig                                                                                            |
 
-Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 20 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft; am 2026-05-31 erfolgte nur der fachliche Text- und Begriffsabgleich.
+Technische Plausibilitätschecks: Mermaid-Fences balanciert; alle 20 Prisma-Modelle erscheinen in den zentralen ER-Diagrammen; alle `appRouter`-Keys (`health`, `quiz`, `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd`) sind in Diagramm-/Onboarding-Doku abgebildet. Der letzte vollständige Render-Audit vom 2026-05-30 hat alle 68 Mermaid-Blöcke aus 11 getrackten Markdown-Dateien mit `mmdc 11.15.0` erfolgreich geprüft; am 2026-06-17 erfolgte ein fachlicher Text- und Begriffsabgleich für `NUMERIC_ESTIMATE`, aber kein neuer repo-weiter Render-Audit.
 
-| Aspekt                                     | Bewertung                                                                                                              |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| **Diagramme intern**                       | ✓ Konsistent (Router, DTOs, Abläufe, DB-Schema stimmig)                                                                |
-| **diagrams.md ↔ architecture-overview.md** | ✅ architecture-overview als vereinfachte Übersicht gekennzeichnet; Details in diagrams.md                             |
-| **Diagramme ↔ Handbook**                   | ✓ Alle Kernkonzepte (Local-First, tRPC, Data-Stripping, Datenmodell) abgebildet                                        |
-| **Diagramme ↔ Backlog**                    | ✓ Relevante Stories aus Epics 0–8 abgedeckt; 0.4 vertieft in server-status-widget.md; offene Mini-Lücke §7.3 (Team-UI) |
-| **Zod-Schemas ↔ Prisma**                   | ✓ Alle Enums synchron, Input-Schemas spiegeln Modelle korrekt                                                          |
-| **Diagramme ↔ Code**                       | ✓ Kernpfad (Router, DB, WS, Yjs, Frontend-Routen) abgedeckt                                                            |
+| Aspekt                                     | Bewertung                                                                                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Diagramme intern**                       | ✓ Konsistent (Router, DTOs, Abläufe, DB-Schema stimmig)                                                                                                      |
+| **diagrams.md ↔ architecture-overview.md** | ✅ architecture-overview als vereinfachte Übersicht gekennzeichnet; Details in diagrams.md                                                                   |
+| **Diagramme ↔ Handbook**                   | ✓ Alle Kernkonzepte (Local-First, tRPC, Data-Stripping, Datenmodell) abgebildet                                                                              |
+| **Diagramme ↔ Backlog**                    | ✓ Relevante Stories aus Epics 0–8 abgedeckt; 0.4 vertieft in server-status-widget.md, 1.2d vertieft in numeric-estimate.md; offene Mini-Lücke §7.3 (Team-UI) |
+| **Zod-Schemas ↔ Prisma**                   | ✓ Alle Enums synchron, Input-Schemas spiegeln Modelle korrekt                                                                                                |
+| **Diagramme ↔ Code**                       | ✓ Kernpfad (Router, DB, WS, Yjs, Frontend-Routen) abgedeckt                                                                                                  |
 
-**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der PAUSED-Status ist in diagrams.md und im Datenfluss in architecture-overview.md berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.
+**Gesamtbewertung:** Die Diagramme sind intern konsistent und decken Handbook sowie Backlog umfassend ab. Die architecture-overview.md ist als vereinfachte Übersicht gekennzeichnet. Der PAUSED-Status ist in diagrams.md und im Datenfluss in architecture-overview.md berücksichtigt. **Server-Status (0.4):** Ablauf in [server-status-widget.md](../features/server-status-widget.md). **Numerische Schätzfrage (1.2d):** Fachdetails in [numeric-estimate.md](../features/numeric-estimate.md). Team-Ranking: siehe [team-mode.md](../features/team-mode.md) statt eigener Diagramm-Komponente.

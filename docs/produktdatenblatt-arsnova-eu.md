@@ -44,9 +44,10 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 ## Epic 1 – Quiz-Verwaltung
 
 - Vollständiger Quiz-Lebenszyklus: erstellen, bearbeiten, löschen, importieren, exportieren.
-- Fragetypen: Single-/Multiple-Choice, Freitext, Umfrage, Rating.
+- Fragetypen: Single-/Multiple-Choice, Freitext, Kurzantwort, Umfrage, Rating, numerische Schätzfrage.
 - Markdown/KaTeX inkl. Bild-URL/Lightbox und KI-unterstütztem Import.
-- Offene Punkte: numerische Schätzfrage, Sync-Härtung/Skalierung, Editor-Toolbar-Ausbau, Word-Cloud-2.0.
+- Numerische Schätzfragen (`NUMERIC_ESTIMATE`) unterstützen Ganzzahl-/Dezimal-Eingaben, Plausibilitätsgrenzen, absolutes/relatives Toleranzband, optionale zwei Runden, Statistik, Histogramm und Nähe-Scoring.
+- Offene Punkte: Sync-Härtung/Skalierung, Editor-Toolbar-Ausbau, Word-Cloud-2.0.
 
 ## Epic 2 – Session-Start und Host-Steuerung
 
@@ -145,7 +146,6 @@ Damit ist die Produktbeschreibung nicht nur backlog-basiert, sondern auch verhal
 
 - Last-/Performance-Tests (0.7)
 - Komplexitätsreduktion/Refactor-Hotspots (0.8)
-- Numerische Schätzfrage (1.2d)
 - Sync-Sicherheit/Skalierung (1.6c/1.6d)
 - Q&A-Erweiterungen (8.5–8.7)
 - Abschlussläufe Accessibility/UX (6.5/6.6)

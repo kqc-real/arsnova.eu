@@ -4,11 +4,11 @@
 
 **Erstellt:** 2026-02-20
 
-**Zuletzt aktualisiert:** 2026-06-06
+**Zuletzt aktualisiert:** 2026-06-17
 
 **Zweck:** Visualisierung der gesamten Codebasis-Struktur und Architektur
 
-**Status:** Epics 0–5 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, **10 (MOTD)** umgesetzt · Epic 6 größtenteils umgesetzt (6.5, 6.6 offen) · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung und Effective-Vote-Regel umgesetzt · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert; `FINISHED` beendet den Session-Vote kanaluebergreifend und stoppt Q&A-/Blitzlicht-Live-Subscriptions. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
+**Status:** Epics 0–5 inkl. 5.4a, 7.1, 8.1–8.4, 8.6/8.7, 9, **10 (MOTD)** umgesetzt · Epic 6 größtenteils umgesetzt (6.5, 6.6 offen) · Plattformstatistik Rekordteilnehmer und Tagesrekorde (`PlatformStatistic`, `DailyStatistic`) in `health.footerBundle` / `health.stats` · Kurzantwort (`SHORT_TEXT`) inkl. numerischer Bewertung, numerische Schätzfrage (`NUMERIC_ESTIMATE`) inkl. Zwei-Runden-Flow/Statistik und Effective-Vote-Regel umgesetzt · Host-Härtung, Feedback-Host-Token und besitzgebundene Quiz-Historie umgesetzt · Markdown-Stories **1.7a** und **1.7b** umgesetzt ([ADR-0015](../architecture/decisions/0015-markdown-images-url-only-and-lightbox.md), [ADR-0016](../architecture/decisions/0016-markdown-katex-editor-split-view-and-md3-toolbar.md), [ADR-0017](../architecture/decisions/0017-markdown-editor-ui-scope-and-ki-import-paste-field.md) — Geltungsbereich Editor vs. KI-Paste). Blitzlicht ist als Startseiten-Shortcut und Session-Kanal konsolidiert; `FINISHED` beendet den Session-Vote kanaluebergreifend und stoppt Q&A-/Blitzlicht-Live-Subscriptions. Rollen/Routen/Autorisierung inkl. Admin, Host-Härtung und MOTD siehe [ADR-0006](../architecture/decisions/0006-roles-routes-authorization-host-admin.md), [ADR-0019](../architecture/decisions/0019-host-hardening-and-owner-bound-session-access.md), [ADR-0009](../architecture/decisions/0009-unified-live-session-channels.md), [ADR-0010](../architecture/decisions/0010-blitzlicht-as-core-live-mode.md), [ADR-0018](../architecture/decisions/0018-message-of-the-day-platform-communication.md), [ROUTES_AND_STORIES.md](../ROUTES_AND_STORIES.md).
 
 ## System-Architektur-Diagramm
 
@@ -28,7 +28,7 @@ graph LR
             TRPC["tRPC Router<br/>/trpc"]
             ROUTERS[Router Layer<br/>health · quiz · session · vote · qa · quickFeedback · wordCloud · admin · motd]
             SERVICES[Domain/Infra Layer<br/>quizScoring · wordCloudAnalysis · rateLimit · sessionCleanup · adminAuth]
-            DTO[DTO Layer<br/>Data Stripping<br/>QuestionPreviewDTO<br/>QuestionStudentDTO<br/>QuestionRevealedDTO]
+            DTO[DTO Layer<br/>Data Stripping<br/>QuestionPreviewDTO<br/>QuestionStudentDTO<br/>QuestionRevealedDTO<br/>NumericEstimate Stats erst in RESULTS]
         end
 
         subgraph "Shared Library"
@@ -152,7 +152,7 @@ sequenceDiagram
     end
 
     Note over S,BE: Student votet
-    S->>FE: Antwort auswählen
+    S->>FE: Antwort auswählen oder Zahl schätzen
     FE->>BE: vote.submit
     BE->>PG: Vote speichern
     BE-->>FE: tRPC Subscription onVoteCountUpdate
@@ -162,7 +162,7 @@ sequenceDiagram
     D->>FE: Ergebnisse zeigen
     FE->>BE: session.revealResults
     BE->>PG: Status = RESULTS
-    BE->>BE: Scoring berechnen
+    BE->>BE: Scoring berechnen; bei NUMERIC_ESTIMATE Histogramm/Statistik aggregieren
     BE-->>S: tRPC Subscription onResultsRevealed - mit isCorrect
     S-->>S: Ergebnisse + Punkte
 
@@ -425,6 +425,11 @@ erDiagram
         string shortTextToleranceLevel
         string numericToleranceMode
         string numericUnitFamily
+        float numericReferenceValue
+        float numericIntervalLeft
+        float numericIntervalRight
+        string numericInputType
+        boolean numericTwoRounds
     }
     Session {
         string id PK
@@ -441,6 +446,7 @@ erDiagram
     Vote {
         string id PK
         string freeText
+        float numericValue
         int ratingValue
         int score
         int streakCount
@@ -602,8 +608,8 @@ graph LR
     PG[(PostgreSQL<br/>mit isCorrect)]
     BE[Backend DTO-Layer]
     PREVIEW_DTO[QuestionPreviewDTO<br/>QUESTION_OPEN<br/>nur Fragenstamm]
-    STUDENT_DTO[QuestionStudentDTO<br/>ACTIVE<br/>ohne isCorrect]
-    REVEALED_DTO[QuestionRevealedDTO<br/>RESULTS<br/>mit isCorrect]
+    STUDENT_DTO[QuestionStudentDTO<br/>ACTIVE<br/>ohne isCorrect<br/>NUMERIC_ESTIMATE ohne Verteilung]
+    REVEALED_DTO[QuestionRevealedDTO<br/>RESULTS<br/>mit isCorrect<br/>NUMERIC_ESTIMATE mit Stats]
     CLIENT[Student-Client]
 
     PG -->|laden| BE
