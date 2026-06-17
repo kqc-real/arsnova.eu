@@ -1470,6 +1470,27 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('fragt bei direktem Scorecard-Laden keine unbewerteten Fragetypen ab', async () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    component.participantId.set('11111111-1111-4111-8111-111111111111');
+    component.currentQuestion.set({
+      id: 'survey-direct-scorecard-guard',
+      text: 'Wie fandest du das?',
+      type: 'SURVEY',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [],
+      totalVotes: 0,
+    } as never);
+
+    await component.loadScorecard(0);
+
+    expect(getPersonalScorecardQueryMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('sendet SHORT_TEXT-Antworten als freie Textabgabe', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -1843,6 +1864,12 @@ describe('SessionVoteComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
 
     const component = fixture.componentInstance;
+    const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      '#vote-numeric-input',
+    );
+    expect(input?.type).toBe('text');
+    expect(input?.getAttribute('inputmode')).toBe('numeric');
+
     component.numericInputValue.set('3.14');
     fixture.detectChanges();
 
@@ -1900,6 +1927,17 @@ describe('SessionVoteComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
 
     const component = fixture.componentInstance;
+    const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      '#vote-numeric-input',
+    );
+    expect(input?.type).toBe('text');
+    expect(input?.getAttribute('inputmode')).toBe('decimal');
+    input!.value = '3,14';
+    input!.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    expect(component.numericInputValue()).toBe('3,14');
+    expect(component.numericParsedValue()).toBe(3.14);
+
     component.numericInputValue.set('3,141');
     fixture.detectChanges();
 

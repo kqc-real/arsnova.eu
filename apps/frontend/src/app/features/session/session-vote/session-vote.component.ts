@@ -1599,14 +1599,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  numericInputStep(): string {
-    const places = this.numericQuestionMaxDecimalPlaces();
-    const inputType = this.numericQuestionInputType();
-    if (inputType === 'INTEGER') return '1';
-    const d = places ?? 2;
-    return d === 0 ? '1' : `0.${'0'.repeat(d - 1)}1`;
-  }
-
   private numericQuestionInputType(): NumericInputType {
     const q = this.currentQuestion();
     const inputType =
@@ -3279,7 +3271,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         const qOrder = (q as { order: number }).order;
         if (qOrder !== this.scorecardQuestionIndex) {
           this.scorecardQuestionIndex = qOrder;
-          void this.loadScorecard(qOrder);
+          void this.loadScorecard(qOrder, 'type' in q ? q.type : null);
         }
       }
 
@@ -3592,9 +3584,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadScorecard(questionIndex: number): Promise<void> {
+  async loadScorecard(
+    questionIndex: number,
+    questionType: CurrentQuestion['type'] | null | undefined = this.currentQuestion()?.type,
+  ): Promise<void> {
     const pid = this.participantId();
-    if (!this.code || !pid) return;
+    if (!this.code || !pid || !isScoredQuestionType(questionType)) return;
     try {
       const sc = await trpc.session.getPersonalScorecard.query({
         code: this.code,
