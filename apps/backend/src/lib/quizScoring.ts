@@ -26,6 +26,7 @@ export const SCORED_QUESTION_TYPES = [
 
 const NUMERIC_ESTIMATE_MIN_IN_BAND_SCORE_RATIO = 0.1;
 const NUMERIC_ESTIMATE_MAX_NEAR_MISS_SCORE_RATIO = (MAX_BASE_POINTS - 1) / MAX_BASE_POINTS;
+const NUMERIC_ESTIMATE_MIN_ACCEPTED_TIME_SCORE_RATIO = 0.1;
 
 /**
  * Streak-Multiplikator basierend auf der aktuellen Serie (Story 5.5).
@@ -229,7 +230,11 @@ export function calculateVoteScore(input: CalculateVoteScoreInput): number {
     input.responseTimeMs !== null &&
     input.responseTimeMs !== undefined
   ) {
-    const timeFraction = Math.max(0, 1 - input.responseTimeMs / input.timerDurationMs);
+    const rawTimeFraction = Math.max(0, 1 - input.responseTimeMs / input.timerDurationMs);
+    const timeFraction =
+      input.type === 'NUMERIC_ESTIMATE'
+        ? Math.max(rawTimeFraction, NUMERIC_ESTIMATE_MIN_ACCEPTED_TIME_SCORE_RATIO)
+        : rawTimeFraction;
     return Math.round(multiplier * basePoints * timeFraction);
   }
 

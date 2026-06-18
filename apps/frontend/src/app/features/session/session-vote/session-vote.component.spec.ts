@@ -1743,6 +1743,61 @@ describe('SessionVoteComponent', () => {
     fixture.destroy();
   });
 
+  it('bewertet nicht angenommene SHORT_TEXT-Eingaben in RESULTS nicht lokal', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'RESULTS',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'PLAYFUL',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'short-text-results-missed',
+      text: 'Wie lautet die Kreiszahl?',
+      type: 'SHORT_TEXT',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [{ id: 's1', text: '3,14', isCorrect: true, voteCount: 1, votePercentage: 100 }],
+      totalVotes: 1,
+      shortTextMaxLength: 80,
+      shortTextCaseSensitive: false,
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    vi.spyOn(fixture.componentInstance, 'loadScorecard').mockResolvedValue(undefined);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+
+    const component = fixture.componentInstance;
+    component.voteSent.set(false);
+    component.freeTextValue.set('3,14');
+    component.timeoutMessage.set('Knapp verpasst – nächste Runde! ⏱️');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Knapp verpasst – nächste Runde! ⏱️');
+    expect(host.textContent).toContain('Diese Runde ohne Text');
+    expect(host.textContent).toContain('Musterlösungen');
+    expect(host.textContent).not.toContain('Du sagst:');
+    expect(host.textContent).not.toContain('Voll gewertet');
+    expect(host.querySelector('.vote-freetext__own--correct')).toBeNull();
+    fixture.destroy();
+  });
+
   it('markiert teilbewertete SHORT_TEXT-Antworten in RESULTS sichtbar', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

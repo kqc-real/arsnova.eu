@@ -142,6 +142,37 @@ describe('quizScoring', () => {
     expect(close).toBeGreaterThan(0);
   });
 
+  it('behaelt bei angenommener NUMERIC_ESTIMATE am Timerende Mindestpunkte', () => {
+    const baseInput = {
+      type: 'NUMERIC_ESTIMATE' as const,
+      difficulty: 'MEDIUM' as const,
+      selectedAnswerIds: [],
+      correctAnswerIds: [],
+      numericEstimateReferenceValue: 3.14,
+      numericEstimateToleranceBand: { left: 2.83, right: 3.45 },
+      responseTimeMs: 10_000,
+      timerDurationMs: 10_000,
+    };
+
+    const exact = calculateVoteScore({
+      ...baseInput,
+      numericEstimateValue: 3.14,
+    });
+    const inBand = calculateVoteScore({
+      ...baseInput,
+      numericEstimateValue: 3.4,
+    });
+    const outside = calculateVoteScore({
+      ...baseInput,
+      numericEstimateValue: 3.5,
+    });
+
+    expect(exact).toBe(200);
+    expect(inBand).toBeGreaterThan(0);
+    expect(inBand).toBeLessThan(exact);
+    expect(outside).toBe(0);
+  });
+
   it('normalisiert NUMERIC_ESTIMATE-Abstaende je Seite des Toleranzbands', () => {
     expect(
       calculateNumericEstimateScoreRatio({

@@ -938,8 +938,8 @@
           @if (hasAnswers()) {
             <ul class="vote-answers" id="vote-options-start">
               @for (a of $any(q).answers; track a.id; let i = $index) {
-                @let isSelected = selectedAnswerIds().has(a.id);
                 @let isRevealed = isResults();
+                @let isSelected = selectedAnswerIds().has(a.id) && (!isRevealed || voteSent());
                 @let showsCorrectness = isRevealed && questionUsesCorrectness(q.type);
                 @let isCorrect = showsCorrectness && a.isCorrect;
                 @let isWrong = showsCorrectness && isSelected && !a.isCorrect;
@@ -1003,7 +1003,7 @@
             </div>
           } @else if ($any(q).type === 'FREETEXT' && isResults()) {
             <div class="vote-freetext vote-freetext--result">
-              @if (freeTextValue()) {
+              @if (voteSent() && freeTextValue()) {
                 <p class="vote-freetext__own">
                   {{ vpc.voteFreetextOwnPrefix(isPlayfulPreset()) }}
                   <strong>{{ freeTextValue() }}</strong>
@@ -1036,7 +1036,7 @@
             </div>
           } @else if ($any(q).type === 'SHORT_TEXT' && isResults()) {
             <div class="vote-freetext vote-freetext--result vote-freetext--short-result">
-              @if (freeTextValue()) {
+              @if (voteSent() && freeTextValue()) {
                 <p
                   class="vote-freetext__own"
                   [class.vote-freetext__own--correct]="shortTextResponseTone() === 'correct'"
@@ -1110,7 +1110,7 @@
             <div class="vote-rating vote-rating--result">
               <p class="vote-rating__result-label">
                 {{ vpc.voteRatingResultPrefix(isPlayfulPreset()) }}
-                <strong>{{ ratingValue() ?? '–' }}</strong>
+                <strong>{{ voteSent() ? (ratingValue() ?? '–') : '–' }}</strong>
               </p>
             </div>
           } @else if (isNumericEstimate() && isActive()) {
@@ -1167,19 +1167,20 @@
               }
             </div>
           } @else if (isNumericEstimate() && isResults()) {
+            @let hasAcceptedNumericVote = voteSent();
             <div class="vote-numeric vote-numeric--result">
               <div class="vote-numeric__result-card">
                 <span class="vote-numeric__result-eyebrow" i18n="@@sessionVote.numericResultPrefix"
                   >Deine Antwort:</span
                 >
                 <strong class="vote-numeric__result-value">
-                  @if (numericParsedValue() !== null) {
+                  @if (hasAcceptedNumericVote && numericParsedValue() !== null) {
                     {{ numericResultAnswerLabel() }}
                   } @else {
                     –
                   }
                 </strong>
-                @if (numericResultStatusLabel(); as statusLabel) {
+                @if (hasAcceptedNumericVote && numericResultStatusLabel(); as statusLabel) {
                   <p
                     class="vote-numeric__result-status"
                     [class.vote-numeric__result-status--in-band]="numericResultInBand() === true"
@@ -1194,7 +1195,7 @@
                   </p>
                 }
               </div>
-              @if (currentQuestionIsScored() && scorecard(); as sc) {
+              @if (hasAcceptedNumericVote && currentQuestionIsScored() && scorecard(); as sc) {
                 <div
                   id="vote-result-score"
                   class="vote-numeric__score-summary"
@@ -1230,13 +1231,16 @@
                     <span>{{ toleranceLabel }}</span>
                   </p>
                 }
-                @if (numericResultDistanceLabel(); as distanceLabel) {
+                @if (hasAcceptedNumericVote && numericResultDistanceLabel(); as distanceLabel) {
                   <p>
                     <mat-icon aria-hidden="true">straighten</mat-icon>
                     <span>{{ distanceLabel }}</span>
                   </p>
                 }
-                @if (numericResultRoundComparisonLabel(); as comparisonLabel) {
+                @if (
+                  hasAcceptedNumericVote && numericResultRoundComparisonLabel();
+                  as comparisonLabel
+                ) {
                   <p>
                     <mat-icon aria-hidden="true">swap_vert</mat-icon>
                     <span>{{ comparisonLabel }}</span>
