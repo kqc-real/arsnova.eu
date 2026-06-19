@@ -88,9 +88,9 @@ sequenceDiagram
   V->>BE: vote.submit(numericValue, round=1)
   BE->>DB: Vote speichern und serverseitig validieren
   BE-->>H: onHostVoteProgressChanged(HostVoteProgressDTO)
-  Note over BE,H: Nur neutraler Fortschritt; kein HostCurrentQuestionDTO pro Vote
+  Note over BE,H: Nur neutraler Fortschritt, kein HostCurrentQuestionDTO pro Vote
 
-  opt zweite Runde aktiviert
+  opt Zweite Runde aktiviert
     H->>BE: session.startDiscussion
     BE-->>V: DISCUSSION
     H->>BE: session.startRound2
