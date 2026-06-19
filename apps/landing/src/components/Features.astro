@@ -12,8 +12,18 @@ const features = [
   },
   {
     title: 'Mehr als ein Standard-Quiz',
-    description: 'MC/SC, Kurzantwort, Rating, Lesephase, Peer Instruction, Word Cloud, Q&A und Presenter-Flow unterstützen Lernen, Training und Live-Moderation.',
+    description: 'MC/SC, Kurzantwort, Rating, Lesephase, Peer Instruction und Presenter-Flow unterstützen Lernen, Training und Live-Moderation.',
     icon: 'toggle',
+  },
+  {
+    title: 'Fragenwand statt Nebenchat',
+    description: 'Q&A bietet Vorab-Moderation, Anheften, Archivieren, Up-/Downvoting sowie Sortierung nach Unterstützung, Qualität und Kontroverse.',
+    icon: 'qa',
+  },
+  {
+    title: 'Elaborierte Word Cloud',
+    description: 'Freitext und Q&A werden als Wörter und Phrasen verdichtet; die Fragenwand gewichtet nach Zustimmung, belastbarem Score oder Kontroverse.',
+    icon: 'cloud',
   },
   {
     title: 'Für unterschiedliche Settings',
@@ -53,6 +63,8 @@ const features = [
             {f.icon === 'book' && '📚'}
             {f.icon === 'tools' && '🧭'}
             {f.icon === 'estimate' && '≈'}
+            {f.icon === 'qa' && '❓'}
+            {f.icon === 'cloud' && '☁️'}
           </div>
           <h3 class="mt-4 font-display text-lg font-semibold text-white">{f.title}</h3>
           <p class="mt-3 leading-7 text-slate-400">{f.description}</p>

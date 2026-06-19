@@ -3542,6 +3542,94 @@
           <context context-type="linenumber">228,231</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="help.qaWallTitle" datatype="html">
+        <source> Fragenwand im Live-Kanal Q&amp;A </source>
+        <target> Mur de questions dans le canal live Q&amp;A </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">236,238</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallLead" datatype="html">
+        <source> Q&amp;A soll nicht als Nebenchat verschwinden. Die Fragenwand macht Rückfragen sichtbar, priorisierbar und moderierbar: Du hältst den roten Faden, während die Gruppe gemeinsam zeigt, welche Punkte wirklich Klärung brauchen. </source>
+        <target> Le Q&amp;A ne doit pas disparaître dans un chat parallèle. Le mur de questions rend les questions visibles, priorisables et modérables : vous gardez le fil, tandis que le groupe indique collectivement les points qui demandent vraiment clarification. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">239,243</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallListAria" datatype="html">
+        <source>Didaktische Funktionen der Q&amp;A-Fragenwand</source>
+        <target>Fonctions pédagogiques du mur de questions Q&amp;A</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">247</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallModerationTitle" datatype="html">
+        <source> Moderation mit pädagogischem Takt </source>
+        <target> Modération au bon tempo pédagogique </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">252,254</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallModerationBody" datatype="html">
+        <source> Auf Wunsch warten neue Fragen erst auf deine Freigabe. Du kannst Beiträge freigeben, anheften, archivieren oder entfernen und damit Schutzraum, Relevanz und Timing steuern: sofort beantworten, für später sammeln oder als Diskussionsspur markieren. </source>
+        <target> Si besoin, les nouvelles questions attendent d’abord votre validation. Vous pouvez valider, épingler, archiver ou retirer des contributions et piloter cadre de confiance, pertinence et timing : répondre tout de suite, garder pour plus tard ou ouvrir une piste de discussion. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">255,260</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallVotingTitle" datatype="html">
+        <source> Kollektives Hoch- und Runtervoting </source>
+        <target> Vote collectif pour ou contre </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">266,268</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallVotingBody" datatype="html">
+        <source> Teilnehmende gewichten Fragen gemeinsam. Positive und negative Stimmen zeigen nicht nur Popularität, sondern auch Unsicherheit, Widerspruch und Klärungsbedarf; Sortierungen wie „meist unterstützt“, „beste Fragen“ und „umstritten“ helfen dir, knappe Live-Zeit didaktisch zu setzen. </source>
+        <target> Les participant·es pondèrent ensemble les questions. Les votes positifs et négatifs montrent plus que la popularité : ils font apparaître incertitudes, désaccords et besoins de clarification. Les tris « les plus soutenues », « meilleures questions » et « controversées » aident à placer le temps live là où il a le plus de valeur pédagogique. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">269,274</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallWordCloudTitle" datatype="html">
+        <source> Q&amp;A-Wortwolke auf Themenebene </source>
+        <target> Nuage de mots Q&amp;A au niveau des thèmes </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">280,282</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallWordCloudBody" datatype="html">
+        <source> Die Word-Cloud verdichtet sichtbare Fragen zu Wörtern und Phrasen, gewichtet nach Unterstützung, belastbarer Zustimmung oder Kontroverse. Sie lässt sich einfrieren, nach Sortierlogik betrachten und in der Presenter-Ansicht zeigen – als schneller Blick auf Themencluster, nicht als dekorative Wortliste. </source>
+        <target> Le nuage de mots condense les questions visibles en mots et expressions, pondérés par le soutien, l’accord robuste ou la controverse. Il peut être figé, lu selon la logique de tri et affiché dans la vue présentateur : une lecture rapide des clusters thématiques, pas une liste décorative. </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">283,288</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallLlmTitle" datatype="html">
+        <source>Nächster Schritt: semantische Tendenz</source>
+        <target>Prochaine étape : tendance sémantique</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">294</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="help.qaWallLlmBody" datatype="html">
+        <source> Geplant ist eine Auswertung von semantischen Tendenzen und Sentiment mit einem selbst gehosteten LLM. Ziel ist keine Blackbox-Bewertung, sondern eine datenschutzbewusste Moderationshilfe: Wo bündeln sich Themen, wo kippt die Stimmung, wo braucht es Einordnung? </source>
+        <target> La prochaine étape prévue est une analyse des tendances sémantiques et du sentiment avec un LLM auto-hébergé. L’objectif n’est pas un classement boîte noire, mais une aide à la modération respectueuse des données : où les thèmes se regroupent-ils, où l’ambiance bascule-t-elle, où faut-il recadrer ? </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/help/help.component.html</context>
+          <context context-type="linenumber">295,300</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="help.blitzTitle" datatype="html">
         <source>Blitzlicht</source>
         <target>Feedback express</target>

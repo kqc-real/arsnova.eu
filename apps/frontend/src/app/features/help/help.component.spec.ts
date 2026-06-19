@@ -67,4 +67,16 @@ describe('HelpComponent', () => {
     expect(text).toContain('Keine automatische Bewertung');
     expect(text).toContain('Referenzwert');
   });
+
+  it('beschreibt die Q&A-Fragenwand didaktisch', async () => {
+    const fixture = TestBed.createComponent(HelpComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Fragenwand im Live-Kanal Q&A');
+    expect(text).toContain('Kollektives Hoch- und Runtervoting');
+    expect(text).toContain('Q&A-Wortwolke auf Themenebene');
+    expect(text).toContain('selbst gehosteten LLM');
+  });
 });

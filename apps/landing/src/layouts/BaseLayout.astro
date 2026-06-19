@@ -60,12 +60,13 @@ const ogImage = toAbsoluteUrl('og.png');
       featureList: [
         'Live-Quiz und Abstimmungen',
         'Numerische Schätzfragen mit zwei Runden und Statistik',
-        'Q&A mit Moderation',
+        'Q&A-Fragenwand mit Moderation, Up- und Downvoting',
         'Lobby, Presenter, QR/Code',
         'Fragetypen MC/SC/Kurzantwort/Freitext/Umfrage/Rating/Schätzfrage',
         'Markdown und KaTeX',
         'Lesephase und Peer Instruction',
-        'Word Cloud mit Export',
+        'Q&A- und Freitext-Word-Cloud mit Phrasen und Gewichtung',
+        'Sortierung nach Unterstützung, belastbarer Zustimmung und Kontroverse',
         'Team-Modus und Presets',
         'Leaderboard, Streak, Bonus-Code',
         'Import/Export und Yjs-Sync',
@@ -91,6 +92,7 @@ const ogImage = toAbsoluteUrl('og.png');
           <div class="hidden items-center gap-6 lg:flex">
             <a href={`${base}#ablauf`} class="text-sm font-medium text-slate-400 hover:text-white">Ablauf</a>
             <a href={`${base}#schaetzfrage`} class="text-sm font-medium text-slate-400 hover:text-white">Schätzfrage</a>
+            <a href={`${base}#fragenwand`} class="text-sm font-medium text-slate-400 hover:text-white">Q&amp;A</a>
             <a href={`${base}#features`} class="text-sm font-medium text-slate-400 hover:text-white">Vorteile</a>
             <a href={`${base}#vertrauen`} class="text-sm font-medium text-slate-400 hover:text-white">Vertrauen</a>
             <a href={`${base}#faq`} class="text-sm font-medium text-slate-400 hover:text-white">FAQ</a>
@@ -119,6 +121,7 @@ const ogImage = toAbsoluteUrl('og.png');
         <div id="nav-menu" class="hidden flex flex-col gap-1 border-t border-slate-700 pt-4 lg:hidden" role="menu">
           <a href={`${base}#ablauf`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Ablauf</a>
           <a href={`${base}#schaetzfrage`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Schätzfrage</a>
+          <a href={`${base}#fragenwand`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Q&amp;A-Fragenwand</a>
           <a href={`${base}#features`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Vorteile</a>
           <a href={`${base}#vertrauen`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">Vertrauen</a>
           <a href={`${base}#faq`} class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white" role="menuitem">FAQ</a>
