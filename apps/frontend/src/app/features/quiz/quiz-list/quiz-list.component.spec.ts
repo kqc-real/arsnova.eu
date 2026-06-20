@@ -388,6 +388,18 @@ describe('QuizListComponent', () => {
     expect(description.innerHTML).toContain('assets/demo/9_konzeptfragen_panorama.svg');
   });
 
+  it('cacht gerenderte Quiz-Beschreibungen fuer identische Texte', () => {
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+    const source = '![Banner](/assets/demo/9_konzeptfragen_panorama.svg)';
+
+    const first = component.renderDescription(source);
+    const second = component.renderDescription(source);
+
+    expect(second).toBe(first);
+    fixture.destroy();
+  });
+
   it('zeigt im More-Menü den Eintrag Bearbeiten', async () => {
     quizzesSignal.set([
       {

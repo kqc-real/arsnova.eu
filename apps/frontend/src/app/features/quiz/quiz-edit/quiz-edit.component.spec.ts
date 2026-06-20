@@ -1142,6 +1142,31 @@ describe('QuizEditComponent', () => {
     expect(summary!.innerHTML).toContain('katex');
   });
 
+  it('cacht gerendertes Markdown fuer identische Fragenkarten-Texte', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+
+    const first = component.renderMarkdown('![Bild](/assets/test-image.png)');
+    const second = component.renderMarkdown('![Bild](/assets/test-image.png)');
+
+    expect(second).toBe(first);
+    fixture.destroy();
+  });
+
+  it('cacht Antwort-Markdown in Fragenkarten separat vom Fragetext-Markdown', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    const source = '😄 Bild ![Bild](/assets/test-image.png)';
+
+    const question = component.renderMarkdown(source);
+    const firstAnswer = component.renderAnswerMarkdown(source);
+    const secondAnswer = component.renderAnswerMarkdown(source);
+
+    expect(secondAnswer).toBe(firstAnswer);
+    expect(firstAnswer).not.toBe(question);
+    fixture.destroy();
+  });
+
   it('markiert expandierte SHORT_TEXT-Musterlösungen mit einem Vollbreiten-Layout', () => {
     quiz.questions = [
       {

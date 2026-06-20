@@ -169,6 +169,7 @@ export class QuizListComponent implements OnInit {
   readonly lastFeedbackAfterLiveTooltip = $localize`:@@quizList.lastFeedbackAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
   readonly bonusCodesEmptyTooltip = $localize`:@@quizList.bonusCodesEmpty:Noch keine Bonus-Codes vorhanden.`;
   readonly lastFeedbackEmptyTooltip = $localize`:@@quizList.lastFeedbackEmpty:Noch kein Feedback vorhanden.`;
+  private readonly descriptionMarkdownCache = new Map<string, SafeHtml>();
   private lastQuizHistoryAvailabilityKey = '';
   private quizHistoryAvailabilityRequestId = 0;
   @ViewChild('aiImportCard', { read: ElementRef })
@@ -211,11 +212,17 @@ export class QuizListComponent implements OnInit {
   }
 
   renderDescription(value: string): SafeHtml {
+    const cached = this.descriptionMarkdownCache.get(value);
+    if (cached) {
+      return cached;
+    }
     const raw = renderMarkdownWithKatex(value, {
       imagePolicy: 'allow-relative-and-https',
     }).html;
     const html = absolutizeMarkdownHtmlRootAssetImgSrc(raw, resolveMotdAssetOrigin());
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(html);
+    this.descriptionMarkdownCache.set(value, rendered);
+    return rendered;
   }
 
   renderImportWarningQuestion(value: string): SafeHtml {

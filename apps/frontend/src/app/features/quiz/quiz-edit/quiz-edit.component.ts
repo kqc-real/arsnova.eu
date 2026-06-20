@@ -327,6 +327,8 @@ export class QuizEditComponent implements OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly localeId = inject(LOCALE_ID);
+  private readonly markdownCache = new Map<string, SafeHtml>();
+  private readonly answerMarkdownCache = new Map<string, SafeHtml>();
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   /** Synchron zu MotifImageUrlSchema / maxlength im Metadaten-Formular. */
@@ -1103,18 +1105,30 @@ export class QuizEditComponent implements OnDestroy {
 
   renderMarkdown(value: string | null | undefined): SafeHtml {
     const source = value ?? '';
-    return this.sanitizer.bypassSecurityTrustHtml(
+    const cached = this.markdownCache.get(source);
+    if (cached) {
+      return cached;
+    }
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(
       renderMarkdownWithKatex(source, { imagePolicy: 'allow-relative-and-https' }).html,
     );
+    this.markdownCache.set(source, rendered);
+    return rendered;
   }
 
   renderAnswerMarkdown(value: string | null | undefined): SafeHtml {
     const source = value ?? '';
-    return this.sanitizer.bypassSecurityTrustHtml(
+    const cached = this.answerMarkdownCache.get(source);
+    if (cached) {
+      return cached;
+    }
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(
       decorateLeadingAnswerEmoji(
         renderMarkdownWithKatex(source, { imagePolicy: 'allow-relative-and-https' }).html,
       ),
     );
+    this.answerMarkdownCache.set(source, rendered);
+    return rendered;
   }
 
   previewAnswerColor(index: number): string {

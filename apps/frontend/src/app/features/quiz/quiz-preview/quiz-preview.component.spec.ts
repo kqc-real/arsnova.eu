@@ -22,6 +22,7 @@ describe('QuizPreviewComponent', () => {
     id: QUIZ_ID,
     name: 'Preview Quiz',
     description: null,
+    motifImageUrl: null,
     createdAt: '2026-03-08T12:00:00.000Z',
     updatedAt: '2026-03-08T12:00:00.000Z',
     settings: {
@@ -169,7 +170,7 @@ describe('QuizPreviewComponent', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     fixture.detectChanges();
 
-    const badges = Array.from(
+    const badges = Array.from<HTMLElement>(
       fixture.nativeElement.querySelectorAll('.quiz-preview-question__badge'),
     ).map((badge) => (badge.textContent as string).trim());
 
@@ -237,7 +238,7 @@ describe('QuizPreviewComponent', () => {
     const fixture = TestBed.createComponent(QuizPreviewComponent);
     fixture.detectChanges();
 
-    const badges = Array.from(
+    const badges = Array.from<HTMLElement>(
       fixture.nativeElement.querySelectorAll('.quiz-preview-question__badge'),
     ).map((badge) => (badge.textContent as string).trim());
 
@@ -324,6 +325,31 @@ describe('QuizPreviewComponent', () => {
     const previewImage = fixture.nativeElement.querySelector('.quiz-preview-question__text img');
     expect(previewImage).not.toBeNull();
     expect(previewImage.getAttribute('src')).toContain('/assets/test-image.png');
+  });
+
+  it('cacht gerendertes Markdown fuer identische Preview-Texte', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+
+    const first = component.renderMarkdown('![Bild](/assets/test-image.png)');
+    const second = component.renderMarkdown('![Bild](/assets/test-image.png)');
+
+    expect(second).toBe(first);
+    fixture.destroy();
+  });
+
+  it('cacht Antwort-Markdown separat vom Fragetext-Markdown', () => {
+    const fixture = TestBed.createComponent(QuizPreviewComponent);
+    const component = fixture.componentInstance;
+    const source = '😄 Bild ![Bild](/assets/test-image.png)';
+
+    const question = component.renderMarkdown(source);
+    const firstAnswer = component.renderAnswerMarkdown(source);
+    const secondAnswer = component.renderAnswerMarkdown(source);
+
+    expect(secondAnswer).toBe(firstAnswer);
+    expect(firstAnswer).not.toBe(question);
+    fixture.destroy();
   });
 
   it('rendert data-image-Bilder in der Fragenvorschau', () => {

@@ -132,6 +132,8 @@ export class QuizPreviewComponent implements OnDestroy {
   private readonly injector = inject(Injector);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly markdownCache = new Map<string, SafeHtml>();
+  private readonly answerMarkdownCache = new Map<string, SafeHtml>();
   private animationTimer: ReturnType<typeof setTimeout> | null = null;
   private touchStartX: number | null = null;
 
@@ -758,17 +760,29 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   renderMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(
+    const cached = this.markdownCache.get(value);
+    if (cached) {
+      return cached;
+    }
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(
       renderMarkdownWithKatex(value, { imagePolicy: 'allow-relative-and-https' }).html,
     );
+    this.markdownCache.set(value, rendered);
+    return rendered;
   }
 
   renderAnswerMarkdown(value: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(
+    const cached = this.answerMarkdownCache.get(value);
+    if (cached) {
+      return cached;
+    }
+    const rendered = this.sanitizer.bypassSecurityTrustHtml(
       decorateLeadingAnswerEmoji(
         renderMarkdownWithKatex(value, { imagePolicy: 'allow-relative-and-https' }).html,
       ),
     );
+    this.answerMarkdownCache.set(value, rendered);
+    return rendered;
   }
 
   ratingScaleValues(min: number | null, max: number | null): number[] {
