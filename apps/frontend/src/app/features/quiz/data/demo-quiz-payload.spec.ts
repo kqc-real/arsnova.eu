@@ -44,7 +44,7 @@ describe('getDemoQuizSeedFingerprint', () => {
             answers?: Array<{ text?: string; isCorrect?: boolean }>;
             numericToleranceMode?: string;
             numericReferenceValue?: number;
-            numericTolerancePercent?: number;
+            numericTolerancePercent?: number | null;
             numericIntervalLeft?: number;
             numericIntervalRight?: number;
             numericInputType?: string;
@@ -98,7 +98,9 @@ describe('getDemoQuizSeedFingerprint', () => {
             answers?: Array<{ text?: string; isCorrect?: boolean }>;
             numericToleranceMode?: string;
             numericReferenceValue?: number;
-            numericTolerancePercent?: number;
+            numericTolerancePercent?: number | null;
+            numericIntervalLeft?: number;
+            numericIntervalRight?: number;
             numericInputType?: string;
             numericDecimalPlaces?: number;
             numericMin?: number;
@@ -116,13 +118,15 @@ describe('getDemoQuizSeedFingerprint', () => {
         order: 1,
         skipReadingPhase: true,
         answers: [],
-        numericToleranceMode: 'RELATIVE_PERCENT',
+        numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
-        numericTolerancePercent: 10,
+        numericTolerancePercent: null,
+        numericIntervalLeft: 3.1,
+        numericIntervalRight: 3.2,
         numericInputType: 'DECIMAL',
         numericDecimalPlaces: 2,
-        numericMin: 1,
-        numericMax: 10,
+        numericMin: 3,
+        numericMax: 3.5,
         numericTwoRounds: false,
       });
     }

@@ -49,20 +49,22 @@
         ]
       },
       {
-        "text": "### Redondea $\\pi$ a dos decimales.\n\n> **Uso didáctico:** Úsalo como una breve pregunta de estimación STEM con valor de referencia, tolerancia del 10 % y rango de plausibilidad.\n\n![El número pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Redondea $\\pi$ a dos decimales.\n\n> **Uso didáctico:** Úsalo como una breve pregunta de estimación STEM con valor de referencia, banda de tolerancia absoluta de 3,1 a 3,2 y rango de plausibilidad de 3,0 a 3,5.\n\n![El número pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 1,
         "skipReadingPhase": true,
         "answers": [],
-        "numericToleranceMode": "RELATIVE_PERCENT",
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 3.14,
-        "numericTolerancePercent": 10,
+        "numericTolerancePercent": null,
+        "numericIntervalLeft": 3.1,
+        "numericIntervalRight": 3.2,
         "numericInputType": "DECIMAL",
         "numericDecimalPlaces": 2,
-        "numericMin": 1,
-        "numericMax": 10,
+        "numericMin": 3,
+        "numericMax": 3.5,
         "numericTwoRounds": false
       },
       {

@@ -1246,13 +1246,15 @@ describe('QuizStoreService', () => {
     expect(piQuestion).toEqual(
       expect.objectContaining({
         type: 'NUMERIC_ESTIMATE',
-        numericToleranceMode: 'RELATIVE_PERCENT',
+        numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
-        numericTolerancePercent: 10,
+        numericTolerancePercent: null,
+        numericIntervalLeft: 3.1,
+        numericIntervalRight: 3.2,
         numericInputType: 'DECIMAL',
         numericDecimalPlaces: 2,
-        numericMin: 1,
-        numericMax: 10,
+        numericMin: 3,
+        numericMax: 3.5,
         numericTwoRounds: false,
       }),
     );
@@ -1271,9 +1273,12 @@ describe('QuizStoreService', () => {
     expect(service.getUploadPayload(DEMO_QUIZ_ID).questions).toContainEqual(
       expect.objectContaining({
         type: 'NUMERIC_ESTIMATE',
-        numericToleranceMode: 'RELATIVE_PERCENT',
+        numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
-        numericTolerancePercent: 10,
+        numericIntervalLeft: 3.1,
+        numericIntervalRight: 3.2,
+        numericMin: 3,
+        numericMax: 3.5,
       }),
     );
     expect(service.getUploadPayload(DEMO_QUIZ_ID).questions).toContainEqual(

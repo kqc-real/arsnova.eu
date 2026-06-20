@@ -49,20 +49,22 @@
         ]
       },
       {
-        "text": "### Round $\\pi$ to two decimal places.\n\n> **Teaching move:** Use this as a short STEM estimate question with a reference value, 10% tolerance, and a plausibility range.\n\n![The number pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Round $\\pi$ to two decimal places.\n\n> **Teaching move:** Use this as a short STEM estimate question with a reference value, an absolute tolerance band from 3.1 to 3.2, and a plausibility range from 3.0 to 3.5.\n\n![The number pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 1,
         "skipReadingPhase": true,
         "answers": [],
-        "numericToleranceMode": "RELATIVE_PERCENT",
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 3.14,
-        "numericTolerancePercent": 10,
+        "numericTolerancePercent": null,
+        "numericIntervalLeft": 3.1,
+        "numericIntervalRight": 3.2,
         "numericInputType": "DECIMAL",
         "numericDecimalPlaces": 2,
-        "numericMin": 1,
-        "numericMax": 10,
+        "numericMin": 3,
+        "numericMax": 3.5,
         "numericTwoRounds": false
       },
       {

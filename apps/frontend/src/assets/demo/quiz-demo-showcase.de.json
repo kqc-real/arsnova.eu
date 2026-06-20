@@ -49,20 +49,22 @@
         ]
       },
       {
-        "text": "### Runde $\\pi$ auf zwei Dezimalstellen.\n\n> **Unterrichtsidee:** Nutze das als kurze MINT-Schätzfrage mit Referenzwert, 10 %-Toleranz und Plausibilitätsbereich.\n\n![Die Zahl Pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Runde $\\pi$ auf zwei Dezimalstellen.\n\n> **Unterrichtsidee:** Nutze das als kurze MINT-Schätzfrage mit Referenzwert, absolutem Toleranzband von 3,1 bis 3,2 und Plausibilitätsbereich von 3,0 bis 3,5.\n\n![Die Zahl Pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 1,
         "skipReadingPhase": true,
         "answers": [],
-        "numericToleranceMode": "RELATIVE_PERCENT",
+        "numericToleranceMode": "ABSOLUTE_INTERVAL",
         "numericReferenceValue": 3.14,
-        "numericTolerancePercent": 10,
+        "numericTolerancePercent": null,
+        "numericIntervalLeft": 3.1,
+        "numericIntervalRight": 3.2,
         "numericInputType": "DECIMAL",
         "numericDecimalPlaces": 2,
-        "numericMin": 1,
-        "numericMax": 10,
+        "numericMin": 3,
+        "numericMax": 3.5,
         "numericTwoRounds": false
       },
       {
