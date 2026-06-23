@@ -21,6 +21,18 @@ const {
   snackBarOpenMock: vi.fn(),
 }));
 
+vi.mock('../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive', async () => {
+  const { Directive } = await import('@angular/core');
+
+  class MarkdownImageLightboxDirective {}
+  Directive({
+    selector: '[appMarkdownImageLightbox]',
+    standalone: true,
+  })(MarkdownImageLightboxDirective);
+
+  return { MarkdownImageLightboxDirective };
+});
+
 vi.mock('../../../core/trpc.client', () => ({
   clearPendingHostSessionCode: vi.fn(),
   setHostToken: vi.fn(),
@@ -629,8 +641,20 @@ describe('QuizListComponent', () => {
     component.showAiImport.set(true);
     fixture.detectChanges();
 
+    expect(fixture.nativeElement.textContent).toContain(
+      'Erstelle das Quiz in deinem KI-Chat, prüfe die Antwort dort ein zweites Mal',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Antwort prüfen lassen');
+    expect(fixture.nativeElement.textContent).toContain(
+      'richtige Antworten durch Länge oder Detailgrad verraten',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Validierungs-Prompt kopieren');
     expect(component.showKiPromptPreview()).toBe(false);
     expect(fixture.nativeElement.textContent).not.toContain('You create importable quiz JSON');
+    expect(component.showKiValidationPromptPreview()).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'QA Postproduction for arsnova.eu Quiz JSON',
+    );
 
     component.toggleKiPromptPreview();
     fixture.detectChanges();
@@ -641,6 +665,14 @@ describe('QuizListComponent', () => {
       '.quiz-list__ai-prompt-markdown pre code',
     ) as HTMLElement | null;
     expect(pre?.textContent).toContain('"exportVersion"');
+
+    component.toggleKiValidationPromptPreview();
+    fixture.detectChanges();
+
+    expect(component.showKiValidationPromptPreview()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain(
+      'QA Postproduction for arsnova.eu Quiz JSON',
+    );
 
     component.toggleKiPromptPreview();
     fixture.detectChanges();
@@ -661,9 +693,13 @@ describe('QuizListComponent', () => {
     expect(component.showAiImport()).toBe(true);
     expect(scrollSpy).toHaveBeenCalledTimes(1);
 
+    component.showKiPromptPreview.set(true);
+    component.showKiValidationPromptPreview.set(true);
     component.toggleAiImport();
 
     expect(component.showAiImport()).toBe(false);
+    expect(component.showKiPromptPreview()).toBe(false);
+    expect(component.showKiValidationPromptPreview()).toBe(false);
     expect(scrollSpy).toHaveBeenCalledTimes(1);
   });
 

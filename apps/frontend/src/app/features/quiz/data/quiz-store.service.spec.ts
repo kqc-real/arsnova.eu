@@ -244,6 +244,97 @@ describe('QuizStoreService', () => {
     expect(question?.answers.every((answer) => !answer.isCorrect)).toBe(true);
   });
 
+  it('lädt gespeicherte Quizzes mit allen sieben Fragetypen nach einem Neustart vollständig', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Alle Fragetypen' });
+
+    service.addQuestion(created.id, {
+      text: 'Single Choice?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    service.addQuestion(created.id, {
+      text: 'Multiple Choice?',
+      type: 'MULTIPLE_CHOICE',
+      difficulty: 'MEDIUM',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: true },
+        { text: 'C', isCorrect: false },
+      ],
+    });
+    service.addQuestion(created.id, {
+      text: 'Freitext?',
+      type: 'FREETEXT',
+      difficulty: 'MEDIUM',
+      answers: [],
+    });
+    service.addQuestion(created.id, {
+      text: 'Kurzantwort?',
+      type: 'SHORT_TEXT',
+      difficulty: 'EASY',
+      answers: [{ text: 'QuizExport', isCorrect: true }],
+      shortTextMaxLength: 80,
+      shortTextEvaluationMode: 'auto',
+      shortTextToleranceLevel: 'low',
+    });
+    service.addQuestion(created.id, {
+      text: 'Umfrage?',
+      type: 'SURVEY',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'Option A', isCorrect: false },
+        { text: 'Option B', isCorrect: false },
+      ],
+    });
+    service.addQuestion(created.id, {
+      text: 'Rating?',
+      type: 'RATING',
+      difficulty: 'EASY',
+      answers: [],
+      ratingMin: 1,
+      ratingMax: 5,
+      ratingLabelMin: 'niedrig',
+      ratingLabelMax: 'hoch',
+    });
+    service.addQuestion(created.id, {
+      text: 'Schätzung?',
+      type: 'NUMERIC_ESTIMATE',
+      difficulty: 'HARD',
+      answers: [],
+      numericToleranceMode: 'ABSOLUTE_INTERVAL',
+      numericReferenceValue: 180,
+      numericIntervalLeft: 120,
+      numericIntervalRight: 240,
+      numericInputType: 'INTEGER',
+      numericMin: 30,
+      numericMax: 600,
+      numericTwoRounds: true,
+    });
+
+    expect(service.getQuizById(created.id)?.questions).toHaveLength(7);
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideRouter([])],
+    });
+
+    const reloaded = TestBed.inject(QuizStoreService).getQuizById(created.id);
+    expect(reloaded?.questions.map((question) => question.type)).toEqual([
+      'SINGLE_CHOICE',
+      'MULTIPLE_CHOICE',
+      'FREETEXT',
+      'SHORT_TEXT',
+      'SURVEY',
+      'RATING',
+      'NUMERIC_ESTIMATE',
+    ]);
+  });
+
   it('aktualisiert eine vorhandene Frage', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({ name: 'Update Quiz' });

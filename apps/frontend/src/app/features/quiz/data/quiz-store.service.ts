@@ -2729,6 +2729,10 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
     typeof candidate['difficulty'] === 'string' ? candidate['difficulty'] : 'MEDIUM';
   const difficultyParsed = DifficultyEnum.safeParse(difficultyRaw);
   if (!difficultyParsed.success) return null;
+  const typeRaw = typeof candidate['type'] === 'string' ? candidate['type'] : null;
+  const isStoredRating = typeRaw === 'RATING';
+  const isStoredShortText = typeRaw === 'SHORT_TEXT';
+  const isStoredNumericEstimate = typeRaw === 'NUMERIC_ESTIMATE';
 
   const parsed = AddQuestionInputSchema.safeParse({
     text: candidate['text'],
@@ -2740,38 +2744,57 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
       isCorrect: answer.isCorrect,
     })),
     skipReadingPhase: readBoolean(candidate['skipReadingPhase']) ?? false,
-    ratingMin: readNumberOrNull(candidate['ratingMin']) ?? undefined,
-    ratingMax: readNumberOrNull(candidate['ratingMax']) ?? undefined,
-    ratingLabelMin: readStringOrNull(candidate['ratingLabelMin']) ?? undefined,
-    ratingLabelMax: readStringOrNull(candidate['ratingLabelMax']) ?? undefined,
-    shortTextEvaluationKind: readStringOrNull(candidate['shortTextEvaluationKind']) ?? undefined,
-    shortTextMaxLength: readNumberOrNull(candidate['shortTextMaxLength']) ?? undefined,
-    shortTextCaseSensitive: readBoolean(candidate['shortTextCaseSensitive']) ?? undefined,
-    shortTextEvaluationMode: readStringOrNull(candidate['shortTextEvaluationMode']) ?? undefined,
-    shortTextToleranceLevel: readStringOrNull(candidate['shortTextToleranceLevel']) ?? undefined,
-    shortTextAllowPartialCredit: readBoolean(candidate['shortTextAllowPartialCredit']) ?? undefined,
-    shortTextTrimWhitespace: readBoolean(candidate['shortTextTrimWhitespace']) ?? undefined,
-    shortTextNormalizeWhitespace:
-      readBoolean(candidate['shortTextNormalizeWhitespace']) ?? undefined,
-    numericInputKind: readStringOrNull(candidate['numericInputKind']) ?? undefined,
-    numericToleranceMode: readStringOrNull(candidate['numericToleranceMode']) ?? undefined,
-    numericAbsoluteTolerance: readNumberOrNull(candidate['numericAbsoluteTolerance']) ?? undefined,
-    numericRelativeTolerancePercent:
-      readNumberOrNull(candidate['numericRelativeTolerancePercent']) ?? undefined,
-    numericUnitFamily: readStringOrNull(candidate['numericUnitFamily']) ?? undefined,
-    numericRequireUnit: readBoolean(candidate['numericRequireUnit']) ?? undefined,
-    numericAcceptEquivalentUnits:
-      readBoolean(candidate['numericAcceptEquivalentUnits']) ?? undefined,
     timer: readNumberOrNull(candidate['timer']) ?? undefined,
-    numericReferenceValue: readNumberOrNull(candidate['numericReferenceValue']) ?? undefined,
-    numericTolerancePercent: readNumberOrNull(candidate['numericTolerancePercent']) ?? undefined,
-    numericIntervalLeft: readNumberOrNull(candidate['numericIntervalLeft']) ?? undefined,
-    numericIntervalRight: readNumberOrNull(candidate['numericIntervalRight']) ?? undefined,
-    numericInputType: readStringOrNull(candidate['numericInputType']) ?? undefined,
-    numericDecimalPlaces: readNumberOrNull(candidate['numericDecimalPlaces']) ?? undefined,
-    numericMin: readNumberOrNull(candidate['numericMin']) ?? undefined,
-    numericMax: readNumberOrNull(candidate['numericMax']) ?? undefined,
-    numericTwoRounds: readBoolean(candidate['numericTwoRounds']) ?? undefined,
+    ...(isStoredRating
+      ? {
+          ratingMin: readNumberOrNull(candidate['ratingMin']) ?? undefined,
+          ratingMax: readNumberOrNull(candidate['ratingMax']) ?? undefined,
+          ratingLabelMin: readStringOrNull(candidate['ratingLabelMin']) ?? undefined,
+          ratingLabelMax: readStringOrNull(candidate['ratingLabelMax']) ?? undefined,
+        }
+      : {}),
+    ...(isStoredShortText
+      ? {
+          shortTextEvaluationKind:
+            readStringOrNull(candidate['shortTextEvaluationKind']) ?? undefined,
+          shortTextMaxLength: readNumberOrNull(candidate['shortTextMaxLength']) ?? undefined,
+          shortTextCaseSensitive: readBoolean(candidate['shortTextCaseSensitive']) ?? undefined,
+          shortTextEvaluationMode:
+            readStringOrNull(candidate['shortTextEvaluationMode']) ?? undefined,
+          shortTextToleranceLevel:
+            readStringOrNull(candidate['shortTextToleranceLevel']) ?? undefined,
+          shortTextAllowPartialCredit:
+            readBoolean(candidate['shortTextAllowPartialCredit']) ?? undefined,
+          shortTextTrimWhitespace: readBoolean(candidate['shortTextTrimWhitespace']) ?? undefined,
+          shortTextNormalizeWhitespace:
+            readBoolean(candidate['shortTextNormalizeWhitespace']) ?? undefined,
+          numericInputKind: readStringOrNull(candidate['numericInputKind']) ?? undefined,
+          numericToleranceMode: readStringOrNull(candidate['numericToleranceMode']) ?? undefined,
+          numericAbsoluteTolerance:
+            readNumberOrNull(candidate['numericAbsoluteTolerance']) ?? undefined,
+          numericRelativeTolerancePercent:
+            readNumberOrNull(candidate['numericRelativeTolerancePercent']) ?? undefined,
+          numericUnitFamily: readStringOrNull(candidate['numericUnitFamily']) ?? undefined,
+          numericRequireUnit: readBoolean(candidate['numericRequireUnit']) ?? undefined,
+          numericAcceptEquivalentUnits:
+            readBoolean(candidate['numericAcceptEquivalentUnits']) ?? undefined,
+        }
+      : {}),
+    ...(isStoredNumericEstimate
+      ? {
+          numericToleranceMode: readStringOrNull(candidate['numericToleranceMode']) ?? undefined,
+          numericReferenceValue: readNumberOrNull(candidate['numericReferenceValue']) ?? undefined,
+          numericTolerancePercent:
+            readNumberOrNull(candidate['numericTolerancePercent']) ?? undefined,
+          numericIntervalLeft: readNumberOrNull(candidate['numericIntervalLeft']) ?? undefined,
+          numericIntervalRight: readNumberOrNull(candidate['numericIntervalRight']) ?? undefined,
+          numericInputType: readStringOrNull(candidate['numericInputType']) ?? undefined,
+          numericDecimalPlaces: readNumberOrNull(candidate['numericDecimalPlaces']) ?? undefined,
+          numericMin: readNumberOrNull(candidate['numericMin']) ?? undefined,
+          numericMax: readNumberOrNull(candidate['numericMax']) ?? undefined,
+          numericTwoRounds: readBoolean(candidate['numericTwoRounds']) ?? undefined,
+        }
+      : {}),
   });
   if (!parsed.success) return null;
 

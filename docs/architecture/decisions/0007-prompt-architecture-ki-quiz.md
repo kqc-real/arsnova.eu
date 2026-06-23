@@ -26,7 +26,7 @@ Wir setzen eine **Promptarchitektur** um, die folgende Prinzipien erfüllt:
    Das von arsnova.eu erwartete Format ist **exakt** das in `libs/shared-types` definierte **QuizExportSchema** (Export/Import Story 1.8, 1.9; Import-Validierung Story 1.9a als `quizImportSchema`). Der System-Prompt beschreibt dieses Schema vollständig (Pflichtfelder, Enums: `QuestionType`, `Difficulty`, `NicknameTheme` etc.). Es gibt **kein** zweites, „KI-spezifisches“ Format; die LLM-Ausgabe wird mit dem gleichen Zod-Schema validiert wie der manuelle JSON-Import (`QuizExportSchema.safeParse()`). Optionale didaktische Zusatzfelder (z. B. Erklärungen, Glossar) können später ergänzt werden, sofern sie im Schema optional sind und beim Import in Yjs ignoriert oder gemappt werden.
 
 4. **Prompt als versionierbares Artefakt**  
-   **Kanonische Quelle** des vollständigen englischen System-Prompts ist **`apps/frontend/src/app/shared/ki-quiz-prompt.ts`** (Export `buildKiQuizSystemPrompt`). Änderungen am Prompt erfolgen dort; Tests in `ki-quiz-prompt.spec.ts`. Dieses ADR dokumentiert Architektur und Vertrag; es **dupliziert** den Prompt-Text nicht mehr wortgetreu, um Drift zwischen Doku und Code zu vermeiden.
+   **Kanonische Quelle** des vollständigen englischen System-Prompts und des nachgeschalteten QA-/Validierungs-Prompts ist **`apps/frontend/src/app/shared/ki-quiz-prompt.ts`** (Exports `buildKiQuizSystemPrompt`, `buildKiQuizValidationPrompt`). Änderungen an den Prompts erfolgen dort; Tests in `ki-quiz-prompt.spec.ts`. Dieses ADR dokumentiert Architektur und Vertrag; es **dupliziert** die Prompt-Texte nicht mehr wortgetreu, um Drift zwischen Doku und Code zu vermeiden.
 
 5. **RAG-Anleitung im Prompt**  
    Der Prompt weist den Dozenten an, bei Bedarf Lehrmaterial (Präsentation, Skript, PDF) per Kontext-Upload im Chatbot bereitzustellen, und das LLM an, das Quiz **aus diesem Kontext** zu erzeugen. Damit ist das Szenario „Quiz passend zum Inhalt meiner Präsentation“ (analog zu Mentimeter) abgedeckt, ohne dass Daten an arsnova.eu fließen.
@@ -69,12 +69,13 @@ Der **vollständige** System-Prompt liegt ausschließlich im Code. Dieser Anhang
 
 ### Kanonische Quelle
 
-| Artefakt                       | Pfad / Symbol                                                                                                |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| Prompt-Builder                 | `apps/frontend/src/app/shared/ki-quiz-prompt.ts` → `buildKiQuizSystemPrompt`                                 |
-| Typ des Kontexts               | `KiPromptContext` (gleiche Datei)                                                                            |
-| Tests                          | `apps/frontend/src/app/shared/ki-quiz-prompt.spec.ts`                                                        |
-| Kopieren in die Zwischenablage | `QuizListComponent.copyKiPrompt()` in `apps/frontend/src/app/features/quiz/quiz-list/quiz-list.component.ts` |
+| Artefakt                        | Pfad / Symbol                                                                                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| System-Prompt-Builder           | `apps/frontend/src/app/shared/ki-quiz-prompt.ts` → `buildKiQuizSystemPrompt`                                                                                  |
+| Validierungs-/QA-Prompt-Builder | `apps/frontend/src/app/shared/ki-quiz-prompt.ts` → `buildKiQuizValidationPrompt`                                                                              |
+| Typ des Kontexts                | `KiPromptContext` (gleiche Datei)                                                                                                                             |
+| Tests                           | `apps/frontend/src/app/shared/ki-quiz-prompt.spec.ts`                                                                                                         |
+| Kopieren in die Zwischenablage  | `QuizListComponent.copyKiPrompt()` und `QuizListComponent.copyKiValidationPrompt()` in `apps/frontend/src/app/features/quiz/quiz-list/quiz-list.component.ts` |
 
 ### Eingebetteter Kontext (`KiPromptContext`)
 
@@ -88,15 +89,16 @@ In den Prompt werden u. a. eingetragen (Auszug; vollständige Liste im TypeScrip
 
 - **Sprache:** Nutzersprache für Namen, Beschreibung, Fragen und Antworten; **JSON-Keys und Enums** unverändert englisch wie Schema.
 - **Compliance:** Import-Vertrag hat Vorrang vor widersprüchlichen Nutzerwünschen; vor der finalen Bestätigung **kein** (Teil-)JSON.
-- **Formate (Fragen):** `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `FREETEXT`, `SURVEY`, `RATING` – inkl. Validierungsregeln und Schwierigkeit `EASY` | `MEDIUM` | `HARD`.
+- **Formate (Fragen):** `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `FREETEXT`, `SHORT_TEXT`, `SURVEY`, `RATING`, `NUMERIC_ESTIMATE` – inkl. Validierungsregeln, Besonderheiten für Kurzantworten und numerische Schätzfragen sowie Schwierigkeit `EASY` | `MEDIUM` | `HARD`.
 - **Ablauf:** Strikte Konfigurationssequenz (State Machine), Zusammenfassung, explizites Ja, dann **genau ein** ` ```json ` … ` ``` `-Block mit dem vollständigen Dokument.
+- **Nachgelagerte QA:** Separater Validierungs-Prompt prüft das erzeugte `QuizExport`-JSON minimalinvasiv gegen Schema, Didaktik, Markdown/KaTeX und Import-Kompatibilität; Fragen werden weder hinzugefügt noch gelöscht. Bei vordefinierten Antwortoptionen harmonisiert er Länge, syntaktische Form sowie Spezifitäts-/Abstraktionsniveau, damit die korrekte Option keine unbeabsichtigten Cues liefert.
 - **RAG:** Nutzung von Chat-Anhängen bevorzugen; **keine** Datei-/Folienverweise im Quiztext.
 - **Textformat:** Markdown und KaTeX in den im Schema erlaubten String-Feldern; korrektes JSON-Escaping (z. B. LaTeX-Backslashes).
 - **Verboten im JSON:** u. a. Felder `id`, `preset` (Preset ist nur UI-Kontext).
 
 ### Schema-Referenz
 
-Autoritativ: **`QuizExportSchema`** / **`quizImportSchema`** in `libs/shared-types` (Zod). Änderungen am Schema müssen **zuerst** dort und anschließend in `buildKiQuizSystemPrompt` nachgezogen werden.
+Autoritativ: **`QuizExportSchema`** / **`quizImportSchema`** in `libs/shared-types` (Zod). Änderungen am Schema müssen **zuerst** dort und anschließend in `buildKiQuizSystemPrompt` und `buildKiQuizValidationPrompt` nachgezogen werden.
 
 ### Korrektur früherer Fassung dieses ADR
 

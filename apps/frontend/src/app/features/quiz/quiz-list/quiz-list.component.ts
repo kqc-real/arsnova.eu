@@ -4,12 +4,12 @@ import {
   Component,
   ElementRef,
   OnInit,
-  ViewChild,
   computed,
   effect,
   inject,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -50,7 +50,10 @@ import {
   trpc,
 } from '../../../core/trpc.client';
 import { navigateToHostSession } from '../../../core/session-host-navigation';
-import { buildKiQuizSystemPrompt } from '../../../shared/ki-quiz-prompt';
+import {
+  buildKiQuizSystemPrompt,
+  buildKiQuizValidationPrompt,
+} from '../../../shared/ki-quiz-prompt';
 import { resolveMotdAssetOrigin } from '../../../core/motd-asset-origin';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
@@ -154,6 +157,8 @@ export class QuizListComponent implements OnInit {
   readonly showAiImport = signal(false);
   /** Volltext der KI-Systemvorlage im Panel (Schritt 1). */
   readonly showKiPromptPreview = signal(false);
+  /** Volltext der KI-Validierungsvorlage im Panel (Schritt 2). */
+  readonly showKiValidationPromptPreview = signal(false);
   readonly aiJsonInput = signal('');
   /** Gerendertes Markdown/KaTeX der Systemvorlage (nur sichtbar wenn Panel offen). */
   readonly kiPromptPreviewHtml = computed(() => {
@@ -164,6 +169,14 @@ export class QuizListComponent implements OnInit {
     const html = renderMarkdownWithoutKatex(this.buildCurrentKiPromptText());
     return this.sanitizer.bypassSecurityTrustHtml(html);
   });
+  /** Gerendertes Markdown der Validierungsvorlage (nur sichtbar wenn Panel offen). */
+  readonly kiValidationPromptPreviewHtml = computed(() => {
+    if (!this.showKiValidationPromptPreview()) {
+      return this.sanitizer.bypassSecurityTrustHtml('');
+    }
+    const html = renderMarkdownWithoutKatex(this.buildCurrentKiValidationPromptText());
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  });
   readonly startLiveShortcutMode = signal(false);
   readonly bonusCodesAfterLiveTooltip = $localize`:@@quizList.bonusCodesAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
   readonly lastFeedbackAfterLiveTooltip = $localize`:@@quizList.lastFeedbackAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
@@ -172,8 +185,9 @@ export class QuizListComponent implements OnInit {
   private readonly descriptionMarkdownCache = new Map<string, SafeHtml>();
   private lastQuizHistoryAvailabilityKey = '';
   private quizHistoryAvailabilityRequestId = 0;
-  @ViewChild('aiImportCard', { read: ElementRef })
-  private readonly aiImportCard?: ElementRef<HTMLElement>;
+  private readonly aiImportCard = viewChild<unknown, ElementRef<HTMLElement>>('aiImportCard', {
+    read: ElementRef,
+  });
 
   /** Wird true, während quiz.upload + session.create laufen (Story 2.1a). */
   readonly liveStartPending = signal(false);
@@ -382,6 +396,7 @@ export class QuizListComponent implements OnInit {
     const shouldOpen = !this.showAiImport();
     this.showAiImport.set(shouldOpen);
     this.showKiPromptPreview.set(false);
+    this.showKiValidationPromptPreview.set(false);
     this.actionError.set(null);
     this.actionInfo.set(null);
     this.actionInfoWarnings.set([]);
@@ -408,7 +423,7 @@ export class QuizListComponent implements OnInit {
   }
 
   private scrollAiImportPanelIntoView(): boolean {
-    const target = this.aiImportCard?.nativeElement;
+    const target = this.aiImportCard()?.nativeElement;
     if (!target) {
       return false;
     }
@@ -454,6 +469,10 @@ export class QuizListComponent implements OnInit {
 
   toggleKiPromptPreview(): void {
     this.showKiPromptPreview.update((visible) => !visible);
+  }
+
+  toggleKiValidationPromptPreview(): void {
+    this.showKiValidationPromptPreview.update((visible) => !visible);
   }
 
   updateAiJsonInput(value: string): void {
@@ -573,6 +592,21 @@ export class QuizListComponent implements OnInit {
     }
   }
 
+  async copyKiValidationPrompt(): Promise<void> {
+    const prompt = this.buildCurrentKiValidationPromptText();
+    try {
+      await navigator.clipboard.writeText(prompt);
+      this.actionInfoWarnings.set([]);
+      this.actionInfo.set(
+        $localize`:@@quizList.aiImport.copyValidationSuccess:Der Validierungs-Prompt ist jetzt in deiner Zwischenablage.`,
+      );
+    } catch {
+      this.actionError.set(
+        $localize`:@@quizList.aiImport.copyFailed:Kopieren fehlgeschlagen. Bitte versuche es noch einmal.`,
+      );
+    }
+  }
+
   private buildCurrentKiPromptText(): string {
     const settings = this.readPromptSettingsFromHomePreset();
     return buildKiQuizSystemPrompt({
@@ -595,6 +629,10 @@ export class QuizListComponent implements OnInit {
       teamNames: settings.teamNames,
       bonusTokenCount: settings.bonusTokenCount,
     });
+  }
+
+  private buildCurrentKiValidationPromptText(): string {
+    return buildKiQuizValidationPrompt();
   }
 
   private readPromptSettingsFromHomePreset(): QuizSettings {
