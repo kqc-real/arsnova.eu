@@ -2004,7 +2004,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">284</context>
+          <context context-type="linenumber">279</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.html</context>
@@ -3790,8 +3790,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.collectionImport" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Mit dem KI-Prompt kannst du ein Quiz mit deiner bevorzugten KI generieren und direkt importieren – deine Inhalte und Präsentationen werden nicht an arsnova.eu gesendet; du nutzt deine eigene KI.</source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / esportazione:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Importa o esporta quiz come JSON. Con il prompt IA puoi generare un quiz con la tua IA preferita e importarlo direttamente: contenuti e presentazioni non vengono inviati a arsnova.eu; usi la tua IA.</target>
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / Export:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Quiz als JSON importieren oder exportieren. Mit der Start- und Prüfvorlage kannst du anspruchsvolle Quizze mit deinem bevorzugten KI-Tool generieren, prüfen und direkt importieren – deine Inhalte und Präsentationen werden nicht an arsnova.eu gesendet; du nutzt dein eigenes KI-Tool.</source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong&gt;"/>Import / esportazione:<x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong&gt;"/> Importa o esporta quiz come JSON. Con i modelli di generazione e verifica puoi creare quiz di qualità con il tuo strumento IA preferito, verificarli e importarli direttamente. Contenuti e presentazioni non vengono inviati ad arsnova.eu; usi il tuo strumento IA.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">395,399</context>
@@ -3990,7 +3990,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">613</context>
+          <context context-type="linenumber">622</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.ts</context>
@@ -4030,7 +4030,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">613</context>
+          <context context-type="linenumber">622</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.ts</context>
@@ -5406,7 +5406,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">554</context>
+          <context context-type="linenumber">549</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1736772795054152455" datatype="html">
@@ -6802,7 +6802,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">460</context>
+          <context context-type="linenumber">455</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4150250960798262494" datatype="html">
@@ -6934,7 +6934,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">597</context>
+          <context context-type="linenumber">592</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2542400782921183946" datatype="html">
@@ -8414,139 +8414,139 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.hintWithValidation" datatype="html">
-        <source> Erstelle das Quiz in deinem KI-Chat, prüfe die Antwort dort ein zweites Mal und importiere dann den geprüften JSON-Code.</source>
-        <target>Crea il quiz nella tua chat IA, fai controllare lì la risposta una seconda volta e poi importa il codice JSON verificato.</target>
+        <source> Erstelle anspruchsvolle Quizfragen in deinem KI-Chat. Die Prüfvorlage gleicht Antwortoptionen an, verbessert Distraktoren und prüft den JSON-Code vor dem Import.</source>
+        <target>Crea domande quiz di qualità nella tua chat con l’IA. Il modello di verifica armonizza le opzioni di risposta, migliora i distrattori e controlla il JSON prima dell’importazione.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">90,93</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepsAria" datatype="html">
-        <source>KI-Import Schritte</source>
-        <target>Passaggi per importare dall&apos;IA</target>
+        <source>Schritte für den KI-Import</source>
+        <target>Passaggi per importare un quiz dall’IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">99</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepOneTitle" datatype="html">
-        <source> Textvorlage kopieren</source>
-        <target>Copia il modello di testo</target>
+        <source> Startvorlage kopieren</source>
+        <target>Copia il modello di generazione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">106,108</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepOneTextWithConfirmation" datatype="html">
-        <source> Kopiere die Textvorlage in deinen KI-Chat. Gib dort Thema oder Material an und bestätige die Zusammenfassung.</source>
-        <target>Copia il modello di testo nella tua chat IA. Inserisci lì l&apos;argomento o il materiale e conferma il riepilogo.</target>
+        <source> Kopiere die Startvorlage in deinen KI-Chat. Ergänze Thema oder Material und bestätige die Zusammenfassung, damit die KI den JSON-Code erzeugt.</source>
+        <target>Copia il modello di generazione nella tua chat con l’IA. Aggiungi l’argomento o il materiale e conferma il riepilogo, così l’IA genera il blocco JSON.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">112,115</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.copyTemplate" datatype="html">
-        <source>Textvorlage kopieren</source>
-        <target>Copia il modello di testo</target>
+        <source>Startvorlage kopieren</source>
+        <target>Copia il modello di generazione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">121</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.hidePrompt" datatype="html">
-        <source>Prompt ausblenden</source>
-        <target>Nascondi prompt</target>
+        <source>Startvorlage ausblenden</source>
+        <target>Nascondi modello di generazione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">132</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.showPrompt" datatype="html">
-        <source>Prompt anzeigen</source>
-        <target>Mostra prompt</target>
+        <source>Startvorlage anzeigen</source>
+        <target>Mostra modello di generazione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">142</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.promptPreviewAria" datatype="html">
-        <source>Vorschau der Textvorlage für die KI</source>
-        <target>Anteprima del modello di testo per l’IA</target>
+        <source>Vorschau der Startvorlage für die KI</source>
+        <target>Anteprima del modello di generazione per l’IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.validationStepTitle" datatype="html">
-        <source> Antwort prüfen lassen</source>
-        <target>Fai controllare la risposta</target>
+        <source> Quizqualität prüfen</source>
+        <target>Verifica la qualità del quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">170,172</context>
+          <context context-type="linenumber">167,169</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.validationStepText" datatype="html">
-        <source> Nach deiner Bestätigung erstellt die KI einen JSON-Codeblock. Kopiere danach den Validierungs-Prompt in denselben Chat. Die zweite Prüfung ist wichtig: KI-Modelle können richtige Antworten durch Länge oder Detailgrad verraten und schwache Distraktoren erfinden. Der Prompt gleicht die Optionen an und prüft plausible Fehlvorstellungen.</source>
-        <target>Dopo la tua conferma, l&apos;IA crea un blocco di codice JSON. Copia poi il prompt di convalida nella stessa chat. Il secondo controllo è importante: i modelli IA possono rivelare le risposte corrette tramite lunghezza o livello di dettaglio e inventare distrattori deboli. Il prompt rende più uniformi le opzioni e controlla che i distrattori mirino a concezioni errate plausibili.</target>
+        <source> Sobald die KI den JSON-Codeblock erstellt hat, kopiere die Prüfvorlage in denselben Chat. Diese zweite Prüfung ist wichtig: KI-Modelle können richtige Antworten durch Länge oder Detailgrad verraten und schwache Distraktoren erfinden. Die Prüfvorlage gleicht die Optionen an und prüft, ob Distraktoren plausible Fehlvorstellungen testen.</source>
+        <target>Quando l’IA ha generato il blocco JSON, copia il modello di verifica nella stessa chat. Questa seconda verifica è importante: i modelli IA possono far intuire le risposte corrette tramite lunghezza o livello di dettaglio e inventare distrattori deboli. Il modello di verifica armonizza le opzioni e controlla che i distrattori mettano alla prova idee errate plausibili.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">176,182</context>
+          <context context-type="linenumber">170,176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.copyValidationPrompt" datatype="html">
-        <source>Validierungs-Prompt kopieren</source>
-        <target>Richiesta di convalida della copia</target>
+        <source>Prüfvorlage kopieren</source>
+        <target>Copia il modello di verifica</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">189</context>
+          <context context-type="linenumber">183</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.hideValidationPrompt" datatype="html">
-        <source>Validierungs-Prompt ausblenden</source>
-        <target>Nascondi richiesta di convalida</target>
+        <source>Prüfvorlage ausblenden</source>
+        <target>Nascondi modello di verifica</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">202</context>
+          <context context-type="linenumber">196</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.showValidationPrompt" datatype="html">
-        <source>Validierungs-Prompt anzeigen</source>
-        <target>Mostra richiesta di convalida</target>
+        <source>Prüfvorlage anzeigen</source>
+        <target>Mostra modello di verifica</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">214</context>
+          <context context-type="linenumber">208</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.validationPromptPreviewAria" datatype="html">
-        <source>Vorschau des Validierungs-Prompts für die KI</source>
-        <target>Anteprima del prompt di convalida dell&apos;IA</target>
+        <source>Vorschau der Prüfvorlage für die KI</source>
+        <target>Anteprima del modello di verifica per l’IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">226</context>
+          <context context-type="linenumber">220</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.pasteValidatedAnswerStepTitle" datatype="html">
-        <source> Antwort einfügen</source>
-        <target>Incolla la risposta</target>
+        <source> Geprüften JSON-Code einfügen</source>
+        <target>Incolla il JSON verificato</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">237,239</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.aiImport.pasteValidatedAnswerStepText" datatype="html">
+        <source> Füge hier den geprüften JSON-Codeblock aus dem KI-Chat ein.</source>
+        <target>Incolla qui il blocco JSON verificato dalla chat con l’IA.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">243,245</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizList.aiImport.pasteValidatedAnswerStepText" datatype="html">
-        <source> Füge hier den geprüften JSON-Codeblock aus dem KI-Chat ein.</source>
-        <target>Incolla qui il blocco JSON verificato dalla chat IA.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">249,251</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="quizList.aiImport.responseLabel" datatype="html">
-        <source>Antwort aus dem KI-Chat</source>
-        <target>Risposta dalla chat IA</target>
+        <source>Geprüfter JSON-Code aus dem KI-Chat</source>
+        <target>JSON verificato dalla chat con l’IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">256</context>
+          <context context-type="linenumber">250</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepFourTitle" datatype="html">
@@ -8554,15 +8554,15 @@
         <target>Importa il quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">273,275</context>
+          <context context-type="linenumber">267,269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.stepFourText" datatype="html">
-        <source> Importiere das Quiz. Danach kannst du jede Frage im Editor prüfen und anpassen.</source>
-        <target>Importa il quiz. Poi puoi controllare e adattare ogni domanda nell&apos;editor.</target>
+        <source> Importiere das Quiz. Danach kannst du jede Frage im Editor fachlich prüfen und anpassen.</source>
+        <target>Importa il quiz. Poi puoi controllare ogni domanda nell’editor e adattarla se serve.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">276,278</context>
+          <context context-type="linenumber">270,273</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7624133960269641605" datatype="html">
@@ -8570,7 +8570,7 @@
         <target>Cancellare</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">286</context>
+          <context context-type="linenumber">281</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/top-toolbar/top-toolbar.component.ts</context>
@@ -8582,7 +8582,7 @@
         <target>Importa il quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">292,294</context>
+          <context context-type="linenumber">287,289</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.sharedLibraryTitle" datatype="html">
@@ -8590,7 +8590,7 @@
         <target>Raccolta quiz condivisa</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">319,321</context>
+          <context context-type="linenumber">314,316</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.sharedLibraryDetailsToggle" datatype="html">
@@ -8598,7 +8598,7 @@
         <target>Più informazioni sulla sincronizzazione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">339,341</context>
+          <context context-type="linenumber">334,336</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.sharedLibraryHint" datatype="html">
@@ -8606,7 +8606,7 @@
         <target>Qui puoi vedere se la tua raccolta quiz è aggiornata e da quale dispositivo sono arrivate le modifiche. Questi dati servono solo per orientarti. La cosa importante resta il link sync.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">347,351</context>
+          <context context-type="linenumber">342,346</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.currentDeviceLabel" datatype="html">
@@ -8614,7 +8614,7 @@
         <target>Stai lavorando ora su</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">355</context>
+          <context context-type="linenumber">350</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncPeerCountLabel" datatype="html">
@@ -8622,7 +8622,7 @@
         <target>Aperto anche su</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">359</context>
+          <context context-type="linenumber">354</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.lastConnectedLabel" datatype="html">
@@ -8630,7 +8630,7 @@
         <target>Ultima connessione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">363</context>
+          <context context-type="linenumber">358</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncOriginDeviceLabel" datatype="html">
@@ -8638,7 +8638,7 @@
         <target>Condiviso originariamente da</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">367</context>
+          <context context-type="linenumber">362</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncOriginTimeLabel" datatype="html">
@@ -8646,7 +8646,7 @@
         <target>Condiviso il</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">371</context>
+          <context context-type="linenumber">366</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.lastRemoteSyncLabel" datatype="html">
@@ -8654,7 +8654,7 @@
         <target>Ultimo cambiamento ricevuto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">375</context>
+          <context context-type="linenumber">370</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.lastRemoteDeviceLabel" datatype="html">
@@ -8662,7 +8662,7 @@
         <target>Arrivato da</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">379</context>
+          <context context-type="linenumber">374</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.lastLocalChangeLabel" datatype="html">
@@ -8670,7 +8670,7 @@
         <target>Ultima modifica qui</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">383</context>
+          <context context-type="linenumber">378</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.peerListAria" datatype="html">
@@ -8678,7 +8678,7 @@
         <target>Altri dispositivi connessi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">393</context>
+          <context context-type="linenumber">388</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncCta" datatype="html">
@@ -8686,11 +8686,11 @@
         <target>Condividi la raccolta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">410</context>
+          <context context-type="linenumber">405</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">413</context>
+          <context context-type="linenumber">408</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.chipDemo" datatype="html">
@@ -8698,7 +8698,7 @@
         <target>Demo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">432</context>
+          <context context-type="linenumber">427</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.chipLive" datatype="html">
@@ -8706,7 +8706,7 @@
         <target>In diretta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">439</context>
+          <context context-type="linenumber">434</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.chipLiveParticipants" datatype="html">
@@ -8714,7 +8714,7 @@
         <target><x id="INTERPOLATION" equiv-text="{{ liveParticipantCount }}"/> in diretta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">445,447</context>
+          <context context-type="linenumber">440,442</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.questionCountLabel" datatype="html">
@@ -8722,7 +8722,7 @@
         <target>{VAR_PLURAL, plural, =1 {domanda} other {domande}}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">466</context>
+          <context context-type="linenumber">461</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.chipTeam" datatype="html">
@@ -8730,7 +8730,7 @@
         <target>Squadre</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">478</context>
+          <context context-type="linenumber">473</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.chipBonus" datatype="html">
@@ -8738,7 +8738,7 @@
         <target>Bonus</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">484</context>
+          <context context-type="linenumber">479</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.addQuestions" datatype="html">
@@ -8746,7 +8746,7 @@
         <target>Aggiungi domande</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">494</context>
+          <context context-type="linenumber">489</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3282235563480269560" datatype="html">
@@ -8754,7 +8754,7 @@
         <target>Descrizione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">501</context>
+          <context context-type="linenumber">496</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.bonusCodes" datatype="html">
@@ -8762,7 +8762,7 @@
         <target>Codici bonus</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">529</context>
+          <context context-type="linenumber">524</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.lastSessionFeedback" datatype="html">
@@ -8770,7 +8770,7 @@
         <target>Ultimo feedback</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">544</context>
+          <context context-type="linenumber">539</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.startSession" datatype="html">
@@ -8778,7 +8778,7 @@
         <target>Avvia</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">564</context>
+          <context context-type="linenumber">559</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-preview/quiz-preview.component.html</context>
@@ -8794,7 +8794,7 @@
         <target>Modifica</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">579</context>
+          <context context-type="linenumber">574</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1554339525671560484" datatype="html">
@@ -8802,7 +8802,7 @@
         <target>Esportare</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">583</context>
+          <context context-type="linenumber">578</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.html</context>
@@ -8814,7 +8814,7 @@
         <target>Duplicato</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">587</context>
+          <context context-type="linenumber">582</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1892540928773826144" datatype="html">
@@ -8822,7 +8822,7 @@
         <target>Elimina (in tempo reale)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
-          <context context-type="linenumber">592</context>
+          <context context-type="linenumber">587</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.bonusCodesAfterLive" datatype="html">
@@ -9082,11 +9082,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.copySuccess" datatype="html">
-        <source>Die Textvorlage ist jetzt in deiner Zwischenablage.</source>
-        <target>Il modello di testo è ora negli appunti.</target>
+        <source>Die Startvorlage wurde in die Zwischenablage kopiert.</source>
+        <target>Il modello di generazione è stato copiato negli appunti.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">586</context>
+          <context context-type="linenumber">585</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.copyFailed" datatype="html">
@@ -9094,35 +9094,35 @@
         <target>Copia non riuscita. Riprova.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">590</context>
+          <context context-type="linenumber">589</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">605</context>
+          <context context-type="linenumber">603</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.copyValidationSuccess" datatype="html">
-        <source>Der Validierungs-Prompt ist jetzt in deiner Zwischenablage.</source>
-        <target>La richiesta di convalida è ora negli appunti.</target>
+        <source>Die Prüfvorlage wurde in die Zwischenablage kopiert.</source>
+        <target>Il modello di verifica è stato copiato negli appunti.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">601</context>
+          <context context-type="linenumber">599</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.empty" datatype="html">
-        <source>Füge zuerst die Antwort aus dem KI-Chat ein.</source>
-        <target>Incolla prima la risposta della chat IA.</target>
+        <source>Füge zuerst den geprüften JSON-Code aus dem KI-Chat ein.</source>
+        <target>Incolla prima il JSON verificato dalla chat con l’IA.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">727</context>
+          <context context-type="linenumber">736</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.aiImport.failed" datatype="html">
-        <source>Import fehlgeschlagen. Prüfe, ob du die komplette Antwort aus dem KI-Chat eingefügt hast.</source>
-        <target>Importazione non riuscita. Controlla di aver incollato tutta la risposta della chat IA.</target>
+        <source>Import fehlgeschlagen. Prüfe, ob du die komplette geprüfte Antwort aus dem KI-Chat eingefügt hast.</source>
+        <target>Importazione non riuscita. Controlla di aver incollato la risposta JSON verificata completa dalla chat con l’IA.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">742</context>
+          <context context-type="linenumber">751</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncImportedSuccess" datatype="html">
@@ -9130,7 +9130,7 @@
         <target>Raccolta quiz sincronizzata con successo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">960</context>
+          <context context-type="linenumber">969</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.syncImportedSuccessWithTimestamp" datatype="html">
@@ -9138,7 +9138,7 @@
         <target>Raccolta quiz sincronizzata con successo. Versione più recente del <x id="timestamp" equiv-text="formattedTimestamp"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">963</context>
+          <context context-type="linenumber">972</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4816916877207589304" datatype="html">
@@ -9146,7 +9146,7 @@
         <target>Sessione <x id="PH" equiv-text="result.code"/> iniziata.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">1087</context>
+          <context context-type="linenumber">1096</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8680320837061900030" datatype="html">
@@ -9154,7 +9154,7 @@
         <target>Il lancio live non è riuscito.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">1092</context>
+          <context context-type="linenumber">1101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.new.quizTitleFieldLabel" datatype="html">

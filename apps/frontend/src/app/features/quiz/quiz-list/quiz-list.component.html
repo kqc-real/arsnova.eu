@@ -88,15 +88,15 @@
                 class="dialog-title-header__sub quiz-list__ai-hint"
                 i18n="@@quizList.aiImport.hintWithValidation"
               >
-                Erstelle das Quiz in deinem KI-Chat, prüfe die Antwort dort ein zweites Mal und
-                importiere dann den geprüften JSON-Code.
+                Erstelle anspruchsvolle Quizfragen in deinem KI-Chat. Die Prüfvorlage gleicht
+                Antwortoptionen an, verbessert Distraktoren und prüft den JSON-Code vor dem Import.
               </p>
             </span>
           </div>
         </div>
         <div
           class="quiz-list__ai-steps"
-          aria-label="KI-Import Schritte"
+          aria-label="Schritte für den KI-Import"
           i18n-aria-label="@@quizList.aiImport.stepsAria"
         >
           <section class="quiz-list__ai-step">
@@ -104,21 +104,21 @@
               <span class="quiz-list__ai-step-number" aria-hidden="true">1</span>
               <div class="quiz-list__ai-step-copy">
                 <h3 class="quiz-list__ai-step-title" i18n="@@quizList.aiImport.stepOneTitle">
-                  Textvorlage kopieren
+                  Startvorlage kopieren
                 </h3>
                 <p
                   class="quiz-list__ai-step-text"
                   i18n="@@quizList.aiImport.stepOneTextWithConfirmation"
                 >
-                  Kopiere die Textvorlage in deinen KI-Chat. Gib dort Thema oder Material an und
-                  bestätige die Zusammenfassung.
+                  Kopiere die Startvorlage in deinen KI-Chat. Ergänze Thema oder Material und
+                  bestätige die Zusammenfassung, damit die KI den JSON-Code erzeugt.
                 </p>
               </div>
             </div>
             <div class="quiz-list__ai-step-actions">
               <button mat-button type="button" (click)="copyKiPrompt()">
                 <mat-icon>content_copy</mat-icon>
-                <span i18n="@@quizList.aiImport.copyTemplate">Textvorlage kopieren</span>
+                <span i18n="@@quizList.aiImport.copyTemplate">Startvorlage kopieren</span>
               </button>
               @if (showKiPromptPreview()) {
                 <button
@@ -129,7 +129,7 @@
                   (click)="toggleKiPromptPreview()"
                 >
                   <mat-icon>visibility_off</mat-icon>
-                  <span i18n="@@quizList.aiImport.hidePrompt">Prompt ausblenden</span>
+                  <span i18n="@@quizList.aiImport.hidePrompt">Startvorlage ausblenden</span>
                 </button>
               } @else {
                 <button
@@ -139,7 +139,7 @@
                   (click)="toggleKiPromptPreview()"
                 >
                   <mat-icon>visibility</mat-icon>
-                  <span i18n="@@quizList.aiImport.showPrompt">Prompt anzeigen</span>
+                  <span i18n="@@quizList.aiImport.showPrompt">Startvorlage anzeigen</span>
                 </button>
               }
             </div>
@@ -150,7 +150,7 @@
                 role="region"
                 tabindex="0"
                 i18n-aria-label="@@quizList.aiImport.promptPreviewAria"
-                aria-label="Vorschau der Textvorlage für die KI"
+                aria-label="Vorschau der Startvorlage für die KI"
               >
                 <div
                   class="quiz-list__ai-prompt-markdown"
@@ -165,23 +165,21 @@
               <span class="quiz-list__ai-step-number" aria-hidden="true">2</span>
               <div class="quiz-list__ai-step-copy">
                 <h3 class="quiz-list__ai-step-title" i18n="@@quizList.aiImport.validationStepTitle">
-                  Antwort prüfen lassen
+                  Quizqualität prüfen
                 </h3>
                 <p class="quiz-list__ai-step-text" i18n="@@quizList.aiImport.validationStepText">
-                  Nach deiner Bestätigung erstellt die KI einen JSON-Codeblock. Kopiere danach den
-                  Validierungs-Prompt in denselben Chat. Die zweite Prüfung ist wichtig: KI-Modelle
-                  können richtige Antworten durch Länge oder Detailgrad verraten und schwache
-                  Distraktoren erfinden. Der Prompt gleicht die Optionen an und prüft plausible
-                  Fehlvorstellungen.
+                  Sobald die KI den JSON-Codeblock erstellt hat, kopiere die Prüfvorlage in
+                  denselben Chat. Diese zweite Prüfung ist wichtig: KI-Modelle können richtige
+                  Antworten durch Länge oder Detailgrad verraten und schwache Distraktoren erfinden.
+                  Die Prüfvorlage gleicht die Optionen an und prüft, ob Distraktoren plausible
+                  Fehlvorstellungen testen.
                 </p>
               </div>
             </div>
             <div class="quiz-list__ai-step-actions">
               <button mat-button type="button" (click)="copyKiValidationPrompt()">
                 <mat-icon>fact_check</mat-icon>
-                <span i18n="@@quizList.aiImport.copyValidationPrompt"
-                  >Validierungs-Prompt kopieren</span
-                >
+                <span i18n="@@quizList.aiImport.copyValidationPrompt">Prüfvorlage kopieren</span>
               </button>
               @if (showKiValidationPromptPreview()) {
                 <button
@@ -193,7 +191,7 @@
                 >
                   <mat-icon>visibility_off</mat-icon>
                   <span i18n="@@quizList.aiImport.hideValidationPrompt"
-                    >Validierungs-Prompt ausblenden</span
+                    >Prüfvorlage ausblenden</span
                   >
                 </button>
               } @else {
@@ -204,9 +202,7 @@
                   (click)="toggleKiValidationPromptPreview()"
                 >
                   <mat-icon>visibility</mat-icon>
-                  <span i18n="@@quizList.aiImport.showValidationPrompt"
-                    >Validierungs-Prompt anzeigen</span
-                  >
+                  <span i18n="@@quizList.aiImport.showValidationPrompt">Prüfvorlage anzeigen</span>
                 </button>
               }
             </div>
@@ -217,7 +213,7 @@
                 role="region"
                 tabindex="0"
                 i18n-aria-label="@@quizList.aiImport.validationPromptPreviewAria"
-                aria-label="Vorschau des Validierungs-Prompts für die KI"
+                aria-label="Vorschau der Prüfvorlage für die KI"
               >
                 <div
                   class="quiz-list__ai-prompt-markdown"
@@ -235,7 +231,7 @@
                   class="quiz-list__ai-step-title"
                   i18n="@@quizList.aiImport.pasteValidatedAnswerStepTitle"
                 >
-                  Antwort einfügen
+                  Geprüften JSON-Code einfügen
                 </h3>
                 <p
                   class="quiz-list__ai-step-text"
@@ -247,7 +243,7 @@
             </div>
             <mat-form-field appearance="outline" class="quiz-list__ai-field">
               <mat-label i18n="@@quizList.aiImport.responseLabel"
-                >Antwort aus dem KI-Chat</mat-label
+                >Geprüfter JSON-Code aus dem KI-Chat</mat-label
               >
               <textarea
                 #aiJsonTextarea
@@ -268,7 +264,8 @@
                   Quiz importieren
                 </h3>
                 <p class="quiz-list__ai-step-text" i18n="@@quizList.aiImport.stepFourText">
-                  Importiere das Quiz. Danach kannst du jede Frage im Editor prüfen und anpassen.
+                  Importiere das Quiz. Danach kannst du jede Frage im Editor fachlich prüfen und
+                  anpassen.
                 </p>
               </div>
             </div>

@@ -581,9 +581,8 @@ export class QuizListComponent implements OnInit {
     const prompt = this.buildCurrentKiPromptText();
     try {
       await navigator.clipboard.writeText(prompt);
-      this.actionInfoWarnings.set([]);
-      this.actionInfo.set(
-        $localize`:@@quizList.aiImport.copySuccess:Die Textvorlage ist jetzt in deiner Zwischenablage.`,
+      this.showClipboardSuccess(
+        $localize`:@@quizList.aiImport.copySuccess:Die Startvorlage wurde in die Zwischenablage kopiert.`,
       );
     } catch {
       this.actionError.set(
@@ -596,15 +595,25 @@ export class QuizListComponent implements OnInit {
     const prompt = this.buildCurrentKiValidationPromptText();
     try {
       await navigator.clipboard.writeText(prompt);
-      this.actionInfoWarnings.set([]);
-      this.actionInfo.set(
-        $localize`:@@quizList.aiImport.copyValidationSuccess:Der Validierungs-Prompt ist jetzt in deiner Zwischenablage.`,
+      this.showClipboardSuccess(
+        $localize`:@@quizList.aiImport.copyValidationSuccess:Die Prüfvorlage wurde in die Zwischenablage kopiert.`,
       );
     } catch {
       this.actionError.set(
         $localize`:@@quizList.aiImport.copyFailed:Kopieren fehlgeschlagen. Bitte versuche es noch einmal.`,
       );
     }
+  }
+
+  private showClipboardSuccess(message: string): void {
+    this.actionError.set(null);
+    this.actionInfoWarnings.set([]);
+    this.actionInfo.set(message);
+    this.snackBar.open(message, '', {
+      duration: 4000,
+      verticalPosition: 'top',
+      horizontalPosition: 'center',
+    });
   }
 
   private buildCurrentKiPromptText(): string {
@@ -724,7 +733,7 @@ export class QuizListComponent implements OnInit {
     const raw = this.aiJsonInput().trim();
     if (!raw) {
       this.actionError.set(
-        $localize`:@@quizList.aiImport.empty:Füge zuerst die Antwort aus dem KI-Chat ein.`,
+        $localize`:@@quizList.aiImport.empty:Füge zuerst den geprüften JSON-Code aus dem KI-Chat ein.`,
       );
       return;
     }
@@ -739,7 +748,7 @@ export class QuizListComponent implements OnInit {
       const message =
         error instanceof Error
           ? error.message
-          : $localize`:@@quizList.aiImport.failed:Import fehlgeschlagen. Prüfe, ob du die komplette Antwort aus dem KI-Chat eingefügt hast.`;
+          : $localize`:@@quizList.aiImport.failed:Import fehlgeschlagen. Prüfe, ob du die komplette geprüfte Antwort aus dem KI-Chat eingefügt hast.`;
       this.actionError.set(message);
     }
   }

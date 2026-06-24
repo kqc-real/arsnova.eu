@@ -635,20 +635,16 @@ describe('QuizListComponent', () => {
     });
   });
 
-  it('blendet die Prompt-Vorschau in Schritt 1 ein und aus', () => {
+  it('blendet die Startvorlagen-Vorschau in Schritt 1 ein und aus', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     const component = fixture.componentInstance;
     component.showAiImport.set(true);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain(
-      'Erstelle das Quiz in deinem KI-Chat, prüfe die Antwort dort ein zweites Mal',
-    );
-    expect(fixture.nativeElement.textContent).toContain('Antwort prüfen lassen');
-    expect(fixture.nativeElement.textContent).toContain(
-      'richtige Antworten durch Länge oder Detailgrad verraten',
-    );
-    expect(fixture.nativeElement.textContent).toContain('Validierungs-Prompt kopieren');
+    expect(fixture.nativeElement.textContent).toContain('anspruchsvolle Quizfragen');
+    expect(fixture.nativeElement.textContent).not.toContain('Antwort prüfen lassen');
+    expect(fixture.nativeElement.textContent).toContain('Quizqualität prüfen');
+    expect(fixture.nativeElement.textContent).toContain('Prüfvorlage kopieren');
     expect(component.showKiPromptPreview()).toBe(false);
     expect(fixture.nativeElement.textContent).not.toContain('You create importable quiz JSON');
     expect(component.showKiValidationPromptPreview()).toBe(false);
@@ -677,6 +673,49 @@ describe('QuizListComponent', () => {
     component.toggleKiPromptPreview();
     fixture.detectChanges();
     expect(component.showKiPromptPreview()).toBe(false);
+  });
+
+  it('zeigt nach dem Kopieren der KI-Vorlagen eine sichtbare Bestätigung', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(window.navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const component = fixture.componentInstance;
+
+    await component.copyKiPrompt();
+
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining('You create importable quiz JSON'),
+    );
+    expect(component.actionInfo()).toBe('Die Startvorlage wurde in die Zwischenablage kopiert.');
+    expect(snackBarOpenMock).toHaveBeenLastCalledWith(
+      'Die Startvorlage wurde in die Zwischenablage kopiert.',
+      '',
+      {
+        duration: 4000,
+        verticalPosition: 'top',
+        horizontalPosition: 'center',
+      },
+    );
+
+    await component.copyKiValidationPrompt();
+
+    expect(writeText).toHaveBeenLastCalledWith(
+      expect.stringContaining('QA Postproduction for arsnova.eu Quiz JSON'),
+    );
+    expect(component.actionInfo()).toBe('Die Prüfvorlage wurde in die Zwischenablage kopiert.');
+    expect(snackBarOpenMock).toHaveBeenLastCalledWith(
+      'Die Prüfvorlage wurde in die Zwischenablage kopiert.',
+      '',
+      {
+        duration: 4000,
+        verticalPosition: 'top',
+        horizontalPosition: 'center',
+      },
+    );
+    expect(snackBarOpenMock).toHaveBeenCalledTimes(2);
   });
 
   it('scrollt beim Öffnen der KI-Import-Karte zum Panel', () => {
