@@ -13,6 +13,7 @@ import {
   CreateSessionOutputSchema,
   GetCurrentQuestionForStudentInputSchema,
   GetSessionInfoInputSchema,
+  NextQuestionInputSchema,
   GetLiveFreetextInputSchema,
   GetActiveQuizIdsInputSchema,
   JoinSessionInputSchema,
@@ -4279,10 +4280,11 @@ export const sessionRouter = router({
   /** Nächste Frage öffnen (Story 2.3). LOBBY/PAUSED/RESULTS/DISCUSSION → QUESTION_OPEN oder ACTIVE; bei Lesephase aus: direkt ACTIVE.
    * Zusätzlich: ACTIVE + currentQuestion null (z. B. nach Q&A-Start aus der Lobby) erlaubt den Start der ersten Quiz-Frage. */
   nextQuestion: hostProcedure
-    .input(GetSessionInfoInputSchema)
+    .input(NextQuestionInputSchema)
     .output(SessionStatusUpdateSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
+      const skipCurrentResultQuestion = input.skipCurrentResultQuestion === true;
       const session = await prisma.session.findUnique({
         where: { code },
         include: {
@@ -4327,8 +4329,15 @@ export const sessionRouter = router({
         });
       }
 
+      if (skipCurrentResultQuestion && !['RESULTS', 'DISCUSSION'].includes(session.status)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'skipCurrentResultQuestion ist nur aus Status RESULTS oder DISCUSSION erlaubt.',
+        });
+      }
+
       const currentIdx = session.currentQuestion ?? -1;
-      const nextIdx = currentIdx + 1;
+      const nextIdx = currentIdx + (skipCurrentResultQuestion ? 2 : 1);
       const currentQuestionId =
         currentIdx >= 0 ? (session.quiz.questions[currentIdx]?.id ?? null) : null;
 
@@ -4408,6 +4417,54 @@ export const sessionRouter = router({
           activeAt: now.toISOString(),
           timer: effectiveTimer,
         }),
+      };
+    }),
+
+  prevQuestion: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(SessionStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const code = input.code.toUpperCase();
+      const session = await prisma.session.findUnique({
+        where: { code },
+        select: {
+          id: true,
+          status: true,
+          currentQuestion: true,
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const allowedFrom = ['RESULTS', 'DISCUSSION'];
+      if (!allowedFrom.includes(session.status)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Zurück nur aus Status RESULTS oder DISCUSSION möglich.',
+        });
+      }
+      if (session.currentQuestion === null || session.currentQuestion <= 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Bereits bei der ersten Frage – Rückwärtsnavigation nicht möglich.',
+        });
+      }
+      const prevIdx = session.currentQuestion - 1;
+      await prisma.session.update({
+        where: { id: session.id },
+        data: {
+          status: 'RESULTS',
+          currentQuestion: prevIdx,
+          currentRound: 1,
+          statusChangedAt: new Date(),
+        },
+      });
+      invalidateSessionStatusCachesForCode(code);
+      void recordSessionTransitionActivity();
+      return {
+        status: 'RESULTS' as const,
+        currentQuestion: prevIdx,
+        currentRound: 1,
       };
     }),
 

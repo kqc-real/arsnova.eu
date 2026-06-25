@@ -7505,7 +7505,7 @@
           <context context-type="linenumber">173</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2766847047091799200" datatype="html">
+      <trans-unit id="quizList.demoQuizTry" datatype="html">
         <source> Demo-Quiz ausprobieren </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
@@ -9652,6 +9652,20 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3096,3098</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.prevQuestionAnchor" datatype="html">
+        <source> Vorheriges Ergebnis erneut anzeigen </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">3110</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.prevQuestionTooltip" datatype="html">
+        <source>Zeigt die vorherige Frage mit Ergebnis und richtiger Lösung erneut an (ohne neue Abstimmung).</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">3153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.nextQuestionAnchor" datatype="html">

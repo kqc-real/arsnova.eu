@@ -8429,7 +8429,7 @@
           <context context-type="linenumber">173</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2766847047091799200" datatype="html">
+      <trans-unit id="quizList.demoQuizTry" datatype="html">
         <source> Demo-Quiz ausprobieren</source>
         <target>Prova il quiz dimostrativo</target>
         <context-group purpose="location">
@@ -10865,6 +10865,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3096,3098</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.prevQuestionAnchor" datatype="html">
+        <source> Letztes Ergebnis erneut anzeigen </source>
+        <target>Mostra di nuovo il risultato precedente</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">3110</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.prevQuestionTooltip" datatype="html">
+        <source>Zeigt die letzte Frage mit Ergebnis und richtiger Lösung erneut an (ohne neue Abstimmung).</source>
+        <target>Mostra di nuovo la domanda precedente con il risultato e la risposta corretta (senza una nuova votazione).</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">3153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.nextQuestionAnchor" datatype="html">

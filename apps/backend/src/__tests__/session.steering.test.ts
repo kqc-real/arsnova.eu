@@ -269,6 +269,53 @@ describe('session.nextQuestion (Story 2.3)', () => {
       }),
     );
   });
+
+  it('springt mit skipCurrentResultQuestion auf die naechste noch nicht gezeigte Frage', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'RESULTS',
+      currentQuestion: 1,
+      quiz: {
+        readingPhaseEnabled: false,
+        questions: [{ id: 'q1' }, { id: 'q2' }, { id: 'q3' }, { id: 'q4' }],
+      },
+    });
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 3,
+    });
+
+    const result = await caller.nextQuestion({ code: CODE, skipCurrentResultQuestion: true });
+
+    expect(result.status).toBe('ACTIVE');
+    expect(result.currentQuestion).toBe(3);
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'ACTIVE', currentQuestion: 3 }),
+      }),
+    );
+  });
+
+  it('wirft BAD_REQUEST bei skipCurrentResultQuestion ausserhalb RESULTS/DISCUSSION', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'PAUSED',
+      currentQuestion: 1,
+      quiz: {
+        readingPhaseEnabled: false,
+        questions: [{ id: 'q1' }, { id: 'q2' }, { id: 'q3' }],
+      },
+    });
+
+    await expect(
+      caller.nextQuestion({ code: CODE, skipCurrentResultQuestion: true }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'skipCurrentResultQuestion ist nur aus Status RESULTS oder DISCUSSION erlaubt.',
+    });
+  });
 });
 
 describe('session.revealAnswers (Story 2.3)', () => {
@@ -357,6 +404,65 @@ describe('session.revealResults (Story 2.3)', () => {
     await expect(caller.revealResults({ code: CODE })).rejects.toMatchObject({
       code: 'BAD_REQUEST',
       message: 'Ergebnis anzeigen nur im Status ACTIVE.',
+    });
+  });
+});
+
+describe('session.prevQuestion', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+  });
+
+  it('wechselt von RESULTS zu RESULTS mit vorheriger Frage', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'RESULTS',
+      currentQuestion: 2,
+    });
+    prismaMock.session.update.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'RESULTS',
+      currentQuestion: 1,
+    });
+
+    const result = await caller.prevQuestion({ code: CODE });
+
+    expect(result.status).toBe('RESULTS');
+    expect(result.currentQuestion).toBe(1);
+    expect(prismaMock.session.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: SESSION_ID },
+        data: expect.objectContaining({ status: 'RESULTS', currentQuestion: 1, currentRound: 1 }),
+      }),
+    );
+  });
+
+  it('wirft BAD_REQUEST wenn Status nicht RESULTS oder DISCUSSION', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      currentQuestion: 2,
+    });
+
+    await expect(caller.prevQuestion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Zurück nur aus Status RESULTS oder DISCUSSION möglich.',
+    });
+  });
+
+  it('wirft BAD_REQUEST bei erster Frage (currentQuestion === 0)', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'RESULTS',
+      currentQuestion: 0,
+    });
+
+    await expect(caller.prevQuestion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Bereits bei der ersten Frage – Rückwärtsnavigation nicht möglich.',
     });
   });
 });

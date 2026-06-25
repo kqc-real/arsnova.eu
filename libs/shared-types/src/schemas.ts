@@ -1944,6 +1944,13 @@ export const GetSessionInfoInputSchema = z.object({
 });
 export type GetSessionInfoInput = z.infer<typeof GetSessionInfoInputSchema>;
 
+/** Input: Nächste Frage steuern (optional inkl. Überspringen der zuletzt gezeigten Ergebnisfrage). */
+export const NextQuestionInputSchema = GetSessionInfoInputSchema.extend({
+  /** Nur für den Rücksprung-Fall: überspringt genau die bereits gezeigte Ergebnisfrage. */
+  skipCurrentResultQuestion: z.boolean().optional(),
+});
+export type NextQuestionInput = z.infer<typeof NextQuestionInputSchema>;
+
 /** Input: Aktuelle Frage für Teilnehmende inkl. optionalem Presence-/Ready-Kontext. */
 export const GetCurrentQuestionForStudentInputSchema = GetSessionInfoInputSchema.extend({
   participantId: z.uuid().optional(),

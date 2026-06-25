@@ -3139,6 +3139,25 @@
             >
           </button>
         }
+        @if (
+          (effectiveStatus() === 'RESULTS' || effectiveStatus() === 'DISCUSSION') &&
+          !isFirstQuestion() &&
+          !steppedBackToPreviousResult()
+        ) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="session-host__exit-anchor-button"
+            [disabled]="controlPending()"
+            (click)="prevQuestion()"
+            i18n="@@sessionHost.prevQuestionAnchor"
+            i18n-matTooltip="@@sessionHost.prevQuestionTooltip"
+            matTooltip="Zeigt die letzte Frage mit Ergebnis und richtiger Lösung erneut an (ohne neue Abstimmung)."
+            matTooltipTouchGestures="on"
+          >
+            Letztes Ergebnis erneut anzeigen
+          </button>
+        }
         <button
           matButton="tonal"
           type="button"

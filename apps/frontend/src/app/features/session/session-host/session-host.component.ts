@@ -43,6 +43,7 @@ import { MatInput } from '@angular/material/input';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { clearFeedbackHostToken } from '../../../core/feedback-host-token';
@@ -384,6 +385,7 @@ function musicTracksForPhase(
     MatMenuItem,
     MatMenuTrigger,
     MatSlideToggle,
+    MatTooltip,
     WordCloudComponent,
     CountdownFingersComponent,
     MusicEqualizerIconComponent,
@@ -408,6 +410,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly statusUpdate = signal<SessionStatusUpdate | null>(null);
   readonly controlPending = signal(false);
   readonly quizStartQuestionPending = signal(false);
+  readonly steppedBackToPreviousResult = signal(false);
+  readonly skipCurrentResultQuestionOnNext = signal(false);
   /** Auffälliger Hinweis bei fehlgeschlagenen Host-Steuer-Mutationen (Netz/Server). */
   readonly hostSteeringCallout = signal<HostSteeringCalloutState | null>(null);
   readonly activeChannel = signal<SessionChannelTab>('quiz');
@@ -3594,6 +3598,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return q.order + 1 >= q.totalQuestions;
   }
 
+  isFirstQuestion(): boolean {
+    const q = this.displayedCurrentQuestionForHost();
+    if (!q) return false;
+    return q.order === 0;
+  }
+
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
   renderMarkdown(value: string): SafeHtml {
     const cached = this.markdownCache.get(value);
@@ -5131,13 +5141,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.clearEmojiNewBadge();
       this.stopCountdown();
       this.countdownSeconds.set(null);
-      const result = await trpc.session.nextQuestion.mutate({ code: this.code.toUpperCase() });
+      const result = await trpc.session.nextQuestion.mutate({
+        code: this.code.toUpperCase(),
+        ...(this.skipCurrentResultQuestionOnNext() && { skipCurrentResultQuestion: true }),
+      });
       if (startingQuizFromLobby && typeof result.currentQuestion !== 'number') {
         this.quizStartQuestionPending.set(false);
         this.clearHostQuestionDetailsRetry();
       }
       this.clearFoyerArrivalStateWhenLeavingLobby(result.status);
       this.statusUpdate.set(result);
+      this.steppedBackToPreviousResult.set(false);
+      this.skipCurrentResultQuestionOnNext.set(false);
       this.syncCountdownFromStatusUpdate(result);
       this.dismissHostSteeringCallout();
       this.controlPending.set(false);
@@ -5156,6 +5171,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.quizStartQuestionPending.set(false);
       this.clearHostQuestionDetailsRetry();
       this.openHostSteeringCalloutForSteeringFailure(() => void this.nextQuestion());
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
+  async prevQuestion(): Promise<void> {
+    if (this.controlPending() || !this.code) return;
+    this.controlPending.set(true);
+    try {
+      const result = await trpc.session.prevQuestion.mutate({ code: this.code.toUpperCase() });
+      this.statusUpdate.set(result);
+      this.steppedBackToPreviousResult.set(true);
+      this.skipCurrentResultQuestionOnNext.set(true);
+      this.dismissHostSteeringCallout();
+      this.controlPending.set(false);
+      await this.refreshCurrentQuestionForHost();
+    } catch {
+      this.openHostSteeringCalloutForSteeringFailure(() => void this.prevQuestion());
     } finally {
       this.controlPending.set(false);
     }
