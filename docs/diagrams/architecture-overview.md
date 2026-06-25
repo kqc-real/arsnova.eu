@@ -163,7 +163,7 @@ sequenceDiagram
     D->>FE: Ergebnisse zeigen
     FE->>BE: session.revealResults
     BE->>PG: Status = RESULTS
-    BE->>BE: Scoring berechnen; bei NUMERIC_ESTIMATE Histogramm/Statistik aggregieren
+    BE->>BE: Scoring berechnen, bei NUMERIC_ESTIMATE Histogramm/Statistik aggregieren
     BE-->>S: tRPC Subscription onResultsRevealed - mit isCorrect
     S-->>S: Ergebnisse + Punkte
 
