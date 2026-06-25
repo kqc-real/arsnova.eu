@@ -658,9 +658,10 @@ sequenceDiagram
     BE-->>V: session.onStatusChanged FINISHED
     V->>V: FINISHED ueberstimmt Quiz, Q&A und Blitzlicht
     V->>V: Countdown, Fallback-Polling und Live-Kanal-Subscriptions stoppen
-    alt Bonus-Code oder Session-Feedback offen
+    opt Bonus-Code oder Session-Feedback offen
         V->>V: Abschluss-Gate mit CTA Zur Startseite anzeigen
-    else kein Abschluss-Gate noetig
+    end
+    opt kein Abschluss-Gate noetig
         V->>V: per replaceUrl zur Startseite wechseln
     end
     opt bonusTokenCount > 0
@@ -751,7 +752,8 @@ sequenceDiagram
     end
     opt Bonus-Code oder Session-Feedback offen
         FE->>S: Abschluss-Gate mit CTA Zur Startseite
-    else kein Abschluss-Gate noetig
+    end
+    opt kein Abschluss-Gate noetig
         FE->>S: Startseite per replaceUrl
     end
 ```
