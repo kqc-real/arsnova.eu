@@ -21,7 +21,7 @@ Wenn du neu im Projekt bist, reicht dieses mentale Modell:
 2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `typecheck`, `lint`).
 3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `lighthouse`).
 4. **Sicherheit:** Dependency- und Container-Risiken dürfen keine High/Critical-Blocker enthalten (`audit`, `trivy-fs`, `trivy-image`).
-5. **Release:** Nur wenn alles grün ist, darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
+5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
 
 ### PR-Checkliste für Erstbeiträge
 
@@ -78,15 +78,17 @@ flowchart TD
   D --> L[docker build]
   D --> M[trivy-image]
 
-  H --> N[deploy]
-  I --> N
-  J --> N
-  K --> N
-  L --> N
-  E --> N
-  F --> N
-  G --> N
-  M --> N
+  H --> Q[deploy-freshness<br/>nur aktueller main-HEAD]
+  I --> Q
+  J --> Q
+  K --> Q
+  L --> Q
+  E --> Q
+  F --> Q
+  G --> Q
+  M --> Q
+
+  Q --> N[deploy]
 
   N --> O[post-deploy-smoke]
 
@@ -199,21 +201,28 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Nach `build`, außer bei `schedule`.
 - **Warum?** Prüft, dass das Release-Artefakt (Container) tatsächlich baubar ist.
 
-### 4.14 deploy
+### 4.14 deploy-freshness
+
+- **Was?** Prüft kurz vor dem Production-Deploy, ob der geprüfte Commit (`github.sha`) noch der aktuelle `main`-HEAD ist.
+- **Wo?** Deploy-Freshness-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
+- **Wann?** Nur bei `push` auf `main` und wenn `DEPLOY_ENABLED=true` gesetzt ist, nach allen Quality-Gates.
+- **Warum?** Verhindert stale Deployments: Ein älterer, langsamer CI-Lauf darf keinen inzwischen überholten Commit mehr produktiv ausrollen.
+
+### 4.15 deploy
 
 - **Was?** Server-Deploy via SSH; führt serverseitig [../scripts/deploy.sh](../scripts/deploy.sh) aus.
 - **Wo?** Deploy-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Nur bei `push` auf `main` und wenn `DEPLOY_ENABLED=true` gesetzt ist.
-- **Warum?** Produktivdeployment bleibt kontrolliert und an alle Quality-Gates gekoppelt.
+- **Wann?** Nur wenn `deploy-freshness` bestätigt hat, dass `github.sha` noch aktueller `main`-HEAD ist.
+- **Warum?** Produktivdeployment bleibt kontrolliert, an alle Quality-Gates gekoppelt und auf den tatsächlich geprüften Commit gepinnt.
 
-### 4.15 post-deploy-smoke
+### 4.16 post-deploy-smoke
 
 - **Was?** Nachgelagerter Smoke-Check auf der Zielumgebung über [../scripts/verify-production-serving.mjs](../scripts/verify-production-serving.mjs).
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Nur wenn `deploy` erfolgreich war.
 - **Warum?** Verifiziert, dass die produktive Auslieferung wirklich erreichbar und gesund ist.
 
-### 4.16 rollback-on-smoke-failure
+### 4.17 rollback-on-smoke-failure
 
 - **Was?** Automatischer Rollback auf den vorherigen Commit (`github.event.before`) und erneutes serverseitiges Deployment.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
@@ -224,7 +233,7 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ## 5) Welche Jobs sind echte Gates vor Deploy?
 
-Vor `deploy` müssen erfolgreich sein:
+Vor `deploy-freshness` müssen erfolgreich sein:
 
 1. lint
 2. test (mit Coverage)
@@ -236,7 +245,7 @@ Vor `deploy` müssen erfolgreich sein:
 8. trivy-fs
 9. trivy-image
 
-Wenn einer davon fehlschlägt, wird nicht deployt.
+Wenn einer davon fehlschlägt, wird nicht deployt. Wenn danach `deploy-freshness` feststellt, dass `github.sha` nicht mehr aktueller `main`-HEAD ist, wird der Deploy sauber übersprungen.
 
 ---
 
@@ -317,7 +326,7 @@ Damit die Pipeline-Regeln wirklich verbindlich sind, sollten in GitHub Branch Pr
 10. `actionlint`
 11. `dependency-review`
 
-Empfehlung: `deploy`, `post-deploy-smoke` und `rollback-on-smoke-failure` nicht als PR-required setzen, da diese nur im Push/Release-Pfad relevant sind.
+Empfehlung: `deploy-freshness`, `deploy`, `post-deploy-smoke` und `rollback-on-smoke-failure` nicht als PR-required setzen, da diese nur im Push/Release-Pfad relevant sind.
 
 ---
 

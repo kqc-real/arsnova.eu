@@ -114,13 +114,14 @@ Der produktive Rollout erfolgt über GitHub Actions (`.github/workflows/ci.yml`)
 2. Lint
 3. Tests
 4. Docker-Build
-5. Deploy-Job, nur bei Push auf `main` (oder `DEPLOY_BRANCH`) **und** Repository-Variable `DEPLOY_ENABLED=true`; **Voraussetzung:** Die Jobs `lint`, `test`, `docker` und `typecheck` waren erfolgreich.
+5. Deploy-Freshness-Check: Nur der aktuelle `main`-HEAD darf weiter zum Production-Deploy.
+6. Deploy-Job, nur bei Push auf `main` **und** Repository-Variable `DEPLOY_ENABLED=true`; **Voraussetzung:** Alle Quality-Gates waren erfolgreich und `github.sha` ist weiterhin aktueller `main`-HEAD.
 
-Der Deploy-Job ist an **production** als GitHub Environment gebunden und führt serverseitig `scripts/deploy.sh` aus.
+Der Deploy-Job ist an **production** als GitHub Environment gebunden und führt serverseitig `scripts/deploy.sh` mit `DEPLOY_SHA` aus. Das Skript checkt den geprüften Ziel-Commit detached aus, bevor Image-Build, Migrationen und Healthchecks laufen.
 
 ### 6.1 Deploy-Ablauf (serverseitig)
 
-- Git sync auf Ziel-Branch
+- Ziel-Commit holen und exakt per `DEPLOY_SHA` detached auschecken
 - App-Image Build (`docker compose ... build --pull app`)
 - Start von Postgres/Redis
 - Prisma-Migrationen (`npx prisma migrate deploy`)
