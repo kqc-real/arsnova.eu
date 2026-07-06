@@ -213,6 +213,13 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Nur wenn `deploy` erfolgreich war.
 - **Warum?** Verifiziert, dass die produktive Auslieferung wirklich erreichbar und gesund ist.
 
+### 4.16 rollback-on-smoke-failure
+
+- **Was?** Automatischer Rollback auf den vorherigen Commit (`github.event.before`) und erneutes serverseitiges Deployment.
+- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
+- **Wann?** Bei `push` auf `main`, wenn `deploy` erfolgreich war, aber `post-deploy-smoke` fehlschlug.
+- **Warum?** Reduziert Ausfallzeit und stellt den zuletzt funktionierenden Stand schnell wieder her.
+
 ---
 
 ## 5) Welche Jobs sind echte Gates vor Deploy?
@@ -241,6 +248,7 @@ Wenn einer davon fehlschlägt, wird nicht deployt.
 - **Fail in lighthouse**: Qualitätsanforderung (insb. A11y) unterschritten.
 - **Fail in docker**: Release-Artefakt nicht reproduzierbar.
 - **Fail in post-deploy-smoke**: Deployment lief technisch, aber die App ist nicht gesund ausgeliefert.
+- **Fail in rollback-on-smoke-failure**: Das automatische Zurückrollen ist gescheitert; sofort manuell eingreifen.
 
 ---
 
@@ -293,7 +301,27 @@ Hinweise:
 
 ---
 
-## 10) Canonical References
+## 10) Branch Protection (Required Checks)
+
+Damit die Pipeline-Regeln wirklich verbindlich sind, sollten in GitHub Branch Protection für `main` diese Checks als **required** gesetzt werden:
+
+1. `build`
+2. `typecheck`
+3. `lint`
+4. `test`
+5. `lighthouse`
+6. `e2e`
+7. `audit`
+8. `trivy-fs`
+9. `trivy-image`
+10. `actionlint`
+11. `dependency-review`
+
+Empfehlung: `deploy`, `post-deploy-smoke` und `rollback-on-smoke-failure` nicht als PR-required setzen, da diese nur im Push/Release-Pfad relevant sind.
+
+---
+
+## 11) Canonical References
 
 - Workflow-Datei: [../.github/workflows/ci.yml](../.github/workflows/ci.yml)
 - Test-Referenz: [TESTING.md](TESTING.md)
