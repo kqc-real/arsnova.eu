@@ -27,6 +27,63 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  # ─── Change Filter ────────────────────────────────────────────────────────
+  changes:
+    name: Change Filter
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.filter.outputs.docs_only }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
+
+      - name: Detect docs-only changes
+        id: filter
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          docs_only=false
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            base_sha="$PR_BASE_SHA"
+            head_sha="$PR_HEAD_SHA"
+          elif [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            if [[ "$PUSH_BEFORE" =~ ^0{40}$ ]]; then
+              echo "docs_only=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            base_sha="$PUSH_BEFORE"
+            head_sha="$HEAD_SHA"
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mapfile -t changed_files < <(git diff --name-only "$base_sha" "$head_sha")
+          if (( ${#changed_files[@]} > 0 )); then
+            docs_only=true
+            for file in "${changed_files[@]}"; do
+              if [[ "$file" == docs/* || "$file" == *.md ]]; then
+                continue
+              fi
+              docs_only=false
+              break
+            done
+          fi
+
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          printf 'Changed files (%s):\n' "${#changed_files[@]}"
+          if (( ${#changed_files[@]} > 0 )); then
+            printf ' - %s\n' "${changed_files[@]}"
+          fi
+
   # ─── Dependency Review (PR) ────────────────────────────────────────────────
   dependency-review:
     name: Dependency Review
@@ -62,7 +119,8 @@ jobs:
   build:
     name: Build & Validate (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    if: github.event_name != 'schedule'
+    needs: changes
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -94,6 +152,7 @@ jobs:
         run: npx tsc --project apps/frontend/tsconfig.app.json --noEmit
 
       - name: Frontend localized production build (alle Locales)
+        if: matrix.node-version == 22
         run: npm run build:localize -w @arsnova/frontend
 
       - name: Upload frontend production build
@@ -110,7 +169,8 @@ jobs:
   typecheck:
     name: Typecheck (workspaces)
     runs-on: ubuntu-latest
-    if: github.event_name != 'schedule'
+    needs: changes
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -142,8 +202,8 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name != 'schedule'
+    needs: [changes, build]
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
 
     steps:
       - name: Checkout
@@ -165,7 +225,8 @@ jobs:
   audit:
     name: Security Audit
     runs-on: ubuntu-latest
-    if: github.event_name != 'schedule'
+    needs: changes
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
 
     steps:
       - name: Checkout
@@ -187,8 +248,8 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name != 'schedule'
+    needs: [changes, build]
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
 
     steps:
       - name: Checkout
@@ -224,8 +285,8 @@ jobs:
   lighthouse:
     name: Lighthouse CI
     runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name != 'schedule'
+    needs: [changes, build]
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
     timeout-minutes: 15
 
     steps:
@@ -284,8 +345,8 @@ jobs:
   e2e:
     name: Playwright Smoke E2E
     runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name != 'schedule'
+    needs: [changes, build]
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
     timeout-minutes: 25
 
     services:
@@ -437,7 +498,8 @@ jobs:
   trivy-fs:
     name: Trivy Filesystem Scan
     runs-on: ubuntu-latest
-    if: github.event_name != 'schedule'
+    needs: changes
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
 
     steps:
       - name: Checkout
@@ -477,8 +539,8 @@ jobs:
   trivy-image:
     name: Trivy Image Scan
     runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name != 'schedule'
+    needs: [changes, docker]
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
 
     steps:
       - name: Checkout
@@ -494,6 +556,7 @@ jobs:
           push: false
           load: true
           tags: arsnova-eu:scan-${{ github.sha }}
+          cache-from: type=gha
 
       - name: Run Trivy image scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
@@ -527,8 +590,8 @@ jobs:
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name != 'schedule'
+    needs: [changes, build]
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
 
     steps:
       - name: Checkout
@@ -550,8 +613,8 @@ jobs:
   deploy-freshness:
     name: Deploy Freshness Check
     runs-on: ubuntu-latest
-    needs: [lint, test, docker, typecheck, lighthouse, e2e, audit, trivy-fs, trivy-image]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    needs: [changes, lint, test, docker, typecheck, lighthouse, e2e, audit, trivy-fs, trivy-image]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true' && needs.changes.outputs.docs_only != 'true'
     outputs:
       should_deploy: ${{ steps.check.outputs.should_deploy }}
 
