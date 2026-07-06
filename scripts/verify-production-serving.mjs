@@ -15,8 +15,15 @@ const REQUEST_TIMEOUT_MS = Number(process.env.VERIFY_REQUEST_TIMEOUT_MS || '8000
 const RETRY_ATTEMPTS = Number(process.env.VERIFY_RETRY_ATTEMPTS || '8');
 const RETRY_DELAY_MS = Number(process.env.VERIFY_RETRY_DELAY_MS || '1500');
 
-function printCheck(label, ok, detail) {
-  console.log(`${label}:`, ok ? '✓' : '✗', detail ? `(${detail})` : '');
+let failedRequiredChecks = 0;
+
+function printCheck(label, ok, detail, { required = true } = {}) {
+  const marker = ok ? '✓' : required ? '✗' : 'WARN';
+  console.log(`${label}:`, marker, detail ? `(${detail})` : '');
+
+  if (!ok && required) {
+    failedRequiredChecks += 1;
+  }
 }
 
 function sleep(ms) {
@@ -103,7 +110,9 @@ async function main() {
     console.log('Root /');
     printCheck('Status 200', root.ok, String(root.status));
     printCheck('Content-Type HTML', root.contentType.includes('text/html'), root.contentType);
-    printCheck('Compression aktiv', Boolean(root.encoding), root.encoding || 'keine');
+    printCheck('Compression aktiv', Boolean(root.encoding), root.encoding || 'keine', {
+      required: false,
+    });
     printCheck(
       'Locale-Redirect-Hinweis',
       root.text.includes("location.replace('/" ) && root.text.includes('/de/'),
@@ -130,6 +139,7 @@ async function main() {
       'Theme-CSS inline',
       locale.text.includes('--mat-sys-surface-container'),
       'critical theme tokens',
+      { required: false },
     );
     console.log('');
 
@@ -149,9 +159,9 @@ async function main() {
       stats ? `${stats.serviceStatus} / ${stats.loadStatus}` : 'keine Daten',
     );
 
-    if (!root.ok || !locale.ok || !api.ok) {
-      console.log(
-        '\nHinweis: Mindestens ein Prüfschritt war nicht erfolgreich. Backend läuft und liefert dist/browser sowie /trpc korrekt aus?',
+    if (failedRequiredChecks > 0) {
+      console.error(
+        `\nFehler: ${failedRequiredChecks} verpflichtende Production-Prüfung(en) sind fehlgeschlagen.`,
       );
       process.exitCode = 1;
     }
