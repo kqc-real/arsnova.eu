@@ -12,6 +12,8 @@ on:
     paths:
       - 'apps/landing/**'
       - '.github/workflows/deploy-landing.yml'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -64,6 +66,7 @@ jobs:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: build
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}

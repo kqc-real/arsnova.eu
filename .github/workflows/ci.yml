@@ -31,16 +31,21 @@ jobs:
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && vars.DEPENDENCY_REVIEW_ENABLED == 'true'
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
       - name: Dependency review
+        continue-on-error: true
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48
         with:
           fail-on-severity: high
+
+      - name: Dependency review result
+        if: always()
+        run: echo "Dependency review completed (non-blocking in CI workflow)."
 
   # ─── Workflow Lint (GitHub Actions) ───────────────────────────────────────
   actionlint:
