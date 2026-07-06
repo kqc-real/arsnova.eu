@@ -181,6 +181,27 @@ async function clickJoinAction(page) {
   return false;
 }
 
+async function tryJoinUntilVoteRoute(page, code, attempts = 5) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const joined = await clickJoinAction(page);
+    if (!joined) {
+      await page.waitForTimeout(500);
+      continue;
+    }
+
+    try {
+      await waitForPathSuffix(page, `/session/${code}/vote`, 7_000);
+      return true;
+    } catch {
+      if (attempt < attempts) {
+        await page.waitForTimeout(800);
+      }
+    }
+  }
+
+  return false;
+}
+
 async function clickChannelTab(page, index) {
   const labels = page.locator('.session-channel-tabs .session-channel-tabs__label');
   await waitForVisible(labels.nth(index));
@@ -322,22 +343,29 @@ async function joinParticipantSession(participant, code, warnings, hardFailures)
   });
   await participant.waitForTimeout(1_500);
 
-  const identity = await chooseJoinIdentity(participant, 'SmokeTester');
-  if (identity.ok) {
-    const detail = identity.mode === 'select' ? identity.value ?? 'select' : 'text';
-    logStep(true, 'Join identity selected', detail);
-  } else {
+  let identityPrepared = false;
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    const identity = await chooseJoinIdentity(participant, 'SmokeTester');
+    if (identity.ok) {
+      identityPrepared = true;
+      const detail = identity.mode === 'select' ? identity.value ?? 'select' : 'text';
+      logStep(true, 'Join identity selected', `${detail} (attempt ${attempt})`);
+      break;
+    }
+    await participant.waitForTimeout(600);
+  }
+
+  if (!identityPrepared) {
     warnings.push('Join form exposed neither a visible text field nor a usable identity selection.');
     logWarn('Join identity not prepared');
   }
 
-  const joined = await clickJoinAction(participant);
+  const joined = await tryJoinUntilVoteRoute(participant, code);
   if (joined) {
-    await waitForPathSuffix(participant, `/session/${code}/vote`);
     await waitForChannelTabs(participant);
     logStep(true, 'Participant joins the session', participant.url());
   } else {
-    hardFailures.push('Participant could not trigger the join action.');
+    hardFailures.push('Participant did not reach the vote route after repeated join attempts.');
     logStep(false, 'Participant joins the session');
   }
 
