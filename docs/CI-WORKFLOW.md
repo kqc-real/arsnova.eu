@@ -17,11 +17,11 @@ Für detaillierte lokale Testkommandos und zusätzliche Last-/Smoke-Varianten si
 
 Wenn du neu im Projekt bist, reicht dieses mentale Modell:
 
-1. **Vorstufe (früh):** `changes` erkennt docs-only Änderungen; teure Jobs werden dann gezielt übersprungen.
-2. **Frühe Qualität:** PR-Risiken und Workflow-Qualität prüfen (`dependency-review`, `actionlint`).
-3. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `typecheck`, `lint`).
-4. **Verhalten + Sicherheit:** Tests und Security-Gates müssen grün sein (`test:coverage`, `e2e`, `lighthouse`, `audit`, `trivy-*`).
-5. **Release-Pfad:** `deploy-freshness` erlaubt Deploy nur für den aktuellen `main`-HEAD; danach `deploy` und `post-deploy-smoke`.
+1. **Vorstufe (früh):** `changes` erkennt docs-only Änderungen; parallel dazu prüfen `dependency-review` und `actionlint` frühe PR- und Workflow-Risiken.
+2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `typecheck`, `lint`).
+3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `lighthouse`).
+4. **Sicherheit:** Dependency- und Container-Risiken dürfen keine High/Critical-Blocker enthalten (`audit`, `trivy-fs`, `trivy-image`).
+5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
 
 ### PR-Checkliste für Erstbeiträge
 
@@ -209,19 +209,19 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Nach `build`, außer bei `schedule`.
 - **Warum?** Prüft, dass das Release-Artefakt (Container) tatsächlich baubar ist.
 
-### 4.14 deploy
+### 4.14 deploy-freshness
+
+- **Was?** Prüft kurz vor dem Production-Deploy, ob der geprüfte Commit (`github.sha`) noch der aktuelle `main`-HEAD ist.
+- **Wo?** Deploy-Freshness-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
+- **Wann?** Nur bei `push` auf `main` und wenn `DEPLOY_ENABLED=true` gesetzt ist, nach allen Quality-Gates.
+- **Warum?** Verhindert stale Deployments: Ein älterer, langsamer CI-Lauf darf keinen inzwischen überholten Commit mehr produktiv ausrollen.
+
+### 4.15 deploy
 
 - **Was?** Server-Deploy via SSH; führt serverseitig [../scripts/deploy.sh](../scripts/deploy.sh) aus.
 - **Wo?** Deploy-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Nur wenn `deploy-freshness` vorher `should_deploy=true` setzt.
-- **Warum?** Verhindert Stale-Deploys: nur der aktuellste `main`-HEAD darf wirklich ausrollen.
-
-### 4.15 deploy-freshness
-
-- **Was?** Vergleicht `github.sha` mit dem aktuellen `main`-HEAD per GitHub API.
-- **Wo?** Job `deploy-freshness` in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Im Push-Deploy-Pfad auf `main` (und nur bei `DEPLOY_ENABLED=true`).
-- **Warum?** Überspringt Deploys veralteter Runs, wenn in der Zwischenzeit ein neuerer Commit auf `main` gelandet ist.
+- **Wann?** Nur wenn `deploy-freshness` bestätigt hat, dass `github.sha` noch aktueller `main`-HEAD ist.
+- **Warum?** Produktivdeployment bleibt kontrolliert, an alle Quality-Gates gekoppelt und auf den tatsächlich geprüften Commit gepinnt.
 
 ### 4.16 post-deploy-smoke
 
@@ -337,7 +337,7 @@ Damit die Pipeline-Regeln wirklich verbindlich sind, sollten in GitHub Branch Pr
 12. `Workflow Lint`
 13. `Dependency Review`
 
-Empfehlung: `deploy`, `post-deploy-smoke` und `rollback-on-smoke-failure` nicht als PR-required setzen, da diese nur im Push/Release-Pfad relevant sind.
+Empfehlung: `deploy-freshness`, `deploy`, `post-deploy-smoke` und `rollback-on-smoke-failure` nicht als PR-required setzen, da diese nur im Push/Release-Pfad relevant sind.
 
 ---
 
