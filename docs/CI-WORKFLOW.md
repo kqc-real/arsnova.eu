@@ -17,10 +17,10 @@ Für detaillierte lokale Testkommandos und zusätzliche Last-/Smoke-Varianten si
 
 Wenn du neu im Projekt bist, reicht dieses mentale Modell:
 
-1. **Vorstufe (früh):** `changes` erkennt docs-only Änderungen; teure Jobs werden dann gezielt übersprungen.
-2. **Frühe Qualität:** PR-Risiken und Workflow-Qualität prüfen (`dependency-review`, `actionlint`).
-3. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `typecheck`, `lint`).
-4. **Verhalten + Sicherheit:** Tests und Security-Gates müssen grün sein (`test:coverage`, `e2e`, `lighthouse`, `audit`, `trivy-*`).
+1. **Vorstufe (früh):** `changes` erkennt docs-only Änderungen; parallel dazu prüfen `dependency-review` und `actionlint` frühe PR- und Workflow-Risiken.
+2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `typecheck`, `lint`).
+3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `lighthouse`).
+4. **Sicherheit:** Dependency- und Container-Risiken dürfen keine High/Critical-Blocker enthalten (`audit`, `trivy-fs`, `trivy-image`).
 5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
 
 ### PR-Checkliste für Erstbeiträge
