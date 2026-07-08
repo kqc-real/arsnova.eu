@@ -2,9 +2,9 @@
 
 # Freitext, Sprache und „intelligente“ Auswertung — ein ausführlicher Leitfaden für Studierende
 
-Dieses Dokument ist **didaktisch** geschrieben: Du brauchst **keine** Vorlesung „Einführung in die Linguistik“ absolviert zu haben. Ziel ist, dass du **Begriffe wie Syntax, Semantik, Lexik, Stemming** sicher einordnen kannst — und verstehst, **warum** eine einfache, rein lexikalische Wortwolke und ein **LLM-gestütztes Bündeln** von Antworten **unterschiedliche Probleme** lösen.
+Dieses Dokument ist **didaktisch** geschrieben: Du brauchst **keine** Vorlesung „Einführung in die Linguistik“ absolviert zu haben. Ziel ist, dass du **Begriffe wie Syntax, Semantik, Lexik, Stemming** sicher einordnen kannst — und verstehst, **warum** eine einfache, rein lexikalische Wortwolke, Embedding-basierte Bündelung und eine optionale LLM-Zusammenfassung **unterschiedliche Probleme** lösen.
 
-**Bezug zum Praktikum:** In arsnova.eu werden Freitextantworten u. a. für eine **Wortwolke** genutzt (heute stark **lexikalisch**: Wörter zählen). Eure Aufgabe denkt **semantisch** und **lexikalisch** weiter: ähnliche **Bedeutungen** und **Schreibweisen** sollen sinnvoll zusammengeführt werden — unterstützt durch ein **selbst gehostetes Sprachmodell**.
+**Bezug zum Praktikum:** In arsnova.eu werden Freitextantworten u. a. für eine **Wortwolke** genutzt (heute stark **lexikalisch**: Wörter zählen). Eure Aufgabe denkt **semantisch** und **lexikalisch** weiter: ähnliche **Bedeutungen** und **Schreibweisen** sollen sinnvoll zusammengeführt werden — zuerst über erklärbare Baselines und optional über die asynchrone NLP-Kaskade aus [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md). Generative LLMs sind nur eine spätere Komfortschicht, nicht der Pflichtweg.
 
 ---
 
@@ -259,7 +259,7 @@ Ein **Embedding** ist ein **Vektor** (Liste von Zahlen), der einen Text so abbil
 
 ### 11.3 LLMs und „semantische Kongruenz“
 
-Wenn ihr ein **LLM** nutzt, um Freitexte **zu labeln** oder **zu gruppieren**, sprecht ihr oft **nicht** mehr von klassischem Stemming, sondern von:
+Wenn ihr ein **Embedding-Modell**, **Klassifikationsmodell** oder **LLM** nutzt, um Freitexte **zu labeln** oder **zu gruppieren**, sprecht ihr oft **nicht** mehr von klassischem Stemming, sondern von:
 
 - **Interpretation** des Textes durch das Modell,
 - **Ausgabe** in einem **strukturierten Format** (z. B. JSON mit Gruppen-IDs — bei euch **Zod-validiert**!).
@@ -435,7 +435,7 @@ _Hier die **Orientierung** — deine Antwort kann anders formuliert sein, sollte
 
 1. **Lexikalisch gleich?** **Nein** — andere Sprachen, andere Wörter.
 2. **Semantisch nah?** **Ja, kann** — Inhalt kann **gleich** sein (Klima als Thema).
-3. **Verfahren + Einschränkung (Beispiel):** **Mehrsprachige Satz-Embeddings** oder **mehrsprachliche Transformer** können semantische Nähe messen — **Einschränkung:** Qualität und **Bias** variieren je Sprache und Domäne; **Kosten** und **Datenschutz** bei externen APIs (bei euch: **selbst gehostet** beachten).
+3. **Verfahren + Einschränkung (Beispiel):** **Mehrsprachige Satz-Embeddings** oder **mehrsprachliche Transformer** können semantische Nähe messen — **Einschränkung:** Qualität und **Bias** variieren je Sprache und Domäne; **Kosten**, **Latenz** und **Datenschutz** müssen auch bei lokalem Betrieb geprüft werden.
 
 ---
 
@@ -443,12 +443,12 @@ _Hier die **Orientierung** — deine Antwort kann anders formuliert sein, sollte
 
 **Beispieltabelle (Muster):**
 
-| Teilproblem                     | Ansatz                                                         | Kurzgrund                                                                                            |
-| ------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Flexion** (_laufen_ / _lief_) | Lemmatisierung/Stemming **oder** LLM-Gruppierung               | Regeln/NLP gut für **eine** Sprache; LLM kann mehr, ist aber **teurer** und braucht **Validierung**. |
-| **Tippfehler**                  | Edit-Distanz + Schwellenwert, ggf. Clustering                  | Schnell, **ohne** Semantik; falsch positiv bei _Haus_/_Maus_ möglich.                                |
-| **Synonyme / Paraphrase**       | Embeddings oder LLM mit **JSON-Schema**                        | Semantik nötig; **Zod**-Pflicht für LLM-Ausgaben im Projekt.                                         |
-| **Sprachenmix**                 | Mehrsprachiges Modell oder LLM mit klarer Prompt-Spezifikation | Ohne mehrsprachige Logik **keine** faire Zusammenführung.                                            |
+| Teilproblem                     | Ansatz                                                        | Kurzgrund                                                                                        |
+| ------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Flexion** (_laufen_ / _lief_) | Lemmatisierung/Stemming, ggf. Klassifikator                   | Regeln/NLP gut für **eine** Sprache; neuronale Modelle sind teurer und brauchen **Validierung**. |
+| **Tippfehler**                  | Edit-Distanz + Schwellenwert, ggf. Clustering                 | Schnell, **ohne** Semantik; falsch positiv bei _Haus_/_Maus_ möglich.                            |
+| **Synonyme / Paraphrase**       | Embeddings, SetFit oder optional LLM mit **JSON-Schema**      | Semantik nötig; generative Ausgaben müssen **Zod-validiert** werden.                             |
+| **Sprachenmix**                 | Mehrsprachiges Modell oder klar spezifizierte lokale Pipeline | Ohne mehrsprachige Logik **keine** faire Zusammenführung.                                        |
 
 **Merke:** Deine Tabelle darf **andere** Zeilen haben — wichtig sind **Abwägung** und **Fallback** (z. B. lexikalische Wolke).
 
@@ -464,7 +464,7 @@ _Hier die **Orientierung** — deine Antwort kann anders formuliert sein, sollte
 
 ## Schlusswort
 
-Wenn du **Syntax, Semantik, Lexik und Stemming** auseinanderhältst, kannst du dein Praktikum **klar beschreiben**: Wo nutzt ihr **regelbasierte** Normalisierung, wo **statistische** oder **neuronale** Verfahren, und wo ein **LLM** — und **warum** das für Lehrende einen Mehrwert hat, ohne Daten zu gefährden.
+Wenn du **Syntax, Semantik, Lexik und Stemming** auseinanderhältst, kannst du dein Praktikum **klar beschreiben**: Wo nutzt ihr **regelbasierte** Normalisierung, wo **statistische** oder **neuronale** Verfahren, und wo optional ein **LLM** — und **warum** das für Lehrende einen Mehrwert hat, ohne Daten zu gefährden.
 
 Bei Fragen zur **Umsetzung in der Codebasis** siehe [`PRAKTIKUM.md`](./PRAKTIKUM.md) und die dort verlinkten Pfade.
 

@@ -105,7 +105,7 @@ arsnova.eu behandelt Word Clouds nicht nur als dekoratives Live-Bild:
 - Wörter und Phrasen werden termbasiert extrahiert; technische und didaktische Begriffe können geschützt werden.
 - Tooltips machen nachvollziehbar, aus welchen Fragen und Gewichtungen Begriffe stammen.
 
-Der nächste fachliche Schritt ist die **semantische Tendenz- und Sentimentauswertung mit selbst gehostetem LLM**. Wichtig bleibt dabei: Das LLM soll Moderation unterstützen, nicht Beiträge intransparent bewerten.
+Der nächste fachliche Schritt ist gestuft: zuerst ein **deterministischer Live-Moderationskompass**, danach optional eine **asynchrone Q&A-NLP-Kaskade** für Kategorien und Unsicherheiten und erst später eine **generative, quellengebundene Zusammenfassung**. Wichtig bleibt dabei: KI-/NLP-Signale sollen Moderation unterstützen, nicht Beiträge intransparent bewerten.
 
 ### 4. Numerische Schätzfrage mit zwei Runden
 

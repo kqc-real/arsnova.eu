@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **2.9** (asynchrone Quiz-Modi), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2i** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9** (didaktischer Live-Moderationskompass) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.7** (Last- & Performance-Tests), **0.8** (Komplexitätsabbau / McCabe-Refactor), **2.9** (asynchrone Quiz-Modi), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2i** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -110,7 +110,9 @@
 | 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                                            | 🟡   | ✅ Fertig    |
 | 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)                                      | 🟡   | ✅ Fertig    |
 | 8    | 8.8   | Tempo-Blitzlicht als Host-Option                                                   | 🟡   | ✅ Fertig    |
-| 8    | 8.9   | Didaktischer Live-Moderationskompass mit self-hosted LLM                           | 🟡   | ⬜ Offen     |
+| 8    | 8.9a  | Deterministischer Live-Moderationskompass                                          | 🟡   | ⬜ Offen     |
+| 8    | 8.9b  | Optionale Q&A-NLP-Kaskade für Moderationssignale                                   | 🟡   | ⬜ Offen     |
+| 8    | 8.9c  | Optionale generative Moderationszusammenfassung                                    | 🟢   | ⬜ Offen     |
 | 9    | 9.1   | Admin: Sessions & Quiz-Inhalte inspizieren                                         | 🟡   | ✅ Fertig    |
 | 9    | 9.2   | Admin: Session/Quiz löschen (rechtlich)                                            | 🟡   | ✅ Fertig    |
 | 9    | 9.3   | Admin: Auszug für Behörden/Staatsanwaltschaft                                      | 🟡   | ✅ Fertig    |
@@ -1521,47 +1523,91 @@ Epic 6 bündelt **Theming, Internationalisierung, rechtliche Pflichtseiten, Mobi
     - **Beispiel-Schwellen auf Basis von `activeParticipants`:** `lost >= 0.12` => `Mehrere Teilnehmende sind abgehängt.`; `slow_down + lost >= 0.22` => `Es wirkt zu schnell.`; `speed_up >= 0.22` bei gleichzeitig niedrigem `slow_down + lost` => `Die Gruppe kann schneller mitgehen.`; `following >= 0.50` bei niedrigen Problemanteilen => `Die Mehrheit kann folgen.`; knappe Abstände zwischen mehreren Gruppen oder hohe Streuung => `Die Rückmeldungen sind gemischt.`
   - **Performance-Hinweis:** Auch dieses Template ist gemaess [ADR-0025](docs/architecture/decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md) performance-kritisch zu behandeln, weil ersetzbare Live-Abstimmungen mit 500+ Teilnehmenden weder neue Polling-Last noch teure Rebuilds pro Tap erzeugen duerfen.
   - **Abhängigkeiten:** Story 2.1c (Host-Token / serverseitige Autorisierung), Story 2.8 (produktives Smartphone-Hosting), Story 6.4 (Mobile-First), Story 6.5 (Barrierefreiheit), ADR-0010, ADR-0013, ADR-0014, ADR-0019, ADR-0025.
-- **Story 8.9 (Didaktischer Live-Moderationskompass mit self-hosted LLM):** 🟡 Als Lehrperson oder Moderator:in möchte ich während einer Live-Session eine **kanalübergreifende didaktische Lageeinschätzung** erhalten, die Q&A, Wortwolken, Blitzlicht, Quiz- und Schätzfragen-Signale zusammenführt, damit ich den nächsten Moderationsschritt bewusst wählen kann, ohne Teilnehmende zu überwachen oder Beiträge intransparent bewerten zu lassen.
-  - **Produktziel / USP:** arsnova.eu soll sich nicht nur durch einzelne Interaktionsformate differenzieren, sondern durch eine **europäische, self-hostbare Moderationsintelligenz**: Die App liest aggregierte Live-Signale didaktisch, macht Quellen sichtbar und schlägt Handlungsoptionen vor, bleibt aber unter Kontrolle der Lehrperson.
+- **Story 8.9a (Deterministischer Live-Moderationskompass):** 🟡 Als Lehrperson oder Moderator:in möchte ich während einer Live-Session eine **regelbasierte, quellenbelegte Lageeinschätzung** aus bereits vorhandenen Session-Signalen erhalten, damit ich den nächsten Moderationsschritt bewusst wählen kann, ohne neue Inferenz- oder Datenschutzrisiken in den Live-Pfad zu ziehen.
+  - **Produktziel / MVP:** Der erste Moderationskompass ist bewusst **ohne NLP-/LLM-Komponente** umsetzbar. Er liest nur vorhandene Host-/Moderator-Signale, macht Quellen sichtbar und schlägt vorsichtige, didaktische Handlungsoptionen vor. Er ist damit die robuste Fallback-Basis für spätere KI-/NLP-Erweiterungen.
   - **Akzeptanzkriterien:**
     - Der Host erhält einen neuen Bereich **Moderationskompass** in der Host-Ansicht; Presenter- und Teilnehmendenansicht zeigen diese interne Analyse nicht automatisch.
-    - Der Moderationskompass kann mindestens folgende bereits vorhandene Signale zusammenführen:
+    - Moderator:innen erhalten den Kompass erst, wenn Story 8.5 einen eigenständigen Moderatorzugang bereitstellt; vorher ist der Bereich hostgebunden.
+    - Der Kompass kann mindestens folgende vorhandene Signale zusammenführen:
       - Q&A-Fragen, Status, Pin/Archiv-Zustand, Up-/Downvote-Aggregate, `score`, `bestScore`, `controversyScore` und aktiver Q&A-Sortiermodus.
       - Q&A-Wortwolken-Terme und deren Gewichtungsbasis (`Meist unterstützt`, `Beste Fragen`, `Umstritten`).
       - Freitext-Wortwolken-Terme und aggregierte Antwortmengen.
       - Quiz-Ergebnisstände nach Freigabe, insbesondere Antwortverteilungen, richtige/falsche Anteile und auffällige Streuung.
       - Numerische Schätzfragen nach Ergebnisfreigabe: Referenzwert, Plausibilitäts-/Toleranzband, Anteil im Band, Statistik, Histogramm-Informationen und Rundenvergleich.
       - Tempo-Blitzlicht-Tendenz und aggregierte Quick-Feedback-Lage.
-    - Die Ausgabe besteht aus **moderationsfähigen Karten**, z. B.:
-      - `Themen im Raum` — semantische Cluster aus Q&A und Wortwolken.
-      - `Klärungsbedarf` — Hinweise auf Missverständnisse, starke Streuung oder viele ähnliche Fragen.
-      - `Reibung / Kontroverse` — erklärter Bezug auf Up-/Downvotes, Kontroversitäts-Score und Beispiel-Fragen.
-      - `Tempo / Belastung` — Zusammenfassung aus Tempo-Blitzlicht und aktuellen Interaktionssignalen.
-      - `Nächster sinnvoller Schritt` — Vorschläge wie Frage pinnen, zweite Runde starten, Blitzlicht öffnen, Kurzantwort nachschieben, Thema parken oder Zusammenfassung geben.
-    - Jede Empfehlung zeigt **Quellenbelege**: konkrete Q&A-Fragen, aggregierte Begriffe, Statistikwerte oder Ergebnisanteile, aus denen sie abgeleitet wurde. Eine Empfehlung ohne nachvollziehbare Quelle wird nicht angezeigt.
-    - Die LLM-Komponente darf **keine** Aktionen automatisch ausführen: Sie pinnt, archiviert, löscht, startet keine zweite Runde und beendet keine Phase. Der Host entscheidet explizit.
-    - Die LLM-Komponente bewertet keine einzelnen Teilnehmenden, erstellt keine Persönlichkeitsprofile und vergibt keine Punkte. Sie arbeitet ausschließlich auf aggregierten bzw. hostseitig ohnehin sichtbaren Session-Signalen.
-    - Vor Ergebnisfreigabe gelten die bestehenden Data-Stripping-Regeln weiter: Bei Quiz- und Schätzfragen werden keine Rohverteilungen, Lösungsnähe oder Lösungshinweise an die Analyse übergeben, wenn sie dem Host/Publikum zu diesem Zeitpunkt fachlich nicht offenstehen dürfen.
-    - Der LLM-Provider ist standardmäßig **deaktiviert** oder explizit konfigurationspflichtig. Produktiver Betrieb nutzt einen **selbst gehosteten Inferenz-Endpunkt** der Einrichtung; es gibt keinen stillen Fallback auf proprietäre SaaS-LLMs.
-    - Der an das LLM übergebene Snapshot ist **datensparsam**: keine Host-Tokens, keine Admin-Daten, keine IP-Adressen, keine Teilnehmer-IDs, keine Nicknames, keine personenbezogenen Metadaten. Freitext/Q&A-Inhalte werden nur übertragen, wenn der Host die Analyse aktiv nutzt und die Betriebsinstanz entsprechend konfiguriert ist.
-    - Prompts, Snapshots und LLM-Antworten werden nicht dauerhaft gespeichert, außer die betreibende Institution aktiviert bewusst einen Audit-/Debug-Modus mit klarer Datenschutzkennzeichnung.
-    - Die UI macht sichtbar, ob die Einschätzung **regelbasiert**, **LLM-gestützt** oder wegen deaktivierter LLM-Komponente nur eingeschränkt verfügbar ist.
-    - Bei fehlendem oder langsamem LLM bleibt die Host-Ansicht voll nutzbar; der Moderationskompass fällt auf deterministische Signale zurück oder zeigt einen ruhigen Nichtverfügbarkeitszustand.
-    - Die Analyse ist throttled/debounced und wird nicht pro Vote oder pro Tastendruck neu berechnet. Ein Live-Update darf keine neuen Performance-Hotspots im Host-, Q&A-, Blitzlicht- oder Word-Cloud-Pfad erzeugen.
+    - Die Ausgabe besteht aus **moderationsfähigen Karten**, z. B. `Themen im Raum`, `Klärungsbedarf`, `Reibung / Kontroverse`, `Tempo / Belastung` und `Nächster sinnvoller Schritt`.
+    - Jede Karte zeigt **Quellenbelege**: konkrete Q&A-Fragen, aggregierte Begriffe, Statistikwerte oder Ergebnisanteile. Eine Karte ohne nachvollziehbare Quelle wird nicht angezeigt.
+    - Jede vorgeschlagene Aktion bleibt ein Vorschlag: Der Kompass pinnt, archiviert, löscht, startet keine zweite Runde, öffnet kein Blitzlicht und beendet keine Phase automatisch.
+    - Der Kompass bewertet keine einzelnen Teilnehmenden, erstellt keine Persönlichkeitsprofile und vergibt keine Punkte.
+    - Vor Ergebnisfreigabe gelten die bestehenden Data-Stripping-Regeln weiter: Bei Quiz- und Schätzfragen werden keine Rohverteilungen, Lösungsnähe oder Lösungshinweise an den Kompass übergeben, wenn sie dem Host/Publikum zu diesem Zeitpunkt fachlich nicht offenstehen dürfen.
+    - Der Kompass erzeugt keinen neuen globalen Dauerpoller. Berechnung erfolgt aus bereits geladenen Host-Snapshots oder über eine explizit gecachte Host-Abfrage; Aktualisierung ist throttled/debounced und erzeugt keinen Teilnehmer-Fan-out.
+    - Die UI zeigt ruhige Zustände für `keine ausreichenden Signale`, `nur regelbasiert verfügbar` und `Analyse deaktiviert`.
     - Die Empfehlungen sind idiomatisch in allen UI-Locales formuliert; keine literalistische Maschinenübersetzung. Didaktische Sprache ist Teil der Qualitätssicherung.
+  - **Tests / Verifikation:**
+    - Component-/Unit-Tests für Kartenlogik, Quellenbelege, leere Zustände und fehlende Signalgruppen.
+    - Backend-/DTO-Test, dass Teilnehmer-Payloads keine internen Kompass- oder Moderationsartefakte enthalten.
+    - Smoke- oder Component-Test, dass deaktivierte/fehlende Signale die Host-Ansicht nicht blockieren.
   - **Teilweise bereits umgesetzt / vorhandene Bausteine:**
-    - **Story 1.2d** liefert numerische Schätzfragen mit Referenzwert, Toleranzband, Statistik, Histogramm, Zwei-Runden-Flow und Rundenvergleich. Auch Host-Hinweise zur zweiten Runde existieren bereits im Schätzfragen-/Peer-Instruction-Kontext.
-    - **Story 1.14** liefert Freitext-Wortwolken mit `d3-cloud`-Layout, Freeze und Export; **Story 1.14a** beschreibt den weiteren Premium-/NLP-Ausbau.
+    - **Story 1.2d** liefert numerische Schätzfragen mit Referenzwert, Toleranzband, Statistik, Histogramm, Zwei-Runden-Flow und Rundenvergleich.
+    - **Story 1.14** liefert Freitext-Wortwolken mit `d3-cloud`-Layout, Freeze und Export.
     - **Story 8.6/8.7** liefern Q&A-Kontroversitäts- und Wilson-Score, getrennte Up-/Downvote-Aggregate, Host-Sortiermodi und die sortierabhängige Q&A-Wortwolke.
     - **Story 8.8** liefert bereits eine aggregierte Tempo-Tendenz als Host-Signal.
-    - **Story 1.9a/1.9b** etablieren den KI-Workflow als bewusst externen bzw. nutzerkontrollierten Prozess mit Schema-Validierung; für 8.9 fehlt noch die serverseitig konfigurierbare Live-Inferenz-Komponente.
-    - **Story 2.4** und die Data-Stripping-Regeln definieren bereits, welche Ergebnisdaten wann sichtbar sein dürfen; 8.9 muss diese Grenzen übernehmen, nicht umgehen.
+    - **Story 2.4** und die Data-Stripping-Regeln definieren bereits, welche Ergebnisdaten wann sichtbar sein dürfen.
   - **Nicht-Ziele:**
+    - Keine NLP-/LLM-Inferenz.
     - Kein automatisches Grading von Freitext- oder Q&A-Beiträgen.
     - Kein Teilnehmerprofiling, keine Aufmerksamkeitserkennung, keine personenbezogene Sentimentanalyse.
-    - Kein ungefragter Upload von Lehrmaterial, Sessiondaten oder Freitexten an externe KI-Dienste.
     - Kein Ersatz für die fachliche Entscheidung der Lehrperson.
-  - **Abhängigkeiten:** Story 1.2d, Story 1.14, Story 1.14a, Story 2.4, Story 2.7, Story 2.8, Story 4.4, Story 4.5, Story 8.5, Story 8.6, Story 8.7, Story 8.8, Story 6.5, ADR-0025.
+  - **Abhängigkeiten:** Story 1.2d, Story 1.14, Story 2.4, Story 2.7, Story 2.8, Story 4.4, Story 4.5, Story 8.6, Story 8.7, Story 8.8, Story 6.5, ADR-0025, ADR-0026.
+- **Story 8.9b (Optionale Q&A-NLP-Kaskade für Moderationssignale):** 🟡 Als Lehrperson oder Moderator:in möchte ich optional asynchron berechnete Q&A-Kategorien und Unsicherheitswerte im Moderationskompass sehen, damit Themenballungen schneller sichtbar werden, ohne dass das Einreichen oder Anzeigen von Q&A-Fragen von Inferenz abhängt.
+  - **Produktziel:** Die NLP-Kaskade erweitert 8.9a nur um **Hilfssignale** für Q&A. Sie folgt [ADR-0032](docs/architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md): lokale/self-hosted Inferenz, asynchron, abschaltbar, messbar und ohne personenbezogene Sentimentanalyse.
+  - **Akzeptanzkriterien:**
+    - Die NLP-Funktion ist per Feature-Flag bzw. Server-Konfiguration deaktivierbar und produktiv nicht stillschweigend aktiv.
+    - Q&A-Fragen werden immer zuerst normal gespeichert und ausgeliefert. NLP startet erst nach erfolgreicher Persistenz einer `QaQuestion`.
+    - NLP-Analyse läuft nicht synchron in `qa.submit`, `qa.list` oder `qa.onQuestionsUpdated`, sondern über Queue/Worker oder lokalen Nebenservice mit hartem Timeout, begrenzter Parallelität und Backpressure.
+    - Bei deaktivierter, langsamer oder fehlerhafter NLP-Komponente bleibt Q&A vollständig nutzbar; Ergebnisstatus fällt auf `disabled`, `failed` oder `unclassified`, ohne Teilnehmer-Fehlerzustand.
+    - Der Ergebnisvertrag enthält mindestens: `status` (`pending` | `classified` | `uncertain` | `disabled` | `failed`), Kategorie/Themenlabel, Konfidenz, Modellversion und Analysezeitpunkt.
+    - Teilnehmer-DTOs enthalten keine internen NLP-Ergebnisse, Modellversionen, Konfidenzen oder Moderationsartefakte. Sichtbarkeit ist host-/moderatorseitig.
+    - Der Snapshot an die Analyse enthält keine Host-Tokens, Admin-Daten, IP-Adressen, Teilnehmer-IDs, Nicknames oder personenbezogenen Metadaten.
+    - Sentiment wird in dieser Story nicht als personenbezogenes Urteil gespeichert. Falls ein Stimmungshinweis entsteht, erscheint er nur aggregiert und quellenbelegt im Moderationskompass.
+    - Modellinputs, Prompts, Snapshots und Analyseantworten werden nicht dauerhaft gespeichert, außer die betreibende Institution aktiviert bewusst einen Audit-/Debug-Modus mit klarer Datenschutzkennzeichnung.
+    - Die Host-UI macht `pending`, `uncertain`, `disabled` und `failed` unterscheidbar, aber zurückhaltend sichtbar.
+    - Vor Aktivierung außerhalb lokaler Experimente liegen Qualitäts- und Lastmessungen vor: kuratiertes gelabeltes Q&A-Seed-Set, Auswertung nach Sprache/Code-Switching/Tippfehlern/Mehrdeutigkeit, Fallback-Rate, Modelllatenz, CPU-/RAM-Kosten und Q&A-Lasttest gemäß ADR-0013/0025/0026/0032.
+  - **Mess- und Betriebsgrenzen:**
+    - `qa.submit` darf die Inferenz nicht awaiten; ein Test mit künstlich langsamem Worker weist nach, dass die Mutation erfolgreich zurückkehrt.
+    - Queue-Limit, Timeout und Drop-/Skip-Strategie sind konfiguriert und dokumentiert.
+    - Telemetrie umfasst mindestens Queue-Länge, Inferenzlatenz, Fehlerquote, Fallback-/Unclassified-Rate und Early-Exit-Anteil.
+  - **Tests / Verifikation:**
+    - Backend-Test für asynchronen Pfad und Nicht-Blockade bei langsamem NLP-Worker.
+    - DTO-Stripping-Test für Teilnehmer- und Host-/Moderator-Sicht.
+    - Unit-Tests für Ergebnisstatus-Mapping und Fehler-/Timeout-Degradation.
+    - Last-Smoke für Q&A-Einreichungen mit deaktivierter und langsam reagierender Analysekomponente.
+  - **Nicht-Ziele:**
+    - Keine automatische Moderationsentscheidung.
+    - Kein Zero-Shot-Versprechen für neue Kategorien.
+    - Keine generative Zusammenfassung oder frei formulierende LLM-Antwort.
+  - **Abhängigkeiten:** Story 8.9a, Story 8.5 für echte Moderator-Sicht, ADR-0013, ADR-0025, ADR-0026, ADR-0032.
+- **Story 8.9c (Optionale generative Moderationszusammenfassung):** 🟢 Als Lehrperson oder Moderator:in möchte ich optional eine kurz formulierte, quellengebundene Zusammenfassung aus dem Moderationskompass erhalten, damit ich die Lage schneller verbalisieren kann, ohne dass ein LLM Aktionen ausführt oder ungeprüfte Aussagen als Wahrheit erscheinen.
+  - **Produktziel:** Diese Story ist eine spätere Komfortschicht über 8.9a und optional 8.9b. Sie nutzt nur bereits erlaubte, hostseitig sichtbare bzw. aggregierte Signale und bleibt deaktivierbar.
+  - **Akzeptanzkriterien:**
+    - Die generative Zusammenfassung ist standardmäßig deaktiviert oder explizit konfigurationspflichtig.
+    - Produktiver Betrieb nutzt ausschließlich lokale oder selbst gehostete Inferenz; es gibt keinen stillen Fallback auf proprietäre SaaS-LLMs.
+    - Die Generierung läuft nicht automatisch pro Vote, Q&A-Einreichung oder Tastendruck, sondern nur on demand oder mit klarer, niedriger Aktualisierungsfrequenz.
+    - Die Ausgabe ist strikt quellengebunden: Jede Aussage verweist auf konkrete Kompass-Karten, Q&A-Fragen, aggregierte Begriffe oder Ergebniswerte. Aussagen ohne Quelle werden nicht angezeigt.
+    - Die Antwort wird gegen ein kleines Ausgabeschema validiert, z. B. `summary`, `sources`, `suggestedNextSteps`, `limitations`.
+    - Die Zusammenfassung darf keine Aktionen automatisch ausführen und darf keine einzelnen Teilnehmenden bewerten.
+    - Bei fehlendem, langsamem oder fehlerhaftem LLM bleibt 8.9a vollständig nutzbar; die UI zeigt einen ruhigen Nichtverfügbarkeitszustand.
+    - Prompts, Snapshots und LLM-Antworten werden nicht dauerhaft gespeichert, außer die betreibende Institution aktiviert bewusst einen Audit-/Debug-Modus mit klarer Datenschutzkennzeichnung.
+    - Die Empfehlungen sind idiomatisch in allen UI-Locales formuliert; keine literalistische Maschinenübersetzung. Didaktische Sprache ist Teil der Qualitätssicherung.
+  - **Tests / Verifikation:**
+    - Schema-Validierung für Modellantworten inklusive Fehlerpfad.
+    - UI-Test für deaktiviertes, langsames und fehlerhaftes LLM.
+    - Test, dass generative Antworten nur erlaubte Snapshot-Felder und Quellen referenzieren.
+  - **Nicht-Ziele:**
+    - Kein Ersatz für 8.9a; der deterministische Kompass bleibt die Fallback-Basis.
+    - Kein In-App-Chatbot für Teilnehmende.
+    - Kein ungefragter Upload von Lehrmaterial, Sessiondaten oder Freitexten an externe KI-Dienste.
+  - **Abhängigkeiten:** Story 8.9a, optional Story 8.9b, Story 6.5, ADR-0025, ADR-0026, ADR-0032.
 
 ---
 

@@ -1,6 +1,6 @@
 # Dritter Kurs: Data Analytics und NLP (nicht zwingend parallel)
 
-> **Kurs 3** vertieft **NLP und Auswertelogik** rund um die **intelligente Wortwolke** (semantisches Bündeln von Freitext, Themenlabels, ggf. Abgrenzung zur rein lexikalischen Wolke). Im aktuellen Repo existiert dafür bereits ein deterministischer `wordCloudRouter` mit `wordCloudAnalysis` als erklärbare Baseline; der Kurs kann diese Baseline evaluieren oder in Richtung Embeddings/on-prem LLM erweitern. Der Kurs muss **nicht** parallel zu Kurs 1 (Entwicklung) und Kurs 2 (SQM) laufen — er eignet sich z. B. als **folgender** oder **eigenständiger** Block, sobald Produktkontext und Begriffe aus [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](../praktikum/BEGRIFFE-FREITEXT-UND-SEMANTIK.md) bekannt sind.
+> **Kurs 3** vertieft **NLP und Auswertelogik** rund um den didaktischen Moderationskompass: erklärbare Baselines, semantisches Bündeln von Freitext, optionale Q&A-Klassifikation und später ggf. quellengebundene Zusammenfassungen. Im aktuellen Repo existiert dafür bereits ein deterministischer `wordCloudRouter` mit `wordCloudAnalysis` als erklärbare Baseline; der Kurs kann diese Baseline evaluieren oder in Richtung Embeddings, SetFit/klassische Klassifikation und optional on-prem LLM erweitern. Der Kurs muss **nicht** parallel zu Kurs 1 (Entwicklung) und Kurs 2 (SQM) laufen — er eignet sich z. B. als **folgender** oder **eigenständiger** Block, sobald Produktkontext, [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) und Begriffe aus [`BEGRIFFE-FREITEXT-UND-SEMANTIK.md`](../praktikum/BEGRIFFE-FREITEXT-UND-SEMANTIK.md) bekannt sind.
 
 ### Ausführliche Praktikumsbeschreibung (studierendenfreundlich)
 
@@ -10,11 +10,11 @@
 
 ## Kurzmodell
 
-| Aspekt           | Inhalt                                                                                                                                                                                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Produktbezug** | Gleiche Codebasis **arsnova.eu**; Fokus auf **Daten- und Sprachpipeline** für Freitext (Host-Auswertung), nicht auf komplette Feature-Implementierung im Monorepo — es sei denn, die Betreuung koppelt explizit an Kurs 1.                               |
-| **Schwerpunkt**  | **Modellwahl** und **Prompting** für **selbst gehostete** (on-prem) Sprachmodelle; Einordnung von **klassischem NLP** (z. B. **spaCy**) und **mehrsprachigen Encodern** (z. B. **mBERT** / Sentence-Transformers) als **Baseline oder Vorverarbeitung**. |
-| **Synergie**     | Optional: Ergebnisse (Prompt-Bibliothek, Evaluationsprotokoll, JSON-Schema-Vorschläge) können **Kurs 1** als Spezifikation dienen; **Kurs 2** kann Qualitätskriterien und Nachvollziehbarkeit der Evaluierung prüfen — **kein** Muss für den Kursablauf. |
+| Aspekt           | Inhalt                                                                                                                                                                                                                                                           |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Produktbezug** | Gleiche Codebasis **arsnova.eu**; Fokus auf **Daten- und Sprachpipeline** für Freitext/Q&A (Host-Auswertung), nicht auf komplette Feature-Implementierung im Monorepo — es sei denn, die Betreuung koppelt explizit an Kurs 1.                                   |
+| **Schwerpunkt**  | **Modellvergleich und Evaluation** entlang der Storys **8.9a–8.9c**: deterministische Baseline, klassische NLP-/Klassifikationsansätze, mehrsprachige Encoder/Embeddings und optional lokale generative Zusammenfassung.                                         |
+| **Synergie**     | Optional: Ergebnisse (Evaluationsprotokoll, JSON-Schema-Vorschläge, Modell-/Prompt-Bibliothek) können **Kurs 1** als Spezifikation dienen; **Kurs 2** kann Qualitätskriterien und Nachvollziehbarkeit der Evaluierung prüfen — **kein** Muss für den Kursablauf. |
 
 ## Zielbild: Semantische Cluster statt Tokenwolke
 
@@ -32,7 +32,7 @@ flowchart LR
 	ROUTER[wordCloudRouter<br/>AnalyzeWordCloudInput/Output]
 	BASE[Repo-Baseline<br/>deterministische wordCloudAnalysis<br/>lexikalisch + Themenanker]
 	EXT[Optionale Kurs-3-Erweiterung<br/>Lemma / POS / spaCy]
-	SEM[Semantische Analyse<br/>Embeddings oder on-prem LLM<br/>Aehnlichkeiten und Paraphrasen]
+	SEM[Semantische Analyse<br/>Embeddings / SetFit / optional on-prem LLM<br/>Aehnlichkeiten und Paraphrasen]
 	CLUSTER[Clusterbildung<br/>Synonyme · Varianten<br/>aehnliche Aussagen]
 	LABEL[Themenlabeling<br/>sprechende Begriffe statt Tokens]
 	VIEW[Host-Ausgabe<br/>semantische Begriffwolke<br/>Themenkarten + Drill-down]
@@ -63,7 +63,7 @@ Die Zielbild-Screenshots im Screenshot-Ordner illustrieren genau diesen Soll-Zus
 Didaktisch ist diese Skizze fuer Kurs 3 nuetzlich, weil sie drei getrennte Arbeitsstraenge sichtbar macht:
 
 - Baseline und Vorverarbeitung: Was kann klassisches NLP ohne LLM bereits belastbar leisten?
-- Semantik und Clusterbildung: Wo beginnt echter Mehrwert durch Embeddings oder selbst gehostete Sprachmodelle?
+- Semantik und Clusterbildung: Wo beginnt echter Mehrwert durch Embeddings, SetFit, klassische Klassifikation oder selbst gehostete Sprachmodelle?
 - Evaluation und Host-Nutzen: Welche Cluster sind stabil, erklaerbar und im Live-Betrieb wirklich hilfreich?
 
 ## Evaluationssicht: Wann ist ein Cluster wirklich gut?

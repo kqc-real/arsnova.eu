@@ -3171,14 +3171,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.qaWallLlmTitle" datatype="html">
-        <source>Nächster Schritt: semantische Tendenz</source>
+        <source>Nächster Schritt: Moderationskompass</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qaWallLlmBody" datatype="html">
-        <source> Geplant ist eine Auswertung von semantischen Tendenzen und Sentiment mit einem selbst gehosteten LLM. Ziel ist keine Blackbox-Bewertung, sondern eine datenschutzbewusste Moderationshilfe: Wo bündeln sich Themen, wo kippt die Stimmung, wo braucht es Einordnung? </source>
+        <source> Geplant ist zuerst ein deterministischer Moderationskompass. Optional können später asynchrone Q&amp;A-NLP-Signale und quellengebundene Zusammenfassungen dazukommen – als datenschutzbewusste Moderationshilfe statt Blackbox-Bewertung. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">289,294</context>

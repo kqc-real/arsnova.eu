@@ -77,6 +77,7 @@ describe('HelpComponent', () => {
     expect(text).toContain('Fragenwand im Live-Kanal Q&A');
     expect(text).toContain('Kollektives Hoch- und Runtervoting');
     expect(text).toContain('Q&A-Wortwolke auf Themenebene');
-    expect(text).toContain('selbst gehosteten LLM');
+    expect(text).toContain('Moderationskompass');
+    expect(text).toContain('asynchrone Q&A-NLP-Signale');
   });
 });

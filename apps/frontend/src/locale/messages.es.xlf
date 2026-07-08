@@ -3590,16 +3590,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.qaWallLlmTitle" datatype="html">
-        <source>Nächster Schritt: semantische Tendenz</source>
-        <target>Siguiente paso: tendencia semántica</target>
+        <source>Nächster Schritt: Moderationskompass</source>
+        <target>Siguiente paso: brújula de moderación</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qaWallLlmBody" datatype="html">
-        <source> Geplant ist eine Auswertung von semantischen Tendenzen und Sentiment mit einem selbst gehosteten LLM. Ziel ist keine Blackbox-Bewertung, sondern eine datenschutzbewusste Moderationshilfe: Wo bündeln sich Themen, wo kippt die Stimmung, wo braucht es Einordnung?</source>
-        <target> El siguiente paso previsto es analizar tendencias semánticas y sentimiento con un LLM autoalojado. El objetivo no es una valoración de caja negra, sino una ayuda de moderación respetuosa con los datos: dónde se agrupan los temas, dónde cambia el tono, dónde hace falta contextualizar. </target>
+        <source> Geplant ist zuerst ein deterministischer Moderationskompass. Optional können später asynchrone Q&amp;A-NLP-Signale und quellengebundene Zusammenfassungen dazukommen – als datenschutzbewusste Moderationshilfe statt Blackbox-Bewertung.</source>
+        <target> Primero se prevé una brújula de moderación determinista. Más adelante se podrán añadir de forma opcional señales Q&amp;A NLP asíncronas y resúmenes vinculados a las fuentes, como ayuda de moderación respetuosa con los datos en lugar de una valoración de caja negra. </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">289,294</context>

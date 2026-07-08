@@ -6,7 +6,7 @@
 **Zweck:** Dieses Dokument hilft dir dabei, dein Thema klar abzugrenzen, sinnvoll zu gewichten und mit belastbaren Repo-Bezügen vorzubereiten. Es ersetzt keine Prüfungsabsprachen mit der Betreuung.  
 **Backlog-Bezug:** Maßgeblich ist der aktuelle Stand in [`Backlog.md`](../../Backlog.md); dieses Dokument dupliziert bewusst keine Story-Zahlen mehr, damit Themenabgrenzungen bei Backlog-Änderungen nicht veralten. Bei größeren Änderungen bitte Beispiele und Repo-Bezüge neu prüfen.
 
-**Aktuelle Repo-Anker für Beispiele:** Je nach Schwerpunkt lassen sich die Vorträge gut mit den derzeitigen offenen oder laufenden Themen verknüpfen, zum Beispiel **0.7** (Last- & Performance-Tests), **1.2ec–1.2ed** (Short Answer / gemeinsame Bewertungsbasis), **6.5–6.6** (Barrierefreiheit / UX-Testreihen) oder **8.5 / 8.9** (Q&A-Moderation / didaktischer Live-Kompass). Für ein abgeschlossenes, gut dokumentiertes Gegenbeispiel eignet sich weiterhin **Epic 10 / MOTD**.
+**Aktuelle Repo-Anker für Beispiele:** Je nach Schwerpunkt lassen sich die Vorträge gut mit den derzeitigen offenen oder laufenden Themen verknüpfen, zum Beispiel **0.7** (Last- & Performance-Tests), **1.2ec–1.2ed** (Short Answer / gemeinsame Bewertungsbasis), **6.5–6.6** (Barrierefreiheit / UX-Testreihen) oder **8.5 / 8.9a–8.9c** (Q&A-Moderation / didaktischer Live-Kompass). Für ein abgeschlossenes, gut dokumentiertes Gegenbeispiel eignet sich weiterhin **Epic 10 / MOTD**.
 
 Wichtig: Deine **eigene praktische Arbeit** kann schmaler sein als die **sechs Vortragsthemen** zusammen. Genau deshalb dienen die Vorträge dazu, aus einzelnen Tickets oder Schwerpunkten wieder ein **größeres softwaretechnisches Bild** von **arsnova.eu** zu machen.
 

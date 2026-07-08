@@ -3590,16 +3590,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.qaWallLlmTitle" datatype="html">
-        <source>Nächster Schritt: semantische Tendenz</source>
-        <target>Prossimo passo: tendenza semantica</target>
+        <source>Nächster Schritt: Moderationskompass</source>
+        <target>Prossimo passo: bussola di moderazione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qaWallLlmBody" datatype="html">
-        <source> Geplant ist eine Auswertung von semantischen Tendenzen und Sentiment mit einem selbst gehosteten LLM. Ziel ist keine Blackbox-Bewertung, sondern eine datenschutzbewusste Moderationshilfe: Wo bündeln sich Themen, wo kippt die Stimmung, wo braucht es Einordnung?</source>
-        <target> Il prossimo passo previsto è l’analisi di tendenze semantiche e sentiment con un LLM ospitato in autonomia. L’obiettivo non è una valutazione black box, ma un supporto alla moderazione attento ai dati: dove si aggregano i temi, dove cambia il clima, dove serve contestualizzare? </target>
+        <source> Geplant ist zuerst ein deterministischer Moderationskompass. Optional können später asynchrone Q&amp;A-NLP-Signale und quellengebundene Zusammenfassungen dazukommen – als datenschutzbewusste Moderationshilfe statt Blackbox-Bewertung.</source>
+        <target> Prima è prevista una bussola di moderazione deterministica. In seguito si potranno aggiungere in modo opzionale segnali Q&amp;A NLP asincroni e riepiloghi collegati alle fonti, come supporto alla moderazione attento ai dati invece di una valutazione black box. </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">289,294</context>

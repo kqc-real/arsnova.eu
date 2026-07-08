@@ -3590,16 +3590,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.qaWallLlmTitle" datatype="html">
-        <source>Nächster Schritt: semantische Tendenz</source>
-        <target>Prochaine étape : tendance sémantique</target>
+        <source>Nächster Schritt: Moderationskompass</source>
+        <target>Prochaine étape : boussole de modération</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.qaWallLlmBody" datatype="html">
-        <source> Geplant ist eine Auswertung von semantischen Tendenzen und Sentiment mit einem selbst gehosteten LLM. Ziel ist keine Blackbox-Bewertung, sondern eine datenschutzbewusste Moderationshilfe: Wo bündeln sich Themen, wo kippt die Stimmung, wo braucht es Einordnung?</source>
-        <target> La prochaine étape prévue est une analyse des tendances sémantiques et du sentiment avec un LLM auto-hébergé. L’objectif n’est pas un classement boîte noire, mais une aide à la modération respectueuse des données : où les thèmes se regroupent-ils, où l’ambiance bascule-t-elle, où faut-il recadrer ? </target>
+        <source> Geplant ist zuerst ein deterministischer Moderationskompass. Optional können später asynchrone Q&amp;A-NLP-Signale und quellengebundene Zusammenfassungen dazukommen – als datenschutzbewusste Moderationshilfe statt Blackbox-Bewertung.</source>
+        <target> La première étape prévue est une boussole de modération déterministe. Plus tard, des signaux Q&amp;A NLP asynchrones et des résumés liés aux sources pourront être ajoutés en option, comme aide à la modération respectueuse des données plutôt qu’une notation boîte noire. </target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">289,294</context>

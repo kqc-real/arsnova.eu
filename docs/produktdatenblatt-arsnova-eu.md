@@ -81,7 +81,7 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 ## Epic 8 – Q&A
 
 - Start, Einreichen, bidirektionales Voting, Host-Sortiermodi (`Meist unterstuetzt`, `Beste Fragen`, `Umstritten`), Q&A-Wortwolke und Moderation umgesetzt.
-- Offen: delegierbare Moderation (8.5) und didaktischer Live-Moderationskompass (8.9).
+- Offen: delegierbare Moderation (8.5) sowie der didaktische Live-Moderationskompass in drei Inkrementen (8.9a deterministisch, 8.9b optionale Q&A-NLP-Kaskade, 8.9c optionale generative Zusammenfassung).
 
 ## Epic 9 – Admin/Recht
 
@@ -150,7 +150,7 @@ Damit ist die Produktbeschreibung nicht nur backlog-basiert, sondern auch verhal
 - Sync-Sicherheit/Skalierung (1.6c/1.6d)
 - Asynchrone Quiz-Modi (2.9)
 - Q&A-Erweiterungen (8.5–8.7)
-- Didaktischer Live-Moderationskompass (8.9)
+- Didaktischer Live-Moderationskompass (8.9a–8.9c)
 - Abschlussläufe Accessibility/UX (6.5/6.6)
 - Word-Cloud-2.0 (1.14a)
 

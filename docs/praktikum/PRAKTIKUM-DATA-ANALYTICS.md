@@ -17,8 +17,8 @@
   - [5. Bewertete Leistung](#5-bewertete-leistung)
     - [5.1 Konzeption (schriftlich)](#51-konzeption-schriftlich)
     - [5.2 Praktische Artefakte (Portfolio)](#52-praktische-artefakte-portfolio)
-  - [6. Technische Landkarte: spaCy, mBERT, lokale LLMs](#6-technische-landkarte-spacy-mbert-lokale-llms)
-  - [7. Schwerpunkt: Modellwahl und Prompting (selbst gehostet)](#7-schwerpunkt-modellwahl-und-prompting-selbst-gehostet)
+  - [6. Technische Landkarte: Baseline, Embeddings, Kaskade, lokale LLMs](#6-technische-landkarte-baseline-embeddings-kaskade-lokale-llms)
+  - [7. Schwerpunkt: Modellvergleich und Evaluation nach ADR-0032](#7-schwerpunkt-modellvergleich-und-evaluation-nach-adr-0032)
     - [7.1 Modellwahl (Checkliste)](#71-modellwahl-checkliste)
     - [7.2 Prompting (Mindestanforderungen)](#72-prompting-mindestanforderungen)
     - [7.3 Validierung](#73-validierung)
@@ -33,12 +33,13 @@
 
 ## 1. Was ist das Ziel?
 
-In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Stopwörter, Wortfamilien, Phrasen und Document-Frequency-Gewichtung, siehe `word-cloud-term.service.ts` und `word-cloud.util.ts`). **Geplant** ist eine **intelligentere** Auswertung: ähnliche **Bedeutungen** und **Formulierungen** sollen **sinnvoll gebündelt** werden (Kanontoken, Themenlabels, nachvollziehbare Gewichte).
+In arsnova.eu sollen Lehrende bei der Auswertung von vielen Freitext- und Q&A-Eingaben durch eine **„Intelligente Moderationshilfe“** unterstützt werden. Ein zentraler Teil davon ist die **Wortwolke** (aktuell überwiegend **lexikalisch**: Stopwörter, Wortfamilien, Phrasen und Document-Frequency-Gewichtung, siehe `word-cloud-term.service.ts` und `word-cloud.util.ts`). **Geplant** ist eine intelligentere, aber bewusst gestufte Auswertung: zuerst ein deterministischer Moderationskompass (Backlog Story **8.9a**), danach optional eine asynchrone Q&A-NLP-Kaskade für Kategorien und Unsicherheiten (**8.9b**, [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md)) und erst später eine optionale generative Zusammenfassung (**8.9c**).
 
 **Dein Praktikum** fokussiert **Data Analytics und NLP**:
 
-- Du arbeitest **primär** an **Auswahl**, **Konfiguration** und **Prompting** eines **selbst gehosteten** Sprachmodells (On-Prem, Hochschul-Infrastruktur — Endpoint und Richtlinien gibt die Betreuung vor).
-- Du **vergleichst** das mit **leichtgewichtigen** Ansätzen: **spaCy** (Pipeline, Lemmata, Entitäten) und **mehrsprachige Encoder** wie **mBERT** bzw. gängige **multilingual Sentence-Transformer** (Embeddings für Ähnlichkeit und Clustering) — als **Baseline**, **Vorstufe** oder **Hybrid** (z. B. erst filtern/normalisieren, dann LLM).
+- Du bewertest **mehrere Schichten**: vorhandene deterministische/lexikalische Auswertung, klassische NLP-Baselines, leichte supervised Klassifikatoren, moderne mehrsprachige Embeddings und optional lokale generative Modelle.
+- Du zeigst, welche Schicht für welche Produktstufe sinnvoll ist: **8.9a** ohne neue Inferenz, **8.9b** asynchron und abschaltbar für Q&A-Hilfssignale, **8.9c** nur als spätere quellengebundene Zusammenfassung.
+- Falls ein selbst gehostetes Sprachmodell verwendet wird, behandelst du es als **optionale Komfortschicht** mit klarer Validierung, Timeout, Fallback und Datenschutzgrenzen, nicht als Pflichtantwort auf jedes NLP-Problem.
 
 So lernst du, **wann** welche Schicht sinnvoll ist — statt „alles mit einem großen LLM“ zu lösen.
 
@@ -50,13 +51,13 @@ So lernst du, **wann** welche Schicht sinnvoll ist — statt „alles mit einem 
 
 ## 2. Deine Rolle
 
-Du bist **NLP-/Analytics-Verantwortliche:r** für das **Feature-Set „Intelligente Moderationshilfe“** (insbesondere intelligente Wortwolke und Q&A-Zusammenfassung). Du lieferst **nachvollziehbare** Entscheidungen und **messbare** oder **argumentierte** Qualität — nicht nur „einmal prompten und hoffen“.
+Du bist **NLP-/Analytics-Verantwortliche:r** für das **Feature-Set „Intelligente Moderationshilfe“** (insbesondere Moderationskompass, Q&A-Kategorien, intelligente Wortwolke und optional Q&A-Zusammenfassung). Du lieferst **nachvollziehbare** Entscheidungen und **messbare** oder **argumentierte** Qualität — nicht nur „einmal prompten und hoffen“.
 
 **Typische Outputs:**
 
-- **Entscheidungsmatrix:** Welches Modell (Parametergröße, Latenz, Sprachen, Lizenz) für welche Teilaufgabe?
-- **Prompt-Spezifikation:** System-/User-Prompts, Few-Shot-Beispiele, **strukturierte Ausgabe** (JSON), Validierungsideen (z. B. Angleichung an Zod-Schemas aus dem Produkt).
-- **Evaluierung:** Kleine **Gold- oder Silber-Testsets** (anonymisierte oder synthetische Freitextlisten), Metriken oder **qualitative** Fehleranalyse (wo bricht das Modell?).
+- **Entscheidungsmatrix:** Welche Schicht oder welches Modell (Baseline, Gatekeeper, Embedding-Fallback, optional LLM) für welche Teilaufgabe?
+- **Schema-/Prompt-Spezifikation:** Strukturierte Ausgabe (JSON), Validierungsideen (z. B. Angleichung an Zod-Schemas aus dem Produkt) und Prompts nur dort, wo eine generative Schicht wirklich genutzt wird.
+- **Evaluierung:** Kleine **Gold- oder Silber-Testsets** (anonymisierte oder synthetische Freitext- und Q&A-Listen), Metriken oder **qualitative** Fehleranalyse (wo bricht welcher Kandidat?).
 - Optional: **Notebook** oder **kleines CLI/Service-Skript**, das die Pipeline demonstriert (ohne Muss, volle Integration ins Monorepo zu bauen — Absprache mit Betreuung).
 
 ---
@@ -65,9 +66,9 @@ Du bist **NLP-/Analytics-Verantwortliche:r** für das **Feature-Set „Intellige
 
 Nach dem Praktikum kannst du typischerweise:
 
-- **NLP-Pipeline vs. generatives LLM** sauber **abgrenzen** und **kombinieren** (Vorverarbeitung, Clustering, Zusammenfassung, Bündeln).
-- **Selbst gehostete** Open-Weight-Modelle **auswählen** (Kriterien: Latenz, RAM/VRAM, Sprachabdeckung, Lizenz, Halluzinationsrisiko).
-- **Prompts** so gestalten, dass die Ausgabe **strukturiert** und **validierbar** ist (JSON-Schema, Felder für Kanontoken, Gewichte, Kurzbegründung).
+- **Deterministische Baseline, NLP-Pipeline und generatives LLM** sauber **abgrenzen** und **kombinieren** (Vorverarbeitung, Klassifikation, Clustering, Zusammenfassung, Bündeln).
+- **Kandidaten** auswählen und vergleichen (Kriterien: Latenz, CPU/RAM/VRAM, Sprachabdeckung, Lizenz, Modellpflege, Kalibrierbarkeit, Halluzinationsrisiko).
+- **Ausgaben** so gestalten, dass sie **strukturiert** und **validierbar** sind (JSON-Schema, Kategorien, Konfidenz, Modellversion, Quellenbezug).
 - **Risiken** benennen: Datenschutz (Freitext!), **keine** unnötige Speicherung sensibler Inhalte, Timeout und Fallback (z. B. Rückfall auf eine lexikalische Wolke).
 - **Mehrsprachigkeit** einordnen: Deutsch/Englisch in der Lehre, gemischte Antworten, ob **ein** mehrsprachiges Modell reicht oder **pro Sprache** getrennte Pfade nötig sind.
 
@@ -90,10 +91,10 @@ Die Betreuung legt **Gewichtung** und **Mindesttiefe** fest. Orientierung:
 **4–8 Seiten** (inkl. Tabellen), studierendenverständlich, aber fachlich präzise:
 
 1. **Problem:** Warum reicht **rein lexikalisch** nicht? Was soll „intelligent“ **konkret** heißen (Bündeln, Labels, Datenschutz)?
-2. **Pipeline-Skizze:** Roh-Freitext → (optional spaCy/Normalisierung) → (optional Embeddings/Clustering) → **LLM** mit definiertem **Output-JSON**.
-3. **Modellwahl:** Mindestens **zwei** selbst gehostete **generative** Kandidaten **vergleichen** (z. B. unterschiedliche Größe oder Familie — konkrete Namen nennen, die **bei euch** lauffähig sind). Begründung mit **Latenz**, **Qualität** auf euren Testdaten, **Ressourcen**.
-4. **Prompt-Strategie:** Wie steuerst du **Konsistenz**, **Sprache**, **keine erfundenen Antworten** (nur aus Eingabeliste bündeln)? Wie sieht ein **Few-Shot** aus?
-5. **Baseline:** Was leisten **spaCy** und/oder **mBERT** (oder vergleichbarer multilingual Encoder) **ohne** generatives LLM — und **wo** lohnt das LLM?
+2. **Pipeline-Skizze:** Roh-Freitext/Q&A → vorhandene deterministische Signale → optional Gatekeeper → optional Embedding-/SetFit-Fallback → optional generative Zusammenfassung mit definiertem **Output-JSON**.
+3. **Modellwahl:** Mindestens **zwei Kandidaten aus verschiedenen Schichten** vergleichen, z. B. klassische Baseline vs. Embedding-/SetFit-Variante. Generative Kandidaten sind nur Pflicht, wenn die Betreuung ausdrücklich 8.9c einschließt.
+4. **Strukturierte Ausgabe / Prompt-Strategie:** Wie steuerst du **Konsistenz**, **Sprache**, **keine erfundenen Antworten** und Quellenbindung? Prompts sind nur dort zentral, wo eine generative Schicht genutzt wird.
+5. **Baseline:** Was leisten vorhandene Wortwolkenlogik, spaCy, Hashing-/n-Gram-Modelle oder mehrsprachige Encoder **ohne** generatives LLM — und **wo** lohnt eine teurere Schicht?
 6. **Evaluierung:** Wie prüfst du „gut genug“? (Beispiele, Fehlerklassen, ggf. einfache Kennzahl.)
 7. **Abgrenzung:** Was ist in **40 h** realistisch, und was wäre ein sinnvoller Ausblick für eine spätere Produktintegration?
 
@@ -101,47 +102,51 @@ Die Betreuung legt **Gewichtung** und **Mindesttiefe** fest. Orientierung:
 
 **Mindestens zwei** der folgenden Bausteine (in **Absprache** mit der Betreuung):
 
-| Baustein                  | Beispiel für ein „fertiges“ Artefakt                                                                                   |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **Prompt-Bibliothek**     | Versionierte Markdown- oder YAML-Datei mit System/User-Prompts, Parametern (Temperatur, max tokens), Changelog         |
-| **Modellvergleich**       | Tabelle + Kurzprotokoll: gleiche Eingaben, Ausgaben, Laufzeit, subjektive/feingranulare Bewertung                      |
-| **JSON-Schema-Vorschlag** | Felder für Kanontoken, Alias-Liste, Gewicht, optional `confidence` — kompatibel mit dem Gedanken an **Zod** im Produkt |
-| **Notebook / Skript**     | Reproduzierbare Pipeline: Eingabe CSV/JSON → Ausgabe strukturiert; spaCy- und/oder Embedding-Schritt dokumentiert      |
-| **Testkorpus**            | Kleine, **DSGVO-sichere** Liste (synthetisch oder stark anonymisiert) mit **erwarteten** Bündeln als Referenz          |
+| Baustein                      | Beispiel für ein „fertiges“ Artefakt                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Schema-/Prompt-Bibliothek** | Versionierte Markdown- oder YAML-Datei mit Output-Schema, Kategorien, Validierungsregeln und optional Prompts/Parametern |
+| **Modellvergleich**           | Tabelle + Kurzprotokoll: gleiche Eingaben, Ausgaben, Laufzeit, Ressourcen, Fehlerklassen und Qualitätsbewertung          |
+| **JSON-Schema-Vorschlag**     | Felder für Kanontoken, Alias-Liste, Gewicht, optional `confidence` — kompatibel mit dem Gedanken an **Zod** im Produkt   |
+| **Notebook / Skript**         | Reproduzierbare Pipeline: Eingabe CSV/JSON → Ausgabe strukturiert; spaCy- und/oder Embedding-Schritt dokumentiert        |
+| **Testkorpus**                | Kleine, **DSGVO-sichere** Liste (synthetisch oder stark anonymisiert) mit **erwarteten** Bündeln als Referenz            |
 
 **Hinweis:** Vollständige **Produktintegration** (tRPC, Angular, 5 Sprachen) ist **nicht** Kern dieses Praktikums — es sei denn, die Betreuung vereinbart explizit eine Schnittstelle.
 
 ---
 
-## 6. Technische Landkarte: spaCy, mBERT, lokale LLMs
+## 6. Technische Landkarte: Baseline, Embeddings, Kaskade, lokale LLMs
 
-| Werkzeug / Modellklasse          | Typische Rolle im Praktikum                                                                                                                                                                                                                                                                                 |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **spaCy**                        | Schnelle **lokale** Pipeline: Tokenisierung, Lemmata, POS, NER; **Baseline** für Normalisierung; **kein** Ersatz für semantisches Bündeln großer Varianten                                                                                                                                                  |
-| **mBERT / multilingual Encoder** | **Dense Embeddings** für Ähnlichkeit, Clustering, „nahe“ Antworten finden; gut für **explizite** semantische Gruppen **ohne** generatives Sampling                                                                                                                                                          |
-| **Open-Weight-LLMs (lokal)**     | **Generierung** strukturierter Bündel/Labels; stark abhängig von **Prompt** und **Größe**; typisch über **Ollama**, **vLLM**, **llama.cpp**, **Text Generation Inference** u. ä. — konkrete Modelle wählt ihr mit der Betreuung (z. B. kleinere 7B/8B-Klassen vs. stärkere Modelle, sofern Hardware reicht) |
+| Werkzeug / Modellklasse                | Typische Rolle im Praktikum                                                                                                                                                       |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Produkt-Baseline**                   | Vorhandene Wortwolken- und Session-Signale; wichtig für Story **8.9a**, weil der erste Moderationskompass ohne neue Inferenz belastbar bleiben soll                               |
+| **spaCy / klassische NLP-Regeln**      | Schnelle **lokale** Pipeline: Tokenisierung, Lemmata, POS, NER; **Baseline** für Normalisierung; **kein** Ersatz für semantisches Bündeln großer Varianten                        |
+| **Hashing-/n-Gram-Klassifikatoren**    | Sehr schnelle CPU-Baseline für kurze Texte; geeignet als Gatekeeper-Vergleich für Story **8.9b**                                                                                  |
+| **Mehrsprachige Encoder / Embeddings** | **Dense Embeddings** für Ähnlichkeit, Clustering und semantische Nähe; Kandidaten sind z. B. moderne E5-/GTE-/BGE-Modelle statt nur mBERT/MiniLM                                  |
+| **SetFit / linear probing**            | Few-shot- oder leicht trainierbare Klassifikation auf Embeddings; möglicher Mittelweg zwischen klassischer Baseline und teurem generativem Modell                                 |
+| **Open-Weight-LLMs (lokal)**           | Optionale **generative** Zusammenfassung oder Label-Verbalisierung; nur mit Quellenbindung, Schema-Validierung, Timeout und Fallback, typisch eher Story **8.9c** als Q&A-Hotpath |
 
-**Merke:** spaCy und mBERT sind oft **erste Kandidaten** für **Analyse und Baseline**; der **Praktikumsschwerpunkt** liegt trotzdem auf **LLM-Auswahl und Prompting** auf **eurer** selbst gehosteten Infrastruktur.
+**Merke:** Die stärkste Lösung ist nicht automatisch die größte. ADR-0032 verlangt eine messbare, abschaltbare Kaskade: erst günstige Baselines, dann semantischer Fallback, generative Modelle nur, wenn sie fachlich und betrieblich gerechtfertigt sind.
 
 ---
 
-## 7. Schwerpunkt: Modellwahl und Prompting (selbst gehostet)
+## 7. Schwerpunkt: Modellvergleich und Evaluation nach ADR-0032
 
 ### 7.1 Modellwahl (Checkliste)
 
 - **Lizenz** und **Nutzungsbedingungen** (auch für Hochschul-Einsatz).
 - **Sprachen:** Deckt das Modell **Deutsch und Englisch** zuverlässig ab? Wie mit Code-Switching in Antworten?
-- **Ressourcen:** RAM/VRAM, Batch, **Streaming** vs. Einzelrequest.
-- **Determinismus:** Braucht ihr **reproduzierbare** Läufe (Sampling-Parameter, Seeds)?
+- **Ressourcen:** CPU/RAM/VRAM, Batch, Startzeit, Containergröße, mögliche Quantisierung.
+- **Pfadtyp:** Darf der Kandidat nur asynchron laufen? Welche Timeout- und Fallback-Regel braucht er?
+- **Determinismus und Kalibrierung:** Sind Konfidenzen interpretierbar? Braucht ihr Schwellenwerte, Kalibrierkurven oder manuelle Review-Slices?
 - **Sicherheit:** Kein Leaken von Session-IDs in Prompts; **Minimierung** der übermittelten Texte; Logging nur nach **Richtlinie**.
 
-### 7.2 Prompting (Mindestanforderungen)
+### 7.2 Strukturierte Ausgabe und Prompting (Mindestanforderungen)
 
-- **Klare Rolle** (z. B. „Du bündelst nur Formulierungen aus der Liste“).
-- **Eingabeformat** (nummerierte Zeilen, JSON-Array).
 - **Ausgabeformat** **strikt JSON** mit festen Schlüsseln — damit später **Zod**-Validierung denkbar ist.
-- **Fehlerfälle:** Zu viele Eingaben, leere Liste, unbekannte Sprache — was soll das Modell tun?
-- **Versionierung:** Prompt- und Modellversion in der Dokumentation festhalten (für Nachvollziehbarkeit).
+- **Ergebnisvertrag:** Kategorie/Label, Konfidenz, Modellversion, Analysezeitpunkt, Status (`pending`, `classified`, `uncertain`, `disabled`, `failed`).
+- **Quellenbindung:** Generative Zusammenfassungen dürfen nur aus sichtbaren oder aggregierten Eingangssignalen ableiten.
+- **Fehlerfälle:** Zu viele Eingaben, leere Liste, unbekannte Sprache, Timeout, Modell nicht verfügbar — was soll die Pipeline tun?
+- **Versionierung:** Modell-, Schema- und ggf. Promptversion in der Dokumentation festhalten (für Nachvollziehbarkeit).
 
 ### 7.3 Validierung
 
@@ -163,31 +168,31 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 
 ## 9. Vorschlag: 10 Blöcke à 4 Stunden
 
-| Block  | Schwerpunkt                   | Artefakte                                                                    |
-| ------ | ----------------------------- | ---------------------------------------------------------------------------- |
-| **1**  | Onboarding Produkt + Begriffe | `BEGRIFFE-…` gelesen; 5 Beispiel-Freitextsätze für eigene Tests notiert      |
-| **2**  | Anforderungen + JSON-Zielbild | Grobes Output-JSON skizziert; Datenschutz-Notizen                            |
-| **3**  | spaCy-Baseline                | Kleines Skript: Lemmata/Stopwörter; Grenzen dokumentieren                    |
-| **4**  | Embeddings (mBERT o. ä.)      | Ähnlichkeitsmatrix oder kleines Clustering; wann bricht es?                  |
-| **5**  | LLM 1: Setup selbst gehostet  | Erster Lauf, Latenz messen, Rohausgabe sammeln                               |
-| **6**  | Prompt-Design v1              | Strukturiertes JSON; 3 Iterationen mit denselben Eingaben                    |
-| **7**  | LLM 2: zweites Modell         | Vergleichstabelle LLM1 vs. LLM2                                              |
-| **8**  | Fehleranalyse                 | Fehlerklassen (Überbündeln, Sprachmix, JSON-Bruch); Gegenmaßnahmen im Prompt |
-| **9**  | Hybrid-Idee                   | Skizze: spaCy/Embeddings + LLM nur für „schwierige“ Fälle (optional)         |
-| **10** | Abgabe                        | Konzept final; Prompt-Bibliothek + Korpus/Notebook; Kurzvortrag oder Demo    |
+| Block  | Schwerpunkt                     | Artefakte                                                                     |
+| ------ | ------------------------------- | ----------------------------------------------------------------------------- |
+| **1**  | Onboarding Produkt + Begriffe   | `BEGRIFFE-…` gelesen; 5 Beispiel-Freitextsätze für eigene Tests notiert       |
+| **2**  | Anforderungen + JSON-Zielbild   | Grobes Output-JSON skizziert; Datenschutz-Notizen                             |
+| **3**  | Deterministische/spaCy-Baseline | Kleines Skript oder Analyse: Lemmata/Stopwörter/Regeln; Grenzen dokumentieren |
+| **4**  | Klassischer Gatekeeper          | Hashing-/n-Gram- oder ähnlichen Klassifikator gegen Testset messen            |
+| **5**  | Embeddings / SetFit             | Ähnlichkeitsmatrix, Clustering oder Klassifikation; wann bricht es?           |
+| **6**  | ADR-0032-Kaskade skizzieren     | Ergebnisvertrag, Timeout, Fallback, Statusfelder und Messpunkte beschreiben   |
+| **7**  | Optional generative Schicht     | Nur falls vereinbart: strukturierte Zusammenfassung, Quellenbindung, Latenz   |
+| **8**  | Fehleranalyse                   | Fehlerklassen (Überbündeln, Sprachmix, JSON-Bruch); Gegenmaßnahmen im Prompt  |
+| **9**  | Hybrid-Idee                     | Skizze: Baseline + Gatekeeper + Fallback, generativ nur für passende Fälle    |
+| **10** | Abgabe                          | Konzept final; Prompt-Bibliothek + Korpus/Notebook; Kurzvortrag oder Demo     |
 
 ---
 
 ## 10. Bewertung
 
-| Kriterium           | Was geprüft wird                                                              |
-| ------------------- | ----------------------------------------------------------------------------- |
-| **Fachverständnis** | Lexik vs. Semantik, sinnvolle Pipeline, realistische Erwartungen an spaCy/LLM |
-| **Modellwahl**      | Begründet, vergleichend, ressourcenbewusst                                    |
-| **Prompting**       | Reproduzierbar, strukturierte Ausgabe, Fehlerfälle                            |
-| **Evaluierung**     | Nachvollziehbare Tests oder Fehleranalyse                                     |
-| **Produktbezug**    | Klare Anbindung an die Intelligente Moderationshilfe + Datenschutz            |
-| **Darstellung**     | Klare Dokumentation, Teamfähigkeit (falls Gruppenpraktikum)                   |
+| Kriterium            | Was geprüft wird                                                                     |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| **Fachverständnis**  | Lexik vs. Semantik, sinnvolle Pipeline, realistische Erwartungen an Baseline/NLP/LLM |
+| **Modellwahl**       | Begründet, vergleichend, ressourcenbewusst                                           |
+| **Schema/Prompting** | Reproduzierbar, strukturierte Ausgabe, Fehlerfälle                                   |
+| **Evaluierung**      | Nachvollziehbare Tests oder Fehleranalyse                                            |
+| **Produktbezug**     | Klare Anbindung an die Intelligente Moderationshilfe + Datenschutz                   |
+| **Darstellung**      | Klare Dokumentation, Teamfähigkeit (falls Gruppenpraktikum)                          |
 
 ---
 
@@ -195,11 +200,13 @@ Beschreibe, wie ihr **kaputte** oder **halluzinierte** JSON-Antworten erkennt �
 
 **Muss ich in Frontend oder Backend integrieren?** Nur wenn die Betreuung das **explizit** verlangt. Standard: **Analytics-Artefakte** + Konzept; vollständige Produktintegration ist **nicht** der Kern dieses Praktikums.
 
-**Reicht nur spaCy ohne LLM?**  
-Als **alleinige** Praktikumsleistung **nein** — der Schwerpunkt ist **LLM auf selbst gehosteter Infrastruktur**. spaCy (und ggf. mBERT) dienen dem **Vergleich** und der **Methodenkompetenz**.
+**Reicht nur eine Methode?**
 
-**Welches LLM ist „richtig“?**  
-Das hängt von **Hardware** und **Richtlinien** ab. Ihr **begründet** eure Wahl anhand von Tests — nicht anhand von Marketing.
+Als **alleinige** Praktikumsleistung meistens **nein** — der Schwerpunkt ist der **Vergleich**. Eine starke deterministische Baseline ist für Story 8.9a wertvoll, für Story 8.9b braucht ihr zusätzlich mindestens einen NLP-/Embedding- oder Klassifikationskandidaten.
+
+**Welches Modell ist „richtig“?**
+
+Das hängt von **Aufgabe**, **Hardware** und **Richtlinien** ab. Ihr **begründet** eure Wahl anhand von Tests — nicht anhand von Marketing.
 
 **DSGVO?**  
 Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in Prompts; Aufbewahrung und Logs mit Betreuung klären.
@@ -209,8 +216,8 @@ Nur **notwendige** Texte verarbeiten; **keine** personenbezogenen Zusatzinfos in
 ## 12. Abgabe-Checkliste
 
 - [ ] Konzeptdokument (PDF oder Markdown nach Absprache)
-- [ ] Prompt-Bibliothek (versioniert)
-- [ ] Modellvergleich (mindestens zwei generative Konfigurationen)
+- [ ] Schema-/Prompt-Bibliothek (versioniert; Prompts nur falls generative Schicht genutzt wird)
+- [ ] Modellvergleich (mindestens zwei Kandidaten aus verschiedenen Schichten)
 - [ ] Baseline spaCy und/oder Embedding-Experiment dokumentiert
 - [ ] Kleines **Testkorpus** (DSGVO-konform) oder synthetische Daten
 - [ ] Optional: Notebook/Skript + README zum Nachlaufen

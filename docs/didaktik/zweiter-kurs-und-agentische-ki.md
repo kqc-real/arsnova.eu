@@ -92,4 +92,4 @@ Nächste Schritte (optional): Cursor-Rule für SQM (Review/DoD-Fokus), Review- u
 
 **Semester-Fahrplan (Lehrende):** Wochenübersicht drei Kurse + didaktische Reihenfolge der Repo-Dokumentation — [`FAHRPLAN-DREI-KURSE-UND-DOKU-REIHENFOLGE.md`](./FAHRPLAN-DREI-KURSE-UND-DOKU-REIHENFOLGE.md).
 
-**Ergänzung Kurs 3:** Ein **Data-Analytics-/NLP-Praktikum** (intelligente Wortwolke, **Modellwahl und Prompting** auf selbst gehosteten LLMs) ist **nicht** an die Parallelität von Kurs 1 und 2 gebunden — siehe [`dritter-kurs-data-analytics-nlp.md`](./dritter-kurs-data-analytics-nlp.md) und [`docs/praktikum/PRAKTIKUM-DATA-ANALYTICS.md`](../praktikum/PRAKTIKUM-DATA-ANALYTICS.md).
+**Ergänzung Kurs 3:** Ein **Data-Analytics-/NLP-Praktikum** (intelligente Wortwolke, Moderationskompass, Modellvergleich und Evaluation entlang ADR-0032) ist **nicht** an die Parallelität von Kurs 1 und 2 gebunden — siehe [`dritter-kurs-data-analytics-nlp.md`](./dritter-kurs-data-analytics-nlp.md) und [`docs/praktikum/PRAKTIKUM-DATA-ANALYTICS.md`](../praktikum/PRAKTIKUM-DATA-ANALYTICS.md).

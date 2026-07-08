@@ -25,7 +25,7 @@ Wenn du **nur kurz** Orientierung brauchst, triff zuerst diese vier Entscheidung
 | **DA / NLP** | Konzept- und evidenzlastig         | Produktbezug ja, volle Monorepo-Integration nur bei expliziter Kopplung an FSE.                       |
 
 **Empfohlener Lehrsatz:**
-FSE baut, SQM macht Qualität sichtbar und prüfbar, DA liefert Modelle, Prompting und Evidenz für die intelligente Moderationshilfe.
+FSE baut, SQM macht Qualität sichtbar und prüfbar, DA liefert Baselines, Modellvergleiche, strukturierte Ausgaben und Evidenz für die intelligente Moderationshilfe.
 
 ---
 

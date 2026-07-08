@@ -235,7 +235,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ## 4. Aktueller Stand vs. Ziel-Architektur
 
-> **Epics 0–5, 7.1, 9 und 10 sind umgesetzt; Epic 6 ist im Kern umgesetzt, offen bleiben Abschlussprüfung Barrierefreiheit und UX-Testreihen; Epic 8 ist im Kern mit 8.1–8.4, 8.6–8.8 umgesetzt, offen bleiben 8.5 und 8.9.** Zusätzlich sind die numerische Schätzfrage 1.2d sowie die Kurzantwort-/Scoring-Bausteine 1.2e–1.2eb umgesetzt, während 0.7, 0.8, 1.2ec–1.2ed, 1.2f–1.2i, 1.6c–1.6d, 1.14a und 2.9 noch offen bzw. in Arbeit sind. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. Offene Stories: [`Backlog.md`](../Backlog.md).
+> **Epics 0–5, 7.1, 9 und 10 sind umgesetzt; Epic 6 ist im Kern umgesetzt, offen bleiben Abschlussprüfung Barrierefreiheit und UX-Testreihen; Epic 8 ist im Kern mit 8.1–8.4, 8.6–8.8 umgesetzt, offen bleiben 8.5 und 8.9a–8.9c.** Zusätzlich sind die numerische Schätzfrage 1.2d sowie die Kurzantwort-/Scoring-Bausteine 1.2e–1.2eb umgesetzt, während 0.7, 0.8, 1.2ec–1.2ed, 1.2f–1.2i, 1.6c–1.6d, 1.14a und 2.9 noch offen bzw. in Arbeit sind. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. Offene Stories: [`Backlog.md`](../Backlog.md).
 
 ### Was bereits funktioniert (✅ Implementiert – Stand: 2026-07-05)
 
@@ -260,13 +260,13 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ### Was als nächstes ansteht (🔲 Geplant / offen)
 
-| Thema                        | Kurzbeschreibung                                                                                      | Backlog / Referenz |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------ |
-| Barrierefreiheit & UX        | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)                                            | Epic 6             |
-| Neue Fragentypen             | **1.2ec–1.2ed**, **1.2f–1.2i**: verbleibende Kurzantwort-/Fragentyp-Erweiterungen                     | Epic 1             |
-| Q&A-Moderation               | Delegierte Q&A-Moderation (**8.5**) bleibt offen; didaktischer Live-Kompass (**8.9**) ebenfalls offen | Epic 8, ADR-0011   |
-| Last & Performance           | **0.7** in Arbeit: vorhandene `k6`-/Smoke-Bausteine zu vollständiger E2E-/Realtime-Strecke ausbauen   | Epic 0, ADR-0013   |
-| Sync & Word Cloud / Refactor | **1.6c**, **1.6d**, **1.14a** sowie **0.8** (Komplexitätsabbau / McCabe-Hotspots)                     | Backlog            |
+| Thema                        | Kurzbeschreibung                                                                                                         | Backlog / Referenz         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
+| Barrierefreiheit & UX        | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)                                                               | Epic 6                     |
+| Neue Fragentypen             | **1.2ec–1.2ed**, **1.2f–1.2i**: verbleibende Kurzantwort-/Fragentyp-Erweiterungen                                        | Epic 1                     |
+| Q&A-Moderation               | Delegierte Q&A-Moderation (**8.5**) bleibt offen; Moderationskompass/NLP/Zusammenfassung (**8.9a–8.9c**) ebenfalls offen | Epic 8, ADR-0011, ADR-0032 |
+| Last & Performance           | **0.7** in Arbeit: vorhandene `k6`-/Smoke-Bausteine zu vollständiger E2E-/Realtime-Strecke ausbauen                      | Epic 0, ADR-0013           |
+| Sync & Word Cloud / Refactor | **1.6c**, **1.6d**, **1.14a** sowie **0.8** (Komplexitätsabbau / McCabe-Hotspots)                                        | Backlog                    |
 
 **Hinweis für neue Stories:** **Epic 11** ist aktuell nur ein nicht beauftragter Erweiterungspfad für Verlagszugänge und ein Redaktionsbackend.
 
