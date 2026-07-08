@@ -75,6 +75,7 @@ flowchart TD
   D --> I[test:coverage]
   D --> J[lighthouse]
   D --> K[e2e smoke]
+  D --> K2[classroom smokes]
   D --> L[docker build]
   D --> M[trivy-image]
 
@@ -173,56 +174,67 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Nach `build`, außer bei `schedule`.
 - **Warum?** Testet den Nutzerfluss systemnah (nicht nur isolierte Unit-Tests).
 
-### 4.10 load-test
+### 4.10 classroom-smokes
+
+- **Was?** Drei protokollnahe Unterrichts-Szenarien (je 30 TN) gegen lokales Backend: Blitzlicht-Tempo, Q&A, Demo-Quiz mit 9 Fragen.
+- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Skripte:
+  - [../scripts/load/blitzlicht-classroom-30.mjs](../scripts/load/blitzlicht-classroom-30.mjs)
+  - [../scripts/load/qa-classroom-30.mjs](../scripts/load/qa-classroom-30.mjs)
+  - [../scripts/load/demo-quiz-classroom-30.mjs](../scripts/load/demo-quiz-classroom-30.mjs)
+- **Wann?** Push/PR auf `main` und `workflow_dispatch`, außer `docs_only` und `schedule`.
+- **Warum?** Prüft Session-/Kanal-Hotpaths (Vote, Q&A, Redis-Blitzlicht) ohne Browser; ergänzt E2E um API-nahe Last-Smokes.
+- **Artefakt:** `classroom-smoke-reports` (JSON pro Szenario + `backend.log`).
+
+### 4.11 load-test
 
 - **Was?** k6-Health-Loadtest gegen Produktion.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml), Skript in [../scripts/load/k6-trpc-health-50vu.js](../scripts/load/k6-trpc-health-50vu.js).
 - **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
 - **Warum?** Regelmäßige Lastsicht, ohne jeden PR-Run zu verlangsamen.
 
-### 4.11 trivy-fs
+### 4.12 trivy-fs
 
 - **Was?** Security-Scan des Repository-Dateisystems (HIGH/CRITICAL).
 - **Wo?** Trivy-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Alle Events außer `schedule`.
 - **Warum?** Deckt bekannte Schwachstellen/Fehlkonfigurationen in Dateien und Dependencies auf.
 
-### 4.12 trivy-image
+### 4.13 trivy-image
 
 - **Was?** Baut ein Scan-Image und führt Trivy-Image-Scan aus (HIGH/CRITICAL).
 - **Wo?** In [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Nach `build`, außer bei `schedule`.
 - **Warum?** Findet container-spezifische Risiken vor Deployment.
 
-### 4.13 docker
+### 4.14 docker
 
 - **Was?** Docker-Image-Build (ohne Push).
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml), Build-Definition in [../Dockerfile](../Dockerfile).
 - **Wann?** Nach `build`, außer bei `schedule`.
 - **Warum?** Prüft, dass das Release-Artefakt (Container) tatsächlich baubar ist.
 
-### 4.14 deploy-freshness
+### 4.15 deploy-freshness
 
 - **Was?** Prüft kurz vor dem Production-Deploy, ob der geprüfte Commit (`github.sha`) noch der aktuelle `main`-HEAD ist.
 - **Wo?** Deploy-Freshness-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Nur bei `push` auf `main` und wenn `DEPLOY_ENABLED=true` gesetzt ist, nach allen Quality-Gates.
 - **Warum?** Verhindert stale Deployments: Ein älterer, langsamer CI-Lauf darf keinen inzwischen überholten Commit mehr produktiv ausrollen.
 
-### 4.15 deploy
+### 4.16 deploy
 
 - **Was?** Server-Deploy via SSH; führt serverseitig [../scripts/deploy.sh](../scripts/deploy.sh) aus.
 - **Wo?** Deploy-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Nur wenn `deploy-freshness` bestätigt hat, dass `github.sha` noch aktueller `main`-HEAD ist.
 - **Warum?** Produktivdeployment bleibt kontrolliert, an alle Quality-Gates gekoppelt und auf den tatsächlich geprüften Commit gepinnt.
 
-### 4.16 post-deploy-smoke
+### 4.17 post-deploy-smoke
 
 - **Was?** Nachgelagerter Smoke-Check auf der Zielumgebung über [../scripts/verify-production-serving.mjs](../scripts/verify-production-serving.mjs).
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Nur wenn `deploy` erfolgreich war.
 - **Warum?** Verifiziert, dass die produktive Auslieferung wirklich erreichbar und gesund ist.
 
-### 4.17 rollback-on-smoke-failure
+### 4.18 rollback-on-smoke-failure
 
 - **Was?** Automatischer Rollback auf den vorherigen Commit (`github.event.before`) und erneutes serverseitiges Deployment.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).

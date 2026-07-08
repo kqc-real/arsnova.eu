@@ -476,6 +476,118 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  # ─── Classroom Scenario Smokes (tRPC, Postgres + Redis, Backend only) ───────
+  classroom-smokes:
+    name: Classroom Scenario Smokes
+    runs-on: ubuntu-latest
+    needs: [changes, build]
+    if: github.event_name != 'schedule' && needs.changes.outputs.docs_only != 'true'
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: arsnova_user
+          POSTGRES_PASSWORD: secretpassword
+          POSTGRES_DB: arsnova_v3_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arsnova_user -d arsnova_v3_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_USER: arsnova_user
+      DB_PASSWORD: secretpassword
+      DB_NAME: arsnova_v3_dev
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-jwt-secret
+      ADMIN_SECRET: ci-admin-secret
+      NODE_ENV: development
+      PORT: 3000
+      HOST: 0.0.0.0
+      WS_PORT: 3001
+      YJS_WS_PORT: 3002
+      TRPC_URL: http://localhost:3000/trpc
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate --schema prisma/schema.prisma
+
+      - name: Push Prisma schema
+        run: |
+          set -euo pipefail
+          export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public"
+          npx prisma db push --schema prisma/schema.prisma
+
+      - name: Build shared types
+        run: npm run build -w @arsnova/shared-types
+
+      - name: Run classroom scenario smokes
+        run: |
+          set -euo pipefail
+          export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public"
+          REPORT_DIR="$RUNNER_TEMP/classroom-smokes"
+          mkdir -p "$REPORT_DIR"
+          cleanup() {
+            if [ -f "$RUNNER_TEMP/backend.pid" ]; then
+              kill "$(cat "$RUNNER_TEMP/backend.pid")" 2>/dev/null || true
+            fi
+          }
+          trap cleanup EXIT
+
+          npm run dev -w @arsnova/backend > "$RUNNER_TEMP/backend.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/backend.pid"
+          for attempt in {1..60}; do
+            if curl -fsS http://localhost:3000/trpc/health.check >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              cat "$RUNNER_TEMP/backend.log"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          npm run load:smoke:blitzlicht-classroom-30 | tee "$REPORT_DIR/blitzlicht.json"
+          npm run load:smoke:qa-classroom-30 | tee "$REPORT_DIR/qa.json"
+          npm run load:smoke:demo-classroom-30 | tee "$REPORT_DIR/demo-quiz.json"
+
+      - name: Upload classroom smoke reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: classroom-smoke-reports
+          path: |
+            ${{ runner.temp }}/classroom-smokes/
+            ${{ runner.temp }}/backend.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   # ─── Load Test (k6, scheduled/manual against production) ───────────────────
   load-test:
     name: k6 Load Test
