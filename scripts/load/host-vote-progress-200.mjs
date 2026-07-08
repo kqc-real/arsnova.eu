@@ -11,6 +11,8 @@
  *   node scripts/load/host-vote-progress-200.mjs
  *   PARTICIPANTS=200 TRPC_URL=http://127.0.0.1:3000/trpc WS_URL=ws://127.0.0.1:3001 node scripts/load/host-vote-progress-200.mjs
  */
+import { waitForBackend } from './lib/wait-for-backend.mjs';
+
 let trpcClientModule;
 try {
   trpcClientModule = await import('@trpc/client');
@@ -69,20 +71,6 @@ function percentile(values, p) {
   const sorted = [...values].sort((a, b) => a - b);
   const index = Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1);
   return sorted[index] ?? 0;
-}
-
-async function waitForBackend() {
-  const healthUrl = TRPC_URL.replace(/\/trpc\/?$/, '/health');
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    try {
-      const response = await fetch(healthUrl);
-      if (response.ok) return;
-    } catch {
-      // Backend not ready yet.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  throw new Error(`Backend unter ${healthUrl} ist nicht erreichbar.`);
 }
 
 async function createNumericEstimateSession(publicTrpc) {
@@ -185,7 +173,7 @@ async function voteSpike(publicTrpc, joined, questionId) {
 }
 
 async function run() {
-  await waitForBackend();
+  await waitForBackend(TRPC_URL, { attempts: 30 });
   const publicTrpc = createHttpClient();
   const { code, hostToken, hostTrpc, questionId } =
     await createNumericEstimateSession(publicTrpc);

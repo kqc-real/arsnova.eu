@@ -47,7 +47,7 @@ Auslöser: **Push** und **Pull Request** auf `main`.
 | **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                 |
 | **lighthouse**                         | Lighthouse CI gegen `/de/` und `/en/`; Reports als Artifact                                                                                                                                                 |
 | **e2e**                                | Playwright Smoke E2E mit Postgres/Redis + Service-Logs als Artifact                                                                                                                                         |
-| **classroom-smokes**                   | Drei Unterrichts-Szenario-Smokes (Blitzlicht, Q&A, Demo-Quiz, je 30 TN) gegen lokales Backend; JSON-Reports als Artifact                                                                                    |
+| **classroom-smokes**                   | Vier Unterrichts-Szenario-Smokes (Blitzlicht, Q&A, Demo-Quiz, WS Vote-Progress, je 30 TN) gegen lokales Backend; JSON-Reports als Artifact                                                                  |
 | **docker**                             | Docker-Image-Build (ohne Push), nach build                                                                                                                                                                  |
 | **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `docker`, `typecheck`, `lighthouse`, `e2e`, `audit`, `trivy-fs`, `trivy-image`**; ruft serverseitig `scripts/deploy.sh` auf |
 | **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                     |
@@ -60,15 +60,15 @@ Für die ausführliche, schrittweise Erklärung (inkl. Ablaufdiagramm) siehe [CI
 
 Artifacts findest du in einem Run unter: **Actions → CI-Run öffnen → Artifacts**.
 
-| Artefaktname              | Erzeugender Job    | Inhalt                                                                            | Retention |
-| ------------------------- | ------------------ | --------------------------------------------------------------------------------- | --------- |
-| `frontend-dist-browser`   | `build`            | Frontend-Produktionsbuild (`apps/frontend/dist/browser`)                          | 1 Tag     |
-| `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`         | 7 Tage    |
-| `lighthouse-reports`      | `lighthouse`       | Lighthouse-Ausgabe aus `.lighthouseci`                                            | 7 Tage    |
-| `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                  | 7 Tage    |
-| `classroom-smoke-reports` | `classroom-smokes` | JSON je Szenario (`blitzlicht.json`, `qa.json`, `demo-quiz.json`) + `backend.log` | 7 Tage    |
-| `trivy-fs-report`         | `trivy-fs`         | SARIF-Report (`trivy-fs.sarif`)                                                   | 7 Tage    |
-| `trivy-image-report`      | `trivy-image`      | SARIF-Report (`trivy-image.sarif`)                                                | 7 Tage    |
+| Artefaktname              | Erzeugender Job    | Inhalt                                                                                                     | Retention |
+| ------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------- | --------- |
+| `frontend-dist-browser`   | `build`            | Frontend-Produktionsbuild (`apps/frontend/dist/browser`)                                                   | 1 Tag     |
+| `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`                                  | 7 Tage    |
+| `lighthouse-reports`      | `lighthouse`       | Lighthouse-Ausgabe aus `.lighthouseci`                                                                     | 7 Tage    |
+| `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                                           | 7 Tage    |
+| `classroom-smoke-reports` | `classroom-smokes` | JSON je Szenario (`blitzlicht.json`, `qa.json`, `demo-quiz.json`, `ws-vote-progress.json`) + `backend.log` | 7 Tage    |
+| `trivy-fs-report`         | `trivy-fs`         | SARIF-Report (`trivy-fs.sarif`)                                                                            | 7 Tage    |
+| `trivy-image-report`      | `trivy-image`      | SARIF-Report (`trivy-image.sarif`)                                                                         | 7 Tage    |
 
 ### Produktions-/Deploy-Checks
 
@@ -143,7 +143,7 @@ BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
 ```
 
-Für Performance-/Lastarbeit liegen ergänzend Arbeitsbausteine in `scripts/load/` und `docs/implementation/LASTTEST-ARSNOVA-ARCHITEKTUR-ARBEITSAUFTRAG.md`. Die drei **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN) und k6-Produktion bleiben manuell/Schedule. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
+Für Performance-/Lastarbeit liegen ergänzend Arbeitsbausteine in `scripts/load/` und `docs/implementation/LASTTEST-ARSNOVA-ARCHITEKTUR-ARBEITSAUFTRAG.md`. Die vier **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN) und k6-Produktion bleiben manuell/Schedule. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
 
 ### k6-Lasttests (protokollnah)
 

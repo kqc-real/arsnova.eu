@@ -176,13 +176,14 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.10 classroom-smokes
 
-- **Was?** Drei protokollnahe Unterrichts-Szenarien (je 30 TN) gegen lokales Backend: Blitzlicht-Tempo, Q&A, Demo-Quiz mit 9 Fragen.
+- **Was?** Vier protokollnahe Unterrichts-Szenarien (je 30 TN) gegen lokales Backend: Blitzlicht-Tempo, Q&A, Demo-Quiz mit 9 Fragen, WebSocket Vote-Progress (Host-WS + HTTP-Votes).
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Skripte:
   - [../scripts/load/blitzlicht-classroom-30.mjs](../scripts/load/blitzlicht-classroom-30.mjs)
   - [../scripts/load/qa-classroom-30.mjs](../scripts/load/qa-classroom-30.mjs)
   - [../scripts/load/demo-quiz-classroom-30.mjs](../scripts/load/demo-quiz-classroom-30.mjs)
+  - [../scripts/load/ws-vote-progress-classroom-30.mjs](../scripts/load/ws-vote-progress-classroom-30.mjs)
 - **Wann?** Push/PR auf `main` und `workflow_dispatch`, außer `docs_only` und `schedule`.
-- **Warum?** Prüft Session-/Kanal-Hotpaths (Vote, Q&A, Redis-Blitzlicht) ohne Browser; ergänzt E2E um API-nahe Last-Smokes.
+- **Warum?** Prüft Session-/Kanal-Hotpaths (Vote, Q&A, Redis-Blitzlicht, Realtime-WS) ohne Browser; ergänzt E2E um API-nahe Last-Smokes.
 - **Artefakt:** `classroom-smoke-reports` (JSON pro Szenario + `backend.log`).
 
 ### 4.11 load-test

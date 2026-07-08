@@ -12,6 +12,8 @@
  *   npm run load:smoke:blitzlicht-classroom-30
  *   PARTICIPANTS=30 TRPC_URL=http://127.0.0.1:3000/trpc node scripts/load/blitzlicht-classroom-30.mjs
  */
+import { waitForBackend } from './lib/wait-for-backend.mjs';
+
 let trpcClientModule;
 try {
   trpcClientModule = await import('@trpc/client');
@@ -80,20 +82,6 @@ async function mapLimit(items, limit, mapper) {
   });
   await Promise.all(workers);
   return results;
-}
-
-async function waitForBackend() {
-  const healthUrl = TRPC_URL.replace(/\/trpc\/?$/, '/health');
-  for (let attempt = 0; attempt < 40; attempt += 1) {
-    try {
-      const response = await fetch(healthUrl);
-      if (response.ok) return;
-    } catch {
-      // Backend not ready yet.
-    }
-    await sleep(500);
-  }
-  throw new Error(`Backend unter ${healthUrl} ist nicht erreichbar.`);
 }
 
 function expectedTempoDistribution(participantCount) {
@@ -173,7 +161,7 @@ async function castTempoVotes(publicTrpc, code, participants) {
 }
 
 async function run() {
-  await waitForBackend();
+  await waitForBackend(TRPC_URL);
   const publicTrpc = createHttpClient();
   const { code, hostToken } = await createBlitzlichtSession(publicTrpc);
   const hostTrpc = createHttpClient(hostToken);

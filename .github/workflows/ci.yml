@@ -438,9 +438,15 @@ jobs:
           echo "$!" > "$RUNNER_TEMP/backend.pid"
           for attempt in {1..60}; do
             if curl -fsS http://localhost:3000/trpc/health.check >/dev/null; then
-              break
+              if kill -0 "$(cat "$RUNNER_TEMP/backend.pid")" 2>/dev/null; then
+                break
+              fi
+              echo "Backend-Prozess ist beendet."
+              cat "$RUNNER_TEMP/backend.log"
+              exit 1
             fi
             if [ "$attempt" -eq 60 ]; then
+              echo "Backend-Server konnte nicht gestartet werden."
               cat "$RUNNER_TEMP/backend.log"
               exit 1
             fi
@@ -521,6 +527,7 @@ jobs:
       WS_PORT: 3001
       YJS_WS_PORT: 3002
       TRPC_URL: http://localhost:3000/trpc
+      WS_URL: ws://localhost:3001
 
     steps:
       - name: Checkout
@@ -564,9 +571,15 @@ jobs:
           echo "$!" > "$RUNNER_TEMP/backend.pid"
           for attempt in {1..60}; do
             if curl -fsS http://localhost:3000/trpc/health.check >/dev/null; then
-              break
+              if kill -0 "$(cat "$RUNNER_TEMP/backend.pid")" 2>/dev/null; then
+                break
+              fi
+              echo "Backend-Prozess ist beendet."
+              cat "$RUNNER_TEMP/backend.log"
+              exit 1
             fi
             if [ "$attempt" -eq 60 ]; then
+              echo "Backend-Server konnte nicht gestartet werden."
               cat "$RUNNER_TEMP/backend.log"
               exit 1
             fi
@@ -576,6 +589,7 @@ jobs:
           npm run load:smoke:blitzlicht-classroom-30 | tee "$REPORT_DIR/blitzlicht.json"
           npm run load:smoke:qa-classroom-30 | tee "$REPORT_DIR/qa.json"
           npm run load:smoke:demo-classroom-30 | tee "$REPORT_DIR/demo-quiz.json"
+          npm run load:smoke:ws-vote-progress-classroom-30 | tee "$REPORT_DIR/ws-vote-progress.json"
 
       - name: Upload classroom smoke reports
         if: always()

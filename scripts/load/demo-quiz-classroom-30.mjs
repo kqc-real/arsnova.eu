@@ -16,6 +16,7 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { waitForBackend } from './lib/wait-for-backend.mjs';
 
 let trpcClientModule;
 try {
@@ -92,20 +93,6 @@ async function mapLimit(items, limit, mapper) {
   });
   await Promise.all(workers);
   return results;
-}
-
-async function waitForBackend() {
-  const healthUrl = TRPC_URL.replace(/\/trpc\/?$/, '/health');
-  for (let attempt = 0; attempt < 40; attempt += 1) {
-    try {
-      const response = await fetch(healthUrl);
-      if (response.ok) return;
-    } catch {
-      // Backend not ready yet.
-    }
-    await sleep(500);
-  }
-  throw new Error(`Backend unter ${healthUrl} ist nicht erreichbar.`);
 }
 
 async function loadDemoQuizUploadPayload() {
@@ -276,7 +263,7 @@ function questionMetaFromUpload(questions) {
 }
 
 async function run() {
-  await waitForBackend();
+  await waitForBackend(TRPC_URL);
   const uploadPayload = await loadDemoQuizUploadPayload();
   const questionMetas = questionMetaFromUpload(uploadPayload.questions);
 
