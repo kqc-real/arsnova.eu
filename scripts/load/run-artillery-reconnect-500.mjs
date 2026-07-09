@@ -38,7 +38,17 @@ const MIN_RESULTS_AFTER_RECONNECT_RATIO = Number(
 const RECONNECT_MS_MAX = Math.max(500, Number(process.env.ARTILLERY_RECONNECT_MS_MAX || 3_000));
 const JOIN_STABLE_TICKS = Math.max(2, Number(process.env.ARTILLERY_JOIN_STABLE_TICKS || 6));
 const RECONNECT_STABLE_TICKS = Math.max(2, Number(process.env.ARTILLERY_RECONNECT_STABLE_TICKS || 4));
-const RESULTS_WAIT_MS = Math.max(5_000, Number(process.env.ARTILLERY_RESULTS_WAIT_MS || 25_000));
+const REVEAL_WATCH_BUFFER_MS = Math.max(30_000, Number(process.env.ARTILLERY_REVEAL_WATCH_BUFFER_MS || 60_000));
+const STABILITY_BUFFER_MS = (JOIN_STABLE_TICKS + RECONNECT_STABLE_TICKS) * 500;
+const DEFAULT_RESULTS_WAIT_MS = RAMP_SECONDS * 1000 + STABILITY_BUFFER_MS + REVEAL_WATCH_BUFFER_MS;
+const RESULTS_WAIT_MS = Math.max(
+  5_000,
+  Number(process.env.ARTILLERY_RESULTS_WAIT_MS || DEFAULT_RESULTS_WAIT_MS),
+);
+const STATUS_AFTER_RECONNECT_LIMIT_MS = Math.max(
+  3_000,
+  Number(process.env.ARTILLERY_STATUS_AFTER_RECONNECT_LIMIT_MS || 5_000),
+);
 
 const SESSION_FILE = resolve(ARTILLERY_DIR, '.session.json');
 const STATE_FILE = resolve(ARTILLERY_DIR, '.runtime-state.json');
@@ -70,6 +80,7 @@ function runArtillery() {
       ARTILLERY_RESULTS_WAIT_MS: String(RESULTS_WAIT_MS),
       ARTILLERY_RESULTS_READY_FILE: RESULTS_READY_FILE,
       ARTILLERY_RECONNECT_LIMIT_MS: String(RECONNECT_MS_MAX),
+      ARTILLERY_STATUS_AFTER_RECONNECT_LIMIT_MS: String(STATUS_AFTER_RECONNECT_LIMIT_MS),
     };
 
     mkdirSync(dirname(REPORT_FILE), { recursive: true });
@@ -238,6 +249,8 @@ async function main() {
     },
     limits: {
       reconnectMsMax: RECONNECT_MS_MAX,
+      resultsWaitMs: RESULTS_WAIT_MS,
+      statusAfterReconnectLimitMs: STATUS_AFTER_RECONNECT_LIMIT_MS,
     },
     reportFile: REPORT_FILE,
     artilleryExitCode,
@@ -270,8 +283,11 @@ async function main() {
       `Session-Status nicht RESULTS (${statusSnapshot?.status ?? hostMonitor.state.lastStatus})`,
     );
   }
-  if (artilleryExitCode !== 0 && failures.length === 0) {
-    console.warn(`WARN Artillery Exit-Code ${artilleryExitCode}, fachliche Schwellwerte sind gruen.`);
+  if ((runtime.reconnectResultsMissing ?? 0) > 0) {
+    failures.push(`Reconnect-Assert-Fehler: ${runtime.reconnectResultsMissing}`);
+  }
+  if (artilleryExitCode !== 0) {
+    failures.push(`Artillery Exit-Code: ${artilleryExitCode}`);
   }
 
   if (failures.length > 0) {

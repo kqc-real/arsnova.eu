@@ -235,6 +235,26 @@ export async function waitForResultsPhase() {
   }
 }
 
+export async function waitForReconnectResultsPhase(userContext, events) {
+  const readyFile = process.env.ARTILLERY_RESULTS_READY_FILE || DEFAULT_RESULTS_READY_FILE;
+  const timeoutMs = Number(process.env.ARTILLERY_RESULTS_WAIT_MS || 120_000);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      if (readFileSync(readyFile, 'utf8').trim() === '1') {
+        events.emit('counter', 'custom.reconnect_results_phase_ready', 1);
+        return;
+      }
+    } catch {
+      // Host-Reveal noch nicht freigegeben.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  events.emit('counter', 'custom.reconnect_results_phase_timeout', 1);
+  throw new Error('Host-Reveal (RESULTS) nicht innerhalb des Wartefensters freigegeben.');
+}
+
 export async function fetchResultsQuestion(userContext, events) {
   try {
     const ctx = loadSessionContext();

@@ -19,7 +19,7 @@ scenarios:
       - think: 0.25
       - function: reconnectParticipantStatusWs
       - think: 1
-      - function: waitForResultsPhase
+      - function: waitForReconnectResultsPhase
       - function: assertReconnectResultsSeen
       - think: 1
       - function: disconnectParticipantStatusWs
