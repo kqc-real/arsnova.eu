@@ -6,7 +6,7 @@
 **Datum:** 2026-03-17  
 **Entscheider:** Projektteam
 
-**Letzter Repo-Abgleich:** 2026-07-05
+**Letzter Repo-Abgleich:** 2026-07-09
 
 ## Kontext
 
@@ -144,9 +144,9 @@ Diese Aufteilung ist Teil der Architekturentscheidung.
 - Ergebnisse muessen zwischen Laeufen vergleichbar und fuer Entwickler:innen lesbar sein.
 - Neue kritische Live-Flows erhalten frueh eine Entscheidung, ob sie primaer in `k6`, `Artillery` oder beiden Werkzeugen getestet werden.
 
-## Umsetzungsstand (2026-07-05)
+## Umsetzungsstand (2026-07-09)
 
-Im Repo existieren konkrete `k6`-Skripte unter `scripts/load/`, darunter `k6-trpc-health-50vu.js`, `k6-trpc-session-50vu.js` und `k6-session-hotpaths-500vu.js`. Dazu kommen Node-basierte Schnellchecks wie `concurrent-50-http.mjs`, `session-participants-50.mjs` und `ws-status-subscribers.mjs`. **Artillery:** `npm run load:artillery:500` modelliert die Unified-Live-Session mit bis zu 500 Teilnehmenden (HTTP + WebSocket); CI-Job `artillery-500` bei Schedule/Manuell.
+Im Repo existieren konkrete `k6`-Skripte unter `scripts/load/`, darunter `k6-trpc-health-50vu.js`, `k6-trpc-session-50vu.js` und `k6-session-hotpaths-500vu.js`. Dazu kommen Node-basierte Schnellchecks wie `concurrent-50-http.mjs`, `session-participants-50.mjs`, `ws-status-subscribers.mjs` und vier Classroom-30er-Smokes (CI-Job `classroom-smokes` auf PR/Push). **Artillery:** `npm run load:artillery:500` modelliert die Unified-Live-Session mit bis zu 500 Teilnehmenden (HTTP + WebSocket + Host-Monitor); CI-Job `artillery-500` bei Schedule/Manuell. Schwere Last bleibt von PR-Checks getrennt; offen bleiben Reconnect-, Freitext-/Word-Cloud- und Sync-Last sowie Laufvergleich.
 
 ---
 

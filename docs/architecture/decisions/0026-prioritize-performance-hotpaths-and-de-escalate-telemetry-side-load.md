@@ -6,7 +6,7 @@
 **Datum:** 2026-05-09  
 **Entscheider:** Projektteam
 
-**Letzter Repo-Abgleich:** 2026-06-17
+**Letzter Repo-Abgleich:** 2026-07-09
 
 ## Kontext
 
@@ -247,7 +247,7 @@ Stand 2026-05-11:
 Stand 2026-05-31:
 
 - `health.footerBundle` bleibt der schlanke Footer-Pfad; `health.stats` und der Tagesrekord-Chart sind Dialog-/Detaildaten.
-- Die konkrete Lasttest-Basis liegt aktuell vor allem in `scripts/load/k6-session-hotpaths-500vu.js` und den begleitenden Node-Smoke-/WS-Skripten; ein vollstaendiges Artillery-Setup ist weiterhin offen.
+- Die konkrete Lasttest-Basis umfasst `scripts/load/k6-session-hotpaths-500vu.js`, Node-Smoke-/WS-Skripte, vier Classroom-30er-Smokes, Artillery-500 (`load:artillery:500`) und den CI-Job `classroom-smokes` auf PR/Push; schwere Last (`artillery-500`, k6-Produktion) bleibt von PR-Checks getrennt.
 - Tempo nach ADR-0029 darf nicht als neuer Session-Channel-Fan-out umgesetzt werden, sondern muss im vorhandenen Blitzlicht-Hotpath mit delta-/cachefreundlicher Semantik bleiben.
 
 Stand 2026-06-17:
@@ -256,6 +256,13 @@ Stand 2026-06-17:
 - `HostCurrentQuestionDTO` bleibt der stabile Host-Snapshot fuer Frage, Konfiguration und Ergebnisdaten; neue Votes invalidieren diesen Kanal nicht pro Abgabe.
 - Vote-getriebene Progress-Signale werden kurz gebuendelt, damit Vote-Spitzen den Host nicht mit Re-Renders und WebSocket-Fan-out fluten.
 - Ein gezielter Last-Smoke `npm run load:smoke:host-vote-progress` prueft fuer 200 parallele `NUMERIC_ESTIMATE`-Votes, dass der Progress-Endstand ankommt und keine vote-tragenden Current-Question-Events erzeugt werden.
+
+Stand 2026-07-09:
+
+- CI-Job `classroom-smokes` deckt auf PR/Push vier protokollnahe Unterrichts-Szenarien ab (Blitzlicht, Q&A, Demo-Quiz, WS Vote-Progress; je 30 TN).
+- Artillery-500 modelliert die Unified Live-Session (Quiz + Q&A + Blitzlicht) mit HTTP, Teilnehmer-WebSocket und Host-Monitor; CI-Job `artillery-500` laeuft Schedule/Manuell (Standard 100 TN auf Runner).
+- Docs-only-PRs nutzen in CI einen Fast Pass (Jobs melden Pflicht-Checks als `success`, schwere Steps werden uebersprungen).
+- Als primaere offene Lasttest-Luecken bleiben: Reconnect-Wellen, Freitext-/Word-Cloud-Last, Yjs-Sync-Last, vereinheitlichter Laufvergleich und der produktionsnahe 500er-Voll-Lauf auf dem Hetzner-Zielsystem.
 
 ---
 
