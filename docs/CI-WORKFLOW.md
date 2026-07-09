@@ -17,10 +17,10 @@ Für detaillierte lokale Testkommandos und zusätzliche Last-/Smoke-Varianten si
 
 Wenn du neu im Projekt bist, reicht dieses mentale Modell:
 
-1. **Vorstufe (früh, parallel):** PR-Risiken und Workflow-Qualität prüfen (`dependency-review`, `actionlint`).
+1. **Vorstufe (früh):** `changes` erkennt docs-only Änderungen; parallel dazu prüfen `dependency-review` und `actionlint` frühe PR- und Workflow-Risiken.
 2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `typecheck`, `lint`).
-3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `lighthouse`).
-4. **Sicherheit:** Dependency- und Container-Risiken dürfen keine High/Critical-Blocker enthalten (`audit`, `trivy-fs`, `trivy-image`).
+3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `classroom-smokes`, `lighthouse`).
+4. **Sicherheit:** `audit` blockiert Critical-Severity; Trivy (`trivy-fs`, `trivy-image`) blockiert High/Critical.
 5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
 
 ### PR-Checkliste für Erstbeiträge
@@ -63,13 +63,14 @@ Auslöser in [../.github/workflows/ci.yml](../.github/workflows/ci.yml):
 ```mermaid
 flowchart TD
   A[Trigger: push / pull_request / schedule / workflow_dispatch]
+  A --> Z[changes<br/>docs_only output]
 
-  A --> B[dependency-review<br/>nur pull_request]
-  A --> C[actionlint<br/>nicht bei schedule]
-  A --> D[build<br/>Node 20 + Node 22]
-  A --> E[typecheck<br/>nicht bei schedule]
-  A --> F[audit<br/>nicht bei schedule]
-  A --> G[trivy-fs<br/>nicht bei schedule]
+  Z --> B[dependency-review<br/>nur pull_request]
+  Z --> C[actionlint<br/>nicht bei schedule]
+  Z --> D[build<br/>Node 20 + Node 22<br/>skip bei docs_only/schedule]
+  Z --> E[typecheck<br/>skip bei docs_only/schedule]
+  Z --> F[audit<br/>skip bei docs_only/schedule]
+  Z --> G[trivy-fs<br/>skip bei docs_only/schedule]
 
   D --> H[lint]
   D --> I[test:coverage]
@@ -92,8 +93,10 @@ flowchart TD
   Q --> N[deploy]
 
   N --> O[post-deploy-smoke]
+  O --> P[rollback-on-smoke-failure<br/>nur bei failed smoke]
 
-  A --> P[load-test k6<br/>nur schedule oder workflow_dispatch]
+  A --> R[load-test k6<br/>nur schedule oder workflow_dispatch]
+  A --> R2[artillery-500<br/>nur schedule oder workflow_dispatch]
 ```
 
 Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
@@ -101,6 +104,13 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 ---
 
 ## 4) Job für Job: Was, wo, wann, warum
+
+### 4.0 changes (Change Filter)
+
+- **Was?** Ermittelt, ob der Change-Set ausschließlich Doku-Dateien enthält (`docs/*` und `*.md`).
+- **Wo?** Job `changes` in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
+- **Wann?** Bei `push` und `pull_request` (bei `schedule`/`workflow_dispatch` standardmäßig `docs_only=false`).
+- **Warum?** Spart Runner-Zeit: Bei docs-only laufen die Jobs weiter (Ruleset-Pflichtchecks behalten Matrix-Namen), schwere Steps werden per Fast Pass übersprungen.
 
 ### 4.1 dependency-review
 
@@ -146,10 +156,10 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.6 audit
 
-- **Was?** `npm audit --audit-level=high --omit=dev` als Gate (Produktionsabhängigkeiten).
+- **Was?** `npm audit --audit-level=critical --omit=dev` als Gate (Produktionsabhängigkeiten).
 - **Wo?** Audit-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Alle Events außer `schedule`.
-- **Warum?** Blockiert bekannte High-Severity-Schwachstellen vor dem Merge/Deploy.
+- **Warum?** Blockiert bekannte Critical-Severity-Schwachstellen vor dem Merge/Deploy.
 
 ### 4.7 test (Coverage-Gate)
 
@@ -240,20 +250,20 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Was?** Nachgelagerter Smoke-Check auf der Zielumgebung über [../scripts/verify-production-serving.mjs](../scripts/verify-production-serving.mjs).
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Nur wenn `deploy` erfolgreich war.
-- **Warum?** Verifiziert, dass die produktive Auslieferung wirklich erreichbar und gesund ist.
+- **Warum?** Verifiziert, dass die produktive Auslieferung wirklich erreichbar und gesund ist (inkl. TLS-Hostname-Schutz bei `DEPLOY_HOST`).
 
 ### 4.19 rollback-on-smoke-failure
 
 - **Was?** Automatischer Rollback auf den vorherigen Commit (`github.event.before`) und erneutes serverseitiges Deployment.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Bei `push` auf `main`, wenn `deploy` erfolgreich war, aber `post-deploy-smoke` fehlschlug.
+- **Wann?** Bei `push` auf `main`, wenn `deploy` erfolgreich war, aber `post-deploy-smoke` fehlschlug (mit `always()` ausgewertet, damit der Job trotz Fehlerpfad startet).
 - **Warum?** Reduziert Ausfallzeit und stellt den zuletzt funktionierenden Stand schnell wieder her.
 
 ---
 
 ## 5) Welche Jobs sind echte Gates vor Deploy?
 
-Vor `deploy-freshness` müssen erfolgreich sein:
+Vor dem eigentlichen Deploy müssen erfolgreich sein:
 
 1. lint
 2. test (mit Coverage)
@@ -264,8 +274,11 @@ Vor `deploy-freshness` müssen erfolgreich sein:
 7. audit
 8. trivy-fs
 9. trivy-image
+10. deploy-freshness (`should_deploy=true`)
 
-Wenn einer davon fehlschlägt, wird nicht deployt. Wenn danach `deploy-freshness` feststellt, dass `github.sha` nicht mehr aktueller `main`-HEAD ist, wird der Deploy sauber übersprungen.
+Wenn einer der Quality-Gates (1–9) fehlschlägt, wird nicht deployt. Wenn danach `deploy-freshness` feststellt, dass `github.sha` nicht mehr aktueller `main`-HEAD ist, wird der Deploy sauber übersprungen.
+
+`classroom-smokes` läuft parallel auf PR/Push-Pfad, ist aber kein direktes Deploy-Gate (nicht in `deploy-freshness.needs`).
 
 ---
 
@@ -332,21 +345,25 @@ Hinweise:
 
 ## 10) Branch Protection (Required Checks)
 
-Damit die Pipeline-Regeln wirklich verbindlich sind, sollten in GitHub Branch Protection für `main` diese Checks als **required** gesetzt werden:
+Damit die Pipeline-Regeln wirklich verbindlich sind, sollten in GitHub Branch Protection für `main` diese Checks als **required** gesetzt werden (GitHub-Display-Namen aus dem Workflow):
 
-1. `build`
-2. `typecheck`
+1. `Build & Validate (Node 20)`
+2. `Build & Validate (Node 22)`
 3. `lint`
-4. `test`
-5. `lighthouse`
-6. `e2e`
-7. `audit`
-8. `trivy-fs`
-9. `trivy-image`
-10. `actionlint`
-11. `dependency-review`
+4. `Typecheck (workspaces)` (Matrix: Node 20 und 22)
+5. `Tests`
+6. `Lighthouse CI`
+7. `Playwright Smoke E2E`
+8. `Classroom Scenario Smokes`
+9. `Security Audit`
+10. `Trivy Filesystem Scan`
+11. `Trivy Image Scan`
+12. `Workflow Lint`
+13. `Dependency Review`
 
 Empfehlung: `deploy-freshness`, `deploy`, `post-deploy-smoke` und `rollback-on-smoke-failure` nicht als PR-required setzen, da diese nur im Push/Release-Pfad relevant sind.
+
+**Docs-only und Ruleset:** GitHub-Rulesets können Pflicht-Checks nicht pfadabhängig ausnehmen. Stattdessen melden docs-only-PRs dieselben Check-Namen per **Fast Pass** (Job läuft, schwere Steps werden übersprungen) als `success` — so bleibt das Ruleset für Code-PRs streng, Doku-PRs bleiben mergebar.
 
 ---
 
