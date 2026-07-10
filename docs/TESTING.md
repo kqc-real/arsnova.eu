@@ -60,15 +60,15 @@ Für die ausführliche, schrittweise Erklärung (inkl. Ablaufdiagramm) siehe [CI
 
 Artifacts findest du in einem Run unter: **Actions → CI-Run öffnen → Artifacts**.
 
-| Artefaktname              | Erzeugender Job    | Inhalt                                                                                                     | Retention |
-| ------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------- | --------- |
-| `frontend-dist-browser`   | `build`            | Frontend-Produktionsbuild (`apps/frontend/dist/browser`)                                                   | 1 Tag     |
-| `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`                                  | 7 Tage    |
-| `lighthouse-reports`      | `lighthouse`       | Lighthouse-Ausgabe aus `.lighthouseci`                                                                     | 7 Tage    |
-| `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                                           | 7 Tage    |
-| `classroom-smoke-reports` | `classroom-smokes` | JSON je Szenario (`blitzlicht.json`, `qa.json`, `demo-quiz.json`, `ws-vote-progress.json`) + `backend.log` | 7 Tage    |
-| `trivy-fs-report`         | `trivy-fs`         | SARIF-Report (`trivy-fs.sarif`)                                                                            | 7 Tage    |
-| `trivy-image-report`      | `trivy-image`      | SARIF-Report (`trivy-image.sarif`)                                                                         | 7 Tage    |
+| Artefaktname              | Erzeugender Job    | Inhalt                                                                                                                               | Retention |
+| ------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| `frontend-dist-browser`   | `build`            | Frontend-Produktionsbuild (`apps/frontend/dist/browser`)                                                                             | 1 Tag     |
+| `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`                                                            | 7 Tage    |
+| `lighthouse-reports`      | `lighthouse`       | Lighthouse-Ausgabe aus `.lighthouseci`                                                                                               | 7 Tage    |
+| `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                                                                     | 7 Tage    |
+| `classroom-smoke-reports` | `classroom-smokes` | JSON je Szenario (`blitzlicht.json`, `qa.json`, `demo-quiz.json`, `ws-vote-progress.json`, `ws-reconnect-wave.json`) + `backend.log` | 7 Tage    |
+| `trivy-fs-report`         | `trivy-fs`         | SARIF-Report (`trivy-fs.sarif`)                                                                                                      | 7 Tage    |
+| `trivy-image-report`      | `trivy-image`      | SARIF-Report (`trivy-image.sarif`)                                                                                                   | 7 Tage    |
 
 ### Produktions-/Deploy-Checks
 
@@ -143,7 +143,7 @@ BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
 ```
 
-Für Performance-/Lastarbeit liegen ergänzend Arbeitsbausteine in `scripts/load/` und `docs/implementation/LASTTEST-ARSNOVA-ARCHITEKTUR-ARBEITSAUFTRAG.md`. Die vier **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN) und k6-Produktion bleiben manuell/Schedule. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
+Für Performance-/Lastarbeit liegen ergänzend Arbeitsbausteine in `scripts/load/` und `docs/implementation/LASTTEST-ARSNOVA-ARCHITEKTUR-ARBEITSAUFTRAG.md`. Die fünf **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress und Reconnect-Welle) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN) und k6-Produktion bleiben manuell/Schedule. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
 
 ### k6-Lasttests (protokollnah)
 
@@ -183,6 +183,17 @@ PARTICIPANTS=500 npm run load:artillery:500
 ```
 
 Skripte: [`scripts/load/run-artillery-500.mjs`](../scripts/load/run-artillery-500.mjs), [`scripts/load/artillery/500-live-session.yml`](../scripts/load/artillery/500-live-session.yml). CI-Job `artillery-500` (Schedule/Manuell, Standard 100 TN auf Runner).
+
+### Artillery-Reconnect-Welle (bis 500 TN)
+
+Quiz-only: Join → WS-Status subscribe → Disconnect-Welle → Reconnect-Welle → Host `revealResults` → Assert `RESULTS` bei allen TN.
+
+```bash
+npm run dev:backend
+PARTICIPANTS=500 npm run load:artillery:reconnect:500
+```
+
+Skripte: [`scripts/load/run-artillery-reconnect-500.mjs`](../scripts/load/run-artillery-reconnect-500.mjs), [`scripts/load/artillery/500-reconnect-wave.yml`](../scripts/load/artillery/500-reconnect-wave.yml). CI-Job `artillery-reconnect-500` (Schedule/Manuell, Standard 100 TN auf Runner). Classroom-Smoke (30 TN): `npm run load:smoke:ws-reconnect-wave-classroom-30`.
 
 Session- und Hotpath-Skripte benötigen `SESSION_CODE` (6 Zeichen) bzw. bei Hotpath-Modi `PARTICIPANT_IDS`, `QUESTION_ID` usw. — siehe Kommentarkopf in den Skripten.
 

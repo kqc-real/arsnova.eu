@@ -97,6 +97,7 @@ flowchart TD
 
   A --> R[load-test k6<br/>nur schedule oder workflow_dispatch]
   A --> R2[artillery-500<br/>nur schedule oder workflow_dispatch]
+  A --> R2a[artillery-reconnect-500<br/>nur schedule oder workflow_dispatch]
 ```
 
 Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
@@ -186,12 +187,13 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.10 classroom-smokes
 
-- **Was?** Vier protokollnahe Unterrichts-Szenarien (je 30 TN) gegen lokales Backend: Blitzlicht-Tempo, Q&A, Demo-Quiz mit 9 Fragen, WebSocket Vote-Progress (Host-WS + HTTP-Votes).
+- **Was?** Fünf protokollnahe Unterrichts-Szenarien (je 30 TN) gegen lokales Backend: Blitzlicht-Tempo, Q&A, Demo-Quiz mit 9 Fragen, WebSocket Vote-Progress (Host-WS + HTTP-Votes), WebSocket-Reconnect-Welle.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Skripte:
   - [../scripts/load/blitzlicht-classroom-30.mjs](../scripts/load/blitzlicht-classroom-30.mjs)
   - [../scripts/load/qa-classroom-30.mjs](../scripts/load/qa-classroom-30.mjs)
   - [../scripts/load/demo-quiz-classroom-30.mjs](../scripts/load/demo-quiz-classroom-30.mjs)
   - [../scripts/load/ws-vote-progress-classroom-30.mjs](../scripts/load/ws-vote-progress-classroom-30.mjs)
+  - [../scripts/load/ws-reconnect-wave-classroom-30.mjs](../scripts/load/ws-reconnect-wave-classroom-30.mjs)
 - **Wann?** Push/PR auf `main` und `workflow_dispatch`, außer `docs_only` und `schedule`.
 - **Warum?** Prüft Session-/Kanal-Hotpaths (Vote, Q&A, Redis-Blitzlicht, Realtime-WS) ohne Browser; ergänzt E2E um API-nahe Last-Smokes.
 - **Artefakt:** `classroom-smoke-reports` (JSON pro Szenario + `backend.log`).
@@ -202,6 +204,13 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Runner [../scripts/load/run-artillery-500.mjs](../scripts/load/run-artillery-500.mjs).
 - **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
 - **Artefakt:** `artillery-500-reports` (Summary JSON + Artillery-Report + `backend.log`).
+
+### 4.11a artillery-reconnect-500
+
+- **Was?** Artillery-Reconnect-Welle (Quiz-only): Join → WS subscribe → Disconnect → Reconnect → Host-Reveal → Assert `RESULTS`; Standard 100 TN im CI-Runner, konfigurierbar bis 500.
+- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Runner [../scripts/load/run-artillery-reconnect-500.mjs](../scripts/load/run-artillery-reconnect-500.mjs).
+- **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
+- **Artefakt:** `artillery-reconnect-500-reports` (Summary JSON + Artillery-Report + `backend.log`).
 
 ### 4.12 load-test
 

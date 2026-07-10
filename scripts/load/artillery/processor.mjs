@@ -38,6 +38,12 @@ function readRuntimeState() {
       wsConnections: 0,
       wsStatusEvents: 0,
       wsErrors: 0,
+      reconnects: 0,
+      reconnectErrors: 0,
+      reconnectResultsSeen: 0,
+      reconnectResultsMissing: 0,
+      reconnectMsSum: 0,
+      reconnectMsMax: 0,
       questionReads: 0,
       questionReadErrors: 0,
       infoPolls: 0,
@@ -229,6 +235,26 @@ export async function waitForResultsPhase() {
   }
 }
 
+export async function waitForReconnectResultsPhase(userContext, events) {
+  const readyFile = process.env.ARTILLERY_RESULTS_READY_FILE || DEFAULT_RESULTS_READY_FILE;
+  const timeoutMs = Number(process.env.ARTILLERY_RESULTS_WAIT_MS || 120_000);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      if (readFileSync(readyFile, 'utf8').trim() === '1') {
+        events.emit('counter', 'custom.reconnect_results_phase_ready', 1);
+        return;
+      }
+    } catch {
+      // Host-Reveal noch nicht freigegeben.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  events.emit('counter', 'custom.reconnect_results_phase_timeout', 1);
+  throw new Error('Host-Reveal (RESULTS) nicht innerhalb des Wartefensters freigegeben.');
+}
+
 export async function fetchResultsQuestion(userContext, events) {
   try {
     const ctx = loadSessionContext();
@@ -253,4 +279,79 @@ export async function disconnectParticipantStatusWs(userContext, events) {
   userContext.vars._statusSub = null;
   userContext.vars._statusWsClient = null;
   events.emit('counter', 'custom.ws_disconnected', 1);
+}
+
+export async function reconnectParticipantStatusWs(userContext, events) {
+  disconnectParticipantStatusWs(userContext, events);
+
+  const ctx = loadSessionContext();
+  const startedAt = performance.now();
+  userContext.vars._reconnectReady = false;
+  userContext.vars._reconnectResultsSeen = false;
+
+  const { trpc, wsClient } = createPublicWsTrpc(ctx.wsUrl);
+  const subscription = trpc.session.onStatusChanged.subscribe(
+    { code: ctx.code },
+    {
+      onStarted() {
+        if (userContext.vars._reconnectReady) return;
+        userContext.vars._reconnectReady = true;
+        const ms = Math.round(performance.now() - startedAt);
+        userContext.vars._reconnectMs = ms;
+        bumpRuntimeState('reconnects');
+        const current = readRuntimeState();
+        writeRuntimeState({
+          reconnectMsMax: Math.max(current.reconnectMsMax ?? 0, ms),
+          reconnectMsSum: (current.reconnectMsSum ?? 0) + ms,
+        });
+        events.emit('counter', 'custom.reconnect_ok', 1);
+      },
+      onData(data) {
+        bumpRuntimeState('wsStatusEvents');
+        if (data?.status === 'RESULTS' && !userContext.vars._reconnectResultsSeen) {
+          userContext.vars._reconnectResultsSeen = true;
+          bumpRuntimeState('reconnectResultsSeen');
+          events.emit('counter', 'custom.reconnect_results_ok', 1);
+        }
+      },
+      onError() {
+        bumpRuntimeState('wsErrors');
+        bumpRuntimeState('reconnectErrors');
+        events.emit('counter', 'custom.reconnect_failed', 1);
+      },
+    },
+  );
+  userContext.vars._statusSub = subscription;
+  userContext.vars._statusWsClient = wsClient;
+  bumpRuntimeState('wsConnections');
+  events.emit('counter', 'custom.ws_reconnected', 1);
+
+  const timeoutMs = Number(process.env.ARTILLERY_RECONNECT_LIMIT_MS || 3_000);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (userContext.vars._reconnectReady) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
+  bumpRuntimeState('reconnectErrors');
+  events.emit('counter', 'custom.reconnect_timeout', 1);
+  throw new Error('Reconnect onStarted nicht innerhalb des Limits erreicht.');
+}
+
+export async function assertReconnectResultsSeen(userContext, events) {
+  const timeoutMs = Number(process.env.ARTILLERY_STATUS_AFTER_RECONNECT_LIMIT_MS || 3_000);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (userContext.vars._reconnectResultsSeen) {
+      events.emit('counter', 'custom.reconnect_assert_ok', 1);
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
+  bumpRuntimeState('reconnectResultsMissing');
+  events.emit('counter', 'custom.reconnect_results_missing', 1);
+  throw new Error('RESULTS nach Reconnect nicht empfangen.');
 }

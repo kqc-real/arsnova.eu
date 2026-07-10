@@ -83,3 +83,48 @@ export async function createArtillery500Session(trpcUrl) {
     openedStatus: opened.status,
   };
 }
+
+const RECONNECT_QUIZ_PAYLOAD = {
+  ...QUIZ_PAYLOAD,
+  name: `Artillery Reconnect ${Date.now()}`,
+};
+
+/**
+ * Quiz-only Session fuer Reconnect-Hochlast (ohne Q&A/Blitzlicht).
+ */
+export async function createArtilleryReconnectSession(trpcUrl) {
+  const publicTrpc = createHttpTrpc(trpcUrl);
+  const { quizId } = await publicTrpc.quiz.upload.mutate(RECONNECT_QUIZ_PAYLOAD);
+  const created = await publicTrpc.session.create.mutate({
+    quizId,
+    type: 'QUIZ',
+    qaEnabled: false,
+    quickFeedbackEnabled: false,
+    allowCustomNicknames: true,
+    nicknameTheme: 'HIGH_SCHOOL',
+    anonymousMode: false,
+    teamMode: false,
+  });
+
+  const hostTrpc = createHttpTrpc(trpcUrl, created.hostToken);
+  const opened = await hostTrpc.session.nextQuestion.mutate({ code: created.code });
+  if (opened.status === 'QUESTION_OPEN') {
+    await hostTrpc.session.revealAnswers.mutate({ code: created.code });
+  }
+
+  const question = await publicTrpc.session.getCurrentQuestionForStudent.query({
+    code: created.code,
+  });
+  if (!question?.id) {
+    throw new Error('Aktive Frage konnte nach Reconnect-Session-Setup nicht geladen werden.');
+  }
+
+  return {
+    code: created.code,
+    hostToken: created.hostToken,
+    sessionId: created.sessionId,
+    questionId: question.id,
+    answerId: question.answers?.[0]?.id ?? null,
+    openedStatus: opened.status,
+  };
+}

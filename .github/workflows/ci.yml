@@ -671,6 +671,7 @@ jobs:
           npm run load:smoke:qa-classroom-30 | tee "$REPORT_DIR/qa.json"
           npm run load:smoke:demo-classroom-30 | tee "$REPORT_DIR/demo-quiz.json"
           npm run load:smoke:ws-vote-progress-classroom-30 | tee "$REPORT_DIR/ws-vote-progress.json"
+          npm run load:smoke:ws-reconnect-wave-classroom-30 | tee "$REPORT_DIR/ws-reconnect-wave.json"
 
       - name: Upload classroom smoke reports
         if: always() && needs.changes.outputs.docs_only != 'true'
@@ -798,6 +799,124 @@ jobs:
           name: artillery-500-reports
           path: |
             ${{ runner.temp }}/artillery-500/
+            ${{ runner.temp }}/backend.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  artillery-reconnect-500:
+    name: Artillery 500 Reconnect Wave
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: arsnova_user
+          POSTGRES_PASSWORD: secretpassword
+          POSTGRES_DB: arsnova_v3_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arsnova_user -d arsnova_v3_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_USER: arsnova_user
+      DB_PASSWORD: secretpassword
+      DB_NAME: arsnova_v3_dev
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-jwt-secret
+      ADMIN_SECRET: ci-admin-secret
+      NODE_ENV: development
+      PORT: 3000
+      HOST: 0.0.0.0
+      WS_PORT: 3001
+      YJS_WS_PORT: 3002
+      TRPC_URL: http://localhost:3000/trpc
+      WS_URL: ws://localhost:3001
+      PARTICIPANTS: ${{ vars.ARTILLERY_PARTICIPANTS || '100' }}
+      ARTILLERY_RAMP_SECONDS: ${{ vars.ARTILLERY_RAMP_SECONDS || '60' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate --schema prisma/schema.prisma
+
+      - name: Push Prisma schema
+        run: |
+          set -euo pipefail
+          export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public"
+          npx prisma db push --schema prisma/schema.prisma
+
+      - name: Build shared types
+        run: npm run build -w @arsnova/shared-types
+
+      - name: Run Artillery 500 reconnect wave
+        run: |
+          set -euo pipefail
+          export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?schema=public"
+          REPORT_DIR="$RUNNER_TEMP/artillery-reconnect-500"
+          mkdir -p "$REPORT_DIR"
+          cleanup() {
+            if [ -f "$RUNNER_TEMP/backend.pid" ]; then
+              kill "$(cat "$RUNNER_TEMP/backend.pid")" 2>/dev/null || true
+            fi
+          }
+          trap cleanup EXIT
+
+          npm run dev -w @arsnova/backend > "$RUNNER_TEMP/backend.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/backend.pid"
+          for attempt in {1..60}; do
+            if curl -fsS http://localhost:3000/trpc/health.check >/dev/null; then
+              if kill -0 "$(cat "$RUNNER_TEMP/backend.pid")" 2>/dev/null; then
+                break
+              fi
+              echo "Backend-Prozess ist beendet."
+              cat "$RUNNER_TEMP/backend.log"
+              exit 1
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              echo "Backend-Server konnte nicht gestartet werden."
+              cat "$RUNNER_TEMP/backend.log"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          npm run load:artillery:reconnect:500 | tee "$REPORT_DIR/summary.json"
+          cp -R scripts/load/artillery/reports "$REPORT_DIR/" 2>/dev/null || true
+
+      - name: Upload Artillery reconnect reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: artillery-reconnect-500-reports
+          path: |
+            ${{ runner.temp }}/artillery-reconnect-500/
             ${{ runner.temp }}/backend.log
           if-no-files-found: ignore
           retention-days: 7
