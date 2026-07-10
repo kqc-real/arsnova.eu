@@ -2,7 +2,7 @@
 
 Dieses Projekt wird KI-gestützt weiterentwickelt. Menschen tragen Produkt-, Architektur- und Review-Verantwortung; KI-Werkzeuge wie Cursor, Copilot oder Codex helfen bei Recherche, Umsetzung und Tests. Diese Datei beschreibt den pragmatischen Einstieg für Beiträge.
 
-**Stand:** 2026-05-31 — abgeglichen mit [README.md](README.md), [AGENT.md](AGENT.md), [docs/onboarding.md](docs/onboarding.md), [docs/TESTING.md](docs/TESTING.md), [docs/SECURITY-OVERVIEW.md](docs/SECURITY-OVERVIEW.md) und der Produktionsdoku.
+**Stand:** 2026-07-10 — abgeglichen mit [README.md](README.md), [AGENT.md](AGENT.md), [docs/onboarding.md](docs/onboarding.md), [docs/TESTING.md](docs/TESTING.md), [docs/SECURITY-OVERVIEW.md](docs/SECURITY-OVERVIEW.md) und der Produktionsdoku.
 
 ---
 
@@ -63,6 +63,15 @@ Je nach Änderung zusätzlich:
 
 - [ ] Shared-Type-Änderung: `npm run build -w @arsnova/shared-types`
 - [ ] UI-, Template- oder Copy-Änderung: [docs/ui/PR-CHECKLIST-UI.md](docs/ui/PR-CHECKLIST-UI.md), lokalisierte Texte und `npm run build:localize -w @arsnova/frontend` oder `npm run build:prod`
+- [ ] Änderungen an Session-, Fragentyp- oder Subscription-Flows: passende
+      Browser-Smokes aus [docs/TESTING.md](docs/TESTING.md) ausführen; ein
+      grüner Unified-Session-Flow ersetzt die fokussierten Host-, Kurztext-,
+      Numeric-Estimate- oder Quiz-Sync-Flows nicht
+- [ ] Änderungen am Einstieg, Critical CSS oder Initial-Bundle: Lighthouse-Gates
+      aus `.lighthouserc.cjs` gegen den lokalisierten Produktionsbuild prüfen
+- [ ] Änderungen an Live-Hotpaths, Yjs oder Reconnect: passende Profile aus
+      [docs/PERFORMANCE-TESTING.md](docs/PERFORMANCE-TESTING.md) ausführen und
+      Report/Gates im PR nennen
 - [ ] produktionsrelevante Änderung: `npm run build:prod` und, wenn eine echte `.env.production` lokal verfügbar ist, `docker compose -f docker-compose.prod.yml --env-file .env.production config`
 - [ ] Prisma-/Datenmodell-Änderung: Schema, Migration/Push-Pfad, Shared Types, Tests und betroffene Doku prüfen
 - [ ] Sicherheits-/Datenschutzänderung: [docs/SECURITY-OVERVIEW.md](docs/SECURITY-OVERVIEW.md) und relevante ADRs gegenlesen

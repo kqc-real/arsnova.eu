@@ -760,6 +760,17 @@ Die bisherige Entschaerfung verbessert also vor allem:
 
 Sie ersetzt aber noch nicht die noetigen Optimierungen im eigentlichen Vote- und Frage-Hotpath.
 
+Der
+[lokale Gesamt-Testlauf vom 2026-07-10](./LOCAL-TESTRUN-2026-07-10.md)
+konkretisiert diese Grenze: Die isolierten k6-Profile `active-question` und
+`vote-spike` bestanden mit 500 VUs, ebenso Artillery Live und Reconnect mit
+500/500 Clients. Beim timergekoppelten 600er Vote-Spike stieg p95 jedoch auf
+2.156 ms (`ACTIVE`) beziehungsweise 1.466 ms (Backend-Karenz) und überschritt
+damit das 1.000-ms-Gate. Zusätzlich blieb Yjs nach Offline-Updates trotz
+erfolgreichem Transport-Reconnect dauerhaft divergent. Ein grüner
+Transport-Reconnect belegt daher nicht automatisch fachliche
+CRDT-Konvergenz.
+
 ## Ueberlagerungen
 
 Besonders kritisch sind Kombinationen mehrerer Wellen:

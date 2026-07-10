@@ -936,7 +936,10 @@ Die App ist funktional schon breit, aber nicht in jedem Bereich endgültig abges
 
 Dazu gehören laut Root-Dokumentation insbesondere:
 
-- vollständige Last- und Performance-Teststrecken
+- Abschluss der weitgehend vorhandenen Last- und Performance-Teststrecken:
+  Yjs-Reconnect-Konvergenz, 600er Vote-p95, drei Browser-Flows und
+  Lighthouse-LCP klären; anschließend Staging-Langläufe und Baselines
+  freigeben ([lokaler Testlauf 2026-07-10](implementation/LOCAL-TESTRUN-2026-07-10.md))
 - abschließende Barrierefreiheitsprüfung
 - Confidence-Erweiterungen und weitere Auswertungsvarianten
 - delegierte Q&A-Moderation und weitere Q&A-Erweiterungen

@@ -1,5 +1,10 @@
 # Produktionslasttest 500 Teilnehmende fuer Session 6LTFZF am 2026-05-09
 
+> **Historischer Produktionslauf:** Der aktuelle lokale Gesamt-Nachweis steht im
+> [Testlauf vom 2026-07-10](./LOCAL-TESTRUN-2026-07-10.md). Er ersetzt diese
+> Produktionsmessung nicht, ergänzt sie aber um Reconnect, Yjs, Soak,
+> Browser- und Lighthouse-Gates.
+
 ## Zweck
 
 Dieses Dokument haelt den am 2026-05-09 gegen die Produktionsinstanz `https://arsnova.eu` durchgefuehrten realen 500er-Lasttest fuer die Session `6LTFZF` fest.

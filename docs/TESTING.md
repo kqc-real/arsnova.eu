@@ -4,7 +4,7 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-07-06 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **20** und **22**; inkl. `dependency-review`, `actionlint`, `trivy-fs`, `trivy-image`, `post-deploy-smoke`) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
+**Stand:** 2026-07-10 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **20** und **22**; inkl. `dependency-review`, `actionlint`, `trivy-fs`, `trivy-image`, `post-deploy-smoke`) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
 
 ---
 
@@ -28,29 +28,49 @@ Workspace-spezifisch:
 
 `npm run typecheck -w @arsnova/backend` setzt ein gebautes `@arsnova/shared-types` (`libs/shared-types/dist`) voraus; das Root-Skript `npm run typecheck` baut die Library zuerst.
 
+## Verifizierter lokaler Lauf vom 2026-07-10
+
+Der Gesamt-Testlauf gegen eine separate lokale PostgreSQL-Testdatenbank, Redis,
+Backend, tRPC-/Yjs-WebSockets und den lokalisierten Frontend-Produktionsbuild ist
+in
+[implementation/LOCAL-TESTRUN-2026-07-10.md](implementation/LOCAL-TESTRUN-2026-07-10.md)
+dokumentiert.
+
+- `npm test`: **1.310/1.310 Tests bestanden**
+- `build:localize`: **bestanden**
+- Last-/Performance-Szenarien: **19/21 bestanden**
+- Browser-Flow-Smokes: **3/6 bestanden**
+- Lighthouse: **fehlgeschlagen** (Performance 0,55; LCP rund 11,1 s)
+
+Reproduzierbar offen sind die Yjs-Konvergenz nach Offline-Reconnect, das
+1.000-ms-p95-Gate beim 600er Timer-Fairness-Lauf sowie die Browser-Flows
+Host-Join-Liveanzeige, `SHORT_TEXT`-Fragenübertragung und
+Numeric-Estimate-Ergebnisdarstellung. Ein grüner Unit-Testlauf ersetzt diese
+Laufzeit-Gates nicht.
+
 ---
 
 ## CI-Pipeline (GitHub Actions, `main`)
 
 Auslöser: **Push** und **Pull Request** auf `main`.
 
-| Job / Phase                            | Inhalt                                                                                                                                                                                                      |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **dependency-review**                  | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                            |
-| **actionlint**                         | Linting/Validierung der GitHub-Workflow-Dateien                                                                                                                                                             |
-| **build** (Node 20 & 22)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                          |
-| **typecheck** (Node 20 & 22, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                                                  |
-| **lint**                               | `npm run lint` (nach build)                                                                                                                                                                                 |
-| **audit**                              | `npm audit --audit-level=high --omit=dev` (**blockierend für Produktionsabhängigkeiten**)                                                                                                                   |
-| **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                             |
-| **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                         |
-| **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                 |
-| **lighthouse**                         | Lighthouse CI gegen `/de/` und `/en/`; Reports als Artifact                                                                                                                                                 |
-| **e2e**                                | Playwright Smoke E2E mit Postgres/Redis + Service-Logs als Artifact                                                                                                                                         |
-| **classroom-smokes**                   | Vier Unterrichts-Szenario-Smokes (Blitzlicht, Q&A, Demo-Quiz, WS Vote-Progress, je 30 TN) gegen lokales Backend; JSON-Reports als Artifact                                                                  |
-| **docker**                             | Docker-Image-Build (ohne Push), nach build                                                                                                                                                                  |
-| **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `docker`, `typecheck`, `lighthouse`, `e2e`, `audit`, `trivy-fs`, `trivy-image`**; ruft serverseitig `scripts/deploy.sh` auf |
-| **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                     |
+| Job / Phase                            | Inhalt                                                                                                                                                                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **dependency-review**                  | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                                |
+| **actionlint**                         | Linting/Validierung der GitHub-Workflow-Dateien                                                                                                                                                                                 |
+| **build** (Node 20 & 22)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                              |
+| **typecheck** (Node 20 & 22, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (inkl. `build` für `shared-types`, dann `--noEmit`)                                                                                                      |
+| **lint**                               | `npm run lint` (nach build)                                                                                                                                                                                                     |
+| **audit**                              | `npm audit --audit-level=critical --omit=dev` (**blockierend ab Critical für Produktionsabhängigkeiten**)                                                                                                                       |
+| **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                 |
+| **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                             |
+| **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                     |
+| **lighthouse**                         | Lighthouse CI gegen `/de/` und `/en/`; Reports als Artifact                                                                                                                                                                     |
+| **e2e**                                | Playwright Smoke E2E mit Postgres/Redis + Service-Logs als Artifact                                                                                                                                                             |
+| **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                             |
+| **docker**                             | Docker-Image-Build (ohne Push), nach build                                                                                                                                                                                      |
+| **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; läuft nach **`lint`, `test`, `docker`, `typecheck`, `lighthouse`, `e2e`, `classroom-smokes`, `audit`, `trivy-fs`, `trivy-image`**; ruft serverseitig `scripts/deploy.sh` auf |
+| **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                                         |
 
 Matrix: **zwei** LTS-Versionen (**20** und **22**), `fail-fast: false`.
 
@@ -60,15 +80,16 @@ Für die ausführliche, schrittweise Erklärung (inkl. Ablaufdiagramm) siehe [CI
 
 Artifacts findest du in einem Run unter: **Actions → CI-Run öffnen → Artifacts**.
 
-| Artefaktname              | Erzeugender Job    | Inhalt                                                                                                                               | Retention |
-| ------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| `frontend-dist-browser`   | `build`            | Frontend-Produktionsbuild (`apps/frontend/dist/browser`)                                                                             | 1 Tag     |
-| `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`                                                            | 7 Tage    |
-| `lighthouse-reports`      | `lighthouse`       | Lighthouse-Ausgabe aus `.lighthouseci`                                                                                               | 7 Tage    |
-| `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                                                                     | 7 Tage    |
-| `classroom-smoke-reports` | `classroom-smokes` | JSON je Szenario (`blitzlicht.json`, `qa.json`, `demo-quiz.json`, `ws-vote-progress.json`, `ws-reconnect-wave.json`) + `backend.log` | 7 Tage    |
-| `trivy-fs-report`         | `trivy-fs`         | SARIF-Report (`trivy-fs.sarif`)                                                                                                      | 7 Tage    |
-| `trivy-image-report`      | `trivy-image`      | SARIF-Report (`trivy-image.sarif`)                                                                                                   | 7 Tage    |
+| Artefaktname              | Erzeugender Job    | Inhalt                                                                                                | Retention |
+| ------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------- | --------- |
+| `frontend-dist-browser`   | `build`            | Frontend-Produktionsbuild (`apps/frontend/dist/browser`)                                              | 1 Tag     |
+| `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`                             | 7 Tage    |
+| `lighthouse-reports`      | `lighthouse`       | Lighthouse-Ausgabe aus `.lighthouseci`                                                                | 7 Tage    |
+| `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                                      | 7 Tage    |
+| `classroom-smoke-reports` | `classroom-smokes` | Standardisiertes JSON + JUnit XML für sechs Szenarien (inkl. `channel-ws-fanout`) sowie `backend.log` | 7 Tage    |
+| `artillery-500-reports`   | `artillery-500`    | Artillery-Rohreport, JSON/JUnit für Unified, Vote, Yjs, Freitext und Soak sowie `backend.log`         | 30 Tage   |
+| `trivy-fs-report`         | `trivy-fs`         | SARIF-Report (`trivy-fs.sarif`)                                                                       | 7 Tage    |
+| `trivy-image-report`      | `trivy-image`      | SARIF-Report (`trivy-image.sarif`)                                                                    | 7 Tage    |
 
 ### Produktions-/Deploy-Checks
 
@@ -100,6 +121,13 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Build → Postgr
 | `smoke:unified-session`     | Unified-Session-Flow-Skript         |
 | `lighthouse:a11y`           | Lighthouse A11y (lokal)             |
 | `benchmark:word-cloud`      | Wortwolken-Benchmark / Regressionen |
+
+**Lokaler Status 2026-07-10:** `host-music`, `quiz-sync` und
+`unified-session` bestanden. `host-present-auth`, `short-text` und
+`numeric-estimate` scheiterten auch bei isolierter Wiederholung. Diese
+manuellen Flows sind nicht alle Teil des CI-Jobs `e2e`, der derzeit nur den
+Unified-Session-Flow ausführt. Einzelheiten:
+[LOCAL-TESTRUN-2026-07-10.md](implementation/LOCAL-TESTRUN-2026-07-10.md).
 
 Prisma-Schema lokal: `npx prisma validate` (in CI ohne DB).
 
@@ -143,7 +171,7 @@ BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
 ```
 
-Für Performance-/Lastarbeit liegen ergänzend Arbeitsbausteine in `scripts/load/` und `docs/implementation/LASTTEST-ARSNOVA-ARCHITEKTUR-ARBEITSAUFTRAG.md`. Die fünf **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress und Reconnect-Welle) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN) und k6-Produktion bleiben manuell/Schedule. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
+Für Performance-/Lastarbeit ist [PERFORMANCE-TESTING.md](PERFORMANCE-TESTING.md) das aktuelle Inventar. Die sechs **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress, Reconnect-Welle und Q&A-/Blitzlicht-Fan-out) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN), Yjs, Soak und k6-Produktion bleiben manuell/Schedule. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
 
 ### k6-Lasttests (protokollnah)
 
@@ -247,6 +275,11 @@ PARTICIPANTS=600 TIMER_SECONDS=8 TRPC_URL=http://127.0.0.1:3000/trpc npm run loa
 
 Der Smoke ergänzt den Host-Progress-Smoke: Er misst nicht den WebSocket-Fan-out, sondern den
 serverseitigen Vote-Hotpath rund um Timerende, Karenz und Ergebnisfreigabe.
+
+Der lokale 600er-Lauf vom 2026-07-10 bestätigte die fachliche Karenzlogik, verfehlte
+aber das harte `VOTE_P95_LIMIT_MS=1000`: p95 lag bei 2.156 ms in `ACTIVE` und
+1.466 ms innerhalb der Backend-Karenz. Das Szenario ist daher als
+fehlgeschlagen, nicht nur als funktional korrekt, zu dokumentieren.
 
 ---
 

@@ -347,10 +347,17 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 ## Performance (Lighthouse)
 
 - **Fonts:** Material Icons nutzen `font-display: swap`, damit Lighthouse keine unsichtbare Textphase meldet und die Icons nach dem Font-Load regulär ersetzen. Kein Preload im Index, um Ladepfade nicht zu stören.
-- **Mobile (~67 %):** Lighthouse simuliert 4x langsamere CPU. Die App ist eine reine Client-SPA: ~386 kB Initial-JS (Framework, Router, Material) plus Home-Chunk muessen geparst und ausgefuehrt werden, bevor Inhalt da ist. Bereits umgesetzt: Preset-Toast und Server-Status-Widget lazy/defer; Health-Check nach First Paint. Deutlich ueber 67 % Mobile erreichbar nur mit weniger Initial-JS (z. B. SSR/Pre-Render fuer Shell) oder Akzeptanz des SPA-Kosten.
+- **Aktueller Mobile-Nachweis:** Der CI-nahe lokale Lauf vom 2026-07-10
+  erreichte fuer `/de/` und `/en/` reproduzierbar nur **55 % Performance** und
+  rund **11,1 s LCP**. Damit sind die verbindlichen Gates von 60 % und 4 s
+  derzeit nicht erfuellt. Die App liefert rund 386 kB Initial-JS
+  (Framework, Router, Material) plus Home-Chunk; diese Kosten und der konkrete
+  LCP-Kandidat muessen profiliert werden. Ein theoretisch vorhandenes
+  Pre-Rendering ist kein Ersatz fuer den Messnachweis.
 - **SSR/Pre-Render:** `@angular/ssr` ist aktiv. Routen `''`, `help`, `quiz` werden beim Build pre-rendert (statisches HTML in `dist/browser`). Root-Route nutzt ggf. `index.csr.html` (Fallback); Backend liefert `index.csr.html` aus, wenn `index.html` fehlt. ThemePresetService und AppComponent nutzen `isPlatformBrowser`, damit Prerender (Node) nicht auf `localStorage`/`navigator` zugreift. Voll-SSR (laufender Node-Server pro Request) wird nicht genutzt – nur Pre-Render + Auslieferung durch Express.
 - **Diagnose:** In Lighthouse unter „Reduce JavaScript execution time“ / „View Treemap“ prüfen, welche Skripte die meiste Haupt-Thread-Zeit verbrauchen.
 - **Ressourcen:** Keine render-blockierenden Skripte im `<head>`; Lazy Loading fuer Routen bleibt Standard. Build inlinet bereits Critical CSS und laedt Stylesheet non-blocking.
+- **Messprotokoll:** [Lokaler Gesamt-Testlauf 2026-07-10](../implementation/LOCAL-TESTRUN-2026-07-10.md) und [Lighthouse Performance](LIGHTHOUSE-PERFORMANCE.md).
 
 ## Dokumente
 

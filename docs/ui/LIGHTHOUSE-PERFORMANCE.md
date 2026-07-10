@@ -1,8 +1,34 @@
 # Lighthouse Performance
 
-## Erwartete Werte
+## Verbindliche CI-Werte
 
-Mit **Angular + Angular Material** sind **50–70 % Performance** bei Lighthouse (Mobile, Throttling) nicht ungewöhnlich – das Framework-Bundle ist vergleichsweise groß. Wichtig: **Accessibility, Best Practices, SEO** bei 100 % zu halten. Um Performance zu verbessern, in Lighthouse die Karte **„Opportunities“** und **„Diagnostics“** prüfen (konkrete Hinweise wie „Reduce unused JavaScript“, „Largest Contentful Paint element“).
+Lighthouse CI misst den lokalisierten Produktionsbuild mobil und führt je URL drei Läufe aus.
+Folgende Grenzen blockieren die CI:
+
+- Performance-Score mindestens **60 %**
+- Accessibility mindestens **90 %**
+- Largest Contentful Paint höchstens **4 s**
+- Cumulative Layout Shift höchstens **0,1**
+- Total Blocking Time höchstens **600 ms**
+
+Best Practices und SEO bleiben Warnsignale. Die Grenzwerte stehen kanonisch in
+`.lighthouserc.cjs`; Änderungen daran müssen als bewusste Performance-Entscheidung reviewed
+werden.
+
+## Letzter CI-naher lokaler Lauf
+
+Am **2026-07-10** wurde der lokalisierte Produktionsbuild für `/de/` und `/en/`
+je dreimal mit dem mobilen Profil gemessen. Beide URLs verfehlten reproduzierbar:
+
+- Performance-Score **0,55** statt mindestens **0,60**
+- LCP rund **11,1 s** statt höchstens **4 s**
+
+Accessibility, CLS und TBT verletzten kein Gate. Der Lauf verwendete einen
+einfachen lokalen statischen Server ohne produktionsspezifische Kompression oder
+CDN. Das kann die absolute LCP beeinflussen; das lokale Hard-Gate bleibt dennoch
+rot und darf nicht als bestanden dokumentiert werden. Details und die übrigen
+Testergebnisse:
+[Lokaler Gesamt-Testlauf 2026-07-10](../implementation/LOCAL-TESTRUN-2026-07-10.md).
 
 ## Wichtig: Production-Build messen
 
@@ -43,7 +69,7 @@ Wenn der Server **nicht** aus **`dist/browser`** bedient wird, liefert die SPA b
 - **Kein horizontales Scrollen ab 320px (Story 6.4):**  
   Nach dem Build: `npm run serve:localize -w @arsnova/frontend` starten, dann `BASE_URL=http://localhost:4200 npm run check:viewport -w @arsnova/frontend`. Prüft den 320px-Viewport für die konfigurierten Kernrouten.
 
-- **Lighthouse Accessibility ≥ 90 (DoD):**  
+- **Lighthouse Accessibility ≥ 90 und Performance-Gates (DoD):**
   `npm run lighthouse:a11y -w @arsnova/frontend` – startet bei Bedarf einen lokalen Serve und gibt den Accessibility-Score aus. Optional: `LIGHTHOUSE_URL=http://localhost:4200/de/ npm run lighthouse:a11y -w @arsnova/frontend`, wenn bereits ein Serve läuft.
 
 ---

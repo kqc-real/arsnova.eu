@@ -1,6 +1,12 @@
 # Lighthouse-Analyse (Lauf: 2026-02-25)
 
 > **Archivhinweis (2026-05-31):** Dies ist ein historischer Lighthouse-Lauf. Der aktuelle Build nutzt System-Schriften und selbst gehostete Material Icons; frühere Hinweise zu Google Fonts, Font-Preconnects oder Icon-Stylesheets nach `window.load` sind nicht mehr der Ist-Stand. Aktuelle Messanleitung: [LIGHTHOUSE-PERFORMANCE.md](LIGHTHOUSE-PERFORMANCE.md).
+>
+> **Aktueller Gegenbefund (2026-07-10):** Der CI-nahe lokale Lauf des
+> lokalisierten Produktionsbuilds erreichte für `/de/` und `/en/` nur
+> Performance 0,55 und rund 11,1 s LCP. Die historischen 85 % beziehungsweise
+> 2,4 s dürfen daher nicht als aktueller Nachweis verwendet werden. Siehe
+> [Gesamt-Testlauf](../implementation/LOCAL-TESTRUN-2026-07-10.md).
 
 **Ziel-URL:** http://localhost:4174/ (Production-Build, `dist/browser`)  
 **Lighthouse:** 12.x, Kategorien Performance, Best Practices, SEO (Headless Chrome)

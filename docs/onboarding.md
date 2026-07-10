@@ -137,7 +137,13 @@ npm run dev:frontend:de   # → http://localhost:4200 (Angular, DE-Quelltexte)
 
 **Funktioniert alles?** Öffne **`http://localhost:4200`** im Browser (Standard-`dev`). Du solltest die Startseite mit dem **Server-Status-Widget** sehen. Wenn du **`npm run dev:en`** oder **`npm run dev:frontend:en`** nutzt, ist die URL **`http://localhost:4200/en/`**. Backend-Health (inkl. Redis) und tRPC laufen auf Port 3000; WebSocket auf 3001, Yjs auf 3002.
 
-**SQM-Schwerpunkt Last/Performance?** Nach dem lokalen Start: [`docs/praktikum/Arbeitsanweisungen SQM/05-last-pilot-durchfuehren.md`](praktikum/Arbeitsanweisungen%20SQM/05-last-pilot-durchfuehren.md) und [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md) — erster Check: `npm run dev:backend` und `npm run load:k6:health`.
+**SQM-Schwerpunkt Last/Performance?** Nach dem lokalen Start:
+[`docs/praktikum/Arbeitsanweisungen SQM/05-last-pilot-durchfuehren.md`](praktikum/Arbeitsanweisungen%20SQM/05-last-pilot-durchfuehren.md)
+und
+[`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md)
+— erster Check: `npm run dev:backend` und `npm run load:k6:health`. Der
+[lokale Gesamt-Testlauf vom 2026-07-10](implementation/LOCAL-TESTRUN-2026-07-10.md)
+zeigt den aktuellen Nachweisstand und offene Gates.
 
 ### Typische Stolperstellen beim ersten Start
 
@@ -239,34 +245,34 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ### Was bereits funktioniert (✅ Implementiert – Stand: 2026-07-05)
 
-| Komponente                                                              | Beschreibung                                                                                                                         |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Express + tRPC-Server                                                   | Backend auf Port 3000 mit `health.check`, `health.footerBundle`, `health.stats`, `health.ping` (Subscription)                        |
-| Angular 21.2.x Frontend                                                 | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                      |
-| tRPC-Client                                                             | `httpBatchLink` (Queries/Mutations) + `wsLink` (Subscriptions)                                                                       |
-| Redis-Anbindung                                                         | `ioredis`-Client, Health-Check, Rate-Limiting (Sliding-Window), Session-Code-Lockout                                                 |
-| tRPC WebSocket                                                          | Separater WebSocket-Server (Port 3001) für Subscriptions                                                                             |
-| Yjs y-websocket Relay                                                   | Backend startet y-websocket-Server (Port 3002) für Multi-Device-Sync                                                                 |
-| Server-Status (Epic 0.4)                                                | `health.footerBundle` im Footer, `health.stats` im Detaildialog, `PlatformStatistic`/`DailyStatistic`, Service-/Laststatus           |
-| Session-, Vote-, Q&A-, Blitzlicht-, Word-Cloud-, Admin- und MOTD-Router | `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd` mit Rate-Limiting; Live-Subscriptions für Session-Pfad        |
-| Tempo-Blitzlicht                                                        | `TEMPO` als `quickFeedback`-Template mit vier Icons, mutablem Redis-Hotpath, Tendenzmodus und Spotlight-Einstiegen                   |
-| Quiz-Scoring, Kurzantwort und Schätzfrage                               | `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT` und `NUMERIC_ESTIMATE` sind bewertbar; Auswertungen nutzen die Effective-Vote-Regel |
-| Prisma-Schema                                                           | Vollständiges Datenbankmodell inkl. Q&A, MOTD, Admin-Audit, `PlatformStatistic` und `DailyStatistic`                                 |
-| Zod v4-Schemas (`shared-types`)                                         | Alle Input-/Output-Schemas, DTOs, Enums und Exportverträge definiert                                                                 |
-| Docker Compose                                                          | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up`                                                           |
-| CI/CD-Pipeline                                                          | GitHub Actions: Prisma validate/generate, TypeScript, ESLint, Tests, Docker-Build (Node 20/22)                                       |
-| Session- und Besitzhärtung                                              | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie                  |
-| Basis-Lasttest-Bausteine                                                | `scripts/load/` mit `k6`-Skripten und Node-Simulationen; Frontend-Smoke-Flow `smoke:unified-session` vorhanden                       |
+| Komponente                                                              | Beschreibung                                                                                                                                    |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Express + tRPC-Server                                                   | Backend auf Port 3000 mit `health.check`, `health.footerBundle`, `health.stats`, `health.ping` (Subscription)                                   |
+| Angular 21.2.x Frontend                                                 | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                                 |
+| tRPC-Client                                                             | `httpBatchLink` (Queries/Mutations) + `wsLink` (Subscriptions)                                                                                  |
+| Redis-Anbindung                                                         | `ioredis`-Client, Health-Check, Rate-Limiting (Sliding-Window), Session-Code-Lockout                                                            |
+| tRPC WebSocket                                                          | Separater WebSocket-Server (Port 3001) für Subscriptions                                                                                        |
+| Yjs y-websocket Relay                                                   | Backend startet y-websocket-Server (Port 3002) für Multi-Device-Sync                                                                            |
+| Server-Status (Epic 0.4)                                                | `health.footerBundle` im Footer, `health.stats` im Detaildialog, `PlatformStatistic`/`DailyStatistic`, Service-/Laststatus                      |
+| Session-, Vote-, Q&A-, Blitzlicht-, Word-Cloud-, Admin- und MOTD-Router | `session`, `vote`, `qa`, `quickFeedback`, `wordCloud`, `admin`, `motd` mit Rate-Limiting; Live-Subscriptions für Session-Pfad                   |
+| Tempo-Blitzlicht                                                        | `TEMPO` als `quickFeedback`-Template mit vier Icons, mutablem Redis-Hotpath, Tendenzmodus und Spotlight-Einstiegen                              |
+| Quiz-Scoring, Kurzantwort und Schätzfrage                               | `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT` und `NUMERIC_ESTIMATE` sind bewertbar; Auswertungen nutzen die Effective-Vote-Regel            |
+| Prisma-Schema                                                           | Vollständiges Datenbankmodell inkl. Q&A, MOTD, Admin-Audit, `PlatformStatistic` und `DailyStatistic`                                            |
+| Zod v4-Schemas (`shared-types`)                                         | Alle Input-/Output-Schemas, DTOs, Enums und Exportverträge definiert                                                                            |
+| Docker Compose                                                          | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up`                                                                      |
+| CI/CD-Pipeline                                                          | GitHub Actions: Prisma validate/generate, TypeScript, ESLint, Tests, Docker-Build (Node 20/22)                                                  |
+| Session- und Besitzhärtung                                              | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie                             |
+| Last-/Performance-Teststrecke                                           | k6, Artillery, sechs Classroom-Smokes, Yjs, Freitext, Soak, standardisierte Reports und Browser-Referenzflows; lokaler Lauf 19/21 Lastszenarien |
 
 ### Was als nächstes ansteht (🔲 Geplant / offen)
 
-| Thema                        | Kurzbeschreibung                                                                                                         | Backlog / Referenz         |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
-| Barrierefreiheit & UX        | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)                                                               | Epic 6                     |
-| Neue Fragentypen             | **1.2ec–1.2ed**, **1.2f–1.2i**: verbleibende Kurzantwort-/Fragentyp-Erweiterungen                                        | Epic 1                     |
-| Q&A-Moderation               | Delegierte Q&A-Moderation (**8.5**) bleibt offen; Moderationskompass/NLP/Zusammenfassung (**8.9a–8.9c**) ebenfalls offen | Epic 8, ADR-0011, ADR-0032 |
-| Last & Performance           | **0.7** in Arbeit: vorhandene `k6`-/Smoke-Bausteine zu vollständiger E2E-/Realtime-Strecke ausbauen                      | Epic 0, ADR-0013           |
-| Sync & Word Cloud / Refactor | **1.6c**, **1.6d**, **1.14a** sowie **0.8** (Komplexitätsabbau / McCabe-Hotspots)                                        | Backlog                    |
+| Thema                        | Kurzbeschreibung                                                                                                              | Backlog / Referenz         |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Barrierefreiheit & UX        | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)                                                                    | Epic 6                     |
+| Neue Fragentypen             | **1.2ec–1.2ed**, **1.2f–1.2i**: verbleibende Kurzantwort-/Fragentyp-Erweiterungen                                             | Epic 1                     |
+| Q&A-Moderation               | Delegierte Q&A-Moderation (**8.5**) bleibt offen; Moderationskompass/NLP/Zusammenfassung (**8.9a–8.9c**) ebenfalls offen      | Epic 8, ADR-0011, ADR-0032 |
+| Last & Performance           | **0.7** in Arbeit: Yjs-Reconnect, 600er Vote-p95, drei Browser-Flows und Lighthouse klären; danach Staging-Langlauf/Baselines | Epic 0, ADR-0013           |
+| Sync & Word Cloud / Refactor | **1.6c**, **1.6d**, **1.14a** sowie **0.8** (Komplexitätsabbau / McCabe-Hotspots)                                             | Backlog                    |
 
 **Hinweis für neue Stories:** **Epic 11** ist aktuell nur ein nicht beauftragter Erweiterungspfad für Verlagszugänge und ein Redaktionsbackend.
 

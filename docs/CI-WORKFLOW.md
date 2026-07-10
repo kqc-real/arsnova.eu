@@ -84,6 +84,7 @@ flowchart TD
   I --> Q
   J --> Q
   K --> Q
+  K2 --> Q
   L --> Q
   E --> Q
   F --> Q
@@ -173,10 +174,14 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.8 lighthouse
 
-- **Was?** Lighthouse CI gegen den gebauten Frontend-Stand (`/de/`, `/en/`).
+- **Was?** Lighthouse CI gegen den gebauten Frontend-Stand (`/de/`, `/en/`), mobil
+  mit drei Läufen je URL. Performance, LCP, CLS, TBT und Accessibility sind harte Gates.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml), Regeln in [../.lighthouserc.cjs](../.lighthouserc.cjs).
 - **Wann?** Nach `build`, außer bei `schedule`.
 - **Warum?** Qualitätssignal für Accessibility/Performance/Best-Practices/SEO.
+- **Letzter lokaler Nachweis:** Am 2026-07-10 scheiterte das Gate für `/de/` und
+  `/en/` reproduzierbar an Performance 0,55 und LCP rund 11,1 s; siehe
+  [lokaler Gesamt-Testlauf](implementation/LOCAL-TESTRUN-2026-07-10.md).
 
 ### 4.9 e2e
 
@@ -187,23 +192,33 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.10 classroom-smokes
 
-- **Was?** Fünf protokollnahe Unterrichts-Szenarien (je 30 TN) gegen lokales Backend: Blitzlicht-Tempo, Q&A, Demo-Quiz mit 9 Fragen, WebSocket Vote-Progress (Host-WS + HTTP-Votes), WebSocket-Reconnect-Welle.
+- **Was?** Sechs protokollnahe Unterrichts-Szenarien (je 30 TN) gegen lokales Backend: Blitzlicht-Tempo, Q&A, Demo-Quiz mit 9 Fragen, WebSocket Vote-Progress (Host-WS + HTTP-Votes), WebSocket-Reconnect-Welle sowie Q&A-/Blitzlicht-Fan-out.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Skripte:
   - [../scripts/load/blitzlicht-classroom-30.mjs](../scripts/load/blitzlicht-classroom-30.mjs)
   - [../scripts/load/qa-classroom-30.mjs](../scripts/load/qa-classroom-30.mjs)
   - [../scripts/load/demo-quiz-classroom-30.mjs](../scripts/load/demo-quiz-classroom-30.mjs)
   - [../scripts/load/ws-vote-progress-classroom-30.mjs](../scripts/load/ws-vote-progress-classroom-30.mjs)
   - [../scripts/load/ws-reconnect-wave-classroom-30.mjs](../scripts/load/ws-reconnect-wave-classroom-30.mjs)
+  - [../scripts/load/channel-ws-fanout-classroom-30.mjs](../scripts/load/channel-ws-fanout-classroom-30.mjs)
 - **Wann?** Push/PR auf `main` und `workflow_dispatch`, außer `docs_only` und `schedule`.
-- **Warum?** Prüft Session-/Kanal-Hotpaths (Vote, Q&A, Redis-Blitzlicht, Realtime-WS) ohne Browser; ergänzt E2E um API-nahe Last-Smokes.
-- **Artefakt:** `classroom-smoke-reports` (JSON pro Szenario + `backend.log`).
+- **Warum?** Prüft Session-/Kanal-Hotpaths (Vote, Q&A, Redis-Blitzlicht, Realtime-WS) ohne Browser; ergänzt E2E um API-nahe Last-Smokes und ist ein direktes Deploy-Gate.
+- **Artefakt:** `classroom-smoke-reports` (standardisiertes JSON und JUnit XML pro Szenario + `backend.log`).
 
 ### 4.11 artillery-500
 
-- **Was?** Artillery-Live-Session (Quiz + Q&A + Blitzlicht, HTTP + WebSocket); Standard 100 TN im CI-Runner, konfigurierbar bis 500.
+- **Was?** Artillery-Live-Session (Quiz + Q&A + Blitzlicht, HTTP + WebSocket);
+  Standard 100 TN im CI-Runner, konfigurierbar bis 500. Im selben geplanten Lauf
+  folgen die schweren Vote-Smokes für Host-Progress (200 TN), Timer-Fairness
+  (600 TN), der Yjs-Mehrclient-Sync, der Freitext-/Wordcloud-Pfad und ein
+  5-Minuten-Live-Session-Soak mit Backend-Prozess-, Redis- und PostgreSQL-Probes.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml); Runner [../scripts/load/run-artillery-500.mjs](../scripts/load/run-artillery-500.mjs).
 - **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
-- **Artefakt:** `artillery-500-reports` (Summary JSON + Artillery-Report + `backend.log`).
+- **Artefakt:** `artillery-500-reports` (standardisierte JSON-/JUnit-Reports, Artillery-Report + `backend.log`).
+- **Letzter lokaler Nachweis:** Artillery 500/500 und der 5-Minuten-Soak
+  bestanden. Der nachgelagerte Yjs-Lauf und das 600er Timer-Fairness-Latenzgate
+  scheiterten reproduzierbar; der Gesamtjob ist damit nicht als vollständig grün
+  zu bewerten. Details:
+  [LOCAL-TESTRUN-2026-07-10.md](implementation/LOCAL-TESTRUN-2026-07-10.md).
 
 ### 4.11a artillery-reconnect-500
 
@@ -212,11 +227,21 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
 - **Artefakt:** `artillery-reconnect-500-reports` (Summary JSON + Artillery-Report + `backend.log`).
 
+### 4.11b staging-capacity
+
+- **Was?** Explizit freizugebender vollständiger Artillery-Lauf gegen die
+  `performance-staging`-Umgebung (Live-Session und Reconnect, standardmäßig 500 TN).
+- **Wann?** Nur manuell mit `run_staging_capacity=true`; URLs kommen aus
+  `STAGING_TRPC_URL` und `STAGING_WS_URL`. Das Produktionsziel ist in diesem Job gesperrt.
+- **Warum?** Trennt den echten Kapazitätsnachweis von verrauschten GitHub-Runner-Smokes
+  und erzwingt eine bewusste Freigabe der Zielumgebung.
+
 ### 4.12 load-test
 
 - **Was?** k6-Health-Loadtest gegen Produktion.
 - **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml), Skript in [../scripts/load/k6-trpc-health-50vu.js](../scripts/load/k6-trpc-health-50vu.js).
-- **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
+- **Wann?** Im Schedule nur mit `PRODUCTION_LOAD_ENABLED=true`; manuell nur mit
+  `run_production_load=true`.
 - **Warum?** Regelmäßige Lastsicht, ohne jeden PR-Run zu verlangsamen.
 
 ### 4.13 trivy-fs
@@ -280,14 +305,15 @@ Vor dem eigentlichen Deploy müssen erfolgreich sein:
 4. typecheck
 5. lighthouse
 6. e2e
-7. audit
-8. trivy-fs
-9. trivy-image
-10. deploy-freshness (`should_deploy=true`)
+7. classroom-smokes
+8. audit
+9. trivy-fs
+10. trivy-image
+11. deploy-freshness (`should_deploy=true`)
 
-Wenn einer der Quality-Gates (1–9) fehlschlägt, wird nicht deployt. Wenn danach `deploy-freshness` feststellt, dass `github.sha` nicht mehr aktueller `main`-HEAD ist, wird der Deploy sauber übersprungen.
-
-`classroom-smokes` läuft parallel auf PR/Push-Pfad, ist aber kein direktes Deploy-Gate (nicht in `deploy-freshness.needs`).
+Wenn eines der Quality-Gates (1–10) fehlschlägt, wird nicht deployt. Wenn danach
+`deploy-freshness` feststellt, dass `github.sha` nicht mehr aktueller `main`-HEAD ist,
+wird der Deploy sauber übersprungen.
 
 ---
 

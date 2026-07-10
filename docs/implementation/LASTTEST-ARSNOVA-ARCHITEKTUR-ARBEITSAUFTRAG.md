@@ -8,6 +8,14 @@ Dieser Arbeitsauftrag beschreibt Vorbereitung, Durchfuehrung, Messung, Auswertun
 
 Der Auftrag richtet sich an Entwicklung, Betrieb und Qualitaetssicherung. Er ist so formuliert, dass eine beauftragte Person oder ein kleines Team den Lasttest reproduzierbar vorbereiten, fahren, auswerten und daraus belastbare technische Massnahmen ableiten kann.
 
+Als aktueller lokaler Vorlauf dient der
+[Gesamt-Testlauf vom 2026-07-10](./LOCAL-TESTRUN-2026-07-10.md). Er bestätigt
+Artillery und k6 bis 500 Teilnehmende/VUs sowie einen stabilen 5-Minuten-Soak,
+zeigt aber offene Yjs-Reconnect-Konvergenz, ein überschrittenes
+600er Vote-p95-Gate, drei rote Browser-Flows und ein rotes Lighthouse-Gate. Ein
+produktionsnaher Lauf darf diese Befunde nicht durch pauschale
+„Reconnect/Vote bestanden“-Aussagen überdecken.
+
 ## 2. Hintergrund
 
 arsnova.eu ist ein Audience-Response-System fuer Live-Lehrveranstaltungen. Kritische Last entsteht nicht gleichmaessig, sondern in kurzen synchronen Wellen:
