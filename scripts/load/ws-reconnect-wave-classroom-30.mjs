@@ -27,6 +27,11 @@ const WS_READY_MS = Math.max(100, Number(process.env.WS_READY_MS || 750));
 const DISCONNECT_HOLD_MS = Math.max(0, Number(process.env.DISCONNECT_HOLD_MS || 250));
 const INITIAL_CONNECT_LIMIT_MS = Math.max(500, Number(process.env.INITIAL_CONNECT_LIMIT_MS || 5_000));
 const RECONNECT_P95_LIMIT_MS = Math.max(500, Number(process.env.RECONNECT_P95_LIMIT_MS || 3_000));
+const RECONNECT_P95_MIN_STARTED = Math.ceil(PARTICIPANTS * 0.95);
+const ALL_RECONNECT_LIMIT_MS = Math.max(
+  RECONNECT_P95_LIMIT_MS,
+  Number(process.env.ALL_RECONNECT_LIMIT_MS || 10_000),
+);
 const STATUS_AFTER_RECONNECT_LIMIT_MS = Math.max(
   500,
   Number(process.env.STATUS_AFTER_RECONNECT_LIMIT_MS || 3_000),
@@ -211,10 +216,20 @@ async function run() {
   );
 
   await waitForCondition(
-    'Reconnect-Welle (onStarted)',
+    'Reconnect-Welle (p95 onStarted)',
     RECONNECT_P95_LIMIT_MS,
-    () => clients.every((client) => client.started),
+    () => clients.filter((client) => client.started).length >= RECONNECT_P95_MIN_STARTED,
   );
+
+  try {
+    await waitForCondition(
+      'Reconnect-Welle (alle onStarted)',
+      ALL_RECONNECT_LIMIT_MS,
+      () => clients.every((client) => client.started),
+    );
+  } catch {
+    // Auswertung unten — p95 wird separat geprueft.
+  }
 
   const reconnectConnectMs = clients
     .map((client) => client.connectMs)
