@@ -39,7 +39,11 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 ## Epic 0 – Infrastruktur und Plattform
 
 - Redis, WebSocket-Adapter, Yjs-Basis, Serverstatus, Rate-Limiting, CI/CD produktiv umgesetzt.
-- Offene Punkte: Last-/Performance-Testsystematik und McCabe-Refactor-Hotspots.
+- Last-/Performance-Testsystematik ist weitgehend vorhanden; Yjs-Reconnect,
+  600er Vote-Latenz, sechs Browser-Referenzflows und Lighthouse sind im
+  [QA-Nachlauf 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md)
+  lokal grün. Offen sind Staging-Langläufe und Baselines.
+  McCabe-Refactor-Hotspots bleiben ebenfalls offen.
 
 ## Epic 1 – Quiz-Verwaltung
 
@@ -140,11 +144,18 @@ Damit ist die Produktbeschreibung nicht nur backlog-basiert, sondern auch verhal
 
 ## 8. Aktueller Lieferstand und offene Produktinkremente
 
-**Lieferstand:** Kernprodukt inkl. Sessionsteuerung, Teilnehmerfluss, Auswertung, Admin und MOTD ist produktiv funktionsfähig und testseitig breit abgesichert.
+**Lieferstand:** Kernprodukt inkl. Sessionsteuerung, Teilnehmerfluss, Auswertung,
+Admin und MOTD ist produktiv funktionsfähig und durch Unit-, API- und
+Lasttests breit abgesichert. Der
+[QA-Nachlauf vom 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md)
+belegt grüne lokale Browser-, Yjs-, Vote-Latenz- und Lighthouse-Gates. Eine
+vollständige Performance-Freigabe benötigt zusätzlich Staging-Langläufe und
+Produktionsbaselines.
 
 **Offene Inkremente mit hoher Relevanz:**
 
-- Last-/Performance-Tests (0.7)
+- Abschluss Last-/Performance-Tests (0.7): Staging-Langläufe und
+  Produktionsbaselines freigeben
 - Komplexitätsreduktion/Refactor-Hotspots (0.8)
 - Neue Fragentypen und Auswertungslogik (1.2ec–1.2ed, 1.2f–1.2i)
 - Sync-Sicherheit/Skalierung (1.6c/1.6d)

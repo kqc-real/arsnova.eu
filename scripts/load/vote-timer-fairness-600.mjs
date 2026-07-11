@@ -13,6 +13,7 @@
  *   PARTICIPANTS=600 TIMER_SECONDS=8 TRPC_URL=http://127.0.0.1:3000/trpc node scripts/load/vote-timer-fairness-600.mjs
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
+import { writeScenarioReport } from './lib/reporting.mjs';
 
 let trpcClientModule;
 try {
@@ -27,6 +28,7 @@ const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').tr
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 600));
 const TIMER_SECONDS = Math.max(2, Number(process.env.TIMER_SECONDS || 8));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 60));
+const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 const GRACE_MS = Math.max(0, Number(process.env.GRACE_MS || 2_000));
 const WITHIN_GRACE_REVEAL_OFFSET_MS = Math.max(
   0,
@@ -323,11 +325,21 @@ async function run() {
   if (active?.votes.accepted !== PARTICIPANTS) {
     failures.push(`ACTIVE akzeptierte ${active?.votes.accepted ?? 0}/${PARTICIPANTS} Votes.`);
   }
+  if ((active?.votes.p95Ms ?? Number.POSITIVE_INFINITY) > VOTE_P95_LIMIT_MS) {
+    failures.push(
+      `ACTIVE Vote-p95 ${active?.votes.p95Ms ?? 'fehlt'} ms > ${VOTE_P95_LIMIT_MS} ms.`,
+    );
+  }
   if (active?.snapshot.totalVotes !== PARTICIPANTS) {
     failures.push(`ACTIVE-Progress meldete ${active?.snapshot.totalVotes ?? 'null'} Votes.`);
   }
   if (withinGrace?.votes.accepted !== PARTICIPANTS) {
     failures.push(`Karenz akzeptierte ${withinGrace?.votes.accepted ?? 0}/${PARTICIPANTS} Votes.`);
+  }
+  if ((withinGrace?.votes.p95Ms ?? Number.POSITIVE_INFINITY) > VOTE_P95_LIMIT_MS) {
+    failures.push(
+      `Karenz Vote-p95 ${withinGrace?.votes.p95Ms ?? 'fehlt'} ms > ${VOTE_P95_LIMIT_MS} ms.`,
+    );
   }
   if (withinGrace?.snapshot.totalVotes !== PARTICIPANTS) {
     failures.push(
@@ -344,6 +356,18 @@ async function run() {
       `Ausserhalb-Karenz-Host-Snapshot meldete ${outsideGrace?.snapshot.totalVotes ?? 'null'} Votes.`,
     );
   }
+
+  await writeScenarioReport({
+    scenario: 'vote-timer-fairness-600',
+    environment: {
+      participants: PARTICIPANTS,
+      timerSeconds: TIMER_SECONDS,
+      graceMs: GRACE_MS,
+      voteP95LimitMs: VOTE_P95_LIMIT_MS,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');

@@ -222,11 +222,7 @@ type NumericUnitStatus =
   | 'wrong_family'
   | 'unsupported';
 type NumericFeedbackCategory =
-  | 'exact_match'
-  | 'within_tolerance'
-  | 'unit_partial'
-  | 'invalid_input'
-  | 'no_match';
+  'exact_match' | 'within_tolerance' | 'unit_partial' | 'invalid_input' | 'no_match';
 
 export interface EvaluateNumericAnswerInput {
   modelAnswers: string[];
@@ -252,11 +248,7 @@ export interface EvaluateNumericAnswerResult {
 }
 
 type ShortAnswerEvaluationMethod =
-  | 'exact'
-  | 'hamming'
-  | 'levenshtein'
-  | 'damerau_levenshtein'
-  | 'none';
+  'exact' | 'hamming' | 'levenshtein' | 'damerau_levenshtein' | 'none';
 type ShortAnswerFeedbackCategory = 'exact_match' | 'minor_typo' | 'partial_match' | 'no_match';
 
 export interface EvaluateShortAnswerInput {
@@ -2327,6 +2319,8 @@ export const QuestionRevealedDTOSchema = z.object({
   numericIntervalRight: z.number().nullable().optional(),
   numericInputType: NumericInputTypeEnum.optional(),
   numericDecimalPlaces: z.number().int().nullable().optional(),
+  numericTwoRounds: z.boolean().optional(),
+  currentRound: z.number().int().min(1).max(2).optional(),
   numericStats: NumericStatsDTOSchema.optional(),
   numericHistogram: z.array(NumericHistogramBinSchema).optional(),
 });

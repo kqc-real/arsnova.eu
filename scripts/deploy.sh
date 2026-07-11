@@ -77,9 +77,9 @@ compose up -d postgres redis
 
 echo ""
 echo ">>> Schritt 4: Prisma-Migrationen anwenden"
-# Entrypoint NICHT ausführen: der würde zuerst „db push“ laufen lassen und Spalten anlegen,
-# bevor migrate deploy dieselbe Migration anwendet → P3018 duplicate column.
-compose run --rm --entrypoint "" app npx prisma migrate deploy
+# Vor dem App-Rollout explizit migrieren; der App-Entrypoint wiederholt diesen
+# idempotenten Check beim Containerstart als zusätzliche Startbarriere.
+compose run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma
 
 echo ""
 echo ">>> Schritt 5: App starten"

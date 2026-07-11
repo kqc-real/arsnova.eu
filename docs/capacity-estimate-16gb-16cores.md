@@ -1,6 +1,6 @@
 # Kapazitätsschätzung: 16 Kerne, 16 GB RAM (konservativ)
 
-**Stand:** 2026-07-05 — Codebase mit **tRPC-WebSocket-Subscriptions** für Session/Q&A/Vote/Health (Implementierung: **Polling** gegen PostgreSQL in den Subscriptions, kein Redis-Pub/Sub für jedes Live-Event). Zusätzlich: **MOTD**-Lesepfade (HTTP/tRPC), **Yjs**-Relay (Quiz-Sync), **Blitzlicht** in Redis.
+**Stand:** 2026-07-10 — Codebase mit **tRPC-WebSocket-Subscriptions** für Session/Q&A/Vote/Health (Implementierung: **Polling** gegen PostgreSQL in den Subscriptions, kein Redis-Pub/Sub für jedes Live-Event). Zusätzlich: **MOTD**-Lesepfade (HTTP/tRPC), **Yjs**-Relay (Quiz-Sync), **Blitzlicht** in Redis.
 **Ziel:** Konservative Obergrenzen für **gleichzeitige Quizze** (verschiedene Dozenten) und **current participants** (wie in `health.stats`: Teilnehmer in nicht beendeten Sessions).
 
 ---
@@ -91,6 +91,20 @@ Die folgenden SLOs sind so gewählt, dass sie mit dem aktuellen Architekturstand
   - **p95 <= 1000 ms**
   - **p99 <= 2000 ms**
 - **Messfenster:** Rolling 5 Minuten im Lasttest und im Produktionsbetrieb als 1-Minuten-Buckets.
+
+**Empirischer lokaler Hinweis (2026-07-10):** Das isolierte k6-Vote-Spike-Profil
+bestand mit 500 VUs bei p95 874,32 ms. Der timergekoppelte Lauf mit 600
+gleichzeitigen Votes lag dagegen bei p95 2.156 ms (`ACTIVE`) beziehungsweise
+1.466 ms innerhalb der Backend-Karenz und verfehlte sein 1.000-ms-Gate. Das
+widerlegt nicht das oben auf 50 aktive Teilnehmende definierte SLO, zeigt aber
+eine klare Degradation oberhalb der Zielstufe. Der Lauf fand auf lokaler
+Hardware statt und validiert nicht die hier geschätzte CAX31-Kapazität; siehe
+[Messprotokoll](implementation/LOCAL-TESTRUN-2026-07-10.md).
+
+Nach der Vote-Hotpath-Optimierung hielt der
+[QA-Nachlauf vom 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md)
+auch mit 600 Teilnehmenden das 1.000-ms-Gate: p95 766 ms aktiv und 968 ms
+innerhalb der Karenz. Eine CAX31-Aussage erfordert weiterhin den Staging-Lauf.
 
 ### 7.2 SLO 2 – Host-Statuswechsel sichtbar bei Teilnehmern
 

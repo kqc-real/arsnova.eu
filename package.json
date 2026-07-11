@@ -24,12 +24,13 @@
     "build": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/backend && npm run build -w @arsnova/frontend",
     "build:landing": "(cd apps/landing && export NODE_PATH=\"$(cd ../.. && pwd)/node_modules\" && export PUBLIC_GITHUB_REPO=\"${PUBLIC_GITHUB_REPO:-$(node scripts/get-github-repo.mjs 2>/dev/null || echo 'kqc-real/arsnova.eu')}\" && node ../../node_modules/astro/astro.js build)",
     "typecheck": "npm run build -w @arsnova/shared-types && npm run typecheck -w @arsnova/backend && npm run typecheck -w @arsnova/frontend",
-    "test": "npm run test -w @arsnova/backend && npm run test -w @arsnova/frontend",
-    "test:coverage": "npm run test:coverage -w @arsnova/backend && npm run test:coverage -w @arsnova/frontend",
+    "test": "npm run test -w @arsnova/shared-types && npm run test -w @arsnova/backend && npm run test -w @arsnova/frontend",
+    "test:coverage": "npm run test:coverage -w @arsnova/shared-types && npm run test:coverage -w @arsnova/backend && npm run test:coverage -w @arsnova/frontend",
     "clean:generated": "node scripts/clean-generated.mjs",
     "lint": "eslint libs/ apps/ --no-warn-ignored",
     "format": "prettier --write \"**/*.{ts,js,json,html,css,scss,md}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,html,css,scss,md}\"",
+    "format:check:changed": "node scripts/check-changed-format.mjs",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
@@ -59,6 +60,11 @@
     "load:smoke:blitzlicht-classroom-30": "node scripts/load/blitzlicht-classroom-30.mjs",
     "load:smoke:ws-vote-progress-classroom-30": "node scripts/load/ws-vote-progress-classroom-30.mjs",
     "load:smoke:ws-reconnect-wave-classroom-30": "node scripts/load/ws-reconnect-wave-classroom-30.mjs",
+    "load:smoke:channel-ws-fanout-classroom-30": "node scripts/load/channel-ws-fanout-classroom-30.mjs",
+    "load:freetext:wordcloud": "node scripts/load/freetext-wordcloud-classroom.mjs",
+    "load:yjs:sync": "node scripts/load/yjs-sync-load.mjs",
+    "load:soak:live-session": "node scripts/load/soak-live-session.mjs",
+    "load:report:compare": "node scripts/load/compare-load-report.mjs",
     "load:k6:health": "node scripts/load/run-k6.mjs scripts/load/k6-trpc-health-50vu.js",
     "load:k6:session": "node scripts/load/run-k6.mjs scripts/load/k6-trpc-session-50vu.js",
     "load:k6:hotpaths": "node scripts/load/run-k6.mjs scripts/load/k6-session-hotpaths-500vu.js",
@@ -97,7 +103,7 @@
     "@prisma/client": "^7.4.2",
     "prisma": "^7.4.2",
     "qrcode-generator": "^2.0.4",
-    "yjs": "13.6.30"
+    "yjs": "13.6.31"
   },
   "lint-staged": {
     "*.{ts,js}": "eslint --no-warn-ignored --fix",
@@ -108,9 +114,6 @@
     "hono": "^4.12.5",
     "minimatch": "^10.2.1",
     "tar": "^7.5.8",
-    "yjs": "13.6.30",
-    "@y/websocket-server": {
-      "yjs": "14.0.0-16"
-    }
+    "yjs": "13.6.31"
   }
 }

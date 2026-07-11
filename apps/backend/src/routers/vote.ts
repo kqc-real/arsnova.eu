@@ -47,6 +47,73 @@ function normalizeNumericInputType(value: string | null | undefined): NumericInp
   return value === 'INTEGER' ? 'INTEGER' : 'DECIMAL';
 }
 
+function isUniqueConstraintError(error: unknown): error is { code: 'P2002' } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'P2002'
+  );
+}
+
+type VoteQuestion = Awaited<ReturnType<typeof fetchVoteQuestion>>;
+const VOTE_QUESTION_CACHE_TTL_MS = 10_000;
+const voteQuestionCache = new Map<
+  string,
+  { value: NonNullable<VoteQuestion>; expiresAt: number }
+>();
+const voteQuestionInFlight = new Map<string, Promise<VoteQuestion>>();
+
+function fetchVoteQuestion(questionId: string, quizId: string) {
+  return prisma.question.findFirst({
+    where: { id: questionId, quizId },
+    include: {
+      answers: { select: { id: true, text: true, isCorrect: true } },
+      quiz: { select: { defaultTimer: true, timerScaleByDifficulty: true } },
+    },
+  });
+}
+
+async function getVoteQuestion(questionId: string, quizId: string): Promise<VoteQuestion> {
+  const key = `${quizId}:${questionId}`;
+  const cached = voteQuestionCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+  voteQuestionCache.delete(key);
+
+  const pending = voteQuestionInFlight.get(key);
+  if (pending) {
+    return pending;
+  }
+
+  const request = fetchVoteQuestion(questionId, quizId)
+    .then((question) => {
+      if (question) {
+        const entry = {
+          value: question,
+          expiresAt: Date.now() + VOTE_QUESTION_CACHE_TTL_MS,
+        };
+        voteQuestionCache.set(key, entry);
+        const expiry = setTimeout(() => {
+          if (voteQuestionCache.get(key) === entry) {
+            voteQuestionCache.delete(key);
+          }
+        }, VOTE_QUESTION_CACHE_TTL_MS);
+        expiry.unref?.();
+      }
+      return question;
+    })
+    .finally(() => voteQuestionInFlight.delete(key));
+  voteQuestionInFlight.set(key, request);
+  return request;
+}
+
+export function resetVoteSubmitCachesForTests(): void {
+  voteQuestionCache.clear();
+  voteQuestionInFlight.clear();
+}
+
 export const voteRouter = router({
   submit: publicProcedure
     .input(SubmitVoteInputSchema)
@@ -76,12 +143,11 @@ export const voteRouter = router({
       }
       void touchParticipantPresence(input.sessionId, input.participantId);
       void recordVoteActivity();
-      const question = await prisma.question.findFirst({
-        where: { id: input.questionId, quizId: participant.session.quizId ?? undefined },
-        include: {
-          answers: { select: { id: true, text: true, isCorrect: true } },
-        },
-      });
+      const sessionQuizId = participant.session.quizId;
+      if (!sessionQuizId) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
+      }
+      const question = await getVoteQuestion(input.questionId, sessionQuizId);
       if (!question) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
       }
@@ -102,10 +168,12 @@ export const voteRouter = router({
         });
       }
 
-      const quiz = await prisma.quiz.findUnique({
-        where: { id: participant.session.quizId ?? '' },
-        select: { defaultTimer: true, timerScaleByDifficulty: true },
-      });
+      const quiz =
+        question.quiz ??
+        (await prisma.quiz.findUnique({
+          where: { id: sessionQuizId },
+          select: { defaultTimer: true, timerScaleByDifficulty: true },
+        }));
       const timerSeconds =
         round === 2
           ? null
@@ -499,21 +567,6 @@ export const voteRouter = router({
               ? isExactCorrectSelection(answerIds, correctAnswerIds)
               : null;
 
-      const existing = await prisma.vote.findUnique({
-        where: {
-          sessionId_participantId_questionId_round: {
-            sessionId: input.sessionId,
-            participantId: input.participantId,
-            questionId: input.questionId,
-            round,
-          },
-        },
-        select: { id: true },
-      });
-      if (existing) {
-        return { voteId: existing.id };
-      }
-
       // --- Streak (Story 5.5) ---
       let streakCount = 0;
       let streakMultiplier = 1.0;
@@ -522,23 +575,27 @@ export const voteRouter = router({
         const isCorrect = voteIsCorrect === true;
 
         if (isCorrect) {
-          // Letztes SC/MC-Vote derselben Runde (nach Zeit), nicht „letztes mit streakCount > 0“:
-          // Nach einer falschen Antwort ist streakCount 0 — die alte Query hätte trotzdem ein
-          // früheres richtiges Vote gefunden und die Serie fälschlich hochgezählt.
-          const lastChoiceVote = await prisma.vote.findFirst({
-            where: {
-              sessionId: input.sessionId,
-              participantId: input.participantId,
-              round,
-              question: { type: { in: [...SCORED_QUESTION_TYPES] } },
-            },
-            orderBy: { votedAt: 'desc' },
-            select: { streakCount: true, score: true, isCorrect: true },
-          });
-          if (!lastChoiceVote || !(lastChoiceVote.isCorrect ?? lastChoiceVote.score > 0)) {
+          if (question.order === 0) {
             streakCount = 1;
           } else {
-            streakCount = lastChoiceVote.streakCount + 1;
+            // Letztes SC/MC-Vote derselben Runde (nach Zeit), nicht „letztes mit streakCount > 0“:
+            // Nach einer falschen Antwort ist streakCount 0 — die alte Query hätte trotzdem ein
+            // früheres richtiges Vote gefunden und die Serie fälschlich hochgezählt.
+            const lastChoiceVote = await prisma.vote.findFirst({
+              where: {
+                sessionId: input.sessionId,
+                participantId: input.participantId,
+                round,
+                question: { type: { in: [...SCORED_QUESTION_TYPES] } },
+              },
+              orderBy: { votedAt: 'desc' },
+              select: { streakCount: true, score: true, isCorrect: true },
+            });
+            if (!lastChoiceVote || !(lastChoiceVote.isCorrect ?? lastChoiceVote.score > 0)) {
+              streakCount = 1;
+            } else {
+              streakCount = lastChoiceVote.streakCount + 1;
+            }
           }
         }
         // Falsche Antwort: streakCount bleibt 0
@@ -547,25 +604,47 @@ export const voteRouter = router({
 
       const score = Math.round(baseScore * streakMultiplier);
 
-      const vote = await prisma.vote.create({
-        data: {
-          sessionId: input.sessionId,
-          participantId: input.participantId,
-          questionId: input.questionId,
-          freeText,
-          ratingValue: input.ratingValue ?? null,
-          numericValue: input.numericValue ?? null,
-          responseTimeMs,
-          score,
-          isCorrect: voteIsCorrect,
-          streakCount,
-          streakBonus: streakMultiplier,
-          round,
-          selectedAnswers: answerIds.length
-            ? { create: answerIds.map((answerOptionId: string) => ({ answerOptionId })) }
-            : undefined,
-        },
-      });
+      let vote: { id: string };
+      try {
+        vote = await prisma.vote.create({
+          data: {
+            sessionId: input.sessionId,
+            participantId: input.participantId,
+            questionId: input.questionId,
+            freeText,
+            ratingValue: input.ratingValue ?? null,
+            numericValue: input.numericValue ?? null,
+            responseTimeMs,
+            score,
+            isCorrect: voteIsCorrect,
+            streakCount,
+            streakBonus: streakMultiplier,
+            round,
+            selectedAnswers: answerIds.length
+              ? { create: answerIds.map((answerOptionId: string) => ({ answerOptionId })) }
+              : undefined,
+          },
+        });
+      } catch (error) {
+        if (!isUniqueConstraintError(error)) {
+          throw error;
+        }
+        const existingVote = await prisma.vote.findUnique({
+          where: {
+            sessionId_participantId_questionId_round: {
+              sessionId: input.sessionId,
+              participantId: input.participantId,
+              questionId: input.questionId,
+              round,
+            },
+          },
+          select: { id: true },
+        });
+        if (!existingVote) {
+          throw error;
+        }
+        return { voteId: existingVote.id };
+      }
       if (participant.session.code) {
         const progressIsCorrect =
           questionType === 'SHORT_TEXT'

@@ -129,41 +129,64 @@ async function clickViaDom(locator) {
   });
 }
 
-async function chooseJoinIdentity(page, fallbackName) {
-  const textFields = page.locator('input[type="text"], input:not([type]), input[matinput], textarea');
-  const count = await textFields.count();
-  for (let index = 0; index < count; index += 1) {
-    const field = textFields.nth(index);
-    if (await field.isVisible().catch(() => false)) {
-      await field.fill(fallbackName);
-      return { ok: true, mode: 'text' };
-    }
-  }
-
-  const combobox = page.getByRole('combobox').first();
-  if (await combobox.isVisible().catch(() => false)) {
-    await combobox.click();
-    await page.waitForTimeout(300);
-    const options = page.getByRole('option');
-    const optionCount = await options.count();
-    for (let index = 0; index < optionCount; index += 1) {
-      const option = options.nth(index);
-      const text = ((await option.innerText().catch(() => '')) || '').trim();
-      const disabled = await option.getAttribute('aria-disabled').catch(() => null);
-      if (text && !text.includes('Bitte') && disabled !== 'true') {
-        await option.click();
-        await page.waitForTimeout(300);
-        return { ok: true, mode: 'select', value: text };
+async function chooseJoinIdentity(page, fallbackName, timeout = 15_000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeout) {
+    const textFields = page.locator(
+      'input[type="text"], input:not([type]), input[matinput], textarea',
+    );
+    const count = await textFields.count();
+    for (let index = 0; index < count; index += 1) {
+      const field = textFields.nth(index);
+      if (await field.isVisible().catch(() => false)) {
+        await field.fill(fallbackName);
+        return { ok: true, mode: 'text' };
       }
     }
+
+    const combobox = page.getByRole('combobox').first();
+    if (await combobox.isVisible().catch(() => false)) {
+      await combobox.click();
+      await page.waitForTimeout(300);
+      const options = page.getByRole('option');
+      const optionCount = await options.count();
+      for (let index = 0; index < optionCount; index += 1) {
+        const option = options.nth(index);
+        const text = ((await option.innerText().catch(() => '')) || '').trim();
+        const disabled = await option.getAttribute('aria-disabled').catch(() => null);
+        if (text && !text.includes('Bitte') && disabled !== 'true') {
+          await option.click();
+          await page.waitForTimeout(300);
+          return { ok: true, mode: 'select', value: text };
+        }
+      }
+      await page.keyboard.press('Escape').catch(() => undefined);
+    }
+
+    await page.waitForTimeout(250);
   }
 
   return { ok: false, mode: 'none' };
 }
 
-async function clickJoinAction(page) {
+async function clickJoinAction(page, timeout = 15_000) {
+  const startedAt = Date.now();
+  const submitButton = page.locator('.join-card__submit').first();
+  while (Date.now() - startedAt < timeout) {
+    const visible = await submitButton.isVisible().catch(() => false);
+    const enabled = visible && (await submitButton.isEnabled().catch(() => false));
+    if (enabled) {
+      await submitButton.click();
+      return true;
+    }
+    await page.waitForTimeout(250);
+  }
+
   const directJoinButton = page.getByRole('button', { name: PARTICIPANT_JOIN_BUTTON });
-  if (await directJoinButton.isVisible().catch(() => false)) {
+  if (
+    (await directJoinButton.isVisible().catch(() => false)) &&
+    (await directJoinButton.isEnabled().catch(() => false))
+  ) {
     await directJoinButton.click();
     return true;
   }
@@ -172,7 +195,10 @@ async function clickJoinAction(page) {
   const count = await fallbackButtons.count();
   for (let index = 0; index < count; index += 1) {
     const button = fallbackButtons.nth(index);
-    if (await button.isVisible().catch(() => false)) {
+    if (
+      (await button.isVisible().catch(() => false)) &&
+      (await button.isEnabled().catch(() => false))
+    ) {
       await button.click();
       return true;
     }
@@ -268,7 +294,10 @@ async function approveQuestion(hostPage, questionText) {
 async function waitForHostFeedbackVote(hostPage, timeout = 8_000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeout) {
-    const counts = await hostPage.locator('.feedback-host__bar-count').allTextContents().catch(() => []);
+    const counts = await hostPage
+      .locator('.feedback-host__bar-count')
+      .allTextContents()
+      .catch(() => []);
     if (counts.some((value) => /^1\s*\(/.test(value.trim()))) {
       return true;
     }
@@ -314,7 +343,9 @@ async function openHostSession(host, code, hardFailures) {
   await waitForChannelTabs(host);
   logStep(true, 'Host session started', code);
 
-  const hostChannelCount = await host.locator('.session-channel-tabs .session-channel-tabs__label').count();
+  const hostChannelCount = await host
+    .locator('.session-channel-tabs .session-channel-tabs__label')
+    .count();
   if (hostChannelCount >= 3) {
     logStep(true, 'Host sees all channel tabs', String(hostChannelCount));
     return;
@@ -326,7 +357,9 @@ async function openHostSession(host, code, hardFailures) {
 
 async function verifyHostQaTab(host, hardFailures) {
   await clickChannelTab(host, 1);
-  const hostQaArea = host.locator('.session-qa-list, .session-qa-empty, .session-qa-summary').first();
+  const hostQaArea = host
+    .locator('.session-qa-list, .session-qa-empty, .session-qa-summary')
+    .first();
   if (await hostQaArea.isVisible().catch(() => false)) {
     logStep(true, 'Host can open Q&A tab');
     return;
@@ -341,22 +374,17 @@ async function joinParticipantSession(participant, code, warnings, hardFailures)
     waitUntil: 'domcontentloaded',
     timeout: 30_000,
   });
-  await participant.waitForTimeout(1_500);
-
-  let identityPrepared = false;
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
-    const identity = await chooseJoinIdentity(participant, 'SmokeTester');
-    if (identity.ok) {
-      identityPrepared = true;
-      const detail = identity.mode === 'select' ? identity.value ?? 'select' : 'text';
-      logStep(true, 'Join identity selected', `${detail} (attempt ${attempt})`);
-      break;
-    }
-    await participant.waitForTimeout(600);
+  const identity = await chooseJoinIdentity(participant, 'SmokeTester');
+  const identityPrepared = identity.ok;
+  if (identityPrepared) {
+    const detail = identity.mode === 'select' ? (identity.value ?? 'select') : 'text';
+    logStep(true, 'Join identity selected', detail);
   }
 
   if (!identityPrepared) {
-    warnings.push('Join form exposed neither a visible text field nor a usable identity selection.');
+    warnings.push(
+      'Join form exposed neither a visible text field nor a usable identity selection.',
+    );
     logWarn('Join identity not prepared');
   }
 
@@ -478,7 +506,11 @@ async function runQuickFeedbackFlow(host, participant, warnings, hardFailures) {
     await host.waitForTimeout(1_200);
   }
 
-  const hostFeedbackReady = await host.locator('.feedback-host__results').first().isVisible().catch(() => false);
+  const hostFeedbackReady = await host
+    .locator('.feedback-host__results')
+    .first()
+    .isVisible()
+    .catch(() => false);
   if (hostFeedbackReady) {
     logStep(true, 'Host starts quick feedback round');
   } else {
@@ -515,7 +547,9 @@ async function runQuickFeedbackFlow(host, participant, warnings, hardFailures) {
     return;
   }
 
-  warnings.push('Host result stayed at zero votes during the smoke test after one participant vote.');
+  warnings.push(
+    'Host result stayed at zero votes during the smoke test after one participant vote.',
+  );
   logWarn('Host does not see quick feedback result immediately');
 }
 

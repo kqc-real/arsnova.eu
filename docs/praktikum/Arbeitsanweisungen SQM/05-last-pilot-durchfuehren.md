@@ -61,7 +61,9 @@ Mindestens **eine** Stufe muss vollständig dokumentiert sein; **empfohlen:** St
 
 - Messprotokoll liegt vor (Datum, Skripte, Parameter, Metriken, kurze Interpretation).
 - Du kannst erklären, **welches Tool** wofür zuständig ist (k6 vs. Node-Smokes vs. Lighthouse).
-- Du kannst **eine** Auffälligkeit oder **eine** offene Lücke aus Story 0.7 benennen (z. B. fehlende Artillery-Szenarien).
+- Du kannst **eine** Auffälligkeit oder **eine** offene Lücke aus Story 0.7
+  benennen, z. B. den noch ausstehenden 30-/60-Minuten-Staging-Langlauf oder die
+  fehlende freigegebene Produktionsbaseline.
 - Du hast **keine** Last gegen Produktion gefahren.
 
 ## Relevante Unterlagen
@@ -70,3 +72,7 @@ Mindestens **eine** Stufe muss vollständig dokumentiert sein; **empfohlen:** St
 - [VORLAGE-MESSPROTOKOLL-LAST.md](../VORLAGE-MESSPROTOKOLL-LAST.md)
 - [TESTING.md](../../TESTING.md)
 - [LASTTEST-500-ERGEBNIS-2026-05-09.md](../../implementation/LASTTEST-500-ERGEBNIS-2026-05-09.md) (Beispiel für ausführlichere Berichte)
+- [LOCAL-TESTRUN-2026-07-10.md](../../implementation/LOCAL-TESTRUN-2026-07-10.md)
+  (historischer lokaler Gesamt-Testlauf mit bestandenen und fehlgeschlagenen Gates)
+- [LOCAL-QA-RECHECK-2026-07-11.md](../../implementation/LOCAL-QA-RECHECK-2026-07-11.md)
+  (grüner Nachlauf der damals fehlgeschlagenen Gates)

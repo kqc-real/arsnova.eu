@@ -15621,7 +15621,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamStandingNoRank" datatype="html">
         <source><x id="teamName" equiv-text="teamLabel"/> mit <x id="memberCountLabel" equiv-text="this.teamMemberLabel(entry.memberCount)"/> und <x id="totalScore" equiv-text="entry.totalScore"/> Team-Punkten, noch ohne Rang</source>
-        <target><x id="teamName" equiv-text="entry.teamName"/> with <x id="totalScore" equiv-text="entry.totalScore"/> team points — no ranking yet</target>
+        <target><x id="teamName" equiv-text="entry.teamName"/> with <x id="memberCountLabel" equiv-text="this.teamMemberLabel(entry.memberCount)"/> and <x id="totalScore" equiv-text="entry.totalScore"/> team points — no ranking yet</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2298</context>

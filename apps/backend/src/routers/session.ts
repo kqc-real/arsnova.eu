@@ -5002,6 +5002,8 @@ export const sessionRouter = router({
                     numericIntervalRight: question.numericIntervalRight ?? null,
                     numericInputType: question.numericInputType ?? undefined,
                     numericDecimalPlaces: question.numericDecimalPlaces ?? null,
+                    numericTwoRounds: question.numericTwoRounds ?? false,
+                    currentRound: session.currentRound,
                   }
                 : {}),
               numericStats,

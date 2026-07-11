@@ -7,7 +7,11 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import {
+  provideClientHydration,
+  withEventReplay,
+  withI18nSupport,
+} from '@angular/platform-browser';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,7 +25,7 @@ export const appConfig: ApplicationConfig = {
       /** Sofort registrieren — sonst feuern frühe `checkForUpdate()`-Aufrufe oft vor dem ngsw (Banner bleibt aus). */
       registrationStrategy: 'registerImmediately',
     }),
-    provideClientHydration(withEventReplay()),
+    provideClientHydration(withEventReplay(), withI18nSupport()),
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
       useValue: {

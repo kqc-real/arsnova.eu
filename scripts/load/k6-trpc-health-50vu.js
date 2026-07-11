@@ -18,13 +18,20 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 const INPUT = encodeURIComponent(JSON.stringify({ 0: { json: null } }));
+const ERROR_RATE_LIMIT = Number(__ENV.ERROR_RATE_LIMIT || 0.005);
+const P95_LIMIT_MS = Number(__ENV.P95_LIMIT_MS || 1000);
+const P99_LIMIT_MS = Number(__ENV.P99_LIMIT_MS || 2000);
+const CHECK_RATE_LIMIT = Number(__ENV.CHECK_RATE_LIMIT || 0.995);
+const VUS = Math.max(1, Number(__ENV.VUS || 50));
+const DURATION = __ENV.DURATION || '30s';
 
 export const options = {
-  vus: 50,
-  duration: '30s',
+  vus: VUS,
+  duration: DURATION,
   thresholds: {
-    http_req_failed: ['rate<0.05'],
-    http_req_duration: ['p(95)<2000'],
+    checks: [`rate>${CHECK_RATE_LIMIT}`],
+    http_req_failed: [`rate<${ERROR_RATE_LIMIT}`],
+    http_req_duration: [`p(95)<${P95_LIMIT_MS}`, `p(99)<${P99_LIMIT_MS}`],
   },
 };
 

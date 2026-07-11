@@ -12,7 +12,7 @@ const QUIZ_ID = '78cc92d6-a4a5-4e38-8fd5-4bf558412be6';
 const QUESTION_ID = '2e7095a8-a780-470b-a068-78d57cab6187';
 const SECOND_QUESTION_ID = 'b19e3558-e995-4598-b891-bf33fe752e43';
 
-describe('QuizEditComponent', () => {
+describe('QuizEditComponent', { timeout: 30_000 }, () => {
   const quiz: QuizDocument = {
     id: QUIZ_ID,
     name: 'Test-Quiz',

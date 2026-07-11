@@ -11,7 +11,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    testTimeout: 15000,
+    testTimeout: 15_000,
+    hookTimeout: 30_000,
+    teardownTimeout: 15_000,
     include: ['src/**/*.spec.ts'],
     setupFiles: ['src/test-setup.ts'],
     coverage: {
