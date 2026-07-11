@@ -76,10 +76,10 @@
   },
   "devDependencies": {
     "@angular/animations": "^21.2.0",
-    "@angular/build": "^21.2.0",
+    "@angular/build": "^22.0.6",
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
-    "@angular/compiler-cli": "^21.2.0",
+    "@angular/compiler-cli": "^22.0.6",
     "@angular/core": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
