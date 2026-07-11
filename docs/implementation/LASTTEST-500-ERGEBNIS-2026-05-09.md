@@ -1,5 +1,10 @@
 # Lasttest-Ergebnis 500 Teilnehmende vom 2026-05-09
 
+> **Historischer Lauf:** Der aktuelle breitere lokale Nachweis mit Artillery,
+> k6, Yjs, Soak, Browser-Smokes und Lighthouse steht im
+> [Gesamt-Testlauf vom 2026-07-10](./LOCAL-TESTRUN-2026-07-10.md). Die Werte
+> dieses Dokuments bleiben als Vergleichspunkt erhalten.
+
 ## Zweck
 
 Dieses Dokument haelt den am 2026-05-09 durchgefuehrten lokalen 500er-Lastlauf fuer arsnova.eu fest.

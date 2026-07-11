@@ -15,6 +15,7 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeScenarioReport } from './lib/reporting.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
 import { createArtillery500Session } from './artillery/setup-session.mjs';
@@ -25,19 +26,21 @@ const ARTILLERY_DIR = resolve(__dirname, 'artillery');
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const WS_URL = String(process.env.WS_URL || 'ws://127.0.0.1:3001').trim();
-const HTTP_TARGET = String(process.env.ARTILLERY_HTTP_TARGET || TRPC_URL.replace(/\/trpc\/?$/, '')).trim();
+const HTTP_TARGET = String(
+  process.env.ARTILLERY_HTTP_TARGET || TRPC_URL.replace(/\/trpc\/?$/, ''),
+).trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 500));
 const RAMP_SECONDS = Math.max(30, Number(process.env.ARTILLERY_RAMP_SECONDS || 90));
-const ARRIVAL_RATE = Math.max(1, Number(process.env.ARTILLERY_ARRIVAL_RATE || Math.ceil(PARTICIPANTS / RAMP_SECONDS)));
+const ARRIVAL_RATE = Math.max(
+  1,
+  Number(process.env.ARTILLERY_ARRIVAL_RATE || Math.ceil(PARTICIPANTS / RAMP_SECONDS)),
+);
 const MIN_JOIN_RATIO = Number(process.env.ARTILLERY_MIN_JOIN_RATIO || 0.95);
 const MIN_VOTE_RATIO = Number(process.env.ARTILLERY_MIN_VOTE_RATIO || 0.9);
 const MIN_WS_RATIO = Number(process.env.ARTILLERY_MIN_WS_RATIO || 0.9);
 const VOTE_REVEAL_THRESHOLD = Math.max(
   1,
-  Number(
-    process.env.ARTILLERY_VOTE_REVEAL_THRESHOLD ||
-      Math.floor(PARTICIPANTS * MIN_VOTE_RATIO),
-  ),
+  Number(process.env.ARTILLERY_VOTE_REVEAL_THRESHOLD || Math.floor(PARTICIPANTS * MIN_VOTE_RATIO)),
 );
 const JOIN_STABLE_TICKS = Math.max(2, Number(process.env.ARTILLERY_JOIN_STABLE_TICKS || 6));
 const RESULTS_WAIT_MS = Math.max(5_000, Number(process.env.ARTILLERY_RESULTS_WAIT_MS || 25_000));
@@ -45,7 +48,7 @@ const RESULTS_WAIT_MS = Math.max(5_000, Number(process.env.ARTILLERY_RESULTS_WAI
 const SESSION_FILE = resolve(ARTILLERY_DIR, '.session.json');
 const STATE_FILE = resolve(ARTILLERY_DIR, '.runtime-state.json');
 const RESULTS_READY_FILE = resolve(ARTILLERY_DIR, '.results-ready.flag');
-const REPORT_FILE = resolve(ARTILLERY_DIR, 'reports', `500-live-${Date.now()}.json`);
+const ARTILLERY_REPORT_FILE = resolve(ARTILLERY_DIR, 'reports', `500-live-${Date.now()}.json`);
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -73,10 +76,10 @@ function runArtillery() {
       ARTILLERY_RESULTS_READY_FILE: RESULTS_READY_FILE,
     };
 
-    mkdirSync(dirname(REPORT_FILE), { recursive: true });
+    mkdirSync(dirname(ARTILLERY_REPORT_FILE), { recursive: true });
     const child = spawn(
       'npx',
-      ['artillery', 'run', '--output', REPORT_FILE, '500-live-session.yml'],
+      ['artillery', 'run', '--output', ARTILLERY_REPORT_FILE, '500-live-session.yml'],
       {
         cwd: ARTILLERY_DIR,
         env,
@@ -216,6 +219,7 @@ async function main() {
         connections: runtime.wsConnections ?? 0,
         statusEvents: runtime.wsStatusEvents ?? 0,
         errors: runtime.wsErrors ?? 0,
+        hostSubscriptionErrors: hostMonitor.state.subscriptionErrors,
         hostProgressMessages: hostMonitor.state.progressMessages,
         hostProgressMaxVotes: hostMonitor.state.progressMaxTotalVotes,
         hostStatusMessages: hostMonitor.state.statusMessages,
@@ -228,7 +232,7 @@ async function main() {
       progressTotalVotes: hostMonitor.state.progressMaxTotalVotes,
       sessionStatus: statusSnapshot?.status ?? null,
     },
-    reportFile: REPORT_FILE,
+    artilleryReportFile: ARTILLERY_REPORT_FILE,
     artilleryExitCode,
   };
 
@@ -246,16 +250,33 @@ async function main() {
     failures.push(`WS-Verbindungen: ${runtime.wsConnections ?? 0}/${PARTICIPANTS}`);
   }
   if (hostMonitor.state.progressMaxTotalVotes < PARTICIPANTS * MIN_VOTE_RATIO) {
-    failures.push(
-      `Host-WS-Progress: ${hostMonitor.state.progressMaxTotalVotes}/${PARTICIPANTS}`,
-    );
+    failures.push(`Host-WS-Progress: ${hostMonitor.state.progressMaxTotalVotes}/${PARTICIPANTS}`);
   }
   if (statusSnapshot?.status !== 'RESULTS' && hostMonitor.state.lastStatus !== 'RESULTS') {
-    failures.push(`Session-Status nicht RESULTS (${statusSnapshot?.status ?? hostMonitor.state.lastStatus})`);
+    failures.push(
+      `Session-Status nicht RESULTS (${statusSnapshot?.status ?? hostMonitor.state.lastStatus})`,
+    );
   }
-  if (artilleryExitCode !== 0 && failures.length === 0) {
-    console.warn(`WARN Artillery Exit-Code ${artilleryExitCode}, fachliche Schwellwerte sind gruen.`);
+  if (hostMonitor.state.subscriptionErrors > 0) {
+    failures.push(`Host-Subscription-Fehler: ${hostMonitor.state.subscriptionErrors}`);
   }
+  if (artilleryExitCode !== 0) {
+    failures.push(`Artillery Exit-Code: ${artilleryExitCode}`);
+  }
+
+  await writeScenarioReport({
+    scenario: summary.scenario,
+    environment: {
+      participants: PARTICIPANTS,
+      rampSeconds: RAMP_SECONDS,
+      arrivalRate: ARRIVAL_RATE,
+      minJoinRatio: MIN_JOIN_RATIO,
+      minVoteRatio: MIN_VOTE_RATIO,
+      minWsRatio: MIN_WS_RATIO,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');
@@ -269,7 +290,16 @@ async function main() {
   console.log('\nOK Artillery-500-Live-Session bestanden.');
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
   console.error(error);
+  await writeScenarioReport({
+    scenario: 'artillery-500-live-session',
+    environment: { participants: PARTICIPANTS, rampSeconds: RAMP_SECONDS },
+    metrics: { runtimeError: message },
+    failures: [message],
+  }).catch((reportError) => console.error('Fehlerreport fehlgeschlagen:', reportError));
   process.exitCode = 1;
-});
+}

@@ -570,7 +570,7 @@ npm run verify:production-serving -- https://<domain>
 cd /home/deploy/arsnova.eu
 docker compose -f docker-compose.prod.yml --env-file .env.production build --pull app
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d postgres redis
-docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --entrypoint "" app npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d app
 ```
 
@@ -619,16 +619,16 @@ Ein Rollout ersetzt den **App-Container** (Node/tRPC). Das bedeutet:
 
 ## 9. Kurzreferenz Befehle
 
-| Aktion              | Befehl                                                                                                                        |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Deploy ausführen    | `DEPLOY_BRANCH=main ./scripts/deploy.sh`                                                                                      |
-| App starten         | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d app`                                              |
-| Stack starten       | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d`                                                  |
-| App stoppen         | `docker compose -f docker-compose.prod.yml --env-file .env.production stop app`                                               |
-| Logs anzeigen       | `docker compose -f docker-compose.prod.yml --env-file .env.production logs -f app`                                            |
-| Migrationen         | `docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --entrypoint "" app npx prisma migrate deploy` |
-| Nginx neu laden     | `sudo systemctl reload nginx`                                                                                                 |
-| Zertifikat erneuern | `sudo certbot renew` (läuft automatisch per Timer)                                                                            |
+| Aktion              | Befehl                                                                                                                                                                              |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deploy ausführen    | `DEPLOY_BRANCH=main ./scripts/deploy.sh`                                                                                                                                            |
+| App starten         | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d app`                                                                                                    |
+| Stack starten       | `docker compose -f docker-compose.prod.yml --env-file .env.production up -d`                                                                                                        |
+| App stoppen         | `docker compose -f docker-compose.prod.yml --env-file .env.production stop app`                                                                                                     |
+| Logs anzeigen       | `docker compose -f docker-compose.prod.yml --env-file .env.production logs -f app`                                                                                                  |
+| Migrationen         | `docker compose -f docker-compose.prod.yml --env-file .env.production run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma` |
+| Nginx neu laden     | `sudo systemctl reload nginx`                                                                                                                                                       |
+| Zertifikat erneuern | `sudo certbot renew` (läuft automatisch per Timer)                                                                                                                                  |
 
 ---
 

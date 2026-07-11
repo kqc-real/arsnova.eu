@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "description": "Vorlage: Metrikpfade an das jeweilige Szenario anpassen. Die relativen Werte sind Beispielbudgets und keine Produktionsbaselines.",
+  "rules": [
+    {
+      "path": "http.requestDuration.p95Ms",
+      "direction": "lower",
+      "maxRelativeRegression": 0.1
+    },
+    {
+      "path": "http.requestsPerSecond",
+      "direction": "higher",
+      "maxRelativeRegression": 0.05
+    }
+  ]
+}

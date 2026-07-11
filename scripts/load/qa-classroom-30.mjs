@@ -14,6 +14,7 @@
  *   PARTICIPANTS=30 TRPC_URL=http://127.0.0.1:3000/trpc node scripts/load/qa-classroom-30.mjs
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
+import { writeScenarioReport } from './lib/reporting.mjs';
 
 let trpcClientModule;
 try {
@@ -34,6 +35,8 @@ const HOST_ARCHIVE_COUNT = Math.max(0, Number(process.env.HOST_ARCHIVE_COUNT || 
 const HOST_DELETE_COUNT = Math.max(0, Number(process.env.HOST_DELETE_COUNT || 5));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 15));
 const WRITE_CONCURRENCY = Math.max(1, Number(process.env.WRITE_CONCURRENCY || 20));
+const SUBMIT_P95_LIMIT_MS = Math.max(100, Number(process.env.SUBMIT_P95_LIMIT_MS || 1_000));
+const VOTE_PHASE_LIMIT_MS = Math.max(500, Number(process.env.VOTE_PHASE_LIMIT_MS || 5_000));
 
 function createHttpClient(hostToken) {
   return createTRPCProxyClient({
@@ -189,7 +192,8 @@ function pickVoteTargets(participantIndex, questions) {
     upTargets.push(foreignQuestions[index]);
   }
   for (let offset = 0; offset < DOWNVOTES_PER_PARTICIPANT; offset += 1) {
-    const index = (participantIndex * 2 + UPVOTES_PER_PARTICIPANT + offset) % foreignQuestions.length;
+    const index =
+      (participantIndex * 2 + UPVOTES_PER_PARTICIPANT + offset) % foreignQuestions.length;
     downTargets.push(foreignQuestions[index]);
   }
 
@@ -239,7 +243,8 @@ async function castAllVotes(publicTrpc, participants, questions) {
   const perParticipant = await mapLimit(
     participants.map((participant, index) => ({ participant, index })),
     WRITE_CONCURRENCY,
-    async ({ participant, index }) => castParticipantVotes(publicTrpc, participant, index, questions),
+    async ({ participant, index }) =>
+      castParticipantVotes(publicTrpc, participant, index, questions),
   );
   return {
     totalDurationMs: Math.round(performance.now() - startedAt),
@@ -324,8 +329,7 @@ async function run() {
   const statusCounts = countByStatus(hostList);
 
   const expectedQuestions = PARTICIPANTS * QUESTIONS_PER_PARTICIPANT;
-  const expectedVotes =
-    PARTICIPANTS * (UPVOTES_PER_PARTICIPANT + DOWNVOTES_PER_PARTICIPANT);
+  const expectedVotes = PARTICIPANTS * (UPVOTES_PER_PARTICIPANT + DOWNVOTES_PER_PARTICIPANT);
   const expectedHostActions = HOST_PIN_COUNT + HOST_ARCHIVE_COUNT + HOST_DELETE_COUNT;
   const expectedVisibleAfterModeration = expectedQuestions - HOST_DELETE_COUNT;
 
@@ -377,8 +381,14 @@ async function run() {
   if (submitPhase.questions.length !== expectedQuestions) {
     failures.push(`Fragen: ${submitPhase.questions.length}/${expectedQuestions}`);
   }
+  if (submitPhase.p95Ms > SUBMIT_P95_LIMIT_MS) {
+    failures.push(`Q&A-Submit-p95 ${submitPhase.p95Ms} ms > ${SUBMIT_P95_LIMIT_MS} ms.`);
+  }
   if (votePhase.accepted !== expectedVotes) {
     failures.push(`Votes: ${votePhase.accepted}/${expectedVotes}`);
+  }
+  if (votePhase.totalDurationMs > VOTE_PHASE_LIMIT_MS) {
+    failures.push(`Q&A-Vote-Phase ${votePhase.totalDurationMs} ms > ${VOTE_PHASE_LIMIT_MS} ms.`);
   }
   if (moderatePhase.accepted !== expectedHostActions) {
     failures.push(`Host-Moderation: ${moderatePhase.accepted}/${expectedHostActions}`);
@@ -394,6 +404,18 @@ async function run() {
       `Sichtbare Fragen: ${hostList.length}/${expectedVisibleAfterModeration} (nach DELETE)`,
     );
   }
+
+  await writeScenarioReport({
+    scenario: 'qa-classroom-30',
+    environment: {
+      participants: PARTICIPANTS,
+      questionsPerParticipant: QUESTIONS_PER_PARTICIPANT,
+      submitP95LimitMs: SUBMIT_P95_LIMIT_MS,
+      votePhaseLimitMs: VOTE_PHASE_LIMIT_MS,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');

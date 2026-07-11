@@ -12,6 +12,7 @@
  *   PARTICIPANTS=200 TRPC_URL=http://127.0.0.1:3000/trpc WS_URL=ws://127.0.0.1:3001 node scripts/load/host-vote-progress-200.mjs
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
+import { writeScenarioReport } from './lib/reporting.mjs';
 
 let trpcClientModule;
 try {
@@ -36,6 +37,7 @@ if (!globalThis.WebSocket && WebSocketPonyfill) {
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const WS_URL = String(process.env.WS_URL || 'ws://127.0.0.1:3001').trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 200));
+const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 const PROGRESS_MESSAGE_LIMIT = Math.max(4, Number(process.env.PROGRESS_MESSAGE_LIMIT || 20));
 const CURRENT_QUESTION_MESSAGE_LIMIT = Math.max(
   1,
@@ -175,8 +177,7 @@ async function voteSpike(publicTrpc, joined, questionId) {
 async function run() {
   await waitForBackend(TRPC_URL, { attempts: 30 });
   const publicTrpc = createHttpClient();
-  const { code, hostToken, hostTrpc, questionId } =
-    await createNumericEstimateSession(publicTrpc);
+  const { code, hostToken, hostTrpc, questionId } = await createNumericEstimateSession(publicTrpc);
   const { trpc: hostWsTrpc, wsClient } = createHostWsClient(hostToken);
 
   let currentQuestionMessages = 0;
@@ -250,6 +251,9 @@ async function run() {
   if (spike.failed.length > 0) {
     failures.push(`${spike.failed.length} Vote-Requests sind fehlgeschlagen.`);
   }
+  if (spike.p95Ms > VOTE_P95_LIMIT_MS) {
+    failures.push(`Vote-Submit-p95 ${Math.round(spike.p95Ms)} ms > ${VOTE_P95_LIMIT_MS} ms.`);
+  }
   if (subscriptionErrors > 0) {
     failures.push(`${subscriptionErrors} Subscription-Fehler.`);
   }
@@ -277,6 +281,16 @@ async function run() {
   if (progressMaxTotalVotes !== PARTICIPANTS) {
     failures.push(`Vote-Progress-Subscription erreichte nur ${progressMaxTotalVotes} Votes.`);
   }
+
+  await writeScenarioReport({
+    scenario: 'host-vote-progress-200',
+    environment: {
+      participants: PARTICIPANTS,
+      voteP95LimitMs: VOTE_P95_LIMIT_MS,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');

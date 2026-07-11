@@ -17,6 +17,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
+import { writeScenarioReport } from './lib/reporting.mjs';
 
 let trpcClientModule;
 try {
@@ -38,6 +39,7 @@ const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').tr
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 15));
 const EXPECTED_QUESTIONS = Math.max(1, Number(process.env.EXPECTED_QUESTIONS || 9));
+const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 /** Backend: max. 1 Vote/s pro Teilnehmer (checkVoteRate). */
 const VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.VOTE_COOLDOWN_MS || 1_100));
 
@@ -146,7 +148,10 @@ function buildVoteInput(participant, question, round, participantIndex) {
       if (!question.answers?.length) {
         throw new Error(`Frage ${question.order} (${question.type}) hat keine Antwortoptionen.`);
       }
-      return { ...base, answerIds: [question.answers[participantIndex % question.answers.length].id] };
+      return {
+        ...base,
+        answerIds: [question.answers[participantIndex % question.answers.length].id],
+      };
     case 'MULTIPLE_CHOICE': {
       if (!question.answers?.length) {
         throw new Error(`Frage ${question.order} (MULTIPLE_CHOICE) hat keine Antwortoptionen.`);
@@ -204,14 +209,7 @@ async function openQuestionForVoting(hostTrpc, code, statusBefore) {
   return { openedAs: status.status, statusAfterOpen: status.status };
 }
 
-async function runQuestion({
-  questionNumber,
-  hostTrpc,
-  publicTrpc,
-  code,
-  participants,
-  meta,
-}) {
+async function runQuestion({ questionNumber, hostTrpc, publicTrpc, code, participants, meta }) {
   const open = await openQuestionForVoting(hostTrpc, code);
   const question = await publicTrpc.session.getCurrentQuestionForStudent.query({ code });
   if (!question?.id) {
@@ -347,8 +345,24 @@ async function run() {
           `Frage ${question.questionNumber} Runde ${round.round}: ${round.accepted}/${PARTICIPANTS} Votes.`,
         );
       }
+      if (round.p95Ms > VOTE_P95_LIMIT_MS) {
+        failures.push(
+          `Frage ${question.questionNumber} Runde ${round.round}: Vote-p95 ${round.p95Ms} ms > ${VOTE_P95_LIMIT_MS} ms.`,
+        );
+      }
     }
   }
+
+  await writeScenarioReport({
+    scenario: 'demo-quiz-classroom-30',
+    environment: {
+      participants: PARTICIPANTS,
+      expectedQuestions: EXPECTED_QUESTIONS,
+      voteP95LimitMs: VOTE_P95_LIMIT_MS,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');

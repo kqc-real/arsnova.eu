@@ -14,6 +14,7 @@
  *   TRPC_URL=http://127.0.0.1:3000/trpc WS_URL=ws://127.0.0.1:3001 node scripts/load/ws-vote-progress-classroom-30.mjs
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
+import { writeScenarioReport } from './lib/reporting.mjs';
 
 let trpcClientModule;
 try {
@@ -39,8 +40,12 @@ const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').tr
 const WS_URL = String(process.env.WS_URL || 'ws://127.0.0.1:3001').trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 15));
+const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 const PROGRESS_P95_LIMIT_MS = Math.max(500, Number(process.env.PROGRESS_P95_LIMIT_MS || 2_000));
-const STATUS_AFTER_REVEAL_LIMIT_MS = Math.max(500, Number(process.env.STATUS_AFTER_REVEAL_LIMIT_MS || 3_000));
+const STATUS_AFTER_REVEAL_LIMIT_MS = Math.max(
+  500,
+  Number(process.env.STATUS_AFTER_REVEAL_LIMIT_MS || 3_000),
+);
 const WS_READY_MS = Math.max(100, Number(process.env.WS_READY_MS || 750));
 
 function createHttpClient(hostToken) {
@@ -262,8 +267,7 @@ async function run() {
       PROGRESS_P95_LIMIT_MS,
       () => progressMaxTotalVotes >= PARTICIPANTS,
     );
-  } catch (error) {
-  }
+  } catch (error) {}
 
   const progressSnapshot = await hostTrpc.session.getHostVoteProgress.query({ code });
 
@@ -277,8 +281,7 @@ async function run() {
       STATUS_AFTER_REVEAL_LIMIT_MS,
       () => lastStatus === 'RESULTS',
     );
-  } catch (error) {
-  }
+  } catch (error) {}
 
   progressSub.unsubscribe();
   statusSub.unsubscribe();
@@ -336,6 +339,9 @@ async function run() {
   if (spike.failed.length > 0) {
     failures.push(`${spike.failed.length} Vote-Requests sind fehlgeschlagen.`);
   }
+  if (spike.p95Ms > VOTE_P95_LIMIT_MS) {
+    failures.push(`Vote-Submit-p95 ${Math.round(spike.p95Ms)} ms > ${VOTE_P95_LIMIT_MS} ms.`);
+  }
   if (subscriptionErrors > 0) {
     failures.push(`${subscriptionErrors} Subscription-Fehler.`);
   }
@@ -355,8 +361,7 @@ async function run() {
     failures.push(`Status-Snapshot ist ${statusSnapshot?.status ?? 'null'}, erwartet RESULTS.`);
   }
   const effectiveProgressLatency =
-    progressLatencyMs ??
-    (progressCompleteAt !== null ? progressCompleteAt - voteEndedAt : null);
+    progressLatencyMs ?? (progressCompleteAt !== null ? progressCompleteAt - voteEndedAt : null);
   if (effectiveProgressLatency === null || effectiveProgressLatency > PROGRESS_P95_LIMIT_MS) {
     failures.push(
       `Vote-Progress-Latenz ${effectiveProgressLatency === null ? 'fehlt' : Math.round(effectiveProgressLatency)} ms, Limit ${PROGRESS_P95_LIMIT_MS} ms.`,
@@ -369,6 +374,16 @@ async function run() {
       `Status-RESULTS-Latenz ${effectiveStatusLatency === null ? 'fehlt' : Math.round(effectiveStatusLatency)} ms, Limit ${STATUS_AFTER_REVEAL_LIMIT_MS} ms.`,
     );
   }
+
+  await writeScenarioReport({
+    scenario: 'ws-vote-progress-classroom-30',
+    environment: {
+      participants: PARTICIPANTS,
+      voteP95LimitMs: VOTE_P95_LIMIT_MS,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');

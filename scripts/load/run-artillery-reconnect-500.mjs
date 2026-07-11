@@ -15,6 +15,7 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeScenarioReport } from './lib/reporting.mjs';
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
 import { createArtilleryReconnectSession } from './artillery/setup-session.mjs';
@@ -25,10 +26,15 @@ const ARTILLERY_DIR = resolve(__dirname, 'artillery');
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const WS_URL = String(process.env.WS_URL || 'ws://127.0.0.1:3001').trim();
-const HTTP_TARGET = String(process.env.ARTILLERY_HTTP_TARGET || TRPC_URL.replace(/\/trpc\/?$/, '')).trim();
+const HTTP_TARGET = String(
+  process.env.ARTILLERY_HTTP_TARGET || TRPC_URL.replace(/\/trpc\/?$/, ''),
+).trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 500));
 const RAMP_SECONDS = Math.max(30, Number(process.env.ARTILLERY_RAMP_SECONDS || 90));
-const ARRIVAL_RATE = Math.max(1, Number(process.env.ARTILLERY_ARRIVAL_RATE || Math.ceil(PARTICIPANTS / RAMP_SECONDS)));
+const ARRIVAL_RATE = Math.max(
+  1,
+  Number(process.env.ARTILLERY_ARRIVAL_RATE || Math.ceil(PARTICIPANTS / RAMP_SECONDS)),
+);
 const MIN_JOIN_RATIO = Number(process.env.ARTILLERY_MIN_JOIN_RATIO || 0.95);
 const MIN_RECONNECT_RATIO = Number(process.env.ARTILLERY_MIN_RECONNECT_RATIO || 0.9);
 const MIN_WS_RATIO = Number(process.env.ARTILLERY_MIN_WS_RATIO || 0.9);
@@ -37,8 +43,14 @@ const MIN_RESULTS_AFTER_RECONNECT_RATIO = Number(
 );
 const RECONNECT_MS_MAX = Math.max(500, Number(process.env.ARTILLERY_RECONNECT_MS_MAX || 3_000));
 const JOIN_STABLE_TICKS = Math.max(2, Number(process.env.ARTILLERY_JOIN_STABLE_TICKS || 6));
-const RECONNECT_STABLE_TICKS = Math.max(2, Number(process.env.ARTILLERY_RECONNECT_STABLE_TICKS || 4));
-const REVEAL_WATCH_BUFFER_MS = Math.max(30_000, Number(process.env.ARTILLERY_REVEAL_WATCH_BUFFER_MS || 60_000));
+const RECONNECT_STABLE_TICKS = Math.max(
+  2,
+  Number(process.env.ARTILLERY_RECONNECT_STABLE_TICKS || 4),
+);
+const REVEAL_WATCH_BUFFER_MS = Math.max(
+  30_000,
+  Number(process.env.ARTILLERY_REVEAL_WATCH_BUFFER_MS || 60_000),
+);
 const STABILITY_BUFFER_MS = (JOIN_STABLE_TICKS + RECONNECT_STABLE_TICKS) * 500;
 const DEFAULT_RESULTS_WAIT_MS = RAMP_SECONDS * 1000 + STABILITY_BUFFER_MS + REVEAL_WATCH_BUFFER_MS;
 const RESULTS_WAIT_MS = Math.max(
@@ -53,7 +65,7 @@ const STATUS_AFTER_RECONNECT_LIMIT_MS = Math.max(
 const SESSION_FILE = resolve(ARTILLERY_DIR, '.session.json');
 const STATE_FILE = resolve(ARTILLERY_DIR, '.runtime-state.json');
 const RESULTS_READY_FILE = resolve(ARTILLERY_DIR, '.results-ready.flag');
-const REPORT_FILE = resolve(ARTILLERY_DIR, 'reports', `500-reconnect-${Date.now()}.json`);
+const ARTILLERY_REPORT_FILE = resolve(ARTILLERY_DIR, 'reports', `500-reconnect-${Date.now()}.json`);
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -83,10 +95,10 @@ function runArtillery() {
       ARTILLERY_STATUS_AFTER_RECONNECT_LIMIT_MS: String(STATUS_AFTER_RECONNECT_LIMIT_MS),
     };
 
-    mkdirSync(dirname(REPORT_FILE), { recursive: true });
+    mkdirSync(dirname(ARTILLERY_REPORT_FILE), { recursive: true });
     const child = spawn(
       'npx',
-      ['artillery', 'run', '--output', REPORT_FILE, '500-reconnect-wave.yml'],
+      ['artillery', 'run', '--output', ARTILLERY_REPORT_FILE, '500-reconnect-wave.yml'],
       {
         cwd: ARTILLERY_DIR,
         env,
@@ -238,6 +250,7 @@ async function main() {
         reconnectResultsMissing: runtime.reconnectResultsMissing ?? 0,
         reconnectMsMax: runtime.reconnectMsMax ?? 0,
         reconnectMsAvg: reconnectAvgMs,
+        hostSubscriptionErrors: hostMonitor.state.subscriptionErrors,
         hostStatusMessages: hostMonitor.state.statusMessages,
         hostLastStatus: hostMonitor.state.lastStatus,
         hostResultsSeen: hostMonitor.state.resultsSeenAt !== null,
@@ -252,7 +265,7 @@ async function main() {
       resultsWaitMs: RESULTS_WAIT_MS,
       statusAfterReconnectLimitMs: STATUS_AFTER_RECONNECT_LIMIT_MS,
     },
-    reportFile: REPORT_FILE,
+    artilleryReportFile: ARTILLERY_REPORT_FILE,
     artilleryExitCode,
   };
 
@@ -266,17 +279,13 @@ async function main() {
     failures.push(`Reconnects: ${reconnects}/${PARTICIPANTS}`);
   }
   if ((runtime.reconnectResultsSeen ?? 0) < PARTICIPANTS * MIN_RESULTS_AFTER_RECONNECT_RATIO) {
-    failures.push(
-      `RESULTS nach Reconnect: ${runtime.reconnectResultsSeen ?? 0}/${PARTICIPANTS}`,
-    );
+    failures.push(`RESULTS nach Reconnect: ${runtime.reconnectResultsSeen ?? 0}/${PARTICIPANTS}`);
   }
   if ((runtime.wsConnections ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
     failures.push(`WS-Verbindungen: ${runtime.wsConnections ?? 0}/${PARTICIPANTS}`);
   }
   if ((runtime.reconnectMsMax ?? 0) > RECONNECT_MS_MAX) {
-    failures.push(
-      `Reconnect-Latenz max: ${runtime.reconnectMsMax ?? 0}ms > ${RECONNECT_MS_MAX}ms`,
-    );
+    failures.push(`Reconnect-Latenz max: ${runtime.reconnectMsMax ?? 0}ms > ${RECONNECT_MS_MAX}ms`);
   }
   if (statusSnapshot?.status !== 'RESULTS' && hostMonitor.state.lastStatus !== 'RESULTS') {
     failures.push(
@@ -286,9 +295,27 @@ async function main() {
   if ((runtime.reconnectResultsMissing ?? 0) > 0) {
     failures.push(`Reconnect-Assert-Fehler: ${runtime.reconnectResultsMissing}`);
   }
+  if (hostMonitor.state.subscriptionErrors > 0) {
+    failures.push(`Host-Subscription-Fehler: ${hostMonitor.state.subscriptionErrors}`);
+  }
   if (artilleryExitCode !== 0) {
     failures.push(`Artillery Exit-Code: ${artilleryExitCode}`);
   }
+
+  await writeScenarioReport({
+    scenario: summary.scenario,
+    environment: {
+      participants: PARTICIPANTS,
+      rampSeconds: RAMP_SECONDS,
+      arrivalRate: ARRIVAL_RATE,
+      minJoinRatio: MIN_JOIN_RATIO,
+      minReconnectRatio: MIN_RECONNECT_RATIO,
+      minWsRatio: MIN_WS_RATIO,
+      minResultsAfterReconnectRatio: MIN_RESULTS_AFTER_RECONNECT_RATIO,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');
@@ -302,7 +329,16 @@ async function main() {
   console.log('\nOK Artillery-500-Reconnect-Welle bestanden.');
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
   console.error(error);
+  await writeScenarioReport({
+    scenario: 'artillery-500-reconnect-wave',
+    environment: { participants: PARTICIPANTS, rampSeconds: RAMP_SECONDS },
+    metrics: { runtimeError: message },
+    failures: [message],
+  }).catch((reportError) => console.error('Fehlerreport fehlgeschlagen:', reportError));
   process.exitCode = 1;
-});
+}

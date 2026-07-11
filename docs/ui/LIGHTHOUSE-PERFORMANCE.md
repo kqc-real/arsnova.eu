@@ -1,8 +1,36 @@
 # Lighthouse Performance
 
-## Erwartete Werte
+## Verbindliche CI-Werte
 
-Mit **Angular + Angular Material** sind **50–70 % Performance** bei Lighthouse (Mobile, Throttling) nicht ungewöhnlich – das Framework-Bundle ist vergleichsweise groß. Wichtig: **Accessibility, Best Practices, SEO** bei 100 % zu halten. Um Performance zu verbessern, in Lighthouse die Karte **„Opportunities“** und **„Diagnostics“** prüfen (konkrete Hinweise wie „Reduce unused JavaScript“, „Largest Contentful Paint element“).
+Lighthouse CI misst den lokalisierten Produktionsbuild mobil und führt je URL drei Läufe aus.
+Folgende Grenzen blockieren die CI:
+
+- Performance-Score mindestens **60 %**
+- Accessibility mindestens **90 %**
+- Largest Contentful Paint höchstens **4 s**
+- Cumulative Layout Shift höchstens **0,1**
+- Total Blocking Time höchstens **600 ms**
+
+Best Practices und SEO bleiben Warnsignale. Die Grenzwerte stehen kanonisch in
+`.lighthouserc.cjs`; Änderungen daran müssen als bewusste Performance-Entscheidung reviewed
+werden.
+
+## Letzter CI-naher lokaler Lauf
+
+Am **2026-07-11** bestand der lokalisierte Produktionsbuild für `/de/` und `/en/`
+alle sechs mobilen Läufe:
+
+- Performance-Score **0,79–0,80**
+- Accessibility **1,00**
+- LCP **3,705–3,829 s**
+- CLS **0,004–0,007**
+- TBT **138–199 ms**
+
+Der frühere 11-s-LCP war überwiegend ein Messfehler durch den unkomprimierten
+Python-Testserver. Der CI-Server bildet nun die produktive gzip- und Cache-Semantik
+ab. Zusätzlich sind i18n-Hydration, statische Above-the-fold-Copy und ein von
+125 KB auf 29 KB reduzierter Material-Icons-Font aktiv. Details:
+[QA-Nachlauf 2026-07-11](../implementation/LOCAL-QA-RECHECK-2026-07-11.md).
 
 ## Wichtig: Production-Build messen
 
@@ -10,8 +38,8 @@ Mit **Angular + Angular Material** sind **50–70 % Performance** bei Lighthou
 
 ```bash
 npm run build:prod
-npm run serve:localize -w @arsnova/frontend
-# Dann in Chrome: http://localhost:4200/de/ → DevTools → Lighthouse → Performance (Mobile)
+node scripts/serve-static-compressed.mjs apps/frontend/dist/browser 4173
+# Dann in Chrome: http://localhost:4173/de/ → DevTools → Lighthouse → Performance (Mobile)
 ```
 
 Hinweis: Der lokalisierte Build-Output liegt unter **`apps/frontend/dist/browser/`**. Beim Servieren immer **`dist/browser`** als Dokument-Wurzel nutzen, damit `/de/`, `/en/`, `/fr/`, `/it/` und `/es/` die App laden und nicht ein Verzeichnislisting.
@@ -43,7 +71,7 @@ Wenn der Server **nicht** aus **`dist/browser`** bedient wird, liefert die SPA b
 - **Kein horizontales Scrollen ab 320px (Story 6.4):**  
   Nach dem Build: `npm run serve:localize -w @arsnova/frontend` starten, dann `BASE_URL=http://localhost:4200 npm run check:viewport -w @arsnova/frontend`. Prüft den 320px-Viewport für die konfigurierten Kernrouten.
 
-- **Lighthouse Accessibility ≥ 90 (DoD):**  
+- **Lighthouse Accessibility ≥ 90 und Performance-Gates (DoD):**
   `npm run lighthouse:a11y -w @arsnova/frontend` – startet bei Bedarf einen lokalen Serve und gibt den Accessibility-Score aus. Optional: `LIGHTHOUSE_URL=http://localhost:4200/de/ npm run lighthouse:a11y -w @arsnova/frontend`, wenn bereits ein Serve läuft.
 
 ---

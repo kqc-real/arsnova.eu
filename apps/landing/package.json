@@ -9,7 +9,6 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "astro": "^5.18.0",
     "@astrojs/tailwind": "^5.1.5",
     "boxen": "^8.0.1",
     "html-escaper": "^3.0.3",
@@ -19,6 +18,7 @@
     "yaml": "^2.4.2"
   },
   "devDependencies": {
+    "astro": "^5.18.2",
     "typescript": "~5.9.0"
   }
 }

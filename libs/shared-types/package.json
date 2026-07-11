@@ -6,13 +6,17 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "typescript": "~5.9.0"
+    "@vitest/coverage-v8": "^4.1.10",
+    "typescript": "~5.9.0",
+    "vitest": "^4.1.10"
   },
   "type": "module"
 }

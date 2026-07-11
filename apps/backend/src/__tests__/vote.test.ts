@@ -29,7 +29,7 @@ vi.mock('../lib/rateLimit', () => ({
 }));
 
 import { checkVoteRate } from '../lib/rateLimit';
-import { voteRouter } from '../routers/vote';
+import { resetVoteSubmitCachesForTests, voteRouter } from '../routers/vote';
 
 const caller = voteRouter.createCaller({ req: undefined });
 const ANSWER_ID_1 = '11111111-1111-4111-8111-111111111111';
@@ -39,6 +39,7 @@ const QUESTION_ID_2 = '33333333-3333-4333-a333-333333333333';
 describe('vote.submit', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetVoteSubmitCachesForTests();
     vi.mocked(checkVoteRate).mockResolvedValue({ allowed: true, retryAfterSeconds: 0 });
     prismaMock.participant.findFirst.mockResolvedValue({
       id: 'participant-1',
@@ -147,6 +148,99 @@ describe('vote.submit', () => {
         }),
       }),
     );
+  });
+
+  it('spart bei der ersten Frage Streak- und Idempotenz-Vorabfragen', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [
+        { id: ANSWER_ID_1, text: '4', isCorrect: true },
+        { id: ANSWER_ID_2, text: '5', isCorrect: false },
+      ],
+    });
+
+    await caller.submit({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      answerIds: [ANSWER_ID_1],
+    });
+
+    expect(prismaMock.vote.findFirst).not.toHaveBeenCalled();
+    expect(prismaMock.vote.findUnique).not.toHaveBeenCalled();
+    expect(prismaMock.vote.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ streakCount: 1, streakBonus: 1 }),
+      }),
+    );
+  });
+
+  it('behandelt konkurrierende Wiederholungen über den Unique-Constraint idempotent', async () => {
+    const existingVoteId = '11111111-1111-4111-8111-111111111120';
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'SURVEY',
+      difficulty: 'MEDIUM',
+      order: 0,
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [{ id: ANSWER_ID_1, text: 'A', isCorrect: false }],
+    });
+    prismaMock.vote.create.mockRejectedValue({ code: 'P2002' });
+    prismaMock.vote.findUnique.mockResolvedValue({ id: existingVoteId });
+
+    const result = await caller.submit({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      answerIds: [ANSWER_ID_1],
+    });
+
+    expect(result).toEqual({ voteId: existingVoteId });
+    expect(prismaMock.vote.findUnique).toHaveBeenCalledTimes(1);
+  });
+
+  it('dedupliziert gemeinsame Fragedaten bei einer parallelen Vote-Welle', async () => {
+    prismaMock.question.findFirst.mockResolvedValue({
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'SURVEY',
+      difficulty: 'MEDIUM',
+      order: 0,
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [{ id: ANSWER_ID_1, text: 'A', isCorrect: false }],
+    });
+
+    await Promise.all([
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        answerIds: [ANSWER_ID_1],
+      }),
+      caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b1',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        answerIds: [ANSWER_ID_1],
+      }),
+    ]);
+
+    expect(prismaMock.question.findFirst).toHaveBeenCalledTimes(1);
   });
 
   it('skaliert den Timer bei der Punkteberechnung nach Schwierigkeitsgrad', async () => {

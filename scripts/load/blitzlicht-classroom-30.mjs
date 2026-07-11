@@ -13,6 +13,7 @@
  *   PARTICIPANTS=30 TRPC_URL=http://127.0.0.1:3000/trpc node scripts/load/blitzlicht-classroom-30.mjs
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
+import { writeScenarioReport } from './lib/reporting.mjs';
 
 let trpcClientModule;
 try {
@@ -27,6 +28,7 @@ const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').tr
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 15));
 const VOTE_CONCURRENCY = Math.max(1, Number(process.env.VOTE_CONCURRENCY || 30));
+const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 1_000));
 
 const TEMPO_VALUES = ['SPEED_UP', 'FOLLOWING', 'SLOW_DOWN', 'LOST'];
 
@@ -223,6 +225,9 @@ async function run() {
   if (votePhase.accepted !== PARTICIPANTS) {
     failures.push(`Votes: ${votePhase.accepted}/${PARTICIPANTS}`);
   }
+  if (votePhase.p95Ms > VOTE_P95_LIMIT_MS) {
+    failures.push(`Blitzlicht-Vote-p95 ${votePhase.p95Ms} ms > ${VOTE_P95_LIMIT_MS} ms.`);
+  }
   if (hostResults.totalVotes !== PARTICIPANTS) {
     failures.push(`Host totalVotes: ${hostResults.totalVotes}/${PARTICIPANTS}`);
   }
@@ -232,6 +237,16 @@ async function run() {
   if (!hostResults.tempoTrend) {
     failures.push('tempoTrend fehlt in hostResults.');
   }
+
+  await writeScenarioReport({
+    scenario: 'blitzlicht-tempo-classroom-30',
+    environment: {
+      participants: PARTICIPANTS,
+      voteP95LimitMs: VOTE_P95_LIMIT_MS,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');

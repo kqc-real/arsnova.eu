@@ -60,7 +60,11 @@ app.use('/trpc', express.raw({ type: '*/*' }), async (req, res) => {
     res.end(Buffer.from(body));
   } catch (err) {
     console.error('Backend nicht erreichbar:', err.message);
-    res.status(502).send('Backend nicht erreichbar. Bitte Backend starten (z. B. npm run dev -w @arsnova/backend).');
+    res
+      .status(502)
+      .send(
+        'Backend nicht erreichbar. Bitte Backend starten (z. B. npm run dev -w @arsnova/backend).',
+      );
   }
 });
 
@@ -98,21 +102,32 @@ trpcWss.on('connection', (clientWs, req) => {
     return;
   }
   const backendWs = new WebSocket(BACKEND_WS_URL);
-  backendWs.on('open', () => {
-    clientWs.on('message', (data) => backendWs.send(data));
-    clientWs.on('close', () => backendWs.close());
-    // tRPC expects JSON text frames; ensure we never forward binary to the client
-    backendWs.on('message', (data) => {
-      const text = typeof data === 'string' ? data : (Buffer.isBuffer(data) ? data.toString('utf8') : String(data));
-      clientWs.send(text);
-    });
-    backendWs.on('close', () => clientWs.close());
+  const pendingMessages = [];
+  clientWs.on('message', (data, isBinary) => {
+    const message = { data: isBinary ? data : data.toString('utf8'), isBinary };
+    if (backendWs.readyState === WebSocket.OPEN) {
+      backendWs.send(message.data, { binary: message.isBinary });
+    } else {
+      pendingMessages.push(message);
+    }
   });
+  clientWs.on('close', () => backendWs.close());
+  clientWs.on('error', () => backendWs.close());
+  backendWs.on('open', () => {
+    for (const message of pendingMessages.splice(0)) {
+      backendWs.send(message.data, { binary: message.isBinary });
+    }
+  });
+  backendWs.on('message', (data, isBinary) => {
+    if (clientWs.readyState === WebSocket.OPEN) {
+      clientWs.send(isBinary ? data : data.toString('utf8'), { binary: isBinary });
+    }
+  });
+  backendWs.on('close', () => clientWs.close());
   backendWs.on('error', (err) => {
     console.error('WebSocket tRPC Backend:', err.message);
     clientWs.close();
   });
-  clientWs.on('error', () => backendWs.close());
 });
 
 const yjsWss = new WebSocketServer({ noServer: true });
@@ -121,21 +136,41 @@ yjsWss.on('connection', (clientWs, req) => {
   const path = req.url?.startsWith('/yjs-ws') ? req.url.slice('/yjs-ws'.length) || '/' : '/';
   const backendUrl = `${BACKEND_YJS_WS_URL}${path}`;
   const backendWs = new WebSocket(backendUrl);
-  backendWs.on('open', () => {
-    clientWs.on('message', (data) => backendWs.send(data));
-    clientWs.on('close', () => backendWs.close());
-    backendWs.on('message', (data) => clientWs.send(data));
-    backendWs.on('close', () => clientWs.close());
+  const pendingMessages = [];
+  clientWs.on('message', (data, isBinary) => {
+    const message = { data, isBinary };
+    if (backendWs.readyState === WebSocket.OPEN) {
+      backendWs.send(message.data, { binary: message.isBinary });
+    } else {
+      pendingMessages.push(message);
+    }
   });
+  clientWs.on('close', () => backendWs.close());
+  clientWs.on('error', () => backendWs.close());
+  backendWs.on('open', () => {
+    for (const message of pendingMessages.splice(0)) {
+      backendWs.send(message.data, { binary: message.isBinary });
+    }
+  });
+  backendWs.on('message', (data, isBinary) => {
+    if (clientWs.readyState === WebSocket.OPEN) {
+      clientWs.send(data, { binary: isBinary });
+    }
+  });
+  backendWs.on('close', () => clientWs.close());
   backendWs.on('error', (err) => {
     if (!yjsBackendErrorLogged) {
       yjsBackendErrorLogged = true;
       const msg = err?.code || err?.message || String(err);
-      console.error('WebSocket Yjs Backend:', msg, '(Yjs-Server auf Port', YJS_WS_PORT + ' starten)');
+      console.error(
+        'WebSocket Yjs Backend:',
+        msg,
+        '(Yjs-Server auf Port',
+        YJS_WS_PORT + ' starten)',
+      );
     }
     clientWs.close();
   });
-  clientWs.on('error', () => backendWs.close());
 });
 
 server.on('upgrade', (req, socket, head) => {
