@@ -29,6 +29,37 @@ Workspace-spezifisch:
 
 `npm run typecheck -w @arsnova/backend` setzt ein gebautes `@arsnova/shared-types` (`libs/shared-types/dist`) voraus; das Root-Skript `npm run typecheck` baut die Library zuerst.
 
+### Parallele Unit-Testläufe vermeiden
+
+`npm test` startet **sequentiell** Shared Types, Backend und Frontend — aber **nur ein Lauf zur Zeit**.
+Mehrere gleichzeitige `npm test`- oder `vitest run`-Prozesse (z. B. aus IDE, Agent oder Terminal
+parallel) führen zu **Timeout-Flakiness** in schweren Frontend-Specs, ohne dass der Code fehlerhaft
+ist.
+
+**Typische Symptome:**
+
+- Vitest-`setup` dauert Minuten statt Sekunden (z. B. > 1.000 s statt ~20 s).
+- Schwankende Fehlerzahl (2–9 Tests) in `session-vote`, `session-host` oder `quiz-edit`.
+- CI bleibt grün, lokaler Gesamtlauf scheitert sporadisch.
+
+**Empfehlung:**
+
+```bash
+# Nur Frontend (~20 s), wenn Backend bereits grün ist:
+npm run test -w @arsnova/frontend
+
+# Prüfen, ob noch Vitest läuft (macOS/Linux):
+pgrep -fl "vitest run"
+
+# Einzelnen Test wiederholen:
+npx vitest run src/app/features/session/session-vote/session-vote.component.spec.ts \
+  -t "Abstimmen-Button"
+```
+
+Schwere Session-/Quiz-Specs nutzen `flushComponentAfterStable` aus
+`apps/frontend/src/testing/component-test-utils.ts` und ein erhöhtes Datei-Timeout (30 s), damit sie
+unter moderater Last stabiler bleiben. Das ersetzt nicht den Wegfall paralleler Root-`npm test`-Läufe.
+
 ## Verifizierter lokaler Lauf vom 2026-07-10
 
 Der Gesamt-Testlauf gegen eine separate lokale PostgreSQL-Testdatenbank, Redis,
@@ -295,6 +326,7 @@ fehlgeschlagen, nicht nur als funktional korrekt, zu dokumentieren.
 
 - **Backend:** `apps/backend/src/__tests__/*.test.ts`, Vitest (u. a. Session, Vote, Rate-Limit, **MOTD/Admin-MOTD** — Epic 10).
 - **Frontend:** `*.spec.ts` neben Komponenten/Services (Angular/Vitest), siehe [AGENT.md](../AGENT.md).
+  Async-Komponententests: Hilfsfunktionen in `apps/frontend/src/testing/component-test-utils.ts`.
 
 Gezielte Regressionen für die aktuelle Host-Härtung:
 
