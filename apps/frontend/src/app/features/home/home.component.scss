@@ -1513,10 +1513,8 @@ mat-card-actions.l-stack {
     }
   }
 
-  /* Copy-Rotation (Nutzermomente) + Hauptkarte leicht in die Bühne ziehen */
+  /* Statische Bühnen-Copy + Hauptkarte leicht in die Bühne ziehen */
   .home-stage-rotator {
-    /* 7 Zeilen à ~3 s Lesedauer */
-    --home-stage-rotator-cycle: 21s;
     grid-column: 1 / -1;
     position: relative;
     min-height: 2.75rem;
@@ -1535,77 +1533,12 @@ mat-card-actions.l-stack {
     text-wrap: balance;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .home-stage-rotator__line:not(:first-of-type) {
-      display: none;
-    }
-
-    .home-stage-rotator__line:first-of-type {
-      position: relative;
-    }
+  .home-stage-rotator__line:not(:first-of-type) {
+    display: none;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .home-stage-rotator__line {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      width: 100%;
-      opacity: 0;
-      animation: home-stage-copy-rotate var(--home-stage-rotator-cycle) ease-in-out infinite;
-    }
-
-    .home-stage-rotator__line:nth-child(1) {
-      animation-delay: 0s;
-    }
-
-    .home-stage-rotator__line:nth-child(2) {
-      animation-delay: calc(var(--home-stage-rotator-cycle) * 1 / 7);
-    }
-
-    .home-stage-rotator__line:nth-child(3) {
-      animation-delay: calc(var(--home-stage-rotator-cycle) * 2 / 7);
-    }
-
-    .home-stage-rotator__line:nth-child(4) {
-      animation-delay: calc(var(--home-stage-rotator-cycle) * 3 / 7);
-    }
-
-    .home-stage-rotator__line:nth-child(5) {
-      animation-delay: calc(var(--home-stage-rotator-cycle) * 4 / 7);
-    }
-
-    .home-stage-rotator__line:nth-child(6) {
-      animation-delay: calc(var(--home-stage-rotator-cycle) * 5 / 7);
-    }
-
-    .home-stage-rotator__line:nth-child(7) {
-      animation-delay: calc(var(--home-stage-rotator-cycle) * 6 / 7);
-    }
-  }
-
-  @keyframes home-stage-copy-rotate {
-    0% {
-      opacity: 0;
-      transform: translateY(0.35rem);
-    }
-    1.5% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    11% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    13% {
-      opacity: 0;
-      transform: translateY(-0.2rem);
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-0.2rem);
-    }
+  .home-stage-rotator__line:first-of-type {
+    position: relative;
   }
 
   .home-step-trail {

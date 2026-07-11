@@ -166,6 +166,12 @@ Kurzer Abschnitt (**1–3 Seiten**):
 
 **Merke:** E2E ist **flaky**-anfällig — stabile **Selektoren**, wenige **Wartezeiten**, klare **Testdaten**.
 
+**Aktueller Projektbefund:** Im lokalen Lauf vom 2026-07-10 bestanden drei von
+sechs Browser-Flows. Host-Join-Liveanzeige, `SHORT_TEXT`-Übertragung und
+Numeric-Estimate-Ergebnisdarstellung scheiterten auch bei Wiederholung. Das ist
+ein geeignetes Beispiel dafür, warum Unit-Tests und ein einzelner grüner
+E2E-Flow keine vollständige Systemfreigabe ersetzen.
+
 ### 6.3 Performance & Lighthouse
 
 - Angular-Hinweise: [Profiling mit Chrome DevTools](https://angular.dev/best-practices/profiling-with-chrome-devtools).
@@ -179,7 +185,10 @@ Kurzer Abschnitt (**1–3 Seiten**):
 - Backlog: **Story 0.7** (Last- & Performance-Tests mit E2E-Szenarien).
 - ADR: [`docs/architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md`](../architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md).
 - Skripte: `scripts/load/` · Befehle: [`docs/TESTING.md`](../TESTING.md) (Abschnitt Last-Smokes)
-- Ergebnisberichte: [`docs/implementation/LASTTEST-500-ERGEBNIS-2026-05-09.md`](../implementation/LASTTEST-500-ERGEBNIS-2026-05-09.md)
+- Ergebnisberichte:
+  [lokaler Gesamt-Testlauf 2026-07-10](../implementation/LOCAL-TESTRUN-2026-07-10.md)
+  und historischer
+  [`LASTTEST-500-ERGEBNIS-2026-05-09.md`](../implementation/LASTTEST-500-ERGEBNIS-2026-05-09.md)
 
 ### 6.5 Reviews & DoD
 

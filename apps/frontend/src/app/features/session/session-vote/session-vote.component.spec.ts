@@ -4,7 +4,11 @@ import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import type { QaQuestionDTO } from '@arsnova/shared-types';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  flushComponentAfterStable,
+  flushMacroTask,
+} from '../../../../testing/component-test-utils';
 import {
   anchorCandidatesForPhase,
   focusTargetIdForAnchor,
@@ -119,8 +123,7 @@ async function findNumericEstimateInput(
     '#vote-numeric-input',
   );
   for (let attempt = 0; attempt < 10 && !input; attempt += 1) {
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
     input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
       '#vote-numeric-input',
@@ -130,7 +133,11 @@ async function findNumericEstimateInput(
   return input!;
 }
 
-describe('SessionVoteComponent', () => {
+describe('SessionVoteComponent', { timeout: 30_000 }, () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('liefert phasenabhängige Einsprung-Anker mit korrekten Fallbacks', () => {
     expect(anchorCandidatesForPhase('read', false)).toEqual([
       'vote-question-anchor',
@@ -353,8 +360,7 @@ describe('SessionVoteComponent', () => {
     fixture.detectChanges();
     let button: HTMLButtonElement | null = null;
     for (let attempt = 0; attempt < 10 && !button; attempt += 1) {
-      await fixture.whenStable();
-      await new Promise((r) => setTimeout(r, 50));
+      await flushComponentAfterStable(fixture, 50);
       fixture.detectChanges();
       button = (fixture.nativeElement as HTMLElement).querySelector('.vote-reading-banner__cta');
     }
@@ -363,8 +369,7 @@ describe('SessionVoteComponent', () => {
     button?.click();
     let textContent = '';
     for (let attempt = 0; attempt < 10; attempt += 1) {
-      await fixture.whenStable();
-      await new Promise((r) => setTimeout(r, 50));
+      await flushComponentAfterStable(fixture, 50);
       fixture.detectChanges();
       textContent = (fixture.nativeElement as HTMLElement).textContent ?? '';
       if (
@@ -512,7 +517,7 @@ describe('SessionVoteComponent', () => {
     await (
       fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
     ).loadTeamRewardState();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushMacroTask(50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
@@ -644,7 +649,7 @@ describe('SessionVoteComponent', () => {
     await (
       fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
     ).loadTeamRewardState();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushMacroTask(50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -726,7 +731,7 @@ describe('SessionVoteComponent', () => {
     await (
       fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
     ).loadTeamRewardState();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushMacroTask(50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -808,7 +813,7 @@ describe('SessionVoteComponent', () => {
     await (
       fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
     ).loadTeamRewardState();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushMacroTask(50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -904,7 +909,7 @@ describe('SessionVoteComponent', () => {
     await (
       fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
     ).loadTeamRewardState();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushMacroTask(50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -982,7 +987,7 @@ describe('SessionVoteComponent', () => {
     await (
       fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
     ).loadTeamRewardState();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushMacroTask(50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -1057,7 +1062,7 @@ describe('SessionVoteComponent', () => {
     await (
       fixture.componentInstance as unknown as { loadTeamRewardState: () => Promise<void> }
     ).loadTeamRewardState();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushMacroTask(50);
     fixture.detectChanges();
 
     const inst = fixture.componentInstance;
@@ -1225,8 +1230,7 @@ describe('SessionVoteComponent', () => {
 
       const fixture = TestBed.createComponent(SessionVoteComponent);
       fixture.detectChanges();
-      await fixture.whenStable();
-      await new Promise((r) => setTimeout(r, 50));
+      await flushComponentAfterStable(fixture, 50);
 
       const inst = fixture.componentInstance;
       inst.activeChannel.set(channel);
@@ -1388,8 +1392,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.selectedAnswerIds.set(new Set(['a1']));
@@ -1444,8 +1447,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.voteSent()).toBe(true);
@@ -1496,8 +1498,7 @@ describe('SessionVoteComponent', () => {
     } as never);
 
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     expect(loadScorecardSpy).not.toHaveBeenCalled();
@@ -1564,8 +1565,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.onTextVoteInput(' Paris ');
@@ -1624,8 +1624,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.toggleAnswer('a1');
@@ -1693,8 +1692,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.toggleAnswer('a1');
@@ -1757,8 +1755,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.toggleAnswer('a1');
@@ -1828,8 +1825,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.voteSent.set(false);
@@ -1888,8 +1884,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.onTextVoteInput('  a   b  ');
@@ -1944,8 +1939,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const input = (fixture.nativeElement as HTMLElement).querySelector(
@@ -1994,8 +1988,7 @@ describe('SessionVoteComponent', () => {
       .spyOn(fixture.componentInstance, 'loadScorecard')
       .mockResolvedValue(undefined);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.voteSent.set(true);
@@ -2047,8 +2040,7 @@ describe('SessionVoteComponent', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     vi.spyOn(fixture.componentInstance, 'loadScorecard').mockResolvedValue(undefined);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.voteSent.set(false);
@@ -2105,8 +2097,7 @@ describe('SessionVoteComponent', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     vi.spyOn(fixture.componentInstance, 'loadScorecard').mockResolvedValue(undefined);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.voteSent.set(true);
@@ -2163,8 +2154,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.onTextVoteInput('neun komma acht');
@@ -2219,8 +2209,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     const input = await findNumericEstimateInput(fixture);
@@ -2297,8 +2286,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     const input = await findNumericEstimateInput(fixture);
@@ -2400,8 +2388,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.voteSent.set(true);
@@ -2476,8 +2463,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.voteSent.set(true);
@@ -2534,8 +2520,7 @@ describe('SessionVoteComponent', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     vi.spyOn(fixture.componentInstance, 'loadScorecard').mockResolvedValue(undefined);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.voteSent.set(true);
@@ -2578,8 +2563,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     expect(navSpy).toHaveBeenCalled();
     const opts = navSpy.mock.calls[0]?.[1] as { replaceUrl?: boolean };
@@ -2614,8 +2598,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 80));
+    await flushComponentAfterStable(fixture, 80);
     fixture.detectChanges();
 
     const inst = fixture.componentInstance;
@@ -2659,8 +2642,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 80));
+    await flushComponentAfterStable(fixture, 80);
     fixture.detectChanges();
 
     const bottomActions = fixture.nativeElement.querySelector(
@@ -2701,8 +2683,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 80));
+    await flushComponentAfterStable(fixture, 80);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -2737,8 +2718,7 @@ describe('SessionVoteComponent', () => {
     TestBed.inject(ThemePresetService).setPreset('serious', { silent: true });
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -2809,8 +2789,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -2995,8 +2974,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
@@ -3052,8 +3030,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -3091,8 +3068,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -3125,8 +3101,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -3170,8 +3145,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
@@ -3200,8 +3174,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -3235,8 +3208,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.activeChannel()).toBe('quiz');
@@ -3263,8 +3235,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('quickFeedback');
@@ -3298,8 +3269,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.selectChannel('quickFeedback');
@@ -3614,7 +3584,7 @@ describe('SessionVoteComponent', () => {
     await fixture.whenStable();
     const c = fixture.componentInstance;
     await (c as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushMacroTask(0);
     fixture.detectChanges();
 
     c.activeChannel.set('qa');
@@ -3659,7 +3629,7 @@ describe('SessionVoteComponent', () => {
     await fixture.whenStable();
     const c = fixture.componentInstance;
     await (c as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushMacroTask(0);
     fixture.detectChanges();
 
     c.activeChannel.set('quickFeedback');
@@ -3919,8 +3889,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     expect(statusListener).not.toBeNull();
     expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalled();
@@ -4068,7 +4037,7 @@ describe('SessionVoteComponent', () => {
     await fixture.whenStable();
     const c = fixture.componentInstance;
     await (c as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushMacroTask(0);
     fixture.detectChanges();
 
     c.voteSent.set(true);
@@ -4110,8 +4079,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -4149,8 +4117,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const c = fixture.componentInstance;
     const prev: QaQuestionDTO[] = [
@@ -4201,8 +4168,7 @@ describe('SessionVoteComponent', () => {
 
     const fixture = TestBed.createComponent(SessionVoteComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const c = fixture.componentInstance;
     const prev: QaQuestionDTO[] = [

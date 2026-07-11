@@ -936,7 +936,10 @@ Die App ist funktional schon breit, aber nicht in jedem Bereich endgültig abges
 
 Dazu gehören laut Root-Dokumentation insbesondere:
 
-- vollständige Last- und Performance-Teststrecken
+- Abschluss der weitgehend vorhandenen Last- und Performance-Teststrecken:
+  die lokalen Yjs-, 600er Vote-p95-, Browser- und Lighthouse-Gates sind
+  [seit dem QA-Nachlauf 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md)
+  grün; offen sind Staging-Langläufe und freigegebene Produktionsbaselines
 - abschließende Barrierefreiheitsprüfung
 - Confidence-Erweiterungen und weitere Auswertungsvarianten
 - delegierte Q&A-Moderation und weitere Q&A-Erweiterungen

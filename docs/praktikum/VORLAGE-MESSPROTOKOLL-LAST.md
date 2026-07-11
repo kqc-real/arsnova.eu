@@ -24,6 +24,9 @@ In 2–3 Sätzen: Was sollte geprüft werden? (z. B. „Sanity unter parallelen 
 | 3            | `npm run load:k6:health`                 | Wrapper/Docker             | ~30 s     |
 | 4 (optional) | `SESSION_CODE=… npm run load:k6:session` | …                          | …         |
 
+Für einen erweiterten Lauf können zusätzliche Zeilen für Artillery,
+Timer-Fairness, Yjs, Soak, Browser-Smokes und Lighthouse ergänzt werden.
+
 ---
 
 ## 3. Ergebnisse (Kernmetriken)
@@ -53,6 +56,20 @@ In 2–3 Sätzen: Was sollte geprüft werden? (z. B. „Sanity unter parallelen 
 | `http_req_failed`       | … %                         |
 | `http_req_duration` p95 | … ms                        |
 | k6-Thresholds           | bestanden / nicht bestanden |
+
+### Erweiterte Szenarien (optional)
+
+| Szenario                 | Ziel/Last | zentrale Metrik oder Gate        | Ergebnis |
+| ------------------------ | --------- | -------------------------------- | -------- |
+| Artillery Live/Reconnect | … TN      | Join-/Reconnect-Quote, WS-Fehler | …        |
+| Timer-Fairness           | … TN      | Vote-p95, fachliche Karenz       | …        |
+| Yjs                      | … Clients | Sync-/Reconnect-Zeit, Konvergenz | …        |
+| Soak                     | … Minuten | HTTP-p95, Fehler, RSS-Wachstum   | …        |
+| Browser-Flows            | …         | erwarteter UI-Endzustand         | …        |
+| Lighthouse               | … URL     | Performance, LCP, CLS, TBT, A11y | …        |
+
+Als ausgefülltes Beispiel für diese erweiterte Form dient der
+[lokale Gesamt-Testlauf vom 2026-07-10](../implementation/LOCAL-TESTRUN-2026-07-10.md).
 
 ---
 

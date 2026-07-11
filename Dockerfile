@@ -40,18 +40,21 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Security-Patches des unveränderlich referenzierten Alpine-Basisimages einspielen.
+RUN apk upgrade --no-cache
+
 # Copy package manifests + npm config, install production deps only
 COPY package.json package-lock.json .npmrc ./
 COPY libs/shared-types/package.json libs/shared-types/
 COPY apps/backend/package.json apps/backend/
 
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Copy Prisma schema, config + generated client
 COPY prisma/ prisma/
 COPY prisma.config.ts tsconfig.json ./
 COPY --from=builder /app/node_modules/.prisma node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma node_modules/@prisma
 
 # Copy compiled backend
 COPY --from=builder /app/apps/backend/dist apps/backend/dist
@@ -63,8 +66,8 @@ COPY --from=builder /app/libs/shared-types/package.json libs/shared-types/packag
 # Copy Angular build output (served by Express as static files)
 COPY --from=builder /app/apps/frontend/dist/browser apps/frontend/dist
 
-# Entrypoint + Schema-Sicherung: vor App-Start fehlende Spalten anlegen
-COPY scripts/docker-entrypoint.sh scripts/ensure-schema.js /app/scripts/
+# Entrypoint: versionierte Migrationen vor dem App-Start anwenden
+COPY scripts/docker-entrypoint.sh /app/scripts/
 RUN chmod +x /app/scripts/docker-entrypoint.sh
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 

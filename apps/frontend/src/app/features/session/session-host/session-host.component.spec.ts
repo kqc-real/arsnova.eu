@@ -5,7 +5,11 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NEVER, of } from 'rxjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  flushComponentAfterStable,
+  flushMacroTask,
+} from '../../../../testing/component-test-utils';
 import { SessionHostComponent } from './session-host.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { QuizStoreService } from '../../quiz/data/quiz-store.service';
@@ -268,7 +272,11 @@ const quizStoreMock = {
   setLastServerUploadAccess: vi.fn(),
 };
 
-describe('SessionHostComponent', () => {
+describe('SessionHostComponent', { timeout: 30_000 }, () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('crypto', {
@@ -1327,8 +1335,7 @@ describe('SessionHostComponent', () => {
     await fixture.componentInstance.onSessionEndAnchorClick();
 
     const dialogConfig = dialogOpenMock.mock.calls[0]?.[1] as
-      | { data?: { consequences?: string[] } }
-      | undefined;
+      { data?: { consequences?: string[] } } | undefined;
     expect(dialogConfig?.data?.consequences?.join(' ')).not.toContain('Bonus-Code');
     fixture.destroy();
   });
@@ -1363,8 +1370,7 @@ describe('SessionHostComponent', () => {
     await fixture.componentInstance.onSessionEndAnchorClick();
 
     const dialogConfig = dialogOpenMock.mock.calls[0]?.[1] as
-      | { data?: { consequences?: string[] } }
-      | undefined;
+      { data?: { consequences?: string[] } } | undefined;
     expect(dialogConfig?.data?.consequences?.join(' ')).toContain('Bonus-Code');
     fixture.destroy();
   });
@@ -2171,8 +2177,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -2221,8 +2226,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -2267,8 +2271,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -2290,8 +2293,7 @@ describe('SessionHostComponent', () => {
 
     await component.setQaSortMode('BEST');
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushComponentAfterStable(fixture, 0);
 
     expect(qaListQueryMock).toHaveBeenCalledWith({
       sessionId: defaultSession.id,
@@ -2351,8 +2353,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -2402,8 +2403,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -2949,8 +2949,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
@@ -2982,8 +2981,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.activeChannel.set('qa');
@@ -3182,8 +3180,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.musicMuted.set(false);
@@ -3209,8 +3206,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
     component.musicMuted.set(false);
@@ -3322,7 +3318,7 @@ describe('SessionHostComponent', () => {
     statusHandler?.({ status: 'QUESTION_OPEN', currentQuestion: 0, activeAt: null });
     statusHandler?.({ status: 'ACTIVE', currentQuestion: 0, activeAt: null });
     statusHandler?.({ status: 'LOBBY', currentQuestion: null, activeAt: null });
-    await new Promise((r) => setTimeout(r, 25));
+    await flushMacroTask(25);
 
     expect(component.activeMusicTrack()).toBeNull();
     expect(playMusicSpy).not.toHaveBeenCalled();
@@ -3348,8 +3344,7 @@ describe('SessionHostComponent', () => {
     const stopMusicSpy = vi.spyOn(component.sound, 'stopMusic').mockImplementation(() => {});
 
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     component.musicMuted.set(false);
     fixture.detectChanges();
@@ -3408,8 +3403,7 @@ describe('SessionHostComponent', () => {
     const stopMusicSpy = vi.spyOn(component.sound, 'stopMusic').mockImplementation(() => {});
 
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     component.musicMuted.set(false);
     component.activeChannel.set('quickFeedback');
@@ -3454,8 +3448,7 @@ describe('SessionHostComponent', () => {
     const playMusicSpy = vi.spyOn(component.sound, 'playMusic').mockResolvedValue();
 
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     component.musicMuted.set(true);
     fixture.detectChanges();
@@ -3493,8 +3486,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
@@ -3553,8 +3545,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
@@ -3602,8 +3593,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
@@ -3766,8 +3756,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const liveBanner = (fixture.nativeElement as HTMLElement).querySelector(
@@ -3823,8 +3812,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const exitAnchor = fixture.nativeElement.querySelector(
@@ -3894,8 +3882,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const progress = fixture.nativeElement.querySelector(
@@ -3967,8 +3954,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const progress = fixture.nativeElement.querySelector(
@@ -4030,8 +4016,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const exitAnchor = fixture.nativeElement.querySelector(
@@ -4087,8 +4072,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent ?? '').not.toContain('komplett richtig');
@@ -4143,8 +4127,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent ?? '').toContain('0 von 0 komplett richtig');
@@ -4221,8 +4204,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const resultsSection = fixture.nativeElement.querySelector(
@@ -4255,8 +4237,7 @@ describe('SessionHostComponent', () => {
     const scrollToSpy = vi.spyOn(scrollingElement, 'scrollTo').mockImplementation(() => undefined);
 
     await fixture.componentInstance.revealResults();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushComponentAfterStable(fixture, 0);
 
     expect(revealResultsMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(scrollToSpy).toHaveBeenCalledWith({ behavior: 'smooth', top: 520 });
@@ -4300,8 +4281,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const answersList = fixture.nativeElement.querySelector(
@@ -4334,8 +4314,7 @@ describe('SessionHostComponent', () => {
     const scrollToSpy = vi.spyOn(scrollingElement, 'scrollTo').mockImplementation(() => undefined);
 
     await fixture.componentInstance.revealAnswers();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushComponentAfterStable(fixture, 0);
 
     expect(revealAnswersMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
     expect(scrollToSpy).toHaveBeenCalledWith({ behavior: 'smooth', top: 412 });
@@ -4384,8 +4363,7 @@ describe('SessionHostComponent', () => {
     const component = fixture.componentInstance;
 
     await component.startSecondRound();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushComponentAfterStable(fixture, 0);
     fixture.detectChanges();
 
     expect(startSecondRoundMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
@@ -4915,8 +4893,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const interim = fixture.nativeElement.querySelector('.session-host__interim-leaderboard');
@@ -5038,8 +5015,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
     const component = fixture.componentInstance;
     expect(
@@ -5484,8 +5460,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const exitAnchor = fixture.nativeElement.querySelector(
@@ -5543,8 +5518,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const exitAnchor = fixture.nativeElement.querySelector(
@@ -5582,8 +5556,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.componentInstance.activeChannel.set('quickFeedback');
     fixture.detectChanges();
 
@@ -5638,8 +5611,7 @@ describe('SessionHostComponent', () => {
     const router = TestBed.inject(Router);
     const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.componentInstance.activeChannel.set('quickFeedback');
     fixture.detectChanges();
 
@@ -5671,8 +5643,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.componentInstance.activeChannel.set('quickFeedback');
     fixture.detectChanges();
 
@@ -5690,8 +5661,7 @@ describe('SessionHostComponent', () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     expect(onParticipantJoinedSubscribeMock).toHaveBeenCalledWith(
       { code: 'ABC123' },
@@ -5988,8 +5958,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     participantJoinedHandler?.({
@@ -6057,8 +6026,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
@@ -6107,8 +6075,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
@@ -6213,8 +6180,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const interimEntries = Array.from(
@@ -6284,8 +6250,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent ?? '').toContain('Top 5');
@@ -6329,8 +6294,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const boardName = fixture.nativeElement.querySelector(
@@ -6393,8 +6357,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const teamInterim = fixture.nativeElement.querySelector(
@@ -6461,8 +6424,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.session-host__interim-leaderboard')).toBeNull();
@@ -6510,8 +6472,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
@@ -6557,8 +6518,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
@@ -6587,8 +6547,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const cardsBefore = fixture.nativeElement.querySelectorAll('.session-lobby__team-card');
@@ -6642,8 +6601,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const cards = Array.from(
@@ -6732,8 +6690,7 @@ describe('SessionHostComponent', () => {
     const fixture = setup();
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
 
     participantJoinedHandler?.({
       participantCount: 120,
@@ -6784,8 +6741,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const cards = Array.from(
@@ -7502,8 +7458,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
@@ -7540,8 +7495,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
@@ -7583,8 +7537,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
@@ -7621,8 +7574,7 @@ describe('SessionHostComponent', () => {
 
     const fixture = setup();
     fixture.detectChanges();
-    await fixture.whenStable();
-    await new Promise((r) => setTimeout(r, 50));
+    await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
     const card = fixture.nativeElement.querySelector('.session-lobby__team-card') as HTMLElement;
@@ -7706,8 +7658,7 @@ describe('SessionHostComponent', () => {
 
       const fixture = setup();
       fixture.detectChanges();
-      await fixture.whenStable();
-      await new Promise((r) => setTimeout(r, 50));
+      await flushComponentAfterStable(fixture, 50);
 
       const component = fixture.componentInstance;
       component.activeChannel.set('qa');
@@ -7733,7 +7684,7 @@ describe('SessionHostComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
       // Zoneless TestBed: whenStable wartet nicht auf die volle async-ngOnInit-Kette; kurz entkoppeln.
-      await new Promise((r) => setTimeout(r, 0));
+      await flushMacroTask(0);
       fixture.detectChanges();
 
       expect(qaListQueryMock).toHaveBeenCalledWith({

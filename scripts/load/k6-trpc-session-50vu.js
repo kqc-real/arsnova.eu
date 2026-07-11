@@ -21,6 +21,11 @@ if (!code || String(code).trim().length !== 6) {
 }
 
 const C = String(code).trim().toUpperCase();
+const VUS = Math.max(1, Number(__ENV.VUS || 50));
+const ERROR_RATE_LIMIT = Number(__ENV.ERROR_RATE_LIMIT || 0.005);
+const P95_LIMIT_MS = Number(__ENV.P95_LIMIT_MS || 1000);
+const P99_LIMIT_MS = Number(__ENV.P99_LIMIT_MS || 2000);
+const CHECK_RATE_LIMIT = Number(__ENV.CHECK_RATE_LIMIT || 0.995);
 const batchInput = encodeURIComponent(
   JSON.stringify({
     0: { code: C },
@@ -33,14 +38,15 @@ export const options = {
   scenarios: {
     session_lobby: {
       executor: 'per-vu-iterations',
-      vus: 50,
+      vus: VUS,
       iterations: 1,
       maxDuration: '5m',
     },
   },
   thresholds: {
-    http_req_failed: ['rate<0.1'],
-    http_req_duration: ['p(95)<3000'],
+    checks: [`rate>${CHECK_RATE_LIMIT}`],
+    http_req_failed: [`rate<${ERROR_RATE_LIMIT}`],
+    http_req_duration: [`p(95)<${P95_LIMIT_MS}`, `p(99)<${P99_LIMIT_MS}`],
   },
 };
 

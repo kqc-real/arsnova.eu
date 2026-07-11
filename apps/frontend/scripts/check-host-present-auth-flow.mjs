@@ -91,47 +91,73 @@ async function visibleText(page) {
   return page.locator('body').innerText();
 }
 
-async function chooseJoinIdentity(page, fallbackName) {
-  const textFields = page.locator('input[type="text"], input:not([type]), input[matinput], textarea');
-  const count = await textFields.count();
-  for (let index = 0; index < count; index += 1) {
-    const field = textFields.nth(index);
-    if (await field.isVisible().catch(() => false)) {
-      await field.fill(fallbackName);
-      return true;
-    }
-  }
-
-  const combobox = page.getByRole('combobox').first();
-  if (await combobox.isVisible().catch(() => false)) {
-    await combobox.click();
-    await page.waitForTimeout(300);
-    const options = page.getByRole('option');
-    const optionCount = await options.count();
-    for (let index = 0; index < optionCount; index += 1) {
-      const option = options.nth(index);
-      const text = ((await option.innerText().catch(() => '')) || '').trim();
-      const disabled = await option.getAttribute('aria-disabled').catch(() => null);
-      if (text && !text.includes('Bitte') && disabled !== 'true') {
-        await option.click();
-        await page.waitForTimeout(300);
+async function chooseJoinIdentity(page, fallbackName, timeout = 15_000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeout) {
+    const textFields = page.locator(
+      'input[type="text"], input:not([type]), input[matinput], textarea',
+    );
+    const count = await textFields.count();
+    for (let index = 0; index < count; index += 1) {
+      const field = textFields.nth(index);
+      if (await field.isVisible().catch(() => false)) {
+        await field.fill(fallbackName);
         return true;
       }
     }
+
+    const combobox = page.getByRole('combobox').first();
+    if (await combobox.isVisible().catch(() => false)) {
+      await combobox.click();
+      await page.waitForTimeout(300);
+      const options = page.getByRole('option');
+      const optionCount = await options.count();
+      for (let index = 0; index < optionCount; index += 1) {
+        const option = options.nth(index);
+        const text = ((await option.innerText().catch(() => '')) || '').trim();
+        const disabled = await option.getAttribute('aria-disabled').catch(() => null);
+        if (text && !text.includes('Bitte') && disabled !== 'true') {
+          await option.click();
+          await page.waitForTimeout(300);
+          return true;
+        }
+      }
+      await page.keyboard.press('Escape').catch(() => undefined);
+    }
+
+    await page.waitForTimeout(250);
   }
 
   return false;
 }
 
-async function clickJoinAction(page) {
+async function clickJoinAction(page, timeout = 15_000) {
+  const startedAt = Date.now();
+  const submitButton = page.locator('.join-card__submit').first();
+  while (Date.now() - startedAt < timeout) {
+    const visible = await submitButton.isVisible().catch(() => false);
+    const enabled = visible && (await submitButton.isEnabled().catch(() => false));
+    if (enabled) {
+      await submitButton.click();
+      return true;
+    }
+    await page.waitForTimeout(250);
+  }
+
   const localizedJoinButton = page.getByRole('button', { name: PARTICIPANT_JOIN_BUTTON });
-  if (await localizedJoinButton.isVisible().catch(() => false)) {
+  if (
+    (await localizedJoinButton.isVisible().catch(() => false)) &&
+    (await localizedJoinButton.isEnabled().catch(() => false))
+  ) {
     await localizedJoinButton.click();
     return true;
   }
 
   const directJoinButton = page.getByRole('button', { name: PARTICIPANT_DIRECT_JOIN_BUTTON });
-  if (await directJoinButton.isVisible().catch(() => false)) {
+  if (
+    (await directJoinButton.isVisible().catch(() => false)) &&
+    (await directJoinButton.isEnabled().catch(() => false))
+  ) {
     await directJoinButton.click();
     return true;
   }
@@ -240,11 +266,14 @@ async function main() {
       failures.push('Presenter-Ansicht meldet weiterhin fehlgeschlagene Live-Freitextdaten.');
     }
 
-    const initialCount = (await host.locator('.session-host__live-participants-count').first().textContent())
-      ?.trim();
+    const initialCount = (
+      await host.locator('.session-host__live-participants-count').first().textContent()
+    )?.trim();
     logStep(initialCount === '0', 'Host startet mit 0 Teilnehmenden', initialCount ?? 'unbekannt');
     if (initialCount !== '0') {
-      failures.push(`Host startet unerwartet nicht bei 0 Teilnehmenden, sondern bei ${initialCount ?? 'unbekannt'}.`);
+      failures.push(
+        `Host startet unerwartet nicht bei 0 Teilnehmenden, sondern bei ${initialCount ?? 'unbekannt'}.`,
+      );
     }
 
     await participant.goto(`${BASE_URL}/join/${code}`, {

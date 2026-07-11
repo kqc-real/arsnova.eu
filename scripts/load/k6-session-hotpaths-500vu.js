@@ -39,6 +39,10 @@ const sessionId = String(__ENV.SESSION_ID || '').trim();
 const answerId = String(__ENV.ANSWER_ID || '').trim();
 const vus = Math.max(1, Number(__ENV.VUS || 500));
 const durationSeconds = Math.max(5, Number(__ENV.DURATION_SECONDS || 30));
+const errorRateLimit = Number(__ENV.ERROR_RATE_LIMIT || 0.005);
+const p95LimitMs = Number(__ENV.P95_LIMIT_MS || 1000);
+const p99LimitMs = Number(__ENV.P99_LIMIT_MS || 2000);
+const checkRateLimit = Number(__ENV.CHECK_RATE_LIMIT || 0.995);
 
 if (!sessionCode || sessionCode.length !== 6) {
   throw new Error('SESSION_CODE (6 Zeichen) ist erforderlich.');
@@ -67,8 +71,9 @@ export const options = {
     },
   },
   thresholds: {
-    http_req_failed: ['rate<0.1'],
-    http_req_duration: ['p(95)<3000'],
+    checks: [`rate>${checkRateLimit}`],
+    http_req_failed: [`rate<${errorRateLimit}`],
+    http_req_duration: [`p(95)<${p95LimitMs}`, `p(99)<${p99LimitMs}`],
   },
 };
 

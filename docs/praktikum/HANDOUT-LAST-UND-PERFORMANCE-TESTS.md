@@ -2,7 +2,7 @@
 
 # Last- und Performance-Tests — Werkzeuge im Projekt arsnova.eu
 
-**Stand:** 2026-07-05 · **Zielgruppe:** SQM-Praktikum, Story **0.7**, Referate zu nicht-funktionaler Qualität
+**Stand:** 2026-07-10 · **Zielgruppe:** SQM-Praktikum, Story **0.7**, Referate zu nicht-funktionaler Qualität
 
 **Zweck:** Dieses Dokument informiert dich darüber, **mit welchen Werkzeugen** wir Last- und Performance-Tests im Projekt planen, durchführen und dokumentieren — und **was davon bereits im Repo liegt**.
 
@@ -173,13 +173,16 @@ Details: [`docs/TESTING.md`](../TESTING.md).
 
 Ergänzende Bausteine für schnelle lokale Checks und echte tRPC-/WebSocket-Pfade — **ohne** separates Mikrobenchmark-Tool:
 
-| Skript                        | NPM-Befehl (Root)                        | Zweck                                           |
-| ----------------------------- | ---------------------------------------- | ----------------------------------------------- |
-| `concurrent-50-http.mjs`      | `npm run load:simulate:50`               | 50 parallele Reads auf `health.stats`           |
-| `session-participants-50.mjs` | `npm run load:simulate:session:50`       | 50 Joins + Lobby-Polling                        |
-| `ws-status-subscribers.mjs`   | — (direkt per `node`)                    | viele parallele `onStatusChanged`-Subscriptions |
-| `host-vote-progress-200.mjs`  | `npm run load:smoke:host-vote-progress`  | Votes + Host-WebSocket-Fan-out                  |
-| `vote-timer-fairness-600.mjs` | `npm run load:smoke:vote-timer-fairness` | Timer/Karenz unter 600 parallelen Votes         |
+| Skript                             | NPM-Befehl (Root)                        | Zweck                                           |
+| ---------------------------------- | ---------------------------------------- | ----------------------------------------------- |
+| `concurrent-50-http.mjs`           | `npm run load:simulate:50`               | 50 parallele Reads auf `health.stats`           |
+| `session-participants-50.mjs`      | `npm run load:simulate:session:50`       | 50 Joins + Lobby-Polling                        |
+| `ws-status-subscribers.mjs`        | — (direkt per `node`)                    | viele parallele `onStatusChanged`-Subscriptions |
+| `host-vote-progress-200.mjs`       | `npm run load:smoke:host-vote-progress`  | Votes + Host-WebSocket-Fan-out                  |
+| `vote-timer-fairness-600.mjs`      | `npm run load:smoke:vote-timer-fairness` | Timer/Karenz unter 600 parallelen Votes         |
+| `yjs-sync-load.mjs`                | `npm run load:yjs:sync`                  | Mehrclient-Sync, Offline-Updates und Reconnect  |
+| `freetext-wordcloud-classroom.mjs` | `npm run load:freetext:wordcloud`        | Freitext-Votes und Host-Word-Cloud              |
+| `soak-live-session.mjs`            | `npm run load:soak:live-session`         | Langlauf mit HTTP-/Prozess-/DB-/Redis-Probes    |
 
 **Beispiel WebSocket-Status-Fan-out** (Session-Code vorher anlegen):
 
@@ -233,23 +236,43 @@ Dokumentierte Läufe vom **9. Mai 2026**:
 
 ---
 
-## 4. CI und Story 0.7 — was noch offen ist
+## 4. CI und Story 0.7 — aktueller Stand
 
-Die **Standard-CI** ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)) führt **keine** Lasttests aus (Vitest, Lint, Build, Docker).
+Die **Standard-CI** ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml))
+führt sechs kurze Classroom-Smokes als Deploy-Gate aus. Nacht- und manuelle Läufe
+decken Artillery-Kapazität, Reconnect, schwere Vote-Hotpaths, Yjs,
+Freitext/Wordcloud und einen 5-Minuten-Soak ab. Vollständige 500-TN-Läufe gegen
+Staging benötigen eine explizite Freigabe.
 
-Story **0.7** im [`Backlog.md`](../../Backlog.md) ist **🟡 in Arbeit** (Implementierungsstand dort und in [ADR-0013](../architecture/decisions/0013-use-k6-and-artillery-for-load-and-performance-testing.md) abgeglichen, Stand 2026-07-05).
+Story **0.7** im [`Backlog.md`](../../Backlog.md) bleibt **🟡 in Arbeit** (Stand
+2026-07-11): Testprofile, harte Latenz-/Fehler-Gates, standardisierte
+JSON-/JUnit-Reports, Regressionsvergleich und Laufzeitprobes sind vorhanden.
 
-| Bereich                                            | Stand                                                 |
-| -------------------------------------------------- | ----------------------------------------------------- |
-| k6-Skripte + Node-Smokes                           | ✅ vorhanden (inkl. 500er-Hotpaths, Host-Vote-Smokes) |
-| Dokumentation & Ergebnisberichte                   | ✅ vorhanden                                          |
-| Vote unter Last (Join, Spike, Timer, Host-Fan-out) | 🟡 teilweise (k6 + Smokes + Artillery-500)            |
-| Artillery-Szenarien                                | 🟡 Unified-500 (Reconnect/Freitext noch offen)        |
-| PR-/CI-Smoke (z. B. leichter k6-Health-Check)      | ❌ offen                                              |
-| Freitext/Q&A/Reconnect unter Last                  | ❌ offen                                              |
-| Maschinenlesbare Reports + Laufvergleich           | ❌ offen                                              |
+Der
+[lokale Gesamt-Testlauf vom 2026-07-10](../implementation/LOCAL-TESTRUN-2026-07-10.md)
+belegt 19/21 Last-/Performance-Szenarien als bestanden. Artillery Live und
+Reconnect erreichten jeweils 500/500 Teilnehmende, alle k6-Profile und der
+5-Minuten-Soak waren grün. Im damaligen Lauf reproduzierbar offen waren dagegen die
+Yjs-Konvergenz nach Offline-Reconnect und das 1.000-ms-p95-Gate beim
+600er Timer-Fairness-Lauf. Auch drei Browser-Referenzflows und das
+Lighthouse-Performance-Gate waren nicht grün.
 
-**Dein Beitrag kann z. B. sein:** einen Pilot-Lauf dokumentieren, ein fehlendes Szenario skizzieren, einen leichten CI-Smoke vorschlagen oder die Tool-Doku erweitern — in Absprache mit der Betreuung.
+Der
+[gezielte QA-Nachlauf vom 2026-07-11](../implementation/LOCAL-QA-RECHECK-2026-07-11.md)
+belegt die Korrekturen: Yjs-Reconnect, beide akzeptierenden 600er Vote-Pfade,
+6/6 Browser-Referenzflows und 6/6 Lighthouse-Läufe bestanden. Für Story 0.7
+bleiben Staging-Langlauf und Baseline-Freigabe.
+
+Neben der Ursachenklärung dieser Befunde stehen geprüfte
+30/60-Minuten-Pilotläufe in einer stabilen Staging-Umgebung und daraus
+freigegebene Produktionsbaselines aus.
+
+Das aktuelle Inventar und alle Kommandos stehen in
+[`PERFORMANCE-TESTING.md`](../PERFORMANCE-TESTING.md).
+
+**Dein Beitrag kann z. B. sein:** einen reproduzierbaren Pilot-Lauf durchführen,
+die Messumgebung dokumentieren, eine Baseline fachlich prüfen oder einen Engpass
+aus dem Report analysieren — in Absprache mit der Betreuung.
 
 ---
 
@@ -298,7 +321,8 @@ Vorlage orientiert sich an den Berichten unter `docs/implementation/LASTTEST-*.m
 - **Keine personenbezogenen Daten** in Test-Sessions oder öffentlichen Protokollen.
 - Join-Lasttests erzeugen **echte DB-Einträge** — Test-Sessions gezielt anlegen und nach dem Lauf aufräumen.
 - Lasttests respektieren das **Sicherheitsmodell** (keine Abkürzungen, die Host-/Teilnehmer-Pfade unrealistisch vereinfachen).
-- Schwere Lastläufe **nicht** in die normale PR-CI packen, solange Story 0.7 das nicht vorsieht.
+- Schwere Lastläufe bleiben im Nacht-/Manuell-/Staging-Pfad; die normale PR-CI
+  nutzt nur kurze, reproduzierbare Gates.
 
 ---
 
@@ -322,7 +346,10 @@ Kurzfolie für das Erstgespräch — du kannst die Studierende durch diese Punkt
 
 1. **Kontext:** arsnova.eu ist realtime-lastig; ein Tool reicht nicht → ADR-0013.
 2. **Jetzt nutzbar:** k6 + `scripts/load/` + Playwright-Smokes + Lighthouse.
-3. **Noch geplant:** Reconnect-Welle, Freitext/Q&A-Schwerlast, browsernahe Artillery+Playwright-Szenarien.
-4. **Erster Hands-on:** `npm run dev:backend` → `load:simulate:50` → `npm run load:k6:health`.
-5. **Artefakt für SQM:** Messprotokoll eines Pilot-Laufs **oder** Konzept für ein fehlendes Szenario (Absprache).
-6. **Grenze:** Prod-Last nur mit Freigabe; Fokus lokal oder produktionsnahe Testumgebung laut LASTTEST-500-Doku.
+3. **Lokal belegt:** Yjs-Reconnect, 600er Vote-Timer-Latenz, sechs Browser-Flows
+   und Lighthouse-LCP sind im QA-Nachlauf grün.
+4. **Aktuell zu belegen:** stabile 30/60-Minuten-Staging-Läufe und daraus geprüfte
+   Produktionsbaselines.
+5. **Erster Hands-on:** `npm run dev:backend` → `load:simulate:50` → `npm run load:k6:health`.
+6. **Artefakt für SQM:** Messprotokoll eines Pilot-Laufs **oder** Konzept für ein fehlendes Szenario (Absprache).
+7. **Grenze:** Prod-Last nur mit Freigabe; Fokus lokal oder produktionsnahe Testumgebung laut LASTTEST-500-Doku.

@@ -17,6 +17,7 @@
  */
 import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc, createPublicWsTrpc } from './lib/trpc-runtime.mjs';
+import { writeScenarioReport } from './lib/reporting.mjs';
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const WS_URL = String(process.env.WS_URL || 'ws://127.0.0.1:3001').trim();
@@ -25,7 +26,10 @@ const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 15))
 const WS_CONCURRENCY = Math.max(1, Number(process.env.WS_CONCURRENCY || 15));
 const WS_READY_MS = Math.max(100, Number(process.env.WS_READY_MS || 750));
 const DISCONNECT_HOLD_MS = Math.max(0, Number(process.env.DISCONNECT_HOLD_MS || 250));
-const INITIAL_CONNECT_LIMIT_MS = Math.max(500, Number(process.env.INITIAL_CONNECT_LIMIT_MS || 5_000));
+const INITIAL_CONNECT_LIMIT_MS = Math.max(
+  500,
+  Number(process.env.INITIAL_CONNECT_LIMIT_MS || 5_000),
+);
 const RECONNECT_P95_LIMIT_MS = Math.max(500, Number(process.env.RECONNECT_P95_LIMIT_MS || 3_000));
 const RECONNECT_P95_MIN_STARTED = Math.ceil(PARTICIPANTS * 0.95);
 const ALL_RECONNECT_LIMIT_MS = Math.max(
@@ -188,15 +192,11 @@ async function run() {
   }
 
   /** @type {ReturnType<typeof connectParticipant>[]} */
-  let clients = Array.from({ length: PARTICIPANTS }, () =>
-    connectParticipant(code, 'initial'),
-  );
+  let clients = Array.from({ length: PARTICIPANTS }, () => connectParticipant(code, 'initial'));
 
   await sleep(WS_READY_MS);
-  await waitForCondition(
-    'Initiale WS-Verbindungen',
-    INITIAL_CONNECT_LIMIT_MS,
-    () => clients.every((client) => client.started),
+  await waitForCondition('Initiale WS-Verbindungen', INITIAL_CONNECT_LIMIT_MS, () =>
+    clients.every((client) => client.started),
   );
 
   for (const client of clients) {
@@ -222,10 +222,8 @@ async function run() {
   );
 
   try {
-    await waitForCondition(
-      'Reconnect-Welle (alle onStarted)',
-      ALL_RECONNECT_LIMIT_MS,
-      () => clients.every((client) => client.started),
+    await waitForCondition('Reconnect-Welle (alle onStarted)', ALL_RECONNECT_LIMIT_MS, () =>
+      clients.every((client) => client.started),
     );
   } catch {
     // Auswertung unten — p95 wird separat geprueft.
@@ -252,7 +250,10 @@ async function run() {
     // Auswertung unten
   }
 
-  const participantsWithResults = clients.filter((client) => client.lastStatus === 'RESULTS').length;
+  const participantsWithResults = clients.filter(
+    (client) => client.lastStatus === 'RESULTS',
+  ).length;
+  const reconnectStarted = clients.filter((client) => client.started).length;
   const subscriptionErrors = clients.reduce((sum, client) => sum + client.errors, 0);
   const statusSnapshot = await publicTrpc.session.getInfo.query({ code });
 
@@ -269,7 +270,7 @@ async function run() {
       connectP50Ms: reconnectP50Ms,
       connectP95Ms: reconnectP95Ms,
       connectMaxMs: reconnectMaxMs,
-      started: clients.filter((client) => client.started).length,
+      started: reconnectStarted,
       subscriptionErrors,
     },
     statusFanout: {
@@ -292,9 +293,7 @@ async function run() {
     failures.push(`Reconnect onStarted nur ${reconnectConnectMs.length}/${PARTICIPANTS}.`);
   }
   if (reconnectP95Ms > RECONNECT_P95_LIMIT_MS) {
-    failures.push(
-      `Reconnect p95 ${reconnectP95Ms} ms > Limit ${RECONNECT_P95_LIMIT_MS} ms.`,
-    );
+    failures.push(`Reconnect p95 ${reconnectP95Ms} ms > Limit ${RECONNECT_P95_LIMIT_MS} ms.`);
   }
   if (subscriptionErrors > 0) {
     failures.push(`${subscriptionErrors} Subscription-Fehler nach Reconnect.`);
@@ -310,14 +309,22 @@ async function run() {
   if ((statusSnapshot?.status ?? null) !== 'RESULTS') {
     failures.push(`Status-Snapshot ist ${statusSnapshot?.status ?? 'null'}, erwartet RESULTS.`);
   }
-  if (
-    statusFanoutLatencyMs === null ||
-    statusFanoutLatencyMs > STATUS_AFTER_RECONNECT_LIMIT_MS
-  ) {
+  if (statusFanoutLatencyMs === null || statusFanoutLatencyMs > STATUS_AFTER_RECONNECT_LIMIT_MS) {
     failures.push(
       `Status-Fan-out nach Reconnect ${statusFanoutLatencyMs === null ? 'fehlt' : Math.round(statusFanoutLatencyMs)} ms, Limit ${STATUS_AFTER_RECONNECT_LIMIT_MS} ms.`,
     );
   }
+
+  await writeScenarioReport({
+    scenario: summary.scenario,
+    environment: {
+      participants: PARTICIPANTS,
+      reconnectP95LimitMs: RECONNECT_P95_LIMIT_MS,
+      statusAfterReconnectLimitMs: STATUS_AFTER_RECONNECT_LIMIT_MS,
+    },
+    metrics: summary,
+    failures,
+  });
 
   if (failures.length > 0) {
     console.error('\nFEHLER');

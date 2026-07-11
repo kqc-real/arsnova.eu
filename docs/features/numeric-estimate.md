@@ -3,7 +3,16 @@
 # Numerische Schätzfrage (Story 1.2d)
 
 > **Zielgruppe:** Product Owner, Entwickler, Lehrpersonen
-> **Stand:** 2026-06-18 (Story 1.2d als implementiert bewertet)
+> **Stand:** 2026-07-11 (Story 1.2d implementiert; Browser-Regressionsnachweis grün)
+
+> **Testhinweis:** Im
+> [lokalen Gesamt-Testlauf vom 2026-07-10](../implementation/LOCAL-TESTRUN-2026-07-10.md)
+> wurden beide Runden mit je 20 Votes und die Ergebnisfreigabe API-seitig
+> erfolgreich ausgeführt. Der Browser-Smoke scheiterte jedoch reproduzierbar an
+> fehlender eigener Runde-2-Auswertung, Toleranzband-Anzeige und
+> Rundenvergleich. Nach Ergänzung der Revealed-Question-Vertragsfelder bestand
+> der [QA-Nachlauf vom 2026-07-11](../implementation/LOCAL-QA-RECHECK-2026-07-11.md)
+> beide Runden mit je 20 Clients einschließlich Ergebnisdarstellung.
 
 ## Zweck
 

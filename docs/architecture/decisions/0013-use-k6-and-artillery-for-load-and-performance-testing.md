@@ -144,10 +144,35 @@ Diese Aufteilung ist Teil der Architekturentscheidung.
 - Ergebnisse muessen zwischen Laeufen vergleichbar und fuer Entwickler:innen lesbar sein.
 - Neue kritische Live-Flows erhalten frueh eine Entscheidung, ob sie primaer in `k6`, `Artillery` oder beiden Werkzeugen getestet werden.
 
-## Umsetzungsstand (2026-07-09)
+## Umsetzungsstand (2026-07-11)
 
-Im Repo existieren konkrete `k6`-Skripte unter `scripts/load/`, darunter `k6-trpc-health-50vu.js`, `k6-trpc-session-50vu.js` und `k6-session-hotpaths-500vu.js`. Dazu kommen Node-basierte Schnellchecks wie `concurrent-50-http.mjs`, `session-participants-50.mjs`, `ws-status-subscribers.mjs` und vier Classroom-30er-Smokes (CI-Job `classroom-smokes` auf PR/Push). **Artillery:** `npm run load:artillery:500` modelliert die Unified-Live-Session mit bis zu 500 Teilnehmenden (HTTP + WebSocket + Host-Monitor); CI-Job `artillery-500` bei Schedule/Manuell. Schwere Last bleibt von PR-Checks getrennt; offen bleiben Reconnect-, Freitext-/Word-Cloud- und Sync-Last sowie Laufvergleich.
+Im Repo existieren SLO-parametrisierte `k6`-Skripte für Health, Session und
+500-VU-Hotpaths sowie sechs kurze Classroom-Smokes als direktes Deploy-Gate.
+Artillery modelliert Unified-Live-Session und Reconnect bis 500 Teilnehmende;
+Yjs-Sync, Q&A-/Blitzlicht-Fan-out, Freitext-/Word-Cloud, schwere Vote-Hotpaths und
+ein konfigurierbarer Live-Session-Soak ergänzen die Architekturabdeckung.
+Node-Szenarien können ein gemeinsames atomisches JSON-/JUnit-Schema schreiben;
+ein Budgetwerkzeug vergleicht numerische Metriken mit geprüften Baselines.
+Schwere Last bleibt von PR-Checks getrennt. Offen sind belastbare
+30/60-Minuten-Pilotläufe in einer stabilen Staging-Umgebung und daraus
+freigegebene Produktionsbaselines.
+
+Der
+[lokale Gesamt-Testlauf vom 2026-07-10](../../implementation/LOCAL-TESTRUN-2026-07-10.md)
+bestätigt die Werkzeugtrennung: Artillery bestand die Live- und Reconnect-Profile
+mit jeweils 500/500 Teilnehmenden, alle k6-Profile bestanden ihre Thresholds und
+der 5-Minuten-Soak blieb stabil. Er zeigt zugleich, warum ausführbare
+Testabdeckung nicht als grüner Qualitätsnachweis formuliert werden darf:
+Yjs-Dokumente konvergierten nach Offline-Updates und Reconnect reproduzierbar
+nicht, der 600er Timer-Fairness-Lauf überschritt das 1.000-ms-p95-Gate, drei
+Browser-Referenzflows scheiterten und das Lighthouse-Performance-Gate blieb rot.
+Diese Befunde sind vor einer Baseline-Freigabe zu klären.
+
+Der
+[QA-Nachlauf vom 2026-07-11](../../implementation/LOCAL-QA-RECHECK-2026-07-11.md)
+schließt die vier technischen Befunde reproduzierbar. Offen bleibt damit der
+betriebliche Nachweis durch Staging-Langläufe und freigegebene Baselines.
 
 ---
 
-**Referenzen:** `Backlog.md` Story `0.7`, `apps/frontend/package.json`, `apps/backend/package.json`, [ADR-0003: tRPC fuer API](./0003-use-trpc-for-api.md), [ADR-0004: Yjs fuer Local-First-Speicherung](./0004-use-yjs-for-local-first-storage.md), [ADR-0009: Einheitliche Live-Session mit Tabs fuer Quiz, Q&A und Blitzlicht](./0009-unified-live-session-channels.md).
+**Referenzen:** `Backlog.md` Story `0.7`, [PERFORMANCE-TESTING.md](../../PERFORMANCE-TESTING.md), [Lokaler Gesamt-Testlauf 2026-07-10](../../implementation/LOCAL-TESTRUN-2026-07-10.md), [QA-Nachlauf 2026-07-11](../../implementation/LOCAL-QA-RECHECK-2026-07-11.md), `apps/frontend/package.json`, `apps/backend/package.json`, [ADR-0003: tRPC fuer API](./0003-use-trpc-for-api.md), [ADR-0004: Yjs fuer Local-First-Speicherung](./0004-use-yjs-for-local-first-storage.md), [ADR-0009: Einheitliche Live-Session mit Tabs fuer Quiz, Q&A und Blitzlicht](./0009-unified-live-session-channels.md).
