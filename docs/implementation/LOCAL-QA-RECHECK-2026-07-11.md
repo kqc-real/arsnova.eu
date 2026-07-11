@@ -56,6 +56,9 @@ Frontend-Laufzeit.
    `db push`, aber nie als Migration versioniert worden waren. Eine idempotente
    Reconciliation-Migration schließt diese Lücke; das neue Gate `Migration Drift`
    verhindert Wiederholungen.
+7. Der Host-Join-Browsersmoke wartet auf langsamen CI-Runnern explizit auf die
+   Identitätsauswahl und einen aktivierten Join-Button, statt nach einer festen
+   1,5-Sekunden-Pause einen noch ladenden Zustand als Produktfehler zu werten.
 
 ## Verbleibender Betriebsnachweis
 
