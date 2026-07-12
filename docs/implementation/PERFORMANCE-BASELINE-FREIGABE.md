@@ -1,9 +1,9 @@
-# Staging-Baseline und Performance-Freigabe
+# Performance-Baseline und Freigabe
 
-**Stand:** 2026-07-11
+**Stand:** 2026-07-12
 
 Dieses Dokument beschreibt den verbleibenden betrieblichen Nachweis für Story **0.7**:
-freigegebene Last-/Performance-Baselines aus einer stabilen Staging-Umgebung.
+freigegebene Last-/Performance-Baselines ohne separaten Staging-Server.
 
 Die technischen Gates (Unit, Browser, Yjs, Vote-p95, Lighthouse, CI) sind im
 [QA-Nachlauf vom 2026-07-11](LOCAL-QA-RECHECK-2026-07-11.md) lokal grün. Dieser
@@ -14,49 +14,42 @@ Langzeit- und Regressionsnachweis.
 
 ### Repository-Variablen
 
-| Variable                  | Zweck                                          | Beispiel                           |
-| ------------------------- | ---------------------------------------------- | ---------------------------------- |
-| `STAGING_BASE_URL`        | HTTPS-Frontend der Staging-Umgebung            | `https://staging.arsnova.eu`       |
-| `STAGING_TRPC_URL`        | HTTPS-tRPC-Endpunkt                            | `https://staging.arsnova.eu/trpc`  |
-| `STAGING_WS_URL`          | WSS-tRPC-WebSocket                             | `wss://staging.arsnova.eu/trpc-ws` |
-| `ARTILLERY_PARTICIPANTS`  | Standard für Nacht-/Manuell-Läufe              | `500`                              |
-| `ARTILLERY_RAMP_SECONDS`  | Ramp-up-Dauer                                  | `60`                               |
-| `PRODUCTION_LOAD_ENABLED` | Nacht-k6 gegen Produktion (`true` nur bewusst) | `false`                            |
-| `DEPLOY_ENABLED`          | Produktions-Deploy in CI                       | `true`                             |
+| Variable                  | Zweck                                          | Beispiel |
+| ------------------------- | ---------------------------------------------- | -------- |
+| `ARTILLERY_PARTICIPANTS`  | Standard für Nacht-/Manuell-Läufe              | `500`    |
+| `ARTILLERY_RAMP_SECONDS`  | Ramp-up-Dauer                                  | `60`     |
+| `PRODUCTION_LOAD_ENABLED` | Nacht-k6 gegen Produktion (`true` nur bewusst) | `false`  |
+| `DEPLOY_ENABLED`          | Produktions-Deploy in CI                       | `true`   |
 
-Die Staging-URLs dürfen **nicht** auf `https://arsnova.eu` zeigen. Der Job
-`staging-capacity` bricht in diesem Fall absichtlich ab.
+Ein separater Staging-Server ist **nicht** vorgesehen. Der frühere CI-Job
+`staging-capacity` wurde entfernt (2026-07-12).
 
 ### GitHub-Environments
 
-| Environment           | Zweck                                       |
-| --------------------- | ------------------------------------------- |
-| `performance-staging` | Manueller Kapazitätslauf `staging-capacity` |
-| `production`          | Deploy und Rollback                         |
+| Environment  | Zweck               |
+| ------------ | ------------------- |
+| `production` | Deploy und Rollback |
 
-Beide Umgebungen sollten ohne Admin-Bypass und mit Branch-Schutz konfiguriert
-sein. Details zum aktuellen Enforcement stehen im
-[QA-Nachlauf](LOCAL-QA-RECHECK-2026-07-11.md).
+## Ablauf: Kapazitätslauf (CI-Runner)
 
-## Ablauf: Staging-Kapazitätslauf
+Kapazitätsnachweise gegen PostgreSQL/Redis im GitHub-Actions-Runner:
 
-1. Staging-Stack mit gleicher Migrationskette wie Produktion betreiben
-   (`prisma migrate deploy`, kein `db push`).
-2. Repository-Variablen setzen (siehe oben).
-3. In GitHub Actions **CI → Run workflow** ausführen:
-   - `run_staging_capacity`: `true`
-   - `staging_participants`: `500` (oder Zielwert)
+1. In GitHub Actions **CI → Run workflow** ausführen (oder den täglichen Schedule abwarten).
+2. Optional anpassen:
+   - `artillery_participants`: `500`
    - `artillery_ramp_seconds`: `60`
-4. Artefakt `staging-capacity-reports` herunterladen und prüfen:
-   - Artillery Live-Session: 500/500 Joins, Votes, WS
-   - Artillery Reconnect: 500/500 Reconnects
-   - Browser-Referenzflow `smoke:unified-session` parallel grün
-5. Ergebnis im Messprotokoll festhalten
+3. Artefakte prüfen:
+   - `artillery-500-reports` — Live-Session, Vote-Smokes, Yjs, Freitext, 5-Min-Soak
+   - `artillery-reconnect-500-reports` — Reconnect-Welle
+4. Ergebnis im Messprotokoll festhalten
    ([VORLAGE-MESSPROTOKOLL-LAST.md](../praktikum/VORLAGE-MESSPROTOKOLL-LAST.md)).
+
+Details zu den Jobs: [CI-WORKFLOW.md](../CI-WORKFLOW.md) (Abschnitte `artillery-500`,
+`artillery-reconnect-500`).
 
 ## Ablauf: 30-/60-Minuten-Soak
 
-Lokal oder in Staging gegen dieselbe Zielumgebung:
+Lokal gegen dasselbe Backend-Setup wie in CI:
 
 ```bash
 npm run dev:backend
@@ -92,7 +85,7 @@ npm run load:report:compare -- \
 
 4. Freigabe dokumentieren:
    - Datum und Commit-Stand
-   - Zielumgebung (Staging/Produktion)
+   - Zielumgebung (CI-Runner / lokaler Soak / Produktion nach Deploy)
    - Teilnehmerzahl und Dauer
    - p95/p99, Fehlerrate, beobachtete Engpässe
    - Verantwortliche Freigabe
@@ -115,8 +108,9 @@ Diese Werte dienen als **lokale Referenz**, nicht als freigegebene Produktionsba
 
 Story 0.7 gilt betrieblich abgeschlossen, wenn:
 
-1. ein dokumentierter 30- oder 60-Minuten-Soak in Staging grün ist,
-2. ein Staging-Kapazitätslauf mit 500 Teilnehmenden grün ist,
+1. ein dokumentierter 30- oder 60-Minuten-Soak lokal grün ist,
+2. die CI-Artillery-Jobs (`artillery-500`, `artillery-reconnect-500`) mit 500
+   Teilnehmenden grün sind,
 3. die Baseline-Reports fachlich freigegeben und für `load:report:compare`
    nutzbar sind.
 

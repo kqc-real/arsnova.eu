@@ -240,15 +240,6 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Nur bei `schedule` oder `workflow_dispatch`.
 - **Artefakt:** `artillery-reconnect-500-reports` (Summary JSON + Artillery-Report + `backend.log`).
 
-### 4.11b staging-capacity
-
-- **Was?** Explizit freizugebender vollständiger Artillery-Lauf gegen die
-  `performance-staging`-Umgebung (Live-Session und Reconnect, standardmäßig 500 TN).
-- **Wann?** Nur manuell mit `run_staging_capacity=true`; URLs kommen aus
-  `STAGING_TRPC_URL` und `STAGING_WS_URL`. Das Produktionsziel ist in diesem Job gesperrt.
-- **Warum?** Trennt den echten Kapazitätsnachweis von verrauschten GitHub-Runner-Smokes
-  und erzwingt eine bewusste Freigabe der Zielumgebung.
-
 ### 4.12 load-test
 
 - **Was?** k6-Health-Loadtest gegen Produktion.

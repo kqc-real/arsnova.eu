@@ -30,16 +30,6 @@ on:
         required: false
         default: false
         type: boolean
-      run_staging_capacity:
-        description: 'Explizit den vollständigen Artillery-Kapazitätslauf gegen Staging ausführen'
-        required: false
-        default: false
-        type: boolean
-      staging_participants:
-        description: 'Teilnehmende für den Staging-Kapazitätslauf'
-        required: false
-        default: '500'
-        type: string
 
 permissions:
   contents: read
@@ -1088,85 +1078,6 @@ jobs:
           path: |
             ${{ runner.temp }}/artillery-reconnect-500/
             ${{ runner.temp }}/backend.log
-          if-no-files-found: ignore
-          retention-days: 30
-
-  staging-capacity:
-    name: Staging Capacity (Artillery)
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.run_staging_capacity
-    timeout-minutes: 40
-    environment:
-      name: performance-staging
-    env:
-      STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
-      TRPC_URL: ${{ vars.STAGING_TRPC_URL }}
-      WS_URL: ${{ vars.STAGING_WS_URL }}
-      PARTICIPANTS: ${{ inputs.staging_participants || '500' }}
-      ARTILLERY_RAMP_SECONDS: ${{ inputs.artillery_ramp_seconds || '60' }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build shared types
-        run: npm run build -w @arsnova/shared-types
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Validate staging target
-        run: |
-          set -euo pipefail
-          test -n "$STAGING_BASE_URL" || (echo "Repository-Variable STAGING_BASE_URL fehlt." && exit 1)
-          test -n "$TRPC_URL" || (echo "Repository-Variable STAGING_TRPC_URL fehlt." && exit 1)
-          test -n "$WS_URL" || (echo "Repository-Variable STAGING_WS_URL fehlt." && exit 1)
-          [[ "$STAGING_BASE_URL" == https://* ]] || (echo "STAGING_BASE_URL muss HTTPS verwenden." && exit 1)
-          [[ "$TRPC_URL" == https://* ]] || (echo "STAGING_TRPC_URL muss HTTPS verwenden." && exit 1)
-          [[ "$WS_URL" == wss://* ]] || (echo "STAGING_WS_URL muss WSS verwenden." && exit 1)
-          [[ "$STAGING_BASE_URL" != https://arsnova.eu* ]] || (echo "Produktionsziel ist für staging-capacity gesperrt." && exit 1)
-          [[ "$TRPC_URL" != https://arsnova.eu/* ]] || (echo "Produktionsziel ist für staging-capacity gesperrt." && exit 1)
-
-      - name: Run full staging capacity scenarios
-        run: |
-          set -euo pipefail
-          REPORT_DIR="$RUNNER_TEMP/staging-capacity"
-          mkdir -p "$REPORT_DIR"
-          run_status=0
-          load_pid=""
-          # shellcheck disable=SC2317,SC2329
-          cleanup() {
-            if [ -n "$load_pid" ]; then
-              kill "$load_pid" 2>/dev/null || true
-            fi
-          }
-          trap cleanup EXIT
-
-          REPORT_FILE="$REPORT_DIR/live-session.json" JUNIT_FILE="$REPORT_DIR/live-session.junit.xml" npm run load:artillery:500 > "$REPORT_DIR/live-session.log" 2>&1 &
-          load_pid="$!"
-          sleep 10
-          BASE_URL="${STAGING_BASE_URL%/}/de" TRPC_URL="$TRPC_URL" npm run smoke:unified-session -w @arsnova/frontend > "$REPORT_DIR/browser-reference.log" 2>&1 || run_status=$?
-          wait "$load_pid" || run_status=$?
-          load_pid=""
-          REPORT_FILE="$REPORT_DIR/reconnect-wave.json" JUNIT_FILE="$REPORT_DIR/reconnect-wave.junit.xml" npm run load:artillery:reconnect:500 || run_status=$?
-          cp -R scripts/load/artillery/reports "$REPORT_DIR/" 2>/dev/null || true
-          exit "$run_status"
-
-      - name: Upload staging capacity reports
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: staging-capacity-reports
-          path: ${{ runner.temp }}/staging-capacity/
           if-no-files-found: ignore
           retention-days: 30
 

@@ -10,14 +10,13 @@ die Live-SLOs stehen in
 - **PR/Deploy-Gate:** kurze, reproduzierbare Classroom- und Browser-Smokes in
   `classroom-smokes`, `e2e` und `lighthouse`.
 - **Nacht/Manuell:** protokollnahe Kapazität, Reconnect, Yjs, schwere Vote-Hotpaths
-  und 5-Minuten-Soak in den Artillery-Jobs und `load-test`.
-- **Staging-Kapazität:** bewusster 500-TN-Nachweis gegen eine isolierte Zielumgebung
-  per `workflow_dispatch` mit `run_staging_capacity=true`.
+  und 5-Minuten-Soak in den Artillery-Jobs (`artillery-500`, `artillery-reconnect-500`)
+  und optional `load-test`.
 - **Langzeitprofil:** 30/60-Minuten-Soak mit Prozess-, Redis- und PostgreSQL-Probes
-  lokal oder in einer dedizierten Staging-Umgebung.
+  lokal gegen `npm run dev:backend` (kein separater Staging-Server).
 
-Lasttests niemals ungeplant gegen Produktion ausführen. Der Produktions-k6-Lauf und
-der Staging-Kapazitätslauf benötigen eine explizite Workflow-Freigabe.
+Lasttests niemals ungeplant gegen Produktion ausführen. Der Produktions-k6-Lauf
+benötigt eine explizite Workflow-Freigabe (`run_production_load=true`).
 
 ## Letzter lokaler Gesamtlauf
 
@@ -41,7 +40,8 @@ Der [gezielte QA-Nachlauf vom 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-0
 schließt diese technischen Befunde: Yjs konvergierte nach Reconnect in 6 ms,
 die beiden akzeptierenden 600er Vote-Pfade hielten mit p95 766 ms und 968 ms das
 1.000-ms-Gate ein, 6/6 Browser-Flows und 6/6 Lighthouse-Läufe bestanden. Als
-offener Nachweis verbleiben Staging-Langlauf und Baseline-Freigabe.
+offener Nachweis verbleiben Langzeit-Soak und Baseline-Freigabe
+(siehe [PERFORMANCE-BASELINE-FREIGABE.md](implementation/PERFORMANCE-BASELINE-FREIGABE.md)).
 
 Dieser Lauf ist ein lokaler Entwicklungsnachweis, keine freigegebene Baseline.
 Insbesondere darf die bloße Existenz eines Szenarios nicht mit einem bestandenen

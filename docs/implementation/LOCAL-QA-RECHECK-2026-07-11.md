@@ -33,8 +33,7 @@ Frontend-Laufzeit.
   Migrationen gegen eine leere Datenbank an.
 - **GitHub-Enforcement:** Das aktive Ruleset verlangt 19 strikte Statuschecks,
   einschließlich Workflow-Lint, Format, Landing-Build und CodeQL. `production`
-  und `performance-staging` erlauben nur geschützte Branches; Admin-Bypass ist
-  deaktiviert.
+  erlaubt nur geschützte Branches; Admin-Bypass ist deaktiviert.
 
 ## Korrekturen
 
@@ -63,6 +62,8 @@ Frontend-Laufzeit.
 ## Verbleibender Betriebsnachweis
 
 Offen bleibt kein reproduzierbarer lokaler Fehler aus dem Gesamtlauf. Vor einer
-Produktionsbaseline sind weiterhin ein freigegebener 30-/60-Minuten-Langlauf in
-einer stabilen Staging-Umgebung und die versionierte Baseline-/Regressionsfreigabe
-erforderlich.
+Produktionsbaseline sind weiterhin ein freigegebener 30-/60-Minuten-Langlauf (lokal
+oder auf dem Zielserver) und die versionierte Baseline-/Regressionsfreigabe
+erforderlich. Ein separater Staging-Server ist nicht vorgesehen; Kapazitätsnachweise
+laufen über die CI-Artillery-Jobs und lokale Soak-Skripte
+(siehe [PERFORMANCE-BASELINE-FREIGABE.md](PERFORMANCE-BASELINE-FREIGABE.md)).
