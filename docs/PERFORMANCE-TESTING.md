@@ -40,8 +40,8 @@ Der [gezielte QA-Nachlauf vom 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-0
 schließt diese technischen Befunde: Yjs konvergierte nach Reconnect in 6 ms,
 die beiden akzeptierenden 600er Vote-Pfade hielten mit p95 766 ms und 968 ms das
 1.000-ms-Gate ein, 6/6 Browser-Flows und 6/6 Lighthouse-Läufe bestanden. Als
-offener Nachweis verbleiben Langzeit-Soak und Baseline-Freigabe
-(siehe [PERFORMANCE-BASELINE-FREIGABE.md](implementation/PERFORMANCE-BASELINE-FREIGABE.md)).
+offener Nachweis verbleiben Langzeit-Soak und Baseline-Freigabe — **erledigt**
+am 2026-07-12 ([LOCAL-BASELINE-FREIGABE-2026-07-12.md](implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md)).
 
 Dieser Lauf ist ein lokaler Entwicklungsnachweis, keine freigegebene Baseline.
 Insbesondere darf die bloße Existenz eines Szenarios nicht mit einem bestandenen

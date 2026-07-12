@@ -106,13 +106,11 @@ Diese Werte dienen als **lokale Referenz**, nicht als freigegebene Produktionsba
 
 ## Abschlusskriterium Story 0.7
 
-Story 0.7 gilt betrieblich abgeschlossen, wenn:
+**Status: ✅ abgeschlossen (2026-07-12)**
 
-1. ein dokumentierter 30- oder 60-Minuten-Soak lokal grün ist,
-2. die CI-Artillery-Jobs (`artillery-500`, `artillery-reconnect-500`) mit 500
-   Teilnehmenden grün sind,
-3. die Baseline-Reports fachlich freigegeben und für `load:report:compare`
-   nutzbar sind.
+Freigegeben durch den [lokalen Baseline-Lauf](LOCAL-BASELINE-FREIGABE-2026-07-12.md):
 
-Bis dahin bleibt die Story **🟡 in Arbeit**, obwohl PR-Gates und lokale
-Nachweise grün sind.
+1. ✅ dokumentierter 30-Minuten-Soak lokal grün (874 Zyklen, HTTP-p95 16,7 ms)
+2. ✅ Artillery Live- und Reconnect-Welle mit 500 Teilnehmenden lokal grün
+3. ✅ Baseline in `scripts/load/baselines/story-0.7-2026-07-12.json` für
+   `load:report:compare` hinterlegt

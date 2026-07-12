@@ -61,9 +61,6 @@ Frontend-Laufzeit.
 
 ## Verbleibender Betriebsnachweis
 
-Offen bleibt kein reproduzierbarer lokaler Fehler aus dem Gesamtlauf. Vor einer
-Produktionsbaseline sind weiterhin ein freigegebener 30-/60-Minuten-Langlauf (lokal
-oder auf dem Zielserver) und die versionierte Baseline-/Regressionsfreigabe
-erforderlich. Ein separater Staging-Server ist nicht vorgesehen; Kapazitätsnachweise
-laufen über die CI-Artillery-Jobs und lokale Soak-Skripte
-(siehe [PERFORMANCE-BASELINE-FREIGABE.md](PERFORMANCE-BASELINE-FREIGABE.md)).
+Offen bleibt kein reproduzierbarer lokaler Fehler aus dem Gesamtlauf. Die
+betriebliche Baseline-Freigabe für Story 0.7 ist am 2026-07-12 erfolgt
+([LOCAL-BASELINE-FREIGABE-2026-07-12.md](LOCAL-BASELINE-FREIGABE-2026-07-12.md)).

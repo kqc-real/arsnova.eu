@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "description": "Freigegebene Story-0.7-Baseline vom 2026-07-12 (lokal, Commit e3285372).",
+  "approvedAt": "2026-07-12T13:04:02.928Z",
+  "commit": "e3285372",
+  "environment": "local-dev",
+  "scenarios": {
+    "vote-timer-fairness-600": {
+      "participants": 600,
+      "activeVoteP95Ms": 788,
+      "graceVoteP95Ms": 992,
+      "acceptedActive": 600,
+      "acceptedGrace": 600,
+      "rejectedOutsideGrace": 600
+    },
+    "host-vote-progress-200": {
+      "participants": 200,
+      "voteSubmitP95Ms": 153,
+      "failedVotes": 0
+    },
+    "artillery-500-live-session": {
+      "participants": 500,
+      "joins": 500,
+      "votes": 500,
+      "wsConnections": 500,
+      "joinErrors": 0,
+      "voteErrors": 0,
+      "wsErrors": 0
+    },
+    "artillery-500-reconnect-wave": {
+      "participants": 500,
+      "reconnects": 500,
+      "reconnectResultsSeen": 500,
+      "reconnectMsMax": 5
+    },
+    "yjs-sync-load": {
+      "clients": 30,
+      "connectP95Ms": 73,
+      "reconnectP95Ms": 324,
+      "reconnectConvergenceMs": 6
+    },
+    "soak-live-session-30m": {
+      "durationMinutes": 30,
+      "completedCycles": 874,
+      "httpP95Ms": 16.68,
+      "backendRssGrowthMb": 26.41,
+      "functionalErrors": 0
+    }
+  }
+}
