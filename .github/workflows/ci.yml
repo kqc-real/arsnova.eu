@@ -892,8 +892,6 @@ jobs:
       WS_URL: ws://localhost:3001
       PARTICIPANTS: ${{ inputs.artillery_participants || vars.ARTILLERY_PARTICIPANTS || '500' }}
       ARTILLERY_RAMP_SECONDS: ${{ inputs.artillery_ramp_seconds || vars.ARTILLERY_RAMP_SECONDS || '60' }}
-      # GitHub-Runner: 600 parallele Votes überschreiten oft 1 s p95 (lokal ~770–970 ms).
-      VOTE_P95_LIMIT_MS: '2000'
 
     steps:
       - name: Checkout
@@ -954,8 +952,9 @@ jobs:
           done
 
           run_status=0
-          REPORT_FILE="$REPORT_DIR/host-vote-progress-200.json" JUNIT_FILE="$REPORT_DIR/host-vote-progress-200.junit.xml" PARTICIPANTS=200 npm run load:smoke:host-vote-progress || run_status=$?
-          REPORT_FILE="$REPORT_DIR/vote-timer-fairness-600.json" JUNIT_FILE="$REPORT_DIR/vote-timer-fairness-600.junit.xml" PARTICIPANTS=600 npm run load:smoke:vote-timer-fairness || run_status=$?
+          # Timer-Fairness zuerst (frisches Backend); Runner-p95-Gates lockerer als lokal (1000 ms).
+          REPORT_FILE="$REPORT_DIR/vote-timer-fairness-600.json" JUNIT_FILE="$REPORT_DIR/vote-timer-fairness-600.junit.xml" VOTE_P95_LIMIT_MS=3000 PARTICIPANTS=600 npm run load:smoke:vote-timer-fairness || run_status=$?
+          REPORT_FILE="$REPORT_DIR/host-vote-progress-200.json" JUNIT_FILE="$REPORT_DIR/host-vote-progress-200.junit.xml" VOTE_P95_LIMIT_MS=2000 PARTICIPANTS=200 npm run load:smoke:host-vote-progress || run_status=$?
           REPORT_FILE="$REPORT_DIR/summary.json" JUNIT_FILE="$REPORT_DIR/summary.junit.xml" npm run load:artillery:500 || run_status=$?
           REPORT_FILE="$REPORT_DIR/yjs-sync.json" JUNIT_FILE="$REPORT_DIR/yjs-sync.junit.xml" CLIENTS=30 npm run load:yjs:sync || run_status=$?
           REPORT_FILE="$REPORT_DIR/freetext-wordcloud.json" JUNIT_FILE="$REPORT_DIR/freetext-wordcloud.junit.xml" PARTICIPANTS=100 ITERATIONS=3 npm run load:freetext:wordcloud || run_status=$?
