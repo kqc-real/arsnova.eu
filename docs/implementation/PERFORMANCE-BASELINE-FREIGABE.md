@@ -112,5 +112,7 @@ Freigegeben durch den [lokalen Baseline-Lauf](LOCAL-BASELINE-FREIGABE-2026-07-12
 
 1. ✅ dokumentierter 30-Minuten-Soak lokal grün (874 Zyklen, HTTP-p95 16,7 ms)
 2. ✅ Artillery Live- und Reconnect-Welle mit 500 Teilnehmenden lokal grün
-3. ✅ Baseline in `scripts/load/baselines/story-0.7-2026-07-12.json` für
-   `load:report:compare` hinterlegt
+3. ✅ Baseline-Reports und Regressionsbudgets unter
+   `scripts/load/baselines/reports/story-0.7-2026-07-12/` und
+   `scripts/load/baselines/budgets/story-0.7/`; Übersicht im Manifest
+   `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`

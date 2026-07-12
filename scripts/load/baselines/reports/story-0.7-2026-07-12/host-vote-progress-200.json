@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "scenario": "host-vote-progress-200",
+  "timestamp": "2026-07-12T12:31:22.638Z",
+  "environment": {
+    "participants": 200,
+    "voteP95LimitMs": 2000
+  },
+  "metrics": {
+    "code": "[redacted]",
+    "participants": 200,
+    "voteSpikeDurationMs": 153,
+    "voteSubmitP50Ms": 152,
+    "voteSubmitP95Ms": 153,
+    "voteSubmitMaxMs": 153,
+    "failedVotes": 0,
+    "subscriptionErrors": 0,
+    "currentQuestionMessages": 1,
+    "currentQuestionVoteBearingMessages": 0,
+    "progressMessages": 2,
+    "progressMaxTotalVotes": 200,
+    "progressSnapshotTotalVotes": 200,
+    "currentQuestionSnapshotTotalVotes": 200
+  },
+  "assertions": [
+    {
+      "name": "scenario",
+      "passed": true
+    }
+  ],
+  "gitCommit": "e3285372"
+}

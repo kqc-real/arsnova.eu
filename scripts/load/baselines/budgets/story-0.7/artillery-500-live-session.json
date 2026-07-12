@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "description": "Regressionsbudgets für artillery-500-live-session (Story 0.7, 2026-07-12).",
+  "rules": [
+    {
+      "path": "layers.http.joinErrors",
+      "direction": "lower",
+      "maxAbsoluteRegression": 0
+    },
+    {
+      "path": "layers.http.voteErrors",
+      "direction": "lower",
+      "maxAbsoluteRegression": 0
+    },
+    {
+      "path": "layers.websocket.errors",
+      "direction": "lower",
+      "maxAbsoluteRegression": 0
+    }
+  ]
+}

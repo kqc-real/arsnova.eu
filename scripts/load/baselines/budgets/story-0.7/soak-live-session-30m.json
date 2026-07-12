@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "description": "Regressionsbudgets für soak-live-session-30m (Story 0.7, 2026-07-12).",
+  "rules": [
+    {
+      "path": "runtime.targetHttp.p95Ms",
+      "direction": "lower",
+      "maxRelativeRegression": 0.2
+    },
+    {
+      "path": "runtime.eventLoop.p99Ms",
+      "direction": "lower",
+      "maxRelativeRegression": 0.2
+    },
+    {
+      "path": "runtime.backendProcess.rssGrowthBytes",
+      "direction": "lower",
+      "maxRelativeRegression": 0.25,
+      "maxAbsoluteRegression": 67108864
+    }
+  ]
+}

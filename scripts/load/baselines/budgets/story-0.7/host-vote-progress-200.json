@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "description": "Regressionsbudgets für host-vote-progress-200 (Story 0.7, 2026-07-12).",
+  "rules": [
+    {
+      "path": "voteSubmitP95Ms",
+      "direction": "lower",
+      "maxRelativeRegression": 0.2
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "description": "Regressionsbudgets für yjs-sync-load (Story 0.7, 2026-07-12).",
+  "rules": [
+    {
+      "path": "initial.connect.p95Ms",
+      "direction": "lower",
+      "maxRelativeRegression": 0.2
+    },
+    {
+      "path": "reconnect.convergenceMs",
+      "direction": "lower",
+      "maxAbsoluteRegression": 10
+    }
+  ]
+}

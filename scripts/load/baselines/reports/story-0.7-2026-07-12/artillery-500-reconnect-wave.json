@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "scenario": "artillery-500-reconnect-wave",
+  "timestamp": "2026-07-12T12:33:47.821Z",
+  "environment": {
+    "participants": 500,
+    "rampSeconds": 60,
+    "arrivalRate": 9,
+    "minJoinRatio": 0.95,
+    "minReconnectRatio": 0.9,
+    "minWsRatio": 0.9,
+    "minResultsAfterReconnectRatio": 0.9
+  },
+  "metrics": {
+    "scenario": "artillery-500-reconnect-wave",
+    "participantsTarget": 500,
+    "sessionCode": "[redacted]",
+    "layers": {
+      "http": {
+        "joins": 500,
+        "joinErrors": 0
+      },
+      "websocket": {
+        "connections": 1000,
+        "statusEvents": 1500,
+        "errors": 0,
+        "reconnects": 500,
+        "reconnectErrors": 0,
+        "reconnectResultsSeen": 500,
+        "reconnectResultsMissing": 0,
+        "reconnectMsMax": 5,
+        "reconnectMsAvg": 2,
+        "hostSubscriptionErrors": 0,
+        "hostStatusMessages": 2,
+        "hostLastStatus": "RESULTS",
+        "hostResultsSeen": true
+      }
+    },
+    "reveal": {
+      "joins": 500,
+      "reconnects": 500,
+      "waitedMs": 65120,
+      "joinStable": true,
+      "reconnectStable": true
+    },
+    "snapshots": {
+      "sessionStatus": "RESULTS"
+    },
+    "limits": {
+      "reconnectMsMax": 3000,
+      "resultsWaitMs": 125000,
+      "statusAfterReconnectLimitMs": 5000
+    },
+    "artilleryReportFile": "[artillery-internal]",
+    "artilleryExitCode": 0
+  },
+  "assertions": [
+    {
+      "name": "scenario",
+      "passed": true
+    }
+  ],
+  "gitCommit": "e3285372"
+}

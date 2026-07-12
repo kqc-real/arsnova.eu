@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "scenario": "yjs-sync-load",
+  "timestamp": "2026-07-12T12:33:49.891Z",
+  "environment": {
+    "yjsWsUrl": "ws://127.0.0.1:3002",
+    "room": "quiz-library-room-abbbebe5-5441-4988-a267-7dfd656f7aeb",
+    "clients": 30,
+    "updateConcurrency": 15,
+    "connectP95LimitMs": 3000,
+    "syncP95LimitMs": 5000
+  },
+  "metrics": {
+    "durationMs": 798,
+    "initial": {
+      "connect": {
+        "samples": 30,
+        "p50Ms": 69,
+        "p95Ms": 73,
+        "maxMs": 73
+      },
+      "sync": {
+        "samples": 30,
+        "p50Ms": 70,
+        "p95Ms": 73,
+        "maxMs": 73
+      },
+      "convergenceMs": 4,
+      "stateVectorSha256": "130102fe976db3e40f049ff1c93ec7441f529680d5d8566c4fa0926013dac018"
+    },
+    "reconnect": {
+      "clients": 6,
+      "connect": {
+        "samples": 6,
+        "p50Ms": 324,
+        "p95Ms": 324,
+        "maxMs": 324
+      },
+      "sync": {
+        "samples": 6,
+        "p50Ms": 325,
+        "p95Ms": 325,
+        "maxMs": 325
+      },
+      "convergenceMs": 6,
+      "stateVectorSha256": "2b1517cf64e0e32304ae076b2286f0e8d1c3b1405ee1a936735883a398296457"
+    },
+    "errorCount": 0
+  },
+  "assertions": [
+    {
+      "name": "scenario",
+      "passed": true
+    }
+  ],
+  "gitCommit": "e3285372"
+}

@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "scenario": "soak-live-session",
+  "timestamp": "2026-07-12T13:04:02.928Z",
+  "gitCommit": "e3285372",
+  "environment": {
+    "trpcUrl": "http://127.0.0.1:3000/trpc",
+    "wsUrl": "ws://127.0.0.1:3001",
+    "durationMinutes": 30,
+    "participants": 20,
+    "joinWaveSize": 5,
+    "joinWaveDelayMs": 250,
+    "voteConcurrency": 10,
+    "cyclePauseMs": 2000,
+    "maxCycles": 9007199254740991,
+    "reconnectEveryCycles": 0,
+    "reconnectClients": 5,
+    "reconnectTimeoutMs": 5000,
+    "metricsIntervalMs": 10000,
+    "backendPid": null,
+    "redisUrl": "[konfiguriert]",
+    "databaseUrl": "[konfiguriert]",
+    "reportFile": "scripts/load/baselines/reports/story-0.7-2026-07-12/soak-live-session-30m.json",
+    "httpP95LimitMs": 2000,
+    "eventLoopP99LimitMs": 200,
+    "memoryGrowthLimitMb": 256,
+    "validateOnly": false
+  },
+  "metrics": {
+    "durationMs": 1800131,
+    "session": {
+      "code": "VCZ6VV",
+      "completedCycles": 874
+    },
+    "runtime": {
+      "targetHttp": {
+        "samples": 20997,
+        "errors": 0,
+        "errorRatePercent": 0,
+        "p50Ms": 11.34,
+        "p95Ms": 16.68,
+        "p99Ms": 24.6,
+        "maxMs": 54.66
+      },
+      "eventLoop": {
+        "p95Ms": 22.1,
+        "p99Ms": 22.43,
+        "maxMs": 67.31
+      },
+      "backendProcess": {
+        "rssStartBytes": 134742016,
+        "rssEndBytes": 162430976,
+        "rssGrowthBytes": 27688960,
+        "peakRssBytes": 172720128
+      },
+      "redisPing": {
+        "errors": 0,
+        "p95Ms": 7.15
+      },
+      "postgresSelect1": {
+        "errors": 0,
+        "p95Ms": 7
+      }
+    },
+    "cleanup": {
+      "quickFeedbackEnded": null,
+      "sessionEnded": true,
+      "errors": []
+    }
+  },
+  "assertions": [
+    {
+      "name": "functional-errors",
+      "passed": true,
+      "actual": 0,
+      "expected": 0,
+      "measurable": true
+    },
+    {
+      "name": "target-http-p95-ms",
+      "passed": true,
+      "actual": 16.68,
+      "expected": 2000,
+      "measurable": true
+    },
+    {
+      "name": "load-generator-event-loop-p99-ms",
+      "passed": true,
+      "actual": 22.43,
+      "expected": 200,
+      "measurable": true
+    },
+    {
+      "name": "backend-rss-growth-mb",
+      "passed": true,
+      "actual": 26.41,
+      "expected": 256,
+      "measurable": true
+    }
+  ]
+}

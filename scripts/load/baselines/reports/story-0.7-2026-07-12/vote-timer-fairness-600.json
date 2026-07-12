@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "scenario": "vote-timer-fairness-600",
+  "timestamp": "2026-07-12T12:31:16.844Z",
+  "environment": {
+    "participants": 600,
+    "timerSeconds": 8,
+    "graceMs": 2000,
+    "voteP95LimitMs": 2000
+  },
+  "metrics": {
+    "code": "[redacted]",
+    "participants": 600,
+    "timerSeconds": 8,
+    "graceMs": 2000,
+    "withinGraceRevealOffsetMs": 100,
+    "outsideGraceRevealOffsetMs": 2300,
+    "scenarios": [
+      {
+        "name": "ACTIVE vor Timerende",
+        "mode": "active",
+        "deadlineIso": "2026-07-12T12:31:01.678Z",
+        "voteWindowStartedIso": "2026-07-12T12:30:53.686Z",
+        "votes": {
+          "accepted": 600,
+          "rejected": 0,
+          "totalDurationMs": 1175,
+          "p50Ms": 402,
+          "p95Ms": 788,
+          "maxMs": 1163,
+          "errors": {}
+        },
+        "snapshot": {
+          "totalVotes": 600,
+          "queryMs": 17
+        }
+      },
+      {
+        "name": "RESULTS innerhalb Backend-Karenz",
+        "mode": "within-grace",
+        "deadlineIso": "2026-07-12T12:31:03.406Z",
+        "voteWindowStartedIso": "2026-07-12T12:31:03.525Z",
+        "votes": {
+          "accepted": 600,
+          "rejected": 0,
+          "totalDurationMs": 1187,
+          "p50Ms": 662,
+          "p95Ms": 992,
+          "maxMs": 1172,
+          "errors": {}
+        },
+        "snapshot": {
+          "totalVotes": 600,
+          "queryMs": 13
+        }
+      },
+      {
+        "name": "RESULTS ausserhalb Backend-Karenz",
+        "mode": "outside-grace",
+        "deadlineIso": "2026-07-12T12:31:13.235Z",
+        "voteWindowStartedIso": "2026-07-12T12:31:15.562Z",
+        "votes": {
+          "accepted": 0,
+          "rejected": 600,
+          "totalDurationMs": 761,
+          "p50Ms": 535,
+          "p95Ms": 718,
+          "maxMs": 746,
+          "errors": {
+            "Die Frage ist nicht mehr aktiv.": 600
+          }
+        },
+        "snapshot": {
+          "totalVotes": 0,
+          "queryMs": 18
+        }
+      }
+    ]
+  },
+  "assertions": [
+    {
+      "name": "scenario",
+      "passed": true
+    }
+  ],
+  "gitCommit": "e3285372"
+}

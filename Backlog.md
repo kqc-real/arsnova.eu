@@ -129,7 +129,7 @@
 | 11   | 11.3  | Redaktionsbackend: Veröffentlichung & Quizlink                                     | 🔴   | ⬜ Offen  |
 | 11   | 11.4  | Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport           | 🔴   | ⬜ Offen  |
 
-> **Repo-Abgleich (Codebase 2026-07-12):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard; Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/story-0.7-2026-07-12.json`. Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2i**, **1.6c**/**1.6d** und **1.14a**.
+> **Repo-Abgleich (Codebase 2026-07-12):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard; Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`. Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2i**, **1.6c**/**1.6d** und **1.14a**.
 >
 > **Korrektur zum Repo-Abgleich:** `NUMERIC_ESTIMATE` ist als Fragentyp
 > implementiert und Story 1.2d als fertig bewertet. Offen ist seit dem lokalen
@@ -137,7 +137,7 @@
 > Ergebnisnachweis (eigene Runde 2, Toleranzband und Rundenvergleich), nicht die
 > Existenz des Fragentyps.
 >
-> **Laufzeitabgleich Story 0.7 (2026-07-12):** Der [lokale Baseline-Lauf](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) bestätigt Artillery 500/500 Live und Reconnect, Vote-Timer-/Host-Progress-Hotpaths, Yjs-Sync und einen 30-Minuten-Soak. Story **0.7** ist damit betrieblich abgeschlossen; die Baseline liegt in `scripts/load/baselines/story-0.7-2026-07-12.json`.
+> **Laufzeitabgleich Story 0.7 (2026-07-12):** Der [lokale Baseline-Lauf](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) bestätigt Artillery 500/500 Live und Reconnect, Vote-Timer-/Host-Progress-Hotpaths, Yjs-Sync und einen 30-Minuten-Soak. Story **0.7** ist damit betrieblich abgeschlossen; die Baseline liegt in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`.
 >
 > **Ergänzung Angebotsoption Westermann (2026-05-28):** **Epic 11** beschreibt einen **noch nicht beauftragten** Erweiterungspfad für **personalisierte Verlagszugänge und ein Redaktionsbackend**; hierzu existiert im Monorepo aktuell bewusst **kein** Produktcode.
 >
@@ -308,7 +308,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **CI:** PR/Push führt kurze Classroom-, Browser- und Lighthouse-Gates aus; Nacht/Manuell führt schwere Artillery-/Vote-, Yjs-, Freitext- und 5-Minuten-Soak-Szenarien aus.
     - **Dokumentation:** [`docs/PERFORMANCE-TESTING.md`](docs/PERFORMANCE-TESTING.md), [`LOCAL-BASELINE-FREIGABE-2026-07-12.md`](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md), [`PERFORMANCE-BASELINE-FREIGABE.md`](docs/implementation/PERFORMANCE-BASELINE-FREIGABE.md).
     - **Abgedeckt (Hotpaths):** Join, Session-Start, Quiz/Vote/Timer, Status-/Ergebnis-Fan-out, Host-Fortschritt, Q&A, Blitzlicht, Reconnect, Freitext-Live-Auswertung/Word-Cloud, Yjs-Sync sowie Kurz-/Langzeit-Laufzeitprofile.
-    - **Baseline-Freigabe (2026-07-12):** [Lokaler Nachlauf](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) — Artillery 500/500 Live und Reconnect, Vote-Timer/Host-Progress, Yjs-Sync und 30-Minuten-Soak grün. Baseline: `scripts/load/baselines/story-0.7-2026-07-12.json`.
+    - **Baseline-Freigabe (2026-07-12):** [Lokaler Nachlauf](docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md) — Artillery 500/500 Live und Reconnect, Vote-Timer/Host-Progress, Yjs-Sync und 30-Minuten-Soak grün. Baseline: `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`.
     - **Akzeptanzkriterien — Erfüllungsgrad (Kurz):**
       - Setup lokal + CI: **ja** (PR-Smokes, Nachtjobs auf Runner).
       - Vollständige E2E mit Angular-FE unter Last: **teilweise** (Playwright-Referenzflows in CI; keine Browserfarm unter Massenlast).

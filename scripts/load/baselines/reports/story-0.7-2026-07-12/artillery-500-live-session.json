@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "scenario": "artillery-500-live-session",
+  "timestamp": "2026-07-12T12:32:36.456Z",
+  "environment": {
+    "participants": 500,
+    "rampSeconds": 60,
+    "arrivalRate": 9,
+    "minJoinRatio": 0.95,
+    "minVoteRatio": 0.9,
+    "minWsRatio": 0.9
+  },
+  "metrics": {
+    "scenario": "artillery-500-live-session",
+    "participantsTarget": 500,
+    "sessionCode": "[redacted]",
+    "layers": {
+      "http": {
+        "joins": 500,
+        "joinErrors": 0,
+        "votes": 500,
+        "voteErrors": 0,
+        "qaSubmits": 100,
+        "blitzVotes": 500,
+        "infoPolls": 500,
+        "questionReads": 500
+      },
+      "websocket": {
+        "connections": 500,
+        "statusEvents": 721,
+        "errors": 0,
+        "hostSubscriptionErrors": 0,
+        "hostProgressMessages": 253,
+        "hostProgressMaxVotes": 500,
+        "hostStatusMessages": 2,
+        "hostLastStatus": "RESULTS",
+        "hostResultsSeen": true
+      }
+    },
+    "reveal": {
+      "joins": 500,
+      "votes": 500,
+      "hostVotes": 500,
+      "waitedMs": 64603,
+      "joinStable": true
+    },
+    "snapshots": {
+      "progressTotalVotes": 500,
+      "sessionStatus": "RESULTS"
+    },
+    "artilleryReportFile": "[artillery-internal]",
+    "artilleryExitCode": 0
+  },
+  "assertions": [
+    {
+      "name": "scenario",
+      "passed": true
+    }
+  ],
+  "gitCommit": "e3285372"
+}

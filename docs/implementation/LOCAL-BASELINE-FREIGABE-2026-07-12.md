@@ -61,8 +61,37 @@ npm run load:soak:live-session
 - Gesamtlastmatrix: [LOCAL-TESTRUN-2026-07-10.md](LOCAL-TESTRUN-2026-07-10.md)
 - Freigabeprozess: [PERFORMANCE-BASELINE-FREIGABE.md](PERFORMANCE-BASELINE-FREIGABE.md)
 
+## Versionierte Baselines
+
+| Artefakt                   | Pfad                                                         |
+| -------------------------- | ------------------------------------------------------------ |
+| Manifest (Übersicht)       | `scripts/load/baselines/manifests/story-0.7-2026-07-12.json` |
+| Load-Reports (6 Szenarien) | `scripts/load/baselines/reports/story-0.7-2026-07-12/*.json` |
+| Regressionsbudgets         | `scripts/load/baselines/budgets/story-0.7/*.json`            |
+
+Das Manifest fasst Kennzahlen menschlich lesbar zusammen. `load:report:compare` erwartet
+pro Szenario einen standardisierten Load-Report mit Top-Level-`metrics` (siehe
+`scripts/load/lib/reporting.mjs`).
+
+## Regressionsvergleich
+
+Beim Nachlauf `REPORT_FILE` setzen, dann pro Szenario gegen die freigegebene Baseline
+vergleichen:
+
+```bash
+# Beispiel: Vote-Timer nach erneutem Lauf
+REPORT_FILE=artifacts/vote-timer-recheck.json \
+  PARTICIPANTS=600 npm run load:smoke:vote-timer-fairness
+
+npm run load:report:compare -- \
+  --current artifacts/vote-timer-recheck.json \
+  --baseline scripts/load/baselines/reports/story-0.7-2026-07-12/vote-timer-fairness-600.json \
+  --config scripts/load/baselines/budgets/story-0.7/vote-timer-fairness-600.json
+```
+
+Weitere Szenarien: Report- und Budget-Pfade stehen im Manifest unter `scenarios.*.report`
+bzw. `scenarios.*.budgets`.
+
 ## Freigabe
 
 **Story 0.7 — betrieblich freigegeben** am 2026-07-12 auf Basis der obigen Läufe.
-Regressionsvergleiche künftiger Läufe gegen diese Baseline über
-`scripts/load/baselines/story-0.7-2026-07-12.json` und `npm run load:report:compare`.

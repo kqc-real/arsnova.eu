@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "description": "Regressionsbudgets für vote-timer-fairness-600 (Story 0.7, 2026-07-12).",
+  "rules": [
+    {
+      "path": "scenarios.0.votes.p95Ms",
+      "direction": "lower",
+      "maxRelativeRegression": 0.15
+    },
+    {
+      "path": "scenarios.1.votes.p95Ms",
+      "direction": "lower",
+      "maxRelativeRegression": 0.15
+    }
+  ]
+}

@@ -1,11 +1,15 @@
 {
   "schemaVersion": 1,
-  "description": "Freigegebene Story-0.7-Baseline vom 2026-07-12 (lokal, Commit e3285372).",
+  "kind": "baseline-manifest",
+  "description": "Freigegebene Story-0.7-Baseline vom 2026-07-12 (lokal, Commit e3285372). Menschlich lesbare Übersicht; maschineller Vergleich über die referenzierten Report- und Budget-Dateien.",
   "approvedAt": "2026-07-12T13:04:02.928Z",
   "commit": "e3285372",
   "environment": "local-dev",
+  "documentation": "docs/implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md",
   "scenarios": {
     "vote-timer-fairness-600": {
+      "report": "reports/story-0.7-2026-07-12/vote-timer-fairness-600.json",
+      "budgets": "budgets/story-0.7/vote-timer-fairness-600.json",
       "participants": 600,
       "activeVoteP95Ms": 788,
       "graceVoteP95Ms": 992,
@@ -14,11 +18,15 @@
       "rejectedOutsideGrace": 600
     },
     "host-vote-progress-200": {
+      "report": "reports/story-0.7-2026-07-12/host-vote-progress-200.json",
+      "budgets": "budgets/story-0.7/host-vote-progress-200.json",
       "participants": 200,
       "voteSubmitP95Ms": 153,
       "failedVotes": 0
     },
     "artillery-500-live-session": {
+      "report": "reports/story-0.7-2026-07-12/artillery-500-live-session.json",
+      "budgets": "budgets/story-0.7/artillery-500-live-session.json",
       "participants": 500,
       "joins": 500,
       "votes": 500,
@@ -28,18 +36,24 @@
       "wsErrors": 0
     },
     "artillery-500-reconnect-wave": {
+      "report": "reports/story-0.7-2026-07-12/artillery-500-reconnect-wave.json",
+      "budgets": "budgets/story-0.7/artillery-500-reconnect-wave.json",
       "participants": 500,
       "reconnects": 500,
       "reconnectResultsSeen": 500,
       "reconnectMsMax": 5
     },
     "yjs-sync-load": {
+      "report": "reports/story-0.7-2026-07-12/yjs-sync-load.json",
+      "budgets": "budgets/story-0.7/yjs-sync-load.json",
       "clients": 30,
       "connectP95Ms": 73,
       "reconnectP95Ms": 324,
       "reconnectConvergenceMs": 6
     },
     "soak-live-session-30m": {
+      "report": "reports/story-0.7-2026-07-12/soak-live-session-30m.json",
+      "budgets": "budgets/story-0.7/soak-live-session-30m.json",
       "durationMinutes": 30,
       "completedCycles": 874,
       "httpP95Ms": 16.68,

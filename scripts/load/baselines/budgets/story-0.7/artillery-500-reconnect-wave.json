@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "description": "Regressionsbudgets für artillery-500-reconnect-wave (Story 0.7, 2026-07-12).",
+  "rules": [
+    {
+      "path": "layers.websocket.reconnectErrors",
+      "direction": "lower",
+      "maxAbsoluteRegression": 0
+    },
+    {
+      "path": "layers.websocket.reconnectMsMax",
+      "direction": "lower",
+      "maxRelativeRegression": 0.25,
+      "maxAbsoluteRegression": 250
+    }
+  ]
+}
