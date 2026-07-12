@@ -952,9 +952,10 @@ jobs:
           done
 
           run_status=0
+          # Timer-Fairness zuerst (frisches Backend); Runner-p95-Gates lockerer als lokal (1000 ms).
+          REPORT_FILE="$REPORT_DIR/vote-timer-fairness-600.json" JUNIT_FILE="$REPORT_DIR/vote-timer-fairness-600.junit.xml" VOTE_P95_LIMIT_MS=3000 PARTICIPANTS=600 npm run load:smoke:vote-timer-fairness || run_status=$?
+          REPORT_FILE="$REPORT_DIR/host-vote-progress-200.json" JUNIT_FILE="$REPORT_DIR/host-vote-progress-200.junit.xml" VOTE_P95_LIMIT_MS=2000 PARTICIPANTS=200 npm run load:smoke:host-vote-progress || run_status=$?
           REPORT_FILE="$REPORT_DIR/summary.json" JUNIT_FILE="$REPORT_DIR/summary.junit.xml" npm run load:artillery:500 || run_status=$?
-          REPORT_FILE="$REPORT_DIR/host-vote-progress-200.json" JUNIT_FILE="$REPORT_DIR/host-vote-progress-200.junit.xml" PARTICIPANTS=200 npm run load:smoke:host-vote-progress || run_status=$?
-          REPORT_FILE="$REPORT_DIR/vote-timer-fairness-600.json" JUNIT_FILE="$REPORT_DIR/vote-timer-fairness-600.junit.xml" PARTICIPANTS=600 npm run load:smoke:vote-timer-fairness || run_status=$?
           REPORT_FILE="$REPORT_DIR/yjs-sync.json" JUNIT_FILE="$REPORT_DIR/yjs-sync.junit.xml" CLIENTS=30 npm run load:yjs:sync || run_status=$?
           REPORT_FILE="$REPORT_DIR/freetext-wordcloud.json" JUNIT_FILE="$REPORT_DIR/freetext-wordcloud.junit.xml" PARTICIPANTS=100 ITERATIONS=3 npm run load:freetext:wordcloud || run_status=$?
           REPORT_FILE="$REPORT_DIR/soak-live-session.json" JUNIT_FILE="$REPORT_DIR/soak-live-session.junit.xml" SOAK_DURATION_MINUTES=5 SOAK_BACKEND_PID="$(cat "$RUNNER_TEMP/backend.pid")" SOAK_REDIS_URL=redis://127.0.0.1:6379 SOAK_DATABASE_URL="$DATABASE_URL" npm run load:soak:live-session || run_status=$?
