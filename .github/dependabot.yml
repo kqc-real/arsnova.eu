@@ -9,11 +9,20 @@ updates:
       timezone: Europe/Berlin
     open-pull-requests-limit: 5
     versioning-strategy: increase-if-necessary
+    ignore:
+      # Angular 22 erfordert koordinierte Migration aller @angular/*-Pakete (Runtime + Tooling).
+      - dependency-name: '@angular/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@angular-devkit/*'
+        update-types: ['version-update:semver-major']
     groups:
       angular:
         patterns:
           - '@angular/*'
           - '@angular-devkit/*'
+        update-types:
+          - minor
+          - patch
       testing:
         dependency-type: development
         patterns:
@@ -25,3 +34,6 @@ updates:
         update-types:
           - patch
           - minor
+        exclude-patterns:
+          # @y/websocket-server 0.1.5 kollidiert mit @y/y (yjs 14) und Root-Override (yjs 13.6.31).
+          - '@y/websocket-server'
