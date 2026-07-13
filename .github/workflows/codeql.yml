@@ -1,4 +1,12 @@
-name: CodeQL
+name: Security · CodeQL (SAST)
+
+run-name: >-
+  SAST · ${{
+    github.event_name == 'schedule' && 'Weekly' ||
+    github.event_name == 'workflow_dispatch' && 'Manual' ||
+    github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) ||
+    github.ref_name
+  }}
 
 on:
   push:

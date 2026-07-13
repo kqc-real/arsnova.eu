@@ -4,7 +4,15 @@
 # Deploy: Nur bei Push auf main, nach allen Tests; optional eigener Branch (s. unten).
 # =============================================================================
 
-name: CI
+name: CI · Build & Tests
+
+run-name: >-
+  CI · ${{
+    github.event_name == 'schedule' && 'Nightly' ||
+    github.event_name == 'workflow_dispatch' && 'Manual' ||
+    github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) ||
+    github.ref_name
+  }}
 
 on:
   push:
