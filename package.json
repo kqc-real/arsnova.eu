@@ -41,7 +41,7 @@
     "seed:motd-tempo-feedback": "npx prisma db execute --file prisma/migrations/20260604140000_motd_tempo_feedback/migration.sql",
     "seed:motd-numeric-estimate": "npx prisma db execute --file prisma/migrations/20260617133000_motd_numeric_estimate/migration.sql",
     "seed:motd-ai-quiz-generation": "npx prisma db execute --file prisma/migrations/20260624113000_motd_ai_quiz_generation/migration.sql",
-    "seed:motd-confidence-slider": "npx prisma db execute --file prisma/migrations/20260713160000_motd_confidence_slider/migration.sql",
+    "seed:motd-confidence-slider": "npx prisma db execute --file prisma/migrations/20260713160000_motd_confidence_slider/migration.sql && npx prisma db execute --file prisma/migrations/20260713203000_motd_confidence_didactic_summary/migration.sql",
     "seed:motd-templates": "node scripts/seed-motd-templates.mjs",
     "seed:qa-forum": "npm run seed:qa-forum -w @arsnova/backend",
     "seed:session-votes": "npm run seed:session-votes -w @arsnova/backend --",
