@@ -15,6 +15,9 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@angular-devkit/*'
         update-types: ['version-update:semver-major']
+      # @y/websocket-server 0.1.5 kollidiert mit @y/y (yjs 14) und Root-Override (yjs 13.6.31).
+      # exclude-patterns in groups reicht nicht — Dependabot öffnet sonst weiterhin Einzel-PRs.
+      - dependency-name: '@y/websocket-server'
     groups:
       angular:
         patterns:
