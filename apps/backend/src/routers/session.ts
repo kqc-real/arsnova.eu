@@ -6251,7 +6251,10 @@ export const sessionRouter = router({
 
       const questionEntries: QuestionExportEntry[] = questions.map(
         (q: QuestionWithAnswersForExport) => {
-          const votes: VoteForExport[] = votesByQuestion.get(q.id) ?? [];
+          const allVotes: VoteForExport[] = votesByQuestion.get(q.id) ?? [];
+          const voteRound = (vote: VoteForExport) => vote.round ?? 1;
+          const exportRound = allVotes.some((vote) => voteRound(vote) === 2) ? 2 : 1;
+          const votes = allVotes.filter((vote) => voteRound(vote) === exportRound);
           const participantCount = votes.length;
 
           let optionDistribution: OptionDistributionEntry[] | undefined;
@@ -6410,12 +6413,12 @@ export const sessionRouter = router({
                 q.numericReferenceValue,
                 band,
               );
-              const round2Values = votes
-                .filter((vote) => vote.round === 2)
+              const round2Values = allVotes
+                .filter((vote) => voteRound(vote) === 2)
                 .map((vote) => vote.numericValue)
                 .filter((value): value is number => value !== null && value !== undefined);
-              const round1Values = votes
-                .filter((vote) => vote.round === 1)
+              const round1Values = allVotes
+                .filter((vote) => voteRound(vote) === 1)
                 .map((vote) => vote.numericValue)
                 .filter((value): value is number => value !== null && value !== undefined);
               const effectiveValues = round2Values.length > 0 ? round2Values : round1Values;
@@ -6423,7 +6426,7 @@ export const sessionRouter = router({
               numericHistogram = buildNumericHistogram(effectiveValues, band);
               if (round2Values.length > 0 || round1Values.length > 0) {
                 numericRoundComparison = buildNumericRoundComparisonFromVotes(
-                  votes,
+                  allVotes,
                   band,
                   referenceValue,
                 );
@@ -6443,11 +6446,9 @@ export const sessionRouter = router({
           }
 
           if (q.confidenceEnabled) {
-            const exportRound = votes.some((vote) => vote.round === 2) ? 2 : 1;
-            const roundVotes = votes.filter((vote) => vote.round === exportRound);
             confidenceResult =
               buildConfidenceResult({
-                votes: roundVotes.map((vote) => ({
+                votes: votes.map((vote) => ({
                   confidenceValue: vote.confidenceValue,
                   isCorrect: vote.isCorrect,
                   selectedAnswerIds: vote.selectedAnswers.map(

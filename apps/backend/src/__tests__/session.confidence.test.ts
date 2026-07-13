@@ -331,12 +331,19 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
 
     const result = await hostCaller.getExportData({ code: CODE });
 
-    expect(result.questions[0]?.confidenceResult).toMatchObject({
-      highConfidenceWrongCount: 0,
-      crossTab: {
-        correctHigh: 0,
-        correctLow: 1,
-        incorrectHigh: 0,
+    expect(result.questions[0]).toMatchObject({
+      participantCount: 1,
+      optionDistribution: [
+        { text: '4', count: 1, isCorrect: true },
+        { text: '5', count: 0, isCorrect: false },
+      ],
+      confidenceResult: {
+        highConfidenceWrongCount: 0,
+        crossTab: {
+          correctHigh: 0,
+          correctLow: 1,
+          incorrectHigh: 0,
+        },
       },
     });
   });
