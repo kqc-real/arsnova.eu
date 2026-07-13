@@ -40,9 +40,10 @@ import {
   formatMotdAdminDateTimeForDisplay,
   formatMotdEndsAtForDisplay,
 } from '../../core/motd-ends-display';
-import { trpc } from '../../core/trpc.client';
+import { formatLocaleCount } from '../../core/locale-number.util';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
+import { trpc } from '../../core/trpc.client';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
   renderMarkdownWithoutKatex,
@@ -166,6 +167,10 @@ export class AdminMotdPanelComponent implements OnInit {
   formatTplUpdatedAt(iso: string): string {
     const bcp = ADMIN_MOTD_DATE_LOCALE[String(this.appLocaleId)] ?? 'de-DE';
     return formatMotdAdminDateTimeForDisplay(iso, bcp);
+  }
+
+  formatCount(value: number | null | undefined): string {
+    return formatLocaleCount(value ?? 0, String(this.appLocaleId));
   }
 
   newMotd(): void {

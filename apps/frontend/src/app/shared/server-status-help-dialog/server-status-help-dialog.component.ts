@@ -20,6 +20,7 @@ import {
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import type { ServerStatsDTO } from '@arsnova/shared-types';
+import { formatLocaleCount, formatLocaleNumber } from '../../core/locale-number.util';
 type ChartRenderer = import('./server-status-help-dialog-chart').ServerStatusHistoryChartRenderer;
 
 const THEME_PRESET_DOM_EVENT = 'arsnova:preset-updated';
@@ -121,7 +122,7 @@ export interface ServerStatusHelpDialogData {
                     <mat-icon aria-hidden="true">play_circle</mat-icon>
                     <span i18n="@@app.footer.statusMetricActiveSessions">Aktive Sessions</span>
                   </div>
-                  <strong>{{ s.activeSessions }}</strong>
+                  <strong>{{ formatCount(s.activeSessions) }}</strong>
                   <p
                     class="status-help-dialog__metric-hint"
                     i18n="@@app.footer.statusMetricActiveSessionsHint"
@@ -134,7 +135,7 @@ export interface ServerStatusHelpDialogData {
                     <mat-icon aria-hidden="true">meeting_room</mat-icon>
                     <span i18n="@@app.footer.statusMetricOpenSessions">Offene Sessions</span>
                   </div>
-                  <strong>{{ s.openSessions }}</strong>
+                  <strong>{{ formatCount(s.openSessions) }}</strong>
                   <p
                     class="status-help-dialog__metric-hint"
                     i18n="@@app.footer.statusMetricOpenSessionsHint"
@@ -147,7 +148,7 @@ export interface ServerStatusHelpDialogData {
                     <mat-icon aria-hidden="true">group</mat-icon>
                     <span i18n="@@app.footer.statusMetricParticipants">Aktive Teilnehmende</span>
                   </div>
-                  <strong>{{ s.totalParticipants }}</strong>
+                  <strong>{{ formatCount(s.totalParticipants) }}</strong>
                   <p
                     class="status-help-dialog__metric-hint"
                     i18n="@@app.footer.statusMetricParticipantsHint"
@@ -160,14 +161,14 @@ export interface ServerStatusHelpDialogData {
                     <mat-icon aria-hidden="true">bolt</mat-icon>
                     <span i18n="@@app.footer.statusMetricBlitz">Blitz-Runden</span>
                   </div>
-                  <strong>{{ s.activeBlitzRounds }}</strong>
+                  <strong>{{ formatCount(s.activeBlitzRounds) }}</strong>
                 </article>
                 <article class="status-help-dialog__metric status-help-dialog__metric--wide">
                   <div class="status-help-dialog__metric-head">
                     <mat-icon aria-hidden="true">check_circle</mat-icon>
                     <span i18n="@@app.footer.statusMetricCompleted">Abgeschlossen</span>
                   </div>
-                  <strong>{{ s.completedSessions }}</strong>
+                  <strong>{{ formatCount(s.completedSessions) }}</strong>
                   <p
                     class="status-help-dialog__metric-hint"
                     i18n="@@app.footer.statusMetricCompletedHint"
@@ -194,7 +195,7 @@ export interface ServerStatusHelpDialogData {
                     <mat-icon aria-hidden="true">how_to_vote</mat-icon>
                     <span i18n="@@app.footer.statusMetricVotes">Abstimmungen / Minute</span>
                   </div>
-                  <strong>{{ s.votesLastMinute }}</strong>
+                  <strong>{{ formatCount(s.votesLastMinute) }}</strong>
                   <p
                     class="status-help-dialog__metric-hint"
                     i18n="@@app.footer.statusMetricVotesHint"
@@ -207,7 +208,7 @@ export interface ServerStatusHelpDialogData {
                     <mat-icon aria-hidden="true">sync_alt</mat-icon>
                     <span i18n="@@app.footer.statusMetricTransitions">Statuswechsel / Minute</span>
                   </div>
-                  <strong>{{ s.sessionTransitionsLastMinute }}</strong>
+                  <strong>{{ formatCount(s.sessionTransitionsLastMinute) }}</strong>
                   <p
                     class="status-help-dialog__metric-hint"
                     i18n="@@app.footer.statusMetricTransitionsHint"
@@ -220,7 +221,7 @@ export interface ServerStatusHelpDialogData {
                     <mat-icon aria-hidden="true">timer</mat-icon>
                     <span i18n="@@app.footer.statusMetricCountdowns">Countdown-Sessions</span>
                   </div>
-                  <strong>{{ s.activeCountdownSessions }}</strong>
+                  <strong>{{ formatCount(s.activeCountdownSessions) }}</strong>
                   <p
                     class="status-help-dialog__metric-hint"
                     i18n="@@app.footer.statusMetricCountdownsHint"
@@ -262,7 +263,7 @@ export interface ServerStatusHelpDialogData {
           </div>
           <div class="status-help-dialog__record-figure">
             <div class="status-help-dialog__record-number">
-              {{ s.maxParticipantsSingleSession }}
+              {{ formatCount(s.maxParticipantsSingleSession) }}
             </div>
             <div class="status-help-dialog__record-unit" i18n="@@help.statsUnit">Teilnehmende</div>
           </div>
@@ -446,9 +447,13 @@ export class ServerStatusHelpDialogComponent {
     if (!statistics) return null;
 
     return {
-      median: this.formatNumber(statistics.median),
-      standardDeviation: this.formatNumber(statistics.standardDeviation),
-      max: this.formatNumber(statistics.max),
+      median: formatLocaleNumber(statistics.median, this.locale, {
+        maximumFractionDigits: 0,
+      }),
+      standardDeviation: formatLocaleNumber(statistics.standardDeviation, this.locale, {
+        maximumFractionDigits: 0,
+      }),
+      max: formatLocaleCount(statistics.max, this.locale),
     };
   });
 
@@ -520,10 +525,7 @@ export class ServerStatusHelpDialogComponent {
     this.chartRenderer?.destroy();
   }
 
-  private formatNumber(value: number, maximumFractionDigits = 0): string {
-    return new Intl.NumberFormat(this.locale, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits,
-    }).format(value);
+  protected formatCount(value: number): string {
+    return formatLocaleCount(value, this.locale);
   }
 }

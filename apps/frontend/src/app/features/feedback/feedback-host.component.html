@@ -423,11 +423,11 @@
             <dl class="feedback-host__tempo-trend-metrics">
               <div>
                 <dt i18n="@@feedback.tempoMetricActive">Online</dt>
-                <dd>{{ data.tempoTrend?.activeParticipants ?? 0 }}</dd>
+                <dd>{{ formatCount(data.tempoTrend?.activeParticipants) }}</dd>
               </div>
               <div>
                 <dt i18n="@@feedback.tempoMetricResponses">Im Barometer</dt>
-                <dd>{{ data.tempoTrend?.tempoVotes ?? data.totalVotes }}</dd>
+                <dd>{{ formatCount(data.tempoTrend?.tempoVotes ?? data.totalVotes) }}</dd>
               </div>
             </dl>
           </div>
@@ -438,7 +438,7 @@
               Jetzt zum Vergleich ein zweites Blitzlicht...
             </p>
             <p class="feedback-host__discussion-hint" i18n="@@feedback.compareRoundSummary">
-              Runde 1: {{ data.round1Total ?? 0 }} Stimmen erfasst.
+              Runde 1: {{ formatCount(data.round1Total) }} Stimmen erfasst.
             </p>
             @if (round1StarAverage(); as average) {
               <div class="feedback-host__average-strip" role="status" aria-live="polite">
@@ -575,12 +575,12 @@
                       <div class="feedback-host__bar-track">
                         <div
                           class="feedback-host__bar-fill feedback-host__bar-fill--r1"
-                          [style.width.%]="round1Percentage(entry.key)"
+                          [style.width.%]="round1PercentageValue(entry.key)"
                         ></div>
                       </div>
                       <span class="feedback-host__comparison-pct feedback-host__comparison-pct--r1"
-                        >{{ round1Count(entry.key) }} ({{
-                          round1Percentage(entry.key)
+                        >{{ formatCount(round1Count(entry.key)) }} ({{
+                          round1PercentageLabel(entry.key)
                         }}&nbsp;%)</span
                       >
                     </div>
@@ -593,12 +593,12 @@
                       <div class="feedback-host__bar-track">
                         <div
                           class="feedback-host__bar-fill feedback-host__bar-fill--r2"
-                          [style.width.%]="round2Percentage(entry.key)"
+                          [style.width.%]="round2PercentageValue(entry.key)"
                         ></div>
                       </div>
                       <span class="feedback-host__comparison-pct feedback-host__comparison-pct--r2"
-                        >{{ round2Count(entry.key) }} ({{
-                          round2Percentage(entry.key)
+                        >{{ formatCount(round2Count(entry.key)) }} ({{
+                          round2PercentageLabel(entry.key)
                         }}&nbsp;%)</span
                       >
                     </div>
@@ -610,15 +610,18 @@
               <div class="feedback-host__opinion-shift" role="status">
                 <mat-icon>swap_horiz</mat-icon>
                 <span i18n
-                  >{{ shift.changedCount }} von {{ shift.bothRoundsCount }} ({{
-                    shift.changedPercentage
+                  >{{ formatCount(shift.changedCount) }} von
+                  {{ formatCount(shift.bothRoundsCount) }} ({{
+                    formatCount(shift.changedPercentage)
                   }}&nbsp;%) änderten ihre Meinung</span
                 >
                 @if (shift.migrations && shift.migrations.length > 0) {
                   <ul class="feedback-host__migrations" role="list">
                     @for (m of shift.migrations; track m.from + m.to) {
                       <li class="feedback-host__migration-item">
-                        <span class="feedback-host__migration-count">{{ m.count }}×</span>
+                        <span class="feedback-host__migration-count"
+                          >{{ formatCount(m.count) }}×</span
+                        >
                         <span class="feedback-host__migration-from">
                           @if (displayIcon(m.from, data.type); as icon) {
                             @if (icon.kind === 'mat') {
@@ -714,7 +717,7 @@
             } @else {
               <span i18n>{data.totalVotes, plural,
                 =1 {1 Stimme}
-                other {{{ data.totalVotes }} Stimmen}
+                other {{{ formatCount(data.totalVotes) }} Stimmen}
               }</span>
             }
           </p>
@@ -753,7 +756,7 @@
                 [attr.aria-label]="
                   displayLabel(entry.key, data.type) +
                   ': ' +
-                  entry.value +
+                  formatCount(entry.value) +
                   ' (' +
                   percentage(entry.key) +
                   ' %)'
@@ -813,7 +816,7 @@
                   ></div>
                 </div>
                 <span class="feedback-host__bar-count" aria-hidden="true"
-                  >{{ entry.value }} ({{ percentage(entry.key) }} %)</span
+                  >{{ formatCount(entry.value) }} ({{ percentage(entry.key) }} %)</span
                 >
               </div>
             }

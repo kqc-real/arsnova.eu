@@ -4,6 +4,7 @@ import {
   Directive,
   ElementRef,
   HostListener,
+  LOCALE_ID,
   OnInit,
   OnDestroy,
   PLATFORM_ID,
@@ -33,6 +34,7 @@ import { localizePath } from './core/locale-router';
 import { HostDisplayModeService } from './core/host-display-mode.service';
 import { SeoService } from './core/seo.service';
 import { MotdHeaderStateService } from './core/motd-header-state.service';
+import { formatLocaleBadgeCount, formatLocaleCount } from './core/locale-number.util';
 
 const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
@@ -134,6 +136,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly seo = inject(SeoService);
   readonly motdHeaderState = inject(MotdHeaderStateService);
+  private readonly localeId = inject(LOCALE_ID) as string;
   private versionSub: Subscription | null = null;
   private routerSub: Subscription | null = null;
   private presetSub: Subscription | null = null;
@@ -199,7 +202,7 @@ export class AppComponent implements OnInit, OnDestroy {
   /** Footer: Badge mit ungelesenen Archiv-Meldungen (max. „99+“), wie Toolbar-Megafon. */
   footerNewsArchiveBadgeText = computed(() => {
     const n = this.motdHeaderState.archiveUnreadCount();
-    return n > 99 ? '99+' : String(n);
+    return formatLocaleBadgeCount(n, this.localeId);
   });
 
   /** Barrierefrei: Zähler in der Link-Beschriftung bei ungelesenen Meldungen. */
@@ -211,7 +214,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (n === 1) {
       return $localize`:@@app.footer.newsArchiveAriaOne:News-Archiv öffnen, eine ungelesene Meldung`;
     }
-    return $localize`:@@app.footer.newsArchiveAriaCount:News-Archiv öffnen, ${n}:INTERPOLATION: ungelesene Meldungen`;
+    return $localize`:@@app.footer.newsArchiveAriaCount:News-Archiv öffnen, ${formatLocaleCount(n, this.localeId)}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   ngOnInit(): void {

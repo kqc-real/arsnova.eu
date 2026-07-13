@@ -94,7 +94,7 @@
             </div>
             <div class="session-present__qa-votes">
               <mat-icon aria-hidden="true">thumb_up</mat-icon>
-              <span>{{ pinnedQuestion.upvoteCount }}</span>
+              <span>{{ formatCount(pinnedQuestion.upvoteCount) }}</span>
             </div>
           </div>
           <div
@@ -127,7 +127,7 @@
               <article class="session-present__qa-list-item" role="listitem">
                 <div class="session-present__qa-list-votes">
                   <mat-icon aria-hidden="true">thumb_up</mat-icon>
-                  <span>{{ question.upvoteCount }}</span>
+                  <span>{{ formatCount(question.upvoteCount) }}</span>
                 </div>
                 <div
                   class="session-present__qa-list-text"
@@ -176,7 +176,8 @@
                 <span class="session-present__feedback-status">{{ statusLabel }}</span>
               }
               <span class="session-present__feedback-votes">
-                {{ quickFeedback.totalVotes }}&nbsp;<span i18n="@@sessionPresent.quickFeedbackVotes"
+                {{ formatCount(quickFeedback.totalVotes) }}&nbsp;<span
+                  i18n="@@sessionPresent.quickFeedbackVotes"
                   >Stimmen</span
                 >
               </span>
@@ -221,7 +222,7 @@
                   ></div>
                 </div>
                 <span class="session-present__feedback-row-value">
-                  {{ entry.value }} ({{ quickFeedbackPercentage(entry.value) }} %)
+                  {{ formatCount(entry.value) }} ({{ quickFeedbackPercentage(entry.value) }} %)
                 </span>
               </div>
             }

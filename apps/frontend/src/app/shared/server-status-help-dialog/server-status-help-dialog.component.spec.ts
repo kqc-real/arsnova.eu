@@ -78,6 +78,7 @@ describe('ServerStatusHelpDialogComponent', () => {
     expect(text).toContain('Sessions, die gerade sichtbar weiterlaufen');
     expect(text).toContain('Mit laufendem Countdown im aktuellen Aktivitätsfenster');
     expect(text).toContain('Alle je beendeten Live-Sessions (kumulativ)');
+    expect(text).toContain('98');
     expect(text).toContain('Rekordteilnahme');
     expect(text).toContain('Session-Tagesrekorde der letzten 100 Tage');
     expect(text).toContain(

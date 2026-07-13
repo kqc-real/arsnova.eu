@@ -11,6 +11,7 @@ import {
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import type { LastSessionFeedbackForQuizDTO } from '@arsnova/shared-types';
+import { formatLocaleCount } from '../../../core/locale-number.util';
 import { trpc } from '../../../core/trpc.client';
 
 export interface LastSessionFeedbackDialogData {
@@ -71,9 +72,13 @@ export class LastSessionFeedbackDialogComponent implements OnInit {
     const parts: string[] = [];
     for (let star = 1; star <= 5; star++) {
       const n = dist[String(star)] ?? 0;
-      if (n > 0) parts.push(`${n}× ${star} ★`);
+      if (n > 0) parts.push(`${formatLocaleCount(n, this.localeId)}× ${star} ★`);
     }
     return parts.length > 0 ? parts.join(' · ') : null;
+  }
+
+  formatCount(value: number): string {
+    return formatLocaleCount(value, this.localeId);
   }
 
   feedbackRatingSingular(): string {

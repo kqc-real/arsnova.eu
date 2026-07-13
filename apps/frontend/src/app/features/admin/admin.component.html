@@ -71,7 +71,7 @@
                   direkt zu den Details.
                 </p>
                 <p class="admin-help" i18n="@@admin.listCountHint">
-                  Aktuell sichtbare Sessions: {{ sessionTotal() }}
+                  Aktuell sichtbare Sessions: {{ formatCount(sessionTotal()) }}
                 </p>
 
                 <div class="admin-lookup">
@@ -142,7 +142,7 @@
                                 <span
                                   class="admin-list__chip"
                                   i18n="@@admin.liveParticipantsWithActivityChip"
-                                  >Live: {{ liveCount }} · Letzte Aktivität:
+                                  >Live: {{ formatCount(liveCount) }} · Letzte Aktivität:
                                   {{ formatDateTime(session.lastActivityAt) }}</span
                                 >
                               } @else {
@@ -189,7 +189,7 @@
                                       <strong i18n="@@admin.metaParticipantsLabel"
                                         >Teilnehmende:</strong
                                       >
-                                      {{ detail.session.participantCount }}
+                                      {{ formatCount(detail.session.participantCount) }}
                                     </p>
                                   </div>
                                   @if (detail.title) {
@@ -412,7 +412,7 @@
                       Nicht mehr benötigte Quiz-Kopien werden ebenfalls entfernt.
                     </p>
                     <p class="admin-help" i18n="@@admin.deleteAllCountHint">
-                      Aktuell erfasste Sessions: {{ sessionTotal() }}
+                      Aktuell erfasste Sessions: {{ formatCount(sessionTotal()) }}
                     </p>
                     <p class="admin-help" i18n="@@admin.deleteAllConfirmHint">
                       Zur Bestätigung gib die Sicherheitsphrase ein.

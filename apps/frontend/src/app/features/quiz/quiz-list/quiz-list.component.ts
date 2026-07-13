@@ -3,6 +3,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   Component,
   ElementRef,
+  LOCALE_ID,
   OnInit,
   computed,
   effect,
@@ -34,6 +35,7 @@ import {
   type TeamAssignment,
 } from '@arsnova/shared-types';
 import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
+import { formatLocaleCount } from '../../../core/locale-number.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
   DEMO_QUIZ_ID,
@@ -104,6 +106,7 @@ const QUIZ_HISTORY_SCOPE_ID_PATTERN =
 })
 export class QuizListComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
+  private readonly localeId = inject(LOCALE_ID) as string;
   private readonly quizStore = inject(QuizStoreService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -272,7 +275,11 @@ export class QuizListComponent implements OnInit {
     if (count === 0)
       return $localize`:@@quizList.syncPeerCountNone:Gerade kein anderes Gerät aktiv`;
     if (count === 1) return $localize`:@@quizList.syncPeerCountOne:Gerade 1 weiteres Gerät aktiv`;
-    return $localize`:@@quizList.syncPeerCountMany:Gerade ${count}:count: weitere Geräte aktiv`;
+    return $localize`:@@quizList.syncPeerCountMany:Gerade ${formatLocaleCount(count, this.localeId)}:count: weitere Geräte aktiv`;
+  }
+
+  formatCount(value: number): string {
+    return formatLocaleCount(value, this.localeId);
   }
 
   deviceSummary(deviceLabel: string, browserLabel: string): string {

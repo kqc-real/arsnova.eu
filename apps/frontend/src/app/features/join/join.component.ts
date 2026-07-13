@@ -11,6 +11,7 @@ import { trpc } from '../../core/trpc.client';
 import type { SessionInfoDTO, TeamDTO } from '@arsnova/shared-types';
 import type { NicknameTheme } from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
+import { formatLocaleCount } from '../../core/locale-number.util';
 import {
   localizeKnownServerError,
   sessionNotFoundUiMessage,
@@ -264,8 +265,11 @@ export class JoinComponent implements OnInit, OnDestroy {
     $localize`:@@join.nicknameFallbackHint:Die Namensliste ist vollständig vergeben. Du kannst jetzt aus weiteren Pseudonymen wählen.`;
   /** i18n: "in der Lobby" suffix. */
   inLobbyLabel = () => $localize`in der Lobby`;
-  teamMembersLabel = (count: number) =>
-    count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
+  teamMembersLabel = (count: number) => {
+    const formatted = formatLocaleCount(count, this.localeId);
+    return count === 1 ? $localize`${formatted} Mitglied` : $localize`${formatted} Mitglieder`;
+  };
+  formatCount = (value: number) => formatLocaleCount(value, this.localeId);
   teamCardAriaLabel = (team: TeamDTO) =>
     $localize`${this.teamNameDisplayLabel(team.name)}, ${this.teamMembersLabel(team.memberCount)}`;
   teamNameUsesEmojiMarker = (teamName: string) => edgeEmojiMarkerPosition(teamName) !== null;

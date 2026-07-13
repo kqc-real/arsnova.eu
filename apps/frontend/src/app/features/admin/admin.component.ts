@@ -12,6 +12,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import { formatLocaleCount } from '../../core/locale-number.util';
 import { trpc } from '../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../shared/markdown-katex.util';
 import { AdminMotdPanelComponent } from './admin-motd-panel.component';
@@ -627,6 +628,10 @@ export class AdminComponent implements OnInit {
       }
     }
     return fallback;
+  }
+
+  formatCount(value: number | null | undefined): string {
+    return formatLocaleCount(value ?? 0, String(this.locale));
   }
 
   formatDateTime(iso: string | null | undefined): string {

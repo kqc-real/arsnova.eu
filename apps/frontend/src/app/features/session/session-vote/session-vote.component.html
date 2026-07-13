@@ -563,7 +563,9 @@
                   }}</span>
                 </div>
                 <div class="vote-team-reward__stat">
-                  <span class="vote-team-reward__stat-value">{{ ownTeam.memberCount }}</span>
+                  <span class="vote-team-reward__stat-value">{{
+                    formatCount(ownTeam.memberCount)
+                  }}</span>
                   <span class="vote-team-reward__stat-label">{{
                     vpc.voteTeamStatMembers(isPlayfulPreset())
                   }}</span>
@@ -1414,7 +1416,7 @@
                         @if (sc.streakCount >= 3) {
                           🔥
                         }
-                        {{ sc.streakCount }}er
+                        {{ formatCount(sc.streakCount) }}er
                       </span>
                       <span class="vote-scorecard__stat-label" i18n
                         >Serie (×{{ sc.streakMultiplier | number: '1.1-1' }})</span
@@ -1427,9 +1429,9 @@
                     }}</span>
                     <span class="vote-scorecard__stat-label">
                       @if (sc.rankChange > 0) {
-                        ↑ {{ sc.rankChange }}
+                        ↑ {{ formatCount(sc.rankChange) }}
                       } @else if (sc.rankChange < 0) {
-                        ↓ {{ sc.rankChange * -1 }}
+                        ↓ {{ formatCount(sc.rankChange * -1) }}
                       } @else {
                         <span i18n>Dein Rang</span>
                       }
@@ -1510,7 +1512,9 @@
                   }}</span>
                 </div>
                 <div class="vote-team-reward__stat">
-                  <span class="vote-team-reward__stat-value">{{ ownTeam.memberCount }}</span>
+                  <span class="vote-team-reward__stat-value">{{
+                    formatCount(ownTeam.memberCount)
+                  }}</span>
                   <span class="vote-team-reward__stat-label">{{
                     vpc.voteTeamStatMembers(isPlayfulPreset())
                   }}</span>
@@ -1747,7 +1751,7 @@
                         [class.session-qa-card__vote-count--positive]="question.upvoteCount > 0"
                         [class.session-qa-card__vote-count--negative]="question.upvoteCount < 0"
                       >
-                        {{ question.upvoteCount }}
+                        {{ formatCount(question.upvoteCount) }}
                       </span>
                       <button
                         type="button"
@@ -1802,7 +1806,7 @@
                         <mat-icon class="session-qa-card__score-icon" aria-hidden="true"
                           >thumb_up_off_alt</mat-icon
                         >
-                        {{ question.upvoteCount }}
+                        {{ formatCount(question.upvoteCount) }}
                       </span>
                       @if (question.isOwn) {
                         <button

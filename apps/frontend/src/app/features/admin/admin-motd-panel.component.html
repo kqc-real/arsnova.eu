@@ -50,7 +50,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title class="admin-motd__expansion-title">
               <span i18n="@@admin.motd.listTitle">Vorhandene Meldungen</span>
-              <span class="admin-motd__expander-count">({{ motds().length }})</span>
+              <span class="admin-motd__expander-count">({{ formatCount(motds().length) }})</span>
             </mat-panel-title>
           </mat-expansion-panel-header>
           <div class="admin-motd__list-panel-body">
@@ -62,18 +62,20 @@
                   @for (m of motds(); track m.id) {
                     <li>
                       <span class="admin-motd__item-meta" i18n="@@admin.motd.listItemMeta"
-                        >{{ m.status }} · v{{ m.contentVersion }} · Priorität {{ m.priority }}</span
+                        >{{ m.status }} · v{{ formatCount(m.contentVersion) }} · Priorität
+                        {{ formatCount(m.priority) }}</span
                       >
                       <span class="admin-motd__item-dates"
                         >{{ formatMotdListStartsAt(m.startsAt) }} –
                         {{ formatMotdListEndsAt(m.endsAt) }}</span
                       >
                       <span class="admin-help admin-motd__stats" i18n="@@admin.motd.statsLine">
-                        Nutzerreaktionen (Zähler): Alles klar {{ m.interaction.ackCount }}, Daumen
-                        hoch {{ m.interaction.thumbUp }}, Daumen runter
-                        {{ m.interaction.thumbDown }}, Overlay geschlossen
-                        {{ m.interaction.dismissClose }}, Wegwischen
-                        {{ m.interaction.dismissSwipe }}
+                        Nutzerreaktionen (Zähler): Alles klar
+                        {{ formatCount(m.interaction.ackCount) }}, Daumen hoch
+                        {{ formatCount(m.interaction.thumbUp) }}, Daumen runter
+                        {{ formatCount(m.interaction.thumbDown) }}, Overlay geschlossen
+                        {{ formatCount(m.interaction.dismissClose) }}, Wegwischen
+                        {{ formatCount(m.interaction.dismissSwipe) }}
                       </span>
                       <div
                         class="admin-motd__item-actions"
@@ -123,7 +125,9 @@
           <mat-expansion-panel-header>
             <mat-panel-title class="admin-motd__expansion-title">
               <span i18n="@@admin.motd.tplSectionTitle">Textvorlagen</span>
-              <span class="admin-motd__expander-count">({{ templates().length }})</span>
+              <span class="admin-motd__expander-count"
+                >({{ formatCount(templates().length) }})</span
+              >
             </mat-panel-title>
           </mat-expansion-panel-header>
           <div class="admin-motd__templates">
@@ -182,10 +186,10 @@
         @if (motdInteractionStats(); as st) {
           <div class="admin-motd__stats-block">
             <p class="admin-help admin-motd__stats-detail" i18n="@@admin.motd.statsDetail">
-              Nutzerreaktionen (Zähler): Alles klar {{ st.ackCount }}, Daumen hoch {{ st.thumbUp }},
-              Daumen runter {{ st.thumbDown }}, Overlay geschlossen {{ st.dismissClose }},
-              Wegwischen
-              {{ st.dismissSwipe }}
+              Nutzerreaktionen (Zähler): Alles klar {{ formatCount(st.ackCount) }}, Daumen hoch
+              {{ formatCount(st.thumbUp) }}, Daumen runter {{ formatCount(st.thumbDown) }}, Overlay
+              geschlossen {{ formatCount(st.dismissClose) }}, Wegwischen
+              {{ formatCount(st.dismissSwipe) }}
             </p>
             <!-- Immer sichtbar wenn Zähler angezeigt werden (kein @if(editingId): sonst fehlt der Button bei Zustands-Lücken). -->
             <div class="admin-motd__stats-reset">

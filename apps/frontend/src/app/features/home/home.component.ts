@@ -7,6 +7,7 @@ import {
   OnInit,
   ViewChild,
   PLATFORM_ID,
+  LOCALE_ID,
   computed,
   inject,
   signal,
@@ -41,6 +42,7 @@ import {
 import { localizeCommands, localizePath } from '../../core/locale-router';
 import { navigateToHostSession } from '../../core/session-host-navigation';
 import { DEMO_QUIZ_ID, QuizStoreService } from '../quiz/data/quiz-store.service';
+import { formatLocaleCount } from '../../core/locale-number.util';
 import {
   QUICK_FEEDBACK_PRESET_CHIPS,
   QUICK_FEEDBACK_TEMPO_SPOTLIGHT,
@@ -150,6 +152,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly quizCount = computed(
     () => this.quizStore.quizzes().filter((q) => q.id !== DEMO_QUIZ_ID).length,
   );
+  readonly quizCountBadgeText = computed(() => formatLocaleCount(this.quizCount(), this.localeId));
   readonly latestHostedQuizId = computed(() => {
     const quizzes = this.quizStore.quizzes().filter((quiz) => quiz.id !== DEMO_QUIZ_ID);
     return quizzes.reduce<string | null>((latestId, quiz) => {
@@ -169,6 +172,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly motdCurrent = inject(MotdCurrentService);
+  private readonly localeId = inject(LOCALE_ID) as string;
   @ViewChild('motdCloseBtn') private readonly motdCloseBtn?: ElementRef<HTMLButtonElement>;
 
   /** Aktive MOTD (Epic 10); nur Browser, nach getCurrent. */
