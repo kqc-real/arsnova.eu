@@ -4,7 +4,7 @@
 >
 > **Abhängigkeiten (Kernpfad):** Epic 0 → Epic 1 → Epic 2 → Epic 3 → Epic 4 → Epic 5 ✅
 >
-> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.8** (Komplexitätsabbau / McCabe-Refactor), **2.9** (asynchrone Quiz-Modi), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2i** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
+> **Nächster Fokus (Auswahl offener Stories):** u. a. **0.8** (Komplexitätsabbau / McCabe-Refactor), **2.9** (asynchrone Quiz-Modi), **6.5**/**6.6** (Barrierefreiheit / UX-Testreihen), **1.2ec–1.2ed** (Kurzantwort-Ausbau), **1.2f–1.2h** (neue Fragentypen), **1.6c** (Sync-Sicherheit), **8.5** (delegierbare Q&A-Moderation), **8.9a–8.9c** (didaktischer Live-Moderationskompass) — **Epic 6** im Kern (6.1–6.4: Theme, i18n, Legal, Responsive) ist umgesetzt ✅. **Lehre:** Greenfield-Demo **1.7a** in **3×45 Min.** — [`docs/didaktik/greenfield-demo-1-7a-vorlesung.md`](docs/didaktik/greenfield-demo-1-7a-vorlesung.md).
 >
 > **Weitere Parallelpfade:** Epic 9 ✅ (Admin: Inspektion, Löschen, Auszug für Behörden) · Epic 10 ✅ (MOTD / Plattform-Kommunikation — ADR-0018, `docs/features/motd.md`)
 
@@ -36,7 +36,7 @@
 | 1    | 1.2f  | Fragentyp: Hotspot auf Bild                                                        | 🟡   | ⬜ Offen  |
 | 1    | 1.2g  | Fragentyp: Zuordnung / Matching                                                    | 🟡   | ⬜ Offen  |
 | 1    | 1.2h  | Fragentyp: Reihenfolge / Sortieren                                                 | 🟡   | ⬜ Offen  |
-| 1    | 1.2i  | Confidence Slider / Sicherheitsgrad mit Host-Auswertung                            | 🟡   | ⬜ Offen  |
+| 1    | 1.2i  | Confidence Slider / Sicherheitsgrad mit Host-Auswertung                            | 🟡   | ✅ Fertig |
 | 1    | 1.3   | Antworten & Lösungen                                                               | 🔴   | ✅ Fertig |
 | 1    | 1.4   | Sitzungs-Konfiguration                                                             | 🟡   | ✅ Fertig |
 | 1    | 1.5   | Local-First Speicherung                                                            | 🔴   | ✅ Fertig |
@@ -129,7 +129,7 @@
 | 11   | 11.3  | Redaktionsbackend: Veröffentlichung & Quizlink                                     | 🔴   | ⬜ Offen  |
 | 11   | 11.4  | Redaktionsbackend: Passwort/Token-Schutz & accountbezogener Gesamtexport           | 🔴   | ⬜ Offen  |
 
-> **Repo-Abgleich (Codebase 2026-07-12):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard; Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`. Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2i**, **1.6c**/**1.6d** und **1.14a**.
+> **Repo-Abgleich (Codebase 2026-07-13):** Die weiterhin **offenen bzw. laufenden** Stories sind durch den Stand im Monorepo begründet: u. a. noch **kein** asynchroner Quizmodus mit teilnehmendenindividuellem Fortschritt, Feedback-Strategie und Host-/Presenter-Dashboard; Q&A-`moderatorView` ist weiterhin an Host-Authentifizierung gebunden, **kein** eigener Moderator-Token/-Rollenpfad. **Abgeschlossen** ist **0.7** (Baseline-Freigabe 2026-07-12): SLO-parametrisierte k6-Profile, Artillery-Live-/Reconnect-Profile, Classroom-Gates, schwere Vote-Hotpaths, Yjs-/Soak-Szenarien, standardisierte JSON-/JUnit-Reports und freigegebene Baseline in `scripts/load/baselines/manifests/story-0.7-2026-07-12.json`. Offen bleiben beim Kurzantwort-Ausbau **1.2ec–1.2ed**, neue Fragentypen **1.2f–1.2h**, **1.6c**/**1.6d** und **1.14a**. **Story 1.2i** (Sicherheitsgrad) ist umgesetzt — siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
 >
 > **Korrektur zum Repo-Abgleich:** `NUMERIC_ESTIMATE` ist als Fragentyp
 > implementiert und Story 1.2d als fertig bewertet. Offen ist seit dem lokalen
@@ -340,7 +340,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 
 ## Epic 1: Quiz-Verwaltung (Rolle: Lehrperson / Ersteller:in)
 
-> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07, 2026-04-17, 2026-05-16, 2026-06-17):** Die umgesetzten Kern-Stories in Epic 1 sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben aktuell **1.2ec–1.2ed**, **1.2f–1.2i**, **1.6c**, **1.6d**, **1.14a** (dort ⬜). **Story 1.2d**, **Story 1.2e**, **Story 1.2ea**, **Story 1.2eb**, **Story 1.7a** und **Story 1.7b** sind umgesetzt und auf **✅ Fertig** gesetzt.
+> **Verifizierung Epic 1 (2026-03-09, ergänzt 2026-04-01, 2026-04-07, 2026-04-17, 2026-05-16, 2026-06-17, 2026-07-13):** Die umgesetzten Kern-Stories in Epic 1 sind auf **✅ Fertig** gesetzt — siehe Übersichtstabelle. **Offen** bleiben aktuell **1.2ec–1.2ed**, **1.2f–1.2h**, **1.6c**, **1.6d**, **1.14a** (dort ⬜). **Story 1.2d**, **Story 1.2e**, **Story 1.2ea**, **Story 1.2eb**, **Story 1.2i**, **Story 1.7a** und **Story 1.7b** sind umgesetzt und auf **✅ Fertig** gesetzt.
 > Frontend-Checks: `npm run typecheck -w @arsnova/frontend` ✅, `npm run test -w @arsnova/frontend -- src/app/features/quiz` ✅ (54/54).  
 > Ergänzend abgeschlossen: Styleguide-/DoD-Nacharbeiten (Lesbarkeit/Spacing, Wording-Konsistenz, deutsches Datumsformat `de-DE`, Fehlerfokus auf erstes ungültiges Feld, Entfernung fragiler `::ng-deep`-Selektoren im Quiz-Feature, Preview-Interaktions- und Markdown/KaTeX-Rendering-Korrekturen).
 
@@ -555,7 +555,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Tests:** Es gibt Tests für Editor-Validierung, stabile Shuffle-Logik, korrekte/falsche Reihenfolgen, Aggregation häufiger Vertauschungen, Data-Stripping sowie Import/Export.
     - **i18n (ADR-0008):** Alle neuen UI-Strings in **de, en, fr, es, it**.
   - **Abhängigkeiten:** Story **1.3** (Bewertungslogik), Story **1.7** (Markdown/KaTeX in Elementtexten), Story **2.4** (Data-Stripping), Story **3.3a/b** (Teilnehmenden-Flow), Story **4.1** / **4.4** (Scoring & Ergebnisvisualisierung), Story **6.5** (A11y, da Reorder-Interaktion dafür besonders sensibel ist).
-- **Story 1.2i (Confidence Slider / Sicherheitsgrad mit Host-Auswertung):** 🟡 Als Lehrperson möchte ich bei **bewertbaren Fragen** zusätzlich den **Sicherheitsgrad** der Teilnehmenden erfassen können, damit ich nicht nur richtige und falsche Antworten sehe, sondern auch **selbstsicher falsche** Antworten und damit verbundene **Misskonzepte** erkenne. Als Host möchte ich nach der Ergebnisfreigabe eine **eigene Confidence-Auswertung** sehen, die Antwortverhalten und Sicherheit sinnvoll zusammenführt.
+- **Story 1.2i (Confidence Slider / Sicherheitsgrad mit Host-Auswertung):** ✅ Als Lehrperson möchte ich bei **bewertbaren Fragen** zusätzlich den **Sicherheitsgrad** der Teilnehmenden erfassen können, damit ich nicht nur richtige und falsche Antworten sehe, sondern auch **selbstsicher falsche** Antworten und damit verbundene **Misskonzepte** erkenne. Als Host möchte ich nach der Ergebnisfreigabe eine **eigene Confidence-Auswertung** sehen, die Antwortverhalten und Sicherheit sinnvoll zusammenführt. — Siehe [`docs/features/confidence-slider.md`](docs/features/confidence-slider.md).
   - **Akzeptanzkriterien:**
     - **Kein eigener Fragentyp, sondern Zusatzfunktion:** Confidence ist eine **optionale Frage-Einstellung** für bewertbare Formate. Im ersten Schritt mindestens unterstützt für `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT` und `NUMERIC_ESTIMATE`; die Modellierung soll spätere Nutzung für weitere bewertbare Typen (z. B. `IMAGE_HOTSPOT`, `MATCHING`, `ORDERING`) nicht verbauen.
     - **Editor (Lehrperson):** Im Quiz-Editor gibt es pro unterstützter Frage einen Schalter wie **„Sicherheitsgrad abfragen“**. Die Lehrperson kann mindestens

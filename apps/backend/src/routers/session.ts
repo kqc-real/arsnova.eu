@@ -104,6 +104,7 @@ import {
   isNumericValueInBand,
   isNumericToleranceMode,
   resolveNumericEstimateToleranceMode,
+  buildConfidenceResult,
   type NumericStatsDTO,
   type NumericHistogramBin,
   type NumericRoundComparisonDTO,
@@ -175,6 +176,7 @@ export function resetParticipantNicknameCacheForTests(): void {
   participantNicknameCache.clear();
 }
 import { publicProcedure, router, getClientIp, hostProcedure } from '../trpc';
+import { loadConfidenceResultForQuestion } from '../lib/confidenceAggregation';
 import { prisma } from '../db';
 import { createHostSessionToken } from '../lib/hostAuth';
 import {
@@ -937,6 +939,55 @@ function getShortTextDtoFields(
   };
 }
 
+function getConfidenceDtoFields(question: {
+  confidenceEnabled?: boolean | null;
+  confidenceLabelLow?: string | null;
+  confidenceLabelHigh?: string | null;
+}): {
+  confidenceEnabled?: boolean;
+  confidenceLabelLow?: string | null;
+  confidenceLabelHigh?: string | null;
+} {
+  if (!question.confidenceEnabled) {
+    return {};
+  }
+
+  return {
+    confidenceEnabled: true,
+    confidenceLabelLow: question.confidenceLabelLow ?? null,
+    confidenceLabelHigh: question.confidenceLabelHigh ?? null,
+  };
+}
+
+async function withHostConfidenceResult<T>(
+  sessionStatus: string,
+  sessionId: string,
+  question: {
+    id: string;
+    confidenceEnabled?: boolean | null;
+  },
+  currentRound: number,
+  answersOrdered: Array<{ id: string; text: string; isCorrect: boolean }>,
+  dto: T,
+): Promise<T> {
+  if (sessionStatus !== 'RESULTS' || !question.confidenceEnabled) {
+    return dto;
+  }
+
+  const confidenceResult = await loadConfidenceResultForQuestion({
+    sessionId,
+    questionId: question.id,
+    round: currentRound,
+    answerOptions: answersOrdered,
+  });
+
+  if (!confidenceResult) {
+    return dto;
+  }
+
+  return { ...dto, confidenceResult };
+}
+
 function getShortTextDisplayValue(value: string, config?: ShortTextQuestionConfig): string {
   const resolved = resolveShortTextQuestionConfig(config);
   return normalizeShortTextValue(value, {
@@ -1288,6 +1339,7 @@ interface QuestionWithAnswersForExport {
   numericTolerancePercent: number | null;
   numericIntervalLeft: number | null;
   numericIntervalRight: number | null;
+  confidenceEnabled: boolean;
   answers: Array<{ id: string; text: string; isCorrect: boolean }>;
 }
 interface VoteForExport {
@@ -1298,6 +1350,8 @@ interface VoteForExport {
   ratingValue?: number | null;
   numericValue?: number | null;
   score?: number | null;
+  confidenceValue?: number | null;
+  isCorrect?: boolean | null;
 }
 interface BonusTokenForExport {
   token: string;
@@ -2449,6 +2503,9 @@ type HostCurrentQuestionSession = {
       numericMin: number | null;
       numericMax: number | null;
       numericTwoRounds: boolean;
+      confidenceEnabled: boolean;
+      confidenceLabelLow: string | null;
+      confidenceLabelHigh: string | null;
       answers: Array<{ id: string; text: string; isCorrect: boolean }>;
     }>;
   } | null;
@@ -2735,6 +2792,7 @@ async function buildHostCurrentQuestionDto(
     ratingLabelMin: question.ratingLabelMin ?? null,
     ratingLabelMax: question.ratingLabelMax ?? null,
     ...getShortTextDtoFields(question.type, question),
+    ...getConfidenceDtoFields(question),
     currentRound: session.currentRound,
     ...(question.type === 'NUMERIC_ESTIMATE'
       ? {
@@ -2805,13 +2863,20 @@ async function buildHostCurrentQuestionDto(
       const numericStats = buildNumericStats(numValues, band, referenceValue);
       const numericHistogram = buildNumericHistogram(numValues, band);
 
-      return {
-        ...base,
-        totalVotes,
-        numericStats,
-        numericHistogram,
-        numericRoundComparison,
-      };
+      return withHostConfidenceResult(
+        session.status,
+        session.id,
+        question,
+        currentRound,
+        answersOrdered,
+        {
+          ...base,
+          totalVotes,
+          numericStats,
+          numericHistogram,
+          numericRoundComparison,
+        },
+      );
     }
 
     if (question.type === 'RATING') {
@@ -2883,17 +2948,24 @@ async function buildHostCurrentQuestionDto(
             : 0,
       }));
 
-      return {
-        ...base,
-        totalVotes: voteSummary.totalVotes,
-        correctVoterCount: voteSummary.correctVoteCount,
-        incorrectVoterCount: voteSummary.incorrectVoteCount,
-        incorrectFreeTextResponses:
-          voteSummary.incorrectFreeTextResponses.length > 0
-            ? voteSummary.incorrectFreeTextResponses
-            : undefined,
-        voteDistribution,
-      };
+      return withHostConfidenceResult(
+        session.status,
+        session.id,
+        question,
+        currentRound,
+        answersOrdered,
+        {
+          ...base,
+          totalVotes: voteSummary.totalVotes,
+          correctVoterCount: voteSummary.correctVoteCount,
+          incorrectVoterCount: voteSummary.incorrectVoteCount,
+          incorrectFreeTextResponses:
+            voteSummary.incorrectFreeTextResponses.length > 0
+              ? voteSummary.incorrectFreeTextResponses
+              : undefined,
+          voteDistribution,
+        },
+      );
     }
 
     const choiceVotes = await prisma.vote.findMany({
@@ -2951,14 +3023,21 @@ async function buildHostCurrentQuestionDto(
       roundComparison = await buildRoundComparison(session.id, question.id, answersOrdered);
     }
 
-    return {
-      ...base,
-      totalVotes,
-      correctVoterCount,
-      peerInstructionSuggestion,
-      voteDistribution,
-      roundComparison,
-    };
+    return withHostConfidenceResult(
+      session.status,
+      session.id,
+      question,
+      currentRound,
+      answersOrdered,
+      {
+        ...base,
+        totalVotes,
+        correctVoterCount,
+        peerInstructionSuggestion,
+        voteDistribution,
+        roundComparison,
+      },
+    );
   }
 
   return base;
@@ -2991,6 +3070,7 @@ export function buildHostCurrentQuestionSubscriptionKey(
     numericHistogram: _numericHistogram,
     numericStats: _numericStats,
     numericRoundComparison: _numericRoundComparison,
+    confidenceResult: _confidenceResult,
     ...stablePayload
   } = envelope.payload;
 
@@ -3050,6 +3130,9 @@ async function fetchHostCurrentQuestionEnvelope(
               numericMax: true,
               numericTwoRounds: true,
               skipReadingPhase: true,
+              confidenceEnabled: true,
+              confidenceLabelLow: true,
+              confidenceLabelHigh: true,
               answers: { select: { id: true, text: true, isCorrect: true } },
             },
           },
@@ -4832,6 +4915,7 @@ export const sessionRouter = router({
           ratingLabelMin: question.ratingLabelMin ?? null,
           ratingLabelMax: question.ratingLabelMax ?? null,
           ...getShortTextDtoFields(question.type, question),
+          ...getConfidenceDtoFields(question),
           numericInputType: question.numericInputType ?? undefined,
           numericDecimalPlaces: question.numericDecimalPlaces ?? null,
           numericMin: question.numericMin ?? null,
@@ -4854,6 +4938,7 @@ export const sessionRouter = router({
           ratingLabelMin: question.ratingLabelMin ?? null,
           ratingLabelMax: question.ratingLabelMax ?? null,
           ...getShortTextDtoFields(question.type, question),
+          ...getConfidenceDtoFields(question),
           numericInputType: question.numericInputType ?? undefined,
           numericDecimalPlaces: question.numericDecimalPlaces ?? null,
           numericMin: question.numericMin ?? null,
@@ -4901,6 +4986,7 @@ export const sessionRouter = router({
               ratingLabelMin: question.ratingLabelMin ?? null,
               ratingLabelMax: question.ratingLabelMax ?? null,
               ...getShortTextDtoFields(question.type, question),
+              ...getConfidenceDtoFields(question),
               numericInputType: question.numericInputType ?? undefined,
               numericDecimalPlaces: question.numericDecimalPlaces ?? null,
               numericMin: question.numericMin ?? null,
@@ -4988,6 +5074,7 @@ export const sessionRouter = router({
                   ? voteSummary.freeTextResponses
                   : undefined,
               ...getShortTextDtoFields(question.type, question),
+              ...getConfidenceDtoFields(question),
               correctVoterCount:
                 question.type === 'SHORT_TEXT' ? voteSummary.correctVoteCount : undefined,
               incorrectVoterCount:
@@ -6179,6 +6266,7 @@ export const sessionRouter = router({
           let numericHistogram: NumericHistogramBin[] | undefined;
           let numericRoundComparison: NumericRoundComparisonDTO | undefined;
           let averageScore: number | undefined;
+          let confidenceResult: QuestionExportEntry['confidenceResult'];
 
           switch (q.type) {
             case 'MULTIPLE_CHOICE':
@@ -6354,6 +6442,32 @@ export const sessionRouter = router({
             averageScore = Math.round((totalScore / votes.length) * 100) / 100;
           }
 
+          if (q.confidenceEnabled) {
+            const exportRound = votes.some((vote) => vote.round === 2) ? 2 : 1;
+            const roundVotes = votes.filter((vote) => vote.round === exportRound);
+            confidenceResult =
+              buildConfidenceResult({
+                votes: roundVotes.map((vote) => ({
+                  confidenceValue: vote.confidenceValue,
+                  isCorrect: vote.isCorrect,
+                  selectedAnswerIds: vote.selectedAnswers.map(
+                    (selected) => selected.answerOptionId,
+                  ),
+                })),
+                answerOptions: (
+                  q.answers as Array<{
+                    id: string;
+                    text: string;
+                    isCorrect: boolean;
+                  }>
+                ).map((answer) => ({
+                  id: answer.id,
+                  text: answer.text,
+                  isCorrect: answer.isCorrect,
+                })),
+              }) ?? undefined;
+          }
+
           return {
             questionOrder: q.order,
             questionTextShort: q.text.slice(0, QUESTION_TEXT_SHORT_MAX),
@@ -6375,6 +6489,7 @@ export const sessionRouter = router({
             numericStats,
             numericHistogram,
             numericRoundComparison,
+            confidenceResult,
             averageScore,
           };
         },

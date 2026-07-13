@@ -80,6 +80,9 @@ model Question {
   numericMin            Float?   // Optionale Plausibilitätsgrenze (Eingabe)
   numericMax            Float?   // Optionale Plausibilitätsgrenze (Eingabe)
   numericTwoRounds      Boolean  @default(false) // Zwei-Runden-Option
+  confidenceEnabled     Boolean  @default(false) // Story 1.2i: Sicherheitsgrad abfragen
+  confidenceLabelLow    String?  // Story 1.2i: Label für niedrige Sicherheit (z. B. „geraten“)
+  confidenceLabelHigh   String?  // Story 1.2i: Label für hohe Sicherheit (z. B. „sehr sicher“)
   quizId     String
   quiz       Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers    AnswerOption[]
@@ -214,6 +217,7 @@ model Vote {
   streakCount    Int          @default(0) // Story 5.5: Aktuelle Antwort-Serie (0 = kein Streak)
   streakBonus    Float        @default(1.0) // Story 5.5: Angewandter Streak-Multiplikator
   round          Int          @default(1) // Story 2.7: Peer Instruction – Runde (1 oder 2)
+  confidenceValue Int?        // Story 1.2i: Selbstberichteter Sicherheitsgrad (1–5)
   votedAt        DateTime     @default(now())
 
   @@unique([sessionId, participantId, questionId, round]) // Nur eine Stimme pro Frage pro Runde

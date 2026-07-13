@@ -1261,6 +1261,86 @@
             </div>
           }
 
+          @if (showConfidencePrompt()) {
+            <section
+              class="vote-confidence"
+              aria-labelledby="vote-confidence-heading"
+              aria-describedby="vote-confidence-hint"
+            >
+              <div class="vote-confidence__header">
+                <mat-icon class="vote-confidence__icon" aria-hidden="true">psychology</mat-icon>
+                <div class="vote-confidence__copy">
+                  <h3
+                    class="vote-confidence__heading"
+                    id="vote-confidence-heading"
+                    i18n="@@sessionVote.confidenceHeading"
+                  >
+                    Wie sicher bist du bei dieser Antwort?
+                  </h3>
+                  <p
+                    class="vote-confidence__hint"
+                    id="vote-confidence-hint"
+                    i18n="@@sessionVote.confidenceHint"
+                  >
+                    Bezieht sich auf deine gerade gewählte Antwort.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="vote-rating vote-rating--confidence"
+                role="radiogroup"
+                [attr.aria-label]="confidenceAriaLabel()"
+                [attr.aria-required]="true"
+              >
+                @if (confidenceLabelLow() || confidenceLabelHigh()) {
+                  <div class="vote-rating__labels">
+                    <span class="vote-rating__label vote-rating__label--min">
+                      @if (confidenceLabelLow()) {
+                        <mat-icon class="vote-rating__label-icon" aria-hidden="true"
+                          >first_page</mat-icon
+                        >
+                        {{ confidenceLabelLow() }}
+                      }
+                    </span>
+                    <span class="vote-rating__label vote-rating__label--max">
+                      @if (confidenceLabelHigh()) {
+                        {{ confidenceLabelHigh() }}
+                        <mat-icon class="vote-rating__label-icon" aria-hidden="true"
+                          >last_page</mat-icon
+                        >
+                      }
+                    </span>
+                  </div>
+                }
+                <div class="vote-rating__buttons" [style.--rating-count]="confidenceRange().length">
+                  @for (val of confidenceRange(); track val) {
+                    <button
+                      type="button"
+                      class="vote-rating__btn"
+                      [class.vote-rating__btn--selected]="confidenceValue() === val"
+                      [disabled]="voteInteractionLocked() || debounced()"
+                      role="radio"
+                      [attr.aria-checked]="confidenceValue() === val"
+                      [attr.aria-label]="confidenceValueAriaLabel(val)"
+                      (click)="selectConfidence(val)"
+                    >
+                      {{ val }}
+                    </button>
+                  }
+                </div>
+              </div>
+            </section>
+          } @else if (
+            isConfidenceEnabled() && isResults() && voteSent() && confidenceValue() !== null
+          ) {
+            <div class="vote-confidence vote-confidence--result" role="status">
+              <p class="vote-confidence__result-label">
+                <span i18n="@@sessionVote.confidenceResultPrefix">Dein Sicherheitsgrad:</span>
+                <strong>{{ confidenceResultSummary() }}</strong>
+              </p>
+            </div>
+          }
+
           @if (voteSent()) {
             @if (isActive()) {
               <div class="vote-sent" role="status" aria-live="polite">
@@ -1268,6 +1348,12 @@
                 <span class="vote-sent__copy">
                   <span class="vote-sent__title">{{ vpc.voteSentLabel(isPlayfulPreset()) }}</span>
                   <span class="vote-sent__hint">{{ vpc.voteSentHint(isPlayfulPreset()) }}</span>
+                  @if (isConfidenceEnabled() && confidenceValue() !== null) {
+                    <span class="vote-sent__confidence">
+                      <span i18n="@@sessionVote.confidenceSentPrefix">Sicherheitsgrad:</span>
+                      <strong>{{ confidenceResultSummary() }}</strong>
+                    </span>
+                  }
                 </span>
               </div>
             }

@@ -5,3 +5,4 @@
  * directly without requiring the package dist output first.
  */
 export * from './schemas';
+export * from './confidence';

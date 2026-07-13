@@ -21,6 +21,7 @@ import {
   type ShortTextEvaluationKind,
   type ShortAnswerEvaluationMode,
   type ToleranceLevel,
+  questionSupportsConfidence,
 } from '@arsnova/shared-types';
 import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
@@ -84,6 +85,9 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
     numericMin: number | null;
     numericMax: number | null;
     numericTwoRounds: boolean;
+    confidenceEnabled: boolean;
+    confidenceLabelLow: string | null;
+    confidenceLabelHigh: string | null;
     answers: Array<{
       text: string;
       isCorrect: boolean;
@@ -170,6 +174,13 @@ function buildQuizUploadPayloadFromStoredQuiz(quiz: {
             numericMin: question.numericMin ?? undefined,
             numericMax: question.numericMax ?? undefined,
             numericTwoRounds: question.numericTwoRounds ?? false,
+          }
+        : {}),
+      ...(questionSupportsConfidence(question.type)
+        ? {
+            confidenceEnabled: question.confidenceEnabled ?? false,
+            confidenceLabelLow: question.confidenceLabelLow ?? undefined,
+            confidenceLabelHigh: question.confidenceLabelHigh ?? undefined,
           }
         : {}),
       answers: question.answers.map((answer) => ({
@@ -285,6 +296,16 @@ export const quizRouter = router({
               numericMax: q.type === 'NUMERIC_ESTIMATE' ? (q.numericMax ?? null) : null,
               numericTwoRounds:
                 q.type === 'NUMERIC_ESTIMATE' ? (q.numericTwoRounds ?? false) : false,
+              confidenceEnabled:
+                questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false),
+              confidenceLabelLow:
+                questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false)
+                  ? (q.confidenceLabelLow ?? null)
+                  : null,
+              confidenceLabelHigh:
+                questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false)
+                  ? (q.confidenceLabelHigh ?? null)
+                  : null,
               answers: {
                 create: q.answers.map((a) => ({
                   text: a.text,
@@ -366,6 +387,9 @@ export const quizRouter = router({
                 numericMin: true,
                 numericMax: true,
                 numericTwoRounds: true,
+                confidenceEnabled: true,
+                confidenceLabelLow: true,
+                confidenceLabelHigh: true,
                 answers: {
                   select: {
                     text: true,

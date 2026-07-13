@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  CONFIDENCE_SCALE_MAX,
+  CONFIDENCE_SCALE_MIN,
+  questionSupportsConfidence,
+} from './confidence';
 
 // ---------------------------------------------------------------------------
 // Enums – müssen mit Prisma-Schema synchron bleiben
@@ -1292,8 +1297,25 @@ export const AddQuestionInputSchema = z
     numericMin: z.number().optional(),
     numericMax: z.number().optional(),
     numericTwoRounds: z.boolean().optional(),
+    // Story 1.2i: Optionaler Sicherheitsgrad für bewertbare Fragetypen
+    confidenceEnabled: z.boolean().optional(),
+    confidenceLabelLow: z.string().max(50).optional(),
+    confidenceLabelHigh: z.string().max(50).optional(),
   })
   .superRefine((value, ctx) => {
+    const hasConfidenceConfig =
+      value.confidenceEnabled === true ||
+      value.confidenceLabelLow !== undefined ||
+      value.confidenceLabelHigh !== undefined;
+
+    if (!questionSupportsConfidence(value.type) && hasConfidenceConfig) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['confidenceEnabled'],
+        message: 'Sicherheitsgrad ist nur für bewertbare Fragetypen erlaubt.',
+      });
+    }
+
     const hasShortTextConfig =
       value.shortTextEvaluationKind !== undefined ||
       value.shortTextMaxLength !== undefined ||
@@ -1711,6 +1733,9 @@ type QuizHistoryAccessMaterial = {
     numericMin: number | null;
     numericMax: number | null;
     numericTwoRounds: boolean;
+    confidenceEnabled: boolean;
+    confidenceLabelLow: string | null;
+    confidenceLabelHigh: string | null;
     answers: Array<{
       text: string;
       isCorrect: boolean;
@@ -1827,6 +1852,16 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
         numericMax: question.type === 'NUMERIC_ESTIMATE' ? (question.numericMax ?? null) : null,
         numericTwoRounds:
           question.type === 'NUMERIC_ESTIMATE' ? (question.numericTwoRounds ?? false) : false,
+        confidenceEnabled:
+          questionSupportsConfidence(question.type) && (question.confidenceEnabled ?? false),
+        confidenceLabelLow:
+          questionSupportsConfidence(question.type) && (question.confidenceEnabled ?? false)
+            ? (question.confidenceLabelLow ?? null)
+            : null,
+        confidenceLabelHigh:
+          questionSupportsConfidence(question.type) && (question.confidenceEnabled ?? false)
+            ? (question.confidenceLabelHigh ?? null)
+            : null,
         answers: [...question.answers]
           .map((answer) => ({ text: answer.text, isCorrect: answer.isCorrect }))
           .sort(
@@ -2118,6 +2153,45 @@ export const NumericRoundComparisonDTOSchema = z.object({
 });
 export type NumericRoundComparisonDTO = z.infer<typeof NumericRoundComparisonDTOSchema>;
 
+// ---------------------------------------------------------------------------
+// Confidence-Ergebnis (Story 1.2i)
+// ---------------------------------------------------------------------------
+
+export const ConfidenceDistributionSchema = z.object({
+  '1': z.number().int().min(0),
+  '2': z.number().int().min(0),
+  '3': z.number().int().min(0),
+  '4': z.number().int().min(0),
+  '5': z.number().int().min(0),
+});
+export type ConfidenceDistributionDTO = z.infer<typeof ConfidenceDistributionSchema>;
+
+export const ConfidenceCrossTabSchema = z.object({
+  correctHigh: z.number().int().min(0),
+  correctMid: z.number().int().min(0),
+  correctLow: z.number().int().min(0),
+  incorrectHigh: z.number().int().min(0),
+  incorrectMid: z.number().int().min(0),
+  incorrectLow: z.number().int().min(0),
+});
+export type ConfidenceCrossTabDTO = z.infer<typeof ConfidenceCrossTabSchema>;
+
+export const ConfidenceWrongOptionCountSchema = z.object({
+  answerId: z.uuid(),
+  text: z.string(),
+  count: z.number().int().min(1),
+});
+export type ConfidenceWrongOptionCountDTO = z.infer<typeof ConfidenceWrongOptionCountSchema>;
+
+/** DTO: Aggregierte Sicherheitsgrad-Auswertung nach Ergebnisfreigabe */
+export const ConfidenceResultDTOSchema = z.object({
+  distribution: ConfidenceDistributionSchema,
+  crossTab: ConfidenceCrossTabSchema,
+  highConfidenceWrongCount: z.number().int().min(0),
+  highConfidenceWrongOptions: z.array(ConfidenceWrongOptionCountSchema).optional(),
+});
+export type ConfidenceResultDTO = z.infer<typeof ConfidenceResultDTOSchema>;
+
 /** DTO: Aktuelle Frage für Host-Ansicht (Story 2.3, 3.5) – Text + Antwortoptionen inkl. isCorrect + Timer. */
 export const HostCurrentQuestionDTOSchema = z.object({
   questionId: z.string().uuid(),
@@ -2161,6 +2235,9 @@ export const HostCurrentQuestionDTOSchema = z.object({
   numericUnitFamily: NumericUnitFamilyEnum.optional(),
   numericRequireUnit: z.boolean().optional(),
   numericAcceptEquivalentUnits: z.boolean().optional(),
+  confidenceEnabled: z.boolean().optional(),
+  confidenceLabelLow: z.string().nullable().optional(),
+  confidenceLabelHigh: z.string().nullable().optional(),
   ratingAvg: z.number().nullable().optional(),
   ratingCount: z.number().int().optional(),
   ratingDistribution: z.record(z.string(), z.number()).optional(),
@@ -2197,6 +2274,7 @@ export const HostCurrentQuestionDTOSchema = z.object({
   numericHistogram: z.array(NumericHistogramBinSchema).optional(),
   numericStats: NumericStatsDTOSchema.optional(),
   numericRoundComparison: NumericRoundComparisonDTOSchema.optional(),
+  confidenceResult: ConfidenceResultDTOSchema.optional(),
 });
 export type HostCurrentQuestionDTO = z.infer<typeof HostCurrentQuestionDTOSchema>;
 
@@ -2236,6 +2314,7 @@ export const SubmitVoteInputSchema = z.object({
   numericValue: z.number().optional(), // Story 1.2d: Numerische Schätzfrage
   responseTimeMs: z.number().int().min(0).optional(), // Antwortzeit in ms
   round: z.number().int().min(1).max(2).optional().default(1), // Story 2.7: Peer Instruction Runde
+  confidenceValue: z.number().int().min(CONFIDENCE_SCALE_MIN).max(CONFIDENCE_SCALE_MAX).optional(), // Story 1.2i
 });
 export type SubmitVoteInput = z.infer<typeof SubmitVoteInputSchema>;
 
@@ -2323,6 +2402,10 @@ export const QuestionRevealedDTOSchema = z.object({
   currentRound: z.number().int().min(1).max(2).optional(),
   numericStats: NumericStatsDTOSchema.optional(),
   numericHistogram: z.array(NumericHistogramBinSchema).optional(),
+  confidenceEnabled: z.boolean().optional(),
+  confidenceLabelLow: z.string().nullable().optional(),
+  confidenceLabelHigh: z.string().nullable().optional(),
+  confidenceResult: ConfidenceResultDTOSchema.optional(),
 });
 export type QuestionRevealedDTO = z.infer<typeof QuestionRevealedDTOSchema>;
 
@@ -2373,6 +2456,9 @@ export const QuestionStudentDTOSchema = z.object({
   numericMin: z.number().nullable().optional(),
   numericMax: z.number().nullable().optional(),
   numericTwoRounds: z.boolean().optional(),
+  confidenceEnabled: z.boolean().optional(),
+  confidenceLabelLow: z.string().nullable().optional(),
+  confidenceLabelHigh: z.string().nullable().optional(),
 });
 export type QuestionStudentDTO = z.infer<typeof QuestionStudentDTOSchema>;
 
@@ -2421,6 +2507,9 @@ export const QuestionPreviewDTOSchema = z.object({
   numericDecimalPlaces: z.number().int().nullable().optional(),
   numericMin: z.number().nullable().optional(),
   numericMax: z.number().nullable().optional(),
+  confidenceEnabled: z.boolean().optional(),
+  confidenceLabelLow: z.string().nullable().optional(),
+  confidenceLabelHigh: z.string().nullable().optional(),
 });
 export type QuestionPreviewDTO = z.infer<typeof QuestionPreviewDTOSchema>;
 
@@ -2851,6 +2940,9 @@ const ExportedQuestionSchema = z.object({
   numericMin: z.number().nullable().optional(),
   numericMax: z.number().nullable().optional(),
   numericTwoRounds: z.boolean().optional(),
+  confidenceEnabled: z.boolean().optional(),
+  confidenceLabelLow: z.string().nullable().optional(),
+  confidenceLabelHigh: z.string().nullable().optional(),
   /** false = in lokaler Bibliothek behalten, aber nicht in Live/Vorschau */
   enabled: z.boolean().optional().default(true),
 });
@@ -3090,6 +3182,7 @@ export const QuestionExportEntrySchema = z.object({
   numericStats: NumericStatsDTOSchema.optional(),
   numericHistogram: z.array(NumericHistogramBinSchema).optional(),
   numericRoundComparison: NumericRoundComparisonDTOSchema.optional(),
+  confidenceResult: ConfidenceResultDTOSchema.optional(),
   averageScore: z.number().optional(), // Durchschnittspunkte (wenn gescored)
 });
 export type QuestionExportEntry = z.infer<typeof QuestionExportEntrySchema>;

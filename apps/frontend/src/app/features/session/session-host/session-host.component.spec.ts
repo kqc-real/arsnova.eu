@@ -3063,6 +3063,81 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt bei RESULTS die Sicherheitsgrad-Auswertung mit Fehlkonzept-Hinweis', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'RESULTS', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Was ist 2+2?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      currentRound: 1,
+      answers: [
+        { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', isCorrect: false },
+        { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-1111-4111-8111-111111111111',
+          text: '5',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+        {
+          id: 'bbbbbbbb-2222-4222-8222-222222222222',
+          text: '4',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 50,
+        },
+      ],
+      totalVotes: 2,
+      correctVoterCount: 1,
+      confidenceEnabled: true,
+      confidenceLabelLow: 'Geraten',
+      confidenceLabelHigh: 'Sehr sicher',
+      confidenceResult: {
+        distribution: { '1': 1, '2': 0, '3': 0, '4': 0, '5': 1 },
+        crossTab: {
+          correctHigh: 0,
+          correctMid: 0,
+          correctLow: 1,
+          incorrectHigh: 1,
+          incorrectMid: 0,
+          incorrectLow: 0,
+        },
+        highConfidenceWrongCount: 1,
+        highConfidenceWrongOptions: [
+          { answerId: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', count: 1 },
+        ],
+      },
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(
+      () => fixture.nativeElement.querySelector('.session-host__confidence') !== null,
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.session-host__confidence-alert')?.textContent).toContain(
+      'selbstsicher falsch',
+    );
+    expect(host.querySelector('.session-host__confidence-wrong-options-list')).not.toBeNull();
+    fixture.destroy();
+  });
+
   it('markiert Markdown-Container im Quiz-Livekanal fuer responsive Bild-Styles', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -7969,14 +8044,25 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
         questions: [
           {
             questionOrder: 0,
-            questionTextShort: 'Wie zufrieden bist du?',
-            type: 'RATING',
-            participantCount: 3,
+            questionTextShort: 'Was ist 2+2?',
+            type: 'SINGLE_CHOICE',
+            participantCount: 2,
             averageScore: null,
-            optionDistribution: null,
-            freetextAggregates: null,
-            ratingDistribution: { '1': 1, '3': 2 },
-            ratingAverage: 2.3,
+            confidenceResult: {
+              distribution: { '1': 1, '2': 0, '3': 0, '4': 0, '5': 1 },
+              crossTab: {
+                correctHigh: 0,
+                correctMid: 0,
+                correctLow: 1,
+                incorrectHigh: 1,
+                incorrectMid: 0,
+                incorrectLow: 0,
+              },
+              highConfidenceWrongCount: 1,
+              highConfidenceWrongOptions: [
+                { answerId: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', count: 1 },
+              ],
+            },
           },
         ],
         teamLeaderboard: [],
@@ -7998,6 +8084,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       fixture.detectChanges();
 
       expect(exportedCsv).toContain('Frage Nr.;Fragentext;Typ;Teilnehmende;Ø Punkte;Details');
+      expect(exportedCsv).toContain('selbstsicher falsch');
       expect(exportedCsv).toContain('Bonus-Codes');
       expect(exportedCsv).toContain('Rang;Nickname;Code;Punkte;Generiert am');
       expect(exportedCsv).toContain('1;Ada;BONUS-123;220;2026-03-24T12:31:00.000Z');

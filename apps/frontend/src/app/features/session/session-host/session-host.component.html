@@ -2258,6 +2258,159 @@
                             }
                           </ul>
                         }
+
+                        @if (effectiveStatus() === 'RESULTS' && q.confidenceResult; as confidence) {
+                          <section
+                            class="session-host__confidence"
+                            aria-labelledby="session-host-confidence-heading"
+                          >
+                            <div class="session-host__confidence-header">
+                              <mat-icon class="session-host__confidence-icon" aria-hidden="true"
+                                >psychology</mat-icon
+                              >
+                              <div class="session-host__confidence-heading-copy">
+                                <h3
+                                  class="session-host__confidence-heading"
+                                  id="session-host-confidence-heading"
+                                  i18n="@@sessionHost.confidenceSectionTitle"
+                                >
+                                  Sicherheitsgrad
+                                </h3>
+                                <p
+                                  class="session-host__confidence-lead"
+                                  i18n="@@sessionHost.confidenceSectionLead"
+                                >
+                                  Wie sicher waren Teilnehmende bei ihrer Antwort?
+                                </p>
+                              </div>
+                            </div>
+
+                            @if (confidence.highConfidenceWrongCount > 0) {
+                              <div
+                                class="session-host__confidence-alert"
+                                role="status"
+                                aria-live="polite"
+                              >
+                                <mat-icon aria-hidden="true">priority_high</mat-icon>
+                                <span>{{
+                                  confidenceMisconceptionLabel(confidence.highConfidenceWrongCount)
+                                }}</span>
+                              </div>
+                            }
+
+                            <div
+                              class="session-host__confidence-distribution"
+                              role="img"
+                              i18n-aria-label="@@sessionHost.confidenceDistributionAria"
+                              aria-label="Verteilung der Sicherheitsstufen"
+                            >
+                              @for (step of confidenceBarRange(); track step) {
+                                @let count = confidenceDistributionCount(confidence, step);
+                                @let pct = confidenceDistributionPercent(confidence, step);
+                                <div class="session-host__confidence-bar">
+                                  <span class="session-host__confidence-bar-label">{{ step }}</span>
+                                  <div class="session-host__confidence-bar-track">
+                                    <div
+                                      class="session-host__confidence-bar-fill"
+                                      [style.width.%]="pct"
+                                    ></div>
+                                  </div>
+                                  <span class="session-host__confidence-bar-meta">
+                                    <span class="session-host__confidence-bar-count">{{
+                                      formatCount(count)
+                                    }}</span>
+                                    <span class="session-host__confidence-bar-pct"
+                                      >{{ pct }}&nbsp;%</span
+                                    >
+                                  </span>
+                                </div>
+                              }
+                            </div>
+
+                            <div
+                              class="session-host__confidence-crosstab"
+                              role="table"
+                              i18n-aria-label="@@sessionHost.confidenceCrossTabAria"
+                              aria-label="Kreuztabelle Korrektheit und Sicherheit"
+                            >
+                              <div
+                                class="session-host__confidence-crosstab-row session-host__confidence-crosstab-row--head"
+                                role="row"
+                              >
+                                <span
+                                  class="session-host__confidence-crosstab-corner"
+                                  role="columnheader"
+                                ></span>
+                                <span role="columnheader">{{ confidenceTierLowHeading(q) }}</span>
+                                <span role="columnheader">{{ confidenceTierMidHeading() }}</span>
+                                <span role="columnheader">{{ confidenceTierHighHeading(q) }}</span>
+                              </div>
+                              @for (row of confidenceCrossTabRows(confidence); track row.label) {
+                                <div
+                                  class="session-host__confidence-crosstab-row"
+                                  role="row"
+                                  [class.session-host__confidence-crosstab-row--alert]="
+                                    row.highlightHigh
+                                  "
+                                >
+                                  <span
+                                    class="session-host__confidence-crosstab-row-label"
+                                    role="rowheader"
+                                    >{{ row.label }}</span
+                                  >
+                                  <span
+                                    class="session-host__confidence-crosstab-cell"
+                                    role="cell"
+                                    [attr.data-tier]="confidenceTierLowHeading(q)"
+                                    >{{ formatCount(row.low) }}</span
+                                  >
+                                  <span
+                                    class="session-host__confidence-crosstab-cell"
+                                    role="cell"
+                                    [attr.data-tier]="confidenceTierMidHeading()"
+                                    >{{ formatCount(row.mid) }}</span
+                                  >
+                                  <span
+                                    class="session-host__confidence-crosstab-cell"
+                                    role="cell"
+                                    [attr.data-tier]="confidenceTierHighHeading(q)"
+                                    [class.session-host__confidence-crosstab-cell--alert]="
+                                      row.highlightHigh
+                                    "
+                                    >{{ formatCount(row.high) }}</span
+                                  >
+                                </div>
+                              }
+                            </div>
+
+                            @if (confidence.highConfidenceWrongOptions?.length) {
+                              <div class="session-host__confidence-wrong-options">
+                                <p
+                                  class="session-host__confidence-wrong-options-title"
+                                  i18n="@@sessionHost.confidenceWrongOptionsTitle"
+                                >
+                                  Häufig falsch mit hoher Sicherheit
+                                </p>
+                                <ul class="session-host__confidence-wrong-options-list" role="list">
+                                  @for (
+                                    option of confidence.highConfidenceWrongOptions;
+                                    track option.answerId
+                                  ) {
+                                    <li>
+                                      <span
+                                        class="session-host__confidence-wrong-option-text markdown-body"
+                                        [innerHTML]="renderMarkdown(option.text)"
+                                      ></span>
+                                      <span class="session-host__confidence-wrong-option-count">{{
+                                        formatCount(option.count)
+                                      }}</span>
+                                    </li>
+                                  }
+                                </ul>
+                              </div>
+                            }
+                          </section>
+                        }
                       </mat-card-content>
                     </mat-card>
                   </div>

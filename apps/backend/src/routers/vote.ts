@@ -20,6 +20,7 @@ import {
   isNumericValueInBand,
   isNumericToleranceMode,
   resolveNumericEstimateToleranceMode,
+  isConfidenceScaleValue,
   type QuestionType,
   type Difficulty,
   type NumericInputKind,
@@ -474,6 +475,25 @@ export const voteRouter = router({
           message: 'numericValue ist nur für numerische Schätzfragen erlaubt.',
         });
       }
+      if (question.confidenceEnabled) {
+        if (input.confidenceValue === undefined || input.confidenceValue === null) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Für diese Frage ist ein Sicherheitsgrad erforderlich.',
+          });
+        }
+        if (!isConfidenceScaleValue(input.confidenceValue)) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Sicherheitsgrad muss zwischen 1 und 5 liegen.',
+          });
+        }
+      } else if (input.confidenceValue !== undefined) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'confidenceValue ist nur erlaubt, wenn die Frage den Sicherheitsgrad abfragt.',
+        });
+      }
 
       const correctAnswerIds = question.answers
         .filter((answer) => answer.isCorrect)
@@ -614,6 +634,7 @@ export const voteRouter = router({
             freeText,
             ratingValue: input.ratingValue ?? null,
             numericValue: input.numericValue ?? null,
+            confidenceValue: input.confidenceValue ?? null,
             responseTimeMs,
             score,
             isCorrect: voteIsCorrect,

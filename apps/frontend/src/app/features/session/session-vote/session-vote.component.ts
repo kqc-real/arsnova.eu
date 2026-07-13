@@ -42,7 +42,10 @@ import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-rout
 import {
   evaluateNumericAnswer,
   evaluateShortAnswer,
+  CONFIDENCE_SCALE_MAX,
+  CONFIDENCE_SCALE_MIN,
   isNumericToleranceMode,
+  questionSupportsConfidence,
   normalizeShortTextValue,
   parseNumericInput,
   resolveNumericEstimateToleranceMode,
@@ -128,6 +131,7 @@ type StoredVoteResponse = {
   freeText?: string;
   ratingValue?: number;
   numericValue?: number;
+  confidenceValue?: number;
   sent: true;
   updatedAt: string;
 };
@@ -439,6 +443,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly readingReadySubmitting = signal(false);
   readonly freeTextValue = signal('');
   readonly ratingValue = signal<number | null>(null);
+  readonly confidenceValue = signal<number | null>(null);
   readonly numericInputValue = signal<string>('');
   readonly numericParsedValue = computed<number | null>(() => {
     return parseNumericInput(this.numericInputValue(), {
@@ -1131,6 +1136,32 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'RATING';
   });
+  readonly isConfidenceEnabled = computed(() => {
+    const q = this.currentQuestion();
+    if (!q || !('type' in q) || !questionSupportsConfidence(q.type)) {
+      return false;
+    }
+    return q.confidenceEnabled === true;
+  });
+  readonly voteAnswerReady = computed(() => {
+    if (!this.isActive() || this.voteSent()) {
+      return false;
+    }
+    if (this.hasAnswers()) {
+      return this.selectedAnswerIds().size > 0;
+    }
+    if (this.isShortText()) {
+      return this.freeTextValue().trim().length > 0 && this.shortTextValidationError() === null;
+    }
+    if (this.isNumericEstimate()) {
+      return this.numericValidationError() === null && this.numericParsedValue() !== null;
+    }
+    return false;
+  });
+  readonly showConfidencePrompt = computed(
+    () =>
+      this.isConfidenceEnabled() && this.isActive() && !this.voteSent() && this.voteAnswerReady(),
+  );
   readonly isFreetext = computed(() => {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'FREETEXT';
@@ -1483,6 +1514,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.selectedAnswerIds().size > 0 ||
       this.freeTextValue().trim().length > 0 ||
       this.ratingValue() !== null ||
+      this.confidenceValue() !== null ||
       this.numericInputValue().trim().length > 0
     );
   }
@@ -1503,6 +1535,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.selectedAnswerIds.set(new Set(parsed.answerIds ?? []));
       this.freeTextValue.set(parsed.freeText ?? '');
       this.ratingValue.set(typeof parsed.ratingValue === 'number' ? parsed.ratingValue : null);
+      this.confidenceValue.set(
+        typeof parsed.confidenceValue === 'number' ? parsed.confidenceValue : null,
+      );
       if (typeof parsed.numericValue === 'number') {
         this.numericInputValue.set(String(parsed.numericValue));
       }
@@ -1518,6 +1553,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     freeText: string | undefined,
     ratingValue: number | undefined,
     numericValue?: number,
+    confidenceValue?: number,
   ): void {
     const key = this.voteResponseStorageKey(question.id, this.questionRoundForStorage(question));
     if (!key || typeof localStorage === 'undefined') {
@@ -1529,6 +1565,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       freeText: freeText || undefined,
       ratingValue,
       numericValue,
+      confidenceValue,
       sent: true,
       updatedAt: new Date().toISOString(),
     };
@@ -1556,22 +1593,28 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (this.voteSending() || this.debounced() || this.voteClosed() || this.timerExpired()) {
       return true;
     }
+
+    let answerReady = false;
     if (this.hasAnswers()) {
-      return this.selectedAnswerIds().size === 0;
+      answerReady = this.selectedAnswerIds().size > 0;
+    } else if (this.isShortText()) {
+      answerReady =
+        this.freeTextValue().trim().length > 0 && this.shortTextValidationError() === null;
+    } else if (this.isFreetext()) {
+      answerReady = this.freeTextValue().trim().length > 0;
+    } else if (this.isRating()) {
+      answerReady = this.ratingValue() !== null;
+    } else if (this.isNumericEstimate()) {
+      answerReady = this.numericValidationError() === null && this.numericParsedValue() !== null;
     }
-    if (this.isShortText()) {
-      return !this.freeTextValue().trim() || this.shortTextValidationError() !== null;
+
+    if (!answerReady) {
+      return true;
     }
-    if (this.isFreetext()) {
-      return !this.freeTextValue().trim();
+    if (this.isConfidenceEnabled() && this.confidenceValue() === null) {
+      return true;
     }
-    if (this.isRating()) {
-      return this.ratingValue() === null;
-    }
-    if (this.isNumericEstimate()) {
-      return this.numericValidationError() !== null;
-    }
-    return true;
+    return false;
   });
   readonly showQaSubmitAction = computed(
     () =>
@@ -2346,6 +2389,73 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return $localize`Bewertung ${value}`;
   }
 
+  confidenceRange(): number[] {
+    const range: number[] = [];
+    for (let value = CONFIDENCE_SCALE_MIN; value <= CONFIDENCE_SCALE_MAX; value += 1) {
+      range.push(value);
+    }
+    return range;
+  }
+
+  confidenceLabelLow(): string {
+    const q = this.currentQuestion();
+    return q && 'confidenceLabelLow' in q ? (q.confidenceLabelLow ?? '') : '';
+  }
+
+  confidenceLabelHigh(): string {
+    const q = this.currentQuestion();
+    return q && 'confidenceLabelHigh' in q ? (q.confidenceLabelHigh ?? '') : '';
+  }
+
+  confidenceAriaLabel(): string {
+    const low = this.confidenceLabelLow();
+    const high = this.confidenceLabelHigh();
+    if (low && high) {
+      return $localize`:@@sessionVote.confidenceAriaWithLabels:Sicherheitsgrad von 1 bis 5, niedrig: ${low}:low:, hoch: ${high}:high:`;
+    }
+    if (low) {
+      return $localize`:@@sessionVote.confidenceAriaWithLow:Sicherheitsgrad von 1 bis 5, niedrig: ${low}:low:`;
+    }
+    if (high) {
+      return $localize`:@@sessionVote.confidenceAriaWithHigh:Sicherheitsgrad von 1 bis 5, hoch: ${high}:high:`;
+    }
+    return $localize`:@@sessionVote.confidenceAria:Sicherheitsgrad von 1 bis 5`;
+  }
+
+  confidenceValueAriaLabel(value: number): string {
+    return $localize`:@@sessionVote.confidenceValueAria:Sicherheitsgrad ${value}:value:`;
+  }
+
+  confidenceResultSummary(): string {
+    const value = this.confidenceValue();
+    if (value === null) {
+      return '–';
+    }
+    const low = this.confidenceLabelLow();
+    const high = this.confidenceLabelHigh();
+    if (value <= 2 && low) {
+      return $localize`:@@sessionVote.confidenceResultWithLowLabel:${value}:value: – ${low}:label:`;
+    }
+    if (value >= 4 && high) {
+      return $localize`:@@sessionVote.confidenceResultWithHighLabel:${value}:value: – ${high}:label:`;
+    }
+    return String(value);
+  }
+
+  selectConfidence(value: number): void {
+    if (this.voteInteractionLocked() || !this.isActive() || !this.showConfidencePrompt()) {
+      return;
+    }
+    this.confidenceValue.set(value);
+    this.voteError.set(null);
+    try {
+      navigator.vibrate?.(8);
+    } catch {
+      /* unsupported */
+    }
+    this.cdr.detectChanges();
+  }
+
   emojiReactionAriaLabel(emoji: string): string {
     return $localize`Reagiere mit ${emoji}`;
   }
@@ -2704,6 +2814,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.voteError.set(null);
     this.freeTextValue.set('');
     this.ratingValue.set(null);
+    this.confidenceValue.set(null);
     this.numericInputValue.set('');
     this.motivationMessage.set(null);
     this.timeoutMessage.set(null);
@@ -3392,6 +3503,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         this.readingReadySubmitting.set(false);
         this.freeTextValue.set('');
         this.ratingValue.set(null);
+        this.confidenceValue.set(null);
         this.numericInputValue.set('');
         this.motivationMessage.set(null);
         this.timeoutMessage.set(null);
@@ -3704,6 +3816,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const rating = q.type === 'RATING' ? (this.ratingValue() ?? undefined) : undefined;
     const numericValue =
       q.type === 'NUMERIC_ESTIMATE' ? (this.numericParsedValue() ?? undefined) : undefined;
+    const confidence = this.isConfidenceEnabled()
+      ? (this.confidenceValue() ?? undefined)
+      : undefined;
 
     if (q.type === 'NUMERIC_ESTIMATE') {
       const validationError = this.numericValidationError();
@@ -3724,6 +3839,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
     }
 
+    if (this.isConfidenceEnabled() && confidence === undefined) {
+      this.voteError.set(
+        $localize`:@@sessionVote.confidenceRequired:Gib deinen Sicherheitsgrad an, bevor du absendest.`,
+      );
+      return;
+    }
+
     this.debounced.set(true);
     this.voteSending.set(true);
     this.voteError.set(null);
@@ -3741,9 +3863,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         freeText: freeText || undefined,
         ratingValue: rating,
         numericValue,
+        confidenceValue: confidence,
         round: this.currentRound(),
       });
-      this.storeVoteResponse(q, answerIds, freeText, rating, numericValue);
+      this.storeVoteResponse(q, answerIds, freeText, rating, numericValue, confidence);
       try {
         navigator.vibrate?.(10);
       } catch {

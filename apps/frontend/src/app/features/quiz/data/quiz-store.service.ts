@@ -31,6 +31,7 @@ import {
   resolveShortAnswerEvaluationSettings,
   resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
+  questionSupportsConfidence,
   usesNumericShortTextEvaluation,
   type Difficulty,
   type AddQuestionInput,
@@ -120,6 +121,9 @@ export interface QuizQuestion {
   numericMin?: number | null;
   numericMax?: number | null;
   numericTwoRounds?: boolean;
+  confidenceEnabled?: boolean;
+  confidenceLabelLow?: string | null;
+  confidenceLabelHigh?: string | null;
 }
 
 export interface QuizSettings {
@@ -278,6 +282,9 @@ export interface AddQuizQuestionInput {
   numericMin?: number | null;
   numericMax?: number | null;
   numericTwoRounds?: boolean;
+  confidenceEnabled?: boolean;
+  confidenceLabelLow?: string | null;
+  confidenceLabelHigh?: string | null;
 }
 
 export interface CreateQuizDocumentInput {
@@ -325,6 +332,9 @@ type ValidatedQuestionInput = {
   numericMin: number | null;
   numericMax: number | null;
   numericTwoRounds: boolean;
+  confidenceEnabled: boolean;
+  confidenceLabelLow: string | null;
+  confidenceLabelHigh: string | null;
 };
 
 type ShortTextQuestionSettingsInput = {
@@ -428,6 +438,38 @@ function resolveQuestionShortTextSettings(
   };
 }
 
+type QuestionConfidenceSettingsInput = {
+  type: string;
+  confidenceEnabled?: boolean | null;
+  confidenceLabelLow?: string | null;
+  confidenceLabelHigh?: string | null;
+};
+
+function resolveQuestionConfidenceSettings(question: QuestionConfidenceSettingsInput): {
+  confidenceEnabled: boolean;
+  confidenceLabelLow: string | null;
+  confidenceLabelHigh: string | null;
+} {
+  if (!questionSupportsConfidence(question.type)) {
+    return {
+      confidenceEnabled: false,
+      confidenceLabelLow: null,
+      confidenceLabelHigh: null,
+    };
+  }
+
+  const enabled = question.confidenceEnabled === true;
+  return {
+    confidenceEnabled: enabled,
+    confidenceLabelLow: enabled
+      ? (normalizeNullableLabel(question.confidenceLabelLow) ?? null)
+      : null,
+    confidenceLabelHigh: enabled
+      ? (normalizeNullableLabel(question.confidenceLabelHigh) ?? null)
+      : null,
+  };
+}
+
 type QuestionCreateData = Omit<AddQuestionInput, 'order'>;
 
 interface HomePresetSnapshot {
@@ -520,6 +562,10 @@ function getLocalQuestionValidationIssues(
   const issues: Array<{ path: Array<string | number>; message: string }> = [];
   const normalizedRatingLabelMin = normalizeNullableLabel(value.ratingLabelMin);
   const normalizedRatingLabelMax = normalizeNullableLabel(value.ratingLabelMax);
+  const hasConfidenceConfig =
+    value.confidenceEnabled === true ||
+    normalizeNullableLabel(value.confidenceLabelLow) !== undefined ||
+    normalizeNullableLabel(value.confidenceLabelHigh) !== undefined;
   const hasRatingConfig =
     value.ratingMin !== undefined ||
     value.ratingMax !== undefined ||
@@ -546,6 +592,13 @@ function getLocalQuestionValidationIssues(
     issues.push({
       path: ['ratingMin'],
       message: $localize`Rating-Grenzen sind nur für Rating-Fragen erlaubt.`,
+    });
+  }
+
+  if (!questionSupportsConfidence(value.type) && hasConfidenceConfig) {
+    issues.push({
+      path: ['confidenceEnabled'],
+      message: $localize`:@@quizEdit.confidenceConfigTypeError:Sicherheitsgrad ist nur für bewertbare Fragen erlaubt.`,
     });
   }
 
@@ -1142,6 +1195,9 @@ export class QuizStoreService implements OnDestroy {
             ratingMax: question.ratingMax,
             ratingLabelMin: question.ratingLabelMin,
             ratingLabelMax: question.ratingLabelMax,
+            confidenceEnabled: question.confidenceEnabled,
+            confidenceLabelLow: question.confidenceLabelLow,
+            confidenceLabelHigh: question.confidenceLabelHigh,
             ...(question.type === 'SHORT_TEXT'
               ? {
                   shortTextEvaluationKind: shortTextSettings.shortTextEvaluationKind ?? undefined,
@@ -1349,6 +1405,13 @@ export class QuizStoreService implements OnDestroy {
               numericTwoRounds: q.numericTwoRounds ?? undefined,
             }
           : {}),
+        ...(questionSupportsConfidence(q.type)
+          ? {
+              confidenceEnabled: q.confidenceEnabled ?? false,
+              confidenceLabelLow: q.confidenceLabelLow ?? undefined,
+              confidenceLabelHigh: q.confidenceLabelHigh ?? undefined,
+            }
+          : {}),
       })),
     };
 
@@ -1435,6 +1498,7 @@ export class QuizStoreService implements OnDestroy {
         .sort((a, b) => a.order - b.order)
         .map((question, index) => {
           const shortTextSettings = resolveQuestionShortTextSettings(question);
+          const confidenceSettings = resolveQuestionConfidenceSettings(question);
           const isNumericEstimate = question.type === 'NUMERIC_ESTIMATE';
           return {
             id: generateUuid(),
@@ -1460,6 +1524,7 @@ export class QuizStoreService implements OnDestroy {
               question.type === 'RATING'
                 ? (normalizeNullableLabel(question.ratingLabelMax) ?? null)
                 : null,
+            ...confidenceSettings,
             ...shortTextSettings,
             numericToleranceMode: isNumericEstimate
               ? resolveNumericEstimateToleranceMode(question.numericToleranceMode)
@@ -1521,6 +1586,7 @@ export class QuizStoreService implements OnDestroy {
       ratingMax: parsed.ratingMax,
       ratingLabelMin: parsed.ratingLabelMin,
       ratingLabelMax: parsed.ratingLabelMax,
+      ...resolveQuestionConfidenceSettings(parsed),
       ...shortTextSettings,
       numericToleranceMode:
         parsed.type === 'NUMERIC_ESTIMATE'
@@ -1587,6 +1653,7 @@ export class QuizStoreService implements OnDestroy {
       ratingMax: parsed.ratingMax,
       ratingLabelMin: parsed.ratingLabelMin,
       ratingLabelMax: parsed.ratingLabelMax,
+      ...resolveQuestionConfidenceSettings(parsed),
       ...shortTextSettings,
       numericToleranceMode:
         parsed.type === 'NUMERIC_ESTIMATE'
@@ -2681,6 +2748,7 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
       ? (normalizeNullableLabel(parsed.data.ratingLabelMax) ?? null)
       : null;
   const shortTextSettings = resolveQuestionShortTextSettings(parsed.data);
+  const confidenceSettings = resolveQuestionConfidenceSettings(parsed.data);
 
   return {
     text: parsed.data.text,
@@ -2694,6 +2762,7 @@ function validateQuestionInput(input: AddQuizQuestionInput): ValidatedQuestionIn
     ratingLabelMin,
     ratingLabelMax,
     ...shortTextSettings,
+    ...confidenceSettings,
     numericToleranceMode: isNumeric
       ? resolveNumericEstimateToleranceMode(parsed.data.numericToleranceMode)
       : shortTextSettings.numericToleranceMode,
@@ -2795,6 +2864,13 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
           numericTwoRounds: readBoolean(candidate['numericTwoRounds']) ?? undefined,
         }
       : {}),
+    ...(typeRaw && questionSupportsConfidence(typeRaw)
+      ? {
+          confidenceEnabled: readBoolean(candidate['confidenceEnabled']) ?? undefined,
+          confidenceLabelLow: readStringOrNull(candidate['confidenceLabelLow']) ?? undefined,
+          confidenceLabelHigh: readStringOrNull(candidate['confidenceLabelHigh']) ?? undefined,
+        }
+      : {}),
   });
   if (!parsed.success) return null;
 
@@ -2811,6 +2887,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
   const enabledRaw = candidate['enabled'];
   const enabled = enabledRaw !== false;
   const shortTextSettings = resolveQuestionShortTextSettings(parsed.data);
+  const confidenceSettings = resolveQuestionConfidenceSettings(parsed.data);
 
   const isNumericStored = parsed.data.type === 'NUMERIC_ESTIMATE';
   return {
@@ -2833,6 +2910,7 @@ function normalizeStoredQuestion(value: unknown, fallbackOrder: number): QuizQue
       parsed.data.type === 'RATING'
         ? (normalizeNullableLabel(parsed.data.ratingLabelMax) ?? null)
         : null,
+    ...confidenceSettings,
     ...shortTextSettings,
     numericToleranceMode: isNumericStored
       ? resolveNumericEstimateToleranceMode(parsed.data.numericToleranceMode)

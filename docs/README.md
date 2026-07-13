@@ -30,18 +30,18 @@ Zentrale **Landkarte** für alles unter `docs/`. Für Setup und erste Schritte z
 
 ## Ordnerüberblick
 
-| Pfad                               | Inhalt                                                                                                      |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| [architecture/](architecture/)     | Handbuch, ADRs, Quiz-Sync-Architektur                                                                       |
-| [diagrams/](diagrams/)             | Mermaid-Architekturdiagramme, Konsistenzcheck                                                               |
-| [features/](features/)             | Tiefere Feature-Doks (Team, Bonus, Preset, Blitzlicht-API, Server-Status, [MOTD](features/motd.md), …)      |
-| [implementation/](implementation/) | Umsetzungspläne, Story-Notizen                                                                              |
-| [ui/](ui/)                         | Styleguide, Tokens, Guidelines (z. B. Blitzlicht)                                                           |
-| [vibe-coding/](vibe-coding/)       | Szenarien und Prompt-Beispiele für KI-gestützte Arbeit                                                      |
-| [examples/](examples/)             | z. B. Quiz-Import-Beispiele                                                                                 |
-| [didaktik/](didaktik/)             | Fahrpläne, Greenfield-Demo, Folienskizzen                                                                   |
-| [praktikum/](praktikum/)           | Einstieg Tools/Stack; Praktika Entwicklung, **SQM** und **Data Analytics**; Begriffe Freitext/Semantik      |
-| [screenshots/](screenshots/)       | Kuratierte Vergleichsbilder, Wortwolken, Stopwort-Beispiele und Zielbilder für die semantische Begriffwolke |
+| Pfad                               | Inhalt                                                                                                                                                   |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [architecture/](architecture/)     | Handbuch, ADRs, Quiz-Sync-Architektur                                                                                                                    |
+| [diagrams/](diagrams/)             | Mermaid-Architekturdiagramme, Konsistenzcheck                                                                                                            |
+| [features/](features/)             | Tiefere Feature-Doks (Team, Bonus, Preset, Blitzlicht-API, Server-Status, [MOTD](features/motd.md), [Sicherheitsgrad](features/confidence-slider.md), …) |
+| [implementation/](implementation/) | Umsetzungspläne, Story-Notizen                                                                                                                           |
+| [ui/](ui/)                         | Styleguide, Tokens, Guidelines (z. B. Blitzlicht)                                                                                                        |
+| [vibe-coding/](vibe-coding/)       | Szenarien und Prompt-Beispiele für KI-gestützte Arbeit                                                                                                   |
+| [examples/](examples/)             | z. B. Quiz-Import-Beispiele                                                                                                                              |
+| [didaktik/](didaktik/)             | Fahrpläne, Greenfield-Demo, Folienskizzen                                                                                                                |
+| [praktikum/](praktikum/)           | Einstieg Tools/Stack; Praktika Entwicklung, **SQM** und **Data Analytics**; Begriffe Freitext/Semantik                                                   |
+| [screenshots/](screenshots/)       | Kuratierte Vergleichsbilder, Wortwolken, Stopwort-Beispiele und Zielbilder für die semantische Begriffwolke                                              |
 
 ---
 
@@ -53,5 +53,6 @@ Zentrale **Landkarte** für alles unter `docs/`. Für Setup und erste Schritte z
 - **Status-Ampel (SLO vs Last):** [ADR-0021](architecture/decisions/0021-separate-service-status-from-load-status-with-live-slo-telemetry.md)
 - **Projektglossar:** [GLOSSAR.md](GLOSSAR.md)
 - **Screenshot-Übersicht:** [screenshots/README.md](screenshots/README.md)
+- **Sicherheitsgrad / Confidence (Story 1.2i):** [features/confidence-slider.md](features/confidence-slider.md)
 
-**Stand dieser Landkarte:** 2026-07-11 — abgeglichen mit Root-[README](../README.md), [Backlog.md](../Backlog.md), Architektur-Handbuch, Glossar, Onboarding, lokalem Gesamt-/QA-Nachlauf und den aktuellen Praktikumsdokumenten.
+**Stand dieser Landkarte:** 2026-07-13 — abgeglichen mit Root-[README](../README.md), [Backlog.md](../Backlog.md), Architektur-Handbuch, Glossar, Onboarding, lokalem Gesamt-/QA-Nachlauf und den aktuellen Praktikumsdokumenten.

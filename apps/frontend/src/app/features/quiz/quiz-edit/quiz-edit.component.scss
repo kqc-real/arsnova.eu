@@ -623,6 +623,31 @@
   line-height: 1.5;
 }
 
+.quiz-edit-form__confidence-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+}
+
+.quiz-edit-form__confidence-preview-scale {
+  margin: 0;
+}
+
+@media (max-width: 359px) {
+  .quiz-edit-form__confidence-preview-scale .quiz-edit-question__rating-step {
+    width: 1.75rem;
+    height: 1.75rem;
+    font: var(--mat-sys-label-small);
+  }
+
+  .quiz-edit-form__confidence-preview-scale .quiz-edit-question__rating-label {
+    font: var(--mat-sys-label-small);
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
 .quiz-edit-answer {
   display: grid;
   /* minmax(0, 1fr): sonst Mindestbreite = Inhalt (z. B. Markdown-Toolbar) → horizontales Überlaufen */

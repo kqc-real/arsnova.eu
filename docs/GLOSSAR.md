@@ -2,7 +2,7 @@
 
 # Glossar: arsnova.eu
 
-**Stand:** 2026-07-05
+**Stand:** 2026-07-13
 
 **Zweck:** Einheitliche **produktnahe Begriffe** (Workflows, UI, Rollen) plus eine **kurze Brücke** zu Prisma-Modellnamen. Vollständiges Schema nur in `schema.prisma` / Handbuch — hier keine Spalten- oder Enum-Listen.
 
@@ -48,11 +48,13 @@
 - **Quick-Feedback:** Technischer Name des tRPC-Routers **`quickFeedback`**, der Redis-Keys `qf:*` und des Live-Kanals `quickFeedback` — fachlich = Blitzlicht. Aktuelle Typen: `MOOD`, `YESNO`, `YESNO_BINARY`, `TRUEFALSE_UNKNOWN`, `STARS`, `ABCD`, `TEMPO`. Klassische Typen bleiben Einmal-Votes; `TEMPO` hat bewusst mutable Semantik. Vertiefung: [blitzlicht-quickfeedback-api](features/blitzlicht-quickfeedback-api.md).
 - **Referenzwert:** Zielwert der numerischen Schätzfrage; dient als Mittelpunkt für relatives Toleranzband und Nähe-Scoring. Vertiefung: Story 1.2d, `docs/features/numeric-estimate.md`.
 - **Scorecard:** Persönliche Auswertung (Punkte, Streak, Rang) für Teilnehmende; nutzt nur bewertbare Fragen und die Effective-Vote-Regel. Vorkommen: Nach Fragen / Ende. Vertiefung: Story 5.6, ADR-0028.
+- **Selbstsicher falsch:** Didaktischer Begriff in der Host-Auswertung für falsche Antworten mit hohem Sicherheitsgrad (Stufen 4–5). Hilft, Misskonzepte zu erkennen, die nicht nur zufällig falsch geraten wurden. Vorkommen: Host bei `RESULTS`, Session-CSV-Export. Vertiefung: Story 1.2i, [confidence-slider](features/confidence-slider.md).
 - **Service-Status:** SLO-naher Betriebsstatus im Footer: `stable`, `limited`, `critical`. Wird aus Last und Live-Telemetrie abgeleitet. Vertiefung: ADR-0021.
 - **Session / Live-Session:** Laufende Veranstaltung unter einem **Session-Code**; bündelt die Live-Kanäle Quiz, Q&A und Blitzlicht. Vorkommen: Host, Teilnehmer, Beamer, Join. Vertiefung: ADR-0009, `Session` (Prisma).
 - **Session-Bewertung / Session-Feedback:** Stern- bzw. Rückmeldefunktion am Ende einer Session; Teilnehmende bewerten die Veranstaltung, gespeichert als `SessionFeedback`. Vertiefung: Story 4.8.
 - **Session-Code:** Sechs Zeichen (ohne verwechselbare Zeichen), Zugang für Teilnehmende. Vorkommen: Startseite, Join, QR. Vertiefung: Story 2.1a, ADR-0006.
 - **Session-Tagesrekord / Daily Highscore:** Größte einzelne Session pro UTC-Tag, als 30-Tage-Verlauf im Server-Status-Hilfedialog. Prisma-Modell: `DailyStatistic`. Vertiefung: ADR-0024.
+- **Sicherheitsgrad / Confidence:** Optionale Zusatzabfrage bei bewertbaren Fragen (`SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `SHORT_TEXT`, `NUMERIC_ESTIMATE`): Teilnehmende geben nach ihrer Antwort an, wie sicher sie sind (Skala 1–5). Beeinflusst **keine** Punkte; Host sieht nach Ergebnisfreigabe Verteilung, Kreuztabelle Korrektheit × Sicherheit und Hervorhebung **selbstsicher falsch**. Vorkommen: Quiz-Editor, Vote, Host, Export. Vertiefung: Story 1.2i, [confidence-slider](features/confidence-slider.md).
 - **Server-Status:** Footer- und Hilfe-Status für Plattformzustand, Last und Kennzahlen. Der Footer lädt gebündelt über `health.footerBundle`; Detailwerte und Verlauf kommen aus `health.stats`. Vorkommen: App-Footer, Hilfe-Dialog. Vertiefung: ADR-0021, ADR-0024, [server-status-widget](features/server-status-widget.md).
 - **Sync-Link / Sync-Code:** Zugang zum gleichen Quiz-Dokument auf anderem Gerät des Dozenten. Vorkommen: Quiz-Sync. Vertiefung: Story 1.6a.
 - **Team-Modus:** Teilnehmende in 2–8 Teams; Auto- oder Manual-Zuweisung beim Join. Teamwertung und Team-Leaderboard folgen derselben Scoring- und Effective-Vote-Regel wie die Einzelwertung. Vorkommen: Quiz-Settings, Join, Ergebnis. Vertiefung: [team-mode](features/team-mode.md), ADR-0028.
@@ -100,28 +102,28 @@ Diese Kürzel tauchen in Doku, Tickets, Reviews, Commits und im technischen Gesp
 
 **Single Source of Truth:** [`prisma/schema.prisma`](../prisma/schema.prisma). Kurzreferenz: [Handbuch § 5](architecture/handbook.md). Diagramm-Überblick: [diagrams.md](diagrams/diagrams.md) (erDiagram).
 
-| Alltag / UI                                | Prisma-Modell            | Kurz                                                                                                                                    |
-| ------------------------------------------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Live-Session (mit Code)                    | `Session`                | u. a. `status`, `code`, `type` (`QUIZ` / `Q_AND_A`), Kanal-Flags `qaEnabled`, `quickFeedbackEnabled`, `currentRound` (Peer Instruction) |
-| Teilnehmende Person                        | `Participant`            | `nickname`, optional `teamId`                                                                                                           |
-| Quiz-Kopie auf dem Server                  | `Quiz`                   | Entsteht beim Live-Schalten; **nicht** die lokale Quiz-Sammlung (Yjs) im Browser                                                        |
-| Frage im Quiz                              | `Question`               | zu einem `Quiz`; `type`, `order`, Timer, Rating-Grenzen, Kurzantwort-Konfiguration, …                                                   |
-| Antwortoption                              | `AnswerOption`           | u. a. `isCorrect` — Data-Stripping bis `RESULTS`                                                                                        |
-| Gespeicherte **Abstimmung** zu einer Frage | `Vote`                   | pro Teilnehmer, Frage und **Runde** (`round`); Punkte, Freitext/Kurzantwort, Rating, Effective-Vote-Auswertung                          |
-| MC: gewählte Option(en)                    | `VoteAnswer`             | n:m `Vote` ↔ `AnswerOption`                                                                                                             |
-| Team in der Session                        | `Team`                   | Namen/Farbe; Zuordnung über `Participant.teamId`                                                                                        |
-| Bonus-Code-Datensatz                       | `BonusToken`             | u. a. Snapshot `nickname`, `quizName`, `rank`                                                                                           |
-| Frage im Q&A-Kanal                         | `QaQuestion`             | Text, Status, Upvotes                                                                                                                   |
-| Up-/Downvote auf Q&A-Frage                 | `QaUpvote`               | Richtung `UP` oder `DOWN`; Grundlage für Top-, Wilson- und Kontroversitäts-Sortierung                                                   |
-| Bewertung der Session (4.8)                | `SessionFeedback`        | Sterne / Rückmeldung Teilnehmende                                                                                                       |
-| Plattformweite Rekorde und Summen          | `PlatformStatistic`      | Singleton für Allzeit-Rekord max. Teilnehmende pro Session und kumulative abgeschlossene Sessions                                       |
-| Session-Tagesrekord                        | `DailyStatistic`         | ein UTC-Tageswert für die größte einzelne Session; Quelle für `dailyHighscores`                                                         |
-| Admin-Audit                                | `AdminAuditLog`          | Lösch- und Behördenexport-Protokoll mit Session-Snapshot                                                                                |
-| MOTD-Vorlage                               | `MotdTemplate`           | Wiederverwendbare Markdown-Vorlagen je Locale                                                                                           |
-| MOTD-Nachricht                             | `Motd`                   | Status, Zeitraum, Priorität, Archivsichtbarkeit und Content-Version                                                                     |
-| MOTD-Locale                                | `MotdLocale`             | Lokalisierter Markdown-Inhalt pro MOTD                                                                                                  |
-| MOTD-Interaktionen                         | `MotdInteractionCounter` | Zähler für Bestätigungen, Daumen hoch/runter und Dismiss-Aktionen pro Content-Version                                                   |
-| MOTD-Audit                                 | `MotdAuditLog`           | Protokoll der Admin-Aktionen an MOTDs und Vorlagen                                                                                      |
+| Alltag / UI                                | Prisma-Modell            | Kurz                                                                                                                                       |
+| ------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Live-Session (mit Code)                    | `Session`                | u. a. `status`, `code`, `type` (`QUIZ` / `Q_AND_A`), Kanal-Flags `qaEnabled`, `quickFeedbackEnabled`, `currentRound` (Peer Instruction)    |
+| Teilnehmende Person                        | `Participant`            | `nickname`, optional `teamId`                                                                                                              |
+| Quiz-Kopie auf dem Server                  | `Quiz`                   | Entsteht beim Live-Schalten; **nicht** die lokale Quiz-Sammlung (Yjs) im Browser                                                           |
+| Frage im Quiz                              | `Question`               | zu einem `Quiz`; `type`, `order`, Timer, Rating-Grenzen, Kurzantwort-Konfiguration, optional `confidenceEnabled` / Labels, …               |
+| Antwortoption                              | `AnswerOption`           | u. a. `isCorrect` — Data-Stripping bis `RESULTS`                                                                                           |
+| Gespeicherte **Abstimmung** zu einer Frage | `Vote`                   | pro Teilnehmer, Frage und **Runde** (`round`); Punkte, Freitext/Kurzantwort, Rating, optional `confidenceValue`, Effective-Vote-Auswertung |
+| MC: gewählte Option(en)                    | `VoteAnswer`             | n:m `Vote` ↔ `AnswerOption`                                                                                                                |
+| Team in der Session                        | `Team`                   | Namen/Farbe; Zuordnung über `Participant.teamId`                                                                                           |
+| Bonus-Code-Datensatz                       | `BonusToken`             | u. a. Snapshot `nickname`, `quizName`, `rank`                                                                                              |
+| Frage im Q&A-Kanal                         | `QaQuestion`             | Text, Status, Upvotes                                                                                                                      |
+| Up-/Downvote auf Q&A-Frage                 | `QaUpvote`               | Richtung `UP` oder `DOWN`; Grundlage für Top-, Wilson- und Kontroversitäts-Sortierung                                                      |
+| Bewertung der Session (4.8)                | `SessionFeedback`        | Sterne / Rückmeldung Teilnehmende                                                                                                          |
+| Plattformweite Rekorde und Summen          | `PlatformStatistic`      | Singleton für Allzeit-Rekord max. Teilnehmende pro Session und kumulative abgeschlossene Sessions                                          |
+| Session-Tagesrekord                        | `DailyStatistic`         | ein UTC-Tageswert für die größte einzelne Session; Quelle für `dailyHighscores`                                                            |
+| Admin-Audit                                | `AdminAuditLog`          | Lösch- und Behördenexport-Protokoll mit Session-Snapshot                                                                                   |
+| MOTD-Vorlage                               | `MotdTemplate`           | Wiederverwendbare Markdown-Vorlagen je Locale                                                                                              |
+| MOTD-Nachricht                             | `Motd`                   | Status, Zeitraum, Priorität, Archivsichtbarkeit und Content-Version                                                                        |
+| MOTD-Locale                                | `MotdLocale`             | Lokalisierter Markdown-Inhalt pro MOTD                                                                                                     |
+| MOTD-Interaktionen                         | `MotdInteractionCounter` | Zähler für Bestätigungen, Daumen hoch/runter und Dismiss-Aktionen pro Content-Version                                                      |
+| MOTD-Audit                                 | `MotdAuditLog`           | Protokoll der Admin-Aktionen an MOTDs und Vorlagen                                                                                         |
 
 **Blitzlicht** hat **kein** Prisma-Modell — Live-Zustand in **Redis** (`qf:*`), API `quickFeedback.*`. Das **Tempo-Blitzlicht** bleibt nach ADR-0029 in diesem Pfad und wird nicht als eigener Session-Kanal modelliert.
 

@@ -1135,4 +1135,110 @@ describe('vote.submit', () => {
       }),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
   });
+
+  describe('Sicherheitsgrad (Story 1.2i)', () => {
+    const baseConfidenceQuestion = {
+      id: 'question-1',
+      quizId: 'quiz-1',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      shortTextMaxLength: null,
+      shortTextCaseSensitive: false,
+      ratingMin: null,
+      ratingMax: null,
+      answers: [
+        { id: ANSWER_ID_1, text: '4', isCorrect: true },
+        { id: ANSWER_ID_2, text: '5', isCorrect: false },
+      ],
+    };
+
+    it('speichert confidenceValue bei aktivierter Frage ohne Scoring-Auswirkung', async () => {
+      prismaMock.question.findFirst.mockResolvedValue({
+        ...baseConfidenceQuestion,
+        confidenceEnabled: true,
+      });
+
+      await caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        answerIds: [ANSWER_ID_2],
+        confidenceValue: 5,
+      });
+
+      expect(prismaMock.vote.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            confidenceValue: 5,
+            score: 0,
+            isCorrect: false,
+          }),
+        }),
+      );
+    });
+
+    it('verlangt confidenceValue wenn die Frage den Sicherheitsgrad abfragt', async () => {
+      prismaMock.question.findFirst.mockResolvedValue({
+        ...baseConfidenceQuestion,
+        confidenceEnabled: true,
+      });
+
+      await expect(
+        caller.submit({
+          sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+          questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+          answerIds: [ANSWER_ID_1],
+        }),
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Für diese Frage ist ein Sicherheitsgrad erforderlich.',
+      });
+    });
+
+    it('lehnt confidenceValue ab wenn die Frage keinen Sicherheitsgrad abfragt', async () => {
+      prismaMock.question.findFirst.mockResolvedValue({
+        ...baseConfidenceQuestion,
+        confidenceEnabled: false,
+      });
+
+      await expect(
+        caller.submit({
+          sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+          participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+          questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+          answerIds: [ANSWER_ID_1],
+          confidenceValue: 4,
+        }),
+      ).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'confidenceValue ist nur erlaubt, wenn die Frage den Sicherheitsgrad abfragt.',
+      });
+    });
+
+    it('ändert die Punktevergabe bei korrekter Antwort nicht durch confidenceValue', async () => {
+      prismaMock.question.findFirst.mockResolvedValue({
+        ...baseConfidenceQuestion,
+        confidenceEnabled: true,
+      });
+
+      await caller.submit({
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        participantId: '7290465d-5982-4b3d-ab47-a2088830d4b0',
+        questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+        answerIds: [ANSWER_ID_1],
+        confidenceValue: 1,
+      });
+
+      expect(prismaMock.vote.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            confidenceValue: 1,
+            score: 2000,
+            isCorrect: true,
+          }),
+        }),
+      );
+    });
+  });
 });

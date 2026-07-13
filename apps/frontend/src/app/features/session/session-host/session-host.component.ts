@@ -76,10 +76,13 @@ import {
   createQuizHistoryAccessProof,
   resolveNumericEstimateToleranceMode,
   resolveNumericTolerance,
+  CONFIDENCE_SCALE_MAX,
+  CONFIDENCE_SCALE_MIN,
 } from '@arsnova/shared-types';
 import type {
   AnalyzeWordCloudInput,
   AnalyzeWordCloudOutput,
+  ConfidenceResultDTO,
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
   LeaderboardEntryDTO,
@@ -1556,6 +1559,102 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const range: number[] = [];
     for (let i = min; i <= max; i++) range.push(i);
     return range;
+  }
+
+  confidenceBarRange(): number[] {
+    const range: number[] = [];
+    for (let value = CONFIDENCE_SCALE_MIN; value <= CONFIDENCE_SCALE_MAX; value += 1) {
+      range.push(value);
+    }
+    return range;
+  }
+
+  confidenceDistributionTotal(result: ConfidenceResultDTO): number {
+    return Object.values(result.distribution).reduce((sum, count) => sum + count, 0);
+  }
+
+  confidenceDistributionPercent(result: ConfidenceResultDTO, step: number): number {
+    const total = this.confidenceDistributionTotal(result);
+    if (total <= 0) {
+      return 0;
+    }
+    const key = String(step) as keyof ConfidenceResultDTO['distribution'];
+    return Math.round((result.distribution[key] / total) * 100);
+  }
+
+  confidenceDistributionCount(result: ConfidenceResultDTO, step: number): number {
+    const key = String(step) as keyof ConfidenceResultDTO['distribution'];
+    return result.distribution[key];
+  }
+
+  confidenceTierLowHeading(q: HostCurrentQuestionDTO): string {
+    return q.confidenceLabelLow
+      ? $localize`:@@sessionHost.confidenceTierLowWithLabel:Niedrig · ${q.confidenceLabelLow}:label:`
+      : $localize`:@@sessionHost.confidenceTierLow:Niedrig (1–2)`;
+  }
+
+  confidenceTierMidHeading(): string {
+    return $localize`:@@sessionHost.confidenceTierMid:Mittel (3)`;
+  }
+
+  confidenceTierHighHeading(q: HostCurrentQuestionDTO): string {
+    return q.confidenceLabelHigh
+      ? $localize`:@@sessionHost.confidenceTierHighWithLabel:Hoch · ${q.confidenceLabelHigh}:label:`
+      : $localize`:@@sessionHost.confidenceTierHigh:Hoch (4–5)`;
+  }
+
+  confidenceCrossTabRows(result: ConfidenceResultDTO): Array<{
+    label: string;
+    low: number;
+    mid: number;
+    high: number;
+    highlightHigh: boolean;
+  }> {
+    const crossTab = result.crossTab;
+    return [
+      {
+        label: $localize`:@@sessionHost.confidenceCrossTabCorrect:Richtig`,
+        low: crossTab.correctLow,
+        mid: crossTab.correctMid,
+        high: crossTab.correctHigh,
+        highlightHigh: false,
+      },
+      {
+        label: $localize`:@@sessionHost.confidenceCrossTabIncorrect:Falsch`,
+        low: crossTab.incorrectLow,
+        mid: crossTab.incorrectMid,
+        high: crossTab.incorrectHigh,
+        highlightHigh: crossTab.incorrectHigh > 0,
+      },
+    ];
+  }
+
+  confidenceMisconceptionLabel(count: number): string {
+    return count === 1
+      ? $localize`:@@sessionHost.confidenceMisconceptionSingular:1 selbstsicher falsche Antwort – mögliches Fehlkonzept`
+      : $localize`:@@sessionHost.confidenceMisconceptionPlural:${count}:count: selbstsicher falsche Antworten – mögliche Fehlkonzepte`;
+  }
+
+  private confidenceExportDetails(result: ConfidenceResultDTO): string {
+    const distribution = this.confidenceBarRange()
+      .map((step) => {
+        const key = String(step) as keyof ConfidenceResultDTO['distribution'];
+        return `${step}:${result.distribution[key]}`;
+      })
+      .join(' ');
+    const crossTab = result.crossTab;
+    const cross = $localize`:@@sessionHost.exportConfidenceCrossTab:Kreuz richtig/hoch ${crossTab.correctHigh}:correctHigh: · falsch/hoch ${crossTab.incorrectHigh}:incorrectHigh:`;
+    const misconception =
+      result.highConfidenceWrongCount > 0
+        ? ` · ${this.confidenceMisconceptionLabel(result.highConfidenceWrongCount)}`
+        : '';
+    const wrongOptions =
+      result.highConfidenceWrongOptions && result.highConfidenceWrongOptions.length > 0
+        ? ` · ${result.highConfidenceWrongOptions
+            .map((entry) => `${stripMarkdownToPlainText(entry.text)}: ${entry.count}`)
+            .join(' | ')}`
+        : '';
+    return `${distribution} | ${cross}${misconception}${wrongOptions}`;
   }
 
   /** Verteilung der Sterne als lesbare Zeile (z. B. "1× 4 ★ · 2× 5 ★"). */
@@ -3380,7 +3479,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       (left.numericDecimalPlaces ?? null) === (right.numericDecimalPlaces ?? null) &&
       (left.numericMin ?? null) === (right.numericMin ?? null) &&
       (left.numericMax ?? null) === (right.numericMax ?? null) &&
-      (left.numericTwoRounds ?? false) === (right.numericTwoRounds ?? false)
+      (left.numericTwoRounds ?? false) === (right.numericTwoRounds ?? false) &&
+      JSON.stringify(left.confidenceResult ?? null) ===
+        JSON.stringify(right.confidenceResult ?? null)
     );
   }
 
@@ -5668,6 +5769,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             details += ` (Ø ${q.ratingAverage})`;
         } else if (q.numericStats) {
           details = this.numericExportDetails(q.numericStats, q.numericRoundComparison);
+        } else if (q.confidenceResult) {
+          details = this.confidenceExportDetails(q.confidenceResult);
         }
 
         rows.push(

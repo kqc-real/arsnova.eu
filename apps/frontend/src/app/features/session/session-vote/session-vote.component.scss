@@ -1820,6 +1820,17 @@
   line-height: 1.45;
 }
 
+.vote-sent__confidence {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.45;
+
+  strong {
+    color: var(--mat-sys-on-surface);
+    font-weight: 600;
+  }
+}
+
 .vote-error {
   margin: 0 0 1.25rem;
   padding: 1rem 1.25rem;
@@ -2917,6 +2928,11 @@
   margin-top: 1.25rem;
   padding: 0;
 
+  &--confidence {
+    margin-top: 0;
+    gap: 0.85rem;
+  }
+
   &__labels {
     display: flex;
     justify-content: space-between;
@@ -3010,6 +3026,89 @@
     background: var(--mat-sys-surface-container);
     border-radius: var(--mat-sys-corner-large, 12px);
     border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.08));
+  }
+}
+
+.vote-confidence {
+  margin-top: 1rem;
+  padding: 1rem 1rem 1.125rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-low) 90%, var(--mat-sys-surface));
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: vote-confidence-in 180ms ease-out;
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 1.35rem;
+    height: 1.35rem;
+    font-size: 1.35rem;
+    color: var(--mat-sys-primary);
+    margin-top: 0.1rem;
+  }
+
+  &__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  &__heading {
+    margin: 0;
+    font: var(--mat-sys-title-small);
+    color: var(--mat-sys-on-surface);
+    line-height: 1.35;
+  }
+
+  &__hint {
+    margin: 0;
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-on-surface-variant);
+    line-height: 1.45;
+  }
+
+  &__result-label {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem;
+    font: var(--mat-sys-body-medium);
+    color: var(--mat-sys-on-surface-variant);
+
+    strong {
+      font: var(--mat-sys-title-medium);
+      color: var(--mat-sys-on-surface);
+    }
+  }
+
+  &--result {
+    margin-top: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: var(--mat-sys-surface-container-lowest);
+  }
+}
+
+@keyframes vote-confidence-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
