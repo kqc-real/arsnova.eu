@@ -51,6 +51,8 @@ import {
   DeleteBonusTokenForQuizOutputSchema,
   GetLastSessionFeedbackForQuizInputSchema,
   LastSessionFeedbackForQuizOutputSchema,
+  GetLastSessionAnalysisForQuizInputSchema,
+  LastSessionAnalysisForQuizOutputSchema,
   SubmitSessionFeedbackInputSchema,
   SessionFeedbackSummarySchema,
   PersonalScorecardDTOSchema,
@@ -105,6 +107,10 @@ import {
   isNumericToleranceMode,
   resolveNumericEstimateToleranceMode,
   buildConfidenceResult,
+  buildSessionConfidenceSummary,
+  questionSupportsConfidence,
+  type ConfidenceEligibleQuestionType,
+  type SessionConfidenceSummary,
   type NumericStatsDTO,
   type NumericHistogramBin,
   type NumericRoundComparisonDTO,
@@ -1511,6 +1517,52 @@ function buildSessionFeedbackSummaryFromRows(
     wouldRepeatYes: repeatYes,
     wouldRepeatNo: repeatNo,
   };
+}
+
+function buildConfidenceSummaryForSession(
+  questions: Array<{
+    id: string;
+    order: number;
+    text: string;
+    type: string;
+    confidenceEnabled: boolean;
+    answers: Array<{ id: string; text: string; isCorrect: boolean }>;
+  }>,
+  votes: Array<{
+    questionId: string;
+    round: number | null;
+    confidenceValue: number | null;
+    isCorrect: boolean | null;
+    selectedAnswers: Array<{ answerOptionId: string }>;
+  }>,
+): SessionConfidenceSummary | null {
+  return buildSessionConfidenceSummary({
+    questions: questions.flatMap((question) => {
+      if (!question.confidenceEnabled || !questionSupportsConfidence(question.type)) {
+        return [];
+      }
+      const allVotes = votes.filter((vote) => vote.questionId === question.id);
+      const voteRound = (vote: (typeof allVotes)[number]) => vote.round ?? 1;
+      const effectiveRound = allVotes.some((vote) => voteRound(vote) === 2) ? 2 : 1;
+      const effectiveVotes = allVotes.filter((vote) => voteRound(vote) === effectiveRound);
+      const result = buildConfidenceResult({
+        votes: effectiveVotes.map((vote) => ({
+          confidenceValue: vote.confidenceValue,
+          isCorrect: vote.isCorrect,
+          selectedAnswerIds: vote.selectedAnswers.map((selected) => selected.answerOptionId),
+        })),
+        answerOptions: question.answers,
+      });
+      return [
+        {
+          questionOrder: question.order,
+          questionTextShort: question.text,
+          questionType: question.type as ConfidenceEligibleQuestionType,
+          result,
+        },
+      ];
+    }),
+  });
 }
 
 function normalizeQuizHistoryAccessProof(proof: string): Buffer {
@@ -5749,7 +5801,7 @@ export const sessionRouter = router({
       return Promise.all(
         input.map(async (entry) => {
           const scopedQuizIds = await resolveQuizHistoryScopeIds(entry.quizId, entry.accessProof);
-          const [bonusSession, feedbackSession] = await Promise.all([
+          const [bonusSession, feedbackSession, analysisSession] = await Promise.all([
             prisma.session.findFirst({
               where: {
                 quizId: { in: scopedQuizIds },
@@ -5766,12 +5818,20 @@ export const sessionRouter = router({
               },
               select: { id: true },
             }),
+            prisma.session.findFirst({
+              where: {
+                quizId: { in: scopedQuizIds },
+                status: 'FINISHED',
+              },
+              select: { id: true },
+            }),
           ]);
 
           return {
             quizId: entry.quizId,
             hasBonusTokens: bonusSession !== null,
             hasLastSessionFeedback: feedbackSession !== null,
+            hasLastSessionAnalysis: analysisSession !== null,
           };
         }),
       );
@@ -5905,6 +5965,56 @@ export const sessionRouter = router({
       return {
         endedAt: session.endedAt?.toISOString() ?? null,
         summary,
+      };
+    }),
+
+  /**
+   * Aggregierte Auswertung der zuletzt beendeten Live-Session eines Quizzes.
+   * Der Besitznachweis entspricht den übrigen Quiz-Sammlungs-Historienpfaden.
+   */
+  getLastSessionAnalysisForQuiz: publicProcedure
+    .input(GetLastSessionAnalysisForQuizInputSchema)
+    .output(LastSessionAnalysisForQuizOutputSchema)
+    .query(async ({ input }) => {
+      const scopedQuizIds = await resolveQuizHistoryScopeIds(input.quizId, input.accessProof);
+      const session = await prisma.session.findFirst({
+        where: {
+          quizId: { in: scopedQuizIds },
+          status: 'FINISHED',
+        },
+        orderBy: [{ endedAt: 'desc' }, { startedAt: 'desc' }],
+        include: {
+          quiz: {
+            include: {
+              questions: {
+                orderBy: { order: 'asc' },
+                include: { answers: true },
+              },
+            },
+          },
+          votes: {
+            select: {
+              questionId: true,
+              round: true,
+              confidenceValue: true,
+              isCorrect: true,
+              selectedAnswers: { select: { answerOptionId: true } },
+            },
+          },
+          sessionFeedbacks: true,
+          _count: { select: { participants: true } },
+        },
+      });
+      if (!session?.quiz) {
+        return null;
+      }
+
+      const feedbackSummary = buildSessionFeedbackSummaryFromRows(session.sessionFeedbacks);
+      return {
+        endedAt: session.endedAt?.toISOString() ?? null,
+        participantCount: session._count.participants,
+        confidenceSummary: buildConfidenceSummaryForSession(session.quiz.questions, session.votes),
+        feedbackSummary: feedbackSummary.totalResponses > 0 ? feedbackSummary : null,
       };
     }),
 
@@ -6495,6 +6605,16 @@ export const sessionRouter = router({
           };
         },
       );
+      const confidenceSummary = buildConfidenceSummaryForSession(questions, session.votes);
+      const confidenceVisibleQuestionOrders = new Set(
+        confidenceSummary?.questions.map((question) => question.questionOrder) ?? [],
+      );
+      const privacySafeQuestionEntries = questionEntries.map((question) => ({
+        ...question,
+        confidenceResult: confidenceVisibleQuestionOrders.has(question.questionOrder)
+          ? question.confidenceResult
+          : undefined,
+      }));
 
       const bonusTokens: BonusTokenEntryDTO[] | undefined = session.bonusTokens.length
         ? session.bonusTokens.map((t: BonusTokenForExport) => ({
@@ -6522,7 +6642,8 @@ export const sessionRouter = router({
         finishedAt: session.endedAt?.toISOString() ?? new Date().toISOString(),
         participantCount: session.participants.length,
         teamMode: session.quiz.teamMode === true,
-        questions: questionEntries,
+        questions: privacySafeQuestionEntries,
+        confidenceSummary: confidenceSummary ?? undefined,
         teamLeaderboard:
           teamLeaderboard && teamLeaderboard.length > 0 ? teamLeaderboard : undefined,
         bonusTokens,

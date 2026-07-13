@@ -517,65 +517,69 @@
         </div>
 
         <div class="quiz-list-item__actions">
-          @if (quiz.hasBonus) {
+          <div class="quiz-list-item__actions-secondary">
+            @if (quiz.hasBonus) {
+              <span
+                [matTooltip]="bonusCodesTooltip(quiz)"
+                [matTooltipDisabled]="!bonusCodesTooltip(quiz)"
+              >
+                <button
+                  mat-button
+                  type="button"
+                  [disabled]="!hasAvailableBonusCodes(quiz)"
+                  (click)="openBonusCodesDialog(quiz)"
+                >
+                  <mat-icon>emoji_events</mat-icon>
+                  <span i18n="@@quizList.bonusCodes">Bonus-Codes</span>
+                </button>
+              </span>
+            }
             <span
-              [matTooltip]="bonusCodesTooltip(quiz)"
-              [matTooltipDisabled]="!bonusCodesTooltip(quiz)"
+              [matTooltip]="lastSessionAnalysisTooltip(quiz)"
+              [matTooltipDisabled]="!lastSessionAnalysisTooltip(quiz)"
             >
               <button
                 mat-button
                 type="button"
-                [disabled]="!hasAvailableBonusCodes(quiz)"
-                (click)="openBonusCodesDialog(quiz)"
+                [disabled]="!hasAvailableLastSessionAnalysis(quiz)"
+                (click)="openLastSessionAnalysisDialog(quiz)"
               >
-                <mat-icon>emoji_events</mat-icon>
-                <span i18n="@@quizList.bonusCodes">Bonus-Codes</span>
+                <mat-icon>assessment</mat-icon>
+                <span i18n="@@quizList.lastSessionFeedback">Letzte Auswertung</span>
               </button>
             </span>
-          }
-          <span
-            [matTooltip]="lastSessionFeedbackTooltip(quiz)"
-            [matTooltipDisabled]="!lastSessionFeedbackTooltip(quiz)"
-          >
-            <button
+            <a
               mat-button
               type="button"
-              [disabled]="!hasAvailableLastSessionFeedback(quiz)"
-              (click)="openLastSessionFeedbackDialog(quiz)"
+              [routerLink]="[quiz.id, 'preview']"
+              [queryParams]="{ returnTo: 'list' }"
             >
-              <mat-icon>feedback</mat-icon>
-              <span i18n="@@quizList.lastSessionFeedback">Letztes Feedback</span>
+              <mat-icon>visibility</mat-icon>
+              <span i18n>Vorschau</span>
+            </a>
+          </div>
+          <div class="quiz-list-item__actions-primary">
+            <button
+              matButton="tonal"
+              type="button"
+              [disabled]="liveStartPending()"
+              [matTooltip]="quiz.questionCount === 0 ? tooltipMinQuestions() : null"
+              (click)="openLiveStartDialog(quiz.id, quiz.name, quiz.questionCount)"
+            >
+              <mat-icon>play_circle</mat-icon>
+              <span i18n="@@quizList.startSession">Starten</span>
             </button>
-          </span>
-          <a
-            mat-button
-            type="button"
-            [routerLink]="[quiz.id, 'preview']"
-            [queryParams]="{ returnTo: 'list' }"
-          >
-            <mat-icon>visibility</mat-icon>
-            <span i18n>Vorschau</span>
-          </a>
-          <button
-            matButton="tonal"
-            type="button"
-            [disabled]="liveStartPending()"
-            [matTooltip]="quiz.questionCount === 0 ? tooltipMinQuestions() : null"
-            (click)="openLiveStartDialog(quiz.id, quiz.name, quiz.questionCount)"
-          >
-            <mat-icon>play_circle</mat-icon>
-            <span i18n="@@quizList.startSession">Starten</span>
-          </button>
-          <button
-            mat-icon-button
-            class="quiz-list-item__menu-trigger"
-            type="button"
-            [disableRipple]="true"
-            [matMenuTriggerFor]="quizMenu"
-            [attr.aria-label]="getQuizActionsAriaLabel(quiz.name)"
-          >
-            <mat-icon>more_vert</mat-icon>
-          </button>
+            <button
+              mat-icon-button
+              class="quiz-list-item__menu-trigger"
+              type="button"
+              [disableRipple]="true"
+              [matMenuTriggerFor]="quizMenu"
+              [attr.aria-label]="getQuizActionsAriaLabel(quiz.name)"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+          </div>
           <mat-menu #quizMenu="matMenu">
             <a mat-menu-item [routerLink]="[quiz.id]">
               <mat-icon>edit</mat-icon>

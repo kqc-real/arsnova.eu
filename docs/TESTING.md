@@ -149,17 +149,18 @@ Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Build → Postgr
 
 ## Optionale / manuelle Checks (nicht immer CI)
 
-| Befehl (Frontend-Workspace) | Zweck                               |
-| --------------------------- | ----------------------------------- |
-| `check:viewport`            | Viewport 320px-Smoke                |
-| `smoke:host-present-auth`   | Host/Present-Auth-Smoke             |
-| `smoke:host-music`          | Host-Musik-/Sound-Smoke             |
-| `smoke:short-text`          | Kurzantwort-Flow-Smoke              |
-| `smoke:numeric-estimate`    | Numerische-Schätzfrage-Flow-Smoke   |
-| `smoke:quiz-sync`           | Quiz-Sync-Flow-Skript               |
-| `smoke:unified-session`     | Unified-Session-Flow-Skript         |
-| `lighthouse:a11y`           | Lighthouse A11y (lokal)             |
-| `benchmark:word-cloud`      | Wortwolken-Benchmark / Regressionen |
+| Befehl (Frontend-Workspace)   | Zweck                                   |
+| ----------------------------- | --------------------------------------- |
+| `check:viewport`              | Viewport 320px-Smoke                    |
+| `smoke:host-present-auth`     | Host/Present-Auth-Smoke                 |
+| `smoke:host-music`            | Host-Musik-/Sound-Smoke                 |
+| `smoke:short-text`            | Kurzantwort-Flow-Smoke                  |
+| `smoke:numeric-estimate`      | Numerische-Schätzfrage-Flow-Smoke       |
+| `e2e:confidence-summary-demo` | Demo-Quiz: 30 TN + Confidence-Abschluss |
+| `smoke:quiz-sync`             | Quiz-Sync-Flow-Skript                   |
+| `smoke:unified-session`       | Unified-Session-Flow-Skript             |
+| `lighthouse:a11y`             | Lighthouse A11y (lokal)                 |
+| `benchmark:word-cloud`        | Wortwolken-Benchmark / Regressionen     |
 
 **Lokaler Status 2026-07-10:** `host-music`, `quiz-sync` und
 `unified-session` bestanden. `host-present-auth`, `short-text` und
@@ -208,7 +209,14 @@ BASE_URL=http://localhost:4200 npm run smoke:short-text -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:numeric-estimate -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:host-music -w @arsnova/frontend
 BASE_URL=http://localhost:4200 npm run smoke:unified-session -w @arsnova/frontend
+BASE_URL=http://localhost:4200 npm run e2e:confidence-summary-demo -w @arsnova/frontend
 ```
+
+Der Confidence-E2E lädt das deutsche Demo-Quiz hoch, lässt standardmäßig 30 Teilnehmende
+mit reproduzierbar zufälligen Sicherheitsgraden abstimmen und prüft anschließend
+Session-Summary, Quiz-Historienzugriff, Host-Abschlussansicht und CSV-Export. Der Seed ist
+über `CONFIDENCE_SEED` anpassbar; der Host-Screenshot wird standardmäßig im temporären
+Verzeichnis `arsnova-confidence-summary-demo-e2e` abgelegt.
 
 Für Performance-/Lastarbeit ist [PERFORMANCE-TESTING.md](PERFORMANCE-TESTING.md) das aktuelle Inventar. Die sechs **Classroom-Szenario-Smokes** (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress, Reconnect-Welle und Q&A-/Blitzlicht-Fan-out) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN), Yjs, Soak und k6-Produktion bleiben manuell/Schedule. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
 

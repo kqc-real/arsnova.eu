@@ -35,14 +35,32 @@ In der Host-Ansicht bei `RESULTS`:
 - Hervorhebung **selbstsicher falsch** (`incorrectHigh`)
 - Bei Auswahlfragen: Aufschlüsselung falscher Optionen mit hoher Sicherheit
 
+Nach dem Session-Ende (`FINISHED`) fasst die Abschlussauswertung alle ausreichend großen
+Frage-Aggregate zusammen:
+
+- **Gefestigtes Wissen:** richtig + hohe Sicherheit
+- **Fehlkonzept-Risiko:** falsch + hohe Sicherheit
+- **Fragiles Wissen:** richtig + niedrige Sicherheit
+- Priorisierte Fragen für die Nachbesprechung, zuerst nach dem Anteil „falsch + hohe Sicherheit“
+- Runde 2 ersetzt bei Peer Instruction Runde 1; sonst wird Runde 1 verwendet
+
+Fragen mit weniger als fünf gültigen Confidence-Antworten werden in der Abschlussauswertung und
+im Export nicht einzeln ausgewiesen. Die Quiz-Sammlung bietet auf der Quizkarte über
+**„Letzte Auswertung“** den letzten beendeten Durchlauf an. Der bestehende Quiz-Historien-
+Besitznachweis schützt diesen Zugriff; Session-ID und Session-Code werden dort nicht ausgeliefert.
+
 ## Export (Story 4.7)
 
-Im Session-CSV-Export enthält die Spalte „Details“ bei aktiviertem Sicherheitsgrad:
+Im Session-CSV-Export enthält die Spalte „Details“ bei aktiviertem Sicherheitsgrad weiterhin:
 
 - Verteilung `1:… 2:… …`
 - Kreuzwerte richtig/hoch und falsch/hoch
 - Hinweis auf selbstsicher falsche Antworten
 - Optional falsche Optionen mit Häufigkeit
+
+Zusätzlich gibt es eigene Confidence-Spalten je Frage (`Konfidenz n`, `Gefestigt`,
+`Fehlkonzept-Risiko`, `Fragil`, `Erkannte Wissenslücke`, `Unentschieden`,
+`Stärkstes Signal`) sowie einen eigenen Summenblock **„Lernstand und Sicherheit“**.
 
 ## Import aus arsnova.click
 

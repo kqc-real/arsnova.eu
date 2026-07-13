@@ -155,7 +155,14 @@ export class QuizListComponent implements OnInit {
   readonly actionError = signal<string | null>(null);
   readonly activeLiveQuizParticipants = signal<Map<string, number>>(new Map());
   readonly quizHistoryAvailability = signal<
-    Map<string, { hasBonusTokens: boolean; hasLastSessionFeedback: boolean }>
+    Map<
+      string,
+      {
+        hasBonusTokens: boolean;
+        hasLastSessionFeedback: boolean;
+        hasLastSessionAnalysis: boolean;
+      }
+    >
   >(new Map());
   readonly showAiImport = signal(false);
   /** Volltext der KI-Systemvorlage im Panel (Schritt 1). */
@@ -182,9 +189,9 @@ export class QuizListComponent implements OnInit {
   });
   readonly startLiveShortcutMode = signal(false);
   readonly bonusCodesAfterLiveTooltip = $localize`:@@quizList.bonusCodesAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
-  readonly lastFeedbackAfterLiveTooltip = $localize`:@@quizList.lastFeedbackAfterLive:Erst nach einem Live-Start dieses Quiz hier abrufbar.`;
+  readonly lastFeedbackAfterLiveTooltip = $localize`:@@quizList.lastFeedbackAfterLive:Erst nach einem beendeten Live-Durchlauf dieses Quiz hier abrufbar.`;
   readonly bonusCodesEmptyTooltip = $localize`:@@quizList.bonusCodesEmpty:Noch keine Bonus-Codes vorhanden.`;
-  readonly lastFeedbackEmptyTooltip = $localize`:@@quizList.lastFeedbackEmpty:Noch kein Feedback vorhanden.`;
+  readonly lastFeedbackEmptyTooltip = $localize`:@@quizList.lastFeedbackEmpty:Noch keine abgeschlossene Auswertung vorhanden.`;
   private readonly descriptionMarkdownCache = new Map<string, SafeHtml>();
   private lastQuizHistoryAvailabilityKey = '';
   private quizHistoryAvailabilityRequestId = 0;
@@ -379,6 +386,10 @@ export class QuizListComponent implements OnInit {
     return this.quizHistoryAvailability().get(quiz.id)?.hasLastSessionFeedback === true;
   }
 
+  hasAvailableLastSessionAnalysis(quiz: QuizSummary): boolean {
+    return this.quizHistoryAvailability().get(quiz.id)?.hasLastSessionAnalysis === true;
+  }
+
   bonusCodesTooltip(quiz: QuizSummary): string | null {
     if (!quiz.lastServerQuizId) {
       return this.bonusCodesAfterLiveTooltip;
@@ -394,6 +405,16 @@ export class QuizListComponent implements OnInit {
       return this.lastFeedbackAfterLiveTooltip;
     }
     if (!this.hasAvailableLastSessionFeedback(quiz)) {
+      return this.lastFeedbackEmptyTooltip;
+    }
+    return null;
+  }
+
+  lastSessionAnalysisTooltip(quiz: QuizSummary): string | null {
+    if (!quiz.lastServerQuizId) {
+      return this.lastFeedbackAfterLiveTooltip;
+    }
+    if (!this.hasAvailableLastSessionAnalysis(quiz)) {
       return this.lastFeedbackEmptyTooltip;
     }
     return null;
@@ -802,13 +823,17 @@ export class QuizListComponent implements OnInit {
   }
 
   async openLastSessionFeedbackDialog(quiz: QuizSummary): Promise<void> {
-    if (!this.hasAvailableLastSessionFeedback(quiz)) return;
+    return this.openLastSessionAnalysisDialog(quiz);
+  }
+
+  async openLastSessionAnalysisDialog(quiz: QuizSummary): Promise<void> {
+    if (!this.hasAvailableLastSessionAnalysis(quiz)) return;
     const sid = quiz.lastServerQuizId;
     if (!sid) return;
     const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
     if (!accessProof) return;
     this.dialog.open(LastSessionFeedbackDialogComponent, {
-      width: 'min(35rem, calc(100vw - 1.5rem))',
+      width: 'min(52rem, calc(100vw - 1.5rem))',
       maxWidth: '100vw',
       maxHeight: 'min(90dvh, calc(100vh - 2rem))',
       autoFocus: false,
@@ -923,13 +948,21 @@ export class QuizListComponent implements OnInit {
         return;
       }
 
-      const next = new Map<string, { hasBonusTokens: boolean; hasLastSessionFeedback: boolean }>();
+      const next = new Map<
+        string,
+        {
+          hasBonusTokens: boolean;
+          hasLastSessionFeedback: boolean;
+          hasLastSessionAnalysis: boolean;
+        }
+      >();
       for (const [index, availability] of result.entries()) {
         const localQuizId = resolvedEntries[index]?.localQuizId;
         if (!localQuizId) continue;
         next.set(localQuizId, {
           hasBonusTokens: availability.hasBonusTokens,
           hasLastSessionFeedback: availability.hasLastSessionFeedback,
+          hasLastSessionAnalysis: availability.hasLastSessionAnalysis,
         });
       }
       this.quizHistoryAvailability.set(next);

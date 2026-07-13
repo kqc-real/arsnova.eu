@@ -2192,6 +2192,27 @@ export const ConfidenceResultDTOSchema = z.object({
 });
 export type ConfidenceResultDTO = z.infer<typeof ConfidenceResultDTOSchema>;
 
+export const ConfidenceQuestionSummaryDTOSchema = z.object({
+  questionOrder: z.number().int().min(0),
+  questionTextShort: z.string(),
+  questionType: QuestionTypeEnum,
+  responseCount: z.number().int().min(1),
+  result: ConfidenceResultDTOSchema,
+});
+export type ConfidenceQuestionSummaryDTO = z.infer<typeof ConfidenceQuestionSummaryDTOSchema>;
+
+export const SessionConfidenceSummaryDTOSchema = z.object({
+  responseCount: z.number().int().min(1),
+  includedQuestionCount: z.number().int().min(1),
+  suppressedQuestionCount: z.number().int().min(0),
+  priorityQuestionCount: z.number().int().min(0),
+  distribution: ConfidenceDistributionSchema,
+  crossTab: ConfidenceCrossTabSchema,
+  highConfidenceWrongCount: z.number().int().min(0),
+  questions: z.array(ConfidenceQuestionSummaryDTOSchema),
+});
+export type SessionConfidenceSummaryDTO = z.infer<typeof SessionConfidenceSummaryDTOSchema>;
+
 /** DTO: Aktuelle Frage für Host-Ansicht (Story 2.3, 3.5) – Text + Antwortoptionen inkl. isCorrect + Timer. */
 export const HostCurrentQuestionDTOSchema = z.object({
   questionId: z.string().uuid(),
@@ -3061,6 +3082,7 @@ export const QuizCollectionHistoryAvailabilityDTOSchema = z.object({
   quizId: z.string().uuid(),
   hasBonusTokens: z.boolean(),
   hasLastSessionFeedback: z.boolean(),
+  hasLastSessionAnalysis: z.boolean(),
 });
 export type QuizCollectionHistoryAvailabilityDTO = z.infer<
   typeof QuizCollectionHistoryAvailabilityDTOSchema
@@ -3196,6 +3218,7 @@ export const SessionExportDTOSchema = z.object({
   participantCount: z.number(),
   teamMode: z.boolean(),
   questions: z.array(QuestionExportEntrySchema),
+  confidenceSummary: SessionConfidenceSummaryDTOSchema.optional(),
   teamLeaderboard: z.array(TeamLeaderboardEntryDTOSchema).optional(),
   bonusTokens: z.array(BonusTokenEntryDTOSchema).optional(), // optional einbeziehen (Pseudonyme)
 });
@@ -3728,6 +3751,26 @@ export const LastSessionFeedbackForQuizOutputSchema =
   LastSessionFeedbackForQuizDTOSchema.nullable();
 export type LastSessionFeedbackForQuizOutput = z.infer<
   typeof LastSessionFeedbackForQuizOutputSchema
+>;
+
+/** Letzte beendete Session eines Quizzes: aggregierte didaktische Auswertung ohne Session-Kennung. */
+export const GetLastSessionAnalysisForQuizInputSchema = GetBonusTokensForQuizInputSchema;
+export type GetLastSessionAnalysisForQuizInput = z.infer<
+  typeof GetLastSessionAnalysisForQuizInputSchema
+>;
+
+export const LastSessionAnalysisForQuizDTOSchema = z.object({
+  endedAt: z.string().nullable(),
+  participantCount: z.number().int().min(0),
+  confidenceSummary: SessionConfidenceSummaryDTOSchema.nullable(),
+  feedbackSummary: SessionFeedbackSummarySchema.nullable(),
+});
+export type LastSessionAnalysisForQuizDTO = z.infer<typeof LastSessionAnalysisForQuizDTOSchema>;
+
+export const LastSessionAnalysisForQuizOutputSchema =
+  LastSessionAnalysisForQuizDTOSchema.nullable();
+export type LastSessionAnalysisForQuizOutput = z.infer<
+  typeof LastSessionAnalysisForQuizOutputSchema
 >;
 
 // ─── MOTD / Plattform-Kommunikation (Epic 10) ───────────────────────────────

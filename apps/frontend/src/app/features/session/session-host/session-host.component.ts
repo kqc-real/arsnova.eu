@@ -83,6 +83,7 @@ import type {
   AnalyzeWordCloudInput,
   AnalyzeWordCloudOutput,
   ConfidenceResultDTO,
+  ConfidenceQuestionSummaryDTO,
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
   LeaderboardEntryDTO,
@@ -94,6 +95,7 @@ import type {
   QuickFeedbackResult,
   SessionChannelsDTO,
   SessionFeedbackSummary,
+  SessionConfidenceSummaryDTO,
   SessionInfoDTO,
   SessionParticipantsPayload,
   TeamAssignment,
@@ -526,6 +528,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   };
   readonly feedbackSummary = signal<SessionFeedbackSummary | null>(null);
+  readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
   /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
   readonly currentQuestionForHost = signal<HostCurrentQuestionDTO | null>(null);
   readonly hostVoteProgress = signal<HostVoteProgressDTO | null>(null);
@@ -1668,6 +1671,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
+  finishedConfidencePercent(count: number, total: number): number {
+    return total > 0 ? Math.round((count / total) * 100) : 0;
+  }
+
+  finishedConfidenceIncorrectCount(question: ConfidenceQuestionSummaryDTO): number {
+    const crossTab = question.result.crossTab;
+    return crossTab.incorrectHigh + crossTab.incorrectMid + crossTab.incorrectLow;
+  }
+
+  finishedConfidenceTopWrongOption(question: ConfidenceQuestionSummaryDTO): string | null {
+    return question.result.highConfidenceWrongOptions?.[0]?.text ?? null;
+  }
+
   confidenceCrossTabCellIntensity(count: number, total: number): 0 | 1 | 2 | 3 {
     if (count <= 0 || total <= 0) {
       return 0;
@@ -1750,6 +1766,31 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             .join(' | ')}`
         : '';
     return `${distribution} | ${cross}${misconception}${wrongOptions}`;
+  }
+
+  private confidenceExportMetric(count: number, total: number): string {
+    return `${count} (${this.finishedConfidencePercent(count, total)} %)`;
+  }
+
+  private confidenceExportColumns(result: ConfidenceResultDTO | undefined): string[] {
+    if (!result) {
+      return ['', '', '', '', '', '', ''];
+    }
+    const total = this.confidenceDistributionTotal(result);
+    const crossTab = result.crossTab;
+    const middle = crossTab.correctMid + crossTab.incorrectMid;
+    const topWrongOption = result.highConfidenceWrongOptions?.[0];
+    return [
+      String(total),
+      this.confidenceExportMetric(crossTab.correctHigh, total),
+      this.confidenceExportMetric(crossTab.incorrectHigh, total),
+      this.confidenceExportMetric(crossTab.correctLow, total),
+      this.confidenceExportMetric(crossTab.incorrectLow, total),
+      this.confidenceExportMetric(middle, total),
+      topWrongOption
+        ? `${stripMarkdownToPlainText(topWrongOption.text)} (${topWrongOption.count})`
+        : '',
+    ];
   }
 
   /** Verteilung der Sterne als lesbare Zeile (z. B. "1× 4 ★ · 2× 5 ★"). */
@@ -5816,6 +5857,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     if (this.effectiveStatus() === 'FINISHED') {
       this.loadFeedbackSummary();
+      this.loadFinishedConfidenceSummary();
+    }
+  }
+
+  async loadFinishedConfidenceSummary(): Promise<void> {
+    if (!this.code) return;
+    try {
+      const data = await trpc.session.getExportData.query({ code: this.code.toUpperCase() });
+      this.finishedConfidenceSummary.set(data.confidenceSummary ?? null);
+    } catch {
+      this.finishedConfidenceSummary.set(null);
     }
   }
 
@@ -5840,7 +5892,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const data = await trpc.session.getExportData.query({ code: this.code.toUpperCase() });
       const rows: string[] = [
-        $localize`:@@sessionHost.exportQuestionsHeader:Frage Nr.;Fragentext;Typ;Teilnehmende;Ø Punkte;Details`,
+        $localize`:@@sessionHost.exportQuestionsHeader:Frage Nr.;Fragentext;Typ;Teilnehmende;Ø Punkte;Konfidenz n;Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden;Stärkstes Signal;Details`,
       ];
 
       for (const q of data.questions) {
@@ -5878,8 +5930,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             q.type,
             q.participantCount,
             q.averageScore ?? '',
+            ...this.confidenceExportColumns(q.confidenceResult).map(escapeCsv),
             escapeCsv(details),
           ].join(';'),
+        );
+      }
+
+      if (data.confidenceSummary) {
+        const summary = data.confidenceSummary;
+        rows.push('');
+        rows.push($localize`:@@sessionHost.exportConfidenceSummaryTitle:Lernstand und Sicherheit`);
+        rows.push(
+          $localize`:@@sessionHost.exportConfidenceSummaryHeader:Gültige Antworten;Ausgewertete Fragen;Aus Datenschutz ausgeblendete Fragen;Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden`,
+        );
+        const middle = summary.crossTab.correctMid + summary.crossTab.incorrectMid;
+        rows.push(
+          [
+            summary.responseCount,
+            summary.includedQuestionCount,
+            summary.suppressedQuestionCount,
+            this.confidenceExportMetric(summary.crossTab.correctHigh, summary.responseCount),
+            this.confidenceExportMetric(summary.crossTab.incorrectHigh, summary.responseCount),
+            this.confidenceExportMetric(summary.crossTab.correctLow, summary.responseCount),
+            this.confidenceExportMetric(summary.crossTab.incorrectLow, summary.responseCount),
+            this.confidenceExportMetric(middle, summary.responseCount),
+          ]
+            .map((value) => escapeCsv(String(value)))
+            .join(';'),
         );
       }
 

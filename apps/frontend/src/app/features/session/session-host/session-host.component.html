@@ -654,6 +654,179 @@
           <div class="session-host__run l-page">
             @if (effectiveStatus() === 'FINISHED') {
               <div class="session-host__results">
+                @if (finishedConfidenceSummary(); as confidenceSummary) {
+                  <section
+                    class="session-host__finished-confidence"
+                    aria-labelledby="finished-confidence-heading"
+                  >
+                    <header class="session-host__finished-confidence-header">
+                      <mat-icon aria-hidden="true">psychology</mat-icon>
+                      <div>
+                        <h2
+                          id="finished-confidence-heading"
+                          i18n="@@sessionHost.finishedConfidenceTitle"
+                        >
+                          Lernstand und Sicherheit
+                        </h2>
+                        <p i18n="@@sessionHost.finishedConfidenceLead">
+                          Die Verbindung aus Korrektheit und Sicherheit zeigt gefestigtes Wissen,
+                          Wissenslücken und mögliche Fehlkonzepte.
+                        </p>
+                      </div>
+                    </header>
+
+                    @if (confidenceSummary.priorityQuestionCount > 0) {
+                      <div class="session-host__finished-confidence-alert" role="status">
+                        <mat-icon aria-hidden="true">priority_high</mat-icon>
+                        <span>
+                          <span i18n="@@sessionHost.finishedConfidencePriority">
+                            Nachbesprechung empfohlen:
+                          </span>
+                          {{ confidenceSummary.priorityQuestionCount }}
+                        </span>
+                      </div>
+                    }
+
+                    <div class="session-host__finished-confidence-metrics">
+                      <div class="session-host__finished-confidence-metric">
+                        <strong
+                          >{{
+                            finishedConfidencePercent(
+                              confidenceSummary.crossTab.correctHigh,
+                              confidenceSummary.responseCount
+                            )
+                          }}
+                          %</strong
+                        >
+                        <span i18n="@@sessionHost.finishedConfidenceMastery"
+                          >Gefestigtes Wissen</span
+                        >
+                      </div>
+                      <div
+                        class="session-host__finished-confidence-metric session-host__finished-confidence-metric--risk"
+                      >
+                        <strong
+                          >{{
+                            finishedConfidencePercent(
+                              confidenceSummary.crossTab.incorrectHigh,
+                              confidenceSummary.responseCount
+                            )
+                          }}
+                          %</strong
+                        >
+                        <span i18n="@@sessionHost.finishedConfidenceRisk">Fehlkonzept-Risiko</span>
+                      </div>
+                      <div class="session-host__finished-confidence-metric">
+                        <strong
+                          >{{
+                            finishedConfidencePercent(
+                              confidenceSummary.crossTab.correctLow,
+                              confidenceSummary.responseCount
+                            )
+                          }}
+                          %</strong
+                        >
+                        <span i18n="@@sessionHost.finishedConfidenceFragile">Fragiles Wissen</span>
+                      </div>
+                    </div>
+
+                    <p class="session-host__finished-confidence-coverage">
+                      <span i18n="@@sessionHost.finishedConfidenceValidResponses"
+                        >Antworten mit Sicherheitsgrad:</span
+                      >
+                      {{ formatCount(confidenceSummary.responseCount) }}
+                      ·
+                      <span i18n="@@sessionHost.finishedConfidenceIncludedQuestions"
+                        >Ausgewertete Fragen:</span
+                      >
+                      {{ formatCount(confidenceSummary.includedQuestionCount) }}
+                    </p>
+
+                    @if (confidenceSummary.questions.length > 0) {
+                      <h3 i18n="@@sessionHost.finishedConfidencePriorities">
+                        Priorität für die Nachbesprechung
+                      </h3>
+                      <ol class="session-host__finished-confidence-list">
+                        @for (
+                          question of confidenceSummary.questions.slice(0, 3);
+                          track question.questionOrder
+                        ) {
+                          <li>
+                            <article class="session-host__finished-confidence-question">
+                              <header class="session-host__finished-confidence-question-title">
+                                <strong
+                                  class="session-host__finished-confidence-question-number"
+                                  aria-hidden="true"
+                                  >{{ question.questionOrder + 1 }}</strong
+                                >
+                                <div
+                                  class="session-host__finished-confidence-question-markdown markdown-body"
+                                  [innerHTML]="renderMarkdown(question.questionTextShort)"
+                                ></div>
+                              </header>
+                              <div class="session-host__finished-confidence-question-metrics">
+                                <span
+                                  class="session-host__finished-confidence-question-metric session-host__finished-confidence-question-metric--risk"
+                                >
+                                  <strong>
+                                    {{ question.result.crossTab.incorrectHigh }}/{{
+                                      question.responseCount
+                                    }}
+                                    ·
+                                    {{
+                                      finishedConfidencePercent(
+                                        question.result.crossTab.incorrectHigh,
+                                        question.responseCount
+                                      )
+                                    }}
+                                    %
+                                  </strong>
+                                  <span i18n="@@sessionHost.finishedConfidenceWrongHigh"
+                                    >falsch + hohe Sicherheit</span
+                                  >
+                                </span>
+                                <span class="session-host__finished-confidence-question-metric">
+                                  <strong>
+                                    {{
+                                      finishedConfidencePercent(
+                                        finishedConfidenceIncorrectCount(question),
+                                        question.responseCount
+                                      )
+                                    }}
+                                    %
+                                  </strong>
+                                  <span i18n="@@sessionHost.finishedConfidenceIncorrectOverall"
+                                    >insgesamt falsch</span
+                                  >
+                                </span>
+                              </div>
+                              @if (finishedConfidenceTopWrongOption(question); as option) {
+                                <p class="session-host__finished-confidence-signal">
+                                  <span i18n="@@sessionHost.finishedConfidenceTopSignal"
+                                    >Stärkstes Signal:</span
+                                  >
+                                  <strong>{{ option }}</strong>
+                                </p>
+                              }
+                            </article>
+                          </li>
+                        }
+                      </ol>
+                    }
+
+                    @if (confidenceSummary.suppressedQuestionCount > 0) {
+                      <p class="session-host__finished-confidence-privacy">
+                        <mat-icon aria-hidden="true">privacy_tip</mat-icon>
+                        <span>
+                          <span i18n="@@sessionHost.finishedConfidenceSuppressed">
+                            Aus Datenschutz ausgeblendete Fragen:
+                          </span>
+                          {{ confidenceSummary.suppressedQuestionCount }}
+                        </span>
+                      </p>
+                    }
+                  </section>
+                }
                 @if (leaderboard().length > 0) {
                   <section
                     class="session-host__leaderboard-card"

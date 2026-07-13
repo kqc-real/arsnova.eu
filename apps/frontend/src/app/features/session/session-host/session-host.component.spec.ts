@@ -6192,6 +6192,69 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt die didaktische Confidence-Zusammenfassung im Abschluss', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.statusUpdate.set({
+      status: 'FINISHED',
+      currentQuestion: null,
+    });
+    fixture.componentInstance.finishedConfidenceSummary.set({
+      responseCount: 5,
+      includedQuestionCount: 1,
+      suppressedQuestionCount: 0,
+      priorityQuestionCount: 1,
+      distribution: { '1': 1, '2': 0, '3': 0, '4': 2, '5': 2 },
+      crossTab: {
+        correctHigh: 2,
+        correctMid: 0,
+        correctLow: 1,
+        incorrectHigh: 2,
+        incorrectMid: 0,
+        incorrectLow: 0,
+      },
+      highConfidenceWrongCount: 2,
+      questions: [
+        {
+          questionOrder: 0,
+          questionTextShort:
+            '### Welche Aussage stimmt?\n\n> **Unterrichtsidee:** Nutze die Nachbesprechung.',
+          questionType: 'SINGLE_CHOICE',
+          responseCount: 5,
+          result: {
+            distribution: { '1': 1, '2': 0, '3': 0, '4': 2, '5': 2 },
+            crossTab: {
+              correctHigh: 2,
+              correctMid: 0,
+              correctLow: 1,
+              incorrectHigh: 2,
+              incorrectMid: 0,
+              incorrectLow: 0,
+            },
+            highConfidenceWrongCount: 2,
+          },
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Lernstand und Sicherheit');
+    expect(text).toContain('Fehlkonzept-Risiko');
+    expect(text).toContain('Welche Aussage stimmt?');
+    expect(
+      fixture.nativeElement.querySelector('.session-host__finished-confidence-question-markdown h3')
+        ?.textContent,
+    ).toContain('Welche Aussage stimmt?');
+    expect(
+      fixture.nativeElement.querySelector(
+        '.session-host__finished-confidence-question-markdown blockquote strong',
+      )?.textContent,
+    ).toContain('Unterrichtsidee:');
+    fixture.destroy();
+  });
+
   it('zeigt im Host-Zwischenleaderboard Titles, Labels und den Gleichstandhinweis', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -8069,6 +8132,23 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
             },
           },
         ],
+        confidenceSummary: {
+          responseCount: 5,
+          includedQuestionCount: 1,
+          suppressedQuestionCount: 0,
+          priorityQuestionCount: 1,
+          distribution: { '1': 1, '2': 0, '3': 0, '4': 2, '5': 2 },
+          crossTab: {
+            correctHigh: 2,
+            correctMid: 0,
+            correctLow: 1,
+            incorrectHigh: 2,
+            incorrectMid: 0,
+            incorrectLow: 0,
+          },
+          highConfidenceWrongCount: 2,
+          questions: [],
+        },
         teamLeaderboard: [],
         bonusTokens: [
           {
@@ -8087,8 +8167,12 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       await fixture.componentInstance.exportSessionResultsCsv();
       fixture.detectChanges();
 
-      expect(exportedCsv).toContain('Frage Nr.;Fragentext;Typ;Teilnehmende;Ø Punkte;Details');
+      expect(exportedCsv).toContain(
+        'Frage Nr.;Fragentext;Typ;Teilnehmende;Ø Punkte;Konfidenz n;Gefestigt;Fehlkonzept-Risiko',
+      );
       expect(exportedCsv).toContain('selbstsicher falsch');
+      expect(exportedCsv).toContain('Lernstand und Sicherheit');
+      expect(exportedCsv).toContain('Gültige Antworten;Ausgewertete Fragen');
       expect(exportedCsv).toContain('Bonus-Codes');
       expect(exportedCsv).toContain('Rang;Nickname;Code;Punkte;Generiert am');
       expect(exportedCsv).toContain('1;Ada;BONUS-123;220;2026-03-24T12:31:00.000Z');

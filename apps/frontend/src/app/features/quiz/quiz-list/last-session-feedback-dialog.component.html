@@ -1,10 +1,10 @@
 <h2 mat-dialog-title class="dialog-title-header">
   <span class="dialog-title-header__icon" aria-hidden="true">
-    <mat-icon>feedback</mat-icon>
+    <mat-icon>assessment</mat-icon>
   </span>
   <span class="dialog-title-header__copy">
     <span class="dialog-title-header__heading" i18n="@@quizList.lastSessionFeedbackDialogHeading"
-      >Letztes Session-Feedback</span
+      >Letzte Auswertung</span
     >
     <span class="dialog-title-header__sub last-session-feedback-dialog__quiz-name">{{
       data.quizName
@@ -23,7 +23,7 @@
       role="alert"
       i18n="@@quizList.lastSessionFeedbackDialogLoadError"
     >
-      Das Feedback konnte nicht geladen werden. Bitte später erneut versuchen.
+      Die Auswertung konnte nicht geladen werden. Bitte später erneut versuchen.
     </p>
   } @else if (payload(); as row) {
     <div
@@ -31,8 +31,8 @@
       role="note"
       i18n="@@quizList.lastSessionFeedbackDialogHint"
     >
-      Zusammenfassung aus freiwilligen Angaben der Teilnehmenden – bezogen auf die zuletzt beendete
-      Session mit mindestens einer Bewertung.
+      Aggregierte Auswertung des zuletzt beendeten Live-Durchlaufs. Einzelne Konfidenzwerte und
+      Nicknames werden nicht angezeigt.
     </div>
 
     <p class="last-session-feedback-dialog__session-meta">
@@ -45,89 +45,207 @@
       }
     </p>
 
-    <section
-      class="last-session-feedback-dialog__card"
-      aria-labelledby="last-feedback-section-heading"
-    >
-      <h3 class="last-session-feedback-dialog__section-title" id="last-feedback-section-heading">
-        <mat-icon aria-hidden="true">groups</mat-icon>
-        <span i18n="@@quizList.lastSessionFeedbackDialogParticipantSection"
-          >Feedback der Teilnehmenden</span
+    <p class="last-session-feedback-dialog__session-meta">
+      <span i18n="@@quizList.lastSessionAnalysisParticipants">Teilnehmende:</span>
+      {{ formatCount(row.participantCount) }}
+    </p>
+
+    @if (row.confidenceSummary; as confidence) {
+      <section
+        class="last-session-feedback-dialog__card last-session-feedback-dialog__card--confidence"
+        aria-labelledby="last-confidence-section-heading"
+      >
+        <h3
+          class="last-session-feedback-dialog__section-title"
+          id="last-confidence-section-heading"
         >
-      </h3>
-      <div class="last-session-feedback-dialog__hero">
-        <span
-          class="last-session-feedback-dialog__hero-label"
-          i18n="@@quizList.lastSessionFeedbackDialogOverallLabel"
-          >Gesamtbewertung</span
-        >
-        <p
-          class="last-session-feedback-dialog__avg"
-          [attr.aria-label]="feedbackAverageStarsAria(row.summary.overallAverage)"
-        >
-          <span class="last-session-feedback-dialog__avg-number">{{
-            row.summary.overallAverage | number: '1.1-1'
-          }}</span>
-          <span class="last-session-feedback-dialog__avg-of">/ 5</span>
-          <span class="last-session-feedback-dialog__avg-stars" aria-hidden="true">★</span>
-        </p>
-        <p class="last-session-feedback-dialog__count">
-          {{ formatCount(row.summary.totalResponses) }}
-          {{ row.summary.totalResponses === 1 ? feedbackRatingSingular() : feedbackRatingPlural() }}
-        </p>
-        @if (getFeedbackDistributionLine(row.summary.overallDistribution); as distLine) {
-          <p class="last-session-feedback-dialog__distribution">{{ distLine }}</p>
-        }
-      </div>
-      <div class="last-session-feedback-dialog__details">
-        @if (row.summary.questionQualityAverage !== null) {
-          <div class="last-session-feedback-dialog__detail-row">
-            <span class="last-session-feedback-dialog__detail-label">
-              <mat-icon class="last-session-feedback-dialog__detail-icon" aria-hidden="true"
-                >star</mat-icon
-              >
-              <span i18n="@@quizList.lastSessionFeedbackDialogQuestionQuality"
-                >Qualität der Fragen</span
-              >
+          <mat-icon aria-hidden="true">psychology</mat-icon>
+          <span i18n="@@quizList.lastSessionAnalysisConfidence">Lernstand und Sicherheit</span>
+        </h3>
+
+        @if (confidence.priorityQuestionCount > 0) {
+          <div class="last-session-feedback-dialog__confidence-alert" role="status">
+            <mat-icon aria-hidden="true">priority_high</mat-icon>
+            <span>
+              <span i18n="@@quizList.lastSessionAnalysisPriority">Nachbesprechung empfohlen:</span>
+              {{ confidence.priorityQuestionCount }}
             </span>
-            <span class="last-session-feedback-dialog__detail-value"
-              >Ø {{ row.summary.questionQualityAverage | number: '1.1-1' }} ★</span
+          </div>
+        }
+
+        <div class="last-session-feedback-dialog__confidence-metrics">
+          <div>
+            <strong
+              >{{
+                confidencePercent(confidence.crossTab.correctHigh, confidence.responseCount)
+              }}
+              %</strong
             >
+            <span i18n="@@quizList.lastSessionAnalysisMastery">Gefestigtes Wissen</span>
           </div>
-        }
-        @if (row.summary.wouldRepeatYes > 0 || row.summary.wouldRepeatNo > 0) {
-          <div class="last-session-feedback-dialog__detail-row">
-            <span class="last-session-feedback-dialog__detail-label">
-              <mat-icon class="last-session-feedback-dialog__detail-icon" aria-hidden="true"
-                >thumb_up</mat-icon
-              >
-              <span i18n="@@quizList.lastSessionFeedbackDialogWouldRepeat">Nochmal mitmachen?</span>
-            </span>
-            <span class="last-session-feedback-dialog__repeat-badges">
-              <span
-                class="last-session-feedback-dialog__badge last-session-feedback-dialog__badge--yes"
-              >
-                <mat-icon aria-hidden="true">thumb_up</mat-icon>
-                {{ row.summary.wouldRepeatYes }}
-              </span>
-              <span
-                class="last-session-feedback-dialog__badge last-session-feedback-dialog__badge--no"
-              >
-                <mat-icon aria-hidden="true">thumb_down</mat-icon>
-                {{ row.summary.wouldRepeatNo }}
-              </span>
-            </span>
+          <div class="last-session-feedback-dialog__confidence-metric--risk">
+            <strong
+              >{{
+                confidencePercent(confidence.crossTab.incorrectHigh, confidence.responseCount)
+              }}
+              %</strong
+            >
+            <span i18n="@@quizList.lastSessionAnalysisRisk">Fehlkonzept-Risiko</span>
           </div>
+          <div>
+            <strong
+              >{{
+                confidencePercent(confidence.crossTab.correctLow, confidence.responseCount)
+              }}
+              %</strong
+            >
+            <span i18n="@@quizList.lastSessionAnalysisFragile">Fragiles Wissen</span>
+          </div>
+        </div>
+
+        <p class="last-session-feedback-dialog__distribution">
+          <span i18n="@@quizList.lastSessionAnalysisValidResponses"
+            >Antworten mit Sicherheitsgrad:</span
+          >
+          {{ formatCount(confidence.responseCount) }}
+        </p>
+
+        <h4 i18n="@@quizList.lastSessionAnalysisPriorities">Priorität für die Nachbesprechung</h4>
+        <ol class="last-session-feedback-dialog__confidence-list">
+          @for (question of confidence.questions.slice(0, 3); track question.questionOrder) {
+            <li>
+              <div class="last-session-feedback-dialog__confidence-question-title">
+                <strong>{{ question.questionOrder + 1 }}.</strong>
+                <div
+                  class="last-session-feedback-dialog__confidence-question-markdown markdown-body"
+                  [innerHTML]="renderQuestionMarkdown(question.questionTextShort)"
+                ></div>
+              </div>
+              <span>
+                {{ question.result.crossTab.incorrectHigh }}/{{ question.responseCount }} ·
+                {{
+                  confidencePercent(question.result.crossTab.incorrectHigh, question.responseCount)
+                }}
+                %
+                <span i18n="@@quizList.lastSessionAnalysisWrongHigh">falsch + hohe Sicherheit</span>
+              </span>
+              <span>
+                {{ confidencePercent(incorrectCount(question), question.responseCount) }} %
+                <span i18n="@@quizList.lastSessionAnalysisIncorrect">insgesamt falsch</span>
+              </span>
+              @if (topWrongOption(question); as option) {
+                <span>
+                  <span i18n="@@quizList.lastSessionAnalysisTopSignal">Stärkstes Signal:</span>
+                  {{ option }}
+                </span>
+              }
+            </li>
+          }
+        </ol>
+
+        @if (confidence.suppressedQuestionCount > 0) {
+          <p class="last-session-feedback-dialog__privacy">
+            <mat-icon aria-hidden="true">privacy_tip</mat-icon>
+            <span i18n="@@quizList.lastSessionAnalysisPrivacy">
+              Fragen mit weniger als fünf gültigen Antworten werden nicht einzeln ausgewiesen.
+            </span>
+          </p>
         }
+      </section>
+    } @else {
+      <div class="last-session-feedback-dialog__empty-box">
+        <span i18n="@@quizList.lastSessionAnalysisNoConfidence">
+          Für diesen Durchlauf liegt keine auswertbare Sicherheitsgrad-Zusammenfassung vor.
+        </span>
       </div>
-    </section>
+    }
+
+    @if (row.feedbackSummary; as summary) {
+      <section
+        class="last-session-feedback-dialog__card"
+        aria-labelledby="last-feedback-section-heading"
+      >
+        <h3 class="last-session-feedback-dialog__section-title" id="last-feedback-section-heading">
+          <mat-icon aria-hidden="true">groups</mat-icon>
+          <span i18n="@@quizList.lastSessionFeedbackDialogParticipantSection"
+            >Feedback der Teilnehmenden</span
+          >
+        </h3>
+        <div class="last-session-feedback-dialog__hero">
+          <span
+            class="last-session-feedback-dialog__hero-label"
+            i18n="@@quizList.lastSessionFeedbackDialogOverallLabel"
+            >Gesamtbewertung</span
+          >
+          <p
+            class="last-session-feedback-dialog__avg"
+            [attr.aria-label]="feedbackAverageStarsAria(summary.overallAverage)"
+          >
+            <span class="last-session-feedback-dialog__avg-number">{{
+              summary.overallAverage | number: '1.1-1'
+            }}</span>
+            <span class="last-session-feedback-dialog__avg-of">/ 5</span>
+            <span class="last-session-feedback-dialog__avg-stars" aria-hidden="true">★</span>
+          </p>
+          <p class="last-session-feedback-dialog__count">
+            {{ formatCount(summary.totalResponses) }}
+            {{ summary.totalResponses === 1 ? feedbackRatingSingular() : feedbackRatingPlural() }}
+          </p>
+          @if (getFeedbackDistributionLine(summary.overallDistribution); as distLine) {
+            <p class="last-session-feedback-dialog__distribution">{{ distLine }}</p>
+          }
+        </div>
+        <div class="last-session-feedback-dialog__details">
+          @if (summary.questionQualityAverage !== null) {
+            <div class="last-session-feedback-dialog__detail-row">
+              <span class="last-session-feedback-dialog__detail-label">
+                <mat-icon class="last-session-feedback-dialog__detail-icon" aria-hidden="true"
+                  >star</mat-icon
+                >
+                <span i18n="@@quizList.lastSessionFeedbackDialogQuestionQuality"
+                  >Qualität der Fragen</span
+                >
+              </span>
+              <span class="last-session-feedback-dialog__detail-value"
+                >Ø {{ summary.questionQualityAverage | number: '1.1-1' }} ★</span
+              >
+            </div>
+          }
+          @if (summary.wouldRepeatYes > 0 || summary.wouldRepeatNo > 0) {
+            <div class="last-session-feedback-dialog__detail-row">
+              <span class="last-session-feedback-dialog__detail-label">
+                <mat-icon class="last-session-feedback-dialog__detail-icon" aria-hidden="true"
+                  >thumb_up</mat-icon
+                >
+                <span i18n="@@quizList.lastSessionFeedbackDialogWouldRepeat"
+                  >Nochmal mitmachen?</span
+                >
+              </span>
+              <span class="last-session-feedback-dialog__repeat-badges">
+                <span
+                  class="last-session-feedback-dialog__badge last-session-feedback-dialog__badge--yes"
+                >
+                  <mat-icon aria-hidden="true">thumb_up</mat-icon>
+                  {{ summary.wouldRepeatYes }}
+                </span>
+                <span
+                  class="last-session-feedback-dialog__badge last-session-feedback-dialog__badge--no"
+                >
+                  <mat-icon aria-hidden="true">thumb_down</mat-icon>
+                  {{ summary.wouldRepeatNo }}
+                </span>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
   } @else {
     <div
       class="last-session-feedback-dialog__empty-box"
       i18n="@@quizList.lastSessionFeedbackDialogEmpty"
     >
-      Noch kein Feedback – es erscheint hier, sobald eine beendete Live-Session mindestens eine
-      Bewertung enthält.
+      Noch keine Auswertung – sie erscheint hier nach dem ersten beendeten Live-Durchlauf.
     </div>
   }
 </mat-dialog-content>

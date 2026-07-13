@@ -19,6 +19,7 @@
     "smoke:host-music": "node scripts/check-host-music-flow.mjs",
     "smoke:short-text": "node scripts/check-short-text-flow.mjs",
     "smoke:numeric-estimate": "node scripts/check-numeric-estimate-flow.mjs",
+    "e2e:confidence-summary-demo": "node scripts/check-confidence-summary-demo-flow.mjs",
     "smoke:quiz-sync": "node scripts/check-quiz-sync-flow.mjs",
     "smoke:unified-session": "node scripts/check-unified-session-flow.mjs",
     "lighthouse:a11y": "node scripts/lighthouse-a11y.mjs",

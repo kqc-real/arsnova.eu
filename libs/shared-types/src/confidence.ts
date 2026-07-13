@@ -6,6 +6,7 @@ export const CONFIDENCE_SCALE_MIN = 1;
 export const CONFIDENCE_SCALE_MAX = 5;
 export const CONFIDENCE_LOW_MAX = 2;
 export const CONFIDENCE_HIGH_MIN = 4;
+export const CONFIDENCE_SUMMARY_MIN_RESPONSES = 5;
 
 export const CONFIDENCE_ELIGIBLE_QUESTION_TYPES = [
   'MULTIPLE_CHOICE',
@@ -57,6 +58,35 @@ export interface ConfidenceResult {
   crossTab: ConfidenceCrossTab;
   highConfidenceWrongCount: number;
   highConfidenceWrongOptions?: ConfidenceWrongOptionCount[];
+}
+
+export interface ConfidenceQuestionSummary {
+  questionOrder: number;
+  questionTextShort: string;
+  questionType: ConfidenceEligibleQuestionType;
+  responseCount: number;
+  result: ConfidenceResult;
+}
+
+export interface SessionConfidenceSummary {
+  responseCount: number;
+  includedQuestionCount: number;
+  suppressedQuestionCount: number;
+  priorityQuestionCount: number;
+  distribution: ConfidenceDistribution;
+  crossTab: ConfidenceCrossTab;
+  highConfidenceWrongCount: number;
+  questions: ConfidenceQuestionSummary[];
+}
+
+export interface BuildSessionConfidenceSummaryInput {
+  questions: Array<{
+    questionOrder: number;
+    questionTextShort: string;
+    questionType: ConfidenceEligibleQuestionType;
+    result: ConfidenceResult | null | undefined;
+  }>;
+  minResponses?: number;
 }
 
 export function questionSupportsConfidence(type: string): boolean {
@@ -161,5 +191,85 @@ export function buildConfidenceResult(input: BuildConfidenceResultInput): Confid
     crossTab,
     highConfidenceWrongCount: crossTab.incorrectHigh,
     ...(highConfidenceWrongOptions ? { highConfidenceWrongOptions } : {}),
+  };
+}
+
+export function confidenceResultResponseCount(result: ConfidenceResult): number {
+  return Object.values(result.distribution).reduce((sum, count) => sum + count, 0);
+}
+
+function addConfidenceResult(target: ConfidenceResult, source: ConfidenceResult): void {
+  for (const value of ['1', '2', '3', '4', '5'] as const) {
+    target.distribution[value] += source.distribution[value];
+  }
+  for (const key of Object.keys(target.crossTab) as Array<keyof ConfidenceCrossTab>) {
+    target.crossTab[key] += source.crossTab[key];
+  }
+  target.highConfidenceWrongCount += source.highConfidenceWrongCount;
+}
+
+function incorrectCount(result: ConfidenceResult): number {
+  return (
+    result.crossTab.incorrectHigh + result.crossTab.incorrectMid + result.crossTab.incorrectLow
+  );
+}
+
+export function buildSessionConfidenceSummary(
+  input: BuildSessionConfidenceSummaryInput,
+): SessionConfidenceSummary | null {
+  const minResponses = Math.max(
+    1,
+    Math.floor(input.minResponses ?? CONFIDENCE_SUMMARY_MIN_RESPONSES),
+  );
+  const aggregate: ConfidenceResult = {
+    distribution: createEmptyConfidenceDistribution(),
+    crossTab: createEmptyConfidenceCrossTab(),
+    highConfidenceWrongCount: 0,
+  };
+  const questions: ConfidenceQuestionSummary[] = [];
+  let suppressedQuestionCount = 0;
+
+  for (const question of input.questions) {
+    if (!question.result) continue;
+    const responseCount = confidenceResultResponseCount(question.result);
+    if (responseCount < minResponses) {
+      suppressedQuestionCount += 1;
+      continue;
+    }
+    addConfidenceResult(aggregate, question.result);
+    questions.push({
+      questionOrder: question.questionOrder,
+      questionTextShort: question.questionTextShort,
+      questionType: question.questionType,
+      responseCount,
+      result: question.result,
+    });
+  }
+
+  if (questions.length === 0) return null;
+
+  questions.sort((left, right) => {
+    const highWrongDifference =
+      right.result.crossTab.incorrectHigh / right.responseCount -
+      left.result.crossTab.incorrectHigh / left.responseCount;
+    if (highWrongDifference !== 0) return highWrongDifference;
+    const incorrectDifference =
+      incorrectCount(right.result) / right.responseCount -
+      incorrectCount(left.result) / left.responseCount;
+    if (incorrectDifference !== 0) return incorrectDifference;
+    return right.responseCount - left.responseCount || left.questionOrder - right.questionOrder;
+  });
+
+  return {
+    responseCount: confidenceResultResponseCount(aggregate),
+    includedQuestionCount: questions.length,
+    suppressedQuestionCount,
+    priorityQuestionCount: questions.filter(
+      (question) => question.result.crossTab.incorrectHigh > 0,
+    ).length,
+    distribution: aggregate.distribution,
+    crossTab: aggregate.crossTab,
+    highConfidenceWrongCount: aggregate.highConfidenceWrongCount,
+    questions,
   };
 }

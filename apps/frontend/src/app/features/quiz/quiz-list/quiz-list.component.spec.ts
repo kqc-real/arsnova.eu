@@ -488,7 +488,7 @@ describe('QuizListComponent', () => {
     ).toBe(7);
   });
 
-  it('graut Bonus-Codes und Letztes Feedback aus, wenn noch keine Inhalte vorhanden sind', async () => {
+  it('graut Bonus-Codes und Letzte Auswertung aus, wenn noch keine Inhalte vorhanden sind', async () => {
     quizzesSignal.set([
       {
         id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
@@ -508,6 +508,7 @@ describe('QuizListComponent', () => {
         quizId: '11111111-1111-4111-8111-111111111111',
         hasBonusTokens: false,
         hasLastSessionFeedback: false,
+        hasLastSessionAnalysis: false,
       },
     ]);
 
@@ -524,7 +525,7 @@ describe('QuizListComponent', () => {
     ) as HTMLButtonElement[];
     const bonusButton = buttons.find((button) => button.textContent?.includes('Bonus-Codes'));
     const feedbackButton = buttons.find((button) =>
-      button.textContent?.includes('Letztes Feedback'),
+      button.textContent?.includes('Letzte Auswertung'),
     );
 
     expect(getQuizCollectionHistoryAvailabilityQueryMock).toHaveBeenCalledWith([
@@ -537,7 +538,7 @@ describe('QuizListComponent', () => {
     expect(feedbackButton?.disabled).toBe(true);
   });
 
-  it('aktiviert Bonus-Codes und Letztes Feedback nur bei vorhandenen Inhalten', async () => {
+  it('aktiviert Bonus-Codes und Letzte Auswertung nur bei vorhandenen Inhalten', async () => {
     quizzesSignal.set([
       {
         id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
@@ -557,7 +558,11 @@ describe('QuizListComponent', () => {
       new Map([
         [
           'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-          { hasBonusTokens: true, hasLastSessionFeedback: true },
+          {
+            hasBonusTokens: true,
+            hasLastSessionFeedback: true,
+            hasLastSessionAnalysis: true,
+          },
         ],
       ]),
     );
@@ -569,7 +574,7 @@ describe('QuizListComponent', () => {
     ) as HTMLButtonElement[];
     const bonusButton = buttons.find((button) => button.textContent?.includes('Bonus-Codes'));
     const feedbackButton = buttons.find((button) =>
-      button.textContent?.includes('Letztes Feedback'),
+      button.textContent?.includes('Letzte Auswertung'),
     );
 
     expect(bonusButton?.disabled).toBe(false);
@@ -600,6 +605,7 @@ describe('QuizListComponent', () => {
         quizId: '11111111-1111-4111-8111-111111111111',
         hasBonusTokens: true,
         hasLastSessionFeedback: true,
+        hasLastSessionAnalysis: true,
       },
     ]);
 
@@ -632,6 +638,7 @@ describe('QuizListComponent', () => {
     ).toEqual({
       hasBonusTokens: true,
       hasLastSessionFeedback: true,
+      hasLastSessionAnalysis: true,
     });
   });
 
@@ -1001,7 +1008,11 @@ Viel Erfolg beim Import.`);
       new Map([
         [
           'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-          { hasBonusTokens: true, hasLastSessionFeedback: false },
+          {
+            hasBonusTokens: true,
+            hasLastSessionFeedback: false,
+            hasLastSessionAnalysis: false,
+          },
         ],
       ]),
     );
@@ -1044,7 +1055,11 @@ Viel Erfolg beim Import.`);
       new Map([
         [
           'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-          { hasBonusTokens: true, hasLastSessionFeedback: false },
+          {
+            hasBonusTokens: true,
+            hasLastSessionFeedback: false,
+            hasLastSessionAnalysis: false,
+          },
         ],
       ]),
     );
@@ -1083,7 +1098,7 @@ Viel Erfolg beim Import.`);
     );
   });
 
-  it('oeffnet das Letzte-Feedback-Dialogfenster nur bei vorhandenem Feedback', async () => {
+  it('oeffnet die Letzte Auswertung nur bei vorhandenem Durchlauf', async () => {
     const fixture = TestBed.createComponent(QuizListComponent);
     const component = fixture.componentInstance;
     const dialogOpenSpy = vi.spyOn(component['dialog'], 'open').mockReturnValue({} as never);
@@ -1107,7 +1122,11 @@ Viel Erfolg beim Import.`);
       new Map([
         [
           'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-          { hasBonusTokens: false, hasLastSessionFeedback: true },
+          {
+            hasBonusTokens: false,
+            hasLastSessionFeedback: true,
+            hasLastSessionAnalysis: true,
+          },
         ],
       ]),
     );

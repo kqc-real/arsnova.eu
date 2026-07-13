@@ -260,25 +260,72 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
             },
           ],
         },
+        {
+          questionId: QUESTION_ID,
+          round: 1,
+          score: 0,
+          confidenceValue: 4,
+          isCorrect: false,
+          selectedAnswers: [
+            {
+              answerOptionId: WRONG_ID,
+              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 1,
+          score: 1000,
+          confidenceValue: 5,
+          isCorrect: true,
+          selectedAnswers: [
+            {
+              answerOptionId: RIGHT_ID,
+              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 1,
+          score: 1000,
+          confidenceValue: 3,
+          isCorrect: true,
+          selectedAnswers: [
+            {
+              answerOptionId: RIGHT_ID,
+              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+            },
+          ],
+        },
       ],
       bonusTokens: [],
-      participants: [{ id: 'p1' }, { id: 'p2' }],
+      participants: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }, { id: 'p4' }, { id: 'p5' }],
     });
 
     const result = await hostCaller.getExportData({ code: CODE });
 
     expect(result.questions[0]).toMatchObject({
       type: 'SINGLE_CHOICE',
-      participantCount: 2,
+      participantCount: 5,
       confidenceResult: {
-        highConfidenceWrongCount: 1,
+        highConfidenceWrongCount: 2,
         crossTab: {
-          correctHigh: 0,
+          correctHigh: 1,
+          correctMid: 1,
           correctLow: 1,
-          incorrectHigh: 1,
+          incorrectHigh: 2,
         },
-        highConfidenceWrongOptions: [{ answerId: WRONG_ID, text: '5', count: 1 }],
+        highConfidenceWrongOptions: [{ answerId: WRONG_ID, text: '5', count: 2 }],
       },
+    });
+    expect(result.confidenceSummary).toMatchObject({
+      responseCount: 5,
+      includedQuestionCount: 1,
+      suppressedQuestionCount: 0,
+      priorityQuestionCount: 1,
+      highConfidenceWrongCount: 2,
     });
   });
 
@@ -324,25 +371,78 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
             },
           ],
         },
+        {
+          questionId: QUESTION_ID,
+          round: 2,
+          score: 1000,
+          confidenceValue: 2,
+          isCorrect: true,
+          selectedAnswers: [
+            {
+              answerOptionId: RIGHT_ID,
+              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 2,
+          score: 1000,
+          confidenceValue: 3,
+          isCorrect: true,
+          selectedAnswers: [
+            {
+              answerOptionId: RIGHT_ID,
+              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 2,
+          score: 1000,
+          confidenceValue: 4,
+          isCorrect: true,
+          selectedAnswers: [
+            {
+              answerOptionId: RIGHT_ID,
+              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 2,
+          score: 0,
+          confidenceValue: 5,
+          isCorrect: false,
+          selectedAnswers: [
+            {
+              answerOptionId: WRONG_ID,
+              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+            },
+          ],
+        },
       ],
       bonusTokens: [],
-      participants: [{ id: 'p1' }],
+      participants: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }, { id: 'p4' }, { id: 'p5' }],
     });
 
     const result = await hostCaller.getExportData({ code: CODE });
 
     expect(result.questions[0]).toMatchObject({
-      participantCount: 1,
+      participantCount: 5,
       optionDistribution: [
-        { text: '4', count: 1, isCorrect: true },
-        { text: '5', count: 0, isCorrect: false },
+        { text: '4', count: 4, isCorrect: true },
+        { text: '5', count: 1, isCorrect: false },
       ],
       confidenceResult: {
-        highConfidenceWrongCount: 0,
+        highConfidenceWrongCount: 1,
         crossTab: {
-          correctHigh: 0,
-          correctLow: 1,
-          incorrectHigh: 0,
+          correctHigh: 1,
+          correctMid: 1,
+          correctLow: 2,
+          incorrectHigh: 1,
         },
       },
     });

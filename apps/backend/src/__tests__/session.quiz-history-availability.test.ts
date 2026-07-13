@@ -97,11 +97,12 @@ describe('session.getQuizCollectionHistoryAvailability', () => {
     ]);
   });
 
-  it('liefert Verfügbarkeitsflags für Bonus-Codes und letztes Feedback', async () => {
+  it('liefert Verfügbarkeitsflags für Bonus-Codes, Feedback und letzte Auswertung', async () => {
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
     prismaMock.session.findFirst
       .mockResolvedValueOnce({ id: 'session-bonus' })
-      .mockResolvedValueOnce(null);
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'session-analysis' });
 
     const result = await caller.getQuizCollectionHistoryAvailability([
       { quizId: QUIZ_ID, accessProof },
@@ -112,8 +113,9 @@ describe('session.getQuizCollectionHistoryAvailability', () => {
         quizId: QUIZ_ID,
         hasBonusTokens: true,
         hasLastSessionFeedback: false,
+        hasLastSessionAnalysis: true,
       },
     ]);
-    expect(prismaMock.session.findFirst).toHaveBeenCalledTimes(2);
+    expect(prismaMock.session.findFirst).toHaveBeenCalledTimes(3);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildConfidenceResult,
+  buildSessionConfidenceSummary,
   classifyConfidenceTier,
   isConfidenceScaleValue,
   questionSupportsConfidence,
@@ -84,6 +85,98 @@ describe('confidence helpers (Story 1.2i)', () => {
     expect(
       buildConfidenceResult({
         votes: [{ confidenceValue: null, isCorrect: true }],
+      }),
+    ).toBeNull();
+  });
+
+  it('aggregiert eine datenschutzkonforme Session-Zusammenfassung und priorisiert Fehlkonzepte', () => {
+    const risky = buildConfidenceResult({
+      votes: [
+        { confidenceValue: 5, isCorrect: false },
+        { confidenceValue: 4, isCorrect: false },
+        { confidenceValue: 4, isCorrect: false },
+        { confidenceValue: 5, isCorrect: true },
+        { confidenceValue: 3, isCorrect: true },
+      ],
+    });
+    const secure = buildConfidenceResult({
+      votes: [
+        { confidenceValue: 5, isCorrect: true },
+        { confidenceValue: 5, isCorrect: true },
+        { confidenceValue: 4, isCorrect: true },
+        { confidenceValue: 2, isCorrect: true },
+        { confidenceValue: 1, isCorrect: false },
+      ],
+    });
+    const suppressed = buildConfidenceResult({
+      votes: [
+        { confidenceValue: 5, isCorrect: false },
+        { confidenceValue: 5, isCorrect: false },
+      ],
+    });
+
+    const result = buildSessionConfidenceSummary({
+      questions: [
+        {
+          questionOrder: 0,
+          questionTextShort: 'Sicher',
+          questionType: 'SINGLE_CHOICE',
+          result: secure,
+        },
+        {
+          questionOrder: 1,
+          questionTextShort: 'Riskant',
+          questionType: 'MULTIPLE_CHOICE',
+          result: risky,
+        },
+        {
+          questionOrder: 2,
+          questionTextShort: 'Zu klein',
+          questionType: 'SHORT_TEXT',
+          result: suppressed,
+        },
+      ],
+    });
+
+    expect(result).toMatchObject({
+      responseCount: 10,
+      includedQuestionCount: 2,
+      suppressedQuestionCount: 1,
+      priorityQuestionCount: 1,
+      highConfidenceWrongCount: 3,
+      questions: [
+        { questionOrder: 1, responseCount: 5 },
+        { questionOrder: 0, responseCount: 5 },
+      ],
+    });
+    expect(result?.crossTab).toEqual({
+      correctHigh: 4,
+      correctMid: 1,
+      correctLow: 1,
+      incorrectHigh: 3,
+      incorrectMid: 0,
+      incorrectLow: 1,
+    });
+  });
+
+  it('liefert ohne Frage oberhalb der Datenschutzschwelle keine Session-Zusammenfassung', () => {
+    const result = buildConfidenceResult({
+      votes: [
+        { confidenceValue: 5, isCorrect: false },
+        { confidenceValue: 4, isCorrect: true },
+      ],
+    });
+
+    expect(
+      buildSessionConfidenceSummary({
+        questions: [
+          {
+            questionOrder: 0,
+            questionTextShort: 'Kleine Gruppe',
+            questionType: 'SINGLE_CHOICE',
+            result,
+          },
+        ],
       }),
     ).toBeNull();
   });
