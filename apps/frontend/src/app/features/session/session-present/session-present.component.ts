@@ -26,6 +26,7 @@ import type {
 } from '@arsnova/shared-types';
 import { recordServerTimeSample } from '../session-server-clock';
 import { localizePath } from '../../../core/locale-router';
+import { formatLocaleCount, formatLocalePercent } from '../../../core/locale-number.util';
 import {
   getEffectiveLocale,
   localeIdToSupported,
@@ -270,7 +271,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (!entry) {
       return null;
     }
-    return $localize`${entry.teamName} gewinnt mit ${entry.totalScore}:totalScore: Punkten!`;
+    return $localize`${entry.teamName} gewinnt mit ${formatLocaleCount(entry.totalScore, this.localeId)}:totalScore: Punkten!`;
   }
 
   renderMarkdown(value: string): SafeHtml {
@@ -321,9 +322,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   quickFeedbackPercentage(value: number): string {
     const total = this.quickFeedbackResult()?.totalVotes ?? 0;
     if (total <= 0) {
-      return '0';
+      return formatLocalePercent(0, this.localeId, 0);
     }
-    return String(Math.round((value / total) * 100));
+    return formatLocalePercent(Math.round((value / total) * 100), this.localeId, 0);
+  }
+
+  formatCount(value: number | null | undefined): string {
+    return formatLocaleCount(value ?? 0, this.localeId);
   }
 
   private async refreshSessionMeta(): Promise<void> {

@@ -84,6 +84,7 @@ import {
   findKindergartenNicknameEmoji,
 } from '../../join/kindergarten-nickname-icons';
 import { getEffectiveLocale } from '../../../core/locale-from-path';
+import { formatLocaleCount } from '../../../core/locale-number.util';
 import {
   areOriginalNicknamesExhausted,
   getGeneratedNicknameFallbackList,
@@ -121,8 +122,7 @@ type SessionChannelTab = 'quiz' | 'qa' | 'quickFeedback';
 type ParticipantLiveChannelTab = Extract<SessionChannelTab, 'qa' | 'quickFeedback'>;
 type QuickFeedbackPhaseKey = string | null;
 type ShortTextEvaluationResult =
-  | ReturnType<typeof evaluateShortAnswer>
-  | ReturnType<typeof evaluateNumericAnswer>;
+  ReturnType<typeof evaluateShortAnswer> | ReturnType<typeof evaluateNumericAnswer>;
 type StoredVoteResponse = {
   answerIds?: string[];
   freeText?: string;
@@ -2206,18 +2206,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       if (entry.totalScore <= 0) {
         return $localize`:@@sessionVote.teamRewardMsgFinishedOwnZero:Quiz beendet – ihr habt keine Team-Punkte gesammelt.`;
       }
-      return $localize`:@@sessionVote.teamRewardMsgFinishedOther:Ihr beendet mit ${entry.totalScore}:totalScore: Punkten auf Platz ${entry.rank}:teamRank:.`;
+      return $localize`:@@sessionVote.teamRewardMsgFinishedOther:Ihr beendet mit ${formatLocaleCount(entry.totalScore, getEffectiveLocale())}:totalScore: Punkten auf Platz ${formatLocaleCount(entry.rank, getEffectiveLocale())}:teamRank:.`;
     }
     if (entry.totalScore <= 0) {
       if (!anyTeamScored) {
         return $localize`:@@sessionVote.teamRewardMsgAllZero:Mit richtigen Antworten sammelt ihr Punkte fürs Team.`;
       }
-      return $localize`:@@sessionVote.teamRewardMsgChasing:Aktuell Platz ${entry.rank}:teamRank: mit ${entry.totalScore}:totalScore: Punkten.`;
+      return $localize`:@@sessionVote.teamRewardMsgChasing:Aktuell Platz ${formatLocaleCount(entry.rank, getEffectiveLocale())}:teamRank: mit ${formatLocaleCount(entry.totalScore, getEffectiveLocale())}:totalScore: Punkten.`;
     }
     if (entry.rank === 1 && anyTeamScored) {
-      return $localize`:@@sessionVote.teamRewardMsgLeading:Mit ${entry.totalScore}:totalScore: Punkten führt ihr.`;
+      return $localize`:@@sessionVote.teamRewardMsgLeading:Mit ${formatLocaleCount(entry.totalScore, getEffectiveLocale())}:totalScore: Punkten führt ihr.`;
     }
-    return $localize`:@@sessionVote.teamRewardMsgChasing:Aktuell Platz ${entry.rank}:teamRank: mit ${entry.totalScore}:totalScore: Punkten.`;
+    return $localize`:@@sessionVote.teamRewardMsgChasing:Aktuell Platz ${formatLocaleCount(entry.rank, getEffectiveLocale())}:teamRank: mit ${formatLocaleCount(entry.totalScore, getEffectiveLocale())}:totalScore: Punkten.`;
   }
 
   teamRewardLeaderHint(): string | null {
@@ -2295,9 +2295,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   teamStandingAriaLabel(entry: TeamLeaderboardEntryDTO): string {
     const teamLabel = this.teamNameDisplayLabel(entry.teamName);
     if (!this.teamScoreboardHasPoints()) {
-      return $localize`:@@sessionVote.teamStandingNoRank:${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Team-Punkten, noch ohne Rang`;
+      return $localize`:@@sessionVote.teamStandingNoRank:${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${formatLocaleCount(entry.totalScore, getEffectiveLocale())}:totalScore: Team-Punkten, noch ohne Rang`;
     }
-    return $localize`:@@sessionVote.teamStandingWithMembers:Platz ${entry.rank}:teamRank:: ${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${entry.totalScore}:totalScore: Punkten`;
+    return $localize`:@@sessionVote.teamStandingWithMembers:Platz ${formatLocaleCount(entry.rank, getEffectiveLocale())}:teamRank:: ${teamLabel}:teamName: mit ${this.teamMemberLabel(entry.memberCount)}:memberCountLabel: und ${formatLocaleCount(entry.totalScore, getEffectiveLocale())}:totalScore: Punkten`;
   }
 
   private teamNameDisplayLabel(teamName: string): string {
@@ -2315,7 +2315,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   teamMemberLabel(count: number): string {
-    return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
+    const formatted = formatLocaleCount(count, getEffectiveLocale());
+    return count === 1 ? $localize`${formatted} Mitglied` : $localize`${formatted} Mitglieder`;
+  }
+
+  formatCount(value: number): string {
+    return formatLocaleCount(value, getEffectiveLocale());
   }
 
   teamScoreBarWidth(totalScore: number): string {

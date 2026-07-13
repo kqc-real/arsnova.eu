@@ -3,6 +3,7 @@ import {
   Component,
   HostListener,
   Injector,
+  LOCALE_ID,
   NgZone,
   OnDestroy,
   OnInit,
@@ -19,6 +20,7 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { clearFeedbackHostToken, setFeedbackHostToken } from '../../core/feedback-host-token';
+import { formatLocaleCount, formatLocalePercent } from '../../core/locale-number.util';
 import { clearHostToken } from '../../core/host-session-token';
 import { trpc } from '../../core/trpc.client';
 import {
@@ -78,6 +80,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private readonly ngZone = inject(NgZone);
   private readonly snackBar = inject(MatSnackBar);
   private readonly document = inject(DOCUMENT);
+  private readonly localeId = inject(LOCALE_ID) as string;
   private readonly injector = inject(Injector);
   private subscription: Unsubscribable | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -480,22 +483,30 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     return this.starAverage(data.distribution, data.totalVotes);
   });
 
-  round1Percentage(key: string): string {
+  round1PercentageValue(key: string): number {
     const data = this.result();
-    if (!data?.round1Distribution || !data.round1Total) return '0';
+    if (!data?.round1Distribution || !data.round1Total) return 0;
     const count = data.round1Distribution[key] ?? 0;
-    return data.round1Total > 0 ? String(Math.round((count / data.round1Total) * 100)) : '0';
+    return data.round1Total > 0 ? Math.round((count / data.round1Total) * 100) : 0;
+  }
+
+  round1PercentageLabel(key: string): string {
+    return formatLocalePercent(this.round1PercentageValue(key), this.localeId, 0);
   }
 
   round1Count(key: string): number {
     return this.result()?.round1Distribution?.[key] ?? 0;
   }
 
-  round2Percentage(key: string): string {
+  round2PercentageValue(key: string): number {
     const data = this.result();
-    if (!data || data.totalVotes === 0) return '0';
+    if (!data || data.totalVotes === 0) return 0;
     const count = data.distribution[key] ?? 0;
-    return data.totalVotes > 0 ? String(Math.round((count / data.totalVotes) * 100)) : '0';
+    return data.totalVotes > 0 ? Math.round((count / data.totalVotes) * 100) : 0;
+  }
+
+  round2PercentageLabel(key: string): string {
+    return formatLocalePercent(this.round2PercentageValue(key), this.localeId, 0);
   }
 
   round2Count(key: string): number {
@@ -516,14 +527,14 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     if (totalVotes === 1) {
       return $localize`:@@feedback.voteCountOne:1 Stimme`;
     }
-    return $localize`:@@feedback.voteCountMany:${totalVotes}:count: Stimmen`;
+    return $localize`:@@feedback.voteCountMany:${formatLocaleCount(totalVotes, this.localeId)}:count: Stimmen`;
   }
 
   tempoParticipantCountLabel(totalVotes: number): string {
     if (totalVotes === 1) {
       return $localize`:@@feedback.tempoParticipantCountOne:1 Person im Barometer`;
     }
-    return $localize`:@@feedback.tempoParticipantCountMany:${totalVotes}:count: Teilnehmende im Barometer`;
+    return $localize`:@@feedback.tempoParticipantCountMany:${formatLocaleCount(totalVotes, this.localeId)}:count: Teilnehmende im Barometer`;
   }
 
   openTempoHelp(event?: Event): void {
@@ -707,7 +718,12 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly percentages = computed<Record<string, string>>(() => {
     const data = this.result();
     if (!data || data.totalVotes === 0) {
-      return Object.fromEntries(Object.keys(data?.distribution ?? {}).map((k) => [k, '0']));
+      return Object.fromEntries(
+        Object.keys(data?.distribution ?? {}).map((k) => [
+          k,
+          formatLocalePercent(0, this.localeId, 0),
+        ]),
+      );
     }
     const entries = Object.entries(data.distribution);
     const total = data.totalVotes;
@@ -726,7 +742,8 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     return Object.fromEntries(
       raw.map((r) => {
         const val = r.floor / 10;
-        return [r.key, val % 1 === 0 ? String(val) : val.toFixed(1).replace('.', ',')];
+        const fractionDigits = val % 1 === 0 ? 0 : 1;
+        return [r.key, formatLocalePercent(val, this.localeId, fractionDigits)];
       }),
     );
   });
@@ -738,7 +755,11 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   percentage(key: string): string {
-    return this.percentages()[key] ?? '0';
+    return this.percentages()[key] ?? formatLocalePercent(0, this.localeId, 0);
+  }
+
+  formatCount(value: number | null | undefined): string {
+    return formatLocaleCount(value ?? 0, this.localeId);
   }
 
   resultsAriaLabel(type: string): string {

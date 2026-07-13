@@ -63,7 +63,7 @@
             <p class="join-card__quiz">{{ s.title }}</p>
           }
           <p class="join-card__participants">
-            <span class="join-card__participants-count">{{ s.participantCount }}</span>
+            <span class="join-card__participants-count">{{ formatCount(s.participantCount) }}</span>
             {{ s.participantCount === 1 ? participantSingular() : participantPlural() }}
             {{ inLobbyLabel() }}
           </p>

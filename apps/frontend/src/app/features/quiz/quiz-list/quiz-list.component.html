@@ -446,7 +446,7 @@
                     class="quiz-list-item__feature-chip quiz-list-item__feature-chip--live"
                     i18n="@@quizList.chipLiveParticipants"
                   >
-                    {{ liveParticipantCount }} live dabei
+                    {{ formatCount(liveParticipantCount) }} live dabei
                   </span>
                 }
               }
@@ -456,7 +456,7 @@
                 class="quiz-list-item__badge"
                 [class.quiz-list-item__badge--empty]="quiz.questionCount === 0"
               >
-                {{ quiz.questionCount }}
+                {{ formatCount(quiz.questionCount) }}
               </span>
               @if (quiz.questionCount === 0) {
                 <span class="quiz-list-item__meta-text quiz-list-item__meta-text--warn" i18n

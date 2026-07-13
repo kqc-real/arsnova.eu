@@ -20,13 +20,14 @@
       <p class="word-cloud__meta-line">
         <span class="word-cloud__meta-pill">
           @if (isWordCountPartial()) {
-            {{ visibleWordCount() }} / {{ words().length }} {{ wordLabel(words().length) }}
+            {{ formatCount(visibleWordCount()) }} / {{ formatCount(words().length) }}
+            {{ wordLabel(words().length) }}
           } @else {
             {{ words().length }} {{ wordLabel(words().length) }}
           }
         </span>
         <span class="word-cloud__meta-pill"
-          >{{ responseSummary().total }} {{ itemLabel(responseSummary().total) }}</span
+          >{{ formatCount(responseSummary().total) }} {{ itemLabel(responseSummary().total) }}</span
         >
       </p>
       @if (analysisDetailLabel()) {
@@ -186,7 +187,7 @@
             >
               <span
                 >{{ showResponsesLabel(responseSummary().visible) }} ({{
-                  responseSummary().visible
+                  formatCount(responseSummary().visible)
                 }})</span
               >
               <mat-icon aria-hidden="true">{{

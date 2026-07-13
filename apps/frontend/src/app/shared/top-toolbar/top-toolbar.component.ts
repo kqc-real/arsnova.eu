@@ -20,6 +20,7 @@ import {
   localeIdToSupported,
   SUPPORTED_LOCALES,
 } from '../../core/locale-from-path';
+import { formatLocaleBadgeCount, formatLocaleCount } from '../../core/locale-number.util';
 import { MotdHeaderStateService } from '../../core/motd-header-state.service';
 import { MotdArchiveDialogComponent } from '../motd-archive-dialog/motd-archive-dialog.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
@@ -77,7 +78,7 @@ export class TopToolbarComponent {
   /** Badge-Text (max. „99+“). */
   readonly motdArchiveBadgeText = computed(() => {
     const n = this.motdHeaderState.archiveUnreadCount();
-    return n > 99 ? '99+' : String(n);
+    return formatLocaleBadgeCount(n, this.localeId as string);
   });
 
   /** Barrierefrei: Zähler in der Beschriftung, wenn Archiv-Einträge existieren. */
@@ -89,7 +90,7 @@ export class TopToolbarComponent {
     if (n === 1) {
       return $localize`:@@motd.toolbarArchiveAriaOne:News und Archiv, eine ungelesene Meldung`;
     }
-    return $localize`:@@motd.toolbarArchiveAriaCount:News und Archiv, ${n}:INTERPOLATION: ungelesene Meldungen`;
+    return $localize`:@@motd.toolbarArchiveAriaCount:News und Archiv, ${formatLocaleCount(n, this.localeId as string)}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   /** Kurzinfo beim Hover (unterscheidet ungelesene Meldungen). */
@@ -101,7 +102,7 @@ export class TopToolbarComponent {
     if (n === 1) {
       return $localize`:@@motd.toolbarArchiveTooltipUnreadOne:News und Archiv · 1 ungelesene Meldung`;
     }
-    return $localize`:@@motd.toolbarArchiveTooltipUnreadCount:News und Archiv · ${n}:INTERPOLATION: ungelesene Meldungen`;
+    return $localize`:@@motd.toolbarArchiveTooltipUnreadCount:News und Archiv · ${formatLocaleCount(n, this.localeId as string)}:INTERPOLATION: ungelesene Meldungen`;
   });
 
   /** true wenn URL-Locale ≠ de, aber nur ein Build (z. B. Dev) → Hinweis anzeigen. */

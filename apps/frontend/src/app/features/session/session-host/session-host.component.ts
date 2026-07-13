@@ -5,6 +5,7 @@ import {
   tryExitDocumentFullscreen,
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
+import { formatLocaleCount, formatLocaleNumber } from '../../../core/locale-number.util';
 import {
   Component,
   ElementRef,
@@ -1563,7 +1564,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const parts: string[] = [];
     for (let star = 1; star <= 5; star++) {
       const n = dist[String(star)] ?? 0;
-      if (n > 0) parts.push(`${n}× ${star} ★`);
+      if (n > 0) parts.push(`${formatLocaleCount(n, this.localeId)}× ${star} ★`);
     }
     return parts.length > 0 ? parts.join(' · ') : null;
   }
@@ -2570,11 +2571,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (connectedCount === 1) {
       return $localize`:@@sessionHost.connectedParticipantCountOne:1 live verbunden`;
     }
-    return $localize`:@@sessionHost.connectedParticipantCountMany:${connectedCount}:connectedCount: live verbunden`;
+    return $localize`:@@sessionHost.connectedParticipantCountMany:${formatLocaleCount(connectedCount, this.localeId)}:connectedCount: live verbunden`;
   }
 
   teamMemberLabel(count: number): string {
-    return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
+    const formatted = formatLocaleCount(count, this.localeId);
+    return count === 1 ? $localize`${formatted} Mitglied` : $localize`${formatted} Mitglieder`;
   }
 
   teamNameUsesEmojiMarker(teamName: string): boolean {
@@ -3428,44 +3430,51 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   voteProgressCompactLabel(votes: number, participants: number): string {
-    return $localize`${votes} von ${participants}`;
+    return $localize`${formatLocaleCount(votes, this.localeId)} von ${formatLocaleCount(participants, this.localeId)}`;
   }
 
   voteProgressAria(votes: number, participants: number, percentage: number): string {
+    const formattedPercentage = formatLocaleCount(percentage, this.localeId);
     if (votes === 1) {
-      return $localize`:@@sessionHost.voteProgressAriaOne:${votes}:votes: von ${participants}:participants: Teilnehmenden hat abgestimmt. ${percentage}:percentage: Prozent erreicht.`;
+      return $localize`:@@sessionHost.voteProgressAriaOne:${formatLocaleCount(votes, this.localeId)}:votes: von ${formatLocaleCount(participants, this.localeId)}:participants: Teilnehmenden hat abgestimmt. ${formattedPercentage}:percentage: Prozent erreicht.`;
     }
-    return $localize`:@@sessionHost.voteProgressAriaMany:${votes}:votes: von ${participants}:participants: Teilnehmenden haben abgestimmt. ${percentage}:percentage: Prozent erreicht.`;
+    return $localize`:@@sessionHost.voteProgressAriaMany:${formatLocaleCount(votes, this.localeId)}:votes: von ${formatLocaleCount(participants, this.localeId)}:participants: Teilnehmenden haben abgestimmt. ${formattedPercentage}:percentage: Prozent erreicht.`;
   }
 
   /** Ergebnisansicht: „X von Y hat/haben abgestimmt“ (Plural nach Anzahl abgegebener Stimmen). */
   votesCastLabel(votes: number, participantTotal: number | null | undefined): string {
     const totalStr =
-      participantTotal !== undefined && participantTotal !== null ? String(participantTotal) : '?';
+      participantTotal !== undefined && participantTotal !== null
+        ? formatLocaleCount(participantTotal, this.localeId)
+        : '?';
+    const voteCount = formatLocaleCount(votes, this.localeId);
     if (votes === 1) {
-      return $localize`:@@sessionHost.votesCastOne:${votes}:voteCount: von ${totalStr}:participantTotal: hat abgestimmt`;
+      return $localize`:@@sessionHost.votesCastOne:${voteCount}:voteCount: von ${totalStr}:participantTotal: hat abgestimmt`;
     }
-    return $localize`:@@sessionHost.votesCastMany:${votes}:voteCount: von ${totalStr}:participantTotal: haben abgestimmt`;
+    return $localize`:@@sessionHost.votesCastMany:${voteCount}:voteCount: von ${totalStr}:participantTotal: haben abgestimmt`;
   }
 
   /** Bewertungsfrage Ergebnis: „X von Y hat/haben bewertet“. */
   ratingSubmittedLabel(count: number, participantTotal: number | null | undefined): string {
     const totalStr =
-      participantTotal !== undefined && participantTotal !== null ? String(participantTotal) : '?';
+      participantTotal !== undefined && participantTotal !== null
+        ? formatLocaleCount(participantTotal, this.localeId)
+        : '?';
+    const voteCount = formatLocaleCount(count, this.localeId);
     if (count === 1) {
-      return $localize`:@@sessionHost.ratingSubmittedOne:${count}:voteCount: von ${totalStr}:participantTotal: hat bewertet`;
+      return $localize`:@@sessionHost.ratingSubmittedOne:${voteCount}:voteCount: von ${totalStr}:participantTotal: hat bewertet`;
     }
-    return $localize`:@@sessionHost.ratingSubmittedMany:${count}:voteCount: von ${totalStr}:participantTotal: haben bewertet`;
+    return $localize`:@@sessionHost.ratingSubmittedMany:${voteCount}:voteCount: von ${totalStr}:participantTotal: haben bewertet`;
   }
 
   /** Multiple-Choice-Ergebnis: korrekt gewählte Antworten inkl. Prozent. */
   correctAllVotersLabel(correct: number, total: number): string {
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
-    return $localize`:@@sessionHost.correctAllVoters:${correct}:correctCount: von ${total}:voteTotal: komplett richtig (${pct}:percentage:\u00a0%)`;
+    return $localize`:@@sessionHost.correctAllVoters:${formatLocaleCount(correct, this.localeId)}:correctCount: von ${formatLocaleCount(total, this.localeId)}:voteTotal: komplett richtig (${formatLocaleCount(pct, this.localeId)}:percentage:\u00a0%)`;
   }
 
   opinionShiftChangedMindLabel(changed: number, both: number, pct: number): string {
-    return $localize`:@@sessionHost.opinionShiftChangedMind:${changed}:changed: von ${both}:both: (${pct}:pct:\u00a0%) änderten ihre Meinung`;
+    return $localize`:@@sessionHost.opinionShiftChangedMind:${formatLocaleCount(changed, this.localeId)}:changed: von ${formatLocaleCount(both, this.localeId)}:both: (${formatLocaleCount(pct, this.localeId)}:pct:\u00a0%) änderten ihre Meinung`;
   }
 
   opinionShiftWrongToCorrectLabel(count: number): string {
@@ -4304,11 +4313,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   qaTabMetaLabel(): string | null {
     if (this.activeChannel() !== 'qa' && this.qaUnseenCount() > 0) {
-      return $localize`:@@sessionTabs.questionsBadgeNew:${this.qaUnseenCount()}:count: neu`;
+      return $localize`:@@sessionTabs.questionsBadgeNew:${formatLocaleCount(this.qaUnseenCount(), this.localeId)}:count: neu`;
     }
 
     if (this.qaForumQuestionCount() > 0) {
-      return String(this.qaForumQuestionCount());
+      return formatLocaleCount(this.qaForumQuestionCount(), this.localeId);
     }
 
     return null;
@@ -4729,6 +4738,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  }
+
+  formatCount(value: number | null | undefined): string {
+    return formatLocaleCount(value ?? 0, this.localeId);
+  }
+
+  formatDecimal(value: number | null | undefined, maximumFractionDigits = 1): string {
+    return formatLocaleNumber(value ?? 0, this.localeId, { maximumFractionDigits });
   }
 
   async setQaSortMode(mode: QaQuestionSortMode): Promise<void> {

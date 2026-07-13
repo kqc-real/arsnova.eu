@@ -813,7 +813,9 @@
                                 {{ entry.totalScore | number }}
                               </td>
                               <td class="session-host__lb-col--correct">
-                                {{ entry.correctCount }}/{{ entry.totalQuestions }}
+                                {{ formatCount(entry.correctCount) }}/{{
+                                  formatCount(entry.totalQuestions)
+                                }}
                               </td>
                             </tr>
                           }
@@ -911,7 +913,7 @@
                         <span class="session-host__feedback-avg-stars" aria-hidden="true">★</span>
                       </p>
                       <p class="session-host__feedback-count">
-                        {{ fb.totalResponses }}
+                        {{ formatCount(fb.totalResponses) }}
                         {{
                           fb.totalResponses === 1
                             ? feedbackRatingSingular()
@@ -951,13 +953,13 @@
                               class="session-host__feedback-badge session-host__feedback-badge--yes"
                             >
                               <mat-icon aria-hidden="true">thumb_up</mat-icon>
-                              {{ fb.wouldRepeatYes }}
+                              {{ formatCount(fb.wouldRepeatYes) }}
                             </span>
                             <span
                               class="session-host__feedback-badge session-host__feedback-badge--no"
                             >
                               <mat-icon aria-hidden="true">thumb_down</mat-icon>
-                              {{ fb.wouldRepeatNo }}
+                              {{ formatCount(fb.wouldRepeatNo) }}
                             </span>
                           </span>
                         </div>
@@ -1079,7 +1081,7 @@
                           </span>
                           <span class="session-host__vote-progress-copy">
                             <span class="session-host__vote-progress-value"
-                              >{{ voteProgress.percentage }} %</span
+                              >{{ formatCount(voteProgress.percentage) }} %</span
                             >
                             <span class="session-host__vote-progress-meta">{{
                               voteProgressCompactLabel(
@@ -1210,7 +1212,9 @@
                               q.ratingAvg !== undefined
                             ) {
                               <div class="session-host__rating-result">
-                                <span class="session-host__rating-avg">∅ {{ q.ratingAvg }}</span>
+                                <span class="session-host__rating-avg"
+                                  >∅ {{ formatDecimal(q.ratingAvg) }}</span
+                                >
                                 <span class="session-host__rating-count">{{
                                   ratingSubmittedLabel(
                                     q.ratingCount ?? 0,
@@ -1236,7 +1240,9 @@
                                         [style.width.%]="pct"
                                       ></div>
                                     </div>
-                                    <span class="session-host__rating-bar-count">{{ count }}</span>
+                                    <span class="session-host__rating-bar-count">{{
+                                      formatCount(count)
+                                    }}</span>
                                   </div>
                                 }
                               </div>
@@ -1268,7 +1274,7 @@
                                   class="session-host__numeric-vote-count"
                                   i18n="@@sessionHost.numericVoteCount"
                                 >
-                                  {{ numericVoteCount }} Antworten eingegangen
+                                  {{ formatCount(numericVoteCount) }} Antworten eingegangen
                                 </p>
                               }
                             } @else if (effectiveStatus() === 'RESULTS') {
@@ -1423,7 +1429,7 @@
                                               bin.count === 0
                                             "
                                             [attr.aria-hidden]="bin.count === 0 ? 'true' : null"
-                                            >{{ bin.count }}</span
+                                            >{{ formatCount(bin.count) }}</span
                                           >
                                         </div>
                                       }
@@ -1505,7 +1511,7 @@
                                               bin.count === 0
                                             "
                                             [attr.aria-hidden]="bin.count === 0 ? 'true' : null"
-                                            >{{ bin.count }}</span
+                                            >{{ formatCount(bin.count) }}</span
                                           >
                                         </div>
                                       }
@@ -1624,11 +1630,12 @@
                                           class="session-host__numeric-paired"
                                           i18n="@@sessionHost.numericPairedImproved"
                                         >
-                                          Paarvergleich: {{ rc.pairedAnalysis.closerCount }} näher,
-                                          {{ rc.pairedAnalysis.fartherCount }} weiter weg,
-                                          {{ rc.pairedAnalysis.unchangedCount }} gleich ({{
-                                            rc.pairedAnalysis.pairedCount
-                                          }}
+                                          Paarvergleich:
+                                          {{ formatCount(rc.pairedAnalysis.closerCount) }} näher,
+                                          {{ formatCount(rc.pairedAnalysis.fartherCount) }} weiter
+                                          weg,
+                                          {{ formatCount(rc.pairedAnalysis.unchangedCount) }} gleich
+                                          ({{ formatCount(rc.pairedAnalysis.pairedCount) }}
                                           Paare)
                                         </p>
                                       }
@@ -1676,7 +1683,7 @@
                                                   [attr.aria-hidden]="
                                                     bin.count === 0 ? 'true' : null
                                                   "
-                                                  >{{ bin.count }}</span
+                                                  >{{ formatCount(bin.count) }}</span
                                                 >
                                               </div>
                                             }
@@ -1815,7 +1822,7 @@
                                           bin.count === 0
                                         "
                                         [attr.aria-hidden]="bin.count === 0 ? 'true' : null"
-                                        >{{ bin.count }}</span
+                                        >{{ formatCount(bin.count) }}</span
                                       >
                                     </div>
                                   }
@@ -1908,13 +1915,13 @@
                                 <span
                                   class="session-host__round-comparison-label session-host__round-comparison-label--r1"
                                   i18n="@@sessionHost.roundComparisonRound1VotesLabelOne"
-                                  >Runde 1 ({{ round1Votes }} Stimme)</span
+                                  >Runde 1 ({{ formatCount(round1Votes) }} Stimme)</span
                                 >
                               } @else {
                                 <span
                                   class="session-host__round-comparison-label session-host__round-comparison-label--r1"
                                   i18n="@@sessionHost.roundComparisonRound1VotesLabelMany"
-                                  >Runde 1 ({{ round1Votes }} Stimmen)</span
+                                  >Runde 1 ({{ formatCount(round1Votes) }} Stimmen)</span
                                 >
                               }
                               @let round2Votes = q.roundComparison.round2Total;
@@ -1922,13 +1929,13 @@
                                 <span
                                   class="session-host__round-comparison-label session-host__round-comparison-label--r2"
                                   i18n="@@sessionHost.roundComparisonRound2VotesLabelOne"
-                                  >Runde 2 ({{ round2Votes }} Stimme)</span
+                                  >Runde 2 ({{ formatCount(round2Votes) }} Stimme)</span
                                 >
                               } @else {
                                 <span
                                   class="session-host__round-comparison-label session-host__round-comparison-label--r2"
                                   i18n="@@sessionHost.roundComparisonRound2VotesLabelMany"
-                                  >Runde 2 ({{ round2Votes }} Stimmen)</span
+                                  >Runde 2 ({{ formatCount(round2Votes) }} Stimmen)</span
                                 >
                               }
                             </div>
@@ -1940,8 +1947,11 @@
                               <p class="session-host__round-comparison-correct">
                                 <mat-icon>check_circle</mat-icon>
                                 <span i18n="@@sessionHost.roundComparisonCorrectCounts"
-                                  >Richtig: {{ q.roundComparison.round1CorrectCount }} in Runde 1,
-                                  danach {{ q.roundComparison.round2CorrectCount }} in Runde 2</span
+                                  >Richtig:
+                                  {{ formatCount(q.roundComparison.round1CorrectCount) }} in Runde
+                                  1, danach
+                                  {{ formatCount(q.roundComparison.round2CorrectCount) }} in Runde
+                                  2</span
                                 >
                                 @if (
                                   q.roundComparison.round1Total > 0 &&
@@ -2062,7 +2072,7 @@
                                     @for (m of shift.migrations; track m.from + m.to) {
                                       <li class="session-host__migration-item">
                                         <span class="session-host__migration-count"
-                                          >{{ m.count }}×</span
+                                          >{{ formatCount(m.count) }}×</span
                                         >
                                         <span class="session-host__migration-from">{{
                                           m.from
@@ -2149,7 +2159,7 @@
                                       >{{ a.votePercentage }}&nbsp;%</span
                                     >
                                     <span class="session-host__vote-dist-count"
-                                      >({{ a.voteCount }})</span
+                                      >({{ formatCount(a.voteCount) }})</span
                                     >
                                   </div>
                                   <div class="session-host__vote-dist-track">
@@ -2702,7 +2712,7 @@
                         >question_answer</mat-icon
                       >
                       <span i18n="@@sessionQa.summaryTotal"
-                        >Gesamt: {{ qaForumQuestionCount() }}</span
+                        >Gesamt: {{ formatCount(qaForumQuestionCount()) }}</span
                       >
                     </span>
                     @if (qaPendingCount() > 0) {
@@ -2711,7 +2721,7 @@
                           >hourglass_top</mat-icon
                         >
                         <span i18n="@@sessionQa.summaryPending"
-                          >Warten auf Freigabe: {{ qaPendingCount() }}</span
+                          >Warten auf Freigabe: {{ formatCount(qaPendingCount()) }}</span
                         >
                       </span>
                     }
@@ -2720,7 +2730,7 @@
                         <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                           >push_pin</mat-icon
                         >
-                        {{ qaPinnedCount() }}
+                        {{ formatCount(qaPinnedCount()) }}
                       </span>
                     }
                     @if (qaArchivedCount() > 0) {
@@ -2728,7 +2738,7 @@
                         <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                           >archive</mat-icon
                         >
-                        {{ qaArchivedCount() }}
+                        {{ formatCount(qaArchivedCount()) }}
                       </span>
                     }
                     @if (qaDeletedCount() > 0) {
@@ -2736,7 +2746,7 @@
                         <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                           >delete_outline</mat-icon
                         >
-                        {{ qaDeletedCount() }}
+                        {{ formatCount(qaDeletedCount()) }}
                       </span>
                     }
                   </div>
@@ -2796,7 +2806,7 @@
                       >arrow_upward</mat-icon
                     >
                     <span i18n="@@sessionQa.newQuestionsLabel"
-                      >{{ qaUnseenCount() }} neue Fragen</span
+                      >{{ formatCount(qaUnseenCount()) }} neue Fragen</span
                     >
                   </button>
                 }
@@ -2936,8 +2946,8 @@
                           question.negativeVoteCount !== undefined
                         ) {
                           <span class="session-qa-card__metric" i18n="@@sessionQa.voteBreakdown"
-                            >{{ question.positiveVoteCount }} positiv ·
-                            {{ question.negativeVoteCount }} negativ</span
+                            >{{ formatCount(question.positiveVoteCount) }} positiv ·
+                            {{ formatCount(question.negativeVoteCount) }} negativ</span
                           >
                         }
                         @if (qaSortMode() === 'BEST' && question.bestScore !== undefined) {

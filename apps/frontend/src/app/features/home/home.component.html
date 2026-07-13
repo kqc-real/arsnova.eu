@@ -406,7 +406,7 @@
             [routerLink]="localizedPath('/quiz')"
             class="home-cta home-cta--secondary"
             (mouseenter)="preloadQuiz()"
-            [matBadge]="quizCount()"
+            [matBadge]="quizCountBadgeText()"
             [matBadgeHidden]="quizCount() === 0"
           >
             <mat-icon class="home-cta__icon">library_books</mat-icon>

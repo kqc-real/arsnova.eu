@@ -72,7 +72,7 @@
           <span class="last-session-feedback-dialog__avg-stars" aria-hidden="true">★</span>
         </p>
         <p class="last-session-feedback-dialog__count">
-          {{ row.summary.totalResponses }}
+          {{ formatCount(row.summary.totalResponses) }}
           {{ row.summary.totalResponses === 1 ? feedbackRatingSingular() : feedbackRatingPlural() }}
         </p>
         @if (getFeedbackDistributionLine(row.summary.overallDistribution); as distLine) {

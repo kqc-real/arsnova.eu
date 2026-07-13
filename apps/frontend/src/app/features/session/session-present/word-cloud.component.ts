@@ -27,6 +27,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import type { CloudLayout } from 'd3-cloud';
 import type { WordCloudAnalysisEntryDTO } from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
+import { formatLocaleCount } from '../../../core/locale-number.util';
 import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
 import {
   getWordCloudChipPadding,
@@ -817,6 +818,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   wordLabel(count: number): string {
     return count === 1 ? this.wordLabelSingular() : this.wordLabelPlural();
+  }
+
+  formatCount(value: number): string {
+    return formatLocaleCount(value, this.localeId);
   }
 
   showResponsesLabel(count: number): string {
