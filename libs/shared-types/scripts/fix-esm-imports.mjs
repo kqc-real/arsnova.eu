@@ -1,42 +1,15 @@
 /**
- * Patches relative imports in dist/*.js for Node ESM (requires explicit .js extensions).
- * Source may use extensionless paths for Angular/Webpack workspace resolution.
+ * Thin wrapper: package-local build still runs via `npm run build -w @arsnova/shared-types`.
+ * Canonical implementation lives in scripts/fix-esm-imports.mjs.
  */
-import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = path.resolve(packageRoot, '../..');
+const script = path.join(repoRoot, 'scripts/fix-esm-imports.mjs');
+const distDir = path.join(packageRoot, 'dist');
 
-function patchRelativeImports(source) {
-  return source.replace(
-    /(from\s+['"])(\.\.?\/[^'"]+?)(['"])/g,
-    (match, prefix, specifier, suffix) => {
-      if (specifier.endsWith('.js')) {
-        return match;
-      }
-      return `${prefix}${specifier}.js${suffix}`;
-    },
-  );
-}
-
-if (!fs.existsSync(distDir)) {
-  console.error('fix-esm-imports: dist directory missing — run tsc first');
-  process.exit(1);
-}
-
-let patchedFiles = 0;
-for (const entry of fs.readdirSync(distDir, { withFileTypes: true })) {
-  if (!entry.isFile() || !entry.name.endsWith('.js')) {
-    continue;
-  }
-  const filePath = path.join(distDir, entry.name);
-  const original = fs.readFileSync(filePath, 'utf8');
-  const patched = patchRelativeImports(original);
-  if (patched !== original) {
-    fs.writeFileSync(filePath, patched);
-    patchedFiles += 1;
-  }
-}
-
-console.log(`fix-esm-imports: patched ${patchedFiles} file(s) in dist/`);
+const result = spawnSync(process.execPath, [script, distDir], { stdio: 'inherit' });
+process.exit(result.status ?? 1);
