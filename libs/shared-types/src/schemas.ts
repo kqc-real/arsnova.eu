@@ -3,7 +3,7 @@ import {
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
   questionSupportsConfidence,
-} from './confidence';
+} from './confidence.js';
 
 // ---------------------------------------------------------------------------
 // Enums – müssen mit Prisma-Schema synchron bleiben
