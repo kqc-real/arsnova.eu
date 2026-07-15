@@ -16,7 +16,10 @@ const REPLACEMENTS = {
       'ask for **confidence** (1–5) after gradable answers and spot **high-confidence wrong** answers in the host view',
       'ask for **self-assessment** (1–5) after gradable answers and spot **wrong answers with high answer confidence** in the host view',
     ],
-    ['Gauge confidence anonymously before exam prep', 'Gauge self-assessment anonymously before exam prep'],
+    [
+      'Gauge confidence anonymously before exam prep',
+      'Gauge self-assessment anonymously before exam prep',
+    ],
     ['confidence rating', 'self-assessment'],
   ],
   fr: [

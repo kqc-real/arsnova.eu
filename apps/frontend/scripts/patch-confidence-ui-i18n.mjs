@@ -94,7 +94,7 @@ const TARGETS = {
     ['Lernstand und Selbsteinschätzung', "Niveau d'apprentissage et autoévaluation"],
     [
       'Die Verbindung aus Korrektheit und Selbsteinschätzung zeigt gefestigtes Wissen, Wissenslücken und mögliche Fehlkonzepte.',
-      "Le lien entre justesse et autoévaluation montre les acquis solides, les lacunes et les possibles fausses conceptions.",
+      'Le lien entre justesse et autoévaluation montre les acquis solides, les lacunes et les possibles fausses conceptions.',
     ],
     ['Antworten mit Selbsteinschätzung:', 'Réponses avec autoévaluation :'],
     ['falsch + hohe Antwortsicherheit', 'faux + forte certitude de réponse'],
@@ -107,7 +107,7 @@ const TARGETS = {
     [' Häufig falsch mit hoher Selbsteinschätzung ', ' Souvent faux avec autoévaluation élevée '],
     ['Deine Selbsteinschätzung:', 'Ton autoévaluation :'],
     ['Selbsteinschätzung:', 'Autoévaluation :'],
-    ['Selbsteinschätzung von 1 bis 5', "Autoévaluation de 1 à 5"],
+    ['Selbsteinschätzung von 1 bis 5', 'Autoévaluation de 1 à 5'],
     ['Selbsteinschätzung ', 'Autoévaluation '],
     [
       'Gib deine Selbsteinschätzung an, bevor du absendest.',
@@ -146,7 +146,10 @@ const TARGETS = {
       ' ¿Correcto o incorrecto — y con qué seguridad? Especialmente importante: incorrecto pese a autoevaluación alta. ',
     ],
     ['Korrektheit und Selbsteinschätzung', 'Corrección y autoevaluación'],
-    [' Häufig falsch mit hoher Selbsteinschätzung ', ' A menudo incorrecto con autoevaluación alta '],
+    [
+      ' Häufig falsch mit hoher Selbsteinschätzung ',
+      ' A menudo incorrecto con autoevaluación alta ',
+    ],
     ['Deine Selbsteinschätzung:', 'Tu autoevaluación:'],
     ['Selbsteinschätzung:', 'Autoevaluación:'],
     ['Selbsteinschätzung von 1 bis 5', 'Autoevaluación de 1 a 5'],
@@ -257,22 +260,22 @@ function patchFile(filePath, locale) {
   content = applySourceReplacements(content);
 
   if (locale) {
-    content = content.replace(
-      /<trans-unit\b[^>]*>([\s\S]*?)<\/trans-unit>/g,
-      (unit, inner) => {
-        const sourceMatch = inner.match(/<source>([\s\S]*?)<\/source>/);
-        if (!sourceMatch) return unit;
-        const newTarget = patchTarget(sourceMatch[1], locale);
-        if (!newTarget) return unit;
-        if (inner.includes('<target>')) {
-          return unit.replace(/<target>[\s\S]*?<\/target>/, `<target>${encodeXml(newTarget)}</target>`);
-        }
+    content = content.replace(/<trans-unit\b[^>]*>([\s\S]*?)<\/trans-unit>/g, (unit, inner) => {
+      const sourceMatch = inner.match(/<source>([\s\S]*?)<\/source>/);
+      if (!sourceMatch) return unit;
+      const newTarget = patchTarget(sourceMatch[1], locale);
+      if (!newTarget) return unit;
+      if (inner.includes('<target>')) {
         return unit.replace(
-          /<\/source>/,
-          `</source>\n        <target>${encodeXml(newTarget)}</target>`,
+          /<target>[\s\S]*?<\/target>/,
+          `<target>${encodeXml(newTarget)}</target>`,
         );
-      },
-    );
+      }
+      return unit.replace(
+        /<\/source>/,
+        `</source>\n        <target>${encodeXml(newTarget)}</target>`,
+      );
+    });
   }
 
   fs.writeFileSync(filePath, content, 'utf8');

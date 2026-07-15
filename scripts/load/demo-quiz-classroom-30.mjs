@@ -37,7 +37,9 @@ const DEMO_QUIZ_JSON = join(
 const DEMO_QUIZ_HISTORY_SCOPE_ID = 'de500000-0000-4000-a000-000000000001';
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
-const SESSION_CODE = String(process.env.SESSION_CODE || '').trim().toUpperCase();
+const SESSION_CODE = String(process.env.SESSION_CODE || '')
+  .trim()
+  .toUpperCase();
 const HOST_TOKEN_ENV = String(process.env.HOST_TOKEN || '').trim();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
 const JOIN_CONCURRENCY = Math.max(1, Number(process.env.JOIN_CONCURRENCY || 15));

@@ -426,7 +426,9 @@ async function verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPr
       throw new Error('Host-UI zeigt den FINISHED-Abschluss nicht an.');
     }
     if (!bodyText.includes(`Antworten mit Selbsteinschätzung: ${expectedResponses}`)) {
-      throw new Error(`Host-UI zeigt nicht ${expectedResponses} Antworten mit Selbsteinschätzung an.`);
+      throw new Error(
+        `Host-UI zeigt nicht ${expectedResponses} Antworten mit Selbsteinschätzung an.`,
+      );
     }
     if (!bodyText.includes('Priorität für die Nachbesprechung')) {
       throw new Error('Host-UI zeigt keine priorisierten Fragen an.');

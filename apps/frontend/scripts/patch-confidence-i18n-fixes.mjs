@@ -192,7 +192,10 @@ function patchTransUnit(content, unitId, patch, locale) {
       if (updated.includes('<target>')) {
         updated = updated.replace(/<target>[\s\S]*?<\/target>/, `<target>${targetText}</target>`);
       } else {
-        updated = updated.replace(/<\/source>/, `</source>\n        <target>${targetText}</target>`);
+        updated = updated.replace(
+          /<\/source>/,
+          `</source>\n        <target>${targetText}</target>`,
+        );
       }
     }
     return updated;
