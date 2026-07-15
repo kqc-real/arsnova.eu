@@ -1,0 +1,14 @@
+/** EU-Marken-Icon wie in `TopToolbarComponent` (nicht PWA-App-Icon). */
+export const REPORT_COVER_LOGO_SVG = `<svg class="report-cover-logo-svg" viewBox="0 0 32 32" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="28" height="28" aria-hidden="true" role="img">
+  <defs>
+    <linearGradient id="report-toolbar-brand-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#002395"/>
+      <stop offset="100%" stop-color="#001a75"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="url(#report-toolbar-brand-bg)"/>
+  <rect x="2" y="2" width="28" height="28" rx="5" fill="#002395"/>
+  <path d="M23 18 L24.12 21.46 L27.76 21.45 L24.82 23.59 L25.94 27.05 L23 24.91 L20.06 27.05 L21.18 23.59 L18.24 21.45 L21.88 21.46 Z" fill="#ffcc00"/>
+</svg>`;
+
+export const REPORT_COVER_WORDMARK = 'arsnova.eu';

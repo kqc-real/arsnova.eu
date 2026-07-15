@@ -4,6 +4,7 @@ import {
   buildQaQuestionsCsvFilename,
   buildQuizExportJsonFilename,
   buildSessionResultsCsvFilename,
+  buildSessionResultsPdfFilename,
   sanitizeExportFilenameSegment,
 } from './export-filename.util';
 
@@ -23,6 +24,9 @@ describe('export filename util', () => {
   it('baut sprachneutrale Dateinamen fuer Ergebnis- und Bonus-Exporte', () => {
     expect(buildSessionResultsCsvFilename('Überprüfung / SQL? 101', 'ABC123')).toBe(
       'arsnova-results-Uberprufung-SQL-101-ABC123.csv',
+    );
+    expect(buildSessionResultsPdfFilename('Überprüfung / SQL? 101', 'ABC123')).toBe(
+      'arsnova-results-Uberprufung-SQL-101-ABC123.pdf',
     );
     expect(buildQaQuestionsCsvFilename('ABC123')).toBe('arsnova-qa-questions-ABC123.csv');
     expect(buildBonusCodesCsvFilename('Überprüfung / SQL? 101')).toBe(

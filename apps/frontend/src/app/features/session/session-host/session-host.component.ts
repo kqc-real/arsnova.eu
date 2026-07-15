@@ -128,6 +128,14 @@ import {
   buildQaQuestionsCsvFilename,
   buildSessionResultsCsvFilename,
 } from '../../../core/export-filename.util';
+import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
+import {
+  printSessionResultsReport,
+  openSessionResultsReportPreview,
+} from '../../../core/session-results-report-print.util';
+import { getSessionResultsReportLabels } from '../../../core/session-results-report-labels';
+import { buildSessionResultsReportHtml } from '../../../core/session-results-report.util';
+import { inlineExportImagesInHtml } from '@arsnova/session-export-report';
 import {
   replaceEmojiShortcodes,
   edgeEmojiMarkerPosition,
@@ -6036,10 +6044,98 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
 
       this.downloadCsvExport(rows, buildSessionResultsCsvFilename(data.quizName, data.sessionCode));
-      this.exportStatus.set($localize`Ergebnis-CSV exportiert.`);
+      this.exportStatus.set($localize`:@@sessionHost.exportCsvDone:Ergebnis-CSV exportiert.`);
       this.dismissHostSteeringCallout();
     } catch {
       this.openHostSteeringCalloutForExportFailure(() => void this.exportSessionResultsCsv());
+    } finally {
+      this.exportExporting.set(false);
+    }
+  }
+
+  async exportSessionResultsPdf(): Promise<void> {
+    if (!this.code || this.exportExporting()) return;
+    this.exportStatus.set(null);
+    this.exportExporting.set(true);
+    try {
+      const exportData = await trpc.session.getSessionExportData.query({
+        code: this.code.toUpperCase(),
+      });
+      if (exportData.questions.length >= 15) {
+        this.exportStatus.set(
+          $localize`:@@sessionHost.exportPdfGeneratingLarge:PDF wird erstellt (${exportData.questions.length} Fragen)…`,
+        );
+      }
+      try {
+        const pdf = await trpc.session.getSessionExportPdf.query({
+          code: this.code.toUpperCase(),
+          localeId: this.localeId,
+        });
+        this.downloadBase64Export(pdf.contentBase64, pdf.fileName, pdf.mimeType);
+        this.exportStatus.set(
+          $localize`:@@sessionHost.exportPdfDownloadDone:Ergebnis-PDF heruntergeladen.`,
+        );
+        this.dismissHostSteeringCallout();
+        return;
+      } catch {
+        // Fallback: druckoptimiertes HTML im Browser
+      }
+
+      const labels = getSessionResultsReportLabels();
+      const assetBaseUrl = window.location.origin;
+      let html = buildSessionResultsReportHtml(exportData, labels, {
+        localeId: this.localeId,
+        assetBaseUrl,
+        pageNumbersViaCss: true,
+      });
+      html = await inlineExportImagesInHtml(html, { fetchExternal: true, maxImageBytes: 400_000 });
+      const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
+      const opened = printSessionResultsReport(html, documentTitle);
+      if (!opened) {
+        throw new Error('print window blocked');
+      }
+      this.exportStatus.set(
+        $localize`:@@sessionHost.exportPdfPrintDone:Ergebnis-PDF zum Speichern geöffnet.`,
+      );
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForExportFailure(() => void this.exportSessionResultsPdf());
+    } finally {
+      this.exportExporting.set(false);
+    }
+  }
+
+  async previewSessionResultsReport(): Promise<void> {
+    if (!this.code || this.exportExporting()) return;
+    this.exportStatus.set(null);
+    this.exportExporting.set(true);
+    try {
+      const exportData = await trpc.session.getSessionExportData.query({
+        code: this.code.toUpperCase(),
+      });
+      const labels = getSessionResultsReportLabels();
+      const assetBaseUrl = window.location.origin;
+      let html = buildSessionResultsReportHtml(exportData, labels, {
+        localeId: this.localeId,
+        assetBaseUrl,
+        pageNumbersViaCss: true,
+      });
+      html = await inlineExportImagesInHtml(html, { fetchExternal: true, maxImageBytes: 400_000 });
+      const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
+      const opened = openSessionResultsReportPreview(
+        html,
+        documentTitle,
+        $localize`:@@sessionHost.exportPdfPreviewPrint:Als PDF drucken`,
+      );
+      if (!opened) {
+        throw new Error('preview window blocked');
+      }
+      this.exportStatus.set(
+        $localize`:@@sessionHost.exportPdfPreviewDone:Berichtsvorschau geöffnet.`,
+      );
+      this.dismissHostSteeringCallout();
+    } catch {
+      this.openHostSteeringCalloutForExportFailure(() => void this.previewSessionResultsReport());
     } finally {
       this.exportExporting.set(false);
     }
@@ -6107,6 +6203,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     a.href = url;
     a.download = fileName;
     a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private downloadBase64Export(contentBase64: string, fileName: string, mimeType: string): void {
+    const binary = atob(contentBase64);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    const blob = new Blob([bytes], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const anchor = this.document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.click();
     URL.revokeObjectURL(url);
   }
 
@@ -6267,26 +6378,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.wordCloudInfo.set($localize`Live-Freitextdaten konnten nicht geladen werden.`);
     }
   }
-}
-
-/** Markdown/KaTeX für CSV-Export in lesbaren Fließtext umwandeln. */
-function stripMarkdownToPlainText(s: string): string {
-  const t = s
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/__(.+?)__/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1')
-    .replace(/_(.+?)_/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/\$\$[\s\S]*?\$\$/g, ' ')
-    .replace(/\$[^$\n]+\$/g, ' ')
-    .replace(/\\\[[\s\S]*?\\\]/g, ' ')
-    .replace(/\\\([\s\S]*?\\\)/g, ' ')
-    .replace(/^#+\s*/gm, '')
-    .replace(/\n+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return t;
 }
 
 function escapeCsv(value: string): string {

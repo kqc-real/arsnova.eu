@@ -15,6 +15,7 @@
     "seed:qa-forum": "tsx scripts/seed-qa-forum.ts"
   },
   "dependencies": {
+    "@arsnova/session-export-report": "*",
     "@arsnova/shared-types": "*",
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.2",
@@ -30,6 +31,7 @@
     "katex": "^0.17.0",
     "marked": "^17.0.4",
     "pdfkit": "^0.19.1",
+    "playwright": "^1.49.0",
     "pg": "^8.18.0",
     "ws": "^8.19.0",
     "y-websocket": "^3.0.0",

@@ -1,0 +1,23 @@
+{
+  "name": "@arsnova/session-export-report",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@arsnova/shared-types": "*",
+    "katex": "^0.17.0",
+    "marked": "^17.0.4",
+    "highlight.js": "^11.11.1"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.0",
+    "vitest": "^4.1.10"
+  }
+}

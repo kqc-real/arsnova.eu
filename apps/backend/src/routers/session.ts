@@ -19,11 +19,13 @@ import {
   JoinSessionInputSchema,
   JoinSessionOutputSchema,
   GetExportDataInputSchema,
+  GetSessionExportPdfInputSchema,
   ActiveQuizLiveStatesDTOSchema,
   FreetextSessionExportDTOSchema,
   LiveFreetextDTOSchema,
   SessionInfoDTOSchema,
   SessionExportDTOSchema,
+  SessionExportPdfOutputSchema,
   ParticipantDTOSchema,
   SessionParticipantsPayloadSchema,
   SessionParticipantNicknamesPayloadSchema,
@@ -185,6 +187,10 @@ export function resetParticipantNicknameCacheForTests(): void {
 }
 import { publicProcedure, router, getClientIp, hostProcedure } from '../trpc';
 import { loadConfidenceResultForQuestion } from '../lib/confidenceAggregation';
+import {
+  buildSessionResultsPdf,
+  buildSessionResultsPdfFilename,
+} from '../lib/session-results-report-pdf';
 import { prisma } from '../db';
 import { createHostSessionToken } from '../lib/hostAuth';
 import {
@@ -1347,6 +1353,8 @@ interface QuestionWithAnswersForExport {
   numericTolerancePercent: number | null;
   numericIntervalLeft: number | null;
   numericIntervalRight: number | null;
+  numericInputType: string | null;
+  numericDecimalPlaces: number | null;
   confidenceEnabled: boolean;
   answers: Array<{ id: string; text: string; isCorrect: boolean }>;
 }
@@ -1596,6 +1604,34 @@ async function loadSessionConfidenceSummaryByCode(
   return buildConfidenceSummaryForSession(session.quiz.questions, session.votes);
 }
 
+function buildMcScOptionDistribution(
+  votes: VoteForExport[],
+  orderedOpts: Array<{ id: string; text: string; isCorrect: boolean }>,
+): OptionDistributionEntry[] {
+  const optionCounts = new Map<string, { count: number; isCorrect?: boolean }>();
+  for (const opt of orderedOpts) {
+    optionCounts.set(opt.id, { count: 0, isCorrect: opt.isCorrect });
+  }
+  for (const v of votes) {
+    for (const sa of v.selectedAnswers) {
+      const cur = optionCounts.get(sa.answerOptionId);
+      if (cur) {
+        cur.count += 1;
+      }
+    }
+  }
+  const total = votes.length || 1;
+  return orderedOpts.map((opt) => {
+    const { count, isCorrect } = optionCounts.get(opt.id) ?? { count: 0 };
+    return {
+      text: opt.text,
+      count,
+      percentage: Math.round((count / total) * 1000) / 10,
+      isCorrect,
+    };
+  });
+}
+
 async function loadFinishedQuizSessionExportData(code: string): Promise<SessionExportDTO> {
   const session = await prisma.session.findUnique({
     where: { code: code.toUpperCase() },
@@ -1614,6 +1650,13 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
         },
       },
       bonusTokens: true,
+      sessionFeedbacks: {
+        select: {
+          overallRating: true,
+          questionQualityRating: true,
+          wouldRepeat: true,
+        },
+      },
       participants: { select: { id: true } },
     },
   });
@@ -1658,6 +1701,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
       const round2ParticipantCount = round2Count > 0 ? round2Count : undefined;
 
       let optionDistribution: OptionDistributionEntry[] | undefined;
+      let round1OptionDistribution: OptionDistributionEntry[] | undefined;
       let freetextAggregates: FreetextAggregateEntry[] | undefined;
       let shortTextIncorrectAggregates: FreetextAggregateEntry[] | undefined;
       let shortTextCorrectCount: number | undefined;
@@ -1673,7 +1717,8 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
 
       switch (q.type) {
         case 'MULTIPLE_CHOICE':
-        case 'SINGLE_CHOICE': {
+        case 'SINGLE_CHOICE':
+        case 'SURVEY': {
           const rawAnswers = q.answers as Array<{
             id: string;
             text: string;
@@ -1684,29 +1729,13 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
             q.id,
             session.answerDisplayOrder,
           );
-          const optionCounts = new Map<string, { count: number; isCorrect?: boolean }>();
-          for (const opt of orderedOpts) {
-            optionCounts.set(opt.id, { count: 0, isCorrect: opt.isCorrect });
+          optionDistribution = buildMcScOptionDistribution(votes, orderedOpts);
+          if (round2Count > 0) {
+            round1OptionDistribution = buildMcScOptionDistribution(
+              allVotes.filter((vote) => (vote.round ?? 1) === 1),
+              orderedOpts,
+            );
           }
-          for (const v of votes) {
-            for (const sa of v.selectedAnswers) {
-              const key = sa.answerOptionId;
-              const cur = optionCounts.get(key);
-              if (cur) {
-                cur.count += 1;
-              }
-            }
-          }
-          const total = votes.length || 1;
-          optionDistribution = orderedOpts.map((opt) => {
-            const { count, isCorrect } = optionCounts.get(opt.id) ?? { count: 0 };
-            return {
-              text: opt.text,
-              count,
-              percentage: Math.round((count / total) * 1000) / 10,
-              isCorrect,
-            };
-          });
           break;
         }
         case 'FREETEXT': {
@@ -1831,9 +1860,6 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           }
           break;
         }
-        case 'SURVEY':
-          // Keine spezielle Verteilung im Export-Schema; participantCount reicht
-          break;
         default:
           break;
       }
@@ -1868,6 +1894,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
       return {
         questionOrder: q.order,
         questionTextShort: q.text.slice(0, QUESTION_TEXT_SHORT_MAX),
+        questionTextFull: q.text,
         type: q.type as QuestionType,
         participantCount,
         optionDistribution,
@@ -1886,15 +1913,34 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
         numericStats,
         numericHistogram,
         numericRoundComparison,
+        numericReferenceValue:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericReferenceValue ?? null) : undefined,
+        numericTolerancePercent:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericTolerancePercent ?? null) : undefined,
+        numericIntervalLeft:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericIntervalLeft ?? null) : undefined,
+        numericIntervalRight:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericIntervalRight ?? null) : undefined,
+        numericToleranceMode:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericToleranceMode ?? null) : undefined,
+        numericInputType:
+          q.type === 'NUMERIC_ESTIMATE'
+            ? ((q.numericInputType as 'INTEGER' | 'DECIMAL' | null) ?? null)
+            : undefined,
+        numericDecimalPlaces:
+          q.type === 'NUMERIC_ESTIMATE' ? (q.numericDecimalPlaces ?? null) : undefined,
         confidenceResult,
         aggregationRound,
         round1ParticipantCount,
         round2ParticipantCount,
+        round1OptionDistribution,
         averageScore,
       };
     },
   );
   const confidenceSummary = buildConfidenceSummaryForSession(questions, session.votes);
+  const feedbackRows = buildSessionFeedbackSummaryFromRows(session.sessionFeedbacks ?? []);
+  const feedbackSummary = feedbackRows.totalResponses > 0 ? feedbackRows : undefined;
 
   const bonusTokens: BonusTokenEntryDTO[] | undefined = session.bonusTokens.length
     ? session.bonusTokens.map((t: BonusTokenForExport) => ({
@@ -1915,6 +1961,28 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
         )
       : undefined;
 
+  const qaRows = await prisma.qaQuestion.findMany({
+    where: {
+      sessionId: session.id,
+      status: { in: ['ACTIVE', 'PINNED', 'ARCHIVED'] },
+    },
+    orderBy: [{ upvoteCount: 'desc' }, { createdAt: 'asc' }],
+    select: {
+      text: true,
+      status: true,
+      upvoteCount: true,
+    },
+  });
+  const qaQuestions =
+    qaRows.length > 0
+      ? qaRows.map((row, index) => ({
+          order: index + 1,
+          text: row.text,
+          status: row.status,
+          upvoteCount: row.upvoteCount,
+        }))
+      : undefined;
+
   const result: SessionExportDTO = {
     sessionId: session.id,
     sessionCode: session.code,
@@ -1924,8 +1992,10 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
     teamMode: session.quiz.teamMode === true,
     questions: questionEntries,
     confidenceSummary: confidenceSummary ?? undefined,
+    feedbackSummary,
     teamLeaderboard: teamLeaderboard && teamLeaderboard.length > 0 ? teamLeaderboard : undefined,
     bonusTokens,
+    qaQuestions,
   };
 
   return result;
@@ -6687,6 +6757,20 @@ export const sessionRouter = router({
     .input(GetExportDataInputSchema)
     .output(SessionExportDTOSchema)
     .query(async ({ input }) => loadFinishedQuizSessionExportData(input.code)),
+
+  /** Session-Ergebnisbericht als PDF (HTML-Render via Playwright). */
+  getSessionExportPdf: publicProcedure
+    .input(GetSessionExportPdfInputSchema)
+    .output(SessionExportPdfOutputSchema)
+    .query(async ({ input }) => {
+      const data = await loadFinishedQuizSessionExportData(input.code);
+      const pdf = await buildSessionResultsPdf(data, { localeId: input.localeId });
+      return {
+        fileName: buildSessionResultsPdfFilename(data.quizName, data.sessionCode),
+        mimeType: 'application/pdf' as const,
+        contentBase64: pdf.toString('base64'),
+      };
+    }),
 
   /** Session-Bewertung abgeben (Story 4.8). Einmalig pro Participant. */
   submitSessionFeedback: publicProcedure

@@ -1164,7 +1164,30 @@
                       aria-label="Ergebnis als CSV exportieren"
                     >
                       <mat-icon>download</mat-icon>
-                      <span i18n>Ergebnis exportieren</span>
+                      <span i18n="@@sessionHost.exportCsvButton">Ergebnis als CSV</span>
+                    </button>
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      (click)="previewSessionResultsReport()"
+                      [disabled]="exportExporting()"
+                      i18n-aria-label
+                      aria-label="Ergebnisbericht in Vorschau anzeigen"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                      <span i18n="@@sessionHost.exportPdfPreviewButton">Vorschau</span>
+                    </button>
+                    <button
+                      matButton="tonal"
+                      type="button"
+                      (click)="exportSessionResultsPdf()"
+                      [disabled]="exportExporting()"
+                      [attr.aria-busy]="exportExporting()"
+                      i18n-aria-label
+                      aria-label="Ergebnis als PDF exportieren"
+                    >
+                      <mat-icon>picture_as_pdf</mat-icon>
+                      <span i18n="@@sessionHost.exportPdfButton">Ergebnis als PDF</span>
                     </button>
                     @if (exportExporting()) {
                       <p class="session-host__export-hint" role="status" i18n>Wird exportiert…</p>

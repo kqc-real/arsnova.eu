@@ -23,6 +23,9 @@ const {
     vote: {
       findMany: vi.fn(),
     },
+    qaQuestion: {
+      findMany: vi.fn(),
+    },
     $executeRaw: vi.fn().mockResolvedValue(1),
   },
   isSessionCodeLockedOutMock: vi.fn(),
@@ -79,6 +82,7 @@ describe('session team mode (Story 7.1)', () => {
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.$executeRaw.mockResolvedValue(1);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
 
   it('liefert Teams einer Session und initialisiert konfigurierte Team-Namen bei Bedarf', async () => {

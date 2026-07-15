@@ -7,10 +7,14 @@
     "rootDir": "./src",
     "types": ["node"],
     "lib": ["ES2022"],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "@arsnova/session-export-report": ["../../libs/session-export-report/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts"],
   "references": [
-    { "path": "../../libs/shared-types" }
+    { "path": "../../libs/shared-types" },
+    { "path": "../../libs/session-export-report" }
   ]
 }

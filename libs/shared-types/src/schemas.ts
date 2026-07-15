@@ -3159,6 +3159,12 @@ export const GetExportDataInputSchema = z.object({
 });
 export type GetExportDataInput = z.infer<typeof GetExportDataInputSchema>;
 
+/** Input: Session-Ergebnisbericht als PDF (optional mit UI-Locale). */
+export const GetSessionExportPdfInputSchema = GetExportDataInputSchema.extend({
+  localeId: z.string().min(2).max(10).optional(),
+});
+export type GetSessionExportPdfInput = z.infer<typeof GetSessionExportPdfInputSchema>;
+
 /** Verteilung einer Antwortoption (MC/SC) für Export */
 export const OptionDistributionEntrySchema = z.object({
   text: z.string(),
@@ -3196,6 +3202,8 @@ export type FreetextSessionExportDTO = z.infer<typeof FreetextSessionExportDTOSc
 export const QuestionExportEntrySchema = z.object({
   questionOrder: z.number(),
   questionTextShort: z.string(), // z. B. erste 100 Zeichen des Fragenstamms
+  /** Vollständiger Fragentext (Markdown) für PDF/Report. */
+  questionTextFull: z.string().optional(),
   type: QuestionTypeEnum,
   participantCount: z.number(), // Anzahl abgegebener Votes für diese Frage
   optionDistribution: z.array(OptionDistributionEntrySchema).optional(), // MC/SC
@@ -3210,6 +3218,13 @@ export const QuestionExportEntrySchema = z.object({
   numericStats: NumericStatsDTOSchema.optional(),
   numericHistogram: z.array(NumericHistogramBinSchema).optional(),
   numericRoundComparison: NumericRoundComparisonDTOSchema.optional(),
+  numericReferenceValue: z.number().nullable().optional(),
+  numericTolerancePercent: z.number().nullable().optional(),
+  numericIntervalLeft: z.number().nullable().optional(),
+  numericIntervalRight: z.number().nullable().optional(),
+  numericToleranceMode: z.string().nullable().optional(),
+  numericInputType: z.enum(['INTEGER', 'DECIMAL']).nullable().optional(),
+  numericDecimalPlaces: z.number().int().nullable().optional(),
   confidenceResult: ConfidenceResultDTOSchema.optional(),
   /** Aggregationsrunde für Verteilung, Selbsteinschätzung und Punkte (Effective-Vote-Regel). */
   aggregationRound: z.union([z.literal(1), z.literal(2)]).optional(),
@@ -3217,9 +3232,36 @@ export const QuestionExportEntrySchema = z.object({
   round1ParticipantCount: z.number().int().optional(),
   /** Stimmen in Runde 2; gesetzt, wenn Runde-2-Votes existieren. */
   round2ParticipantCount: z.number().int().optional(),
+  /** MC/SC-Verteilung Runde 1 (Peer Instruction), wenn Runde-2-Votes existieren. */
+  round1OptionDistribution: z.array(OptionDistributionEntrySchema).optional(),
   averageScore: z.number().optional(), // Durchschnittspunkte (wenn gescored)
 });
 export type QuestionExportEntry = z.infer<typeof QuestionExportEntrySchema>;
+
+/** Aggregierte Q&A-Frage für Session-Export (ohne Nicknames). */
+export const QaExportEntrySchema = z.object({
+  order: z.number().int(),
+  text: z.string(),
+  status: QaQuestionStatusEnum,
+  upvoteCount: z.number().int(),
+  positiveVoteCount: z.number().int().optional(),
+  negativeVoteCount: z.number().int().optional(),
+  voteCount: z.number().int().optional(),
+  isControversial: z.boolean().optional(),
+});
+export type QaExportEntry = z.infer<typeof QaExportEntrySchema>;
+
+/** Aggregierte Session-Bewertung (Story 4.8) — für Export und Host-Abschluss. */
+export const SessionFeedbackSummarySchema = z.object({
+  totalResponses: z.number(),
+  overallAverage: z.number(),
+  overallDistribution: z.record(z.string(), z.number()),
+  questionQualityAverage: z.number().nullable(),
+  questionQualityDistribution: z.record(z.string(), z.number()).nullable(),
+  wouldRepeatYes: z.number(),
+  wouldRepeatNo: z.number(),
+});
+export type SessionFeedbackSummary = z.infer<typeof SessionFeedbackSummarySchema>;
 
 /** DTO: Vollständiger Session-Export für Dozenten (CSV/PDF-Generierung) – DSGVO-konform, nur aggregiert */
 export const SessionExportDTOSchema = z.object({
@@ -3231,10 +3273,20 @@ export const SessionExportDTOSchema = z.object({
   teamMode: z.boolean(),
   questions: z.array(QuestionExportEntrySchema),
   confidenceSummary: SessionConfidenceSummaryDTOSchema.optional(),
+  feedbackSummary: SessionFeedbackSummarySchema.optional(),
   teamLeaderboard: z.array(TeamLeaderboardEntryDTOSchema).optional(),
   bonusTokens: z.array(BonusTokenEntryDTOSchema).optional(), // optional einbeziehen (Pseudonyme)
+  qaQuestions: z.array(QaExportEntrySchema).optional(),
 });
 export type SessionExportDTO = z.infer<typeof SessionExportDTOSchema>;
+
+/** Output: Session-Ergebnisbericht als PDF (Base64 für Download). */
+export const SessionExportPdfOutputSchema = z.object({
+  fileName: z.string(),
+  mimeType: z.literal('application/pdf'),
+  contentBase64: z.string(),
+});
+export type SessionExportPdfOutput = z.infer<typeof SessionExportPdfOutputSchema>;
 
 // ---------------------------------------------------------------------------
 // Admin (Epic 9)
@@ -3735,17 +3787,6 @@ export const SubmitSessionFeedbackInputSchema = z.object({
   wouldRepeat: z.boolean().optional(),
 });
 export type SubmitSessionFeedbackInput = z.infer<typeof SubmitSessionFeedbackInputSchema>;
-
-export const SessionFeedbackSummarySchema = z.object({
-  totalResponses: z.number(),
-  overallAverage: z.number(),
-  overallDistribution: z.record(z.string(), z.number()),
-  questionQualityAverage: z.number().nullable(),
-  questionQualityDistribution: z.record(z.string(), z.number()).nullable(),
-  wouldRepeatYes: z.number(),
-  wouldRepeatNo: z.number(),
-});
-export type SessionFeedbackSummary = z.infer<typeof SessionFeedbackSummarySchema>;
 
 /** Letztes Session-Feedback zu einer Server-Quiz-ID (Quiz-Sammlung; gleicher Scope wie getBonusTokensForQuiz). */
 export const GetLastSessionFeedbackForQuizInputSchema = GetBonusTokensForQuizInputSchema;

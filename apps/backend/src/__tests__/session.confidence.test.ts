@@ -12,6 +12,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     participant: {
       findFirst: vi.fn(),
     },
+    qaQuestion: {
+      findMany: vi.fn(),
+    },
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
@@ -119,6 +122,7 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.vote.count.mockResolvedValue(0);
     prismaMock.participant.findFirst.mockResolvedValue(null);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([]);
   });
 
   it('liefert Host bei ACTIVE keine Confidence-Aggregate', async () => {

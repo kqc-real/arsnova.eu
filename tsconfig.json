@@ -19,6 +19,7 @@
     "baseUrl": ".",
     "paths": {
       "@arsnova/shared-types": ["libs/shared-types/src/index.workspace.ts"],
+      "@arsnova/session-export-report": ["libs/session-export-report/src/index.workspace.ts"],
       "@arsnova/api": ["apps/backend/src/routers/index.ts"]
     }
   },
