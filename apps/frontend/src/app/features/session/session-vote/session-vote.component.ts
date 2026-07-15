@@ -2439,10 +2439,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
     const low = this.confidenceLabelLow();
     const high = this.confidenceLabelHigh();
-    if (value <= 2 && low) {
+    if (value === CONFIDENCE_SCALE_MIN && low) {
       return $localize`:@@sessionVote.confidenceResultWithLowLabel:${value}:value: – ${low}:label:`;
     }
-    if (value >= 4 && high) {
+    if (value === CONFIDENCE_SCALE_MAX && high) {
       return $localize`:@@sessionVote.confidenceResultWithHighLabel:${value}:value: – ${high}:label:`;
     }
     return String(value);

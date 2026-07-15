@@ -1650,6 +1650,70 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt Pole-Labels in der Selbsteinschätzungs-Zusammenfassung nur bei 1 und 5', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Q',
+      title: null,
+      participantCount: 2,
+      teamMode: false,
+      enableRewardEffects: false,
+      preset: 'SERIOUS',
+      enableEmojiReactions: false,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: 'confidence-summary-question',
+      text: 'Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 0,
+      totalQuestions: 1,
+      answers: [
+        { id: 'a1', text: 'A', isCorrect: true },
+        { id: 'a2', text: 'B', isCorrect: false },
+      ],
+      currentRound: 1,
+      totalVotes: 0,
+      participantCount: 2,
+      confidenceEnabled: true,
+      confidenceLabelLow: 'Geraten',
+      confidenceLabelHigh: 'Sehr sicher',
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.toggleAnswer('a1');
+    fixture.detectChanges();
+    component.selectConfidence(1);
+    expect(component.confidenceResultSummary()).toBe('1 – Geraten');
+
+    component.selectConfidence(2);
+    expect(component.confidenceResultSummary()).toBe('2');
+
+    component.selectConfidence(3);
+    expect(component.confidenceResultSummary()).toBe('3');
+
+    component.selectConfidence(4);
+    expect(component.confidenceResultSummary()).toBe('4');
+
+    component.selectConfidence(5);
+    expect(component.confidenceResultSummary()).toBe('5 – Sehr sicher');
+
+    fixture.destroy();
+  });
+
   it('sperrt den Vote-Client nach serverseitig abgelehntem Timeout-Vote', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
