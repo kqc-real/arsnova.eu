@@ -3,7 +3,7 @@
 
 UPDATE "Motd"
 SET
-  "contentVersion" = 8,
+  "contentVersion" = 9,
   "updatedAt" = NOW()
 WHERE "id" = 'c0111111-c111-4c11-8c11-c01111111111';
 
