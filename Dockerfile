@@ -28,8 +28,10 @@ COPY prisma/ prisma/
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build shared-types + backend (tsc -b handles project references)
-RUN npx tsc -b apps/backend/tsconfig.json
+# Build shared-types + backend (tsc -b handles project references).
+# Postbuild: Node ESM in production requires explicit .js extensions in dist/.
+RUN npx tsc -b apps/backend/tsconfig.json \
+    && node libs/shared-types/scripts/fix-esm-imports.mjs
 
 # Build frontend localized (de/en) including root redirect index
 RUN npm run build:localize -w @arsnova/frontend

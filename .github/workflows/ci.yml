@@ -258,7 +258,7 @@ jobs:
 
       - name: TypeScript build – shared-types + backend
         if: needs.changes.outputs.docs_only != 'true'
-        run: npx tsc -b apps/backend/tsconfig.json
+        run: npx tsc -b apps/backend/tsconfig.json && node libs/shared-types/scripts/fix-esm-imports.mjs
 
       - name: TypeScript compile – frontend
         if: needs.changes.outputs.docs_only != 'true'
