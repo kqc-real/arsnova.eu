@@ -309,6 +309,7 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
     expect(result.questions[0]).toMatchObject({
       type: 'SINGLE_CHOICE',
       participantCount: 5,
+      aggregationRound: 1,
       confidenceResult: {
         highConfidenceWrongCount: 2,
         crossTab: {
@@ -432,6 +433,9 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
 
     expect(result.questions[0]).toMatchObject({
       participantCount: 5,
+      aggregationRound: 2,
+      round1ParticipantCount: 1,
+      round2ParticipantCount: 5,
       optionDistribution: [
         { text: '4', count: 4, isCorrect: true },
         { text: '5', count: 1, isCorrect: false },
@@ -446,6 +450,103 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
         },
       },
     });
+  });
+
+  it('kennzeichnet im Export Teilnahme-Lücken zwischen Runde 1 und Runde 2', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: CODE,
+      status: 'FINISHED',
+      type: 'QUIZ',
+      endedAt: new Date('2026-07-13T14:00:00.000Z'),
+      answerDisplayOrder: null,
+      quiz: {
+        name: 'Confidence-Quiz',
+        teamMode: false,
+        teamCount: null,
+        teamNames: [],
+        questions: [buildConfidenceScQuestion()],
+      },
+      votes: [
+        {
+          questionId: QUESTION_ID,
+          round: 1,
+          score: 0,
+          confidenceValue: 5,
+          isCorrect: false,
+          selectedAnswers: [
+            {
+              answerOptionId: WRONG_ID,
+              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 1,
+          score: 0,
+          confidenceValue: 5,
+          isCorrect: false,
+          selectedAnswers: [
+            {
+              answerOptionId: WRONG_ID,
+              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 1,
+          score: 0,
+          confidenceValue: 5,
+          isCorrect: false,
+          selectedAnswers: [
+            {
+              answerOptionId: WRONG_ID,
+              answerOption: { id: WRONG_ID, text: '5', isCorrect: false },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 2,
+          score: 1000,
+          confidenceValue: 2,
+          isCorrect: true,
+          selectedAnswers: [
+            {
+              answerOptionId: RIGHT_ID,
+              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+            },
+          ],
+        },
+        {
+          questionId: QUESTION_ID,
+          round: 2,
+          score: 1000,
+          confidenceValue: 3,
+          isCorrect: true,
+          selectedAnswers: [
+            {
+              answerOptionId: RIGHT_ID,
+              answerOption: { id: RIGHT_ID, text: '4', isCorrect: true },
+            },
+          ],
+        },
+      ],
+      bonusTokens: [],
+      participants: [{ id: 'p1' }, { id: 'p2' }, { id: 'p3' }, { id: 'p4' }, { id: 'p5' }],
+    });
+
+    const result = await hostCaller.getExportData({ code: CODE });
+
+    expect(result.questions[0]).toMatchObject({
+      participantCount: 2,
+      aggregationRound: 2,
+      round1ParticipantCount: 3,
+      round2ParticipantCount: 2,
+    });
+    expect(result.confidenceSummary).toBeUndefined();
   });
 
   it('liefert getSessionConfidenceSummary ohne Host-Token für beendete Quiz-Sessions', async () => {

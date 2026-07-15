@@ -17,6 +17,35 @@ export const CONFIDENCE_ELIGIBLE_QUESTION_TYPES = [
 
 export type ConfidenceEligibleQuestionType = (typeof CONFIDENCE_ELIGIBLE_QUESTION_TYPES)[number];
 
+export type EffectiveAggregationRound = 1 | 2;
+
+export interface EffectiveAggregationRoundInfo {
+  effectiveRound: EffectiveAggregationRound;
+  round1Count: number;
+  round2Count: number;
+}
+
+/** Effective-Vote-Regel (ADR-0028): Runde 2 ersetzt Runde 1, sobald Runde-2-Votes existieren. */
+export function resolveEffectiveAggregationRound(
+  votes: ReadonlyArray<{ round?: number | null }>,
+): EffectiveAggregationRoundInfo {
+  let round1Count = 0;
+  let round2Count = 0;
+  for (const vote of votes) {
+    const round = vote.round ?? 1;
+    if (round === 2) {
+      round2Count += 1;
+    } else {
+      round1Count += 1;
+    }
+  }
+  return {
+    effectiveRound: round2Count > 0 ? 2 : 1,
+    round1Count,
+    round2Count,
+  };
+}
+
 export type ConfidenceTier = 'low' | 'mid' | 'high';
 
 export type ConfidenceDistribution = Record<'1' | '2' | '3' | '4' | '5', number>;

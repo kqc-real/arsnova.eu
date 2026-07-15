@@ -62,6 +62,8 @@ Besitznachweis schützt diesen Zugriff; Session-ID und Session-Code werden dort 
 
 ## Export (Story 4.7)
 
+Bei **Peer Instruction** und **Zwei-Runden-Schätzfragen** gilt die **Effective-Vote-Regel** (ADR-0028): Existieren Runde-2-Votes, fließen in Export und Abschlussauswertung nur diese ein; sonst Runde 1. Der Session-Export liefert pro Frage `aggregationRound` sowie optional `round1ParticipantCount` und `round2ParticipantCount`, wenn Runde 2 verwendet wird. Das CSV enthält die Spalte **Aggregationsrunde** und einen Kontext in **Details** (z. B. „Runde 1: 28 Stimmen · Aggregiert: Runde 2 mit 25 Stimmen“, wenn nicht alle erneut abstimmen).
+
 Im Session-CSV-Export enthält die Spalte „Details“ bei aktivierter Selbsteinschätzung weiterhin:
 
 - Verteilung `1:… 2:… …`

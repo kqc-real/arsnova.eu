@@ -3211,6 +3211,12 @@ export const QuestionExportEntrySchema = z.object({
   numericHistogram: z.array(NumericHistogramBinSchema).optional(),
   numericRoundComparison: NumericRoundComparisonDTOSchema.optional(),
   confidenceResult: ConfidenceResultDTOSchema.optional(),
+  /** Aggregationsrunde für Verteilung, Selbsteinschätzung und Punkte (Effective-Vote-Regel). */
+  aggregationRound: z.union([z.literal(1), z.literal(2)]).optional(),
+  /** Stimmen in Runde 1; gesetzt, wenn Runde-2-Votes existieren. */
+  round1ParticipantCount: z.number().int().optional(),
+  /** Stimmen in Runde 2; gesetzt, wenn Runde-2-Votes existieren. */
+  round2ParticipantCount: z.number().int().optional(),
   averageScore: z.number().optional(), // Durchschnittspunkte (wenn gescored)
 });
 export type QuestionExportEntry = z.infer<typeof QuestionExportEntrySchema>;

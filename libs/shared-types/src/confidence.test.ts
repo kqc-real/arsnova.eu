@@ -5,6 +5,7 @@ import {
   classifyConfidenceTier,
   isConfidenceScaleValue,
   questionSupportsConfidence,
+  resolveEffectiveAggregationRound,
 } from './confidence.js';
 
 describe('confidence helpers (Story 1.2i)', () => {
@@ -20,6 +21,26 @@ describe('confidence helpers (Story 1.2i)', () => {
     expect(classifyConfidenceTier(3)).toBe('mid');
     expect(classifyConfidenceTier(4)).toBe('high');
     expect(classifyConfidenceTier(5)).toBe('high');
+  });
+
+  it('löst die effektive Aggregationsrunde nach Effective-Vote-Regel auf', () => {
+    expect(resolveEffectiveAggregationRound([])).toEqual({
+      effectiveRound: 1,
+      round1Count: 0,
+      round2Count: 0,
+    });
+    expect(resolveEffectiveAggregationRound([{ round: 1 }, { round: 1 }])).toEqual({
+      effectiveRound: 1,
+      round1Count: 2,
+      round2Count: 0,
+    });
+    expect(
+      resolveEffectiveAggregationRound([{ round: 1 }, { round: 2 }, { round: 2 }, { round: null }]),
+    ).toEqual({
+      effectiveRound: 2,
+      round1Count: 2,
+      round2Count: 2,
+    });
   });
 
   it('validiert nur ganzzahlige Werte zwischen 1 und 5', () => {

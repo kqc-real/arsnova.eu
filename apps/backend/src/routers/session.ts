@@ -110,6 +110,7 @@ import {
   buildConfidenceResult,
   buildSessionConfidenceSummary,
   questionSupportsConfidence,
+  resolveEffectiveAggregationRound,
   type ConfidenceEligibleQuestionType,
   type SessionConfidenceSummary,
   type NumericStatsDTO,
@@ -1543,9 +1544,8 @@ function buildConfidenceSummaryForSession(
         return [];
       }
       const allVotes = votes.filter((vote) => vote.questionId === question.id);
-      const voteRound = (vote: (typeof allVotes)[number]) => vote.round ?? 1;
-      const effectiveRound = allVotes.some((vote) => voteRound(vote) === 2) ? 2 : 1;
-      const effectiveVotes = allVotes.filter((vote) => voteRound(vote) === effectiveRound);
+      const { effectiveRound } = resolveEffectiveAggregationRound(allVotes);
+      const effectiveVotes = allVotes.filter((vote) => (vote.round ?? 1) === effectiveRound);
       const result = buildConfidenceResult({
         votes: effectiveVotes.map((vote) => ({
           confidenceValue: vote.confidenceValue,
@@ -1646,10 +1646,16 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
   const questionEntries: QuestionExportEntry[] = questions.map(
     (q: QuestionWithAnswersForExport) => {
       const allVotes: VoteForExport[] = votesByQuestion.get(q.id) ?? [];
-      const voteRound = (vote: VoteForExport) => vote.round ?? 1;
-      const exportRound = allVotes.some((vote) => voteRound(vote) === 2) ? 2 : 1;
-      const votes = allVotes.filter((vote) => voteRound(vote) === exportRound);
+      const {
+        effectiveRound: exportRound,
+        round1Count,
+        round2Count,
+      } = resolveEffectiveAggregationRound(allVotes);
+      const votes = allVotes.filter((vote) => (vote.round ?? 1) === exportRound);
       const participantCount = votes.length;
+      const aggregationRound = allVotes.length > 0 ? exportRound : undefined;
+      const round1ParticipantCount = round2Count > 0 ? round1Count : undefined;
+      const round2ParticipantCount = round2Count > 0 ? round2Count : undefined;
 
       let optionDistribution: OptionDistributionEntry[] | undefined;
       let freetextAggregates: FreetextAggregateEntry[] | undefined;
@@ -1806,11 +1812,11 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
             band,
           );
           const round2Values = allVotes
-            .filter((vote) => voteRound(vote) === 2)
+            .filter((vote) => (vote.round ?? 1) === 2)
             .map((vote) => vote.numericValue)
             .filter((value): value is number => value !== null && value !== undefined);
           const round1Values = allVotes
-            .filter((vote) => voteRound(vote) === 1)
+            .filter((vote) => (vote.round ?? 1) === 1)
             .map((vote) => vote.numericValue)
             .filter((value): value is number => value !== null && value !== undefined);
           const effectiveValues = round2Values.length > 0 ? round2Values : round1Values;
@@ -1881,6 +1887,9 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
         numericHistogram,
         numericRoundComparison,
         confidenceResult,
+        aggregationRound,
+        round1ParticipantCount,
+        round2ParticipantCount,
         averageScore,
       };
     },

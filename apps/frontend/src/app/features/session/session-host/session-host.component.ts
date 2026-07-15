@@ -1777,6 +1777,36 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return `${count} (${this.finishedConfidencePercent(count, total)} %)`;
   }
 
+  private exportAggregationRoundLabel(q: { aggregationRound?: 1 | 2 }): string {
+    if (q.aggregationRound === 2) {
+      return $localize`:@@sessionHost.exportAggregationRound2Label:2 (Peer Instruction)`;
+    }
+    if (q.aggregationRound === 1) {
+      return '1';
+    }
+    return '';
+  }
+
+  private exportRoundContextDetails(q: {
+    aggregationRound?: 1 | 2;
+    round1ParticipantCount?: number;
+    round2ParticipantCount?: number;
+    participantCount: number;
+  }): string | null {
+    if (q.aggregationRound === 2) {
+      const round1Count = q.round1ParticipantCount ?? 0;
+      const round2Count = q.round2ParticipantCount ?? q.participantCount;
+      if (round1Count > round2Count) {
+        return $localize`:@@sessionHost.exportRoundParticipationGap:Runde 1: ${round1Count}:r1: Stimmen · Aggregiert: Runde 2 mit ${round2Count}:r2: Stimmen`;
+      }
+      return $localize`:@@sessionHost.exportAggregationRound2Context:Aggregationsrunde 2 (Peer Instruction)`;
+    }
+    if (q.aggregationRound === 1) {
+      return $localize`:@@sessionHost.exportAggregationRound1Context:Aggregationsrunde 1`;
+    }
+    return null;
+  }
+
   private confidenceExportColumns(result: ConfidenceResultDTO | undefined): string[] {
     if (!result) {
       return ['', '', '', '', '', '', ''];
@@ -5898,7 +5928,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const data = await trpc.session.getSessionExportData.query({ code: this.code.toUpperCase() });
       const rows: string[] = [
-        $localize`:@@sessionHost.exportQuestionsHeader:Frage Nr.;Fragentext;Typ;Teilnehmende;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden;Stärkstes Signal;Details`,
+        $localize`:@@sessionHost.exportQuestionsHeader:Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden;Stärkstes Signal;Details`,
       ];
 
       for (const q of data.questions) {
@@ -5929,12 +5959,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           details = details ? `${details} | ${confidenceDetails}` : confidenceDetails;
         }
 
+        const roundContext = this.exportRoundContextDetails(q);
+        if (roundContext) {
+          details = details ? `${roundContext} | ${details}` : roundContext;
+        }
+
         rows.push(
           [
             q.questionOrder + 1,
             escapeCsv(stripMarkdownToPlainText(q.questionTextShort)),
             q.type,
             q.participantCount,
+            escapeCsv(this.exportAggregationRoundLabel(q)),
             q.averageScore ?? '',
             ...this.confidenceExportColumns(q.confidenceResult).map(escapeCsv),
             escapeCsv(details),
