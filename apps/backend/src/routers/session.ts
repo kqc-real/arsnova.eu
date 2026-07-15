@@ -55,6 +55,8 @@ import {
   LastSessionFeedbackForQuizOutputSchema,
   GetLastSessionAnalysisForQuizInputSchema,
   LastSessionAnalysisForQuizOutputSchema,
+  GetLastSessionExportDataForQuizInputSchema,
+  GetLastSessionExportPdfForQuizInputSchema,
   SubmitSessionFeedbackInputSchema,
   SessionFeedbackSummarySchema,
   GetSessionConfidenceSummaryOutputSchema,
@@ -2251,6 +2253,28 @@ async function resolveQuizHistoryScopeIds(quizId: string, accessProof: string): 
   }
 
   return matchingIds.length > 0 ? matchingIds : [quizId];
+}
+
+async function resolveLastFinishedSessionCodeForQuiz(
+  quizId: string,
+  accessProof: string,
+): Promise<string> {
+  const scopedQuizIds = await resolveQuizHistoryScopeIds(quizId, accessProof);
+  const session = await prisma.session.findFirst({
+    where: {
+      quizId: { in: scopedQuizIds },
+      status: 'FINISHED',
+    },
+    orderBy: [{ endedAt: 'desc' }, { startedAt: 'desc' }],
+    select: { code: true },
+  });
+  if (!session) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Keine abgeschlossene Session für dieses Quiz gefunden.',
+    });
+  }
+  return session.code;
 }
 
 async function collectAuthorizedQuizHistoryIds(
@@ -6451,6 +6475,33 @@ export const sessionRouter = router({
         participantCount: session._count.participants,
         confidenceSummary: buildConfidenceSummaryForSession(session.quiz.questions, session.votes),
         feedbackSummary: feedbackSummary.totalResponses > 0 ? feedbackSummary : null,
+      };
+    }),
+
+  /**
+   * Aggregierte Session-Exportdaten der zuletzt beendeten Live-Session eines Quizzes.
+   * Gleiches Berechtigungsmodell wie Bonus-Codes und „Letzte Auswertung“.
+   */
+  getLastSessionExportDataForQuiz: publicProcedure
+    .input(GetLastSessionExportDataForQuizInputSchema)
+    .output(SessionExportDTOSchema)
+    .query(async ({ input }) => {
+      const code = await resolveLastFinishedSessionCodeForQuiz(input.quizId, input.accessProof);
+      return loadFinishedQuizSessionExportData(code);
+    }),
+
+  /** PDF-Ergebnisbericht der zuletzt beendeten Live-Session eines Quizzes. */
+  getLastSessionExportPdfForQuiz: publicProcedure
+    .input(GetLastSessionExportPdfForQuizInputSchema)
+    .output(SessionExportPdfOutputSchema)
+    .query(async ({ input }) => {
+      const code = await resolveLastFinishedSessionCodeForQuiz(input.quizId, input.accessProof);
+      const data = await loadFinishedQuizSessionExportData(code);
+      const pdf = await buildSessionResultsPdf(data, { localeId: input.localeId });
+      return {
+        fileName: buildSessionResultsPdfFilename(data.quizName, data.sessionCode),
+        mimeType: 'application/pdf' as const,
+        contentBase64: pdf.toString('base64'),
       };
     }),
 

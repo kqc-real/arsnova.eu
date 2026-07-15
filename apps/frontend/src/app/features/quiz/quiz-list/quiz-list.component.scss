@@ -854,6 +854,15 @@
   white-space: nowrap;
 }
 
+.quiz-list-item__actions :is(a[mat-button], button[mat-button], button[matButton]) mat-icon {
+  font-family: 'Material Icons';
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .quiz-list-item__actions-secondary > span {
   display: inline-flex;
   min-width: max-content;

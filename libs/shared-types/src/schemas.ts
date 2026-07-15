@@ -3826,6 +3826,20 @@ export type LastSessionAnalysisForQuizOutput = z.infer<
   typeof LastSessionAnalysisForQuizOutputSchema
 >;
 
+/** Input: Export-Daten der zuletzt beendeten Session eines Quizzes (Quiz-Sammlung). */
+export const GetLastSessionExportDataForQuizInputSchema = GetBonusTokensForQuizInputSchema;
+export type GetLastSessionExportDataForQuizInput = z.infer<
+  typeof GetLastSessionExportDataForQuizInputSchema
+>;
+
+/** Input: PDF-Export der zuletzt beendeten Session eines Quizzes (Quiz-Sammlung). */
+export const GetLastSessionExportPdfForQuizInputSchema = GetBonusTokensForQuizInputSchema.extend({
+  localeId: z.string().min(2).max(10).optional(),
+});
+export type GetLastSessionExportPdfForQuizInput = z.infer<
+  typeof GetLastSessionExportPdfForQuizInputSchema
+>;
+
 // ─── MOTD / Plattform-Kommunikation (Epic 10) ───────────────────────────────
 
 /** UI-Locales (ADR-0008) — synchron mit Angular-Builds */

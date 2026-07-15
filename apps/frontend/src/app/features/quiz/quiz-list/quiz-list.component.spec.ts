@@ -525,8 +525,9 @@ describe('QuizListComponent', () => {
     ) as HTMLButtonElement[];
     const bonusButton = buttons.find((button) => button.textContent?.includes('Bonus-Codes'));
     const feedbackButton = buttons.find((button) =>
-      button.textContent?.includes('Letzte Auswertung'),
+      button.textContent?.includes('Nachbesprechung'),
     );
+    const pdfButton = buttons.find((button) => button.textContent?.includes('Ergebnisbericht'));
 
     expect(getQuizCollectionHistoryAvailabilityQueryMock).toHaveBeenCalledWith([
       {
@@ -536,6 +537,7 @@ describe('QuizListComponent', () => {
     ]);
     expect(bonusButton?.disabled).toBe(true);
     expect(feedbackButton?.disabled).toBe(true);
+    expect(pdfButton?.disabled).toBe(true);
   });
 
   it('aktiviert Bonus-Codes und Letzte Auswertung nur bei vorhandenen Inhalten', async () => {
@@ -574,11 +576,13 @@ describe('QuizListComponent', () => {
     ) as HTMLButtonElement[];
     const bonusButton = buttons.find((button) => button.textContent?.includes('Bonus-Codes'));
     const feedbackButton = buttons.find((button) =>
-      button.textContent?.includes('Letzte Auswertung'),
+      button.textContent?.includes('Nachbesprechung'),
     );
+    const pdfButton = buttons.find((button) => button.textContent?.includes('Ergebnisbericht'));
 
     expect(bonusButton?.disabled).toBe(false);
     expect(feedbackButton?.disabled).toBe(false);
+    expect(pdfButton?.disabled).toBe(false);
   });
 
   it('fragt Historie auch ohne gespeicherten Zugriffsnachweis ab und migriert Legacy-Scopes', async () => {

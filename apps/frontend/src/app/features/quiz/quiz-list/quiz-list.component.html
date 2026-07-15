@@ -554,18 +554,28 @@
                 </button>
               </span>
             }
-            <span
-              [matTooltip]="lastSessionAnalysisTooltip(quiz)"
-              [matTooltipDisabled]="!lastSessionAnalysisTooltip(quiz)"
-            >
+            <span [matTooltip]="lastSessionDebriefTooltip(quiz)">
               <button
                 mat-button
                 type="button"
                 [disabled]="!hasAvailableLastSessionAnalysis(quiz)"
                 (click)="openLastSessionAnalysisDialog(quiz)"
               >
-                <mat-icon>assessment</mat-icon>
-                <span i18n="@@quizList.lastSessionFeedback">Letzte Auswertung</span>
+                <mat-icon aria-hidden="true">forum</mat-icon>
+                <span i18n="@@quizList.lastSessionDebrief">Nachbesprechung</span>
+              </button>
+            </span>
+            <span [matTooltip]="lastSessionReportPdfTooltip(quiz)">
+              <button
+                mat-button
+                type="button"
+                [disabled]="
+                  !hasAvailableLastSessionAnalysis(quiz) || isSessionPdfExportPending(quiz.id)
+                "
+                (click)="exportLastSessionPdf(quiz)"
+              >
+                <mat-icon aria-hidden="true">download</mat-icon>
+                <span i18n="@@quizList.exportLastSessionPdf">Ergebnisbericht (PDF)</span>
               </button>
             </span>
             <a

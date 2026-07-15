@@ -1155,23 +1155,23 @@
                       <span i18n>Zur Startseite</span>
                     </a>
                     <button
-                      matButton="tonal"
+                      matButton="filled"
                       type="button"
-                      (click)="exportSessionResultsCsv()"
+                      (click)="exportSessionResultsPdf()"
                       [disabled]="exportExporting()"
                       [attr.aria-busy]="exportExporting()"
-                      i18n-aria-label
-                      aria-label="Ergebnis als CSV exportieren"
+                      i18n-aria-label="@@sessionHost.exportPdfButtonAria"
+                      aria-label="Ergebnisbericht als PDF exportieren"
                     >
-                      <mat-icon>download</mat-icon>
-                      <span i18n="@@sessionHost.exportCsvButton">Ergebnis als CSV</span>
+                      <mat-icon aria-hidden="true">download</mat-icon>
+                      <span i18n="@@sessionHost.exportPdfButton">Ergebnisbericht (PDF)</span>
                     </button>
                     <button
                       matButton="tonal"
                       type="button"
                       (click)="previewSessionResultsReport()"
                       [disabled]="exportExporting()"
-                      i18n-aria-label
+                      i18n-aria-label="@@sessionHost.exportPdfPreviewButtonAria"
                       aria-label="Ergebnisbericht in Vorschau anzeigen"
                     >
                       <mat-icon>visibility</mat-icon>
@@ -1180,15 +1180,31 @@
                     <button
                       matButton="tonal"
                       type="button"
-                      (click)="exportSessionResultsPdf()"
+                      [matMenuTriggerFor]="sessionExportMoreMenu"
                       [disabled]="exportExporting()"
-                      [attr.aria-busy]="exportExporting()"
-                      i18n-aria-label
-                      aria-label="Ergebnis als PDF exportieren"
+                      i18n-aria-label="@@sessionHost.exportMoreButtonAria"
+                      aria-label="Weitere Exportoptionen"
                     >
-                      <mat-icon>picture_as_pdf</mat-icon>
-                      <span i18n="@@sessionHost.exportPdfButton">Ergebnis als PDF</span>
+                      <mat-icon aria-hidden="true">more_vert</mat-icon>
+                      <span i18n="@@sessionHost.exportMoreButton">Mehr</span>
                     </button>
+                    <mat-menu #sessionExportMoreMenu="matMenu">
+                      <button
+                        mat-menu-item
+                        type="button"
+                        (click)="exportSessionResultsCsv()"
+                        [disabled]="exportExporting()"
+                        [attr.aria-busy]="exportExporting()"
+                        i18n-matTooltip="@@sessionHost.exportCsvExcelTooltip"
+                        matTooltip="Tabellarische Rohdaten für Tabellenkalkulation – weniger Details als der PDF-Bericht."
+                        matTooltipPosition="left"
+                      >
+                        <mat-icon aria-hidden="true">grid_on</mat-icon>
+                        <span i18n="@@sessionHost.exportCsvExcelMenuItem"
+                          >Für Excel exportieren</span
+                        >
+                      </button>
+                    </mat-menu>
                     @if (exportExporting()) {
                       <p class="session-host__export-hint" role="status" i18n>Wird exportiert…</p>
                     }
