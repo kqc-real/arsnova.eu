@@ -31,8 +31,23 @@ function injectPreviewToolbar(html: string, printLabel: string): string {
   return html.replace('<body>', `<body>${toolbar}`);
 }
 
+/**
+ * Opens a blank tab we can write into.
+ * Do NOT pass `noopener` in the features string — modern Chromium then returns
+ * `null` while still opening an empty tab (broken preview + false "blocked" errors).
+ * Detach via `opener = null` after we have the Window reference.
+ */
+function openWritableReportWindow(): Window | null {
+  const reportWindow = window.open('', '_blank');
+  if (!reportWindow) {
+    return null;
+  }
+  reportWindow.opener = null;
+  return reportWindow;
+}
+
 export function printSessionResultsReport(html: string, documentTitle: string): boolean {
-  const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+  const printWindow = openWritableReportWindow();
   if (!printWindow) {
     return false;
   }
@@ -57,7 +72,7 @@ export function openSessionResultsReportPreview(
   documentTitle: string,
   printLabel = 'Als PDF drucken',
 ): boolean {
-  const previewWindow = window.open('', '_blank', 'noopener,noreferrer');
+  const previewWindow = openWritableReportWindow();
   if (!previewWindow) {
     return false;
   }

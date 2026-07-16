@@ -7735,7 +7735,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
   describe('Host-Steering-Callout bei Störfällen', () => {
     const steeringTitle = 'Das ist gerade nicht angekommen';
     const qaCalloutTitle = 'Mit den Fragen klappt es gerade nicht';
-    const exportCalloutTitle = 'Die Tabelle war noch nicht bereit';
+    const exportCalloutTitle = 'Export noch nicht bereit';
 
     const calloutEl = (fixture: ReturnType<typeof setup>) =>
       fixture.nativeElement.querySelector('.session-host__steering-callout') as HTMLElement | null;

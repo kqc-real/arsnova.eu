@@ -2403,8 +2403,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private openHostSteeringCalloutForExportFailure(retry: () => void): void {
     this.hostSteeringCallout.set({
-      title: $localize`:@@sessionHost.steeringCalloutExportTitle:Die Tabelle war noch nicht bereit`,
-      body: $localize`:@@sessionHost.steeringCalloutExportBody:Die Übersicht zum Herunterladen ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.`,
+      title: $localize`:@@sessionHost.steeringCalloutExportTitle:Export noch nicht bereit`,
+      body: $localize`:@@sessionHost.steeringCalloutExportBody:PDF, Vorschau oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.`,
       retry,
     });
   }

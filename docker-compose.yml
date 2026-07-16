@@ -53,6 +53,8 @@ services:
       WS_PORT: "3001"
       YJS_WS_PORT: "3002"
       NODE_ENV: "production"
+      PUBLIC_FRONTEND_URL: "http://127.0.0.1:3000"
+      PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: "/usr/bin/chromium"
     depends_on:
       postgres:
         condition: service_healthy
