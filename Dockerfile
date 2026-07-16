@@ -46,7 +46,20 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Security-Patches des unveränderlich referenzierten Alpine-Basisimages einspielen.
-RUN apk upgrade --no-cache
+# Chromium für Server-PDF (Playwright nutzt System-Binary, kein Browser-Download).
+RUN apk upgrade --no-cache \
+    && apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont \
+      font-noto
+
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium \
+    PUBLIC_FRONTEND_URL=http://127.0.0.1:3000
 
 # Copy package manifests + npm config, install production deps only
 COPY package.json package-lock.json .npmrc ./

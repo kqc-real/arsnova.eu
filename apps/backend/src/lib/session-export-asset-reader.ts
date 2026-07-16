@@ -6,6 +6,10 @@ function candidateAssetRoots(): string[] {
   const fromEnv = process.env.SESSION_EXPORT_ASSET_ROOT?.trim();
   const candidates = [
     fromEnv,
+    // Production Docker: lokalisiertes Angular-Build unter apps/frontend/dist/{locale}
+    join(cwd, 'apps/frontend/dist/de/assets'),
+    join(cwd, 'apps/frontend/dist/en/assets'),
+    join(cwd, 'apps/frontend/dist/assets'),
     join(cwd, 'apps/frontend/src/assets'),
     join(cwd, '../frontend/src/assets'),
     join(cwd, '../../apps/frontend/src/assets'),
