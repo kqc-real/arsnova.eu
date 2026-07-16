@@ -676,7 +676,7 @@ sequenceDiagram
         BE-->>FE: SessionExportDTO (aggregiert, anonym)
         FE->>BE: session.getSessionExportPdf (Playwright)
         BE-->>FE: PDF base64
-        FE->>D: Ergebnisbericht (PDF), optional Vorschau/CSV unter Mehr
+        FE->>D: Ergebnisbericht (PDF), optional CSV unter Mehr
     end
     opt Quiz-Sammlung: letzter Durchlauf
         FE->>BE: getLastSessionExportPdfForQuiz (accessProof)

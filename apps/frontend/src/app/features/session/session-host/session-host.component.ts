@@ -129,10 +129,7 @@ import {
   buildSessionResultsCsvFilename,
 } from '../../../core/export-filename.util';
 import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
-import {
-  printSessionResultsReport,
-  openSessionResultsReportPreview,
-} from '../../../core/session-results-report-print.util';
+import { printSessionResultsReport } from '../../../core/session-results-report-print.util';
 import { getSessionResultsReportLabels } from '../../../core/session-results-report-labels';
 import { buildSessionResultsReportHtml } from '../../../core/session-results-report.util';
 import { inlineExportImagesInHtml } from '@arsnova/session-export-report';
@@ -2404,7 +2401,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private openHostSteeringCalloutForExportFailure(retry: () => void): void {
     this.hostSteeringCallout.set({
       title: $localize`:@@sessionHost.steeringCalloutExportTitle:Export noch nicht bereit`,
-      body: $localize`:@@sessionHost.steeringCalloutExportBody:PDF, Vorschau oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.`,
+      body: $localize`:@@sessionHost.steeringCalloutExportBody:PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.`,
       retry,
     });
   }
@@ -6100,42 +6097,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.dismissHostSteeringCallout();
     } catch {
       this.openHostSteeringCalloutForExportFailure(() => void this.exportSessionResultsPdf());
-    } finally {
-      this.exportExporting.set(false);
-    }
-  }
-
-  async previewSessionResultsReport(): Promise<void> {
-    if (!this.code || this.exportExporting()) return;
-    this.exportStatus.set(null);
-    this.exportExporting.set(true);
-    try {
-      const exportData = await trpc.session.getExportData.query({
-        code: this.code.toUpperCase(),
-      });
-      const labels = getSessionResultsReportLabels();
-      const assetBaseUrl = window.location.origin;
-      let html = buildSessionResultsReportHtml(exportData, labels, {
-        localeId: this.localeId,
-        assetBaseUrl,
-        pageNumbersViaCss: true,
-      });
-      html = await inlineExportImagesInHtml(html, { fetchExternal: true, maxImageBytes: 400_000 });
-      const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
-      const opened = openSessionResultsReportPreview(
-        html,
-        documentTitle,
-        $localize`:@@sessionHost.exportPdfPreviewPrint:Als PDF drucken`,
-      );
-      if (!opened) {
-        throw new Error('preview window blocked');
-      }
-      this.exportStatus.set(
-        $localize`:@@sessionHost.exportPdfPreviewDone:Berichtsvorschau geöffnet.`,
-      );
-      this.dismissHostSteeringCallout();
-    } catch {
-      this.openHostSteeringCalloutForExportFailure(() => void this.previewSessionResultsReport());
     } finally {
       this.exportExporting.set(false);
     }

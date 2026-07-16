@@ -10321,20 +10321,6 @@
           <context context-type="linenumber">1167</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPreviewButtonAria" datatype="html">
-        <source>Ergebnisbericht in Vorschau anzeigen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1175</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPreviewButton" datatype="html">
-        <source>Vorschau</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1178</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.exportMoreButtonAria" datatype="html">
         <source>Weitere Exportoptionen</source>
         <context-group purpose="location">
@@ -11477,7 +11463,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutExportBody" datatype="html">
-        <source>PDF, Vorschau oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.</source>
+        <source>PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2407</context>
@@ -12582,20 +12568,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6098</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPreviewPrint" datatype="html">
-        <source>Als PDF drucken</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">6128</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPreviewDone" datatype="html">
-        <source>Berichtsvorschau geöffnet.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">6134</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportHeader" datatype="html">

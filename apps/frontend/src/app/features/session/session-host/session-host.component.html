@@ -1169,17 +1169,6 @@
                     <button
                       matButton="tonal"
                       type="button"
-                      (click)="previewSessionResultsReport()"
-                      [disabled]="exportExporting()"
-                      i18n-aria-label="@@sessionHost.exportPdfPreviewButtonAria"
-                      aria-label="Ergebnisbericht in Vorschau anzeigen"
-                    >
-                      <mat-icon>visibility</mat-icon>
-                      <span i18n="@@sessionHost.exportPdfPreviewButton">Vorschau</span>
-                    </button>
-                    <button
-                      matButton="tonal"
-                      type="button"
                       [matMenuTriggerFor]="sessionExportMoreMenu"
                       [disabled]="exportExporting()"
                       i18n-aria-label="@@sessionHost.exportMoreButtonAria"

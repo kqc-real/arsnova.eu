@@ -1,41 +1,8 @@
-const PREVIEW_TOOLBAR_STYLES = `
-.report-preview-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.65rem 0.85rem;
-  border-bottom: 1px solid #d8dee6;
-  background: #f6f8fb;
-  font: 13px/1.4 system-ui, sans-serif;
-}
-.report-preview-toolbar button {
-  border: 1px solid #90caf9;
-  background: #e3f2fd;
-  color: #0d47a1;
-  border-radius: 0.45rem;
-  padding: 0.35rem 0.75rem;
-  cursor: pointer;
-  font: inherit;
-}
-@media print {
-  .report-preview-toolbar { display: none !important; }
-}
-`;
-
-function injectPreviewToolbar(html: string, printLabel: string): string {
-  const toolbar = `<div class="report-preview-toolbar"><strong>Vorschau</strong><button type="button" onclick="window.print()">${printLabel}</button></div><style>${PREVIEW_TOOLBAR_STYLES}</style>`;
-  return html.replace('<body>', `<body>${toolbar}`);
-}
-
 /**
- * Opens a blank tab we can write into.
+ * Opens a blank tab we can write into for the PDF print fallback.
  * Do NOT pass `noopener` in the features string — modern Chromium then returns
- * `null` while still opening an empty tab (broken preview + false "blocked" errors).
- * Detach via `opener = null` after we have the Window reference.
+ * `null` while still opening an empty tab. Detach via `opener = null` after we
+ * have the Window reference.
  */
 function openWritableReportWindow(): Window | null {
   const reportWindow = window.open('', '_blank');
@@ -46,6 +13,10 @@ function openWritableReportWindow(): Window | null {
   return reportWindow;
 }
 
+/**
+ * Fallback when server-side Playwright PDF fails: open the report HTML and
+ * trigger the browser print dialog („Als PDF speichern“).
+ */
 export function printSessionResultsReport(html: string, documentTitle: string): boolean {
   const printWindow = openWritableReportWindow();
   if (!printWindow) {
@@ -64,21 +35,5 @@ export function printSessionResultsReport(html: string, documentTitle: string): 
   } else {
     printWindow.addEventListener('load', triggerPrint, { once: true });
   }
-  return true;
-}
-
-export function openSessionResultsReportPreview(
-  html: string,
-  documentTitle: string,
-  printLabel = 'Als PDF drucken',
-): boolean {
-  const previewWindow = openWritableReportWindow();
-  if (!previewWindow) {
-    return false;
-  }
-  previewWindow.document.open();
-  previewWindow.document.write(injectPreviewToolbar(html, printLabel));
-  previewWindow.document.close();
-  previewWindow.document.title = documentTitle;
   return true;
 }
