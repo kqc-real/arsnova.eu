@@ -11637,22 +11637,6 @@
           <context context-type="linenumber">1173</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPreviewButtonAria" datatype="html">
-        <source>Ergebnisbericht in Vorschau anzeigen</source>
-        <target>Aperçu du rapport des résultats</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1181</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPreviewButton" datatype="html">
-        <source>Vorschau</source>
-        <target>aperçu</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1184</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.exportMoreButtonAria" datatype="html">
         <source>Weitere Exportoptionen</source>
         <target>Plus d&apos;options d&apos;exportation</target>
@@ -12950,8 +12934,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutExportBody" datatype="html">
-        <source>PDF, Vorschau oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.</source>
-        <target>PDF, aperçu ou export Excel n’est pas passé cette fois. Attends quelques secondes et appuie sur « Réessayer » — le deuxième essai fait souvent l’affaire.</target>
+        <source>PDF- oder Excel-Export ist diesmal nicht durchgekommen. Warte ein paar Sekunden und tippe auf „Nochmal probieren“ – meist klappt’s beim zweiten Anlauf.</source>
+        <target>L’export PDF ou Excel n’est pas passé cette fois. Attends quelques secondes et appuie sur « Réessayer » — le deuxième essai fait souvent l’affaire.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2407</context>
@@ -14269,22 +14253,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6098</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPreviewPrint" datatype="html">
-        <source>Als PDF drucken</source>
-        <target>Imprimer au format PDF</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">6128</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPreviewDone" datatype="html">
-        <source>Berichtsvorschau geöffnet.</source>
-        <target>Aperçu du rapport ouvert.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">6134</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportHeader" datatype="html">

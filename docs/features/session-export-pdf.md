@@ -23,8 +23,9 @@ Phase 2 ergänzt:
 ### Host-Abschlussansicht (`FINISHED`)
 
 - **Primär:** **Ergebnisbericht (PDF)** — Server-PDF via `getSessionExportPdf` (Playwright)
-- **Sekundär:** **Vorschau** — druckoptimiertes HTML im Browser (Print-Dialog → „Als PDF speichern“)
 - **Unter „Mehr“:** **Für Excel exportieren** — CSV mit tabellarischen Rohdaten (weniger Kontext als der PDF-Bericht)
+
+Fallback, falls das Server-PDF scheitert: Browser-Druckdialog über dasselbe HTML (`printSessionResultsReport`) — ohne eigene Vorschau-UI.
 
 ### Quiz-Sammlung (Quizkarte)
 
@@ -49,15 +50,15 @@ Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachwe
 
 ## Technik
 
-Pipeline: `SessionExportDTO` → `buildSessionResultsReportHtml()` → Playwright `page.pdf()`. Frontend-Vorschau und Backend-PDF teilen sich die Lib `@arsnova/session-export-report`.
+Pipeline: `SessionExportDTO` → `buildSessionResultsReportHtml()` → Playwright `page.pdf()`. Backend-PDF und Browser-Print-Fallback teilen sich die Lib `@arsnova/session-export-report`.
 
-| Schicht                                                | Ort                                                                                                                                         |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Shared Report-Builder (HTML, Charts, Print-CSS)        | `libs/session-export-report/`                                                                                                               |
-| Frontend-Labels (Angular `$localize`)                  | `apps/frontend/src/app/core/session-results-report-labels.ts`                                                                               |
-| Frontend-Export-Service (Download, Vorschau, Fallback) | `apps/frontend/src/app/core/session-results-export.service.ts`                                                                              |
-| Server-PDF (Playwright-Wrapper)                        | `apps/backend/src/lib/session-results-report-pdf.ts`                                                                                        |
-| tRPC                                                   | `session.getSessionExportPdf`, `session.getExportData`, `session.getLastSessionExportPdfForQuiz`, `session.getLastSessionExportDataForQuiz` |
+| Schicht                                            | Ort                                                                                                                                         |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared Report-Builder (HTML, Charts, Print-CSS)    | `libs/session-export-report/`                                                                                                               |
+| Frontend-Labels (Angular `$localize`)              | `apps/frontend/src/app/core/session-results-report-labels.ts`                                                                               |
+| Frontend-Export-Service (Download, Print-Fallback) | `apps/frontend/src/app/core/session-results-export.service.ts`                                                                              |
+| Server-PDF (Playwright-Wrapper)                    | `apps/backend/src/lib/session-results-report-pdf.ts`                                                                                        |
+| tRPC                                               | `session.getSessionExportPdf`, `session.getExportData`, `session.getLastSessionExportPdfForQuiz`, `session.getLastSessionExportDataForQuiz` |
 
 Vor Tests und Backend-Build muss `@arsnova/session-export-report` gebaut sein (`npm run build:libs`).
 
