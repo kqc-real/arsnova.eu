@@ -742,76 +742,78 @@
                       {{ formatCount(confidenceSummary.includedQuestionCount) }}
                     </p>
 
-                    @if (confidenceSummary.questions.length > 0) {
-                      <h3 i18n="@@sessionHost.finishedConfidencePriorities">
-                        Priorität für die Nachbesprechung
-                      </h3>
-                      <ol class="session-host__finished-confidence-list">
-                        @for (
-                          question of confidenceSummary.questions.slice(0, 3);
-                          track question.questionOrder
-                        ) {
-                          <li>
-                            <article class="session-host__finished-confidence-question">
-                              <header class="session-host__finished-confidence-question-title">
-                                <strong
-                                  class="session-host__finished-confidence-question-number"
-                                  aria-hidden="true"
-                                  >{{ question.questionOrder + 1 }}</strong
-                                >
-                                <div
-                                  class="session-host__finished-confidence-question-markdown markdown-body"
-                                  [innerHTML]="renderMarkdown(question.questionTextShort)"
-                                ></div>
-                              </header>
-                              <div class="session-host__finished-confidence-question-metrics">
-                                <span
-                                  class="session-host__finished-confidence-question-metric session-host__finished-confidence-question-metric--risk"
-                                >
-                                  <strong>
-                                    {{ question.result.crossTab.incorrectHigh }}/{{
-                                      question.responseCount
-                                    }}
-                                    ·
-                                    {{
-                                      finishedConfidencePercent(
-                                        question.result.crossTab.incorrectHigh,
+                    @if (
+                      finishedConfidencePriorityQuestions(confidenceSummary);
+                      as priorityQuestions
+                    ) {
+                      @if (priorityQuestions.length > 0) {
+                        <h3 i18n="@@sessionHost.finishedConfidencePriorities">
+                          Priorität für die Nachbesprechung
+                        </h3>
+                        <ol class="session-host__finished-confidence-list">
+                          @for (question of priorityQuestions; track question.questionOrder) {
+                            <li>
+                              <article class="session-host__finished-confidence-question">
+                                <header class="session-host__finished-confidence-question-title">
+                                  <strong
+                                    class="session-host__finished-confidence-question-number"
+                                    aria-hidden="true"
+                                    >{{ question.questionOrder + 1 }}</strong
+                                  >
+                                  <div
+                                    class="session-host__finished-confidence-question-markdown markdown-body"
+                                    [innerHTML]="renderMarkdown(question.questionTextShort)"
+                                  ></div>
+                                </header>
+                                <div class="session-host__finished-confidence-question-metrics">
+                                  <span
+                                    class="session-host__finished-confidence-question-metric session-host__finished-confidence-question-metric--risk"
+                                  >
+                                    <strong>
+                                      {{ question.result.crossTab.incorrectHigh }}/{{
                                         question.responseCount
-                                      )
-                                    }}
-                                    %
-                                  </strong>
-                                  <span i18n="@@sessionHost.finishedConfidenceWrongHigh"
-                                    >falsch + hohe Antwortsicherheit</span
-                                  >
-                                </span>
-                                <span class="session-host__finished-confidence-question-metric">
-                                  <strong>
-                                    {{
-                                      finishedConfidencePercent(
-                                        finishedConfidenceIncorrectCount(question),
-                                        question.responseCount
-                                      )
-                                    }}
-                                    %
-                                  </strong>
-                                  <span i18n="@@sessionHost.finishedConfidenceIncorrectOverall"
-                                    >insgesamt falsch</span
-                                  >
-                                </span>
-                              </div>
-                              @if (finishedConfidenceTopWrongOption(question); as option) {
-                                <p class="session-host__finished-confidence-signal">
-                                  <span i18n="@@sessionHost.finishedConfidenceTopSignal"
-                                    >Stärkstes Signal:</span
-                                  >
-                                  <strong>{{ option }}</strong>
-                                </p>
-                              }
-                            </article>
-                          </li>
-                        }
-                      </ol>
+                                      }}
+                                      ·
+                                      {{
+                                        finishedConfidencePercent(
+                                          question.result.crossTab.incorrectHigh,
+                                          question.responseCount
+                                        )
+                                      }}
+                                      %
+                                    </strong>
+                                    <span i18n="@@sessionHost.finishedConfidenceWrongHigh"
+                                      >falsch + hohe Antwortsicherheit</span
+                                    >
+                                  </span>
+                                  <span class="session-host__finished-confidence-question-metric">
+                                    <strong>
+                                      {{
+                                        finishedConfidencePercent(
+                                          finishedConfidenceIncorrectCount(question),
+                                          question.responseCount
+                                        )
+                                      }}
+                                      %
+                                    </strong>
+                                    <span i18n="@@sessionHost.finishedConfidenceIncorrectOverall"
+                                      >insgesamt falsch</span
+                                    >
+                                  </span>
+                                </div>
+                                @if (finishedConfidenceTopWrongOption(question); as option) {
+                                  <p class="session-host__finished-confidence-signal">
+                                    <span i18n="@@sessionHost.finishedConfidenceTopSignal"
+                                      >Stärkstes Signal:</span
+                                    >
+                                    <strong>{{ option }}</strong>
+                                  </p>
+                                }
+                              </article>
+                            </li>
+                          }
+                        </ol>
+                      }
                     }
 
                     @if (confidenceSummary.suppressedQuestionCount > 0) {

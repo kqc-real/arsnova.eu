@@ -76,6 +76,7 @@ import {
   createQuizHistoryAccessProof,
   resolveNumericEstimateToleranceMode,
   resolveNumericTolerance,
+  selectConfidencePriorityQuestions,
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
 } from '@arsnova/shared-types';
@@ -1683,6 +1684,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   finishedConfidencePercent(count: number, total: number): number {
     return total > 0 ? Math.round((count / total) * 100) : 0;
+  }
+
+  finishedConfidencePriorityQuestions(
+    summary: SessionConfidenceSummaryDTO,
+  ): ConfidenceQuestionSummaryDTO[] {
+    return selectConfidencePriorityQuestions(summary.questions, 3);
   }
 
   finishedConfidenceIncorrectCount(question: ConfidenceQuestionSummaryDTO): number {

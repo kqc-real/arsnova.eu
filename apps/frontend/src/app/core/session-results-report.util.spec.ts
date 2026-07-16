@@ -149,6 +149,53 @@ describe('buildSessionResultsReportHtml', () => {
     expect(html).toContain('counter(page)');
   });
 
+  it('listet nur Fragen mit Fehlkonzept-Risiko in der Prioritätenliste', () => {
+    const html = buildSessionResultsReportHtml(
+      {
+        ...sampleExport,
+        confidenceSummary: {
+          ...sampleExport.confidenceSummary!,
+          priorityQuestionCount: 2,
+          includedQuestionCount: 3,
+          questions: [
+            ...sampleExport.confidenceSummary!.questions,
+            {
+              questionOrder: 3,
+              questionTextShort: 'Ohne Fehlkonzept-Risiko',
+              questionType: 'SINGLE_CHOICE',
+              responseCount: 20,
+              result: {
+                distribution: { '1': 0, '2': 2, '3': 4, '4': 8, '5': 6 },
+                crossTab: {
+                  correctHigh: 12,
+                  correctMid: 4,
+                  correctLow: 2,
+                  incorrectHigh: 0,
+                  incorrectMid: 1,
+                  incorrectLow: 1,
+                },
+                highConfidenceWrongCount: 0,
+              },
+            },
+          ],
+        },
+      },
+      getDefaultSessionResultsReportLabelsDe(),
+      { localeId: 'de' },
+    );
+
+    expect(html).toMatch(/Nachbesprechung empfohlen[^<]*2/);
+    expect(html).toContain('PI-Frage zur Französischen Revolution');
+    expect(html).toContain('Was ist 2+2?');
+    expect(html).not.toContain('Ohne Fehlkonzept-Risiko');
+
+    const prioritySection = html.slice(
+      html.indexOf('report-priority-list'),
+      html.indexOf('</ol>', html.indexOf('report-priority-list')) + 5,
+    );
+    expect(prioritySection.match(/<li>/g)?.length).toBe(2);
+  });
+
   it('rendert Feedback, Heatmap und Histogramm in Phase 2', () => {
     const html = buildSessionResultsReportHtml(
       {

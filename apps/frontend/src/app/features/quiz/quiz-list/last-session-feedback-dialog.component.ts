@@ -15,6 +15,7 @@ import type {
   ConfidenceQuestionSummaryDTO,
   LastSessionAnalysisForQuizDTO,
 } from '@arsnova/shared-types';
+import { selectConfidencePriorityQuestions } from '@arsnova/shared-types';
 import { formatLocaleCount } from '../../../core/locale-number.util';
 import { trpc } from '../../../core/trpc.client';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
@@ -105,6 +106,12 @@ export class LastSessionFeedbackDialogComponent implements OnInit {
 
   confidencePercent(count: number, total: number): number {
     return total > 0 ? Math.round((count / total) * 100) : 0;
+  }
+
+  confidencePriorityQuestions(
+    questions: ConfidenceQuestionSummaryDTO[],
+  ): ConfidenceQuestionSummaryDTO[] {
+    return selectConfidencePriorityQuestions(questions, 3);
   }
 
   incorrectCount(question: ConfidenceQuestionSummaryDTO): number {

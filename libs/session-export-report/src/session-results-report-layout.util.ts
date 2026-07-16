@@ -23,10 +23,7 @@ export function renderCoverSummaryHtml(
   localeId: string,
 ): string {
   const questionCount = data.questions.length;
-  const riskCount =
-    data.confidenceSummary?.questions.filter(
-      (question) => question.result.crossTab.incorrectHigh > 0,
-    ).length ?? 0;
+  const riskCount = data.confidenceSummary?.priorityQuestionCount ?? 0;
   const feedbackAvg = data.feedbackSummary?.overallAverage;
 
   const items = [

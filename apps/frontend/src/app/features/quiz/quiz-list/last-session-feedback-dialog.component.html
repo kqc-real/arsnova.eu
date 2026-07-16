@@ -112,40 +112,49 @@
           {{ formatCount(confidence.responseCount) }}
         </p>
 
-        <h4 i18n="@@quizList.lastSessionAnalysisPriorities">Priorität für die Nachbesprechung</h4>
-        <ol class="last-session-feedback-dialog__confidence-list">
-          @for (question of confidence.questions.slice(0, 3); track question.questionOrder) {
-            <li>
-              <div class="last-session-feedback-dialog__confidence-question-title">
-                <strong>{{ question.questionOrder + 1 }}.</strong>
-                <div
-                  class="last-session-feedback-dialog__confidence-question-markdown markdown-body"
-                  [innerHTML]="renderQuestionMarkdown(question.questionTextShort)"
-                ></div>
-              </div>
-              <span>
-                {{ question.result.crossTab.incorrectHigh }}/{{ question.responseCount }} ·
-                {{
-                  confidencePercent(question.result.crossTab.incorrectHigh, question.responseCount)
-                }}
-                %
-                <span i18n="@@quizList.lastSessionAnalysisWrongHigh"
-                  >falsch + hohe Antwortsicherheit</span
-                >
-              </span>
-              <span>
-                {{ confidencePercent(incorrectCount(question), question.responseCount) }} %
-                <span i18n="@@quizList.lastSessionAnalysisIncorrect">insgesamt falsch</span>
-              </span>
-              @if (topWrongOption(question); as option) {
-                <span>
-                  <span i18n="@@quizList.lastSessionAnalysisTopSignal">Stärkstes Signal:</span>
-                  {{ option }}
-                </span>
+        @if (confidencePriorityQuestions(confidence.questions); as priorityQuestions) {
+          @if (priorityQuestions.length > 0) {
+            <h4 i18n="@@quizList.lastSessionAnalysisPriorities">
+              Priorität für die Nachbesprechung
+            </h4>
+            <ol class="last-session-feedback-dialog__confidence-list">
+              @for (question of priorityQuestions; track question.questionOrder) {
+                <li>
+                  <div class="last-session-feedback-dialog__confidence-question-title">
+                    <strong>{{ question.questionOrder + 1 }}.</strong>
+                    <div
+                      class="last-session-feedback-dialog__confidence-question-markdown markdown-body"
+                      [innerHTML]="renderQuestionMarkdown(question.questionTextShort)"
+                    ></div>
+                  </div>
+                  <span>
+                    {{ question.result.crossTab.incorrectHigh }}/{{ question.responseCount }} ·
+                    {{
+                      confidencePercent(
+                        question.result.crossTab.incorrectHigh,
+                        question.responseCount
+                      )
+                    }}
+                    %
+                    <span i18n="@@quizList.lastSessionAnalysisWrongHigh"
+                      >falsch + hohe Antwortsicherheit</span
+                    >
+                  </span>
+                  <span>
+                    {{ confidencePercent(incorrectCount(question), question.responseCount) }} %
+                    <span i18n="@@quizList.lastSessionAnalysisIncorrect">insgesamt falsch</span>
+                  </span>
+                  @if (topWrongOption(question); as option) {
+                    <span>
+                      <span i18n="@@quizList.lastSessionAnalysisTopSignal">Stärkstes Signal:</span>
+                      {{ option }}
+                    </span>
+                  }
+                </li>
               }
-            </li>
+            </ol>
           }
-        </ol>
+        }
 
         @if (confidence.suppressedQuestionCount > 0) {
           <p class="last-session-feedback-dialog__privacy">

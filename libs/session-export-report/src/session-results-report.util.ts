@@ -8,6 +8,7 @@ import type {
   SessionConfidenceSummaryDTO,
   SessionFeedbackSummary,
 } from '@arsnova/shared-types';
+import { selectConfidencePriorityQuestions } from '@arsnova/shared-types';
 import { formatLocaleCount, formatLocaleNumber } from './locale-number.util';
 import { stripMarkdownToPlainText } from './markdown-plain-text.util';
 import {
@@ -388,12 +389,7 @@ function renderConfidenceSummary(
   localeId: string,
 ): string {
   const total = summary.responseCount;
-  const priorityQuestions = [...summary.questions]
-    .sort((a, b) => {
-      const riskDiff = b.result.crossTab.incorrectHigh - a.result.crossTab.incorrectHigh;
-      return riskDiff !== 0 ? riskDiff : a.questionOrder - b.questionOrder;
-    })
-    .slice(0, 3);
+  const priorityQuestions = selectConfidencePriorityQuestions(summary.questions, 3);
 
   const metrics = `<div class="report-metrics">
     <div class="report-metric report-metric--success"><strong>${percent(summary.crossTab.correctHigh, total)} %</strong><span>${escapeHtml(labels.confidenceMastery)}</span></div>

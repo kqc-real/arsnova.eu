@@ -6,6 +6,7 @@ import {
   isConfidenceScaleValue,
   questionSupportsConfidence,
   resolveEffectiveAggregationRound,
+  selectConfidencePriorityQuestions,
 } from './confidence.js';
 
 describe('confidence helpers (Story 1.2i)', () => {
@@ -178,6 +179,55 @@ describe('confidence helpers (Story 1.2i)', () => {
       incorrectMid: 0,
       incorrectLow: 1,
     });
+  });
+
+  it('listet in der Prioritätenauswahl nur Fragen mit Fehlkonzept-Risiko', () => {
+    const withRisk = buildConfidenceResult({
+      votes: [
+        { confidenceValue: 5, isCorrect: false },
+        { confidenceValue: 5, isCorrect: false },
+        { confidenceValue: 5, isCorrect: false },
+        { confidenceValue: 5, isCorrect: false },
+        { confidenceValue: 5, isCorrect: true },
+      ],
+    });
+    const withoutRisk = buildConfidenceResult({
+      votes: [
+        { confidenceValue: 5, isCorrect: true },
+        { confidenceValue: 5, isCorrect: true },
+        { confidenceValue: 4, isCorrect: true },
+        { confidenceValue: 2, isCorrect: false },
+        { confidenceValue: 1, isCorrect: false },
+      ],
+    });
+    const summary = buildSessionConfidenceSummary({
+      questions: [
+        {
+          questionOrder: 0,
+          questionTextShort: 'Sicher falsch',
+          questionType: 'SINGLE_CHOICE',
+          result: withRisk,
+        },
+        {
+          questionOrder: 1,
+          questionTextShort: 'Ohne Fehlkonzept',
+          questionType: 'SINGLE_CHOICE',
+          result: withoutRisk,
+        },
+        {
+          questionOrder: 2,
+          questionTextShort: 'Auch sicher falsch',
+          questionType: 'MULTIPLE_CHOICE',
+          result: withRisk,
+        },
+      ],
+    });
+
+    expect(summary?.priorityQuestionCount).toBe(2);
+    expect(selectConfidencePriorityQuestions(summary?.questions ?? [], 3)).toEqual([
+      expect.objectContaining({ questionOrder: 0 }),
+      expect.objectContaining({ questionOrder: 2 }),
+    ]);
   });
 
   it('liefert ohne Frage oberhalb der Datenschutzschwelle keine Session-Zusammenfassung', () => {

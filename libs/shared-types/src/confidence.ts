@@ -243,6 +243,19 @@ function incorrectCount(result: ConfidenceResult): number {
   );
 }
 
+export function hasConfidenceMisconceptionRisk(
+  question: Pick<ConfidenceQuestionSummary, 'result'>,
+): boolean {
+  return question.result.crossTab.incorrectHigh > 0;
+}
+
+/** Top-N Fragen mit Fehlkonzept-Risiko (bereits nach Priorität sortiert erwartet). */
+export function selectConfidencePriorityQuestions<
+  T extends Pick<ConfidenceQuestionSummary, 'result'>,
+>(questions: readonly T[], limit = 3): T[] {
+  return questions.filter(hasConfidenceMisconceptionRisk).slice(0, Math.max(0, limit));
+}
+
 export function buildSessionConfidenceSummary(
   input: BuildSessionConfidenceSummaryInput,
 ): SessionConfidenceSummary | null {
@@ -293,9 +306,7 @@ export function buildSessionConfidenceSummary(
     responseCount: confidenceResultResponseCount(aggregate),
     includedQuestionCount: questions.length,
     suppressedQuestionCount,
-    priorityQuestionCount: questions.filter(
-      (question) => question.result.crossTab.incorrectHigh > 0,
-    ).length,
+    priorityQuestionCount: questions.filter(hasConfidenceMisconceptionRisk).length,
     distribution: aggregate.distribution,
     crossTab: aggregate.crossTab,
     highConfidenceWrongCount: aggregate.highConfidenceWrongCount,
