@@ -81,9 +81,9 @@ export function renderDebriefActionPlanHtml(
   data: SessionExportDTO,
   labels: SessionResultsReportLabels,
 ): string {
-  if (!data.confidenceSummary?.questions.length) return '';
+  // Auch ohne auswertbare Selbsteinschätzung: gradedHints (Lösungsquote) füllen „erneut erklären“.
   const plan: DebriefActionPlan = buildDebriefActionPlan(
-    data.confidenceSummary.questions,
+    data.confidenceSummary?.questions ?? [],
     data.questions.map((question) => ({
       questionOrder: question.questionOrder,
       correctPercentage: question.correctPercentage,
@@ -659,9 +659,9 @@ export function renderNextStepsSummaryHtml(
   data: SessionExportDTO,
   labels: SessionResultsReportLabels,
 ): string {
-  if (!data.confidenceSummary?.questions.length) return '';
+  // gradedHints auch ohne Confidence-Aggregate nutzen (s. renderDebriefActionPlanHtml).
   const plan = buildDebriefActionPlan(
-    data.confidenceSummary.questions,
+    data.confidenceSummary?.questions ?? [],
     data.questions.map((question) => ({
       questionOrder: question.questionOrder,
       correctPercentage: question.correctPercentage,

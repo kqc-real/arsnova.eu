@@ -46,7 +46,9 @@ if (
 }
 const VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.VOTE_COOLDOWN_MS || 1_100));
 const SKIP_HOST_UI = ['1', 'true', 'yes'].includes(
-  String(process.env.SKIP_HOST_UI || '').trim().toLowerCase(),
+  String(process.env.SKIP_HOST_UI || '')
+    .trim()
+    .toLowerCase(),
 );
 const ARTIFACT_DIR =
   process.env.E2E_ARTIFACT_DIR || join(tmpdir(), 'arsnova-confidence-summary-demo-e2e');
@@ -185,10 +187,7 @@ function normalizeAnswerText(value) {
 function answerIdsByCorrectness(question, metadata) {
   const metaAnswers = Array.isArray(metadata.answers) ? metadata.answers : [];
   const byText = new Map(
-    metaAnswers.map((answer) => [
-      normalizeAnswerText(answer.text),
-      answer.isCorrect === true,
-    ]),
+    metaAnswers.map((answer) => [normalizeAnswerText(answer.text), answer.isCorrect === true]),
   );
   const correct = [];
   const wrong = [];
@@ -241,8 +240,7 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
       let answerId = correctId;
       if (requiresDebrief) {
         // Fehlkonzept Würfel: gezielt „22“ (nicht die richtige 26)
-        answerId =
-          findAnswerIdByText(question, ['22']) ?? wrong[wrong.length - 1] ?? wrongId;
+        answerId = findAnswerIdByText(question, ['22']) ?? wrong[wrong.length - 1] ?? wrongId;
       } else if (metadata.order === 2) {
         // ~40 % falsch bei niedriger Sicherheit → „Grundlage erneut erklären“
         answerId = participantIndex % 5 < 2 ? wrongId : correctId;
@@ -316,8 +314,7 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
       vote = {
         ...base,
         // ~34 % richtig → erneut erklären (ohne Fehlkonzept-Signal)
-        freeText:
-          participantIndex % 3 === 0 ? 'Peer Instruction' : 'Think Pair Share',
+        freeText: participantIndex % 3 === 0 ? 'Peer Instruction' : 'Think Pair Share',
       };
       break;
     case 'RATING':

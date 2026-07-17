@@ -114,6 +114,20 @@ describe('session-export-insights', () => {
     expect(plan.reteach).toEqual([2]);
   });
 
+  it('füllt „erneut erklären“ auch ohne Selbsteinschätzung aus Lösungsquoten', () => {
+    const plan = buildDebriefActionPlan(
+      [],
+      [
+        { questionOrder: 0, correctPercentage: 90 },
+        { questionOrder: 4, correctPercentage: 20 },
+        { questionOrder: 2, correctPercentage: 35 },
+        { questionOrder: 1, correctPercentage: null },
+      ],
+    );
+    expect(plan.debrief).toEqual([]);
+    expect(plan.reteach).toEqual([4, 2]);
+  });
+
   it('stuft „überwiegend gefestigt“ über richtig+hoch an allen Antworten ein', () => {
     // 80 % richtig, aber nur 40 % richtig+hoch → absichern, nicht „gefestigt“
     const plan = buildDebriefActionPlan([
