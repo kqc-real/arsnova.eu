@@ -685,6 +685,14 @@
                           {{ confidenceSummary.priorityQuestionCount }}
                         </span>
                       </div>
+                    } @else if ((confidenceSummary.signalQuestionCount ?? 0) > 0) {
+                      <div class="session-host__finished-confidence-alert" role="status">
+                        <mat-icon aria-hidden="true">info</mat-icon>
+                        <span>
+                          <span i18n="@@sessionHost.finishedConfidenceSignal">Hinweis:</span>
+                          {{ confidenceSummary.signalQuestionCount }}
+                        </span>
+                      </div>
                     }
 
                     <div class="session-host__finished-confidence-metrics">
@@ -804,7 +812,7 @@
                                 @if (finishedConfidenceTopWrongOption(question); as option) {
                                   <p class="session-host__finished-confidence-signal">
                                     <span i18n="@@sessionHost.finishedConfidenceTopSignal"
-                                      >Stärkstes Signal:</span
+                                      >⚠ Nachbesprechungsimpuls:</span
                                     >
                                     <strong>{{ option }}</strong>
                                   </p>

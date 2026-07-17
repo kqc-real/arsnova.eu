@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@arsnova/shared-types": "*",
+    "highlight.js": "^11.11.1",
     "katex": "^0.17.0",
     "marked": "^17.0.4",
-    "highlight.js": "^11.11.1"
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.6.205"
   },
   "devDependencies": {
     "typescript": "~5.9.0",

@@ -1,6 +1,8 @@
 export interface FormatLocaleNumberOptions {
   minimumFractionDigits?: number;
   maximumFractionDigits?: number;
+  /** Standard: true. */
+  useGrouping?: boolean;
 }
 
 function normalizeLocale(locale: string): string {
@@ -23,9 +25,19 @@ export function formatLocaleNumber(
   locale = 'de',
   options: FormatLocaleNumberOptions = {},
 ): string {
-  const { minimumFractionDigits = 0, maximumFractionDigits = 0 } = options;
+  const { minimumFractionDigits = 0, maximumFractionDigits = 0, useGrouping = true } = options;
   return new Intl.NumberFormat(normalizeLocale(locale), {
     minimumFractionDigits,
     maximumFractionDigits,
+    useGrouping,
   }).format(safeFiniteNumber(value));
+}
+
+/** Quiz-Punkte gemäß Locale, einschließlich Tausendertrennung. */
+export function formatLocaleScore(
+  value: number,
+  locale = 'de',
+  options: Omit<FormatLocaleNumberOptions, 'useGrouping'> = {},
+): string {
+  return formatLocaleNumber(value, locale, { ...options, useGrouping: true });
 }

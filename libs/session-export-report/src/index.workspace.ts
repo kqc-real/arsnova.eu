@@ -31,3 +31,8 @@ export {
   buildSessionResultsPlaywrightPdfOptions,
   buildSessionResultsPrintPageFooterCss,
 } from './session-results-report-pdf-footer.util';
+export {
+  buildQuestionContinuationStamps,
+  planQuestionContinuationStamps,
+  stampQuestionContinuationsOnPdf,
+} from './session-results-report-continuation.util';

@@ -405,6 +405,17 @@ describe('renderMarkdownWithoutKatex', () => {
     expect(html).toContain('title="Alt :apple:"');
   });
 
+  it('rendert App-Asset-PDF-Links mit sichtbarer Klasse und target=_blank', () => {
+    const html = renderMarkdownWithoutKatex(
+      '[Ergebnisbericht als PDF öffnen](/assets/demo/demo-session-results-vntpcb-30.pdf)',
+    );
+    expect(html).toContain('href="/assets/demo/demo-session-results-vntpcb-30.pdf"');
+    expect(html).toContain('class="markdown-inline-link"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('data-markdown-link-kind="asset"');
+    expect(html).toContain('Ergebnisbericht als PDF öffnen');
+  });
+
   it('absolutizeMarkdownHtmlRootAssetImgSrc setzt MOTD-Banner auf volle Origin-URL', () => {
     const raw = '<p><img src="/assets/images/AI-REVOLUTION.png" alt="" title="" /></p>';
     const out = absolutizeMarkdownHtmlRootAssetImgSrc(raw, 'https://arsnova.eu/de');
@@ -415,6 +426,14 @@ describe('renderMarkdownWithoutKatex', () => {
     const raw = '<p><img src="assets/images/AI-REVOLUTION.png" alt="" title="" /></p>';
     const out = absolutizeMarkdownHtmlRootAssetImgSrc(raw, 'https://arsnova.eu/en');
     expect(out).toContain('src="https://arsnova.eu/en/assets/images/AI-REVOLUTION.png"');
+  });
+
+  it('absolutizeMarkdownHtmlRootAssetImgSrc setzt auch Asset-Links auf volle Origin-URL', () => {
+    const raw = '<p><a href="/assets/demo/demo-session-results-vntpcb-30.pdf">Beispiel</a></p>';
+    const out = absolutizeMarkdownHtmlRootAssetImgSrc(raw, 'https://arsnova.eu/de');
+    expect(out).toContain(
+      'href="https://arsnova.eu/de/assets/demo/demo-session-results-vntpcb-30.pdf"',
+    );
   });
 
   it('appendMotdContentVersionToAssetImgSrc hängt cv an /assets/-Bilder (PWA-Cache-Bust)', () => {

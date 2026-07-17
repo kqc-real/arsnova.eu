@@ -10,18 +10,19 @@
  * - Lokalisierter Proxy laeuft (`npm run serve:localize:api -w @arsnova/frontend`)
  *
  * Run:
- *   BASE_URL=http://localhost:4200 npm run smoke:quiz-sync -w @arsnova/frontend
+ *   BASE_URL=http://localhost:4200/de npm run smoke:quiz-sync -w @arsnova/frontend
  *
  * Optional:
- *   LOCALE=de|en|fr|it|es   (Default: en)
+ *   LOCALE=de|en|fr|it|es   nur wenn BASE_URL noch keine Locale enthaelt (Default: de)
  */
 import { chromium, webkit } from 'playwright';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:4200';
-const LOCALE = (process.env.LOCALE || 'en').trim().toLowerCase();
-const APP_URL = `${BASE_URL.replace(/\/+$/, '')}/${LOCALE}`;
+const BASE_URL = (process.env.BASE_URL || 'http://localhost:4200/de').replace(/\/+$/, '');
+const LOCALE = (process.env.LOCALE || 'de').trim().toLowerCase();
+const LOCALE_IN_BASE = /\/(de|en|fr|es|it)$/i.test(BASE_URL);
+/** CI setzt bereits `BASE_URL=…/de`; LOCALE nicht nochmals anhaengen (sonst `/de/en`). */
+const APP_URL = LOCALE_IN_BASE ? BASE_URL : `${BASE_URL}/${LOCALE}`;
 const DESKTOP = { width: 1440, height: 1000 };
-const SAVE_LABEL_RE = /^(save|speichern)$/i;
 
 async function waitForServer(url, maxAttempts = 30) {
   for (let index = 0; index < maxAttempts; index += 1) {
@@ -64,6 +65,7 @@ async function dismissMotdIfPresent(page) {
 
 async function createQuiz(page, quizName) {
   await page.goto(`${APP_URL}/quiz/new`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await dismissMotdIfPresent(page);
   await page.locator('input[formcontrolname="name"]').first().fill(quizName);
   await page.locator('button[type="submit"]').click();
   await page.waitForFunction(() => /\/quiz\/[^/]+$/.test(location.pathname), null, {
@@ -75,6 +77,7 @@ async function createQuiz(page, quizName) {
 
 async function openSyncPage(page) {
   await page.goto(`${APP_URL}/quiz`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await dismissMotdIfPresent(page);
   await page.waitForTimeout(1_200);
   await page.locator('a.quiz-list__sync-cta').click();
   await page.waitForFunction(() => /\/quiz\/sync\//.test(location.pathname), null, {
@@ -101,14 +104,50 @@ async function importSharedLibrary(page, syncUrl) {
   await page.waitForTimeout(2_500);
 }
 
-async function renameQuiz(page, editUrl, nextName) {
-  await page.goto(editUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+async function openQuizEditorByName(page, quizName) {
+  await page.goto(`${APP_URL}/quiz`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await dismissMotdIfPresent(page);
   await page.waitForTimeout(1_000);
+  // Quizkarte: Titel sitzt im Link auf die Editor-Route.
+  const quizLink = page.locator('a').filter({ hasText: quizName }).first();
+  await quizLink.waitFor({ state: 'visible', timeout: 30_000 });
+  await quizLink.click();
+  await page.waitForFunction(() => /\/quiz\/[^/]+$/.test(location.pathname), null, {
+    timeout: 30_000,
+  });
+  await page.waitForTimeout(1_500);
+}
+
+async function ensureMetadataNameVisible(page) {
   const nameInput = page.locator('input[formcontrolname="name"]').first();
+  if (await nameInput.isVisible().catch(() => false)) {
+    return nameInput;
+  }
+  const header = page.locator('mat-expansion-panel-header').first();
+  if ((await header.count()) > 0) {
+    await header.click();
+    await page.waitForTimeout(400);
+  }
+  await nameInput.waitFor({ state: 'visible', timeout: 30_000 });
+  return nameInput;
+}
+
+async function renameQuiz(page, quizName, nextName) {
+  await openQuizEditorByName(page, quizName);
   const saveButton = page.locator('button.quiz-edit__bottom-actions-save');
+  try {
+    await saveButton.waitFor({ state: 'visible', timeout: 60_000 });
+  } catch (error) {
+    const url = page.url();
+    const body = (await visibleText(page)).slice(0, 500);
+    throw new Error(
+      `Speichern-Button nicht sichtbar nach Öffnen von „${quizName}“ (${url}). Ausschnitt: ${body}`,
+      { cause: error },
+    );
+  }
+  const nameInput = await ensureMetadataNameVisible(page);
   await nameInput.fill(nextName);
   await nameInput.blur();
-  await saveButton.waitFor({ state: 'visible', timeout: 30_000 });
   await page.waitForFunction(
     () => {
       const button = document.querySelector('button.quiz-edit__bottom-actions-save');
@@ -153,7 +192,7 @@ async function main() {
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
 
-    const editUrlA = await createQuiz(pageA, sourceQuizName);
+    await createQuiz(pageA, sourceQuizName);
     logStep(true, 'Geraet A erstellt Shared-Quiz', sourceQuizName);
 
     await createQuiz(pageB, localOnlyQuizName);
@@ -173,19 +212,26 @@ async function main() {
     const localQuizGoneOnB = !importedTextB.includes(localOnlyQuizName);
     logStep(localQuizGoneOnB, 'Lokaler Stand von Geraet B bleibt aus Shared-Raum draussen');
     if (!localQuizGoneOnB) {
-      failures.push('Das lokale Quiz von Geraet B blieb nach dem Import sichtbar und wurde nicht aus dem Shared-Raum verdraengt.');
+      failures.push(
+        'Das lokale Quiz von Geraet B blieb nach dem Import sichtbar und wurde nicht aus dem Shared-Raum verdraengt.',
+      );
     }
 
     await pageA.goto(`${APP_URL}/quiz`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await dismissMotdIfPresent(pageA);
     await pageA.waitForTimeout(2_000);
     const sharedTextA = await visibleText(pageA);
     const localQuizLeakedToA = sharedTextA.includes(localOnlyQuizName);
     logStep(!localQuizLeakedToA, 'Geraet A sieht keinen Rueckfluss des lokalen Quiz von Geraet B');
     if (localQuizLeakedToA) {
-      failures.push('Das lokale Quiz von Geraet B wurde in den Shared-Raum zurueckgeschrieben und erschien auf Geraet A.');
+      failures.push(
+        'Das lokale Quiz von Geraet B wurde in den Shared-Raum zurueckgeschrieben und erschien auf Geraet A.',
+      );
     }
 
-    await renameQuiz(pageA, editUrlA, sourceQuizRenamed);
+    // Nach Sync kurz warten, dann Editor über die Liste öffnen (stabile ID/Yjs-Anbindung).
+    await pageA.waitForTimeout(2_000);
+    await renameQuiz(pageA, sourceQuizName, sourceQuizRenamed);
     logStep(true, 'Geraet A benennt Shared-Quiz um', sourceQuizRenamed);
 
     const renameSynced = await waitForText(pageB, sourceQuizRenamed, 15_000);

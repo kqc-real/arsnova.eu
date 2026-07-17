@@ -531,6 +531,9 @@ describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
       },
     });
     expect(result?.numericHistogram).toHaveLength(10);
+    const histogramEdges = result?.numericHistogram?.flatMap((bin) => [bin.from, bin.to]) ?? [];
+    expect(histogramEdges).toContain(1700);
+    expect(histogramEdges).toContain(1800);
     const nonEmptyBins = result?.numericHistogram?.filter((bin) => bin.count > 0) ?? [];
     expect(nonEmptyBins).toHaveLength(1);
     expect(nonEmptyBins[0]).toMatchObject({ count: 1 });

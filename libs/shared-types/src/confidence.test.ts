@@ -103,6 +103,40 @@ describe('confidence helpers (Story 1.2i)', () => {
     ]);
   });
 
+  it('zählt selbstsichere Auslassungen richtiger MC-Optionen', () => {
+    const result = buildConfidenceResult({
+      votes: [
+        {
+          confidenceValue: 5,
+          isCorrect: false,
+          selectedAnswerIds: ['wrong-a'],
+        },
+        {
+          confidenceValue: 4,
+          isCorrect: false,
+          selectedAnswerIds: ['wrong-a'],
+        },
+        {
+          confidenceValue: 5,
+          isCorrect: false,
+          selectedAnswerIds: ['wrong-b'],
+        },
+      ],
+      answerOptions: [
+        { id: 'wrong-a', text: 'Nur Tests', isCorrect: false },
+        { id: 'wrong-b', text: 'Zufällig', isCorrect: false },
+        { id: 'right-1', text: 'Vorwissen aktivieren', isCorrect: true },
+        { id: 'right-2', text: 'Zwischencheck', isCorrect: true },
+      ],
+    });
+
+    expect(result?.highConfidenceWrongCount).toBe(3);
+    expect(result?.highConfidenceOmittedCorrectOptions).toEqual([
+      { answerId: 'right-1', text: 'Vorwissen aktivieren', count: 3 },
+      { answerId: 'right-2', text: 'Zwischencheck', count: 3 },
+    ]);
+  });
+
   it('liefert null ohne gültige Confidence-Werte', () => {
     expect(
       buildConfidenceResult({
@@ -164,6 +198,7 @@ describe('confidence helpers (Story 1.2i)', () => {
       responseCount: 10,
       includedQuestionCount: 2,
       suppressedQuestionCount: 1,
+      signalQuestionCount: 1,
       priorityQuestionCount: 1,
       highConfidenceWrongCount: 3,
       questions: [
@@ -181,7 +216,7 @@ describe('confidence helpers (Story 1.2i)', () => {
     });
   });
 
-  it('listet in der Prioritätenauswahl nur Fragen mit Fehlkonzept-Risiko', () => {
+  it('listet nur Fragen oberhalb der robusten Nachbesprechungsschwelle', () => {
     const withRisk = buildConfidenceResult({
       votes: [
         { confidenceValue: 5, isCorrect: false },
@@ -224,10 +259,34 @@ describe('confidence helpers (Story 1.2i)', () => {
     });
 
     expect(summary?.priorityQuestionCount).toBe(2);
+    expect(summary?.signalQuestionCount).toBe(2);
     expect(selectConfidencePriorityQuestions(summary?.questions ?? [], 3)).toEqual([
       expect.objectContaining({ questionOrder: 0 }),
       expect.objectContaining({ questionOrder: 2 }),
     ]);
+  });
+
+  it('führt einen einzelnen sicher falschen Fall nur als Hinweis', () => {
+    const oneSignal = buildConfidenceResult({
+      votes: [
+        { confidenceValue: 5, isCorrect: false },
+        ...Array.from({ length: 19 }, () => ({ confidenceValue: 4, isCorrect: true })),
+      ],
+    });
+    const summary = buildSessionConfidenceSummary({
+      questions: [
+        {
+          questionOrder: 0,
+          questionTextShort: 'Einzelfall',
+          questionType: 'SINGLE_CHOICE',
+          result: oneSignal,
+        },
+      ],
+    });
+
+    expect(summary?.signalQuestionCount).toBe(1);
+    expect(summary?.priorityQuestionCount).toBe(0);
+    expect(selectConfidencePriorityQuestions(summary?.questions ?? [], 3)).toEqual([]);
   });
 
   it('liefert ohne Frage oberhalb der Datenschutzschwelle keine Session-Zusammenfassung', () => {

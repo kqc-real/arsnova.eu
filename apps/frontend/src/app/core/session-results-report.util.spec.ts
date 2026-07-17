@@ -19,6 +19,8 @@ const sampleExport: SessionExportDTO = {
       participantCount: 28,
       aggregationRound: 1,
       averageScore: 850,
+      correctCount: 24,
+      incorrectCount: 4,
       optionDistribution: [
         { text: '3', count: 2, percentage: 7.1, isCorrect: false },
         { text: '4', count: 24, percentage: 85.7, isCorrect: true },
@@ -46,6 +48,8 @@ const sampleExport: SessionExportDTO = {
       type: 'SINGLE_CHOICE',
       participantCount: 25,
       aggregationRound: 2,
+      correctCount: 20,
+      incorrectCount: 5,
       round1ParticipantCount: 28,
       round2ParticipantCount: 25,
       optionDistribution: [
@@ -137,19 +141,35 @@ describe('buildSessionResultsReportHtml', () => {
     expect(html).toContain('Ergebnisbericht');
     expect(html).toContain('Demo Quiz');
     expect(html).toContain('ABC123');
+    expect(html).toContain('So liest du die Auswertung');
+    expect(html).toContain('Selbsteinschätzung 1–5');
+    expect(html).toContain('Nachbesprechungsimpuls');
+    expect(html).toContain('data-continuation="Frage 1 – Fortsetzung:');
+    expect(html).not.toContain('<table class="report-question-continued-table');
+    expect(html).not.toContain('aria-hidden="true">Fortsetzung');
     expect(html).toContain('Lernstand und Selbsteinschätzung');
-    expect(html).toContain('Priorität für die Nachbesprechung');
+    expect(html).toContain('Dein Nachbesprechungsplan');
+    expect(html).toContain('Nächste Schritte');
+    expect(html).not.toContain('Das solltest du nachbesprechen');
+    expect(html).not.toContain('Kurzfazit dieser Session');
+    expect(html).toContain('report-cover-continued');
     expect(html).toContain('PI-Frage zur Französischen Revolution');
     expect(html).toContain('Runde 2 (Peer Instruction)');
     expect(html).toContain('Runde 1: 28 Stimmen · Ausgewertet in Runde 2: 25 Stimmen');
     expect(html).toContain('Antwortverteilung');
-    expect(html).toContain('keine personenbezogenen Daten');
+    expect(html).toContain(
+      'Datenschutz: Der Bericht enthält ausschließlich aggregierte Ergebnisse.',
+    );
+    expect(html).not.toContain('Enthalten: aggregierte Quiz-Ergebnisse');
+    expect(html).not.toContain('Ø Punkte');
+    expect(html).toContain('Richtig beantwortet');
+    expect(html).toContain('Mittlere Sicherheit');
     expect(html).toContain('report-cover-nav');
     expect(html).toContain('report-cover-summary');
     expect(html).toContain('counter(page)');
   });
 
-  it('listet nur Fragen mit Fehlkonzept-Risiko in der Prioritätenliste', () => {
+  it('nimmt nur Fragen mit Fehlkonzept-Risiko in „Fehlkonzept zuerst klären“ auf', () => {
     const html = buildSessionResultsReportHtml(
       {
         ...sampleExport,
@@ -184,16 +204,20 @@ describe('buildSessionResultsReportHtml', () => {
       { localeId: 'de' },
     );
 
-    expect(html).toMatch(/Nachbesprechung empfohlen[^<]*2/);
+    expect(html).toContain(
+      '2 Fragen zur Nachbesprechung empfohlen: Mindestens 2 Personen und mindestens 10 %',
+    );
+    expect(html).toContain('Dein Nachbesprechungsplan');
     expect(html).toContain('PI-Frage zur Französischen Revolution');
     expect(html).toContain('Was ist 2+2?');
-    expect(html).not.toContain('Ohne Fehlkonzept-Risiko');
 
-    const prioritySection = html.slice(
-      html.indexOf('report-priority-list'),
-      html.indexOf('</ol>', html.indexOf('report-priority-list')) + 5,
-    );
-    expect(prioritySection.match(/<li>/g)?.length).toBe(2);
+    const planStart = html.indexOf('id="report-action-plan"');
+    expect(planStart).toBeGreaterThanOrEqual(0);
+    const planSection = html.slice(planStart, html.indexOf('</section>', planStart) + 10);
+    const debriefLine = planSection.match(/Fehlkonzept zuerst klären:[\s\S]*?<\/li>/)?.[0] ?? '';
+    expect(debriefLine).toContain('Frage 8');
+    expect(debriefLine).toContain('Frage 1');
+    expect(debriefLine).not.toContain('Frage 4');
   });
 
   it('rendert Feedback, Heatmap und Histogramm in Phase 2', () => {
@@ -251,7 +275,10 @@ describe('buildSessionResultsReportHtml', () => {
     expect(html).toContain('report-heatmap');
     expect(html).toContain('report-histogram');
     expect(html).toContain('report-hist-band');
-    expect(html).toContain('Toleranzband');
+    expect(html).toContain('Akzeptierter Bereich');
+    expect(html).toContain('Antworten: 28');
+    expect(html).toContain('Mittelwert: 3,14');
+    expect(html).toContain('Standardabweichung: 0,10');
     expect(html).toContain('zwei Nachkommastellen');
     expect(html).toContain('katex');
     expect(html).toContain('hljs');
@@ -289,6 +316,84 @@ describe('buildSessionResultsReportHtml', () => {
     expect(html).toContain('report-bar-leading-emoji');
     expect(html).toContain('report-bar-label-text');
     expect(html).toContain('😄');
+    expect(html).toContain('Dieser Fragetyp unterstützt keine Selbsteinschätzung.');
+  });
+
+  it('unterscheidet nicht unterstützte und deaktivierte Selbsteinschätzung', () => {
+    const html = buildSessionResultsReportHtml(
+      {
+        ...sampleExport,
+        questions: [
+          {
+            questionOrder: 0,
+            questionTextShort: 'Umfrage',
+            type: 'SURVEY',
+            participantCount: 30,
+            confidenceEnabled: false,
+          },
+          {
+            questionOrder: 1,
+            questionTextShort: 'Codefrage',
+            type: 'SINGLE_CHOICE',
+            participantCount: 30,
+            confidenceEnabled: false,
+          },
+        ],
+        confidenceSummary: {
+          ...sampleExport.confidenceSummary!,
+          includedQuestionCount: 0,
+          responseCount: 0,
+          priorityQuestionCount: 0,
+          questions: [],
+        },
+      },
+      getDefaultSessionResultsReportLabelsDe(),
+      { localeId: 'de' },
+    );
+
+    expect(html).toContain('Nicht unterstützt bei: Frage 1 (Umfrage).');
+    expect(html).toContain('In diesem Quiz deaktiviert bei: Frage 2 (Single Choice).');
+    expect(html).toContain('Dieser Fragetyp unterstützt keine Selbsteinschätzung.');
+    expect(html).toContain(
+      'Für diese Frage war die Selbsteinschätzung in diesem Quiz deaktiviert.',
+    );
+  });
+
+  it('formatiert Scores und Zeitstempel einheitlich', () => {
+    const html = buildSessionResultsReportHtml(
+      {
+        ...sampleExport,
+        teamMode: true,
+        teamLeaderboard: [
+          {
+            rank: 1,
+            teamName: 'Team Apfel',
+            teamColor: null,
+            memberCount: 25,
+            totalScore: 11279.2,
+            averageScore: 11279.2,
+          },
+        ],
+        bonusTokens: [
+          {
+            rank: 1,
+            nickname: 'Silberner Dodo',
+            token: 'BNS-TEST-CODE',
+            quizName: 'Demo Quiz',
+            totalScore: 12792,
+            generatedAt: '2026-07-17T07:21:00.000Z',
+          },
+        ],
+      },
+      getDefaultSessionResultsReportLabelsDe(),
+      { localeId: 'de', generatedAt: '2026-07-17T08:22:00.000Z' },
+    );
+
+    expect(html).toContain('11.279,2');
+    expect(html).toContain('12.792');
+    expect(html).toContain('17.07.2026');
+    expect(html).toContain('Uhr');
+    expect(html).toContain('Punkte sind ein Rankingwert');
   });
 
   it('lässt Confidence-Block weg, wenn keine Summary vorliegt', () => {

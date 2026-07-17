@@ -11,9 +11,7 @@ export interface MarkdownRenderResult {
 }
 
 export type MarkdownImagePolicy =
-  | 'external-https-only'
-  | 'external-https-and-app-assets'
-  | 'allow-relative-and-https';
+  'external-https-only' | 'external-https-and-app-assets' | 'allow-relative-and-https';
 
 const MARKDOWN_EMOJI_SHORTCODES = new Map(Object.entries(MARKDOWN_EMOJI_SHORTCODE_MAP));
 const INTERNAL_MARKDOWN_LINK_HOSTNAMES = new Set([
@@ -122,17 +120,21 @@ function parseMarkdownEscapingInlineHtml(
     const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
     const renderedText = looksLikeRenderedHtml(text) ? text : renderMarkdownText(text);
     const isExternal = isExternalHttpsMarkdownUrl(safeHref);
+    const isAppAsset = isAppAssetMarkdownUrl(safeHref);
     const linkTitle = hasTitle ? String(title).trim() : '';
     const externalLinkHint = getExternalLinkHint();
     const effectiveTitle = buildMarkdownLinkTitle(linkTitle, isExternal ? externalLinkHint : '');
     const titleAttr = effectiveTitle ? ` title="${escapeHtml(effectiveTitle)}"` : '';
     const privacyAttrs = isExternal
       ? ' target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" data-markdown-link-kind="external"'
-      : '';
+      : isAppAsset
+        ? ' target="_blank" rel="noopener noreferrer" data-markdown-link-kind="asset"'
+        : '';
     const externalIcon = isExternal
       ? `<span class="markdown-external-link-icon" aria-hidden="true">${EXTERNAL_LINK_SVG}</span><span class="sr-only">${escapeHtml(externalLinkHint)}</span>`
       : '';
-    return `<a href="${hrefEsc}"${titleAttr}${privacyAttrs}>${renderedText}${externalIcon}</a>`;
+    const classAttr = isAppAsset ? ' class="markdown-inline-link"' : '';
+    return `<a href="${hrefEsc}"${classAttr}${titleAttr}${privacyAttrs}>${renderedText}${externalIcon}</a>`;
   };
   /** `alt` allein löst keinen Hover-Tooltip aus; `title` schon (optional explizit in `![](url "title")`). */
   renderer.image = ({ href, title, text }): string => {
@@ -174,15 +176,18 @@ export function renderMarkdownWithoutKatex(
 }
 
 /**
- * Ersetzt MOTD-Bilder unter `/assets/...` oder `assets/...` durch absolute URLs relativ zur aktuellen
- * Build-Basis (z. B. `https://arsnova.eu/de/`). Das hält lokalisierte Builds und Admin-Preview konsistent.
+ * Ersetzt MOTD-Medien unter `/assets/...` oder `assets/...` (Bilder und Links) durch absolute URLs
+ * relativ zur aktuellen Build-Basis (z. B. `https://arsnova.eu/de/`). Das hält lokalisierte Builds
+ * und Admin-Preview konsistent.
  */
 export function absolutizeMarkdownHtmlRootAssetImgSrc(html: string, origin: string): string {
   const base = origin.replace(/\/$/, '');
   if (!base) return html;
   return html
     .replaceAll(/src="\/(assets\/[^"]+)"/g, `src="${base}/$1"`)
-    .replaceAll(/src="(assets\/[^"]+)"/g, `src="${base}/$1"`);
+    .replaceAll(/src="(assets\/[^"]+)"/g, `src="${base}/$1"`)
+    .replaceAll(/href="\/(assets\/[^"]+)"/g, `href="${base}/$1"`)
+    .replaceAll(/href="(assets\/[^"]+)"/g, `href="${base}/$1"`);
 }
 
 /**
@@ -347,6 +352,25 @@ function isExternalHttpsMarkdownUrl(value: string): boolean {
   }
 }
 
+/** App-Assets unter `/assets/…` oder absolutiert auf die Locale-Basis (PDF-Beispiele in MOTDs). */
+function isAppAssetMarkdownUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith('/assets/') || trimmed.startsWith('assets/')) return true;
+  try {
+    const url = new URL(trimmed);
+    return (
+      (url.protocol === 'https:' || url.protocol === 'http:') &&
+      /\/assets\//.test(url.pathname) &&
+      (INTERNAL_MARKDOWN_LINK_HOSTNAMES.has(url.hostname.toLowerCase()) ||
+        isLoopbackHttpUrl(trimmed) ||
+        url.hostname.toLowerCase().endsWith('arsnova.eu'))
+    );
+  } catch {
+    return false;
+  }
+}
+
 function isSafeInlineDataImageUrl(value: string): boolean {
   return /^data:image\/(?:png|apng|avif|gif|jpeg|jpg|webp|bmp);base64,[a-z0-9+/=]+$/i.test(value);
 }
@@ -428,6 +452,9 @@ function sanitizeMarkdownHtml(html: string): string {
       'src',
       'alt',
       'type',
+      'class',
+      'target',
+      'rel',
       'data-markdown-code-block',
       'data-markdown-code-copy',
       'data-markdown-copy-state',

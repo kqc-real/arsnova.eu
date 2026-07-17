@@ -10,6 +10,9 @@
  *   OUTPUT=output/pdf/demo-session-results-30.pdf \
  *   npm run generate:session-pdf-demo -w @arsnova/frontend
  *
+ * Standardmäßig wird das PDF lokal per Playwright aus dem frisch gerenderten HTML
+ * erzeugt (aktueller Workspace-Stand). USE_BACKEND_PDF=1 testet zusätzlich die Backend-Route.
+ *
  * Ohne SESSION_CODE wird zuerst scripts/load/demo-quiz-classroom-30.mjs ausgeführt.
  */
 import { execFile } from 'node:child_process';
@@ -27,6 +30,8 @@ import {
 import {
   inlineExportImagesInHtml,
   buildSessionResultsPlaywrightPdfOptions,
+  buildQuestionContinuationStamps,
+  stampQuestionContinuationsOnPdf,
 } from '@arsnova/session-export-report';
 
 const execFileAsync = promisify(execFile);
@@ -52,6 +57,10 @@ const SESSION_CODE = String(process.env.SESSION_CODE || '')
   .trim()
   .toUpperCase();
 const PARTICIPANTS = Math.max(1, Number(process.env.PARTICIPANTS || 30));
+const QUIZ_CONTENT_LOCALE = String(process.env.QUIZ_CONTENT_LOCALE || 'de')
+  .trim()
+  .slice(0, 2)
+  .toLowerCase();
 const OUTPUT = resolve(
   process.env.OUTPUT || join(REPO_ROOT, 'output/pdf/demo-session-results-30.pdf'),
 );
@@ -131,6 +140,35 @@ async function runDemoClassroomScenario(): Promise<string> {
   return summary.code.toUpperCase();
 }
 
+async function renderLocalPlaywrightPdf(
+  html: string,
+  labels: ReturnType<typeof getDefaultSessionResultsReportLabelsDe>,
+  exportData: {
+    quizName: string;
+    sessionCode: string;
+    questions: { questionOrder: number; questionTextShort: string }[];
+  },
+): Promise<Buffer> {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle' });
+    const raw = await page.pdf(
+      buildSessionResultsPlaywrightPdfOptions(labels, {
+        quizName: exportData.quizName,
+        sessionCode: exportData.sessionCode,
+      }),
+    );
+    const stamped = await stampQuestionContinuationsOnPdf(
+      new Uint8Array(raw),
+      buildQuestionContinuationStamps(exportData, labels),
+    );
+    return Buffer.from(stamped);
+  } finally {
+    await browser.close();
+  }
+}
+
 async function run() {
   const bootstrapClient = createTrpcClient();
   await waitForTrpc(bootstrapClient);
@@ -146,6 +184,8 @@ async function run() {
     generatedAt: new Date().toISOString(),
     assetBaseUrl: ASSET_BASE_URL,
     pageNumbersViaCss: false,
+    quizContentLocale: QUIZ_CONTENT_LOCALE,
+    includeTeachingNotes: true,
   });
 
   html = await inlineExportImagesInHtml(html, {
@@ -162,23 +202,17 @@ async function run() {
   await writeFile(htmlPath, html, 'utf8');
 
   let pdfBuffer: Buffer;
-  try {
-    const serverPdf = await client.session.getSessionExportPdf.query({ code });
-    pdfBuffer = Buffer.from(serverPdf.contentBase64, 'base64');
-  } catch {
-    const browser = await chromium.launch({ headless: true });
+  const useBackendPdf = String(process.env.USE_BACKEND_PDF || '').trim() === '1';
+  if (useBackendPdf) {
     try {
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'networkidle' });
-      pdfBuffer = await page.pdf(
-        buildSessionResultsPlaywrightPdfOptions(labels, {
-          quizName: exportData.quizName,
-          sessionCode: exportData.sessionCode,
-        }),
-      );
-    } finally {
-      await browser.close();
+      const serverPdf = await client.session.getSessionExportPdf.query({ code });
+      pdfBuffer = Buffer.from(serverPdf.contentBase64, 'base64');
+    } catch (error) {
+      console.warn('Backend-PDF fehlgeschlagen, fallback auf lokales Playwright:', error);
+      pdfBuffer = await renderLocalPlaywrightPdf(html, labels, exportData);
     }
+  } else {
+    pdfBuffer = await renderLocalPlaywrightPdf(html, labels, exportData);
   }
   await writeFile(pdfPath, pdfBuffer);
 

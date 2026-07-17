@@ -7,3 +7,4 @@
 
 export * from './schemas.js';
 export * from './confidence.js';
+export * from './session-export-insights.js';

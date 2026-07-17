@@ -1077,6 +1077,24 @@ img[data-markdown-image-lightbox='true'][data-markdown-image-state='error'] {
   text-underline-offset: 0.12em;
 }
 
+/* Home-/Archiv-MOTD: Links (z. B. Beispiel-PDF) sichtbar halten — Material erbt sonst Body-Farbe. */
+.home-motd-sheet__body.markdown-body a,
+.motd-archive__body.markdown-body a,
+.news-archive-page__md.markdown-body a,
+.markdown-body a.markdown-inline-link {
+  color: var(--mat-sys-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+  font-weight: 600;
+}
+
+.home-motd-sheet__body.markdown-body a:hover,
+.motd-archive__body.markdown-body a:hover,
+.news-archive-page__md.markdown-body a:hover,
+.markdown-body a.markdown-inline-link:hover {
+  text-decoration-thickness: 0.12em;
+}
+
 .markdown-external-link-icon {
   display: inline-flex;
   align-items: center;

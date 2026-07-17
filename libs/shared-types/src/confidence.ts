@@ -87,6 +87,8 @@ export interface ConfidenceResult {
   crossTab: ConfidenceCrossTab;
   highConfidenceWrongCount: number;
   highConfidenceWrongOptions?: ConfidenceWrongOptionCount[];
+  /** Bei MC: richtige Optionen, die bei selbstsicher falschen Antworten ausgelassen wurden. */
+  highConfidenceOmittedCorrectOptions?: ConfidenceWrongOptionCount[];
 }
 
 export interface ConfidenceQuestionSummary {
@@ -101,6 +103,9 @@ export interface SessionConfidenceSummary {
   responseCount: number;
   includedQuestionCount: number;
   suppressedQuestionCount: number;
+  /** Fragen mit mindestens einer falschen Antwort bei hoher Sicherheit. */
+  signalQuestionCount?: number;
+  /** Fragen oberhalb der Schwelle für eine empfohlene Nachbesprechung. */
   priorityQuestionCount: number;
   distribution: ConfidenceDistribution;
   crossTab: ConfidenceCrossTab;
@@ -181,6 +186,7 @@ export function buildConfidenceResult(input: BuildConfidenceResultInput): Confid
   const distribution = createEmptyConfidenceDistribution();
   const crossTab = createEmptyConfidenceCrossTab();
   const wrongOptionCounts = new Map<string, { text: string; count: number }>();
+  const omittedCorrectCounts = new Map<string, { text: string; count: number }>();
 
   for (const vote of votesWithConfidence) {
     const confidenceValue = vote.confidenceValue;
@@ -191,15 +197,28 @@ export function buildConfidenceResult(input: BuildConfidenceResultInput): Confid
     const isCorrect = vote.isCorrect === true;
     incrementCrossTab(crossTab, isCorrect, tier);
 
-    if (!isCorrect && tier === 'high' && vote.selectedAnswerIds?.length) {
-      for (const answerId of vote.selectedAnswerIds) {
-        const option = input.answerOptions?.find((entry) => entry.id === answerId);
-        if (!option || option.isCorrect) {
-          continue;
+    if (!isCorrect && tier === 'high') {
+      const selected = new Set(vote.selectedAnswerIds ?? []);
+      if (selected.size > 0) {
+        for (const answerId of selected) {
+          const option = input.answerOptions?.find((entry) => entry.id === answerId);
+          if (!option || option.isCorrect) {
+            continue;
+          }
+          const current = wrongOptionCounts.get(answerId) ?? { text: option.text, count: 0 };
+          current.count += 1;
+          wrongOptionCounts.set(answerId, current);
         }
-        const current = wrongOptionCounts.get(answerId) ?? { text: option.text, count: 0 };
-        current.count += 1;
-        wrongOptionCounts.set(answerId, current);
+      }
+      if (input.answerOptions?.length) {
+        for (const option of input.answerOptions) {
+          if (!option.isCorrect || selected.has(option.id)) {
+            continue;
+          }
+          const current = omittedCorrectCounts.get(option.id) ?? { text: option.text, count: 0 };
+          current.count += 1;
+          omittedCorrectCounts.set(option.id, current);
+        }
       }
     }
   }
@@ -215,11 +234,23 @@ export function buildConfidenceResult(input: BuildConfidenceResultInput): Confid
           .sort((left, right) => right.count - left.count || left.text.localeCompare(right.text))
       : undefined;
 
+  const highConfidenceOmittedCorrectOptions =
+    omittedCorrectCounts.size > 0
+      ? [...omittedCorrectCounts.entries()]
+          .map(([answerId, entry]) => ({
+            answerId,
+            text: entry.text,
+            count: entry.count,
+          }))
+          .sort((left, right) => right.count - left.count || left.text.localeCompare(right.text))
+      : undefined;
+
   return {
     distribution,
     crossTab,
     highConfidenceWrongCount: crossTab.incorrectHigh,
     ...(highConfidenceWrongOptions ? { highConfidenceWrongOptions } : {}),
+    ...(highConfidenceOmittedCorrectOptions ? { highConfidenceOmittedCorrectOptions } : {}),
   };
 }
 
@@ -249,11 +280,26 @@ export function hasConfidenceMisconceptionRisk(
   return question.result.crossTab.incorrectHigh > 0;
 }
 
-/** Top-N Fragen mit Fehlkonzept-Risiko (bereits nach Priorität sortiert erwartet). */
+export const CONFIDENCE_DEBRIEF_MIN_RESPONSES = 2;
+export const CONFIDENCE_DEBRIEF_MIN_SHARE = 0.1;
+
+/** Robuste Schwelle: mindestens zwei Personen und mindestens zehn Prozent der Antworten. */
+export function isConfidenceDebriefRecommended(
+  question: Pick<ConfidenceQuestionSummary, 'result' | 'responseCount'>,
+): boolean {
+  const incorrectHigh = question.result.crossTab.incorrectHigh;
+  return (
+    incorrectHigh >= CONFIDENCE_DEBRIEF_MIN_RESPONSES &&
+    question.responseCount > 0 &&
+    incorrectHigh / question.responseCount >= CONFIDENCE_DEBRIEF_MIN_SHARE
+  );
+}
+
+/** Top-N Fragen mit Nachbesprechungsempfehlung (bereits nach Priorität sortiert erwartet). */
 export function selectConfidencePriorityQuestions<
-  T extends Pick<ConfidenceQuestionSummary, 'result'>,
+  T extends Pick<ConfidenceQuestionSummary, 'result' | 'responseCount'>,
 >(questions: readonly T[], limit = 3): T[] {
-  return questions.filter(hasConfidenceMisconceptionRisk).slice(0, Math.max(0, limit));
+  return questions.filter(isConfidenceDebriefRecommended).slice(0, Math.max(0, limit));
 }
 
 export function buildSessionConfidenceSummary(
@@ -306,7 +352,8 @@ export function buildSessionConfidenceSummary(
     responseCount: confidenceResultResponseCount(aggregate),
     includedQuestionCount: questions.length,
     suppressedQuestionCount,
-    priorityQuestionCount: questions.filter(hasConfidenceMisconceptionRisk).length,
+    signalQuestionCount: questions.filter(hasConfidenceMisconceptionRisk).length,
+    priorityQuestionCount: questions.filter(isConfidenceDebriefRecommended).length,
     distribution: aggregate.distribution,
     crossTab: aggregate.crossTab,
     highConfidenceWrongCount: aggregate.highConfidenceWrongCount,

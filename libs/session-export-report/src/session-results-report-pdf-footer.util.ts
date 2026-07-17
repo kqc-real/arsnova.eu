@@ -1,7 +1,8 @@
 import type { SessionResultsReportLabels } from './labels-de';
 
 const PDF_PAGE_MARGINS = {
-  top: '16mm',
+  /** Platz für Header-Template; Content-Abstand steuert vor allem CSS `@page`. */
+  top: '18mm',
   right: '14mm',
   bottom: '20mm',
   left: '14mm',
@@ -30,7 +31,7 @@ export function buildSessionResultsPdfHeaderTemplate(
 ): string {
   const title = escapeHtml(header.quizName.slice(0, 64));
   const code = escapeHtml(header.sessionCode);
-  return `<div style="width:100%;font-size:8px;color:#5c6570;font-family:Segoe UI,system-ui,sans-serif;padding:0 14mm 2mm;border-bottom:1px solid #d8dee6;display:flex;justify-content:space-between;">
+  return `<div style="width:100%;font-size:8px;color:#5c6570;font-family:Segoe UI,system-ui,sans-serif;padding:3mm 14mm 3mm;border-bottom:1px solid #d8dee6;display:flex;justify-content:space-between;box-sizing:border-box;">
     <span>${title}</span>
     <span>${code}</span>
   </div>`;
@@ -74,5 +75,8 @@ export function buildSessionResultsPlaywrightPdfOptions(
     headerTemplate: buildSessionResultsPdfHeaderTemplate(header),
     footerTemplate: buildSessionResultsPdfFooterTemplate(labels),
     margin: { ...PDF_PAGE_MARGINS },
+    /** Chromium-getaggtes PDF (Strukturbaum); kein vollständiges PDF/UA. */
+    tagged: true,
+    outline: true,
   };
 }

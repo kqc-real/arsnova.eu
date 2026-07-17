@@ -3,6 +3,7 @@ import { getSessionResultsReportLabelsDe } from './labels-de';
 import {
   renderNumericHistogramBandCaption,
   renderNumericHistogramOverlayElements,
+  renderNumericInBandSummaryHtml,
 } from './numeric-histogram-overlay.util';
 
 describe('numeric-histogram-overlay', () => {
@@ -29,10 +30,36 @@ describe('numeric-histogram-overlay', () => {
     expect(html).toContain('left:');
   });
 
-  it('rendert Beschriftung mit Toleranzband und Referenz', () => {
+  it('rendert Beschriftung mit akzeptiertem Bereich und Referenz', () => {
     const caption = renderNumericHistogramBandCaption(context, labels, 'de');
-    expect(caption).toContain('Toleranzband');
+    expect(caption).toContain('Akzeptierter Bereich');
     expect(caption).toContain('Referenz');
     expect(caption).toContain('1789');
+  });
+
+  it('beschriftet den akzeptierten Bereich als Bildunterschrift', () => {
+    const caption = renderNumericHistogramBandCaption(context, labels, 'de');
+    expect(caption).toContain('report-numeric-band-caption');
+  });
+
+  it('stellt den Anteil im akzeptierten Bereich als Hauptbotschaft dar', () => {
+    const summary = renderNumericInBandSummaryHtml(
+      { n: 30, inBandCount: 30 },
+      {
+        numericReferenceValue: 3.14,
+        numericTolerancePercent: null,
+        numericToleranceMode: 'ABSOLUTE_INTERVAL',
+        numericIntervalLeft: 3.1,
+        numericIntervalRight: 3.2,
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 2,
+        questionTextShort: 'π',
+      },
+      labels,
+      'de',
+    );
+    expect(summary).toContain('report-numeric-primary');
+    expect(summary).toContain('30 von 30 Antworten lagen im akzeptierten Bereich');
+    expect(summary).toContain('3,10–3,20');
   });
 });

@@ -45,6 +45,11 @@ if (
   throw new Error('PRIORITY_QUESTION_COUNT muss eine positive ganze Zahl sein.');
 }
 const VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.VOTE_COOLDOWN_MS || 1_100));
+const SKIP_HOST_UI = ['1', 'true', 'yes'].includes(
+  String(process.env.SKIP_HOST_UI || '')
+    .trim()
+    .toLowerCase(),
+);
 const ARTIFACT_DIR =
   process.env.E2E_ARTIFACT_DIR || join(tmpdir(), 'arsnova-confidence-summary-demo-e2e');
 const HOST_SCREENSHOT = join(ARTIFACT_DIR, 'host-confidence-summary.png');
@@ -139,7 +144,7 @@ async function loadDemoQuizUploadPayload() {
   const quiz = raw.quiz;
   return {
     historyScopeId: DEMO_QUIZ_HISTORY_SCOPE_ID,
-    name: `${quiz.name} · Confidence E2E ${Date.now()}`,
+    name: `${quiz.name} · Didaktik-Demo ${Date.now()}`,
     description: quiz.description,
     motifImageUrl: quiz.motifImageUrl ?? null,
     showLeaderboard: quiz.showLeaderboard,
@@ -170,73 +175,176 @@ async function loadDemoQuizUploadPayload() {
   };
 }
 
+/** Korrektheit kommt aus dem Upload-Payload; die Student-API liefert keine isCorrect-Flags. */
+function normalizeAnswerText(value) {
+  return String(value ?? '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function answerIdsByCorrectness(question, metadata) {
+  const metaAnswers = Array.isArray(metadata.answers) ? metadata.answers : [];
+  const byText = new Map(
+    metaAnswers.map((answer) => [normalizeAnswerText(answer.text), answer.isCorrect === true]),
+  );
+  const correct = [];
+  const wrong = [];
+  for (const answer of question.answers) {
+    const key = normalizeAnswerText(answer.text);
+    // Kein Index-Fallback: Antwortreihenfolge ist für TN geshuffelt.
+    if (byText.get(key) === true) {
+      correct.push(answer.id);
+    } else {
+      wrong.push(answer.id);
+    }
+  }
+  return { correct, wrong };
+}
+
+function findAnswerIdByText(question, needles) {
+  const normalizedNeedles = needles.map((needle) => normalizeAnswerText(needle));
+  const match = question.answers.find((answer) => {
+    const text = normalizeAnswerText(answer.text);
+    return normalizedNeedles.some((needle) => text.includes(needle) || needle.includes(text));
+  });
+  return match?.id ?? null;
+}
+
 function buildVoteInput(participant, question, metadata, round, participantIndex) {
   const base = {
     sessionId: participant.id,
     participantId: participant.participantId,
     questionId: question.id,
     round,
-    responseTimeMs: 700 + participantIndex * 9 + round * 100,
+    // Gestaffelte Antwortzeiten → sichtbare Bonus-Rang-Unterschiede bei gleichem Score
+    responseTimeMs: 1_200 + participantIndex * 37 + round * 180 + (participantIndex % 7) * 90,
   };
   const requiresDebrief = priorityQuestionOrders.has(metadata.order);
+  const n = PARTICIPANT_COUNT;
   let vote;
 
   switch (question.type) {
     case 'SURVEY':
-    case 'SINGLE_CHOICE':
       vote = {
         ...base,
-        answerIds: [
-          question.answers[
-            requiresDebrief
-              ? metadata.answers.findIndex((answer) => !answer.isCorrect)
-              : participantIndex % question.answers.length
-          ].id,
-        ],
+        answerIds: [question.answers[participantIndex % question.answers.length].id],
       };
       break;
+    case 'SINGLE_CHOICE': {
+      const { correct, wrong } = answerIdsByCorrectness(question, metadata);
+      const correctId = correct[0] ?? question.answers[0].id;
+      const wrongId = wrong[0] ?? question.answers[question.answers.length - 1].id;
+      const otherWrongId = wrong[1] ?? wrongId;
+      let answerId = correctId;
+      if (requiresDebrief) {
+        // Fehlkonzept Würfel: gezielt „22“ (nicht die richtige 26)
+        answerId = findAnswerIdByText(question, ['22']) ?? wrong[wrong.length - 1] ?? wrongId;
+      } else if (metadata.order === 2) {
+        // ~40 % falsch bei niedriger Sicherheit → „Grundlage erneut erklären“
+        answerId = participantIndex % 5 < 2 ? wrongId : correctId;
+      } else if (metadata.order === 5) {
+        // Code-Sprache ohne Confidence: ~26 % richtig → empirisches Reteach
+        answerId = participantIndex % 4 === 0 ? correctId : otherWrongId;
+      } else {
+        answerId = participantIndex % 3 === 0 ? wrongId : correctId;
+      }
+      vote = { ...base, answerIds: [answerId] };
+      break;
+    }
     case 'MULTIPLE_CHOICE': {
-      const offset = requiresDebrief
-        ? metadata.answers.findIndex((answer) => !answer.isCorrect)
-        : participantIndex % question.answers.length;
-      const first = question.answers[offset];
-      const second = question.answers[(offset + 1) % question.answers.length];
-      vote = {
-        ...base,
-        answerIds: [...new Set([first.id, second.id])],
-      };
+      const { correct, wrong } = answerIdsByCorrectness(question, metadata);
+      const falseOnly = wrong.length > 0 ? wrong : [question.answers[0].id];
+      const vorwissenId = findAnswerIdByText(question, ['vorwissen']);
+      const omitVorwissen =
+        vorwissenId && correct.includes(vorwissenId)
+          ? correct.filter((id) => id !== vorwissenId)
+          : correct.slice(1);
+      let answerIds;
+      if (requiresDebrief) {
+        // Selbstsicher falsch: Auslassung „Vorwissen …“ oder nur die falsche Option
+        if (participantIndex % 3 === 0) {
+          answerIds = falseOnly;
+        } else {
+          answerIds = omitVorwissen.length > 0 ? omitVorwissen : falseOnly;
+        }
+      } else {
+        answerIds = correct.length > 0 ? correct : [question.answers[0].id];
+      }
+      vote = { ...base, answerIds: [...new Set(answerIds)] };
       break;
     }
     case 'NUMERIC_ESTIMATE':
-      vote = {
-        ...base,
-        numericValue: requiresDebrief
-          ? question.order === 1
-            ? 3.5
-            : 1500
-          : question.order === 1
-            ? 3.14
-            : 1787 + (participantIndex % 6),
-      };
+      if (metadata.numericTwoRounds === true) {
+        // Peer Instruction: Runde 1 oft außerhalb des Bands (1700–1900), Runde 2 klarer Lernzuwachs
+        // Außerhalb 1700–1900, aber innerhalb numericMin/Max (1500–2000)
+        const outsideBand = [1500, 1600, 1648, 1655, 1918, 1950, 1999, 2000];
+        if (round === 1) {
+          vote = {
+            ...base,
+            numericValue:
+              participantIndex < Math.round(n * 0.3)
+                ? 1789
+                : outsideBand[participantIndex % outsideBand.length],
+          };
+        } else {
+          vote = {
+            ...base,
+            numericValue:
+              participantIndex < Math.round(n * 0.82)
+                ? 1789
+                : outsideBand[participantIndex % outsideBand.length],
+          };
+        }
+      } else if (metadata.order === 1) {
+        // π: Mehrheit exakt richtig, aber unsicher → absichern; wenige Ausreißer
+        vote = {
+          ...base,
+          numericValue: participantIndex % 10 === 0 ? 3.5 : 3.14,
+        };
+      } else {
+        vote = {
+          ...base,
+          numericValue: Number(metadata.numericReferenceValue ?? 0),
+        };
+      }
       break;
     case 'SHORT_TEXT':
       vote = {
         ...base,
-        freeText:
-          requiresDebrief || participantIndex % 3 !== 0 ? 'Think Pair Share' : 'Peer Instruction',
+        // ~34 % richtig → erneut erklären (ohne Fehlkonzept-Signal)
+        freeText: participantIndex % 3 === 0 ? 'Peer Instruction' : 'Think Pair Share',
       };
       break;
     case 'RATING':
-      vote = { ...base, ratingValue: 1 + (participantIndex % 5) };
+      vote = { ...base, ratingValue: 3 + (participantIndex % 3) };
       break;
     default:
       throw new Error(`Nicht unterstützter Demo-Fragentyp: ${question.type}`);
   }
 
   if (question.confidenceEnabled) {
-    vote.confidenceValue = requiresDebrief
-      ? randomConfidenceValue(4, 5)
-      : randomConfidenceValue(1, 3);
+    if (requiresDebrief) {
+      vote.confidenceValue = randomConfidenceValue(4, 5);
+    } else if (metadata.numericTwoRounds === true) {
+      const inBandShare = Math.round(n * (round === 1 ? 0.3 : 0.82));
+      const inBand = participantIndex < inBandShare;
+      if (round === 1) {
+        vote.confidenceValue = randomConfidenceValue(1, 3);
+      } else if (inBand) {
+        // Nach Diskussion sicherer bei korrekter Schätzung
+        vote.confidenceValue = randomConfidenceValue(3, 5);
+      } else {
+        // Verbleibende Fehler unsicher — kein zusätzliches Fehlkonzept-Signal
+        vote.confidenceValue = randomConfidenceValue(1, 2);
+      }
+    } else if (metadata.order === 1) {
+      // Richtig, aber unsicher
+      vote.confidenceValue = randomConfidenceValue(1, 2);
+    } else {
+      vote.confidenceValue = randomConfidenceValue(1, 3);
+    }
   }
   return vote;
 }
@@ -501,8 +609,9 @@ async function verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPr
     }
     await page.screenshot({ path: HOST_SCREENSHOT, fullPage: true });
 
-    const downloadPromise = page.waitForEvent('download', { timeout: 20_000 });
-    await page.getByRole('button', { name: 'Ergebnis als CSV exportieren' }).click();
+    const downloadPromise = page.waitForEvent('download', { timeout: 30_000 });
+    await page.getByRole('button', { name: 'Weitere Exportoptionen' }).click();
+    await page.getByRole('menuitem', { name: /Für Excel exportieren/i }).click();
     const download = await downloadPromise;
     const downloadPath = await download.path();
     if (!downloadPath) {
@@ -512,7 +621,7 @@ async function verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPr
     for (const expected of [
       'Selbsteinschätzung n',
       'Fehlkonzept-Risiko',
-      'Stärkstes Signal',
+      'Häufigste selbstsicher falsche Antwort',
       'Lernstand und Selbsteinschätzung',
       'Gültige Antworten;Ausgewertete Fragen',
     ]) {
@@ -527,7 +636,9 @@ async function verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPr
 }
 
 async function run() {
-  await waitForUrl(BASE_URL);
+  if (!SKIP_HOST_UI) {
+    await waitForUrl(BASE_URL);
+  }
 
   const uploadPayload = await loadDemoQuizUploadPayload();
   const expectedConfidenceQuestions = uploadPayload.questions.filter(
@@ -542,7 +653,8 @@ async function run() {
       ),
     ),
   );
-  const preferredPriorityOrder = [3, 4, 6, 7, 1];
+  // 3 = MC Live-Checks (Auslassung), 4 = Würfel (Distraktor) — nicht die PI-Frage (7)
+  const preferredPriorityOrder = [3, 4];
   for (const question of preferredPriorityOrder.slice(0, expectedPriorityQuestions)) {
     priorityQuestionOrders.add(question);
   }
@@ -637,14 +749,23 @@ async function run() {
   }
 
   const expectedResponses = expectedConfidenceQuestions * PARTICIPANT_COUNT;
-  await verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPriorityQuestions);
+  let hostUiStatus = SKIP_HOST_UI ? 'skipped' : 'ok';
+  if (!SKIP_HOST_UI) {
+    try {
+      await verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPriorityQuestions);
+    } catch (error) {
+      hostUiStatus = `warn: ${error instanceof Error ? error.message : String(error)}`;
+      console.error(`Host-UI/CSV-Prüfung fehlgeschlagen (Session ${code} bleibt gültig):`, error);
+    }
+  }
 
   console.log(
     JSON.stringify(
       {
-        status: 'OK',
+        status: hostUiStatus === 'ok' || hostUiStatus === 'skipped' ? 'OK' : 'OK_WITH_HOST_UI_WARN',
         baseUrl: BASE_URL,
         sessionCode: code,
+        hostToken,
         participants: PARTICIPANT_COUNT,
         demoQuestions: uploadPayload.questions.length,
         confidenceQuestions: expectedConfidenceQuestions,
@@ -656,7 +777,8 @@ async function run() {
         feedbackSummary,
         summaryDistribution: exportData.confidenceSummary.distribution,
         priorityQuestionCount: exportData.confidenceSummary.priorityQuestionCount,
-        screenshot: HOST_SCREENSHOT,
+        screenshot: SKIP_HOST_UI ? null : HOST_SCREENSHOT,
+        hostUiStatus,
       },
       null,
       2,

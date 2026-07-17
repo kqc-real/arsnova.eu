@@ -17,8 +17,11 @@ void draw() {}
     expect(html).toContain('hljs-keyword');
     expect(html).toContain('example.org/pi.gif');
     expect(html).toContain('report-inline-image--gif');
-    expect(html).toContain('Unterrichtsidee');
+    expect(html).toContain('report-blockquote-label');
     expect(html).toContain('report-blockquote--teaching');
+    expect(html).toMatch(/report-blockquote-label">Unterrichtsidee<\/p>/);
+    expect(html).not.toMatch(/<strong>Unterrichtsidee:<\/strong>/);
+    expect(html).toContain('Nutze das als Erkennungsimpuls');
   });
 
   it('macht relative Asset-Bilder absolut', () => {

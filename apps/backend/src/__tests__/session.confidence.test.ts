@@ -314,6 +314,7 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
       type: 'SINGLE_CHOICE',
       participantCount: 5,
       aggregationRound: 1,
+      confidenceEnabled: true,
       confidenceResult: {
         highConfidenceWrongCount: 2,
         crossTab: {

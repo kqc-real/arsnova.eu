@@ -19,11 +19,14 @@ const LOCALES = ['de', 'en', 'fr', 'it', 'es'];
 const REQUIRED_ASSETS = [
   'assets/images/AI-REVOLUTION.png',
   'assets/images/numeric-estimate-1789-host.png',
+  'assets/demo/demo-session-results-vntpcb-30.pdf',
 ];
 
 function main() {
   if (!fs.existsSync(browserRoot)) {
-    console.error(`check-motd-assets-postbuild: dist fehlt: ${browserRoot} (zuerst build:localize ausführen)`);
+    console.error(
+      `check-motd-assets-postbuild: dist fehlt: ${browserRoot} (zuerst build:localize ausführen)`,
+    );
     process.exit(1);
   }
 
