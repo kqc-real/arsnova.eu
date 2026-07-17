@@ -104,13 +104,48 @@ async function importSharedLibrary(page, syncUrl) {
   await page.waitForTimeout(2_500);
 }
 
-async function renameQuiz(page, editUrl, nextName) {
-  await page.goto(editUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+async function openQuizEditorByName(page, quizName) {
+  await page.goto(`${APP_URL}/quiz`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await dismissMotdIfPresent(page);
+  await page.waitForTimeout(1_000);
+  // Quizkarte: Titel sitzt im Link auf die Editor-Route.
+  const quizLink = page.locator('a').filter({ hasText: quizName }).first();
+  await quizLink.waitFor({ state: 'visible', timeout: 30_000 });
+  await quizLink.click();
+  await page.waitForFunction(() => /\/quiz\/[^/]+$/.test(location.pathname), null, {
+    timeout: 30_000,
+  });
+  await page.waitForTimeout(1_500);
+}
+
+async function ensureMetadataNameVisible(page) {
   const nameInput = page.locator('input[formcontrolname="name"]').first();
+  if (await nameInput.isVisible().catch(() => false)) {
+    return nameInput;
+  }
+  const header = page.locator('mat-expansion-panel-header').first();
+  if ((await header.count()) > 0) {
+    await header.click();
+    await page.waitForTimeout(400);
+  }
   await nameInput.waitFor({ state: 'visible', timeout: 30_000 });
+  return nameInput;
+}
+
+async function renameQuiz(page, quizName, nextName) {
+  await openQuizEditorByName(page, quizName);
   const saveButton = page.locator('button.quiz-edit__bottom-actions-save');
-  await saveButton.waitFor({ state: 'attached', timeout: 30_000 });
+  try {
+    await saveButton.waitFor({ state: 'visible', timeout: 60_000 });
+  } catch (error) {
+    const url = page.url();
+    const body = (await visibleText(page)).slice(0, 500);
+    throw new Error(
+      `Speichern-Button nicht sichtbar nach Öffnen von „${quizName}“ (${url}). Ausschnitt: ${body}`,
+      { cause: error },
+    );
+  }
+  const nameInput = await ensureMetadataNameVisible(page);
   await nameInput.fill(nextName);
   await nameInput.blur();
   await page.waitForFunction(
@@ -157,7 +192,7 @@ async function main() {
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
 
-    const editUrlA = await createQuiz(pageA, sourceQuizName);
+    await createQuiz(pageA, sourceQuizName);
     logStep(true, 'Geraet A erstellt Shared-Quiz', sourceQuizName);
 
     await createQuiz(pageB, localOnlyQuizName);
@@ -194,7 +229,9 @@ async function main() {
       );
     }
 
-    await renameQuiz(pageA, editUrlA, sourceQuizRenamed);
+    // Nach Sync kurz warten, dann Editor über die Liste öffnen (stabile ID/Yjs-Anbindung).
+    await pageA.waitForTimeout(2_000);
+    await renameQuiz(pageA, sourceQuizName, sourceQuizRenamed);
     logStep(true, 'Geraet A benennt Shared-Quiz um', sourceQuizRenamed);
 
     const renameSynced = await waitForText(pageB, sourceQuizRenamed, 15_000);
