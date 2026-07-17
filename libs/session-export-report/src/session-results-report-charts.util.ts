@@ -531,6 +531,10 @@ export function renderStarRatingBarsHtml(
   average?: number | null,
   standardDeviation?: number | null,
   endpointLabel?: string,
+  averageLabels?: {
+    averageTemplate: string;
+    averageWithSigmaTemplate: string;
+  },
 ): string {
   const entries = (['1', '2', '3', '4', '5'] as const).map(
     (star) => [star, distribution[star] ?? 0] as const,
@@ -555,13 +559,33 @@ export function renderStarRatingBarsHtml(
       </li>`;
     })
     .join('');
-  const avg =
+  const avgNumber =
     average !== null && average !== undefined
-      ? `<p class="report-chart-subtitle">Ø ${formatLocaleNumber(average, localeId, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ★${
-          standardDeviation !== null && standardDeviation !== undefined
-            ? ` · σ ${formatLocaleNumber(standardDeviation, localeId, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-            : ''
-        }</p>`
+      ? formatLocaleNumber(average, localeId, {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })
+      : null;
+  const sigmaNumber =
+    standardDeviation !== null && standardDeviation !== undefined
+      ? formatLocaleNumber(standardDeviation, localeId, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      : null;
+  const avg =
+    avgNumber !== null
+      ? `<p class="report-chart-subtitle">${escapeHtml(
+          sigmaNumber !== null && averageLabels
+            ? averageLabels.averageWithSigmaTemplate
+                .replace('{0}', avgNumber)
+                .replace('{1}', sigmaNumber)
+            : averageLabels
+              ? averageLabels.averageTemplate.replace('{0}', avgNumber)
+              : sigmaNumber !== null
+                ? `Ø ${avgNumber} ★ · σ ${sigmaNumber}`
+                : `Ø ${avgNumber} ★`,
+        )}</p>`
       : '';
   return `<div class="report-chart-block">
     <h5>${escapeHtml(title)}</h5>

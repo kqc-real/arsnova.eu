@@ -567,8 +567,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.feedbackCoverageCompactTemplate" datatype="html">
-        <source>{0} Rückmeldungen · {1} % Rücklauf</source>
-        <target>{0} respuestas · {1} % de respuesta</target>
+        <source>{0} Rückmeldungen · Rücklauf {1}</source>
+        <target>{0} respuestas · tasa de respuesta {1}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">17</context>
@@ -1231,8 +1231,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMetricsBasisTemplate" datatype="html">
-        <source>Anteil an allen {0} Antworten mit Selbsteinschätzung</source>
-        <target>Proporción de las {0} respuestas con autoevaluación</target>
+        <source>Gerundeter Anteil an allen {0} Antworten mit Selbsteinschätzung (Summe 100 %)</source>
+        <target>Proporción redondeada de las {0} respuestas con autoevaluación (suma 100 %)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">100</context>
@@ -1471,16 +1471,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.finalSummaryMasteryTemplate" datatype="html">
-        <source>{0} % gefestigtes Wissen</source>
-        <target>{0}% conocimiento consolidado</target>
+        <source>{0} der Antworten mit gefestigtem Wissen</source>
+        <target>{0} de las respuestas con conocimiento consolidado</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">130</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.finalSummaryRiskTemplate" datatype="html">
-        <source>{0} % Fehlkonzept-Risiko</source>
-        <target>{0}% de riesgo de idea errónea</target>
+        <source>{0} der Antworten mit Fehlkonzept-Risiko</source>
+        <target>{0} de las respuestas con riesgo de concepto erróneo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">131</context>
@@ -1567,8 +1567,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.nextStepsReinforceConcreteTemplate" datatype="html">
-        <source>Bei Frage {0} die korrekte Lösung bestätigen ({1} % richtig, aber unsicher).</source>
-        <target>Para la pregunta {0}, confirme la solución correcta ({1} % correcto pero inseguro).</target>
+        <source>Bei Frage {0} die korrekte Lösung bestätigen (Lösungsquote {1} – richtig, aber noch unsicher).</source>
+        <target>En la pregunta {0}, confirmar la solución correcta (tasa de acierto {1}: correcta, pero aún insegura).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">142</context>
@@ -1922,6 +1922,14 @@
           <context context-type="linenumber">181</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionReport.coverSummaryFeedbackAvgTemplate" datatype="html">
+        <source>{0} von 5 ★</source>
+        <target state="translated">{0} de 5 ★</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionReport.coverSummaryFeedbackMetaTemplate" datatype="html">
         <source>{0} Rückmeldungen</source>
         <target>{0} comentarios</target>
@@ -2098,6 +2106,22 @@
           <context context-type="linenumber">203</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionReport.ratingAverageTemplate" datatype="html">
+        <source>Ø {0} von 5 ★</source>
+        <target state="translated">Ø {0} de 5 ★</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionReport.ratingAverageWithSigmaTemplate" datatype="html">
+        <source>Ø {0} von 5 ★ · σ {1}</source>
+        <target state="translated">Ø {0} de 5 ★ · σ {1}</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
+          <context context-type="linenumber">1</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionReport.qaTitle" datatype="html">
         <source>Q&amp;A-Fragen der Teilnehmenden</source>
         <target>Preguntas y respuestas de los participantes</target>
@@ -2259,16 +2283,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.hardestQuestionRateTemplate" datatype="html">
-        <source>{0} % richtig ({1} von {2})</source>
-        <target>{0}% correcto ({1} de {2})</target>
+        <source>Lösungsquote {0} ({1} von {2} vollständig richtig)</source>
+        <target>Tasa de acierto {0} ({1} de {2} totalmente correctas)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">224</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.hardestQuestionDifficultyMismatchTemplate" datatype="html">
-        <source>Als „{0}“ konfiguriert, aber nur von {1} % richtig beantwortet – Schwierigkeit oder Formulierung prüfen.</source>
-        <target>Configurado como &quot;{0}&quot; pero solo respondió correctamente el {1}%; verifique la dificultad o la redacción.</target>
+        <source>Als „{0}“ konfiguriert, aber nur {1} der bewerteten Antworten vollständig richtig – Schwierigkeit oder Formulierung prüfen.</source>
+        <target>Configurada como «{0}», pero solo {1} de las respuestas evaluadas fueron totalmente correctas: revisar dificultad o formulación.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">225</context>
@@ -2331,8 +2355,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.questionParticipationTemplate" datatype="html">
-        <source>Antwortquote: {0} von {1} · {2} %</source>
-        <target>Tasa de respuesta: {0} de {1} · {2}%</target>
+        <source>Antwortquote: {0} von {1} · {2}</source>
+        <target>Tasa de respuesta: {0} de {1} · {2}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">233</context>
@@ -2587,24 +2611,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.feedbackCoverageTemplate" datatype="html">
-        <source>Feedbackquote: {0} von {1} · {2} %</source>
-        <target>Tasa de comentarios: {0} de {1} · {2} %</target>
+        <source>Feedbackquote: {0} von {1} · {2}</source>
+        <target>Tasa de feedback: {0} de {1} · {2}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">265</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.feedbackWouldRepeatSummaryTemplate" datatype="html">
-        <source>{0} von {1} wünschen sich weitere Quizze · {2} %</source>
-        <target>{0} de {1} quisiera más cuestionarios · {2} %</target>
+        <source>{0} von {1} wünschen sich weitere Quizze · {2}</source>
+        <target>{0} de {1} desean más cuestionarios · {2}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">266</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.feedbackOverallHighlightTemplate" datatype="html">
-        <source>{0} % bewerteten die Session mit vier oder fünf Sternen.</source>
-        <target>El {0}% calificó la sesión con cuatro o cinco estrellas.</target>
+        <source>{0} der Rückmeldungen bewerteten die Session mit vier oder fünf Sternen.</source>
+        <target>{0} de las respuestas valoraron la sesión con cuatro o cinco estrellas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">267</context>
@@ -2619,8 +2643,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.feedbackQualityHighlightTemplate" datatype="html">
-        <source>{0} % bewerteten die Fragenqualität mit vier oder fünf Sternen.</source>
-        <target>El {0}% calificó la calidad de la pregunta con cuatro o cinco estrellas.</target>
+        <source>{0} der Rückmeldungen bewerteten die Fragenqualität mit vier oder fünf Sternen.</source>
+        <target>{0} de las respuestas valoraron la calidad de las preguntas con cuatro o cinco estrellas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">269</context>
@@ -2699,8 +2723,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.teamLearningLead" datatype="html">
-        <source>Nur Teams mit mindestens fünf Mitgliedern. Stärke: mindestens 80 % richtig · Klärungsbedarf: höchstens 40 % richtig.</source>
-        <target>Sólo equipos con al menos cinco miembros. Punto fuerte: al menos 80% de aciertos · Necesidad de aclaración: máximo 40% de aciertos.</target>
+        <source>Nur Teams mit mindestens fünf Mitgliedern. Stärke: Lösungsquote mindestens 80 % · Klärungsbedarf: höchstens 40 %.</source>
+        <target>Solo equipos con al menos cinco miembros. Fortaleza: tasa de acierto de al menos 80 % · Necesita aclaración: como máximo 40 %.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">279</context>
@@ -12722,24 +12746,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.finishedConfidenceMastery" datatype="html">
-        <source>Gefestigtes Wissen</source>
-        <target>Conocimiento sólido</target>
+        <source>Anteil gefestigtes Wissen</source>
+        <target>Proporción de conocimiento consolidado</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">710</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.finishedConfidenceRisk" datatype="html">
-        <source>Fehlkonzept-Risiko</source>
-        <target>Riesgo de idea errónea</target>
+        <source>Anteil Fehlkonzept-Risiko</source>
+        <target>Proporción de riesgo de concepto erróneo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">725</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.finishedConfidenceFragile" datatype="html">
-        <source>Fragiles Wissen</source>
-        <target>Conocimiento frágil</target>
+        <source>Anteil fragiles Wissen</source>
+        <target>Proporción de conocimiento frágil</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">737</context>

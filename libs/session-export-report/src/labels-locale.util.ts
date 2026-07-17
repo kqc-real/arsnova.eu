@@ -19,7 +19,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   feedbackTitle: 'Participant feedback',
   feedbackOverall: 'Overall rating',
   feedbackResponses: 'Ratings',
-  feedbackCoverageCompactTemplate: '{0} responses · {1}% response rate',
+  feedbackCoverageCompactTemplate: '{0} responses · response rate {1}',
   feedbackQuestionQuality: 'Question quality',
   feedbackWouldRepeat: 'More quizzes wanted',
   feedbackWouldRepeatYes: 'Yes',
@@ -116,7 +116,8 @@ const EN_LABELS: SessionResultsReportLabels = {
   confidenceMasteryZeroNote:
     '0% solid knowledge does not mean 0% correct answers. Correct answers here were mostly given with low or medium confidence.',
   confidenceCompactDistributionTemplate: 'Self-assessment: {0} low · {1} medium · {2} high',
-  confidenceMetricsBasisTemplate: 'Share of all {0} responses with self-assessment',
+  confidenceMetricsBasisTemplate:
+    'Rounded share of all {0} responses with self-assessment (sums to 100%)',
   aggregationRound1: 'Round 1',
   aggregationRound2: 'Round 2 (Peer Instruction)',
   aggregationRound1Context: 'Voting result',
@@ -147,8 +148,8 @@ const EN_LABELS: SessionResultsReportLabels = {
     'The team score is the mean of member points, keeping teams of different sizes comparable.',
   finalSummaryTitle: 'Next steps',
   finalSummaryPriorityTemplate: '{0} questions should be debriefed',
-  finalSummaryMasteryTemplate: '{0}% solid knowledge',
-  finalSummaryRiskTemplate: '{0}% misconception risk',
+  finalSummaryMasteryTemplate: '{0} of responses with solid knowledge',
+  finalSummaryRiskTemplate: '{0} of responses with misconception risk',
   finalSummaryTopTeamTemplate: '{0} achieved the highest team score',
   nextStepsDebriefFirstTemplate: 'Debrief question {0} first (misconception)',
   nextStepsDebriefNextTemplate: 'Clarify question {0} next',
@@ -161,7 +162,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   nextStepsReteachConcreteTemplate: 'For questions {0}, revisit the underlying concepts.',
   nextStepsReinforceTemplate: 'Briefly secure questions {0} (correct but still unsure)',
   nextStepsReinforceConcreteTemplate:
-    'For question {0}, confirm the correct solution ({1}% correct but unsure).',
+    'For question {0}, confirm the correct solution (success rate {1} — correct but still unsure).',
   scoreExplanation:
     'Points are a ranking value based on correctness, difficulty, response time when a timer is active, and streak bonuses. Self-assessment does not affect points. Because the attainable value depends on the quiz flow, scores are not percentages and cannot be compared across sessions.',
   bonusCodesTitle: 'Bonus codes',
@@ -195,6 +196,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   coverSummaryQuestions: 'Questions',
   coverSummaryRisk: 'Questions with misconception risk',
   coverSummaryFeedback: 'Participant feedback',
+  coverSummaryFeedbackAvgTemplate: '{0} out of 5 ★',
   coverSummaryFeedbackMetaTemplate: '{0} responses',
   coverSummaryParticipants: 'Participants',
   coverPrivacyIncluded:
@@ -219,6 +221,8 @@ const EN_LABELS: SessionResultsReportLabels = {
   freetextMoreTemplate: '+ {0} more responses',
   shortTextExpectedSolutions: 'Accepted solutions',
   ratingStdDev: 'Standard deviation',
+  ratingAverageTemplate: 'Avg. {0} out of 5 ★',
+  ratingAverageWithSigmaTemplate: 'Avg. {0} out of 5 ★ · σ {1}',
   qaTitle: 'Participant Q&A questions',
   qaStatus: 'Status',
   qaUpvotes: 'Upvotes',
@@ -241,9 +245,9 @@ const EN_LABELS: SessionResultsReportLabels = {
   hardestQuestionsTitle: 'Hardest questions',
   hardestQuestionsLead:
     'Empirical success rate: share of fully correct answers. A low rate can also come from unclear wording or a tight time limit.',
-  hardestQuestionRateTemplate: '{0}% correct ({1} of {2})',
+  hardestQuestionRateTemplate: 'Success rate {0} ({1} of {2} fully correct)',
   hardestQuestionDifficultyMismatchTemplate:
-    'Configured as “{0}”, but only {1}% answered correctly — check difficulty or wording.',
+    'Configured as “{0}”, but only {1} of graded responses were fully correct — check difficulty or wording.',
   difficultyEasy: 'easy',
   difficultyMedium: 'medium',
   difficultyHard: 'hard',
@@ -251,7 +255,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   participationDropTemplate: '{0} of {1} respondents were lost since the start.',
   participationStableTemplate: 'Stable participation: All {0} questions each had {1} respondents.',
   participationDeclineTemplate: 'Participation fell from {0} to {1} responses.',
-  questionParticipationTemplate: 'Response rate: {0} of {1} · {2}%',
+  questionParticipationTemplate: 'Response rate: {0} of {1} · {2}',
   questionParticipationMissingTemplate: '{0} participants did not answer.',
   roundParticipationDropTemplate:
     'Round 1: {0} responses · Round 2: {1} responses · {2} people did not take part in round 2.',
@@ -288,11 +292,12 @@ const EN_LABELS: SessionResultsReportLabels = {
   responseTimeNearDeadlineTemplate:
     '{0} of {1} responses were submitted in the last 20% of the available time.',
   responseTimePressureHint: 'Note: The time limit may have been tight for this question.',
-  feedbackCoverageTemplate: 'Feedback rate: {0} of {1} · {2}%',
-  feedbackWouldRepeatSummaryTemplate: '{0} of {1} want more quizzes · {2}%',
-  feedbackOverallHighlightTemplate: '{0}% rated the session with four or five stars.',
+  feedbackCoverageTemplate: 'Feedback rate: {0} of {1} · {2}',
+  feedbackWouldRepeatSummaryTemplate: '{0} of {1} want more quizzes · {2}',
+  feedbackOverallHighlightTemplate: '{0} of responses rated the session with four or five stars.',
   feedbackNoLowStarsNote: 'Nobody gave one or two stars.',
-  feedbackQualityHighlightTemplate: '{0}% rated question quality with four or five stars.',
+  feedbackQualityHighlightTemplate:
+    '{0} of responses rated question quality with four or five stars.',
   numericPeerCloser: 'Closer to the reference',
   numericPeerUnchanged: 'Unchanged',
   numericPeerFarther: 'Farther away',
@@ -303,7 +308,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   qaFollowUpControversial: 'Discussed controversially',
   teamLearningTitle: 'Team learning profile',
   teamLearningLead:
-    'Only teams with at least five members. Strength: at least 80% correct · Needs clarification: at most 40% correct.',
+    'Only teams with at least five members. Strength: success rate at least 80% · Needs clarification: at most 40%.',
   teamLearningStrength: 'Strength',
   teamLearningFocus: 'Needs clarification',
   tocActionPlan: 'Debrief plan',

@@ -11,7 +11,12 @@ import {
   questionSupportsConfidence,
   selectConfidencePriorityQuestions,
 } from '@arsnova/shared-types';
-import { formatLocaleCount, formatLocaleNumber, formatLocaleScore } from './locale-number.util';
+import {
+  formatLocaleCount,
+  formatLocaleNumber,
+  formatLocaleScore,
+  formatLocalePercentShareFromCounts,
+} from './locale-number.util';
 import { stripMarkdownToPlainText } from './markdown-plain-text.util';
 import {
   renderExportQuestionHtml,
@@ -615,6 +620,10 @@ function renderQuestion(
       q.ratingAverage,
       q.ratingStandardDeviation,
       labels.ratingScaleEndpoints,
+      {
+        averageTemplate: labels.ratingAverageTemplate,
+        averageWithSigmaTemplate: labels.ratingAverageWithSigmaTemplate,
+      },
     );
   }
 
@@ -725,26 +734,33 @@ function renderFeedbackSummary(
     labels.feedbackOverall,
     localeId,
     feedback.overallAverage,
+    null,
+    undefined,
+    {
+      averageTemplate: labels.ratingAverageTemplate,
+      averageWithSigmaTemplate: labels.ratingAverageWithSigmaTemplate,
+    },
   );
-  const rate =
-    sessionParticipantCount > 0
-      ? Math.round((feedback.totalResponses / sessionParticipantCount) * 100)
-      : 0;
+  const rateLabel = formatLocalePercentShareFromCounts(
+    feedback.totalResponses,
+    sessionParticipantCount,
+    localeId,
+  );
   const positiveOverall =
     (feedback.overallDistribution['4'] ?? 0) + (feedback.overallDistribution['5'] ?? 0);
-  const positiveOverallPct =
-    feedback.totalResponses > 0 ? Math.round((positiveOverall / feedback.totalResponses) * 100) : 0;
   const lowOverall =
     (feedback.overallDistribution['1'] ?? 0) + (feedback.overallDistribution['2'] ?? 0);
   let details = `<p class="report-coverage">${escapeHtml(
     labels.feedbackCoverageCompactTemplate
       .replace('{0}', formatLocaleCount(feedback.totalResponses, localeId))
-      .replace('{1}', formatLocaleCount(rate, localeId)),
+      .replace('{1}', rateLabel),
   )}</p>`;
   details += `<p class="report-feedback-highlight">${escapeHtml(
     labels.feedbackOverallHighlightTemplate.replace(
       '{0}',
-      formatLocaleCount(positiveOverallPct, localeId),
+      formatLocalePercentShareFromCounts(positiveOverall, feedback.totalResponses, localeId, {
+        sentenceCase: true,
+      }),
     ),
   )}${
     lowOverall === 0 && feedback.totalResponses > 0
@@ -759,29 +775,37 @@ function renderFeedbackSummary(
       (sum, count) => sum + count,
       0,
     );
-    const positiveQualityPct =
-      qualityTotal > 0 ? Math.round((positiveQuality / qualityTotal) * 100) : 0;
     details += renderStarRatingBarsHtml(
       feedback.questionQualityDistribution,
       labels.feedbackQuestionQuality,
       localeId,
       feedback.questionQualityAverage,
+      null,
+      undefined,
+      {
+        averageTemplate: labels.ratingAverageTemplate,
+        averageWithSigmaTemplate: labels.ratingAverageWithSigmaTemplate,
+      },
     );
     details += `<p class="report-feedback-highlight">${escapeHtml(
       labels.feedbackQualityHighlightTemplate.replace(
         '{0}',
-        formatLocaleCount(positiveQualityPct, localeId),
+        formatLocalePercentShareFromCounts(positiveQuality, qualityTotal, localeId, {
+          sentenceCase: true,
+        }),
       ),
     )}</p>`;
   }
   const repeatTotal = feedback.wouldRepeatYes + feedback.wouldRepeatNo;
   if (repeatTotal > 0) {
-    const repeatShare = Math.round((feedback.wouldRepeatYes / repeatTotal) * 100);
     details += `<p>${escapeHtml(
       labels.feedbackWouldRepeatSummaryTemplate
         .replace('{0}', formatLocaleCount(feedback.wouldRepeatYes, localeId))
         .replace('{1}', formatLocaleCount(repeatTotal, localeId))
-        .replace('{2}', formatLocaleCount(repeatShare, localeId)),
+        .replace(
+          '{2}',
+          formatLocalePercentShareFromCounts(feedback.wouldRepeatYes, repeatTotal, localeId),
+        ),
     )}</p>`;
   }
   return `<section class="report-section report-feedback" id="report-feedback">
@@ -991,7 +1015,7 @@ export function buildSessionResultsReportHtml(
   const actionPlanHtml = renderDebriefActionPlanHtml(data, labels);
   const hardestHtml = renderHardestQuestionsHtml(data, labels, localeId);
   const participationHtml = renderSessionParticipationHtml(data, labels, localeId);
-  const finalSummaryHtml = renderNextStepsSummaryHtml(data, labels);
+  const finalSummaryHtml = renderNextStepsSummaryHtml(data, labels, localeId);
   const qaHtml = data.qaQuestions?.length
     ? renderQaSectionHtml(data.qaQuestions, labels, localeId)
     : '';

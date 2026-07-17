@@ -1,5 +1,6 @@
 import type { QaExportEntry, SessionExportDTO } from '@arsnova/shared-types';
 import type { SessionResultsReportLabels } from './labels-de';
+import { formatLocaleNumber } from './locale-number.util';
 import { stripMarkdownToPlainText } from './markdown-plain-text.util';
 import { REPORT_COVER_LOGO_SVG, REPORT_COVER_WORDMARK } from './report-cover-logo';
 import { renderQaFollowUpHtml } from './session-results-report-insights.util';
@@ -41,8 +42,15 @@ export function renderCoverSummaryHtml(
   }
   if (feedbackAvg !== undefined) {
     const feedbackCount = data.feedbackSummary?.totalResponses ?? 0;
+    const avgText = labels.coverSummaryFeedbackAvgTemplate.replace(
+      '{0}',
+      formatLocaleNumber(feedbackAvg, localeId, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+    );
     items.push(
-      `<div class="report-cover-summary-item"><strong>${feedbackAvg.toLocaleString(localeId, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ★</strong><span>${escapeHtml(labels.coverSummaryFeedback)}</span><span class="report-cover-summary-sub">${escapeHtml(
+      `<div class="report-cover-summary-item"><strong>${escapeHtml(avgText)}</strong><span>${escapeHtml(labels.coverSummaryFeedback)}</span><span class="report-cover-summary-sub">${escapeHtml(
         labels.coverSummaryFeedbackMetaTemplate.replace(
           '{0}',
           feedbackCount.toLocaleString(localeId),

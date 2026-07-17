@@ -177,6 +177,7 @@ export interface SessionResultsReportLabels {
   coverSummaryQuestions: string;
   coverSummaryRisk: string;
   coverSummaryFeedback: string;
+  coverSummaryFeedbackAvgTemplate: string;
   coverSummaryFeedbackMetaTemplate: string;
   coverSummaryParticipants: string;
   coverPrivacyIncluded: string;
@@ -199,6 +200,8 @@ export interface SessionResultsReportLabels {
   freetextMoreTemplate: string;
   shortTextExpectedSolutions: string;
   ratingStdDev: string;
+  ratingAverageTemplate: string;
+  ratingAverageWithSigmaTemplate: string;
   qaTitle: string;
   qaStatus: string;
   qaUpvotes: string;
@@ -321,7 +324,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     feedbackTitle: 'Feedback der Teilnehmenden',
     feedbackOverall: 'Gesamtbewertung',
     feedbackResponses: 'Bewertungen',
-    feedbackCoverageCompactTemplate: '{0} Rückmeldungen · {1} % Rücklauf',
+    feedbackCoverageCompactTemplate: '{0} Rückmeldungen · Rücklauf {1}',
     feedbackQuestionQuality: 'Qualität der Fragen',
     feedbackWouldRepeat: 'Weitere Quizze gewünscht',
     feedbackWouldRepeatYes: 'Ja',
@@ -425,7 +428,8 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
       '0 % gefestigt bedeutet nicht 0 % richtige Antworten. Die richtigen Antworten wurden hier überwiegend mit niedriger oder mittlerer Sicherheit gegeben.',
     confidenceCompactDistributionTemplate:
       'Selbsteinschätzung: {0} niedrig · {1} mittel · {2} hoch',
-    confidenceMetricsBasisTemplate: 'Anteil an allen {0} Antworten mit Selbsteinschätzung',
+    confidenceMetricsBasisTemplate:
+      'Gerundeter Anteil an allen {0} Antworten mit Selbsteinschätzung (Summe 100 %)',
     aggregationRound1: 'Runde 1',
     aggregationRound2: 'Runde 2 (Peer Instruction)',
     aggregationRound1Context: 'Ergebnis der Abstimmung',
@@ -458,8 +462,8 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
       'Der Team-Score ist der Mittelwert der Mitgliedspunkte. So bleiben unterschiedlich große Teams vergleichbar.',
     finalSummaryTitle: 'Nächste Schritte',
     finalSummaryPriorityTemplate: '{0} Fragen sollten nachbesprochen werden',
-    finalSummaryMasteryTemplate: '{0} % gefestigtes Wissen',
-    finalSummaryRiskTemplate: '{0} % Fehlkonzept-Risiko',
+    finalSummaryMasteryTemplate: '{0} der Antworten mit gefestigtem Wissen',
+    finalSummaryRiskTemplate: '{0} der Antworten mit Fehlkonzept-Risiko',
     finalSummaryTopTeamTemplate: '{0} erreichte den höchsten Team-Score',
     nextStepsDebriefFirstTemplate: 'Frage {0} zuerst nachbesprechen (Fehlkonzept)',
     nextStepsDebriefNextTemplate: 'Frage {0} als Nächstes klären',
@@ -473,7 +477,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
       'Bei Fragen {0} die zugrunde liegenden Fachbegriffe wiederholen.',
     nextStepsReinforceTemplate: 'Fragen {0} kurz absichern (richtig, aber noch unsicher)',
     nextStepsReinforceConcreteTemplate:
-      'Bei Frage {0} die korrekte Lösung bestätigen ({1} % richtig, aber unsicher).',
+      'Bei Frage {0} die korrekte Lösung bestätigen (Lösungsquote {1} – richtig, aber noch unsicher).',
     scoreExplanation:
       'Punkte sind ein Rankingwert aus Korrektheit, Schwierigkeit, Antwortzeit bei aktivem Timer und Serienbonus. Die Selbsteinschätzung beeinflusst die Punkte nicht. Da der erreichbare Wert vom Quizverlauf abhängt, sind Punktestände keine Prozentwerte und nicht zwischen Sessions vergleichbar.',
     bonusCodesTitle: 'Bonus-Codes',
@@ -514,6 +518,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     coverSummaryQuestions: 'Fragen',
     coverSummaryRisk: 'Fragen mit Fehlkonzept-Risiko',
     coverSummaryFeedback: 'Teilnehmendenfeedback',
+    coverSummaryFeedbackAvgTemplate: '{0} von 5 ★',
     coverSummaryFeedbackMetaTemplate: '{0} Rückmeldungen',
     coverSummaryParticipants: 'Teilnehmende',
     coverPrivacyIncluded:
@@ -538,6 +543,8 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     freetextMoreTemplate: '+ {0} weitere Antworten',
     shortTextExpectedSolutions: 'Akzeptierte Lösungen',
     ratingStdDev: 'Standardabweichung',
+    ratingAverageTemplate: 'Ø {0} von 5 ★',
+    ratingAverageWithSigmaTemplate: 'Ø {0} von 5 ★ · σ {1}',
     qaTitle: 'Q&A-Fragen der Teilnehmenden',
     qaStatus: 'Status',
     qaUpvotes: 'Upvotes',
@@ -560,9 +567,9 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     hardestQuestionsTitle: 'Schwierigste Fragen',
     hardestQuestionsLead:
       'Empirische Lösungsquote: Anteil vollständig richtiger Antworten. Eine niedrige Quote kann auch an Formulierung oder Zeitlimit liegen.',
-    hardestQuestionRateTemplate: '{0} % richtig ({1} von {2})',
+    hardestQuestionRateTemplate: 'Lösungsquote {0} ({1} von {2} vollständig richtig)',
     hardestQuestionDifficultyMismatchTemplate:
-      'Als „{0}“ konfiguriert, aber nur von {1} % richtig beantwortet – Schwierigkeit oder Formulierung prüfen.',
+      'Als „{0}“ konfiguriert, aber nur {1} der bewerteten Antworten vollständig richtig – Schwierigkeit oder Formulierung prüfen.',
     difficultyEasy: 'leicht',
     difficultyMedium: 'mittel',
     difficultyHard: 'schwer',
@@ -571,7 +578,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     participationStableTemplate:
       'Stabile Teilnahme: An allen {0} Fragen beteiligten sich jeweils {1} Personen.',
     participationDeclineTemplate: 'Die Beteiligung sank von {0} auf {1} Antworten.',
-    questionParticipationTemplate: 'Antwortquote: {0} von {1} · {2} %',
+    questionParticipationTemplate: 'Antwortquote: {0} von {1} · {2}',
     questionParticipationMissingTemplate: '{0} Teilnehmende gaben keine Antwort ab.',
     roundParticipationDropTemplate:
       'Runde 1: {0} Antworten · Runde 2: {1} Antworten · {2} Personen nahmen an der zweiten Runde nicht mehr teil.',
@@ -610,12 +617,13 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     responseTimeNearDeadlineTemplate:
       '{0} von {1} Antworten wurden in den letzten 20 % der verfügbaren Zeit abgegeben.',
     responseTimePressureHint: 'Hinweis: Das Zeitlimit könnte für diese Frage knapp gewesen sein.',
-    feedbackCoverageTemplate: 'Feedbackquote: {0} von {1} · {2} %',
-    feedbackWouldRepeatSummaryTemplate: '{0} von {1} wünschen sich weitere Quizze · {2} %',
-    feedbackOverallHighlightTemplate: '{0} % bewerteten die Session mit vier oder fünf Sternen.',
+    feedbackCoverageTemplate: 'Feedbackquote: {0} von {1} · {2}',
+    feedbackWouldRepeatSummaryTemplate: '{0} von {1} wünschen sich weitere Quizze · {2}',
+    feedbackOverallHighlightTemplate:
+      '{0} der Rückmeldungen bewerteten die Session mit vier oder fünf Sternen.',
     feedbackNoLowStarsNote: 'Niemand vergab ein oder zwei Sterne.',
     feedbackQualityHighlightTemplate:
-      '{0} % bewerteten die Fragenqualität mit vier oder fünf Sternen.',
+      '{0} der Rückmeldungen bewerteten die Fragenqualität mit vier oder fünf Sternen.',
     numericPeerCloser: 'Näher am Referenzwert',
     numericPeerUnchanged: 'Unverändert',
     numericPeerFarther: 'Weiter entfernt',
@@ -627,7 +635,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     qaFollowUpControversial: 'Kontrovers diskutiert',
     teamLearningTitle: 'Team-Lernprofil',
     teamLearningLead:
-      'Nur Teams mit mindestens fünf Mitgliedern. Stärke: mindestens 80 % richtig · Klärungsbedarf: höchstens 40 % richtig.',
+      'Nur Teams mit mindestens fünf Mitgliedern. Stärke: Lösungsquote mindestens 80 % · Klärungsbedarf: höchstens 40 %.',
     teamLearningStrength: 'Stärke',
     teamLearningFocus: 'Klärungsbedarf',
     tocActionPlan: 'Nachbesprechungsplan',

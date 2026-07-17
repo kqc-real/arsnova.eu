@@ -119,11 +119,16 @@ describe('session-results-report-charts', () => {
       4.7,
       undefined,
       '1 = sehr unwahrscheinlich · 5 = sehr wahrscheinlich',
+      {
+        averageTemplate: 'Ø {0} von 5 ★',
+        averageWithSigmaTemplate: 'Ø {0} von 5 ★ · σ {1}',
+      },
     );
     expect(html).toContain('report-bar-fill--rating');
     expect(html).toContain('1 ★');
     expect(html).toContain('2 ★');
     expect(html).toContain('4 ★');
+    expect(html).toContain('Ø 4,7 von 5 ★');
     expect(html).toContain('1 = sehr unwahrscheinlich');
   });
 

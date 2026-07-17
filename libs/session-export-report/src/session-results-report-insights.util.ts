@@ -17,7 +17,13 @@ import type {
 } from '@arsnova/shared-types';
 import { buildDebriefActionPlan, selectHardestQuestions } from '@arsnova/shared-types';
 import type { SessionResultsReportLabels } from './labels-de';
-import { formatLocaleCount, formatLocaleNumber } from './locale-number.util';
+import {
+  formatLocaleCount,
+  formatLocaleNumber,
+  formatLocalePercentShareFromCounts,
+  formatLocalePercentShare,
+  percentValueNeedsApproximation,
+} from './locale-number.util';
 import { questionAnchorId } from './session-results-report-layout.util';
 import { stripMarkdownToPlainText } from './markdown-plain-text.util';
 
@@ -141,7 +147,7 @@ export function renderHardestQuestionsHtml(
       const rate = labels.hardestQuestionRateTemplate
         .replace(
           '{0}',
-          formatLocaleNumber(entry.correctPercentage, localeId, { maximumFractionDigits: 0 }),
+          formatLocalePercentShareFromCounts(entry.correctCount, entry.totalGraded, localeId),
         )
         .replace('{1}', formatLocaleCount(entry.correctCount, localeId))
         .replace('{2}', formatLocaleCount(entry.totalGraded, localeId));
@@ -152,9 +158,11 @@ export function renderHardestQuestionsHtml(
                 .replace('{0}', difficultyLabel(entry.difficulty, labels))
                 .replace(
                   '{1}',
-                  formatLocaleNumber(entry.correctPercentage, localeId, {
-                    maximumFractionDigits: 0,
-                  }),
+                  formatLocalePercentShareFromCounts(
+                    entry.correctCount,
+                    entry.totalGraded,
+                    localeId,
+                  ),
                 ),
             )}</span>`
           : '';
@@ -223,15 +231,21 @@ export function renderQuestionParticipationNote(
 ): string {
   if (sessionParticipantCount <= 0) return '';
   const missing = Math.max(0, sessionParticipantCount - question.participantCount);
-  const rate = Math.round((question.participantCount / sessionParticipantCount) * 100);
-  const showRate = missing > 0 || rate < 100;
+  const showRate = missing > 0 || question.participantCount < sessionParticipantCount;
   let html = '';
   if (showRate) {
     html += `<p class="report-participation-note">${escapeHtml(
       labels.questionParticipationTemplate
         .replace('{0}', formatLocaleCount(question.participantCount, localeId))
         .replace('{1}', formatLocaleCount(sessionParticipantCount, localeId))
-        .replace('{2}', formatLocaleCount(rate, localeId)),
+        .replace(
+          '{2}',
+          formatLocalePercentShareFromCounts(
+            question.participantCount,
+            sessionParticipantCount,
+            localeId,
+          ),
+        ),
     )}`;
     if (missing > 0) {
       html += ` ${escapeHtml(
@@ -553,27 +567,29 @@ export function renderFeedbackFollowUpHtml(
   labels: SessionResultsReportLabels,
   localeId: string,
 ): string {
-  const rate =
-    sessionParticipantCount > 0
-      ? Math.round((feedback.totalResponses / sessionParticipantCount) * 100)
-      : 0;
+  const rateLabel = formatLocalePercentShareFromCounts(
+    feedback.totalResponses,
+    sessionParticipantCount,
+    localeId,
+  );
   const repeatTotal = feedback.wouldRepeatYes + feedback.wouldRepeatNo;
-  const repeatShare =
-    repeatTotal > 0 ? Math.round((feedback.wouldRepeatYes / repeatTotal) * 100) : null;
   return `<div class="report-followup">
     <p>${escapeHtml(
       labels.feedbackCoverageTemplate
         .replace('{0}', formatLocaleCount(feedback.totalResponses, localeId))
         .replace('{1}', formatLocaleCount(sessionParticipantCount, localeId))
-        .replace('{2}', formatLocaleCount(rate, localeId)),
+        .replace('{2}', rateLabel),
     )}</p>
     ${
-      repeatShare !== null
+      repeatTotal > 0
         ? `<p>${escapeHtml(
             labels.feedbackWouldRepeatSummaryTemplate
               .replace('{0}', formatLocaleCount(feedback.wouldRepeatYes, localeId))
               .replace('{1}', formatLocaleCount(repeatTotal, localeId))
-              .replace('{2}', formatLocaleCount(repeatShare, localeId)),
+              .replace(
+                '{2}',
+                formatLocalePercentShareFromCounts(feedback.wouldRepeatYes, repeatTotal, localeId),
+              ),
           )}</p>`
         : ''
     }
@@ -658,6 +674,7 @@ export function renderTeamLearningProfilesHtml(
 export function renderNextStepsSummaryHtml(
   data: SessionExportDTO,
   labels: SessionResultsReportLabels,
+  localeId: string,
 ): string {
   // gradedHints auch ohne Confidence-Aggregate nutzen (s. renderDebriefActionPlanHtml).
   const plan = buildDebriefActionPlan(
@@ -724,14 +741,22 @@ export function renderNextStepsSummaryHtml(
 
   for (const order of plan.reinforce.slice(0, 2)) {
     const question = questionByOrder(order);
-    const pct =
-      typeof question?.correctPercentage === 'number'
-        ? String(Math.round(question.correctPercentage))
-        : '—';
+    const correct = question?.correctCount;
+    const incorrect = question?.incorrectCount;
+    const graded =
+      typeof correct === 'number' && typeof incorrect === 'number' ? correct + incorrect : 0;
+    const pctLabel =
+      graded > 0
+        ? formatLocalePercentShareFromCounts(correct!, graded, localeId)
+        : typeof question?.correctPercentage === 'number'
+          ? formatLocalePercentShare(question.correctPercentage, localeId, {
+              approximate: percentValueNeedsApproximation(question.correctPercentage),
+            })
+          : '—';
     items.push(
       labels.nextStepsReinforceConcreteTemplate
         .replace('{0}', String(order + 1))
-        .replace('{1}', pct),
+        .replace('{1}', pctLabel),
     );
   }
 
