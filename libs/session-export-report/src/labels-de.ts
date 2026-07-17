@@ -172,7 +172,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     confidenceFragile: 'Fragiles Wissen',
     confidenceValidResponses: 'Antworten mit Selbsteinschätzung',
     confidenceIncludedQuestions: 'Ausgewertete Fragen',
-    confidenceSuppressedQuestions: 'Aus Datenschutz ausgeblendete Fragen',
+    confidenceSuppressedQuestions: 'Nicht aggregiert (<5 Antworten mit Selbsteinschätzung)',
     confidencePrioritiesTitle: 'Priorität für die Nachbesprechung',
     confidenceWrongHigh: 'falsch + hohe Antwortsicherheit',
     confidenceIncorrectShare: 'Falschantworten gesamt',

@@ -31,7 +31,7 @@ const EN_LABELS: SessionResultsReportLabels = {
   confidenceFragile: 'Fragile knowledge',
   confidenceValidResponses: 'Responses with self-assessment',
   confidenceIncludedQuestions: 'Evaluated questions',
-  confidenceSuppressedQuestions: 'Questions hidden for privacy',
+  confidenceSuppressedQuestions: 'Not aggregated (<5 responses with self-assessment)',
   confidencePrioritiesTitle: 'Priority for debrief',
   confidenceWrongHigh: 'wrong + high answer confidence',
   confidenceIncorrectShare: 'Incorrect answers total',

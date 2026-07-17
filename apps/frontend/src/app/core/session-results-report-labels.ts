@@ -26,7 +26,7 @@ export function getSessionResultsReportLabels(): SessionResultsReportLabels {
     confidenceFragile: $localize`:@@sessionReport.confidenceFragile:Fragiles Wissen`,
     confidenceValidResponses: $localize`:@@sessionReport.confidenceValidResponses:Antworten mit Selbsteinschätzung`,
     confidenceIncludedQuestions: $localize`:@@sessionReport.confidenceIncludedQuestions:Ausgewertete Fragen`,
-    confidenceSuppressedQuestions: $localize`:@@sessionReport.confidenceSuppressedQuestions:Aus Datenschutz ausgeblendete Fragen`,
+    confidenceSuppressedQuestions: $localize`:@@sessionReport.confidenceSuppressedQuestions:Nicht aggregiert (<5 Antworten mit Selbsteinschätzung)`,
     confidencePrioritiesTitle: $localize`:@@sessionReport.confidencePrioritiesTitle:Priorität für die Nachbesprechung`,
     confidenceWrongHigh: $localize`:@@sessionReport.confidenceWrongHigh:falsch + hohe Antwortsicherheit`,
     confidenceIncorrectShare: $localize`:@@sessionReport.confidenceIncorrectShare:Falschantworten gesamt`,

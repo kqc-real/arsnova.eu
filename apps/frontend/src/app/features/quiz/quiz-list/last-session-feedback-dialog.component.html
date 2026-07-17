@@ -160,7 +160,8 @@
           <p class="last-session-feedback-dialog__privacy">
             <mat-icon aria-hidden="true">privacy_tip</mat-icon>
             <span i18n="@@quizList.lastSessionAnalysisPrivacy">
-              Fragen mit weniger als fünf gültigen Antworten werden nicht einzeln ausgewiesen.
+              Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden nicht aggregiert
+              ausgewiesen.
             </span>
           </p>
         }
@@ -168,7 +169,8 @@
     } @else {
       <div class="last-session-feedback-dialog__empty-box">
         <span i18n="@@quizList.lastSessionAnalysisNoConfidence">
-          Für diesen Durchlauf liegt keine auswertbare Selbsteinschätzungs-Zusammenfassung vor.
+          Für diesen Durchlauf liegt keine auswertbare Selbsteinschätzungs-Zusammenfassung vor – oft
+          weil keine Frage mindestens 5 Antworten mit Selbsteinschätzung hat.
         </span>
       </div>
     }

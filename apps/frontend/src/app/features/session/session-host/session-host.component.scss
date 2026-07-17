@@ -2867,6 +2867,11 @@
   }
 }
 
+.session-host__finished-confidence-privacy-count {
+  display: inline-block;
+  margin-inline-start: 0.35rem;
+}
+
 @media (max-width: 600px) {
   .session-host__finished-confidence-metrics {
     grid-template-columns: minmax(0, 1fr);

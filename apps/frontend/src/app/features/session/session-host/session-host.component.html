@@ -821,9 +821,15 @@
                         <mat-icon aria-hidden="true">privacy_tip</mat-icon>
                         <span>
                           <span i18n="@@sessionHost.finishedConfidenceSuppressed">
-                            Aus Datenschutz ausgeblendete Fragen:
+                            Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden nicht
+                            aggregiert ausgewiesen.
                           </span>
-                          {{ confidenceSummary.suppressedQuestionCount }}
+                          <span
+                            i18n="@@sessionHost.finishedConfidenceSuppressedCount"
+                            class="session-host__finished-confidence-privacy-count"
+                          >
+                            Betroffene Fragen: {{ confidenceSummary.suppressedQuestionCount }}
+                          </span>
                         </span>
                       </p>
                     }

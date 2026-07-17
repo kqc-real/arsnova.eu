@@ -5997,7 +5997,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           $localize`:@@sessionHost.exportConfidenceSummaryTitle:Lernstand und Selbsteinschätzung`,
         );
         rows.push(
-          $localize`:@@sessionHost.exportConfidenceSummaryHeader:Gültige Antworten;Ausgewertete Fragen;Aus Datenschutz ausgeblendete Fragen;Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden`,
+          $localize`:@@sessionHost.exportConfidenceSummaryHeader:Gültige Antworten;Ausgewertete Fragen;Nicht aggregiert (<5 Antworten mit Selbsteinschätzung);Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden`,
         );
         const middle = summary.crossTab.correctMid + summary.crossTab.incorrectMid;
         rows.push(

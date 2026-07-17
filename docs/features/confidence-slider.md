@@ -55,8 +55,8 @@ Frage-Aggregate zusammen:
 - Priorisierte Fragen für die Nachbesprechung, zuerst nach dem Anteil „falsch + hohe Antwortsicherheit“
 - Runde 2 ersetzt bei Peer Instruction Runde 1; sonst wird Runde 1 verwendet
 
-Fragen mit weniger als fünf gültigen Selbsteinschätzungs-Antworten werden in der Abschlussauswertung und
-im Export nicht einzeln ausgewiesen. Die Quiz-Sammlung bietet auf der Quizkarte für den letzten
+Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden in der Abschlussauswertung und
+im Export nicht aggregiert ausgewiesen. Die Quiz-Sammlung bietet auf der Quizkarte für den letzten
 beendeten Durchlauf **Nachbesprechung** (kompakter Dialog) und **Ergebnisbericht (PDF)**. Der
 bestehende Quiz-Historien-Besitznachweis schützt diesen Zugriff; Session-ID und Session-Code werden
 dort nicht ausgeliefert.
