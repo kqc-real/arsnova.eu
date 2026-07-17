@@ -183,6 +183,7 @@ async function main() {
     }
 
     await pageA.goto(`${APP_URL}/quiz`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await dismissMotdIfPresent(pageA);
     await pageA.waitForTimeout(2_000);
     const sharedTextA = await visibleText(pageA);
     const localQuizLeakedToA = sharedTextA.includes(localOnlyQuizName);
