@@ -8,6 +8,8 @@ export interface RenderExportMarkdownOptions {
   assetBaseUrl?: string;
   blockquoteTeachingIdea?: string;
   blockquoteHint?: string;
+  /** Unterrichtsideen aus dem Fragentext im Ergebnisbericht anzeigen. */
+  includeTeachingNotes?: boolean;
 }
 
 export interface RenderExportMarkdownResult {
@@ -103,6 +105,27 @@ function parseExportMarkdown(source: string): string {
   return marked.parse(source, { renderer }) as string;
 }
 
+function removeUnsupportedPdfImagePrompts(source: string): string {
+  return source
+    .split('\n')
+    .filter((line) => {
+      const plain = line
+        .replaceAll(/[*_`[\]()]/g, ' ')
+        .replaceAll(/\s+/g, ' ')
+        .trim();
+      return !/^(click|tap|klick|tippe|anklicken|ouvrir|haz clic|fare clic).*(full view|vollansicht|vue complète|vista completa|visualizzazione completa)/i.test(
+        plain,
+      );
+    })
+    .join('\n');
+}
+
+function removeTeachingNotes(source: string): string {
+  return source.replace(/(^|\n)((?:>[^\n]*(?:\n|$))+)/g, (match, prefix: string, block: string) =>
+    /Unterrichtsidee|Teaching idea/i.test(block) ? prefix : match,
+  );
+}
+
 /** Relative Asset-Pfade in HTML absolut setzen (für PDF-Render). */
 export function absolutizeExportAssetImgSrc(html: string, origin: string): string {
   const base = origin.replace(/\/$/, '');
@@ -116,7 +139,9 @@ export function renderExportMarkdownHtml(
   source = '',
   options: RenderExportMarkdownOptions = {},
 ): RenderExportMarkdownResult {
-  const input = replaceEmojiShortcodes(source);
+  const withoutTeachingNotes =
+    options.includeTeachingNotes === false ? removeTeachingNotes(source) : source;
+  const input = replaceEmojiShortcodes(removeUnsupportedPdfImagePrompts(withoutTeachingNotes));
   let katexError: string | null = null;
   const renderedMath: string[] = [];
 
@@ -173,14 +198,27 @@ function labelExportBlockquotes(html: string, options: RenderExportMarkdownOptio
   const hintLabel = escapeHtml(options.blockquoteHint ?? 'Hinweis für Lehrende');
   return html.replace(/<blockquote>([\s\S]*?)<\/blockquote>/g, (_match, inner: string) => {
     const plain = inner.replace(/<[^>]+>/g, ' ').trim();
-    if (/Unterrichtsidee|Teaching idea/i.test(plain)) {
-      return `<blockquote class="report-blockquote report-blockquote--teaching"><p class="report-blockquote-label">${teachingLabel}</p>${inner}</blockquote>`;
+    if (
+      /Unterrichtsidee|Teaching idea|Idée pédagogique|Idea didáctica|Idea didattica/i.test(plain)
+    ) {
+      return `<blockquote class="report-blockquote report-blockquote--teaching"><p class="report-blockquote-label">${teachingLabel}</p>${stripBlockquoteLabelPrefix(inner, 'teaching')}</blockquote>`;
     }
-    if (/Hinweis|Note for instructors/i.test(plain)) {
-      return `<blockquote class="report-blockquote report-blockquote--hint"><p class="report-blockquote-label">${hintLabel}</p>${inner}</blockquote>`;
+    if (
+      /Hinweis(?: für Lehrende)?|Note for instructors|Note pour|Nota para|Nota per/i.test(plain)
+    ) {
+      return `<blockquote class="report-blockquote report-blockquote--hint"><p class="report-blockquote-label">${hintLabel}</p>${stripBlockquoteLabelPrefix(inner, 'hint')}</blockquote>`;
     }
     return `<blockquote class="report-blockquote">${inner}</blockquote>`;
   });
+}
+
+const TEACHING_LABEL_PREFIX =
+  /^\s*(<p\b[^>]*>)(?:\s*<strong>)?\s*(?:Unterrichtsidee|Teaching idea|Idée pédagogique|Idea didáctica|Idea didattica)\s*:?\s*(?:<\/strong>)?\s*/i;
+const HINT_LABEL_PREFIX =
+  /^\s*(<p\b[^>]*>)(?:\s*<strong>)?\s*(?:Hinweis(?: für Lehrende)?|Note for instructors|Note pour les enseignant(?:e)?s|Nota para docentes|Nota per docenti)\s*:?\s*(?:<\/strong>)?\s*/i;
+
+function stripBlockquoteLabelPrefix(inner: string, kind: 'teaching' | 'hint'): string {
+  return inner.replace(kind === 'teaching' ? TEACHING_LABEL_PREFIX : HINT_LABEL_PREFIX, '$1');
 }
 
 /** Vollständiger Fragentext für Export inkl. Lehrer-Tipps (Unterrichtsidee). */

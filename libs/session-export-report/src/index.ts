@@ -39,3 +39,8 @@ export {
   buildSessionResultsPlaywrightPdfOptions,
   buildSessionResultsPrintPageFooterCss,
 } from './session-results-report-pdf-footer.util.js';
+export {
+  buildQuestionContinuationStamps,
+  planQuestionContinuationStamps,
+  stampQuestionContinuationsOnPdf,
+} from './session-results-report-continuation.util.js';

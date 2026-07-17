@@ -2,6 +2,7 @@ import type { QaExportEntry, SessionExportDTO } from '@arsnova/shared-types';
 import type { SessionResultsReportLabels } from './labels-de';
 import { stripMarkdownToPlainText } from './markdown-plain-text.util';
 import { REPORT_COVER_LOGO_SVG, REPORT_COVER_WORDMARK } from './report-cover-logo';
+import { renderQaFollowUpHtml } from './session-results-report-insights.util';
 
 function escapeHtml(value: string): string {
   return value
@@ -23,7 +24,10 @@ export function renderCoverSummaryHtml(
   localeId: string,
 ): string {
   const questionCount = data.questions.length;
-  const riskCount = data.confidenceSummary?.priorityQuestionCount ?? 0;
+  const riskCount =
+    data.confidenceSummary?.signalQuestionCount ??
+    data.confidenceSummary?.priorityQuestionCount ??
+    0;
   const feedbackAvg = data.feedbackSummary?.overallAverage;
 
   const items = [
@@ -36,8 +40,14 @@ export function renderCoverSummaryHtml(
     );
   }
   if (feedbackAvg !== undefined) {
+    const feedbackCount = data.feedbackSummary?.totalResponses ?? 0;
     items.push(
-      `<div class="report-cover-summary-item"><strong>${feedbackAvg.toLocaleString(localeId, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ★</strong><span>${escapeHtml(labels.coverSummaryFeedback)}</span></div>`,
+      `<div class="report-cover-summary-item"><strong>${feedbackAvg.toLocaleString(localeId, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ★</strong><span>${escapeHtml(labels.coverSummaryFeedback)}</span><span class="report-cover-summary-sub">${escapeHtml(
+        labels.coverSummaryFeedbackMetaTemplate.replace(
+          '{0}',
+          feedbackCount.toLocaleString(localeId),
+        ),
+      )}</span></div>`,
     );
   }
   return `<div class="report-cover-summary">${items.join('')}</div>`;
@@ -56,37 +66,44 @@ export function renderCoverNavigationHtml(
 ): string {
   const items: string[] = [];
 
-  if (data.feedbackSummary) {
+  if (data.confidenceSummary?.questions.length) {
     items.push(
-      `<a class="report-cover-nav-item" href="#report-feedback">${escapeHtml(labels.tocFeedback)}</a>`,
-    );
-  }
-  if (data.confidenceSummary) {
-    items.push(
-      `<a class="report-cover-nav-item" href="#report-confidence">${escapeHtml(labels.tocConfidence)}</a>`,
+      `<a class="report-cover-nav-item" href="#report-action-plan">${escapeHtml(labels.tocActionPlan)} <span aria-hidden="true">↗</span></a>`,
     );
   }
   items.push(
-    `<a class="report-cover-nav-item" href="#report-questions">${escapeHtml(labels.tocQuestions)} <span class="report-cover-nav-count">${data.questions.length}</span></a>`,
+    `<a class="report-cover-nav-item" href="#report-hardest-questions">${escapeHtml(labels.tocHardestQuestions)} <span aria-hidden="true">↗</span></a>`,
   );
+  if (data.confidenceSummary) {
+    items.push(
+      `<a class="report-cover-nav-item" href="#report-confidence">${escapeHtml(labels.tocConfidence)} <span aria-hidden="true">↗</span></a>`,
+    );
+  }
+  items.push(
+    `<a class="report-cover-nav-item" href="#report-questions">${escapeHtml(labels.tocQuestions)} <span class="report-cover-nav-count">${data.questions.length}</span> <span aria-hidden="true">↗</span></a>`,
+  );
+  if (data.feedbackSummary) {
+    items.push(
+      `<a class="report-cover-nav-item" href="#report-feedback">${escapeHtml(labels.tocFeedback)} <span aria-hidden="true">↗</span></a>`,
+    );
+  }
   if (data.qaQuestions?.length) {
     items.push(
-      `<a class="report-cover-nav-item" href="#report-qa">${escapeHtml(labels.tocQa)} <span class="report-cover-nav-count">${data.qaQuestions.length}</span></a>`,
+      `<a class="report-cover-nav-item" href="#report-qa">${escapeHtml(labels.tocQa)} <span class="report-cover-nav-count">${data.qaQuestions.length}</span> <span aria-hidden="true">↗</span></a>`,
     );
   }
   if (data.teamMode && data.teamLeaderboard?.length) {
     items.push(
-      `<a class="report-cover-nav-item" href="#report-teams">${escapeHtml(labels.tocTeams)}</a>`,
+      `<a class="report-cover-nav-item" href="#report-teams">${escapeHtml(labels.tocTeams)} <span aria-hidden="true">↗</span></a>`,
     );
   }
   if (data.bonusTokens?.length) {
     items.push(
-      `<a class="report-cover-nav-item" href="#report-bonus">${escapeHtml(labels.tocBonus)}</a>`,
+      `<a class="report-cover-nav-item" href="#report-bonus">${escapeHtml(labels.tocBonus)} <span aria-hidden="true">↗</span></a>`,
     );
   }
 
-  if (items.length === 0) return '';
-
+  if (!items.length) return '';
   return `<nav class="report-cover-nav" aria-label="${escapeHtml(labels.tableOfContentsTitle)}">
     <p class="report-cover-nav-label">${escapeHtml(labels.tableOfContentsTitle)}</p>
     <div class="report-cover-nav-grid">${items.join('')}</div>
@@ -120,13 +137,14 @@ export function renderQaSectionHtml(
     .join('');
   return `<section class="report-section" id="report-qa">
     <h2>${escapeHtml(labels.qaTitle)}</h2>
+    ${renderQaFollowUpHtml(questions, labels, localeId)}
     <table class="report-table">
       <thead><tr>
-        <th>#</th>
-        <th>${escapeHtml(labels.questionNumber)}</th>
-        <th>${escapeHtml(labels.qaStatus)}</th>
-        <th>${escapeHtml(labels.qaUpvotes)}</th>
-        <th>${escapeHtml(labels.qaControversial)}</th>
+        <th scope="col">#</th>
+        <th scope="col">${escapeHtml(labels.questionNumber)}</th>
+        <th scope="col">${escapeHtml(labels.qaStatus)}</th>
+        <th scope="col">${escapeHtml(labels.qaUpvotes)}</th>
+        <th scope="col">${escapeHtml(labels.qaControversial)}</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
@@ -140,8 +158,6 @@ function formatLocaleCountSafe(value: number, localeId: string): string {
 export function renderCoverPrivacyHtml(labels: SessionResultsReportLabels): string {
   return `<div class="report-privacy">
     <p>${escapeHtml(labels.privacyNotice)}</p>
-    <p>${escapeHtml(labels.coverPrivacyIncluded)}</p>
-    <p>${escapeHtml(labels.coverPrivacyExcluded)}</p>
   </div>`;
 }
 

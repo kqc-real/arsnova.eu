@@ -9,8 +9,8 @@ import type {
 import { formatLocaleCount, formatLocaleNumber } from './locale-number.util';
 import type { SessionResultsReportLabels } from './labels-de';
 import {
+  formatNumericEstimateValue,
   renderNumericHistogramOverlayElements,
-  renderNumericHistogramReferenceLabel,
   renderNumericHistogramBandCaption,
   type NumericHistogramOverlayContext,
 } from './numeric-histogram-overlay.util';
@@ -31,46 +31,34 @@ export interface ConfidenceHeatmapLabels {
   tierLow: string;
   tierMid: string;
   tierHigh: string;
-  legendTitle?: string;
-  legendScale?: string;
-  legendHint?: string;
-}
-
-function heatIntensity(count: number, total: number): 0 | 1 | 2 | 3 {
-  if (count <= 0 || total <= 0) return 0;
-  const share = count / total;
-  if (share >= 0.34) return 3;
-  if (share >= 0.14) return 2;
-  return 1;
-}
-
-function heatClass(
-  tone: 'neutral' | 'success' | 'caution' | 'risk',
-  intensity: 0 | 1 | 2 | 3,
-): string {
-  if (intensity === 0) return 'report-heat report-heat--empty';
-  return `report-heat report-heat--${tone}-${intensity}`;
+  cellCountNote: string;
+  legendToneTitle: string;
+  legendToneSuccess: string;
+  legendToneRisk: string;
+  legendToneCaution: string;
+  legendToneNeutral: string;
+  legendToneMid: string;
+  legendFrequencyHint: string;
+  compactLegend: string;
 }
 
 function cellTone(
   correctness: 'correct' | 'incorrect',
   tier: 'low' | 'mid' | 'high',
-): 'neutral' | 'success' | 'caution' | 'risk' {
+): 'mid' | 'fragile' | 'gap' | 'success' | 'risk' {
+  if (tier === 'mid') return 'mid';
   if (correctness === 'incorrect' && tier === 'high') return 'risk';
-  if (correctness === 'incorrect') return 'caution';
+  if (correctness === 'incorrect') return 'gap';
   if (correctness === 'correct' && tier === 'high') return 'success';
-  return 'neutral';
+  return 'fragile';
 }
 
-function crossTabTotal(crossTab: ConfidenceCrossTab): number {
-  return (
-    crossTab.correctHigh +
-    crossTab.correctMid +
-    crossTab.correctLow +
-    crossTab.incorrectHigh +
-    crossTab.incorrectMid +
-    crossTab.incorrectLow
-  );
+function cellSymbol(correctness: 'correct' | 'incorrect', tier: 'low' | 'mid' | 'high'): string {
+  if (tier === 'mid') return 'M';
+  if (correctness === 'correct' && tier === 'high') return '✓';
+  if (correctness === 'incorrect' && tier === 'high') return '⚠';
+  if (correctness === 'correct') return '?';
+  return '◯';
 }
 
 /** Nur relevante Histogramm-Bins für den Druck (leere Ränder entfernen). */
@@ -97,12 +85,52 @@ export function histogramsEqual(
   );
 }
 
+export function renderConfidenceCategoryListHtml(
+  crossTab: ConfidenceCrossTab,
+  labels: ConfidenceHeatmapLabels & {
+    mastery: string;
+    risk: string;
+    fragile: string;
+    gap: string;
+    middle: string;
+  },
+  localeId: string,
+): string {
+  const items = [
+    { symbol: '✓', text: labels.mastery, count: crossTab.correctHigh },
+    { symbol: '⚠', text: labels.risk, count: crossTab.incorrectHigh },
+    { symbol: '?', text: labels.fragile, count: crossTab.correctLow },
+    { symbol: '◯', text: labels.gap, count: crossTab.incorrectLow },
+    {
+      symbol: 'M',
+      text: `${labels.middle}, ${labels.rowCorrect.toLowerCase()}`,
+      count: crossTab.correctMid,
+    },
+    {
+      symbol: 'M',
+      text: `${labels.middle}, ${labels.rowIncorrect.toLowerCase()}`,
+      count: crossTab.incorrectMid,
+    },
+  ];
+  return `<div class="report-chart-block">
+    <h5>${escapeHtml(labels.legendToneTitle)}</h5>
+    <ul class="report-confidence-category-list">
+      ${items
+        .map(
+          (item) =>
+            `<li><span class="report-heat-symbol" aria-hidden="true">${item.symbol}</span><span>${escapeHtml(item.text)}</span><strong>${formatLocaleCount(item.count, localeId)}</strong></li>`,
+        )
+        .join('')}
+    </ul>
+  </div>`;
+}
+
 export function renderConfidenceHeatmapHtml(
   crossTab: ConfidenceCrossTab,
   labels: ConfidenceHeatmapLabels,
   localeId: string,
+  legendMode: 'full' | 'compact' | 'none' = 'full',
 ): string {
-  const total = crossTabTotal(crossTab);
   const rows: Array<{
     label: string;
     correctness: 'correct' | 'incorrect';
@@ -131,37 +159,30 @@ export function renderConfidenceHeatmapHtml(
       const cells = row.values
         .map((count, index) => {
           const tier = tiers[index]?.key ?? 'mid';
-          const intensity = heatIntensity(count, total);
           const tone = cellTone(row.correctness, tier);
-          return `<td class="${heatClass(tone, intensity)}">${formatLocaleCount(count, localeId)}</td>`;
+          const symbol = cellSymbol(row.correctness, tier);
+          return `<td class="report-heat report-heat--plain report-heat--${tone}"><span class="report-heat-cell"><span class="report-heat-symbol" aria-hidden="true">${symbol}</span><span class="report-heat-count">${formatLocaleCount(count, localeId)}</span></span></td>`;
         })
         .join('');
       return `<tr><th scope="row">${escapeHtml(row.label)}</th>${cells}</tr>`;
     })
     .join('');
 
+  const legend =
+    legendMode === 'none'
+      ? ''
+      : legendMode === 'compact'
+        ? `<p class="report-heatmap-legend report-heatmap-legend--compact">${escapeHtml(labels.compactLegend)}</p>`
+        : `<p class="report-heatmap-legend report-heatmap-legend--compact">${escapeHtml(labels.compactLegend)}</p>`;
+
   return `<div class="report-chart-block">
     <h5>${escapeHtml(labels.title)}</h5>
-    <table class="report-heatmap" role="grid">
+    <table class="report-heatmap report-heatmap--simple" role="grid">
       <thead><tr><th></th>${head}</tr></thead>
       <tbody>${body}</tbody>
     </table>
-    ${
-      labels.legendTitle
-        ? `<div class="report-heatmap-legend">
-      <strong>${escapeHtml(labels.legendTitle)}</strong>
-      <span>${escapeHtml(labels.legendScale ?? '')}</span>
-      <span class="report-heatmap-legend-hint">${escapeHtml(labels.legendHint ?? '')}</span>
-      <div class="report-heatmap-legend-scale" aria-hidden="true">
-        <span class="report-heat report-heat--neutral-1">1</span>
-        <span class="report-heat report-heat--neutral-2">2</span>
-        <span class="report-heat report-heat--success-2">3</span>
-        <span class="report-heat report-heat--risk-2">3</span>
-        <span class="report-heat report-heat--risk-3">3</span>
-      </div>
-    </div>`
-        : ''
-    }
+    <p class="report-heatmap-cell-note">${escapeHtml(labels.cellCountNote)}</p>
+    ${legend}
   </div>`;
 }
 
@@ -169,16 +190,18 @@ export function renderConfidenceDistributionBarsHtml(
   result: ConfidenceResultDTO,
   title: string,
   localeId: string,
+  endpointLabel?: string,
+  axisLabel?: string,
 ): string {
   const total = Object.values(result.distribution).reduce((sum, value) => sum + value, 0);
   const max = Math.max(...Object.values(result.distribution), 1);
   const rows = (['1', '2', '3', '4', '5'] as const)
     .map((step) => {
       const count = result.distribution[step];
-      const width = Math.max(4, Math.round((count / max) * 100));
+      const width = count > 0 ? Math.max(4, Math.round((count / max) * 100)) : 0;
       return `<li class="report-vbar-row">
         <span class="report-vbar-label">${step}</span>
-        <div class="report-vbar-track"><div class="report-vbar-fill" style="height:${width}%"></div></div>
+        <div class="report-vbar-track${count === 0 ? ' report-vbar-track--zero' : ''}">${count > 0 ? `<div class="report-vbar-fill" style="height:${width}%"></div>` : ''}</div>
         <span class="report-vbar-value">${formatLocaleCount(count, localeId)}</span>
       </li>`;
     })
@@ -186,6 +209,8 @@ export function renderConfidenceDistributionBarsHtml(
   return `<div class="report-chart-block">
     <h5>${escapeHtml(title)}</h5>
     <ul class="report-vbars" aria-label="${escapeHtml(title)} (${formatLocaleCount(total, localeId)})">${rows}</ul>
+    ${axisLabel ? `<p class="report-chart-axis-label">${escapeHtml(axisLabel)}</p>` : ''}
+    ${endpointLabel ? `<p class="report-scale-endpoints">${escapeHtml(endpointLabel)}</p>` : ''}
   </div>`;
 }
 
@@ -196,6 +221,7 @@ export function renderHistogramHtml(
   subtitle?: string,
   overlayContext?: NumericHistogramOverlayContext,
   labels?: SessionResultsReportLabels,
+  options?: { secondary?: boolean },
 ): string {
   const displayBins = filterHistogramBinsForDisplay(bins);
   if (!displayBins.length) return '';
@@ -204,55 +230,87 @@ export function renderHistogramHtml(
     overlayContext && labels
       ? renderNumericHistogramOverlayElements(displayBins, overlayContext)
       : '';
-  const referenceLabel =
-    overlayContext && labels
-      ? renderNumericHistogramReferenceLabel(displayBins, overlayContext, labels, localeId)
-      : '';
   const bandCaption =
     overlayContext && labels
       ? renderNumericHistogramBandCaption(overlayContext, labels, localeId)
       : '';
   const columns = displayBins
     .map((bin) => {
-      const height = Math.max(6, Math.round((bin.count / max) * 100));
+      const height = bin.count > 0 ? Math.max(6, Math.round((bin.count / max) * 100)) : 0;
+      const formatAxis = (value: number) =>
+        overlayContext
+          ? formatNumericEstimateValue(value, overlayContext, localeId)
+          : formatLocaleNumber(value, localeId, { useGrouping: false });
       const range =
         bin.from === bin.to
-          ? formatLocaleNumber(bin.from, localeId)
-          : `${formatLocaleNumber(bin.from, localeId)}–${formatLocaleNumber(bin.to, localeId)}`;
-      const bandClass = bin.inBand ? ' report-hist-col--in-band' : '';
+          ? formatAxis(bin.from)
+          : `${formatAxis(bin.from)}–${formatAxis(bin.to)}`;
+      const bandClass = bin.inBand && !overlayContext ? ' report-hist-col--in-band' : '';
       return `<li class="report-hist-col${bandClass}">
-        <div class="report-hist-bar-wrap"><div class="report-hist-bar" style="height:${height}%"></div></div>
+        <div class="report-hist-bar-wrap${bin.count === 0 ? ' report-hist-bar-wrap--zero' : ''}">${
+          bin.count > 0 ? `<div class="report-hist-bar" style="height:${height}%"></div>` : ''
+        }</div>
         <span class="report-hist-count">${formatLocaleCount(bin.count, localeId)}</span>
         <span class="report-hist-range">${escapeHtml(range)}</span>
       </li>`;
     })
     .join('');
-  return `<div class="report-chart-block">
+  const blockClass = options?.secondary
+    ? 'report-chart-block report-chart-block--secondary'
+    : 'report-chart-block';
+  return `<div class="${blockClass}">
     <h5>${escapeHtml(title)}</h5>
     ${subtitle ? `<p class="report-chart-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+    ${bandCaption}
     <div class="report-histogram-stage">
       ${overlayElements}
-      ${referenceLabel}
       <ul class="report-histogram">${columns}</ul>
     </div>
-    ${bandCaption}
   </div>`;
 }
 
 export function renderNumericRoundHistogramsHtml(
   comparison: NumericRoundComparisonDTO | undefined,
-  mainHistogram: NumericHistogramBin[] | undefined,
-  labels: { round1: string; round2: string; delta: string },
+  _mainHistogram: NumericHistogramBin[] | undefined,
+  labels: {
+    round1: string;
+    round2: string;
+    delta: string;
+    identical?: string;
+    identicalNote?: string;
+  },
   localeId: string,
   overlayContext?: NumericHistogramOverlayContext,
   reportLabels?: SessionResultsReportLabels,
 ): string {
   if (!comparison) return '';
+  if (comparison.round2Stats.n <= 0) return '';
   const parts: string[] = [];
-  if (
-    comparison.round1Histogram.length &&
-    !histogramsEqual(mainHistogram, comparison.round1Histogram)
-  ) {
+  const distributionsAreIdentical = histogramsEqual(
+    comparison.round1Histogram,
+    comparison.round2Histogram,
+  );
+  if (distributionsAreIdentical) {
+    if (labels.identicalNote) {
+      parts.push(
+        `<p class="report-note report-identical-distributions">${escapeHtml(labels.identicalNote)}</p>`,
+      );
+    }
+    if (comparison.round2Histogram.length) {
+      parts.push(
+        renderHistogramHtml(
+          comparison.round2Histogram,
+          labels.identical ?? labels.round2,
+          localeId,
+          undefined,
+          overlayContext,
+          reportLabels,
+        ),
+      );
+    }
+    return parts.filter(Boolean).join('');
+  }
+  if (comparison.round1Histogram.length) {
     parts.push(
       renderHistogramHtml(
         comparison.round1Histogram,
@@ -276,17 +334,77 @@ export function renderNumericRoundHistogramsHtml(
       ),
     );
   }
-  if (comparison.deltaHistogram?.length) {
-    parts.push(renderHistogramHtml(comparison.deltaHistogram, labels.delta, localeId));
+  const allUnchanged =
+    comparison.pairedAnalysis &&
+    comparison.pairedAnalysis.pairedCount > 0 &&
+    comparison.pairedAnalysis.unchangedCount === comparison.pairedAnalysis.pairedCount;
+  if (!allUnchanged && comparison.pairedAnalysis && comparison.pairedAnalysis.pairedCount > 0) {
+    parts.push(renderNumericPeerChangeBarsHtml(comparison.pairedAnalysis, reportLabels, localeId));
   }
   return parts.filter(Boolean).join('');
+}
+
+export function renderNumericPeerChangeBarsHtml(
+  paired: {
+    closerCount: number;
+    fartherCount: number;
+    unchangedCount: number;
+    pairedCount: number;
+  },
+  labels: SessionResultsReportLabels | undefined,
+  localeId: string,
+): string {
+  if (!labels || paired.pairedCount <= 0) return '';
+  const segments = [
+    {
+      key: 'closer',
+      count: paired.closerCount,
+      label: labels.numericPeerCloser,
+      className: 'report-peer-change-seg--closer',
+    },
+    {
+      key: 'unchanged',
+      count: paired.unchangedCount,
+      label: labels.numericPeerUnchanged,
+      className: 'report-peer-change-seg--unchanged',
+    },
+    {
+      key: 'farther',
+      count: paired.fartherCount,
+      label: labels.numericPeerFarther,
+      className: 'report-peer-change-seg--farther',
+    },
+  ];
+  const bars = segments
+    .map((segment) => {
+      return `<div class="report-peer-change-seg ${segment.className}" style="flex:${Math.max(segment.count, 0.0001)}" title="${escapeHtml(segment.label)}: ${formatLocaleCount(segment.count, localeId)}">
+        <span class="report-peer-change-count">${formatLocaleCount(segment.count, localeId)}</span>
+      </div>`;
+    })
+    .join('');
+  const legend = segments
+    .map(
+      (segment) =>
+        `<li><span class="report-peer-change-swatch ${segment.className}" aria-hidden="true"></span>${escapeHtml(segment.label)} · ${formatLocaleCount(segment.count, localeId)}</li>`,
+    )
+    .join('');
+  return `<div class="report-chart-block report-peer-change">
+    <h5>${escapeHtml(labels.numericPeerChangeBarsTitle)}</h5>
+    <div class="report-peer-change-bar" role="img" aria-label="${escapeHtml(labels.numericPeerChangeBarsTitle)}">${bars}</div>
+    <ul class="report-peer-change-legend">${legend}</ul>
+  </div>`;
 }
 
 export function renderOptionBarsHtml(
   options: OptionDistributionEntry[],
   title: string,
-  labels: { optionCorrect: string },
+  labels: { optionCorrect: string; optionIncorrect?: string },
   localeId: string,
+  footnote?: string,
+  participantCount?: number,
+  valueTemplate?: string,
+  introNote?: string,
+  showCorrectness = false,
 ): string {
   if (!options.length) return '';
   const total = options.reduce((sum, option) => sum + option.count, 0) || 1;
@@ -294,21 +412,36 @@ export function renderOptionBarsHtml(
   const rows = options
     .map((option) => {
       const width = Math.max(4, Math.round((option.count / maxCount) * 100));
-      const pct = Math.round((option.count / total) * 100);
+      const denominator = participantCount && participantCount > 0 ? participantCount : total;
+      const pct = Math.round((option.count / denominator) * 100);
       const correct = option.isCorrect
-        ? ` <span class="report-tag">${escapeHtml(labels.optionCorrect)}</span>`
-        : '';
+        ? ` <span class="report-correct-marker" aria-hidden="true">✓</span><span class="report-tag">${escapeHtml(labels.optionCorrect)}</span>`
+        : showCorrectness
+          ? ` <span class="report-incorrect-marker" aria-label="${escapeHtml(labels.optionIncorrect ?? '')}">✕</span>`
+          : '';
       const fillClass = option.isCorrect
         ? 'report-bar-fill report-bar-fill--correct'
         : 'report-bar-fill';
+      const inlinePercent = valueTemplate ? '' : `<span class="report-bar-pct">${pct} %</span>`;
       return `<li class="report-bar-row">
         <div class="report-bar-label">${formatReportBarLabelHtml(option.text, escapeHtml)}${correct}</div>
-        <div class="report-bar-track"><div class="${fillClass}" style="width:${width}%"><span class="report-bar-pct">${pct} %</span></div></div>
-        <div class="report-bar-value">${formatLocaleCount(option.count, localeId)}</div>
+        <div class="report-bar-track"><div class="${fillClass}" style="width:${width}%">${inlinePercent}</div></div>
+        <div class="report-bar-value">${
+          valueTemplate
+            ? escapeHtml(
+                valueTemplate
+                  .replace('{0}', `${pct} %`)
+                  .replace('{1}', formatLocaleCount(option.count, localeId))
+                  .replace('{2}', formatLocaleCount(denominator, localeId)),
+              )
+            : formatLocaleCount(option.count, localeId)
+        }</div>
       </li>`;
     })
     .join('');
-  return `<h4>${escapeHtml(title)}</h4><ul class="report-bars">${rows}</ul>`;
+  const note = footnote ? `<p class="report-chart-footnote">${escapeHtml(footnote)}</p>` : '';
+  const intro = introNote ? `<p class="report-chart-intro">${escapeHtml(introNote)}</p>` : '';
+  return `<h4>${escapeHtml(title)}</h4>${intro}<ul class="report-bars">${rows}</ul>${note}`;
 }
 
 export function renderPeerInstructionOptionComparisonHtml(
@@ -397,13 +530,16 @@ export function renderStarRatingBarsHtml(
   localeId: string,
   average?: number | null,
   standardDeviation?: number | null,
+  endpointLabel?: string,
 ): string {
-  const entries = Object.entries(distribution).sort((a, b) => Number(a[0]) - Number(b[0]));
-  if (!entries.length) return '';
+  const entries = (['1', '2', '3', '4', '5'] as const).map(
+    (star) => [star, distribution[star] ?? 0] as const,
+  );
+  if (entries.every(([, count]) => count === 0)) return '';
   const max = Math.max(...entries.map(([, count]) => count), 1);
   const rows = entries
     .map(([star, count]) => {
-      const width = Math.max(4, Math.round((count / max) * 100));
+      const width = count > 0 ? Math.max(4, Math.round((count / max) * 100)) : 0;
       const pct = Math.round(
         (count /
           Math.max(
@@ -412,10 +548,10 @@ export function renderStarRatingBarsHtml(
           )) *
           100,
       );
-      return `<li class="report-bar-row">
+      return `<li class="report-bar-row report-bar-row--rating">
         <div class="report-bar-label">${star} ★</div>
-        <div class="report-bar-track"><div class="report-bar-fill report-bar-fill--rating" style="width:${width}%"><span class="report-bar-pct">${pct} %</span></div></div>
-        <div class="report-bar-value">${formatLocaleCount(count, localeId)}</div>
+        <div class="report-bar-track"><div class="report-bar-fill report-bar-fill--rating" style="width:${width}%"></div></div>
+        <div class="report-bar-value">${pct} % · ${formatLocaleCount(count, localeId)}</div>
       </li>`;
     })
     .join('');
@@ -431,5 +567,6 @@ export function renderStarRatingBarsHtml(
     <h5>${escapeHtml(title)}</h5>
     ${avg}
     <ul class="report-bars">${rows}</ul>
+    ${endpointLabel ? `<p class="report-scale-endpoints">${escapeHtml(endpointLabel)}</p>` : ''}
   </div>`;
 }

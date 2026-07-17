@@ -79,13 +79,11 @@ import {
   type TeamAssignment,
   type ToleranceLevel,
   type RoundComparisonDTO,
-  type RoundDistributionEntry,
   type NumericInputKind,
   type NumericToleranceMode,
   type NumericUnitFamily,
   type ShortTextEvaluationKind,
   type ShortAnswerEvaluationMode,
-  type VoterMigrationEntry,
   UpdateSessionQaTitleInputSchema,
   UpdateSessionQaTitleOutputSchema,
   UpdateSessionChannelsOutputSchema,
@@ -115,11 +113,17 @@ import {
   buildSessionConfidenceSummary,
   questionSupportsConfidence,
   resolveEffectiveAggregationRound,
+  buildRoundComparisonFromVotes,
+  buildResponseTimeAggregate,
+  buildTeamLearningProfiles,
+  computeCorrectPercentage,
   type ConfidenceEligibleQuestionType,
   type SessionConfidenceSummary,
   type NumericStatsDTO,
   type NumericHistogramBin,
   type NumericRoundComparisonDTO,
+  type Difficulty,
+  type TeamLearningProfileEntry,
 } from '@arsnova/shared-types';
 import {
   isExactCorrectSelection,
@@ -1336,6 +1340,8 @@ interface QuestionWithAnswersForExport {
   order: number;
   text: string;
   type: string;
+  difficulty: Difficulty;
+  timer: number | null;
   shortTextEvaluationKind: string;
   shortTextMaxLength: number | null;
   shortTextCaseSensitive: boolean;
@@ -1370,6 +1376,7 @@ interface VoteForExport {
   score?: number | null;
   confidenceValue?: number | null;
   isCorrect?: boolean | null;
+  responseTimeMs?: number | null;
 }
 interface BonusTokenForExport {
   token: string;
@@ -1659,7 +1666,9 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           wouldRepeat: true,
         },
       },
-      participants: { select: { id: true } },
+      participants: {
+        select: { id: true, teamId: true, team: { select: { name: true } } },
+      },
     },
   });
 
@@ -1681,6 +1690,8 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
 
   const quizName = session.quiz.name;
   const questions = session.quiz.questions;
+  const quizDefaultTimer = session.quiz.defaultTimer ?? null;
+  const quizTimerScaleByDifficulty = session.quiz.timerScaleByDifficulty ?? true;
   const votesByQuestion = new Map<string, typeof session.votes>();
   for (const vote of session.votes) {
     const list = votesByQuestion.get(vote.questionId) ?? [];
@@ -1701,13 +1712,33 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
       const aggregationRound = allVotes.length > 0 ? exportRound : undefined;
       const round1ParticipantCount = round2Count > 0 ? round1Count : undefined;
       const round2ParticipantCount = round2Count > 0 ? round2Count : undefined;
+      const difficulty = (q.difficulty ?? 'MEDIUM') as Difficulty;
+      const effectiveTimerSeconds = resolveEffectiveQuestionTimer(
+        q.timer,
+        quizDefaultTimer,
+        difficulty,
+        quizTimerScaleByDifficulty,
+      );
+      // Bei Peer Instruction hat Runde 2 keinen Timer — Antwortzeiten nur aus Runde 1.
+      const responseTimeVotes =
+        round2Count > 0 ? allVotes.filter((vote) => (vote.round ?? 1) === 1) : votes;
+      const responseTimeAggregate = buildResponseTimeAggregate(
+        responseTimeVotes.map((vote) => vote.responseTimeMs),
+        effectiveTimerSeconds,
+      );
+      const responseTimeRound = responseTimeAggregate
+        ? round2Count > 0
+          ? (1 as const)
+          : undefined
+        : undefined;
 
       let optionDistribution: OptionDistributionEntry[] | undefined;
       let round1OptionDistribution: OptionDistributionEntry[] | undefined;
+      let roundComparison: RoundComparisonDTO | undefined;
       let freetextAggregates: FreetextAggregateEntry[] | undefined;
       let shortTextIncorrectAggregates: FreetextAggregateEntry[] | undefined;
-      let shortTextCorrectCount: number | undefined;
-      let shortTextIncorrectCount: number | undefined;
+      let shortTextCorrectCount = 0;
+      let shortTextIncorrectCount = 0;
       let ratingDistribution: Record<string, number> | undefined;
       let ratingAverage: number | undefined;
       let ratingStandardDeviation: number | undefined;
@@ -1733,10 +1764,16 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           );
           optionDistribution = buildMcScOptionDistribution(votes, orderedOpts);
           if (round2Count > 0) {
-            round1OptionDistribution = buildMcScOptionDistribution(
-              allVotes.filter((vote) => (vote.round ?? 1) === 1),
-              orderedOpts,
-            );
+            const round1Votes = allVotes.filter((vote) => (vote.round ?? 1) === 1);
+            const round2Votes = allVotes.filter((vote) => (vote.round ?? 1) === 2);
+            round1OptionDistribution = buildMcScOptionDistribution(round1Votes, orderedOpts);
+            if (q.type === 'MULTIPLE_CHOICE' || q.type === 'SINGLE_CHOICE') {
+              roundComparison = buildRoundComparisonFromVotes(
+                orderedOpts,
+                round1Votes,
+                round2Votes,
+              );
+            }
           }
           break;
         }
@@ -1769,8 +1806,6 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           }
 
           const incorrectCounts = new Map<string, number>();
-          shortTextCorrectCount = 0;
-          shortTextIncorrectCount = 0;
           for (const v of votes as VoteForExport[]) {
             const displayValue = getShortTextDisplayValue(v.freeText ?? '', q);
             const matchedAnswerId = getShortTextMatchedAnswerId(v.freeText ?? '', {
@@ -1801,7 +1836,9 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           shortTextIncorrectAggregates = Array.from(incorrectCounts.entries(), ([text, count]) => ({
             text,
             count,
-          }));
+          })).sort(
+            (left, right) => right.count - left.count || left.text.localeCompare(right.text, 'de'),
+          );
           freetextAggregates = undefined;
           break;
         }
@@ -1893,11 +1930,27 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           }) ?? undefined;
       }
 
+      const includesCorrectnessSummary = questionSupportsConfidence(q.type);
+      const correctCount =
+        q.type === 'SHORT_TEXT'
+          ? shortTextCorrectCount
+          : includesCorrectnessSummary
+            ? votes.filter((vote) => vote.isCorrect === true).length
+            : undefined;
+      const incorrectCount =
+        q.type === 'SHORT_TEXT'
+          ? shortTextIncorrectCount
+          : includesCorrectnessSummary
+            ? votes.filter((vote) => vote.isCorrect === false).length
+            : undefined;
+      const correctPercentage = computeCorrectPercentage(correctCount, incorrectCount);
+
       return {
         questionOrder: q.order,
         questionTextShort: q.text.slice(0, QUESTION_TEXT_SHORT_MAX),
         questionTextFull: q.text,
         type: q.type as QuestionType,
+        difficulty,
         participantCount,
         optionDistribution,
         freetextAggregates,
@@ -1907,8 +1960,9 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
             : undefined,
         shortTextIncorrectAggregates:
           q.type === 'SHORT_TEXT' ? shortTextIncorrectAggregates : undefined,
-        correctCount: q.type === 'SHORT_TEXT' ? shortTextCorrectCount : undefined,
-        incorrectCount: q.type === 'SHORT_TEXT' ? shortTextIncorrectCount : undefined,
+        correctCount,
+        incorrectCount,
+        correctPercentage: correctPercentage ?? undefined,
         ratingDistribution,
         ratingAverage,
         ratingStandardDeviation,
@@ -1931,12 +1985,20 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
             : undefined,
         numericDecimalPlaces:
           q.type === 'NUMERIC_ESTIMATE' ? (q.numericDecimalPlaces ?? null) : undefined,
+        confidenceEnabled: q.confidenceEnabled,
         confidenceResult,
         aggregationRound,
         round1ParticipantCount,
         round2ParticipantCount,
         round1OptionDistribution,
+        roundComparison,
         averageScore,
+        effectiveTimerSeconds: responseTimeAggregate?.effectiveTimerSeconds,
+        medianResponseTimeMs: responseTimeAggregate?.medianResponseTimeMs,
+        q1ResponseTimeMs: responseTimeAggregate?.q1ResponseTimeMs,
+        q3ResponseTimeMs: responseTimeAggregate?.q3ResponseTimeMs,
+        nearDeadlineCount: responseTimeAggregate?.nearDeadlineCount,
+        responseTimeRound,
       };
     },
   );
@@ -1962,6 +2024,45 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
           session.quiz.teamNames,
         )
       : undefined;
+
+  let teamLearningProfiles: TeamLearningProfileEntry[] | undefined;
+  if (session.quiz.teamMode === true) {
+    const teamsById = new Map<
+      string,
+      { teamName: string; memberCount: number; memberIds: Set<string> }
+    >();
+    for (const participant of session.participants) {
+      if (!participant.teamId || !participant.team?.name) continue;
+      const existing = teamsById.get(participant.teamId);
+      if (existing) {
+        existing.memberCount += 1;
+        existing.memberIds.add(participant.id);
+      } else {
+        teamsById.set(participant.teamId, {
+          teamName: participant.team.name,
+          memberCount: 1,
+          memberIds: new Set([participant.id]),
+        });
+      }
+    }
+    const profiles = buildTeamLearningProfiles({
+      teams: [...teamsById.values()],
+      questions: questions.map((question: QuestionWithAnswersForExport) => {
+        const allVotes = votesByQuestion.get(question.id) ?? [];
+        const { effectiveRound } = resolveEffectiveAggregationRound(allVotes);
+        const votes = allVotes.filter((vote) => (vote.round ?? 1) === effectiveRound);
+        return {
+          questionOrder: question.order,
+          type: question.type as QuestionType,
+          votes: votes.map((vote) => ({
+            participantId: vote.participantId,
+            isCorrect: vote.isCorrect,
+          })),
+        };
+      }),
+    });
+    teamLearningProfiles = profiles.length > 0 ? profiles : undefined;
+  }
 
   const qaRows = await prisma.qaQuestion.findMany({
     where: {
@@ -1996,6 +2097,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
     confidenceSummary: confidenceSummary ?? undefined,
     feedbackSummary,
     teamLeaderboard: teamLeaderboard && teamLeaderboard.length > 0 ? teamLeaderboard : undefined,
+    teamLearningProfiles,
     bonusTokens,
     qaQuestions,
   };
@@ -2756,132 +2858,31 @@ async function buildRoundComparison(
   questionId: string,
   answers: Array<{ id: string; text: string; isCorrect: boolean }>,
 ): Promise<RoundComparisonDTO> {
-  const correctIds = new Set(answers.filter((a) => a.isCorrect).map((a) => a.id));
-
-  type VoteWithAnswers = { participantId: string; selectedAnswers: { answerOptionId: string }[] };
-
-  const buildDistribution = async (
-    round: number,
-  ): Promise<{
-    total: number;
-    dist: RoundDistributionEntry[];
-    correctCount: number;
-    votes: VoteWithAnswers[];
-  }> => {
-    const votes = await prisma.vote.findMany({
-      where: { sessionId, questionId, round },
+  const [round1Votes, round2Votes] = await Promise.all([
+    prisma.vote.findMany({
+      where: { sessionId, questionId, round: 1 },
       include: { selectedAnswers: true },
-    });
-    const total = votes.length;
-    const counts = new Map<string, number>();
-    for (const v of votes) {
-      for (const sa of v.selectedAnswers) {
-        counts.set(sa.answerOptionId, (counts.get(sa.answerOptionId) ?? 0) + 1);
-      }
-    }
-    const dist: RoundDistributionEntry[] = answers.map((a) => ({
-      id: a.id,
-      text: a.text,
-      isCorrect: a.isCorrect,
-      voteCount: counts.get(a.id) ?? 0,
-      votePercentage: total > 0 ? Math.round(((counts.get(a.id) ?? 0) / total) * 100) : 0,
-    }));
-    const correctCount =
-      correctIds.size > 0
-        ? votes.filter((v) => {
-            const selected = new Set(v.selectedAnswers.map((sa) => sa.answerOptionId));
-            if (selected.size !== correctIds.size) return false;
-            for (const id of correctIds) {
-              if (!selected.has(id)) return false;
-            }
-            return true;
-          }).length
-        : 0;
-    return { total, dist, correctCount, votes };
-  };
-
-  const r1 = await buildDistribution(1);
-  const r2 = await buildDistribution(2);
-
-  const isCorrectVote = (v: VoteWithAnswers): boolean => {
-    if (correctIds.size === 0) return false;
-    const sel = new Set(v.selectedAnswers.map((sa) => sa.answerOptionId));
-    if (sel.size !== correctIds.size) return false;
-    for (const id of correctIds) {
-      if (!sel.has(id)) return false;
-    }
-    return true;
-  };
-
-  const answerKey = (v: VoteWithAnswers): string =>
-    v.selectedAnswers
-      .map((sa) => sa.answerOptionId)
-      .sort()
-      .join(',');
-
-  const r1ByParticipant = new Map(r1.votes.map((v) => [v.participantId, v]));
-  const r2ByParticipant = new Map(r2.votes.map((v) => [v.participantId, v]));
-
-  const answerTextById = new Map(answers.map((a) => [a.id, a.text]));
-
-  const primaryAnswer = (v: VoteWithAnswers): string =>
-    v.selectedAnswers.length > 0 ? v.selectedAnswers[0]!.answerOptionId : '';
-
-  let bothRoundsCount = 0;
-  let changedCount = 0;
-  let wrongToCorrectCount = 0;
-  let correctToWrongCount = 0;
-
-  const migrationCounts = new Map<string, number>();
-
-  for (const [pid, v1] of r1ByParticipant) {
-    const v2 = r2ByParticipant.get(pid);
-    if (!v2) continue;
-    bothRoundsCount++;
-    if (answerKey(v1) !== answerKey(v2)) {
-      changedCount++;
-      const wasCorrect = isCorrectVote(v1);
-      const nowCorrect = isCorrectVote(v2);
-      if (!wasCorrect && nowCorrect) wrongToCorrectCount++;
-      if (wasCorrect && !nowCorrect) correctToWrongCount++;
-
-      const fromId = primaryAnswer(v1);
-      const toId = primaryAnswer(v2);
-      if (fromId && toId) {
-        const mKey = `${fromId}|${toId}`;
-        migrationCounts.set(mKey, (migrationCounts.get(mKey) ?? 0) + 1);
-      }
-    }
-  }
-
-  const migrations: VoterMigrationEntry[] = [];
-  for (const [mKey, count] of migrationCounts) {
-    const [fromId, toId] = mKey.split('|');
-    const fromText = answerTextById.get(fromId!) ?? fromId!;
-    const toText = answerTextById.get(toId!) ?? toId!;
-    migrations.push({ from: fromText, to: toText, count });
-  }
-  migrations.sort((a, b) => b.count - a.count);
-
-  return {
-    round1Total: r1.total,
-    round2Total: r2.total,
-    round1Distribution: r1.dist,
-    round2Distribution: r2.dist,
-    round1CorrectCount: r1.correctCount,
-    round2CorrectCount: r2.correctCount,
-    opinionShift:
-      bothRoundsCount > 0
-        ? {
-            bothRoundsCount,
-            changedCount,
-            changedPercentage: Math.round((changedCount / bothRoundsCount) * 100),
-            wrongToCorrectCount: correctIds.size > 0 ? wrongToCorrectCount : undefined,
-            correctToWrongCount: correctIds.size > 0 ? correctToWrongCount : undefined,
-            migrations: migrations.length > 0 ? migrations : undefined,
-          }
-        : undefined,
-  };
+    }),
+    prisma.vote.findMany({
+      where: { sessionId, questionId, round: 2 },
+      include: { selectedAnswers: true },
+    }),
+  ]);
+  return buildRoundComparisonFromVotes(
+    answers,
+    round1Votes.map((vote) => ({
+      participantId: vote.participantId,
+      selectedAnswers: vote.selectedAnswers.map((selected) => ({
+        answerOptionId: selected.answerOptionId,
+      })),
+    })),
+    round2Votes.map((vote) => ({
+      participantId: vote.participantId,
+      selectedAnswers: vote.selectedAnswers.map((selected) => ({
+        answerOptionId: selected.answerOptionId,
+      })),
+    })),
+  );
 }
 
 /**
@@ -3136,19 +3137,39 @@ function buildNumericHistogram(
   min = niceRange.min;
   max = niceRange.max;
   const binWidth = (max - min) / targetBins;
+  const edges = Array.from({ length: targetBins + 1 }, (_, index) => min + index * binWidth);
+  if (band) {
+    const usedIndexes = new Set<number>();
+    for (const boundary of [band.left, band.right]) {
+      if (boundary <= min || boundary >= max) continue;
+      const candidates = edges
+        .map((edge, index) => ({ edge, index }))
+        .filter(({ index }) => index > 0 && index < targetBins && !usedIndexes.has(index))
+        .sort(
+          (left, right) =>
+            Math.abs(left.edge - boundary) - Math.abs(right.edge - boundary) ||
+            left.index - right.index,
+        );
+      const selected = candidates[0];
+      if (selected) {
+        edges[selected.index] = boundary;
+        usedIndexes.add(selected.index);
+      }
+    }
+    edges.sort((left, right) => left - right);
+  }
   const bins: NumericHistogramBin[] = [];
   for (let i = 0; i < targetBins; i++) {
-    const from = min + i * binWidth;
-    const to = i === targetBins - 1 ? max : min + (i + 1) * binWidth;
+    const from = edges[i]!;
+    const to = edges[i + 1]!;
     const count = values.filter((v) =>
       i === targetBins - 1 ? v >= from && v <= to : v >= from && v < to,
     ).length;
-    const midpoint = (from + to) / 2;
     bins.push({
       from: round4(from),
       to: round4(to),
       count,
-      inBand: band ? isNumericValueInBand(midpoint, band) : false,
+      inBand: band ? from >= band.left && to <= band.right : false,
     });
   }
   return bins;

@@ -5,8 +5,10 @@ import {
   buildSessionResultsReportHtml,
   buildSessionResultsPdfFilename,
   buildSessionResultsPlaywrightPdfOptions,
+  buildQuestionContinuationStamps,
   getSessionResultsReportLabelsForLocale,
   inlineExportImagesInHtml,
+  stampQuestionContinuationsOnPdf,
 } from '@arsnova/session-export-report';
 import { readSessionExportLocalAsset } from './session-export-asset-reader';
 
@@ -71,7 +73,7 @@ export async function buildSessionResultsPdf(
     const page = await browser.newPage();
     // `load` statt `networkidle`: fehlende Asset-URLs sollen den PDF-Export nicht hängen lassen.
     await page.setContent(html, { waitUntil: 'load', timeout: 60_000 });
-    return Buffer.from(
+    const rawPdf = Buffer.from(
       await page.pdf(
         buildSessionResultsPlaywrightPdfOptions(labels, {
           quizName: data.quizName,
@@ -79,6 +81,11 @@ export async function buildSessionResultsPdf(
         }),
       ),
     );
+    const stamped = await stampQuestionContinuationsOnPdf(
+      new Uint8Array(rawPdf),
+      buildQuestionContinuationStamps(data, labels),
+    );
+    return Buffer.from(stamped);
   } finally {
     await browser?.close();
   }

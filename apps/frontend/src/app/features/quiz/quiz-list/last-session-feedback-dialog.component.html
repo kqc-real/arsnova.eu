@@ -73,6 +73,14 @@
               {{ confidence.priorityQuestionCount }}
             </span>
           </div>
+        } @else if ((confidence.signalQuestionCount ?? 0) > 0) {
+          <div class="last-session-feedback-dialog__confidence-alert" role="status">
+            <mat-icon aria-hidden="true">info</mat-icon>
+            <span>
+              <span i18n="@@quizList.lastSessionAnalysisSignal">Hinweis:</span>
+              {{ confidence.signalQuestionCount }}
+            </span>
+          </div>
         }
 
         <div class="last-session-feedback-dialog__confidence-metrics">
@@ -146,7 +154,9 @@
                   </span>
                   @if (topWrongOption(question); as option) {
                     <span>
-                      <span i18n="@@quizList.lastSessionAnalysisTopSignal">Stärkstes Signal:</span>
+                      <span i18n="@@quizList.lastSessionAnalysisTopSignal"
+                        >⚠ Nachbesprechungsimpuls:</span
+                      >
                       {{ option }}
                     </span>
                   }

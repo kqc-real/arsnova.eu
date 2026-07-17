@@ -2189,6 +2189,8 @@ export const ConfidenceResultDTOSchema = z.object({
   crossTab: ConfidenceCrossTabSchema,
   highConfidenceWrongCount: z.number().int().min(0),
   highConfidenceWrongOptions: z.array(ConfidenceWrongOptionCountSchema).optional(),
+  /** MC: ausgelassene richtige Optionen bei selbstsicher falschen Antworten. */
+  highConfidenceOmittedCorrectOptions: z.array(ConfidenceWrongOptionCountSchema).optional(),
 });
 export type ConfidenceResultDTO = z.infer<typeof ConfidenceResultDTOSchema>;
 
@@ -2205,6 +2207,7 @@ export const SessionConfidenceSummaryDTOSchema = z.object({
   responseCount: z.number().int().min(1),
   includedQuestionCount: z.number().int().min(1),
   suppressedQuestionCount: z.number().int().min(0),
+  signalQuestionCount: z.number().int().min(0).optional(),
   priorityQuestionCount: z.number().int().min(0),
   distribution: ConfidenceDistributionSchema,
   crossTab: ConfidenceCrossTabSchema,
@@ -2804,9 +2807,9 @@ export const TeamLeaderboardEntryDTOSchema = z.object({
   rank: z.number(),
   teamName: z.string(),
   teamColor: z.string().nullable(),
-  totalScore: z.number(), // Harmonisierte Team-Punkte (Gesamtpunkte / Teamgröße)
+  totalScore: z.number(), // Normalisierter Team-Score (Gesamtpunkte / Teamgröße)
   memberCount: z.number(),
-  averageScore: z.number(), // Durchschnitt pro Mitglied (derzeit identisch zu totalScore)
+  averageScore: z.number(), // @deprecated Derzeit identisch zu totalScore
 });
 export type TeamLeaderboardEntryDTO = z.infer<typeof TeamLeaderboardEntryDTOSchema>;
 
@@ -3205,13 +3208,19 @@ export const QuestionExportEntrySchema = z.object({
   /** Vollständiger Fragentext (Markdown) für PDF/Report. */
   questionTextFull: z.string().optional(),
   type: QuestionTypeEnum,
+  /** Konfigurierte Schwierigkeit (Quiz-Editor). */
+  difficulty: DifficultyEnum.optional(),
   participantCount: z.number(), // Anzahl abgegebener Votes für diese Frage
   optionDistribution: z.array(OptionDistributionEntrySchema).optional(), // MC/SC
   freetextAggregates: z.array(FreetextAggregateEntrySchema).optional(), // FREETEXT
   shortTextSolutions: z.array(z.string()).optional(), // SHORT_TEXT
   shortTextIncorrectAggregates: z.array(FreetextAggregateEntrySchema).optional(), // SHORT_TEXT
-  correctCount: z.number().optional(), // SHORT_TEXT
-  incorrectCount: z.number().optional(), // SHORT_TEXT
+  /** Empirische Anzahl korrekter Votes (Effective-Vote-Regel). Alias-Semantik: correctVoterCount. */
+  correctCount: z.number().optional(),
+  /** Empirische Anzahl inkorrekter Votes (Effective-Vote-Regel). Alias-Semantik: incorrectVoterCount. */
+  incorrectCount: z.number().optional(),
+  /** Anteil korrekter Votes in Prozent (0–100), gerundet; nur bei bewertbaren Typen. */
+  correctPercentage: z.number().nullable().optional(),
   ratingDistribution: z.record(z.string(), z.number()).optional(), // RATING: "1" -> 5, "2" -> 12
   ratingAverage: z.number().optional(),
   ratingStandardDeviation: z.number().optional(),
@@ -3225,6 +3234,8 @@ export const QuestionExportEntrySchema = z.object({
   numericToleranceMode: z.string().nullable().optional(),
   numericInputType: z.enum(['INTEGER', 'DECIMAL']).nullable().optional(),
   numericDecimalPlaces: z.number().int().nullable().optional(),
+  /** Ob Selbsteinschätzung für diese Frage im Quiz aktiviert war. */
+  confidenceEnabled: z.boolean().optional(),
   confidenceResult: ConfidenceResultDTOSchema.optional(),
   /** Aggregationsrunde für Verteilung, Selbsteinschätzung und Punkte (Effective-Vote-Regel). */
   aggregationRound: z.union([z.literal(1), z.literal(2)]).optional(),
@@ -3234,9 +3245,43 @@ export const QuestionExportEntrySchema = z.object({
   round2ParticipantCount: z.number().int().optional(),
   /** MC/SC-Verteilung Runde 1 (Peer Instruction), wenn Runde-2-Votes existieren. */
   round1OptionDistribution: z.array(OptionDistributionEntrySchema).optional(),
-  averageScore: z.number().optional(), // Durchschnittspunkte (wenn gescored)
+  /** Peer-Instruction-Vergleich inkl. Meinungsaustausch (SC/MC, wenn Runde 2 existiert). */
+  roundComparison: RoundComparisonDTOSchema.optional(),
+  averageScore: z.number().optional(), // technischer Durchschnittsscore; im Lehrbericht nicht angezeigt
+  /** Effektiver Timer in Sekunden (nur wenn ein Timer aktiv war). */
+  effectiveTimerSeconds: z.number().int().nullable().optional(),
+  /** Anonyme Antwortzeit-Aggregate (nur bei aktivem Timer). */
+  medianResponseTimeMs: z.number().int().optional(),
+  q1ResponseTimeMs: z.number().int().optional(),
+  q3ResponseTimeMs: z.number().int().optional(),
+  /** Votes in den letzten 20 % der Timerzeit. */
+  nearDeadlineCount: z.number().int().optional(),
+  /**
+   * Runde, aus der die Antwortzeiten stammen.
+   * Bei Peer Instruction immer Runde 1 (Runde 2 ohne Timer).
+   */
+  responseTimeRound: z.union([z.literal(1), z.literal(2)]).optional(),
 });
 export type QuestionExportEntry = z.infer<typeof QuestionExportEntrySchema>;
+
+/** Frage mit Lösungsquote im Team-Lernprofil. */
+export const TeamLearningQuestionScoreSchema = z.object({
+  questionOrder: z.number().int().min(0),
+  /** Empirische Lösungsquote im Team (0–100). */
+  correctPercentage: z.number(),
+});
+export type TeamLearningQuestionScore = z.infer<typeof TeamLearningQuestionScoreSchema>;
+
+/** Team-Lernprofil für den Ergebnisbericht (nur bei ≥5 Mitgliedern). */
+export const TeamLearningProfileEntrySchema = z.object({
+  teamName: z.string(),
+  memberCount: z.number().int().min(1),
+  /** Stärken: hohe Lösungsquote im Team. */
+  strengthQuestions: z.array(TeamLearningQuestionScoreSchema),
+  /** Klärungsbedarf: niedrige Lösungsquote im Team. */
+  focusQuestions: z.array(TeamLearningQuestionScoreSchema),
+});
+export type TeamLearningProfileEntry = z.infer<typeof TeamLearningProfileEntrySchema>;
 
 /** Aggregierte Q&A-Frage für Session-Export (ohne Nicknames). */
 export const QaExportEntrySchema = z.object({
@@ -3275,6 +3320,8 @@ export const SessionExportDTOSchema = z.object({
   confidenceSummary: SessionConfidenceSummaryDTOSchema.optional(),
   feedbackSummary: SessionFeedbackSummarySchema.optional(),
   teamLeaderboard: z.array(TeamLeaderboardEntryDTOSchema).optional(),
+  /** Fachliches Team-Lernprofil (nur Teams mit ≥5 Mitgliedern). */
+  teamLearningProfiles: z.array(TeamLearningProfileEntrySchema).optional(),
   bonusTokens: z.array(BonusTokenEntryDTOSchema).optional(), // optional einbeziehen (Pseudonyme)
   qaQuestions: z.array(QaExportEntrySchema).optional(),
 });

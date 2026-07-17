@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### How is the room feeling right now?\n\n> **Teaching move:** Use this as a quick check-in at the start of class, before feedback, or after a demanding task.\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Click for full view.*",
+        "text": "### How is the room feeling right now?\n\n> **Teaching move:** Use this as a quick check-in at the start of class, before feedback, or after a demanding task.\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",

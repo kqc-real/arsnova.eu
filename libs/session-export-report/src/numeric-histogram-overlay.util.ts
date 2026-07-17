@@ -4,7 +4,7 @@ import {
   resolveNumericTolerance,
 } from '@arsnova/shared-types';
 import type { SessionResultsReportLabels } from './labels-de';
-import { formatLocaleNumber } from './locale-number.util';
+import { formatLocaleCount, formatLocaleNumber } from './locale-number.util';
 
 export type NumericHistogramOverlayContext = Pick<
   QuestionExportEntry,
@@ -82,7 +82,7 @@ function usesYearFormat(context: NumericHistogramOverlayContext): boolean {
   return false;
 }
 
-function formatNumericValue(
+export function formatNumericEstimateValue(
   value: number,
   context: NumericHistogramOverlayContext,
   localeId: string,
@@ -112,6 +112,7 @@ function formatNumericValue(
   return formatLocaleNumber(value, localeId, {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
+    useGrouping: false,
   });
 }
 
@@ -175,13 +176,32 @@ export function renderNumericHistogramBandCaption(
   if (!band) return '';
 
   const referenceValue = context.numericReferenceValue;
-  const caption = `${labels.numericToleranceBand} ${formatNumericValue(band.left, context, localeId, true)}–${formatNumericValue(band.right, context, localeId, true)}${
+  const caption = `${labels.numericToleranceBand}: ${formatNumericEstimateValue(band.left, context, localeId, true)}–${formatNumericEstimateValue(band.right, context, localeId, true)}${
     referenceValue !== null && referenceValue !== undefined
-      ? ` · ${labels.numericReference} ${formatNumericValue(referenceValue, context, localeId)}`
+      ? ` · ${labels.numericReference}: ${formatNumericEstimateValue(referenceValue, context, localeId)}`
       : ''
   }`;
 
   return `<p class="report-numeric-band-caption">${escapeHtml(caption)}</p>`;
+}
+
+/** Hauptbotschaft für Schätzfragen: Anteil im akzeptierten Bereich vor dem Histogramm. */
+export function renderNumericInBandSummaryHtml(
+  stats: { n: number; inBandCount: number },
+  context: NumericHistogramOverlayContext,
+  labels: SessionResultsReportLabels,
+  localeId: string,
+): string {
+  const band = toleranceBand(context);
+  if (!band || stats.n <= 0) return '';
+
+  const text = labels.numericInBandSummaryTemplate
+    .replace('{0}', formatLocaleCount(stats.inBandCount, localeId))
+    .replace('{1}', formatLocaleCount(stats.n, localeId))
+    .replace('{2}', formatNumericEstimateValue(band.left, context, localeId, true))
+    .replace('{3}', formatNumericEstimateValue(band.right, context, localeId, true));
+
+  return `<p class="report-numeric-primary"><strong>${escapeHtml(text)}</strong></p>`;
 }
 
 export function renderNumericHistogramReferenceLabel(
@@ -195,8 +215,23 @@ export function renderNumericHistogramReferenceLabel(
   if (!range || referenceValue === null || referenceValue === undefined) return '';
   const refLeft = referencePercent(referenceValue, range);
   if (refLeft === null) return '';
-  const refLabel = `${labels.numericReference} ${formatNumericValue(referenceValue, context, localeId)}`;
+  const refLabel = `${labels.numericReference}: ${formatNumericEstimateValue(referenceValue, context, localeId)}`;
   return `<span class="report-hist-reference-label" style="left:${refLeft.toFixed(2)}%">${escapeHtml(refLabel)}</span>`;
+}
+
+export function renderNumericHistogramBandLabel(
+  bins: NumericHistogramBin[],
+  context: NumericHistogramOverlayContext,
+  labels: SessionResultsReportLabels,
+  localeId: string,
+): string {
+  const band = toleranceBand(context);
+  const range = histogramValueRange(bins);
+  if (!band || !range) return '';
+  const style = bandStyle(band, range);
+  if (!style) return '';
+  const label = `${labels.numericToleranceBand}: ${formatNumericEstimateValue(band.left, context, localeId, true)}–${formatNumericEstimateValue(band.right, context, localeId, true)}`;
+  return `<span class="report-hist-band-label" style="left:${style.left.toFixed(2)}%;width:${style.width.toFixed(2)}%">${escapeHtml(label)}</span>`;
 }
 
 /** @deprecated Nutze {@link renderNumericHistogramOverlayElements} und {@link renderNumericHistogramBandCaption}. */
@@ -208,6 +243,7 @@ export function renderNumericHistogramOverlayHtml(
 ): string {
   return (
     renderNumericHistogramOverlayElements(bins, context) +
+    renderNumericHistogramBandLabel(bins, context, labels, localeId) +
     renderNumericHistogramReferenceLabel(bins, context, labels, localeId) +
     renderNumericHistogramBandCaption(context, labels, localeId)
   );
