@@ -81,9 +81,11 @@ export async function buildSessionResultsPdf(
         }),
       ),
     );
+    const documentTitle = `${labels.documentTitle} — ${data.quizName}`;
     const stamped = await stampQuestionContinuationsOnPdf(
       new Uint8Array(rawPdf),
       buildQuestionContinuationStamps(data, labels),
+      { documentTitle },
     );
     return Buffer.from(stamped);
   } finally {

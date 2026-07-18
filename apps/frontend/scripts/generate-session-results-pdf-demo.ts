@@ -159,9 +159,11 @@ async function renderLocalPlaywrightPdf(
         sessionCode: exportData.sessionCode,
       }),
     );
+    const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
     const stamped = await stampQuestionContinuationsOnPdf(
       new Uint8Array(raw),
       buildQuestionContinuationStamps(exportData, labels),
+      { documentTitle },
     );
     return Buffer.from(stamped);
   } finally {

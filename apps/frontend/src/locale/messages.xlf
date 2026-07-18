@@ -418,7 +418,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.documentTitle" datatype="html">
-        <source>Session-Ergebnisbericht</source>
+        <source>Didaktische Quiz-Auswertung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">6</context>
@@ -432,7 +432,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.coverSubtitle" datatype="html">
-        <source>Lernstand, Fehlkonzepte und Nachbesprechungsplan</source>
+        <source>Lernstand, mögliche Fehlkonzepte und Nachbesprechungsplan</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">8</context>
@@ -579,7 +579,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceRisk" datatype="html">
-        <source>Antworten mit Fehlkonzept-Muster</source>
+        <source>Antworten mit Fehlkonzept-Hinweis</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">29</context>
@@ -628,7 +628,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceReadingGuideRisk" datatype="html">
-        <source>Antwort mit Fehlkonzept-Muster = falsche Antwort + hohe Selbsteinschätzung (4–5)</source>
+        <source>Antwort mit Fehlkonzept-Hinweis = falsche Antwort + hohe Selbsteinschätzung (4–5)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">36</context>
@@ -852,7 +852,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.lowSuccessRateHintTemplate" datatype="html">
-        <source>{0} richtig – ungewöhnlich schwierig; ein kurzer Rückblick könnte helfen.</source>
+        <source>Nur {0} antworteten richtig in dieser Session. Formulierung, Vorwissen und Zeitlimit prüfen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">68</context>
@@ -985,7 +985,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceRiskCol" datatype="html">
-        <source>Fehlkonzept-Muster</source>
+        <source>Fehlkonzept-Hinweis</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">87</context>
@@ -1314,7 +1314,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.finalSummaryRiskTemplate" datatype="html">
-        <source>{0} der Antworten mit Fehlkonzept-Risiko</source>
+        <source>{0} der Antworten mit Fehlkonzept-Hinweis</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">134</context>
@@ -1328,7 +1328,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.nextStepsDebriefFirstTemplate" datatype="html">
-        <source>Frage {0} zuerst nachbesprechen (Fehlkonzept)</source>
+        <source>Frage {0} zuerst nachbesprechen (Fehlkonzept-Hinweis)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">136</context>
@@ -1693,7 +1693,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.coverSummaryRisk" datatype="html">
-        <source>Fragen mit Fehlkonzept-Muster</source>
+        <source>Fragen mit Fehlkonzept-Hinweis</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">183</context>
@@ -1798,7 +1798,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.heatmapLegendToneRisk" datatype="html">
-        <source>⚠ Fehlkonzept-Muster: falsch und hohe Selbsteinschätzung</source>
+        <source>⚠ Fehlkonzept-Hinweis: falsch und hohe Selbsteinschätzung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">198</context>
@@ -1833,7 +1833,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.heatmapCompactLegend" datatype="html">
-        <source>✓ Gefestigt · ⚠ Fehlkonzept · ? Fragil · ◯ Wissenslücke · M Mittel</source>
+        <source>✓ Gefestigt · ⚠ Hinweis · ? Fragil · ◯ Wissenslücke · M Mittel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">203</context>
@@ -1959,7 +1959,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.actionPlanDebrief" datatype="html">
-        <source>Fehlkonzept zuerst klären</source>
+        <source>Mögliches Fehlkonzept zuerst klären</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">221</context>
@@ -2001,7 +2001,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.actionPlanCriteriaNote" datatype="html">
-        <source>Automatisch priorisiert nach Fehlkonzept-Risiko, Lösungsquote und Antwortsicherheit.</source>
+        <source>Automatisch priorisiert nach Fehlkonzept-Hinweis, Lösungsquote und Antwortsicherheit.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">227</context>
@@ -2162,7 +2162,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.unusedDistractorTemplate" datatype="html">
-        <source>Die falsche Option „{0}“ wurde in dieser Session nicht gewählt – ggf. zu offensichtlich.</source>
+        <source>Die falsche Option „{0}“ wurde in dieser Session nicht gewählt. Bei wiederholtem Auftreten Überarbeitung prüfen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">250</context>
@@ -5100,7 +5100,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.confidenceExportBody" datatype="html">
-        <source> Nach Session-Ende fasst die Auswertung gefestigtes Wissen, Fehlkonzept-Risiko und fragiles Wissen zusammen. Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden nicht aggregiert ausgewiesen. Der Nachbesprechungsplan (PDF) ist das empfohlene Format; CSV steht unter „Mehr“ für Excel zur Verfügung. In der Quiz-Sammlung findest du den Nachbesprechungsplan auf der Quizkarte. </source>
+        <source> Nach Session-Ende fasst die Auswertung gefestigtes Wissen, Fehlkonzept-Hinweis und fragiles Wissen zusammen. Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden nicht aggregiert ausgewiesen. Der Nachbesprechungsplan (PDF) ist das empfohlene Format; CSV steht unter „Mehr“ für Excel zur Verfügung. In der Quiz-Sammlung findest du den Nachbesprechungsplan auf der Quizkarte. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">216,222</context>
@@ -11147,7 +11147,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.finishedConfidenceRisk" datatype="html">
-        <source>Anteil Fehlkonzept-Muster</source>
+        <source>Anteil Fehlkonzept-Hinweis</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">726</context>
@@ -13498,7 +13498,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportQuestionsHeader" datatype="html">
-        <source>Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden;Häufigste selbstsicher falsche Antwort;Details</source>
+        <source>Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung nGefestigt;Fehlkonzept-Hinweis;Fragil;Erkannte Wissenslücke;Unentschieden;Häufigste selbstsicher falsche Antwort;Details</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">5943</context>
@@ -13512,7 +13512,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportConfidenceSummaryHeader" datatype="html">
-        <source>Gültige Antworten;Ausgewertete Fragen;Nicht aggregiert (&lt;5 Antworten mit Selbsteinschätzung);Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden</source>
+        <source>Gültige Antworten;Ausgewertete Fragen;Nicht aggregiert (&lt;5 Antworten mit Selbsteinschätzung)Gefestigt;Fehlkonzept-Hinweis;Fragil;Erkannte Wissenslücke;Unentschieden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6000</context>

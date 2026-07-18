@@ -475,8 +475,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.documentTitle" datatype="html">
-        <source>Session-Ergebnisbericht</source>
-        <target>Rapport sur les résultats de la séance</target>
+        <source>Didaktische Quiz-Auswertung</source>
+        <target>Analyse pédagogique du quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">6</context>
@@ -491,8 +491,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.coverSubtitle" datatype="html">
-        <source>Lernstand, Fehlkonzepte und Nachbesprechungsplan</source>
-        <target>Niveau de maîtrise, conceptions erronées et plan de débriefing</target>
+        <source>Lernstand, mögliche Fehlkonzepte und Nachbesprechungsplan</source>
+        <target>Niveau de maîtrise, possibles conceptions erronées et plan de débriefing</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">8</context>
@@ -659,8 +659,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceRisk" datatype="html">
-        <source>Antworten mit Fehlkonzept-Muster</source>
-        <target>Réponses avec schéma d’idée fausse</target>
+        <source>Antworten mit Fehlkonzept-Hinweis</source>
+        <target>Réponses avec indice de conception erronée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">29</context>
@@ -715,8 +715,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceReadingGuideRisk" datatype="html">
-        <source>Antwort mit Fehlkonzept-Muster = falsche Antwort + hohe Selbsteinschätzung (4–5)</source>
-        <target>Réponse avec schéma d’idée fausse = réponse incorrecte + forte auto-évaluation (4–5)</target>
+        <source>Antwort mit Fehlkonzept-Hinweis = falsche Antwort + hohe Selbsteinschätzung (4–5)</source>
+        <target>Indice de conception erronée = mauvaise réponse + autoévaluation élevée (4–5)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">36</context>
@@ -971,8 +971,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.lowSuccessRateHintTemplate" datatype="html">
-        <source>{0} richtig – ungewöhnlich schwierig; ein kurzer Rückblick könnte helfen.</source>
-        <target>{0} de bonnes réponses — difficulté inhabituelle ; un court rappel pourrait aider.</target>
+        <source>Nur {0} antworteten richtig in dieser Session. Formulierung, Vorwissen und Zeitlimit prüfen.</source>
+        <target>Seulement {0} ont répondu correctement dans cette séance. Vérifiez la formulation, les prérequis et la limite de temps.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">68</context>
@@ -1123,7 +1123,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.confidenceRiskCol" datatype="html">
-        <source>Fehlkonzept-Muster</source>
+        <source>Fehlkonzept-Hinweis</source>
         <target>Schéma d’idée fausse</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
@@ -1499,8 +1499,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.finalSummaryRiskTemplate" datatype="html">
-        <source>{0} der Antworten mit Fehlkonzept-Risiko</source>
-        <target>{0} des réponses avec risque d’idée fausse</target>
+        <source>{0} der Antworten mit Fehlkonzept-Hinweis</source>
+        <target>{0} des réponses avec indice de conception erronée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">134</context>
@@ -1515,8 +1515,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.nextStepsDebriefFirstTemplate" datatype="html">
-        <source>Frage {0} zuerst nachbesprechen (Fehlkonzept)</source>
-        <target>Faites d&apos;abord un compte rendu sur la question {0} (idée fausse)</target>
+        <source>Frage {0} zuerst nachbesprechen (Fehlkonzept-Hinweis)</source>
+        <target>Débriefer d’abord la question {0} (indice de conception erronée)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">136</context>
@@ -1927,8 +1927,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.coverSummaryRisk" datatype="html">
-        <source>Fragen mit Fehlkonzept-Muster</source>
-        <target>Questions avec schéma d’idée fausse</target>
+        <source>Fragen mit Fehlkonzept-Hinweis</source>
+        <target>Questions avec indice de conception erronée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">183</context>
@@ -2047,8 +2047,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.heatmapLegendToneRisk" datatype="html">
-        <source>⚠ Fehlkonzept-Muster: falsch und hohe Selbsteinschätzung</source>
-        <target>⚠ Schéma d’idée fausse : incorrect avec forte auto-évaluation</target>
+        <source>⚠ Fehlkonzept-Hinweis: falsch und hohe Selbsteinschätzung</source>
+        <target>⚠ Indice de conception erronée : incorrect avec autoévaluation élevée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">198</context>
@@ -2087,8 +2087,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.heatmapCompactLegend" datatype="html">
-        <source>✓ Gefestigt · ⚠ Fehlkonzept · ? Fragil · ◯ Wissenslücke · M Mittel</source>
-        <target>✓ Consolidé · ⚠ Idée fausse · ? Fragile · ◯ Lacune · M Moyen</target>
+        <source>✓ Gefestigt · ⚠ Hinweis · ? Fragil · ◯ Wissenslücke · M Mittel</source>
+        <target>✓ Consolidé · ⚠ Indice · ? Fragile · ◯ Lacune · M Moyen</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">203</context>
@@ -2231,8 +2231,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.actionPlanDebrief" datatype="html">
-        <source>Fehlkonzept zuerst klären</source>
-        <target>Éliminez d’abord l’idée fausse</target>
+        <source>Mögliches Fehlkonzept zuerst klären</source>
+        <target>Clarifier d’abord une possible conception erronée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">221</context>
@@ -2279,8 +2279,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.actionPlanCriteriaNote" datatype="html">
-        <source>Automatisch priorisiert nach Fehlkonzept-Risiko, Lösungsquote und Antwortsicherheit.</source>
-        <target>Priorité automatique en fonction du risque d&apos;idée fausse, du taux de solution et de la fiabilité des réponses.</target>
+        <source>Automatisch priorisiert nach Fehlkonzept-Hinweis, Lösungsquote und Antwortsicherheit.</source>
+        <target>Priorisé automatiquement selon l’indice de conception erronée, le taux de réussite et la certitude.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">227</context>
@@ -2463,8 +2463,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionReport.unusedDistractorTemplate" datatype="html">
-        <source>Die falsche Option „{0}“ wurde in dieser Session nicht gewählt – ggf. zu offensichtlich.</source>
-        <target>L’option incorrecte « {0} » n’a pas été choisie dans cette session – peut-être trop évidente.</target>
+        <source>Die falsche Option „{0}“ wurde in dieser Session nicht gewählt. Bei wiederholtem Auftreten Überarbeitung prüfen.</source>
+        <target>L’option incorrecte « {0} » n’a pas été choisie dans cette séance. En cas de répétition, envisagez une révision.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">250</context>
@@ -5790,7 +5790,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.confidenceExportBody" datatype="html">
-        <source> Nach Session-Ende fasst die Auswertung gefestigtes Wissen, Fehlkonzept-Risiko und fragiles Wissen zusammen. Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden nicht aggregiert ausgewiesen. Der Nachbesprechungsplan (PDF) ist das empfohlene Format; CSV steht unter „Mehr“ für Excel zur Verfügung. In der Quiz-Sammlung findest du den Nachbesprechungsplan auf der Quizkarte.</source>
+        <source> Nach Session-Ende fasst die Auswertung gefestigtes Wissen, Fehlkonzept-Hinweis und fragiles Wissen zusammen. Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden nicht aggregiert ausgewiesen. Der Nachbesprechungsplan (PDF) ist das empfohlene Format; CSV steht unter „Mehr“ für Excel zur Verfügung. In der Quiz-Sammlung findest du den Nachbesprechungsplan auf der Quizkarte.</source>
         <target> À la fin de la session, l’évaluation résume les connaissances consolidées, le risque d’idées fausses et les connaissances fragiles. Les questions avec moins de 5 réponses avec autoévaluation ne sont pas agrégées. Le plan de débriefing (PDF) est le format recommandé ; le CSV est disponible sous « Plus » pour Excel. Dans la collection de quiz, tu trouveras le plan de débriefing sur la carte du quiz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
@@ -12574,8 +12574,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.finishedConfidenceRisk" datatype="html">
-        <source>Anteil Fehlkonzept-Muster</source>
-        <target>Part de schéma d’idée fausse</target>
+        <source>Anteil Fehlkonzept-Hinweis</source>
+        <target>Part d’indice de conception erronée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">726</context>
@@ -15308,7 +15308,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportQuestionsHeader" datatype="html">
-        <source>Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden;Häufigste selbstsicher falsche Antwort;Details</source>
+        <source>Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung nGefestigt;Fehlkonzept-Hinweis;Fragil;Erkannte Wissenslücke;Unentschieden;Häufigste selbstsicher falsche Antwort;Details</source>
         <target>N° question;Texte;Type;Participants;Cycle d’agrégation;Ø Points;Autoévaluation n;Solidifié;Risque d’idée fausse;Fragile;Lacune reconnue;Indécis;Réponse fausse la plus fréquente avec forte certitude;Détails</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
@@ -15324,7 +15324,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportConfidenceSummaryHeader" datatype="html">
-        <source>Gültige Antworten;Ausgewertete Fragen;Nicht aggregiert (&lt;5 Antworten mit Selbsteinschätzung);Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden</source>
+        <source>Gültige Antworten;Ausgewertete Fragen;Nicht aggregiert (&lt;5 Antworten mit Selbsteinschätzung)Gefestigt;Fehlkonzept-Hinweis;Fragil;Erkannte Wissenslücke;Unentschieden</source>
         <target>Réponses valides;Questions évaluées;Non agrégées (&lt;5 réponses avec autoévaluation);Consolidé;Risque de fausse conception;Fragile;Lacune détectée;Indécis</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>

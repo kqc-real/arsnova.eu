@@ -22,6 +22,8 @@ describe('labels-locale', () => {
   it('behält DE/EN getrennt', () => {
     expect(getSessionResultsReportLabelsDe().coverTitle).toBe('Didaktische Quiz-Auswertung');
     expect(getSessionResultsReportLabelsEn().coverTitle).toBe('Quiz Insights for Teaching');
+    expect(getSessionResultsReportLabelsDe().documentTitle).toBe('Didaktische Quiz-Auswertung');
+    expect(getSessionResultsReportLabelsEn().documentTitle).toBe('Quiz Insights for Teaching');
   });
 
   it('lokalisiert neue Cover-/Fragen-Labels auch in FR/ES/IT', () => {

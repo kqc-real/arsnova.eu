@@ -5940,7 +5940,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const data = await trpc.session.getExportData.query({ code: this.code.toUpperCase() });
       const rows: string[] = [
-        $localize`:@@sessionHost.exportQuestionsHeader:Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden;Häufigste selbstsicher falsche Antwort;Details`,
+        $localize`:@@sessionHost.exportQuestionsHeader:Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Hinweis;Fragil;Erkannte Wissenslücke;Unentschieden;Häufigste selbstsicher falsche Antwort;Details`,
       ];
 
       for (const q of data.questions) {
@@ -5997,7 +5997,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           $localize`:@@sessionHost.exportConfidenceSummaryTitle:Lernstand und Selbsteinschätzung`,
         );
         rows.push(
-          $localize`:@@sessionHost.exportConfidenceSummaryHeader:Gültige Antworten;Ausgewertete Fragen;Nicht aggregiert (<5 Antworten mit Selbsteinschätzung);Gefestigt;Fehlkonzept-Risiko;Fragil;Erkannte Wissenslücke;Unentschieden`,
+          $localize`:@@sessionHost.exportConfidenceSummaryHeader:Gültige Antworten;Ausgewertete Fragen;Nicht aggregiert (<5 Antworten mit Selbsteinschätzung);Gefestigt;Fehlkonzept-Hinweis;Fragil;Erkannte Wissenslücke;Unentschieden`,
         );
         const middle = summary.crossTab.correctMid + summary.crossTab.incorrectMid;
         rows.push(

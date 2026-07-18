@@ -6245,7 +6245,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Lernstand und Selbsteinschätzung');
-    expect(text).toContain('Anteil Fehlkonzept-Muster');
+    expect(text).toContain('Anteil Fehlkonzept-Hinweis');
     expect(text).toContain('Nachbesprechungsplan ansehen');
     expect(text).toContain('Welche Aussage stimmt?');
     expect(
@@ -8174,7 +8174,7 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
       fixture.detectChanges();
 
       expect(exportedCsv).toContain(
-        'Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Risiko',
+        'Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Hinweis',
       );
       expect(exportedCsv).toContain(';2;"1";');
       expect(exportedCsv).toContain('selbstsicher falsch');

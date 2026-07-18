@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { planQuestionContinuationStamps } from './session-results-report-continuation.util';
+import {
+  planQuestionContinuationStamps,
+  toWinAnsiSafe,
+} from './session-results-report-continuation.util';
 
 const questions = [
   { questionNumber: 2, label: 'Frage 2 – Fortsetzung: Runde π auf zwei Dezimalstellen.' },
@@ -7,6 +10,14 @@ const questions = [
   { questionNumber: 5, label: 'Frage 5 – Fortsetzung: Wie viele sichtbare Teile?' },
   { questionNumber: 6, label: 'Frage 6 – Fortsetzung: In welcher Sprache?' },
 ];
+
+describe('toWinAnsiSafe', () => {
+  it('bewahrt Gedankenstrich und markiert π für den Symbol-Font', () => {
+    expect(toWinAnsiSafe('Frage 2 – Fortsetzung: Runde π.')).toBe(
+      `Frage 2 \x96 Fortsetzung: Runde \u0001.`,
+    );
+  });
+});
 
 describe('planQuestionContinuationStamps', () => {
   it('plant Stempel für Fortsetzungsseiten ohne Fragenkopf', () => {
