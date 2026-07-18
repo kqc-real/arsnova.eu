@@ -591,9 +591,17 @@
                       [attr.aria-label]="teamStandingAriaLabel(entry)"
                     >
                       <div class="vote-team-reward__board-head">
-                        <span class="vote-team-reward__board-rank" [attr.aria-hidden]="true">{{
-                          teamScoreboardHasPoints() ? teamRewardRankDisplay(entry.rank) : ''
-                        }}</span>
+                        <span class="vote-team-reward__board-rank" [attr.aria-hidden]="true">
+                          @if (teamScoreboardHasPoints() && entry.rank === 1) {
+                            <span class="vote-lb-medal">🥇</span>
+                          } @else if (teamScoreboardHasPoints() && entry.rank === 2) {
+                            <span class="vote-lb-medal">🥈</span>
+                          } @else if (teamScoreboardHasPoints() && entry.rank === 3) {
+                            <span class="vote-lb-medal">🥉</span>
+                          } @else if (teamScoreboardHasPoints()) {
+                            {{ teamRewardRankDisplay(entry.rank) }}
+                          }
+                        </span>
                         <span class="vote-team-reward__board-name">
                           @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
                             @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
@@ -1411,11 +1419,11 @@
                 ) {
                   <div class="vote-scorecard__trophy" aria-hidden="true">
                     @if (sc.currentRank === 1) {
-                      🥇
+                      <span class="vote-lb-medal">🥇</span>
                     } @else if (sc.currentRank === 2) {
-                      🥈
+                      <span class="vote-lb-medal">🥈</span>
                     } @else {
-                      🥉
+                      <span class="vote-lb-medal">🥉</span>
                     }
                   </div>
                 }
@@ -1617,9 +1625,17 @@
                       [attr.aria-label]="teamStandingAriaLabel(entry)"
                     >
                       <div class="vote-team-reward__board-head">
-                        <span class="vote-team-reward__board-rank" [attr.aria-hidden]="true">{{
-                          teamScoreboardHasPoints() ? teamRewardRankDisplay(entry.rank) : ''
-                        }}</span>
+                        <span class="vote-team-reward__board-rank" [attr.aria-hidden]="true">
+                          @if (teamScoreboardHasPoints() && entry.rank === 1) {
+                            <span class="vote-lb-medal">🥇</span>
+                          } @else if (teamScoreboardHasPoints() && entry.rank === 2) {
+                            <span class="vote-lb-medal">🥈</span>
+                          } @else if (teamScoreboardHasPoints() && entry.rank === 3) {
+                            <span class="vote-lb-medal">🥉</span>
+                          } @else if (teamScoreboardHasPoints()) {
+                            {{ teamRewardRankDisplay(entry.rank) }}
+                          }
+                        </span>
                         <span class="vote-team-reward__board-name">
                           @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
                             @if (teamNameEmojiMarkerTrailing(entry.teamName)) {

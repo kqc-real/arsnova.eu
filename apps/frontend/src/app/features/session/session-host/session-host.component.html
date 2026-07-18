@@ -859,7 +859,11 @@
                     @if (leaderboard()[0]; as leader) {
                       <div class="session-host__leaderboard-winner">
                         <p class="session-host__leaderboard-winner-label">
-                          <span aria-hidden="true">🏆</span>
+                          <span
+                            class="session-host__lb-medal session-host__lb-medal--trophy"
+                            aria-hidden="true"
+                            >🏆</span
+                          >
                           <span i18n="@@sessionHost.leaderboardWinnerLabel">Gewonnen hat</span>
                         </p>
                         <p class="session-host__leaderboard-winner-name">
@@ -927,7 +931,11 @@
                       <table class="session-host__leaderboard-table" role="table">
                         <thead>
                           <tr>
-                            <th class="session-host__lb-col--rank">#</th>
+                            <th
+                              class="session-host__lb-col--rank"
+                              i18n-aria-label="@@sessionHost.leaderboardRankColumnAria"
+                              aria-label="Rang"
+                            ></th>
                             <th class="session-host__lb-col--name" i18n>Nickname</th>
                             <th class="session-host__lb-col--score" i18n>Punkte</th>
                             <th class="session-host__lb-col--correct" i18n>Richtig</th>
@@ -944,11 +952,11 @@
                             >
                               <td class="session-host__lb-col--rank">
                                 @if (entry.rank === 1) {
-                                  🥇
+                                  <span class="session-host__lb-medal" aria-hidden="true">🥇</span>
                                 } @else if (entry.rank === 2) {
-                                  🥈
+                                  <span class="session-host__lb-medal" aria-hidden="true">🥈</span>
                                 } @else if (entry.rank === 3) {
-                                  🥉
+                                  <span class="session-host__lb-medal" aria-hidden="true">🥉</span>
                                 } @else {
                                   {{ entry.rank }}
                                 }
@@ -1038,8 +1046,17 @@
                             <span
                               class="session-host__team-bar-rank"
                               [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
-                              >{{ teamLeaderboardRankDisplay(entry.rank) }}</span
                             >
+                              @if (teamScoreboardHasPoints() && entry.rank === 1) {
+                                <span class="session-host__lb-medal" aria-hidden="true">🥇</span>
+                              } @else if (teamScoreboardHasPoints() && entry.rank === 2) {
+                                <span class="session-host__lb-medal" aria-hidden="true">🥈</span>
+                              } @else if (teamScoreboardHasPoints() && entry.rank === 3) {
+                                <span class="session-host__lb-medal" aria-hidden="true">🥉</span>
+                              } @else {
+                                {{ teamLeaderboardRankDisplay(entry.rank) }}
+                              }
+                            </span>
                             <span class="session-host__team-bar-name">
                               @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
                                 @if (teamNameEmojiMarkerTrailing(entry.teamName)) {
@@ -1194,7 +1211,7 @@
                             exportPdfPriorityCount
                           }}</span>
                         }
-                        <mat-icon aria-hidden="true">arrow_drop_down</mat-icon>
+                        <mat-icon aria-hidden="true">expand_more</mat-icon>
                       </button>
                       <mat-menu #sessionExportPdfMenu="matMenu">
                         <button
@@ -1227,6 +1244,7 @@
                       }
                     </div>
                     <button
+                      class="session-host__export-more-btn"
                       matButton="tonal"
                       type="button"
                       [matMenuTriggerFor]="sessionExportMoreMenu"
@@ -1259,7 +1277,24 @@
                       </button>
                     </mat-menu>
                     @if (exportExporting()) {
-                      <p class="session-host__export-hint" role="status" i18n>Wird exportiert…</p>
+                      <div
+                        class="session-host__export-progress"
+                        role="status"
+                        aria-live="polite"
+                        i18n-aria-label="@@sessionHost.exportProgressAria"
+                        aria-label="Export läuft"
+                      >
+                        <p
+                          class="session-host__export-hint"
+                          i18n="@@sessionHost.exportProgressLabel"
+                        >
+                          Wird exportiert…
+                        </p>
+                        <mat-progress-bar
+                          class="session-host__export-progress-bar"
+                          mode="indeterminate"
+                        />
+                      </div>
                     }
                     @if (exportStatus(); as status) {
                       <p class="session-host__export-hint" role="status">{{ status }}</p>
@@ -2748,11 +2783,11 @@
                       <li class="session-host__interim-item">
                         <span class="session-host__interim-rank">
                           @if (entry.rank === 1) {
-                            🥇
+                            <span class="session-host__lb-medal" aria-hidden="true">🥇</span>
                           } @else if (entry.rank === 2) {
-                            🥈
+                            <span class="session-host__lb-medal" aria-hidden="true">🥈</span>
                           } @else if (entry.rank === 3) {
-                            🥉
+                            <span class="session-host__lb-medal" aria-hidden="true">🥉</span>
                           } @else {
                             {{ entry.rank }}.
                           }
@@ -2842,11 +2877,11 @@
                           [attr.aria-hidden]="entry.totalScore <= 0 ? 'true' : null"
                         >
                           @if (entry.totalScore > 0 && entry.rank === 1) {
-                            🥇
+                            <span class="session-host__lb-medal" aria-hidden="true">🥇</span>
                           } @else if (entry.totalScore > 0 && entry.rank === 2) {
-                            🥈
+                            <span class="session-host__lb-medal" aria-hidden="true">🥈</span>
                           } @else if (entry.totalScore > 0 && entry.rank === 3) {
-                            🥉
+                            <span class="session-host__lb-medal" aria-hidden="true">🥉</span>
                           } @else if (entry.totalScore > 0) {
                             {{ entry.rank }}.
                           }

@@ -9986,6 +9986,12 @@
           <context context-type="linenumber">580</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="quizList.exportProgressAria" datatype="html">
+        <source>Nachbesprechungsplan wird erstellt</source>
+      </trans-unit>
+      <trans-unit id="quizList.exportProgressLabel" datatype="html">
+        <source>Nachbesprechungsplan wird erstellt…</source>
+      </trans-unit>
       <trans-unit id="quizList.startSession" datatype="html">
         <source>Starten</source>
         <context-group purpose="location">
@@ -11250,6 +11256,13 @@
           <context context-type="linenumber">923</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.leaderboardRankColumnAria" datatype="html">
+        <source>Rang</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">935</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="5635631035014464221" datatype="html">
         <source>Richtig</source>
         <context-group purpose="location">
@@ -11365,11 +11378,14 @@
           <context context-type="linenumber">1229</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2074772447572482154" datatype="html">
+      <trans-unit id="sessionHost.exportProgressAria" datatype="html">
+        <source>Export läuft</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.exportProgressLabel" datatype="html">
         <source>Wird exportiert…</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1234</context>
+          <context context-type="linenumber">1269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4578537259986258154" datatype="html">
@@ -13587,14 +13603,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfPriorityHintSingular" datatype="html">
-        <source>1 Frage braucht Nachbesprechung</source>
+        <source>1 Frage zur Nachbesprechung empfohlen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6073</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfPriorityHintPlural" datatype="html">
-        <source><x id="count" equiv-text="count"/> Fragen brauchen Nachbesprechung</source>
+        <source><x id="count" equiv-text="count"/> Fragen zur Nachbesprechung empfohlen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6075</context>

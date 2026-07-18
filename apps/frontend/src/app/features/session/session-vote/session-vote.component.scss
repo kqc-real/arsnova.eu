@@ -2469,17 +2469,29 @@
   text-align: center;
   display: grid;
   place-items: center;
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 5.5rem;
+  height: 5.5rem;
   margin: 0 auto 0.55rem;
   border-radius: 50%;
-  font-size: 2.35rem;
+  font-size: 3.25rem;
   line-height: 1;
   background:
     radial-gradient(circle at 35% 30%, color-mix(in srgb, white 75%, transparent), transparent 36%),
     color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-surface));
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
   box-shadow: 0 0.9rem 1.6rem color-mix(in srgb, black 10%, transparent);
+}
+
+.vote-lb-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.vote-scorecard__trophy .vote-lb-medal {
+  font-size: 3.25rem;
 }
 
 .vote-scorecard__inner.vote-scorecard--rank1 .vote-scorecard__trophy {
@@ -2721,6 +2733,11 @@
 }
 
 .vote-team-reward__board-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.75rem;
+  text-align: center;
   color: var(--mat-sys-primary);
   font: var(--mat-sys-title-small);
   font-weight: 700;

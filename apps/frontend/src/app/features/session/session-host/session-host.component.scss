@@ -2911,8 +2911,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 2rem 1.5rem;
+  gap: 1.1rem;
+  padding: 2.5rem 1.75rem;
   border-radius: var(--mat-sys-corner-extra-large, 1rem);
   background: var(--mat-sys-surface-container-low);
   border: 1px solid var(--mat-sys-outline-variant);
@@ -2974,18 +2974,22 @@
 }
 
 .session-host__export-actions {
-  margin-top: 1.25rem;
+  margin-top: 1.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.9rem;
 }
 
 .session-host__export-pdf {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.55rem;
+}
+
+.session-host__export-more-btn {
+  margin-top: 0.65rem;
 }
 
 .session-host__export-pdf-btn {
@@ -3029,6 +3033,21 @@
   color: var(--mat-sys-primary);
   margin: 0;
   line-height: 1.4;
+}
+
+.session-host__export-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: min(100%, 18rem);
+  margin-top: 0.15rem;
+}
+
+.session-host__export-progress-bar {
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
 }
 
 .session-host__end-btn {
@@ -3292,9 +3311,22 @@
 }
 
 .session-host__lb-col--rank {
-  width: 3rem;
-  text-align: left;
+  width: 3.75rem;
+  text-align: center;
   font-weight: 600;
+  vertical-align: middle;
+}
+
+.session-host__lb-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.session-host__lb-medal--trophy {
+  font-size: 2.75rem;
 }
 
 .session-host__lb-col--score,
@@ -3365,6 +3397,11 @@
 }
 
 .session-host__team-bar-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.75rem;
+  text-align: center;
   font: var(--mat-sys-title-small);
   font-weight: 700;
   color: var(--mat-sys-primary);
@@ -3712,10 +3749,17 @@
 }
 
 .session-host__interim-rank {
-  width: 2rem;
+  width: 3.75rem;
   text-align: center;
   font-weight: 600;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.session-host__interim-rank .session-host__lb-medal {
+  font-size: 2.25rem;
 }
 
 .session-host__interim-name {
