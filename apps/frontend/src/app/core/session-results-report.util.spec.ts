@@ -138,7 +138,8 @@ describe('buildSessionResultsReportHtml', () => {
       },
     );
 
-    expect(html).toContain('Ergebnisbericht');
+    expect(html).toContain('Didaktische Quiz-Auswertung');
+    expect(html).toContain('Lernstand, Fehlkonzepte und Nachbesprechungsplan');
     expect(html).toContain('Demo Quiz');
     expect(html).toContain('ABC123');
     expect(html).toContain('So liest du die Auswertung');
@@ -316,7 +317,7 @@ describe('buildSessionResultsReportHtml', () => {
     expect(html).toContain('report-bar-leading-emoji');
     expect(html).toContain('report-bar-label-text');
     expect(html).toContain('😄');
-    expect(html).toContain('Dieser Fragetyp unterstützt keine Selbsteinschätzung.');
+    expect(html).toContain('Selbsteinschätzung wird für den Fragetyp »Umfrage« nicht angeboten.');
   });
 
   it('unterscheidet nicht unterstützte und deaktivierte Selbsteinschätzung', () => {
@@ -353,10 +354,8 @@ describe('buildSessionResultsReportHtml', () => {
 
     expect(html).toContain('Nicht unterstützt bei: Frage 1 (Umfrage).');
     expect(html).toContain('In diesem Quiz deaktiviert bei: Frage 2 (Single Choice).');
-    expect(html).toContain('Dieser Fragetyp unterstützt keine Selbsteinschätzung.');
-    expect(html).toContain(
-      'Für diese Frage war die Selbsteinschätzung in diesem Quiz deaktiviert.',
-    );
+    expect(html).toContain('Selbsteinschätzung wird für den Fragetyp »Umfrage« nicht angeboten.');
+    expect(html).toContain('Selbsteinschätzung von dir in diesem Quiz deaktiviert.');
   });
 
   it('formatiert Scores und Zeitstempel einheitlich', () => {

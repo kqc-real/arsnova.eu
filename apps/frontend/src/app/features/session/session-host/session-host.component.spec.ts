@@ -6245,7 +6245,8 @@ describe('SessionHostComponent', { timeout: 30_000 }, () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Lernstand und Selbsteinschätzung');
-    expect(text).toContain('Fehlkonzept-Risiko');
+    expect(text).toContain('Anteil Fehlkonzept-Muster');
+    expect(text).toContain('Nachbesprechungsplan ansehen');
     expect(text).toContain('Welche Aussage stimmt?');
     expect(
       fixture.nativeElement.querySelector('.session-host__finished-confidence-question-markdown h3')

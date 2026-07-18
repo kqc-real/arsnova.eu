@@ -126,8 +126,10 @@ export function renderDebriefActionPlanHtml(
     <h2>${escapeHtml(labels.actionPlanTitle)}</h2>
     <ul>${blocks}</ul>
     ${startHtml}
-    <p class="report-note report-action-plan-criteria">${escapeHtml(labels.actionPlanCriteriaNote)}
-      <a href="#report-confidence">${escapeHtml(labels.actionPlanCriteriaLink)}</a></p>
+    <p class="report-note report-action-plan-criteria">
+      <span>${escapeHtml(labels.actionPlanCriteriaNote)}</span>
+      <a class="report-action-plan-criteria-link" href="#report-confidence">${escapeHtml(labels.actionPlanCriteriaLink)}</a>
+    </p>
   </section>`;
 }
 

@@ -55,13 +55,13 @@ export interface ContinuationStampPlanItem {
 }
 
 const FRONT_MATTER_TOP =
-  /^(?:Ergebnisbericht|Lernstand und Selbsteinschätzung|Fragen im Detail|Nächste Schritte|Team-Wertung|Teamwertung|Bonus|Feedback der Teilnehmenden|Teilnehmendenfeedback|Inhaltsnavigation|So liest du|Dein Nachbesprechungsplan)/i;
+  /^(?:Didaktische Quiz-Auswertung|Ergebnisbericht|Lernstand und Selbsteinschätzung|Fragen im Detail|Nächste Schritte|Team-Wertung|Teamwertung|Bonus|Feedback der Teilnehmenden|Teilnehmendenfeedback|Inhaltsnavigation|So liest du|Dein Nachbesprechungsplan)/i;
 
 const QUESTION_BODY_TOP =
   /^(?:Selbsteinschätzung|Antwortverteilung|Auswahlfehler|Verteilung der|Nachbesprechungsimpuls|Richtig beantwortet|Vollständig richtig|Schätzstatistik|Korrektheit|Distraktor|Eingereichte|Peer Instruction|Ergebnis nach Diskussion|Für diese Frage|Akzeptierter Bereich|Histogramm|Unterrichtsidee)/i;
 
 const CONTENT_ANCHOR =
-  /Frage\s+\d+|NÄCHSTE FRAGE|FRAGE\s+\d+|Selbsteinschätzung|Antwortverteilung|Auswahlfehler|Verteilung der|Nachbesprechung|Richtig beantwortet|Vollständig richtig|Schätzstatistik|Korrektheit|Distraktor|Eingereichte|Ergebnis nach|Für diese Frage|Akzeptierter Bereich|Unterrichtsidee|Lernstand|Fragen im Detail|Nächste Schritte|Team-Wertung|Teamwertung|Bonus|Feedback|Ergebnisbericht|So liest|Dein Nach|Inhaltsnavigation|Ergebnis der Abstimmung/i;
+  /Frage\s+\d+|NÄCHSTE FRAGE|FRAGE\s+\d+|Selbsteinschätzung|Antwortverteilung|Auswahlfehler|Verteilung der|Nachbesprechung|Richtig beantwortet|Vollständig richtig|Schätzstatistik|Korrektheit|Distraktor|Eingereichte|Ergebnis nach|Für diese Frage|Akzeptierter Bereich|Unterrichtsidee|Lernstand|Fragen im Detail|Nächste Schritte|Team-Wertung|Teamwertung|Bonus|Feedback|Didaktische Quiz-Auswertung|Ergebnisbericht|So liest|Dein Nach|Inhaltsnavigation|Ergebnis der Abstimmung/i;
 
 function normalizePageText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();

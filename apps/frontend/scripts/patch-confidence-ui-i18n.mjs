@@ -227,7 +227,7 @@ const REPORT_TARGETS = {
     'sessionReport.confidenceNotSupportedTemplate': 'Not supported for: {0}.',
     'sessionReport.confidenceDisabledTemplate': 'Disabled in this quiz for: {0}.',
     'sessionReport.confidenceNotSupportedForQuestion':
-      'This question type does not support self-assessment.',
+      'Self-assessment is not offered for the question type “{0}”.',
     'sessionReport.confidenceDisabledForQuestion':
       'Self-assessment was disabled for this question in this quiz.',
     'sessionReport.confidenceTopSignal': '⚠ Debrief prompt',
@@ -286,7 +286,7 @@ const REPORT_TARGETS = {
     'sessionReport.confidenceNotSupportedTemplate': 'Non prise en charge pour : {0}.',
     'sessionReport.confidenceDisabledTemplate': 'Désactivée dans ce quiz pour : {0}.',
     'sessionReport.confidenceNotSupportedForQuestion':
-      'Ce type de question ne prend pas en charge l’autoévaluation.',
+      'L’autoévaluation n’est pas proposée pour le type de question « {0} ».',
     'sessionReport.confidenceDisabledForQuestion':
       'L’autoévaluation était désactivée pour cette question dans ce quiz.',
     'sessionReport.confidenceTopSignal': '⚠ Piste de débriefing',
@@ -345,7 +345,7 @@ const REPORT_TARGETS = {
     'sessionReport.confidenceNotSupportedTemplate': 'No compatible con: {0}.',
     'sessionReport.confidenceDisabledTemplate': 'Desactivada en este quiz para: {0}.',
     'sessionReport.confidenceNotSupportedForQuestion':
-      'Este tipo de pregunta no admite autoevaluación.',
+      'La autoevaluación no se ofrece para el tipo de pregunta «{0}».',
     'sessionReport.confidenceDisabledForQuestion':
       'La autoevaluación estaba desactivada para esta pregunta en este quiz.',
     'sessionReport.confidenceTopSignal': '⚠ Impulso para el análisis',
@@ -404,7 +404,7 @@ const REPORT_TARGETS = {
     'sessionReport.confidenceNotSupportedTemplate': 'Non supportata per: {0}.',
     'sessionReport.confidenceDisabledTemplate': 'Disattivata in questo quiz per: {0}.',
     'sessionReport.confidenceNotSupportedForQuestion':
-      'Questo tipo di domanda non supporta l’autovalutazione.',
+      'L’autovalutazione non è offerta per il tipo di domanda «{0}».',
     'sessionReport.confidenceDisabledForQuestion':
       'L’autovalutazione era disattivata per questa domanda in questo quiz.',
     'sessionReport.confidenceTopSignal': '⚠ Spunto per il debriefing',

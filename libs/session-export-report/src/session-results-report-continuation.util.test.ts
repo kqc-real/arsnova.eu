@@ -11,7 +11,7 @@ const questions = [
 describe('planQuestionContinuationStamps', () => {
   it('plant Stempel für Fortsetzungsseiten ohne Fragenkopf', () => {
     const pages = [
-      'Quizname CODE Ergebnisbericht Demo Quiz',
+      'Quizname CODE Didaktische Quiz-Auswertung Demo Quiz',
       'Quizname CODE Fragen im Detail FRAGE 2 VON 9 Numerische Schätzfrage Runde π',
       'Quizname CODE Verteilung der Schätzwerte Akzeptierter Bereich Selbsteinschätzung',
       'Quizname CODE FRAGE 4 VON 9 Multiple Choice Antwortverteilung',

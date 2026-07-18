@@ -19,7 +19,7 @@ const LOCALES = ['de', 'en', 'fr', 'it', 'es'];
 const REQUIRED_ASSETS = [
   'assets/images/AI-REVOLUTION.png',
   'assets/images/numeric-estimate-1789-host.png',
-  'assets/demo/demo-session-results-vntpcb-30.pdf',
+  'assets/demo/demo-session-results-30.pdf',
 ];
 
 function main() {

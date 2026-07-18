@@ -4,6 +4,7 @@ import {
   buildSessionResultsPdfFooterTemplate,
   buildSessionResultsPlaywrightPdfOptions,
   buildSessionResultsPrintPageFooterCss,
+  displayQuizNameForPdfHeader,
 } from './session-results-report-pdf-footer.util';
 
 describe('session-results-report-pdf-footer', () => {
@@ -29,8 +30,19 @@ describe('session-results-report-pdf-footer', () => {
     });
     expect(options.displayHeaderFooter).toBe(true);
     expect(options.footerTemplate).toContain('pageNumber');
+    expect(options.headerTemplate).toContain('Demo Quiz');
     expect(options.margin.bottom).toBe('20mm');
     expect(options.tagged).toBe(true);
     expect(options.outline).toBe(true);
+  });
+
+  it('entfernt Millisekunden-Timestamps aus der Kopfzeilen-Quizbezeichnung', () => {
+    expect(displayQuizNameForPdfHeader('Praxis-Showcase · Didaktik-Demo 1784290777950')).toBe(
+      'Praxis-Showcase',
+    );
+    expect(displayQuizNameForPdfHeader('Quiz 1784290777950123')).toBe('Quiz');
+    expect(displayQuizNameForPdfHeader('Praxis-Showcase · Didaktik-Demo')).toBe(
+      'Praxis-Showcase · Didaktik-Demo',
+    );
   });
 });

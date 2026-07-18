@@ -61,7 +61,7 @@ Die Architektur bleibt bewusst **accountfrei** und **local-first**. Daraus folgt
   - Das Backend rekonstruiert aus der gespeicherten Server-Quizkopie denselben kanonischen Snapshot und prüft den Proof mittels konstantzeitnaher Vergleichslogik.
 - Dieser besitzgebundene Zugriff gilt für:
   - `session.getBonusTokensForQuiz`
-  - `session.getLastSessionFeedbackForQuiz`
+  - `session.getLastSessionAnalysisForQuiz`
   - `session.getActiveQuizIds` (nur noch als Batch-Abfrage autorisierter Quizkopien)
 
 ### 6. Sicherheitsmodell: URL trennt Ansichten, Token/Proof trennt Rechte

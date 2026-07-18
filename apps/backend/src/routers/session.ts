@@ -51,8 +51,6 @@ import {
   VerifyBonusTokenForQuizOutputSchema,
   DeleteBonusTokenForQuizInputSchema,
   DeleteBonusTokenForQuizOutputSchema,
-  GetLastSessionFeedbackForQuizInputSchema,
-  LastSessionFeedbackForQuizOutputSchema,
   GetLastSessionAnalysisForQuizInputSchema,
   LastSessionAnalysisForQuizOutputSchema,
   GetLastSessionExportDataForQuizInputSchema,
@@ -6282,20 +6280,12 @@ export const sessionRouter = router({
       return Promise.all(
         input.map(async (entry) => {
           const scopedQuizIds = await resolveQuizHistoryScopeIds(entry.quizId, entry.accessProof);
-          const [bonusSession, feedbackSession, analysisSession] = await Promise.all([
+          const [bonusSession, analysisSession] = await Promise.all([
             prisma.session.findFirst({
               where: {
                 quizId: { in: scopedQuizIds },
                 status: 'FINISHED',
                 bonusTokens: { some: {} },
-              },
-              select: { id: true },
-            }),
-            prisma.session.findFirst({
-              where: {
-                quizId: { in: scopedQuizIds },
-                status: 'FINISHED',
-                sessionFeedbacks: { some: {} },
               },
               select: { id: true },
             }),
@@ -6311,7 +6301,6 @@ export const sessionRouter = router({
           return {
             quizId: entry.quizId,
             hasBonusTokens: bonusSession !== null,
-            hasLastSessionFeedback: feedbackSession !== null,
             hasLastSessionAnalysis: analysisSession !== null,
           };
         }),
@@ -6413,43 +6402,6 @@ export const sessionRouter = router({
     }),
 
   /**
-   * Aggregiertes Session-Feedback der zuletzt beendeten Live-Session mit mindestens einer Bewertung
-   * (Quiz-Sammlung; gleicher quizId-Zugriff wie getBonusTokensForQuiz).
-   */
-  getLastSessionFeedbackForQuiz: publicProcedure
-    .input(GetLastSessionFeedbackForQuizInputSchema)
-    .output(LastSessionFeedbackForQuizOutputSchema)
-    .query(async ({ input }) => {
-      const scopedQuizIds = await resolveQuizHistoryScopeIds(input.quizId, input.accessProof);
-
-      const session = await prisma.session.findFirst({
-        where: {
-          quizId: { in: scopedQuizIds },
-          status: 'FINISHED',
-          sessionFeedbacks: { some: {} },
-        },
-        orderBy: [{ endedAt: 'desc' }, { startedAt: 'desc' }],
-        select: { id: true, endedAt: true },
-      });
-      if (!session) {
-        return null;
-      }
-
-      const feedbacks = await prisma.sessionFeedback.findMany({
-        where: { sessionId: session.id },
-      });
-      const summary = buildSessionFeedbackSummaryFromRows(feedbacks);
-      if (summary.totalResponses === 0) {
-        return null;
-      }
-
-      return {
-        endedAt: session.endedAt?.toISOString() ?? null,
-        summary,
-      };
-    }),
-
-  /**
    * Aggregierte Auswertung der zuletzt beendeten Live-Session eines Quizzes.
    * Der Besitznachweis entspricht den übrigen Quiz-Sammlungs-Historienpfaden.
    */
@@ -6501,7 +6453,7 @@ export const sessionRouter = router({
 
   /**
    * Aggregierte Session-Exportdaten der zuletzt beendeten Live-Session eines Quizzes.
-   * Gleiches Berechtigungsmodell wie Bonus-Codes und „Letzte Auswertung“.
+   * Gleiches Berechtigungsmodell wie Bonus-Codes und Nachbesprechungsplan-Export.
    */
   getLastSessionExportDataForQuiz: publicProcedure
     .input(GetLastSessionExportDataForQuizInputSchema)

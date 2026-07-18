@@ -11,15 +11,17 @@ import { REPORT_COVER_LOGO_SVG } from './report-cover-logo';
 
 describe('labels-locale', () => {
   it('liefert FR/ES/IT statt EN-Fallback', () => {
-    expect(getSessionResultsReportLabelsFr().coverTitle).toBe('Rapport de résultats');
-    expect(getSessionResultsReportLabelsEs().coverTitle).toBe('Informe de resultados');
-    expect(getSessionResultsReportLabelsIt().coverTitle).toBe('Rapporto sui risultati');
+    expect(getSessionResultsReportLabelsFr().coverTitle).toBe('Analyse pédagogique du quiz');
+    expect(getSessionResultsReportLabelsEs().coverTitle).toBe(
+      'Análisis pedagógico del cuestionario',
+    );
+    expect(getSessionResultsReportLabelsIt().coverTitle).toBe('Analisi didattica del quiz');
     expect(getSessionResultsReportLabelsForLocale('fr-FR').tableOfContentsTitle).toBe('Contenu');
   });
 
   it('behält DE/EN getrennt', () => {
-    expect(getSessionResultsReportLabelsDe().coverTitle).toBe('Ergebnisbericht');
-    expect(getSessionResultsReportLabelsEn().coverTitle).toBe('Results report');
+    expect(getSessionResultsReportLabelsDe().coverTitle).toBe('Didaktische Quiz-Auswertung');
+    expect(getSessionResultsReportLabelsEn().coverTitle).toBe('Quiz Insights for Teaching');
   });
 });
 

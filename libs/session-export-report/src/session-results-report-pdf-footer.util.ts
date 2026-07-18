@@ -25,11 +25,20 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/** Entfernt Demo-Timestamps und kürzt für die laufende Kopfzeile. */
+export function displayQuizNameForPdfHeader(quizName: string, maxLength = 64): string {
+  const cleaned = quizName
+    .replace(/\s*·\s*Didaktik-Demo\s+\d{10,}\s*$/u, '')
+    .replace(/\s+\d{13,}\s*$/u, '')
+    .trim();
+  return (cleaned || quizName).slice(0, maxLength);
+}
+
 /** Playwright/Chromium `headerTemplate` für laufenden Seitenkopf. */
 export function buildSessionResultsPdfHeaderTemplate(
   header: SessionResultsPdfHeaderContext,
 ): string {
-  const title = escapeHtml(header.quizName.slice(0, 64));
+  const title = escapeHtml(displayQuizNameForPdfHeader(header.quizName));
   const code = escapeHtml(header.sessionCode);
   return `<div style="width:100%;font-size:8px;color:#5c6570;font-family:Segoe UI,system-ui,sans-serif;padding:3mm 14mm 3mm;border-bottom:1px solid #d8dee6;display:flex;justify-content:space-between;box-sizing:border-box;">
     <span>${title}</span>

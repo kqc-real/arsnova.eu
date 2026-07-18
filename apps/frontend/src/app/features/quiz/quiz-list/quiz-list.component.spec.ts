@@ -488,7 +488,7 @@ describe('QuizListComponent', () => {
     ).toBe(7);
   });
 
-  it('graut Bonus-Codes und Letzte Auswertung aus, wenn noch keine Inhalte vorhanden sind', async () => {
+  it('graut Bonus-Codes und Nachbesprechungsplan aus, wenn noch keine Inhalte vorhanden sind', async () => {
     quizzesSignal.set([
       {
         id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
@@ -507,7 +507,6 @@ describe('QuizListComponent', () => {
       {
         quizId: '11111111-1111-4111-8111-111111111111',
         hasBonusTokens: false,
-        hasLastSessionFeedback: false,
         hasLastSessionAnalysis: false,
       },
     ]);
@@ -524,10 +523,9 @@ describe('QuizListComponent', () => {
       fixture.nativeElement.querySelectorAll('.quiz-list-item__actions button'),
     ) as HTMLButtonElement[];
     const bonusButton = buttons.find((button) => button.textContent?.includes('Bonus-Codes'));
-    const feedbackButton = buttons.find((button) =>
-      button.textContent?.includes('Nachbesprechung'),
+    const pdfButton = buttons.find((button) =>
+      button.textContent?.includes('Nachbesprechungsplan'),
     );
-    const pdfButton = buttons.find((button) => button.textContent?.includes('Ergebnisbericht'));
 
     expect(getQuizCollectionHistoryAvailabilityQueryMock).toHaveBeenCalledWith([
       {
@@ -536,11 +534,10 @@ describe('QuizListComponent', () => {
       },
     ]);
     expect(bonusButton?.disabled).toBe(true);
-    expect(feedbackButton?.disabled).toBe(true);
     expect(pdfButton?.disabled).toBe(true);
   });
 
-  it('aktiviert Bonus-Codes und Letzte Auswertung nur bei vorhandenen Inhalten', async () => {
+  it('aktiviert Bonus-Codes und Nachbesprechungsplan nur bei vorhandenen Inhalten', async () => {
     quizzesSignal.set([
       {
         id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
@@ -562,7 +559,6 @@ describe('QuizListComponent', () => {
           'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
           {
             hasBonusTokens: true,
-            hasLastSessionFeedback: true,
             hasLastSessionAnalysis: true,
           },
         ],
@@ -575,13 +571,11 @@ describe('QuizListComponent', () => {
       fixture.nativeElement.querySelectorAll('.quiz-list-item__actions button'),
     ) as HTMLButtonElement[];
     const bonusButton = buttons.find((button) => button.textContent?.includes('Bonus-Codes'));
-    const feedbackButton = buttons.find((button) =>
-      button.textContent?.includes('Nachbesprechung'),
+    const pdfButton = buttons.find((button) =>
+      button.textContent?.includes('Nachbesprechungsplan'),
     );
-    const pdfButton = buttons.find((button) => button.textContent?.includes('Ergebnisbericht'));
 
     expect(bonusButton?.disabled).toBe(false);
-    expect(feedbackButton?.disabled).toBe(false);
     expect(pdfButton?.disabled).toBe(false);
   });
 
@@ -608,7 +602,6 @@ describe('QuizListComponent', () => {
       {
         quizId: '11111111-1111-4111-8111-111111111111',
         hasBonusTokens: true,
-        hasLastSessionFeedback: true,
         hasLastSessionAnalysis: true,
       },
     ]);
@@ -641,7 +634,6 @@ describe('QuizListComponent', () => {
         .get('e31fef3f-f7b1-4705-a739-28c8ec4486bf'),
     ).toEqual({
       hasBonusTokens: true,
-      hasLastSessionFeedback: true,
       hasLastSessionAnalysis: true,
     });
   });
@@ -1083,7 +1075,6 @@ Viel Erfolg beim Import.`);
           'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
           {
             hasBonusTokens: true,
-            hasLastSessionFeedback: false,
             hasLastSessionAnalysis: false,
           },
         ],
@@ -1130,7 +1121,6 @@ Viel Erfolg beim Import.`);
           'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
           {
             hasBonusTokens: true,
-            hasLastSessionFeedback: false,
             hasLastSessionAnalysis: false,
           },
         ],
@@ -1159,64 +1149,6 @@ Viel Erfolg beim Import.`);
       'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
       'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
     );
-    expect(dialogOpenSpy).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        data: expect.objectContaining({
-          serverQuizId: '11111111-1111-4111-8111-111111111111',
-          accessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-          quizName: 'Datenbanken',
-        }),
-      }),
-    );
-  });
-
-  it('oeffnet die Letzte Auswertung nur bei vorhandenem Durchlauf', async () => {
-    const fixture = TestBed.createComponent(QuizListComponent);
-    const component = fixture.componentInstance;
-    const dialogOpenSpy = vi.spyOn(component['dialog'], 'open').mockReturnValue({} as never);
-
-    await component.openLastSessionFeedbackDialog({
-      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-      name: 'Datenbanken',
-      description: null,
-      createdAt: '2026-03-08T10:00:00.000Z',
-      updatedAt: '2026-03-08T11:30:00.000Z',
-      questionCount: 2,
-      teamMode: false,
-      hasBonus: true,
-      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
-      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-    });
-
-    expect(dialogOpenSpy).not.toHaveBeenCalled();
-
-    component.quizHistoryAvailability.set(
-      new Map([
-        [
-          'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-          {
-            hasBonusTokens: false,
-            hasLastSessionFeedback: true,
-            hasLastSessionAnalysis: true,
-          },
-        ],
-      ]),
-    );
-
-    await component.openLastSessionFeedbackDialog({
-      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-      name: 'Datenbanken',
-      description: null,
-      createdAt: '2026-03-08T10:00:00.000Z',
-      updatedAt: '2026-03-08T11:30:00.000Z',
-      questionCount: 2,
-      teamMode: false,
-      hasBonus: true,
-      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
-      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
-    });
-
     expect(dialogOpenSpy).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({

@@ -723,7 +723,7 @@
                           %</strong
                         >
                         <span i18n="@@sessionHost.finishedConfidenceRisk"
-                          >Anteil Fehlkonzept-Risiko</span
+                          >Anteil Fehlkonzept-Muster</span
                         >
                       </div>
                       <div class="session-host__finished-confidence-metric">
@@ -1174,18 +1174,34 @@
                       <mat-icon>home</mat-icon>
                       <span i18n>Zur Startseite</span>
                     </a>
-                    <button
-                      matButton="filled"
-                      type="button"
-                      (click)="exportSessionResultsPdf()"
-                      [disabled]="exportExporting()"
-                      [attr.aria-busy]="exportExporting()"
-                      i18n-aria-label="@@sessionHost.exportPdfButtonAria"
-                      aria-label="Ergebnisbericht als PDF exportieren"
-                    >
-                      <mat-icon aria-hidden="true">download</mat-icon>
-                      <span i18n="@@sessionHost.exportPdfButton">Ergebnisbericht (PDF)</span>
-                    </button>
+                    <div class="session-host__export-pdf">
+                      @let exportPdfPriorityCount =
+                        finishedConfidenceSummary()?.priorityQuestionCount ?? 0;
+                      <button
+                        class="session-host__export-pdf-btn"
+                        matButton="filled"
+                        type="button"
+                        (click)="exportSessionResultsPdf()"
+                        [disabled]="exportExporting()"
+                        [attr.aria-busy]="exportExporting()"
+                        [attr.aria-label]="exportPdfButtonAria()"
+                      >
+                        <mat-icon aria-hidden="true">psychology</mat-icon>
+                        <span i18n="@@sessionHost.exportPdfButton"
+                          >Nachbesprechungsplan ansehen</span
+                        >
+                        @if (exportPdfPriorityCount > 0) {
+                          <span class="session-host__export-pdf-badge" aria-hidden="true">{{
+                            exportPdfPriorityCount
+                          }}</span>
+                        }
+                      </button>
+                      @if (exportPdfPriorityCount > 0) {
+                        <p class="session-host__export-pdf-hint">
+                          {{ exportPdfPriorityHint(exportPdfPriorityCount) }}
+                        </p>
+                      }
+                    </div>
                     <button
                       matButton="tonal"
                       type="button"
@@ -1205,7 +1221,7 @@
                         [disabled]="exportExporting()"
                         [attr.aria-busy]="exportExporting()"
                         i18n-matTooltip="@@sessionHost.exportCsvExcelTooltip"
-                        matTooltip="Tabellarische Rohdaten für Tabellenkalkulation – weniger Details als der PDF-Bericht."
+                        matTooltip="Tabellarische Rohdaten für Tabellenkalkulation – weniger Details als der Nachbesprechungsplan."
                         matTooltipPosition="left"
                       >
                         <mat-icon aria-hidden="true">fact_check</mat-icon>

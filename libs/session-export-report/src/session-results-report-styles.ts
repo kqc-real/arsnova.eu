@@ -1076,10 +1076,46 @@ p { margin: 0 0 0.65rem; }
 
 .report-action-plan-criteria {
   margin-top: 0.55rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
 }
 
-.report-action-plan-criteria a {
+.report-action-plan-criteria-link {
+  display: inline-flex;
+  align-items: center;
   font-weight: 600;
+  font-size: 9pt;
+  line-height: 1.2;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--report-accent, #1a5fb4);
+  color: var(--report-accent, #1a5fb4);
+  background: var(--report-accent-soft, #e8f0fe);
+  text-decoration: none;
+}
+
+.report-cover-summary-note {
+  margin: 0.45rem 0 0;
+  font-size: 8.5pt;
+  color: var(--report-muted);
+  max-width: 42rem;
+}
+
+.report-back-to-overview {
+  margin: 0.35rem 0 1rem;
+  font-size: 9pt;
+}
+
+.report-back-to-overview a {
+  color: var(--report-accent, #1a5fb4);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.report-low-success-hint {
+  margin-top: 0.35rem;
 }
 
 .report-bar-value {

@@ -2981,6 +2981,42 @@
   gap: 0.5rem;
 }
 
+.session-host__export-pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.session-host__export-pdf-btn {
+  gap: 0.35rem;
+}
+
+.session-host__export-pdf-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font: var(--mat-sys-label-medium);
+  font-weight: 700;
+  line-height: 1;
+  // Amber wie Fehlkonzept-Warnung im PDF-Bericht (--report-warning)
+  background: #ef6c00;
+  color: #fff;
+}
+
+.session-host__export-pdf-hint {
+  margin: 0;
+  max-width: 18rem;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+  line-height: 1.35;
+}
+
 .session-host__export-hint {
   font: var(--mat-sys-label-medium);
   color: var(--mat-sys-primary);

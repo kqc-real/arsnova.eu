@@ -10,7 +10,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   tocTeams: 'Classement par équipe',
   tocBonus: 'Codes bonus',
   coverSummaryQuestions: 'Questions',
-  coverSummaryRisk: 'Questions avec risque d’idée fausse',
+  coverSummaryRisk: 'Questions avec schéma d’idée fausse',
   coverSummaryFeedback: 'Retour des participants',
   coverSummaryParticipants: 'Participantes et participants',
   coverPrivacyIncluded:
@@ -52,8 +52,8 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   blockquoteHint: 'Note pour les enseignants',
   exportFooterMeta: 'Export {0} · Séance {1}',
   documentTitle: 'Rapport sur les résultats de la séance',
-  coverTitle: 'Rapport de résultats',
-  coverSubtitle: 'Évaluation de session agrégée pour les enseignants',
+  coverTitle: 'Analyse pédagogique du quiz',
+  coverSubtitle: 'Niveau de maîtrise, conceptions erronées et plan de débriefing',
   quizName: 'Quiz',
   sessionCode: 'Code de séance',
   finishedAt: 'Terminé le',
@@ -75,7 +75,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   coverActionWrongTemplate: '{0} sur {1} incorrectes et sûres',
   coverActionStartTemplate: 'Point d’entrée recommandé : commencez par la question {0}.',
   confidenceMastery: 'Connaissances consolidées',
-  confidenceRisk: 'Risque d’idée fausse',
+  confidenceRisk: 'Réponses avec schéma d’idée fausse',
   confidenceFragile: 'Connaissances fragiles',
   confidenceGap: 'Lacune de connaissances',
   confidenceMiddle: 'Certitude moyenne',
@@ -91,7 +91,8 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   confidenceDisabledTemplate: 'Désactivée dans ce quiz pour : {0}.',
   confidenceNotCollectedForQuestion:
     'Aucune autoévaluation n’a été recueillie pour cette question.',
-  confidenceNotSupportedForQuestion: 'Ce type de question ne prend pas en charge l’autoévaluation.',
+  confidenceNotSupportedForQuestion:
+    'L’autoévaluation n’est pas proposée pour le type de question « {0} ».',
   confidenceDisabledForQuestion:
     'L’autoévaluation était désactivée pour cette question dans ce quiz.',
   confidencePrioritiesTitle: 'Priorité au débriefing',
@@ -217,7 +218,7 @@ export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   tocTeams: 'Clasificación por equipos',
   tocBonus: 'Códigos bonus',
   coverSummaryQuestions: 'Preguntas',
-  coverSummaryRisk: 'Preguntas con riesgo de concepto erróneo',
+  coverSummaryRisk: 'Preguntas con patrón de concepto erróneo',
   coverSummaryFeedback: 'Valoración de las personas participantes',
   coverSummaryParticipants: 'Participantes',
   coverPrivacyIncluded:
@@ -259,8 +260,8 @@ export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   blockquoteHint: 'Nota para docentes',
   exportFooterMeta: 'Exportación {0} · Sesión {1}',
   documentTitle: 'Informe de resultados de la sesión',
-  coverTitle: 'Informe de resultados',
-  coverSubtitle: 'Evaluación de sesiones agregadas para profesores.',
+  coverTitle: 'Análisis pedagógico del cuestionario',
+  coverSubtitle: 'Nivel de aprendizaje, ideas erróneas y plan para la puesta en común',
   quizName: 'Cuestionario',
   sessionCode: 'código de sesión',
   finishedAt: 'Terminó el',
@@ -282,7 +283,7 @@ export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   coverActionWrongTemplate: '{0} de {1} incorrectas y seguras',
   coverActionStartTemplate: 'Entrada recomendada: empieza por la pregunta {0}.',
   confidenceMastery: 'Conocimiento sólido',
-  confidenceRisk: 'Riesgo de idea errónea',
+  confidenceRisk: 'Respuestas con patrón de concepto erróneo',
   confidenceFragile: 'Conocimiento frágil',
   confidenceGap: 'Brecha de conocimiento',
   confidenceMiddle: 'Seguridad media',
@@ -297,7 +298,8 @@ export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   confidenceNotSupportedTemplate: 'No compatible con: {0}.',
   confidenceDisabledTemplate: 'Desactivada en este quiz para: {0}.',
   confidenceNotCollectedForQuestion: 'No se recogió autoevaluación para esta pregunta.',
-  confidenceNotSupportedForQuestion: 'Este tipo de pregunta no admite autoevaluación.',
+  confidenceNotSupportedForQuestion:
+    'La autoevaluación no se ofrece para el tipo de pregunta «{0}».',
   confidenceDisabledForQuestion:
     'La autoevaluación estaba desactivada para esta pregunta en este quiz.',
   confidencePrioritiesTitle: 'Prioridad para el informe',
@@ -421,7 +423,7 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   tocTeams: 'Classifica squadre',
   tocBonus: 'Codici bonus',
   coverSummaryQuestions: 'Domande',
-  coverSummaryRisk: 'Domande con rischio di errore concettuale',
+  coverSummaryRisk: 'Domande con schema di errore concettuale',
   coverSummaryFeedback: 'Feedback dei partecipanti',
   coverSummaryParticipants: 'Partecipanti',
   coverPrivacyIncluded:
@@ -462,8 +464,8 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   blockquoteHint: 'Nota per i docenti',
   exportFooterMeta: 'Export {0} · Sessione {1}',
   documentTitle: 'Rapporto sui risultati della sessione',
-  coverTitle: 'Rapporto sui risultati',
-  coverSubtitle: 'Valutazione aggregata della sessione per gli insegnanti',
+  coverTitle: 'Analisi didattica del quiz',
+  coverSubtitle: 'Livello di apprendimento, idee errate e piano per la discussione finale',
   quizName: 'Quiz',
   sessionCode: 'Codice sessione',
   finishedAt: 'Finito il',
@@ -485,7 +487,7 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   coverActionWrongTemplate: '{0} su {1} errate e sicure',
   coverActionStartTemplate: 'Punto di partenza consigliato: inizia dalla domanda {0}.',
   confidenceMastery: 'Conoscenza solida',
-  confidenceRisk: 'Rischio di malintesi',
+  confidenceRisk: 'Risposte con schema di errore concettuale',
   confidenceFragile: 'Conoscenza fragile',
   confidenceGap: 'Lacuna di conoscenza',
   confidenceMiddle: 'Sicurezza media',
@@ -501,7 +503,8 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   confidenceDisabledTemplate: 'Disattivata in questo quiz per: {0}.',
   confidenceNotCollectedForQuestion:
     'Per questa domanda non è stata raccolta alcuna autovalutazione.',
-  confidenceNotSupportedForQuestion: 'Questo tipo di domanda non supporta l’autovalutazione.',
+  confidenceNotSupportedForQuestion:
+    'L’autovalutazione non è offerta per il tipo di domanda «{0}».',
   confidenceDisabledForQuestion:
     'L’autovalutazione era disattivata per questa domanda in questo quiz.',
   confidencePrioritiesTitle: 'Priorità al debriefing',

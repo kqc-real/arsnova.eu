@@ -144,7 +144,8 @@ async function loadDemoQuizUploadPayload() {
   const quiz = raw.quiz;
   return {
     historyScopeId: DEMO_QUIZ_HISTORY_SCOPE_ID,
-    name: `${quiz.name} · Didaktik-Demo ${Date.now()}`,
+    // Kein Millisekunden-Timestamp im Namen (erscheint sonst in PDF-Kopfzeile).
+    name: `${quiz.name} · Didaktik-Demo`,
     description: quiz.description,
     motifImageUrl: quiz.motifImageUrl ?? null,
     showLeaderboard: quiz.showLeaderboard,
@@ -239,8 +240,17 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
       const otherWrongId = wrong[1] ?? wrongId;
       let answerId = correctId;
       if (requiresDebrief) {
-        // Fehlkonzept Würfel: gezielt „22“ (nicht die richtige 26)
-        answerId = findAnswerIdByText(question, ['22']) ?? wrong[wrong.length - 1] ?? wrongId;
+        // Fehlkonzept Würfel: Mehrheit „22“ (nicht 26), aber mit natürlicher Varianz (~80 %)
+        const distractor22 =
+          findAnswerIdByText(question, ['22']) ?? wrong[wrong.length - 1] ?? wrongId;
+        const bucket = participantIndex % 10;
+        if (bucket < 8) {
+          answerId = distractor22;
+        } else if (bucket === 8) {
+          answerId = otherWrongId;
+        } else {
+          answerId = correctId;
+        }
       } else if (metadata.order === 2) {
         // ~40 % falsch bei niedriger Sicherheit → „Grundlage erneut erklären“
         answerId = participantIndex % 5 < 2 ? wrongId : correctId;
@@ -263,11 +273,17 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
           : correct.slice(1);
       let answerIds;
       if (requiresDebrief) {
-        // Selbstsicher falsch: Auslassung „Vorwissen …“ oder nur die falsche Option
-        if (participantIndex % 3 === 0) {
-          answerIds = falseOnly;
-        } else {
+        // Selbstsicher falsch mit Varianz: nicht alle denselben Fehlerpfad
+        const bucket = participantIndex % 10;
+        if (bucket < 6) {
           answerIds = omitVorwissen.length > 0 ? omitVorwissen : falseOnly;
+        } else if (bucket < 8) {
+          answerIds = falseOnly;
+        } else if (bucket === 8 && correct.length > 0) {
+          // Teilweise richtig (eine korrekte Option)
+          answerIds = [correct[0]];
+        } else {
+          answerIds = correct.length > 0 ? correct : falseOnly;
         }
       } else {
         answerIds = correct.length > 0 ? correct : [question.answers[0].id];
@@ -326,7 +342,10 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
 
   if (question.confidenceEnabled) {
     if (requiresDebrief) {
-      vote.confidenceValue = randomConfidenceValue(4, 5);
+      // Meist hohe Sicherheit beim Fehlkonzept, vereinzelt unsicher/richtig
+      const bucket = participantIndex % 10;
+      vote.confidenceValue =
+        bucket < 8 ? randomConfidenceValue(4, 5) : randomConfidenceValue(1, 3);
     } else if (metadata.numericTwoRounds === true) {
       const inBandShare = Math.round(n * (round === 1 ? 0.3 : 0.82));
       const inBand = participantIndex < inBandShare;
@@ -368,8 +387,11 @@ async function submitVotes(publicTrpc, participants, question, metadata, round) 
 }
 
 function buildSessionFeedbackInput(participant, participantIndex, code) {
-  const overallRating = 3 + (participantIndex % 3);
-  const questionQualityRating = 3 + ((participantIndex + 1) % 3);
+  // Leicht entkoppelte Verteilungen (nicht byte-identisch)
+  const overallPool = [3, 3, 4, 4, 4, 5, 5, 5, 5, 2];
+  const qualityPool = [4, 4, 4, 5, 5, 5, 3, 3, 5, 4];
+  const overallRating = overallPool[participantIndex % overallPool.length];
+  const questionQualityRating = qualityPool[participantIndex % qualityPool.length];
   const wouldRepeat = participantIndex % 5 !== 0;
 
   generatedFeedback.overallDistribution[String(overallRating)] =

@@ -3090,7 +3090,6 @@ export type BonusTokensForQuizOutput = z.infer<typeof BonusTokensForQuizOutputSc
 export const QuizCollectionHistoryAvailabilityDTOSchema = z.object({
   quizId: z.string().uuid(),
   hasBonusTokens: z.boolean(),
-  hasLastSessionFeedback: z.boolean(),
   hasLastSessionAnalysis: z.boolean(),
 });
 export type QuizCollectionHistoryAvailabilityDTO = z.infer<
@@ -3834,24 +3833,6 @@ export const SubmitSessionFeedbackInputSchema = z.object({
   wouldRepeat: z.boolean().optional(),
 });
 export type SubmitSessionFeedbackInput = z.infer<typeof SubmitSessionFeedbackInputSchema>;
-
-/** Letztes Session-Feedback zu einer Server-Quiz-ID (Quiz-Sammlung; gleicher Scope wie getBonusTokensForQuiz). */
-export const GetLastSessionFeedbackForQuizInputSchema = GetBonusTokensForQuizInputSchema;
-export type GetLastSessionFeedbackForQuizInput = z.infer<
-  typeof GetLastSessionFeedbackForQuizInputSchema
->;
-
-export const LastSessionFeedbackForQuizDTOSchema = z.object({
-  endedAt: z.string().nullable(),
-  summary: SessionFeedbackSummarySchema,
-});
-export type LastSessionFeedbackForQuizDTO = z.infer<typeof LastSessionFeedbackForQuizDTOSchema>;
-
-export const LastSessionFeedbackForQuizOutputSchema =
-  LastSessionFeedbackForQuizDTOSchema.nullable();
-export type LastSessionFeedbackForQuizOutput = z.infer<
-  typeof LastSessionFeedbackForQuizOutputSchema
->;
 
 /** Letzte beendete Session eines Quizzes: aggregierte didaktische Auswertung ohne Session-Kennung. */
 export const GetLastSessionAnalysisForQuizInputSchema = GetBonusTokensForQuizInputSchema;

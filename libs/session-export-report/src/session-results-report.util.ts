@@ -8,6 +8,8 @@ import type {
   SessionFeedbackSummary,
 } from '@arsnova/shared-types';
 import {
+  DEBRIEF_RETEACH_MAX_CORRECT_RATE,
+  isConfidenceDebriefRecommended,
   questionSupportsConfidence,
   selectConfidencePriorityQuestions,
 } from '@arsnova/shared-types';
@@ -39,6 +41,7 @@ import { SESSION_RESULTS_REPORT_STYLES } from './session-results-report-styles';
 import { buildSessionResultsPrintPageFooterCss } from './session-results-report-pdf-footer.util';
 import {
   questionAnchorId,
+  renderBackToOverviewHtml,
   renderCoverSummaryHtml,
   renderCoverBrandHtml,
   renderCoverNavigationHtml,
@@ -123,6 +126,25 @@ function percent(count: number, total: number): number {
 
 function confidenceResponseCount(result: ConfidenceResultDTO): number {
   return Object.values(result.distribution).reduce((sum, value) => sum + value, 0);
+}
+
+function questionHasDebriefMisconception(q: QuestionExportEntry): boolean {
+  if (!q.confidenceResult) return false;
+  return isConfidenceDebriefRecommended({
+    result: q.confidenceResult,
+    responseCount: confidenceResponseCount(q.confidenceResult),
+  });
+}
+
+function shouldShowLowSuccessRateHint(q: QuestionExportEntry): boolean {
+  const total = (q.correctCount ?? 0) + (q.incorrectCount ?? 0);
+  if (total <= 0) return false;
+  const rate =
+    typeof q.correctPercentage === 'number' && Number.isFinite(q.correctPercentage)
+      ? q.correctPercentage / 100
+      : (q.correctCount ?? 0) / total;
+  if (rate >= DEBRIEF_RETEACH_MAX_CORRECT_RATE) return false;
+  return !questionHasDebriefMisconception(q);
 }
 
 function confidenceTierCounts(result: ConfidenceResultDTO): {
@@ -590,6 +612,14 @@ function renderQuestion(
         .replace('{0}', formatLocaleCount(q.correctCount ?? 0, localeId))
         .replace('{1}', formatLocaleCount(correctnessTotal, localeId)),
     )} · ${percent(q.correctCount ?? 0, correctnessTotal)} %</p>`;
+    if (shouldShowLowSuccessRateHint(q)) {
+      body += `<p class="report-note report-low-success-hint">${escapeHtml(
+        labels.lowSuccessRateHintTemplate.replace(
+          '{0}',
+          formatLocalePercentShareFromCounts(q.correctCount ?? 0, correctnessTotal, localeId),
+        ),
+      )}</p>`;
+    }
     if (q.shortTextIncorrectAggregates?.length) {
       const totalGraded = (q.correctCount ?? 0) + (q.incorrectCount ?? 0);
       const ranked = [...q.shortTextIncorrectAggregates]
@@ -686,7 +716,10 @@ function renderQuestion(
     body += `<section class="report-confidence-continuation">${confidence}</section>`;
   } else {
     const reason = !questionSupportsConfidence(q.type)
-      ? labels.confidenceNotSupportedForQuestion
+      ? labels.confidenceNotSupportedForQuestion.replace(
+          '{0}',
+          questionTypeLabelForReport(q.type, labels),
+        )
       : q.confidenceEnabled === false
         ? labels.confidenceDisabledForQuestion
         : labels.confidenceNotCollectedForQuestion;
@@ -1126,13 +1159,17 @@ export function buildSessionResultsReportHtml(
     </div>
   </section>
   ${confidenceHtml}
+  ${confidenceHtml ? renderBackToOverviewHtml(labels) : ''}
   <section class="report-section report-section--questions" id="report-questions">
     <h2>${escapeHtml(labels.questionsTitle)}</h2>
+    <p class="report-note">${escapeHtml(labels.questionsLead)}</p>
     <div class="report-questions">${questionsHtml}</div>
   </section>
+  ${renderBackToOverviewHtml(labels)}
   ${qaHtml}
   ${finalSummaryHtml}
   ${feedbackHtml}
+  ${feedbackHtml ? renderBackToOverviewHtml(labels) : ''}
   ${teamHtml}
   ${teamLearningHtml}
   ${bonusHtml}

@@ -6057,6 +6057,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
+  exportPdfButtonAria(): string {
+    const count = this.finishedConfidenceSummary()?.priorityQuestionCount ?? 0;
+    if (count === 1) {
+      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityOne:Nachbesprechungsplan als PDF ansehen – 1 Frage zur Nachbesprechung`;
+    }
+    if (count > 1) {
+      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityMany:Nachbesprechungsplan als PDF ansehen – ${count}:count: Fragen zur Nachbesprechung`;
+    }
+    return $localize`:@@sessionHost.exportPdfButtonAria:Nachbesprechungsplan als PDF ansehen`;
+  }
+
+  exportPdfPriorityHint(count: number): string {
+    if (count === 1) {
+      return $localize`:@@sessionHost.exportPdfPriorityHintSingular:1 Frage braucht Nachbesprechung`;
+    }
+    return $localize`:@@sessionHost.exportPdfPriorityHintPlural:${count}:count: Fragen brauchen Nachbesprechung`;
+  }
+
   async exportSessionResultsPdf(): Promise<void> {
     if (!this.code || this.exportExporting()) return;
     this.exportStatus.set(null);

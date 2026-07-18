@@ -40,6 +40,10 @@ export function renderCoverSummaryHtml(
       `<div class="report-cover-summary-item report-cover-summary-item--risk"><strong>${riskCount}</strong><span>${escapeHtml(labels.coverSummaryRisk)}</span></div>`,
     );
   }
+  const riskNote =
+    data.confidenceSummary && riskCount > 0
+      ? `<p class="report-cover-summary-note">${escapeHtml(labels.coverSummaryRiskNote)}</p>`
+      : '';
   if (feedbackAvg !== undefined) {
     const feedbackCount = data.feedbackSummary?.totalResponses ?? 0;
     const avgText = labels.coverSummaryFeedbackAvgTemplate.replace(
@@ -58,7 +62,11 @@ export function renderCoverSummaryHtml(
       )}</span></div>`,
     );
   }
-  return `<div class="report-cover-summary">${items.join('')}</div>`;
+  return `<div class="report-cover-summary">${items.join('')}</div>${riskNote}`;
+}
+
+export function renderBackToOverviewHtml(labels: SessionResultsReportLabels): string {
+  return `<p class="report-back-to-overview"><a href="#report-overview">${escapeHtml(labels.backToOverview)}</a></p>`;
 }
 
 export function renderCoverBrandHtml(): string {
@@ -112,7 +120,7 @@ export function renderCoverNavigationHtml(
   }
 
   if (!items.length) return '';
-  return `<nav class="report-cover-nav" aria-label="${escapeHtml(labels.tableOfContentsTitle)}">
+  return `<nav class="report-cover-nav" id="report-overview" aria-label="${escapeHtml(labels.tableOfContentsTitle)}">
     <p class="report-cover-nav-label">${escapeHtml(labels.tableOfContentsTitle)}</p>
     <div class="report-cover-nav-grid">${items.join('')}</div>
   </nav>`;
