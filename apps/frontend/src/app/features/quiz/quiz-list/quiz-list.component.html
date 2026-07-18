@@ -567,6 +567,19 @@
                 <span i18n="@@quizList.exportLastSessionPdf">Nachbesprechungsplan ansehen</span>
               </button>
             </span>
+            @if (quiz.id === demoQuizId) {
+              <a
+                mat-button
+                class="quiz-list-item__demo-pdf"
+                [href]="demoSessionResultsPdfUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                [matTooltip]="demoSessionResultsPdfTooltip"
+              >
+                <mat-icon aria-hidden="true">picture_as_pdf</mat-icon>
+                <span i18n="@@quizList.demoSessionResultsPdf">Beispiel-Nachbesprechungsplan</span>
+              </a>
+            }
             <a
               mat-button
               type="button"

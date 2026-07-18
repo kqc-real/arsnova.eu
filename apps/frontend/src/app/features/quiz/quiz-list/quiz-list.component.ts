@@ -199,6 +199,9 @@ export class QuizListComponent implements OnInit {
   readonly bonusCodesEmptyTooltip = $localize`:@@quizList.bonusCodesEmpty:Noch keine Bonus-Codes vorhanden.`;
   readonly lastFeedbackEmptyTooltip = $localize`:@@quizList.lastFeedbackEmpty:Noch keine abgeschlossene Auswertung vorhanden.`;
   readonly lastSessionReportPdfEnabledTooltip = $localize`:@@quizList.lastSessionReportPdfTooltip:Nachbesprechungsplan mit Diagrammen und Details – zum Speichern, Drucken oder Teilen.`;
+  readonly demoSessionResultsPdfTooltip = $localize`:@@quizList.demoSessionResultsPdfTooltip:Beispiel-PDF mit didaktischer Auswertung – ohne eigenen Live-Durchlauf.`;
+  /** Locale-aware URL zum Demo-Nachbesprechungsplan unter `/<locale>/assets/…`. */
+  readonly demoSessionResultsPdfUrl = `${resolveMotdAssetOrigin()}/assets/demo/demo-session-results-30.pdf`;
   readonly sessionPdfExportQuizId = signal<string | null>(null);
   private readonly descriptionMarkdownCache = new Map<string, SafeHtml>();
   private lastQuizHistoryAvailabilityKey = '';

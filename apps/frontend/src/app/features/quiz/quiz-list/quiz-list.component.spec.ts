@@ -7,7 +7,7 @@ import { webcrypto } from 'node:crypto';
 import { createLegacyQuizHistoryAccessProof } from '@arsnova/shared-types';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizListComponent } from './quiz-list.component';
-import { QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
+import { DEMO_QUIZ_ID, QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
 
 const {
   getActiveQuizIdsQueryMock,
@@ -347,6 +347,49 @@ describe('QuizListComponent', () => {
     const link = fixture.nativeElement.querySelector('.quiz-list-item__link') as HTMLAnchorElement;
     expect(link).toBeTruthy();
     expect(link.getAttribute('aria-label')).toContain('Datenbanken');
+  });
+
+  it('zeigt auf der Demo-Quizkarte einen Beispiellink zum Nachbesprechungsplan-PDF', () => {
+    quizzesSignal.set([
+      {
+        id: DEMO_QUIZ_ID,
+        name: 'Demo-Quiz',
+        description: 'Showcase',
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 3,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+      {
+        id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+        name: 'Datenbanken',
+        description: 'SQL Grundlagen',
+        createdAt: '2026-03-08T10:00:00.000Z',
+        updatedAt: '2026-03-08T11:30:00.000Z',
+        questionCount: 2,
+        teamMode: false,
+        hasBonus: false,
+        lastServerQuizId: null,
+        lastServerQuizAccessProof: null,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    const demoPdfLinks = fixture.nativeElement.querySelectorAll(
+      'a.quiz-list-item__demo-pdf',
+    ) as NodeListOf<HTMLAnchorElement>;
+    expect(demoPdfLinks.length).toBe(1);
+    expect(demoPdfLinks[0]?.textContent).toContain('Beispiel-Nachbesprechungsplan');
+    expect(demoPdfLinks[0]?.getAttribute('href')).toContain(
+      '/assets/demo/demo-session-results-30.pdf',
+    );
+    expect(demoPdfLinks[0]?.getAttribute('target')).toBe('_blank');
+    expect(demoPdfLinks[0]?.getAttribute('rel')).toContain('noopener');
   });
 
   it('rendert Markdown in der Quiz-Beschreibung', () => {
