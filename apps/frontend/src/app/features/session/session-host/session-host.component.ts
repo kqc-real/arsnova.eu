@@ -42,6 +42,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -394,6 +395,7 @@ function musicTracksForPhase(
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
+    MatProgressBar,
     MatSlideToggle,
     MatTooltip,
     WordCloudComponent,
@@ -6069,9 +6071,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   exportPdfPriorityHint(count: number): string {
     if (count === 1) {
-      return $localize`:@@sessionHost.exportPdfPriorityHintSingular:1 Frage braucht Nachbesprechung`;
+      return $localize`:@@sessionHost.exportPdfPriorityHintSingular:1 Frage zur Nachbesprechung empfohlen`;
     }
-    return $localize`:@@sessionHost.exportPdfPriorityHintPlural:${count}:count: Fragen brauchen Nachbesprechung`;
+    return $localize`:@@sessionHost.exportPdfPriorityHintPlural:${count}:count: Fragen zur Nachbesprechung empfohlen`;
   }
 
   async exportSessionResultsPdf(profile: SessionResultsPdfProfile = 'visual'): Promise<void> {

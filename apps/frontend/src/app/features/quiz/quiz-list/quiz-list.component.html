@@ -566,7 +566,7 @@
                 <mat-icon aria-hidden="true">psychology</mat-icon>
                 <span i18n="@@quizList.exportLastSessionPdf">Nachbesprechungsplan ansehen</span>
                 <mat-icon aria-hidden="true" class="quiz-list-item__menu-caret"
-                  >arrow_drop_down</mat-icon
+                  >expand_more</mat-icon
                 >
               </button>
             </span>
@@ -602,10 +602,10 @@
                   type="button"
                   [matMenuTriggerFor]="demoSessionPdfMenu"
                 >
-                  <mat-icon aria-hidden="true">picture_as_pdf</mat-icon>
+                  <mat-icon aria-hidden="true">description</mat-icon>
                   <span i18n="@@quizList.demoSessionResultsPdf">Beispiel-Nachbesprechungsplan</span>
                   <mat-icon aria-hidden="true" class="quiz-list-item__menu-caret"
-                    >arrow_drop_down</mat-icon
+                    >expand_more</mat-icon
                   >
                 </button>
               </span>
@@ -690,6 +690,20 @@
             }
           </mat-menu>
         </div>
+        @if (isSessionPdfExportPending(quiz.id)) {
+          <div
+            class="quiz-list-item__export-progress"
+            role="status"
+            aria-live="polite"
+            i18n-aria-label="@@quizList.exportProgressAria"
+            aria-label="Nachbesprechungsplan wird erstellt"
+          >
+            <p class="quiz-list-item__export-progress-label" i18n="@@quizList.exportProgressLabel">
+              Nachbesprechungsplan wird erstellt…
+            </p>
+            <mat-progress-bar class="quiz-list-item__export-progress-bar" mode="indeterminate" />
+          </div>
+        }
       </mat-card-content>
     </mat-card>
   </ng-template>

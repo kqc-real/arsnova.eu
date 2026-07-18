@@ -8,9 +8,13 @@
  *
  * Optional:
  *   BASE_URL=http://localhost:4200 PARTICIPANTS=30 CONFIDENCE_SEED=20260713 \
- *   PRIORITY_QUESTION_COUNT=4 \
+ *   PRIORITY_QUESTION_COUNT=2 \
  *   E2E_ARTIFACT_DIR=/tmp/arsnova-confidence-e2e \
  *   npm run e2e:confidence-summary-demo -w @arsnova/frontend
+ *
+ * PRIORITY_QUESTION_COUNT steuert, wie viele Demo-Fragen absichtlich ein
+ * Fehlkonzept-Signal bekommen (max. Anzahl in PREFERRED_PRIORITY_ORDERS).
+ * Die Assertion folgt der Produktregel (≥2 Personen und ≥10 % falsch+sicher).
  *
  * Bestehende Session (Host-Token aus Browser-LocalStorage oder Backend minten):
  *   SESSION_CODE=XFNHXE HOST_TOKEN=... BASE_URL=http://localhost:4200 PARTICIPANTS=30 \
@@ -44,6 +48,11 @@ if (
 ) {
   throw new Error('PRIORITY_QUESTION_COUNT muss eine positive ganze Zahl sein.');
 }
+/** Fragen mit robustem Steuerpfad für Fehlkonzept-Hinweis (MC-Auslassung, Würfel). */
+const PREFERRED_PRIORITY_ORDERS = [3, 4];
+/** Wie shared-types `isConfidenceDebriefRecommended`. */
+const CONFIDENCE_DEBRIEF_MIN_RESPONSES = 2;
+const CONFIDENCE_DEBRIEF_MIN_SHARE = 0.1;
 const VOTE_COOLDOWN_MS = Math.max(1_000, Number(process.env.VOTE_COOLDOWN_MS || 1_100));
 const SKIP_HOST_UI = ['1', 'true', 'yes'].includes(
   String(process.env.SKIP_HOST_UI || '')
@@ -456,21 +465,57 @@ function assertEqual(actual, expected, label) {
   }
 }
 
-function validateSummary(summary, expectedQuestions, expectedPriorityQuestions) {
+function isDebriefRecommended(question) {
+  const incorrectHigh = question?.result?.crossTab?.incorrectHigh ?? 0;
+  const responseCount = question?.responseCount ?? 0;
+  return (
+    incorrectHigh >= CONFIDENCE_DEBRIEF_MIN_RESPONSES &&
+    responseCount > 0 &&
+    incorrectHigh / responseCount >= CONFIDENCE_DEBRIEF_MIN_SHARE
+  );
+}
+
+function validateSummary(summary, expectedQuestions, steeredPriorityOrders) {
   if (!summary) {
     throw new Error('Keine Session-weite Confidence-Zusammenfassung vorhanden.');
   }
   const expectedResponses = expectedQuestions * PARTICIPANT_COUNT;
+  const steered = [...steeredPriorityOrders];
   assertEqual(summary.includedQuestionCount, expectedQuestions, 'Ausgewertete Confidence-Fragen');
   assertEqual(summary.suppressedQuestionCount, 0, 'Unterdrückte Confidence-Fragen');
-  assertEqual(
-    summary.priorityQuestionCount,
-    expectedPriorityQuestions,
-    'Fragen zur Nachbesprechung',
-  );
   assertEqual(summary.responseCount, expectedResponses, 'Confidence-Antworten im Summary');
   assertEqual(distributionTotal(summary.distribution), expectedResponses, 'Confidence-Verteilung');
-  assertEqual(summary.questions.length, expectedQuestions, 'Priorisierte Fragen');
+  assertEqual(summary.questions.length, expectedQuestions, 'Confidence-Fragen im Summary');
+
+  const recommended = summary.questions.filter(isDebriefRecommended);
+  assertEqual(
+    summary.priorityQuestionCount,
+    recommended.length,
+    'Fragen zur Nachbesprechung (Konsistenz zur Produktregel)',
+  );
+
+  for (const order of steered) {
+    const question = summary.questions.find((item) => item.questionOrder === order);
+    if (!question) {
+      throw new Error(`Gesteuerte Prioritätsfrage ${order + 1} fehlt im Confidence-Summary.`);
+    }
+    if (!isDebriefRecommended(question)) {
+      const incorrectHigh = question.result?.crossTab?.incorrectHigh ?? 0;
+      throw new Error(
+        `Gesteuerte Prioritätsfrage ${order + 1} verfehlt die Nachbesprechungs-Schwelle ` +
+          `(incorrectHigh=${incorrectHigh}, n=${question.responseCount}; ` +
+          `braucht ≥${CONFIDENCE_DEBRIEF_MIN_RESPONSES} und ≥${Math.round(CONFIDENCE_DEBRIEF_MIN_SHARE * 100)} %).`,
+      );
+    }
+  }
+
+  if (summary.priorityQuestionCount < steered.length) {
+    throw new Error(
+      `Fragen zur Nachbesprechung: mindestens ${steered.length} gesteuert erwartet, ` +
+        `erhalten ${summary.priorityQuestionCount}.`,
+    );
+  }
+
   if (Object.values(summary.distribution).some((count) => count === 0)) {
     throw new Error(
       `Zufallsverteilung deckt nicht alle fünf Confidence-Stufen ab: ${JSON.stringify(summary.distribution)}`,
@@ -665,19 +710,20 @@ async function run() {
   const expectedConfidenceQuestions = uploadPayload.questions.filter(
     (question) => question.confidenceEnabled,
   ).length;
+  const requestedPriorityCount =
+    CONFIGURED_PRIORITY_QUESTION_COUNT ?? PREFERRED_PRIORITY_ORDERS.length;
+  if (requestedPriorityCount > PREFERRED_PRIORITY_ORDERS.length) {
+    throw new Error(
+      `PRIORITY_QUESTION_COUNT=${requestedPriorityCount} übersteigt die steuerbaren Demo-Fragen ` +
+        `(${PREFERRED_PRIORITY_ORDERS.length}: Ordnungen ${PREFERRED_PRIORITY_ORDERS.join(', ')}).`,
+    );
+  }
   const expectedPriorityQuestions = Math.max(
     1,
-    Math.min(
-      expectedConfidenceQuestions,
-      Math.floor(
-        CONFIGURED_PRIORITY_QUESTION_COUNT ?? 1 + (CONFIDENCE_SEED % expectedConfidenceQuestions),
-      ),
-    ),
+    Math.min(requestedPriorityCount, expectedConfidenceQuestions),
   );
-  // 3 = MC Live-Checks (Auslassung), 4 = Würfel (Distraktor) — nicht die PI-Frage (7)
-  const preferredPriorityOrder = [3, 4];
-  for (const question of preferredPriorityOrder.slice(0, expectedPriorityQuestions)) {
-    priorityQuestionOrders.add(question);
+  for (const order of PREFERRED_PRIORITY_ORDERS.slice(0, expectedPriorityQuestions)) {
+    priorityQuestionOrders.add(order);
   }
   const publicTrpc = createTrpcClient();
   await waitForTrpc(publicTrpc);
@@ -746,7 +792,7 @@ async function run() {
   validateSummary(
     exportData.confidenceSummary,
     expectedConfidenceQuestions,
-    expectedPriorityQuestions,
+    priorityQuestionOrders,
   );
 
   const history =
@@ -761,19 +807,16 @@ async function run() {
       throw new Error('Letzte Auswertung ist über die Quiz-Historie nicht abrufbar.');
     }
     assertEqual(history.participantCount, PARTICIPANT_COUNT, 'Teilnehmende in der Historie');
-    validateSummary(
-      history.confidenceSummary,
-      expectedConfidenceQuestions,
-      expectedPriorityQuestions,
-    );
+    validateSummary(history.confidenceSummary, expectedConfidenceQuestions, priorityQuestionOrders);
     validateFeedbackSummary(history.feedbackSummary);
   }
 
   const expectedResponses = expectedConfidenceQuestions * PARTICIPANT_COUNT;
+  const actualPriorityQuestions = exportData.confidenceSummary.priorityQuestionCount;
   let hostUiStatus = SKIP_HOST_UI ? 'skipped' : 'ok';
   if (!SKIP_HOST_UI) {
     try {
-      await verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPriorityQuestions);
+      await verifyHostUiAndCsv(code, hostToken, expectedResponses, actualPriorityQuestions);
     } catch (error) {
       hostUiStatus = `warn: ${error instanceof Error ? error.message : String(error)}`;
       console.error(`Host-UI/CSV-Prüfung fehlgeschlagen (Session ${code} bleibt gültig):`, error);
@@ -790,14 +833,14 @@ async function run() {
         participants: PARTICIPANT_COUNT,
         demoQuestions: uploadPayload.questions.length,
         confidenceQuestions: expectedConfidenceQuestions,
-        expectedPriorityQuestions,
+        steeredPriorityQuestions: expectedPriorityQuestions,
         priorityQuestionOrders: [...priorityQuestionOrders],
+        priorityQuestionCount: actualPriorityQuestions,
         effectiveConfidenceResponses: expectedResponses,
         confidenceSeed: CONFIDENCE_SEED,
         generatedConfidenceDistribution,
         feedbackSummary,
         summaryDistribution: exportData.confidenceSummary.distribution,
-        priorityQuestionCount: exportData.confidenceSummary.priorityQuestionCount,
         screenshot: SKIP_HOST_UI ? null : HOST_SCREENSHOT,
         hostUiStatus,
       },

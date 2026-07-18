@@ -852,6 +852,9 @@
 .quiz-list-item__actions :is(a[mat-button], button[mat-button], button[matButton]) {
   font: var(--mat-sys-label-large);
   white-space: nowrap;
+  // MD3 Text-Button: Icon und Label dicht (nicht über die volle Span-Breite gestreckt)
+  justify-content: flex-start;
+  gap: 0.5rem;
 }
 
 .quiz-list-item__actions :is(a[mat-button], button[mat-button], button[matButton]) mat-icon {
@@ -865,13 +868,37 @@
 
 .quiz-list-item__actions-secondary > span {
   display: inline-flex;
-  min-width: max-content;
+  width: fit-content;
   max-width: 100%;
 
   > button[mat-button] {
-    width: 100%;
+    width: auto;
     white-space: nowrap;
   }
+}
+
+.quiz-list-item__menu-caret {
+  margin-inline-start: -0.1rem;
+}
+
+.quiz-list-item__export-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.65rem;
+}
+
+.quiz-list-item__export-progress-label {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-primary);
+}
+
+.quiz-list-item__export-progress-bar {
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
 }
 
 .quiz-list-item__menu-trigger,

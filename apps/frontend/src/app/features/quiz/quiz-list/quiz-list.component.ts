@@ -20,6 +20,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
@@ -99,6 +100,7 @@ const QUIZ_HISTORY_SCOPE_ID_PATTERN =
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
+    MatProgressBar,
     MatTooltip,
     MarkdownImageLightboxDirective,
   ],
