@@ -807,11 +807,7 @@ async function run() {
       throw new Error('Letzte Auswertung ist über die Quiz-Historie nicht abrufbar.');
     }
     assertEqual(history.participantCount, PARTICIPANT_COUNT, 'Teilnehmende in der Historie');
-    validateSummary(
-      history.confidenceSummary,
-      expectedConfidenceQuestions,
-      priorityQuestionOrders,
-    );
+    validateSummary(history.confidenceSummary, expectedConfidenceQuestions, priorityQuestionOrders);
     validateFeedbackSummary(history.feedbackSummary);
   }
 
