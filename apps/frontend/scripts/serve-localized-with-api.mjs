@@ -93,7 +93,7 @@ for (const locale of SUPPORTED_LOCALES) {
   app.get(new RegExp(`^/${locale}/.+`), (_, res) => res.sendFile(localeIndex));
 }
 
-app.get('/', (_, res) => res.sendFile(rootIndexFile));
+app.get('/', (_, res) => res.type('html').send(rootIndexHtml));
 app.get(/.*/, (_, res) => res.type('html').send(rootIndexHtml));
 
 const server = createServer(app);
