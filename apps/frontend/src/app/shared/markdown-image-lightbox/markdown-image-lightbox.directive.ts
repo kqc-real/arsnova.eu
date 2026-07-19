@@ -123,7 +123,7 @@ export class MarkdownImageLightboxDirective implements AfterViewInit, OnDestroy 
 
     this.dialog.open(MarkdownImageLightboxDialogComponent, {
       data,
-      autoFocus: false,
+      autoFocus: 'first-tabbable',
       restoreFocus: true,
       enterAnimationDuration: 180,
       exitAnimationDuration: 140,
