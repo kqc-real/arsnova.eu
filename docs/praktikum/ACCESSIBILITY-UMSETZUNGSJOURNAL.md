@@ -37,16 +37,16 @@ PR 7 des Audits.
 
 ## Übersicht
 
-| Arbeitsschnitt | Thema                                      | Status                | Automatische Validierung                                   | Manuelle Abnahme  | PR/Commit    |
-| -------------- | ------------------------------------------ | --------------------- | ---------------------------------------------------------- | ----------------- | ------------ |
-| PR 1           | Semantik und Eingaben                      | automatisch validiert | 950 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | nachzutragen |
-| PR 2           | Fokus und SPA-Navigation                   | automatisch validiert | 953 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | nachzutragen |
-| PR 3           | Dialoge und Overlays                       | automatisch validiert | 955 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | nachzutragen |
-| PR 4           | WCAG-2.2-Interaktionen und Inhaltsstruktur | automatisch validiert | 959 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | nachzutragen |
-| PR 5           | i18n assistiver Texte                      | automatisch validiert | 964 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | nachzutragen |
-| PR 6           | automatisierte Qualitätssicherung          | automatisch validiert | Template-Lint, axe statisch/dynamisch, Lighthouse, Reflow  | ausstehend        | nachzutragen |
-| PR 7           | manuelle Abschlussprüfung                  | in Arbeit             | Browser-/Locale-Matrix und neue Fokusregressionen grün     | AT/OS ausstehend  | nachzutragen |
-| PR 8           | PDF/UA und Dokumentation                   | automatisch validiert | veraPDF PDF/UA-1: fünf Locale-Demos PASS                   | AT/PAC ausstehend | nachzutragen |
+| Arbeitsschnitt | Thema                                      | Status                | Automatische Validierung                                   | Manuelle Abnahme  | PR/Commit                      |
+| -------------- | ------------------------------------------ | --------------------- | ---------------------------------------------------------- | ----------------- | ------------------------------ |
+| PR 1           | Semantik und Eingaben                      | automatisch validiert | 950 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | #89 `1e3fff8c`                 |
+| PR 2           | Fokus und SPA-Navigation                   | automatisch validiert | 953 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | #89 `1e3fff8c`                 |
+| PR 3           | Dialoge und Overlays                       | automatisch validiert | 955 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | #89 `1e3fff8c`                 |
+| PR 4           | WCAG-2.2-Interaktionen und Inhaltsstruktur | automatisch validiert | 959 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | #90 `e2d99a25`                 |
+| PR 5           | i18n assistiver Texte                      | automatisch validiert | 964 Frontend-Tests, Typecheck, ESLint, lokalisierter Build | ausstehend        | #90 `e2d99a25`                 |
+| PR 6           | automatisierte Qualitätssicherung          | automatisch validiert | Template-Lint, axe statisch/dynamisch, Lighthouse, Reflow  | ausstehend        | #91 `746f43c1`                 |
+| PR 7           | manuelle Abschlussprüfung                  | in Arbeit             | Browser-/Locale-Matrix und neue Fokusregressionen grün     | AT/OS ausstehend  | Abnahme ausstehend             |
+| PR 8           | PDF/UA und Dokumentation                   | automatisch validiert | veraPDF PDF/UA-1: fünf Locale-Demos PASS                   | AT/PAC ausstehend | #92 `1d5f798b`, #93 `5dfd9119` |
 
 ## PR 1 – Kritische Semantik und Eingaben
 
@@ -788,7 +788,7 @@ Tab und Enter/Leertaste erreichbar.
 **Datum:** 2026-07-19  
 **Status:** automatisch validiert  
 **WCAG:** 1.1.1, 1.3.1, 1.4.3, 1.4.10, 2.1.1, 2.4.7, 2.5.8, 4.1.2  
-**PR/Commit:** noch nicht erstellt
+**PR/Commit:** #91, Squash-Commit `746f43c1`
 
 ### Ausgangsproblem
 
@@ -877,7 +877,8 @@ verbindlichen CI-Gates.
 - axe und Lighthouse decken nur automatisierbare Kriterien ab;
 - VoiceOver/Safari, NVDA/Firefox, Forced Colors, Presets und alle fünf Locales
   müssen weiterhin manuell geprüft werden;
-- CI-Lauf auf GitHub ist erst nach Push/PR nachweisbar.
+- die Gate-Integration wurde in PR #91 erfolgreich durch CI validiert;
+  zukünftige Änderungen müssen dieselben Gates weiterhin bestehen.
 
 ## PR 7 – Manuelle Abschlussprüfung
 
@@ -886,6 +887,9 @@ verbindlichen CI-Gates.
 und Betriebssystem-Abnahme ausstehend  
 **WCAG:** 1.4.4, 1.4.10, 1.4.11, 2.1.1, 2.4.1, 2.4.3, 2.4.7, 2.4.11,
 3.1.1, 3.1.2, 4.1.2, 4.1.3
+
+**PR/Commit:** Abnahme ausstehend; vorbereitende Implementierung #89
+(`1e3fff8c`), Dokumentation #93 (`5dfd9119`)
 
 ### Konkretisierte Prüfmatrix
 
@@ -1018,6 +1022,8 @@ nicht erklärt.
 geprüft, Reader-/Screenreader-Abnahme ausstehend  
 **Normprofil:** PDF/UA-1, ISO 14289-1:2014
 
+**PR/Commit:** #92, Squash-Commit `1d5f798b`; Dokumentation #93 (`5dfd9119`)
+
 ### Ausgangslage
 
 Das barrierefreie Exportprofil erzeugte bereits getaggte PDFs mit
@@ -1090,6 +1096,53 @@ kein ausreichender Konformitätsnachweis.
 - Schließen von Story 6.5 und Erklärung vollständiger WCAG-2.2-AA-Konformität
   erst nach Abschluss der noch offenen PR-7- und Reader-Abnahmen.
 
+## Nachlaufende UX-Feinjustierung – Abstand des Textlink-Fokus
+
+**Datum:** 2026-07-19  
+**Status:** umgesetzt  
+**WCAG:** 2.4.7 Fokus sichtbar  
+**PR/Commit:** `b8feff12` (`main`-HEAD; Push/PR ausstehend)
+
+### Ausgangsproblem
+
+Der vorhandene Fokusrahmen lag bei allgemeinen Textlinks und in mehreren
+Markdown-Ansichten mit zwei Pixeln Abstand noch relativ eng an den
+Buchstaben. Das war erkennbar, wirkte aber visuell gedrängt.
+
+### Konkrete Umsetzung
+
+- globale Grundregel für fokussierte Links mit `href`;
+- einheitlicher Abstand von `0.25rem` zwischen Text und Fokusrahmen;
+- kleiner Eckenradius für eine ruhige Darstellung;
+- bestehende speziellere Regeln in Hilfe, Rechtstexten, News-Archiv und
+  Markdown-Vorschau auf denselben Abstand angehoben.
+
+Es wird bewusst `outline-offset` statt `padding` verwendet. Dadurch ändern
+sich weder Textfluss und Zeilenumbruch noch Größe und Position der
+Klickfläche.
+
+### Betroffene Dateien
+
+- `apps/frontend/src/styles.scss`;
+- `apps/frontend/src/app/features/help/help.component.scss`;
+- `apps/frontend/src/app/features/legal/legal-page.component.scss`;
+- `apps/frontend/src/app/features/news-archive/news-archive-page.component.scss`;
+- `apps/frontend/src/app/shared/markdown-katex-editor/markdown-katex-editor.component.scss`.
+
+### UX- und Design-Einfluss
+
+- Tastaturnutzende können den Fokus leichter vom Linktext unterscheiden.
+- Maus- und Touchdarstellung bleiben unverändert, weil die Regel nur für
+  `:focus-visible` greift.
+- Das Layout bleibt stabil; insbesondere entstehen keine zusätzlichen
+  Zeilenumbrüche.
+
+### Offene manuelle Abnahme
+
+- Textlinks in hellem, dunklem und spielerischem Theme per Tastatur prüfen;
+- Fokusrahmen an Containerkanten und in scrollbaren Markdown-Bereichen auf
+  mögliches Abschneiden kontrollieren.
+
 ## Vorlage für weitere Einträge
 
 ```markdown
@@ -1126,5 +1179,6 @@ Bei jedem weiteren A11y-Arbeitsschritt:
 7. bei einer Regression den Eintrag korrigieren statt nur einen neuen
    Erfolgseintrag anzuhängen.
 
-_Dieses Journal dokumentiert den lokalen Arbeitsstand. PR- und
-Commit-Referenzen sind nach deren Erstellung nachzutragen._
+_Dieses Journal dokumentiert den Stand auf `main` sowie ausdrücklich
+gekennzeichnete lokale Nachläufe. PR- und Commit-Referenzen werden bei jedem
+Merge beziehungsweise lokalen Commit fortgeschrieben._

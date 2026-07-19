@@ -124,6 +124,9 @@ Regeln:
 
 - Kontrast und Lesbarkeit müssen in Light und Dark erfüllt sein.
 - Fokuszustand muss klar sichtbar sein (bei Bedarf `mat.strong-focus-indicators()`).
+- Textlinks verwenden bei `:focus-visible` einen 2-Pixel-Rahmen mit
+  `0.25rem` `outline-offset`; kein zusätzliches Padding, damit Textfluss und
+  Klickfläche unverändert bleiben.
 - Disabled, Error und Hover/Focus-Zustände nur über passende Tokens ausdrücken.
 - 320 px Breite ohne horizontales Scrollen ist Pflicht für produktive UI-Flows; für relevante Änderungen `npm run check:viewport -w @arsnova/frontend` nutzen, wenn ein lokaler Server bereitsteht.
 - Animationen und Transitions müssen bei `prefers-reduced-motion: reduce` ohne Informationsverlust nutzbar bleiben.

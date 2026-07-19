@@ -4,28 +4,30 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
-**Stand:** 2026-07-11 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **20** und **22**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Lighthouse-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
+**Stand:** 2026-07-19 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **20** und **22**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
 
 ---
 
 ## NPM-Skripte (Root)
 
-| Befehl                              | Bedeutung                                                                                    |
-| ----------------------------------- | -------------------------------------------------------------------------------------------- |
-| `npm run build`                     | `shared-types` → Backend `tsc` → Frontend `ng build`                                         |
-| `npm run typecheck`                 | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                        |
-| `npm run lint`                      | ESLint über `libs/` und `apps/`                                                              |
-| `npm test`                          | **Shared Contracts**, **Backend** und **Frontend** mit Vitest (sequentiell)                  |
-| `npm run format:check`              | Prettier (ohne Schreiben)                                                                    |
-| `npm run verify:production-serving` | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`) |
+| Befehl                              | Bedeutung                                                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `npm run build`                     | `shared-types` → Backend `tsc` → Frontend `ng build`                                                   |
+| `npm run typecheck`                 | `shared-types` bauen (`dist`), dann Backend + Frontend `tsc --noEmit`                                  |
+| `npm run lint`                      | ESLint über `libs/` und `apps/`                                                                        |
+| `npm test`                          | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell) |
+| `npm run format:check`              | Prettier (ohne Schreiben)                                                                              |
+| `npm run validate:pdfua`            | Fünf PDF/UA-1-Locale-Demos mit veraPDF validieren                                                      |
+| `npm run verify:production-serving` | HTTP-Smoke gegen einen laufenden Production-Serve (`/`, `/de/`, Compression, `health.stats`)           |
 
 Workspace-spezifisch:
 
-| Workspace               | Tests                                                  | Typcheck                                     |
-| ----------------------- | ------------------------------------------------------ | -------------------------------------------- |
-| `@arsnova/shared-types` | `npm run test -w @arsnova/shared-types` (`vitest run`) | `npm run typecheck -w @arsnova/shared-types` |
-| `@arsnova/backend`      | `npm run test -w @arsnova/backend` (`vitest run`)      | `npm run typecheck -w @arsnova/backend`      |
-| `@arsnova/frontend`     | `npm run test -w @arsnova/frontend` (`vitest run`)     | `npm run typecheck -w @arsnova/frontend`     |
+| Workspace                        | Tests                                                           | Typcheck                                              |
+| -------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------- |
+| `@arsnova/shared-types`          | `npm run test -w @arsnova/shared-types` (`vitest run`)          | `npm run typecheck -w @arsnova/shared-types`          |
+| `@arsnova/session-export-report` | `npm run test -w @arsnova/session-export-report` (`vitest run`) | `npm run typecheck -w @arsnova/session-export-report` |
+| `@arsnova/backend`               | `npm run test -w @arsnova/backend` (`vitest run`)               | `npm run typecheck -w @arsnova/backend`               |
+| `@arsnova/frontend`              | `npm run test -w @arsnova/frontend` (`vitest run`)              | `npm run typecheck -w @arsnova/frontend`              |
 
 `npm run typecheck -w @arsnova/backend` setzt ein gebautes `@arsnova/shared-types` (`libs/shared-types/dist`) voraus; das Root-Skript `npm run typecheck` baut die Library zuerst.
 
@@ -125,7 +127,7 @@ Artifacts findest du in einem Run unter: **Actions → CI-Run öffnen → Artifa
 | `frontend-dist-browser`   | `build`            | Frontend-Produktionsbuild (`apps/frontend/dist/browser`)                                              | 1 Tag     |
 | `coverage-reports`        | `test`             | Coverage-Reports aus `apps/backend/coverage` und `apps/frontend/coverage`                             | 7 Tage    |
 | `verapdf-ua1-report`      | `pdfua`            | veraPDF-Textbericht für die PDF/UA-1-Demos aller fünf Locales                                         | 30 Tage   |
-| `lighthouse-reports`      | `lighthouse`       | Lighthouse-Ausgabe aus `.lighthouseci`                                                                | 7 Tage    |
+| `lighthouse-reports`      | `lighthouse`       | Performance- und A11y-Ausgabe aus `.lighthouseci` und `.lighthouseci-a11y`                            | 7 Tage    |
 | `e2e-service-logs`        | `e2e`              | `backend.log` und `frontend.log`                                                                      | 7 Tage    |
 | `classroom-smoke-reports` | `classroom-smokes` | Standardisiertes JSON + JUnit XML für sechs Szenarien (inkl. `channel-ws-fanout`) sowie `backend.log` | 7 Tage    |
 | `artillery-500-reports`   | `artillery-500`    | Artillery-Rohreport, JSON/JUnit für Unified, Vote, Yjs, Freitext und Soak sowie `backend.log`         | 30 Tage   |

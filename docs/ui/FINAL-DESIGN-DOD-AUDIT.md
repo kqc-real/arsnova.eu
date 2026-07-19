@@ -1,6 +1,6 @@
 # Finaler Design- & DoD-Audit
 
-**Stand:** 2026-05-31
+**Stand:** 2026-07-19
 
 **Basis:** [Backlog.md](../../Backlog.md), ADR-0005, ADR-0008, [STYLEGUIDE.md](STYLEGUIDE.md), [TOKENS.md](TOKENS.md), [BACKLOG-DESIGN-COMPLIANCE.md](BACKLOG-DESIGN-COMPLIANCE.md). Der frühere Stand vom 2026-02-25 ist fachlich überholt.
 
@@ -24,29 +24,29 @@
 
 ## 2. DoD Frontend
 
-| Kriterium                       | Status | Umsetzung                                                                                |
-| ------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
-| Standalone Components + Signals | ✅     | Standard in `apps/frontend`.                                                             |
-| `@if` / `@for` Control Flow     | ✅     | Zielpfad für neue Templates.                                                             |
-| Mobile-First ab 320 px          | ✅     | `npm run check:viewport -w @arsnova/frontend`.                                           |
-| Touch-Targets ≥ 44 x 44 px      | ✅     | Material-Controls und Custom-Controls prüfen.                                            |
-| Tastatur erreichbar, Fokusring  | ✅     | Material-Fokus plus Custom-Fokus; sichtbare Fokuszustände bleiben Pflicht.               |
-| Theme und Presets               | ✅     | Light/Dark/System plus `Seriös`/`Spielerisch`.                                           |
-| i18n                            | ✅     | Fünf Locale-Builds per Angular-localize/XLF; frühere Deutsch-only-Annahmen sind obsolet. |
-| Lighthouse Accessibility ≥ 90   | ✅     | Kanonischer Check: `npm run lighthouse:a11y -w @arsnova/frontend`.                       |
+| Kriterium                       | Status | Umsetzung                                                                                 |
+| ------------------------------- | ------ | ----------------------------------------------------------------------------------------- |
+| Standalone Components + Signals | ✅     | Standard in `apps/frontend`.                                                              |
+| `@if` / `@for` Control Flow     | ✅     | Zielpfad für neue Templates.                                                              |
+| Mobile-First ab 320 px          | ✅     | `npm run check:viewport -w @arsnova/frontend`.                                            |
+| Touch-Targets ≥ 44 x 44 px      | ✅     | Material-Controls und Custom-Controls prüfen.                                             |
+| Tastatur erreichbar, Fokusring  | ✅     | Material-Fokus plus Custom-Fokus; sichtbare Fokuszustände bleiben Pflicht.                |
+| Theme und Presets               | ✅     | Light/Dark/System plus `Seriös`/`Spielerisch`.                                            |
+| i18n                            | ✅     | Fünf Locale-Builds per Angular-localize/XLF; frühere Deutsch-only-Annahmen sind obsolet.  |
+| Automatisierte A11y-Gates       | ✅     | Template-Lint, axe, Reflow/Fokus/Zielgrößen und Lighthouse-Einzelaudits sind verbindlich. |
 
 ---
 
 ## 3. Epic 6
 
-| Story                       | Status | Einordnung                                                                      |
-| --------------------------- | ------ | ------------------------------------------------------------------------------- |
-| **6.1** Theme               | ✅     | umgesetzt.                                                                      |
-| **6.2** i18n                | ✅     | umgesetzt mit `de`, `en`, `fr`, `es`, `it`.                                     |
-| **6.3** Legal               | ✅     | umgesetzt über lokalisierte Markdown-Assets.                                    |
-| **6.4** Mobile/PWA          | ✅     | umgesetzt; 320-px- und PWA-Checks bleiben Reviewpflicht.                        |
-| **6.5** Barrierefreiheit    | ⬜     | fortlaufender Qualitäts-Checkpoint; nicht als fehlende Basisfunktion behandeln. |
-| **6.6** Thinking-Aloud / UX | ⬜     | offene methodische Testreihe mit Umsetzung der Befunde.                         |
+| Story                       | Status | Einordnung                                                                  |
+| --------------------------- | ------ | --------------------------------------------------------------------------- |
+| **6.1** Theme               | ✅     | umgesetzt.                                                                  |
+| **6.2** i18n                | ✅     | umgesetzt mit `de`, `en`, `fr`, `es`, `it`.                                 |
+| **6.3** Legal               | ✅     | umgesetzt über lokalisierte Markdown-Assets.                                |
+| **6.4** Mobile/PWA          | ✅     | umgesetzt; 320-px- und PWA-Checks bleiben Reviewpflicht.                    |
+| **6.5** Barrierefreiheit    | 🔨     | technische Umsetzung validiert; manuelle AT-/Zoom-/OS-Abnahme bleibt offen. |
+| **6.6** Thinking-Aloud / UX | ⬜     | offene methodische Testreihe mit Umsetzung der Befunde.                     |
 
 ---
 

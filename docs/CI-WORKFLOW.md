@@ -327,19 +327,24 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 Vor dem eigentlichen Deploy müssen erfolgreich sein:
 
-1. lint
-2. test (mit Coverage)
-3. docker
-4. typecheck
-5. lighthouse
-6. e2e
-7. classroom-smokes
-8. audit
-9. trivy-fs
-10. trivy-image
-11. deploy-freshness (`should_deploy=true`)
+1. actionlint
+2. format
+3. migration
+4. landing-build einschließlich axe
+5. lint einschließlich Angular-Template-A11y
+6. test (mit Coverage)
+7. pdfua
+8. docker
+9. typecheck
+10. lighthouse
+11. e2e einschließlich axe und Reflow/Fokus/Zielgrößen
+12. classroom-smokes
+13. audit
+14. trivy-fs
+15. trivy-image
+16. deploy-freshness (`should_deploy=true`)
 
-Wenn eines der Quality-Gates (1–10) fehlschlägt, wird nicht deployt. Wenn danach
+Wenn eines der Quality-Gates (1–15) fehlschlägt, wird nicht deployt. Wenn danach
 `deploy-freshness` feststellt, dass `github.sha` nicht mehr aktueller `main`-HEAD ist,
 wird der Deploy sauber übersprungen.
 
@@ -365,7 +370,8 @@ Empfehlung (schnell nach aussagekräftig):
 2. `npm run lint`
 3. `npm run test:coverage`
 4. Bei Frontend-/SSR-Änderungen: `npm run build:localize -w @arsnova/frontend`
-5. Optional für produktionsnahe Validierung: `npm run verify:production-serving`
+5. Bei PDF-Export-Änderungen: `npm run validate:pdfua`
+6. Optional für produktionsnahe Validierung: `npm run verify:production-serving`
 
 Mehr Details und Spezialfälle stehen in [TESTING.md](TESTING.md).
 
@@ -394,7 +400,8 @@ In GitHub findest du Artefakte so:
 | ----------------------- | --------------- | ------------------------------------------------------------- | ------------------------------------------------------------------- | --------- |
 | `frontend-dist-browser` | `build`         | Lokalisierter Frontend-Produktionsbuild                       | `apps/frontend/dist/browser`                                        | 1 Tag     |
 | `coverage-reports`      | `test`          | Backend- und Frontend-Coverage (HTML + Textsummary-Dateien)   | `apps/backend/coverage`, `apps/frontend/coverage`                   | 7 Tage    |
-| `lighthouse-reports`    | `lighthouse`    | Lighthouse-Ausgabe (A11y/Performance/SEO/Best-Practices)      | `.lighthouseci`                                                     | 7 Tage    |
+| `verapdf-ua1-report`    | `pdfua`         | veraPDF-Textbericht der fünf PDF/UA-1-Locale-Demos            | `tmp/pdfua-validation/verapdf-ua1.txt`                              | 30 Tage   |
+| `lighthouse-reports`    | `lighthouse`    | Lighthouse-Ausgabe (A11y/Performance/SEO/Best-Practices)      | `.lighthouseci`, `.lighthouseci-a11y`                               | 7 Tage    |
 | `e2e-service-logs`      | `e2e`           | Laufzeitlogs von Backend und Frontend während des Smoke-Tests | `${{ runner.temp }}/backend.log`, `${{ runner.temp }}/frontend.log` | 7 Tage    |
 | `trivy-fs-report`       | `trivy-fs`      | Trivy Filesystem Security Report (SARIF)                      | `trivy-fs.sarif`                                                    | 7 Tage    |
 | `trivy-image-report`    | `trivy-image`   | Trivy Container Image Security Report (SARIF)                 | `trivy-image.sarif`                                                 | 7 Tage    |
@@ -412,17 +419,21 @@ Damit die Pipeline-Regeln wirklich verbindlich sind, sollten in GitHub Branch Pr
 
 1. `Build & Validate (Node 20)`
 2. `Build & Validate (Node 22)`
-3. `lint`
-4. `Typecheck (workspaces)` (Matrix: Node 20 und 22)
-5. `Tests`
-6. `Lighthouse CI`
-7. `Playwright Smoke E2E`
-8. `Classroom Scenario Smokes`
-9. `Security Audit`
-10. `Trivy Filesystem Scan`
-11. `Trivy Image Scan`
-12. `Workflow Lint`
-13. `Dependency Review`
+3. `Build Landing`
+4. `Changed Files Format`
+5. `Migration Drift`
+6. `lint`
+7. `Typecheck (workspaces)` (Matrix: Node 20 und 22)
+8. `Tests`
+9. `PDF/UA-1 Validation`
+10. `Lighthouse CI`
+11. `Playwright Smoke E2E`
+12. `Classroom Scenario Smokes`
+13. `Security Audit`
+14. `Trivy Filesystem Scan`
+15. `Trivy Image Scan`
+16. `Workflow Lint`
+17. `Dependency Review`
 
 Empfehlung: `deploy-freshness`, `deploy`, `post-deploy-smoke` und `rollback-on-smoke-failure` nicht als PR-required setzen, da diese nur im Push/Release-Pfad relevant sind.
 

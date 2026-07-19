@@ -14,7 +14,7 @@ Stand: Abschlussprüfung der Stories 6.1–6.4 gegen Codebase. Story 6.5 (Barrie
 | Auswahl in localStorage persistiert                             | ✅     | `STORAGE_THEME = 'home-theme'`, `setTheme()`/`initFromStorage()`                                                                                                          |
 | UI nutzt MD3 Theme-Tokens                                       | ✅     | `styles.scss`: `--mat-sys-*`, `light-dark()`, ADR 0005; Komponenten nutzen Tokens                                                                                         |
 | Countdown, Leaderboard, Lobby, Beamer unterstützen beide Themes | ✅     | Gemeinsame Theme-Steuerung über `html.dark`/`html.light` bzw. `color-scheme`                                                                                              |
-| Kontrast WCAG 2.1 AA (≥ 4.5:1)                                  | ⚠️     | Nicht automatisch prüfbar; Design nutzt M3-Tokens (typisch kontrastkonform). Empfehlung: einmalige manuelle Prüfung oder Tool.                                            |
+| Kontrast WCAG 2.2 AA (≥ 4.5:1)                                  | ⚠️     | M3-Tokens und automatisierte axe-/Lighthouse-Gates decken prüfbare Zustände ab; die vollständige Theme-/OS-Matrix bleibt manuell abzunehmen.                              |
 
 **Fazit:** Alle technischen Akzeptanzkriterien erfüllt. Kontrast als Design-Annahme.
 
@@ -56,10 +56,10 @@ Stand: Abschlussprüfung der Stories 6.1–6.4 gegen Codebase. Story 6.5 (Barrie
 ## Story 6.2 — Internationalisierung
 
 | Kriterium                                      | Status | Nachweis                                                                                                                           |
-| ---------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- | --- | --- | --- | --------------------------------------- |
-| Sprachen de/en/fr/it/es verfügbar              | ✅     | `angular.json` mit allen fünf Locales; lokalisierter Build erzeugt `dist/browser/{de,en,fr,it,es}`                                 |
+| ---------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Sprachen de/en/fr/it/es verfügbar              | ✅     | `angular.json` mit allen fünf Locales; lokalisierter Build erzeugt die fünf Sprachverzeichnisse                                    |
 | Angular i18n mit `@angular/localize` und XLIFF | ✅     | `src/locale/messages.xlf` + `messages.en/fr/es/it.xlf`; UI-Texte in Templates und `$localize` markiert                             |
-| Sprachwähler in Toolbar + Locale-Subpfade      | ✅     | `top-toolbar.component.*`: Sprachmenü, Redirect auf `/de                                                                           | en  | fr  | it  | es/...`, Persistenz via `home-language` |
+| Sprachwähler in Toolbar + Locale-Subpfade      | ✅     | `top-toolbar.component.*`: Sprachmenü, Redirect auf den gewählten Locale-Subpfad, Persistenz via `home-language`                   |
 | Rechtstexte je Locale + Fallback               | ✅     | `assets/legal/imprint.{locale}.md`, `privacy.{locale}.md`; Fallback auf `de` in `legal-page.component`                             |
 | Datums-/Zahlenformate je Locale                | ✅     | Keine feste `LOCALE_ID`-Verdrahtung mehr; `registerLocaleData(...)` für `de/en/fr/es/it` in `main.ts`; Pipes nutzen Angular-Locale |
 
@@ -69,7 +69,13 @@ Stand: Abschlussprüfung der Stories 6.1–6.4 gegen Codebase. Story 6.5 (Barrie
 
 ## Story 6.5 — Barrierefreiheit
 
-Als fortlaufender Qualitäts-Checkpoint geführt. MD3 und Angular Material decken viele Grundlagen ab (Fokus, Semantik, Touch); finale vollständige WCAG-2.1-AA-Prüfung bleibt Bestandteil der Abschluss-QA.
+Technische Befunde und automatisierbare Nachweise sind gemäß
+[`Accessibility-Audit`](praktikum/ACCESSIBILITY-AUDIT-WCAG-2.2-AA.md) und
+[`Umsetzungsjournal`](praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md) umgesetzt:
+Template-Lint, axe, Lighthouse-Einzelaudits, Reflow-/Fokus-Smokes und
+PDF/UA-Validierung sind CI-Gates. Die vollständige WCAG-2.2-AA-Abnahme bleibt
+bis zu den dokumentierten VoiceOver-/NVDA-, Zoom-, Hochkontrast- und
+PDF-Reader-Prüfungen in Arbeit.
 
 ---
 

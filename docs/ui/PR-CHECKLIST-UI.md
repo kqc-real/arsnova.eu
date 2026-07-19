@@ -74,9 +74,17 @@ Mindestens passend zur Änderung ausführen oder im PR begründen, warum nicht:
 
 - [ ] fokussierter Frontend-Test: `npm run test -w @arsnova/frontend -- <path-to-spec>`
 - [ ] Frontend-Typecheck: `npm run typecheck -w @arsnova/frontend`
+- [ ] Template-A11y-Lint: `npm run lint`
 - [ ] UI-/Copy-Änderung: `npm run build:localize -w @arsnova/frontend` oder Root `npm run build:prod`
-- [ ] Viewport-Smoke bei laufender App: `BASE_URL=http://localhost:4200 npm run check:viewport -w @arsnova/frontend`
-- [ ] A11y-Smoke bei laufender App: `BASE_URL=http://localhost:4200 npm run lighthouse:a11y -w @arsnova/frontend`
+- [ ] Reflow-/Fokus-/Zielgrößen-Smoke: `BASE_URL=http://localhost:4200 npm run a11y:layout -w @arsnova/frontend`
+- [ ] Statisches axe-Gate: `BASE_URL=http://localhost:4200 npm run a11y:axe:static -w @arsnova/frontend`
+- [ ] Lighthouse-A11y einschließlich Einzelaudits: `BASE_URL=http://localhost:4200 npm run lighthouse:a11y -w @arsnova/frontend`
+- [ ] Landing bei Landing-Änderungen: `npm run build -w @arsnova/landing`,
+      anschließend `npx serve apps/landing/dist -l 4173` starten und in einem
+      zweiten Terminal
+      `BASE_URL=http://localhost:4173 npm run test:a11y -w @arsnova/landing`
+      ausführen.
+- [ ] PDF-Export bei PDF-Änderungen: `npm run validate:pdfua`
 - [ ] Markdown-only: `npx prettier --check <dateien>` und `git diff --check -- <dateien>`
 
 ## 9) Dokumentation

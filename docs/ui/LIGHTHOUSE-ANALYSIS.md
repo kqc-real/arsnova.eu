@@ -95,7 +95,10 @@ Während des Lighthouse-Laufs werden **WebSocket-Verbindungen zu `ws://localhost
 ## 4. Accessibility (100 % – Backlog DoD ≥ 90)
 
 - **Prüfung:** `cd apps/frontend && npm run lighthouse:a11y` (nutzt `LIGHTHOUSE_URL` oder startet eigenen Serve aus `dist/browser`).
-- **Ergebnis (2026-02-25):** Accessibility-Score **100 %** – DoD-Anforderung „kein Rückgang unter 90“ erfüllt.
+- **Historisches Ergebnis (2026-02-25):** Accessibility-Score **100 %** nach
+  damaliger Score-DoD. Seit 2026-07-19 blockiert der Lauf zusätzlich jedes
+  fehlgeschlagene gewichtete Accessibility-Einzelaudit; axe, Template-Lint und
+  Reflow/Fokus/Zielgrößen ergänzen Lighthouse.
 - **Wiederholung:** Vor relevanten UI-Änderungen oder vor Release erneut ausführen.
 
 ---

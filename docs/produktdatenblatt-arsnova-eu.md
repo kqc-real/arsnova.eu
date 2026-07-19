@@ -76,7 +76,11 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 ## Epic 6 – UX-Qualität und Compliance
 
 - Theme, Internationalisierung, Impressum/Datenschutz, Mobile-First/Responsive umgesetzt.
-- Offen: formalisierte Abschlussläufe für Barrierefreiheit und UX-Testreihen.
+- A11y-Nachtrag 2026-07-19: Die zwölf technischen WCAG-A-/AA-Befunde sind
+  behoben; Template-Lint, axe, Lighthouse-Einzelaudits, Reflow/Fokus und
+  PDF/UA sind automatisiert. Offen bleiben die manuelle
+  Assistive-Technology-/Zoom-/Hochkontrast-/PDF-Reader-Abnahme sowie die
+  UX-Testreihen.
 
 ## Epic 7 – Team-Modus
 

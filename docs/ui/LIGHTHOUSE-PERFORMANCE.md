@@ -71,8 +71,14 @@ Wenn der Server **nicht** aus **`dist/browser`** bedient wird, liefert die SPA b
 - **Kein horizontales Scrollen ab 320px (Story 6.4):**  
   Nach dem Build: `npm run serve:localize -w @arsnova/frontend` starten, dann `BASE_URL=http://localhost:4200 npm run check:viewport -w @arsnova/frontend`. Prüft den 320px-Viewport für die konfigurierten Kernrouten.
 
-- **Lighthouse Accessibility ≥ 90 und Performance-Gates (DoD):**
-  `npm run lighthouse:a11y -w @arsnova/frontend` – startet bei Bedarf einen lokalen Serve und gibt den Accessibility-Score aus. Optional: `LIGHTHOUSE_URL=http://localhost:4200/de/ npm run lighthouse:a11y -w @arsnova/frontend`, wenn bereits ein Serve läuft.
+- **Lighthouse Accessibility und Performance-Gates (DoD):**
+  `npm run lighthouse:a11y -w @arsnova/frontend` – startet bei Bedarf einen
+  lokalen Serve und prüft neben dem Score jedes gewichtete
+  Accessibility-Einzelaudit. Optional:
+  `LIGHTHOUSE_URL=http://localhost:4200/de/ npm run lighthouse:a11y -w @arsnova/frontend`,
+  wenn bereits ein Serve läuft. Lighthouse ist nur ein Teil der verbindlichen
+  A11y-Gates; axe, Template-Lint und Reflow/Fokus/Zielgrößen stehen in
+  [`docs/TESTING.md`](../TESTING.md).
 
 ---
 

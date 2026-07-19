@@ -203,16 +203,22 @@ Suspects: no
 Metadata Stream: yes
 ```
 
-Dies ist positiv, ersetzt aber keine veraPDF-/PAC-Validierung.
+Dieser initiale `pdfinfo`-Nachweis war positiv, ersetzte aber keine formale
+Validierung. Inzwischen prüft veraPDF 1.30.2 die fünf Locale-Demos in CI; alle
+bestehen PDF/UA-1. Die Reader-/Screenreader-Abnahme bleibt offen.
 
 ### 4.8 Qualitätssicherung
 
-- Lighthouse-A11y-Skript im Frontend;
-- Lighthouse-CI-Gate mit Mindestscore 0,9;
-- Unit-Tests für einzelne ARIA-, Live-Region- und Fokusverhalten;
-- verpflichtende UI-PR-Checkliste;
-- dokumentierte Vorgaben zu Fokus, Kontrast, Reduced Motion, Touch-Zielen und
-  Fehlervalidierung.
+- Angular-Template-A11y-Lint;
+- statische und dynamische axe-Scans;
+- Landing-axe-Gate;
+- Lighthouse-CI für fünf Routen mit Score 100 und blockierenden gewichteten
+  Einzelaudits;
+- Reflow-, Fokus- und Zielgrößen-Smokes bei 320 CSS-Pixel;
+- veraPDF-PDF/UA-1-Gate für fünf Locale-Demos;
+- Unit-Tests für ARIA-, Live-Region-, Fokus- und Tastaturverhalten;
+- verpflichtende UI-PR-Checkliste und dokumentierte Vorgaben zu Fokus,
+  Kontrast, Reduced Motion, Touch-Zielen und Fehlervalidierung.
 
 ### 4.9 Accessibility, UX und Design
 
@@ -360,17 +366,16 @@ wie Bundle-Größe und Laufzeitkosten gehören in die fortlaufende Bewertung.
 **Evidenz:** `apps/frontend/src/app/features/session/session-vote/session-vote.component.ts`,
 Methode `onVoteSubmitPointerDown`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. Der
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89). Der
 `pointerdown`-Handler wurde entfernt; die Abstimmung wird ausschließlich über
 den nachgelagerten `click` ausgelöst. Ein Regressionstest deckt
 `pointerdown`/`pointercancel` und den anschließenden Click ab.
 
-Die Abstimmung wird bereits beim `pointerdown` ausgelöst. Nutzer:innen können
+**Ausgangsbefund:** Die Abstimmung wurde bereits beim `pointerdown` ausgelöst. Nutzer:innen konnten
 die Aktion nicht abbrechen, indem sie den Zeiger vor dem Loslassen vom Ziel
 wegbewegen.
 
-**Erforderlich:** Fachliche Aktion über `click` beziehungsweise `pointerup`
-auslösen oder eine gleichwertige Abbruch-/Undo-Strategie implementieren.
+**Umgesetzt:** Die fachliche Aktion wird über `click` ausgelöst.
 
 ### 5.2 Markdown-Textarea ohne programmatische Beschriftung
 
@@ -378,16 +383,16 @@ auslösen oder eine gleichwertige Abbruch-/Undo-Strategie implementieren.
 **Evidenz:**
 `apps/frontend/src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. Der Editor
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89). Der Editor
 verlangt eine eindeutige `fieldId`; alle Einbindungsstellen verknüpfen damit
 ihre sichtbaren Labels direkt mit der internen `textarea`.
 
-Die interne `textarea` erhält weder ein `label` noch `aria-label` oder
+**Ausgangsbefund:** Die interne `textarea` erhielt weder ein `label` noch `aria-label` oder
 `aria-labelledby`. Ein `aria-label` am Angular-Komponenten-Host wird nicht
 automatisch auf die innere `textarea` übertragen.
 
-**Erforderlich:** Eine explizite Editor-API für die Feldbeschriftung einführen
-und diese direkt an die `textarea` binden.
+**Umgesetzt:** Eine explizite Editor-API bindet die sichtbare
+Feldbeschriftung direkt an die `textarea`.
 
 ### 5.3 Vote-Freitext und Kurzantwort nur mit Placeholder
 
@@ -395,17 +400,16 @@ und diese direkt an die `textarea` binden.
 **Evidenz:**
 `apps/frontend/src/app/features/session/session-vote/session-vote.component.html`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. Beide
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89). Beide
 Eingaben besitzen persistente sichtbare Labels; der Kurzantwort-Zähler ist über
 `aria-describedby` zugeordnet.
 
-Die Eingaben für `FREETEXT` und `SHORT_TEXT` besitzen lediglich einen
+**Ausgangsbefund:** Die Eingaben für `FREETEXT` und `SHORT_TEXT` besaßen lediglich einen
 Placeholder. Placeholder verschwinden während der Eingabe und sind kein
 Ersatz für eine persistente Beschriftung.
 
-**Erforderlich:** Sichtbare Labels ergänzen und über `for`/`id` oder
-`aria-labelledby` technisch verknüpfen. Zähler und Fehler müssen über
-`aria-describedby` zugeordnet werden.
+**Umgesetzt:** Sichtbare Labels sind technisch verknüpft; Zähler und Fehler
+werden über `aria-describedby` zugeordnet.
 
 ### 5.4 Inkonsistente Sterne-Radiogruppe
 
@@ -413,17 +417,15 @@ Ersatz für eine persistente Beschriftung.
 **Evidenz:**
 `apps/frontend/src/app/features/session/session-vote/session-vote.component.html`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. Die Sterne
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89). Die Sterne
 verwenden nun `role="radio"`, `aria-checked`, roving `tabindex` sowie
 Pfeil-, Pos1- und Ende-Tasten.
 
-Der Container verwendet `role="radiogroup"`, seine Kinder sind jedoch normale
+**Ausgangsbefund:** Der Container verwendete `role="radiogroup"`, seine Kinder waren jedoch normale
 Buttons mit `aria-pressed`. Damit stimmen übergeordnete Rolle,
 Kindrollen und Zustandsmodell nicht überein.
 
-**Erforderlich:** Ein vollständiges Radiogruppen-Pattern mit `role="radio"`,
-`aria-checked`, roving `tabindex` und Pfeiltasten implementieren oder die
-`radiogroup`-Semantik entfernen und ein konsistentes Button-Pattern nutzen.
+**Umgesetzt:** Die Sterne verwenden ein vollständiges Radiogruppen-Pattern.
 
 ### 5.5 Custom-Overlays ohne vollständiges modales Fokusmodell
 
@@ -435,72 +437,69 @@ Kindrollen und Zustandsmodell nicht überein.
 - `apps/frontend/src/app/features/feedback/feedback-host.component.html`
 - `apps/frontend/src/app/features/session/session-host/session-host.component.html`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. MOTD,
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89). MOTD,
 Preset-Konfiguration, Tempo-Hilfe sowie die Beitritts-Overlays von Feedback-
 und Session-Host verwenden CDK Focus Traps mit Initialfokus. Escape,
 Backdrop-Schließen und Fokus-Rückgabe sind abgesichert. MOTD und Tempo-Hilfe
 setzen ihren Hintergrund zusätzlich auf `inert`. Der Session-Endzustand wird
 nicht mehr fälschlich als modaler Dialog ausgezeichnet.
 
-Mehrere Eigenimplementierungen sehen modal aus und sperren Pointerinteraktion
-im Hintergrund, verwenden aber kein durchgängiges Focus-Trap-/Inert-Modell.
+**Ausgangsbefund:** Mehrere Eigenimplementierungen sahen modal aus und sperrten Pointerinteraktion
+im Hintergrund, verwendeten aber kein durchgängiges Focus-Trap-/Inert-Modell.
 Beim produktiven MOTD-Overlay war ein Eingabefeld hinter dem Overlay
 fokussiert.
 
-**Erforderlich:** Bevorzugt Material/CDK Dialog verwenden. Andernfalls
-Initialfokus, Focus Trap, `aria-modal`, inerten Hintergrund, Escape und
-Fokus-Rückgabe vollständig selbst implementieren und testen.
+**Umgesetzt:** Die Eigenimplementierungen besitzen Initialfokus, Focus Trap,
+passende modale Semantik, inerten Hintergrund, Escape und Fokus-Rückgabe.
 
 ### 5.6 Fokusverlust nach SPA-Navigation
 
 **WCAG:** 2.4.3 Focus Order, Level A  
 **Evidenz:** `apps/frontend/src/app/app.component.ts`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben.
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89).
 Folge-Navigationen scrollen den primären Container nach oben und fokussieren
 die neue Hauptüberschrift, ersatzweise das `main`-Landmark. Initial- und
 Fragmentnavigationen werden ausgenommen; das Landmark ist zugleich ein
 verlässliches Skip-Link-Ziel.
 
-Nach einer clientseitigen Navigation von „Quiz erstellen“ zur Quiz-Liste fiel
+**Ausgangsbefund:** Nach einer clientseitigen Navigation von „Quiz erstellen“ zur Quiz-Liste fiel
 der Fokus im Browser auf `body`. Der Router scrollt zwar an den Anfang, setzt
 aber keinen neuen logischen Fokus.
 
-**Erforderlich:** Zentrale Router-Fokusstrategie einführen, die nach
-Folgenavigationen die neue Hauptüberschrift oder `main` fokussiert und die
-Initialnavigation ausnimmt.
+**Umgesetzt:** Eine zentrale Router-Fokusstrategie fokussiert nach
+Folgenavigationen die neue Hauptüberschrift oder `main` und nimmt die
+Initialnavigation aus.
 
 ### 5.7 Sichtbares Label fehlt im Accessible Name
 
 **WCAG:** 2.5.3 Label in Name, Level A  
 **Evidenz:** `apps/frontend/src/app/features/home/home.component.html`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. Das
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89). Das
 abweichende `aria-label` wurde entfernt; der sichtbare Buttontext bildet nun
 auch den Accessible Name.
 
-Der sichtbare CTA lautet „Los geht's“, sein Accessible Name ist
+**Ausgangsbefund:** Der sichtbare CTA lautete „Los geht's“, sein Accessible Name war
 „Teilnehmen“. Sprachsteuerung kann den sichtbaren Wortlaut deshalb nicht
 zuverlässig verwenden.
 
-**Erforderlich:** `aria-label` entfernen oder den sichtbaren Wortlaut
-vollständig in den Accessible Name aufnehmen.
+**Umgesetzt:** Der sichtbare Wortlaut bildet vollständig den Accessible Name.
 
 ### 5.8 Doppelter, unbenannter Tabstopp am Session-Code
 
 **WCAG:** 2.4.3 und 4.1.2, Level A  
 **Evidenz:** `apps/frontend/src/app/features/home/home.component.html`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. Wrapper-
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89). Wrapper-
 `tabindex` und Wrapper-Tastaturhandler wurden entfernt; nur das native
 Eingabefeld bleibt in der Tab-Reihenfolge.
 
-Vor dem eigentlichen Textfeld liegt ein `div` mit `tabindex="0"`, Click- und
+**Ausgangsbefund:** Vor dem eigentlichen Textfeld lag ein `div` mit `tabindex="0"`, Click- und
 Tastaturhandlern, aber ohne Rolle und Namen. Anschließend folgt das native
 Textfeld als zweiter Tabstopp.
 
-**Erforderlich:** Nur das native `input` fokussierbar lassen und den Wrapper
-aus der Tab-Reihenfolge entfernen.
+**Umgesetzt:** Nur das native `input` bleibt fokussierbar.
 
 ### 5.9 Markdown kann die Überschriftenhierarchie brechen
 
@@ -508,12 +507,16 @@ aus der Tab-Reihenfolge entfernen.
 **Evidenz:**
 `apps/frontend/src/assets/demo/quiz-demo-showcase.de.json`
 
-Die gebündelte Demo enthält eine Markdown-H1 innerhalb eines bereits durch H2
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #90).
+Markdown-Überschriften werden relativ zum jeweiligen Einbettungskontext
+gestaffelt und durch einen Regressionstest abgesichert.
+
+**Ausgangsbefund:** Die gebündelte Demo enthielt eine Markdown-H1 innerhalb eines bereits durch H2
 strukturierten Kartenkontexts. Importierte oder selbst erstellte Inhalte können
 dadurch die Seitenhierarchie ebenfalls verändern.
 
-**Erforderlich:** Markdown-Überschriften abhängig vom Einbettungskontext
-staffeln oder die erlaubten Ebenen begrenzen.
+**Umgesetzt:** Markdown-Überschriften werden abhängig vom Einbettungskontext
+gestaffelt.
 
 ### 5.10 Vollständig ausgeblendete Toolbar bleibt fokussierbar
 
@@ -521,16 +524,15 @@ staffeln oder die erlaubten Ebenen begrenzen.
 **Evidenz:**
 `apps/frontend/src/app/shared/top-toolbar/top-toolbar.component.scss`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. `focusin`
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #89). `focusin`
 setzt den Hidden-State im App-Shell zurück; `:focus-within` macht die Toolbar
 bereits im selben Rendering-Zyklus sichtbar.
 
-Die ausgeblendete Toolbar wird per `transform` vollständig aus dem Viewport
+**Ausgangsbefund:** Die ausgeblendete Toolbar wurde per `transform` vollständig aus dem Viewport
 geschoben. Ihre Controls bleiben grundsätzlich Bestandteil der
 Tab-Reihenfolge.
 
-**Erforderlich:** Toolbar bei `focusin` sofort einblenden oder die Controls im
-versteckten Zustand sicher aus der Tab-Reihenfolge entfernen.
+**Umgesetzt:** Die Toolbar wird bei `focusin` sofort eingeblendet.
 
 ### 5.11 Drag-and-drop ohne Ein-Zeiger-Alternative
 
@@ -538,7 +540,7 @@ versteckten Zustand sicher aus der Tab-Reihenfolge entfernen.
 **Evidenz:**
 `apps/frontend/src/app/features/quiz/quiz-edit/quiz-edit.component.html`
 
-**Umsetzungsstand 2026-07-19:** Im lokalen Arbeitsstand behoben. Sichtbare
+**Umsetzungsstand 2026-07-19:** Auf `main` behoben (PR #90). Sichtbare
 44-Pixel-Buttons verschieben Fragen nach oben oder unten; dieselben Aktionen
 sind per Tastatur erreichbar und eine Live-Region kündigt die neue Position an.
 
@@ -556,7 +558,7 @@ ankündigen.
 **Evidenz unter anderem:**
 `apps/frontend/src/app/features/session/session-host/session-host.component.html`
 
-**Status 2026-07-19:** Im lokalen Arbeitsstand umgesetzt. Die inventarisierten
+**Status 2026-07-19:** Auf `main` umgesetzt (PR #90). Die inventarisierten
 statischen und dynamischen Accessible Names werden über Angular i18n oder
 `$localize` erzeugt. Dazu gehören Countdown, Q&A-Voting, Quiz-Antwortaktionen,
 Aktionsgruppen, Inhaltsnavigation, Preset-Status und Lightbox. Alle fünf
@@ -564,12 +566,13 @@ Locale-Dateien sind synchron; maschinell unpassende Übersetzungen wurden
 fachlich korrigiert. Die Laufzeitprüfung mit Screenreadern in allen Locales
 bleibt Teil von PR 7.
 
-Einige ARIA-Texte werden als feste deutsche Strings zusammengesetzt, zum
+**Ausgangsbefund:** Einige ARIA-Texte wurden als feste deutsche Strings zusammengesetzt, zum
 Beispiel der Host-Countdown. In nichtdeutschen Builds kann dadurch eine
 anderssprachige Phrase ohne Sprachkennzeichnung entstehen.
 
-**Erforderlich:** Alle sichtbaren und assistiven Texte über Angular i18n oder
-`$localize` führen und in allen fünf Locale-Dateien pflegen.
+**Umgesetzt:** Alle inventarisierten sichtbaren und assistiven Texte werden
+über Angular i18n oder `$localize` geführt und in allen fünf Locale-Dateien
+gepflegt.
 
 ## 6. Weitere Risiken und noch erforderliche Nachweise
 
@@ -593,21 +596,25 @@ einer AA-Freigabe aber gezielt geprüft werden:
 
 ## 7. Lücken in Tooling und Prozess
 
-### 7.1 Ausgangsstand
+### 7.1 Historischer Ausgangsstand vor PR #91 und PR #92
 
-- Lighthouse-CI prüft nur die Startseiten `/de/` und `/en/`.
-- Der Mindestscore beträgt 90 statt vollständiger Fehlerfreiheit.
-- Fehlgeschlagene, aber ungewichtete Audits können den Score unverändert
+Die folgende Liste beschreibt den Stand des initialen Audits, nicht den
+aktuellen Zustand auf `main`:
+
+- Lighthouse-CI prüfte nur die Startseiten `/de/` und `/en/`.
+- Der Mindestscore betrug 90 statt vollständiger Fehlerfreiheit.
+- Fehlgeschlagene, aber ungewichtete Audits konnten den Score unverändert
   lassen.
-- Es gibt kein `@axe-core/playwright`, pa11y oder `vitest-axe`.
-- ESLint prüft keine Angular-HTML-Templates auf Accessibility-Regeln.
-- Die funktionalen Playwright-Smokes enthalten keinen systematischen
+- Es gab kein `@axe-core/playwright`, pa11y oder `vitest-axe`.
+- ESLint prüfte keine Angular-HTML-Templates auf Accessibility-Regeln.
+- Die funktionalen Playwright-Smokes enthielten keinen systematischen
   Accessibility-Scan.
-- Die Landing-App besitzt kein Accessibility-Gate.
-- Das PDF/UA-Profil wird nicht mit einem externen Validator in CI geprüft.
-- Der dokumentierte Projektstandard ist noch WCAG 2.1 AA; Story 6.5 ist offen.
+- Die Landing-App besaß kein Accessibility-Gate.
+- Das PDF/UA-Profil wurde nicht mit einem externen Validator in CI geprüft.
+- Der dokumentierte Projektstandard war WCAG 2.1 AA; Story 6.5 war offen.
 
-**Status 2026-07-19:** Die Tooling-Lücken wurden mit PR 6 und PR 8 geschlossen:
+**Aktueller Status 2026-07-19:** Die Tooling-Lücken wurden mit PR #91 und
+PR #92 geschlossen:
 Template-Lint, axe, Lighthouse-Einzelaudits, Landing-Gate, dynamische Smokes
 und veraPDF sind blockierende CI-Prüfungen. Der dokumentierte Zielstandard
 wurde auf WCAG 2.2 AA aktualisiert. Story 6.5 bleibt bis zur vollständigen
@@ -633,8 +640,8 @@ fortlaufend protokolliert.
 
 ### PR 1 – Kritische Semantik und Eingaben
 
-**Status 2026-07-19:** Punkte 1 bis 6 im lokalen Arbeitsstand umgesetzt und
-mit Frontend-Tests, Typecheck sowie lokalisiertem Produktionsbuild validiert.
+**Status 2026-07-19:** Punkte 1 bis 6 auf `main` umgesetzt (PR #89) und mit
+Frontend-Tests, Typecheck sowie lokalisiertem Produktionsbuild validiert.
 
 **Umfang**
 
@@ -657,7 +664,7 @@ mit Frontend-Tests, Typecheck sowie lokalisiertem Produktionsbuild validiert.
 ### PR 2 – Fokus und SPA-Navigation
 
 **Status 2026-07-19:** Zentrale Fokusstrategie, Skip-Link-Ziel und
-Toolbar-Wiederanzeige im lokalen Arbeitsstand umgesetzt. Die fixierten
+Toolbar-Wiederanzeige auf `main` umgesetzt (PR #89). Die fixierten
 Vote-/Host-Aktionsleisten besitzen bereits zustandsabhängige
 Bottom-Padding-Reserven; die manuelle Abnahme bei 400 % Zoom bleibt Bestandteil
 von PR 7.
@@ -679,9 +686,9 @@ von PR 7.
 
 ### PR 3 – Dialoge und Overlays
 
-**Status 2026-07-19:** Custom-Overlays inventarisiert und im lokalen
-Arbeitsstand mit CDK Focus Trap, Initialfokus, Escape sowie Fokus-Rückgabe
-abgesichert. Die bestehende visuelle Gestaltung wurde beibehalten; die
+**Status 2026-07-19:** Custom-Overlays inventarisiert und auf `main` mit CDK
+Focus Trap, Initialfokus, Escape sowie Fokus-Rückgabe abgesichert (PR #89).
+Die bestehende visuelle Gestaltung wurde beibehalten; die
 manuelle Mobile- und Screenreader-Abnahme bleibt Bestandteil von PR 7.
 
 **Umfang**
@@ -702,8 +709,8 @@ manuelle Mobile- und Screenreader-Abnahme bleibt Bestandteil von PR 7.
 
 ### PR 4 – WCAG-2.2-Interaktionen und Inhaltsstruktur
 
-**Status 2026-07-19:** Im lokalen Arbeitsstand umgesetzt. Fragen lassen sich
-über 44-Pixel-Buttons sortieren und ihre neue Position wird angekündigt.
+**Status 2026-07-19:** Auf `main` umgesetzt (PR #90). Fragen lassen sich über
+44-Pixel-Buttons sortieren und ihre neue Position wird angekündigt.
 Markdown-Überschriften werden relativ zum Einbettungskontext normalisiert,
 Wortwolken besitzen eine textuelle Rang-/Häufigkeitsliste, die mobile
 Landing-Navigation nutzt Listen- statt Menürollen und die Lightbox bietet
@@ -729,7 +736,7 @@ Screenreader-, Reflow- und Zielgrößenabnahme bleibt Bestandteil von PR 7.
 
 ### PR 5 – i18n assistiver Texte
 
-**Status 2026-07-19:** Im lokalen Arbeitsstand automatisch validiert. Harte
+**Status 2026-07-19:** Auf `main` automatisch validiert (PR #90). Harte
 deutsche beziehungsweise englische Accessible Names wurden entfernt,
 bestehende statische Messages erhielten stabile IDs und neue dynamische Texte
 wurden mit Singular-/Pluralvarianten ergänzt. Klickbare Markdown-Bilder sind
@@ -753,8 +760,9 @@ erfolgreich. Eine manuelle Screenreader-Abnahme steht weiterhin aus.
 
 ### PR 6 – Automatisierte Qualitätssicherung
 
-**Status:** automatisch validiert (2026-07-19). Angular-Template-A11y-Lint,
-statische und dynamische axe-Scans, Landing-Gate, Audit-Level-Lighthouse sowie
+**Status:** automatisch validiert auf `main` (PR #91, 2026-07-19).
+Angular-Template-A11y-Lint, statische und dynamische axe-Scans, Landing-Gate,
+Audit-Level-Lighthouse sowie
 Reflow-, Fokus- und Zielgrößen-Smokes sind in npm-Skripte und CI integriert.
 Die lokalen Nachweise umfassen zwölf statische Frontend-Zustände, drei
 Landing-Seiten, zehn Unified-Session-Zustände, vier SHORT_TEXT-Zustände,
@@ -830,8 +838,8 @@ Jeder Befund enthält:
 
 ### PR 8 – PDF/UA und Dokumentation
 
-**Status 2026-07-19:** automatisch validiert. veraPDF 1.30.2 prüft die fünf
-Locale-Demos in einem eigenen CI-Gate gegen PDF/UA-1. Ein dabei ausschließlich
+**Status 2026-07-19:** automatisch validiert auf `main` (PR #92). veraPDF
+1.30.2 prüft die fünf Locale-Demos in einem eigenen CI-Gate gegen PDF/UA-1. Ein dabei ausschließlich
 im französischen Bericht gefundener Verstoß durch nicht eingebettete
 Standardfonts im visuellen Fortsetzungsstempel wurde behoben. Alle fünf
 Dateien bestehen das PDF/UA-1-Profil. Das strukturelle und visuelle

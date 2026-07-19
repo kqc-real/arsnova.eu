@@ -12,7 +12,10 @@
 - **Zwei Modi in einem Tool:** Presets „Spielerisch“ vs. „Seriös“, Lesephase für reflektiertes Antworten.
 - **Hochschul-Fit:** KaTeX, Schwierigkeitsstufen, Bonus-Token für formelle Anerkennung bei Wahrung der Anonymität.
 - **Feedback & Gamification:** Streak, persönliche Scorecard, kontextuelle Motivationsmeldungen, differenziertes Scoring (Schwierigkeit + Zeit).
-- **Institutionelle Souveränität:** Self-Hosted, Open Source, Zero-Account, keine Abo-Kosten, WCAG 2.1 AA.
+- **Institutionelle Souveränität:** Self-Hosted, Open Source, Zero-Account,
+  keine Abo-Kosten; WCAG 2.2 AA ist der dokumentierte Zielstandard. Technische
+  Gates sind umgesetzt, die vollständige manuelle Konformitätsabnahme steht
+  noch aus.
 - **Live-Hosting ohne Desktop:** arsnova.eu kann produktiv direkt vom Smartphone aus gehostet werden. Das ist nicht nur Responsive Design, sondern ein eigener Core Use Case fuer Lehre ohne Laptop, Beamer oder stationaeres Setup.
 
 ---

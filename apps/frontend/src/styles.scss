@@ -260,6 +260,13 @@ html {
   outline-color: var(--mat-sys-primary);
 }
 
+/* Textlinks: Fokusrahmen mit Luft zur Schrift, ohne Layout oder Klickfläche zu verschieben. */
+:where(a[href]):focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 0.25rem;
+  border-radius: 0.125rem;
+}
+
 // Keyframes für Preset Spielerisch (Startseite) – global, damit Animationen sicher laufen
 @media (prefers-reduced-motion: no-preference) {
   @keyframes home-playful-brand-pulse {

@@ -941,7 +941,9 @@ Dazu gehören laut Root-Dokumentation insbesondere:
   die lokalen Yjs-, 600er Vote-p95-, Browser- und Lighthouse-Gates sind
   [seit dem QA-Nachlauf 2026-07-11](implementation/LOCAL-QA-RECHECK-2026-07-11.md)
   grün; offen sind Staging-Langläufe und freigegebene Produktionsbaselines
-- abschließende Barrierefreiheitsprüfung
+- manuelle Barrierefreiheitsabnahme mit Assistive Technology, 200-/400-%-Zoom,
+  Hochkontrast und PDF-Readern; technische Befunde und automatisierte Gates
+  sind umgesetzt
 - Confidence-Erweiterungen und weitere Auswertungsvarianten
 - delegierte Q&A-Moderation und weitere Q&A-Erweiterungen
 - weitere Word-Cloud-Ausbaustufen
