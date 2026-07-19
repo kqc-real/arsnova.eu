@@ -21,6 +21,8 @@ const YJS_WS_PORT = process.env.YJS_WS_PORT || '3002';
 const BACKEND_WS_URL = `ws://localhost:${WS_PORT}`;
 const BACKEND_YJS_WS_URL = `ws://localhost:${YJS_WS_PORT}`;
 const SUPPORTED_LOCALES = ['de', 'en', 'fr', 'it', 'es'];
+const rootIndexFile = path.join(distBrowser, 'index.html');
+const rootIndexHtml = fs.readFileSync(rootIndexFile, 'utf8');
 
 const app = express();
 
@@ -91,8 +93,8 @@ for (const locale of SUPPORTED_LOCALES) {
   app.get(new RegExp(`^/${locale}/.+`), (_, res) => res.sendFile(localeIndex));
 }
 
-app.get('/', (_, res) => res.sendFile(path.join(distBrowser, 'index.html')));
-app.get(/.*/, (_, res) => res.sendFile(path.join(distBrowser, 'index.html')));
+app.get('/', (_, res) => res.sendFile(rootIndexFile));
+app.get(/.*/, (_, res) => res.type('html').send(rootIndexHtml));
 
 const server = createServer(app);
 
