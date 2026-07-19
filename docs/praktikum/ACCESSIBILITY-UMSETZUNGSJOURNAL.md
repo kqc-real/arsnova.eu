@@ -1158,7 +1158,7 @@ kein ausreichender Konformitätsnachweis.
 **Datum:** 2026-07-19  
 **Status:** umgesetzt  
 **WCAG:** 2.4.7 Fokus sichtbar  
-**PR/Commit:** lokaler Commit `b8feff12`; Integration in `origin/main` ausstehend
+**PR/Commit:** PR #94, Commit `c4ee10af`
 
 ### Ausgangsproblem
 
