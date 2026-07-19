@@ -12,6 +12,17 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://arsnova.eu/de/" />
   </url>
   <url>
+    <loc>https://arsnova.eu/de/join</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="de" href="https://arsnova.eu/de/join" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://arsnova.eu/en/join" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://arsnova.eu/fr/join" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://arsnova.eu/it/join" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://arsnova.eu/es/join" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arsnova.eu/de/join" />
+  </url>
+  <url>
     <loc>https://arsnova.eu/de/help</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

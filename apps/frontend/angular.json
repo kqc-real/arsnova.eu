@@ -180,7 +180,15 @@
           "options": {
             "browserTarget": "frontend:build:production",
             "serverTarget": "frontend:server:production",
-            "routes": ["/", "/help", "/news-archive", "/quiz", "/legal/imprint", "/legal/privacy"],
+            "routes": [
+              "/",
+              "/join",
+              "/help",
+              "/news-archive",
+              "/quiz",
+              "/legal/imprint",
+              "/legal/privacy"
+            ],
             "discoverRoutes": false
           },
           "configurations": {

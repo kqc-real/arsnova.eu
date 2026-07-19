@@ -150,6 +150,11 @@ const mainRoutes: Routes = [
     loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
   },
   {
+    path: 'join',
+    data: { focusSessionCode: true },
+    loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
+  },
+  {
     path: 'quiz',
     loadComponent: () => import('./features/quiz/quiz.component').then((m) => m.QuizComponent),
     children: [

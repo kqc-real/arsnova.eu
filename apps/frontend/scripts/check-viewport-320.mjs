@@ -3,7 +3,7 @@
  * Prüft Reflow, Fokus-Sichtbarkeit und Mindestzielgrößen bei 320 CSS-Pixel.
  * 320 CSS-Pixel entsprechen der WCAG-Reflow-Prüfung eines 1280-Pixel-
  * Viewports bei 400 % Zoom.
- * Erwartet: App läuft unter BASE_URL (z. B. npx serve dist/browser -s).
+ * Erwartet: App läuft unter BASE_URL (z. B. npx serve dist/browser).
  *
  * Run: BASE_URL=http://localhost:4173 node scripts/check-viewport-320.mjs
  */
@@ -176,14 +176,34 @@ async function inspectHomeKeyboardNavigation(page) {
   if (!(await menuButton.evaluate((element) => element === document.activeElement))) {
     issues.push('Fokus kehrt nach Escape nicht zum Menüauslöser zurück');
   }
+
+  const codeAction = page.getByRole('button', { name: 'Code eingeben' });
+  await codeAction.click();
+  if (
+    !(await page
+      .locator('.home-code-segments__input')
+      .evaluate((element) => element === document.activeElement))
+  ) {
+    issues.push('„Code eingeben“ fokussiert die Session-Code-Eingabe nicht');
+  }
   return issues;
+}
+
+async function inspectMobileJoinEntry(page) {
+  return page
+    .locator('.home-code-segments__input')
+    .evaluate((element) =>
+      element === document.activeElement
+        ? ['Dedizierter Join-Pfad fokussiert auf Mobile ungefragt die Code-Eingabe']
+        : [],
+    );
 }
 
 async function main() {
   console.log(`Warte auf ${BASE_URL}/de/…`);
   const ready = await waitForServer(`${BASE_URL}/de/`);
   if (!ready) {
-    console.error('App nicht erreichbar. Starte zuerst: npx serve dist/browser -s');
+    console.error('App nicht erreichbar. Starte zuerst: npx serve dist/browser');
     process.exit(1);
   }
 
@@ -196,9 +216,19 @@ async function main() {
   const context = await browser.newContext({
     viewport: { width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT },
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+    hasTouch: true,
+    isMobile: true,
   });
 
-  const paths = ['/de/', '/en/', '/de/quiz', '/de/quiz/new', '/de/help', '/de/legal/privacy'];
+  const paths = [
+    '/de/',
+    '/en/',
+    '/de/join',
+    '/de/quiz',
+    '/de/quiz/new',
+    '/de/help',
+    '/de/legal/privacy',
+  ];
   let failed = 0;
   await mkdir(ARTIFACT_DIR, { recursive: true });
 
@@ -226,7 +256,12 @@ async function main() {
 
     const undersizedTargets = await inspectTargetSizes(page);
     const hiddenFocus = await inspectKeyboardFocus(page);
-    const keyboardNavigation = path === '/de/' ? await inspectHomeKeyboardNavigation(page) : [];
+    const keyboardNavigation =
+      path === '/de/'
+        ? await inspectHomeKeyboardNavigation(page)
+        : path === '/de/join'
+          ? await inspectMobileJoinEntry(page)
+          : [];
 
     if (
       result.ok &&
@@ -251,6 +286,30 @@ async function main() {
     }
     await page.close();
   }
+
+  const desktopContext = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+  });
+  const desktopJoinPage = await desktopContext.newPage();
+  await desktopJoinPage.goto(`${BASE_URL}/de/join`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 15000,
+  });
+  const desktopJoinFocused = await desktopJoinPage
+    .waitForFunction(
+      () => document.querySelector('.home-code-segments__input') === document.activeElement,
+      undefined,
+      { timeout: 1_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  if (!desktopJoinFocused) {
+    console.error('  /de/join (Desktop) … FEHLER: Code-Eingabe erhält keinen Fokus');
+    failed++;
+  } else {
+    console.log('  /de/join (Desktop) … OK (expliziter Join-Fokus)');
+  }
+  await desktopContext.close();
 
   await browser.close();
 
