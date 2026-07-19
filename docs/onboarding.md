@@ -243,7 +243,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 ## 4. Aktueller Stand vs. Ziel-Architektur
 
-> **Epics 0–5, 7.1, 9 und 10 sind umgesetzt; Epic 6 ist im Kern umgesetzt, offen bleiben Abschlussprüfung Barrierefreiheit und UX-Testreihen; Epic 8 ist im Kern mit 8.1–8.4, 8.6–8.8 umgesetzt, offen bleiben 8.5 und 8.9a–8.9c.** Zusätzlich sind die numerische Schätzfrage 1.2d sowie die Kurzantwort-/Scoring-Bausteine 1.2e–1.2eb umgesetzt, während 0.7, 0.8, 1.2ec–1.2ed, 1.2f–1.2i, 1.6c–1.6d, 1.14a und 2.9 noch offen bzw. in Arbeit sind. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. Offene Stories: [`Backlog.md`](../Backlog.md).
+> **Epics 0–5, 7.1, 9 und 10 sind umgesetzt; Epic 6 ist im Kern umgesetzt. Für Story 6.5 sind technische A11y-Befunde und Gates abgeschlossen, offen bleibt die manuelle Assistive-Technology-/Zoom-/OS-Abnahme; außerdem bleibt Story 6.6 (UX-Testreihen) offen. Epic 8 ist im Kern mit 8.1–8.4, 8.6–8.8 umgesetzt, offen bleiben 8.5 und 8.9a–8.9c.** Zusätzlich sind die numerische Schätzfrage 1.2d, Confidence 1.2i sowie die Kurzantwort-/Scoring-Bausteine 1.2e–1.2eb umgesetzt, während 0.7, 0.8, 1.2ec–1.2ed, 1.2f–1.2h, 1.6c–1.6d, 1.14a und 2.9 noch offen bzw. in Arbeit sind. Dieser Abschnitt zeigt den groben aktuellen Stand; für Architekturdetails sind `docs/architecture/handbook.md`, `docs/diagrams/` und die ADRs maßgeblich. A11y-Status: [`Accessibility-Umsetzungsjournal`](praktikum/ACCESSIBILITY-UMSETZUNGSJOURNAL.md). Offene Stories: [`Backlog.md`](../Backlog.md).
 
 ### Was bereits funktioniert (✅ Implementiert – Stand: 2026-07-05)
 
@@ -262,7 +262,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 | Prisma-Schema                                                           | Vollständiges Datenbankmodell inkl. Q&A, MOTD, Admin-Audit, `PlatformStatistic` und `DailyStatistic`                                    |
 | Zod v4-Schemas (`shared-types`)                                         | Alle Input-/Output-Schemas, DTOs, Enums und Exportverträge definiert                                                                    |
 | Docker Compose                                                          | PostgreSQL 16 + Redis 7 (+ optional App-Container) per `docker compose up`                                                              |
-| CI/CD-Pipeline                                                          | GitHub Actions: Prisma validate/generate, TypeScript, ESLint, Tests, Docker-Build (Node 20/22)                                          |
+| CI/CD-Pipeline                                                          | GitHub Actions: Prisma, TypeScript, Tests, Docker sowie Template-A11y, axe, Lighthouse, Reflow und PDF/UA (Node 20/22)                  |
 | Session- und Besitzhärtung                                              | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie                     |
 | Last-/Performance-Teststrecke                                           | k6, Artillery, sechs Classroom-Smokes, Yjs, Freitext, Soak, standardisierte Reports und Browser-Referenzflows; lokaler QA-Nachlauf grün |
 
@@ -270,8 +270,8 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 
 | Thema                        | Kurzbeschreibung                                                                                                         | Backlog / Referenz         |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
-| Barrierefreiheit & UX        | Story **6.5** (Abschlussprüfung), **6.6** (Thinking Aloud)                                                               | Epic 6                     |
-| Neue Fragentypen             | **1.2ec–1.2ed**, **1.2f–1.2i**: verbleibende Kurzantwort-/Fragentyp-Erweiterungen                                        | Epic 1                     |
+| Barrierefreiheit & UX        | Story **6.5** (manuelle AT-/Zoom-/OS-Abnahme), **6.6** (Thinking Aloud)                                                  | Epic 6 / A11y-Journal      |
+| Neue Fragentypen             | **1.2ec–1.2ed**, **1.2f–1.2h**: verbleibende Kurzantwort-/Fragentyp-Erweiterungen                                        | Epic 1                     |
 | Q&A-Moderation               | Delegierte Q&A-Moderation (**8.5**) bleibt offen; Moderationskompass/NLP/Zusammenfassung (**8.9a–8.9c**) ebenfalls offen | Epic 8, ADR-0011, ADR-0032 |
 | Last & Performance           | **0.7** lokal technisch grün; offen sind Staging-Langlauf, Produktionsbaseline und regelmäßiger Regressionsvergleich     | Epic 0, ADR-0013           |
 | Sync & Word Cloud / Refactor | **1.6c**, **1.6d**, **1.14a** sowie **0.8** (Komplexitätsabbau / McCabe-Hotspots)                                        | Backlog                    |

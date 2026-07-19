@@ -151,7 +151,9 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 - i18n (6.2) – LanguageSwitcherComponent + I18nService ✓
 - Legal (6.3) – ImprintComponent, PrivacyComponent, /legal Route ✓
 - Mobile-First (6.4) – in Architektur-Diagrammen nicht einzeln modelliert (UI-Querschnitt) ✓
-- Barrierefreiheit (6.5) – offen; Diagramme erwähnen A11y nicht explizit ⚠️
+- Barrierefreiheit (6.5) – technische Befunde und Gates umgesetzt; manuelle
+  AT-/Zoom-/OS-Abnahme in Arbeit. A11y bleibt ein UI-Querschnitt und wird nicht
+  als eigener Laufzeitknoten modelliert ✓
 - Thinking Aloud (6.6) – offen; kein Diagrammbezug erforderlich
 
 ### Epic 7: Team-Modus
