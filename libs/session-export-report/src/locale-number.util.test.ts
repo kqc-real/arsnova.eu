@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatLocaleColon,
+  formatLocaleConjunctionList,
   formatLocaleCount,
+  formatLocaleDisjunctionList,
   formatLocaleNumber,
   formatLocalePercentShare,
   formatLocalePercentShareFromCounts,
+  formatLocalePercentUnit,
+  formatLocalePercentValue,
   formatLocaleScore,
   percentShareNeedsApproximation,
   percentValueNeedsApproximation,
@@ -41,7 +46,8 @@ describe('formatLocalePercentShare', () => {
     expect(formatLocalePercentShareFromCounts(8, 30, 'de', { sentenceCase: true })).toBe(
       'Ca. 27 %',
     );
-    expect(formatLocalePercentShareFromCounts(8, 30, 'en')).toBe('approx. 27%');
+    expect(formatLocalePercentShareFromCounts(8, 30, 'en')).toBe('about 27%');
+    expect(formatLocalePercentShareFromCounts(8, 30, 'fr')).toBe('environ 27 %');
   });
 
   it('erkennt gerundete Prozentwerte ohne Zähler/Nenner', () => {
@@ -52,5 +58,36 @@ describe('formatLocalePercentShare', () => {
     expect(formatLocalePercentShare(26.7, 'de', { approximate: true })).toBe('ca. 27 %');
     expect(formatLocalePercentShare(0, 'de', { approximate: true })).toBe('0 %');
     expect(formatLocalePercentShare(100, 'de', { approximate: true })).toBe('100 %');
+  });
+
+  it('setzt kein Leerzeichen vor % im Englischen', () => {
+    expect(formatLocalePercentUnit('en')).toBe('%');
+    expect(formatLocalePercentUnit('de')).toBe(' %');
+    expect(formatLocalePercentValue(40, 'en')).toBe('40%');
+    expect(formatLocalePercentValue(83.3, 'en', { maximumFractionDigits: 1 })).toBe('83.3%');
+    expect(formatLocalePercentValue(40, 'de')).toBe('40 %');
+  });
+});
+
+describe('formatLocaleConjunctionList', () => {
+  it('setzt im Englischen ein Oxford-and', () => {
+    expect(formatLocaleConjunctionList(['7', '3', '6'], 'en')).toBe('7, 3, and 6');
+    expect(formatLocaleConjunctionList(['7', '3', '6'], 'de')).toBe('7, 3 und 6');
+  });
+});
+
+describe('formatLocaleDisjunctionList', () => {
+  it('setzt im Englischen or', () => {
+    expect(formatLocaleDisjunctionList(['Question 1 (Survey)', 'Question 9 (Rating)'], 'en')).toBe(
+      'Question 1 (Survey) or Question 9 (Rating)',
+    );
+  });
+});
+
+describe('formatLocaleColon', () => {
+  it('setzt im Französischen ein geschütztes Leerzeichen (NBSP) vor dem Doppelpunkt', () => {
+    expect(formatLocaleColon('fr')).toBe('\u00A0:');
+    expect(formatLocaleColon('en')).toBe(':');
+    expect(formatLocaleColon('de')).toBe(':');
   });
 });

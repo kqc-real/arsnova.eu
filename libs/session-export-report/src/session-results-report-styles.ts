@@ -443,6 +443,9 @@ p { margin: 0 0 0.65rem; }
   margin-bottom: 0.85rem;
   break-after: avoid-page;
   page-break-after: avoid;
+  /* Explizite Wortabstände: verhindert „Participantfeedback“ in manchen PDF-Textextraktionen. */
+  word-spacing: 0.06em;
+  letter-spacing: normal;
 }
 
 .report-section--questions > h2 {

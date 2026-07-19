@@ -3,7 +3,7 @@
   "exportedAt": "2026-07-13T13:00:00.000Z",
   "quiz": {
     "name": "Teaching Showcase: Live Team Demo",
-    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThis demo is built for **real classroom use**. It is not trying to be the perfect subject quiz from start to finish. Its job is different: it shows teachers, trainers, and facilitators how arsnova.eu can make a live session feel more varied, more visual, and more game-like.\n\nUse it as a short, **Kahoot-style team demo for live teaching** to show how you can:\n- open with a quick emotional or social check-in\n- use images instead of text-only prompts\n- bring in formulas and scientific notation in STEM\n- try numeric estimate questions with a reference value, tolerance band, and two rounds\n- collect short free-text answers from the room that later reappear as a word cloud\n- use multiple-choice and quick rating prompts well\n- ask for **self-assessment** (1–5) after gradable answers and spot **wrong answers with high answer confidence** in the host view\n- add energy with timers, teams, a leaderboard, and bonus codes\n- show code snippets in computer science or technical courses\n\nThe questions are intentionally mixed. The point is to give you practical ideas for warm-ups, comprehension checks, attention resets, and short interactive moments you can reuse in your own teaching.\n\n**Demo tip:** Join the session on a second device, ideally by scanning the QR code with your phone. That lets you rehearse the back-and-forth between the host view and the participant experience realistically.\n\n**Another tip:** Then open the quiz in edit mode to see how the questions are built with Markdown and KaTeX.\n\n**One more thing:** If you would like additional question types or features, feel free to ask. You can find the contact details in the legal notice.",
+    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThis demo is built for **real classroom use**. It is not trying to be the perfect subject quiz from start to finish. Its job is different: it shows teachers, trainers, and facilitators how arsnova.eu can make a live session feel more varied, more visual, and more game-like.\n\nUse it as a short, **Kahoot-style team demo for live teaching** to show how you can:\n- open with a quick emotional or social check-in\n- use images instead of text-only prompts\n- bring in formulas and scientific notation in STEM\n- try numeric estimate questions with a reference value, tolerance band, and two rounds\n- collect short free-text answers from the room that later reappear as a word cloud\n- use multiple-answer and quick rating prompts well\n- ask for **answer confidence** (1–5) after graded answers and spot **incorrect answers with high confidence** in the host view\n- add energy with timers, teams, a leaderboard, and bonus codes\n- show code snippets in computer science or technical courses\n\nThe questions are intentionally mixed. The point is to give you practical ideas for warm-ups, comprehension checks, attention resets, and short interactive moments you can reuse in your own teaching.\n\n**Demo tip:** Join the session on a second device, ideally by scanning the QR code with your phone. That lets you rehearse the back-and-forth between the host view and the participant experience realistically.\n\n**Another tip:** Then open the quiz in edit mode to see how the questions are built with Markdown and KaTeX.\n\n**One more thing:** If you would like additional question types or features, feel free to ask. You can find the contact details in the legal notice.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -91,7 +91,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### Which of these are strong use cases for a quick live check?\n\n> **Teaching move:** Use this to demonstrate multiple choice with more than one correct answer.\n\n_Select all that apply._",
+        "text": "### Which of these are strong use cases for a quick live check?\n\n> **Teaching move:** Use this to demonstrate a multiple-answer question.\n\n_Select all that apply._",
         "type": "MULTIPLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -107,7 +107,7 @@
             "isCorrect": true
           },
           {
-            "text": "Gauge self-assessment anonymously before exam prep",
+            "text": "Gauge answer confidence anonymously before exam prep",
             "isCorrect": true
           },
           {
@@ -120,7 +120,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### How many visible pieces does the classic Rubik’s Cube have?\n\n> **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.\n\nThe question refers to the classic Rubik’s Cube designed by Ernő Rubik.\n\nOptional prompt: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (in German)](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### How many visible pieces does the classic Rubik’s Cube have?\n\n> **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.\n\nThe question refers to the classic Rubik’s Cube designed by Ernő Rubik.\n\nOptional resource: [How to solve a 3×3 Rubik’s Cube with no prior experience — German-language resource](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
@@ -173,7 +173,7 @@
         ]
       },
       {
-        "text": "### What is the teaching method called in which learners vote individually, discuss briefly, and then vote again?\n\n> **Teaching move:** Use this as a challenging term-recall prompt to demonstrate explicit variants, adjacent letter swaps, and transparent short-answer feedback with partial credit.\n\nWe are looking for the established instructional term for this sequence.",
+        "text": "### What is the teaching method called in which learners vote individually, discuss briefly, and then vote again?\n\n> **Teaching move:** Use this as a challenging terminology question to demonstrate accepted answer variants, minor spelling errors, and transparent partial-credit scoring.\n\nExpected answer: the established instructional term for this sequence.",
         "type": "SHORT_TEXT",
         "timer": null,
         "difficulty": "HARD",
@@ -208,7 +208,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### In which year did the French Revolution begin?\n\n> **Teaching move:** Use this as a two-round estimate question: first collect spontaneous guesses, then discuss briefly and compare the second round against the reference value, tolerance band, and score.\n\nWe are looking for the year commonly used as the beginning of the French Revolution.",
+        "text": "### In which year did the French Revolution begin?\n\n> **Teaching move:** Use this as a two-round estimate question: first collect spontaneous guesses, then discuss briefly and compare the second round against the reference value, tolerance band, and score.\n\nExpected answer: the year commonly used as the beginning of the French Revolution.",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -227,7 +227,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### How likely are you to try a live quiz like this in one of your own classes?\n\n> **Teaching move:** Use this as a quick pulse check, exit ticket, or self-assessment.",
+        "text": "### How likely are you to try a live quiz like this in one of your own classes?\n\n> **Teaching move:** Use this as a quick pulse check, exit ticket, or confidence rating.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",

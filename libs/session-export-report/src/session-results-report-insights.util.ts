@@ -18,10 +18,12 @@ import type {
 import { buildDebriefActionPlan, selectHardestQuestions } from '@arsnova/shared-types';
 import type { SessionResultsReportLabels } from './labels-de';
 import {
+  formatLocaleColon,
+  formatLocaleConjunctionList,
   formatLocaleCount,
-  formatLocaleNumber,
   formatLocalePercentShareFromCounts,
   formatLocalePercentShare,
+  formatLocalePercentValue,
   percentValueNeedsApproximation,
 } from './locale-number.util';
 import { questionAnchorId } from './session-results-report-layout.util';
@@ -58,11 +60,11 @@ function formatQuestionScoreList(
   return entries
     .map(
       (entry) =>
-        `${labels.questionNumber} ${entry.questionOrder + 1} · ${formatLocaleNumber(
+        `${labels.questionNumber} ${entry.questionOrder + 1} · ${formatLocalePercentValue(
           entry.correctPercentage,
           localeId,
           { maximumFractionDigits: 0 },
-        )} %`,
+        )}`,
     )
     .join(', ');
 }
@@ -86,6 +88,7 @@ function difficultyLabel(
 export function renderDebriefActionPlanHtml(
   data: SessionExportDTO,
   labels: SessionResultsReportLabels,
+  localeId = 'de',
 ): string {
   // Auch ohne auswertbare Selbsteinschätzung: gradedHints (Lösungsquote) füllen „erneut erklären“.
   const plan: DebriefActionPlan = buildDebriefActionPlan(
@@ -105,14 +108,15 @@ export function renderDebriefActionPlanHtml(
   const blocks = rows
     .filter((row) => row.orders.length > 0)
     .map((row) => {
-      const links = row.orders
-        .map((order) => {
+      const links = formatLocaleConjunctionList(
+        row.orders.map((order) => {
           const label = `${labels.questionNumber} ${order + 1}`;
           return `<a href="#${questionAnchorId(order)}" title="${escapeHtml(label)}">${escapeHtml(label)}</a>`;
-        })
-        .join(', ');
+        }),
+        localeId,
+      );
       // Keine <ul>/<li> mit Links: Chromium mappt das zu LI→Link (PDF/UA 7.2/20).
-      return `<div class="report-action-plan-row"><span class="report-strong">${escapeHtml(row.title)}:</span> ${links}</div>`;
+      return `<div class="report-action-plan-row"><span class="report-strong">${escapeHtml(row.title)}${formatLocaleColon(localeId)}</span> ${links}</div>`;
     })
     .join('');
   if (!blocks) return '';
@@ -210,7 +214,7 @@ export function renderSessionParticipationHtml(
   const series = data.questions
     .map(
       (question) =>
-        `${escapeHtml(labels.questionNumber)} ${question.questionOrder + 1}: ${formatLocaleCount(question.participantCount, localeId)}`,
+        `${escapeHtml(labels.questionNumber)} ${question.questionOrder + 1}${formatLocaleColon(localeId)} ${formatLocaleCount(question.participantCount, localeId)}`,
     )
     .join(' · ');
   const declineNote =
@@ -304,7 +308,7 @@ export function renderDistractorAnalysisHtml(
           ? ` ${labels.distractorAsAttractiveAsCorrect}`
           : '';
       parts.push(
-        `<p><strong>${escapeHtml(labels.strongestDistractor)}:</strong> ${escapeHtml(
+        `<p><strong>${escapeHtml(labels.strongestDistractor)}${formatLocaleColon(localeId)}</strong> ${escapeHtml(
           stripMarkdownToPlainText(top.text),
         )} — ${escapeHtml(`${chosen}.${tieNote}`)}</p>`,
       );
@@ -315,10 +319,10 @@ export function renderDistractorAnalysisHtml(
     const falseMarked = [...incorrect].sort((a, b) => b.count - a.count)[0];
     if (falseMarked && falseMarked.count > 0) {
       parts.push(
-        `<p><strong>${escapeHtml(labels.mcFalseSelection)}:</strong> ${escapeHtml(
+        `<p><strong>${escapeHtml(labels.mcFalseSelection)}${formatLocaleColon(localeId)}</strong> ${escapeHtml(
           stripMarkdownToPlainText(falseMarked.text),
         )} — ${escapeHtml(
-          labels.distractorChosenByTemplate.replace(
+          labels.optionChosenByTemplate.replace(
             '{0}',
             formatLocaleCount(falseMarked.count, localeId),
           ),
@@ -333,7 +337,7 @@ export function renderDistractorAnalysisHtml(
       .sort((a, b) => b.missed - a.missed)[0];
     if (overlooked && overlooked.missed > 0) {
       parts.push(
-        `<p><strong>${escapeHtml(labels.mcOmission)}:</strong> ${escapeHtml(
+        `<p><strong>${escapeHtml(labels.mcOmission)}${formatLocaleColon(localeId)}</strong> ${escapeHtml(
           stripMarkdownToPlainText(overlooked.text),
         )} — ${escapeHtml(
           labels.mcOmissionCountTemplate.replace(
@@ -621,12 +625,12 @@ export function renderQaFollowUpHtml(
     )}</p>
     ${
       topOpen
-        ? `<p><strong>${escapeHtml(labels.qaFollowUpTopOpen)}:</strong> ${escapeHtml(topOpen.text)} · ${formatLocaleCount(topOpen.upvoteCount, localeId)} ${escapeHtml(labels.qaUpvotes)}</p>`
+        ? `<p><strong>${escapeHtml(labels.qaFollowUpTopOpen)}${formatLocaleColon(localeId)}</strong> ${escapeHtml(topOpen.text)} · ${formatLocaleCount(topOpen.upvoteCount, localeId)} ${escapeHtml(labels.qaUpvotes)}</p>`
         : ''
     }
     ${
       controversial
-        ? `<p><strong>${escapeHtml(labels.qaFollowUpControversial)}:</strong> ${escapeHtml(controversial.text)}${
+        ? `<p><strong>${escapeHtml(labels.qaFollowUpControversial)}${formatLocaleColon(localeId)}</strong> ${escapeHtml(controversial.text)}${
             controversial.positiveVoteCount !== undefined &&
             controversial.negativeVoteCount !== undefined
               ? ` · ${formatLocaleCount(controversial.positiveVoteCount, localeId)} ${escapeHtml(labels.qaPositive)} / ${formatLocaleCount(controversial.negativeVoteCount, localeId)} ${escapeHtml(labels.qaNegative)}`
@@ -740,7 +744,10 @@ export function renderNextStepsSummaryHtml(
   if (plan.reteach.length === 1) {
     items.push(labels.nextStepsReteachTemplate.replace('{0}', String(plan.reteach[0]! + 1)));
   } else if (plan.reteach.length > 1) {
-    const list = plan.reteach.map((order) => String(order + 1)).join(', ');
+    const list = formatLocaleConjunctionList(
+      plan.reteach.map((order) => String(order + 1)),
+      localeId,
+    );
     items.push(labels.nextStepsReteachConcreteTemplate.replace('{0}', list));
   }
 
@@ -758,11 +765,24 @@ export function renderNextStepsSummaryHtml(
               approximate: percentValueNeedsApproximation(question.correctPercentage),
             })
           : '—';
-    items.push(
-      labels.nextStepsReinforceConcreteTemplate
-        .replace('{0}', String(order + 1))
-        .replace('{1}', pctLabel),
-    );
+    const result = question?.confidenceResult;
+    const totalConfidence =
+      result !== null && result !== undefined
+        ? result.distribution['1'] +
+          result.distribution['2'] +
+          result.distribution['3'] +
+          result.distribution['4'] +
+          result.distribution['5']
+        : 0;
+    const allLowConfidence =
+      totalConfidence > 0 &&
+      result !== null &&
+      result !== undefined &&
+      result.distribution['1'] + result.distribution['2'] === totalConfidence;
+    const template = allLowConfidence
+      ? labels.nextStepsReinforceLowConfidenceTemplate
+      : labels.nextStepsReinforceConcreteTemplate;
+    items.push(template.replace('{0}', String(order + 1)).replace('{1}', pctLabel));
   }
 
   if (!items.length) return '';

@@ -67,6 +67,8 @@ export interface SessionResultsReportLabels {
   questionNumber: string;
   questionOfTotal: string;
   questionContinuationTemplate: string;
+  /** Kurze Fortsetzungszeile ohne Fragetitel (wenn der volle Stempel nicht passt). */
+  questionContinuationShortTemplate: string;
   pageNumberFooter: string;
   questionType: string;
   questionParticipants: string;
@@ -93,6 +95,10 @@ export interface SessionResultsReportLabels {
   confidenceOmissionActionTemplate: string;
   confidenceMcCombinedAllOmittedTemplate: string;
   confidenceMcCombinedActionTemplate: string;
+  /** Single-Choice: richtige Antwort erklären, dann Distraktor. */
+  confidenceScCombinedActionTemplate: string;
+  /** Badge/Anzahl unter „Antwortsicherheit“: „{0} Antworten“. */
+  confidenceResponseCountTemplate: string;
   confidenceDegenerateAllHighWrongTemplate: string;
   confidenceDegenerateAllHighWrongResult: string;
   confidenceHighWrongGenericTemplate: string;
@@ -141,6 +147,8 @@ export interface SessionResultsReportLabels {
   nextStepsReteachConcreteTemplate: string;
   nextStepsReinforceTemplate: string;
   nextStepsReinforceConcreteTemplate: string;
+  /** Alle Confidence-Antworten niedrig (1–2). */
+  nextStepsReinforceLowConfidenceTemplate: string;
   scoreExplanation: string;
   bonusCodesTitle: string;
   bonusCodesNotice: string;
@@ -241,6 +249,8 @@ export interface SessionResultsReportLabels {
   distractorAnalysisTitle: string;
   strongestDistractor: string;
   distractorChosenByTemplate: string;
+  /** Wie distractorChosenByTemplate, aber für feminine Labels (z. B. FR « Option incorrecte »). */
+  optionChosenByTemplate: string;
   distractorAsAttractiveAsCorrect: string;
   mcFalseSelection: string;
   mcOmission: string;
@@ -363,16 +373,16 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
       'Selbsteinschätzung wurde bei {0} von {1} Fragen erhoben. Dabei entstanden {2} Antworten.',
     confidenceCoverageFormulaTemplate:
       '{0} Fragen × {1} Teilnehmende = {2} Antworten mit Selbsteinschätzung.',
-    confidenceNotCollectedTemplate: 'Keine auswertbare Selbsteinschätzung bei: {0}.',
-    confidenceNotSupportedTemplate: 'Nicht unterstützt bei: {0}.',
-    confidenceDisabledTemplate: 'In diesem Quiz deaktiviert bei: {0}.',
+    confidenceNotCollectedTemplate: 'Keine auswertbare Selbsteinschätzung für {0}.',
+    confidenceNotSupportedTemplate: 'Selbsteinschätzung wird nicht erhoben für {0}.',
+    confidenceDisabledTemplate: 'Die Selbsteinschätzung war in diesem Quiz für {0} deaktiviert.',
     confidenceNotCollectedForQuestion: 'Für diese Frage wurde keine Selbsteinschätzung erhoben.',
     confidenceNotSupportedForQuestion:
       'Selbsteinschätzung wird für den Fragetyp »{0}« nicht angeboten.',
     confidenceDisabledForQuestion: 'Selbsteinschätzung von dir in diesem Quiz deaktiviert.',
     confidencePrioritiesTitle: 'Priorität für die Nachbesprechung',
     confidencePriorityRuleTemplate:
-      '{0} Fragen zur Nachbesprechung empfohlen: Mindestens 2 Personen und mindestens 10 % antworteten falsch und mit hoher Sicherheit. Einzelne Fälle werden nur als Hinweis markiert.',
+      '{0} Fragen werden zur Nachbesprechung empfohlen. Mindestens 2 Personen und mindestens 10 % antworteten falsch und mit hoher Sicherheit. Einzelne Fälle werden nur zur Information angezeigt.',
     confidenceSignalRuleTemplate:
       '{0} Fragen auf Hinweisstufe, weil dort mindestens eine falsche Antwort mit hoher Sicherheit abgegeben wurde.',
     confidenceWrongHigh: 'Falsch und sicher',
@@ -395,6 +405,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     questionNumber: 'Frage',
     questionOfTotal: 'Frage {0} von {1}',
     questionContinuationTemplate: 'Frage {0} – Fortsetzung: {1}',
+    questionContinuationShortTemplate: 'Frage {0} – Fortsetzung',
     pageNumberFooter: 'Seite {0} / {1}',
     questionType: 'Format',
     questionParticipants: 'Teilnehmende',
@@ -428,6 +439,9 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
       '{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Alle übersahen die richtige Option „{1}“. {2} wählten zusätzlich „{3}“.',
     confidenceMcCombinedActionTemplate:
       'Kläre zuerst, dass „{0}“ zur vollständigen Lösung gehört. Stelle anschließend heraus, weshalb „{1}“ nicht zutrifft.',
+    confidenceScCombinedActionTemplate:
+      'Erkläre zuerst, warum „{0}“ die richtige Antwort ist. Stelle anschließend heraus, weshalb „{1}“ nicht zutrifft.',
+    confidenceResponseCountTemplate: '{0} Antworten',
     confidenceDegenerateAllHighWrongTemplate:
       'Antwortsicherheit: Alle {0} Antworten mit hoher Sicherheit',
     confidenceDegenerateAllHighWrongResult: 'Ergebnis: Alle {0} Antworten vollständig falsch',
@@ -487,10 +501,13 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     nextStepsReinforceTemplate: 'Fragen {0} kurz absichern (richtig, aber noch unsicher)',
     nextStepsReinforceConcreteTemplate:
       'Bei Frage {0} die korrekte Lösung bestätigen (Lösungsquote {1} – richtig, aber noch unsicher).',
+    nextStepsReinforceLowConfidenceTemplate:
+      'Bei Frage {0} die korrekte Lösung bestätigen (Lösungsquote {1} – richtig, aber durchgängig mit niedriger Sicherheit).',
     scoreExplanation:
       'Punkte sind ein Rankingwert aus Korrektheit, Schwierigkeit, Antwortzeit bei aktivem Timer und Serienbonus. Die Selbsteinschätzung beeinflusst die Punkte nicht. Da der erreichbare Wert vom Quizverlauf abhängt, sind Punktestände keine Prozentwerte und nicht zwischen Sessions vergleichbar.',
     bonusCodesTitle: 'Bonus-Codes',
-    bonusCodesNotice: 'Pseudonymisierte Codes — Zuordnung nur über freiwillige E-Mail-Einreichung.',
+    bonusCodesNotice:
+      'Pseudonymisierte Codes können nur über eine freiwillige E-Mail-Einreichung einer Identität zugeordnet werden.',
     bonusScoreTieNote: 'Bei gleicher Punktzahl entscheidet die gewertete Antwortzeit.',
     bonusRank: 'Rang',
     bonusNickname: 'Nickname',
@@ -578,7 +595,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     hardestQuestionsTitle: 'Schwierigste Fragen',
     hardestQuestionsLead:
       'Empirische Lösungsquote: Anteil vollständig richtiger Antworten. Eine niedrige Quote kann auch an Formulierung oder Zeitlimit liegen.',
-    hardestQuestionRateTemplate: 'Lösungsquote {0} ({1} von {2} vollständig richtig)',
+    hardestQuestionRateTemplate: 'Lösungsquote: {0} ({1} von {2} vollständig richtig)',
     hardestQuestionDifficultyMismatchTemplate:
       'Als „{0}“ konfiguriert, aber nur {1} der bewerteten Antworten vollständig richtig – Schwierigkeit oder Formulierung prüfen.',
     difficultyEasy: 'leicht',
@@ -596,6 +613,7 @@ export function getSessionResultsReportLabelsDe(): SessionResultsReportLabels {
     distractorAnalysisTitle: 'Auswahlfehler',
     strongestDistractor: 'Stärkster Distraktor (häufigste falsche Antwort)',
     distractorChosenByTemplate: 'gewählt von {0} Personen',
+    optionChosenByTemplate: 'gewählt von {0} Personen',
     distractorAsAttractiveAsCorrect:
       'Die falsche Option war genauso attraktiv wie die richtige Antwort.',
     mcFalseSelection: 'Häufigster Auswahlfehler',

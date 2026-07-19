@@ -347,18 +347,6 @@ Gesucht ist das Jahr, das historisch üblicherweise als Beginn der Französische
         ratingLabelMin: 'Eher noch nicht',
         ratingLabelMax: 'Ich probiere es aus',
       },
-      {
-        text: md`
-### Schallgeschwindigkeit unter Druck: Wie lange braucht Schall für 58 cm?
-
-> **Unterrichtsidee:** Diese numerische Kurzantwort ist bewusst anspruchsvoll: Teilnehmende müssen Einheiten sicher umrechnen und ein Ergebnis im passenden Größenbereich angeben.
-
-Nimm für trockene Luft bei 20 °C die Schallgeschwindigkeit $$v = 343\,\mathrm{m/s}$$ an.
-
-Gesucht ist die Laufzeit für $$s = 0{,}58\,\mathrm{m}$$ als Kurzantwort mit Einheit (z. B. in ms oder s).
-        `,
-        answers: [{ text: '1,69 ms', isCorrect: true }],
-      },
     ],
   },
   en: {
@@ -376,7 +364,8 @@ Use it as a short, **Kahoot-style team demo for live teaching** to show how you 
 - bring in formulas and scientific notation in STEM
 - try numeric estimate questions with a reference value, tolerance band, and two rounds
 - collect short free-text answers from the room that later reappear as a word cloud
-- use multiple-choice and quick rating prompts well
+- use multiple-answer and quick rating prompts well
+- ask for **answer confidence** (1–5) after graded answers and spot **incorrect answers with high confidence**
 - add energy with timers, teams, a leaderboard, and bonus codes
 - show code snippets in computer science or technical courses
 
@@ -433,7 +422,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
         text: md`
 ### Which of these are strong use cases for a quick live check?
 
-> **Teaching move:** Use this to demonstrate multiple choice with more than one correct answer.
+> **Teaching move:** Use this to demonstrate a multiple-answer question.
 
 _Select all that apply._
         `,
@@ -452,7 +441,7 @@ _Select all that apply._
 
 The question refers to the classic Rubik’s Cube designed by Ernő Rubik.
 
-Optional prompt: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (in German)](https://www.youtube.com/watch?v=EoINieyz6gE).
+Optional resource: [How to solve a 3×3 Rubik’s Cube with no prior experience — German-language resource](https://www.youtube.com/watch?v=EoINieyz6gE).
         `,
         answers: [
           { text: '28', isCorrect: false },
@@ -480,9 +469,9 @@ ${CODE_FENCE}`,
         text: md`
 ### What is the teaching method called in which learners vote individually, discuss briefly, and then vote again?
 
-> **Teaching move:** Use this as a challenging term-recall prompt to demonstrate explicit variants, adjacent letter swaps, and transparent short-answer feedback with partial credit.
+> **Teaching move:** Use this as a challenging terminology question to demonstrate accepted answer variants, minor spelling errors, and transparent partial-credit scoring.
 
-We are looking for the established instructional term for this sequence.
+Expected answer: the established instructional term for this sequence.
         `,
         answers: [
           { text: 'Peer Instruction', isCorrect: true },
@@ -497,7 +486,7 @@ We are looking for the established instructional term for this sequence.
 
 > **Teaching move:** Use this as a two-round estimate question: first collect spontaneous guesses, then discuss briefly and compare the second round against the reference value, tolerance band, and score.
 
-We are looking for the year commonly used as the beginning of the French Revolution.
+Expected answer: the year commonly used as the beginning of the French Revolution.
         `,
       },
       {
@@ -508,18 +497,6 @@ We are looking for the year commonly used as the beginning of the French Revolut
         `,
         ratingLabelMin: 'Not yet',
         ratingLabelMax: 'Ready to try it',
-      },
-      {
-        text: md`
-### Pressure-ready numeracy: how long does sound need for 58 cm?
-
-> **Teaching move:** This numeric short answer is intentionally demanding: learners must convert units correctly and report a physically plausible time scale.
-
-Assume the speed of sound in dry air at 20 °C is $$v = 343\,\mathrm{m/s}$$.
-
-Find the travel time for $$s = 0.58\,\mathrm{m}$$ and answer with unit (for example in ms or s).
-        `,
-        answers: [{ text: '1.69 ms', isCorrect: true }],
       },
     ],
   },
@@ -532,28 +509,29 @@ Find the travel time for $$s = 0.58\,\mathrm{m}$$ and answer with unit (for exam
 
 Cette démo est pensée pour un **usage réel en classe**. Elle n’essaie pas d’être un quiz disciplinaire parfait du début à la fin. Son rôle est ailleurs : montrer aux enseignant·es, formateur·rices et animateur·rices comment arsnova.eu peut rendre une séance en direct plus variée, plus visuelle et plus ludique.
 
-Utilise-la comme une courte **démo en équipe, façon Kahoot, pour les cours en direct** afin de montrer comment tu peux :
+Utilisez-la comme une courte **démo en équipe, façon Kahoot, pour les cours en direct** afin de montrer comment vous pouvez :
 - démarrer avec un rapide tour d’humeur ou un check-in social
 - utiliser des images plutôt que des consignes purement textuelles
 - intégrer des formules et de la notation scientifique en STEM
 - tester des questions d’estimation numérique avec valeur de référence, bande de tolérance et deux tours
 - recueillir de courtes réponses en texte libre qui réapparaîtront ensuite sous forme de nuage de mots
 - utiliser à bon escient les choix multiples et les échelles d’évaluation
+- demander le **degré de confiance** (1–5) après les réponses notées et repérer les réponses **incorrectes avec un degré de confiance élevé** dans la vue hôte
 - ajouter de l’énergie avec des chronos, des équipes, un classement et des codes bonus
 - afficher des extraits de code en informatique ou dans des cours techniques
 
-Les questions sont volontairement variées. L’idée est de te donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.
+Les questions sont volontairement variées. L’idée est de vous donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.
 
-**Conseil pour la démo :** Rejoins la session sur un deuxième appareil, idéalement en scannant le QR code avec ton téléphone. Tu pourras ainsi rejouer de façon réaliste l’aller-retour entre la vue hôte et l’expérience participante.
+**Conseil pour la démo :** Rejoignez la session sur un deuxième appareil, idéalement en scannant le QR code avec votre téléphone. Vous pourrez ainsi rejouer de façon réaliste l’aller-retour entre la vue hôte et l’expérience participante.
 
-**Autre conseil :** Ouvre ensuite le quiz en mode édition pour voir comment les questions sont construites avec Markdown et KaTeX.
+**Autre conseil :** Ouvrez ensuite le quiz en mode édition pour voir comment les questions sont construites avec Markdown et KaTeX.
 
-**Et encore une chose :** Si tu souhaites d’autres formats de questions ou fonctionnalités, n’hésite pas à les demander. Les coordonnées figurent dans les mentions légales.`,
+**Et encore une chose :** Si vous souhaitez d’autres formats de questions ou fonctionnalités, n’hésitez pas à les demander. Les coordonnées figurent dans les mentions légales.`,
     questions: [
       {
         text: md`### Comment se sent le groupe en ce moment ?
 
-> **Usage pédagogique :** Utilise cela comme tour d’humeur rapide au début du cours, avant un retour ou après une séquence exigeante.
+> **Piste pédagogique :** utilisez cette question comme sondage d’humeur rapide au début du cours, avant un débriefing ou après une activité exigeante.
 
 ![Aperçu des émotions](${EMOTION_IMAGE_URL})
 
@@ -566,9 +544,9 @@ Les questions sont volontairement variées. L’idée est de te donner des piste
         ],
       },
       {
-        text: md`### Arrondis $\pi$ à deux décimales.
+        text: md`### Arrondissez $\pi$ à deux décimales.
 
-> **Usage pédagogique :** Utilise cela comme courte relance STEM combinant formules, médias et réponse ouverte.
+> **Piste pédagogique :** utilisez cette question comme brève activité d’estimation en STEM avec valeur de référence, bande de tolérance absolue de 3,1 à 3,2 et plage de plausibilité de 3,0 à 3,5.
 
 ![Le nombre pi](${PI_IMAGE_URL})
 
@@ -583,7 +561,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       {
         text: md`### Image IA ou photo réelle ?
 
-> **Usage pédagogique :** Utilise cela comme échauffement visuel, relance d’attention ou amorce de discussion à faible seuil.
+> **Piste pédagogique :** utilisez cette question comme échauffement visuel, relance d’attention ou amorce de discussion sans enjeu d’évaluation.
 
 ![Scène de toit](${ROOFTOP_SCENE_IMAGE_URL})`,
         answers: [
@@ -593,9 +571,9 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       },
       {
         text: md`
-### Lesquels de ces usages conviennent bien à un rapide check en direct ?
+### Lesquels de ces usages conviennent à une question flash en direct ?
 
-> **Usage pédagogique :** Utilise cela pour montrer un choix multiple avec plusieurs bonnes réponses.
+> **Piste pédagogique :** utilisez cette question pour illustrer un format à réponses multiples.
 
 _Plusieurs réponses possibles._
         `,
@@ -613,11 +591,11 @@ _Plusieurs réponses possibles._
         text: md`
 ### Combien de pièces visibles possède le Rubik’s Cube classique ?
 
-> **Usage pédagogique :** Utilise cela pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
+> **Piste pédagogique :** utilisez cette question pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
 
 Il s’agit du Rubik’s Cube classique conçu par Ernő Rubik.
 
-Impulsion facultative : [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (en allemand)](https://www.youtube.com/watch?v=EoINieyz6gE).
+Ressource facultative : [Comment résoudre un Rubik’s Cube 3×3 sans expérience préalable — ressource en allemand](https://www.youtube.com/watch?v=EoINieyz6gE).
         `,
         answers: [
           { text: '28', isCorrect: false },
@@ -629,7 +607,7 @@ Impulsion facultative : [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst 
       {
         text: md`### Dans quel langage ce code est-il écrit ?
 
-> **Usage pédagogique :** Utilise cela comme question de reconnaissance rapide en informatique, dans des activités maker ou en STEM.
+> **Piste pédagogique :** utilisez cette question comme reconnaissance rapide en informatique, dans des activités maker ou en STEM.
 
 ${CODE_FENCE}java
 ${PROCESSING_SKETCH}
@@ -645,13 +623,13 @@ ${CODE_FENCE}`,
         text: md`
 ### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?
 
-> **Usage pédagogique :** Utilise cela comme question de rappel d’un terme spécialisé pour montrer les variantes explicites, les petites inversions de lettres et un retour transparent en réponse courte avec points partiels.
+> **Piste pédagogique :** utilisez cette question comme rappel d’un terme spécialisé pour montrer les variantes acceptées, les petites inversions de lettres et une correction transparente des réponses courtes, avec attribution de points partiels.
 
 On cherche le terme didactique établi pour cette séquence.
         `,
         answers: [
           { text: 'Peer Instruction', isCorrect: true },
-          { text: 'instruction par les pairs', isCorrect: true },
+          { text: 'Peer-Instruction', isCorrect: true },
           { text: 'méthode Mazur', isCorrect: true },
           { text: 'méthode de Mazur', isCorrect: true },
         ],
@@ -660,31 +638,19 @@ On cherche le terme didactique établi pour cette séquence.
         text: md`
 ### En quelle année la Révolution française a-t-elle commencé ?
 
-> **Usage pédagogique :** Utilise cela comme question d’estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.
+> **Piste pédagogique :** utilisez cette question comme estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.
 
 On cherche l’année généralement retenue comme début de la Révolution française.
         `,
       },
       {
         text: md`
-### Quelle est la probabilité que tu essaies bientôt un quiz en direct comme celui-ci dans l’un de tes cours ?
+### Quelle est la probabilité que vous utilisiez bientôt un quiz en direct comme celui-ci dans l’un de vos cours ?
 
-> **Usage pédagogique :** Utilise cela comme prise de température, ticket de sortie ou auto-évaluation rapide.
+> **Piste pédagogique :** utilisez cette question comme prise de température, ticket de sortie ou évaluation rapide.
         `,
         ratingLabelMin: 'Pas pour l’instant',
         ratingLabelMax: 'Je vais l’essayer',
-      },
-      {
-        text: md`
-### Calcul exigeant : combien de temps le son met-il pour parcourir 58 cm ?
-
-> **Usage pédagogique :** Cette réponse courte numérique est volontairement difficile : il faut convertir les unités correctement et donner un ordre de grandeur cohérent.
-
-Suppose la vitesse du son dans l’air sec à 20 °C : $$v = 343\,\mathrm{m/s}$$.
-
-Détermine le temps de parcours pour $$s = 0{,}58\,\mathrm{m}$$ et réponds avec unité (par exemple en ms ou en s).
-        `,
-        answers: [{ text: '1,69 ms', isCorrect: true }],
       },
     ],
   },
@@ -839,18 +805,6 @@ Buscamos el año que se suele tomar como inicio de la Revolución francesa.
         ratingLabelMin: 'Todavía no',
         ratingLabelMax: 'Lo voy a probar',
       },
-      {
-        text: md`
-### Cálculo exigente: ¿cuánto tarda el sonido en recorrer 58 cm?
-
-> **Uso didáctico:** Esta respuesta corta numérica es intencionalmente difícil: hay que convertir unidades con precisión y reportar una escala temporal físicamente plausible.
-
-Supón para aire seco a 20 °C una velocidad del sonido de $$v = 343\,\mathrm{m/s}$$.
-
-Calcula el tiempo para $$s = 0{,}58\,\mathrm{m}$$ y responde con unidad (por ejemplo en ms o en s).
-        `,
-        answers: [{ text: '1,69 ms', isCorrect: true }],
-      },
     ],
   },
   it: {
@@ -1003,18 +957,6 @@ Cerchiamo l’anno comunemente indicato come inizio della Rivoluzione francese.
         `,
         ratingLabelMin: 'Non ancora',
         ratingLabelMax: 'Lo provo',
-      },
-      {
-        text: md`
-### Calcolo avanzato: quanto tempo impiega il suono a percorrere 58 cm?
-
-> **Uso didattico:** Questa risposta breve numerica è volutamente impegnativa: richiede conversioni corrette delle unità e un ordine di grandezza fisicamente coerente.
-
-Assumi per aria secca a 20 °C una velocità del suono pari a $$v = 343\,\mathrm{m/s}$$.
-
-Determina il tempo di percorrenza per $$s = 0{,}58\,\mathrm{m}$$ e rispondi con unità (ad esempio in ms o in s).
-        `,
-        answers: [{ text: '1,69 ms', isCorrect: true }],
       },
     ],
   },

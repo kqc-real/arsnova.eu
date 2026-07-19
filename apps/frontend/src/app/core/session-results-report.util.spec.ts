@@ -206,7 +206,7 @@ describe('buildSessionResultsReportHtml', () => {
     );
 
     expect(html).toContain(
-      '2 Fragen zur Nachbesprechung empfohlen: Mindestens 2 Personen und mindestens 10 %',
+      '2 Fragen werden zur Nachbesprechung empfohlen. Mindestens 2 Personen und mindestens 10 %',
     );
     expect(html).toContain('Dein Nachbesprechungsplan');
     expect(html).toContain('PI-Frage zur Französischen Revolution');
@@ -355,8 +355,8 @@ describe('buildSessionResultsReportHtml', () => {
       { localeId: 'de' },
     );
 
-    expect(html).toContain('Nicht unterstützt bei: Frage 1 (Umfrage).');
-    expect(html).toContain('In diesem Quiz deaktiviert bei: Frage 2 (Single Choice).');
+    expect(html).toContain('Selbsteinschätzung wird nicht erhoben für Frage 1 (Umfrage).');
+    expect(html).toContain('Die Selbsteinschätzung war in diesem Quiz für Frage 2 deaktiviert.');
     expect(html).toContain('Selbsteinschätzung wird für den Fragetyp »Umfrage« nicht angeboten.');
     expect(html).toContain('Selbsteinschätzung von dir in diesem Quiz deaktiviert.');
   });

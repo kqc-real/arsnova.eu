@@ -6,7 +6,12 @@ import type {
   OptionDistributionEntry,
   FreetextAggregateEntry,
 } from '@arsnova/shared-types';
-import { formatLocaleCount, formatLocaleNumber } from './locale-number.util';
+import {
+  formatLocaleColon,
+  formatLocaleCount,
+  formatLocaleNumber,
+  formatLocalePercentValue,
+} from './locale-number.util';
 import type { SessionResultsReportLabels } from './labels-de';
 import {
   formatNumericEstimateValue,
@@ -166,7 +171,7 @@ export function renderConfidenceHeatmapHtml(
           const symbol = cellSymbol(row.correctness, tier);
           const tierLabel = tiers[index]?.label ?? '';
           const countText = formatLocaleCount(count, localeId);
-          const aria = `${row.label}, ${tierLabel}: ${countText}`;
+          const aria = `${row.label}, ${tierLabel}${formatLocaleColon(localeId)} ${countText}`;
           return `<span class="report-heat report-heat--plain report-heat--${tone}" aria-label="${escapeHtml(aria)}"><span class="report-heat-cell"><span class="report-heat-symbol" aria-hidden="true">${symbol}</span><span class="report-heat-count">${countText}</span></span></span>`;
         })
         .join('');
@@ -383,7 +388,7 @@ export function renderNumericPeerChangeBarsHtml(
   ];
   const bars = segments
     .map((segment) => {
-      return `<div class="report-peer-change-seg ${segment.className}" style="flex:${Math.max(segment.count, 0.0001)}" title="${escapeHtml(segment.label)}: ${formatLocaleCount(segment.count, localeId)}">
+      return `<div class="report-peer-change-seg ${segment.className}" style="flex:${Math.max(segment.count, 0.0001)}" title="${escapeHtml(segment.label)}${formatLocaleColon(localeId)} ${formatLocaleCount(segment.count, localeId)}">
         <span class="report-peer-change-count">${formatLocaleCount(segment.count, localeId)}</span>
       </div>`;
     })
@@ -428,7 +433,8 @@ export function renderOptionBarsHtml(
       const fillClass = option.isCorrect
         ? 'report-bar-fill report-bar-fill--correct'
         : 'report-bar-fill';
-      const inlinePercent = valueTemplate ? '' : `<span class="report-bar-pct">${pct} %</span>`;
+      const pctLabel = formatLocalePercentValue(pct, localeId);
+      const inlinePercent = valueTemplate ? '' : `<span class="report-bar-pct">${pctLabel}</span>`;
       return `<li class="report-bar-row">
         <div class="report-bar-label">${formatReportBarLabelHtml(option.text, escapeHtml)}${correct}</div>
         <div class="report-bar-track"><div class="${fillClass}" style="width:${width}%">${inlinePercent}</div></div>
@@ -436,7 +442,7 @@ export function renderOptionBarsHtml(
           valueTemplate
             ? escapeHtml(
                 valueTemplate
-                  .replace('{0}', `${pct} %`)
+                  .replace('{0}', pctLabel)
                   .replace('{1}', formatLocaleCount(option.count, localeId))
                   .replace('{2}', formatLocaleCount(denominator, localeId)),
               )
@@ -518,7 +524,7 @@ export function renderFreetextTopBarsHtml(
       const pct = Math.round((entry.count / total) * 100);
       return `<li class="report-bar-row">
         <div class="report-bar-label">${formatReportBarLabelHtml(entry.text, escapeHtml)}</div>
-        <div class="report-bar-track"><div class="report-bar-fill" style="width:${width}%"><span class="report-bar-pct">${pct} %</span></div></div>
+        <div class="report-bar-track"><div class="report-bar-fill" style="width:${width}%"><span class="report-bar-pct">${formatLocalePercentValue(pct, localeId)}</span></div></div>
         <div class="report-bar-value">${formatLocaleCount(entry.count, localeId)}</div>
       </li>`;
     })
@@ -561,7 +567,7 @@ export function renderStarRatingBarsHtml(
       return `<li class="report-bar-row report-bar-row--rating">
         <div class="report-bar-label">${star} ★</div>
         <div class="report-bar-track"><div class="report-bar-fill report-bar-fill--rating" style="width:${width}%"></div></div>
-        <div class="report-bar-value">${pct} % · ${formatLocaleCount(count, localeId)}</div>
+        <div class="report-bar-value">${formatLocalePercentValue(pct, localeId)} · ${formatLocaleCount(count, localeId)}</div>
       </li>`;
     })
     .join('');

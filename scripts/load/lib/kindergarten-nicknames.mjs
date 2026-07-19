@@ -1,5 +1,5 @@
-/** Erste 40 Einträge aus `nickname-themes.ts` (de, KINDERGARTEN) – wie im Join-UI. */
-export const KINDERGARTEN_NICKNAMES = [
+/** Erste 40 Einträge aus `nickname-themes.ts` (KINDERGARTEN) – wie im Join-UI. */
+export const KINDERGARTEN_NICKNAMES_DE = [
   'Roter Drache',
   'Grüner Frosch',
   'Gelber Löwe',
@@ -42,8 +42,204 @@ export const KINDERGARTEN_NICKNAMES = [
   'Korallenfarbene Katze',
 ];
 
-export function kindergartenNickname(index) {
-  const base = KINDERGARTEN_NICKNAMES[index % KINDERGARTEN_NICKNAMES.length];
-  const cycle = Math.floor(index / KINDERGARTEN_NICKNAMES.length);
+/** Englische Demo-Nicknames (gleiche Reihenfolge wie DE). */
+export const KINDERGARTEN_NICKNAMES_EN = [
+  'Red Dragon',
+  'Green Frog',
+  'Yellow Lion',
+  'Purple Dolphin',
+  'Orange Fox',
+  'Pink Butterfly',
+  'Turquoise Whale',
+  'Brown Bear',
+  'Black Panther',
+  'White Rabbit',
+  'Gray Wolf',
+  'Golden Oyster',
+  'Silver Dodo',
+  'Colorful Parrot',
+  'Light Blue Swan',
+  'Dark Green Snake',
+  'Lemon Yellow Bee',
+  'Peach Horse',
+  'Mint Green Lizard',
+  'Coral Crab',
+  'Sky Blue Ladybug',
+  'Olive Green Mouse',
+  'Beige Hedgehog',
+  'Salmon Flamingo',
+  'Lavender Owl',
+  'Mustard Yellow Rooster',
+  'Pine Green Beaver',
+  'Apple Green Caterpillar',
+  'Mole Gray Hamster',
+  'Chestnut Baboon',
+  'Sage Green Crocodile',
+  'Terracotta Badger',
+  'Emerald Dragonfly',
+  'Saffron Bird',
+  'Indigo Whale',
+  'Magenta Turtle',
+  'Petrol Fish',
+  'Vanilla Lamb',
+  'Turquoise Dog',
+  'Coral Cat',
+];
+
+/** Französische Demo-Nicknames (gleiche Reihenfolge wie DE). */
+export const KINDERGARTEN_NICKNAMES_FR = [
+  'Dragon rouge',
+  'Grenouille verte',
+  'Lion jaune',
+  'Dauphin violet',
+  'Renard orange',
+  'Papillon rose',
+  'Baleine turquoise',
+  'Ours brun',
+  'Panthère noire',
+  'Lapin blanc',
+  'Loup gris',
+  'Huître dorée',
+  'Dodo argenté',
+  'Perroquet coloré',
+  'Cygne bleu clair',
+  'Serpent vert foncé',
+  'Abeille jaune citron',
+  'Cheval pêche',
+  'Lézard vert menthe',
+  'Crabe corail',
+  'Coccinelle bleu ciel',
+  'Souris vert olive',
+  'Hérisson beige',
+  'Flamant saumon',
+  'Chouette lavande',
+  'Coq jaune moutarde',
+  'Castor vert sapin',
+  'Chenille vert pomme',
+  'Hamster gris taupe',
+  'Babouin châtain',
+  'Crocodile vert sauge',
+  'Blaireau terracotta',
+  'Libellule émeraude',
+  'Oiseau safran',
+  'Baleine indigo',
+  'Tortue magenta',
+  'Poisson pétrole',
+  'Agneau vanille',
+  'Chien turquoise',
+  'Chat corail',
+];
+
+/** Spanische Demo-Nicknames (gleiche Reihenfolge wie DE). */
+export const KINDERGARTEN_NICKNAMES_ES = [
+  'Dragón rojo',
+  'Rana verde',
+  'León amarillo',
+  'Delfín morado',
+  'Zorro naranja',
+  'Mariposa rosa',
+  'Ballena turquesa',
+  'Oso pardo',
+  'Pantera negra',
+  'Conejo blanco',
+  'Lobo gris',
+  'Ostra dorada',
+  'Dodo plateado',
+  'Loro colorido',
+  'Cisne azul claro',
+  'Serpiente verde oscuro',
+  'Abeja amarilla limón',
+  'Caballo color melocotón',
+  'Lagarto verde menta',
+  'Cangrejo coralino',
+  'Mariquita azul cielo',
+  'Ratón verde oliva',
+  'Erizo beige',
+  'Flamenco color salmón',
+  'Búho azul lavanda',
+  'Gallo amarillo mostaza',
+  'Castor verde pino',
+  'Oruga verde manzana',
+  'Hámster topo gris',
+  'Babuino castaño',
+  'Cocodrilo verde salvia',
+  'Tejón color terracota',
+  'Libélula verde esmeralda',
+  'Pájaro amarillo azafrán',
+  'Ballena azul índigo',
+  'Tortuga magenta',
+  'Pez de color verde azulado',
+  'Cordero color vainilla',
+  'Perro turquesa',
+  'Gato coral',
+];
+
+/** Italienische Demo-Nicknames (gleiche Reihenfolge wie DE). */
+export const KINDERGARTEN_NICKNAMES_IT = [
+  'Drago rosso',
+  'Rana verde',
+  'Leone giallo',
+  'Delfino viola',
+  'Volpe arancione',
+  'Farfalla rosa',
+  'Balena turchese',
+  'Orso bruno',
+  'Pantera nera',
+  'Coniglio bianco',
+  'Lupo grigio',
+  "Ostrica d'oro",
+  'Dodo argentato',
+  'Pappagallo colorato',
+  'Cigno azzurro',
+  'Serpente verde scuro',
+  'Ape giallo limone',
+  'Cavallo color pesca',
+  'Lucertola verde menta',
+  'Granchio di corallo',
+  'Coccinella celeste',
+  'Topo verde oliva',
+  'Riccio beige',
+  'Fenicottero color salmone',
+  'Gufo blu lavanda',
+  'Gallo giallo senape',
+  'Castoro verde pino',
+  'Bruco verde mela',
+  'Criceto grigio talpa',
+  'Babbuino marrone castano',
+  'Coccodrillo verde salvia',
+  'Tasso color terracotta',
+  'Libellula verde smeraldo',
+  'Uccellino giallo zafferano',
+  'Balena blu indaco',
+  'Tartaruga magenta',
+  'Pesce color verde acqua',
+  'Agnello color vaniglia',
+  'Cane turchese',
+  'Gatto corallo',
+];
+
+/** @deprecated Use KINDERGARTEN_NICKNAMES_DE */
+export const KINDERGARTEN_NICKNAMES = KINDERGARTEN_NICKNAMES_DE;
+
+const NICKNAMES_BY_LOCALE = {
+  de: KINDERGARTEN_NICKNAMES_DE,
+  en: KINDERGARTEN_NICKNAMES_EN,
+  fr: KINDERGARTEN_NICKNAMES_FR,
+  es: KINDERGARTEN_NICKNAMES_ES,
+  it: KINDERGARTEN_NICKNAMES_IT,
+};
+
+/**
+ * @param {number} index
+ * @param {string} [locale='de']
+ */
+export function kindergartenNickname(index, locale = 'de') {
+  const lang = String(locale || 'de')
+    .trim()
+    .slice(0, 2)
+    .toLowerCase();
+  const list = NICKNAMES_BY_LOCALE[lang] ?? KINDERGARTEN_NICKNAMES_DE;
+  const base = list[index % list.length];
+  const cycle = Math.floor(index / list.length);
   return cycle === 0 ? base : `${base} ${cycle + 1}`;
 }

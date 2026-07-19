@@ -3,7 +3,7 @@
   "exportedAt": "2026-07-13T13:00:00.000Z",
   "quiz": {
     "name": "Showcase pédagogique : démo en équipe",
-    "description": "![Showcase pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase pédagogique\n\nCette démo est pensée pour un **usage réel en classe**. Elle n’essaie pas d’être un quiz disciplinaire parfait du début à la fin. Son rôle est ailleurs : montrer aux enseignant·es, formateur·rices et animateur·rices comment arsnova.eu peut rendre une séance en direct plus variée, plus visuelle et plus ludique.\n\nUtilise-la comme une courte **démo en équipe, façon Kahoot, pour les cours en direct** afin de montrer comment tu peux :\n- démarrer avec un rapide tour d’humeur ou un check-in social\n- utiliser des images plutôt que des consignes purement textuelles\n- intégrer des formules et de la notation scientifique en STEM\n- tester des questions d’estimation numérique avec valeur de référence, bande de tolérance et deux tours\n- recueillir de courtes réponses en texte libre qui réapparaîtront ensuite sous forme de nuage de mots\n- utiliser à bon escient les choix multiples et les échelles d’évaluation\n- demander l'**autoévaluation** (1–5) après les réponses notées et repérer les réponses **fausses avec forte certitude de réponse** dans la vue hôte\n- ajouter de l’énergie avec des chronos, des équipes, un classement et des codes bonus\n- afficher des extraits de code en informatique ou dans des cours techniques\n\nLes questions sont volontairement variées. L’idée est de te donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.\n\n**Conseil pour la démo :** Rejoins la session sur un deuxième appareil, idéalement en scannant le QR code avec ton téléphone. Tu pourras ainsi rejouer de façon réaliste l’aller-retour entre la vue hôte et l’expérience participante.\n\n**Autre conseil :** Ouvre ensuite le quiz en mode édition pour voir comment les questions sont construites avec Markdown et KaTeX.\n\n**Et encore une chose :** Si tu souhaites d’autres formats de questions ou fonctionnalités, n’hésite pas à les demander. Les coordonnées figurent dans les mentions légales.",
+    "description": "![Showcase pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Showcase pédagogique\n\nCette démo est pensée pour un **usage réel en classe**. Elle n’essaie pas d’être un quiz disciplinaire parfait du début à la fin. Son rôle est ailleurs : montrer aux enseignant·es, formateur·rices et animateur·rices comment arsnova.eu peut rendre une séance en direct plus variée, plus visuelle et plus ludique.\n\nUtilisez-la comme une courte **démo en équipe, façon Kahoot, pour les cours en direct** afin de montrer comment vous pouvez :\n- démarrer avec un rapide tour d’humeur ou un check-in social\n- utiliser des images plutôt que des consignes purement textuelles\n- intégrer des formules et de la notation scientifique en STEM\n- tester des questions d’estimation numérique avec valeur de référence, bande de tolérance et deux tours\n- recueillir de courtes réponses en texte libre qui réapparaîtront ensuite sous forme de nuage de mots\n- utiliser à bon escient les choix multiples et les échelles d’évaluation\n- demander le **degré de confiance** (1–5) après les réponses notées et repérer les réponses **incorrectes avec un degré de confiance élevé** dans la vue hôte\n- ajouter de l’énergie avec des chronos, des équipes, un classement et des codes bonus\n- afficher des extraits de code en informatique ou dans des cours techniques\n\nLes questions sont volontairement variées. L’idée est de vous donner des pistes concrètes pour les échauffements, les vérifications de compréhension, les relances d’attention et les petits moments interactifs réutilisables en classe.\n\n**Conseil pour la démo :** Rejoignez la session sur un deuxième appareil, idéalement en scannant le QR code avec votre téléphone. Vous pourrez ainsi rejouer de façon réaliste l’aller-retour entre la vue hôte et l’expérience participante.\n\n**Autre conseil :** Ouvrez ensuite le quiz en mode édition pour voir comment les questions sont construites avec Markdown et KaTeX.\n\n**Et encore une chose :** Si vous souhaitez d’autres formats de questions ou fonctionnalités, n’hésitez pas à les demander. Les coordonnées figurent dans les mentions légales.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
@@ -24,7 +24,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Comment se sent le groupe en ce moment ?\n\n> **Usage pédagogique :** Utilise cela comme tour d’humeur rapide au début du cours, avant un retour ou après une séquence exigeante.\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Cliquer pour agrandir.*",
+        "text": "### Comment se sent le groupe en ce moment ?\n\n> **Piste pédagogique :** utilisez cette question comme sondage d’humeur rapide au début du cours, avant un débriefing ou après une activité exigeante.\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*Cliquer pour agrandir.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
@@ -49,7 +49,7 @@
         ]
       },
       {
-        "text": "### Arrondis $\\pi$ à deux décimales.\n\n> **Usage pédagogique :** Utilise cela comme courte question d’estimation STEM avec valeur de référence, bande de tolérance absolue de 3,1 à 3,2 et plage de plausibilité de 3,0 à 3,5.\n\n![Le nombre pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler :\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß :\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Arrondissez $\\pi$ à deux décimales.\n\n> **Piste pédagogique :** utilisez cette question comme brève activité d’estimation en STEM avec valeur de référence, bande de tolérance absolue de 3,1 à 3,2 et plage de plausibilité de 3,0 à 3,5.\n\n![Le nombre pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler :\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß :\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -71,7 +71,7 @@
         "confidenceLabelHigh": "Très sûr"
       },
       {
-        "text": "### Image IA ou photo réelle ?\n\n> **Usage pédagogique :** Utilise cela comme échauffement visuel, relance d’attention ou amorce de discussion à faible seuil.\n\n![Scène de toit](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
+        "text": "### Image IA ou photo réelle ?\n\n> **Piste pédagogique :** utilisez cette question comme échauffement visuel, relance d’attention ou amorce de discussion sans enjeu d’évaluation.\n\n![Scène de toit](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "EASY",
@@ -91,7 +91,7 @@
         "confidenceLabelHigh": "Très sûr"
       },
       {
-        "text": "### Lesquels de ces usages conviennent bien à un rapide check en direct ?\n\n> **Usage pédagogique :** Utilise cela pour montrer un choix multiple avec plusieurs bonnes réponses.\n\n_Plusieurs réponses possibles._",
+        "text": "### Lesquels de ces usages conviennent à une question flash en direct ?\n\n> **Piste pédagogique :** utilisez cette question pour illustrer un format à réponses multiples.\n\n_Plusieurs réponses possibles._",
         "type": "MULTIPLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -120,7 +120,7 @@
         "confidenceLabelHigh": "Très sûr"
       },
       {
-        "text": "### Combien de pièces visibles possède le Rubik’s Cube classique ?\n\n> **Usage pédagogique :** Utilise cela pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.\n\nIl s’agit du Rubik’s Cube classique conçu par Ernő Rubik.\n\nImpulsion facultative : [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (en allemand)](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### Combien de pièces visibles possède le Rubik’s Cube classique ?\n\n> **Piste pédagogique :** utilisez cette question pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.\n\nIl s’agit du Rubik’s Cube classique conçu par Ernő Rubik.\n\nRessource facultative : [Comment résoudre un Rubik’s Cube 3×3 sans expérience préalable — ressource en allemand](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
@@ -148,7 +148,7 @@
         "confidenceLabelHigh": "Très sûr"
       },
       {
-        "text": "### Dans quel langage ce code est-il écrit ?\n\n> **Usage pédagogique :** Utilise cela comme question de reconnaissance rapide en informatique, dans des activités maker ou en STEM.\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
+        "text": "### Dans quel langage ce code est-il écrit ?\n\n> **Piste pédagogique :** utilisez cette question comme reconnaissance rapide en informatique, dans des activités maker ou en STEM.\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -173,7 +173,7 @@
         ]
       },
       {
-        "text": "### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?\n\n> **Usage pédagogique :** Utilise cela comme question de rappel d’un terme spécialisé pour montrer les variantes explicites, les petites inversions de lettres et un retour transparent en réponse courte avec points partiels.\n\nOn cherche le terme didactique établi pour cette séquence.",
+        "text": "### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?\n\n> **Piste pédagogique :** utilisez cette question comme rappel d’un terme spécialisé pour montrer les variantes acceptées, les petites inversions de lettres et une correction transparente des réponses courtes, avec attribution de points partiels.\n\nOn cherche le terme didactique établi pour cette séquence.",
         "type": "SHORT_TEXT",
         "timer": null,
         "difficulty": "HARD",
@@ -184,7 +184,7 @@
             "isCorrect": true
           },
           {
-            "text": "instruction par les pairs",
+            "text": "Peer-Instruction",
             "isCorrect": true
           },
           {
@@ -208,7 +208,7 @@
         "confidenceLabelHigh": "Très sûr"
       },
       {
-        "text": "### En quelle année la Révolution française a-t-elle commencé ?\n\n> **Usage pédagogique :** Utilise cela comme question d’estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.\n\nOn cherche l’année généralement retenue comme début de la Révolution française.",
+        "text": "### En quelle année la Révolution française a-t-elle commencé ?\n\n> **Piste pédagogique :** utilisez cette question comme estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.\n\nOn cherche l’année généralement retenue comme début de la Révolution française.",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -227,7 +227,7 @@
         "confidenceLabelHigh": "Très sûr"
       },
       {
-        "text": "### Quelle est la probabilité que tu essaies bientôt un quiz en direct comme celui-ci dans l’un de tes cours ?\n\n> **Usage pédagogique :** Utilise cela comme prise de température, ticket de sortie ou auto-évaluation rapide.",
+        "text": "### Quelle est la probabilité que vous utilisiez bientôt un quiz en direct comme celui-ci dans l’un de vos cours ?\n\n> **Piste pédagogique :** utilisez cette question comme prise de température, ticket de sortie ou évaluation rapide.",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",

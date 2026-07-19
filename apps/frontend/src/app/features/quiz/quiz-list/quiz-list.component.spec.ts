@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { LOCALE_ID, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -381,11 +381,14 @@ describe('QuizListComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
+    const demoLocale = String((TestBed.inject(LOCALE_ID) as string) || 'en')
+      .slice(0, 2)
+      .toLowerCase();
     expect(component.demoSessionResultsPdfUrl).toContain(
-      '/assets/demo/demo-session-results-30.pdf',
+      `/assets/demo/demo-session-results-30.${demoLocale}.pdf`,
     );
     expect(component.demoSessionResultsPdfUaUrl).toContain(
-      '/assets/demo/demo-session-results-30-pdfua.pdf',
+      `/assets/demo/demo-session-results-30.${demoLocale}-pdfua.pdf`,
     );
 
     const demoPdfTrigger = fixture.nativeElement.querySelector(
@@ -403,12 +406,14 @@ describe('QuizListComponent', () => {
     expect(demoPdfLinks).toHaveLength(2);
     expect(
       demoPdfLinks.some((link) =>
-        (link.getAttribute('href') ?? '').endsWith('demo-session-results-30.pdf'),
+        (link.getAttribute('href') ?? '').endsWith(`demo-session-results-30.${demoLocale}.pdf`),
       ),
     ).toBe(true);
     expect(
       demoPdfLinks.some((link) =>
-        (link.getAttribute('href') ?? '').endsWith('demo-session-results-30-pdfua.pdf'),
+        (link.getAttribute('href') ?? '').endsWith(
+          `demo-session-results-30.${demoLocale}-pdfua.pdf`,
+        ),
       ),
     ).toBe(true);
     for (const link of demoPdfLinks) {

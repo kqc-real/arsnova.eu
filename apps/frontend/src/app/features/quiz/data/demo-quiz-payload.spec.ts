@@ -83,7 +83,7 @@ describe('getDemoQuizSeedFingerprint', () => {
       de: 'Runde $\\pi$ auf zwei Dezimalstellen.',
       en: 'Round $\\pi$ to two decimal places.',
       es: 'Redondea $\\pi$ a dos decimales.',
-      fr: 'Arrondis $\\pi$ à deux décimales.',
+      fr: 'Arrondissez $\\pi$ à deux décimales.',
       it: 'Arrotonda $\\pi$ a due cifre decimali.',
     } as const;
 

@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc && node ../../scripts/fix-esm-imports.mjs dist",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync-labels-from-xlf": "npm run build && node scripts/sync-labels-from-xlf.mjs && npm run build"
   },
   "dependencies": {
     "@arsnova/shared-types": "*",

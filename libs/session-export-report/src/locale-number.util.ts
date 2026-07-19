@@ -44,8 +44,8 @@ export function formatLocaleScore(
 
 const APPROX_PREFIX: Record<string, { lower: string; sentence: string }> = {
   de: { lower: 'ca. ', sentence: 'Ca. ' },
-  en: { lower: 'approx. ', sentence: 'Approx. ' },
-  fr: { lower: 'env. ', sentence: 'Env. ' },
+  en: { lower: 'about ', sentence: 'About ' },
+  fr: { lower: 'environ ', sentence: 'Environ ' },
   es: { lower: 'aprox. ', sentence: 'Aprox. ' },
   it: { lower: 'circa ', sentence: 'Circa ' },
 };
@@ -67,10 +67,62 @@ export function percentValueNeedsApproximation(value: number): boolean {
 }
 
 export interface FormatLocalePercentShareOptions {
-  /** Wenn true: „ca. 27 %“ / „approx. 27%“. */
+  /** Wenn true: „ca. 27 %“ / „about 27%“. */
   approximate?: boolean;
   /** Satzanfang: „Ca. …“ statt „ca. …“. */
   sentenceCase?: boolean;
+}
+
+/** Prozentzeichen inkl. localeüblicher Typografie (`40%` vs. `40 %`). */
+export function formatLocalePercentUnit(locale = 'de'): string {
+  const lang = normalizeLocale(locale).slice(0, 2).toLowerCase();
+  return lang === 'en' ? '%' : ' %';
+}
+
+/** Doppelpunkt inkl. localeüblicher Typografie (`Label:` vs. FR `Label\u00A0:`). */
+export function formatLocaleColon(locale = 'de'): string {
+  const lang = normalizeLocale(locale).slice(0, 2).toLowerCase();
+  // Französisch: geschütztes Leerzeichen vor dem Doppelpunkt (NBSP, PDF-stabil).
+  return lang === 'fr' ? '\u00A0:' : ':';
+}
+
+/** Formatiert einen Prozentwert (0–100) inkl. localeüblichem `%`-Abstand. */
+export function formatLocalePercentValue(
+  value: number,
+  locale = 'de',
+  options: FormatLocaleNumberOptions = {},
+): string {
+  return `${formatLocaleNumber(value, locale, options)}${formatLocalePercentUnit(locale)}`;
+}
+
+type LocaleListType = 'conjunction' | 'disjunction';
+
+/** Formatiert eine Liste mit localeüblicher Konjunktion/Disjunktion. */
+export function formatLocaleList(
+  items: readonly string[],
+  locale = 'de',
+  type: LocaleListType = 'conjunction',
+): string {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0]!;
+  try {
+    return new Intl.ListFormat(normalizeLocale(locale), {
+      style: 'long',
+      type,
+    }).format([...items]);
+  } catch {
+    return items.join(', ');
+  }
+}
+
+/** Formatiert eine Liste mit localeüblicher Konjunktion („7, 3, and 6“ / „7, 3 und 6“). */
+export function formatLocaleConjunctionList(items: readonly string[], locale = 'de'): string {
+  return formatLocaleList(items, locale, 'conjunction');
+}
+
+/** Formatiert eine Liste mit localeüblicher Disjunktion („A or B“ / „A oder B“). */
+export function formatLocaleDisjunctionList(items: readonly string[], locale = 'de'): string {
+  return formatLocaleList(items, locale, 'disjunction');
 }
 
 /** Formatiert einen Prozentanteil inkl. optionalem Rundungs-Hinweis („ca.“). */
@@ -82,7 +134,7 @@ export function formatLocalePercentShare(
   const lang = normalizeLocale(locale).slice(0, 2).toLowerCase();
   const rounded = Math.round(safeFiniteNumber(value));
   const num = formatLocaleNumber(rounded, locale, { maximumFractionDigits: 0 });
-  const unit = lang === 'en' ? '%' : ' %';
+  const unit = formatLocalePercentUnit(locale);
   // 0 % und 100 % wirken mit „ca.“ falsch, auch wenn der Aufrufer approximate setzt.
   const useApprox = Boolean(options.approximate) && rounded !== 0 && rounded !== 100;
   if (!useApprox) return `${num}${unit}`;

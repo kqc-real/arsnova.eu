@@ -19,6 +19,12 @@ const LOCALES = ['de', 'en', 'fr', 'it', 'es'];
 const REQUIRED_ASSETS = [
   'assets/images/AI-REVOLUTION.png',
   'assets/images/numeric-estimate-1789-host.png',
+  // Locale-spezifische Demo-Nachbesprechungspläne (Inhalt = Dateiname-Locale)
+  ...LOCALES.flatMap((locale) => [
+    `assets/demo/demo-session-results-30.${locale}.pdf`,
+    `assets/demo/demo-session-results-30.${locale}-pdfua.pdf`,
+  ]),
+  // DE-Aliase (MOTD-Backward-Compat)
   'assets/demo/demo-session-results-30.pdf',
   'assets/demo/demo-session-results-30-pdfua.pdf',
 ];

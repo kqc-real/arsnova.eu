@@ -13,11 +13,16 @@ import {
   questionSupportsConfidence,
   selectConfidencePriorityQuestions,
 } from '@arsnova/shared-types';
+import { applyFrenchColonTypographyToHtml } from './french-colon-typography.util';
 import {
+  formatLocaleColon,
+  formatLocaleConjunctionList,
   formatLocaleCount,
+  formatLocaleDisjunctionList,
   formatLocaleNumber,
   formatLocaleScore,
   formatLocalePercentShareFromCounts,
+  formatLocalePercentValue,
 } from './locale-number.util';
 import { stripMarkdownToPlainText } from './markdown-plain-text.util';
 import {
@@ -119,14 +124,18 @@ function languageDisplayName(language: string, localeId: string): string {
 }
 
 function formatReportDateTime(value: string | Date, localeId: string): string {
-  const formatted = new Intl.DateTimeFormat(localeId, {
-    day: '2-digit',
-    month: '2-digit',
+  const lang = localeId.toLowerCase().slice(0, 2);
+  // EN: internationales Format (19 Jul 2026, 07:32), nicht US MM/DD/YYYY
+  const formatLocale = lang === 'en' ? 'en-GB' : localeId;
+  const formatted = new Intl.DateTimeFormat(formatLocale, {
+    day: lang === 'en' ? 'numeric' : '2-digit',
+    month: lang === 'en' ? 'short' : '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   }).format(new Date(value));
-  return localeId.toLowerCase().startsWith('de') ? `${formatted} Uhr` : formatted;
+  return lang === 'de' ? `${formatted} Uhr` : formatted;
 }
 
 function percent(count: number, total: number): number {
@@ -309,19 +318,20 @@ function numericStatsText(
   numericContext?: NumericHistogramOverlayContext,
 ): string {
   const parts: string[] = [
-    `${labels.numericComparisonAnswers}: ${formatLocaleCount(stats.n, localeId)}`,
+    `${labels.numericComparisonAnswers}${formatLocaleColon(localeId)} ${formatLocaleCount(stats.n, localeId)}`,
   ];
+  const colon = formatLocaleColon(localeId);
   if (stats.mean !== null)
     parts.push(
-      `${labels.numericComparisonMean}: ${formatNumericStatValue(stats.mean, localeId, numericContext)}`,
+      `${labels.numericComparisonMean}${colon} ${formatNumericStatValue(stats.mean, localeId, numericContext)}`,
     );
   if (stats.median !== null)
     parts.push(
-      `${labels.numericComparisonMedian}: ${formatNumericStatValue(stats.median, localeId, numericContext)}`,
+      `${labels.numericComparisonMedian}${colon} ${formatNumericStatValue(stats.median, localeId, numericContext)}`,
     );
   if (stats.stdDev !== null)
     parts.push(
-      `${labels.numericComparisonStdDev}: ${formatNumericStatValue(stats.stdDev, localeId, numericContext)}`,
+      `${labels.numericComparisonStdDev}${colon} ${formatNumericStatValue(stats.stdDev, localeId, numericContext)}`,
     );
   return parts.join(' · ');
 }
@@ -336,7 +346,7 @@ function renderNumericRoundComparison(
   const formatNullable = (value: number | null) =>
     value === null ? '—' : formatNumericStatValue(value, localeId, numericContext);
   const formatPercent = (value: number | null) =>
-    value === null ? '—' : `${formatLocaleNumber(value, localeId, { maximumFractionDigits: 1 })} %`;
+    value === null ? '—' : formatLocalePercentValue(value, localeId, { maximumFractionDigits: 1 });
   const rows = [
     [
       labels.numericComparisonAnswers,
@@ -442,17 +452,31 @@ function renderOptionBars(
   return html;
 }
 
+function confidenceSectionHeading(
+  labels: SessionResultsReportLabels,
+  localeId: string,
+  total: number,
+): string {
+  const countLabel = labels.confidenceResponseCountTemplate.replace(
+    '{0}',
+    formatLocaleCount(total, localeId),
+  );
+  return `<h3>${escapeHtml(labels.confidenceSection)} · <span class="report-badge">${escapeHtml(countLabel)}</span></h3>`;
+}
+
 function renderConfidenceSection(
   result: ConfidenceResultDTO,
   labels: SessionResultsReportLabels,
   localeId: string,
   overallDistribution?: ConfidenceResultDTO['distribution'],
+  questionType?: string,
 ): string {
   const total = confidenceResponseCount(result);
   const topWrong = result.highConfidenceWrongOptions?.[0];
   const topOmission = result.highConfidenceOmittedCorrectOptions?.[0];
   const wrongCount = topWrong?.count ?? 0;
   const omitCount = topOmission?.count ?? 0;
+  const isMultipleAnswer = questionType === 'MULTIPLE_CHOICE';
   let topSignalNote = '';
 
   const useCombined =
@@ -481,14 +505,20 @@ function renderConfidenceSection(
           labels.confidenceTopSignalTemplate
             .replace('{0}', wrongText)
             .replace('{1}', formatLocaleCount(wrongCount, localeId));
+    const actionTemplate = isMultipleAnswer
+      ? labels.confidenceMcCombinedActionTemplate
+      : labels.confidenceScCombinedActionTemplate;
     topSignalNote = `<aside class="report-top-signal"><strong>${escapeHtml(labels.confidenceTopSignal)}</strong><span>${escapeHtml(
       signal,
     )}</span><p>${escapeHtml(
-      labels.confidenceMcCombinedActionTemplate
-        .replace('{0}', omissionText)
-        .replace('{1}', wrongText),
+      actionTemplate.replace('{0}', omissionText).replace('{1}', wrongText),
     )}</p></aside>`;
-  } else if (topOmission && omitCount >= wrongCount && result.highConfidenceWrongCount > 0) {
+  } else if (
+    isMultipleAnswer &&
+    topOmission &&
+    omitCount >= wrongCount &&
+    result.highConfidenceWrongCount > 0
+  ) {
     const omissionText = stripMarkdownToPlainText(topOmission.text);
     topSignalNote = `<aside class="report-top-signal"><strong>${escapeHtml(labels.confidenceTopSignal)}</strong><span>${escapeHtml(
       labels.confidenceOmissionSignalTemplate
@@ -519,7 +549,7 @@ function renderConfidenceSection(
     result.crossTab.incorrectHigh === total &&
     result.crossTab.correctHigh === 0;
   if (highOnly) {
-    return `<h3>${escapeHtml(labels.confidenceSection)} <span class="report-badge">${escapeHtml(labels.confidenceN)}: ${formatLocaleCount(total, localeId)}</span></h3>
+    return `${confidenceSectionHeading(labels, localeId, total)}
       <div class="report-confidence-degenerate">
         <p><strong>${escapeHtml(
           labels.confidenceDegenerateAllHighWrongTemplate.replace(
@@ -556,7 +586,7 @@ function renderConfidenceSection(
     ${renderConfidenceHeatmapHtml(result.crossTab, heatmapLabels(labels), localeId, 'compact')}
     ${distribution}
   </div>`;
-  return `<h3>${escapeHtml(labels.confidenceSection)} <span class="report-badge">${escapeHtml(labels.confidenceN)}: ${formatLocaleCount(total, localeId)}</span></h3>${charts}${topSignalNote}`;
+  return `${confidenceSectionHeading(labels, localeId, total)}${charts}${topSignalNote}`;
 }
 
 function renderQuestion(
@@ -580,7 +610,7 @@ function renderQuestion(
     )}</span>
     <span class="report-badge">${escapeHtml(typeLabel)}</span>
     ${roundLabel ? `<span class="report-badge report-badge--round">${escapeHtml(roundLabel)}</span>` : ''}
-    <span class="report-badge">${escapeHtml(labels.questionParticipants)}: ${formatLocaleCount(q.participantCount, localeId)}</span>
+    <span class="report-badge">${escapeHtml(labels.questionParticipants)}${formatLocaleColon(localeId)} ${formatLocaleCount(q.participantCount, localeId)}</span>
   </div>`;
 
   const numericOverlay =
@@ -616,11 +646,11 @@ function renderQuestion(
     const correctnessTotal = (q.correctCount ?? 0) + (q.incorrectCount ?? 0);
     const correctnessLabel =
       q.type === 'MULTIPLE_CHOICE' ? labels.multipleChoiceFullyCorrect : labels.shortTextCorrect;
-    body += `<p class="report-correctness-summary"><strong>${escapeHtml(correctnessLabel)}:</strong> ${escapeHtml(
+    body += `<p class="report-correctness-summary"><strong>${escapeHtml(correctnessLabel)}${formatLocaleColon(localeId)}</strong> ${escapeHtml(
       labels.countOfTemplate
         .replace('{0}', formatLocaleCount(q.correctCount ?? 0, localeId))
         .replace('{1}', formatLocaleCount(correctnessTotal, localeId)),
-    )} · ${percent(q.correctCount ?? 0, correctnessTotal)} %</p>`;
+    )} · ${formatLocalePercentValue(percent(q.correctCount ?? 0, correctnessTotal), localeId)}</p>`;
     if (shouldShowLowSuccessRateHint(q)) {
       body += `<p class="report-note report-low-success-hint">${escapeHtml(
         labels.lowSuccessRateHintTemplate.replace(
@@ -721,6 +751,7 @@ function renderQuestion(
       labels,
       localeId,
       overallConfidenceDistribution,
+      q.type,
     );
     body += `<section class="report-confidence-continuation">${confidence}</section>`;
   } else {
@@ -889,11 +920,11 @@ function renderConfidenceSummary(
   const metrics = `<p class="report-metrics-basis">${escapeHtml(
     labels.confidenceMetricsBasisTemplate.replace('{0}', formatLocaleCount(total, localeId)),
   )}</p><div class="report-metrics report-metrics--five">
-    <div class="report-metric report-metric--success"><strong>${metricPercents[0]} %</strong><span>${escapeHtml(labels.confidenceMastery)}</span></div>
-    <div class="report-metric report-metric--risk"><strong>${metricPercents[1]} %</strong><span>${escapeHtml(labels.confidenceRisk)}</span></div>
-    <div class="report-metric report-metric--fragile"><strong>${metricPercents[2]} %</strong><span>${escapeHtml(labels.confidenceFragile)}</span></div>
-    <div class="report-metric report-metric--gap"><strong>${metricPercents[3]} %</strong><span>${escapeHtml(labels.confidenceGap)}</span></div>
-    <div class="report-metric report-metric--middle"><strong>${metricPercents[4]} %</strong><span>${escapeHtml(labels.confidenceMiddle)}</span></div>
+    <div class="report-metric report-metric--success"><strong>${formatLocalePercentValue(metricPercents[0]!, localeId)}</strong><span>${escapeHtml(labels.confidenceMastery)}</span></div>
+    <div class="report-metric report-metric--risk"><strong>${formatLocalePercentValue(metricPercents[1]!, localeId)}</strong><span>${escapeHtml(labels.confidenceRisk)}</span></div>
+    <div class="report-metric report-metric--fragile"><strong>${formatLocalePercentValue(metricPercents[2]!, localeId)}</strong><span>${escapeHtml(labels.confidenceFragile)}</span></div>
+    <div class="report-metric report-metric--gap"><strong>${formatLocalePercentValue(metricPercents[3]!, localeId)}</strong><span>${escapeHtml(labels.confidenceGap)}</span></div>
+    <div class="report-metric report-metric--middle"><strong>${formatLocalePercentValue(metricPercents[4]!, localeId)}</strong><span>${escapeHtml(labels.confidenceMiddle)}</span></div>
   </div>`;
   const masteryZeroNote =
     metricPercents[0] === 0 &&
@@ -912,13 +943,32 @@ function renderConfidenceSummary(
   const notCollectedQuestions = withoutConfidence.filter(
     (question) => questionSupportsConfidence(question.type) && question.confidenceEnabled !== false,
   );
-  const questionList = (entries: QuestionExportEntry[]) =>
-    entries
-      .map(
-        (question) =>
-          `${labels.questionNumber} ${question.questionOrder + 1} (${questionTypeLabelForReport(question.type, labels)})`,
-      )
-      .join(', ');
+  const lang = localeId.slice(0, 2).toLowerCase();
+  const questionRef = (question: QuestionExportEntry, withType = true) => {
+    const typeLabel = questionTypeLabelForReport(question.type, labels);
+    const n = question.questionOrder + 1;
+    if (lang === 'fr') {
+      return withType ? `la question ${n} (${typeLabel})` : `la question ${n}`;
+    }
+    const base = `${labels.questionNumber} ${n}`;
+    return withType ? `${base} (${typeLabel})` : base;
+  };
+  const joinQuestionRefs = (
+    entries: QuestionExportEntry[],
+    type: 'conjunction' | 'disjunction',
+    withType = true,
+  ) => {
+    const refs = entries.map((entry) => questionRef(entry, withType));
+    if (lang === 'fr' && type === 'disjunction' && refs.length > 1) {
+      return `${refs[0]}${refs
+        .slice(1)
+        .map((ref) => ` ni pour ${ref}`)
+        .join('')}`;
+    }
+    return type === 'disjunction'
+      ? formatLocaleDisjunctionList(refs, localeId)
+      : formatLocaleConjunctionList(refs, localeId);
+  };
   const coverageLead = labels.confidenceCoverageTemplate
     .replace('{0}', formatLocaleCount(summary.includedQuestionCount, localeId))
     .replace('{1}', formatLocaleCount(questions.length, localeId))
@@ -932,20 +982,29 @@ function renderConfidenceSummary(
       : '';
   const missingReasons = [
     unsupportedQuestions.length > 0
-      ? labels.confidenceNotSupportedTemplate.replace('{0}', questionList(unsupportedQuestions))
+      ? labels.confidenceNotSupportedTemplate.replace(
+          '{0}',
+          joinQuestionRefs(unsupportedQuestions, 'disjunction'),
+        )
       : '',
     disabledQuestions.length > 0
-      ? labels.confidenceDisabledTemplate.replace('{0}', questionList(disabledQuestions))
+      ? labels.confidenceDisabledTemplate.replace(
+          '{0}',
+          joinQuestionRefs(disabledQuestions, 'conjunction', false),
+        )
       : '',
     notCollectedQuestions.length > 0
-      ? labels.confidenceNotCollectedTemplate.replace('{0}', questionList(notCollectedQuestions))
+      ? labels.confidenceNotCollectedTemplate.replace(
+          '{0}',
+          joinQuestionRefs(notCollectedQuestions, 'disjunction'),
+        )
       : '',
   ].filter(Boolean);
   const coverage = `<div class="report-coverage">
     <p>${escapeHtml(coverageLead)}</p>
     ${formula ? `<p>${escapeHtml(formula)}</p>` : ''}
     ${missingReasons.map((reason) => `<p>${escapeHtml(reason)}</p>`).join('')}
-    ${summary.suppressedQuestionCount > 0 ? `<p>${escapeHtml(labels.confidenceSuppressedQuestions)}: ${formatLocaleCount(summary.suppressedQuestionCount, localeId)}</p>` : ''}
+    ${summary.suppressedQuestionCount > 0 ? `<p>${escapeHtml(labels.confidenceSuppressedQuestions)}${formatLocaleColon(localeId)} ${formatLocaleCount(summary.suppressedQuestionCount, localeId)}</p>` : ''}
   </div>`;
 
   const aggregateCharts = `<div class="report-chart-grid">
@@ -1057,7 +1116,7 @@ export function buildSessionResultsReportHtml(
 
   const coverNavHtml = renderCoverNavigationHtml(data, labels);
   const coverSummaryHtml = renderCoverSummaryHtml(data, labels, localeId);
-  const actionPlanHtml = renderDebriefActionPlanHtml(data, labels);
+  const actionPlanHtml = renderDebriefActionPlanHtml(data, labels, localeId);
   const hardestHtml = renderHardestQuestionsHtml(data, labels, localeId);
   const participationHtml = renderSessionParticipationHtml(data, labels, localeId);
   const finalSummaryHtml = renderNextStepsSummaryHtml(data, labels, localeId);
@@ -1188,7 +1247,10 @@ export function buildSessionResultsReportHtml(
   <footer class="report-footer">${escapeHtml(labels.generatedBy)} · ${escapeHtml(footerMeta)}</footer>
 </body>
 </html>`;
-  return neutralizePdfUaInlineMarkup(html);
+  const neutralized = neutralizePdfUaInlineMarkup(html);
+  return localeId.slice(0, 2).toLowerCase() === 'fr'
+    ? applyFrenchColonTypographyToHtml(neutralized)
+    : neutralized;
 }
 
 export function buildSessionResultsPdfFilename(

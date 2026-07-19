@@ -34,11 +34,40 @@ try {
 const { createTRPCProxyClient, httpLink } = trpcClientModule;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const SUPPORTED_DEMO_LOCALES = new Set(['de', 'en', 'fr', 'es', 'it']);
+const QUIZ_CONTENT_LOCALE = String(
+  process.env.QUIZ_CONTENT_LOCALE || process.env.DEMO_QUIZ_LOCALE || 'de',
+)
+  .trim()
+  .slice(0, 2)
+  .toLowerCase();
+if (!SUPPORTED_DEMO_LOCALES.has(QUIZ_CONTENT_LOCALE)) {
+  throw new Error(
+    `Unsupported QUIZ_CONTENT_LOCALE=${QUIZ_CONTENT_LOCALE}. Expected one of: ${[...SUPPORTED_DEMO_LOCALES].join(', ')}`,
+  );
+}
 const DEMO_QUIZ_JSON = join(
   __dirname,
-  '../../apps/frontend/src/assets/demo/quiz-demo-showcase.de.json',
+  `../../apps/frontend/src/assets/demo/quiz-demo-showcase.${QUIZ_CONTENT_LOCALE}.json`,
 );
-const DEMO_QUIZ_HISTORY_SCOPE_ID = 'de500000-0000-4000-a000-000000000001';
+/** Pro Locale eigene History-Scope-ID (gültige UUID v4, nur Hex), damit Reseed nicht kollidiert. */
+const DEMO_QUIZ_HISTORY_SCOPE_BY_LOCALE = {
+  de: 'de500000-0000-4000-a000-000000000001',
+  en: 'e1500000-0000-4000-a000-000000000001',
+  fr: 'f4500000-0000-4000-a000-000000000001',
+  es: 'e5500000-0000-4000-a000-000000000001',
+  it: '17500000-0000-4000-a000-000000000001',
+};
+const DEMO_QUIZ_HISTORY_SCOPE_ID = DEMO_QUIZ_HISTORY_SCOPE_BY_LOCALE[QUIZ_CONTENT_LOCALE];
+
+/** MC-Option „Vorwissen …“ — Needles je Showcase-Locale. */
+const PRIOR_KNOWLEDGE_NEEDLES_BY_LOCALE = {
+  de: ['vorwissen'],
+  en: ['prior knowledge'],
+  fr: ['connaissances préalables', 'connaissances prealables'],
+  es: ['conocimientos previos'],
+  it: ['conoscenze pregresse'],
+};
 
 const TRPC_URL = String(process.env.TRPC_URL || 'http://127.0.0.1:3000/trpc').trim();
 const SESSION_CODE = String(process.env.SESSION_CODE || '')
@@ -277,7 +306,10 @@ function buildVoteInput(participant, question, metadata, round, participantIndex
       }
       const { correct, wrong } = answerIdsByCorrectness(question, metadata);
       const falseOnly = wrong.length > 0 ? wrong : [question.answers[0].id];
-      const vorwissenId = findAnswerIdByText(question, ['vorwissen']);
+      const vorwissenId = findAnswerIdByText(
+        question,
+        PRIOR_KNOWLEDGE_NEEDLES_BY_LOCALE[QUIZ_CONTENT_LOCALE] ?? ['vorwissen'],
+      );
       const omitVorwissen =
         vorwissenId && correct.includes(vorwissenId)
           ? correct.filter((id) => id !== vorwissenId)
@@ -569,7 +601,7 @@ async function run() {
   const participants = await mapLimit(indexes, JOIN_CONCURRENCY, async (index) =>
     publicTrpc.session.join.mutate({
       code,
-      nickname: kindergartenNickname(index),
+      nickname: kindergartenNickname(index, QUIZ_CONTENT_LOCALE),
     }),
   );
 

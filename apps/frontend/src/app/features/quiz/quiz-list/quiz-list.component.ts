@@ -203,9 +203,21 @@ export class QuizListComponent implements OnInit {
   readonly lastFeedbackEmptyTooltip = $localize`:@@quizList.lastFeedbackEmpty:Noch keine abgeschlossene Auswertung vorhanden.`;
   readonly lastSessionReportPdfEnabledTooltip = $localize`:@@quizList.lastSessionReportPdfTooltip:Nachbesprechungsplan mit Diagrammen und Details – zum Speichern, Drucken oder Teilen.`;
   readonly demoSessionResultsPdfTooltip = $localize`:@@quizList.demoSessionResultsPdfTooltip:Beispiel-PDF mit didaktischer Auswertung – ohne eigenen Live-Durchlauf.`;
-  /** Locale-aware URLs zu den Demo-Nachbesprechungsplänen unter `/<locale>/assets/…`. */
-  readonly demoSessionResultsPdfUrl = `${resolveMotdAssetOrigin()}/assets/demo/demo-session-results-30.pdf`;
-  readonly demoSessionResultsPdfUaUrl = `${resolveMotdAssetOrigin()}/assets/demo/demo-session-results-30-pdfua.pdf`;
+  /**
+   * Locale-spezifische Demo-PDFs:
+   * `demo-session-results-30.{locale}.pdf` / `….${locale}-pdfua.pdf`
+   * (Inhalt + Berichtssprache; Asset-Pfad zusätzlich unter `/<locale>/assets/…`).
+   */
+  readonly demoSessionResultsPdfUrl = `${resolveMotdAssetOrigin()}/assets/demo/demo-session-results-30.${this.demoPdfLocale()}.pdf`;
+  readonly demoSessionResultsPdfUaUrl = `${resolveMotdAssetOrigin()}/assets/demo/demo-session-results-30.${this.demoPdfLocale()}-pdfua.pdf`;
+
+  private demoPdfLocale(): string {
+    const lang = String(this.localeId || 'de')
+      .trim()
+      .slice(0, 2)
+      .toLowerCase();
+    return ['de', 'en', 'fr', 'es', 'it'].includes(lang) ? lang : 'de';
+  }
   readonly sessionPdfExportQuizId = signal<string | null>(null);
   private readonly descriptionMarkdownCache = new Map<string, SafeHtml>();
   private lastQuizHistoryAvailabilityKey = '';

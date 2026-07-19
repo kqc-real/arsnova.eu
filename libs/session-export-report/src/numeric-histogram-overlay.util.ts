@@ -4,7 +4,7 @@ import {
   resolveNumericTolerance,
 } from '@arsnova/shared-types';
 import type { SessionResultsReportLabels } from './labels-de';
-import { formatLocaleCount, formatLocaleNumber } from './locale-number.util';
+import { formatLocaleColon, formatLocaleCount, formatLocaleNumber } from './locale-number.util';
 
 export type NumericHistogramOverlayContext = Pick<
   QuestionExportEntry,
@@ -176,9 +176,10 @@ export function renderNumericHistogramBandCaption(
   if (!band) return '';
 
   const referenceValue = context.numericReferenceValue;
-  const caption = `${labels.numericToleranceBand}: ${formatNumericEstimateValue(band.left, context, localeId, true)}–${formatNumericEstimateValue(band.right, context, localeId, true)}${
+  const colon = formatLocaleColon(localeId);
+  const caption = `${labels.numericToleranceBand}${colon} ${formatNumericEstimateValue(band.left, context, localeId, true)}–${formatNumericEstimateValue(band.right, context, localeId, true)}${
     referenceValue !== null && referenceValue !== undefined
-      ? ` · ${labels.numericReference}: ${formatNumericEstimateValue(referenceValue, context, localeId)}`
+      ? ` · ${labels.numericReference}${colon} ${formatNumericEstimateValue(referenceValue, context, localeId)}`
       : ''
   }`;
 
@@ -215,7 +216,7 @@ export function renderNumericHistogramReferenceLabel(
   if (!range || referenceValue === null || referenceValue === undefined) return '';
   const refLeft = referencePercent(referenceValue, range);
   if (refLeft === null) return '';
-  const refLabel = `${labels.numericReference}: ${formatNumericEstimateValue(referenceValue, context, localeId)}`;
+  const refLabel = `${labels.numericReference}${formatLocaleColon(localeId)} ${formatNumericEstimateValue(referenceValue, context, localeId)}`;
   return `<span class="report-hist-reference-label" style="left:${refLeft.toFixed(2)}%">${escapeHtml(refLabel)}</span>`;
 }
 
@@ -230,7 +231,7 @@ export function renderNumericHistogramBandLabel(
   if (!band || !range) return '';
   const style = bandStyle(band, range);
   if (!style) return '';
-  const label = `${labels.numericToleranceBand}: ${formatNumericEstimateValue(band.left, context, localeId, true)}–${formatNumericEstimateValue(band.right, context, localeId, true)}`;
+  const label = `${labels.numericToleranceBand}${formatLocaleColon(localeId)} ${formatNumericEstimateValue(band.left, context, localeId, true)}–${formatNumericEstimateValue(band.right, context, localeId, true)}`;
   return `<span class="report-hist-band-label" style="left:${style.left.toFixed(2)}%;width:${style.width.toFixed(2)}%">${escapeHtml(label)}</span>`;
 }
 

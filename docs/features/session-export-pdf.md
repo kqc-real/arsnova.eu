@@ -55,6 +55,8 @@ Pipeline: `SessionExportDTO` → `buildSessionResultsReportHtml()` → Playwrigh
 | Schicht                                            | Ort                                                                                                                                         |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Shared Report-Builder (HTML, Charts, Print-CSS)    | `libs/session-export-report/`                                                                                                               |
+| Berichtslabels DE + Locale-Resolver                | `libs/session-export-report/src/labels-de.ts`, `labels-locale.util.ts`, `labels-i18n.generated.ts`                                          |
+| Fachglossar (Nachbesprechungsplan i18n)            | [`session-export-pdf-i18n-glossary.md`](session-export-pdf-i18n-glossary.md)                                                                |
 | Frontend-Labels (Angular `$localize`)              | `apps/frontend/src/app/core/session-results-report-labels.ts`                                                                               |
 | Frontend-Export-Service (Download, Print-Fallback) | `apps/frontend/src/app/core/session-results-export.service.ts`                                                                              |
 | Server-PDF (Playwright-Wrapper)                    | `apps/backend/src/lib/session-results-report-pdf.ts`                                                                                        |
@@ -64,16 +66,25 @@ Vor Tests und Backend-Build muss `@arsnova/session-export-report` gebaut sein (`
 
 ## Demo-PDF erzeugen
 
-Backend und PostgreSQL müssen laufen:
+Backend und PostgreSQL müssen laufen. Fachbegriffe: [`session-export-pdf-i18n-glossary.md`](session-export-pdf-i18n-glossary.md).
 
 ```bash
+# Alle Locales × Standard + PDF/UA → apps/frontend/src/assets/demo/
 npm run generate:session-pdf-demo -w @arsnova/frontend
 ```
 
-Optional mit bestehender Session:
+Dateinamen: `demo-session-results-30.{de|en|fr|es|it}.pdf` und `….${locale}-pdfua.pdf` (plus DE-Aliase ohne Locale-Suffix).
+
+**Wichtig:** Nach Label- oder Showcase-Änderungen alle Locales neu erzeugen. Platzhalter-Kopien der DE-PDF sind nicht freigabefähig.
+
+Optional:
 
 ```bash
-SESSION_CODE=ABC123 npm run generate:session-pdf-demo -w @arsnova/frontend
+# Nur eine Locale
+DEMO_PDF_LOCALES=fr npm run generate:session-pdf-demo -w @arsnova/frontend
+
+# Bestehende Session (nur sinnvoll mit genau einer Locale)
+DEMO_PDF_LOCALES=de SESSION_CODE=ABC123 npm run generate:session-pdf-demo -w @arsnova/frontend
 ```
 
 Für relative Demo-Bilder (`/assets/…`) werden Bilder beim PDF-Export als Data-URLs eingebettet (lokal aus `apps/frontend/src/assets` bzw. per HTTPS-Fetch).
