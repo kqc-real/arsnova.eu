@@ -164,7 +164,7 @@
 
 .news-archive-page__article-root .news-archive-page__md :deep(a:focus-visible) {
   outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 2px;
+  outline-offset: 0.25rem;
 }
 
 .news-archive-page__article-root .news-archive-page__md.markdown-body :first-child {

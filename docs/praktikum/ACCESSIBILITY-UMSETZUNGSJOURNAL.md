@@ -1090,6 +1090,53 @@ kein ausreichender Konformitätsnachweis.
 - Schließen von Story 6.5 und Erklärung vollständiger WCAG-2.2-AA-Konformität
   erst nach Abschluss der noch offenen PR-7- und Reader-Abnahmen.
 
+## Nachlaufende UX-Feinjustierung – Abstand des Textlink-Fokus
+
+**Datum:** 2026-07-19  
+**Status:** umgesetzt  
+**WCAG:** 2.4.7 Fokus sichtbar  
+**PR/Commit:** nachzutragen
+
+### Ausgangsproblem
+
+Der vorhandene Fokusrahmen lag bei allgemeinen Textlinks und in mehreren
+Markdown-Ansichten mit zwei Pixeln Abstand noch relativ eng an den
+Buchstaben. Das war erkennbar, wirkte aber visuell gedrängt.
+
+### Konkrete Umsetzung
+
+- globale Grundregel für fokussierte Links mit `href`;
+- einheitlicher Abstand von `0.25rem` zwischen Text und Fokusrahmen;
+- kleiner Eckenradius für eine ruhige Darstellung;
+- bestehende speziellere Regeln in Hilfe, Rechtstexten, News-Archiv und
+  Markdown-Vorschau auf denselben Abstand angehoben.
+
+Es wird bewusst `outline-offset` statt `padding` verwendet. Dadurch ändern
+sich weder Textfluss und Zeilenumbruch noch Größe und Position der
+Klickfläche.
+
+### Betroffene Dateien
+
+- `apps/frontend/src/styles.scss`;
+- `apps/frontend/src/app/features/help/help.component.scss`;
+- `apps/frontend/src/app/features/legal/legal-page.component.scss`;
+- `apps/frontend/src/app/features/news-archive/news-archive-page.component.scss`;
+- `apps/frontend/src/app/shared/markdown-katex-editor/markdown-katex-editor.component.scss`.
+
+### UX- und Design-Einfluss
+
+- Tastaturnutzende können den Fokus leichter vom Linktext unterscheiden.
+- Maus- und Touchdarstellung bleiben unverändert, weil die Regel nur für
+  `:focus-visible` greift.
+- Das Layout bleibt stabil; insbesondere entstehen keine zusätzlichen
+  Zeilenumbrüche.
+
+### Offene manuelle Abnahme
+
+- Textlinks in hellem, dunklem und spielerischem Theme per Tastatur prüfen;
+- Fokusrahmen an Containerkanten und in scrollbaren Markdown-Bereichen auf
+  mögliches Abschneiden kontrollieren.
+
 ## Vorlage für weitere Einträge
 
 ```markdown
