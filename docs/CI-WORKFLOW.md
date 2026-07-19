@@ -18,8 +18,8 @@ Für detaillierte lokale Testkommandos und zusätzliche Last-/Smoke-Varianten si
 Wenn du neu im Projekt bist, reicht dieses mentale Modell:
 
 1. **Vorstufe (früh):** `changes` erkennt docs-only Änderungen; parallel dazu prüfen `dependency-review`, `actionlint`, `format` und `migration` frühe PR-, Workflow-, Format- und Datenbankschemarisiken.
-2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `landing-build`, `typecheck`, `lint`, i18n-Konsistenz).
-3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `classroom-smokes`, `lighthouse`).
+2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `landing-build`, `typecheck`, `lint`, i18n-Konsistenz). `lint` umfasst Angular-Template-A11y; `landing-build` führt nach dem Build axe aus.
+3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, `e2e`, `classroom-smokes`, `lighthouse`, `pdfua`).
 4. **Sicherheit:** `audit`, Dependency Review und Trivy blockieren ab High; CodeQL prüft SAST, die CI erzeugt ein CycloneDX-SBOM.
 5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
 
@@ -31,7 +31,8 @@ Nutze diese Reihenfolge lokal, bevor du einen PR öffnest:
 2. `npm run lint`
 3. `npm run test:coverage`
 4. Bei Frontend-/Locale-Änderungen zusätzlich: `npm run build:localize -w @arsnova/frontend`
-5. Optional produktionsnah: `npm run verify:production-serving`
+5. Bei PDF-Export-Änderungen zusätzlich: `npm run validate:pdfua`
+6. Optional produktionsnah: `npm run verify:production-serving`
 
 Wenn ein Schritt fehlschlägt, behebe ihn lokal zuerst. So sparst du CI-Runden und Reviewer-Zeit.
 
@@ -72,6 +73,7 @@ flowchart TD
   Z --> F[audit<br/>skip bei docs_only/schedule]
   Z --> G[trivy-fs<br/>skip bei docs_only/schedule]
   Z --> G2[migration drift<br/>migrate deploy + schema diff]
+  Z --> PUA[pdfua<br/>veraPDF PDF/UA-1]
 
   D --> H[lint]
   D --> I[test:coverage]
@@ -91,6 +93,7 @@ flowchart TD
   F --> Q
   G --> Q
   G2 --> Q
+  PUA --> Q
   M --> Q
 
   Q --> N[deploy]
@@ -184,11 +187,28 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Wann?** Nach erfolgreichem `build`.
 - **Warum?** Prüft Verhalten und stellt Mindestabdeckung sicher.
 
+### 4.7a pdfua
+
+- **Was?** Validiert die fünf PDF/UA-Demoexporte mit veraPDF 1.30.2 gegen
+  PDF/UA-1. Ein einzelner Normverstoß blockiert den Job.
+- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
+  Runner in [../scripts/validate-pdfua.mjs](../scripts/validate-pdfua.mjs).
+- **Wann?** Parallel zu den übrigen Qualitätsjobs, außer bei `schedule` und
+  docs-only.
+- **Warum?** `Tagged: yes` weist nur einen Strukturbaum nach. veraPDF prüft
+  zusätzlich normrelevante Fonts, Unicode-Abbildungen, Metadaten,
+  Strukturelemente und Annotationen.
+- **Artefakt:** `verapdf-ua1-report`, 30 Tage.
+
 ### 4.8 lighthouse
 
-- **Was?** Lighthouse CI gegen den gebauten Frontend-Stand (`/de/`, `/en/`), mobil
-  mit drei Läufen je URL. Performance, LCP, CLS, TBT und Accessibility sind harte Gates.
-- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml), Regeln in [../.lighthouserc.cjs](../.lighthouserc.cjs).
+- **Was?** Lighthouse CI prüft Home DE/EN mit drei Läufen je URL auf
+  Performance, LCP, CLS und TBT. Ein separater Accessibility-Lauf prüft Home
+  DE/EN, Quiz-Liste, Hilfe und Datenschutz. Dort blockieren sowohl der
+  Kategorien-Score als auch jedes fehlgeschlagene gewichtete Einzelaudit.
+- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml),
+  Regeln in [../.lighthouserc.cjs](../.lighthouserc.cjs) und
+  [../.lighthouserc-a11y.cjs](../.lighthouserc-a11y.cjs).
 - **Wann?** Nach `build`, außer bei `schedule`.
 - **Warum?** Qualitätssignal für Accessibility/Performance/Best-Practices/SEO.
 - **Letzter lokaler Nachweis:** Am 2026-07-11 bestanden 6/6 Läufe mit
@@ -200,10 +220,14 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 - **Was?** Sechs Playwright-Smokes mit echten Services (Postgres + Redis),
   produktionsnahen Migrationen und Backend-/Frontend-Start: Host-/Presenter-Auth,
   Host-Musik, `SHORT_TEXT`, `NUMERIC_ESTIMATE`, Quiz-Sync und Unified Session.
+  Vor den Flows laufen axe auf statischen Kernrouten sowie Reflow-, Fokus- und
+  Zielgrößenprüfungen. `SHORT_TEXT` und Unified Session führen axe zusätzlich
+  in aktiven, Ergebnis-, Q&A-, Blitzlicht- und Session-Ende-Zuständen aus.
 - **Wo?** Job und Skriptinventar in [../.github/workflows/ci.yml](../.github/workflows/ci.yml)
   und [../apps/frontend/package.json](../apps/frontend/package.json).
 - **Wann?** Nach `build`, außer bei `schedule`.
-- **Warum?** Testet den Nutzerfluss systemnah (nicht nur isolierte Unit-Tests).
+- **Warum?** Testet den Nutzerfluss und Accessibility-Regressionen systemnah
+  (nicht nur isolierte Unit-Tests).
 
 ### 4.10 classroom-smokes
 

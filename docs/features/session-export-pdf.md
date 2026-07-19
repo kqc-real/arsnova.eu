@@ -89,4 +89,27 @@ DEMO_PDF_LOCALES=de SESSION_CODE=ABC123 npm run generate:session-pdf-demo -w @ar
 
 Für relative Demo-Bilder (`/assets/…`) werden Bilder beim PDF-Export als Data-URLs eingebettet (lokal aus `apps/frontend/src/assets` bzw. per HTTPS-Fetch).
 
+## PDF/UA-1 validieren
+
+```bash
+npm run validate:pdfua
+```
+
+Der Befehl prüft die PDF/UA-Demos aller fünf Locales mit dem fest
+versionierten Container `verapdf/cli:v1.30.2`. Der Bericht liegt anschließend
+unter `tmp/pdfua-validation/verapdf-ua1.txt` und wird in CI als
+`verapdf-ua1-report` gespeichert.
+
+`Tagged: yes` aus `pdfinfo` genügt nicht als PDF/UA-Nachweis. veraPDF prüft
+zusätzlich unter anderem eingebettete Fonts, Unicode-Abbildungen, Metadaten,
+Strukturelemente und Annotationen.
+
+Nachträgliche Fortsetzungsstempel werden nur im Standardprofil gezeichnet.
+Die von `pdf-lib` verwendeten PDF-Standardfonts sind nicht eingebettet und
+dürfen daher nicht in das PDF/UA-Profil gelangen. Der Stempel ist ein
+visuelles Artifact und kein Bestandteil der semantischen Lesereihenfolge.
+
+Das ausführliche Prüfprotokoll steht unter
+[`../praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md`](../praktikum/ACCESSIBILITY-PDFUA-PRUEFPROTOKOLL.md).
+
 Siehe Issue #76.
